@@ -56,11 +56,12 @@ const ITEM_WITH_STOCK_SELECT = `
 type ItemWithStockRow = SupplyItemRow & { total_stock: string; location_names: string[] };
 
 export class SupplyItemRepository implements ISupplyItemRepository {
-
   private readonly documents: DocumentQueries<SupplyDocument>;
 
   constructor(private db: Queryable) {
-    this.documents = new DocumentQueries(db, 'supply_documents', data => SupplyDocument.fromData(data));
+    this.documents = new DocumentQueries(db, 'supply_documents', data =>
+      SupplyDocument.fromData(data)
+    );
   }
 
   // Items
@@ -86,7 +87,8 @@ export class SupplyItemRepository implements ISupplyItemRepository {
 
   async save(item: SupplyItem): Promise<void> {
     const row = SupplyItemMapper.toRow(item);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO supply_items (${ITEM_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       ON CONFLICT (id) DO UPDATE SET
@@ -109,19 +111,39 @@ export class SupplyItemRepository implements ISupplyItemRepository {
         notes = EXCLUDED.notes,
         status = EXCLUDED.status,
         updated_at = EXCLUDED.updated_at
-    `, [
-      row.id, row.lab_id, row.category_id, row.name, row.manufacturer, row.catalog_number,
-      row.vendor_name, row.vendor_catalog_number, row.stock_unit, row.base_item_name,
-      row.reorder_threshold, row.reorder_threshold_unit, row.reorder_quantity, row.reorder_unit, row.unit_price, row.properties,
-      row.current_lot_number, row.description, row.notes, row.status, row.created_at, row.updated_at,
-    ]);
+    `,
+      [
+        row.id,
+        row.lab_id,
+        row.category_id,
+        row.name,
+        row.manufacturer,
+        row.catalog_number,
+        row.vendor_name,
+        row.vendor_catalog_number,
+        row.stock_unit,
+        row.base_item_name,
+        row.reorder_threshold,
+        row.reorder_threshold_unit,
+        row.reorder_quantity,
+        row.reorder_unit,
+        row.unit_price,
+        row.properties,
+        row.current_lot_number,
+        row.description,
+        row.notes,
+        row.status,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
   }
 
   async delete(id: string, labId: string): Promise<boolean> {
-    const result = await this.db.execute(
-      'DELETE FROM supply_items WHERE id = $1 AND lab_id = $2',
-      [id, labId]
-    );
+    const result = await this.db.execute('DELETE FROM supply_items WHERE id = $1 AND lab_id = $2', [
+      id,
+      labId,
+    ]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -143,7 +165,11 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return this.documents.save(document);
   }
 
-  async updateDocument(id: string, itemId: string, fields: DocumentPatch): Promise<SupplyDocument | null> {
+  async updateDocument(
+    id: string,
+    itemId: string,
+    fields: DocumentPatch
+  ): Promise<SupplyDocument | null> {
     return this.documents.update(id, itemId, fields);
   }
 
@@ -161,7 +187,10 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return SupplyBarcodeMapper.fromRows(rows);
   }
 
-  async findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<SupplyBarcodeRow[]> {
+  async findPrimaryBarcodesByItemIds(
+    itemIds: string[],
+    labId: string
+  ): Promise<SupplyBarcodeRow[]> {
     const rows = await this.db.queryMany<SupplyBarcodeDbRow>(
       `SELECT b.id, b.item_id, b.barcode_value, b.barcode_type, b.is_primary, b.label
        FROM supply_barcodes b
@@ -181,13 +210,27 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   }
 
   async saveBarcode(barcode: SupplyBarcodeRow): Promise<void> {
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO supply_barcodes (${BARCODE_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [barcode.id, barcode.itemId, barcode.barcodeValue, barcode.barcodeType, barcode.isPrimary, barcode.label ?? null]);
+    `,
+      [
+        barcode.id,
+        barcode.itemId,
+        barcode.barcodeValue,
+        barcode.barcodeType,
+        barcode.isPrimary,
+        barcode.label ?? null,
+      ]
+    );
   }
 
-  async updateBarcode(id: string, itemId: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<SupplyBarcodeRow | null> {
+  async updateBarcode(
+    id: string,
+    itemId: string,
+    fields: { label?: string | null; isPrimary?: boolean }
+  ): Promise<SupplyBarcodeRow | null> {
     const sets: string[] = [];
     const params: unknown[] = [];
     let idx = 1;
@@ -218,7 +261,10 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   }
 
   async deleteBarcode(id: string, itemId: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM supply_barcodes WHERE id = $1 AND item_id = $2', [id, itemId]);
+    const result = await this.db.execute(
+      'DELETE FROM supply_barcodes WHERE id = $1 AND item_id = $2',
+      [id, itemId]
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -250,7 +296,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   }
 
   async recordTransaction(data: RecordTransactionData): Promise<SupplyTransactionRow> {
-    return await this.db.transaction(async (client) => {
+    return await this.db.transaction(async client => {
       const stockResult = await client.query<{ quantity: string }>(
         `INSERT INTO supply_stock (id, item_id, location_id, quantity, updated_at)
          VALUES ($1, $2, $3, $4, NOW())
@@ -268,10 +314,19 @@ export class SupplyItemRepository implements ISupplyItemRepository {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NULL, NULL, NULL, NULL)
          RETURNING ${TXN_COLUMNS}`,
         [
-          txnId, data.itemId, data.locationId, data.labId, data.type,
-          data.quantityChange, quantityAfter, data.lotNumber ?? null,
-          data.expirationDate ?? null, data.poNumber ?? null, data.cost ?? null,
-          data.performedBy, data.notes ?? null,
+          txnId,
+          data.itemId,
+          data.locationId,
+          data.labId,
+          data.type,
+          data.quantityChange,
+          quantityAfter,
+          data.lotNumber ?? null,
+          data.expirationDate ?? null,
+          data.poNumber ?? null,
+          data.cost ?? null,
+          data.performedBy,
+          data.notes ?? null,
         ]
       );
 
@@ -287,8 +342,10 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return row ? SupplyTransactionMapper.fromRow(row) : null;
   }
 
-  async voidTransaction(data: VoidTransactionData): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }> {
-    return await this.db.transaction(async (client) => {
+  async voidTransaction(
+    data: VoidTransactionData
+  ): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }> {
+    return await this.db.transaction(async client => {
       const originalRow = await client.query<SupplyTransactionDbRow>(
         `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1 AND lab_id = $2`,
         [data.transactionId, data.labId]
@@ -325,9 +382,16 @@ export class SupplyItemRepository implements ISupplyItemRepository {
          VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, NULL, NULL, NULL, $8, $9, NOW(), NULL, NULL, NULL, $10)
          RETURNING ${TXN_COLUMNS}`,
         [
-          reversalId, original.itemId, original.locationId, original.labId, 'void_reversal',
-          reversedQuantity, quantityAfter, data.voidedBy,
-          `Void reversal of ${data.transactionId}`, data.transactionId,
+          reversalId,
+          original.itemId,
+          original.locationId,
+          original.labId,
+          'void_reversal',
+          reversedQuantity,
+          quantityAfter,
+          data.voidedBy,
+          `Void reversal of ${data.transactionId}`,
+          data.transactionId,
         ]
       );
 
@@ -346,13 +410,16 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   // Reorder
 
   async findItemsAtOrBelowThreshold(labId: string): Promise<ItemWithStock[]> {
-    const rows = await this.db.queryMany<ItemWithStockRow>(`
+    const rows = await this.db.queryMany<ItemWithStockRow>(
+      `
       ${ITEM_WITH_STOCK_SELECT}
       WHERE p.lab_id = $1 AND p.status = 'active' AND p.reorder_threshold IS NOT NULL
       GROUP BY p.id
       HAVING COALESCE(SUM(s.quantity), 0) <= p.reorder_threshold
       ORDER BY p.name
-    `, [labId]);
+    `,
+      [labId]
+    );
 
     return rows.map(row => this.toItemWithStock(row));
   }

@@ -49,7 +49,6 @@ export interface TubeRow {
 }
 
 export class TubeMapper {
-
   static toRow(tube: Tube): TubeRow {
     const location = tube.location;
     const sampleData = tube.sample;
@@ -91,14 +90,15 @@ export class TubeMapper {
       lock_note: tube.lockNote,
       locked_at: tube.lockedAt,
       shared_with_user_ids: sharedJson,
-      lab_id: tube.labId
+      lab_id: tube.labId,
     };
   }
 
   static fromRow(row: TubeRow): Tube {
     const concentration = row.concentration ? parseFloat(row.concentration) : undefined;
     const concentrationUnit = nullToUndefined(row.concentration_unit);
-    const validConcentrationUnit = (concentration !== undefined && concentrationUnit) ? concentrationUnit : undefined;
+    const validConcentrationUnit =
+      concentration !== undefined && concentrationUnit ? concentrationUnit : undefined;
 
     const sharedWithUserIdsJson = nullToUndefined(row.shared_with_user_ids);
     const sharedWithUserIds: string[] = sharedWithUserIdsJson
@@ -115,7 +115,7 @@ export class TubeMapper {
         tankId: row.tank_id,
         rackId: row.rack_id,
         boxId: row.box_id,
-        position: row.position
+        position: row.position,
       },
       sample: {
         cellType: nullToUndefined(row.cell_type),
@@ -133,13 +133,13 @@ export class TubeMapper {
         source: nullToUndefined(row.source),
         catalogNumber: nullToUndefined(row.catalog_number),
         passageNumber: nullToUndefined(row.passage_number),
-        notes: nullToUndefined(row.notes)
+        notes: nullToUndefined(row.notes),
       },
       researcherId: nullToUndefined(row.researcher_id),
       createdByName: nullToUndefined(row.created_by_name),
       timestamps: {
         createdAt,
-        updatedAt
+        updatedAt,
       },
       version: row.version,
       isLocked: row.is_locked === true,
@@ -147,7 +147,7 @@ export class TubeMapper {
       lockNote: nullToUndefined(row.lock_note),
       lockedAt,
       sharedWithUserIds,
-      labId: row.lab_id
+      labId: row.lab_id,
     });
   }
 

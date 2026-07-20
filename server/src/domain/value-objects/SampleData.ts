@@ -4,7 +4,11 @@
  * Immutable value object for biological sample information with domain validation.
  */
 
-import { CONCENTRATION_UNITS, type ConcentrationUnit, type TubeSample } from '@odysseus/shared-schemas';
+import {
+  CONCENTRATION_UNITS,
+  type ConcentrationUnit,
+  type TubeSample,
+} from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
 export class SampleData {
@@ -141,7 +145,11 @@ export class SampleData {
 
   private validatePassageNumber(): void {
     if (this._passageNumber !== undefined && this._passageNumber !== null) {
-      if (!Number.isInteger(this._passageNumber) || this._passageNumber < 0 || this._passageNumber > 999) {
+      if (
+        !Number.isInteger(this._passageNumber) ||
+        this._passageNumber < 0 ||
+        this._passageNumber > 999
+      ) {
         throw new ValidationError('Passage number must be an integer between 0 and 999');
       }
     }
@@ -157,7 +165,7 @@ export class SampleData {
       { name: 'catalog number', value: this._catalogNumber, maxLength: 200 },
       { name: 'culture condition', value: this._cultureCondition, maxLength: 300 },
       { name: 'lot number', value: this._lotNumber, maxLength: 100 },
-      { name: 'notes', value: this._notes, maxLength: 1000 }
+      { name: 'notes', value: this._notes, maxLength: 1000 },
     ];
 
     for (const field of stringFields) {
@@ -179,31 +187,39 @@ export class SampleData {
    * - Field with value: update to that value
    * - Field with null: clear (convert to undefined)
    */
-  update(updates: Partial<{
-    cellType?: string;
-    species?: string | null;
-    donorInternalId?: string | null;
-    donorSourceId?: string | null;
-    concentration?: number | null;
-    concentrationUnit?: ConcentrationUnit | null;
-    date?: string | null;
-    mediaType?: string | null;
-    mediaSupplements?: string | null;
-    mediaSelection?: string | null;
-    cultureCondition?: string | null;
-    lotNumber?: string | null;
-    source?: string | null;
-    catalogNumber?: string | null;
-    passageNumber?: number | null;
-    notes?: string | null;
-  }>): SampleData {
+  update(
+    updates: Partial<{
+      cellType?: string;
+      species?: string | null;
+      donorInternalId?: string | null;
+      donorSourceId?: string | null;
+      concentration?: number | null;
+      concentrationUnit?: ConcentrationUnit | null;
+      date?: string | null;
+      mediaType?: string | null;
+      mediaSupplements?: string | null;
+      mediaSelection?: string | null;
+      cultureCondition?: string | null;
+      lotNumber?: string | null;
+      source?: string | null;
+      catalogNumber?: string | null;
+      passageNumber?: number | null;
+      notes?: string | null;
+    }>
+  ): SampleData {
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- three-way null/undefined/value logic throughout */
-    let newConcentration = updates.concentration === null
-      ? undefined
-      : (updates.concentration !== undefined ? updates.concentration : this._concentration);
-    let newConcentrationUnit = updates.concentrationUnit === null
-      ? undefined
-      : (updates.concentrationUnit !== undefined ? updates.concentrationUnit : this._concentrationUnit);
+    let newConcentration =
+      updates.concentration === null
+        ? undefined
+        : updates.concentration !== undefined
+          ? updates.concentration
+          : this._concentration;
+    let newConcentrationUnit =
+      updates.concentrationUnit === null
+        ? undefined
+        : updates.concentrationUnit !== undefined
+          ? updates.concentrationUnit
+          : this._concentrationUnit;
 
     // Business rule: concentration and unit are coupled - clearing one clears both
     if (updates.concentration === null || updates.concentrationUnit === null) {
@@ -213,21 +229,82 @@ export class SampleData {
 
     return SampleData.create({
       cellType: updates.cellType !== undefined ? updates.cellType : this._cellType,
-      species: updates.species === null ? undefined : (updates.species !== undefined ? updates.species : this._species),
-      donorInternalId: updates.donorInternalId === null ? undefined : (updates.donorInternalId !== undefined ? updates.donorInternalId : this._donorInternalId),
-      donorSourceId: updates.donorSourceId === null ? undefined : (updates.donorSourceId !== undefined ? updates.donorSourceId : this._donorSourceId),
+      species:
+        updates.species === null
+          ? undefined
+          : updates.species !== undefined
+            ? updates.species
+            : this._species,
+      donorInternalId:
+        updates.donorInternalId === null
+          ? undefined
+          : updates.donorInternalId !== undefined
+            ? updates.donorInternalId
+            : this._donorInternalId,
+      donorSourceId:
+        updates.donorSourceId === null
+          ? undefined
+          : updates.donorSourceId !== undefined
+            ? updates.donorSourceId
+            : this._donorSourceId,
       concentration: newConcentration,
       concentrationUnit: newConcentrationUnit,
-      date: updates.date === null ? undefined : (updates.date !== undefined ? updates.date : this._date),
-      mediaType: updates.mediaType === null ? undefined : (updates.mediaType !== undefined ? updates.mediaType : this._mediaType),
-      mediaSupplements: updates.mediaSupplements === null ? undefined : (updates.mediaSupplements !== undefined ? updates.mediaSupplements : this._mediaSupplements),
-      mediaSelection: updates.mediaSelection === null ? undefined : (updates.mediaSelection !== undefined ? updates.mediaSelection : this._mediaSelection),
-      cultureCondition: updates.cultureCondition === null ? undefined : (updates.cultureCondition !== undefined ? updates.cultureCondition : this._cultureCondition),
-      lotNumber: updates.lotNumber === null ? undefined : (updates.lotNumber !== undefined ? updates.lotNumber : this._lotNumber),
-      source: updates.source === null ? undefined : (updates.source !== undefined ? updates.source : this._source),
-      catalogNumber: updates.catalogNumber === null ? undefined : (updates.catalogNumber !== undefined ? updates.catalogNumber : this._catalogNumber),
-      passageNumber: updates.passageNumber === null ? undefined : (updates.passageNumber !== undefined ? updates.passageNumber : this._passageNumber),
-      notes: updates.notes === null ? undefined : (updates.notes !== undefined ? updates.notes : this._notes)
+      date:
+        updates.date === null ? undefined : updates.date !== undefined ? updates.date : this._date,
+      mediaType:
+        updates.mediaType === null
+          ? undefined
+          : updates.mediaType !== undefined
+            ? updates.mediaType
+            : this._mediaType,
+      mediaSupplements:
+        updates.mediaSupplements === null
+          ? undefined
+          : updates.mediaSupplements !== undefined
+            ? updates.mediaSupplements
+            : this._mediaSupplements,
+      mediaSelection:
+        updates.mediaSelection === null
+          ? undefined
+          : updates.mediaSelection !== undefined
+            ? updates.mediaSelection
+            : this._mediaSelection,
+      cultureCondition:
+        updates.cultureCondition === null
+          ? undefined
+          : updates.cultureCondition !== undefined
+            ? updates.cultureCondition
+            : this._cultureCondition,
+      lotNumber:
+        updates.lotNumber === null
+          ? undefined
+          : updates.lotNumber !== undefined
+            ? updates.lotNumber
+            : this._lotNumber,
+      source:
+        updates.source === null
+          ? undefined
+          : updates.source !== undefined
+            ? updates.source
+            : this._source,
+      catalogNumber:
+        updates.catalogNumber === null
+          ? undefined
+          : updates.catalogNumber !== undefined
+            ? updates.catalogNumber
+            : this._catalogNumber,
+      passageNumber:
+        updates.passageNumber === null
+          ? undefined
+          : updates.passageNumber !== undefined
+            ? updates.passageNumber
+            : this._passageNumber,
+      notes:
+        updates.notes === null
+          ? undefined
+          : updates.notes !== undefined
+            ? updates.notes
+            : this._notes,
     });
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
   }
@@ -249,24 +326,56 @@ export class SampleData {
       source: this._source,
       catalogNumber: this._catalogNumber,
       passageNumber: this._passageNumber,
-      notes: this._notes
+      notes: this._notes,
     };
   }
 
-  get cellType(): string | undefined { return this._cellType; }
-  get species(): string | undefined { return this._species; }
-  get donorInternalId(): string | undefined { return this._donorInternalId; }
-  get donorSourceId(): string | undefined { return this._donorSourceId; }
-  get concentration(): number | undefined { return this._concentration; }
-  get concentrationUnit(): ConcentrationUnit | undefined { return this._concentrationUnit; }
-  get date(): string | undefined { return this._date; }
-  get mediaType(): string | undefined { return this._mediaType; }
-  get mediaSupplements(): string | undefined { return this._mediaSupplements; }
-  get mediaSelection(): string | undefined { return this._mediaSelection; }
-  get cultureCondition(): string | undefined { return this._cultureCondition; }
-  get lotNumber(): string | undefined { return this._lotNumber; }
-  get source(): string | undefined { return this._source; }
-  get catalogNumber(): string | undefined { return this._catalogNumber; }
-  get passageNumber(): number | undefined { return this._passageNumber; }
-  get notes(): string | undefined { return this._notes; }
+  get cellType(): string | undefined {
+    return this._cellType;
+  }
+  get species(): string | undefined {
+    return this._species;
+  }
+  get donorInternalId(): string | undefined {
+    return this._donorInternalId;
+  }
+  get donorSourceId(): string | undefined {
+    return this._donorSourceId;
+  }
+  get concentration(): number | undefined {
+    return this._concentration;
+  }
+  get concentrationUnit(): ConcentrationUnit | undefined {
+    return this._concentrationUnit;
+  }
+  get date(): string | undefined {
+    return this._date;
+  }
+  get mediaType(): string | undefined {
+    return this._mediaType;
+  }
+  get mediaSupplements(): string | undefined {
+    return this._mediaSupplements;
+  }
+  get mediaSelection(): string | undefined {
+    return this._mediaSelection;
+  }
+  get cultureCondition(): string | undefined {
+    return this._cultureCondition;
+  }
+  get lotNumber(): string | undefined {
+    return this._lotNumber;
+  }
+  get source(): string | undefined {
+    return this._source;
+  }
+  get catalogNumber(): string | undefined {
+    return this._catalogNumber;
+  }
+  get passageNumber(): number | undefined {
+    return this._passageNumber;
+  }
+  get notes(): string | undefined {
+    return this._notes;
+  }
 }

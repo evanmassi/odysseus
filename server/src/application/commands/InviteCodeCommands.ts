@@ -48,13 +48,19 @@ export class CreateInviteCodeCommandHandler {
     if (!user.isSystemAdmin()) {
       if (user.isLabAdmin()) {
         if (user.labId !== command.labId) {
-          throw new PermissionError('Lab admins can only create invite codes for their own lab', { userId: command.userId });
+          throw new PermissionError('Lab admins can only create invite codes for their own lab', {
+            userId: command.userId,
+          });
         }
         if (role === 'lab_admin') {
-          throw new PermissionError('Only system admins can create lab_admin invite codes', { userId: command.userId });
+          throw new PermissionError('Only system admins can create lab_admin invite codes', {
+            userId: command.userId,
+          });
         }
       } else {
-        throw new PermissionError('Only admins can create invite codes', { userId: command.userId });
+        throw new PermissionError('Only admins can create invite codes', {
+          userId: command.userId,
+        });
       }
     }
 
@@ -90,11 +96,9 @@ export class CreateInviteCodeCommandHandler {
 
     await this.inviteCodeRepository.save(inviteCode);
 
-    await this.eventBus.publish(new InviteCodeCreatedEvent(
-      inviteCode.id,
-      inviteCode.labId,
-      command.userId
-    ));
+    await this.eventBus.publish(
+      new InviteCodeCreatedEvent(inviteCode.id, inviteCode.labId, command.userId)
+    );
 
     return inviteCode.toData();
   }

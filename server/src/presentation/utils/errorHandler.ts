@@ -7,7 +7,6 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-
 import { DomainError } from '@domain/errors/DomainError';
 import { logger } from '@infrastructure/logging/logger';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -27,7 +26,13 @@ function isZodError(value: unknown): value is { name: 'ZodError'; errors: unknow
 // the ones a client legitimately consumes (position-conflict location, optimistic-lock versions) —
 // are echoed back, so a future error can't leak a sensitive value it happens to stash in context.
 const CLIENT_SAFE_CONTEXT_KEYS = [
-  'code', 'tankId', 'rackId', 'boxId', 'position', 'currentVersion', 'expectedVersion',
+  'code',
+  'tankId',
+  'rackId',
+  'boxId',
+  'position',
+  'currentVersion',
+  'expectedVersion',
 ] as const;
 
 export function filterPublicContext(
@@ -55,16 +60,26 @@ export function handleControllerError(
     message: err.message,
     stack: err.stack,
     ...(err instanceof DomainError && err.context && { errorContext: err.context }),
-    ...(isZodError(error) && { validationErrors: error.errors })
+    ...(isZodError(error) && { validationErrors: error.errors }),
   });
 
   if (isZodError(error)) {
-    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, 'Invalid request data', error.errors));
+    res
+      .status(400)
+      .json(
+        ResponseBuilder.error(
+          API_ERROR_CODES.VALIDATION_FAILED,
+          'Invalid request data',
+          error.errors
+        )
+      );
     return;
   }
 
   if (err instanceof DomainError) {
-    res.status(err.statusCode).json(ResponseBuilder.error(err.code, err.message, filterPublicContext(err.context)));
+    res
+      .status(err.statusCode)
+      .json(ResponseBuilder.error(err.code, err.message, filterPublicContext(err.context)));
     return;
   }
 

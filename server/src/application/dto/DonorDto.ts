@@ -4,7 +4,6 @@
  * Maps between Donor domain entities and HTTP response shapes.
  */
 
-
 import type { Donor } from '@domain/entities/Donor';
 import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 
@@ -21,7 +20,6 @@ export type DonorWithTubeCountResponse = DonorWithTubeCount;
 export type DonorCollectionHistoryResponse = DonorCollectionHistoryData;
 
 export class DonorDto {
-
   static toResponse(donor: Donor): DonorResponse {
     return {
       id: donor.id,

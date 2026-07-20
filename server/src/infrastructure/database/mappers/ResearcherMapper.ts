@@ -18,7 +18,6 @@ export interface ResearcherRow {
 }
 
 export class ResearcherMapper {
-
   static toRow(researcher: Researcher): ResearcherRow {
     return {
       id: researcher.id,
@@ -26,7 +25,7 @@ export class ResearcherMapper {
       active: researcher.active,
       created_at: researcher.createdAt,
       source: researcher.source,
-      lab_id: researcher.labId
+      lab_id: researcher.labId,
     };
   }
 
@@ -39,7 +38,7 @@ export class ResearcherMapper {
       active: row.active,
       createdAt,
       source: row.source,
-      labId: row.lab_id
+      labId: row.lab_id,
     });
   }
 

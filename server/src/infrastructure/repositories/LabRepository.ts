@@ -13,7 +13,6 @@ import type { Queryable } from '@infrastructure/database/Queryable';
 const LAB_COLUMNS = 'id, name, slug, is_active, is_demo, created_at, updated_at, demo_limits';
 
 export class LabRepository implements ILabRepository {
-
   constructor(private context: Queryable) {}
 
   async findById(id: string): Promise<Lab | null> {
@@ -51,9 +50,16 @@ export class LabRepository implements ILabRepository {
          is_demo = EXCLUDED.is_demo,
          updated_at = EXCLUDED.updated_at,
          demo_limits = EXCLUDED.demo_limits`,
-      [row.id, row.name, row.slug, row.is_active, row.is_demo, row.created_at, row.updated_at,
-       row.demo_limits ? JSON.stringify(row.demo_limits) : null]
+      [
+        row.id,
+        row.name,
+        row.slug,
+        row.is_active,
+        row.is_demo,
+        row.created_at,
+        row.updated_at,
+        row.demo_limits ? JSON.stringify(row.demo_limits) : null,
+      ]
     );
   }
-
 }

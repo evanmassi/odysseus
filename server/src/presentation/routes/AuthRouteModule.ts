@@ -6,7 +6,6 @@
 
 import { changePasswordRequestSchema } from '@odysseus/shared-schemas';
 
-
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
@@ -32,25 +31,19 @@ export class AuthRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate,
-      this.rateLimitMiddleware
-    ];
+    return [this.authMiddleware.authenticate, this.rateLimitMiddleware];
   }
 
   configure(router: Router): void {
     // Session management
-    router.post('/logout',
-      this.authController.logout.bind(this.authController)
-    );
+    router.post('/logout', this.authController.logout.bind(this.authController));
 
     // Session heartbeat - extends session by recording activity
-    router.post('/heartbeat',
-      this.authController.heartbeat.bind(this.authController)
-    );
+    router.post('/heartbeat', this.authController.heartbeat.bind(this.authController));
 
     // Password management
-    router.post('/change-password',
+    router.post(
+      '/change-password',
       validateBody(changePasswordRequestSchema),
       this.authController.changePassword.bind(this.authController)
     );

@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration006: Migration = {
   id: 6,
   name: 'update_lookup_category_constraint',
@@ -32,5 +31,5 @@ export const migration006: Migration = {
         END IF;
       END $$
     `);
-  }
+  },
 };

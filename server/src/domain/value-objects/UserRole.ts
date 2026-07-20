@@ -17,9 +17,7 @@ export class UserRole {
     user: 1,
   };
 
-  private constructor(
-    private readonly _role: 'system_admin' | 'lab_admin' | 'user'
-  ) {
+  private constructor(private readonly _role: 'system_admin' | 'lab_admin' | 'user') {
     this.validate();
   }
 

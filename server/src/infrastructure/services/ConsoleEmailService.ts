@@ -21,7 +21,7 @@ export class ConsoleEmailService implements EmailService {
       subject: 'Verify your Odysseus account',
       username,
       verificationUrl,
-      expiresIn: '48 hours'
+      expiresIn: '48 hours',
     });
   }
 }

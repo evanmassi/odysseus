@@ -5,7 +5,10 @@
  * by current-password verification.
  */
 
-import { verifyCurrentPassword, upgradePasswordHashIfNeeded } from '@application/authentication/passwordCredentials';
+import {
+  verifyCurrentPassword,
+  upgradePasswordHashIfNeeded,
+} from '@application/authentication/passwordCredentials';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import type { Person } from '@domain/entities/Person';
 import type { User } from '@domain/entities/User';
@@ -53,7 +56,12 @@ export class PersonApplicationService {
     }
 
     await verifyCurrentPassword(fullUser, currentPassword, this.deps.passwordService);
-    await upgradePasswordHashIfNeeded(fullUser, currentPassword, this.deps.passwordService, this.deps.userRepository);
+    await upgradePasswordHashIfNeeded(
+      fullUser,
+      currentPassword,
+      this.deps.passwordService,
+      this.deps.userRepository
+    );
 
     if (firstName !== undefined && !firstName.trim()) {
       throw new ValidationError('First name cannot be empty');
@@ -66,7 +74,12 @@ export class PersonApplicationService {
     const resolveOptional = (next: string | undefined, current: string | undefined) =>
       next === undefined ? current : next.trim() || undefined;
 
-    if (firstName !== undefined || lastName !== undefined || position !== undefined || department !== undefined) {
+    if (
+      firstName !== undefined ||
+      lastName !== undefined ||
+      position !== undefined ||
+      department !== undefined
+    ) {
       person.updateProfile(
         firstName ?? person.firstName,
         lastName ?? person.lastName,

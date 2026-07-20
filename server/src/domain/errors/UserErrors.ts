@@ -1,6 +1,6 @@
 /**
  * User Domain Errors
- * 
+ *
  * Domain-specific errors for user operations.
  */
 
@@ -23,9 +23,7 @@ export class EmailAlreadyExistsError extends DomainError {
 
   constructor(email?: string) {
     super(
-      email
-        ? `Email '${email}' is already in use`
-        : 'Email is already in use',
+      email ? `Email '${email}' is already in use` : 'Email is already in use',
       email ? { email } : {}
     );
   }
@@ -48,4 +46,3 @@ export class InvalidCredentialsError extends DomainError {
     super(message);
   }
 }
-

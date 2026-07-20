@@ -4,7 +4,6 @@
  * HTTP handlers for tube search operations — advanced, quick, and field-specific.
  */
 
-
 import type { TubeResponse } from '@application/dto/TubeDto';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
@@ -42,7 +41,7 @@ export class SearchController extends BaseController {
         query: query || '',
         limit: undefined,
         sortBy,
-        sortOrder
+        sortOrder,
       });
 
       logger.debug('Searching with criteria', {
@@ -73,8 +72,8 @@ export class SearchController extends BaseController {
         metadata: {
           query: query || '',
           searchTime: Date.now(),
-          totalMatches: tubes.length
-        }
+          totalMatches: tubes.length,
+        },
       };
 
       res.json(ResponseBuilder.success(result));
@@ -104,7 +103,7 @@ export class SearchController extends BaseController {
         researcherId: tube.researcherId ?? '',
         tankId: tube.location?.tankId || '',
         rackId: tube.location?.rackId || '',
-        boxId: tube.location?.boxId || ''
+        boxId: tube.location?.boxId || '',
       });
     };
 
@@ -134,15 +133,16 @@ export class SearchController extends BaseController {
         locationCounts.set(location, (locationCounts.get(location) ?? 0) + 1);
       }
 
-      const primaryLocation = Array.from(locationCounts.entries())
-        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'Unknown:Unknown:Unknown';
+      const primaryLocation =
+        Array.from(locationCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+        'Unknown:Unknown:Unknown';
 
       return {
         groupKey,
         groupType: 'batch',
         tubes: groupTubes,
         primaryLocation,
-        totalCount: groupTubes.length
+        totalCount: groupTubes.length,
       };
     });
 

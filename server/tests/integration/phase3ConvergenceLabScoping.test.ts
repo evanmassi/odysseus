@@ -98,7 +98,9 @@ describe('phase 3 by-id lab-scoping convergence', () => {
       expect(after?.version).toBe(loaded!.version + 1);
 
       // DB already advanced past the expected version → conflict.
-      await expect(repo.saveWithOptimisticLock(updated, loaded!.version)).rejects.toThrow(ConflictError);
+      await expect(repo.saveWithOptimisticLock(updated, loaded!.version)).rejects.toThrow(
+        ConflictError
+      );
     });
   });
 });

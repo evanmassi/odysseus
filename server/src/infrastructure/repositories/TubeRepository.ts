@@ -4,7 +4,6 @@
  * Data access for tube sample records with multi-layer full-text search and location queries.
  */
 
-
 import type { Tube } from '@domain/entities/Tube';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -66,7 +65,8 @@ export class TubeRepository implements ITubeRepository {
   async save(tube: Tube): Promise<void> {
     const row = TubeMapper.toRow(tube);
     try {
-      await this.context.execute(`
+      await this.context.execute(
+        `
         INSERT INTO tubes (
           id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
           donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
@@ -106,26 +106,54 @@ export class TubeRepository implements ITubeRepository {
           locked_at = EXCLUDED.locked_at,
           shared_with_user_ids = EXCLUDED.shared_with_user_ids,
           lab_id = EXCLUDED.lab_id
-      `, [
-        row.id, row.tank_id, row.rack_id, row.box_id, row.position,
-        row.cell_type, row.donor_internal_id, row.donor_source_id,
-        row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-        row.media_type, row.media_supplements, row.media_selection, row.culture_condition, row.lot_number,
-        row.species, row.source, row.catalog_number, row.passage_number,
-        row.notes,
-        row.created_at, row.updated_at, row.version,
-        row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
-        row.lab_id
-      ]);
+      `,
+        [
+          row.id,
+          row.tank_id,
+          row.rack_id,
+          row.box_id,
+          row.position,
+          row.cell_type,
+          row.donor_internal_id,
+          row.donor_source_id,
+          row.concentration,
+          row.concentration_unit,
+          row.date,
+          row.researcher_id,
+          row.created_by_name,
+          row.media_type,
+          row.media_supplements,
+          row.media_selection,
+          row.culture_condition,
+          row.lot_number,
+          row.species,
+          row.source,
+          row.catalog_number,
+          row.passage_number,
+          row.notes,
+          row.created_at,
+          row.updated_at,
+          row.version,
+          row.is_locked,
+          row.locked_by,
+          row.lock_note,
+          row.locked_at,
+          row.shared_with_user_ids,
+          row.lab_id,
+        ]
+      );
     } catch (error) {
       if (isPositionConstraintError(error)) {
-        throw new ValidationError('That position is already occupied. Please choose a different one.', {
-          code: 'POSITION_OCCUPIED',
-          tankId: tube.location.tankId,
-          rackId: tube.location.rackId,
-          boxId: tube.location.boxId,
-          position: tube.location.position
-        });
+        throw new ValidationError(
+          'That position is already occupied. Please choose a different one.',
+          {
+            code: 'POSITION_OCCUPIED',
+            tankId: tube.location.tankId,
+            rackId: tube.location.rackId,
+            boxId: tube.location.boxId,
+            position: tube.location.position,
+          }
+        );
       }
       throw error;
     }
@@ -141,7 +169,8 @@ export class TubeRepository implements ITubeRepository {
     const row = TubeMapper.toRow(tube);
     let result;
     try {
-      result = await this.context.execute(`
+      result = await this.context.execute(
+        `
         UPDATE tubes SET
           tank_id = $2,
           rack_id = $3,
@@ -173,26 +202,54 @@ export class TubeRepository implements ITubeRepository {
           locked_at = $29,
           shared_with_user_ids = $30
         WHERE id = $1 AND version = $31 AND lab_id = $32
-      `, [
-        row.id, row.tank_id, row.rack_id, row.box_id, row.position,
-        row.cell_type, row.donor_internal_id, row.donor_source_id,
-        row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-        row.media_type, row.media_supplements, row.media_selection, row.culture_condition, row.lot_number,
-        row.species, row.source, row.catalog_number, row.passage_number,
-        row.notes,
-        row.updated_at, row.version,
-        row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
-        expectedVersion, tube.labId ?? ''
-      ]);
+      `,
+        [
+          row.id,
+          row.tank_id,
+          row.rack_id,
+          row.box_id,
+          row.position,
+          row.cell_type,
+          row.donor_internal_id,
+          row.donor_source_id,
+          row.concentration,
+          row.concentration_unit,
+          row.date,
+          row.researcher_id,
+          row.created_by_name,
+          row.media_type,
+          row.media_supplements,
+          row.media_selection,
+          row.culture_condition,
+          row.lot_number,
+          row.species,
+          row.source,
+          row.catalog_number,
+          row.passage_number,
+          row.notes,
+          row.updated_at,
+          row.version,
+          row.is_locked,
+          row.locked_by,
+          row.lock_note,
+          row.locked_at,
+          row.shared_with_user_ids,
+          expectedVersion,
+          tube.labId ?? '',
+        ]
+      );
     } catch (error) {
       if (isPositionConstraintError(error)) {
-        throw new ValidationError('That position is already occupied. Please choose a different one.', {
-          code: 'POSITION_OCCUPIED',
-          tankId: tube.location.tankId,
-          rackId: tube.location.rackId,
-          boxId: tube.location.boxId,
-          position: tube.location.position
-        });
+        throw new ValidationError(
+          'That position is already occupied. Please choose a different one.',
+          {
+            code: 'POSITION_OCCUPIED',
+            tankId: tube.location.tankId,
+            rackId: tube.location.rackId,
+            boxId: tube.location.boxId,
+            position: tube.location.position,
+          }
+        );
       }
       throw error;
     }
@@ -206,7 +263,10 @@ export class TubeRepository implements ITubeRepository {
   }
 
   async delete(id: string, labId: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM tubes WHERE id = $1 AND lab_id = $2', [id, labId]);
+    const result = await this.context.execute('DELETE FROM tubes WHERE id = $1 AND lab_id = $2', [
+      id,
+      labId,
+    ]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -220,7 +280,12 @@ export class TubeRepository implements ITubeRepository {
     return row ? TubeMapper.fromRow(row) : null;
   }
 
-  async findByCompleteLocation(tankId: string, rackId: string, boxId: string, labId: string): Promise<Tube[]> {
+  async findByCompleteLocation(
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    labId: string
+  ): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
       `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4 ORDER BY position`,
       [tankId, rackId, boxId, labId]
@@ -244,7 +309,12 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
-  async getOccupiedPositions(tankId: string, rackId: string, boxId: string, labId: string): Promise<number[]> {
+  async getOccupiedPositions(
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    labId: string
+  ): Promise<number[]> {
     const rows = await this.context.queryMany<{ position: number }>(
       'SELECT position FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4 ORDER BY position',
       [tankId, rackId, boxId, labId]
@@ -306,27 +376,49 @@ export class TubeRepository implements ITubeRepository {
     return parseCount(result);
   }
 
-  async countGroupedByLocation(labId: string): Promise<Array<{ tankId: string; rackId: string; boxId: string; count: number }>> {
+  async countGroupedByLocation(
+    labId: string
+  ): Promise<Array<{ tankId: string; rackId: string; boxId: string; count: number }>> {
     const rows = await this.context.queryMany<{
-      tank_id: string; rack_id: string; box_id: string; count: string;
+      tank_id: string;
+      rack_id: string;
+      box_id: string;
+      count: string;
     }>(
       `SELECT tank_id, rack_id, box_id, COUNT(*)::int as count
        FROM tubes WHERE lab_id = $1
        GROUP BY tank_id, rack_id, box_id`,
       [labId]
     );
-    return rows.map(r => ({ tankId: r.tank_id, rackId: r.rack_id, boxId: r.box_id, count: parseInt(r.count, 10) }));
+    return rows.map(r => ({
+      tankId: r.tank_id,
+      rackId: r.rack_id,
+      boxId: r.box_id,
+      count: parseInt(r.count, 10),
+    }));
   }
 
-  async countGroupedByLocationAllLabs(): Promise<Array<{ labId: string; tankId: string; rackId: string; boxId: string; count: number }>> {
+  async countGroupedByLocationAllLabs(): Promise<
+    Array<{ labId: string; tankId: string; rackId: string; boxId: string; count: number }>
+  > {
     const rows = await this.context.queryMany<{
-      lab_id: string; tank_id: string; rack_id: string; box_id: string; count: string;
+      lab_id: string;
+      tank_id: string;
+      rack_id: string;
+      box_id: string;
+      count: string;
     }>(
       `SELECT lab_id, tank_id, rack_id, box_id, COUNT(*)::int as count
        FROM tubes
        GROUP BY lab_id, tank_id, rack_id, box_id`
     );
-    return rows.map(r => ({ labId: r.lab_id, tankId: r.tank_id, rackId: r.rack_id, boxId: r.box_id, count: parseInt(r.count, 10) }));
+    return rows.map(r => ({
+      labId: r.lab_id,
+      tankId: r.tank_id,
+      rackId: r.rack_id,
+      boxId: r.box_id,
+      count: parseInt(r.count, 10),
+    }));
   }
 
   // SEARCH AND FILTERING
@@ -336,7 +428,10 @@ export class TubeRepository implements ITubeRepository {
    * Only mapped values ever reach SQL, so this doubles as the injection allowlist:
    * an unmapped/absent sortBy falls back to a hardcoded default.
    */
-  private readonly CRITERIA_SORT_COLUMNS: Record<NonNullable<TubeSearchCriteria['sortBy']>, string> = {
+  private readonly CRITERIA_SORT_COLUMNS: Record<
+    NonNullable<TubeSearchCriteria['sortBy']>,
+    string
+  > = {
     createdAt: 'created_at',
     updatedAt: 'updated_at',
     cellType: 'cell_type',
@@ -454,7 +549,9 @@ export class TubeRepository implements ITubeRepository {
       params.push(...criteria.lotNumbers);
     }
     if (criteria.donorInternalIds && criteria.donorInternalIds.length > 0) {
-      const placeholders = criteria.donorInternalIds.map(() => `$${paramIndex.current++}`).join(',');
+      const placeholders = criteria.donorInternalIds
+        .map(() => `$${paramIndex.current++}`)
+        .join(',');
       sql += ` AND tubes.donor_internal_id IN (${placeholders})`;
       params.push(...criteria.donorInternalIds);
     }
@@ -464,7 +561,9 @@ export class TubeRepository implements ITubeRepository {
       params.push(...criteria.donorSourceIds);
     }
     if (criteria.cultureConditions && criteria.cultureConditions.length > 0) {
-      const placeholders = criteria.cultureConditions.map(() => `$${paramIndex.current++}`).join(',');
+      const placeholders = criteria.cultureConditions
+        .map(() => `$${paramIndex.current++}`)
+        .join(',');
       sql += ` AND tubes.culture_condition IN (${placeholders})`;
       params.push(...criteria.cultureConditions);
     }
@@ -603,7 +702,10 @@ export class TubeRepository implements ITubeRepository {
     return this.structuredSearch(criteria, labId);
   }
 
-  async searchWithHighlighting(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchResult> {
+  async searchWithHighlighting(
+    criteria: TubeSearchCriteria,
+    labId: string
+  ): Promise<TubeSearchResult> {
     const tubes = await this.search(criteria, labId);
 
     const matchedTerms: string[] = [];
@@ -680,7 +782,17 @@ export class TubeRepository implements ITubeRepository {
     `;
 
     // Layer 2: Fuzzy matching with pg_trgm (catches typos)
-    const fuzzyColumns = ['cell_type', 'species', 'source', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media_type', 'culture_condition'];
+    const fuzzyColumns = [
+      'cell_type',
+      'species',
+      'source',
+      'donor_internal_id',
+      'donor_source_id',
+      'lot_number',
+      'notes',
+      'media_type',
+      'culture_condition',
+    ];
     const fuzzySearchTerm = normalizedQuery;
     const shouldDoFuzzy = !shouldSkipFuzzyMatching(fuzzySearchTerm) && fuzzySearchTerm.length >= 2;
 
@@ -690,12 +802,12 @@ export class TubeRepository implements ITubeRepository {
       params.push(fuzzySearchTerm);
       paramIndex.current++;
 
-      const fuzzyConditions = fuzzyColumns.map(col =>
-        `similarity(COALESCE(${col}, ''), $${fuzzyParamNum}) > ${fuzzyThreshold}`
-      ).join(' OR ');
+      const fuzzyConditions = fuzzyColumns
+        .map(col => `similarity(COALESCE(${col}, ''), $${fuzzyParamNum}) > ${fuzzyThreshold}`)
+        .join(' OR ');
 
-      const fuzzyRankParts = fuzzyColumns.map(col =>
-        `similarity(COALESCE(${col}, ''), $${fuzzyParamNum})`
+      const fuzzyRankParts = fuzzyColumns.map(
+        col => `similarity(COALESCE(${col}, ''), $${fuzzyParamNum})`
       );
       const fuzzyRankExpr = `GREATEST(${fuzzyRankParts.join(', ')}) * ${SearchRankTier.FUZZY_MATCH}`;
 
@@ -713,7 +825,9 @@ export class TubeRepository implements ITubeRepository {
       for (const variant of conceptVariants) {
         const paramNum = paramIndex.current++;
         params.push(`%${escapeLikePattern(variant)}%`);
-        variantConditions.push(`p.first_name ILIKE $${paramNum} ESCAPE '\\' OR p.last_name ILIKE $${paramNum} ESCAPE '\\'`);
+        variantConditions.push(
+          `p.first_name ILIKE $${paramNum} ESCAPE '\\' OR p.last_name ILIKE $${paramNum} ESCAPE '\\'`
+        );
       }
       researcherConceptConditions.push(`(${variantConditions.join(' OR ')})`);
     }

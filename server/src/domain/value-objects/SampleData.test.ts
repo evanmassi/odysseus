@@ -36,28 +36,33 @@ describe('SampleData', () => {
 
   describe('concentration validation', () => {
     it('should reject concentration without unit', () => {
-      expect(() => SampleData.create({ concentration: 10 }))
-        .toThrow('Concentration requires a unit');
+      expect(() => SampleData.create({ concentration: 10 })).toThrow(
+        'Concentration requires a unit'
+      );
     });
 
     it('should reject unit without concentration', () => {
-      expect(() => SampleData.create({ concentrationUnit: 'c/mL' }))
-        .toThrow('Concentration unit requires a concentration value');
+      expect(() => SampleData.create({ concentrationUnit: 'c/mL' })).toThrow(
+        'Concentration unit requires a concentration value'
+      );
     });
 
     it('should reject negative concentration', () => {
-      expect(() => SampleData.create({ concentration: -1, concentrationUnit: 'c/mL' }))
-        .toThrow('must be greater than 0');
+      expect(() => SampleData.create({ concentration: -1, concentrationUnit: 'c/mL' })).toThrow(
+        'must be greater than 0'
+      );
     });
 
     it('should reject zero concentration', () => {
-      expect(() => SampleData.create({ concentration: 0, concentrationUnit: 'c/mL' }))
-        .toThrow('must be greater than 0');
+      expect(() => SampleData.create({ concentration: 0, concentrationUnit: 'c/mL' })).toThrow(
+        'must be greater than 0'
+      );
     });
 
     it('should reject concentration exceeding limit', () => {
-      expect(() => SampleData.create({ concentration: 1e13, concentrationUnit: 'c/mL' }))
-        .toThrow('exceeds reasonable limits');
+      expect(() => SampleData.create({ concentration: 1e13, concentrationUnit: 'c/mL' })).toThrow(
+        'exceeds reasonable limits'
+      );
     });
 
     it('should accept valid concentration with unit', () => {
@@ -69,15 +74,15 @@ describe('SampleData', () => {
 
   describe('date validation', () => {
     it('should reject invalid date format', () => {
-      expect(() => SampleData.create({ date: 'not-a-date' }))
-        .toThrow('valid date format');
+      expect(() => SampleData.create({ date: 'not-a-date' })).toThrow('valid date format');
     });
 
     it('should reject future date', () => {
       const future = new Date();
       future.setFullYear(future.getFullYear() + 1);
-      expect(() => SampleData.create({ date: future.toISOString() }))
-        .toThrow('cannot be in the future');
+      expect(() => SampleData.create({ date: future.toISOString() })).toThrow(
+        'cannot be in the future'
+      );
     });
 
     it('should accept past date', () => {
@@ -96,8 +101,7 @@ describe('SampleData', () => {
     });
 
     it('should reject cell type exceeding 200 characters', () => {
-      expect(() => SampleData.create({ cellType: 'X'.repeat(201) }))
-        .toThrow('cannot exceed 200');
+      expect(() => SampleData.create({ cellType: 'X'.repeat(201) })).toThrow('cannot exceed 200');
     });
   });
 
@@ -107,8 +111,9 @@ describe('SampleData', () => {
     });
 
     it('should reject donor internal ID exceeding 100 characters', () => {
-      expect(() => SampleData.create({ donorInternalId: 'D'.repeat(101) }))
-        .toThrow('cannot exceed 100');
+      expect(() => SampleData.create({ donorInternalId: 'D'.repeat(101) })).toThrow(
+        'cannot exceed 100'
+      );
     });
 
     it('should reject empty donor source ID', () => {
@@ -128,18 +133,15 @@ describe('SampleData', () => {
     });
 
     it('should reject negative passage number', () => {
-      expect(() => SampleData.create({ passageNumber: -1 }))
-        .toThrow('integer between 0 and 999');
+      expect(() => SampleData.create({ passageNumber: -1 })).toThrow('integer between 0 and 999');
     });
 
     it('should reject passage number exceeding 999', () => {
-      expect(() => SampleData.create({ passageNumber: 1000 }))
-        .toThrow('integer between 0 and 999');
+      expect(() => SampleData.create({ passageNumber: 1000 })).toThrow('integer between 0 and 999');
     });
 
     it('should reject non-integer passage number', () => {
-      expect(() => SampleData.create({ passageNumber: 1.5 }))
-        .toThrow('integer between 0 and 999');
+      expect(() => SampleData.create({ passageNumber: 1.5 })).toThrow('integer between 0 and 999');
     });
   });
 
@@ -149,8 +151,7 @@ describe('SampleData', () => {
     });
 
     it('should reject notes exceeding 1000 characters', () => {
-      expect(() => SampleData.create({ notes: 'N'.repeat(1001) }))
-        .toThrow('cannot exceed 1000');
+      expect(() => SampleData.create({ notes: 'N'.repeat(1001) })).toThrow('cannot exceed 1000');
     });
 
     it('should reject empty lot number', () => {

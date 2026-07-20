@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration011: Migration = {
   id: 11,
   name: 'user_status_constraint',
@@ -31,5 +30,5 @@ export const migration011: Migration = {
         END IF;
       END $$
     `);
-  }
+  },
 };

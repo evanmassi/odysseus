@@ -5,7 +5,6 @@
  * Uses advisory locking to prevent concurrent runs during parallel deploys.
  */
 
-
 import { logger } from '@infrastructure/logging/logger';
 
 import { ALL_MIGRATIONS } from './index';
@@ -41,10 +40,10 @@ export async function runMigrations(pool: Pool): Promise<void> {
       const markUpTo = await detectExistingState(client);
       for (const migration of ALL_MIGRATIONS) {
         if (migration.id <= markUpTo) {
-          await client.query(
-            'INSERT INTO schema_migrations (id, name) VALUES ($1, $2)',
-            [migration.id, migration.name]
-          );
+          await client.query('INSERT INTO schema_migrations (id, name) VALUES ($1, $2)', [
+            migration.id,
+            migration.name,
+          ]);
           logger.info(`Migration ${migration.id} (${migration.name}) — marked as applied`);
         }
       }
@@ -59,10 +58,10 @@ export async function runMigrations(pool: Pool): Promise<void> {
       logger.info(`Running migration ${migration.id}: ${migration.name}...`);
       try {
         await migration.up(pool);
-        await client.query(
-          'INSERT INTO schema_migrations (id, name) VALUES ($1, $2)',
-          [migration.id, migration.name]
-        );
+        await client.query('INSERT INTO schema_migrations (id, name) VALUES ($1, $2)', [
+          migration.id,
+          migration.name,
+        ]);
         logger.info(`Migration ${migration.id} (${migration.name}) — completed`);
       } catch (error) {
         logger.error(`Migration ${migration.id} (${migration.name}) failed:`, error);

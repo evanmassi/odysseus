@@ -9,7 +9,7 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import {
   VerificationEmailSentEvent,
   EmailVerifiedEvent,
-  VerificationEmailResentEvent
+  VerificationEmailResentEvent,
 } from '@domain/events/EmailVerificationEvents';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -53,11 +53,7 @@ export class SendVerificationEmailCommandHandler {
     const token = user.generateVerificationToken();
     await this.userRepository.save(user);
 
-    await this.emailService.sendVerificationEmail(
-      person.email!,
-      token,
-      user.username
-    );
+    await this.emailService.sendVerificationEmail(person.email!, token, user.username);
 
     const event = new VerificationEmailSentEvent(user.id, person.email!, user.labId);
     await this.eventBus.publish(event);
@@ -124,11 +120,7 @@ export class ResendVerificationEmailCommandHandler {
     const token = user.generateVerificationToken();
     await this.userRepository.save(user);
 
-    await this.emailService.sendVerificationEmail(
-      person.email!,
-      token,
-      user.username
-    );
+    await this.emailService.sendVerificationEmail(person.email!, token, user.username);
 
     const event = new VerificationEmailResentEvent(user.id, person.email!, user.labId);
     await this.eventBus.publish(event);

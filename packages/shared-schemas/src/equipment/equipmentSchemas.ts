@@ -251,11 +251,17 @@ export type CreateEquipmentCategoryRequest = z.infer<typeof createEquipmentCateg
 export type UpdateEquipmentCategoryRequest = z.infer<typeof updateEquipmentCategoryRequestSchema>;
 export type CreateEquipmentItemRequest = z.infer<typeof createEquipmentItemRequestSchema>;
 export type UpdateEquipmentItemRequest = z.infer<typeof updateEquipmentItemRequestSchema>;
-export type DecommissionEquipmentItemRequest = z.infer<typeof decommissionEquipmentItemRequestSchema>;
+export type DecommissionEquipmentItemRequest = z.infer<
+  typeof decommissionEquipmentItemRequestSchema
+>;
 export type CreateEquipmentDocumentRequest = z.infer<typeof createEquipmentDocumentRequestSchema>;
 export type UpdateEquipmentDocumentRequest = z.infer<typeof updateEquipmentDocumentRequestSchema>;
-export type CreateEquipmentMaintenanceLogRequest = z.infer<typeof createEquipmentMaintenanceLogRequestSchema>;
-export type UpdateEquipmentMaintenanceLogRequest = z.infer<typeof updateEquipmentMaintenanceLogRequestSchema>;
+export type CreateEquipmentMaintenanceLogRequest = z.infer<
+  typeof createEquipmentMaintenanceLogRequestSchema
+>;
+export type UpdateEquipmentMaintenanceLogRequest = z.infer<
+  typeof updateEquipmentMaintenanceLogRequestSchema
+>;
 export type EquipmentBulkStatusRequest = z.infer<typeof equipmentBulkStatusRequestSchema>;
 export type EquipmentBulkRelocateRequest = z.infer<typeof equipmentBulkRelocateRequestSchema>;
 export type EquipmentBulkResponse = z.infer<typeof equipmentBulkResponseSchema>;

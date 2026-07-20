@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration005: Migration = {
   id: 5,
   name: 'flatten_media_json',
@@ -47,5 +46,5 @@ export const migration005: Migration = {
         END IF;
       END $$
     `);
-  }
+  },
 };

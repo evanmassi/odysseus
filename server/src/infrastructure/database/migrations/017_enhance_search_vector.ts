@@ -57,5 +57,5 @@ export const migration017: Migration = {
     `);
 
     await pool.query(`UPDATE tubes SET updated_at = updated_at`);
-  }
+  },
 };

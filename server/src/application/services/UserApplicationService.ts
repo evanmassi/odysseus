@@ -26,7 +26,7 @@ import {
   UserUnlinkedFromResearcherEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
-  UserReactivatedEvent
+  UserReactivatedEvent,
 } from '@domain/events/UserEvents';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
@@ -41,8 +41,6 @@ import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { RegisterWithProfileRequest, UserDisplayInfo } from '@odysseus/shared-schemas';
-
-
 
 export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   firstName?: string;
@@ -89,7 +87,7 @@ export class UserApplicationService {
 
     const [directPersons, researchers] = await Promise.all([
       this.personRepository.findByIds(directPersonIds),
-      this.researcherRepository.findByIds(researcherIds, labId)
+      this.researcherRepository.findByIds(researcherIds, labId),
     ]);
 
     const researcherPersonIds = researchers
@@ -243,18 +241,28 @@ export class UserApplicationService {
     }
 
     if (this.eventBus) {
-      await this.eventBus.publish(new UserDeletedEvent(userId, username, admin.id, targetUser.labId));
+      await this.eventBus.publish(
+        new UserDeletedEvent(userId, username, admin.id, targetUser.labId)
+      );
 
       if (racksAffected > 0 || boxesAffected > 0) {
-        await this.eventBus.publish(new BulkResourcesUnassignedEvent(
-          admin.id, userId, username, racksAffected, boxesAffected, targetUser.labId!
-        ));
+        await this.eventBus.publish(
+          new BulkResourcesUnassignedEvent(
+            admin.id,
+            userId,
+            username,
+            racksAffected,
+            boxesAffected,
+            targetUser.labId!
+          )
+        );
       }
     }
 
     if (tubesUnlocked > 0) {
       logger.info(`Auto-unlocked ${tubesUnlocked} tube(s) during deletion of user ${username}`, {
-        userId, tubesUnlocked,
+        userId,
+        tubesUnlocked,
       });
     }
   }
@@ -315,12 +323,7 @@ export class UserApplicationService {
 
     if (this.eventBus) {
       const Event = action === 'deactivate' ? UserDeactivatedEvent : UserSuspendedEvent;
-      await this.eventBus.publish(new Event(
-        user.id,
-        user.username,
-        admin.username,
-        user.labId
-      ));
+      await this.eventBus.publish(new Event(user.id, user.username, admin.username, user.labId));
     }
   }
 
@@ -339,7 +342,9 @@ export class UserApplicationService {
     let createResearcher = true;
 
     if (request.inviteCode && this.inviteCodeRepository && this.labRepository) {
-      const inviteCode = await this.inviteCodeRepository.findByCode(request.inviteCode.trim().toUpperCase());
+      const inviteCode = await this.inviteCodeRepository.findByCode(
+        request.inviteCode.trim().toUpperCase()
+      );
       if (!inviteCode || !inviteCode.isValid()) {
         throw new ValidationError('Invalid or expired invite code');
       }
@@ -375,14 +380,19 @@ export class UserApplicationService {
       // Returning user — reactivate their deactivated researcher profile
       if (labId) {
         const deactivated = await this.researcherRepository.findDeactivatedByName(
-          request.firstName, request.lastName, labId
+          request.firstName,
+          request.lastName,
+          labId
         );
         if (deactivated && this.personRepository) {
           const existingPerson = await this.personRepository.findById(deactivated.personId);
           if (existingPerson) {
             existingPerson.updateEmail(request.email);
             existingPerson.updateProfile(
-              request.firstName, request.lastName, request.position, request.department
+              request.firstName,
+              request.lastName,
+              request.position,
+              request.department
             );
             deactivated.activate();
             relinkedResearcher = deactivated;
@@ -403,9 +413,7 @@ export class UserApplicationService {
 
     const emailExists = await this.userRepository.emailExists(request.email);
     if (emailExists) {
-      throw new ValidationError(
-        'Email already in use. Try another or contact your administrator.'
-      );
+      throw new ValidationError('Email already in use. Try another or contact your administrator.');
     }
 
     await validatePasswordPolicy(this.storageRepository, request.password);
@@ -417,13 +425,15 @@ export class UserApplicationService {
 
     const username = await this.generateUsername(request.firstName, request.lastName);
 
-    const person = relinkedPerson ?? Person.create(
-      request.firstName,
-      request.lastName,
-      request.email,
-      request.position,
-      request.department
-    );
+    const person =
+      relinkedPerson ??
+      Person.create(
+        request.firstName,
+        request.lastName,
+        request.email,
+        request.position,
+        request.department
+      );
 
     let researcherId: string | undefined;
     let researcher: Researcher | undefined;
@@ -434,14 +444,16 @@ export class UserApplicationService {
     } else if (createResearcher) {
       researcher = Researcher.create(person.id, {
         source: 'registration',
-        labId
+        labId,
       });
       researcherId = researcher.id;
     }
 
     const role = isFirstUser
       ? UserRole.labAdmin()
-      : resolvedRole === 'lab_admin' ? UserRole.labAdmin() : UserRole.user();
+      : resolvedRole === 'lab_admin'
+        ? UserRole.labAdmin()
+        : UserRole.user();
 
     const user = User.createWithPassword(
       username,
@@ -481,7 +493,10 @@ export class UserApplicationService {
    */
   private async generateUsername(firstName: string, lastName: string): Promise<string> {
     const sanitize = (name: string) =>
-      name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .trim();
 
     const first = sanitize(firstName);
     const last = sanitize(lastName);
@@ -513,13 +528,9 @@ export class UserApplicationService {
     await this.userRepository.save(user);
 
     if (this.eventBus) {
-      await this.eventBus.publish(new UserReactivatedEvent(
-        user.id,
-        user.username,
-        previousStatus,
-        admin.username,
-        user.labId
-      ));
+      await this.eventBus.publish(
+        new UserReactivatedEvent(user.id, user.username, previousStatus, admin.username, user.labId)
+      );
     }
   }
 
@@ -530,7 +541,6 @@ export class UserApplicationService {
   async suspendUser(userId: string, admin: User, expectedLabId?: string): Promise<void> {
     return this.disableUser(userId, admin, 'suspend', expectedLabId);
   }
-
 
   /**
    * For users who registered without a researcher profile.
@@ -557,7 +567,7 @@ export class UserApplicationService {
     if (user.hasResearcherProfile()) {
       throw new ValidationError('User already has a linked researcher profile', {
         userId,
-        currentResearcherId: user.researcherId
+        currentResearcherId: user.researcherId,
       });
     }
 
@@ -568,14 +578,16 @@ export class UserApplicationService {
       const person = await this.personRepository.findById(researcher.personId);
       const researcherName = person ? `${person.firstName} ${person.lastName}` : researcherId;
 
-      await this.eventBus.publish(new UserLinkedToResearcherEvent(
-        userId,
-        user.username,
-        researcherId,
-        researcherName,
-        admin.id,
-        user.labId
-      ));
+      await this.eventBus.publish(
+        new UserLinkedToResearcherEvent(
+          userId,
+          user.username,
+          researcherId,
+          researcherName,
+          admin.id,
+          user.labId
+        )
+      );
     }
   }
 
@@ -615,30 +627,38 @@ export class UserApplicationService {
       ? await this.clearStorageAssignments(userId, user.username, user.labId, admin.id, 'unlinked')
       : { racks: 0, boxes: 0 };
 
-    const tubesUnlocked = user.labId
-      ? await this.unlockTubesForUser(userId, user.labId)
-      : 0;
+    const tubesUnlocked = user.labId ? await this.unlockTubesForUser(userId, user.labId) : 0;
 
     if (this.eventBus && oldResearcherId) {
-      await this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
-        userId,
-        user.username,
-        oldResearcherId,
-        researcherName,
-        admin.id,
-        user.labId
-      ));
+      await this.eventBus.publish(
+        new UserUnlinkedFromResearcherEvent(
+          userId,
+          user.username,
+          oldResearcherId,
+          researcherName,
+          admin.id,
+          user.labId
+        )
+      );
 
       if (racksAffected > 0 || boxesAffected > 0) {
-        await this.eventBus.publish(new BulkResourcesUnassignedEvent(
-          admin.id, userId, user.username, racksAffected, boxesAffected, user.labId!
-        ));
+        await this.eventBus.publish(
+          new BulkResourcesUnassignedEvent(
+            admin.id,
+            userId,
+            user.username,
+            racksAffected,
+            boxesAffected,
+            user.labId!
+          )
+        );
       }
     }
 
     if (tubesUnlocked > 0) {
       logger.info(`Auto-unlocked ${tubesUnlocked} tube(s) during unlink of user ${user.username}`, {
-        userId, tubesUnlocked,
+        userId,
+        tubesUnlocked,
       });
     }
   }
@@ -682,13 +702,17 @@ export class UserApplicationService {
         );
 
         logger.info(`Cleared resource assignments for ${reason} user ${username}`, {
-          userId, racksAffected: counts.racks, boxesAffected: counts.boxes, attempt,
+          userId,
+          racksAffected: counts.racks,
+          boxesAffected: counts.boxes,
+          attempt,
         });
         return counts;
       } catch (error) {
         if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
           logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for ${reason}`, {
-            userId, expectedVersion,
+            userId,
+            expectedVersion,
           });
           continue;
         }
@@ -717,7 +741,8 @@ export class UserApplicationService {
       } catch (error) {
         if (error instanceof ConflictError) {
           logger.warn('Skipped unlocking tube due to version conflict during cascade', {
-            tubeId: tube.id, userId,
+            tubeId: tube.id,
+            userId,
           });
           continue;
         }
@@ -730,5 +755,4 @@ export class UserApplicationService {
     }
     return unlocked;
   }
-
 }

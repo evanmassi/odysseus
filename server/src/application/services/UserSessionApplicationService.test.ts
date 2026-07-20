@@ -32,12 +32,18 @@ describe('UserSessionApplicationService.getActiveSessions', () => {
   it('maps sessions to ISO strings and flags the current session', async () => {
     const sessions = [makeSession('s1', 'u1'), makeSession('s2', 'u1')];
     const findActiveSessionsByUserId = jest.fn().mockResolvedValue(sessions);
-    const service = new UserSessionApplicationService({ userSessionRepository: { findActiveSessionsByUserId } as unknown as UserSessionRepository });
+    const service = new UserSessionApplicationService({
+      userSessionRepository: { findActiveSessionsByUserId } as unknown as UserSessionRepository,
+    });
 
     const result = await service.getActiveSessions(user, 's2');
 
     expect(findActiveSessionsByUserId).toHaveBeenCalledWith('u1');
-    expect(result[0]).toMatchObject({ id: 's1', createdAt: '2020-01-01T00:00:00.000Z', isCurrentSession: false });
+    expect(result[0]).toMatchObject({
+      id: 's1',
+      createdAt: '2020-01-01T00:00:00.000Z',
+      isCurrentSession: false,
+    });
     expect(result[1].isCurrentSession).toBe(true);
   });
 });
@@ -47,7 +53,11 @@ describe('UserSessionApplicationService.revokeSession', () => {
     const findById = jest.fn().mockResolvedValue(opts.session ?? null);
     const revokeSession = jest.fn().mockResolvedValue(opts.revoked ?? true);
     const userSessionRepository = { findById, revokeSession } as unknown as UserSessionRepository;
-    return { service: new UserSessionApplicationService({ userSessionRepository }), findById, revokeSession };
+    return {
+      service: new UserSessionApplicationService({ userSessionRepository }),
+      findById,
+      revokeSession,
+    };
   }
 
   it('rejects revoking the current session without a lookup', async () => {
@@ -58,22 +68,31 @@ describe('UserSessionApplicationService.revokeSession', () => {
 
   it('throws when the session does not exist', async () => {
     const { service } = makeService({ session: null });
-    await expect(service.revokeSession(user, 's1', 'current')).rejects.toBeInstanceOf(NotFoundError);
+    await expect(service.revokeSession(user, 's1', 'current')).rejects.toBeInstanceOf(
+      NotFoundError
+    );
   });
 
   it('throws (masking existence) when the session belongs to another user', async () => {
     const { service, revokeSession } = makeService({ session: { id: 's1', userId: 'other' } });
-    await expect(service.revokeSession(user, 's1', 'current')).rejects.toBeInstanceOf(NotFoundError);
+    await expect(service.revokeSession(user, 's1', 'current')).rejects.toBeInstanceOf(
+      NotFoundError
+    );
     expect(revokeSession).not.toHaveBeenCalled();
   });
 
   it('throws when the session was already revoked', async () => {
     const { service } = makeService({ session: { id: 's1', userId: 'u1' }, revoked: false });
-    await expect(service.revokeSession(user, 's1', 'current')).rejects.toBeInstanceOf(NotFoundError);
+    await expect(service.revokeSession(user, 's1', 'current')).rejects.toBeInstanceOf(
+      NotFoundError
+    );
   });
 
   it('revokes an own, active session', async () => {
-    const { service, revokeSession } = makeService({ session: { id: 's1', userId: 'u1' }, revoked: true });
+    const { service, revokeSession } = makeService({
+      session: { id: 's1', userId: 'u1' },
+      revoked: true,
+    });
     await service.revokeSession(user, 's1', 'current');
     expect(revokeSession).toHaveBeenCalledWith('s1');
   });
@@ -83,7 +102,10 @@ describe('UserSessionApplicationService.bulkRevokeSessions', () => {
   function makeService(activeSessions: UserSession[], revokedCount = activeSessions.length) {
     const findActiveSessionsByUserId = jest.fn().mockResolvedValue(activeSessions);
     const bulkRevoke = jest.fn().mockResolvedValue(revokedCount);
-    const userSessionRepository = { findActiveSessionsByUserId, bulkRevoke } as unknown as UserSessionRepository;
+    const userSessionRepository = {
+      findActiveSessionsByUserId,
+      bulkRevoke,
+    } as unknown as UserSessionRepository;
     return { service: new UserSessionApplicationService({ userSessionRepository }), bulkRevoke };
   }
 

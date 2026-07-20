@@ -36,7 +36,6 @@ export interface DonorCollectionHistoryRow {
 }
 
 export class DonorMapper {
-
   static toRow(donor: Donor): DonorRow {
     return {
       id: donor.id,

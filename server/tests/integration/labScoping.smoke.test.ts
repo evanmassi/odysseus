@@ -39,13 +39,22 @@ describe('integration harness', () => {
     );
     const names = tables.map(t => t.tablename);
     expect(names).toEqual(
-      expect.arrayContaining(['labs', 'persons', 'researchers', 'donors', 'equipment_items', 'supply_items'])
+      expect.arrayContaining([
+        'labs',
+        'persons',
+        'researchers',
+        'donors',
+        'equipment_items',
+        'supply_items',
+      ])
     );
   });
 
   it('seeds a lab and reads it back', async () => {
     const lab = await seed.lab();
-    const found = await context.queryOne<{ id: string }>('SELECT id FROM labs WHERE id = $1', [lab.id]);
+    const found = await context.queryOne<{ id: string }>('SELECT id FROM labs WHERE id = $1', [
+      lab.id,
+    ]);
     expect(found?.id).toBe(lab.id);
   });
 

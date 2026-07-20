@@ -8,19 +8,22 @@ import type { Donor } from '@domain/entities/Donor';
 import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import type { DonorRepository as IDonorRepository } from '@domain/repositories/DonorRepository';
 import { escapeLikePattern } from '@infrastructure/database/likePattern';
-import type { DonorRow, DonorCollectionHistoryRow } from '@infrastructure/database/mappers/DonorMapper';
+import type {
+  DonorRow,
+  DonorCollectionHistoryRow,
+} from '@infrastructure/database/mappers/DonorMapper';
 import { DonorMapper } from '@infrastructure/database/mappers/DonorMapper';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
-const DONOR_COLUMNS = 'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
+const DONOR_COLUMNS =
+  'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
 const HISTORY_COLUMNS = 'id, donor_id, collection_date, specimen_type, source, created_at';
 // Read collection_date as text — a parsed DATE column becomes a timezone-shifting Date object.
 const HISTORY_SELECT_COLUMNS =
   'id, donor_id, collection_date::text AS collection_date, specimen_type, source, created_at';
 
 export class DonorRepository implements IDonorRepository {
-
   constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<Donor | null> {
@@ -39,7 +42,11 @@ export class DonorRepository implements IDonorRepository {
     return DonorMapper.fromRows(rows);
   }
 
-  async findByDonorIds(labId: string, sourceId?: string, internalId?: string): Promise<Donor | null> {
+  async findByDonorIds(
+    labId: string,
+    sourceId?: string,
+    internalId?: string
+  ): Promise<Donor | null> {
     if (!sourceId && !internalId) return null;
 
     const conditions: string[] = ['lab_id = $1'];
@@ -68,7 +75,8 @@ export class DonorRepository implements IDonorRepository {
     // Strip # and spaces so "LP8", "LP#8", "LP #8" all match
     const normalized = query.replace(/[\s#]+/g, '');
     const pattern = `%${escapeLikePattern(normalized)}%`;
-    const rows = await this.db.queryMany<DonorRow>(`
+    const rows = await this.db.queryMany<DonorRow>(
+      `
       SELECT ${DONOR_COLUMNS} FROM donors
       WHERE lab_id = $1
         AND (
@@ -77,14 +85,17 @@ export class DonorRepository implements IDonorRepository {
         )
       ORDER BY donor_source_id, donor_internal_id
       LIMIT $3
-    `, [labId, pattern, limit]);
+    `,
+      [labId, pattern, limit]
+    );
     return DonorMapper.fromRows(rows);
   }
 
   async save(donor: Donor): Promise<void> {
     const row = DonorMapper.toRow(donor);
 
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO donors (${DONOR_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       ON CONFLICT (id) DO UPDATE SET
@@ -100,16 +111,32 @@ export class DonorRepository implements IDonorRepository {
         notes = EXCLUDED.notes,
         is_curated = EXCLUDED.is_curated,
         updated_at = EXCLUDED.updated_at
-    `, [
-      row.id, row.lab_id, row.donor_source_id, row.donor_internal_id,
-      row.species, row.age, row.sex, row.ethnicity,
-      row.clinical_status, row.diagnosis, row.disease_stage, row.notes,
-      row.is_curated, row.created_at, row.updated_at
-    ]);
+    `,
+      [
+        row.id,
+        row.lab_id,
+        row.donor_source_id,
+        row.donor_internal_id,
+        row.species,
+        row.age,
+        row.sex,
+        row.ethnicity,
+        row.clinical_status,
+        row.diagnosis,
+        row.disease_stage,
+        row.notes,
+        row.is_curated,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
   }
 
   async delete(id: string, labId: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM donors WHERE id = $1 AND lab_id = $2', [id, labId]);
+    const result = await this.db.execute('DELETE FROM donors WHERE id = $1 AND lab_id = $2', [
+      id,
+      labId,
+    ]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -130,18 +157,32 @@ export class DonorRepository implements IDonorRepository {
     if (orClauses.length === 0) return false;
     conditions.push(`(${orClauses.join(' OR ')})`);
 
-    const result = await this.db.execute(`
+    const result = await this.db.execute(
+      `
       INSERT INTO donors (${DONOR_COLUMNS})
       SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       WHERE NOT EXISTS (
         SELECT 1 FROM donors WHERE ${conditions.join(' AND ')}
       )
-    `, [
-      row.id, row.lab_id, row.donor_source_id, row.donor_internal_id,
-      row.species, row.age, row.sex, row.ethnicity,
-      row.clinical_status, row.diagnosis, row.disease_stage, row.notes,
-      row.is_curated, row.created_at, row.updated_at
-    ]);
+    `,
+      [
+        row.id,
+        row.lab_id,
+        row.donor_source_id,
+        row.donor_internal_id,
+        row.species,
+        row.age,
+        row.sex,
+        row.ethnicity,
+        row.clinical_status,
+        row.diagnosis,
+        row.disease_stage,
+        row.notes,
+        row.is_curated,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
 
     return (result.rowCount ?? 0) > 0;
   }
@@ -172,7 +213,8 @@ export class DonorRepository implements IDonorRepository {
 
     if (caseWhenClauses.length === 0) return result;
 
-    const rows = await this.db.queryMany<{ donor_id: string; count: string }>(`
+    const rows = await this.db.queryMany<{ donor_id: string; count: string }>(
+      `
       SELECT
         CASE ${caseWhenClauses.join(' ')} END AS donor_id,
         COUNT(*) AS count
@@ -180,7 +222,9 @@ export class DonorRepository implements IDonorRepository {
       WHERE t.lab_id = $1
         AND (CASE ${caseWhenClauses.join(' ')} END) IS NOT NULL
       GROUP BY donor_id
-    `, params);
+    `,
+      params
+    );
 
     for (const row of rows) {
       result.set(row.donor_id, parseCount(row));
@@ -204,7 +248,10 @@ export class DonorRepository implements IDonorRepository {
     return DonorMapper.historyFromRows(rows);
   }
 
-  async findCollectionHistoryById(id: string, labId: string): Promise<DonorCollectionHistory | null> {
+  async findCollectionHistoryById(
+    id: string,
+    labId: string
+  ): Promise<DonorCollectionHistory | null> {
     const row = await this.db.queryOne<DonorCollectionHistoryRow>(
       `SELECT dch.id, dch.donor_id, dch.collection_date::text AS collection_date, dch.specimen_type, dch.source, dch.created_at
        FROM donor_collection_history dch
@@ -217,10 +264,13 @@ export class DonorRepository implements IDonorRepository {
 
   async saveCollectionHistory(entry: DonorCollectionHistory): Promise<void> {
     const row = DonorMapper.historyToRow(entry);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO donor_collection_history (${HISTORY_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [row.id, row.donor_id, row.collection_date, row.specimen_type, row.source, row.created_at]);
+    `,
+      [row.id, row.donor_id, row.collection_date, row.specimen_type, row.source, row.created_at]
+    );
   }
 
   async updateCollectionHistory(entry: DonorCollectionHistory, labId: string): Promise<void> {

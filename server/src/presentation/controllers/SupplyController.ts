@@ -39,7 +39,11 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const category = await this.deps.supplyApplicationService.createCategory(labId, req.body, user);
+      const category = await this.deps.supplyApplicationService.createCategory(
+        labId,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ category }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create supply category', req.requestId);
@@ -50,7 +54,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const category = await this.deps.supplyApplicationService.updateCategory(labId, req.params.categoryId, req.body, user);
+      const category = await this.deps.supplyApplicationService.updateCategory(
+        labId,
+        req.params.categoryId,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ category }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update supply category', req.requestId);
@@ -84,7 +93,11 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const location = await this.deps.supplyApplicationService.createLocation(labId, req.body, user);
+      const location = await this.deps.supplyApplicationService.createLocation(
+        labId,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ location }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create supply location', req.requestId);
@@ -95,7 +108,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const location = await this.deps.supplyApplicationService.updateLocation(labId, req.params.locationId, req.body, user);
+      const location = await this.deps.supplyApplicationService.updateLocation(
+        labId,
+        req.params.locationId,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ location }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update supply location', req.requestId);
@@ -139,7 +157,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const item = await this.deps.supplyApplicationService.updateItem(labId, req.params.id, req.body, user);
+      const item = await this.deps.supplyApplicationService.updateItem(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ item }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update supply item', req.requestId);
@@ -174,7 +197,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const document = await this.deps.supplyApplicationService.addDocument(labId, req.params.id, req.body, user);
+      const document = await this.deps.supplyApplicationService.addDocument(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ document }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to add supply document', req.requestId);
@@ -186,7 +214,11 @@ export class SupplyController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const document = await this.deps.supplyApplicationService.updateDocument(
-        labId, req.params.id, req.params.docId, req.body, user
+        labId,
+        req.params.id,
+        req.params.docId,
+        req.body,
+        user
       );
       res.json(ResponseBuilder.success({ document }));
     } catch (error) {
@@ -198,7 +230,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.removeDocument(labId, req.params.id, req.params.docId, user);
+      await this.deps.supplyApplicationService.removeDocument(
+        labId,
+        req.params.id,
+        req.params.docId,
+        user
+      );
       res.json(ResponseBuilder.success({ message: 'Document removed' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to remove supply document', req.requestId);
@@ -211,7 +248,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const barcode = await this.deps.supplyApplicationService.addBarcode(labId, req.params.id, req.body, user);
+      const barcode = await this.deps.supplyApplicationService.addBarcode(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ barcode }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to add supply barcode', req.requestId);
@@ -223,7 +265,11 @@ export class SupplyController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const barcode = await this.deps.supplyApplicationService.updateBarcode(
-        labId, req.params.id, req.params.barcodeId, req.body, user
+        labId,
+        req.params.id,
+        req.params.barcodeId,
+        req.body,
+        user
       );
       res.json(ResponseBuilder.success({ barcode }));
     } catch (error) {
@@ -235,7 +281,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.removeBarcode(labId, req.params.id, req.params.barcodeId, user);
+      await this.deps.supplyApplicationService.removeBarcode(
+        labId,
+        req.params.id,
+        req.params.barcodeId,
+        user
+      );
       res.json(ResponseBuilder.success({ message: 'Barcode removed' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to remove supply barcode', req.requestId);
@@ -247,7 +298,14 @@ export class SupplyController extends BaseController {
       const labId = this.extractLabId(req);
       const value = req.query.value as string;
       if (!value) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Barcode value is required'));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(
+              API_ERROR_CODES.REQUIRED_FIELD_MISSING,
+              'Barcode value is required'
+            )
+          );
         return;
       }
       const item = await this.deps.supplyApplicationService.resolveBarcode(labId, value);
@@ -261,7 +319,11 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const barcode = await this.deps.supplyApplicationService.regenerateInternalBarcode(labId, req.params.id, user);
+      const barcode = await this.deps.supplyApplicationService.regenerateInternalBarcode(
+        labId,
+        req.params.id,
+        user
+      );
       res.json(ResponseBuilder.success({ barcode }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to regenerate internal barcode', req.requestId);
@@ -274,7 +336,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const packagingLevel = await this.deps.supplyApplicationService.addPackagingLevel(labId, req.params.id, req.body, user);
+      const packagingLevel = await this.deps.supplyApplicationService.addPackagingLevel(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ packagingLevel }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to add packaging level', req.requestId);
@@ -285,7 +352,12 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.removePackagingLevel(labId, req.params.id, req.params.levelId, user);
+      await this.deps.supplyApplicationService.removePackagingLevel(
+        labId,
+        req.params.id,
+        req.params.levelId,
+        user
+      );
       res.json(ResponseBuilder.success({ message: 'Packaging level removed' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to remove packaging level', req.requestId);
@@ -298,7 +370,11 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const transaction = await this.deps.supplyApplicationService.recordTransaction(labId, req.body, user);
+      const transaction = await this.deps.supplyApplicationService.recordTransaction(
+        labId,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ transaction }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to record supply transaction', req.requestId);
@@ -309,7 +385,11 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const transaction = await this.deps.supplyApplicationService.recordStockCount(labId, req.body, user);
+      const transaction = await this.deps.supplyApplicationService.recordStockCount(
+        labId,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ transaction }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to record stock count', req.requestId);
@@ -319,7 +399,10 @@ export class SupplyController extends BaseController {
   async getTransactionHistory(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const transactions = await this.deps.supplyApplicationService.getTransactionHistory(labId, req.params.id);
+      const transactions = await this.deps.supplyApplicationService.getTransactionHistory(
+        labId,
+        req.params.id
+      );
       res.json(ResponseBuilder.success({ transactions }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get transaction history', req.requestId);
@@ -331,7 +414,10 @@ export class SupplyController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const result = await this.deps.supplyApplicationService.voidTransaction(
-        labId, req.params.transactionId, req.body, user
+        labId,
+        req.params.transactionId,
+        req.body,
+        user
       );
       res.json(ResponseBuilder.success(result));
     } catch (error) {
@@ -370,7 +456,12 @@ export class SupplyController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const { itemIds, categoryId } = req.body;
-      const result = await this.deps.supplyApplicationService.bulkReassignCategory(labId, itemIds, categoryId, user);
+      const result = await this.deps.supplyApplicationService.bulkReassignCategory(
+        labId,
+        itemIds,
+        categoryId,
+        user
+      );
       const status = result.failed.length > 0 ? 207 : 200;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -395,7 +486,11 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const result = await this.deps.supplyApplicationService.bulkVoidTransactions(labId, req.body, user);
+      const result = await this.deps.supplyApplicationService.bulkVoidTransactions(
+        labId,
+        req.body,
+        user
+      );
       const status = result.failed.length > 0 ? 207 : 200;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {

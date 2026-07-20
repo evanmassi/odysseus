@@ -56,7 +56,9 @@ describe('InviteCode', () => {
     });
 
     it('should throw for maxUses less than 1', () => {
-      expect(() => InviteCode.create('lab_1', 'user_admin', 'user', false, 0)).toThrow('Max uses must be at least 1');
+      expect(() => InviteCode.create('lab_1', 'user_admin', 'user', false, 0)).toThrow(
+        'Max uses must be at least 1'
+      );
     });
   });
 

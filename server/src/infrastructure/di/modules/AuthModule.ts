@@ -4,9 +4,22 @@
  * Lazy-singleton wiring for auth handlers, controllers, and middleware.
  */
 
-import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler, ForceChangePasswordCommandHandler } from '@application/commands/PasswordResetCommands';
-import { LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
+import {
+  SendVerificationEmailCommandHandler,
+  VerifyEmailCommandHandler,
+  ResendVerificationEmailCommandHandler,
+} from '@application/commands/EmailVerificationCommands';
+import {
+  AdminResetPasswordCommandHandler,
+  GeneratePasswordResetTokenCommandHandler,
+  ResetPasswordWithTokenCommandHandler,
+  ForceChangePasswordCommandHandler,
+} from '@application/commands/PasswordResetCommands';
+import {
+  LoginCommandHandler,
+  ChangeUserPasswordCommandHandler,
+  CreateSystemAdminCommandHandler,
+} from '@application/commands/UserCommands';
 import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
@@ -255,9 +268,7 @@ export class AuthModule {
 
   getAuthMiddleware(): AuthMiddleware {
     if (!this.authMiddleware) {
-      this.authMiddleware = new ExpressAuthMiddleware(
-        this.shared.sessionService
-      );
+      this.authMiddleware = new ExpressAuthMiddleware(this.shared.sessionService);
     }
     return this.authMiddleware;
   }

@@ -19,7 +19,6 @@ export interface CategoryRow {
 }
 
 export class CategoryMapper {
-
   static toRow(category: Category): CategoryRow {
     return {
       id: category.id,

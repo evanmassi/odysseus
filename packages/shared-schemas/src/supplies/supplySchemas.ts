@@ -13,7 +13,13 @@ import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/da
 export const supplyItemStatusValues = ['active', 'discontinued', 'archived'] as const;
 export const supplyItemStatusSchema = z.enum(supplyItemStatusValues);
 
-export const supplyTransactionTypeValues = ['received', 'issued', 'count_adjustment', 'disposed', 'void_reversal'] as const;
+export const supplyTransactionTypeValues = [
+  'received',
+  'issued',
+  'count_adjustment',
+  'disposed',
+  'void_reversal',
+] as const;
 export const supplyTransactionTypeSchema = z.enum(supplyTransactionTypeValues);
 
 export const supplyBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
@@ -252,7 +258,10 @@ export const voidSupplyTransactionRequestSchema = z.object({
 });
 
 export const supplyBulkVoidRequestSchema = z.object({
-  transactionIds: z.array(z.string().min(1)).min(1, 'At least one transaction is required').max(100),
+  transactionIds: z
+    .array(z.string().min(1))
+    .min(1, 'At least one transaction is required')
+    .max(100),
   reason: z.string().min(1, 'Void reason is required').max(2000),
 });
 
@@ -332,24 +341,34 @@ export const supplyItemDetailResponseSchema = z.object({
 const itemIdsField = z.array(z.string().min(1)).min(1, 'At least one item is required').max(100);
 
 export const supplyBulkReceiveRequestSchema = z.object({
-  items: z.array(z.object({
-    itemId: z.string().min(1),
-    locationId: z.string().min(1),
-    quantity: z.number().min(0),
-    lotNumber: z.string().max(200).optional(),
-    expirationDate: z.string().optional(),
-    poNumber: z.string().max(200).optional(),
-    cost: z.number().min(0).optional(),
-    receivingUnit: z.string().optional(),
-  })).min(1, 'At least one item is required').max(100),
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().min(1),
+        locationId: z.string().min(1),
+        quantity: z.number().min(0),
+        lotNumber: z.string().max(200).optional(),
+        expirationDate: z.string().optional(),
+        poNumber: z.string().max(200).optional(),
+        cost: z.number().min(0).optional(),
+        receivingUnit: z.string().optional(),
+      })
+    )
+    .min(1, 'At least one item is required')
+    .max(100),
 });
 
 export const supplyBulkIssueRequestSchema = z.object({
-  items: z.array(z.object({
-    itemId: z.string().min(1),
-    locationId: z.string().min(1),
-    quantity: z.number().min(0),
-  })).min(1, 'At least one item is required').max(100),
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().min(1),
+        locationId: z.string().min(1),
+        quantity: z.number().min(0),
+      })
+    )
+    .min(1, 'At least one item is required')
+    .max(100),
 });
 
 export const supplyBulkReassignCategoryRequestSchema = z.object({
@@ -375,7 +394,7 @@ export const supplyBulkBarcodesResponseSchema = z.object({
     z.object({
       itemId: z.string(),
       barcodeValue: z.string().nullable(),
-    }),
+    })
   ),
 });
 
@@ -418,4 +437,6 @@ export type SupplyBulkIssueRequest = z.infer<typeof supplyBulkIssueRequestSchema
 export type SupplyBulkResponse = z.infer<typeof supplyBulkResponseSchema>;
 export type SupplyBulkBarcodesResponse = z.infer<typeof supplyBulkBarcodesResponseSchema>;
 export type SupplyPackagingLevel = z.infer<typeof supplyPackagingLevelSchema>;
-export type CreateSupplyPackagingLevelRequest = z.infer<typeof createSupplyPackagingLevelRequestSchema>;
+export type CreateSupplyPackagingLevelRequest = z.infer<
+  typeof createSupplyPackagingLevelRequestSchema
+>;

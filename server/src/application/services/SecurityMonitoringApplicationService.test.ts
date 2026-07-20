@@ -19,7 +19,8 @@ function makeService(deps: {
 }) {
   return new SecurityMonitoringApplicationService({
     userSessionRepository: (deps.userSessionRepository ?? {}) as unknown as UserSessionRepository,
-    refreshTokenRepository: (deps.refreshTokenRepository ?? {}) as unknown as RefreshTokenRepository,
+    refreshTokenRepository: (deps.refreshTokenRepository ??
+      {}) as unknown as RefreshTokenRepository,
     auditRepository: (deps.auditRepository ?? {}) as unknown as AuditRepository,
   });
 }
@@ -41,7 +42,11 @@ describe('SecurityMonitoringApplicationService.getSecurityOverview', () => {
     });
 
     expect(await service.getSecurityOverview()).toEqual({
-      sessionOverview: { activeSessions: 5, expiredAwaitingCleanup: 2, avgSessionDurationMinutes: 30 },
+      sessionOverview: {
+        activeSessions: 5,
+        expiredAwaitingCleanup: 2,
+        avgSessionDurationMinutes: 30,
+      },
       tokenHealth: { activeTokens: 10, expiredTokens: 3, revokedTokens: 1, avgLifespanDays: 7 },
     });
   });
@@ -57,22 +62,34 @@ describe('SecurityMonitoringApplicationService.getIpActivity', () => {
         ]),
       },
       refreshTokenRepository: {
-        getTokenCountsByIp: jest.fn().mockResolvedValue([
-          { ipAddress: '1.1.1.1', tokenCount: 3, userIds: ['u1', 'u3'] },
-        ]),
+        getTokenCountsByIp: jest
+          .fn()
+          .mockResolvedValue([{ ipAddress: '1.1.1.1', tokenCount: 3, userIds: ['u1', 'u3'] }]),
       },
     });
 
     const { entries } = await service.getIpActivity();
 
-    expect(entries[0]).toMatchObject({ ipAddress: '1.1.1.1', sessionCount: 2, tokenCount: 3, uniqueUserCount: 2 });
-    expect(entries[1]).toMatchObject({ ipAddress: '2.2.2.2', sessionCount: 1, tokenCount: 0, uniqueUserCount: 1 });
+    expect(entries[0]).toMatchObject({
+      ipAddress: '1.1.1.1',
+      sessionCount: 2,
+      tokenCount: 3,
+      uniqueUserCount: 2,
+    });
+    expect(entries[1]).toMatchObject({
+      ipAddress: '2.2.2.2',
+      sessionCount: 1,
+      tokenCount: 0,
+      uniqueUserCount: 1,
+    });
   });
 });
 
 describe('SecurityMonitoringApplicationService.revokeSession', () => {
   it('throws when the session does not exist', async () => {
-    const service = makeService({ userSessionRepository: { findById: jest.fn().mockResolvedValue(null) } });
+    const service = makeService({
+      userSessionRepository: { findById: jest.fn().mockResolvedValue(null) },
+    });
     await expect(service.revokeSession('s1')).rejects.toBeInstanceOf(NotFoundError);
   });
 
@@ -81,7 +98,10 @@ describe('SecurityMonitoringApplicationService.revokeSession', () => {
     const revoke = jest.fn();
     const save = jest.fn();
     const service = makeService({
-      userSessionRepository: { findById: jest.fn().mockResolvedValue({ id: 's1', refreshToken: 'rt' }), revokeSession },
+      userSessionRepository: {
+        findById: jest.fn().mockResolvedValue({ id: 's1', refreshToken: 'rt' }),
+        revokeSession,
+      },
       refreshTokenRepository: { findByToken: jest.fn().mockResolvedValue({ revoke }), save },
     });
 
@@ -96,7 +116,9 @@ describe('SecurityMonitoringApplicationService.revokeSession', () => {
 describe('SecurityMonitoringApplicationService.bulkRevokeSessions', () => {
   it('returns zero without touching repos when nothing matches', async () => {
     const bulkRevoke = jest.fn();
-    const service = makeService({ userSessionRepository: { findByIds: jest.fn().mockResolvedValue([]), bulkRevoke } });
+    const service = makeService({
+      userSessionRepository: { findByIds: jest.fn().mockResolvedValue([]), bulkRevoke },
+    });
 
     expect(await service.bulkRevokeSessions(['s1'])).toEqual({ revokedCount: 0 });
     expect(bulkRevoke).not.toHaveBeenCalled();
@@ -107,10 +129,16 @@ describe('SecurityMonitoringApplicationService.bulkRevokeSessions', () => {
     const save = jest.fn();
     const service = makeService({
       userSessionRepository: {
-        findByIds: jest.fn().mockResolvedValue([{ id: 's1', refreshToken: 'rt1' }, { id: 's2', refreshToken: undefined }]),
+        findByIds: jest.fn().mockResolvedValue([
+          { id: 's1', refreshToken: 'rt1' },
+          { id: 's2', refreshToken: undefined },
+        ]),
         bulkRevoke,
       },
-      refreshTokenRepository: { findByToken: jest.fn().mockResolvedValue({ revoke: jest.fn() }), save },
+      refreshTokenRepository: {
+        findByToken: jest.fn().mockResolvedValue({ revoke: jest.fn() }),
+        save,
+      },
     });
 
     const result = await service.bulkRevokeSessions(['s1', 's2']);
@@ -126,8 +154,20 @@ describe('SecurityMonitoringApplicationService.getFailedLogins', () => {
     const service = makeService({
       auditRepository: {
         findByAction: jest.fn().mockResolvedValue([
-          { details: JSON.stringify({ username: 'bob', ipAddress: '1.1.1.1', reason: 'bad password' }), timestamp: new Date('2020-01-01T00:00:00Z'), entityId: 'e1' },
-          { details: { username: 'alice' }, timestamp: new Date('2020-01-02T00:00:00Z'), entityId: 'e2' },
+          {
+            details: JSON.stringify({
+              username: 'bob',
+              ipAddress: '1.1.1.1',
+              reason: 'bad password',
+            }),
+            timestamp: new Date('2020-01-01T00:00:00Z'),
+            entityId: 'e1',
+          },
+          {
+            details: { username: 'alice' },
+            timestamp: new Date('2020-01-02T00:00:00Z'),
+            entityId: 'e2',
+          },
         ]),
       },
     });
@@ -135,7 +175,17 @@ describe('SecurityMonitoringApplicationService.getFailedLogins', () => {
     const { entries, total } = await service.getFailedLogins(50);
 
     expect(total).toBe(2);
-    expect(entries[0]).toEqual({ username: 'bob', ipAddress: '1.1.1.1', reason: 'bad password', timestamp: '2020-01-01T00:00:00.000Z' });
-    expect(entries[1]).toEqual({ username: 'alice', ipAddress: null, reason: 'Unknown', timestamp: '2020-01-02T00:00:00.000Z' });
+    expect(entries[0]).toEqual({
+      username: 'bob',
+      ipAddress: '1.1.1.1',
+      reason: 'bad password',
+      timestamp: '2020-01-01T00:00:00.000Z',
+    });
+    expect(entries[1]).toEqual({
+      username: 'alice',
+      ipAddress: null,
+      reason: 'Unknown',
+      timestamp: '2020-01-02T00:00:00.000Z',
+    });
   });
 });

@@ -176,10 +176,12 @@ describe('Donor', () => {
         donorInternalId: 'INT-001',
       });
 
-      expect(() => donor.update({
-        donorSourceId: null,
-        donorInternalId: null,
-      })).toThrow('At least one donor ID (source or internal) is required');
+      expect(() =>
+        donor.update({
+          donorSourceId: null,
+          donorInternalId: null,
+        })
+      ).toThrow('At least one donor ID (source or internal) is required');
     });
 
     it('should allow clearing one ID if the other remains', () => {

@@ -10,9 +10,8 @@ import {
   updateDemoLimitsSchema,
   bulkRevokeSessionsRequestSchema,
   auditSearchQuerySchema,
-  securityMonitoringQuerySchema
+  securityMonitoringQuerySchema,
 } from '@odysseus/shared-schemas';
-
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
@@ -24,7 +23,11 @@ import type { SecurityMonitoringController } from '@presentation/controllers/sys
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
-import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
@@ -32,7 +35,7 @@ import {
   LabUserParams,
   CreateLabBodySchema,
   UpdateLabBodySchema,
-  CreateInviteCodeBodySchema
+  CreateInviteCodeBodySchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -57,50 +60,51 @@ export class SystemAdminRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate,
-      this.authMiddleware.requireSystemAdmin,
-    ];
+    return [this.authMiddleware.authenticate, this.authMiddleware.requireSystemAdmin];
   }
 
   configure(router: Router): void {
     // LAB MANAGEMENT
 
-    router.get('/labs',
-      this.labController.listLabs.bind(this.labController)
-    );
+    router.get('/labs', this.labController.listLabs.bind(this.labController));
 
-    router.post('/labs',
+    router.post(
+      '/labs',
       validateBody(CreateLabBodySchema),
       this.labController.createLab.bind(this.labController)
     );
 
-    router.put('/labs/:id',
+    router.put(
+      '/labs/:id',
       validateParams(IdParams),
       validateBody(UpdateLabBodySchema),
       this.labController.updateLab.bind(this.labController)
     );
 
-    router.post('/labs/:id/deactivate',
+    router.post(
+      '/labs/:id/deactivate',
       validateParams(IdParams),
       this.labController.deactivateLab.bind(this.labController)
     );
 
-    router.post('/labs/:id/activate',
+    router.post(
+      '/labs/:id/activate',
       validateParams(IdParams),
       this.labController.activateLab.bind(this.labController)
     );
 
     // LAB DETAILS
 
-    router.get('/labs/:labId/details',
+    router.get(
+      '/labs/:labId/details',
       validateParams(LabIdParams),
       this.labController.getLabDetails.bind(this.labController)
     );
 
     // INVITE CODES (system admin can manage any lab's codes)
 
-    router.post('/labs/:labId/invite-codes',
+    router.post(
+      '/labs/:labId/invite-codes',
       validateParams(LabIdParams),
       validateBody(CreateInviteCodeBodySchema),
       this.inviteCodeController.create.bind(this.inviteCodeController)
@@ -108,43 +112,47 @@ export class SystemAdminRouteModule implements RouteModule {
 
     // GLOBAL SECURITY SETTINGS
 
-    router.put('/security-config',
+    router.put(
+      '/security-config',
       validateBody(updateSecurityConfigSchema),
       this.adminConfigController.updateSecurityConfig.bind(this.adminConfigController)
     );
 
     // CROSS-LAB OVERVIEW
 
-    router.get('/overview',
-      this.labController.getOverview.bind(this.labController)
-    );
+    router.get('/overview', this.labController.getOverview.bind(this.labController));
 
     // DEMO MANAGEMENT (system admin, explicit labId)
 
-    router.post('/labs/:labId/demo/reset',
+    router.post(
+      '/labs/:labId/demo/reset',
       validateParams(LabIdParams),
       this.strictLimiter,
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)
     );
 
-    router.post('/labs/:labId/demo/seed',
+    router.post(
+      '/labs/:labId/demo/seed',
       validateParams(LabIdParams),
       this.strictLimiter,
       this.configurationController.seedDemoLab.bind(this.configurationController)
     );
 
-    router.post('/labs/:labId/demo/unseed',
+    router.post(
+      '/labs/:labId/demo/unseed',
       validateParams(LabIdParams),
       this.strictLimiter,
       this.configurationController.unseedDemoLab.bind(this.configurationController)
     );
 
-    router.get('/labs/:labId/demo/limits',
+    router.get(
+      '/labs/:labId/demo/limits',
       validateParams(LabIdParams),
       this.labController.getDemoLimits.bind(this.labController)
     );
 
-    router.put('/labs/:labId/demo/limits',
+    router.put(
+      '/labs/:labId/demo/limits',
       validateParams(LabIdParams),
       validateBody(updateDemoLimitsSchema),
       this.labController.updateDemoLimits.bind(this.labController)
@@ -152,7 +160,8 @@ export class SystemAdminRouteModule implements RouteModule {
 
     // LAB AUDIT LOG
 
-    router.get('/labs/:labId/audit',
+    router.get(
+      '/labs/:labId/audit',
       validateParams(LabIdParams),
       validateQuery(auditSearchQuerySchema),
       this.auditController.getLabAuditLog.bind(this.auditController)
@@ -160,73 +169,89 @@ export class SystemAdminRouteModule implements RouteModule {
 
     // CROSS-LAB USER MANAGEMENT
 
-    router.post('/labs/:labId/users/:userId/activate',
+    router.post(
+      '/labs/:labId/users/:userId/activate',
       validateParams(LabUserParams),
       this.systemAdminUserController.activateUserForLab.bind(this.systemAdminUserController)
     );
 
-    router.post('/labs/:labId/users/:userId/deactivate',
+    router.post(
+      '/labs/:labId/users/:userId/deactivate',
       validateParams(LabUserParams),
       this.systemAdminUserController.deactivateUserForLab.bind(this.systemAdminUserController)
     );
 
-    router.post('/labs/:labId/users/:userId/suspend',
+    router.post(
+      '/labs/:labId/users/:userId/suspend',
       validateParams(LabUserParams),
       this.systemAdminUserController.suspendUserForLab.bind(this.systemAdminUserController)
     );
 
-    router.delete('/labs/:labId/users/:userId',
+    router.delete(
+      '/labs/:labId/users/:userId',
       validateParams(LabUserParams),
       this.systemAdminUserController.deleteUserForLab.bind(this.systemAdminUserController)
     );
 
     // SESSION & SECURITY MONITORING
 
-    router.get('/security/overview',
+    router.get(
+      '/security/overview',
       this.securityMonitoringController.getSecurityOverview.bind(this.securityMonitoringController)
     );
 
-    router.get('/security/sessions',
+    router.get(
+      '/security/sessions',
       this.securityMonitoringController.getActiveSessions.bind(this.securityMonitoringController)
     );
 
-    router.get('/security/ip-activity',
+    router.get(
+      '/security/ip-activity',
       this.securityMonitoringController.getIpActivity.bind(this.securityMonitoringController)
     );
 
-    router.post('/security/purge-expired',
+    router.post(
+      '/security/purge-expired',
       this.strictLimiter,
       this.securityMonitoringController.purgeExpiredSessions.bind(this.securityMonitoringController)
     );
 
-    router.get('/security/session-activity',
+    router.get(
+      '/security/session-activity',
       validateQuery(securityMonitoringQuerySchema),
       this.securityMonitoringController.getSessionActivity.bind(this.securityMonitoringController)
     );
 
-    router.get('/security/failed-logins',
+    router.get(
+      '/security/failed-logins',
       validateQuery(securityMonitoringQuerySchema),
       this.securityMonitoringController.getFailedLogins.bind(this.securityMonitoringController)
     );
 
-    router.post('/security/sessions/bulk-revoke',
+    router.post(
+      '/security/sessions/bulk-revoke',
       this.strictLimiter,
       validateBody(bulkRevokeSessionsRequestSchema),
       this.securityMonitoringController.bulkRevokeSessions.bind(this.securityMonitoringController)
     );
 
-    router.post('/security/sessions/:id/revoke',
+    router.post(
+      '/security/sessions/:id/revoke',
       validateParams(IdParams),
       this.securityMonitoringController.revokeSession.bind(this.securityMonitoringController)
     );
 
     // STORAGE ANALYTICS
 
-    router.get('/storage/analytics',
-      this.storageAnalyticsController.getCrossLabStorageAnalytics.bind(this.storageAnalyticsController)
+    router.get(
+      '/storage/analytics',
+      this.storageAnalyticsController.getCrossLabStorageAnalytics.bind(
+        this.storageAnalyticsController
+      )
     );
 
-    router.get('/labs/:labId/storage/analytics',
+    router.get(
+      '/labs/:labId/storage/analytics',
       validateParams(LabIdParams),
       this.storageAnalyticsController.getLabStorageAnalytics.bind(this.storageAnalyticsController)
     );

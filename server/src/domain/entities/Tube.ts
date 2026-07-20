@@ -87,13 +87,10 @@ export class Tube {
   }): Tube {
     const id = data.id ?? generateId('tube');
 
-    const location = data.location instanceof Location
-      ? data.location
-      : Location.create(data.location);
+    const location =
+      data.location instanceof Location ? data.location : Location.create(data.location);
 
-    const sample = data.sample instanceof SampleData
-      ? data.sample
-      : SampleData.create(data.sample);
+    const sample = data.sample instanceof SampleData ? data.sample : SampleData.create(data.sample);
 
     const now = new Date();
 
@@ -294,18 +291,17 @@ export class Tube {
     sample?: TubeSampleUpdate;
     researcherId?: string | null;
   }): Tube {
-    const newLocation = updates.location
-      ? this._location.update(updates.location)
-      : this._location;
+    const newLocation = updates.location ? this._location.update(updates.location) : this._location;
 
-    const newSample = updates.sample
-      ? this._sample.update(updates.sample)
-      : this._sample;
+    const newSample = updates.sample ? this._sample.update(updates.sample) : this._sample;
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- three-way null/undefined/value logic */
-    const newResearcherId = updates.researcherId === null
-      ? undefined
-      : (updates.researcherId !== undefined ? updates.researcherId : this._researcherId);
+    const newResearcherId =
+      updates.researcherId === null
+        ? undefined
+        : updates.researcherId !== undefined
+          ? updates.researcherId
+          : this._researcherId;
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     return new Tube(
@@ -356,7 +352,7 @@ export class Tube {
       createdByName: this._createdByName,
       timestamps: {
         createdAt: this._createdAt.toISOString(),
-        updatedAt: this._updatedAt.toISOString()
+        updatedAt: this._updatedAt.toISOString(),
       },
       version: this._version,
       isLocked: this._isLocked || undefined,
@@ -364,7 +360,7 @@ export class Tube {
       lockNote: this._lockNote,
       lockedAt: this._lockedAt?.toISOString(),
       sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined,
-      labId: this._labId
+      labId: this._labId,
     };
   }
 
@@ -427,5 +423,4 @@ export class Tube {
   get sharedWithUserIds(): string[] {
     return [...this._sharedWithUserIds];
   }
-
 }

@@ -48,9 +48,13 @@ export function createSeed(context: PostgresContext) {
   const persons = new PersonRepository(context);
   const researchers = new ResearcherRepository(context);
   const donors = new DonorRepository(context);
-  const equipmentCategories = new CategoryRepository(context, EQUIPMENT_CATEGORY_TABLES, data => EquipmentCategory.fromData(data));
+  const equipmentCategories = new CategoryRepository(context, EQUIPMENT_CATEGORY_TABLES, data =>
+    EquipmentCategory.fromData(data)
+  );
   const equipmentItems = new EquipmentItemRepository(context);
-  const supplyCategories = new CategoryRepository(context, SUPPLY_CATEGORY_TABLES, data => SupplyCategory.fromData(data));
+  const supplyCategories = new CategoryRepository(context, SUPPLY_CATEGORY_TABLES, data =>
+    SupplyCategory.fromData(data)
+  );
   const supplyItems = new SupplyItemRepository(context);
   const tubes = new TubeRepository(context, new StorageRepository(context));
   const users = new UserRepository(context);
@@ -79,7 +83,9 @@ export function createSeed(context: PostgresContext) {
     return entity;
   }
 
-  async function person(overrides: { firstName?: string; lastName?: string; email?: string } = {}): Promise<Person> {
+  async function person(
+    overrides: { firstName?: string; lastName?: string; email?: string } = {}
+  ): Promise<Person> {
     const entity = Person.create(
       overrides.firstName ?? 'Test',
       overrides.lastName ?? 'Person',
@@ -133,7 +139,10 @@ export function createSeed(context: PostgresContext) {
     return entry;
   }
 
-  async function equipmentCategory(overrides: { labId: string; name?: string }): Promise<EquipmentCategory> {
+  async function equipmentCategory(overrides: {
+    labId: string;
+    name?: string;
+  }): Promise<EquipmentCategory> {
     const entity = EquipmentCategory.create({
       labId: overrides.labId,
       name: overrides.name ?? `Cat-${generateId('eqcat')}`,
@@ -147,7 +156,8 @@ export function createSeed(context: PostgresContext) {
     categoryId?: string;
     name?: string;
   }): Promise<EquipmentItem> {
-    const categoryId = overrides.categoryId ?? (await equipmentCategory({ labId: overrides.labId })).id;
+    const categoryId =
+      overrides.categoryId ?? (await equipmentCategory({ labId: overrides.labId })).id;
     const entity = EquipmentItem.create({
       labId: overrides.labId,
       categoryId,
@@ -171,7 +181,10 @@ export function createSeed(context: PostgresContext) {
     return entity;
   }
 
-  async function supplyCategory(overrides: { labId: string; name?: string }): Promise<SupplyCategory> {
+  async function supplyCategory(overrides: {
+    labId: string;
+    name?: string;
+  }): Promise<SupplyCategory> {
     const entity = SupplyCategory.create({
       labId: overrides.labId,
       name: overrides.name ?? `Cat-${generateId('supcat')}`,
@@ -185,7 +198,8 @@ export function createSeed(context: PostgresContext) {
     categoryId?: string;
     name?: string;
   }): Promise<SupplyItem> {
-    const categoryId = overrides.categoryId ?? (await supplyCategory({ labId: overrides.labId })).id;
+    const categoryId =
+      overrides.categoryId ?? (await supplyCategory({ labId: overrides.labId })).id;
     const entity = SupplyItem.create({
       labId: overrides.labId,
       categoryId,

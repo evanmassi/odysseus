@@ -9,7 +9,10 @@ import * as path from 'path';
 
 import { z } from 'zod';
 
-import type { ConfigurationService, Configuration } from '@application/contracts/ConfigurationService';
+import type {
+  ConfigurationService,
+  Configuration,
+} from '@application/contracts/ConfigurationService';
 
 const ConfigurationSchema = z.object({
   server: z.object({
@@ -92,10 +95,12 @@ export class EnvironmentConfigurationService implements ConfigurationService {
         algorithm: process.env.JWT_ALGORITHM || 'HS256',
       },
       email: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
-        verificationBaseUrl: process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
-        resetPasswordBaseUrl: process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password',
+        verificationBaseUrl:
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
+          process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email',
+        resetPasswordBaseUrl:
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
+          process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password',
       },
       security: {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must normalize to undefined
@@ -115,15 +120,18 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     if (environment !== 'development' && environment !== 'test') {
       throw new Error(
         'JWT_SECRET environment variable is required outside development. ' +
-        'Generate a secure secret with: openssl rand -base64 64'
+          'Generate a secure secret with: openssl rand -base64 64'
       );
     }
 
     // Fixed secret so dev sessions survive server restarts
-    const devSecret = 'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
+    const devSecret =
+      'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
 
     // eslint-disable-next-line no-console -- runs before logger is initialized
-    console.warn('Using fixed development JWT secret. Set JWT_SECRET environment variable for production.');
+    console.warn(
+      'Using fixed development JWT secret. Set JWT_SECRET environment variable for production.'
+    );
 
     return devSecret;
   }

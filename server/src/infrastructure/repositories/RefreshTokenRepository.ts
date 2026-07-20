@@ -5,7 +5,10 @@
  */
 
 import type { RefreshToken } from '@domain/entities/RefreshToken';
-import type { RefreshTokenRepository as IRefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
+import type {
+  RefreshTokenRepository as IRefreshTokenRepository,
+  IpTokenCount,
+} from '@domain/repositories/RefreshTokenRepository';
 import { hashToken } from '@domain/utils/tokenHash';
 import type { RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import { RefreshTokenMapper } from '@infrastructure/database/mappers/RefreshTokenMapper';
@@ -19,7 +22,6 @@ const REFRESH_TOKEN_COLUMNS = `
 const DEFAULT_CLEANUP_DAYS = 30;
 
 export class RefreshTokenRepository implements IRefreshTokenRepository {
-
   constructor(private context: Queryable) {}
 
   // BASIC CRUD OPERATIONS
@@ -35,7 +37,8 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
   async save(refreshToken: RefreshToken): Promise<void> {
     const row = RefreshTokenMapper.toRow(refreshToken);
 
-    await this.context.execute(`
+    await this.context.execute(
+      `
       INSERT INTO refresh_tokens (
         id, user_id, token, expires_at, created_at, last_used_at, is_revoked, user_agent, ip_address
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -48,17 +51,23 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
         is_revoked = EXCLUDED.is_revoked,
         user_agent = EXCLUDED.user_agent,
         ip_address = EXCLUDED.ip_address
-    `, [
-      row.id, row.user_id, row.token, row.expires_at, row.created_at,
-      row.last_used_at, row.is_revoked, row.user_agent, row.ip_address
-    ]);
+    `,
+      [
+        row.id,
+        row.user_id,
+        row.token,
+        row.expires_at,
+        row.created_at,
+        row.last_used_at,
+        row.is_revoked,
+        row.user_agent,
+        row.ip_address,
+      ]
+    );
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM refresh_tokens WHERE id = $1',
-      [id]
-    );
+    const result = await this.context.execute('DELETE FROM refresh_tokens WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -73,7 +82,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
   // MAINTENANCE OPERATIONS
 
   async cleanupExpiredTokens(olderThanDays: number = DEFAULT_CLEANUP_DAYS): Promise<number> {
-    const cutoffDate = new Date(Date.now() - (olderThanDays * 24 * 60 * 60 * 1000));
+    const cutoffDate = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
     const now = new Date();
 
     const result = await this.context.execute(
@@ -125,7 +134,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
   }
 
   async getTokenCountsByIp(startDate?: Date, endDate?: Date): Promise<IpTokenCount[]> {
-    const params: (Date)[] = [];
+    const params: Date[] = [];
     let dateFilter: string;
 
     if (startDate && endDate) {

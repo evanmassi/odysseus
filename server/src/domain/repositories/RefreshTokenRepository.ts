@@ -7,7 +7,6 @@
 import type { RefreshToken } from '@domain/entities/RefreshToken';
 
 export interface RefreshTokenRepository {
-
   /** Primary lookup path for token validation. */
   findByToken(token: string): Promise<RefreshToken | null>;
 

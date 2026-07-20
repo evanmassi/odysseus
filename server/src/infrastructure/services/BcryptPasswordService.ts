@@ -37,7 +37,9 @@ export class BcryptPasswordService implements PasswordService {
 
     try {
       if (salt) {
-        const derived = crypto.pbkdf2Sync(plainPassword, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_LENGTH, PBKDF2_DIGEST).toString('hex');
+        const derived = crypto
+          .pbkdf2Sync(plainPassword, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_LENGTH, PBKDF2_DIGEST)
+          .toString('hex');
         return constantTimeEqual(derived, storedHash);
       }
       return bcrypt.compare(plainPassword, storedHash);

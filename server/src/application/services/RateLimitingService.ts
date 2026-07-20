@@ -92,7 +92,7 @@ export class RateLimitingService {
     if (!attempt) {
       attempt = {
         count: 1,
-        firstAttempt: now
+        firstAttempt: now,
       };
       this.attempts.set(identifier, attempt);
       return;
@@ -107,13 +107,13 @@ export class RateLimitingService {
     }
 
     if (attempt.count >= securityConfig.loginAttemptsPerMinute) {
-      attempt.lockedUntil = now + (securityConfig.lockoutDurationMinutes * 60 * 1000);
+      attempt.lockedUntil = now + securityConfig.lockoutDurationMinutes * 60 * 1000;
 
       logger.warn('Rate limit exceeded, user locked out', {
         identifier,
         attempts: attempt.count,
         lockoutMinutes: securityConfig.lockoutDurationMinutes,
-        expiresAt: new Date(attempt.lockedUntil).toISOString()
+        expiresAt: new Date(attempt.lockedUntil).toISOString(),
       });
     }
 

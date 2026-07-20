@@ -16,15 +16,18 @@ import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
 
-const ITEM_COLUMNS = 'id, lab_id, category_id, name, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
-const LOG_COLUMNS = 'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
+const ITEM_COLUMNS =
+  'id, lab_id, category_id, name, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
+const LOG_COLUMNS =
+  'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
 export class EquipmentItemRepository implements IEquipmentItemRepository {
-
   private readonly documents: DocumentQueries<EquipmentDocument>;
 
   constructor(private db: Queryable) {
-    this.documents = new DocumentQueries(db, 'equipment_documents', data => EquipmentDocument.fromData(data));
+    this.documents = new DocumentQueries(db, 'equipment_documents', data =>
+      EquipmentDocument.fromData(data)
+    );
   }
 
   // ITEMS
@@ -47,7 +50,8 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
 
   async save(item: EquipmentItem): Promise<void> {
     const row = EquipmentItemMapper.toRow(item);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO equipment_items (${ITEM_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       ON CONFLICT (id) DO UPDATE SET
@@ -70,14 +74,32 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
         disposal_method = EXCLUDED.disposal_method,
         notes = EXCLUDED.notes,
         updated_at = EXCLUDED.updated_at
-    `, [
-      row.id, row.lab_id, row.category_id, row.name,
-      row.serial_number, row.manufacturer, row.model,
-      row.description, row.location, row.status, row.condition_notes,
-      row.purchase_date, row.warranty_expiration, row.purchase_cost, row.asset_tag,
-      row.next_maintenance_date, row.decommission_date, row.decommission_reason, row.disposal_method,
-      row.notes, row.created_at, row.updated_at
-    ]);
+    `,
+      [
+        row.id,
+        row.lab_id,
+        row.category_id,
+        row.name,
+        row.serial_number,
+        row.manufacturer,
+        row.model,
+        row.description,
+        row.location,
+        row.status,
+        row.condition_notes,
+        row.purchase_date,
+        row.warranty_expiration,
+        row.purchase_cost,
+        row.asset_tag,
+        row.next_maintenance_date,
+        row.decommission_date,
+        row.decommission_reason,
+        row.disposal_method,
+        row.notes,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
   }
 
   async delete(id: string, labId: string): Promise<boolean> {
@@ -98,7 +120,11 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     return this.documents.save(document);
   }
 
-  async updateDocument(id: string, itemId: string, fields: DocumentPatch): Promise<EquipmentDocument | null> {
+  async updateDocument(
+    id: string,
+    itemId: string,
+    fields: DocumentPatch
+  ): Promise<EquipmentDocument | null> {
     return this.documents.update(id, itemId, fields);
   }
 
@@ -126,54 +152,84 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
 
   async saveMaintenanceEntry(entry: EquipmentMaintenanceLog): Promise<void> {
     const row = EquipmentMaintenanceLogMapper.toRow(entry);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO equipment_maintenance_log (${LOG_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    `, [
-      row.id, row.item_id, row.date_performed, row.maintenance_type,
-      row.performed_by, row.technician, row.description, row.next_scheduled_date,
-      row.cost, row.notes, row.created_at, row.updated_at
-    ]);
+    `,
+      [
+        row.id,
+        row.item_id,
+        row.date_performed,
+        row.maintenance_type,
+        row.performed_by,
+        row.technician,
+        row.description,
+        row.next_scheduled_date,
+        row.cost,
+        row.notes,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
   }
 
   async updateMaintenanceEntry(entry: EquipmentMaintenanceLog): Promise<void> {
     const row = EquipmentMaintenanceLogMapper.toRow(entry);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       UPDATE equipment_maintenance_log SET
         date_performed = $2, maintenance_type = $3, performed_by = $4,
         technician = $5, description = $6, next_scheduled_date = $7,
         cost = $8, notes = $9, updated_at = $10
       WHERE id = $1
-    `, [
-      row.id, row.date_performed, row.maintenance_type, row.performed_by,
-      row.technician, row.description, row.next_scheduled_date,
-      row.cost, row.notes, row.updated_at
-    ]);
+    `,
+      [
+        row.id,
+        row.date_performed,
+        row.maintenance_type,
+        row.performed_by,
+        row.technician,
+        row.description,
+        row.next_scheduled_date,
+        row.cost,
+        row.notes,
+        row.updated_at,
+      ]
+    );
   }
 
   async deleteMaintenanceEntry(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM equipment_maintenance_log WHERE id = $1', [id]);
+    const result = await this.db.execute('DELETE FROM equipment_maintenance_log WHERE id = $1', [
+      id,
+    ]);
     return (result.rowCount ?? 0) > 0;
   }
 
   // LOOKUP SUPPORT — JOINs through equipment_items for lab scoping
 
   async countMaintenanceEntriesUsingType(type: string, labId: string): Promise<number> {
-    const row = await this.db.queryOne<{ count: string }>(`
+    const row = await this.db.queryOne<{ count: string }>(
+      `
       SELECT COUNT(*) as count
       FROM equipment_maintenance_log ml
       JOIN equipment_items i ON i.id = ml.item_id
       WHERE ml.maintenance_type = $1 AND i.lab_id = $2
-    `, [type, labId]);
+    `,
+      [type, labId]
+    );
     return parseCount(row);
   }
 
   async renameMaintenanceType(oldValue: string, newValue: string, labId: string): Promise<number> {
-    const result = await this.db.execute(`
+    const result = await this.db.execute(
+      `
       UPDATE equipment_maintenance_log ml SET maintenance_type = $2
       FROM equipment_items i
       WHERE i.id = ml.item_id AND ml.maintenance_type = $1 AND i.lab_id = $3
-    `, [oldValue, newValue, labId]);
+    `,
+      [oldValue, newValue, labId]
+    );
     return result.rowCount ?? 0;
   }
 }

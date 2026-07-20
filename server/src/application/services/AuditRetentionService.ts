@@ -59,7 +59,6 @@ export class AuditRetentionService {
     );
 
     while (entries.length > 0) {
-
       await this.archiveRepository.saveArchived(entries);
 
       const entryIds = entries.map((e: AuditLogEntry) => e.id);
@@ -111,7 +110,8 @@ export class AuditRetentionService {
       nextArchivalDate = next;
     }
 
-    const performanceWarning = activeMetrics.count >= AUDIT_RETENTION_CONFIG.activeTableWarningThreshold;
+    const performanceWarning =
+      activeMetrics.count >= AUDIT_RETENTION_CONFIG.activeTableWarningThreshold;
 
     return {
       activeTable: {
@@ -199,12 +199,13 @@ export class AuditRetentionService {
     archiveResult: PaginatedResult<AuditLogEntry>,
     filters: AuditLogFilters
   ): PaginatedResult<AuditLogEntry> {
-    const mergedItems = [...activeResult.items, ...archiveResult.items]
-      .sort((a, b) => {
-        const aTime = typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : a.timestamp.getTime();
-        const bTime = typeof b.timestamp === 'string' ? new Date(b.timestamp).getTime() : b.timestamp.getTime();
-        return bTime - aTime;
-      });
+    const mergedItems = [...activeResult.items, ...archiveResult.items].sort((a, b) => {
+      const aTime =
+        typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : a.timestamp.getTime();
+      const bTime =
+        typeof b.timestamp === 'string' ? new Date(b.timestamp).getTime() : b.timestamp.getTime();
+      return bTime - aTime;
+    });
 
     const limit = filters.limit ?? 50;
     const offset = filters.offset ?? 0;

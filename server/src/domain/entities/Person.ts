@@ -140,7 +140,7 @@ export class Person {
       position: this._position,
       department: this._department,
       createdAt: this._createdAt.toISOString(),
-      updatedAt: this._updatedAt.toISOString()
+      updatedAt: this._updatedAt.toISOString(),
     };
   }
 

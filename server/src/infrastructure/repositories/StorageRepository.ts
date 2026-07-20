@@ -10,7 +10,10 @@ import { Storage } from '@domain/entities/Storage';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { StorageRepository as IStorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
+import type {
+  StorageRepository as IStorageRepository,
+  StorageHistory,
+} from '@domain/repositories/StorageRepository';
 import type { Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
@@ -25,16 +28,22 @@ type ConfigurationJson = Parameters<typeof Storage.fromData>[0];
 const MAX_SERIALIZATION_RETRIES = 3;
 
 export class StorageRepository implements IStorageRepository {
-
   constructor(private context: Queryable) {}
 
   async getForLab(labId: string): Promise<Storage | null> {
     try {
-      const row = await this.context.queryOne<{ config_json: ConfigurationJson; version: number; updated_at: Date | string }>(`
+      const row = await this.context.queryOne<{
+        config_json: ConfigurationJson;
+        version: number;
+        updated_at: Date | string;
+      }>(
+        `
         SELECT config_json, version, updated_at
         FROM storage_current
         WHERE lab_id = $1
-      `, [labId]);
+      `,
+        [labId]
+      );
 
       if (!row) {
         return null;
@@ -52,12 +61,21 @@ export class StorageRepository implements IStorageRepository {
     if (labIds.length === 0) return new Map();
     try {
       const placeholders = labIds.map((_, i) => `$${i + 1}`).join(', ');
-      const rows = await this.context.queryMany<{ lab_id: string; config_json: ConfigurationJson; version: number }>(`
+      const rows = await this.context.queryMany<{
+        lab_id: string;
+        config_json: ConfigurationJson;
+        version: number;
+      }>(
+        `
         SELECT lab_id, config_json, version
         FROM storage_current
         WHERE lab_id IN (${placeholders})
-      `, labIds);
-      return new Map(rows.map(r => [r.lab_id, Storage.fromData({ ...r.config_json, version: r.version })]));
+      `,
+        labIds
+      );
+      return new Map(
+        rows.map(r => [r.lab_id, Storage.fromData({ ...r.config_json, version: r.version })])
+      );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to get configurations for labs:', { labIds, message: errorMessage });
@@ -75,9 +93,14 @@ export class StorageRepository implements IStorageRepository {
     const configJson = JSON.stringify(defaultConfig.toData());
     const now = new Date();
 
-    await this.context.transaction(async (client) => {
+    await this.context.transaction(async client => {
       const version = await this.insertStorageVersion(
-        client, labId, now, 'Default configuration created', 'system', configJson
+        client,
+        labId,
+        now,
+        'Default configuration created',
+        'system',
+        configJson
       );
 
       await client.query(
@@ -92,18 +115,20 @@ export class StorageRepository implements IStorageRepository {
 
   async getByVersion(labId: string, version: number): Promise<Storage | null> {
     try {
-      const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
+      const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(
+        `
         SELECT config_json
         FROM storage_versions
         WHERE lab_id = $1 AND version = $2
-      `, [labId, version]);
+      `,
+        [labId, version]
+      );
 
       if (!row) {
         return null;
       }
 
       return Storage.fromData(row.config_json);
-
     } catch (error) {
       logger.error('Failed to get configuration by version:', { error, labId, version });
       throw new ValidationError('Unable to load that configuration version. Please try again.');
@@ -112,22 +137,30 @@ export class StorageRepository implements IStorageRepository {
 
   async getHistory(labId: string, limit: number = 50): Promise<StorageHistory[]> {
     try {
-      const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: ConfigurationJson }>(`
+      const rows = await this.context.queryMany<{
+        version: number;
+        updated_at: Date | string;
+        change_description: string;
+        changed_by: string;
+        config_json: ConfigurationJson;
+      }>(
+        `
         SELECT version, updated_at, change_description, changed_by, config_json
         FROM storage_versions
         WHERE lab_id = $1
         ORDER BY version DESC
         LIMIT $2
-      `, [labId, limit]);
+      `,
+        [labId, limit]
+      );
 
       return rows.map(row => ({
         version: row.version,
         timestamp: toDate(row.updated_at),
         changeDescription: row.change_description,
         changedBy: row.changed_by,
-        storage: Storage.fromData(row.config_json)
+        storage: Storage.fromData(row.config_json),
       }));
-
     } catch (error) {
       logger.error('Failed to get configuration history:', { error, labId });
       throw new ValidationError('Unable to load configuration history. Please try again.');
@@ -143,12 +176,17 @@ export class StorageRepository implements IStorageRepository {
   ): Promise<number> {
     try {
       let newVersion = 0;
-      await this.context.transaction(async (client) => {
+      await this.context.transaction(async client => {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
         newVersion = await this.insertStorageVersion(
-          client, labId, now, changeDescription, changedBy, configJson
+          client,
+          labId,
+          now,
+          changeDescription,
+          changedBy,
+          configJson
         );
 
         const updateResult = await client.query(
@@ -168,11 +206,12 @@ export class StorageRepository implements IStorageRepository {
           throw ConflictError.configuration(expectedVersion, currentVersion);
         }
 
-        logger.info(`Storage configuration saved with optimistic lock (v${expectedVersion} → v${newVersion}): ${changeDescription}`);
+        logger.info(
+          `Storage configuration saved with optimistic lock (v${expectedVersion} → v${newVersion}): ${changeDescription}`
+        );
       });
 
       return newVersion;
-
     } catch (error) {
       if (error instanceof ConflictError) {
         throw error;
@@ -217,7 +256,12 @@ export class StorageRepository implements IStorageRepository {
     return rack.boxes.some(box => box.name.toLowerCase() === boxId.toLowerCase());
   }
 
-  async getMaxPosition(labId: string, tankId: string, rackId: string, boxId: string): Promise<number> {
+  async getMaxPosition(
+    labId: string,
+    tankId: string,
+    rackId: string,
+    boxId: string
+  ): Promise<number> {
     const box = await this.getBoxByName(labId, tankId, rackId, boxId);
     return box ? box.maxPositions : 0;
   }
@@ -275,17 +319,18 @@ export class StorageRepository implements IStorageRepository {
         requireStrongPasswords: row.requirestrongpasswords,
         passwordMinLength: row.passwordminlength,
         passwordRequireSpecialChars: row.passwordrequirespecialchars,
-        accessTokenExpiryMinutes: row.accesstokenexpiryminutes ?? DEFAULT_SECURITY_CONFIG.accessTokenExpiryMinutes,
+        accessTokenExpiryMinutes:
+          row.accesstokenexpiryminutes ?? DEFAULT_SECURITY_CONFIG.accessTokenExpiryMinutes,
         sessionTimeoutMinutes: row.sessiontimeoutminutes,
         idleWarningMinutes: row.idlewarningminutes ?? DEFAULT_SECURITY_CONFIG.idleWarningMinutes,
-        absoluteSessionTimeoutHours: row.absolutesessiontimeouthours ?? DEFAULT_SECURITY_CONFIG.absoluteSessionTimeoutHours,
+        absoluteSessionTimeoutHours:
+          row.absolutesessiontimeouthours ?? DEFAULT_SECURITY_CONFIG.absoluteSessionTimeoutHours,
         maxConcurrentSessions: row.maxconcurrentsessions,
         enableRateLimiting: row.enableratelimiting,
         loginAttemptsPerMinute: row.loginattemptsperminute,
         lockoutDurationMinutes: row.lockoutdurationminutes,
-        enableAdminControls: row.enableadmincontrols
+        enableAdminControls: row.enableadmincontrols,
       };
-
     } catch (error) {
       logger.error('Failed to get security configuration:', { error });
       return DEFAULT_SECURITY_CONFIG;
@@ -297,7 +342,8 @@ export class StorageRepository implements IStorageRepository {
       const currentConfig = await this.getSecurityConfig();
       const updatedConfig: SecurityConfig = { ...currentConfig, ...updates };
 
-      await this.context.execute(`
+      await this.context.execute(
+        `
         INSERT INTO security_config (
           id,
           use_enhanced_auth,
@@ -330,25 +376,26 @@ export class StorageRepository implements IStorageRepository {
           lockout_duration_minutes = EXCLUDED.lockout_duration_minutes,
           enable_admin_controls = EXCLUDED.enable_admin_controls,
           updated_at = NOW()
-      `, [
-        updatedConfig.useEnhancedAuth,
-        updatedConfig.requireStrongPasswords,
-        updatedConfig.passwordMinLength,
-        updatedConfig.passwordRequireSpecialChars,
-        updatedConfig.accessTokenExpiryMinutes,
-        updatedConfig.sessionTimeoutMinutes,
-        updatedConfig.idleWarningMinutes,
-        updatedConfig.absoluteSessionTimeoutHours,
-        updatedConfig.maxConcurrentSessions,
-        updatedConfig.enableRateLimiting,
-        updatedConfig.loginAttemptsPerMinute,
-        updatedConfig.lockoutDurationMinutes,
-        updatedConfig.enableAdminControls
-      ]);
+      `,
+        [
+          updatedConfig.useEnhancedAuth,
+          updatedConfig.requireStrongPasswords,
+          updatedConfig.passwordMinLength,
+          updatedConfig.passwordRequireSpecialChars,
+          updatedConfig.accessTokenExpiryMinutes,
+          updatedConfig.sessionTimeoutMinutes,
+          updatedConfig.idleWarningMinutes,
+          updatedConfig.absoluteSessionTimeoutHours,
+          updatedConfig.maxConcurrentSessions,
+          updatedConfig.enableRateLimiting,
+          updatedConfig.loginAttemptsPerMinute,
+          updatedConfig.lockoutDurationMinutes,
+          updatedConfig.enableAdminControls,
+        ]
+      );
 
       logger.info('Security configuration updated successfully');
       return updatedConfig;
-
     } catch (error) {
       logger.error('Failed to update security configuration:', { error });
       throw new ValidationError('Unable to update security settings. Please try again.');
@@ -357,31 +404,41 @@ export class StorageRepository implements IStorageRepository {
 
   async getSystemMetrics(labId: string): Promise<SystemMetrics> {
     try {
-      const tubesRow = await this.context.queryOne<{ count: string }>(`
+      const tubesRow = await this.context.queryOne<{ count: string }>(
+        `
         SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1
-      `, [labId]);
+      `,
+        [labId]
+      );
       const totalTubes = parseCount(tubesRow);
 
-      const usersRow = await this.context.queryOne<{ count: string }>(`
+      const usersRow = await this.context.queryOne<{ count: string }>(
+        `
         SELECT COUNT(*) as count FROM users WHERE lab_id = $1
-      `, [labId]);
+      `,
+        [labId]
+      );
       const totalUsers = parseCount(usersRow);
 
-      const researchersRow = await this.context.queryOne<{ count: string }>(`
+      const researchersRow = await this.context.queryOne<{ count: string }>(
+        `
         SELECT COUNT(*) as count
         FROM researchers
         WHERE active = TRUE AND lab_id = $1
-      `, [labId]);
+      `,
+        [labId]
+      );
       const totalResearchers = parseCount(researchersRow);
 
-      const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(`
+      const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(
+        `
         SELECT cc.updated_at
         FROM storage_current cc
         WHERE cc.lab_id = $1
-      `, [labId]);
-      const lastBackup = backupRow?.updated_at
-        ? new Date(backupRow.updated_at)
-        : new Date();
+      `,
+        [labId]
+      );
+      const lastBackup = backupRow?.updated_at ? new Date(backupRow.updated_at) : new Date();
 
       return {
         totalTubes,
@@ -389,14 +446,13 @@ export class StorageRepository implements IStorageRepository {
         totalResearchers,
         lastBackup,
       };
-
     } catch (error) {
       logger.error('Failed to get system metrics:', { error });
       return {
         totalTubes: 0,
         totalUsers: 0,
         totalResearchers: 0,
-        lastBackup: new Date()
+        lastBackup: new Date(),
       };
     }
   }
@@ -411,7 +467,7 @@ export class StorageRepository implements IStorageRepository {
       [tankId],
       labId,
       changedBy,
-      (configData) => {
+      configData => {
         const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
         if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
         const tankName = configData.tanks[tankIndex].name;
@@ -432,18 +488,22 @@ export class StorageRepository implements IStorageRepository {
       [tankId, rackId],
       labId,
       changedBy,
-      (configData) => {
+      configData => {
         const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
         if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
 
         const tank = configData.tanks[tankIndex];
-        const rackIndex = tank.racks.findIndex((r) => r.id === rackId);
-        if (rackIndex === -1) throw new NotFoundError('That rack could not be found in the selected tank.');
+        const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+        if (rackIndex === -1)
+          throw new NotFoundError('That rack could not be found in the selected tank.');
 
         const tankName = tank.name;
         const rackName = tank.racks[rackIndex].name;
         tank.racks.splice(rackIndex, 1);
-        return { description: `Deleted rack '${rackName}' from tank '${tankName}'`, result: { tankName, rackName } };
+        return {
+          description: `Deleted rack '${rackName}' from tank '${tankName}'`,
+          result: { tankName, rackName },
+        };
       }
     );
   }
@@ -462,23 +522,28 @@ export class StorageRepository implements IStorageRepository {
       [tankId, rackId, boxIdUpper],
       labId,
       changedBy,
-      (configData) => {
+      configData => {
         const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
         if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
 
         const tank = configData.tanks[tankIndex];
-        const rackIndex = tank.racks.findIndex((r) => r.id === rackId);
-        if (rackIndex === -1) throw new NotFoundError('That rack could not be found in the selected tank.');
+        const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+        if (rackIndex === -1)
+          throw new NotFoundError('That rack could not be found in the selected tank.');
 
         const rack = tank.racks[rackIndex];
-        const boxIndex = rack.boxes.findIndex((b) => b.name === boxIdUpper);
-        if (boxIndex === -1) throw new NotFoundError('That box could not be found in the selected rack.');
+        const boxIndex = rack.boxes.findIndex(b => b.name === boxIdUpper);
+        if (boxIndex === -1)
+          throw new NotFoundError('That box could not be found in the selected rack.');
 
         const tankName = tank.name;
         const rackName = rack.name;
         const boxName = rack.boxes[boxIndex].name;
         rack.boxes.splice(boxIndex, 1);
-        return { description: `Deleted box '${boxName}' from rack '${rackName}'`, result: { tankName, rackName, boxName } };
+        return {
+          description: `Deleted box '${boxName}' from rack '${rackName}'`,
+          result: { tankName, rackName, boxName },
+        };
       }
     );
   }
@@ -493,14 +558,17 @@ export class StorageRepository implements IStorageRepository {
   ): Promise<T> {
     for (let attempt = 1; attempt <= MAX_SERIALIZATION_RETRIES; attempt++) {
       try {
-        return await this.context.transactionSerializable(async (client) => {
-          const countResult = await client.query<{ count: string }>(tubeCountQuery, tubeCountParams);
+        return await this.context.transactionSerializable(async client => {
+          const countResult = await client.query<{ count: string }>(
+            tubeCountQuery,
+            tubeCountParams
+          );
           const tubeCount = parseCount(countResult.rows[0]);
 
           if (tubeCount > 0) {
             throw new ValidationError(
               `Cannot delete equipment: ${tubeCount} tube(s) are stored in this location. ` +
-              `Move or delete the tubes first.`
+                `Move or delete the tubes first.`
             );
           }
 
@@ -520,7 +588,12 @@ export class StorageRepository implements IStorageRepository {
           const configJson = JSON.stringify(configData);
 
           const newVersion = await this.insertStorageVersion(
-            client, labId, now, description, changedBy, configJson
+            client,
+            labId,
+            now,
+            description,
+            changedBy,
+            configJson
           );
 
           const updateResult = await client.query(
@@ -537,12 +610,9 @@ export class StorageRepository implements IStorageRepository {
           logger.info(`${description} atomically`);
           return result;
         });
-
       } catch (error) {
         const isSerializationFailure =
-          error instanceof Error &&
-          'code' in error &&
-          (error as { code: string }).code === '40001';
+          error instanceof Error && 'code' in error && (error as { code: string }).code === '40001';
 
         if (isSerializationFailure && attempt < MAX_SERIALIZATION_RETRIES) {
           logger.warn(`Serialization failure on equipment deletion, retrying (attempt ${attempt})`);
@@ -552,7 +622,9 @@ export class StorageRepository implements IStorageRepository {
       }
     }
 
-    throw new ValidationError('Could not delete this item because it is being changed by someone else. Please refresh and try again.');
+    throw new ValidationError(
+      'Could not delete this item because it is being changed by someone else. Please refresh and try again.'
+    );
   }
 
   /** Appends a new immutable row to storage_versions and returns its generated version number. */
@@ -573,7 +645,12 @@ export class StorageRepository implements IStorageRepository {
     return versionResult.rows[0].version;
   }
 
-  private async getBoxByName(labId: string, tankId: string, rackId: string, boxId: string): Promise<Box | null> {
+  private async getBoxByName(
+    labId: string,
+    tankId: string,
+    rackId: string,
+    boxId: string
+  ): Promise<Box | null> {
     const config = await this.getForLab(labId);
     if (!config) return null;
 

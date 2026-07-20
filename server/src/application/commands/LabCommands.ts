@@ -9,7 +9,12 @@ import { requireSystemAdmin } from '@application/guards/UserGuards';
 import { Lab } from '@domain/entities/Lab';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { LabCreatedEvent, LabRenamedEvent, LabActivatedEvent, LabDeactivatedEvent } from '@domain/events/LabEvents';
+import {
+  LabCreatedEvent,
+  LabRenamedEvent,
+  LabActivatedEvent,
+  LabDeactivatedEvent,
+} from '@domain/events/LabEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -56,7 +61,9 @@ export class CreateLabCommandHandler {
 
     const existingBySlug = await this.labRepository.findBySlug(lab.slug);
     if (existingBySlug) {
-      throw new ValidationError(`A lab with a similar name already exists: '${existingBySlug.name}'`);
+      throw new ValidationError(
+        `A lab with a similar name already exists: '${existingBySlug.name}'`
+      );
     }
 
     await this.labRepository.save(lab);
@@ -91,13 +98,17 @@ export class UpdateLabCommandHandler {
     const newSlug = Lab.generateSlug(command.name);
     const existingBySlug = await this.labRepository.findBySlug(newSlug);
     if (existingBySlug && existingBySlug.id !== lab.id) {
-      throw new ValidationError(`A lab with a similar name already exists: '${existingBySlug.name}'`);
+      throw new ValidationError(
+        `A lab with a similar name already exists: '${existingBySlug.name}'`
+      );
     }
 
     lab.updateName(command.name);
     await this.labRepository.save(lab);
 
-    await this.eventBus.publish(new LabRenamedEvent(command.labId, oldName, command.name, command.userId));
+    await this.eventBus.publish(
+      new LabRenamedEvent(command.labId, oldName, command.name, command.userId)
+    );
 
     return lab;
   }
@@ -127,9 +138,7 @@ export class DeactivateLabCommandHandler {
     await this.labRepository.save(lab);
 
     const labUsers = await this.userRepository.findByLabId(command.labId);
-    await Promise.all(
-      labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id))
-    );
+    await Promise.all(labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id)));
 
     await this.eventBus.publish(new LabDeactivatedEvent(command.labId, command.userId));
   }

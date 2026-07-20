@@ -22,11 +22,20 @@ import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 function makeHandler(opts: { found?: boolean } = {}) {
   const setPasswordHash = jest.fn();
   const markPasswordChanged = jest.fn();
-  const user = { id: 'u1', username: 'bob', labId: 'lab1', setPasswordHash, markPasswordChanged } as unknown as User;
+  const user = {
+    id: 'u1',
+    username: 'bob',
+    labId: 'lab1',
+    setPasswordHash,
+    markPasswordChanged,
+  } as unknown as User;
   const found = opts.found ?? true;
 
   const save = jest.fn();
-  const userRepository = { findByIdAnyLab: jest.fn().mockResolvedValue(found ? user : null), save } as unknown as UserRepository;
+  const userRepository = {
+    findByIdAnyLab: jest.fn().mockResolvedValue(found ? user : null),
+    save,
+  } as unknown as UserRepository;
   const publish = jest.fn();
   const eventBus = { publish } as unknown as EventBus;
   const revokeAllForUser = jest.fn().mockResolvedValue(2);
@@ -35,29 +44,60 @@ function makeHandler(opts: { found?: boolean } = {}) {
   const userSessionRepository = { revokeAllSessions } as unknown as UserSessionRepository;
   const hash = jest.fn().mockResolvedValue('NEWHASH');
   const passwordService = { hash } as unknown as PasswordService;
-  const storageRepository = { getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG) } as unknown as StorageRepository;
+  const storageRepository = {
+    getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG),
+  } as unknown as StorageRepository;
 
   const unitOfWork: UnitOfWork = {
-    withTransaction: work => work({
-      users: userRepository,
-      refreshTokens: refreshTokenRepository,
-      userSessions: userSessionRepository,
-    } as Repositories),
+    withTransaction: work =>
+      work({
+        users: userRepository,
+        refreshTokens: refreshTokenRepository,
+        userSessions: userSessionRepository,
+      } as Repositories),
   };
 
-  const handler = new ForceChangePasswordCommandHandler(userRepository, eventBus, passwordService, storageRepository, unitOfWork);
-  return { handler, user, setPasswordHash, markPasswordChanged, save, publish, revokeAllForUser, revokeAllSessions, hash };
+  const handler = new ForceChangePasswordCommandHandler(
+    userRepository,
+    eventBus,
+    passwordService,
+    storageRepository,
+    unitOfWork
+  );
+  return {
+    handler,
+    user,
+    setPasswordHash,
+    markPasswordChanged,
+    save,
+    publish,
+    revokeAllForUser,
+    revokeAllSessions,
+    hash,
+  };
 }
 
 describe('ForceChangePasswordCommandHandler', () => {
   it('throws when the user is not found, without saving', async () => {
     const { handler, save } = makeHandler({ found: false });
-    await expect(handler.handle({ userId: 'u1', newPassword: 'longpassword' })).rejects.toBeInstanceOf(NotFoundError);
+    await expect(
+      handler.handle({ userId: 'u1', newPassword: 'longpassword' })
+    ).rejects.toBeInstanceOf(NotFoundError);
     expect(save).not.toHaveBeenCalled();
   });
 
   it('changes the password, revokes all sessions + tokens, and returns the user', async () => {
-    const { handler, user, setPasswordHash, markPasswordChanged, save, publish, revokeAllForUser, revokeAllSessions, hash } = makeHandler();
+    const {
+      handler,
+      user,
+      setPasswordHash,
+      markPasswordChanged,
+      save,
+      publish,
+      revokeAllForUser,
+      revokeAllSessions,
+      hash,
+    } = makeHandler();
 
     const result = await handler.handle({ userId: 'u1', newPassword: 'longpassword' });
 

@@ -40,13 +40,9 @@ export {
   type BulkMoveResponse,
 } from './tubeSchemas';
 
-export {
-  formatConcentrationDisplay,
-} from './tubeFormatters';
+export { formatConcentrationDisplay } from './tubeFormatters';
 
-export {
-  tubeDataToCreateRequest,
-} from './tubeMappers';
+export { tubeDataToCreateRequest } from './tubeMappers';
 
 export {
   lockTubesRequestSchema,

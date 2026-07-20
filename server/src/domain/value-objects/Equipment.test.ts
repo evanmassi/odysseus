@@ -17,7 +17,13 @@ describe('Tank', () => {
 
     it('should create with custom options', () => {
       const rack = Rack.create({ id: '1', name: 'R1' });
-      const tank = Tank.create({ id: 'T2', name: 'Tank 2', racks: [rack], isActive: false, location: 'Room B' });
+      const tank = Tank.create({
+        id: 'T2',
+        name: 'Tank 2',
+        racks: [rack],
+        isActive: false,
+        location: 'Room B',
+      });
       expect(tank.racks).toHaveLength(1);
       expect(tank.isActive).toBe(false);
       expect(tank.location).toBe('Room B');
@@ -40,14 +46,18 @@ describe('Tank', () => {
     it('should reject duplicate rack IDs', () => {
       const r1 = Rack.create({ id: '1', name: 'R1' });
       const r2 = Rack.create({ id: '1', name: 'R2' });
-      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks: [r1, r2] }))
-        .toThrow('duplicate rack IDs');
+      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks: [r1, r2] })).toThrow(
+        'duplicate rack IDs'
+      );
     });
 
     it('should reject rack count exceeding max', () => {
-      const racks = Array.from({ length: 3 }, (_, i) => Rack.create({ id: String(i), name: `R${i}` }));
-      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks, maxRacks: 2 }))
-        .toThrow('max capacity');
+      const racks = Array.from({ length: 3 }, (_, i) =>
+        Rack.create({ id: String(i), name: `R${i}` })
+      );
+      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks, maxRacks: 2 })).toThrow(
+        'max capacity'
+      );
     });
   });
 
@@ -58,7 +68,9 @@ describe('Tank', () => {
     });
 
     it('should return false when at capacity', () => {
-      const racks = Array.from({ length: 2 }, (_, i) => Rack.create({ id: String(i), name: `R${i}` }));
+      const racks = Array.from({ length: 2 }, (_, i) =>
+        Rack.create({ id: String(i), name: `R${i}` })
+      );
       const tank = Tank.create({ id: 'T1', name: 'Tank', racks, maxRacks: 2 });
       expect(tank.canAccommodateRack()).toBe(false);
     });
@@ -110,16 +122,18 @@ describe('Rack', () => {
     it('should reject duplicate box names', () => {
       const b1 = Box.create({ name: 'A' });
       const b2 = Box.create({ name: 'a' });
-      expect(() => Rack.create({ id: '1', name: 'Rack', boxes: [b1, b2] }))
-        .toThrow('duplicate box names');
+      expect(() => Rack.create({ id: '1', name: 'Rack', boxes: [b1, b2] })).toThrow(
+        'duplicate box names'
+      );
     });
 
     it('should reject box count exceeding max', () => {
       const boxes = Array.from({ length: 3 }, (_, i) =>
         Box.create({ name: String.fromCharCode(65 + i) })
       );
-      expect(() => Rack.create({ id: '1', name: 'Rack', boxes, maxBoxes: 2 }))
-        .toThrow('max capacity');
+      expect(() => Rack.create({ id: '1', name: 'Rack', boxes, maxBoxes: 2 })).toThrow(
+        'max capacity'
+      );
     });
   });
 
@@ -252,7 +266,12 @@ describe('EquipmentConfiguration', () => {
     });
 
     it('should return false for inactive tank', () => {
-      const inactiveTank = Tank.create({ id: 'T2', name: 'Tank 2', racks: [rack], isActive: false });
+      const inactiveTank = Tank.create({
+        id: 'T2',
+        name: 'Tank 2',
+        racks: [rack],
+        isActive: false,
+      });
       const cfg = EquipmentConfiguration.create([inactiveTank]);
       expect(cfg.isLocationValid('T2', '1', 'A', 1)).toBe(false);
     });

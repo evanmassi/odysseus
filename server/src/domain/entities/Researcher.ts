@@ -81,14 +81,26 @@ export class Researcher {
       active: this._active,
       createdAt: this._createdAt.toISOString(),
       source: this._source,
-      labId: this._labId
+      labId: this._labId,
     };
   }
 
-  get id(): string { return this._id; }
-  get labId(): string | undefined { return this._labId; }
-  get personId(): string { return this._personId; }
-  get active(): boolean { return this._active; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get source(): ResearcherSource { return this._source; }
+  get id(): string {
+    return this._id;
+  }
+  get labId(): string | undefined {
+    return this._labId;
+  }
+  get personId(): string {
+    return this._personId;
+  }
+  get active(): boolean {
+    return this._active;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get source(): ResearcherSource {
+    return this._source;
+  }
 }

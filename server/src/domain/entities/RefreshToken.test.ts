@@ -45,56 +45,66 @@ describe('RefreshToken', () => {
 
   describe('validation', () => {
     it('should throw for empty id', () => {
-      expect(() => RefreshToken.fromData({
-        id: '',
-        userId: 'user_123',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(Date.now() + 86400000),
-        createdAt: new Date(),
-      })).toThrow('RefreshToken ID cannot be empty');
+      expect(() =>
+        RefreshToken.fromData({
+          id: '',
+          userId: 'user_123',
+          token: 'a'.repeat(64),
+          expiresAt: new Date(Date.now() + 86400000),
+          createdAt: new Date(),
+        })
+      ).toThrow('RefreshToken ID cannot be empty');
     });
 
     it('should throw for empty userId', () => {
-      expect(() => RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: '',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(Date.now() + 86400000),
-        createdAt: new Date(),
-      })).toThrow('RefreshToken must belong to a user');
+      expect(() =>
+        RefreshToken.fromData({
+          id: 'refresh_test',
+          userId: '',
+          token: 'a'.repeat(64),
+          expiresAt: new Date(Date.now() + 86400000),
+          createdAt: new Date(),
+        })
+      ).toThrow('RefreshToken must belong to a user');
     });
 
     it('should throw for token shorter than 32 characters', () => {
-      expect(() => RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: 'user_123',
-        token: 'short',
-        expiresAt: new Date(Date.now() + 86400000),
-        createdAt: new Date(),
-      })).toThrow('RefreshToken must be a secure token (minimum 32 characters)');
+      expect(() =>
+        RefreshToken.fromData({
+          id: 'refresh_test',
+          userId: 'user_123',
+          token: 'short',
+          expiresAt: new Date(Date.now() + 86400000),
+          createdAt: new Date(),
+        })
+      ).toThrow('RefreshToken must be a secure token (minimum 32 characters)');
     });
 
     it('should throw when expiresAt is before createdAt', () => {
       const now = new Date();
-      expect(() => RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: 'user_123',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(now.getTime() - 1000),
-        createdAt: now,
-      })).toThrow('RefreshToken expiry must be after creation time');
+      expect(() =>
+        RefreshToken.fromData({
+          id: 'refresh_test',
+          userId: 'user_123',
+          token: 'a'.repeat(64),
+          expiresAt: new Date(now.getTime() - 1000),
+          createdAt: now,
+        })
+      ).toThrow('RefreshToken expiry must be after creation time');
     });
 
     it('should throw when lastUsedAt is before createdAt', () => {
       const now = new Date();
-      expect(() => RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: 'user_123',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(now.getTime() + 86400000),
-        createdAt: now,
-        lastUsedAt: new Date(now.getTime() - 1000),
-      })).toThrow('RefreshToken last used cannot be before creation time');
+      expect(() =>
+        RefreshToken.fromData({
+          id: 'refresh_test',
+          userId: 'user_123',
+          token: 'a'.repeat(64),
+          expiresAt: new Date(now.getTime() + 86400000),
+          createdAt: now,
+          lastUsedAt: new Date(now.getTime() - 1000),
+        })
+      ).toThrow('RefreshToken last used cannot be before creation time');
     });
   });
 

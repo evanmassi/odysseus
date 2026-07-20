@@ -4,7 +4,6 @@
  * Authenticated routes for tubes, researchers, and lookup values.
  */
 
-
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
@@ -13,7 +12,11 @@ import type { TubeController } from '@presentation/controllers/TubeController';
 import type { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
-import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
@@ -31,7 +34,7 @@ import {
   LockTubesHttpSchema,
   UnlockTubesHttpSchema,
   ShareTubeAccessHttpSchema,
-  RevokeTubeAccessHttpSchema
+  RevokeTubeAccessHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -56,77 +59,86 @@ export class ResourceRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate,
-      this.rateLimitMiddleware
-    ];
+    return [this.authMiddleware.authenticate, this.rateLimitMiddleware];
   }
 
   configure(router: Router): void {
     // TUBE ROUTES
 
     // Read operations
-    router.get('/tubes/location',
+    router.get(
+      '/tubes/location',
       validateQuery(LocationQuerySchema),
       this.tubeController.getTubesByLocation.bind(this.tubeController)
     );
 
-    router.get('/tubes/filter-options',
+    router.get(
+      '/tubes/filter-options',
       validateQuery(TubeFilterOptionsQuerySchema),
       this.tubeController.getFilterOptions.bind(this.tubeController)
     );
 
     // Navigator field map feeds — registered before /tubes/:id so the literal
     // paths are not shadowed by the id param route.
-    router.get('/tubes/by-rack',
+    router.get(
+      '/tubes/by-rack',
       validateQuery(RackQuerySchema),
       this.tubeController.getTubesByRack.bind(this.tubeController)
     );
 
-    router.get('/tubes/location-counts',
+    router.get(
+      '/tubes/location-counts',
       this.tubeController.getLocationCounts.bind(this.tubeController)
     );
 
-    router.get('/tubes/:id',
+    router.get(
+      '/tubes/:id',
       validateParams(IdParams),
       this.tubeController.getTubeById.bind(this.tubeController)
     );
 
     // Write operations
-    router.post('/tubes',
+    router.post(
+      '/tubes',
       validateBody(CreateTubeHttpSchema),
       this.tubeController.createTube.bind(this.tubeController)
     );
 
-    router.put('/tubes/:id',
+    router.put(
+      '/tubes/:id',
       validateParams(IdParams),
       validateBody(UpdateTubeHttpSchema),
       this.tubeController.updateTube.bind(this.tubeController)
     );
 
-    router.delete('/tubes/:id',
+    router.delete(
+      '/tubes/:id',
       validateParams(IdParams),
       this.tubeController.deleteTube.bind(this.tubeController)
     );
 
-    router.post('/tubes/bulk-update',
+    router.post(
+      '/tubes/bulk-update',
       this.moderateLimiter,
       validateBody(BulkUpdateHttpSchema),
       this.tubeController.bulkUpdateTubes.bind(this.tubeController)
     );
 
-    router.post('/tubes/bulk-delete',
+    router.post(
+      '/tubes/bulk-delete',
       this.moderateLimiter,
       validateBody(BulkDeleteHttpSchema),
       this.tubeController.bulkDeleteTubes.bind(this.tubeController)
     );
 
-    router.post('/tubes/bulk-fetch',
+    router.post(
+      '/tubes/bulk-fetch',
       validateBody(BulkFetchHttpSchema),
       this.tubeController.bulkFetchTubes.bind(this.tubeController)
     );
 
-    router.post('/tubes/bulk-move',
+    router.post(
+      '/tubes/bulk-move',
       this.moderateLimiter,
       validateBody(BulkMoveHttpSchema),
       this.tubeController.bulkMoveTubes.bind(this.tubeController)
@@ -134,22 +146,26 @@ export class ResourceRouteModule implements RouteModule {
 
     // TUBE LOCK ROUTES
 
-    router.post('/tubes/lock',
+    router.post(
+      '/tubes/lock',
       validateBody(LockTubesHttpSchema),
       this.tubeLockController.lockTubes.bind(this.tubeLockController)
     );
 
-    router.post('/tubes/unlock',
+    router.post(
+      '/tubes/unlock',
       validateBody(UnlockTubesHttpSchema),
       this.tubeLockController.unlockTubes.bind(this.tubeLockController)
     );
 
-    router.post('/tubes/share-access',
+    router.post(
+      '/tubes/share-access',
       validateBody(ShareTubeAccessHttpSchema),
       this.tubeLockController.shareTubeAccess.bind(this.tubeLockController)
     );
 
-    router.post('/tubes/revoke-access',
+    router.post(
+      '/tubes/revoke-access',
       validateBody(RevokeTubeAccessHttpSchema),
       this.tubeLockController.revokeTubeAccess.bind(this.tubeLockController)
     );
@@ -157,34 +173,40 @@ export class ResourceRouteModule implements RouteModule {
     // RESEARCHER ROUTES
 
     // Read operations
-    router.get('/researchers',
+    router.get(
+      '/researchers',
       this.researcherController.getAllResearchers.bind(this.researcherController)
     );
 
-    router.get('/researchers/:id',
+    router.get(
+      '/researchers/:id',
       validateParams(IdParams),
       this.researcherController.getResearcherById.bind(this.researcherController)
     );
 
     // Write operations
-    router.post('/researchers',
+    router.post(
+      '/researchers',
       validateBody(CreateResearcherHttpSchema),
       this.researcherController.createResearcher.bind(this.researcherController)
     );
 
-    router.put('/researchers/:id/activate',
+    router.put(
+      '/researchers/:id/activate',
       validateParams(IdParams),
       this.researcherController.activateResearcher.bind(this.researcherController)
     );
 
-    router.put('/researchers/:id/deactivate',
+    router.put(
+      '/researchers/:id/deactivate',
       validateParams(IdParams),
       this.researcherController.deactivateResearcher.bind(this.researcherController)
     );
 
     // LOOKUP VALUE ROUTES (for form dropdowns)
 
-    router.get('/lookups/:category',
+    router.get(
+      '/lookups/:category',
       validateParams(CategoryParams),
       this.lookupValueController.getActiveValues.bind(this.lookupValueController)
     );

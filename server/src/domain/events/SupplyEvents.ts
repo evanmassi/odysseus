@@ -41,8 +41,12 @@ export class SupplyItemCreatedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyItemCreated'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyItemCreated';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyItemUpdatedEvent extends DomainEvent {
@@ -55,8 +59,12 @@ export class SupplyItemUpdatedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyItemUpdated'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyItemUpdated';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyItemArchivedEvent extends DomainEvent {
@@ -69,8 +77,12 @@ export class SupplyItemArchivedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyItemArchived'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyItemArchived';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyItemDeletedEvent extends DomainEvent {
@@ -83,8 +95,12 @@ export class SupplyItemDeletedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyItemDeleted'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyItemDeleted';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 // Category events
@@ -100,8 +116,12 @@ export class SupplyCategoryCreatedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyCategoryCreated'; }
-  getAggregateId(): string { return this.categoryId; }
+  eventName(): string {
+    return 'SupplyCategoryCreated';
+  }
+  getAggregateId(): string {
+    return this.categoryId;
+  }
 }
 
 export class SupplyCategoryUpdatedEvent extends DomainEvent {
@@ -114,8 +134,12 @@ export class SupplyCategoryUpdatedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyCategoryUpdated'; }
-  getAggregateId(): string { return this.categoryId; }
+  eventName(): string {
+    return 'SupplyCategoryUpdated';
+  }
+  getAggregateId(): string {
+    return this.categoryId;
+  }
 }
 
 export class SupplyCategoryDeletedEvent extends DomainEvent {
@@ -128,8 +152,12 @@ export class SupplyCategoryDeletedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyCategoryDeleted'; }
-  getAggregateId(): string { return this.categoryId; }
+  eventName(): string {
+    return 'SupplyCategoryDeleted';
+  }
+  getAggregateId(): string {
+    return this.categoryId;
+  }
 }
 
 // Document events
@@ -144,8 +172,12 @@ export class SupplyDocumentAddedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyDocumentAdded'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyDocumentAdded';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyDocumentRemovedEvent extends DomainEvent {
@@ -157,8 +189,12 @@ export class SupplyDocumentRemovedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyDocumentRemoved'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyDocumentRemoved';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 // Stock events
@@ -174,8 +210,12 @@ export class SupplyStockReceivedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyStockReceived'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyStockReceived';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyStockIssuedEvent extends DomainEvent {
@@ -189,8 +229,12 @@ export class SupplyStockIssuedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyStockIssued'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyStockIssued';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyStockCountAdjustedEvent extends DomainEvent {
@@ -204,8 +248,12 @@ export class SupplyStockCountAdjustedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyStockCountAdjusted'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyStockCountAdjusted';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyStockDisposedEvent extends DomainEvent {
@@ -219,8 +267,12 @@ export class SupplyStockDisposedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyStockDisposed'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyStockDisposed';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 export class SupplyStockVoidedEvent extends DomainEvent {
@@ -237,8 +289,12 @@ export class SupplyStockVoidedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyStockVoided'; }
-  getAggregateId(): string { return this.itemId; }
+  eventName(): string {
+    return 'SupplyStockVoided';
+  }
+  getAggregateId(): string {
+    return this.itemId;
+  }
 }
 
 // Bulk events — enriched per-item data for receive/issue/void, simple ID arrays for reassign/archive
@@ -252,8 +308,12 @@ export class SupplyBulkReceivedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkReceived'; }
-  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
+  eventName(): string {
+    return 'SupplyBulkReceived';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.perItemData.length}`;
+  }
 }
 
 export class SupplyBulkIssuedEvent extends DomainEvent {
@@ -265,8 +325,12 @@ export class SupplyBulkIssuedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkIssued'; }
-  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
+  eventName(): string {
+    return 'SupplyBulkIssued';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.perItemData.length}`;
+  }
 }
 
 export class SupplyBulkCategoryReassignedEvent extends DomainEvent {
@@ -279,8 +343,12 @@ export class SupplyBulkCategoryReassignedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkCategoryReassigned'; }
-  getAggregateId(): string { return `bulk-${this.itemIds.length}`; }
+  eventName(): string {
+    return 'SupplyBulkCategoryReassigned';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
+  }
 }
 
 export class SupplyBulkArchivedEvent extends DomainEvent {
@@ -292,8 +360,12 @@ export class SupplyBulkArchivedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkArchived'; }
-  getAggregateId(): string { return `bulk-${this.itemIds.length}`; }
+  eventName(): string {
+    return 'SupplyBulkArchived';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
+  }
 }
 
 export class SupplyBulkVoidedEvent extends DomainEvent {
@@ -306,6 +378,10 @@ export class SupplyBulkVoidedEvent extends DomainEvent {
     super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkVoided'; }
-  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
+  eventName(): string {
+    return 'SupplyBulkVoided';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.perItemData.length}`;
+  }
 }

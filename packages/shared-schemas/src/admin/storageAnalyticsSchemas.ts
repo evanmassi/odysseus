@@ -68,4 +68,6 @@ export type RackUtilization = z.infer<typeof rackUtilizationSchema>;
 export type TankUtilization = z.infer<typeof tankUtilizationSchema>;
 export type LabStorageAnalyticsResponse = z.infer<typeof labStorageAnalyticsResponseSchema>;
 export type LabStorageSummary = z.infer<typeof labStorageSummarySchema>;
-export type CrossLabStorageAnalyticsResponse = z.infer<typeof crossLabStorageAnalyticsResponseSchema>;
+export type CrossLabStorageAnalyticsResponse = z.infer<
+  typeof crossLabStorageAnalyticsResponseSchema
+>;

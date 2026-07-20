@@ -13,7 +13,7 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
   BulkResourcesUnassignedEvent,
-  BulkResourcesReassignedEvent
+  BulkResourcesReassignedEvent,
 } from '@domain/events/StorageEvents';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -71,7 +71,7 @@ async function applyBulkAssignment(
   const expectedVersion = currentConfig.version;
   currentConfig.updateFromData({
     tanks: configData.tanks,
-    systemSettings: configData.systemSettings
+    systemSettings: configData.systemSettings,
   });
   const newVersion = await storageRepository.saveWithOptimisticLock(
     command.labId,
@@ -93,7 +93,9 @@ export class BulkUnassignResourcesCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: BulkUnassignResourcesCommand): Promise<{ racksAffected: number; boxesAffected: number }> {
+  async handle(
+    command: BulkUnassignResourcesCommand
+  ): Promise<{ racksAffected: number; boxesAffected: number }> {
     const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
@@ -115,7 +117,9 @@ export class BulkUnassignResourcesCommandHandler {
       user,
       command,
       `Bulk unassigned all resources from user '${fromUser.username}'`,
-      (holder) => { holder.assignedUserId = undefined; }
+      holder => {
+        holder.assignedUserId = undefined;
+      }
     );
 
     if (racksAffected === 0 && boxesAffected === 0) {
@@ -144,7 +148,9 @@ export class BulkReassignResourcesCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: BulkReassignResourcesCommand): Promise<{ racksAffected: number; boxesAffected: number }> {
+  async handle(
+    command: BulkReassignResourcesCommand
+  ): Promise<{ racksAffected: number; boxesAffected: number }> {
     if (command.fromUserId === command.toUserId) {
       throw new ValidationError('Cannot reassign resources to the same user');
     }
@@ -175,7 +181,9 @@ export class BulkReassignResourcesCommandHandler {
       user,
       command,
       `Bulk reassigned resources from '${fromUser.username}' to '${toUser.username}'`,
-      (holder) => { holder.assignedUserId = command.toUserId; }
+      holder => {
+        holder.assignedUserId = command.toUserId;
+      }
     );
 
     if (racksAffected === 0 && boxesAffected === 0) {

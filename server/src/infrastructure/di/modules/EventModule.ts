@@ -15,9 +15,7 @@ export class EventModule {
   private socketIO?: SocketIOServer;
   private presenceService?: PresenceService;
   private socketEventHandler?: SocketEventHandler;
-  constructor(
-    private shared: SharedServices
-  ) {}
+  constructor(private shared: SharedServices) {}
 
   setSocketIO(io: SocketIOServer): void {
     this.socketIO = io;
@@ -45,5 +43,4 @@ export class EventModule {
     }
     return this.socketEventHandler;
   }
-
 }

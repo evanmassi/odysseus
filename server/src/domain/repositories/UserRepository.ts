@@ -8,9 +8,7 @@ import type { User } from '@domain/entities/User';
 
 import type { UserStatus } from '@odysseus/shared-schemas';
 
-
 export interface UserRepository {
-
   /** Lab-scoped lookup — the default. Returns null for a user in another lab. */
   findById(id: string, labId: string): Promise<User | null>;
 

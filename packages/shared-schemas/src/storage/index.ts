@@ -46,9 +46,7 @@ export {
   bulkReassignRequestSchema,
 } from './storageRequestSchemas';
 
-export {
-  formatStorageDisplayName,
-} from './storageFormatters';
+export { formatStorageDisplayName } from './storageFormatters';
 
 export {
   positionDisplayFormatSchema,
@@ -62,7 +60,4 @@ export {
   getDefaultPositionDisplay,
 } from './positionSchemas';
 
-export {
-  positionToLabel,
-  labelToPosition,
-} from './positionFormatters';
+export { positionToLabel, labelToPosition } from './positionFormatters';

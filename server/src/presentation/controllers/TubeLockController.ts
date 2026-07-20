@@ -4,7 +4,6 @@
  * HTTP handlers for tube lock/unlock and access sharing operations.
  */
 
-
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -15,7 +14,7 @@ import type {
   LockTubesRequest,
   UnlockTubesRequest,
   ShareTubeAccessRequest,
-  RevokeTubeAccessRequest
+  RevokeTubeAccessRequest,
 } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
 export interface TubeLockControllerDeps {
@@ -33,13 +32,16 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const lockRequest: LockTubesRequest = req.body;
 
-      const result = await this.deps.tubeApplicationService.lockTubes(lockRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.lockTubes(
+        lockRequest,
+        authenticatedUser
+      );
 
       logger.debug('Tubes locked', {
         locked: result.locked.length,
         skipped: result.skipped.length,
         user: req.user?.username,
-        requestId: req.requestId
+        requestId: req.requestId,
       });
 
       res.json(ResponseBuilder.success(result));
@@ -54,13 +56,16 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const unlockRequest: UnlockTubesRequest = req.body;
 
-      const result = await this.deps.tubeApplicationService.unlockTubes(unlockRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.unlockTubes(
+        unlockRequest,
+        authenticatedUser
+      );
 
       logger.debug('Tubes unlocked', {
         unlocked: result.unlocked.length,
         skipped: result.skipped.length,
         user: req.user?.username,
-        requestId: req.requestId
+        requestId: req.requestId,
       });
 
       res.json(ResponseBuilder.success(result));
@@ -75,14 +80,17 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const shareRequest: ShareTubeAccessRequest = req.body;
 
-      const result = await this.deps.tubeApplicationService.shareTubeAccess(shareRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.shareTubeAccess(
+        shareRequest,
+        authenticatedUser
+      );
 
       logger.debug('Tube access shared', {
         shared: result.shared.length,
         skipped: result.skipped.length,
         userIds: shareRequest.userIds.length,
         user: req.user?.username,
-        requestId: req.requestId
+        requestId: req.requestId,
       });
 
       res.json(ResponseBuilder.success(result));
@@ -97,14 +105,17 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const revokeRequest: RevokeTubeAccessRequest = req.body;
 
-      const result = await this.deps.tubeApplicationService.revokeTubeAccess(revokeRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.revokeTubeAccess(
+        revokeRequest,
+        authenticatedUser
+      );
 
       logger.debug('Tube access revoked', {
         revoked: result.revoked.length,
         skipped: result.skipped.length,
         userIds: revokeRequest.userIds.length,
         user: req.user?.username,
-        requestId: req.requestId
+        requestId: req.requestId,
       });
 
       res.json(ResponseBuilder.success(result));
@@ -112,5 +123,4 @@ export class TubeLockController extends BaseController {
       handleControllerError(error, res, 'Failed to revoke tube access', req.requestId);
     }
   }
-
 }

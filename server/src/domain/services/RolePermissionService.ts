@@ -7,7 +7,6 @@
 import { ValidationError } from '@domain/errors/ValidationError';
 import { Permission } from '@domain/value-objects/Permission';
 export class RolePermissionService {
-  
   static readonly ROLES = ['system_admin', 'lab_admin', 'user'] as const;
 
   private static readonly ROLE_PERMISSION_MATRIX: Record<UserRole, readonly Permission[]> = {
@@ -56,7 +55,6 @@ export class RolePermissionService {
       throw new ValidationError('That role is not valid. Choose System Admin, Lab Admin, or User.');
     }
   }
-
 }
 
-export type UserRole = typeof RolePermissionService.ROLES[number];
+export type UserRole = (typeof RolePermissionService.ROLES)[number];

@@ -34,14 +34,14 @@ import type {
   LabRenamedEvent,
   LabActivatedEvent,
   LabDeactivatedEvent,
-  InviteCodeCreatedEvent
+  InviteCodeCreatedEvent,
 } from '@domain/events/LabEvents';
 import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
-  ResearcherDeletedEvent
+  ResearcherDeletedEvent,
 } from '@domain/events/ResearcherEvents';
 import type {
   TankUpdatedEvent,
@@ -62,7 +62,7 @@ import type {
   RackLabelUpdatedEvent,
   BoxLabelUpdatedEvent,
   BulkResourcesUnassignedEvent,
-  BulkResourcesReassignedEvent
+  BulkResourcesReassignedEvent,
 } from '@domain/events/StorageEvents';
 import type {
   SupplyItemCreatedEvent,
@@ -142,7 +142,10 @@ export class AuditEventHandler {
     this.subscribeToEvents();
   }
 
-  private async resolveDonorLabel(donorId: string, labId: string | undefined): Promise<{ donorSourceId?: string; donorInternalId?: string }> {
+  private async resolveDonorLabel(
+    donorId: string,
+    labId: string | undefined
+  ): Promise<{ donorSourceId?: string; donorInternalId?: string }> {
     if (!labId) return {};
     const donor = await this.donorRepository.findById(donorId, labId);
     return {
@@ -160,7 +163,7 @@ export class AuditEventHandler {
     const user = await this.userRepository.findByIdAnyLab(userId);
     return {
       username: user?.username ?? userId,
-      isDemo: user?.isDemo ?? false
+      isDemo: user?.isDemo ?? false,
     };
   }
 
@@ -216,118 +219,144 @@ export class AuditEventHandler {
 
   private subscribeToEvents(): void {
     // Tube events
-    this.eventBus.subscribe('TubeCreated', (e) => this.handleTubeCreated(e));
-    this.eventBus.subscribe('TubeUpdated', (e) => this.handleTubeUpdated(e));
-    this.eventBus.subscribe('TubeLocationChanged', (e) => this.handleTubeLocationChanged(e));
-    this.eventBus.subscribe('TubeDeleted', (e) => this.handleTubeDeleted(e));
-    this.eventBus.subscribe('BulkTubesCreated', (e) => this.handleBulkTubesCreated(e));
-    this.eventBus.subscribe('BulkTubesUpdated', (e) => this.handleBulkTubesUpdated(e));
-    this.eventBus.subscribe('BulkTubesDeleted', (e) => this.handleBulkTubesDeleted(e));
-    this.eventBus.subscribe('BulkTubesMoved', (e) => this.handleBulkTubesMoved(e));
+    this.eventBus.subscribe('TubeCreated', e => this.handleTubeCreated(e));
+    this.eventBus.subscribe('TubeUpdated', e => this.handleTubeUpdated(e));
+    this.eventBus.subscribe('TubeLocationChanged', e => this.handleTubeLocationChanged(e));
+    this.eventBus.subscribe('TubeDeleted', e => this.handleTubeDeleted(e));
+    this.eventBus.subscribe('BulkTubesCreated', e => this.handleBulkTubesCreated(e));
+    this.eventBus.subscribe('BulkTubesUpdated', e => this.handleBulkTubesUpdated(e));
+    this.eventBus.subscribe('BulkTubesDeleted', e => this.handleBulkTubesDeleted(e));
+    this.eventBus.subscribe('BulkTubesMoved', e => this.handleBulkTubesMoved(e));
 
     // Tube lock events
-    this.eventBus.subscribe('TubesLocked', (e) => this.handleTubesLocked(e));
-    this.eventBus.subscribe('TubesUnlocked', (e) => this.handleTubesUnlocked(e));
-    this.eventBus.subscribe('TubeAccessShared', (e) => this.handleTubeAccessShared(e));
-    this.eventBus.subscribe('TubeAccessRevoked', (e) => this.handleTubeAccessRevoked(e));
+    this.eventBus.subscribe('TubesLocked', e => this.handleTubesLocked(e));
+    this.eventBus.subscribe('TubesUnlocked', e => this.handleTubesUnlocked(e));
+    this.eventBus.subscribe('TubeAccessShared', e => this.handleTubeAccessShared(e));
+    this.eventBus.subscribe('TubeAccessRevoked', e => this.handleTubeAccessRevoked(e));
 
     // Configuration events
-    this.eventBus.subscribe('TankUpdated', (e) => this.handleTankUpdated(e));
-    this.eventBus.subscribe('TankAdded', (e) => this.handleTankAdded(e));
-    this.eventBus.subscribe('TankDeleted', (e) => this.handleTankDeleted(e));
-    this.eventBus.subscribe('RackAdded', (e) => this.handleRackAdded(e));
-    this.eventBus.subscribe('RackDeleted', (e) => this.handleRackDeleted(e));
-    this.eventBus.subscribe('RackUpdated', (e) => this.handleRackUpdated(e));
-    this.eventBus.subscribe('BoxAdded', (e) => this.handleBoxAdded(e));
-    this.eventBus.subscribe('BoxDeleted', (e) => this.handleBoxDeleted(e));
-    this.eventBus.subscribe('BoxUpdated', (e) => this.handleBoxUpdated(e));
+    this.eventBus.subscribe('TankUpdated', e => this.handleTankUpdated(e));
+    this.eventBus.subscribe('TankAdded', e => this.handleTankAdded(e));
+    this.eventBus.subscribe('TankDeleted', e => this.handleTankDeleted(e));
+    this.eventBus.subscribe('RackAdded', e => this.handleRackAdded(e));
+    this.eventBus.subscribe('RackDeleted', e => this.handleRackDeleted(e));
+    this.eventBus.subscribe('RackUpdated', e => this.handleRackUpdated(e));
+    this.eventBus.subscribe('BoxAdded', e => this.handleBoxAdded(e));
+    this.eventBus.subscribe('BoxDeleted', e => this.handleBoxDeleted(e));
+    this.eventBus.subscribe('BoxUpdated', e => this.handleBoxUpdated(e));
 
     // Assignment events
-    this.eventBus.subscribe('RackAssigned', (e) => this.handleRackAssigned(e));
-    this.eventBus.subscribe('RackUnassigned', (e) => this.handleRackUnassigned(e));
-    this.eventBus.subscribe('RackReassigned', (e) => this.handleRackReassigned(e));
-    this.eventBus.subscribe('BoxAssigned', (e) => this.handleBoxAssigned(e));
-    this.eventBus.subscribe('BoxUnassigned', (e) => this.handleBoxUnassigned(e));
-    this.eventBus.subscribe('BoxReassigned', (e) => this.handleBoxReassigned(e));
+    this.eventBus.subscribe('RackAssigned', e => this.handleRackAssigned(e));
+    this.eventBus.subscribe('RackUnassigned', e => this.handleRackUnassigned(e));
+    this.eventBus.subscribe('RackReassigned', e => this.handleRackReassigned(e));
+    this.eventBus.subscribe('BoxAssigned', e => this.handleBoxAssigned(e));
+    this.eventBus.subscribe('BoxUnassigned', e => this.handleBoxUnassigned(e));
+    this.eventBus.subscribe('BoxReassigned', e => this.handleBoxReassigned(e));
 
     // Label events
-    this.eventBus.subscribe('RackLabelUpdated', (e) => this.handleRackLabelUpdated(e));
-    this.eventBus.subscribe('BoxLabelUpdated', (e) => this.handleBoxLabelUpdated(e));
+    this.eventBus.subscribe('RackLabelUpdated', e => this.handleRackLabelUpdated(e));
+    this.eventBus.subscribe('BoxLabelUpdated', e => this.handleBoxLabelUpdated(e));
 
     // Bulk assignment events
-    this.eventBus.subscribe('BulkResourcesUnassigned', (e) => this.handleBulkResourcesUnassigned(e));
-    this.eventBus.subscribe('BulkResourcesReassigned', (e) => this.handleBulkResourcesReassigned(e));
+    this.eventBus.subscribe('BulkResourcesUnassigned', e => this.handleBulkResourcesUnassigned(e));
+    this.eventBus.subscribe('BulkResourcesReassigned', e => this.handleBulkResourcesReassigned(e));
 
     // User events
-    this.eventBus.subscribe('UserCreated', (e) => this.handleUserCreated(e));
-    this.eventBus.subscribe('UserPasswordChanged', (e) => this.handleUserPasswordChanged(e));
-    this.eventBus.subscribe('UserRoleChanged', (e) => this.handleUserRoleChanged(e));
-    this.eventBus.subscribe('UserDeleted', (e) => this.handleUserDeleted(e));
-    this.eventBus.subscribe('UserLoggedIn', (e) => this.handleUserLoggedIn(e));
-    this.eventBus.subscribe('UserLoginFailed', (e) => this.handleUserLoginFailed(e));
-    this.eventBus.subscribe('UserLoggedOut', (e) => this.handleUserLoggedOut(e));
-    this.eventBus.subscribe('UserLinkedToResearcher', (e) => this.handleUserLinkedToResearcher(e));
-    this.eventBus.subscribe('UserUnlinkedFromResearcher', (e) => this.handleUserUnlinkedFromResearcher(e));
-    this.eventBus.subscribe('UserDeactivated', (e) => this.handleUserDeactivated(e));
-    this.eventBus.subscribe('UserSuspended', (e) => this.handleUserSuspended(e));
-    this.eventBus.subscribe('UserReactivated', (e) => this.handleUserReactivated(e));
+    this.eventBus.subscribe('UserCreated', e => this.handleUserCreated(e));
+    this.eventBus.subscribe('UserPasswordChanged', e => this.handleUserPasswordChanged(e));
+    this.eventBus.subscribe('UserRoleChanged', e => this.handleUserRoleChanged(e));
+    this.eventBus.subscribe('UserDeleted', e => this.handleUserDeleted(e));
+    this.eventBus.subscribe('UserLoggedIn', e => this.handleUserLoggedIn(e));
+    this.eventBus.subscribe('UserLoginFailed', e => this.handleUserLoginFailed(e));
+    this.eventBus.subscribe('UserLoggedOut', e => this.handleUserLoggedOut(e));
+    this.eventBus.subscribe('UserLinkedToResearcher', e => this.handleUserLinkedToResearcher(e));
+    this.eventBus.subscribe('UserUnlinkedFromResearcher', e =>
+      this.handleUserUnlinkedFromResearcher(e)
+    );
+    this.eventBus.subscribe('UserDeactivated', e => this.handleUserDeactivated(e));
+    this.eventBus.subscribe('UserSuspended', e => this.handleUserSuspended(e));
+    this.eventBus.subscribe('UserReactivated', e => this.handleUserReactivated(e));
 
     // Researcher events
-    this.eventBus.subscribe('ResearcherCreated', (e) => this.handleResearcherCreated(e));
-    this.eventBus.subscribe('ResearcherUpdated', (e) => this.handleResearcherUpdated(e));
-    this.eventBus.subscribe('ResearcherDeactivated', (e) => this.handleResearcherDeactivated(e));
-    this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherReactivated(e));
-    this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
+    this.eventBus.subscribe('ResearcherCreated', e => this.handleResearcherCreated(e));
+    this.eventBus.subscribe('ResearcherUpdated', e => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherDeactivated', e => this.handleResearcherDeactivated(e));
+    this.eventBus.subscribe('ResearcherReactivated', e => this.handleResearcherReactivated(e));
+    this.eventBus.subscribe('ResearcherDeleted', e => this.handleResearcherDeleted(e));
 
     // Donor events
-    this.eventBus.subscribe('DonorCreated', (e) => this.handleDonorCreated(e));
-    this.eventBus.subscribe('DonorUpdated', (e) => this.handleDonorUpdated(e));
-    this.eventBus.subscribe('DonorDeleted', (e) => this.handleDonorDeleted(e));
+    this.eventBus.subscribe('DonorCreated', e => this.handleDonorCreated(e));
+    this.eventBus.subscribe('DonorUpdated', e => this.handleDonorUpdated(e));
+    this.eventBus.subscribe('DonorDeleted', e => this.handleDonorDeleted(e));
 
     // Equipment events
-    this.eventBus.subscribe('EquipmentItemCreated', (e) => this.handleEquipmentItemCreated(e));
-    this.eventBus.subscribe('EquipmentItemUpdated', (e) => this.handleEquipmentItemUpdated(e));
-    this.eventBus.subscribe('EquipmentItemDecommissioned', (e) => this.handleEquipmentItemDecommissioned(e));
-    this.eventBus.subscribe('EquipmentItemDeleted', (e) => this.handleEquipmentItemDeleted(e));
-    this.eventBus.subscribe('EquipmentMaintenanceLogged', (e) => this.handleEquipmentMaintenanceLogged(e));
-    this.eventBus.subscribe('EquipmentMaintenanceUpdated', (e) => this.handleEquipmentMaintenanceUpdated(e));
-    this.eventBus.subscribe('EquipmentMaintenanceDeleted', (e) => this.handleEquipmentMaintenanceDeleted(e));
-    this.eventBus.subscribe('EquipmentCategoryCreated', (e) => this.handleEquipmentCategoryCreated(e));
-    this.eventBus.subscribe('EquipmentCategoryUpdated', (e) => this.handleEquipmentCategoryUpdated(e));
-    this.eventBus.subscribe('EquipmentCategoryDeleted', (e) => this.handleEquipmentCategoryDeleted(e));
-    this.eventBus.subscribe('EquipmentDocumentAdded', (e) => this.handleEquipmentDocumentAdded(e));
-    this.eventBus.subscribe('EquipmentDocumentRemoved', (e) => this.handleEquipmentDocumentRemoved(e));
-    this.eventBus.subscribe('EquipmentBulkMaintenanceLogged', (e) => this.handleEquipmentBulkMaintenanceLogged(e));
-    this.eventBus.subscribe('EquipmentBulkStatusChanged', (e) => this.handleEquipmentBulkStatusChanged(e));
-    this.eventBus.subscribe('EquipmentBulkRelocated', (e) => this.handleEquipmentBulkRelocated(e));
+    this.eventBus.subscribe('EquipmentItemCreated', e => this.handleEquipmentItemCreated(e));
+    this.eventBus.subscribe('EquipmentItemUpdated', e => this.handleEquipmentItemUpdated(e));
+    this.eventBus.subscribe('EquipmentItemDecommissioned', e =>
+      this.handleEquipmentItemDecommissioned(e)
+    );
+    this.eventBus.subscribe('EquipmentItemDeleted', e => this.handleEquipmentItemDeleted(e));
+    this.eventBus.subscribe('EquipmentMaintenanceLogged', e =>
+      this.handleEquipmentMaintenanceLogged(e)
+    );
+    this.eventBus.subscribe('EquipmentMaintenanceUpdated', e =>
+      this.handleEquipmentMaintenanceUpdated(e)
+    );
+    this.eventBus.subscribe('EquipmentMaintenanceDeleted', e =>
+      this.handleEquipmentMaintenanceDeleted(e)
+    );
+    this.eventBus.subscribe('EquipmentCategoryCreated', e =>
+      this.handleEquipmentCategoryCreated(e)
+    );
+    this.eventBus.subscribe('EquipmentCategoryUpdated', e =>
+      this.handleEquipmentCategoryUpdated(e)
+    );
+    this.eventBus.subscribe('EquipmentCategoryDeleted', e =>
+      this.handleEquipmentCategoryDeleted(e)
+    );
+    this.eventBus.subscribe('EquipmentDocumentAdded', e => this.handleEquipmentDocumentAdded(e));
+    this.eventBus.subscribe('EquipmentDocumentRemoved', e =>
+      this.handleEquipmentDocumentRemoved(e)
+    );
+    this.eventBus.subscribe('EquipmentBulkMaintenanceLogged', e =>
+      this.handleEquipmentBulkMaintenanceLogged(e)
+    );
+    this.eventBus.subscribe('EquipmentBulkStatusChanged', e =>
+      this.handleEquipmentBulkStatusChanged(e)
+    );
+    this.eventBus.subscribe('EquipmentBulkRelocated', e => this.handleEquipmentBulkRelocated(e));
 
     // Supply events
-    this.eventBus.subscribe('SupplyItemCreated', (e) => this.handleSupplyItemCreated(e));
-    this.eventBus.subscribe('SupplyItemUpdated', (e) => this.handleSupplyItemUpdated(e));
-    this.eventBus.subscribe('SupplyItemArchived', (e) => this.handleSupplyItemArchived(e));
-    this.eventBus.subscribe('SupplyItemDeleted', (e) => this.handleSupplyItemDeleted(e));
-    this.eventBus.subscribe('SupplyCategoryCreated', (e) => this.handleSupplyCategoryCreated(e));
-    this.eventBus.subscribe('SupplyCategoryUpdated', (e) => this.handleSupplyCategoryUpdated(e));
-    this.eventBus.subscribe('SupplyCategoryDeleted', (e) => this.handleSupplyCategoryDeleted(e));
-    this.eventBus.subscribe('SupplyDocumentAdded', (e) => this.handleSupplyDocumentAdded(e));
-    this.eventBus.subscribe('SupplyDocumentRemoved', (e) => this.handleSupplyDocumentRemoved(e));
-    this.eventBus.subscribe('SupplyStockReceived', (e) => this.handleSupplyStockReceived(e));
-    this.eventBus.subscribe('SupplyStockIssued', (e) => this.handleSupplyStockIssued(e));
-    this.eventBus.subscribe('SupplyStockCountAdjusted', (e) => this.handleSupplyStockCountAdjusted(e));
-    this.eventBus.subscribe('SupplyStockDisposed', (e) => this.handleSupplyStockDisposed(e));
-    this.eventBus.subscribe('SupplyStockVoided', (e) => this.handleSupplyStockVoided(e));
-    this.eventBus.subscribe('SupplyBulkReceived', (e) => this.handleSupplyBulkReceived(e));
-    this.eventBus.subscribe('SupplyBulkIssued', (e) => this.handleSupplyBulkIssued(e));
-    this.eventBus.subscribe('SupplyBulkCategoryReassigned', (e) => this.handleSupplyBulkCategoryReassigned(e));
-    this.eventBus.subscribe('SupplyBulkArchived', (e) => this.handleSupplyBulkArchived(e));
-    this.eventBus.subscribe('SupplyBulkVoided', (e) => this.handleSupplyBulkVoided(e));
+    this.eventBus.subscribe('SupplyItemCreated', e => this.handleSupplyItemCreated(e));
+    this.eventBus.subscribe('SupplyItemUpdated', e => this.handleSupplyItemUpdated(e));
+    this.eventBus.subscribe('SupplyItemArchived', e => this.handleSupplyItemArchived(e));
+    this.eventBus.subscribe('SupplyItemDeleted', e => this.handleSupplyItemDeleted(e));
+    this.eventBus.subscribe('SupplyCategoryCreated', e => this.handleSupplyCategoryCreated(e));
+    this.eventBus.subscribe('SupplyCategoryUpdated', e => this.handleSupplyCategoryUpdated(e));
+    this.eventBus.subscribe('SupplyCategoryDeleted', e => this.handleSupplyCategoryDeleted(e));
+    this.eventBus.subscribe('SupplyDocumentAdded', e => this.handleSupplyDocumentAdded(e));
+    this.eventBus.subscribe('SupplyDocumentRemoved', e => this.handleSupplyDocumentRemoved(e));
+    this.eventBus.subscribe('SupplyStockReceived', e => this.handleSupplyStockReceived(e));
+    this.eventBus.subscribe('SupplyStockIssued', e => this.handleSupplyStockIssued(e));
+    this.eventBus.subscribe('SupplyStockCountAdjusted', e =>
+      this.handleSupplyStockCountAdjusted(e)
+    );
+    this.eventBus.subscribe('SupplyStockDisposed', e => this.handleSupplyStockDisposed(e));
+    this.eventBus.subscribe('SupplyStockVoided', e => this.handleSupplyStockVoided(e));
+    this.eventBus.subscribe('SupplyBulkReceived', e => this.handleSupplyBulkReceived(e));
+    this.eventBus.subscribe('SupplyBulkIssued', e => this.handleSupplyBulkIssued(e));
+    this.eventBus.subscribe('SupplyBulkCategoryReassigned', e =>
+      this.handleSupplyBulkCategoryReassigned(e)
+    );
+    this.eventBus.subscribe('SupplyBulkArchived', e => this.handleSupplyBulkArchived(e));
+    this.eventBus.subscribe('SupplyBulkVoided', e => this.handleSupplyBulkVoided(e));
 
     // Lab events
-    this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
-    this.eventBus.subscribe('LabRenamed', (e) => this.handleLabRenamed(e));
-    this.eventBus.subscribe('LabActivated', (e) => this.handleLabActivated(e));
-    this.eventBus.subscribe('LabDeactivated', (e) => this.handleLabDeactivated(e));
-    this.eventBus.subscribe('InviteCodeCreated', (e) => this.handleInviteCodeCreated(e));
+    this.eventBus.subscribe('LabCreated', e => this.handleLabCreated(e));
+    this.eventBus.subscribe('LabRenamed', e => this.handleLabRenamed(e));
+    this.eventBus.subscribe('LabActivated', e => this.handleLabActivated(e));
+    this.eventBus.subscribe('LabDeactivated', e => this.handleLabDeactivated(e));
+    this.eventBus.subscribe('InviteCodeCreated', e => this.handleInviteCodeCreated(e));
   }
 
   // TUBE EVENT HANDLERS
@@ -343,7 +372,12 @@ export class AuditEventHandler {
   }
 
   /** Formats a raw location as the `tankId/rackId/boxId/position` audit path. */
-  private formatRawLocation(loc: { tankId: string; rackId: string; boxId: string; position: number }): string {
+  private formatRawLocation(loc: {
+    tankId: string;
+    rackId: string;
+    boxId: string;
+    position: number;
+  }): string {
     return `${loc.tankId}/${loc.rackId}/${loc.boxId}/${loc.position}`;
   }
 
@@ -381,7 +415,8 @@ export class AuditEventHandler {
 
     const tank = storage.equipment.tanks.find(t => t.id === first.tankId);
     if (!tank) return { scope: '', positions: [] };
-    if (!locations.every(l => l.rackId === first.rackId)) return { scope: tank.name, positions: [] };
+    if (!locations.every(l => l.rackId === first.rackId))
+      return { scope: tank.name, positions: [] };
 
     const rack = tank.racks.find(r => r.id === first.rackId);
     if (!rack) return { scope: tank.name, positions: [] };
@@ -410,7 +445,7 @@ export class AuditEventHandler {
       entityId: event.tubeId,
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: async (username) => {
+      buildDetails: async username => {
         const displayLocation = await this.getDisplayLocation(event.location, event.labId!);
         return {
           location: event.location.toString(),
@@ -439,10 +474,15 @@ export class AuditEventHandler {
   private async handleTubeUpdated(event: TubeUpdatedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'tube updated', context: { tubeId: event.tubeId },
-      actorId: event.updatedBy, action: 'tube_updated', entityType: 'tube',
-      entityId: event.tubeId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: async (username) => {
+      eventName: 'tube updated',
+      context: { tubeId: event.tubeId },
+      actorId: event.updatedBy,
+      action: 'tube_updated',
+      entityType: 'tube',
+      entityId: event.tubeId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: async username => {
         const changes: FieldChange[] = [];
 
         if (event.oldLocation.toString() !== event.newLocation.toString()) {
@@ -479,10 +519,15 @@ export class AuditEventHandler {
   private async handleTubeLocationChanged(event: TubeLocationChangedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'tube location changed', context: { tubeId: event.tubeId },
-      actorId: event.movedBy, action: 'tube_moved', entityType: 'tube',
-      entityId: event.tubeId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: async (username) => {
+      eventName: 'tube location changed',
+      context: { tubeId: event.tubeId },
+      actorId: event.movedBy,
+      action: 'tube_moved',
+      entityType: 'tube',
+      entityId: event.tubeId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: async username => {
         const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation, event.labId!);
         const newDisplayLocation = await this.getDisplayLocation(event.newLocation, event.labId!);
 
@@ -508,7 +553,7 @@ export class AuditEventHandler {
       entityId: event.tubeId,
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: async (username) => {
+      buildDetails: async username => {
         const displayLocation = await this.getDisplayLocation(event.location, event.labId!);
         return {
           location: event.location.toString(),
@@ -565,7 +610,10 @@ export class AuditEventHandler {
       // A single create (e.g. copy/pasting one tube) needs no roll-up — the per-item entry
       // already says it all. Add the summary whenever the batch holds more than one tube.
       if (count > 1) {
-        const where = this.resolveBatchLocation(storage, event.perItemData.map(i => i.location));
+        const where = this.resolveBatchLocation(
+          storage,
+          event.perItemData.map(i => i.location)
+        );
         entries.push({
           userId: event.createdBy,
           username,
@@ -619,7 +667,10 @@ export class AuditEventHandler {
       }
 
       if (count > 1) {
-        const where = this.resolveBatchLocation(storage, event.perItemData.map(i => i.location));
+        const where = this.resolveBatchLocation(
+          storage,
+          event.perItemData.map(i => i.location)
+        );
         entries.push({
           userId: event.updatedBy,
           username,
@@ -676,7 +727,10 @@ export class AuditEventHandler {
       }
 
       if (count > 1) {
-        const where = this.resolveBatchLocation(storage, event.perItemData.map(i => i.location));
+        const where = this.resolveBatchLocation(
+          storage,
+          event.perItemData.map(i => i.location)
+        );
         entries.push({
           userId: event.deletedBy,
           username,
@@ -721,8 +775,16 @@ export class AuditEventHandler {
             details: {
               oldLocation: rawOldLocation,
               newLocation: rawNewLocation,
-              oldDisplayLocation: this.resolveDisplayLocation(storage, item.oldLocation, rawOldLocation),
-              displayLocation: this.resolveDisplayLocation(storage, item.newLocation, rawNewLocation),
+              oldDisplayLocation: this.resolveDisplayLocation(
+                storage,
+                item.oldLocation,
+                rawOldLocation
+              ),
+              displayLocation: this.resolveDisplayLocation(
+                storage,
+                item.newLocation,
+                rawNewLocation
+              ),
               movedBy: username,
               timestamp,
             },
@@ -732,8 +794,14 @@ export class AuditEventHandler {
       }
 
       if (count > 1) {
-        const from = this.resolveBatchLocation(storage, event.perItemData.map(i => i.oldLocation));
-        const to = this.resolveBatchLocation(storage, event.perItemData.map(i => i.newLocation));
+        const from = this.resolveBatchLocation(
+          storage,
+          event.perItemData.map(i => i.oldLocation)
+        );
+        const to = this.resolveBatchLocation(
+          storage,
+          event.perItemData.map(i => i.newLocation)
+        );
         entries.push({
           userId: event.movedBy,
           username,
@@ -757,7 +825,9 @@ export class AuditEventHandler {
 
   // TUBE LOCK EVENT HANDLERS
 
-  private async resolveUsernames(userIds: string[]): Promise<Array<{ userId: string; username: string }>> {
+  private async resolveUsernames(
+    userIds: string[]
+  ): Promise<Array<{ userId: string; username: string }>> {
     if (userIds.length === 0) return [];
     const users = await this.userRepository.findByIds(userIds);
     const userMap = new Map(users.map(u => [u.id, u.username]));
@@ -773,7 +843,7 @@ export class AuditEventHandler {
       entityType: 'tube',
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: (username) => ({
+      buildDetails: username => ({
         tubeCount: event.tubeIds.length,
         tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
         hasMore: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
@@ -792,7 +862,7 @@ export class AuditEventHandler {
       entityType: 'tube',
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: (username) => ({
+      buildDetails: username => ({
         tubeCount: event.tubeIds.length,
         tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
         hasMore: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
@@ -803,16 +873,22 @@ export class AuditEventHandler {
 
   private async handleTubeAccessShared(event: TubeAccessSharedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'tube access shared', context: { tubeIds: event.tubeIds },
-      actorId: event.sharedBy, action: 'tube_access_shared', entityType: 'tube',
+      eventName: 'tube access shared',
+      context: { tubeIds: event.tubeIds },
+      actorId: event.sharedBy,
+      action: 'tube_access_shared',
+      entityType: 'tube',
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: async (username) => {
+      buildDetails: async username => {
         const sharedWithUsers = await this.resolveUsernames(event.addedUserIds);
         return {
-          tubeCount: event.tubeIds.length, tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
+          tubeCount: event.tubeIds.length,
+          tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
           hasMoreTubes: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
-          sharedWithUsers, sharedWithCount: event.addedUserIds.length, sharedBy: username,
+          sharedWithUsers,
+          sharedWithCount: event.addedUserIds.length,
+          sharedBy: username,
         };
       },
     });
@@ -820,16 +896,22 @@ export class AuditEventHandler {
 
   private async handleTubeAccessRevoked(event: TubeAccessRevokedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'tube access revoked', context: { tubeIds: event.tubeIds },
-      actorId: event.revokedBy, action: 'tube_access_revoked', entityType: 'tube',
+      eventName: 'tube access revoked',
+      context: { tubeIds: event.tubeIds },
+      actorId: event.revokedBy,
+      action: 'tube_access_revoked',
+      entityType: 'tube',
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: async (username) => {
+      buildDetails: async username => {
         const revokedUsers = await this.resolveUsernames(event.revokedUserIds);
         return {
-          tubeCount: event.tubeIds.length, tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
+          tubeCount: event.tubeIds.length,
+          tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
           hasMoreTubes: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
-          revokedUsers, revokedCount: event.revokedUserIds.length, revokedBy: username,
+          revokedUsers,
+          revokedCount: event.revokedUserIds.length,
+          revokedBy: username,
         };
       },
     });
@@ -839,82 +921,176 @@ export class AuditEventHandler {
 
   private async handleTankUpdated(event: TankUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'tank updated', context: { tankId: event.tankId },
-      actorId: event.userId, action: 'tank_updated', entityType: 'tank',
-      entityId: event.tankId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, changes: event.changes, username }),
+      eventName: 'tank updated',
+      context: { tankId: event.tankId },
+      actorId: event.userId,
+      action: 'tank_updated',
+      entityType: 'tank',
+      entityId: event.tankId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        changes: event.changes,
+        username,
+      }),
     });
   }
 
   private async handleTankAdded(event: TankAddedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'tank added', context: { tankId: event.tankId },
-      actorId: event.userId, action: 'tank_created', entityType: 'tank',
-      entityId: event.tankId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, username }),
+      eventName: 'tank added',
+      context: { tankId: event.tankId },
+      actorId: event.userId,
+      action: 'tank_created',
+      entityType: 'tank',
+      entityId: event.tankId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ tankId: event.tankId, tankName: event.tankName, username }),
     });
   }
 
   private async handleTankDeleted(event: TankDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'tank deleted', context: { tankId: event.tankId },
-      actorId: event.userId, action: 'tank_deleted', entityType: 'tank',
-      entityId: event.tankId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, username }),
+      eventName: 'tank deleted',
+      context: { tankId: event.tankId },
+      actorId: event.userId,
+      action: 'tank_deleted',
+      entityType: 'tank',
+      entityId: event.tankId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ tankId: event.tankId, tankName: event.tankName, username }),
     });
   }
 
   private async handleRackAdded(event: RackAddedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack added', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_created', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, username }),
+      eventName: 'rack added',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_created',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        username,
+      }),
     });
   }
 
   private async handleRackDeleted(event: RackDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack deleted', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_deleted', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, username }),
+      eventName: 'rack deleted',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_deleted',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        username,
+      }),
     });
   }
 
   private async handleRackUpdated(event: RackUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack updated', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_updated', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, changes: event.changes, username }),
+      eventName: 'rack updated',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_updated',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        changes: event.changes,
+        username,
+      }),
     });
   }
 
   private async handleBoxAdded(event: BoxAddedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box added', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_created', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, username }),
+      eventName: 'box added',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_created',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
+        username,
+      }),
     });
   }
 
   private async handleBoxDeleted(event: BoxDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box deleted', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_deleted', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, username }),
+      eventName: 'box deleted',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_deleted',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
+        username,
+      }),
     });
   }
 
   private async handleBoxUpdated(event: BoxUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box updated', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_updated', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, changes: event.changes, username }),
+      eventName: 'box updated',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_updated',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
+        changes: event.changes,
+        username,
+      }),
     });
   }
 
@@ -922,77 +1098,138 @@ export class AuditEventHandler {
 
   private async handleRackAssigned(event: RackAssignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack assigned', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_assigned', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        previousOwner: null, newOwner: { userId: event.assignedUserId, username: event.assignedUsername }, assignedBy: username,
+      eventName: 'rack assigned',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_assigned',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        previousOwner: null,
+        newOwner: { userId: event.assignedUserId, username: event.assignedUsername },
+        assignedBy: username,
       }),
     });
   }
 
   private async handleRackUnassigned(event: RackUnassignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack unassigned', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_unassigned', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        previousOwner: { userId: event.previousUserId, username: event.previousUsername }, newOwner: null, unassignedBy: username,
+      eventName: 'rack unassigned',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_unassigned',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        previousOwner: { userId: event.previousUserId, username: event.previousUsername },
+        newOwner: null,
+        unassignedBy: username,
       }),
     });
   }
 
   private async handleRackReassigned(event: RackReassignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack reassigned', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_reassigned', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
+      eventName: 'rack reassigned',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_reassigned',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
         previousOwner: { userId: event.previousUserId, username: event.previousUsername },
-        newOwner: { userId: event.newUserId, username: event.newUsername }, reassignedBy: username,
+        newOwner: { userId: event.newUserId, username: event.newUsername },
+        reassignedBy: username,
       }),
     });
   }
 
   private async handleBoxAssigned(event: BoxAssignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box assigned', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_assigned', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        boxId: event.boxId, boxName: event.boxName,
-        previousOwner: null, newOwner: { userId: event.assignedUserId, username: event.assignedUsername }, assignedBy: username,
+      eventName: 'box assigned',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_assigned',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
+        previousOwner: null,
+        newOwner: { userId: event.assignedUserId, username: event.assignedUsername },
+        assignedBy: username,
       }),
     });
   }
 
   private async handleBoxUnassigned(event: BoxUnassignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box unassigned', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_unassigned', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        boxId: event.boxId, boxName: event.boxName,
-        previousOwner: { userId: event.previousUserId, username: event.previousUsername }, newOwner: null, unassignedBy: username,
+      eventName: 'box unassigned',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_unassigned',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
+        previousOwner: { userId: event.previousUserId, username: event.previousUsername },
+        newOwner: null,
+        unassignedBy: username,
       }),
     });
   }
 
   private async handleBoxReassigned(event: BoxReassignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box reassigned', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_reassigned', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        boxId: event.boxId, boxName: event.boxName,
+      eventName: 'box reassigned',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_reassigned',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
         previousOwner: { userId: event.previousUserId, username: event.previousUsername },
-        newOwner: { userId: event.newUserId, username: event.newUsername }, reassignedBy: username,
+        newOwner: { userId: event.newUserId, username: event.newUsername },
+        reassignedBy: username,
       }),
     });
   }
@@ -1001,25 +1238,46 @@ export class AuditEventHandler {
 
   private async handleRackLabelUpdated(event: RackLabelUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'rack label updated', context: { tankId: event.tankId, rackId: event.rackId },
-      actorId: event.userId, action: 'rack_label_updated', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        oldLabel: event.oldLabel ?? null, newLabel: event.newLabel ?? null, updatedBy: username,
+      eventName: 'rack label updated',
+      context: { tankId: event.tankId, rackId: event.rackId },
+      actorId: event.userId,
+      action: 'rack_label_updated',
+      entityType: 'rack',
+      entityId: `${event.tankId}-${event.rackId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        oldLabel: event.oldLabel ?? null,
+        newLabel: event.newLabel ?? null,
+        updatedBy: username,
       }),
     });
   }
 
   private async handleBoxLabelUpdated(event: BoxLabelUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'box label updated', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
-      actorId: event.userId, action: 'box_label_updated', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        boxId: event.boxId, boxName: event.boxName,
-        oldLabel: event.oldLabel ?? null, newLabel: event.newLabel ?? null, updatedBy: username,
+      eventName: 'box label updated',
+      context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
+      actorId: event.userId,
+      action: 'box_label_updated',
+      entityType: 'box',
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        tankId: event.tankId,
+        tankName: event.tankName,
+        rackId: event.rackId,
+        rackName: event.rackName,
+        boxId: event.boxId,
+        boxName: event.boxName,
+        oldLabel: event.oldLabel ?? null,
+        newLabel: event.newLabel ?? null,
+        updatedBy: username,
       }),
     });
   }
@@ -1028,25 +1286,37 @@ export class AuditEventHandler {
 
   private async handleBulkResourcesUnassigned(event: BulkResourcesUnassignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'bulk resources unassigned', context: { fromUserId: event.fromUserId },
-      actorId: event.userId, action: 'resources_bulk_unassigned', entityType: 'configuration',
-      occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
+      eventName: 'bulk resources unassigned',
+      context: { fromUserId: event.fromUserId },
+      actorId: event.userId,
+      action: 'resources_bulk_unassigned',
+      entityType: 'configuration',
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
         fromUser: { userId: event.fromUserId, username: event.fromUsername },
-        racksAffected: event.racksAffected, boxesAffected: event.boxesAffected, unassignedBy: username,
+        racksAffected: event.racksAffected,
+        boxesAffected: event.boxesAffected,
+        unassignedBy: username,
       }),
     });
   }
 
   private async handleBulkResourcesReassigned(event: BulkResourcesReassignedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'bulk resources reassigned', context: { fromUserId: event.fromUserId, toUserId: event.toUserId },
-      actorId: event.userId, action: 'resources_bulk_reassigned', entityType: 'configuration',
-      occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
+      eventName: 'bulk resources reassigned',
+      context: { fromUserId: event.fromUserId, toUserId: event.toUserId },
+      actorId: event.userId,
+      action: 'resources_bulk_reassigned',
+      entityType: 'configuration',
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
         fromUser: { userId: event.fromUserId, username: event.fromUsername },
         toUser: { userId: event.toUserId, username: event.toUsername },
-        racksAffected: event.racksAffected, boxesAffected: event.boxesAffected, reassignedBy: username,
+        racksAffected: event.racksAffected,
+        boxesAffected: event.boxesAffected,
+        reassignedBy: username,
       }),
     });
   }
@@ -1055,47 +1325,75 @@ export class AuditEventHandler {
 
   private async handleResearcherCreated(event: ResearcherCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'researcher created', context: { researcherId: event.researcherId },
-      actorId: event.createdBy, action: 'researcher_created', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        researcherId: event.researcherId, researcherName: `${event.firstName} ${event.lastName}`,
-        email: event.email, position: event.position, createdBy: username,
+      eventName: 'researcher created',
+      context: { researcherId: event.researcherId },
+      actorId: event.createdBy,
+      action: 'researcher_created',
+      entityType: 'researcher',
+      entityId: event.researcherId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        researcherId: event.researcherId,
+        researcherName: `${event.firstName} ${event.lastName}`,
+        email: event.email,
+        position: event.position,
+        createdBy: username,
       }),
     });
   }
 
   private async handleResearcherUpdated(event: ResearcherUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'researcher updated', context: { researcherId: event.researcherId },
-      actorId: event.updatedBy, action: 'researcher_updated', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        researcherId: event.researcherId, researcherName: `${event.firstName} ${event.lastName}`,
-        changes: event.changes, updatedBy: username,
+      eventName: 'researcher updated',
+      context: { researcherId: event.researcherId },
+      actorId: event.updatedBy,
+      action: 'researcher_updated',
+      entityType: 'researcher',
+      entityId: event.researcherId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        researcherId: event.researcherId,
+        researcherName: `${event.firstName} ${event.lastName}`,
+        changes: event.changes,
+        updatedBy: username,
       }),
     });
   }
 
   private async handleResearcherDeactivated(event: ResearcherDeactivatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'researcher deactivated', context: { researcherId: event.researcherId },
-      actorId: event.deactivatedBy, action: 'researcher_deactivated', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        researcherId: event.researcherId, researcherName: `${event.firstName} ${event.lastName}`,
-        tubeCount: event.tubeCount, deactivatedBy: username,
+      eventName: 'researcher deactivated',
+      context: { researcherId: event.researcherId },
+      actorId: event.deactivatedBy,
+      action: 'researcher_deactivated',
+      entityType: 'researcher',
+      entityId: event.researcherId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        researcherId: event.researcherId,
+        researcherName: `${event.firstName} ${event.lastName}`,
+        tubeCount: event.tubeCount,
+        deactivatedBy: username,
       }),
     });
   }
 
   private async handleResearcherReactivated(event: ResearcherReactivatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'researcher reactivated', context: { researcherId: event.researcherId },
-      actorId: event.reactivatedBy, action: 'researcher_reactivated', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        researcherId: event.researcherId, researcherName: `${event.firstName} ${event.lastName}`,
+      eventName: 'researcher reactivated',
+      context: { researcherId: event.researcherId },
+      actorId: event.reactivatedBy,
+      action: 'researcher_reactivated',
+      entityType: 'researcher',
+      entityId: event.researcherId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        researcherId: event.researcherId,
+        researcherName: `${event.firstName} ${event.lastName}`,
         reactivatedBy: username,
       }),
     });
@@ -1103,11 +1401,17 @@ export class AuditEventHandler {
 
   private async handleResearcherDeleted(event: ResearcherDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'researcher deleted', context: { researcherId: event.researcherId },
-      actorId: event.deletedBy, action: 'researcher_deleted', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        researcherId: event.researcherId, researcherName: `${event.firstName} ${event.lastName}`,
+      eventName: 'researcher deleted',
+      context: { researcherId: event.researcherId },
+      actorId: event.deletedBy,
+      action: 'researcher_deleted',
+      entityType: 'researcher',
+      entityId: event.researcherId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        researcherId: event.researcherId,
+        researcherName: `${event.firstName} ${event.lastName}`,
         deletedBy: username,
       }),
     });
@@ -1117,47 +1421,75 @@ export class AuditEventHandler {
 
   private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user created', context: { userId: event.userId },
-      actorId: event.userId, action: 'user_created', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username, role: event.role.value }),
+      eventName: 'user created',
+      context: { userId: event.userId },
+      actorId: event.userId,
+      action: 'user_created',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ username, role: event.role.value }),
     });
   }
 
   private async handleUserPasswordChanged(event: UserPasswordChangedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user password changed', context: { userId: event.userId },
-      actorId: event.changedBy, action: 'user_password_changed', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, changedBy: username }),
+      eventName: 'user password changed',
+      context: { userId: event.userId },
+      actorId: event.changedBy,
+      action: 'user_password_changed',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ username: event.username, changedBy: username }),
     });
   }
 
   private async handleUserRoleChanged(event: UserRoleChangedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user role changed', context: { userId: event.userId },
-      actorId: event.changedBy, action: 'user_role_changed', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        username: event.username, oldRole: event.oldRole.value, newRole: event.newRole.value, changedBy: username,
+      eventName: 'user role changed',
+      context: { userId: event.userId },
+      actorId: event.changedBy,
+      action: 'user_role_changed',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        username: event.username,
+        oldRole: event.oldRole.value,
+        newRole: event.newRole.value,
+        changedBy: username,
       }),
     });
   }
 
   private async handleUserDeleted(event: UserDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user deleted', context: { userId: event.userId },
-      actorId: event.deletedBy, action: 'user_deleted', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, deletedBy: username }),
+      eventName: 'user deleted',
+      context: { userId: event.userId },
+      actorId: event.deletedBy,
+      action: 'user_deleted',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ username: event.username, deletedBy: username }),
     });
   }
 
   private async handleUserLoggedIn(event: UserLoggedInEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user logged in', context: { userId: event.userId },
-      actorId: event.userId, action: 'user_logged_in', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
+      eventName: 'user logged in',
+      context: { userId: event.userId },
+      actorId: event.userId,
+      action: 'user_logged_in',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
       buildDetails: () => ({ username: event.username }),
     });
   }
@@ -1165,10 +1497,18 @@ export class AuditEventHandler {
   private async handleUserLoginFailed(event: UserLoginFailedEvent): Promise<void> {
     if (event.userId) {
       await this.logAuditEvent({
-        eventName: 'user login failed', context: { userId: event.userId, username: event.username },
-        actorId: event.userId, action: 'user_login_failed', entityType: 'user',
-        entityId: event.userId, occurredOn: event.occurredOn,
-        buildDetails: () => ({ username: event.username, ipAddress: event.ipAddress, reason: event.reason }),
+        eventName: 'user login failed',
+        context: { userId: event.userId, username: event.username },
+        actorId: event.userId,
+        action: 'user_login_failed',
+        entityType: 'user',
+        entityId: event.userId,
+        occurredOn: event.occurredOn,
+        buildDetails: () => ({
+          username: event.username,
+          ipAddress: event.ipAddress,
+          reason: event.reason,
+        }),
       });
       return;
     }
@@ -1191,62 +1531,103 @@ export class AuditEventHandler {
 
   private async handleUserLoggedOut(event: UserLoggedOutEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user logged out', context: { userId: event.userId },
-      actorId: event.userId, action: 'user_logged_out', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
+      eventName: 'user logged out',
+      context: { userId: event.userId },
+      actorId: event.userId,
+      action: 'user_logged_out',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
       buildDetails: () => ({ username: event.username }),
     });
   }
 
   private async handleUserLinkedToResearcher(event: UserLinkedToResearcherEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user linked to researcher', context: { userId: event.userId },
-      actorId: event.linkedBy, action: 'user_linked_to_researcher', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        username: event.username, researcherId: event.researcherId, researcherName: event.researcherName, linkedBy: username,
+      eventName: 'user linked to researcher',
+      context: { userId: event.userId },
+      actorId: event.linkedBy,
+      action: 'user_linked_to_researcher',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        username: event.username,
+        researcherId: event.researcherId,
+        researcherName: event.researcherName,
+        linkedBy: username,
       }),
     });
   }
 
-  private async handleUserUnlinkedFromResearcher(event: UserUnlinkedFromResearcherEvent): Promise<void> {
+  private async handleUserUnlinkedFromResearcher(
+    event: UserUnlinkedFromResearcherEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user unlinked from researcher', context: { userId: event.userId },
-      actorId: event.unlinkedBy, action: 'user_unlinked_from_researcher', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        username: event.username, researcherId: event.researcherId, researcherName: event.researcherName, unlinkedBy: username,
+      eventName: 'user unlinked from researcher',
+      context: { userId: event.userId },
+      actorId: event.unlinkedBy,
+      action: 'user_unlinked_from_researcher',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        username: event.username,
+        researcherId: event.researcherId,
+        researcherName: event.researcherName,
+        unlinkedBy: username,
       }),
     });
   }
 
   private async handleUserDeactivated(event: UserDeactivatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user deactivated', context: { userId: event.userId },
-      actorId: event.deactivatedBy, action: 'user_deactivated', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, deactivatedBy: username }),
+      eventName: 'user deactivated',
+      context: { userId: event.userId },
+      actorId: event.deactivatedBy,
+      action: 'user_deactivated',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ username: event.username, deactivatedBy: username }),
     });
   }
 
   private async handleUserSuspended(event: UserSuspendedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user suspended', context: { userId: event.userId },
-      actorId: event.suspendedBy, action: 'user_suspended', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, suspendedBy: username }),
+      eventName: 'user suspended',
+      context: { userId: event.userId },
+      actorId: event.suspendedBy,
+      action: 'user_suspended',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ username: event.username, suspendedBy: username }),
     });
   }
 
   private async handleUserReactivated(event: UserReactivatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'user reactivated', context: { userId: event.userId },
-      actorId: event.reactivatedBy, action: 'user_reactivated', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, previousStatus: event.previousStatus, reactivatedBy: username }),
+      eventName: 'user reactivated',
+      context: { userId: event.userId },
+      actorId: event.reactivatedBy,
+      action: 'user_reactivated',
+      entityType: 'user',
+      entityId: event.userId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        username: event.username,
+        previousStatus: event.previousStatus,
+        reactivatedBy: username,
+      }),
     });
   }
-
 
   private async handleLabCreated(event: LabCreatedEvent): Promise<void> {
     await this.safeLogAudit('lab created', { labId: event.labId }, async () => {
@@ -1267,40 +1648,64 @@ export class AuditEventHandler {
 
   private async handleLabRenamed(event: LabRenamedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'lab renamed', context: { labId: event.labId },
-      actorId: event.renamedBy, action: 'lab_renamed', entityType: 'lab',
-      entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ oldName: event.oldName, newName: event.newName, renamedBy: username }),
+      eventName: 'lab renamed',
+      context: { labId: event.labId },
+      actorId: event.renamedBy,
+      action: 'lab_renamed',
+      entityType: 'lab',
+      entityId: event.labId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        oldName: event.oldName,
+        newName: event.newName,
+        renamedBy: username,
+      }),
     });
   }
 
   private async handleLabActivated(event: LabActivatedEvent): Promise<void> {
     const labName = await this.resolveLabName(event.labId);
     await this.logAuditEvent({
-      eventName: 'lab activated', context: { labId: event.labId },
-      actorId: event.activatedBy, action: 'lab_activated', entityType: 'lab',
-      entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ labName, activatedBy: username }),
+      eventName: 'lab activated',
+      context: { labId: event.labId },
+      actorId: event.activatedBy,
+      action: 'lab_activated',
+      entityType: 'lab',
+      entityId: event.labId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ labName, activatedBy: username }),
     });
   }
 
   private async handleLabDeactivated(event: LabDeactivatedEvent): Promise<void> {
     const labName = await this.resolveLabName(event.labId);
     await this.logAuditEvent({
-      eventName: 'lab deactivated', context: { labId: event.labId },
-      actorId: event.deactivatedBy, action: 'lab_deactivated', entityType: 'lab',
-      entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ labName, deactivatedBy: username }),
+      eventName: 'lab deactivated',
+      context: { labId: event.labId },
+      actorId: event.deactivatedBy,
+      action: 'lab_deactivated',
+      entityType: 'lab',
+      entityId: event.labId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ labName, deactivatedBy: username }),
     });
   }
 
   private async handleInviteCodeCreated(event: InviteCodeCreatedEvent): Promise<void> {
     const labName = await this.resolveLabName(event.labId);
     await this.logAuditEvent({
-      eventName: 'invite code created', context: { codeId: event.codeId },
-      actorId: event.createdBy, action: 'invite_code_created', entityType: 'lab',
-      entityId: event.codeId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ labName, codeId: event.codeId, createdBy: username }),
+      eventName: 'invite code created',
+      context: { codeId: event.codeId },
+      actorId: event.createdBy,
+      action: 'invite_code_created',
+      entityType: 'lab',
+      entityId: event.codeId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({ labName, codeId: event.codeId, createdBy: username }),
     });
   }
 
@@ -1308,12 +1713,19 @@ export class AuditEventHandler {
 
   private async handleDonorCreated(event: DonorCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'donor created', context: { donorId: event.donorId },
-      actorId: event.createdBy, action: 'donor_created', entityType: 'donor',
-      entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        donorId: event.donorId, donorSourceId: event.donorSourceId,
-        donorInternalId: event.donorInternalId, isCurated: event.isCurated,
+      eventName: 'donor created',
+      context: { donorId: event.donorId },
+      actorId: event.createdBy,
+      action: 'donor_created',
+      entityType: 'donor',
+      entityId: event.donorId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        donorId: event.donorId,
+        donorSourceId: event.donorSourceId,
+        donorInternalId: event.donorInternalId,
+        isCurated: event.isCurated,
         createdBy: username,
       }),
     });
@@ -1322,23 +1734,38 @@ export class AuditEventHandler {
   private async handleDonorUpdated(event: DonorUpdatedEvent): Promise<void> {
     const donorIds = await this.resolveDonorLabel(event.donorId, event.labId);
     await this.logAuditEvent({
-      eventName: 'donor updated', context: { donorId: event.donorId },
-      actorId: event.updatedBy, action: 'donor_updated', entityType: 'donor',
-      entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        donorId: event.donorId, ...donorIds, changes: event.changes, updatedBy: username,
+      eventName: 'donor updated',
+      context: { donorId: event.donorId },
+      actorId: event.updatedBy,
+      action: 'donor_updated',
+      entityType: 'donor',
+      entityId: event.donorId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        donorId: event.donorId,
+        ...donorIds,
+        changes: event.changes,
+        updatedBy: username,
       }),
     });
   }
 
   private async handleDonorDeleted(event: DonorDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'donor deleted', context: { donorId: event.donorId },
-      actorId: event.deletedBy, action: 'donor_deleted', entityType: 'donor',
-      entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        donorId: event.donorId, donorSourceId: event.donorSourceId,
-        donorInternalId: event.donorInternalId, deletedBy: username,
+      eventName: 'donor deleted',
+      context: { donorId: event.donorId },
+      actorId: event.deletedBy,
+      action: 'donor_deleted',
+      entityType: 'donor',
+      entityId: event.donorId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        donorId: event.donorId,
+        donorSourceId: event.donorSourceId,
+        donorInternalId: event.donorInternalId,
+        deletedBy: username,
       }),
     });
   }
@@ -1347,11 +1774,19 @@ export class AuditEventHandler {
 
   private async handleEquipmentItemCreated(event: EquipmentItemCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment item created', context: { itemId: event.itemId },
-      actorId: event.createdBy, action: 'equipment_item_created', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, name: event.name, categoryId: event.categoryId, createdBy: username,
+      eventName: 'equipment item created',
+      context: { itemId: event.itemId },
+      actorId: event.createdBy,
+      action: 'equipment_item_created',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        categoryId: event.categoryId,
+        createdBy: username,
       }),
     });
   }
@@ -1359,223 +1794,372 @@ export class AuditEventHandler {
   private async handleEquipmentItemUpdated(event: EquipmentItemUpdatedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'equipment item updated', context: { itemId: event.itemId },
-      actorId: event.updatedBy, action: 'equipment_item_updated', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, changes: event.changes, updatedBy: username,
+      eventName: 'equipment item updated',
+      context: { itemId: event.itemId },
+      actorId: event.updatedBy,
+      action: 'equipment_item_updated',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        changes: event.changes,
+        updatedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentItemDecommissioned(event: EquipmentItemDecommissionedEvent): Promise<void> {
+  private async handleEquipmentItemDecommissioned(
+    event: EquipmentItemDecommissionedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment item decommissioned', context: { itemId: event.itemId },
-      actorId: event.decommissionedBy, action: 'equipment_item_decommissioned', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, reason: event.reason, decommissionedBy: username,
+      eventName: 'equipment item decommissioned',
+      context: { itemId: event.itemId },
+      actorId: event.decommissionedBy,
+      action: 'equipment_item_decommissioned',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        reason: event.reason,
+        decommissionedBy: username,
       }),
     });
   }
 
   private async handleEquipmentItemDeleted(event: EquipmentItemDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment item deleted', context: { itemId: event.itemId },
-      actorId: event.deletedBy, action: 'equipment_item_deleted', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, name: event.name, deletedBy: username,
+      eventName: 'equipment item deleted',
+      context: { itemId: event.itemId },
+      actorId: event.deletedBy,
+      action: 'equipment_item_deleted',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        deletedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentMaintenanceLogged(event: EquipmentMaintenanceLoggedEvent): Promise<void> {
+  private async handleEquipmentMaintenanceLogged(
+    event: EquipmentMaintenanceLoggedEvent
+  ): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'equipment maintenance logged', context: { itemId: event.itemId },
-      actorId: event.loggedBy, action: 'equipment_maintenance_logged', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, maintenanceType: event.maintenanceType,
-        datePerformed: event.datePerformed, loggedBy: username,
+      eventName: 'equipment maintenance logged',
+      context: { itemId: event.itemId },
+      actorId: event.loggedBy,
+      action: 'equipment_maintenance_logged',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        maintenanceType: event.maintenanceType,
+        datePerformed: event.datePerformed,
+        loggedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentMaintenanceUpdated(event: EquipmentMaintenanceUpdatedEvent): Promise<void> {
+  private async handleEquipmentMaintenanceUpdated(
+    event: EquipmentMaintenanceUpdatedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment maintenance updated', context: { itemId: event.itemId },
-      actorId: event.updatedBy, action: 'equipment_maintenance_updated', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, maintenanceType: event.maintenanceType, updatedBy: username,
+      eventName: 'equipment maintenance updated',
+      context: { itemId: event.itemId },
+      actorId: event.updatedBy,
+      action: 'equipment_maintenance_updated',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        maintenanceType: event.maintenanceType,
+        updatedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentMaintenanceDeleted(event: EquipmentMaintenanceDeletedEvent): Promise<void> {
+  private async handleEquipmentMaintenanceDeleted(
+    event: EquipmentMaintenanceDeletedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment maintenance deleted', context: { itemId: event.itemId },
-      actorId: event.deletedBy, action: 'equipment_maintenance_deleted', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, maintenanceType: event.maintenanceType, deletedBy: username,
+      eventName: 'equipment maintenance deleted',
+      context: { itemId: event.itemId },
+      actorId: event.deletedBy,
+      action: 'equipment_maintenance_deleted',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        maintenanceType: event.maintenanceType,
+        deletedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentCategoryCreated(event: EquipmentCategoryCreatedEvent): Promise<void> {
+  private async handleEquipmentCategoryCreated(
+    event: EquipmentCategoryCreatedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment category created', context: { categoryId: event.categoryId },
-      actorId: event.createdBy, action: 'equipment_category_created', entityType: 'equipment_item',
-      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        categoryId: event.categoryId, name: event.name, parentId: event.parentId, createdBy: username,
+      eventName: 'equipment category created',
+      context: { categoryId: event.categoryId },
+      actorId: event.createdBy,
+      action: 'equipment_category_created',
+      entityType: 'equipment_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        parentId: event.parentId,
+        createdBy: username,
       }),
     });
   }
 
-  private async handleEquipmentCategoryUpdated(event: EquipmentCategoryUpdatedEvent): Promise<void> {
+  private async handleEquipmentCategoryUpdated(
+    event: EquipmentCategoryUpdatedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment category updated', context: { categoryId: event.categoryId },
-      actorId: event.updatedBy, action: 'equipment_category_updated', entityType: 'equipment_item',
-      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        categoryId: event.categoryId, name: event.name, updatedBy: username,
+      eventName: 'equipment category updated',
+      context: { categoryId: event.categoryId },
+      actorId: event.updatedBy,
+      action: 'equipment_category_updated',
+      entityType: 'equipment_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        updatedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentCategoryDeleted(event: EquipmentCategoryDeletedEvent): Promise<void> {
+  private async handleEquipmentCategoryDeleted(
+    event: EquipmentCategoryDeletedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment category deleted', context: { categoryId: event.categoryId },
-      actorId: event.deletedBy, action: 'equipment_category_deleted', entityType: 'equipment_item',
-      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        categoryId: event.categoryId, name: event.name, deletedBy: username,
+      eventName: 'equipment category deleted',
+      context: { categoryId: event.categoryId },
+      actorId: event.deletedBy,
+      action: 'equipment_category_deleted',
+      entityType: 'equipment_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        deletedBy: username,
       }),
     });
   }
 
   private async handleEquipmentDocumentAdded(event: EquipmentDocumentAddedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment document added', context: { itemId: event.itemId },
-      actorId: event.addedBy, action: 'equipment_document_added', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, label: event.label, addedBy: username,
+      eventName: 'equipment document added',
+      context: { itemId: event.itemId },
+      actorId: event.addedBy,
+      action: 'equipment_document_added',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        label: event.label,
+        addedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentDocumentRemoved(event: EquipmentDocumentRemovedEvent): Promise<void> {
+  private async handleEquipmentDocumentRemoved(
+    event: EquipmentDocumentRemovedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'equipment document removed', context: { itemId: event.itemId },
-      actorId: event.removedBy, action: 'equipment_document_removed', entityType: 'equipment_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, removedBy: username,
+      eventName: 'equipment document removed',
+      context: { itemId: event.itemId },
+      actorId: event.removedBy,
+      action: 'equipment_document_removed',
+      entityType: 'equipment_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        removedBy: username,
       }),
     });
   }
 
-  private async handleEquipmentBulkMaintenanceLogged(event: EquipmentBulkMaintenanceLoggedEvent): Promise<void> {
-    await this.safeLogAudit('equipment bulk maintenance logged', { count: event.itemIds.length }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.loggedBy);
-      if (isDemo) return;
+  private async handleEquipmentBulkMaintenanceLogged(
+    event: EquipmentBulkMaintenanceLoggedEvent
+  ): Promise<void> {
+    await this.safeLogAudit(
+      'equipment bulk maintenance logged',
+      { count: event.itemIds.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.loggedBy);
+        if (isDemo) return;
 
-      const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
-        userId: event.loggedBy,
-        username,
-        action: 'equipment_maintenance_logged',
-        entityType: 'equipment_item',
-        entityId: itemId,
-        labId: event.labId,
-        details: { itemId, maintenanceType: event.maintenanceType, datePerformed: event.datePerformed, loggedBy: username, timestamp },
-      }));
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+          userId: event.loggedBy,
+          username,
+          action: 'equipment_maintenance_logged',
+          entityType: 'equipment_item',
+          entityId: itemId,
+          labId: event.labId,
+          details: {
+            itemId,
+            maintenanceType: event.maintenanceType,
+            datePerformed: event.datePerformed,
+            loggedBy: username,
+            timestamp,
+          },
+        }));
 
-      entries.push({
-        userId: event.loggedBy,
-        username,
-        action: 'equipment_bulk_maintenance_logged',
-        entityType: 'equipment_item',
-        labId: event.labId,
-        details: { count: event.itemIds.length, maintenanceType: event.maintenanceType, datePerformed: event.datePerformed, loggedBy: username, timestamp },
-      });
+        entries.push({
+          userId: event.loggedBy,
+          username,
+          action: 'equipment_bulk_maintenance_logged',
+          entityType: 'equipment_item',
+          labId: event.labId,
+          details: {
+            count: event.itemIds.length,
+            maintenanceType: event.maintenanceType,
+            datePerformed: event.datePerformed,
+            loggedBy: username,
+            timestamp,
+          },
+        });
 
-      await this.auditService.logActions(entries);
-    });
+        await this.auditService.logActions(entries);
+      }
+    );
   }
 
-  private async handleEquipmentBulkStatusChanged(event: EquipmentBulkStatusChangedEvent): Promise<void> {
-    await this.safeLogAudit('equipment bulk status changed', { count: event.itemIds.length }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.changedBy);
-      if (isDemo) return;
+  private async handleEquipmentBulkStatusChanged(
+    event: EquipmentBulkStatusChangedEvent
+  ): Promise<void> {
+    await this.safeLogAudit(
+      'equipment bulk status changed',
+      { count: event.itemIds.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.changedBy);
+        if (isDemo) return;
 
-      const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
-        userId: event.changedBy,
-        username,
-        action: 'equipment_item_updated',
-        entityType: 'equipment_item',
-        entityId: itemId,
-        labId: event.labId,
-        details: { itemId, changes: [{ field: 'status', newValue: event.status }], updatedBy: username, timestamp },
-      }));
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+          userId: event.changedBy,
+          username,
+          action: 'equipment_item_updated',
+          entityType: 'equipment_item',
+          entityId: itemId,
+          labId: event.labId,
+          details: {
+            itemId,
+            changes: [{ field: 'status', newValue: event.status }],
+            updatedBy: username,
+            timestamp,
+          },
+        }));
 
-      entries.push({
-        userId: event.changedBy,
-        username,
-        action: 'equipment_bulk_status_changed',
-        entityType: 'equipment_item',
-        labId: event.labId,
-        details: { count: event.itemIds.length, status: event.status, changedBy: username, timestamp },
-      });
+        entries.push({
+          userId: event.changedBy,
+          username,
+          action: 'equipment_bulk_status_changed',
+          entityType: 'equipment_item',
+          labId: event.labId,
+          details: {
+            count: event.itemIds.length,
+            status: event.status,
+            changedBy: username,
+            timestamp,
+          },
+        });
 
-      await this.auditService.logActions(entries);
-    });
+        await this.auditService.logActions(entries);
+      }
+    );
   }
 
   private async handleEquipmentBulkRelocated(event: EquipmentBulkRelocatedEvent): Promise<void> {
-    await this.safeLogAudit('equipment bulk relocated', { count: event.itemIds.length }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.relocatedBy);
-      if (isDemo) return;
+    await this.safeLogAudit(
+      'equipment bulk relocated',
+      { count: event.itemIds.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.relocatedBy);
+        if (isDemo) return;
 
-      const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
-        userId: event.relocatedBy,
-        username,
-        action: 'equipment_item_updated',
-        entityType: 'equipment_item',
-        entityId: itemId,
-        labId: event.labId,
-        details: { itemId, changes: [{ field: 'categoryId', newValue: event.categoryId }], updatedBy: username, timestamp },
-      }));
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+          userId: event.relocatedBy,
+          username,
+          action: 'equipment_item_updated',
+          entityType: 'equipment_item',
+          entityId: itemId,
+          labId: event.labId,
+          details: {
+            itemId,
+            changes: [{ field: 'categoryId', newValue: event.categoryId }],
+            updatedBy: username,
+            timestamp,
+          },
+        }));
 
-      entries.push({
-        userId: event.relocatedBy,
-        username,
-        action: 'equipment_bulk_relocated',
-        entityType: 'equipment_item',
-        labId: event.labId,
-        details: { count: event.itemIds.length, categoryId: event.categoryId, relocatedBy: username, timestamp },
-      });
+        entries.push({
+          userId: event.relocatedBy,
+          username,
+          action: 'equipment_bulk_relocated',
+          entityType: 'equipment_item',
+          labId: event.labId,
+          details: {
+            count: event.itemIds.length,
+            categoryId: event.categoryId,
+            relocatedBy: username,
+            timestamp,
+          },
+        });
 
-      await this.auditService.logActions(entries);
-    });
+        await this.auditService.logActions(entries);
+      }
+    );
   }
 
   // SUPPLY EVENT HANDLERS
 
   private async handleSupplyItemCreated(event: SupplyItemCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply item created', context: { itemId: event.itemId },
-      actorId: event.createdBy, action: 'supply_item_created', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, name: event.name, categoryId: event.categoryId, createdBy: username,
+      eventName: 'supply item created',
+      context: { itemId: event.itemId },
+      actorId: event.createdBy,
+      action: 'supply_item_created',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        categoryId: event.categoryId,
+        createdBy: username,
       }),
     });
   }
@@ -1583,11 +2167,18 @@ export class AuditEventHandler {
   private async handleSupplyItemUpdated(event: SupplyItemUpdatedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'supply item updated', context: { itemId: event.itemId },
-      actorId: event.updatedBy, action: 'supply_item_updated', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, changes: event.changes, updatedBy: username,
+      eventName: 'supply item updated',
+      context: { itemId: event.itemId },
+      actorId: event.updatedBy,
+      action: 'supply_item_updated',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        changes: event.changes,
+        updatedBy: username,
       }),
     });
   }
@@ -1595,77 +2186,126 @@ export class AuditEventHandler {
   private async handleSupplyItemArchived(event: SupplyItemArchivedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'supply item archived', context: { itemId: event.itemId },
-      actorId: event.archivedBy, action: 'supply_item_archived', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, name: event.name, archivedBy: username,
+      eventName: 'supply item archived',
+      context: { itemId: event.itemId },
+      actorId: event.archivedBy,
+      action: 'supply_item_archived',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        archivedBy: username,
       }),
     });
   }
 
   private async handleSupplyItemDeleted(event: SupplyItemDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply item deleted', context: { itemId: event.itemId },
-      actorId: event.deletedBy, action: 'supply_item_deleted', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, name: event.name, deletedBy: username,
+      eventName: 'supply item deleted',
+      context: { itemId: event.itemId },
+      actorId: event.deletedBy,
+      action: 'supply_item_deleted',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        deletedBy: username,
       }),
     });
   }
 
   private async handleSupplyCategoryCreated(event: SupplyCategoryCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply category created', context: { categoryId: event.categoryId },
-      actorId: event.createdBy, action: 'supply_category_created', entityType: 'supply_item',
-      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        categoryId: event.categoryId, name: event.name, parentId: event.parentId, createdBy: username,
+      eventName: 'supply category created',
+      context: { categoryId: event.categoryId },
+      actorId: event.createdBy,
+      action: 'supply_category_created',
+      entityType: 'supply_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        parentId: event.parentId,
+        createdBy: username,
       }),
     });
   }
 
   private async handleSupplyCategoryUpdated(event: SupplyCategoryUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply category updated', context: { categoryId: event.categoryId },
-      actorId: event.updatedBy, action: 'supply_category_updated', entityType: 'supply_item',
-      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        categoryId: event.categoryId, name: event.name, updatedBy: username,
+      eventName: 'supply category updated',
+      context: { categoryId: event.categoryId },
+      actorId: event.updatedBy,
+      action: 'supply_category_updated',
+      entityType: 'supply_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        updatedBy: username,
       }),
     });
   }
 
   private async handleSupplyCategoryDeleted(event: SupplyCategoryDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply category deleted', context: { categoryId: event.categoryId },
-      actorId: event.deletedBy, action: 'supply_category_deleted', entityType: 'supply_item',
-      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        categoryId: event.categoryId, name: event.name, deletedBy: username,
+      eventName: 'supply category deleted',
+      context: { categoryId: event.categoryId },
+      actorId: event.deletedBy,
+      action: 'supply_category_deleted',
+      entityType: 'supply_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        deletedBy: username,
       }),
     });
   }
 
   private async handleSupplyDocumentAdded(event: SupplyDocumentAddedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply document added', context: { itemId: event.itemId },
-      actorId: event.addedBy, action: 'supply_document_added', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, label: event.label, addedBy: username,
+      eventName: 'supply document added',
+      context: { itemId: event.itemId },
+      actorId: event.addedBy,
+      action: 'supply_document_added',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        label: event.label,
+        addedBy: username,
       }),
     });
   }
 
   private async handleSupplyDocumentRemoved(event: SupplyDocumentRemovedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply document removed', context: { itemId: event.itemId },
-      actorId: event.removedBy, action: 'supply_document_removed', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, removedBy: username,
+      eventName: 'supply document removed',
+      context: { itemId: event.itemId },
+      actorId: event.removedBy,
+      action: 'supply_document_removed',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        removedBy: username,
       }),
     });
   }
@@ -1673,11 +2313,19 @@ export class AuditEventHandler {
   private async handleSupplyStockReceived(event: SupplyStockReceivedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'supply stock received', context: { itemId: event.itemId },
-      actorId: event.receivedBy, action: 'supply_stock_received', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, quantity: event.quantity, locationId: event.locationId, receivedBy: username,
+      eventName: 'supply stock received',
+      context: { itemId: event.itemId },
+      actorId: event.receivedBy,
+      action: 'supply_stock_received',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        quantity: event.quantity,
+        locationId: event.locationId,
+        receivedBy: username,
       }),
     });
   }
@@ -1685,33 +2333,59 @@ export class AuditEventHandler {
   private async handleSupplyStockIssued(event: SupplyStockIssuedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'supply stock issued', context: { itemId: event.itemId },
-      actorId: event.issuedBy, action: 'supply_stock_issued', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, quantity: event.quantity, locationId: event.locationId, issuedBy: username,
+      eventName: 'supply stock issued',
+      context: { itemId: event.itemId },
+      actorId: event.issuedBy,
+      action: 'supply_stock_issued',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        quantity: event.quantity,
+        locationId: event.locationId,
+        issuedBy: username,
       }),
     });
   }
 
-  private async handleSupplyStockCountAdjusted(event: SupplyStockCountAdjustedEvent): Promise<void> {
+  private async handleSupplyStockCountAdjusted(
+    event: SupplyStockCountAdjustedEvent
+  ): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply stock count adjusted', context: { itemId: event.itemId },
-      actorId: event.adjustedBy, action: 'supply_stock_count_adjusted', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, delta: event.delta, locationId: event.locationId, adjustedBy: username,
+      eventName: 'supply stock count adjusted',
+      context: { itemId: event.itemId },
+      actorId: event.adjustedBy,
+      action: 'supply_stock_count_adjusted',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        delta: event.delta,
+        locationId: event.locationId,
+        adjustedBy: username,
       }),
     });
   }
 
   private async handleSupplyStockDisposed(event: SupplyStockDisposedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'supply stock disposed', context: { itemId: event.itemId },
-      actorId: event.disposedBy, action: 'supply_stock_disposed', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, quantity: event.quantity, locationId: event.locationId, disposedBy: username,
+      eventName: 'supply stock disposed',
+      context: { itemId: event.itemId },
+      actorId: event.disposedBy,
+      action: 'supply_stock_disposed',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        quantity: event.quantity,
+        locationId: event.locationId,
+        disposedBy: username,
       }),
     });
   }
@@ -1719,13 +2393,22 @@ export class AuditEventHandler {
   private async handleSupplyStockVoided(event: SupplyStockVoidedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'supply stock voided', context: { itemId: event.itemId },
-      actorId: event.voidedBy, action: 'supply_stock_voided', entityType: 'supply_item',
-      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({
-        itemId: event.itemId, originalTransactionId: event.originalTransactionId,
-        reversalTransactionId: event.reversalTransactionId, quantityReversed: event.quantityReversed,
-        locationId: event.locationId, voidReason: event.voidReason, voidedBy: username,
+      eventName: 'supply stock voided',
+      context: { itemId: event.itemId },
+      actorId: event.voidedBy,
+      action: 'supply_stock_voided',
+      entityType: 'supply_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        originalTransactionId: event.originalTransactionId,
+        reversalTransactionId: event.reversalTransactionId,
+        quantityReversed: event.quantityReversed,
+        locationId: event.locationId,
+        voidReason: event.voidReason,
+        voidedBy: username,
       }),
     });
   }
@@ -1733,32 +2416,42 @@ export class AuditEventHandler {
   // Supply bulk handlers
 
   private async handleSupplyBulkReceived(event: SupplyBulkReceivedEvent): Promise<void> {
-    await this.safeLogAudit('supply bulk received', { count: event.perItemData.length }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.receivedBy);
-      if (isDemo) return;
+    await this.safeLogAudit(
+      'supply bulk received',
+      { count: event.perItemData.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.receivedBy);
+        if (isDemo) return;
 
-      const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => ({
-        userId: event.receivedBy,
-        username,
-        action: 'supply_stock_received',
-        entityType: 'supply_item',
-        entityId: item.itemId,
-        labId: event.labId,
-        details: { itemId: item.itemId, quantity: item.quantity, locationId: item.locationId, receivedBy: username, timestamp },
-      }));
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.perItemData.map(item => ({
+          userId: event.receivedBy,
+          username,
+          action: 'supply_stock_received',
+          entityType: 'supply_item',
+          entityId: item.itemId,
+          labId: event.labId,
+          details: {
+            itemId: item.itemId,
+            quantity: item.quantity,
+            locationId: item.locationId,
+            receivedBy: username,
+            timestamp,
+          },
+        }));
 
-      entries.push({
-        userId: event.receivedBy,
-        username,
-        action: 'supply_bulk_received',
-        entityType: 'supply_item',
-        labId: event.labId,
-        details: { count: event.perItemData.length, receivedBy: username, timestamp },
-      });
+        entries.push({
+          userId: event.receivedBy,
+          username,
+          action: 'supply_bulk_received',
+          entityType: 'supply_item',
+          labId: event.labId,
+          details: { count: event.perItemData.length, receivedBy: username, timestamp },
+        });
 
-      await this.auditService.logActions(entries);
-    });
+        await this.auditService.logActions(entries);
+      }
+    );
   }
 
   private async handleSupplyBulkIssued(event: SupplyBulkIssuedEvent): Promise<void> {
@@ -1774,7 +2467,13 @@ export class AuditEventHandler {
         entityType: 'supply_item',
         entityId: item.itemId,
         labId: event.labId,
-        details: { itemId: item.itemId, quantity: item.quantity, locationId: item.locationId, issuedBy: username, timestamp },
+        details: {
+          itemId: item.itemId,
+          quantity: item.quantity,
+          locationId: item.locationId,
+          issuedBy: username,
+          timestamp,
+        },
       }));
 
       entries.push({
@@ -1790,33 +2489,49 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleSupplyBulkCategoryReassigned(event: SupplyBulkCategoryReassignedEvent): Promise<void> {
-    await this.safeLogAudit('supply bulk category reassigned', { count: event.itemIds.length }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.reassignedBy);
-      if (isDemo) return;
+  private async handleSupplyBulkCategoryReassigned(
+    event: SupplyBulkCategoryReassignedEvent
+  ): Promise<void> {
+    await this.safeLogAudit(
+      'supply bulk category reassigned',
+      { count: event.itemIds.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.reassignedBy);
+        if (isDemo) return;
 
-      const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
-        userId: event.reassignedBy,
-        username,
-        action: 'supply_item_updated',
-        entityType: 'supply_item',
-        entityId: itemId,
-        labId: event.labId,
-        details: { itemId, changes: [{ field: 'categoryId', newValue: event.categoryId }], updatedBy: username, timestamp },
-      }));
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+          userId: event.reassignedBy,
+          username,
+          action: 'supply_item_updated',
+          entityType: 'supply_item',
+          entityId: itemId,
+          labId: event.labId,
+          details: {
+            itemId,
+            changes: [{ field: 'categoryId', newValue: event.categoryId }],
+            updatedBy: username,
+            timestamp,
+          },
+        }));
 
-      entries.push({
-        userId: event.reassignedBy,
-        username,
-        action: 'supply_bulk_category_reassigned',
-        entityType: 'supply_item',
-        labId: event.labId,
-        details: { count: event.itemIds.length, categoryId: event.categoryId, reassignedBy: username, timestamp },
-      });
+        entries.push({
+          userId: event.reassignedBy,
+          username,
+          action: 'supply_bulk_category_reassigned',
+          entityType: 'supply_item',
+          labId: event.labId,
+          details: {
+            count: event.itemIds.length,
+            categoryId: event.categoryId,
+            reassignedBy: username,
+            timestamp,
+          },
+        });
 
-      await this.auditService.logActions(entries);
-    });
+        await this.auditService.logActions(entries);
+      }
+    );
   }
 
   private async handleSupplyBulkArchived(event: SupplyBulkArchivedEvent): Promise<void> {
@@ -1862,9 +2577,13 @@ export class AuditEventHandler {
         entityId: item.itemId,
         labId: event.labId,
         details: {
-          itemId: item.itemId, transactionId: item.transactionId,
-          quantityReversed: item.quantityReversed, locationId: item.locationId,
-          voidReason: event.voidReason, voidedBy: username, timestamp,
+          itemId: item.itemId,
+          transactionId: item.transactionId,
+          quantityReversed: item.quantityReversed,
+          locationId: item.locationId,
+          voidReason: event.voidReason,
+          voidedBy: username,
+          timestamp,
         },
       }));
 
@@ -1874,11 +2593,15 @@ export class AuditEventHandler {
         action: 'supply_bulk_voided',
         entityType: 'supply_item',
         labId: event.labId,
-        details: { count: event.perItemData.length, voidReason: event.voidReason, voidedBy: username, timestamp },
+        details: {
+          count: event.perItemData.length,
+          voidReason: event.voidReason,
+          voidedBy: username,
+          timestamp,
+        },
       });
 
       await this.auditService.logActions(entries);
     });
   }
-
 }

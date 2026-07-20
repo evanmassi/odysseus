@@ -73,9 +73,7 @@ export class Permission {
 
   // Value Object Implementation
 
-  private constructor(
-    private readonly _key: string
-  ) {
+  private constructor(private readonly _key: string) {
     this.validate();
   }
 

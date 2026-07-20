@@ -148,16 +148,20 @@ describe('EnvironmentConfigurationService', () => {
     });
 
     it('should reject JWT secret shorter than 32 characters', () => {
-      expect(() => createService({
-        NODE_ENV: 'production',
-        JWT_SECRET: 'too-short',
-      })).toThrow(/JWT secret must be at least 32 characters/);
+      expect(() =>
+        createService({
+          NODE_ENV: 'production',
+          JWT_SECRET: 'too-short',
+        })
+      ).toThrow(/JWT secret must be at least 32 characters/);
     });
 
     it('should require JWT_SECRET in production', () => {
-      expect(() => createService({
-        NODE_ENV: 'production',
-      })).toThrow(/JWT_SECRET environment variable is required/);
+      expect(() =>
+        createService({
+          NODE_ENV: 'production',
+        })
+      ).toThrow(/JWT_SECRET environment variable is required/);
     });
   });
 

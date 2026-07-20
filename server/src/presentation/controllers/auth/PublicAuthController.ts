@@ -16,15 +16,24 @@ import {
   type RefreshTokenResponse,
   type RegisterWithProfileResponse,
   type SessionInfoResponse,
-  type VerifyEmailResponse
+  type VerifyEmailResponse,
 } from '@odysseus/shared-schemas';
 
-
-import type { SendVerificationEmailCommandHandler, VerifyEmailCommand, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import type { ForceChangePasswordCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
-  CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
-  LoginCommand, LoginCommandHandler,
+  SendVerificationEmailCommandHandler,
+  VerifyEmailCommand,
+  VerifyEmailCommandHandler,
+  ResendVerificationEmailCommandHandler,
+} from '@application/commands/EmailVerificationCommands';
+import type {
+  ForceChangePasswordCommandHandler,
+  ResetPasswordWithTokenCommandHandler,
+} from '@application/commands/PasswordResetCommands';
+import type {
+  CreateSystemAdminCommand,
+  CreateSystemAdminCommandHandler,
+  LoginCommand,
+  LoginCommandHandler,
 } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { SessionService } from '@application/contracts/SessionService';
@@ -38,12 +47,14 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { InvalidCredentialsError } from '@domain/errors/UserErrors';
 import { UserLoginFailedEvent } from '@domain/events/UserEvents';
 import { logger } from '@infrastructure/logging/logger';
-import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
+import {
+  recordSuccessfulLogin,
+  recordFailedLogin,
+} from '@presentation/middleware/rateLimitMiddleware';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
 import type { Request, Response } from 'express';
-
 
 export interface PublicAuthControllerDeps {
   loginHandler: LoginCommandHandler;
@@ -67,14 +78,13 @@ export class PublicAuthController {
 
   async checkFirstTime(req: Request, res: Response): Promise<void> {
     try {
-
       const result = await this.deps.checkFirstTimeHandler.handle();
 
       logger.info('First-time setup check completed', { isFirstTime: result.isFirstTime });
 
       const payload: FirstTimeResponse = {
         isFirstTime: result.isFirstTime,
-        needsSystemAdmin: result.needsSystemAdmin
+        needsSystemAdmin: result.needsSystemAdmin,
       };
 
       res.status(200).json(ResponseBuilder.success(payload));
@@ -86,10 +96,19 @@ export class PublicAuthController {
   /** One-time system admin creation. */
   async setupSystemAdmin(req: Request, res: Response): Promise<void> {
     try {
+      const { username, password, email, firstName, lastName, setupKey, department, position } =
+        req.body;
 
-      const { username, password, email, firstName, lastName, setupKey, department, position } = req.body;
-
-      const command: CreateSystemAdminCommand = { username, password, email, firstName, lastName, setupKey, department, position };
+      const command: CreateSystemAdminCommand = {
+        username,
+        password,
+        email,
+        firstName,
+        lastName,
+        setupKey,
+        department,
+        position,
+      };
       const user = await this.deps.createSystemAdminHandler.handle(command);
 
       logger.info('System admin created', { userId: user.id, username: user.username });
@@ -108,13 +127,12 @@ export class PublicAuthController {
 
   async getPasswordRequirements(req: Request, res: Response): Promise<void> {
     try {
-
       const securityConfig = await this.deps.securityConfigService.getSecurityConfig();
 
       const passwordRequirements: PasswordRequirementsResponse = {
         passwordMinLength: securityConfig.passwordMinLength,
         requireStrongPasswords: securityConfig.requireStrongPasswords,
-        passwordRequireSpecialChars: securityConfig.passwordRequireSpecialChars
+        passwordRequireSpecialChars: securityConfig.passwordRequireSpecialChars,
       };
 
       logger.info('Password requirements retrieved');
@@ -131,22 +149,36 @@ export class PublicAuthController {
    */
   async login(req: Request, res: Response): Promise<void> {
     try {
-
       const { username, password } = req.body;
 
       const command: LoginCommand = { username, password };
       const result = await this.deps.loginHandler.handle(command);
 
       if (result.user.isDeactivated()) {
-        this.denyLogin(req, result.user.username, 'Account has been deactivated. Contact your lab administrator', result.user.id);
+        this.denyLogin(
+          req,
+          result.user.username,
+          'Account has been deactivated. Contact your lab administrator',
+          result.user.id
+        );
       }
 
       if (result.user.isSuspended()) {
-        this.denyLogin(req, result.user.username, 'Account has been suspended. Contact your system administrator', result.user.id);
+        this.denyLogin(
+          req,
+          result.user.username,
+          'Account has been suspended. Contact your system administrator',
+          result.user.id
+        );
       }
 
       if (!result.user.isApproved()) {
-        this.denyLogin(req, result.user.username, 'Account is not approved for access', result.user.id);
+        this.denyLogin(
+          req,
+          result.user.username,
+          'Account is not approved for access',
+          result.user.id
+        );
       }
 
       recordSuccessfulLogin(req);
@@ -154,7 +186,7 @@ export class PublicAuthController {
       if (result.requirePasswordChange) {
         logger.info('User requires password change', {
           userId: result.user.id,
-          username: result.user.username
+          username: result.user.username,
         });
 
         const tempToken = this.deps.sessionService.createPasswordChangeTempToken(result.user);
@@ -164,8 +196,8 @@ export class PublicAuthController {
           tempToken,
           user: {
             id: result.user.id,
-            username: result.user.username
-          }
+            username: result.user.username,
+          },
         };
 
         const response = ResponseBuilder.success(passwordChangeResponse);
@@ -176,7 +208,7 @@ export class PublicAuthController {
       logger.info('User logged in successfully', {
         userId: result.user.id,
         username: result.user.username,
-        status: result.user.status
+        status: result.user.status,
       });
 
       const payload: AuthResponse = await this.issueTokens(req, result.user);
@@ -193,7 +225,12 @@ export class PublicAuthController {
     }
   }
 
-  private publishLoginFailed(req: Request, username: string, reason: string, userId?: string): void {
+  private publishLoginFailed(
+    req: Request,
+    username: string,
+    reason: string,
+    userId?: string
+  ): void {
     const ipAddress = req.ip ?? req.socket.remoteAddress;
     void this.deps.eventBus.publish(new UserLoginFailedEvent(username, ipAddress, reason, userId));
   }
@@ -212,25 +249,29 @@ export class PublicAuthController {
 
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.MISSING_TOKEN, 'Refresh token is required'));
+        res
+          .status(400)
+          .json(ResponseBuilder.error(API_ERROR_CODES.MISSING_TOKEN, 'Refresh token is required'));
         return;
       }
 
       try {
-        const payload: RefreshTokenResponse = await this.deps.sessionService.refreshAccessToken(refreshToken);
+        const payload: RefreshTokenResponse =
+          await this.deps.sessionService.refreshAccessToken(refreshToken);
 
         res.status(200).json(ResponseBuilder.success(payload));
 
         logger.info('Access token refreshed successfully');
-
       } catch (error) {
-        res.status(401).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_TOKEN, 'Invalid or expired refresh token'));
+        res
+          .status(401)
+          .json(
+            ResponseBuilder.error(API_ERROR_CODES.INVALID_TOKEN, 'Invalid or expired refresh token')
+          );
       }
-
     } catch (error) {
       handleControllerError(error, res, 'Failed to refresh token');
     }
@@ -251,7 +292,7 @@ export class PublicAuthController {
         username: user.username,
         hasResearcher: !!user.researcherId,
         status: user.status,
-        role: user.role.isAdmin() ? 'admin' : 'user'
+        role: user.role.isAdmin() ? 'admin' : 'user',
       });
 
       // First user is auto-verified but still gets the email for record keeping
@@ -264,7 +305,7 @@ export class PublicAuthController {
           logger.error('Failed to send verification email', {
             userId: user.id,
             email,
-            error: emailError instanceof Error ? emailError.message : String(emailError)
+            error: emailError instanceof Error ? emailError.message : String(emailError),
           });
         }
       }
@@ -275,7 +316,7 @@ export class PublicAuthController {
         user: user.toPublicData(),
         tokens: authResult.tokens,
         status: 'approved',
-        message: 'Account created and approved'
+        message: 'Account created and approved',
       };
 
       res.status(201).json(ResponseBuilder.success(payload));
@@ -289,7 +330,11 @@ export class PublicAuthController {
       const { token } = req.body;
 
       if (!token) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.MISSING_TOKEN, 'Verification token is required'));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(API_ERROR_CODES.MISSING_TOKEN, 'Verification token is required')
+          );
         return;
       }
 
@@ -311,18 +356,29 @@ export class PublicAuthController {
       const { usernameOrEmail } = req.body;
 
       if (!usernameOrEmail) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Username or email is required'));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(
+              API_ERROR_CODES.REQUIRED_FIELD_MISSING,
+              'Username or email is required'
+            )
+          );
         return;
       }
 
-      const userByUsername = await this.deps.userApplicationService.getUserByUsername(usernameOrEmail);
-      const userByEmail = userByUsername ? null : await this.deps.userApplicationService.getUserByEmail(usernameOrEmail);
+      const userByUsername =
+        await this.deps.userApplicationService.getUserByUsername(usernameOrEmail);
+      const userByEmail = userByUsername
+        ? null
+        : await this.deps.userApplicationService.getUserByEmail(usernameOrEmail);
       const user = userByUsername ?? userByEmail;
 
       if (!user) {
         // Opaque response prevents user enumeration
         const opaquePayload: MessageResponse = {
-          message: 'If an account exists with that information, a verification email has been sent.'
+          message:
+            'If an account exists with that information, a verification email has been sent.',
         };
         res.status(200).json(ResponseBuilder.success(opaquePayload));
         return;
@@ -334,14 +390,14 @@ export class PublicAuthController {
       logger.info('Verification email resent (public)', { userId: user.id });
 
       const sentPayload: MessageResponse = {
-        message: 'Verification email sent. Please check your inbox.'
+        message: 'Verification email sent. Please check your inbox.',
       };
 
       res.status(200).json(ResponseBuilder.success(sentPayload));
     } catch (error) {
       logger.error('Error in public resend verification', { error });
       const opaquePayload: MessageResponse = {
-        message: 'If an account exists with that information, a verification email has been sent.'
+        message: 'If an account exists with that information, a verification email has been sent.',
       };
       res.status(200).json(ResponseBuilder.success(opaquePayload));
     }
@@ -349,23 +405,29 @@ export class PublicAuthController {
 
   async resetPasswordWithToken(req: Request, res: Response): Promise<void> {
     try {
-
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Token and new password are required'));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(
+              API_ERROR_CODES.REQUIRED_FIELD_MISSING,
+              'Token and new password are required'
+            )
+          );
         return;
       }
 
       await this.deps.resetPasswordWithTokenHandler.handle({
         token,
-        newPassword
+        newPassword,
       });
 
       logger.info('Password reset completed with token');
 
       const payload: MessageResponse = {
-        message: 'Password reset successfully. You can now login with your new password.'
+        message: 'Password reset successfully. You can now login with your new password.',
       };
 
       res.status(200).json(ResponseBuilder.success(payload));
@@ -380,10 +442,16 @@ export class PublicAuthController {
    */
   async forceChangePassword(req: Request, res: Response): Promise<void> {
     try {
-
       const parseResult = forceChangePasswordRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, parseResult.error.issues[0].message));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(
+              API_ERROR_CODES.VALIDATION_FAILED,
+              parseResult.error.issues[0].message
+            )
+          );
         return;
       }
 
@@ -391,11 +459,21 @@ export class PublicAuthController {
 
       const tokenData = await this.deps.sessionService.verifyPasswordChangeTempToken(tempToken);
       if (!tokenData) {
-        res.status(401).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_TOKEN, 'Password change link has expired or is invalid'));
+        res
+          .status(401)
+          .json(
+            ResponseBuilder.error(
+              API_ERROR_CODES.INVALID_TOKEN,
+              'Password change link has expired or is invalid'
+            )
+          );
         return;
       }
 
-      const user = await this.deps.forceChangePasswordHandler.handle({ userId: tokenData.userId, newPassword });
+      const user = await this.deps.forceChangePasswordHandler.handle({
+        userId: tokenData.userId,
+        newPassword,
+      });
 
       const payload: AuthResponse = await this.issueTokens(req, user);
 

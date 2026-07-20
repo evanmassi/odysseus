@@ -8,7 +8,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration001: Migration = {
   id: 1,
   name: 'initial_schema',
@@ -270,5 +269,5 @@ export const migration001: Migration = {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
-  }
+  },
 };

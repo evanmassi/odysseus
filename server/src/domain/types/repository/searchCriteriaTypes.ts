@@ -72,4 +72,3 @@ export interface TubeSearchCriteria {
   sortBy?: (typeof TUBE_SORT_FIELDS)[number];
   sortOrder?: 'asc' | 'desc';
 }
-

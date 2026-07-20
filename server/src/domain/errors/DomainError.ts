@@ -31,7 +31,7 @@ export abstract class DomainError extends Error {
       error: this.name,
       code: this.code,
       message: this.message,
-      ...(this.context && { context: this.context })
+      ...(this.context && { context: this.context }),
     };
   }
 }

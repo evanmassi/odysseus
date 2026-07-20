@@ -9,7 +9,6 @@ import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface AuditRepository {
-
   save(entry: AuditLogEntry): Promise<void>;
   saveMany(entries: AuditLogEntry[]): Promise<void>;
 

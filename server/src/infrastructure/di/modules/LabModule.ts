@@ -5,9 +5,20 @@
  */
 
 import { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
-import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
-import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
-import { ValidateInviteCodeQueryHandler, ListInviteCodesQueryHandler } from '@application/queries/InviteCodeQueries';
+import {
+  CreateInviteCodeCommandHandler,
+  DeactivateInviteCodeCommandHandler,
+} from '@application/commands/InviteCodeCommands';
+import {
+  CreateLabCommandHandler,
+  UpdateLabCommandHandler,
+  DeactivateLabCommandHandler,
+  ActivateLabCommandHandler,
+} from '@application/commands/LabCommands';
+import {
+  ValidateInviteCodeQueryHandler,
+  ListInviteCodesQueryHandler,
+} from '@application/queries/InviteCodeQueries';
 import { LabApplicationService } from '@application/services/LabApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
@@ -135,9 +146,7 @@ export class LabModule {
   getListInviteCodesHandler(): ListInviteCodesQueryHandler {
     if (!this.listInviteCodesHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.listInviteCodesHandler = new ListInviteCodesQueryHandler(
-        repositories.inviteCodes
-      );
+      this.listInviteCodesHandler = new ListInviteCodesQueryHandler(repositories.inviteCodes);
     }
     return this.listInviteCodesHandler;
   }

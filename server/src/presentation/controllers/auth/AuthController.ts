@@ -5,7 +5,10 @@
  * and password change.
  */
 
-import type { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
+import type {
+  ChangeUserPasswordCommand,
+  ChangeUserPasswordCommandHandler,
+} from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -33,7 +36,9 @@ export class AuthController extends BaseController {
       const user = this.getAuthenticatedUser(req);
 
       if (user.isDemo) {
-        res.status(403).json(ResponseBuilder.forbidden('Password change is not available in demo mode'));
+        res
+          .status(403)
+          .json(ResponseBuilder.forbidden('Password change is not available in demo mode'));
         return;
       }
 
@@ -89,7 +94,11 @@ export class AuthController extends BaseController {
     try {
       const user = this.getAuthenticatedUser(req);
 
-      logger.debug('Session heartbeat received', { userId: user.id, username: user.username, sessionId: req.sessionId });
+      logger.debug('Session heartbeat received', {
+        userId: user.id,
+        username: user.username,
+        sessionId: req.sessionId,
+      });
 
       const payload: MessageResponse = { message: 'Session extended' };
 

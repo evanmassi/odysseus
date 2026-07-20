@@ -20,7 +20,7 @@ import {
   BoxDeletedEvent,
   BoxAssignedEvent,
   BoxUnassignedEvent,
-  BoxReassignedEvent
+  BoxReassignedEvent,
 } from '@domain/events/StorageEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -29,7 +29,6 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-
 
 // COMMAND INTERFACES
 
@@ -110,7 +109,8 @@ export class AddBoxesCommandHandler {
     rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
 
     const lab = await this.labRepository.findById(command.labId);
-    if (lab) enforceAddBoxesLimit(user, currentConfig, lab, command.tankId, command.rackId, command.count);
+    if (lab)
+      enforceAddBoxesLimit(user, currentConfig, lab, command.tankId, command.rackId, command.count);
 
     const existingBoxNames = new Set(rack.boxes.map(b => b.name.toUpperCase()));
     const boxIds: string[] = [];
@@ -118,7 +118,10 @@ export class AddBoxesCommandHandler {
 
     let letterIndex = 0;
     for (let i = 0; i < command.count; i++) {
-      while (letterIndex < 26 && existingBoxNames.has(NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex))) {
+      while (
+        letterIndex < 26 &&
+        existingBoxNames.has(NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex))
+      ) {
         letterIndex++;
       }
 
@@ -129,24 +132,24 @@ export class AddBoxesCommandHandler {
       const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex);
       existingBoxNames.add(boxName);
 
-      currentConfig.addBox(
-        command.tankId,
-        command.rackId,
-        boxName,
-        { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS }
-      );
+      currentConfig.addBox(command.tankId, command.rackId, boxName, {
+        rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
+        cols: EQUIPMENT_DEFAULTS.GRID_COLS,
+      });
 
       boxIds.push(boxName);
-      events.push(new BoxAddedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxName,
-        boxName,
-        command.labId
-      ));
+      events.push(
+        new BoxAddedEvent(
+          command.userId,
+          command.tankId,
+          tank.name,
+          command.rackId,
+          rack.name,
+          boxName,
+          boxName,
+          command.labId
+        )
+      );
 
       letterIndex++;
     }
@@ -222,7 +225,10 @@ export class UpdateBoxCommandHandler {
 
     if (command.gridConfig !== undefined) {
       const oldConfig = box.gridConfig;
-      if (command.gridConfig.rows !== oldConfig.rows || command.gridConfig.cols !== oldConfig.cols) {
+      if (
+        command.gridConfig.rows !== oldConfig.rows ||
+        command.gridConfig.cols !== oldConfig.cols
+      ) {
         changes.push({ field: 'gridConfig', oldValue: oldConfig, newValue: command.gridConfig });
         boxData.gridConfig = command.gridConfig;
         boxData.maxPositions = command.gridConfig.rows * command.gridConfig.cols;
@@ -231,7 +237,11 @@ export class UpdateBoxCommandHandler {
 
     if (command.positionDisplay !== undefined) {
       const oldDisplay = box.positionDisplay;
-      changes.push({ field: 'positionDisplay', oldValue: oldDisplay, newValue: command.positionDisplay });
+      changes.push({
+        field: 'positionDisplay',
+        oldValue: oldDisplay,
+        newValue: command.positionDisplay,
+      });
       boxData.positionDisplay = command.positionDisplay ?? undefined;
     }
 
@@ -247,7 +257,7 @@ export class UpdateBoxCommandHandler {
     const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
-      systemSettings: configData.systemSettings
+      systemSettings: configData.systemSettings,
     });
 
     const newVersion = await this.storageRepository.saveWithOptimisticLock(
@@ -293,7 +303,8 @@ export class DeleteBoxCommandHandler {
     }
 
     const currentConfig = await this.storageRepository.getForLab(command.labId);
-    if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
+    if (currentConfig)
+      rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName, boxName } = await this.storageRepository.deleteEmptyBox(
@@ -367,14 +378,17 @@ export class AssignBoxCommandHandler {
         previousUserId: box.assignedUserId,
         applyAssignment: (configData, assignedUserId) => {
           const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-          const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
+          const rackIndex = configData.tanks[tankIndex].racks.findIndex(
+            r => r.id === command.rackId
+          );
           const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
             b => b.name === boxIdUpper
           );
           // Kept as-is: null means common (everyone), undefined means inherit from the rack.
-          configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = assignedUserId;
+          configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId =
+            assignedUserId;
         },
-        buildSaveMessage: (action) => `${action} box '${box.name}' in rack '${rack.name}'`,
+        buildSaveMessage: action => `${action} box '${box.name}' in rack '${rack.name}'`,
         buildReassignedEvent: (previousUserId, previousUsername, newUserId, newUsername) =>
           new BoxReassignedEvent(
             command.userId,
@@ -419,5 +433,4 @@ export class AssignBoxCommandHandler {
       }
     );
   }
-
 }

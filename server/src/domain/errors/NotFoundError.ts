@@ -11,18 +11,12 @@ export class NotFoundError extends DomainError {
   readonly code = API_ERROR_CODES.RESOURCE_NOT_FOUND;
   readonly statusCode = 404;
 
-  constructor(
-    message: string,
-    context?: Record<string, unknown>
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
   }
 
   static forEntity(entityType: string, identifier: string | number): NotFoundError {
-    return new NotFoundError(
-      `${entityType} not found`,
-      { entityType, identifier }
-    );
+    return new NotFoundError(`${entityType} not found`, { entityType, identifier });
   }
 
   static storage(): NotFoundError {

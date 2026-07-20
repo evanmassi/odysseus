@@ -11,7 +11,6 @@ import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { DomainValidationResult } from '@domain/types/services';
 export class ValidationService {
-
   constructor(
     private tubeRepository: TubeRepository,
     private accessControlService: AccessControlService
@@ -28,7 +27,7 @@ export class ValidationService {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     // 1. Permission check
@@ -46,7 +45,11 @@ export class ValidationService {
     }
 
     // 2. Validate configuration changes don't break existing tubes
-    const equipmentValidation = await this.validateEquipmentRemovalInConfig(currentConfig, updatedConfig, labId);
+    const equipmentValidation = await this.validateEquipmentRemovalInConfig(
+      currentConfig,
+      updatedConfig,
+      labId
+    );
     if (!equipmentValidation.isValid) {
       result.isValid = false;
       result.errors.push(...equipmentValidation.errors);
@@ -66,11 +69,15 @@ export class ValidationService {
 
   // HELPER METHODS
 
-  private async validateEquipmentRemovalInConfig(currentConfig: Storage, updatedConfig: Storage, labId: string): Promise<DomainValidationResult> {
+  private async validateEquipmentRemovalInConfig(
+    currentConfig: Storage,
+    updatedConfig: Storage,
+    labId: string
+  ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     const currentTanks = currentConfig.tanks;
@@ -87,7 +94,7 @@ export class ValidationService {
           result.isValid = false;
           result.errors.push(
             `Cannot remove tank '${currentTank.name}' - it contains ${tubeCount} tube(s). ` +
-            `Move or delete the tubes first.`
+              `Move or delete the tubes first.`
           );
         }
         continue;
@@ -100,7 +107,7 @@ export class ValidationService {
           result.isValid = false;
           result.errors.push(
             `Cannot deactivate tank '${currentTank.name}' - it contains ${tubeCount} tube(s). ` +
-            `Move or delete the tubes first.`
+              `Move or delete the tubes first.`
           );
         }
         continue;
@@ -113,12 +120,16 @@ export class ValidationService {
         for (const currentRack of currentTank.racks) {
           // Check if rack is completely removed
           if (!updatedRackIds.has(currentRack.id)) {
-            const tubeCount = await this.tubeRepository.countByRack(currentTank.id, currentRack.id, labId);
+            const tubeCount = await this.tubeRepository.countByRack(
+              currentTank.id,
+              currentRack.id,
+              labId
+            );
             if (tubeCount > 0) {
               result.isValid = false;
               result.errors.push(
                 `Cannot remove rack '${currentRack.name}' from tank '${currentTank.name}' - ` +
-                `it contains ${tubeCount} tube(s). Move or delete the tubes first.`
+                  `it contains ${tubeCount} tube(s). Move or delete the tubes first.`
               );
             }
             continue;
@@ -141,7 +152,7 @@ export class ValidationService {
                   result.isValid = false;
                   result.errors.push(
                     `Cannot remove box '${currentBox.name}' from rack '${currentRack.name}' - ` +
-                    `it contains ${tubeCount} tube(s). Move or delete the tubes first.`
+                      `it contains ${tubeCount} tube(s). Move or delete the tubes first.`
                   );
                 }
               }
@@ -154,11 +165,13 @@ export class ValidationService {
     return result;
   }
 
-  private async validateStorageBusinessRulesForConfig(config: Storage): Promise<DomainValidationResult> {
+  private async validateStorageBusinessRulesForConfig(
+    config: Storage
+  ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     // Business rule: Ensure at least one tank remains active

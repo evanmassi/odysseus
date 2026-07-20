@@ -13,21 +13,36 @@ import { GetSessionInfoQueryHandler } from './SessionQueries';
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 
 function makeHandler(opts: { validation: unknown; session?: unknown }) {
-  const sessionService = { validateSessionWithActivity: jest.fn().mockResolvedValue(opts.validation) } as unknown as SessionService;
-  const userSessionRepository = { findById: jest.fn().mockResolvedValue(opts.session ?? null) } as unknown as UserSessionRepository;
-  const storageRepository = { getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG) } as unknown as StorageRepository;
+  const sessionService = {
+    validateSessionWithActivity: jest.fn().mockResolvedValue(opts.validation),
+  } as unknown as SessionService;
+  const userSessionRepository = {
+    findById: jest.fn().mockResolvedValue(opts.session ?? null),
+  } as unknown as UserSessionRepository;
+  const storageRepository = {
+    getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG),
+  } as unknown as StorageRepository;
   return new GetSessionInfoQueryHandler(sessionService, userSessionRepository, storageRepository);
 }
 
 describe('GetSessionInfoQueryHandler', () => {
   it('reports unauthenticated with the failure code', async () => {
     const handler = makeHandler({ validation: { success: false, code: 'SESSION_EXPIRED' } });
-    expect(await handler.handle({ token: 't' })).toEqual({ isAuthenticated: false, reason: 'SESSION_EXPIRED' });
+    expect(await handler.handle({ token: 't' })).toEqual({
+      isAuthenticated: false,
+      reason: 'SESSION_EXPIRED',
+    });
   });
 
   it('reports SESSION_NOT_FOUND when the session record is gone', async () => {
-    const handler = makeHandler({ validation: { success: true, user: {}, sessionId: 's1' }, session: null });
-    expect(await handler.handle({ token: 't' })).toEqual({ isAuthenticated: false, reason: 'SESSION_NOT_FOUND' });
+    const handler = makeHandler({
+      validation: { success: true, user: {}, sessionId: 's1' },
+      session: null,
+    });
+    expect(await handler.handle({ token: 't' })).toEqual({
+      isAuthenticated: false,
+      reason: 'SESSION_NOT_FOUND',
+    });
   });
 
   it('reports zero remaining time for an idle-expired session', async () => {

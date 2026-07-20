@@ -26,35 +26,41 @@ export function isAdminRole(role?: string): role is 'system_admin' | 'lab_admin'
 export const registerWithProfileSchema = z.object({
   password: passwordField,
 
-  firstName: z.string()
+  firstName: z
+    .string()
     .min(1, 'First name is required')
     .max(50, 'First name cannot exceed 50 characters')
     .transform(val => val.trim()),
 
-  lastName: z.string()
+  lastName: z
+    .string()
     .min(1, 'Last name is required')
     .max(50, 'Last name cannot exceed 50 characters')
     .transform(val => val.trim()),
 
-  email: z.string()
+  email: z
+    .string()
     .min(1, 'Email is required')
     .email('Invalid email format')
     .max(255, 'Email cannot exceed 255 characters')
     .transform(val => val.trim()),
 
-  department: z.string()
+  department: z
+    .string()
     .max(100, 'Department cannot exceed 100 characters')
     .transform(val => val.trim())
     .optional()
     .or(z.literal('')),
 
-  position: z.string()
+  position: z
+    .string()
     .max(100, 'Position cannot exceed 100 characters')
     .transform(val => val.trim())
     .optional()
     .or(z.literal('')),
 
-  inviteCode: z.string()
+  inviteCode: z
+    .string()
     .min(1, 'Invite code is required')
     .max(20, 'Invite code too long')
     .transform(val => val.trim().toUpperCase())

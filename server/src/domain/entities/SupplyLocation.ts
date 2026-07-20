@@ -80,11 +80,25 @@ export class SupplyLocation {
     this._updatedAt = new Date();
   }
 
-  get id(): string { return this._id; }
-  get labId(): string { return this._labId; }
-  get name(): string { return this._name; }
-  get description(): string | undefined { return this._description; }
-  get sortOrder(): number { return this._sortOrder; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
+  get id(): string {
+    return this._id;
+  }
+  get labId(): string {
+    return this._labId;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get sortOrder(): number {
+    return this._sortOrder;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
 }

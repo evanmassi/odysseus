@@ -44,11 +44,15 @@ describe('Person', () => {
     });
 
     it('should throw for first name exceeding 100 characters', () => {
-      expect(() => Person.create('x'.repeat(101), 'Doe', 'a@b.com')).toThrow('First name cannot exceed 100 characters');
+      expect(() => Person.create('x'.repeat(101), 'Doe', 'a@b.com')).toThrow(
+        'First name cannot exceed 100 characters'
+      );
     });
 
     it('should throw for last name exceeding 100 characters', () => {
-      expect(() => Person.create('John', 'x'.repeat(101), 'a@b.com')).toThrow('Last name cannot exceed 100 characters');
+      expect(() => Person.create('John', 'x'.repeat(101), 'a@b.com')).toThrow(
+        'Last name cannot exceed 100 characters'
+      );
     });
 
     it('should allow empty email (historical persons kept for tube attribution have none)', () => {
@@ -61,7 +65,9 @@ describe('Person', () => {
 
     it('should throw for email exceeding 255 characters', () => {
       const longEmail = 'a'.repeat(250) + '@b.com';
-      expect(() => Person.create('John', 'Doe', longEmail)).toThrow('Email cannot exceed 255 characters');
+      expect(() => Person.create('John', 'Doe', longEmail)).toThrow(
+        'Email cannot exceed 255 characters'
+      );
     });
   });
 

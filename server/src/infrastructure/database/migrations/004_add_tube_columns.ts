@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration004: Migration = {
   id: 4,
   name: 'add_tube_columns',
@@ -41,5 +40,5 @@ export const migration004: Migration = {
         END IF;
       END $$
     `);
-  }
+  },
 };

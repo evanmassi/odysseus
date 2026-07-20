@@ -30,7 +30,6 @@ export interface SupplyTransactionDbRow {
 }
 
 export class SupplyTransactionMapper {
-
   static fromRow(row: SupplyTransactionDbRow): SupplyTransactionRow {
     return {
       id: row.id,

@@ -29,7 +29,7 @@ export const createResearcherProfileSchema = z.object({
   lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
   position: z.string().max(100, 'Position too long').optional(),
   department: z.string().max(100, 'Department too long').optional(),
-  email: z.string().min(1, 'Email is required').email('Invalid email format')
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
 });
 
 export type Researcher = z.infer<typeof researcherSchema>;

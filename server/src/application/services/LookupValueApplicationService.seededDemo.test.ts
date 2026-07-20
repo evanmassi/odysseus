@@ -21,7 +21,13 @@ function makeService(opts: { seeded?: boolean } = {}) {
     getForLab: jest.fn().mockResolvedValue({ hasAnySeededResources: () => opts.seeded ?? false }),
   } as unknown as StorageRepository;
 
-  return new LookupValueApplicationService(lookupValueRepository, undefined, undefined, undefined, storageRepository);
+  return new LookupValueApplicationService(
+    lookupValueRepository,
+    undefined,
+    undefined,
+    undefined,
+    storageRepository
+  );
 }
 
 const admin = { isSystemAdmin: () => true, isDemo: false } as unknown as User;
@@ -31,7 +37,9 @@ const normalUser = { isSystemAdmin: () => false, isDemo: false } as unknown as U
 describe('LookupValueApplicationService seeded-demo guard', () => {
   it('blocks a demo user when the catalog is seeded', async () => {
     const service = makeService({ seeded: true });
-    await expect(service.create('l1', 'species', 'Human', demoUser)).rejects.toBeInstanceOf(ValidationError);
+    await expect(service.create('l1', 'species', 'Human', demoUser)).rejects.toBeInstanceOf(
+      ValidationError
+    );
   });
 
   it('allows a demo user when the catalog is not seeded', async () => {

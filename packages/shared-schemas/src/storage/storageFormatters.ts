@@ -9,10 +9,7 @@
  * formatStorageDisplayName("Rack 3", undefined) → "Rack 3"
  * formatStorageDisplayName("Rack 3", "Hadia's Samples") → "Rack 3 (Hadia's Samples)"
  */
-export const formatStorageDisplayName = (
-  genericName: string,
-  customLabel?: string
-): string => {
+export const formatStorageDisplayName = (genericName: string, customLabel?: string): string => {
   if (!customLabel || customLabel.trim().length === 0) {
     return genericName;
   }

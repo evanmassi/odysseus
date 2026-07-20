@@ -5,7 +5,6 @@
  * Uses SessionService for session validation with timeout enforcement.
  */
 
-
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
@@ -14,12 +13,7 @@ import { logger } from '@infrastructure/logging/logger';
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
-function errorResponse(
-  res: Response,
-  status: number,
-  code: string,
-  message: string
-): void {
+function errorResponse(res: Response, status: number, code: string, message: string): void {
   res.status(status).json({
     success: false,
     error: message,
@@ -45,7 +39,7 @@ function requireRoleMiddleware(
           username: req.user.username,
           role: req.user.role.value,
           path: req.path,
-          method: req.method
+          method: req.method,
         });
 
         errorResponse(res, 403, API_ERROR_CODES.FORBIDDEN, `${label} access required`);
@@ -58,7 +52,7 @@ function requireRoleMiddleware(
       logger.error(`${label} authorization middleware error`, {
         error: errorMessage,
         path: req.path,
-        method: req.method
+        method: req.method,
       });
 
       errorResponse(res, 500, API_ERROR_CODES.INTERNAL_SERVER_ERROR, 'Authorization service error');
@@ -67,9 +61,7 @@ function requireRoleMiddleware(
 }
 
 export class ExpressAuthMiddleware implements AuthMiddleware {
-  constructor(
-    private sessionService: SessionService
-  ) {}
+  constructor(private sessionService: SessionService) {}
 
   get authenticate(): RequestHandler {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -92,10 +84,15 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
             SESSION_EXPIRED: 'Session expired - please log in again',
             SESSION_IDLE_TIMEOUT: 'Session timed out due to inactivity',
             SESSION_ABSOLUTE_TIMEOUT: 'Session expired - please log in again',
-            LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator'
+            LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator',
           };
 
-          errorResponse(res, 401, result.code, errorMessages[result.code] || 'Authentication failed');
+          errorResponse(
+            res,
+            401,
+            result.code,
+            errorMessages[result.code] || 'Authentication failed'
+          );
           return;
         }
 
@@ -103,9 +100,10 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         if (!result.user.isApproved()) {
           const statusMessages: Record<string, string> = {
             deactivated: 'Account has been deactivated. Contact your lab administrator',
-            suspended: 'Account has been suspended. Contact your system administrator'
+            suspended: 'Account has been suspended. Contact your system administrator',
           };
-          const message = statusMessages[result.user.status] || 'Account is not approved for access';
+          const message =
+            statusMessages[result.user.status] || 'Account is not approved for access';
 
           errorResponse(res, 403, API_ERROR_CODES.FORBIDDEN, message);
           return;
@@ -119,7 +117,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           username: result.user.username,
           role: result.user.role.value,
           sessionId: result.sessionId,
-          path: req.path
+          path: req.path,
         });
 
         next();
@@ -128,10 +126,15 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         logger.error('Authentication middleware error', {
           error: errorMessage,
           path: req.path,
-          method: req.method
+          method: req.method,
         });
 
-        errorResponse(res, 500, API_ERROR_CODES.INTERNAL_SERVER_ERROR, 'Authentication service error');
+        errorResponse(
+          res,
+          500,
+          API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+          'Authentication service error'
+        );
       }
     };
   }

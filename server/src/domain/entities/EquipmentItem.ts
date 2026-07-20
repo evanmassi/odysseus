@@ -176,10 +176,12 @@ export class EquipmentItem {
     if (data.status !== undefined) this._status = data.status ?? this._status;
     if (data.conditionNotes !== undefined) this._conditionNotes = data.conditionNotes ?? undefined;
     if (data.purchaseDate !== undefined) this._purchaseDate = data.purchaseDate ?? undefined;
-    if (data.warrantyExpiration !== undefined) this._warrantyExpiration = data.warrantyExpiration ?? undefined;
+    if (data.warrantyExpiration !== undefined)
+      this._warrantyExpiration = data.warrantyExpiration ?? undefined;
     if (data.purchaseCost !== undefined) this._purchaseCost = data.purchaseCost ?? undefined;
     if (data.assetTag !== undefined) this._assetTag = data.assetTag ?? undefined;
-    if (data.nextMaintenanceDate !== undefined) this._nextMaintenanceDate = data.nextMaintenanceDate ?? undefined;
+    if (data.nextMaintenanceDate !== undefined)
+      this._nextMaintenanceDate = data.nextMaintenanceDate ?? undefined;
     if (data.notes !== undefined) this._notes = data.notes ?? undefined;
 
     this.validate();
@@ -200,26 +202,70 @@ export class EquipmentItem {
     this._updatedAt = new Date();
   }
 
-  get id(): string { return this._id; }
-  get labId(): string { return this._labId; }
-  get categoryId(): string { return this._categoryId; }
-  get name(): string { return this._name; }
-  get serialNumber(): string | undefined { return this._serialNumber; }
-  get manufacturer(): string | undefined { return this._manufacturer; }
-  get model(): string | undefined { return this._model; }
-  get description(): string | undefined { return this._description; }
-  get location(): string | undefined { return this._location; }
-  get status(): EquipmentStatus { return this._status; }
-  get conditionNotes(): string | undefined { return this._conditionNotes; }
-  get purchaseDate(): string | undefined { return this._purchaseDate; }
-  get warrantyExpiration(): string | undefined { return this._warrantyExpiration; }
-  get purchaseCost(): number | undefined { return this._purchaseCost; }
-  get assetTag(): string | undefined { return this._assetTag; }
-  get nextMaintenanceDate(): string | undefined { return this._nextMaintenanceDate; }
-  get decommissionDate(): string | undefined { return this._decommissionDate; }
-  get decommissionReason(): string | undefined { return this._decommissionReason; }
-  get disposalMethod(): string | undefined { return this._disposalMethod; }
-  get notes(): string | undefined { return this._notes; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
+  get id(): string {
+    return this._id;
+  }
+  get labId(): string {
+    return this._labId;
+  }
+  get categoryId(): string {
+    return this._categoryId;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get serialNumber(): string | undefined {
+    return this._serialNumber;
+  }
+  get manufacturer(): string | undefined {
+    return this._manufacturer;
+  }
+  get model(): string | undefined {
+    return this._model;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get location(): string | undefined {
+    return this._location;
+  }
+  get status(): EquipmentStatus {
+    return this._status;
+  }
+  get conditionNotes(): string | undefined {
+    return this._conditionNotes;
+  }
+  get purchaseDate(): string | undefined {
+    return this._purchaseDate;
+  }
+  get warrantyExpiration(): string | undefined {
+    return this._warrantyExpiration;
+  }
+  get purchaseCost(): number | undefined {
+    return this._purchaseCost;
+  }
+  get assetTag(): string | undefined {
+    return this._assetTag;
+  }
+  get nextMaintenanceDate(): string | undefined {
+    return this._nextMaintenanceDate;
+  }
+  get decommissionDate(): string | undefined {
+    return this._decommissionDate;
+  }
+  get decommissionReason(): string | undefined {
+    return this._decommissionReason;
+  }
+  get disposalMethod(): string | undefined {
+    return this._disposalMethod;
+  }
+  get notes(): string | undefined {
+    return this._notes;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
 }

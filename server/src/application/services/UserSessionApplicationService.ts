@@ -25,7 +25,10 @@ export interface UserSessionApplicationServiceDeps {
 export class UserSessionApplicationService {
   constructor(private deps: UserSessionApplicationServiceDeps) {}
 
-  async getActiveSessions(user: User, currentSessionId: string | undefined): Promise<ActiveSessionResponse[]> {
+  async getActiveSessions(
+    user: User,
+    currentSessionId: string | undefined
+  ): Promise<ActiveSessionResponse[]> {
     const sessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
 
     return sessions.map(session => ({
@@ -40,7 +43,11 @@ export class UserSessionApplicationService {
     }));
   }
 
-  async revokeSession(user: User, sessionId: string, currentSessionId: string | undefined): Promise<void> {
+  async revokeSession(
+    user: User,
+    sessionId: string,
+    currentSessionId: string | undefined
+  ): Promise<void> {
     if (sessionId === currentSessionId) {
       throw new PermissionError('Cannot revoke your current session. Use logout instead.');
     }
@@ -66,7 +73,9 @@ export class UserSessionApplicationService {
     sessionIds: string[],
     currentSessionId: string | undefined
   ): Promise<{ revokedCount: number }> {
-    const activeSessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
+    const activeSessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(
+      user.id
+    );
     const ownedIds = new Set(activeSessions.map(session => session.id));
 
     const revocableIds = sessionIds.filter(id => id !== currentSessionId && ownedIds.has(id));

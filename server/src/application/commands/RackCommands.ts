@@ -19,7 +19,7 @@ import {
   RackDeletedEvent,
   RackAssignedEvent,
   RackUnassignedEvent,
-  RackReassignedEvent
+  RackReassignedEvent,
 } from '@domain/events/StorageEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -106,24 +106,34 @@ export class AddRacksCommandHandler {
       const defaultBoxes: Box[] = [];
       for (let j = 0; j < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; j++) {
         const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(j);
-        defaultBoxes.push(Box.create({
-          name: boxName,
-          gridConfig: { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-          maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
-        }));
+        defaultBoxes.push(
+          Box.create({
+            name: boxName,
+            gridConfig: { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+            maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+          })
+        );
       }
 
-      currentConfig.addRack(command.tankId, rackIdStr, rackName, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, defaultBoxes);
-
-      rackIds.push(rackIdStr);
-      events.push(new RackAddedEvent(
-        command.userId,
+      currentConfig.addRack(
         command.tankId,
-        tank.name,
         rackIdStr,
         rackName,
-        command.labId
-      ));
+        EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
+        defaultBoxes
+      );
+
+      rackIds.push(rackIdStr);
+      events.push(
+        new RackAddedEvent(
+          command.userId,
+          command.tankId,
+          tank.name,
+          rackIdStr,
+          rackName,
+          command.labId
+        )
+      );
     }
 
     const expectedVersion = currentConfig.version;
@@ -202,7 +212,7 @@ export class UpdateRackCommandHandler {
     const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
-      systemSettings: configData.systemSettings
+      systemSettings: configData.systemSettings,
     });
 
     const newVersion = await this.storageRepository.saveWithOptimisticLock(
@@ -310,13 +320,16 @@ export class AssignRackCommandHandler {
         previousUserId: rack.assignedUserId,
         applyAssignment: (configData, assignedUserId) => {
           const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-          const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
+          const rackIndex = configData.tanks[tankIndex].racks.findIndex(
+            r => r.id === command.rackId
+          );
           // A rack has no parent to inherit from, so it is two-state: owned or unassigned.
           configData.tanks[tankIndex].racks[rackIndex].assignedUserId = assignedUserId ?? undefined;
         },
         // Clear inherited box labels when unassigning
-        onUnassign: () => currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId),
-        buildSaveMessage: (action) => `${action} rack '${rack.name}' in tank '${tank.name}'`,
+        onUnassign: () =>
+          currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId),
+        buildSaveMessage: action => `${action} rack '${rack.name}' in tank '${tank.name}'`,
         buildReassignedEvent: (previousUserId, previousUsername, newUserId, newUsername) =>
           new RackReassignedEvent(
             command.userId,

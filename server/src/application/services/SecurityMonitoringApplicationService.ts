@@ -8,8 +8,14 @@
 import type { UserSession } from '@domain/entities/UserSession';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
-import type { RefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
-import type { UserSessionRepository, IpSessionCount } from '@domain/repositories/UserSessionRepository';
+import type {
+  RefreshTokenRepository,
+  IpTokenCount,
+} from '@domain/repositories/RefreshTokenRepository';
+import type {
+  UserSessionRepository,
+  IpSessionCount,
+} from '@domain/repositories/UserSessionRepository';
 import { logger } from '@infrastructure/logging/logger';
 
 export interface SecurityMonitoringApplicationServiceDeps {
@@ -146,8 +152,17 @@ export class SecurityMonitoringApplicationService {
   private mergeIpActivity(
     sessionCounts: IpSessionCount[],
     tokenCounts: IpTokenCount[]
-  ): Array<{ ipAddress: string; sessionCount: number; tokenCount: number; uniqueUserCount: number; userIds: string[] }> {
-    const merged = new Map<string, { sessionCount: number; tokenCount: number; userIds: Set<string> }>();
+  ): Array<{
+    ipAddress: string;
+    sessionCount: number;
+    tokenCount: number;
+    uniqueUserCount: number;
+    userIds: string[];
+  }> {
+    const merged = new Map<
+      string,
+      { sessionCount: number; tokenCount: number; userIds: Set<string> }
+    >();
 
     for (const entry of sessionCounts) {
       merged.set(entry.ipAddress, {
@@ -179,6 +194,6 @@ export class SecurityMonitoringApplicationService {
         uniqueUserCount: data.userIds.size,
         userIds: Array.from(data.userIds),
       }))
-      .sort((a, b) => (b.sessionCount + b.tokenCount) - (a.sessionCount + a.tokenCount));
+      .sort((a, b) => b.sessionCount + b.tokenCount - (a.sessionCount + a.tokenCount));
   }
 }

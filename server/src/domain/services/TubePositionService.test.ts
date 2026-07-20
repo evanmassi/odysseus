@@ -140,7 +140,9 @@ describe('TubePositionService', () => {
     const location = Location.create('T1', 'R1', 'A', 5);
 
     it('should warn when box is over 90% full', async () => {
-      mockTubeRepository.getOccupiedPositions.mockResolvedValue(new Array(75).fill(0).map((_, i) => i + 1));
+      mockTubeRepository.getOccupiedPositions.mockResolvedValue(
+        new Array(75).fill(0).map((_, i) => i + 1)
+      );
       mockStorageRepository.getMaxPosition.mockResolvedValue(81);
       mockTubeRepository.findByRackAndBox.mockResolvedValue([]);
 
@@ -160,8 +162,22 @@ describe('TubePositionService', () => {
 
   describe('validatePositionBulk', () => {
     const config = Storage.fromData({
-      tanks: [{ id: 'T1', name: 'Tank 1', racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A', gridConfig: { rows: 9, cols: 9 } }] }] }],
-      systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
+      tanks: [
+        {
+          id: 'T1',
+          name: 'Tank 1',
+          racks: [
+            { id: '1', name: 'R1', boxes: [{ name: 'A', gridConfig: { rows: 9, cols: 9 } }] },
+          ],
+        },
+      ],
+      systemSettings: {
+        labName: 'Lab',
+        defaultResearcher: '',
+        autoSave: true,
+        auditTrailEnabled: true,
+        syncEnabled: false,
+      },
     });
 
     it('should validate multiple positions', () => {
@@ -169,7 +185,12 @@ describe('TubePositionService', () => {
         { tankId: 'T1', rackId: '1', boxId: 'A', position: 1 },
         { tankId: 'T1', rackId: '1', boxId: 'A', position: 2 },
       ];
-      const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
+      const preloaded = {
+        config,
+        occupiedPositions: new Set<number>(),
+        maxPosition: 81,
+        tubesInBox: [],
+      };
 
       const results = createService().validatePositionBulk(positions, preloaded);
       expect(results.get(1)?.isValid).toBe(true);
@@ -178,7 +199,12 @@ describe('TubePositionService', () => {
 
     it('should reject occupied positions', () => {
       const positions = [{ tankId: 'T1', rackId: '1', boxId: 'A', position: 1 }];
-      const preloaded = { config, occupiedPositions: new Set([1]), maxPosition: 81, tubesInBox: [] };
+      const preloaded = {
+        config,
+        occupiedPositions: new Set([1]),
+        maxPosition: 81,
+        tubesInBox: [],
+      };
 
       const results = createService().validatePositionBulk(positions, preloaded);
       expect(results.get(1)?.isValid).toBe(false);
@@ -187,7 +213,12 @@ describe('TubePositionService', () => {
 
     it('should reject positions exceeding capacity', () => {
       const positions = [{ tankId: 'T1', rackId: '1', boxId: 'A', position: 100 }];
-      const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
+      const preloaded = {
+        config,
+        occupiedPositions: new Set<number>(),
+        maxPosition: 81,
+        tubesInBox: [],
+      };
 
       const results = createService().validatePositionBulk(positions, preloaded);
       expect(results.get(100)?.isValid).toBe(false);
@@ -199,7 +230,12 @@ describe('TubePositionService', () => {
         { tankId: 'T1', rackId: '1', boxId: 'A', position: 1 },
         { tankId: 'T1', rackId: '1', boxId: 'A', position: 1 },
       ];
-      const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
+      const preloaded = {
+        config,
+        occupiedPositions: new Set<number>(),
+        maxPosition: 81,
+        tubesInBox: [],
+      };
 
       const results = createService().validatePositionBulk(positions, preloaded);
       const entries = [...results.entries()].filter(([pos]) => pos === 1);
@@ -207,7 +243,12 @@ describe('TubePositionService', () => {
     });
 
     it('should return empty map for empty input', () => {
-      const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
+      const preloaded = {
+        config,
+        occupiedPositions: new Set<number>(),
+        maxPosition: 81,
+        tubesInBox: [],
+      };
       const results = createService().validatePositionBulk([], preloaded);
       expect(results.size).toBe(0);
     });

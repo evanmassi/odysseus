@@ -6,7 +6,6 @@
 
 import { userSettingsSchema } from '@odysseus/shared-schemas';
 
-
 import type { UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
 import type { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import type { UserApplicationService } from '@application/services/UserApplicationService';

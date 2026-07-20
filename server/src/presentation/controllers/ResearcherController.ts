@@ -43,7 +43,10 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
 
-      const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, user);
+      const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(
+        labId,
+        user
+      );
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {
@@ -57,7 +60,10 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
 
-      const result = await this.deps.researcherApplicationService.getUnlinkedResearchers(labId, user);
+      const result = await this.deps.researcherApplicationService.getUnlinkedResearchers(
+        labId,
+        user
+      );
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {
@@ -84,7 +90,11 @@ export class ResearcherController extends BaseController {
       const createRequest: CreateResearcherRequest = req.body;
       const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.createResearcher(labId, createRequest, user);
+      const researcher = await this.deps.researcherApplicationService.createResearcher(
+        labId,
+        createRequest,
+        user
+      );
 
       res.status(201).json(ResponseBuilder.success(researcher));
     } catch (error) {
@@ -110,7 +120,10 @@ export class ResearcherController extends BaseController {
       const { id } = req.params;
       const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.deactivateResearcher(id, user);
+      const researcher = await this.deps.researcherApplicationService.deactivateResearcher(
+        id,
+        user
+      );
 
       res.json(ResponseBuilder.success(researcher));
     } catch (error) {

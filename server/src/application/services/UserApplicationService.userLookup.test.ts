@@ -13,15 +13,32 @@ import type { AccessControlService } from '@domain/services/AccessControlService
 
 import { UserApplicationService } from './UserApplicationService';
 
-function fakeUser(id: string, username: string, personId: string | undefined, hasResearcher: boolean): User {
+function fakeUser(
+  id: string,
+  username: string,
+  personId: string | undefined,
+  hasResearcher: boolean
+): User {
   return {
-    toPublicData: () => ({ id, username, personId, researcherId: hasResearcher ? 'r1' : undefined }),
+    toPublicData: () => ({
+      id,
+      username,
+      personId,
+      researcherId: hasResearcher ? 'r1' : undefined,
+    }),
     hasResearcherProfile: () => hasResearcher,
   } as unknown as User;
 }
 
 function person(id: string, firstName: string, lastName: string): Person {
-  return Person.fromData({ id, firstName, lastName, email: `${id}@example.com`, createdAt: new Date(), updatedAt: new Date() });
+  return Person.fromData({
+    id,
+    firstName,
+    lastName,
+    email: `${id}@example.com`,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 }
 
 function makeService(opts: { users?: User[]; persons?: Person[] } = {}) {
@@ -32,7 +49,11 @@ function makeService(opts: { users?: User[]; persons?: Person[] } = {}) {
   const personFindByIds = jest.fn().mockResolvedValue(opts.persons ?? []);
   const personRepository = { findByIds: personFindByIds } as unknown as PersonRepository;
 
-  const service = new UserApplicationService(userRepository, {} as AccessControlService, personRepository);
+  const service = new UserApplicationService(
+    userRepository,
+    {} as AccessControlService,
+    personRepository
+  );
   return { service, findByIds, findByStatusInLab, personFindByIds };
 }
 
@@ -64,6 +85,8 @@ describe('UserApplicationService.listActiveUsers', () => {
     const result = await service.listActiveUsers('lab_1');
 
     expect(findByStatusInLab).toHaveBeenCalledWith('approved', 'lab_1');
-    expect(result).toEqual([{ id: 'u1', username: 'alice', firstName: 'Alice', lastName: 'Adams', hasResearcher: false }]);
+    expect(result).toEqual([
+      { id: 'u1', username: 'alice', firstName: 'Alice', lastName: 'Adams', hasResearcher: false },
+    ]);
   });
 });

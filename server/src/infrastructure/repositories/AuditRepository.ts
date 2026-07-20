@@ -6,7 +6,11 @@
 
 import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
-import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
+import {
+  buildAuditFilterClauses,
+  DEFAULT_AUDIT_PAGE_LIMIT,
+  type FilterResult,
+} from '@infrastructure/database/auditFilterBuilder';
 import { AuditLogEntryMapper } from '@infrastructure/database/mappers/AuditLogEntryMapper';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
@@ -19,7 +23,6 @@ const AUDIT_LOG_COLUMNS = `
 `.trim();
 
 const COLUMNS_PER_ROW = 11;
-
 
 interface AuditLogRow {
   id: string;
@@ -60,12 +63,12 @@ export class AuditRepository implements IAuditRepository {
       const offset = i * COLUMNS_PER_ROW;
       valueSets.push(
         `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, ` +
-        `$${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`
+          `$${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`
       );
       params.push(...this.entryToParams(entries[i]));
     }
 
-    await this.context.transaction(async (client) => {
+    await this.context.transaction(async client => {
       await client.query(
         `INSERT INTO audit_log (
           id, user_id, username, action, entity_type, entity_id,
@@ -88,20 +91,17 @@ export class AuditRepository implements IAuditRepository {
 
   // LAB-SCOPED OPERATIONS
 
-  async findAllForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
-    return this.findPaginated(
-      filters,
-      buildAuditFilterClauses(filters, ['lab_id = $1'], [labId])
-    );
+  async findAllForLab(
+    filters: AuditLogFilters,
+    labId: string
+  ): Promise<PaginatedResult<AuditLogEntry>> {
+    return this.findPaginated(filters, buildAuditFilterClauses(filters, ['lab_id = $1'], [labId]));
   }
 
   // MAINTENANCE OPERATIONS
 
   async deleteByLabId(labId: string): Promise<number> {
-    const result = await this.context.execute(
-      'DELETE FROM audit_log WHERE lab_id = $1',
-      [labId]
-    );
+    const result = await this.context.execute('DELETE FROM audit_log WHERE lab_id = $1', [labId]);
     return result.rowCount ?? 0;
   }
 
@@ -169,7 +169,10 @@ export class AuditRepository implements IAuditRepository {
     ];
   }
 
-  private async findPaginated(filters: AuditLogFilters, filterResult: FilterResult): Promise<PaginatedResult<AuditLogEntry>> {
+  private async findPaginated(
+    filters: AuditLogFilters,
+    filterResult: FilterResult
+  ): Promise<PaginatedResult<AuditLogEntry>> {
     const { whereClause, params, nextParamIndex } = filterResult;
 
     const countQuery = `SELECT COUNT(*) as count FROM audit_log ${whereClause}`;
@@ -186,10 +189,7 @@ export class AuditRepository implements IAuditRepository {
       LIMIT $${nextParamIndex} OFFSET $${nextParamIndex + 1}
     `;
 
-    const rows = await this.context.queryMany<AuditLogRow>(
-      dataQuery,
-      [...params, limit, offset]
-    );
+    const rows = await this.context.queryMany<AuditLogRow>(dataQuery, [...params, limit, offset]);
 
     return {
       items: rows.map(AuditLogEntryMapper.fromRow),

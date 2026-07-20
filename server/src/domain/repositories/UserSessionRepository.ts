@@ -7,7 +7,6 @@
 import type { UserSession } from '@domain/entities/UserSession';
 
 export interface UserSessionRepository {
-
   findById(id: string): Promise<UserSession | null>;
   findByIds(ids: string[]): Promise<UserSession[]>;
   findByRefreshToken(refreshToken: string): Promise<UserSession | null>;

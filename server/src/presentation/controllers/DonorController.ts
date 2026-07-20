@@ -67,7 +67,12 @@ export class DonorController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const donor = await this.deps.donorApplicationService.updateDonor(labId, req.params.id, req.body, user);
+      const donor = await this.deps.donorApplicationService.updateDonor(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ donor }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update donor', req.requestId);
@@ -88,7 +93,10 @@ export class DonorController extends BaseController {
   async getCollectionHistory(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const history = await this.deps.donorApplicationService.getCollectionHistory(labId, req.params.id);
+      const history = await this.deps.donorApplicationService.getCollectionHistory(
+        labId,
+        req.params.id
+      );
       res.json(ResponseBuilder.success({ history }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get collection history', req.requestId);
@@ -100,7 +108,10 @@ export class DonorController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const entry = await this.deps.donorApplicationService.addCollectionHistory(
-        labId, req.params.id, req.body, user
+        labId,
+        req.params.id,
+        req.body,
+        user
       );
       res.status(201).json(ResponseBuilder.success({ entry }));
     } catch (error) {
@@ -113,7 +124,10 @@ export class DonorController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const entry = await this.deps.donorApplicationService.updateCollectionHistory(
-        labId, req.params.historyId, req.body, user
+        labId,
+        req.params.historyId,
+        req.body,
+        user
       );
       res.json(ResponseBuilder.success({ entry }));
     } catch (error) {
@@ -125,7 +139,11 @@ export class DonorController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.donorApplicationService.deleteCollectionHistory(labId, req.params.historyId, user);
+      await this.deps.donorApplicationService.deleteCollectionHistory(
+        labId,
+        req.params.historyId,
+        user
+      );
       res.json(ResponseBuilder.success({ message: 'Collection history entry deleted' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete collection history', req.requestId);

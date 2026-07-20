@@ -19,7 +19,6 @@ export interface PersonRow {
 }
 
 export class PersonMapper {
-
   static toRow(person: Person): PersonRow {
     return {
       id: person.id,
@@ -29,7 +28,7 @@ export class PersonMapper {
       position: person.position,
       department: person.department,
       created_at: person.createdAt,
-      updated_at: person.updatedAt
+      updated_at: person.updatedAt,
     };
   }
 
@@ -42,7 +41,7 @@ export class PersonMapper {
       position: row.position,
       department: row.department,
       createdAt: toISOString(row.created_at),
-      updatedAt: toISOString(row.updated_at)
+      updatedAt: toISOString(row.updated_at),
     });
   }
 

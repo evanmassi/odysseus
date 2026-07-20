@@ -37,7 +37,7 @@ export class RefreshToken {
     const rawToken = crypto.randomBytes(32).toString('hex');
     const id = generateId('refresh');
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + (expirationDays * 24 * 60 * 60 * 1000));
+    const expiresAt = new Date(now.getTime() + expirationDays * 24 * 60 * 60 * 1000);
 
     return new RefreshToken(
       id,
@@ -124,7 +124,7 @@ export class RefreshToken {
     if (!this.isValid()) {
       throw new ValidationError('Cannot record usage on invalid refresh token');
     }
-    
+
     this._lastUsedAt = new Date();
   }
 
@@ -134,18 +134,38 @@ export class RefreshToken {
 
   // Getters
 
-  get id(): string { return this._id; }
-  get userId(): string { return this._userId; }
+  get id(): string {
+    return this._id;
+  }
+  get userId(): string {
+    return this._userId;
+  }
   /** The stored hash. Use `rawToken` for the value handed to the client at creation. */
-  get token(): string { return this._token; }
+  get token(): string {
+    return this._token;
+  }
   /** The plaintext token — only present on a freshly created token, for the one-time client response. */
-  get rawToken(): string | undefined { return this._rawToken; }
-  get expiresAt(): Date { return new Date(this._expiresAt); }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get lastUsedAt(): Date | null { return this._lastUsedAt ? new Date(this._lastUsedAt) : null; }
-  get isRevoked(): boolean { return this._isRevoked; }
-  get userAgent(): string | undefined { return this._userAgent; }
-  get ipAddress(): string | undefined { return this._ipAddress; }
+  get rawToken(): string | undefined {
+    return this._rawToken;
+  }
+  get expiresAt(): Date {
+    return new Date(this._expiresAt);
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get lastUsedAt(): Date | null {
+    return this._lastUsedAt ? new Date(this._lastUsedAt) : null;
+  }
+  get isRevoked(): boolean {
+    return this._isRevoked;
+  }
+  get userAgent(): string | undefined {
+    return this._userAgent;
+  }
+  get ipAddress(): string | undefined {
+    return this._ipAddress;
+  }
 
   // SERIALIZATION
 
@@ -169,7 +189,7 @@ export class RefreshToken {
       lastUsedAt: this._lastUsedAt,
       isRevoked: this._isRevoked,
       userAgent: this._userAgent,
-      ipAddress: this._ipAddress
+      ipAddress: this._ipAddress,
     };
   }
 }

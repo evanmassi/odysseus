@@ -34,7 +34,6 @@ export const SUPPLY_CATEGORY_TABLES: CategoryTables = {
 const COLUMNS = 'id, lab_id, name, parent_id, sort_order, created_at, updated_at';
 
 export class CategoryRepository<T extends Category> implements ICategoryRepository<T> {
-
   constructor(
     private db: Queryable,
     private tables: CategoryTables,
@@ -59,7 +58,8 @@ export class CategoryRepository<T extends Category> implements ICategoryReposito
 
   async save(category: T): Promise<void> {
     const row = CategoryMapper.toRow(category);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO ${this.tables.categories} (${COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (id) DO UPDATE SET
@@ -67,7 +67,9 @@ export class CategoryRepository<T extends Category> implements ICategoryReposito
         parent_id = EXCLUDED.parent_id,
         sort_order = EXCLUDED.sort_order,
         updated_at = EXCLUDED.updated_at
-    `, [row.id, row.lab_id, row.name, row.parent_id, row.sort_order, row.created_at, row.updated_at]);
+    `,
+      [row.id, row.lab_id, row.name, row.parent_id, row.sort_order, row.created_at, row.updated_at]
+    );
   }
 
   async delete(id: string, labId: string): Promise<boolean> {
@@ -87,7 +89,8 @@ export class CategoryRepository<T extends Category> implements ICategoryReposito
   }
 
   async hasItemsIncludingChildren(id: string, labId: string): Promise<boolean> {
-    const row = await this.db.queryOne<{ count: string }>(`
+    const row = await this.db.queryOne<{ count: string }>(
+      `
       SELECT COUNT(*) as count FROM ${this.tables.items}
       WHERE lab_id = $2
         AND category_id IN (
@@ -95,7 +98,9 @@ export class CategoryRepository<T extends Category> implements ICategoryReposito
           UNION ALL
           SELECT id FROM ${this.tables.categories} WHERE parent_id = $1 AND lab_id = $2
         )
-    `, [id, labId]);
+    `,
+      [id, labId]
+    );
     return parseCount(row) > 0;
   }
 }

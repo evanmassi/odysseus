@@ -19,7 +19,6 @@ export interface DocumentPatch {
 }
 
 export class DocumentQueries<T extends Document> {
-
   /**
    * @param table - the catalog's documents table. Interpolated into SQL, so it must only ever come
    *   from a constant at the composing repository — never from a request.
@@ -41,10 +40,13 @@ export class DocumentQueries<T extends Document> {
 
   async save(document: T): Promise<void> {
     const row = DocumentMapper.toRow(document);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO ${this.table} (${COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]);
+    `,
+      [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]
+    );
   }
 
   /** Patches only the fields present. With nothing to change, returns the document unchanged. */
@@ -53,9 +55,18 @@ export class DocumentQueries<T extends Document> {
     const params: unknown[] = [];
     let idx = 1;
 
-    if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
-    if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
-    if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
+    if (fields.label !== undefined) {
+      sets.push(`label = $${idx++}`);
+      params.push(fields.label);
+    }
+    if (fields.url !== undefined) {
+      sets.push(`url = $${idx++}`);
+      params.push(fields.url);
+    }
+    if (fields.notes !== undefined) {
+      sets.push(`notes = $${idx++}`);
+      params.push(fields.notes);
+    }
 
     if (sets.length === 0) {
       const existing = await this.db.queryOne<DocumentRow>(

@@ -17,9 +17,13 @@ const CONFIG = { passwordMinLength: 8 } as unknown as SecurityConfig;
 
 function makeService() {
   const getSecurityConfig = jest.fn<Promise<SecurityConfig>, []>().mockResolvedValue(CONFIG);
-  const updateSecurityConfig = jest.fn<Promise<SecurityConfig>, [Partial<SecurityConfig>]>()
-    .mockImplementation(async (updates) => ({ ...CONFIG, ...updates }));
-  const storageRepository = { getSecurityConfig, updateSecurityConfig } as unknown as StorageRepository;
+  const updateSecurityConfig = jest
+    .fn<Promise<SecurityConfig>, [Partial<SecurityConfig>]>()
+    .mockImplementation(async updates => ({ ...CONFIG, ...updates }));
+  const storageRepository = {
+    getSecurityConfig,
+    updateSecurityConfig,
+  } as unknown as StorageRepository;
 
   const service = new SecurityConfigApplicationService({ storageRepository });
   return { service, getSecurityConfig, updateSecurityConfig };

@@ -39,7 +39,20 @@ export class InviteCode {
   ): InviteCode {
     const id = generateId('invite');
     const code = InviteCode.generateCode();
-    return new InviteCode(id, labId, code, role, createResearcher, createdBy, maxUses, 0, expiresAt, true, new Date(), undefined);
+    return new InviteCode(
+      id,
+      labId,
+      code,
+      role,
+      createResearcher,
+      createdBy,
+      maxUses,
+      0,
+      expiresAt,
+      true,
+      new Date(),
+      undefined
+    );
   }
 
   static fromData(data: {
@@ -77,7 +90,9 @@ export class InviteCode {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const segment = (len: number) => {
       const bytes = crypto.randomBytes(len);
-      return Array.from(bytes).map(b => chars[b % chars.length]).join('');
+      return Array.from(bytes)
+        .map(b => chars[b % chars.length])
+        .join('');
     };
     return `ODYSS-${segment(4)}-${segment(4)}`;
   }
@@ -160,16 +175,40 @@ export class InviteCode {
     };
   }
 
-  get id(): string { return this._id; }
-  get labId(): string { return this._labId; }
-  get code(): string { return this._code; }
-  get role(): 'lab_admin' | 'user' { return this._role; }
-  get createResearcher(): boolean { return this._createResearcher; }
-  get createdBy(): string { return this._createdBy; }
-  get maxUses(): number | undefined { return this._maxUses; }
-  get useCount(): number { return this._useCount; }
-  get expiresAt(): Date | undefined { return this._expiresAt ? new Date(this._expiresAt) : undefined; }
-  get isActive(): boolean { return this._isActive; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get deactivationReason(): DeactivationReason | undefined { return this._deactivationReason; }
+  get id(): string {
+    return this._id;
+  }
+  get labId(): string {
+    return this._labId;
+  }
+  get code(): string {
+    return this._code;
+  }
+  get role(): 'lab_admin' | 'user' {
+    return this._role;
+  }
+  get createResearcher(): boolean {
+    return this._createResearcher;
+  }
+  get createdBy(): string {
+    return this._createdBy;
+  }
+  get maxUses(): number | undefined {
+    return this._maxUses;
+  }
+  get useCount(): number {
+    return this._useCount;
+  }
+  get expiresAt(): Date | undefined {
+    return this._expiresAt ? new Date(this._expiresAt) : undefined;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get deactivationReason(): DeactivationReason | undefined {
+    return this._deactivationReason;
+  }
 }

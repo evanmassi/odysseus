@@ -9,7 +9,6 @@ import { logger } from '@infrastructure/logging/logger';
 import type { Request, Response, NextFunction } from 'express';
 import type { z } from 'zod';
 
-
 interface ValidationError {
   field: string;
   message: string;
@@ -19,9 +18,18 @@ interface ValidationError {
 type RequestSource = 'body' | 'params' | 'query';
 
 const SOURCE_CONFIG: Record<RequestSource, { errorLabel: string; errorMessage: string }> = {
-  body: { errorLabel: 'Validation failed', errorMessage: 'One or more fields contain invalid data' },
-  params: { errorLabel: 'Invalid parameters', errorMessage: 'One or more URL parameters are invalid' },
-  query: { errorLabel: 'Invalid query parameters', errorMessage: 'One or more query parameters are invalid' }
+  body: {
+    errorLabel: 'Validation failed',
+    errorMessage: 'One or more fields contain invalid data',
+  },
+  params: {
+    errorLabel: 'Invalid parameters',
+    errorMessage: 'One or more URL parameters are invalid',
+  },
+  query: {
+    errorLabel: 'Invalid query parameters',
+    errorMessage: 'One or more query parameters are invalid',
+  },
 };
 
 function createValidator(source: RequestSource) {
@@ -33,23 +41,23 @@ function createValidator(source: RequestSource) {
         const result = schema.safeParse(req[source]);
 
         if (!result.success) {
-          const errors: ValidationError[] = result.error.issues.map((issue) => ({
+          const errors: ValidationError[] = result.error.issues.map(issue => ({
             field: issue.path.join('.'),
             message: issue.message,
-            received: 'received' in issue ? issue.received : undefined
+            received: 'received' in issue ? issue.received : undefined,
           }));
 
           logger.warn(`${config.errorLabel}:`, {
             endpoint: req.path,
             method: req.method,
             errors,
-            [source]: req[source]
+            [source]: req[source],
           });
 
           res.status(400).json({
             error: config.errorLabel,
             message: config.errorMessage,
-            details: errors
+            details: errors,
           });
           return;
         }
@@ -61,7 +69,7 @@ function createValidator(source: RequestSource) {
         logger.error(`${config.errorLabel} middleware error:`, error);
         res.status(500).json({
           error: 'Internal validation error',
-          message: 'An error occurred while validating your request'
+          message: 'An error occurred while validating your request',
         });
       }
     };
@@ -86,7 +94,9 @@ export const sanitizeStrings = (req: Request, res: Response, next: NextFunction)
       if (typeof value === 'object' && value !== null) {
         const sanitized: Record<string, unknown> | unknown[] = Array.isArray(value) ? [] : {};
         for (const key in value) {
-          (sanitized as Record<string, unknown>)[key] = sanitizeValue((value as Record<string, unknown>)[key]);
+          (sanitized as Record<string, unknown>)[key] = sanitizeValue(
+            (value as Record<string, unknown>)[key]
+          );
         }
         return sanitized;
       }
@@ -103,7 +113,7 @@ export const sanitizeStrings = (req: Request, res: Response, next: NextFunction)
     logger.error('Sanitization error:', error);
     res.status(500).json({
       error: 'Internal processing error',
-      message: 'An error occurred while processing your request'
+      message: 'An error occurred while processing your request',
     });
   }
 };

@@ -98,7 +98,9 @@ describe('Lab', () => {
 
     it('should throw for name exceeding 200 characters', () => {
       const lab = Lab.create('Test');
-      expect(() => lab.updateName('x'.repeat(201))).toThrow('Lab name cannot exceed 200 characters');
+      expect(() => lab.updateName('x'.repeat(201))).toThrow(
+        'Lab name cannot exceed 200 characters'
+      );
     });
   });
 
@@ -129,7 +131,9 @@ describe('Lab', () => {
 
     it('should throw when updating limits on a non-demo lab', () => {
       const lab = Lab.create('Normal');
-      expect(() => lab.updateDemoLimits({ maxTanks: 10 })).toThrow('Demo limits can only be set on demo labs');
+      expect(() => lab.updateDemoLimits({ maxTanks: 10 })).toThrow(
+        'Demo limits can only be set on demo labs'
+      );
     });
   });
 

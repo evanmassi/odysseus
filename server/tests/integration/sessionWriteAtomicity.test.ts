@@ -40,7 +40,7 @@ describe('refresh rotation atomicity', () => {
   /** A unit of work that runs the real transaction but sabotages the final write. */
   const failingUnitOfWork = (): UnitOfWork => ({
     withTransaction: <T>(work: (repos: Repositories) => Promise<T>): Promise<T> =>
-      factory.withTransaction((repos) => {
+      factory.withTransaction(repos => {
         const userSessions = Object.create(repos.userSessions) as Repositories['userSessions'];
         userSessions.save = () => Promise.reject(new Error('SIMULATED_MID_FLOW_FAILURE'));
         return work({ ...repos, userSessions });
@@ -56,7 +56,11 @@ describe('refresh rotation atomicity', () => {
   };
 
   const establishSession = async (user: User): Promise<string> => {
-    const result = await buildSessionService(factory).createTokenPair(user, 'test-agent', '127.0.0.1');
+    const result = await buildSessionService(factory).createTokenPair(
+      user,
+      'test-agent',
+      '127.0.0.1'
+    );
     return result.tokens.refreshToken;
   };
 
@@ -96,7 +100,9 @@ describe('refresh rotation atomicity', () => {
     // unreachable row that no session ever points at.
     expect(await countTokensFor(user.id)).toBe(0);
 
-    const sessions = await factory.getRepositories().userSessions.findActiveSessionsByUserId(user.id);
+    const sessions = await factory
+      .getRepositories()
+      .userSessions.findActiveSessionsByUserId(user.id);
     expect(sessions).toHaveLength(0);
   });
 

@@ -6,7 +6,6 @@
  * This is the first migration that actually runs on prod.
  */
 
-
 import { generateId } from '@domain/utils/generateId';
 
 import type { Migration } from './migrationRunner';
@@ -43,10 +42,9 @@ export const migration010: Migration = {
     const existingLabs = await pool.query('SELECT id FROM labs LIMIT 1');
     if (existingLabs.rows.length === 0) {
       const defaultLabId = generateId('lab');
-      await pool.query(
-        `INSERT INTO labs (id, name, slug) VALUES ($1, 'Lab 1', 'lab-1')`,
-        [defaultLabId]
-      );
+      await pool.query(`INSERT INTO labs (id, name, slug) VALUES ($1, 'Lab 1', 'lab-1')`, [
+        defaultLabId,
+      ]);
     }
 
     const firstLab = await pool.query('SELECT id FROM labs ORDER BY created_at LIMIT 1');
@@ -163,15 +161,30 @@ export const migration010: Migration = {
 
     // Backfill lab_id on all tables
     if (backfillLabId) {
-      await pool.query(`UPDATE users SET lab_id = $1 WHERE lab_id IS NULL AND role != 'system_admin'`, [backfillLabId]);
+      await pool.query(
+        `UPDATE users SET lab_id = $1 WHERE lab_id IS NULL AND role != 'system_admin'`,
+        [backfillLabId]
+      );
       await pool.query(`UPDATE researchers SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
       await pool.query(`UPDATE tubes SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await pool.query(`UPDATE lookup_values SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await pool.query(`UPDATE audit_log a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`);
-      await pool.query(`UPDATE audit_log_archive a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`);
-      await pool.query(`UPDATE storage_current SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await pool.query(`UPDATE storage_versions SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await pool.query(`UPDATE storage_snapshots SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await pool.query(`UPDATE lookup_values SET lab_id = $1 WHERE lab_id IS NULL`, [
+        backfillLabId,
+      ]);
+      await pool.query(
+        `UPDATE audit_log a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`
+      );
+      await pool.query(
+        `UPDATE audit_log_archive a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`
+      );
+      await pool.query(`UPDATE storage_current SET lab_id = $1 WHERE lab_id IS NULL`, [
+        backfillLabId,
+      ]);
+      await pool.query(`UPDATE storage_versions SET lab_id = $1 WHERE lab_id IS NULL`, [
+        backfillLabId,
+      ]);
+      await pool.query(`UPDATE storage_snapshots SET lab_id = $1 WHERE lab_id IS NULL`, [
+        backfillLabId,
+      ]);
     }
 
     // storage_current: singleton → per-lab
@@ -440,5 +453,5 @@ export const migration010: Migration = {
     for (const indexSql of indexes) {
       await pool.query(indexSql);
     }
-  }
+  },
 };

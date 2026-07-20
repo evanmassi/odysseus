@@ -26,7 +26,11 @@ export interface ResearcherRepository {
   delete(id: string, labId: string): Promise<boolean>;
 
   nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean>;
-  findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null>;
+  findDeactivatedByName(
+    firstName: string,
+    lastName: string,
+    labId: string
+  ): Promise<Researcher | null>;
 
   countByLabIds(labIds: string[]): Promise<Map<string, number>>;
   getTubeCountByResearcher(researcherId: string): Promise<number>;

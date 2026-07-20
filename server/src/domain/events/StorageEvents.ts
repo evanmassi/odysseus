@@ -467,4 +467,3 @@ export class BulkResourcesReassignedEvent extends DomainEvent {
     return 'system-storage';
   }
 }
-

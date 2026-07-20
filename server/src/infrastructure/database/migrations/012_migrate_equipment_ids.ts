@@ -5,7 +5,6 @@
  * Runs per-lab in independent transactions. Idempotent: skips labs whose IDs already start with `tank_`.
  */
 
-
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -30,8 +29,8 @@ export const migration012: Migration = {
       const configJson = configRow.rows[0].config_json;
       if (!configJson?.tanks || configJson.tanks.length === 0) continue;
 
-      const alreadyMigrated = configJson.tanks.every(
-        (t: { id: string }) => t.id.startsWith('tank_')
+      const alreadyMigrated = configJson.tanks.every((t: { id: string }) =>
+        t.id.startsWith('tank_')
       );
       if (alreadyMigrated) continue;
 
@@ -80,10 +79,10 @@ export const migration012: Migration = {
           if (newTankId) tank.id = newTankId;
         }
 
-        await client.query(
-          'UPDATE storage_current SET config_json = $1 WHERE lab_id = $2',
-          [JSON.stringify(updatedConfig), labId]
-        );
+        await client.query('UPDATE storage_current SET config_json = $1 WHERE lab_id = $2', [
+          JSON.stringify(updatedConfig),
+          labId,
+        ]);
 
         const versions = await client.query(
           'SELECT version, config_json FROM storage_versions WHERE lab_id = $1',
@@ -103,10 +102,10 @@ export const migration012: Migration = {
             const newTankId = tankIdMap.get(tank.id);
             if (newTankId) tank.id = newTankId;
           }
-          await client.query(
-            'UPDATE storage_versions SET config_json = $1 WHERE version = $2',
-            [JSON.stringify(verConfig), ver.version]
-          );
+          await client.query('UPDATE storage_versions SET config_json = $1 WHERE version = $2', [
+            JSON.stringify(verConfig),
+            ver.version,
+          ]);
         }
 
         const snapshots = await client.query(
@@ -127,14 +126,16 @@ export const migration012: Migration = {
             const newTankId = tankIdMap.get(tank.id);
             if (newTankId) tank.id = newTankId;
           }
-          await client.query(
-            'UPDATE storage_snapshots SET config_json = $1 WHERE id = $2',
-            [JSON.stringify(snapConfig), snap.id]
-          );
+          await client.query('UPDATE storage_snapshots SET config_json = $1 WHERE id = $2', [
+            JSON.stringify(snapConfig),
+            snap.id,
+          ]);
         }
 
         await client.query('COMMIT');
-        logger.info(`Migrated equipment IDs for lab ${labId}: ${tankIdMap.size} tanks, ${[...rackIdMap.values()].reduce((sum, m) => sum + m.size, 0)} racks`);
+        logger.info(
+          `Migrated equipment IDs for lab ${labId}: ${tankIdMap.size} tanks, ${[...rackIdMap.values()].reduce((sum, m) => sum + m.size, 0)} racks`
+        );
       } catch (error) {
         await client.query('ROLLBACK');
         logger.error(`Failed to migrate equipment IDs for lab ${labId}:`, error);
@@ -143,5 +144,5 @@ export const migration012: Migration = {
         client.release();
       }
     }
-  }
+  },
 };

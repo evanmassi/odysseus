@@ -6,7 +6,11 @@
 
 import * as crypto from 'crypto';
 
-import { type UserSettings, type UserStatus, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
+import {
+  type UserSettings,
+  type UserStatus,
+  DEFAULT_USER_SETTINGS,
+} from '@odysseus/shared-schemas';
 
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -14,9 +18,6 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 import { generateId } from '@domain/utils/generateId';
 import { UserRole } from '@domain/value-objects/UserRole';
-
-
-
 
 interface UserConstructorProps {
   id: string;
@@ -83,18 +84,26 @@ export class User {
     this._emailVerified = props.emailVerified ?? false;
     this._emailVerificationToken = props.emailVerificationToken;
     this._emailVerificationExpiry = props.emailVerificationExpiry
-      ? (typeof props.emailVerificationExpiry === 'string' ? new Date(props.emailVerificationExpiry) : props.emailVerificationExpiry)
+      ? typeof props.emailVerificationExpiry === 'string'
+        ? new Date(props.emailVerificationExpiry)
+        : props.emailVerificationExpiry
       : undefined;
     this._lastVerificationEmailSent = props.lastVerificationEmailSent
-      ? (typeof props.lastVerificationEmailSent === 'string' ? new Date(props.lastVerificationEmailSent) : props.lastVerificationEmailSent)
+      ? typeof props.lastVerificationEmailSent === 'string'
+        ? new Date(props.lastVerificationEmailSent)
+        : props.lastVerificationEmailSent
       : undefined;
     this._passwordResetToken = props.passwordResetToken;
     this._passwordResetExpiry = props.passwordResetExpiry
-      ? (typeof props.passwordResetExpiry === 'string' ? new Date(props.passwordResetExpiry) : props.passwordResetExpiry)
+      ? typeof props.passwordResetExpiry === 'string'
+        ? new Date(props.passwordResetExpiry)
+        : props.passwordResetExpiry
       : undefined;
     this._requirePasswordChange = props.requirePasswordChange ?? false;
     this._lastPasswordChange = props.lastPasswordChange
-      ? (typeof props.lastPasswordChange === 'string' ? new Date(props.lastPasswordChange) : props.lastPasswordChange)
+      ? typeof props.lastPasswordChange === 'string'
+        ? new Date(props.lastPasswordChange)
+        : props.lastPasswordChange
       : undefined;
     this._labIsDemo = props.labIsDemo ?? false;
     this._researcherActive = props.researcherActive;
@@ -125,7 +134,13 @@ export class User {
     });
   }
 
-  static createLabAdmin(username: string, apiKey: string, labId: string, researcherId?: string, personId?: string): User {
+  static createLabAdmin(
+    username: string,
+    apiKey: string,
+    labId: string,
+    researcherId?: string,
+    personId?: string
+  ): User {
     const now = new Date();
     return new User({
       id: generateId('user'),
@@ -278,14 +293,16 @@ export class User {
     if (!this._username || this._username.trim().length === 0) {
       throw new ValidationError('Username is required');
     }
-    
+
     if (this._username.length > 100) {
       throw new ValidationError('Username cannot exceed 100 characters');
     }
 
     const usernamePattern = /^[a-zA-Z0-9_\-.@]+$/;
     if (!usernamePattern.test(this._username)) {
-      throw new ValidationError('Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols');
+      throw new ValidationError(
+        'Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols'
+      );
     }
   }
 
@@ -293,7 +310,7 @@ export class User {
     if (!this._apiKey || this._apiKey.trim().length === 0) {
       throw new ValidationError('API key is required');
     }
-    
+
     if (this._apiKey.length < 10) {
       throw new ValidationError('API key must be at least 10 characters long');
     }
@@ -375,7 +392,7 @@ export class User {
       throw new PermissionError('Cannot manage user', {
         managerId: this._id,
         managerRole: this._role.value,
-        targetUserId: other._id
+        targetUserId: other._id,
       });
     }
   }
@@ -411,7 +428,6 @@ export class User {
     this._status = 'approved';
     this.recordActivity();
   }
-
 
   deactivate(deactivatedBy: User): void {
     deactivatedBy.requireCanManage(this);
@@ -498,40 +514,86 @@ export class User {
 
   // GETTERS
 
-  get id(): string { return this._id; }
-  get username(): string { return this._username; }
-  get apiKey(): string { return this._apiKey; }
-  get role(): UserRole { return this._role; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get lastActivity(): Date { return new Date(this._lastActivity); }
-  get researcherId(): string | undefined { return this._researcherId; }
-  get personId(): string | undefined { return this._personId; }
-  get status(): UserStatus { return this._status; }
+  get id(): string {
+    return this._id;
+  }
+  get username(): string {
+    return this._username;
+  }
+  get apiKey(): string {
+    return this._apiKey;
+  }
+  get role(): UserRole {
+    return this._role;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get lastActivity(): Date {
+    return new Date(this._lastActivity);
+  }
+  get researcherId(): string | undefined {
+    return this._researcherId;
+  }
+  get personId(): string | undefined {
+    return this._personId;
+  }
+  get status(): UserStatus {
+    return this._status;
+  }
 
   // PASSWORD
 
-  get passwordHash(): string | undefined { return this._passwordHash; }
-  get salt(): string | undefined { return this._salt; }
+  get passwordHash(): string | undefined {
+    return this._passwordHash;
+  }
+  get salt(): string | undefined {
+    return this._salt;
+  }
 
   // EMAIL VERIFICATION
 
-  get emailVerified(): boolean { return this._emailVerified; }
-  get emailVerificationToken(): string | undefined { return this._emailVerificationToken; }
-  get emailVerificationExpiry(): Date | undefined { return this._emailVerificationExpiry ? new Date(this._emailVerificationExpiry) : undefined; }
-  get lastVerificationEmailSent(): Date | undefined { return this._lastVerificationEmailSent ? new Date(this._lastVerificationEmailSent) : undefined; }
+  get emailVerified(): boolean {
+    return this._emailVerified;
+  }
+  get emailVerificationToken(): string | undefined {
+    return this._emailVerificationToken;
+  }
+  get emailVerificationExpiry(): Date | undefined {
+    return this._emailVerificationExpiry ? new Date(this._emailVerificationExpiry) : undefined;
+  }
+  get lastVerificationEmailSent(): Date | undefined {
+    return this._lastVerificationEmailSent ? new Date(this._lastVerificationEmailSent) : undefined;
+  }
 
   // PASSWORD RESET
 
-  get passwordResetToken(): string | undefined { return this._passwordResetToken; }
-  get passwordResetExpiry(): Date | undefined { return this._passwordResetExpiry ? new Date(this._passwordResetExpiry) : undefined; }
-  get requirePasswordChange(): boolean { return this._requirePasswordChange; }
-  get lastPasswordChange(): Date | undefined { return this._lastPasswordChange ? new Date(this._lastPasswordChange) : undefined; }
-  get isDemo(): boolean { return this._labIsDemo; }
-  get researcherActive(): boolean | undefined { return this._researcherActive; }
+  get passwordResetToken(): string | undefined {
+    return this._passwordResetToken;
+  }
+  get passwordResetExpiry(): Date | undefined {
+    return this._passwordResetExpiry ? new Date(this._passwordResetExpiry) : undefined;
+  }
+  get requirePasswordChange(): boolean {
+    return this._requirePasswordChange;
+  }
+  get lastPasswordChange(): Date | undefined {
+    return this._lastPasswordChange ? new Date(this._lastPasswordChange) : undefined;
+  }
+  get isDemo(): boolean {
+    return this._labIsDemo;
+  }
+  get researcherActive(): boolean | undefined {
+    return this._researcherActive;
+  }
 
-  get labId(): string | undefined { return this._labId; }
+  get labId(): string | undefined {
+    return this._labId;
+  }
 
-  get roleString(): 'system_admin' | 'lab_admin' | 'user' { return this._role.value; }
+  get roleString(): 'system_admin' | 'lab_admin' | 'user' {
+    return this._role.value;
+  }
 
   /** @returns Unhashed token for the email — only time it's visible */
   generateVerificationToken(): string {
@@ -688,5 +750,4 @@ export class User {
   get settings(): UserSettings {
     return this._settings;
   }
-
 }

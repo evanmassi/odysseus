@@ -17,10 +17,7 @@ const mockAccessControlService = {
 } as any;
 
 function createService() {
-  return new ValidationService(
-    mockTubeRepository,
-    mockAccessControlService
-  );
+  return new ValidationService(mockTubeRepository, mockAccessControlService);
 }
 
 beforeEach(() => {
@@ -29,10 +26,19 @@ beforeEach(() => {
 
 describe('ValidationService', () => {
   describe('validateStorageUpdate', () => {
-    const baseConfig = () => Storage.fromData({
-      tanks: [{ id: 'T1', name: 'Tank 1', racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A' }] }] }],
-      systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
-    });
+    const baseConfig = () =>
+      Storage.fromData({
+        tanks: [
+          { id: 'T1', name: 'Tank 1', racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A' }] }] },
+        ],
+        systemSettings: {
+          labName: 'Lab',
+          defaultResearcher: '',
+          autoSave: true,
+          auditTrailEnabled: true,
+          syncEnabled: false,
+        },
+      });
 
     it('should pass for valid config update', async () => {
       mockAccessControlService.canModifyStorage.mockResolvedValue({ allowed: true });
@@ -45,7 +51,10 @@ describe('ValidationService', () => {
     });
 
     it('should fail when user lacks config permission', async () => {
-      mockAccessControlService.canModifyStorage.mockResolvedValue({ allowed: false, reason: 'No permission' });
+      mockAccessControlService.canModifyStorage.mockResolvedValue({
+        allowed: false,
+        reason: 'No permission',
+      });
       const user = createTestUser();
       const current = baseConfig();
       const updated = baseConfig();
@@ -61,7 +70,13 @@ describe('ValidationService', () => {
       const current = baseConfig();
       const updated = Storage.fromData({
         tanks: [],
-        systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
+        systemSettings: {
+          labName: 'Lab',
+          defaultResearcher: '',
+          autoSave: true,
+          auditTrailEnabled: true,
+          syncEnabled: false,
+        },
       });
 
       const result = await createService().validateStorageUpdate(current, updated, admin, 'lab_1');
@@ -74,17 +89,35 @@ describe('ValidationService', () => {
       mockTubeRepository.countByRack.mockResolvedValue(3);
       const admin = createTestAdmin();
       const current = Storage.fromData({
-        tanks: [{ id: 'T1', name: 'Tank 1', racks: [
-          { id: '1', name: 'R1', boxes: [{ name: 'A' }] },
-          { id: '2', name: 'R2', boxes: [{ name: 'A' }] },
-        ]}],
-        systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
+        tanks: [
+          {
+            id: 'T1',
+            name: 'Tank 1',
+            racks: [
+              { id: '1', name: 'R1', boxes: [{ name: 'A' }] },
+              { id: '2', name: 'R2', boxes: [{ name: 'A' }] },
+            ],
+          },
+        ],
+        systemSettings: {
+          labName: 'Lab',
+          defaultResearcher: '',
+          autoSave: true,
+          auditTrailEnabled: true,
+          syncEnabled: false,
+        },
       });
       const updated = Storage.fromData({
-        tanks: [{ id: 'T1', name: 'Tank 1', racks: [
-          { id: '1', name: 'R1', boxes: [{ name: 'A' }] },
-        ]}],
-        systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
+        tanks: [
+          { id: 'T1', name: 'Tank 1', racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A' }] }] },
+        ],
+        systemSettings: {
+          labName: 'Lab',
+          defaultResearcher: '',
+          autoSave: true,
+          auditTrailEnabled: true,
+          syncEnabled: false,
+        },
       });
 
       const result = await createService().validateStorageUpdate(current, updated, admin, 'lab_1');
@@ -97,13 +130,28 @@ describe('ValidationService', () => {
       const admin = createTestAdmin();
       const current = baseConfig();
       const updated = Storage.fromData({
-        tanks: [{ id: 'T1', name: 'Tank 1', isActive: false, racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A' }] }] }],
-        systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
+        tanks: [
+          {
+            id: 'T1',
+            name: 'Tank 1',
+            isActive: false,
+            racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A' }] }],
+          },
+        ],
+        systemSettings: {
+          labName: 'Lab',
+          defaultResearcher: '',
+          autoSave: true,
+          auditTrailEnabled: true,
+          syncEnabled: false,
+        },
       });
 
       const result = await createService().validateStorageUpdate(current, updated, admin, 'lab_1');
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(e => e.includes('At least one tank must remain active'))).toBe(true);
+      expect(result.errors.some(e => e.includes('At least one tank must remain active'))).toBe(
+        true
+      );
     });
   });
 });

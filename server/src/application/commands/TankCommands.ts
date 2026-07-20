@@ -10,11 +10,7 @@ import { requireUser } from '@application/guards/UserGuards';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import {
-  TankAddedEvent,
-  TankUpdatedEvent,
-  TankDeletedEvent
-} from '@domain/events/StorageEvents';
+import { TankAddedEvent, TankUpdatedEvent, TankDeletedEvent } from '@domain/events/StorageEvents';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -88,12 +84,7 @@ export class AddTankCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    const event = new TankAddedEvent(
-      command.userId,
-      tankId,
-      command.name,
-      command.labId
-    );
+    const event = new TankAddedEvent(command.userId, tankId, command.name, command.labId);
     await this.eventBus.publish(event);
 
     return { tankId };
@@ -151,7 +142,7 @@ export class UpdateTankCommandHandler {
     const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
-      systemSettings: configData.systemSettings
+      systemSettings: configData.systemSettings,
     });
 
     const newVersion = await this.storageRepository.saveWithOptimisticLock(
@@ -201,12 +192,7 @@ export class DeleteTankCommandHandler {
       command.userId
     );
 
-    const event = new TankDeletedEvent(
-      command.userId,
-      command.tankId,
-      tankName,
-      command.labId
-    );
+    const event = new TankDeletedEvent(command.userId, command.tankId, tankName, command.labId);
     await this.eventBus.publish(event);
   }
 }

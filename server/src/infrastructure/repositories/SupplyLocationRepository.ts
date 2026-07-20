@@ -13,7 +13,6 @@ import type { Queryable } from '@infrastructure/database/Queryable';
 const COLUMNS = 'id, lab_id, name, description, sort_order, created_at, updated_at';
 
 export class SupplyLocationRepository implements ISupplyLocationRepository {
-
   constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<SupplyLocation | null> {
@@ -34,7 +33,8 @@ export class SupplyLocationRepository implements ISupplyLocationRepository {
 
   async save(location: SupplyLocation): Promise<void> {
     const row = SupplyLocationMapper.toRow(location);
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO supply_locations (${COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (id) DO UPDATE SET
@@ -42,6 +42,16 @@ export class SupplyLocationRepository implements ISupplyLocationRepository {
         description = EXCLUDED.description,
         sort_order = EXCLUDED.sort_order,
         updated_at = EXCLUDED.updated_at
-    `, [row.id, row.lab_id, row.name, row.description, row.sort_order, row.created_at, row.updated_at]);
+    `,
+      [
+        row.id,
+        row.lab_id,
+        row.name,
+        row.description,
+        row.sort_order,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
   }
 }

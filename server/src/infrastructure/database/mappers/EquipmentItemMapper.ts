@@ -36,7 +36,6 @@ export interface EquipmentItemRow {
 }
 
 export class EquipmentItemMapper {
-
   static toRow(item: EquipmentItem): EquipmentItemRow {
     return {
       id: item.id,

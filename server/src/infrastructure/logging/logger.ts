@@ -21,10 +21,7 @@ const logFormat = winston.format.combine(
 
 const transports: winston.transport[] = [
   new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      logFormat
-    )
+    format: winston.format.combine(winston.format.colorize(), logFormat),
   }),
   new DailyRotateFile({
     filename: path.join(__dirname, '../../../logs/error-%DATE%.log'),
@@ -32,22 +29,22 @@ const transports: winston.transport[] = [
     level: 'error',
     maxSize: '10m',
     maxFiles: '7d',
-    zippedArchive: true
+    zippedArchive: true,
   }),
   new DailyRotateFile({
     filename: path.join(__dirname, '../../../logs/combined-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     maxSize: '10m',
     maxFiles: '7d',
-    zippedArchive: true
-  })
+    zippedArchive: true,
+  }),
 ];
 
 export const logger = winston.createLogger({
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty LOG_LEVEL should fall through to 'info'
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  transports
+  transports,
 });
 
 const logsDir = path.join(__dirname, '../../../logs');

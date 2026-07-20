@@ -4,7 +4,6 @@
  * Maps between supply domain entities, row interfaces, and HTTP response shapes.
  */
 
-
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
@@ -58,7 +57,6 @@ export interface SupplyStockResponse {
 export type SupplyTransactionResponse = SupplyTransactionData;
 
 export class SupplyDto {
-
   static categoryToResponse(category: SupplyCategory): SupplyCategoryResponse {
     return {
       id: category.id,
@@ -73,32 +71,36 @@ export class SupplyDto {
 
   static itemToResponse(item: SupplyItem): SupplyItemResponse {
     return {
-      id:item.id,
-      labId:item.labId,
-      categoryId:item.categoryId,
-      name:item.name,
-      manufacturer:item.manufacturer,
-      catalogNumber:item.catalogNumber,
-      vendorName:item.vendorName,
-      vendorCatalogNumber:item.vendorCatalogNumber,
-      stockUnit:item.stockUnit,
-      baseItemName:item.baseItemName,
-      reorderThreshold:item.reorderThreshold,
-      reorderThresholdUnit:item.reorderThresholdUnit,
-      reorderQuantity:item.reorderQuantity,
-      reorderUnit:item.reorderUnit,
-      unitPrice:item.unitPrice,
-      properties:item.properties,
-      currentLotNumber:item.currentLotNumber,
-      description:item.description,
-      notes:item.notes,
-      status:item.status,
-      createdAt:item.createdAt,
-      updatedAt:item.updatedAt,
+      id: item.id,
+      labId: item.labId,
+      categoryId: item.categoryId,
+      name: item.name,
+      manufacturer: item.manufacturer,
+      catalogNumber: item.catalogNumber,
+      vendorName: item.vendorName,
+      vendorCatalogNumber: item.vendorCatalogNumber,
+      stockUnit: item.stockUnit,
+      baseItemName: item.baseItemName,
+      reorderThreshold: item.reorderThreshold,
+      reorderThresholdUnit: item.reorderThresholdUnit,
+      reorderQuantity: item.reorderQuantity,
+      reorderUnit: item.reorderUnit,
+      unitPrice: item.unitPrice,
+      properties: item.properties,
+      currentLotNumber: item.currentLotNumber,
+      description: item.description,
+      notes: item.notes,
+      status: item.status,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
     };
   }
 
-  static itemWithStockToResponse(item: SupplyItem, totalStock: number, locationNames: string[]): SupplyItemWithStockResponse {
+  static itemWithStockToResponse(
+    item: SupplyItem,
+    totalStock: number,
+    locationNames: string[]
+  ): SupplyItemWithStockResponse {
     return {
       ...this.itemToResponse(item),
       totalStock,

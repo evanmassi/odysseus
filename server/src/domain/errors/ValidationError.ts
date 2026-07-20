@@ -11,10 +11,7 @@ export class ValidationError extends DomainError {
   readonly code = API_ERROR_CODES.VALIDATION_FAILED;
   readonly statusCode = 400;
 
-  constructor(
-    message: string,
-    context?: Record<string, unknown>
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
   }
 }

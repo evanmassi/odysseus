@@ -18,7 +18,11 @@ function makeHandler(opts: { demoLimits?: unknown } = {}) {
   const findById = jest.fn().mockResolvedValue({ demoLimits: opts.demoLimits });
   const labRepository = { findById } as unknown as LabRepository;
 
-  return { handler: new GetCurrentStorageQueryHandler(storageRepository, labRepository), storage, findById };
+  return {
+    handler: new GetCurrentStorageQueryHandler(storageRepository, labRepository),
+    storage,
+    findById,
+  };
 }
 
 describe('GetCurrentStorageQueryHandler', () => {

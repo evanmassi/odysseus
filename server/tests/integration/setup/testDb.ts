@@ -26,7 +26,9 @@ async function ensureTestDatabase(): Promise<void> {
   const client = new Client({ connectionString: adminConnectionString() });
   await client.connect();
   try {
-    const exists = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [TEST_DB_NAME]);
+    const exists = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [
+      TEST_DB_NAME,
+    ]);
     if (exists.rowCount === 0) {
       await client.query(`CREATE DATABASE ${TEST_DB_NAME}`);
     }
@@ -36,7 +38,11 @@ async function ensureTestDatabase(): Promise<void> {
 }
 
 export function createTestContext(): PostgresContext {
-  return new PostgresContext({ connectionString: testConnectionString(), ssl: false, maxConnections: 5 });
+  return new PostgresContext({
+    connectionString: testConnectionString(),
+    ssl: false,
+    maxConnections: 5,
+  });
 }
 
 /** Creates the test DB if needed and runs migrations (idempotent). Returns a ready context. */

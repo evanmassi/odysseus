@@ -27,7 +27,11 @@ export class StorageAnalyticsController extends BaseController {
       const user = this.getAuthenticatedUser(req);
       const labId = req.params.labId ?? user.labId;
       if (!labId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Lab context required'));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Lab context required')
+          );
         return;
       }
 

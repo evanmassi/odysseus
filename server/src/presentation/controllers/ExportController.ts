@@ -4,7 +4,6 @@
  * Handles HTTP requests for data export operations.
  */
 
-
 import type { ExportService } from '@application/services/ExportService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -22,36 +21,36 @@ export class ExportController extends BaseController {
 
   async exportTubes(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'tubes', {
-      csv: (labId) => this.deps.exportService.exportTubes(labId, 'csv'),
-      json: (labId) => this.deps.exportService.exportTubes(labId, 'json'),
+      csv: labId => this.deps.exportService.exportTubes(labId, 'csv'),
+      json: labId => this.deps.exportService.exportTubes(labId, 'json'),
     });
   }
 
   async exportUsers(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'users', {
-      csv: (labId) => this.deps.exportService.exportUsers(labId, 'csv'),
-      json: (labId) => this.deps.exportService.exportUsers(labId, 'json'),
+      csv: labId => this.deps.exportService.exportUsers(labId, 'csv'),
+      json: labId => this.deps.exportService.exportUsers(labId, 'json'),
     });
   }
 
   async exportResearchers(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'researchers', {
-      csv: (labId) => this.deps.exportService.exportResearchers(labId, 'csv'),
-      json: (labId) => this.deps.exportService.exportResearchers(labId, 'json'),
+      csv: labId => this.deps.exportService.exportResearchers(labId, 'csv'),
+      json: labId => this.deps.exportService.exportResearchers(labId, 'json'),
     });
   }
 
   async exportEquipment(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'equipment', {
-      csv: (labId) => this.deps.exportService.exportEquipment(labId, 'csv'),
-      json: (labId) => this.deps.exportService.exportEquipment(labId, 'json'),
+      csv: labId => this.deps.exportService.exportEquipment(labId, 'csv'),
+      json: labId => this.deps.exportService.exportEquipment(labId, 'json'),
     });
   }
 
   async exportSupplyReorderList(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'supply-reorder-list', {
-      csv: (labId) => this.deps.exportService.exportSupplyReorderList(labId, 'csv'),
-      json: (labId) => this.deps.exportService.exportSupplyReorderList(labId, 'json'),
+      csv: labId => this.deps.exportService.exportSupplyReorderList(labId, 'csv'),
+      json: labId => this.deps.exportService.exportSupplyReorderList(labId, 'json'),
     });
   }
 
@@ -69,7 +68,10 @@ export class ExportController extends BaseController {
     req: Request,
     res: Response,
     type: string,
-    fetchers: { csv: (labId: string) => Promise<string>; json: (labId: string) => Promise<object[]> }
+    fetchers: {
+      csv: (labId: string) => Promise<string>;
+      json: (labId: string) => Promise<object[]>;
+    }
   ): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -108,5 +110,4 @@ export class ExportController extends BaseController {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.json(data);
   }
-
 }

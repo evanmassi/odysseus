@@ -17,7 +17,14 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import { LabApplicationService } from './LabApplicationService';
 
 function person(id: string, firstName: string, lastName: string): Person {
-  return Person.fromData({ id, firstName, lastName, email: `${id}@example.com`, createdAt: new Date(), updatedAt: new Date() });
+  return Person.fromData({
+    id,
+    firstName,
+    lastName,
+    email: `${id}@example.com`,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 }
 
 function makeService(opts: Record<string, unknown> = {}) {
@@ -39,19 +46,30 @@ function makeService(opts: Record<string, unknown> = {}) {
   } as unknown as StorageRepository;
   const researcherRepository = {
     findByLabId: jest.fn().mockResolvedValue(opts.researchers ?? []),
-    getTubeCountsByResearcherIds: jest.fn().mockResolvedValue(opts.researcherTubeCounts ?? new Map()),
+    getTubeCountsByResearcherIds: jest
+      .fn()
+      .mockResolvedValue(opts.researcherTubeCounts ?? new Map()),
     countByLabIds: jest.fn().mockResolvedValue(opts.researcherCountMap ?? new Map()),
   } as unknown as ResearcherRepository;
   const personRepository = {
     findByIds: jest.fn().mockResolvedValue(opts.persons ?? []),
   } as unknown as PersonRepository;
 
-  return new LabApplicationService({ labRepository, userRepository, tubeRepository, storageRepository, researcherRepository, personRepository });
+  return new LabApplicationService({
+    labRepository,
+    userRepository,
+    tubeRepository,
+    storageRepository,
+    researcherRepository,
+    personRepository,
+  });
 }
 
 describe('LabApplicationService.getDemoLimits', () => {
   it('throws when the lab is not found', async () => {
-    await expect(makeService({ lab: null }).getDemoLimits('l1')).rejects.toBeInstanceOf(NotFoundError);
+    await expect(makeService({ lab: null }).getDemoLimits('l1')).rejects.toBeInstanceOf(
+      NotFoundError
+    );
   });
 
   it('returns the lab demo limits', async () => {
@@ -92,20 +110,47 @@ describe('LabApplicationService.getOverview', () => {
 
     const result = await service.getOverview();
 
-    expect(result).toMatchObject({ totalLabs: 1, activeLabs: 1, inactiveLabs: 0, totalUsers: 2, totalTubes: 7, activeUsersLast24h: 2 });
-    expect(result.labStats[0]).toMatchObject({ labId: 'l1', adminCount: 1, userCount: 2, researcherCount: 3, tubeCount: 7, tankCount: 0 });
+    expect(result).toMatchObject({
+      totalLabs: 1,
+      activeLabs: 1,
+      inactiveLabs: 0,
+      totalUsers: 2,
+      totalTubes: 7,
+      activeUsersLast24h: 2,
+    });
+    expect(result.labStats[0]).toMatchObject({
+      labId: 'l1',
+      adminCount: 1,
+      userCount: 2,
+      researcherCount: 3,
+      tubeCount: 7,
+      tankCount: 0,
+    });
   });
 });
 
 describe('LabApplicationService.getLabDetails', () => {
   it('throws when the lab is not found', async () => {
-    await expect(makeService({ lab: null }).getLabDetails('l1')).rejects.toBeInstanceOf(NotFoundError);
+    await expect(makeService({ lab: null }).getLabDetails('l1')).rejects.toBeInstanceOf(
+      NotFoundError
+    );
   });
 
   it('enriches users and researchers with linked-person names', async () => {
     const service = makeService({
       lab: { id: 'l1', toData: () => ({ id: 'l1', name: 'Lab' }) },
-      users: [{ id: 'u1', personId: 'p1', researcherId: undefined, username: 'alice', roleString: 'user', status: 'approved', isDemo: false, lastActivity: new Date('2020-01-01T00:00:00Z') }],
+      users: [
+        {
+          id: 'u1',
+          personId: 'p1',
+          researcherId: undefined,
+          username: 'alice',
+          roleString: 'user',
+          status: 'approved',
+          isDemo: false,
+          lastActivity: new Date('2020-01-01T00:00:00Z'),
+        },
+      ],
       researchers: [{ id: 'r1', personId: 'pr1', active: true }],
       persons: [person('p1', 'Alice', 'Adams'), person('pr1', 'Bob', 'Brown')],
       tubeCount: 5,
@@ -117,8 +162,19 @@ describe('LabApplicationService.getLabDetails', () => {
 
     expect(result.tubeCount).toBe(5);
     expect(result.researcherCount).toBe(1);
-    expect(result.users[0]).toMatchObject({ id: 'u1', firstName: 'Alice', username: 'alice', researcher: null });
-    expect(result.researchers[0]).toMatchObject({ id: 'r1', firstName: 'Bob', lastName: 'Brown', tubeCount: 2, active: true });
+    expect(result.users[0]).toMatchObject({
+      id: 'u1',
+      firstName: 'Alice',
+      username: 'alice',
+      researcher: null,
+    });
+    expect(result.researchers[0]).toMatchObject({
+      id: 'r1',
+      firstName: 'Bob',
+      lastName: 'Brown',
+      tubeCount: 2,
+      active: true,
+    });
     expect(result.storageSummary).toEqual({ tankCount: 0, rackCount: 0, boxCount: 0 });
   });
 });

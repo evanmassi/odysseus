@@ -4,7 +4,10 @@
  * Account lifecycle operations — registration, login, password changes, role changes, deletion.
  */
 
-import { verifyCurrentPassword, upgradePasswordHashIfNeeded } from '@application/authentication/passwordCredentials';
+import {
+  verifyCurrentPassword,
+  upgradePasswordHashIfNeeded,
+} from '@application/authentication/passwordCredentials';
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
@@ -13,13 +16,17 @@ import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
+import {
+  UserAlreadyExistsError,
+  InvalidCredentialsError,
+  UserNotFoundError,
+} from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
   UserRoleChangedEvent,
-  UserLoggedInEvent
+  UserLoggedInEvent,
 } from '@domain/events/UserEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -112,7 +119,13 @@ export class CreateSystemAdminCommandHandler {
     await validatePasswordPolicy(this.storageRepository, command.password);
     const passwordHash = await this.passwordService.hash(command.password);
 
-    const person = Person.create(command.firstName, command.lastName, command.email, command.position, command.department);
+    const person = Person.create(
+      command.firstName,
+      command.lastName,
+      command.email,
+      command.position,
+      command.department
+    );
     await this.personRepository.save(person);
 
     const user = User.createWithPassword(
@@ -157,7 +170,7 @@ export class ChangeUserPasswordCommandHandler {
 
     // Atomic: a new password that failed to revoke the old sessions leaves them alive — the
     // opposite of what changing a password is for.
-    await this.unitOfWork.withTransaction(async (repos) => {
+    await this.unitOfWork.withTransaction(async repos => {
       await repos.users.save(user);
 
       // The session the change was made from survives; every other one is revoked.
@@ -169,12 +182,19 @@ export class ChangeUserPasswordCommandHandler {
 
         if (otherSessionIds.length > 0) {
           const revokedCount = await repos.userSessions.bulkRevoke(otherSessionIds);
-          logger.info(`Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
+          logger.info(
+            `Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`
+          );
         }
       }
     });
 
-    const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy, user.labId);
+    const event = new UserPasswordChangedEvent(
+      user.id,
+      user.username,
+      command.initiatedBy,
+      user.labId
+    );
     await this.eventBus.publish(event);
   }
 }
@@ -215,7 +235,6 @@ export class ChangeUserRoleCommandHandler {
   }
 }
 
-
 export interface LoginResult {
   user: User;
   requirePasswordChange: boolean;
@@ -243,47 +262,60 @@ export class LoginCommandHandler {
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
-    const isPasswordValid = await this.passwordService.verify(command.password, user.passwordHash!, user.salt);
+    const isPasswordValid = await this.passwordService.verify(
+      command.password,
+      user.passwordHash!,
+      user.salt
+    );
     if (!isPasswordValid) {
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
     // Lazy migration: re-hash PBKDF2 passwords to bcrypt on successful login
-    await upgradePasswordHashIfNeeded(user, command.password, this.passwordService, this.userRepository);
+    await upgradePasswordHashIfNeeded(
+      user,
+      command.password,
+      this.passwordService,
+      this.userRepository
+    );
 
     if (user.status === 'deactivated') {
-      throw new InvalidCredentialsError('Account has been deactivated. Contact your lab administrator.');
+      throw new InvalidCredentialsError(
+        'Account has been deactivated. Contact your lab administrator.'
+      );
     }
 
     if (user.status === 'suspended') {
-      throw new InvalidCredentialsError('Account has been suspended. Contact your system administrator.');
+      throw new InvalidCredentialsError(
+        'Account has been suspended. Contact your system administrator.'
+      );
     }
 
     if (this.labRepository && user.labId) {
       const lab = await this.labRepository.findById(user.labId);
       if (lab && !lab.isActive) {
-        throw new InvalidCredentialsError('Your lab has been deactivated. Contact your system administrator.');
+        throw new InvalidCredentialsError(
+          'Your lab has been deactivated. Contact your system administrator.'
+        );
       }
     }
 
     // Admin approval bypasses email verification (admin manually vets users)
     if (!user.isEmailVerified() && user.status !== 'approved') {
-      throw new InvalidCredentialsError('Email not verified. Check your inbox for verification link.');
+      throw new InvalidCredentialsError(
+        'Email not verified. Check your inbox for verification link.'
+      );
     }
 
     const requirePasswordChange = user.isPasswordChangeRequired();
 
     if (!requirePasswordChange) {
-      await this.eventBus.publish(new UserLoggedInEvent(
-        user.id,
-        user.username,
-        user.labId
-      ));
+      await this.eventBus.publish(new UserLoggedInEvent(user.id, user.username, user.labId));
     }
 
     return {
       user,
-      requirePasswordChange
+      requirePasswordChange,
     };
   }
 }

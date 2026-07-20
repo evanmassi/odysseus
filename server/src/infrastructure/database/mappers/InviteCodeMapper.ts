@@ -23,7 +23,6 @@ export interface InviteCodeRow {
 }
 
 export class InviteCodeMapper {
-
   static toRow(inviteCode: InviteCode): InviteCodeRow {
     return {
       id: inviteCode.id,
@@ -37,16 +36,14 @@ export class InviteCodeMapper {
       expires_at: inviteCode.expiresAt?.toISOString() ?? null,
       is_active: inviteCode.isActive,
       created_at: inviteCode.createdAt.toISOString(),
-      deactivation_reason: inviteCode.deactivationReason ?? null
+      deactivation_reason: inviteCode.deactivationReason ?? null,
     };
   }
 
   static fromRow(row: InviteCodeRow): InviteCode {
     const createdAt = toISOString(row.created_at);
 
-    const expiresAt = row.expires_at
-      ? toISOString(row.expires_at)
-      : undefined;
+    const expiresAt = row.expires_at ? toISOString(row.expires_at) : undefined;
 
     return InviteCode.fromData({
       id: row.id,
@@ -60,7 +57,7 @@ export class InviteCodeMapper {
       expiresAt,
       isActive: row.is_active,
       createdAt,
-      deactivationReason: (row.deactivation_reason as DeactivationReason) ?? undefined
+      deactivationReason: (row.deactivation_reason as DeactivationReason) ?? undefined,
     });
   }
 

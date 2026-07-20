@@ -48,10 +48,22 @@ export abstract class Document {
     }
   }
 
-  get id(): string { return this._id; }
-  get itemId(): string { return this._itemId; }
-  get label(): string { return this._label; }
-  get url(): string { return this._url; }
-  get notes(): string | undefined { return this._notes; }
-  get createdAt(): Date { return new Date(this._createdAt); }
+  get id(): string {
+    return this._id;
+  }
+  get itemId(): string {
+    return this._itemId;
+  }
+  get label(): string {
+    return this._label;
+  }
+  get url(): string {
+    return this._url;
+  }
+  get notes(): string | undefined {
+    return this._notes;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
 }

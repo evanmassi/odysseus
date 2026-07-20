@@ -13,18 +13,25 @@ import {
   datePreprocessorNullable,
   optionalFromEmpty,
   nullableOptionalFromEmpty,
-  concentrationUnitRefinement
+  concentrationUnitRefinement,
 } from './tubeValidation';
 import { EQUIPMENT_DEFAULTS } from '../constants/equipmentDefaults';
 
 export const CONCENTRATION_UNITS = ['c/v', 'c/mL'] as const;
-export type ConcentrationUnit = typeof CONCENTRATION_UNITS[number];
+export type ConcentrationUnit = (typeof CONCENTRATION_UNITS)[number];
 
 export const tubeLocationSchema = z.object({
   tankId: z.string().min(1, 'Tank ID is required'),
   rackId: z.string().min(1, 'Rack ID is required'),
   boxId: z.string().min(1, 'Box ID is required'),
-  position: z.number().int().min(1).max(EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX, `Position must be between 1-${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`)
+  position: z
+    .number()
+    .int()
+    .min(1)
+    .max(
+      EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+      `Position must be between 1-${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`
+    ),
 });
 
 const concentrationUnitSchema = z.enum(CONCENTRATION_UNITS);
@@ -40,10 +47,12 @@ export const tubeSampleSchema = z.object({
   donorSourceId: z.string().optional(),
   concentration: z.number().optional(),
   concentrationUnit: concentrationUnitSchema.optional(),
-  date: z.union([
-    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
-    z.string().datetime('Invalid date format')
-  ]).optional(),
+  date: z
+    .union([
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
+      z.string().datetime('Invalid date format'),
+    ])
+    .optional(),
   mediaType: z.string().optional(),
   mediaSupplements: z.string().optional(),
   mediaSelection: z.string().optional(),
@@ -52,7 +61,7 @@ export const tubeSampleSchema = z.object({
   source: z.string().optional(),
   catalogNumber: z.string().optional(),
   passageNumber: z.number().int().min(0).max(999).optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
 });
 
 export type TubeSample = z.infer<typeof tubeSampleSchema>;
@@ -88,7 +97,13 @@ export const tubeDataSchema = z.object({
  * at a time); `tubeLocationCountSchema` is the per-box count feed (whole lab).
  */
 export const rackTubeSchema = tubeSampleSchema
-  .pick({ cellType: true, donorInternalId: true, donorSourceId: true, lotNumber: true, cultureCondition: true })
+  .pick({
+    cellType: true,
+    donorInternalId: true,
+    donorSourceId: true,
+    lotNumber: true,
+    cultureCondition: true,
+  })
   .extend({ boxId: z.string(), position: z.number().int().min(1) });
 export type RackTube = z.infer<typeof rackTubeSchema>;
 
@@ -109,7 +124,7 @@ export type TubeLocationCount = z.infer<typeof tubeLocationCountSchema>;
 const createTubeRequestSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
-      (val) => {
+      val => {
         if (typeof val === 'string') {
           const trimmed = val.trim();
           return trimmed || '';
@@ -131,18 +146,15 @@ const createTubeRequestSampleSchema = concentrationUnitRefinement(
     lotNumber: optionalFromEmpty(z.string()),
     source: optionalFromEmpty(z.string()),
     catalogNumber: optionalFromEmpty(z.string()),
-    passageNumber: z.preprocess(
-      (val) => {
-        if (val === '' || val === undefined || val === null) return undefined;
-        if (typeof val === 'string') {
-          const num = parseInt(val, 10);
-          return isNaN(num) ? val : num;
-        }
-        return val;
-      },
-      z.number().int().min(0).max(999).optional()
-    ),
-    notes: optionalFromEmpty(z.string())
+    passageNumber: z.preprocess(val => {
+      if (val === '' || val === undefined || val === null) return undefined;
+      if (typeof val === 'string') {
+        const num = parseInt(val, 10);
+        return isNaN(num) ? val : num;
+      }
+      return val;
+    }, z.number().int().min(0).max(999).optional()),
+    notes: optionalFromEmpty(z.string()),
   })
 );
 
@@ -153,7 +165,7 @@ const createTubeRequestSampleSchema = concentrationUnitRefinement(
 export const createTubeRequestSchema = z.object({
   location: tubeLocationSchema,
   sample: createTubeRequestSampleSchema,
-  researcherId: optionalFromEmpty(z.string())
+  researcherId: optionalFromEmpty(z.string()),
 });
 
 /**
@@ -164,7 +176,7 @@ export const createTubeRequestSchema = z.object({
 const tubeUpdateSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
-      (val) => {
+      val => {
         if (val === undefined || val === null) return undefined;
         if (typeof val === 'string') {
           const trimmed = val.trim();
@@ -172,10 +184,7 @@ const tubeUpdateSampleSchema = concentrationUnitRefinement(
         }
         return val;
       },
-      z.union([
-        z.string().min(1, 'Cell type is required'),
-        z.undefined()
-      ])
+      z.union([z.string().min(1, 'Cell type is required'), z.undefined()])
     ),
     species: nullableOptionalFromEmpty(z.string()),
     donorInternalId: nullableOptionalFromEmpty(z.string()),
@@ -190,20 +199,17 @@ const tubeUpdateSampleSchema = concentrationUnitRefinement(
     lotNumber: nullableOptionalFromEmpty(z.string()),
     source: nullableOptionalFromEmpty(z.string()),
     catalogNumber: nullableOptionalFromEmpty(z.string()),
-    passageNumber: z.preprocess(
-      (val) => {
-        if (val === undefined) return undefined;
-        if (val === null) return null;
-        if (val === '') return null;
-        if (typeof val === 'string') {
-          const num = parseInt(val, 10);
-          return isNaN(num) ? val : num;
-        }
-        return val;
-      },
-      z.number().int().min(0).max(999).nullable().optional()
-    ),
-    notes: nullableOptionalFromEmpty(z.string())
+    passageNumber: z.preprocess(val => {
+      if (val === undefined) return undefined;
+      if (val === null) return null;
+      if (val === '') return null;
+      if (typeof val === 'string') {
+        const num = parseInt(val, 10);
+        return isNaN(num) ? val : num;
+      }
+      return val;
+    }, z.number().int().min(0).max(999).nullable().optional()),
+    notes: nullableOptionalFromEmpty(z.string()),
   })
 );
 
@@ -215,7 +221,7 @@ export const updateTubeRequestSchema = z.object({
   sample: tubeUpdateSampleSchema.optional(),
   researcherId: nullableOptionalFromEmpty(z.string()),
   /** Lock note update - only lock owner can modify */
-  lockNote: z.string().max(100).optional()
+  lockNote: z.string().max(100).optional(),
 });
 
 export const TUBE_FILTERABLE_FIELDS = [
@@ -231,9 +237,15 @@ export const TUBE_FILTERABLE_FIELDS = [
   'source',
 ] as const;
 
-export type TubeFilterableField = typeof TUBE_FILTERABLE_FIELDS[number];
+export type TubeFilterableField = (typeof TUBE_FILTERABLE_FIELDS)[number];
 
-export const TUBE_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
+export const TUBE_SORT_FIELDS = [
+  'createdAt',
+  'updatedAt',
+  'position',
+  'researcherId',
+  'cellType',
+] as const;
 
 export const tubeFilterOptionsResponseSchema = z.object({
   tankId: z.array(z.string()).optional(),
@@ -280,11 +292,13 @@ export type BulkDeleteResponse = z.infer<typeof bulkDeleteResponseSchema>;
 
 export const pasteTubesResponseSchema = z.object({
   created: z.array(tubeDataSchema),
-  failed: z.array(z.object({
-    index: z.number(),
-    request: createTubeRequestSchema,
-    error: z.string(),
-  })),
+  failed: z.array(
+    z.object({
+      index: z.number(),
+      request: createTubeRequestSchema,
+      error: z.string(),
+    })
+  ),
 });
 
 export type PasteTubesResponse = z.infer<typeof pasteTubesResponseSchema>;
@@ -299,11 +313,16 @@ export type BulkUpdateResponse = z.infer<typeof bulkUpdateResponseSchema>;
 export const bulkFetchResponseSchema = z.array(tubeDataSchema);
 
 export const bulkMoveRequestSchema = z.object({
-  moves: z.array(z.object({
-    tubeId: z.string().min(1),
-    version: z.number().int().positive(),
-    destination: tubeLocationSchema,
-  })).min(1, 'At least one move is required').max(100),
+  moves: z
+    .array(
+      z.object({
+        tubeId: z.string().min(1),
+        version: z.number().int().positive(),
+        destination: tubeLocationSchema,
+      })
+    )
+    .min(1, 'At least one move is required')
+    .max(100),
 });
 
 export const bulkMoveResponseSchema = z.object({

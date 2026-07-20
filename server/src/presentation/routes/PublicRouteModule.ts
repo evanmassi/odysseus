@@ -7,9 +7,8 @@
 import {
   registerWithProfileSchema,
   resetPasswordWithTokenRequestSchema,
-  forceChangePasswordRequestSchema
+  forceChangePasswordRequestSchema,
 } from '@odysseus/shared-schemas';
-
 
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoginFailedEvent } from '@domain/events/UserEvents';
@@ -27,7 +26,7 @@ import {
   VerifyEmailBodySchema,
   ResendVerificationBodySchema,
   ValidateInviteCodeBodySchema,
-  SetupSystemAdminBodySchema
+  SetupSystemAdminBodySchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Request, Router, RequestHandler } from 'express';
@@ -46,9 +45,8 @@ export class PublicRouteModule implements RouteModule {
     private readonly environment: string,
     private readonly eventBus: EventBus
   ) {
-    this.rateLimitMiddleware = createRateLimitMiddleware(
-      storageRepository,
-      req => this.publishLoginLockout(req)
+    this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository, req =>
+      this.publishLoginLockout(req)
     );
   }
 
@@ -56,9 +54,7 @@ export class PublicRouteModule implements RouteModule {
     if (req.path !== LOGIN_PATH) return;
     const username = (req.body as { username?: string } | undefined)?.username ?? 'unknown';
     const ipAddress = req.ip ?? req.socket.remoteAddress;
-    void this.eventBus.publish(
-      new UserLoginFailedEvent(username, ipAddress, 'Rate limit lockout')
-    );
+    void this.eventBus.publish(new UserLoginFailedEvent(username, ipAddress, 'Rate limit lockout'));
   }
 
   getBasePath(): string {
@@ -66,50 +62,56 @@ export class PublicRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.rateLimitMiddleware,
-    ];
+    return [this.rateLimitMiddleware];
   }
 
   configure(router: Router): void {
     // System status endpoints
-    router.get('/auth/first-time',
+    router.get(
+      '/auth/first-time',
       this.publicAuthController.checkFirstTime.bind(this.publicAuthController)
     );
 
-    router.get('/auth/password-requirements',
+    router.get(
+      '/auth/password-requirements',
       this.publicAuthController.getPasswordRequirements.bind(this.publicAuthController)
     );
 
-    router.post(LOGIN_PATH,
+    router.post(
+      LOGIN_PATH,
       this.authLimiter,
       validateBody(LoginBodySchema),
       this.publicAuthController.login.bind(this.publicAuthController)
     );
 
-    router.post('/auth/register-with-profile',
+    router.post(
+      '/auth/register-with-profile',
       this.authLimiter,
       validateBody(registerWithProfileSchema),
       this.publicAuthController.registerWithProfile.bind(this.publicAuthController)
     );
 
     // Token refresh endpoint (OAuth 2.0 standard)
-    router.post('/auth/refresh',
+    router.post(
+      '/auth/refresh',
       validateBody(RefreshTokenBodySchema),
       this.publicAuthController.refreshToken.bind(this.publicAuthController)
     );
 
-    router.post('/auth/verify-email',
+    router.post(
+      '/auth/verify-email',
       validateBody(VerifyEmailBodySchema),
       this.publicAuthController.verifyEmail.bind(this.publicAuthController)
     );
 
-    router.post('/auth/resend-verification',
+    router.post(
+      '/auth/resend-verification',
       validateBody(ResendVerificationBodySchema),
       this.publicAuthController.resendVerificationPublic.bind(this.publicAuthController)
     );
 
-    router.post('/auth/reset-password',
+    router.post(
+      '/auth/reset-password',
       this.authLimiter,
       validateBody(resetPasswordWithTokenRequestSchema),
       this.publicAuthController.resetPasswordWithToken.bind(this.publicAuthController)
@@ -117,7 +119,8 @@ export class PublicRouteModule implements RouteModule {
 
     // Force change password (public - user has temp token from login response)
     // Used when user logs in with requirePasswordChange=true (admin reset flow)
-    router.post('/auth/force-change-password',
+    router.post(
+      '/auth/force-change-password',
       this.authLimiter,
       validateBody(forceChangePasswordRequestSchema),
       this.publicAuthController.forceChangePassword.bind(this.publicAuthController)
@@ -126,36 +129,43 @@ export class PublicRouteModule implements RouteModule {
     // Session info for idle timeout warning
     // PUBLIC ENDPOINT - handles own auth with updateActivity: false
     // This prevents polling from extending the session (which would defeat idle timeout)
-    router.get('/auth/session-info',
+    router.get(
+      '/auth/session-info',
       this.publicAuthController.getSessionInfo.bind(this.publicAuthController)
     );
 
-    router.post('/invite-codes/validate',
+    router.post(
+      '/invite-codes/validate',
       validateBody(ValidateInviteCodeBodySchema),
       this.inviteCodeController.validate.bind(this.inviteCodeController)
     );
 
-    router.post('/auth/setup-system-admin',
+    router.post(
+      '/auth/setup-system-admin',
       validateBody(SetupSystemAdminBodySchema),
       this.publicAuthController.setupSystemAdmin.bind(this.publicAuthController)
     );
 
     router.get('/health', (req, res) => {
-      res.json(ResponseBuilder.success({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        service: 'odysseus-api',
-        version: this.appVersion
-      }));
+      res.json(
+        ResponseBuilder.success({
+          status: 'OK',
+          timestamp: new Date().toISOString(),
+          service: 'odysseus-api',
+          version: this.appVersion,
+        })
+      );
     });
 
     router.get('/version', (req, res) => {
-      res.json(ResponseBuilder.success({
-        version: this.appVersion,
-        environment: this.environment,
-        nodeVersion: process.version,
-        platform: process.platform
-      }));
+      res.json(
+        ResponseBuilder.success({
+          version: this.appVersion,
+          environment: this.environment,
+          nodeVersion: process.version,
+          platform: process.platform,
+        })
+      );
     });
   }
 }

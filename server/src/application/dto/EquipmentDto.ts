@@ -4,7 +4,6 @@
  * Maps between equipment domain entities and HTTP response shapes.
  */
 
-
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
@@ -29,7 +28,6 @@ export type EquipmentMaintenanceLogResponse = EquipmentMaintenanceLogData;
 export type EquipmentItemDetailResponse = EquipmentItemDetailData;
 
 export class EquipmentDto {
-
   static categoryToResponse(category: EquipmentCategory): EquipmentCategoryResponse {
     return {
       id: category.id,
@@ -92,7 +90,9 @@ export class EquipmentDto {
     };
   }
 
-  static maintenanceEntryToResponse(entry: EquipmentMaintenanceLog): EquipmentMaintenanceLogResponse {
+  static maintenanceEntryToResponse(
+    entry: EquipmentMaintenanceLog
+  ): EquipmentMaintenanceLogResponse {
     return {
       id: entry.id,
       itemId: entry.itemId,

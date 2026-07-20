@@ -10,10 +10,10 @@ import type { InviteCodeRow } from '@infrastructure/database/mappers/InviteCodeM
 import { InviteCodeMapper } from '@infrastructure/database/mappers/InviteCodeMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
-const INVITE_CODE_COLUMNS = 'id, lab_id, code, role, create_researcher, created_by, max_uses, use_count, expires_at, is_active, created_at, deactivation_reason';
+const INVITE_CODE_COLUMNS =
+  'id, lab_id, code, role, create_researcher, created_by, max_uses, use_count, expires_at, is_active, created_at, deactivation_reason';
 
 export class InviteCodeRepository implements IInviteCodeRepository {
-
   constructor(private context: Queryable) {}
 
   async findById(id: string, labId: string): Promise<InviteCode | null> {
@@ -57,15 +57,27 @@ export class InviteCodeRepository implements IInviteCodeRepository {
          use_count = EXCLUDED.use_count,
          is_active = EXCLUDED.is_active,
          deactivation_reason = EXCLUDED.deactivation_reason`,
-      [row.id, row.lab_id, row.code, row.role, row.create_researcher, row.created_by, row.max_uses, row.use_count, row.expires_at, row.is_active, row.created_at, row.deactivation_reason]
+      [
+        row.id,
+        row.lab_id,
+        row.code,
+        row.role,
+        row.create_researcher,
+        row.created_by,
+        row.max_uses,
+        row.use_count,
+        row.expires_at,
+        row.is_active,
+        row.created_at,
+        row.deactivation_reason,
+      ]
     );
   }
 
   async deleteByCreator(userId: string): Promise<number> {
-    const result = await this.context.execute(
-      'DELETE FROM invite_codes WHERE created_by = $1',
-      [userId]
-    );
+    const result = await this.context.execute('DELETE FROM invite_codes WHERE created_by = $1', [
+      userId,
+    ]);
     return result.rowCount ?? 0;
   }
 }

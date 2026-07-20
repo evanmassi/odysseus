@@ -17,7 +17,8 @@ function oneBoxStorage(): Storage {
     equipment: {
       getActiveTanks: () => [{ id: 'T1', name: 'Tank 1' }],
       getActiveRacksForTank: (tid: string) => (tid === 'T1' ? [{ id: 'R1', name: 'Rack 1' }] : []),
-      getActiveBoxesForRack: (tid: string, rid: string) => (tid === 'T1' && rid === 'R1' ? [{ name: 'A', maxPositions: 10 }] : []),
+      getActiveBoxesForRack: (tid: string, rid: string) =>
+        tid === 'T1' && rid === 'R1' ? [{ name: 'A', maxPositions: 10 }] : [],
     },
   } as unknown as Storage;
 }
@@ -31,15 +32,27 @@ function makeService(opts: Record<string, unknown> = {}) {
     countGroupedByLocation: jest.fn().mockResolvedValue(opts.counts ?? []),
     countGroupedByLocationAllLabs: jest.fn().mockResolvedValue(opts.allCounts ?? []),
   } as unknown as TubeRepository;
-  const labRepository = { findAll: jest.fn().mockResolvedValue(opts.labs ?? []) } as unknown as LabRepository;
+  const labRepository = {
+    findAll: jest.fn().mockResolvedValue(opts.labs ?? []),
+  } as unknown as LabRepository;
 
-  return new StorageAnalyticsApplicationService({ storageRepository, tubeRepository, labRepository });
+  return new StorageAnalyticsApplicationService({
+    storageRepository,
+    tubeRepository,
+    labRepository,
+  });
 }
 
 describe('StorageAnalyticsApplicationService.getLabAnalytics', () => {
   it('returns an all-zero shape when the lab has no storage', async () => {
     const result = await makeService({ storage: null }).getLabAnalytics('l1');
-    expect(result).toEqual({ totalPositions: 0, totalOccupied: 0, utilizationPercent: 0, tanks: [], nearCapacityBoxes: [] });
+    expect(result).toEqual({
+      totalPositions: 0,
+      totalOccupied: 0,
+      utilizationPercent: 0,
+      tanks: [],
+      nearCapacityBoxes: [],
+    });
   });
 
   it('rolls up utilization and flags near-capacity boxes', async () => {
@@ -52,7 +65,11 @@ describe('StorageAnalyticsApplicationService.getLabAnalytics', () => {
 
     expect(result).toMatchObject({ totalPositions: 10, totalOccupied: 9, utilizationPercent: 90 });
     expect(result.nearCapacityBoxes).toHaveLength(1);
-    expect(result.nearCapacityBoxes[0]).toMatchObject({ boxName: 'A', occupied: 9, maxPositions: 10 });
+    expect(result.nearCapacityBoxes[0]).toMatchObject({
+      boxName: 'A',
+      occupied: 9,
+      maxPositions: 10,
+    });
   });
 });
 

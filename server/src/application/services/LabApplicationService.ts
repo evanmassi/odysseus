@@ -64,7 +64,8 @@ export class LabApplicationService {
     const userPersonIds = users.map(u => u.personId).filter((id): id is string => !!id);
     const researcherPersonIds = researchers.map(r => r.personId);
     const allPersonIds = [...new Set([...userPersonIds, ...researcherPersonIds])];
-    const persons = allPersonIds.length > 0 ? await this.deps.personRepository.findByIds(allPersonIds) : [];
+    const persons =
+      allPersonIds.length > 0 ? await this.deps.personRepository.findByIds(allPersonIds) : [];
     const personMap = new Map(persons.map(p => [p.id, p]));
 
     const researcherMap = new Map(researchers.map(r => [r.id, r]));
@@ -84,7 +85,9 @@ export class LabApplicationService {
       users: users.map(u => {
         const person = u.personId ? personMap.get(u.personId) : undefined;
         const researcher = u.researcherId ? researcherMap.get(u.researcherId) : undefined;
-        const researcherPerson = researcher?.personId ? personMap.get(researcher.personId) : undefined;
+        const researcherPerson = researcher?.personId
+          ? personMap.get(researcher.personId)
+          : undefined;
 
         return {
           id: u.id,
@@ -98,11 +101,15 @@ export class LabApplicationService {
           status: u.status,
           isDemo: u.isDemo,
           lastActivity: u.lastActivity.toISOString(),
-          researcher: u.researcherId ? {
-            name: researcherPerson ? `${researcherPerson.firstName} ${researcherPerson.lastName}` : 'Unknown',
-            tubeCount: tubeCountMap.get(u.researcherId) ?? 0,
-            active: researcher?.active ?? false,
-          } : null,
+          researcher: u.researcherId
+            ? {
+                name: researcherPerson
+                  ? `${researcherPerson.firstName} ${researcherPerson.lastName}`
+                  : 'Unknown',
+                tubeCount: tubeCountMap.get(u.researcherId) ?? 0,
+                active: researcher?.active ?? false,
+              }
+            : null,
         };
       }),
       researchers: researchers.map(r => {
@@ -115,7 +122,9 @@ export class LabApplicationService {
           email: person?.email,
           active: r.active,
           tubeCount: tubeCountMap.get(r.id) ?? 0,
-          linkedUser: linkedUser ? { id: linkedUser.id, username: linkedUser.username, status: linkedUser.status } : null,
+          linkedUser: linkedUser
+            ? { id: linkedUser.id, username: linkedUser.username, status: linkedUser.status }
+            : null,
         };
       }),
       researcherCount: researchers.length,
@@ -148,7 +157,7 @@ export class LabApplicationService {
       this.deps.storageRepository.getForLabs(labIds),
     ]);
 
-    const labStats = labs.map((lab) => {
+    const labStats = labs.map(lab => {
       const userEntry = usersByLab.get(lab.id) ?? { total: 0, admins: 0 };
       const { tankCount, rackCount, boxCount } = this.countStorage(configMap.get(lab.id) ?? null);
       return {
@@ -193,10 +202,13 @@ export class LabApplicationService {
     return { limits: lab.demoLimits ?? DEMO_LIMITS_DEFAULTS };
   }
 
-  private countStorage(config: { toData(): { tanks: { racks: { boxes: unknown[] }[] }[] } } | null | undefined): { tankCount: number; rackCount: number; boxCount: number } {
+  private countStorage(
+    config: { toData(): { tanks: { racks: { boxes: unknown[] }[] }[] } } | null | undefined
+  ): { tankCount: number; rackCount: number; boxCount: number } {
     if (!config) return { tankCount: 0, rackCount: 0, boxCount: 0 };
     const data = config.toData();
-    let rackCount = 0, boxCount = 0;
+    let rackCount = 0,
+      boxCount = 0;
     for (const tank of data.tanks) {
       rackCount += tank.racks.length;
       for (const rack of tank.racks) {

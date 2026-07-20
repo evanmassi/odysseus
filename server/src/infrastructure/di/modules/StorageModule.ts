@@ -5,14 +5,46 @@
  * lookup values, and demo seeding.
  */
 
-import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
-import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
-import { SeedDemoCommandHandler, UnseedDemoCommandHandler } from '@application/commands/DemoSeedCommands';
+import {
+  AddBoxesCommandHandler,
+  UpdateBoxCommandHandler,
+  DeleteBoxCommandHandler,
+  AssignBoxCommandHandler,
+} from '@application/commands/BoxCommands';
+import {
+  BulkUnassignResourcesCommandHandler,
+  BulkReassignResourcesCommandHandler,
+} from '@application/commands/BulkAssignmentCommands';
+import {
+  SeedDemoCommandHandler,
+  UnseedDemoCommandHandler,
+} from '@application/commands/DemoSeedCommands';
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
-import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
-import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
-import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
-import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler, GetSystemMetricsQueryHandler } from '@application/queries/StorageQueries';
+import {
+  AddRacksCommandHandler,
+  UpdateRackCommandHandler,
+  DeleteRackCommandHandler,
+  AssignRackCommandHandler,
+} from '@application/commands/RackCommands';
+import {
+  UpdateSystemStorageCommandHandler,
+  ResetStorageToDefaultCommandHandler,
+  ImportStorageCommandHandler,
+  UpdateResourceLabelCommandHandler,
+} from '@application/commands/StorageCommands';
+import {
+  AddTankCommandHandler,
+  UpdateTankCommandHandler,
+  DeleteTankCommandHandler,
+  ResetDemoDataCommandHandler,
+} from '@application/commands/TankCommands';
+import {
+  GetCurrentStorageQueryHandler,
+  GetStorageHistoryQueryHandler,
+  GetStorageByVersionQueryHandler,
+  CheckStorageHealthQueryHandler,
+  GetSystemMetricsQueryHandler,
+} from '@application/queries/StorageQueries';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import { StorageAnalyticsApplicationService } from '@application/services/StorageAnalyticsApplicationService';
@@ -351,9 +383,7 @@ export class StorageModule {
   getGetStorageHistoryHandler(): GetStorageHistoryQueryHandler {
     if (!this.getStorageHistoryHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getStorageHistoryHandler = new GetStorageHistoryQueryHandler(
-        repositories.storage
-      );
+      this.getStorageHistoryHandler = new GetStorageHistoryQueryHandler(repositories.storage);
     }
     return this.getStorageHistoryHandler;
   }
@@ -361,9 +391,7 @@ export class StorageModule {
   getGetStorageByVersionHandler(): GetStorageByVersionQueryHandler {
     if (!this.getStorageByVersionHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getStorageByVersionHandler = new GetStorageByVersionQueryHandler(
-        repositories.storage
-      );
+      this.getStorageByVersionHandler = new GetStorageByVersionQueryHandler(repositories.storage);
     }
     return this.getStorageByVersionHandler;
   }
@@ -371,9 +399,7 @@ export class StorageModule {
   getCheckStorageHealthHandler(): CheckStorageHealthQueryHandler {
     if (!this.checkStorageHealthHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.checkStorageHealthHandler = new CheckStorageHealthQueryHandler(
-        repositories.storage
-      );
+      this.checkStorageHealthHandler = new CheckStorageHealthQueryHandler(repositories.storage);
     }
     return this.checkStorageHealthHandler;
   }
@@ -381,9 +407,7 @@ export class StorageModule {
   getGetSystemMetricsHandler(): GetSystemMetricsQueryHandler {
     if (!this.getSystemMetricsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getSystemMetricsHandler = new GetSystemMetricsQueryHandler(
-        repositories.storage
-      );
+      this.getSystemMetricsHandler = new GetSystemMetricsQueryHandler(repositories.storage);
     }
     return this.getSystemMetricsHandler;
   }
@@ -408,7 +432,7 @@ export class StorageModule {
         repositories.equipmentItems,
         repositories.donors,
         repositories.supplyItems,
-        repositories.storage,
+        repositories.storage
       );
     }
     return this.lookupValueApplicationService;

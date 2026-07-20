@@ -26,7 +26,9 @@ export class GetSessionInfoQueryHandler {
   ) {}
 
   async handle(query: GetSessionInfoQuery): Promise<SessionInfoResponse> {
-    const result = await this.sessionService.validateSessionWithActivity(query.token, { updateActivity: false });
+    const result = await this.sessionService.validateSessionWithActivity(query.token, {
+      updateActivity: false,
+    });
     if (!result.success) {
       return { isAuthenticated: false, reason: result.code };
     }
@@ -40,7 +42,7 @@ export class GetSessionInfoQueryHandler {
     const now = Date.now();
     const idleTimeoutMs = config.sessionTimeoutMinutes * 60 * 1000;
     const warningMs = config.idleWarningMinutes * 60 * 1000;
-    const timeUntilIdleTimeoutMs = Math.max(0, (session.lastUsedAt.getTime() + idleTimeoutMs) - now);
+    const timeUntilIdleTimeoutMs = Math.max(0, session.lastUsedAt.getTime() + idleTimeoutMs - now);
     const showWarning = timeUntilIdleTimeoutMs <= warningMs && timeUntilIdleTimeoutMs > 0;
 
     return {

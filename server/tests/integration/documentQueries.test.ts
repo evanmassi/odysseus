@@ -53,7 +53,12 @@ describe('item documents', () => {
       const { repo, itemId } = await setup();
 
       await repo.saveDocument(
-        EquipmentDocument.create({ itemId, label: 'Manual', url: 'https://example.com/m.pdf', notes: 'v2' })
+        EquipmentDocument.create({
+          itemId,
+          label: 'Manual',
+          url: 'https://example.com/m.pdf',
+          notes: 'v2',
+        })
       );
 
       const [found] = await repo.findDocumentsByItemId(itemId);
@@ -64,7 +69,12 @@ describe('item documents', () => {
 
     it('patches only the fields supplied', async () => {
       const { repo, itemId } = await setup();
-      const doc = EquipmentDocument.create({ itemId, label: 'Manual', url: 'https://example.com/m.pdf', notes: 'v2' });
+      const doc = EquipmentDocument.create({
+        itemId,
+        label: 'Manual',
+        url: 'https://example.com/m.pdf',
+        notes: 'v2',
+      });
       await repo.saveDocument(doc);
 
       const updated = await repo.updateDocument(doc.id, itemId, { label: 'Handbook' });
@@ -76,7 +86,11 @@ describe('item documents', () => {
 
     it('returns the document unchanged when the patch is empty', async () => {
       const { repo, itemId } = await setup();
-      const doc = EquipmentDocument.create({ itemId, label: 'Manual', url: 'https://example.com/m.pdf' });
+      const doc = EquipmentDocument.create({
+        itemId,
+        label: 'Manual',
+        url: 'https://example.com/m.pdf',
+      });
       await repo.saveDocument(doc);
 
       const unchanged = await repo.updateDocument(doc.id, itemId, {});
@@ -86,7 +100,11 @@ describe('item documents', () => {
 
     it('deletes', async () => {
       const { repo, itemId } = await setup();
-      const doc = EquipmentDocument.create({ itemId, label: 'Manual', url: 'https://example.com/m.pdf' });
+      const doc = EquipmentDocument.create({
+        itemId,
+        label: 'Manual',
+        url: 'https://example.com/m.pdf',
+      });
       await repo.saveDocument(doc);
 
       expect(await repo.deleteDocument(doc.id, itemId)).toBe(true);
@@ -96,11 +114,17 @@ describe('item documents', () => {
     it('lists newest-first', async () => {
       const { repo, itemId } = await setup();
       const older = EquipmentDocument.fromData({
-        id: 'eqdoc_old', itemId, label: 'Older', url: 'https://example.com/1',
+        id: 'eqdoc_old',
+        itemId,
+        label: 'Older',
+        url: 'https://example.com/1',
         createdAt: new Date('2026-01-01T00:00:00Z'),
       });
       const newer = EquipmentDocument.fromData({
-        id: 'eqdoc_new', itemId, label: 'Newer', url: 'https://example.com/2',
+        id: 'eqdoc_new',
+        itemId,
+        label: 'Newer',
+        url: 'https://example.com/2',
         createdAt: new Date('2026-06-01T00:00:00Z'),
       });
       await repo.saveDocument(newer);
@@ -122,7 +146,12 @@ describe('item documents', () => {
       const { repo, itemId } = await setup();
 
       await repo.saveDocument(
-        SupplyDocument.create({ itemId, label: 'SOP', url: 'https://example.com/s.pdf', notes: 'rev A' })
+        SupplyDocument.create({
+          itemId,
+          label: 'SOP',
+          url: 'https://example.com/s.pdf',
+          notes: 'rev A',
+        })
       );
 
       const [found] = await repo.findDocumentsByItemId(itemId);
@@ -132,10 +161,17 @@ describe('item documents', () => {
 
     it('patches only the fields supplied', async () => {
       const { repo, itemId } = await setup();
-      const doc = SupplyDocument.create({ itemId, label: 'SOP', url: 'https://example.com/s.pdf', notes: 'rev A' });
+      const doc = SupplyDocument.create({
+        itemId,
+        label: 'SOP',
+        url: 'https://example.com/s.pdf',
+        notes: 'rev A',
+      });
       await repo.saveDocument(doc);
 
-      const updated = await repo.updateDocument(doc.id, itemId, { url: 'https://example.com/new.pdf' });
+      const updated = await repo.updateDocument(doc.id, itemId, {
+        url: 'https://example.com/new.pdf',
+      });
 
       expect(updated!.url).toBe('https://example.com/new.pdf');
       expect(updated!.label).toBe('SOP');
@@ -145,11 +181,17 @@ describe('item documents', () => {
     it('lists newest-first, agreeing with equipment', async () => {
       const { repo, itemId } = await setup();
       const older = SupplyDocument.fromData({
-        id: 'sdoc_old', itemId, label: 'Older', url: 'https://example.com/1',
+        id: 'sdoc_old',
+        itemId,
+        label: 'Older',
+        url: 'https://example.com/1',
         createdAt: new Date('2026-01-01T00:00:00Z'),
       });
       const newer = SupplyDocument.fromData({
-        id: 'sdoc_new', itemId, label: 'Newer', url: 'https://example.com/2',
+        id: 'sdoc_new',
+        itemId,
+        label: 'Newer',
+        url: 'https://example.com/2',
         createdAt: new Date('2026-06-01T00:00:00Z'),
       });
       await repo.saveDocument(older);

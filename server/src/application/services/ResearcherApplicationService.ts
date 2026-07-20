@@ -22,7 +22,7 @@ import {
   ResearcherCreatedEvent,
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
-  ResearcherDeletedEvent
+  ResearcherDeletedEvent,
 } from '@domain/events/ResearcherEvents';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
@@ -70,13 +70,21 @@ export class ResearcherApplicationService {
       researchers: researchers.map(researcher => {
         const person = personMap.get(researcher.personId)!;
         const linkedUser = users.find(u => u.researcherId === researcher.id);
-        return this.toAdminResearcher(researcher, person, tubeCounts.get(researcher.id) ?? 0, linkedUser);
+        return this.toAdminResearcher(
+          researcher,
+          person,
+          tubeCounts.get(researcher.id) ?? 0,
+          linkedUser
+        );
       }),
       totalTubeCount,
     };
   }
 
-  async getUnlinkedResearchers(labId: string, user: User): Promise<{ researchers: AdminResearcher[] }> {
+  async getUnlinkedResearchers(
+    labId: string,
+    user: User
+  ): Promise<{ researchers: AdminResearcher[] }> {
     await this.deps.accessControlService.requireAdminAccess(user);
 
     const researchers = await this.deps.researcherRepository.findByLabId(labId);
@@ -95,7 +103,12 @@ export class ResearcherApplicationService {
     return {
       researchers: unlinked.map(researcher => {
         const person = personMap.get(researcher.personId)!;
-        return this.toAdminResearcher(researcher, person, tubeCounts.get(researcher.id) ?? 0, undefined);
+        return this.toAdminResearcher(
+          researcher,
+          person,
+          tubeCounts.get(researcher.id) ?? 0,
+          undefined
+        );
       }),
     };
   }
@@ -112,7 +125,11 @@ export class ResearcherApplicationService {
    * 2. If orphaned Person exists → reuse it (safety net)
    * 3. Otherwise → create fresh Person + Researcher
    */
-  async createResearcher(labId: string, request: CreateResearcherRequest, user: User): Promise<ResearcherResponse> {
+  async createResearcher(
+    labId: string,
+    request: CreateResearcherRequest,
+    user: User
+  ): Promise<ResearcherResponse> {
     await this.deps.accessControlService.requireCanManageResearchers(user);
     rejectDemoManagementOperation(user, 'Researcher management');
 
@@ -189,26 +206,20 @@ export class ResearcherApplicationService {
 
     const tubeCount = await this.deps.researcherRepository.getTubeCountByResearcher(researcher.id);
     if (tubeCount > 0) {
-      throw new ValidationError(
-        `Cannot delete researcher with ${tubeCount} existing tubes`,
-        {
-          researcherName: person.fullName,
-          tubeCount
-        }
-      );
+      throw new ValidationError(`Cannot delete researcher with ${tubeCount} existing tubes`, {
+        researcherName: person.fullName,
+        tubeCount,
+      });
     }
 
     const linkedUser = await this.deps.userRepository.findByResearcherId(researcher.id);
     if (linkedUser) {
-      throw new ValidationError(
-        'Cannot delete researcher linked to user account',
-        {
-          researcherId: researcher.id,
-          researcherName: person.fullName,
-          userId: linkedUser.id,
-          username: linkedUser.username
-        }
-      );
+      throw new ValidationError('Cannot delete researcher linked to user account', {
+        researcherId: researcher.id,
+        researcherName: person.fullName,
+        userId: linkedUser.id,
+        username: linkedUser.username,
+      });
     }
 
     await this.deps.researcherRepository.delete(id, researcher.labId ?? '');
@@ -319,7 +330,10 @@ export class ResearcherApplicationService {
   private async getPersonForResearcher(researcher: Researcher): Promise<Person> {
     const person = await this.deps.personRepository.findById(researcher.personId);
     if (!person) {
-      throw new NotFoundError("This researcher's profile is incomplete. Please contact an administrator.", { personId: researcher.personId });
+      throw new NotFoundError(
+        "This researcher's profile is incomplete. Please contact an administrator.",
+        { personId: researcher.personId }
+      );
     }
     return person;
   }
@@ -336,7 +350,10 @@ export class ResearcherApplicationService {
 
     for (const researcher of researchers) {
       if (!personMap.has(researcher.personId)) {
-        throw new NotFoundError("This researcher's profile is incomplete. Please contact an administrator.", { personId: researcher.personId });
+        throw new NotFoundError(
+          "This researcher's profile is incomplete. Please contact an administrator.",
+          { personId: researcher.personId }
+        );
       }
     }
 
@@ -348,12 +365,17 @@ export class ResearcherApplicationService {
     if (existing) {
       throw new ValidationError('A researcher already exists with this email', {
         email,
-        researcherId: existing.id
+        researcherId: existing.id,
       });
     }
   }
 
-  private async publishCreatedEvent(researcher: Researcher, person: Person, userId: string, labId: string): Promise<void> {
+  private async publishCreatedEvent(
+    researcher: Researcher,
+    person: Person,
+    userId: string,
+    labId: string
+  ): Promise<void> {
     const event = new ResearcherCreatedEvent(
       researcher.id,
       person.firstName,

@@ -20,7 +20,7 @@ export class ConflictError extends DomainError {
     super(message, {
       ...context,
       currentVersion,
-      expectedVersion
+      expectedVersion,
     });
   }
 

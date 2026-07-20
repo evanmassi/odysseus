@@ -17,10 +17,12 @@ export type ResolvedTheme = Exclude<ThemePreference, 'auto'>;
  * Note: User preferences store format-only (numeric/alphanumeric).
  * Full configs with grid-specific alphanumericConfig are generated when applied to boxes.
  */
-export const userSettingsSchema = z.object({
-  defaultPositionDisplay: positionDisplayPreferenceSchema.optional(),
-  theme: themePreferenceSchema.optional(),
-}).strict();
+export const userSettingsSchema = z
+  .object({
+    defaultPositionDisplay: positionDisplayPreferenceSchema.optional(),
+    theme: themePreferenceSchema.optional(),
+  })
+  .strict();
 
 export type UserSettings = z.infer<typeof userSettingsSchema>;
 

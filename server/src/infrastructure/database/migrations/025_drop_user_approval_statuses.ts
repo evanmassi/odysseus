@@ -36,5 +36,5 @@ export const migration025: Migration = {
           CHECK (status IN ('approved', 'deactivated', 'suspended'));
       END $$
     `);
-  }
+  },
 };

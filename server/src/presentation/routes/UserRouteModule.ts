@@ -33,51 +33,48 @@ export class UserRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate.bind(this.authMiddleware)
-    ];
+    return [this.authMiddleware.authenticate.bind(this.authMiddleware)];
   }
 
   configure(router: Router): void {
+    router.get('/me/profile', this.personController.getMyProfile.bind(this.personController));
 
-    router.get('/me/profile',
-      this.personController.getMyProfile.bind(this.personController)
-    );
-
-    router.put('/me/profile',
+    router.put(
+      '/me/profile',
       validateBody(updateMyProfileRequestSchema),
       this.personController.updateMyProfile.bind(this.personController)
     );
 
-    router.get('/me/settings',
+    router.get(
+      '/me/settings',
       this.userController.getCurrentUserSettings.bind(this.userController)
     );
 
-    router.put('/me/settings',
+    router.put(
+      '/me/settings',
       this.userController.updateCurrentUserSettings.bind(this.userController)
     );
 
-    router.get('/me/sessions',
-      this.sessionController.getUserSessions.bind(this.sessionController)
-    );
+    router.get('/me/sessions', this.sessionController.getUserSessions.bind(this.sessionController));
 
-    router.delete('/me/sessions/:id',
+    router.delete(
+      '/me/sessions/:id',
       validateParams(IdParams),
       this.sessionController.revokeSession.bind(this.sessionController)
     );
 
-    router.post('/me/sessions/bulk-revoke',
+    router.post(
+      '/me/sessions/bulk-revoke',
       validateBody(bulkRevokeSessionsRequestSchema),
       this.sessionController.bulkRevokeSessions.bind(this.sessionController)
     );
 
-    router.post('/lookup',
+    router.post(
+      '/lookup',
       validateBody(userLookupRequestSchema),
       this.userController.lookupUsers.bind(this.userController)
     );
 
-    router.get('/list',
-      this.userController.listActiveUsers.bind(this.userController)
-    );
+    router.get('/list', this.userController.listActiveUsers.bind(this.userController));
   }
 }

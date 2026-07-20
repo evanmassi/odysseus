@@ -161,9 +161,7 @@ export {
 } from './storage';
 
 // API Constants
-export {
-  API_ERROR_CODES,
-} from './api/apiSchemas';
+export { API_ERROR_CODES } from './api/apiSchemas';
 
 // System Constants
 export {
@@ -529,4 +527,8 @@ export {
   sortByName,
 } from './persons/personSchemas';
 
-export { getPersonInitials, getPersonDisplayName, getPersonSortName } from './persons/personFormatters';
+export {
+  getPersonInitials,
+  getPersonDisplayName,
+  getPersonSortName,
+} from './persons/personFormatters';

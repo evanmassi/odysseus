@@ -11,10 +11,7 @@ export class EmailVerificationError extends DomainError {
   readonly code = API_ERROR_CODES.VALIDATION_FAILED;
   readonly statusCode = 400;
 
-  constructor(
-    message: string,
-    context?: Record<string, unknown>
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
   }
 
@@ -31,9 +28,7 @@ export class EmailVerificationError extends DomainError {
   }
 
   static noToken(): EmailVerificationError {
-    return new EmailVerificationError(
-      'No verification token found for this account.'
-    );
+    return new EmailVerificationError('No verification token found for this account.');
   }
 
   static rateLimited(waitMinutes: number): EmailVerificationError {

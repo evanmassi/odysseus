@@ -21,11 +21,17 @@ function escapeValue(value: unknown, forceText = false): string {
   // Prevent CSV formula injection: a spreadsheet evaluates a cell beginning with = + - @ (or
   // tab/CR) as a formula. Prefix an apostrophe to neutralize it, but leave genuine numbers alone
   // so negatives aren't turned into text.
-  const guarded = /^[=+\-@\t\r]/.test(stringValue) && Number.isNaN(Number(stringValue))
-    ? `'${stringValue}`
-    : stringValue;
+  const guarded =
+    /^[=+\-@\t\r]/.test(stringValue) && Number.isNaN(Number(stringValue))
+      ? `'${stringValue}`
+      : stringValue;
 
-  if (guarded.includes(',') || guarded.includes('"') || guarded.includes('\n') || guarded.includes('\r')) {
+  if (
+    guarded.includes(',') ||
+    guarded.includes('"') ||
+    guarded.includes('\n') ||
+    guarded.includes('\r')
+  ) {
     return `"${guarded.replace(/"/g, '""')}"`;
   }
 
@@ -42,9 +48,10 @@ export function generateCsv<T extends object>(
   }
 
   const columnConfig: Array<{ key: keyof T; header: string; forceText?: boolean }> =
-    columns ?? Object.keys(data[0]).map(key => ({
+    columns ??
+    Object.keys(data[0]).map(key => ({
       key: key as keyof T,
-      header: key
+      header: key,
     }));
 
   const headerRow = columnConfig.map(col => escapeValue(col.header)).join(',');

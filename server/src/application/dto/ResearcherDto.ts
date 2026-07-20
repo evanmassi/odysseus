@@ -4,7 +4,6 @@
  * Researcher holds research-specific data; profile data (name, email) comes from Person entity.
  */
 
-
 import type { Person } from '@domain/entities/Person';
 import type { Researcher } from '@domain/entities/Researcher';
 
@@ -28,7 +27,7 @@ export class ResearcherDto {
       email: person.email,
       position: person.position,
       department: person.department,
-      labId: researcher.labId
+      labId: researcher.labId,
     };
   }
 }

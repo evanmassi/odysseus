@@ -14,11 +14,25 @@ export interface SessionValidationResult {
 
 export type SessionValidationOutcome =
   | { success: true; user: User; sessionId: string }
-  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_EXPIRED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' | 'LAB_DEACTIVATED' };
+  | {
+      success: false;
+      code:
+        | 'INVALID_TOKEN'
+        | 'SESSION_REVOKED'
+        | 'SESSION_EXPIRED'
+        | 'SESSION_IDLE_TIMEOUT'
+        | 'SESSION_ABSOLUTE_TIMEOUT'
+        | 'LAB_DEACTIVATED';
+    };
 
 export interface SessionService {
   validateSession(token: string): Promise<SessionValidationResult | null>;
-  createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<EnhancedLoginResponse>;
+  createTokenPair(
+    user: User,
+    userAgent?: string,
+    ipAddress?: string,
+    deviceInfo?: string
+  ): Promise<EnhancedLoginResponse>;
   refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse>;
 
   /**
@@ -34,5 +48,7 @@ export interface SessionService {
   createPasswordChangeTempToken(user: User): string;
 
   /** Returns user ID if valid, null if expired/invalid. */
-  verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null>;
+  verifyPasswordChangeTempToken(
+    token: string
+  ): Promise<{ userId: string; username: string } | null>;
 }

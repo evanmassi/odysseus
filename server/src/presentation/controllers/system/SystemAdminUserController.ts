@@ -29,7 +29,7 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        message: 'User activated successfully'
+        message: 'User activated successfully',
       });
 
       res.status(200).json(response);
@@ -46,7 +46,7 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.deactivateUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
-        message: 'User deactivated successfully'
+        message: 'User deactivated successfully',
       });
 
       res.status(200).json(response);
@@ -63,7 +63,7 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.suspendUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
-        message: 'User suspended successfully'
+        message: 'User suspended successfully',
       });
 
       res.status(200).json(response);
@@ -80,7 +80,7 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.deleteUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        message: 'User deleted successfully'
+        message: 'User deleted successfully',
       });
 
       res.status(200).json(response);

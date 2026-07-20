@@ -28,11 +28,7 @@ export class ResponseBuilder {
     };
   }
 
-  static error(
-    code: string,
-    message: string,
-    details?: unknown
-  ): ErrorResponse {
+  static error(code: string, message: string, details?: unknown): ErrorResponse {
     return {
       success: false,
       error: message,
@@ -46,7 +42,10 @@ export class ResponseBuilder {
     return ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, message);
   }
 
-  static internalError(message: string = 'Internal server error', details?: unknown): ErrorResponse {
+  static internalError(
+    message: string = 'Internal server error',
+    details?: unknown
+  ): ErrorResponse {
     return ResponseBuilder.error(API_ERROR_CODES.INTERNAL_SERVER_ERROR, message, details);
   }
 }

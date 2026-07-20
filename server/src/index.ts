@@ -38,9 +38,7 @@ import type { Server } from 'http';
 
 // Resolve from project root (works for both tsx and compiled dist)
 const serverRoot = path.resolve(__dirname, '..');
-const envFile = process.env.NODE_ENV === 'production'
-  ? '.env.production'
-  : '.env.development';
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
 dotenv.config({ path: path.join(serverRoot, envFile) });
 
 class OdysseusServer {
@@ -67,7 +65,7 @@ class OdysseusServer {
     this.io = new SocketIOServer(this.server, {
       cors: {
         origin: this.configurationService.get('server').allowedOrigins,
-        methods: ["GET", "POST"]
+        methods: ['GET', 'POST'],
       },
 
       pingTimeout: 60000,
@@ -83,14 +81,14 @@ class OdysseusServer {
       httpCompression: false,
     });
 
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       logger.info(`Client connected: ${socket.id}`);
 
-      socket.on('disconnect', (reason) => {
+      socket.on('disconnect', reason => {
         logger.info(`Client disconnected: ${socket.id}, reason: ${reason}`);
       });
 
-      socket.on('error', (error) => {
+      socket.on('error', error => {
         logger.error(`Socket error for ${socket.id}:`, error);
       });
     });
@@ -120,10 +118,12 @@ class OdysseusServer {
     // Railway proxies traffic — trust one hop so req.ip reflects the real client
     this.app.set('trust proxy', 1);
     this.app.use(helmet());
-    this.app.use(cors({
-      origin: this.configurationService.get('server').allowedOrigins,
-      credentials: true
-    }));
+    this.app.use(
+      cors({
+        origin: this.configurationService.get('server').allowedOrigins,
+        credentials: true,
+      })
+    );
     this.app.use(createGlobalRateLimiter());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
@@ -164,27 +164,65 @@ class OdysseusServer {
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const storageRepository = this.repositoryFactory.getStorageRepository();
 
-    registry.registerModule(new PublicRouteModule(
-      publicAuthController,
-      inviteCodeController,
-      storageRepository,
-      this.configurationService.get('app').version,
-      this.configurationService.get('server').environment,
-      this.serviceContainer.getEventBus()
-    ));
+    registry.registerModule(
+      new PublicRouteModule(
+        publicAuthController,
+        inviteCodeController,
+        storageRepository,
+        this.configurationService.get('app').version,
+        this.configurationService.get('server').environment,
+        this.serviceContainer.getEventBus()
+      )
+    );
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
-    registry.registerModule(new AdminRouteModule(adminUserController, adminConfigController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, storageAnalyticsController, authMiddleware));
-    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, adminConfigController, systemAdminUserController, storageController, auditController, securityMonitoringController, storageAnalyticsController, authMiddleware));
-    registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, storageRepository));
+    registry.registerModule(
+      new AdminRouteModule(
+        adminUserController,
+        adminConfigController,
+        researcherController,
+        auditController,
+        exportController,
+        lookupValueController,
+        inviteCodeController,
+        storageAnalyticsController,
+        authMiddleware
+      )
+    );
+    registry.registerModule(
+      new SystemAdminRouteModule(
+        labController,
+        inviteCodeController,
+        adminConfigController,
+        systemAdminUserController,
+        storageController,
+        auditController,
+        securityMonitoringController,
+        storageAnalyticsController,
+        authMiddleware
+      )
+    );
+    registry.registerModule(
+      new ResourceRouteModule(
+        tubeController,
+        tubeLockController,
+        researcherController,
+        lookupValueController,
+        authMiddleware,
+        storageRepository
+      )
+    );
     registry.registerModule(new StorageRouteModule(storageController, authMiddleware));
     registry.registerModule(new DonorRouteModule(donorController, authMiddleware));
     registry.registerModule(new SupplyRouteModule(supplyController, authMiddleware));
     registry.registerModule(new EquipmentRouteModule(equipmentController, authMiddleware));
-    registry.registerModule(new SearchRouteModule(searchController, authMiddleware, storageRepository));
-    registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));
+    registry.registerModule(
+      new SearchRouteModule(searchController, authMiddleware, storageRepository)
+    );
+    registry.registerModule(
+      new UserRouteModule(userController, personController, sessionController, authMiddleware)
+    );
 
     registry.applyRoutes();
-
   }
 
   private setupErrorHandling(): void {
@@ -200,7 +238,7 @@ class OdysseusServer {
       this.server.listen(port, async () => {
         const isHealthy = await this.repositoryFactory.isHealthy();
         logger.info(`Server started on port ${port}`, {
-          database: isHealthy ? 'connected' : 'disconnected'
+          database: isHealthy ? 'connected' : 'disconnected',
         });
       });
     } catch (error) {
@@ -226,4 +264,4 @@ class OdysseusServer {
 }
 
 const server = new OdysseusServer();
-server.start().catch((error) => logger.error('Server startup failed:', { error }));
+server.start().catch(error => logger.error('Server startup failed:', { error }));

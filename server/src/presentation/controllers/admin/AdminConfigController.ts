@@ -60,7 +60,14 @@ export class AdminConfigController extends BaseController {
     try {
       const labId = this.getAuthenticatedUser(req).labId;
       if (!labId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Lab context required for metrics'));
+        res
+          .status(400)
+          .json(
+            ResponseBuilder.error(
+              API_ERROR_CODES.REQUIRED_FIELD_MISSING,
+              'Lab context required for metrics'
+            )
+          );
         return;
       }
 

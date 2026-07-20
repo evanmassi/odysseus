@@ -36,7 +36,7 @@ describe('password change atomicity', () => {
   /** Runs the real transaction, then sabotages the session revoke inside it. */
   const failingUnitOfWork = (method: 'revokeAllSessions' | 'bulkRevoke'): UnitOfWork => ({
     withTransaction: <T>(work: (repos: Repositories) => Promise<T>): Promise<T> =>
-      factory.withTransaction((repos) => {
+      factory.withTransaction(repos => {
         const userSessions = Object.create(repos.userSessions) as Repositories['userSessions'];
         userSessions[method] = () => Promise.reject(new Error('SIMULATED_REVOKE_FAILURE'));
         return work({ ...repos, userSessions });
@@ -141,9 +141,15 @@ describe('password change atomicity', () => {
       const hashBefore = await storedHashOf(user.id);
 
       // A second session exists, so the revoke path actually runs.
-      await factory.getRepositories().userSessions.save(
-        UserSession.create(user.id, 'some-other-token-hash', new Date(Date.now() + 60 * 60 * 1000))
-      );
+      await factory
+        .getRepositories()
+        .userSessions.save(
+          UserSession.create(
+            user.id,
+            'some-other-token-hash',
+            new Date(Date.now() + 60 * 60 * 1000)
+          )
+        );
 
       await expect(
         buildHandler(failingUnitOfWork('bulkRevoke')).handle({

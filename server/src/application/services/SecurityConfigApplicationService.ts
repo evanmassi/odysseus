@@ -21,9 +21,14 @@ export class SecurityConfigApplicationService {
     return this.deps.storageRepository.getSecurityConfig();
   }
 
-  async updateSecurityConfig(updates: Partial<SecurityConfig>, user: User): Promise<SecurityConfig> {
+  async updateSecurityConfig(
+    updates: Partial<SecurityConfig>,
+    user: User
+  ): Promise<SecurityConfig> {
     if (user.isDemo) {
-      throw new PermissionError('Security configuration changes are restricted in the demo environment');
+      throw new PermissionError(
+        'Security configuration changes are restricted in the demo environment'
+      );
     }
     return this.deps.storageRepository.updateSecurityConfig(updates);
   }

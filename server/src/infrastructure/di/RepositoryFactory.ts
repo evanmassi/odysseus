@@ -163,7 +163,9 @@ export class RepositoryFactory implements UnitOfWork {
 
   getEquipmentCategoryRepository(): CategoryRepository<EquipmentCategory> {
     if (!this.equipmentCategoryRepository) {
-      this.equipmentCategoryRepository = this.buildEquipmentCategoryRepository(this.postgresContext);
+      this.equipmentCategoryRepository = this.buildEquipmentCategoryRepository(
+        this.postgresContext
+      );
     }
     return this.equipmentCategoryRepository;
   }
@@ -224,17 +226,21 @@ export class RepositoryFactory implements UnitOfWork {
    * event-handler writes (audit) out of the caller's transaction and safe from its rollback.
    */
   async withTransaction<T>(work: (repos: Repositories) => Promise<T>): Promise<T> {
-    return this.postgresContext.transaction(async (client) => {
+    return this.postgresContext.transaction(async client => {
       return work(this.buildRepositories(new TransactionalContext(client)));
     });
   }
 
   private buildEquipmentCategoryRepository(db: Queryable): CategoryRepository<EquipmentCategory> {
-    return new CategoryRepositoryImpl(db, EQUIPMENT_CATEGORY_TABLES, data => EquipmentCategory.fromData(data));
+    return new CategoryRepositoryImpl(db, EQUIPMENT_CATEGORY_TABLES, data =>
+      EquipmentCategory.fromData(data)
+    );
   }
 
   private buildSupplyCategoryRepository(db: Queryable): CategoryRepository<SupplyCategory> {
-    return new CategoryRepositoryImpl(db, SUPPLY_CATEGORY_TABLES, data => SupplyCategory.fromData(data));
+    return new CategoryRepositoryImpl(db, SUPPLY_CATEGORY_TABLES, data =>
+      SupplyCategory.fromData(data)
+    );
   }
 
   private buildRepositories(db: Queryable): Repositories {
@@ -268,7 +274,7 @@ export class RepositoryFactory implements UnitOfWork {
         repositories.tubes.isHealthy(),
         repositories.users.isHealthy(),
         repositories.researchers.isHealthy(),
-        repositories.storage.isHealthy()
+        repositories.storage.isHealthy(),
       ]);
       return healthChecks.every(healthy => healthy);
     } catch {

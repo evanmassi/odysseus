@@ -24,7 +24,11 @@ import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 /** The slice of either application service this suite drives. */
 interface CategoryService {
-  createCategory(labId: string, data: { name: string; parentId?: string }, user: User): Promise<{ id: string }>;
+  createCategory(
+    labId: string,
+    data: { name: string; parentId?: string },
+    user: User
+  ): Promise<{ id: string }>;
   updateCategory(
     labId: string,
     id: string,
@@ -84,7 +88,7 @@ describe('category depth invariant', () => {
     };
   };
 
-  describe.each(['equipment', 'supplies'] as const)('%s categories', (domain) => {
+  describe.each(['equipment', 'supplies'] as const)('%s categories', domain => {
     /** Top-level parent, a subcategory beneath it, and an unrelated top-level category. */
     const buildTree = async () => {
       const lab = await seed.lab();
@@ -92,7 +96,11 @@ describe('category depth invariant', () => {
       const service = services()[domain];
 
       const parent = await service.createCategory(lab.id, { name: 'Parent' }, admin);
-      const child = await service.createCategory(lab.id, { name: 'Child', parentId: parent.id }, admin);
+      const child = await service.createCategory(
+        lab.id,
+        { name: 'Child', parentId: parent.id },
+        admin
+      );
       const other = await service.createCategory(lab.id, { name: 'Other' }, admin);
 
       return { labId: lab.id, admin, service, parent, child, other };

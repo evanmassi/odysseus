@@ -101,7 +101,7 @@ export class CheckStorageHealthQueryHandler {
           isHealthy: false,
           issues: ['No configuration found'],
           lastUpdated: null,
-          version: 0
+          version: 0,
         };
       }
 
@@ -111,7 +111,10 @@ export class CheckStorageHealthQueryHandler {
         issues.push('No tanks configured');
       }
 
-      const totalRacks = configuration.equipment.tanks.reduce((sum, tank) => sum + tank.racks.length, 0);
+      const totalRacks = configuration.equipment.tanks.reduce(
+        (sum, tank) => sum + tank.racks.length,
+        0
+      );
       if (totalRacks === 0) {
         issues.push('No racks configured');
       }
@@ -128,15 +131,16 @@ export class CheckStorageHealthQueryHandler {
         isHealthy: issues.length === 0,
         issues,
         lastUpdated: configuration.updatedAt,
-        version: configuration.version
+        version: configuration.version,
       };
-
     } catch (error) {
       return {
         isHealthy: false,
-        issues: [`Storage configuration validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        issues: [
+          `Storage configuration validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ],
         lastUpdated: null,
-        version: 0
+        version: 0,
       };
     }
   }

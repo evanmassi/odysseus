@@ -14,5 +14,5 @@ export const migration026: Migration = {
   async up(pool: Pool): Promise<void> {
     await pool.query(`DROP INDEX IF EXISTS idx_researchers_approval_status`);
     await pool.query(`ALTER TABLE researchers DROP COLUMN IF EXISTS approval_status`);
-  }
+  },
 };

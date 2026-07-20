@@ -4,8 +4,14 @@
  * Lazy-singleton wiring for user management, roles, settings, researchers, and persons.
  */
 
-import { ChangeUserRoleCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
-import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
+import {
+  ChangeUserRoleCommandHandler,
+  UpdateUserSettingsCommandHandler,
+} from '@application/commands/UserCommands';
+import {
+  GetUserSettingsQueryHandler,
+  CheckFirstTimeSetupQueryHandler,
+} from '@application/queries/UserQueries';
 import { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { SecurityMonitoringApplicationService } from '@application/services/SecurityMonitoringApplicationService';
@@ -58,9 +64,7 @@ export class UserModule {
   getUpdateUserSettingsHandler(): UpdateUserSettingsCommandHandler {
     if (!this.updateUserSettingsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.updateUserSettingsHandler = new UpdateUserSettingsCommandHandler(
-        repositories.users
-      );
+      this.updateUserSettingsHandler = new UpdateUserSettingsCommandHandler(repositories.users);
     }
     return this.updateUserSettingsHandler;
   }
@@ -68,9 +72,7 @@ export class UserModule {
   getGetUserSettingsHandler(): GetUserSettingsQueryHandler {
     if (!this.getUserSettingsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getUserSettingsHandler = new GetUserSettingsQueryHandler(
-        repositories.users
-      );
+      this.getUserSettingsHandler = new GetUserSettingsQueryHandler(repositories.users);
     }
     return this.getUserSettingsHandler;
   }
@@ -78,9 +80,7 @@ export class UserModule {
   getCheckFirstTimeHandler(): CheckFirstTimeSetupQueryHandler {
     if (!this.checkFirstTimeHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.checkFirstTimeHandler = new CheckFirstTimeSetupQueryHandler(
-        repositories.users
-      );
+      this.checkFirstTimeHandler = new CheckFirstTimeSetupQueryHandler(repositories.users);
     }
     return this.checkFirstTimeHandler;
   }

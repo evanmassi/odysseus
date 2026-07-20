@@ -6,14 +6,16 @@
 
 import { UserSession } from './UserSession';
 
-function createTestSession(overrides: {
-  userId?: string;
-  refreshToken?: string;
-  expiresAt?: Date;
-  deviceInfo?: string;
-  ipAddress?: string;
-  userAgent?: string;
-} = {}): UserSession {
+function createTestSession(
+  overrides: {
+    userId?: string;
+    refreshToken?: string;
+    expiresAt?: Date;
+    deviceInfo?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  } = {}
+): UserSession {
   return UserSession.create(
     overrides.userId ?? 'user_1',
     overrides.refreshToken ?? 'token_abc123',
@@ -61,26 +63,32 @@ describe('UserSession', () => {
     });
 
     it('should throw for empty refreshToken', () => {
-      expect(() => createTestSession({ refreshToken: '' })).toThrow('Session must have a refresh token');
+      expect(() => createTestSession({ refreshToken: '' })).toThrow(
+        'Session must have a refresh token'
+      );
     });
 
     it('should throw when expiresAt is before creation time', () => {
-      expect(() => createTestSession({
-        expiresAt: new Date(Date.now() - 60 * 1000),
-      })).toThrow('Session expiry must be after creation time');
+      expect(() =>
+        createTestSession({
+          expiresAt: new Date(Date.now() - 60 * 1000),
+        })
+      ).toThrow('Session expiry must be after creation time');
     });
 
     it('should throw when lastUsedAt is before createdAt via fromData', () => {
       const now = new Date();
-      expect(() => UserSession.fromData({
-        id: 'session_1',
-        userId: 'user_1',
-        refreshToken: 'token_abc',
-        createdAt: now,
-        lastUsedAt: new Date(now.getTime() - 60 * 1000),
-        expiresAt: new Date(now.getTime() + 60 * 60 * 1000),
-        isActive: true,
-      })).toThrow('Session last used cannot be before creation time');
+      expect(() =>
+        UserSession.fromData({
+          id: 'session_1',
+          userId: 'user_1',
+          refreshToken: 'token_abc',
+          createdAt: now,
+          lastUsedAt: new Date(now.getTime() - 60 * 1000),
+          expiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+          isActive: true,
+        })
+      ).toThrow('Session last used cannot be before creation time');
     });
   });
 

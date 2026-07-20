@@ -29,8 +29,8 @@ export function tubeDataToCreateRequest(
       source: tube.sample.source,
       catalogNumber: tube.sample.catalogNumber,
       passageNumber: tube.sample.passageNumber,
-      notes: tube.sample.notes
+      notes: tube.sample.notes,
     },
-    researcherId: tube.researcherId
+    researcherId: tube.researcherId,
   };
 }

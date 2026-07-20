@@ -4,7 +4,12 @@
 
 import { AccessControlService } from './AccessControlService';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { createTestUser, createTestAdmin, createTestSystemAdmin, createTestTube } from '@domain/__tests__/helpers';
+import {
+  createTestUser,
+  createTestAdmin,
+  createTestSystemAdmin,
+  createTestTube,
+} from '@domain/__tests__/helpers';
 
 const mockTubeRepository = {
   findById: jest.fn(),
@@ -380,17 +385,15 @@ describe('AccessControlService', () => {
       it('should not throw when allowed', async () => {
         const admin = createTestAdmin();
         const tube = createTestTube();
-        await expect(
-          createService().requireTubeAccess(admin, tube, 'edit')
-        ).resolves.not.toThrow();
+        await expect(createService().requireTubeAccess(admin, tube, 'edit')).resolves.not.toThrow();
       });
 
       it('should throw PermissionError when denied', async () => {
         const user = createTestUser({ researcherId: 'res_1' });
         const tube = createTestTube({ researcherId: 'res_other' });
-        await expect(
-          createService().requireTubeAccess(user, tube, 'edit')
-        ).rejects.toThrow(PermissionError);
+        await expect(createService().requireTubeAccess(user, tube, 'edit')).rejects.toThrow(
+          PermissionError
+        );
       });
     });
 

@@ -10,7 +10,6 @@ import type { Location } from '@domain/value-objects/Location';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
 export interface StorageRepository {
-
   getForLab(labId: string): Promise<Storage | null>;
   getForLabs(labIds: string[]): Promise<Map<string, Storage>>;
   ensureDefaultForLab(labId: string): Promise<Storage>;
@@ -33,11 +32,7 @@ export interface StorageRepository {
    * @throws ValidationError if tubes exist in the equipment
    * @throws NotFoundError if equipment doesn't exist
    */
-  deleteEmptyTank(
-    labId: string,
-    tankId: string,
-    changedBy: string
-  ): Promise<{ tankName: string }>;
+  deleteEmptyTank(labId: string, tankId: string, changedBy: string): Promise<{ tankName: string }>;
 
   deleteEmptyRack(
     labId: string,

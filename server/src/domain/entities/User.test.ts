@@ -6,7 +6,12 @@
 
 import { User } from './User';
 import { UserRole } from '@domain/value-objects/UserRole';
-import { createTestUser, createTestAdmin, createTestSystemAdmin, TEST_PASSWORD_HASH } from '@domain/__tests__/helpers';
+import {
+  createTestUser,
+  createTestAdmin,
+  createTestSystemAdmin,
+  TEST_PASSWORD_HASH,
+} from '@domain/__tests__/helpers';
 
 describe('User', () => {
   describe('factory methods', () => {
@@ -31,7 +36,14 @@ describe('User', () => {
       });
 
       it('should accept labId', () => {
-        const user = User.create('test', 'api_' + 'x'.repeat(32), false, undefined, undefined, 'lab_123');
+        const user = User.create(
+          'test',
+          'api_' + 'x'.repeat(32),
+          false,
+          undefined,
+          undefined,
+          'lab_123'
+        );
         expect(user.labId).toBe('lab_123');
       });
     });
@@ -140,7 +152,9 @@ describe('User', () => {
     it('should prevent lab_admin from assigning system_admin role', () => {
       const labAdmin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ labId: 'lab_1' });
-      expect(() => user.changeRole('system_admin', labAdmin)).toThrow('Lab administrators cannot assign system admin role');
+      expect(() => user.changeRole('system_admin', labAdmin)).toThrow(
+        'Lab administrators cannot assign system admin role'
+      );
     });
 
     it('should prevent lab_admin from changing roles in another lab', () => {
@@ -281,7 +295,9 @@ describe('User', () => {
     it('should not suspend an already-suspended user', () => {
       const sysAdmin = createTestSystemAdmin();
       const user = createTestUser({ status: 'suspended' });
-      expect(() => user.suspend(sysAdmin)).toThrow('Only approved or deactivated users can be suspended');
+      expect(() => user.suspend(sysAdmin)).toThrow(
+        'Only approved or deactivated users can be suspended'
+      );
     });
 
     it('should unsuspend user (system admin only)', () => {
@@ -294,7 +310,9 @@ describe('User', () => {
     it('should not allow lab admin to unsuspend', () => {
       const labAdmin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'suspended', labId: 'lab_1' });
-      expect(() => user.reactivate(labAdmin)).toThrow('Only system administrators can unsuspend users');
+      expect(() => user.reactivate(labAdmin)).toThrow(
+        'Only system administrators can unsuspend users'
+      );
     });
   });
 
@@ -428,7 +446,9 @@ describe('User', () => {
       const user = createTestUser();
       user.generatePasswordResetToken();
       (user as any)._passwordResetExpiry = new Date(Date.now() - 1000);
-      expect(() => user.resetPasswordWithToken('anytoken', '$2b$12$hash')).toThrow('Password reset token expired');
+      expect(() => user.resetPasswordWithToken('anytoken', '$2b$12$hash')).toThrow(
+        'Password reset token expired'
+      );
     });
 
     it('should clear requirePasswordChange after reset', () => {
@@ -443,7 +463,9 @@ describe('User', () => {
 
     it('should reject reset without token', () => {
       const user = createTestUser();
-      expect(() => user.resetPasswordWithToken('token', '$2b$12$hash')).toThrow('No password reset token found');
+      expect(() => user.resetPasswordWithToken('token', '$2b$12$hash')).toThrow(
+        'No password reset token found'
+      );
     });
   });
 

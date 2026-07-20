@@ -5,10 +5,15 @@
  * Input validation is handled by Zod middleware; this layer enforces business rules only.
  */
 
-
 import type { EventBus } from '@application/contracts/EventBus';
 import { TubeDto } from '@application/dto/TubeDto';
-import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchResponse } from '@application/dto/TubeDto';
+import type {
+  CreateTubeRequest,
+  UpdateTubeRequest,
+  TubeResponse,
+  BulkUpdateRequest,
+  TubeSearchResponse,
+} from '@application/dto/TubeDto';
 import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
@@ -34,7 +39,7 @@ import {
   TubesLockedEvent,
   TubesUnlockedEvent,
   TubeAccessSharedEvent,
-  TubeAccessRevokedEvent
+  TubeAccessRevokedEvent,
 } from '@domain/events/TubeLockEvents';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
@@ -49,7 +54,11 @@ import { logger } from '@infrastructure/logging/logger';
 
 import { executeBulk } from './executeBulk';
 
-import type { TubeFilterableField, TubeFilterOptions, RackTube, TubeLocationCount ,
+import type {
+  TubeFilterableField,
+  TubeFilterOptions,
+  RackTube,
+  TubeLocationCount,
   BulkMoveRequest,
   LockTubesRequest,
   UnlockTubesRequest,
@@ -59,10 +68,8 @@ import type { TubeFilterableField, TubeFilterOptions, RackTube, TubeLocationCoun
   BulkUnlockResult,
   ShareAccessResult,
   RevokeAccessResult,
-  SkippedTube
+  SkippedTube,
 } from '@odysseus/shared-schemas';
-
-
 
 export class TubeApplicationService {
   constructor(
@@ -74,14 +81,28 @@ export class TubeApplicationService {
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService,
     private eventBus: EventBus,
-    private ensureDonorExists?: (labId: string, sourceId?: string, internalId?: string, species?: string) => Promise<void>
+    private ensureDonorExists?: (
+      labId: string,
+      sourceId?: string,
+      internalId?: string,
+      species?: string
+    ) => Promise<void>
   ) {}
 
-  private async getContainerInfo(labId: string, tankId: string, rackId: string, boxId: string, preloadedConfig?: Storage | null): Promise<{
+  private async getContainerInfo(
+    labId: string,
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    preloadedConfig?: Storage | null
+  ): Promise<{
     rack: { assignedUserId?: string | null };
     box: { assignedUserId?: string | null };
   } | null> {
-    const config = preloadedConfig !== undefined ? preloadedConfig : await this.storageRepository.getForLab(labId);
+    const config =
+      preloadedConfig !== undefined
+        ? preloadedConfig
+        : await this.storageRepository.getForLab(labId);
     if (!config) return null;
 
     const result = config.getBox(tankId, rackId, boxId);
@@ -114,7 +135,8 @@ export class TubeApplicationService {
     authenticatedUser: User,
     options?: { config?: Storage | null; preloadedTube?: Tube }
   ): Promise<Tube> {
-    const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
+    const tube =
+      options?.preloadedTube ?? (await this.getTubeOrThrow(id, authenticatedUser.labId!));
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     if (!allowedTankIds.includes(tube.location.tankId)) {
@@ -158,7 +180,16 @@ export class TubeApplicationService {
     return { tubeMap, allowedTankSet };
   }
 
-  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string>; bulkOperation?: boolean }): Promise<TubeResponse> {
+  async createTube(
+    request: CreateTubeRequest,
+    authenticatedUser: User,
+    options?: {
+      config?: Storage | null;
+      positionValidation?: { isValid: boolean; reason?: string };
+      researcherNameCache?: Map<string, string>;
+      bulkOperation?: boolean;
+    }
+  ): Promise<TubeResponse> {
     await this.accessControlService.requireCanCreateTube(authenticatedUser);
 
     const tubeData = TubeDto.fromCreateRequest(request);
@@ -202,7 +233,7 @@ export class TubeApplicationService {
 
       if (!positionResult.isValid) {
         throw new ValidationError(`Position conflict: ${positionResult.reason}`, {
-          position: `${tubeData.location.tankId}-${tubeData.location.rackId}-${tubeData.location.boxId}-${tubeData.location.position}`
+          position: `${tubeData.location.tankId}-${tubeData.location.rackId}-${tubeData.location.boxId}-${tubeData.location.position}`,
         });
       }
     }
@@ -213,9 +244,14 @@ export class TubeApplicationService {
       if (options?.researcherNameCache?.has(tubeData.researcherId)) {
         createdByName = options.researcherNameCache.get(tubeData.researcherId);
       } else {
-        const researcher = await this.researcherRepository.findById(tubeData.researcherId, authenticatedUser.labId!);
+        const researcher = await this.researcherRepository.findById(
+          tubeData.researcherId,
+          authenticatedUser.labId!
+        );
         if (!researcher) {
-          throw new ValidationError('The selected researcher could not be found in this lab.', { researcherId: tubeData.researcherId });
+          throw new ValidationError('The selected researcher could not be found in this lab.', {
+            researcherId: tubeData.researcherId,
+          });
         }
         const person = await this.personRepository.findById(researcher.personId);
         if (person) {
@@ -227,7 +263,7 @@ export class TubeApplicationService {
     const tube = Tube.create({
       ...tubeData,
       createdByName,
-      labId: authenticatedUser.labId
+      labId: authenticatedUser.labId,
     });
 
     await this.tubeRepository.save(tube);
@@ -235,7 +271,10 @@ export class TubeApplicationService {
     const sample = tube.sample;
     if (this.ensureDonorExists && (sample.donorSourceId ?? sample.donorInternalId)) {
       await this.ensureDonorExists(
-        authenticatedUser.labId!, sample.donorSourceId, sample.donorInternalId, sample.species
+        authenticatedUser.labId!,
+        sample.donorSourceId,
+        sample.donorInternalId,
+        sample.species
       );
     }
 
@@ -262,11 +301,14 @@ export class TubeApplicationService {
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     const researcherNameCache = new Map<string, string>();
-    const uniqueResearcherIds = [...new Set(
-      requests.map(r => r.researcherId).filter((id): id is string => !!id)
-    )];
+    const uniqueResearcherIds = [
+      ...new Set(requests.map(r => r.researcherId).filter((id): id is string => !!id)),
+    ];
     if (uniqueResearcherIds.length > 0) {
-      const researchers = await this.researcherRepository.findByIds(uniqueResearcherIds, authenticatedUser.labId!);
+      const researchers = await this.researcherRepository.findByIds(
+        uniqueResearcherIds,
+        authenticatedUser.labId!
+      );
       const personIds = [...new Set(researchers.map(r => r.personId))];
       if (personIds.length > 0) {
         const persons = await this.personRepository.findByIds(personIds);
@@ -295,7 +337,12 @@ export class TubeApplicationService {
         const { tankId, rackId, boxId } = group[0].req.location;
         const [occupiedArr, tubesInBox] = await Promise.all([
           this.tubeRepository.getOccupiedPositions(tankId, rackId, boxId, authenticatedUser.labId!),
-          this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId, authenticatedUser.labId!),
+          this.tubeRepository.findByCompleteLocation(
+            tankId,
+            rackId,
+            boxId,
+            authenticatedUser.labId!
+          ),
         ]);
         const occupiedPositions = new Set(occupiedArr);
         const boxInfo = config.getBox(tankId, rackId, boxId);
@@ -322,12 +369,13 @@ export class TubeApplicationService {
 
     const { succeeded: created, failed } = await executeBulk(
       requests,
-      (req, index) => this.createTube(req, authenticatedUser, {
-        config,
-        positionValidation: positionValidations.get(index),
-        researcherNameCache,
-        bulkOperation: true,
-      }),
+      (req, index) =>
+        this.createTube(req, authenticatedUser, {
+          config,
+          positionValidation: positionValidations.get(index),
+          researcherNameCache,
+          bulkOperation: true,
+        }),
       (req, index, error) => ({ index, request: req, error })
     );
 
@@ -390,7 +438,12 @@ export class TubeApplicationService {
       return [];
     }
 
-    const tubes = await this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId, authenticatedUser.labId!);
+    const tubes = await this.tubeRepository.findByCompleteLocation(
+      tankId,
+      rackId,
+      boxId,
+      authenticatedUser.labId!
+    );
 
     return TubeDto.toResponseList(tubes);
   }
@@ -429,16 +482,25 @@ export class TubeApplicationService {
   ): Promise<TubeSearchResponse> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const filteredCriteria = await this.restrictCriteriaToAllowedTanks(criteria, authenticatedUser.labId!);
-    const result = await this.tubeRepository.searchWithHighlighting(filteredCriteria, authenticatedUser.labId!);
+    const filteredCriteria = await this.restrictCriteriaToAllowedTanks(
+      criteria,
+      authenticatedUser.labId!
+    );
+    const result = await this.tubeRepository.searchWithHighlighting(
+      filteredCriteria,
+      authenticatedUser.labId!
+    );
 
     return {
       tubes: TubeDto.toResponseList(result.tubes),
-      matchedTerms: result.matchedTerms
+      matchedTerms: result.matchedTerms,
     };
   }
 
-  private async restrictCriteriaToAllowedTanks(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchCriteria> {
+  private async restrictCriteriaToAllowedTanks(
+    criteria: TubeSearchCriteria,
+    labId: string
+  ): Promise<TubeSearchCriteria> {
     const allowedTankIds = await this.getAllowedTankIds(labId);
     const requested = criteria.tankIds ?? (criteria.tankId ? [criteria.tankId] : undefined);
     const tankIds = requested
@@ -448,26 +510,32 @@ export class TubeApplicationService {
     return { ...criteria, tankIds };
   }
 
-  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube; bulkOperation?: boolean }): Promise<TubeResponse> {
+  async updateTube(
+    id: string,
+    request: UpdateTubeRequest,
+    authenticatedUser: User,
+    options?: { config?: Storage | null; preloadedTube?: Tube; bulkOperation?: boolean }
+  ): Promise<TubeResponse> {
     const existingTube = await this.loadModifiableTube(id, authenticatedUser, options);
 
-    const hasLocationUpdate = request.location && (
-      request.location.tankId ?? request.location.rackId ?? 
-      request.location.boxId ?? request.location.position !== undefined
-    );
-    
+    const hasLocationUpdate =
+      request.location &&
+      (request.location.tankId ??
+        request.location.rackId ??
+        request.location.boxId ??
+        request.location.position !== undefined);
+
     if (hasLocationUpdate && request.location) {
       const newTankId = request.location.tankId ?? existingTube.location.tankId;
       const newRackId = request.location.rackId ?? existingTube.location.rackId;
       const newBoxId = request.location.boxId ?? existingTube.location.boxId;
       const newPosition = request.location.position ?? existingTube.location.position;
 
-      const positionChanged = (
+      const positionChanged =
         newTankId !== existingTube.location.tankId ||
         newRackId !== existingTube.location.rackId ||
         newBoxId !== existingTube.location.boxId ||
-        newPosition !== existingTube.location.position
-      );
+        newPosition !== existingTube.location.position;
 
       if (positionChanged) {
         const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
@@ -475,7 +543,13 @@ export class TubeApplicationService {
           throw new PermissionError('Cannot move tube to inaccessible tank', { tankId: newTankId });
         }
 
-        const destContainerInfo = await this.getContainerInfo(authenticatedUser.labId!, newTankId, newRackId, newBoxId, options?.config);
+        const destContainerInfo = await this.getContainerInfo(
+          authenticatedUser.labId!,
+          newTankId,
+          newRackId,
+          newBoxId,
+          options?.config
+        );
         if (destContainerInfo) {
           const destAccess = this.accessControlService.canAccessContainer(
             authenticatedUser,
@@ -502,7 +576,7 @@ export class TubeApplicationService {
 
         if (!positionResult.isValid) {
           throw new ValidationError(`Position conflict: ${positionResult.reason}`, {
-            position: `${newTankId}-${newRackId}-${newBoxId}-${newPosition}`
+            position: `${newTankId}-${newRackId}-${newBoxId}-${newPosition}`,
           });
         }
       }
@@ -524,9 +598,14 @@ export class TubeApplicationService {
 
     // A tube may be unassigned (empty/null researcherId), but a set researcherId must resolve in-lab.
     if (updateData.researcherId) {
-      const researcher = await this.researcherRepository.findById(updateData.researcherId, authenticatedUser.labId!);
+      const researcher = await this.researcherRepository.findById(
+        updateData.researcherId,
+        authenticatedUser.labId!
+      );
       if (!researcher) {
-        throw new ValidationError('The selected researcher could not be found in this lab.', { researcherId: updateData.researcherId });
+        throw new ValidationError('The selected researcher could not be found in this lab.', {
+          researcherId: updateData.researcherId,
+        });
       }
     }
 
@@ -540,11 +619,19 @@ export class TubeApplicationService {
 
     // Auto-create donor registry stub if donor IDs changed to new values
     const updatedSample = updatedTube.sample;
-    const donorIdsChanged = updatedSample.donorSourceId !== oldSampleData.donorSourceId
-      || updatedSample.donorInternalId !== oldSampleData.donorInternalId;
-    if (this.ensureDonorExists && donorIdsChanged && (updatedSample.donorSourceId ?? updatedSample.donorInternalId)) {
+    const donorIdsChanged =
+      updatedSample.donorSourceId !== oldSampleData.donorSourceId ||
+      updatedSample.donorInternalId !== oldSampleData.donorInternalId;
+    if (
+      this.ensureDonorExists &&
+      donorIdsChanged &&
+      (updatedSample.donorSourceId ?? updatedSample.donorInternalId)
+    ) {
       await this.ensureDonorExists(
-        authenticatedUser.labId!, updatedSample.donorSourceId, updatedSample.donorInternalId, updatedSample.species
+        authenticatedUser.labId!,
+        updatedSample.donorSourceId,
+        updatedSample.donorInternalId,
+        updatedSample.species
       );
     }
 
@@ -577,7 +664,11 @@ export class TubeApplicationService {
     return TubeDto.toResponse(updatedTube);
   }
 
-  async deleteTube(id: string, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube }): Promise<void> {
+  async deleteTube(
+    id: string,
+    authenticatedUser: User,
+    options?: { config?: Storage | null; preloadedTube?: Tube }
+  ): Promise<void> {
     const tube = await this.loadModifiableTube(id, authenticatedUser, options);
 
     await this.tubeRepository.delete(id, authenticatedUser.labId!);
@@ -607,9 +698,13 @@ export class TubeApplicationService {
 
     const { succeeded: updated, failed } = await executeBulk(
       request.updates,
-      async (item) => {
+      async item => {
         const preloadedTube = tubeMap.get(item.id);
-        await this.updateTube(item.id, item.updates, authenticatedUser, { config, preloadedTube, bulkOperation: true });
+        await this.updateTube(item.id, item.updates, authenticatedUser, {
+          config,
+          preloadedTube,
+          bulkOperation: true,
+        });
         return item.id;
       },
       (item, _index, error) => ({ id: item.id, error })
@@ -620,9 +715,10 @@ export class TubeApplicationService {
       const perItemData: BulkTubeUpdatedDetail[] = updated.map(id => {
         const tube = tubeMap.get(id)!;
         const updates = updateMap.get(id) ?? {};
-        const changes: Array<{ field: string; oldValue: unknown; newValue: unknown }> = Object.entries(updates)
-          .filter(([, v]) => v !== undefined)
-          .map(([field, newValue]) => ({ field, oldValue: undefined, newValue }));
+        const changes: Array<{ field: string; oldValue: unknown; newValue: unknown }> =
+          Object.entries(updates)
+            .filter(([, v]) => v !== undefined)
+            .map(([field, newValue]) => ({ field, oldValue: undefined, newValue }));
         return { tubeId: id, changes, location: tube.location.toData() };
       });
       const bulkUpdateEvent = new BulkTubesUpdatedEvent(
@@ -646,7 +742,10 @@ export class TubeApplicationService {
     failed: Array<{ id: string; error: string }>;
   }> {
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
-    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(tubeIds, authenticatedUser.labId!);
+    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(
+      tubeIds,
+      authenticatedUser.labId!
+    );
 
     const validatedIds: string[] = [];
     const validatedTubes: Tube[] = [];
@@ -772,7 +871,10 @@ export class TubeApplicationService {
   }> {
     const labId = authenticatedUser.labId!;
     const config = await this.storageRepository.getForLab(labId);
-    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(moves.map(m => m.tubeId), labId);
+    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(
+      moves.map(m => m.tubeId),
+      labId
+    );
 
     const moved: TubeResponse[] = [];
     const failed: Array<{ tubeId: string; error: string }> = [];
@@ -797,11 +899,17 @@ export class TubeApplicationService {
 
       try {
         const sourceContainerInfo = await this.getContainerInfo(
-          labId, tube.location.tankId, tube.location.rackId, tube.location.boxId, config
+          labId,
+          tube.location.tankId,
+          tube.location.rackId,
+          tube.location.boxId,
+          config
         );
         if (sourceContainerInfo) {
           const sourceAccess = this.accessControlService.canAccessTubeForModification(
-            authenticatedUser, tube, sourceContainerInfo
+            authenticatedUser,
+            tube,
+            sourceContainerInfo
           );
           if (!sourceAccess.allowed) {
             failed.push({ tubeId: move.tubeId, error: sourceAccess.reason });
@@ -810,24 +918,39 @@ export class TubeApplicationService {
         }
 
         const destContainerInfo = await this.getContainerInfo(
-          labId, move.destination.tankId, move.destination.rackId, move.destination.boxId, config
+          labId,
+          move.destination.tankId,
+          move.destination.rackId,
+          move.destination.boxId,
+          config
         );
         if (destContainerInfo) {
           const destAccess = this.accessControlService.canAccessContainer(
-            authenticatedUser, destContainerInfo
+            authenticatedUser,
+            destContainerInfo
           );
           if (!destAccess.allowed) {
-            failed.push({ tubeId: move.tubeId, error: `Cannot move to destination: ${destAccess.reason}` });
+            failed.push({
+              tubeId: move.tubeId,
+              error: `Cannot move to destination: ${destAccess.reason}`,
+            });
             continue;
           }
         }
 
         const positionResult = await this.tubePositionService.validatePosition(
-          move.destination.tankId, move.destination.rackId, move.destination.boxId,
-          move.destination.position, move.tubeId, labId
+          move.destination.tankId,
+          move.destination.rackId,
+          move.destination.boxId,
+          move.destination.position,
+          move.tubeId,
+          labId
         );
         if (!positionResult.isValid) {
-          failed.push({ tubeId: move.tubeId, error: `Position conflict: ${positionResult.reason}` });
+          failed.push({
+            tubeId: move.tubeId,
+            error: `Position conflict: ${positionResult.reason}`,
+          });
           continue;
         }
 
@@ -838,7 +961,11 @@ export class TubeApplicationService {
         await this.tubeRepository.saveWithOptimisticLock(tube, move.version);
 
         const locationEvent = new TubeLocationChangedEvent(
-          tube.id, oldLocation, newLocation, authenticatedUser.id, labId
+          tube.id,
+          oldLocation,
+          newLocation,
+          authenticatedUser.id,
+          labId
         );
         if (moves.length > 1) locationEvent.partOfBulkOperation = true;
         await this.eventBus.publish(locationEvent);
@@ -853,7 +980,10 @@ export class TubeApplicationService {
         if (error instanceof ConflictError) {
           failed.push({ tubeId: move.tubeId, error: 'Tube was modified by another user' });
         } else {
-          failed.push({ tubeId: move.tubeId, error: error instanceof Error ? error.message : 'Unknown error' });
+          failed.push({
+            tubeId: move.tubeId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
         }
       }
     }
@@ -871,15 +1001,15 @@ export class TubeApplicationService {
     return { moved, failed };
   }
 
-  async lockTubes(
-    request: LockTubesRequest,
-    authenticatedUser: User
-  ): Promise<BulkLockResult> {
+  async lockTubes(request: LockTubesRequest, authenticatedUser: User): Promise<BulkLockResult> {
     const locked: string[] = [];
     const skipped: SkippedTube[] = [];
 
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
-    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(request.tubeIds, authenticatedUser.labId!);
+    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(
+      request.tubeIds,
+      authenticatedUser.labId!
+    );
 
     for (const tubeId of request.tubeIds) {
       const tube = tubeMap.get(tubeId);
@@ -961,7 +1091,10 @@ export class TubeApplicationService {
     const unlocked: string[] = [];
     const skipped: SkippedTube[] = [];
 
-    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(request.tubeIds, authenticatedUser.labId!);
+    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(
+      request.tubeIds,
+      authenticatedUser.labId!
+    );
 
     for (const tubeId of request.tubeIds) {
       const tube = tubeMap.get(tubeId);
@@ -1027,7 +1160,10 @@ export class TubeApplicationService {
       throw new Error('One or more users not found');
     }
 
-    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(request.tubeIds, authenticatedUser.labId!);
+    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(
+      request.tubeIds,
+      authenticatedUser.labId!
+    );
 
     for (const tubeId of request.tubeIds) {
       const tube = tubeMap.get(tubeId);
@@ -1085,7 +1221,10 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
-    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(request.tubeIds, authenticatedUser.labId!);
+    const { tubeMap, allowedTankSet } = await this.loadTubesForBulk(
+      request.tubeIds,
+      authenticatedUser.labId!
+    );
 
     for (const tubeId of request.tubeIds) {
       const tube = tubeMap.get(tubeId);

@@ -5,7 +5,12 @@
  */
 
 import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
-import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
+import type {
+  CreateLabCommandHandler,
+  UpdateLabCommandHandler,
+  DeactivateLabCommandHandler,
+  ActivateLabCommandHandler,
+} from '@application/commands/LabCommands';
 import type { LabApplicationService } from '@application/services/LabApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { handleControllerError } from '@presentation/utils/errorHandler';

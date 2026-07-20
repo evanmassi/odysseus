@@ -11,12 +11,12 @@ export type { RefreshTokenResponse, TokenPair };
 
 export interface AccessTokenPayload {
   // Standard JWT claims (RFC 7519)
-  sub: string;              // Subject (user ID)
-  iss: string;              // Issuer
-  aud: string;              // Audience
-  exp: number;              // Expiration time
-  iat: number;              // Issued at
-  jti: string;              // JWT ID (unique)
+  sub: string; // Subject (user ID)
+  iss: string; // Issuer
+  aud: string; // Audience
+  exp: number; // Expiration time
+  iat: number; // Issued at
+  jti: string; // JWT ID (unique)
 
   // Custom claims
   sessionId: string;

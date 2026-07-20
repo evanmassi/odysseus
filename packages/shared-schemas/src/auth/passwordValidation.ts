@@ -34,33 +34,36 @@ export class PasswordValidator {
     return { isValid, requirements };
   }
 
-  static getRequirements(password: string, config: PasswordRequirementsConfig): PasswordRequirement[] {
+  static getRequirements(
+    password: string,
+    config: PasswordRequirementsConfig
+  ): PasswordRequirement[] {
     const requirements: PasswordRequirement[] = [];
 
     // Length requirement (always present)
     requirements.push({
       id: 'length',
       label: `At least ${config.passwordMinLength} characters`,
-      isMet: password.length >= config.passwordMinLength
+      isMet: password.length >= config.passwordMinLength,
     });
 
     if (config.requireStrongPasswords) {
       requirements.push({
         id: 'uppercase',
         label: 'Uppercase letter (A-Z)',
-        isMet: this.UPPERCASE_REGEX.test(password)
+        isMet: this.UPPERCASE_REGEX.test(password),
       });
 
       requirements.push({
         id: 'lowercase',
         label: 'Lowercase letter (a-z)',
-        isMet: this.LOWERCASE_REGEX.test(password)
+        isMet: this.LOWERCASE_REGEX.test(password),
       });
 
       requirements.push({
         id: 'number',
         label: 'Number (0-9)',
-        isMet: this.NUMBER_REGEX.test(password)
+        isMet: this.NUMBER_REGEX.test(password),
       });
     }
 
@@ -68,7 +71,7 @@ export class PasswordValidator {
       requirements.push({
         id: 'special',
         label: 'Special character (!@#$%^&*)',
-        isMet: this.SPECIAL_CHAR_REGEX.test(password)
+        isMet: this.SPECIAL_CHAR_REGEX.test(password),
       });
     }
 

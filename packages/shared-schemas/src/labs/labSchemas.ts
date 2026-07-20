@@ -41,7 +41,8 @@ export const inviteCodeDataSchema = z.object({
 export type InviteCodeData = z.infer<typeof inviteCodeDataSchema>;
 
 export const createLabRequestSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(1, 'Lab name is required')
     .max(200, 'Lab name cannot exceed 200 characters')
     .transform(val => val.trim()),
@@ -60,11 +61,13 @@ export const labDetailsUserSchema = z.object({
   status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
   lastActivity: dateField,
-  researcher: z.object({
-    name: z.string(),
-    tubeCount: z.number(),
-    active: z.boolean(),
-  }).nullable(),
+  researcher: z
+    .object({
+      name: z.string(),
+      tubeCount: z.number(),
+      active: z.boolean(),
+    })
+    .nullable(),
 });
 
 export type LabDetailsUser = z.infer<typeof labDetailsUserSchema>;
@@ -76,11 +79,13 @@ const labDetailsResearcherSchema = z.object({
   email: z.string().optional(),
   active: z.boolean(),
   tubeCount: z.number(),
-  linkedUser: z.object({
-    id: z.string(),
-    username: z.string(),
-    status: z.string(),
-  }).nullable(),
+  linkedUser: z
+    .object({
+      id: z.string(),
+      username: z.string(),
+      status: z.string(),
+    })
+    .nullable(),
 });
 
 export type LabDetailsResearcher = z.infer<typeof labDetailsResearcherSchema>;

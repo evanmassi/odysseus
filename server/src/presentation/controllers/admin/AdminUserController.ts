@@ -6,9 +6,13 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
-  ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
+  AdminResetPasswordCommandHandler,
+  GeneratePasswordResetTokenCommandHandler,
+} from '@application/commands/PasswordResetCommands';
+import type {
+  ChangeUserRoleCommand,
+  ChangeUserRoleCommandHandler,
 } from '@application/commands/UserCommands';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
@@ -37,14 +41,16 @@ export class AdminUserController extends BaseController {
     try {
       const labId = this.getAuthenticatedUser(req).labId;
       if (!labId) {
-        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
+        res
+          .status(403)
+          .json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
         return;
       }
 
       const enrichedUsers = await this.deps.userApplicationService.getEnrichedLabUsers(labId);
 
       const response = ResponseBuilder.success({
-        users: enrichedUsers
+        users: enrichedUsers,
       });
       res.status(200).json(response);
     } catch (error) {
@@ -69,7 +75,7 @@ export class AdminUserController extends BaseController {
       logger.info('User role updated', {
         targetUserId: id,
         newRole: role,
-        performedBy: adminUser.username
+        performedBy: adminUser.username,
       });
 
       const response = ResponseBuilder.success({ message: 'User role updated successfully' });
@@ -88,7 +94,7 @@ export class AdminUserController extends BaseController {
 
       logger.info('User deleted', {
         deletedUserId: id,
-        performedBy: adminUser.username
+        performedBy: adminUser.username,
       });
 
       res.status(200).json(ResponseBuilder.success({ message: 'User deleted successfully' }));
@@ -105,7 +111,7 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.deactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        message: 'User deactivated successfully'
+        message: 'User deactivated successfully',
       });
 
       res.status(200).json(response);
@@ -122,7 +128,7 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        message: 'User activated successfully'
+        message: 'User activated successfully',
       });
 
       res.status(200).json(response);
@@ -154,15 +160,19 @@ export class AdminUserController extends BaseController {
           researcherId: created.id,
           researcherName: `${created.firstName} ${created.lastName}`,
           userId,
-          createdBy: adminUser.username
+          createdBy: adminUser.username,
         });
       }
 
-      await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminUser);
+      await this.deps.userApplicationService.linkResearcherToUser(
+        userId,
+        targetResearcherId,
+        adminUser
+      );
 
       const response = ResponseBuilder.success({
         researcherId: targetResearcherId,
-        message: 'Researcher linked to user successfully'
+        message: 'Researcher linked to user successfully',
       });
 
       res.status(200).json(response);
@@ -170,7 +180,7 @@ export class AdminUserController extends BaseController {
       logger.info('Researcher linked to user', {
         userId,
         researcherId: targetResearcherId,
-        linkedBy: adminUser.username
+        linkedBy: adminUser.username,
       });
     } catch (error) {
       handleControllerError(error, res, 'Failed to link researcher', req.requestId);
@@ -186,14 +196,14 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        message: 'Researcher unlinked from user successfully'
+        message: 'Researcher unlinked from user successfully',
       });
 
       res.status(200).json(response);
 
       logger.info('Researcher unlinked from user', {
         userId,
-        unlinkedBy: adminUser.username
+        unlinkedBy: adminUser.username,
       });
     } catch (error) {
       handleControllerError(error, res, 'Failed to unlink researcher', req.requestId);
@@ -214,18 +224,18 @@ export class AdminUserController extends BaseController {
         adminUserId: adminUser.id,
         targetUserId: userId,
         newPassword,
-        requirePasswordChange
+        requirePasswordChange,
       });
 
       logger.info('Password reset by admin', {
         adminUserId: adminUser.id,
         adminUsername: adminUser.username,
         targetUserId: userId,
-        requirePasswordChange
+        requirePasswordChange,
       });
 
       const response = ResponseBuilder.success({
-        message: 'Password reset successfully'
+        message: 'Password reset successfully',
       });
 
       res.status(200).json(response);
@@ -242,19 +252,19 @@ export class AdminUserController extends BaseController {
 
       const result = await this.deps.generatePasswordResetTokenHandler.handle({
         adminUserId: adminUser.id,
-        targetUserId: userId
+        targetUserId: userId,
       });
 
       logger.info('Password reset token generated', {
         adminUserId: adminUser.id,
         adminUsername: adminUser.username,
-        targetUserId: userId
+        targetUserId: userId,
       });
 
       const response = ResponseBuilder.success({
         resetUrl: result.resetUrl,
         expiresAt: result.expiresAt.toISOString(),
-        message: 'Password reset token generated. Share this link with the user.'
+        message: 'Password reset token generated. Share this link with the user.',
       });
 
       res.status(200).json(response);

@@ -9,7 +9,10 @@ import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 
-import type { CrossLabStorageAnalyticsResponse, LabStorageAnalyticsResponse } from '@odysseus/shared-schemas';
+import type {
+  CrossLabStorageAnalyticsResponse,
+  LabStorageAnalyticsResponse,
+} from '@odysseus/shared-schemas';
 
 interface LocationCount {
   tankId: string;
@@ -57,7 +60,12 @@ export class StorageAnalyticsApplicationService {
     const countsByLab = new Map<string, LocationCount[]>();
     for (const entry of allLocationCounts) {
       const existing = countsByLab.get(entry.labId) ?? [];
-      existing.push({ tankId: entry.tankId, rackId: entry.rackId, boxId: entry.boxId, count: entry.count });
+      existing.push({
+        tankId: entry.tankId,
+        rackId: entry.rackId,
+        boxId: entry.boxId,
+        count: entry.count,
+      });
       countsByLab.set(entry.labId, existing);
     }
 
@@ -94,7 +102,8 @@ export class StorageAnalyticsApplicationService {
     return {
       totalPositions,
       totalOccupied,
-      utilizationPercent: totalPositions > 0 ? Math.round((totalOccupied / totalPositions) * 1000) / 10 : 0,
+      utilizationPercent:
+        totalPositions > 0 ? Math.round((totalOccupied / totalPositions) * 1000) / 10 : 0,
       labs: labSummaries,
     };
   }
@@ -110,7 +119,14 @@ export class StorageAnalyticsApplicationService {
 
     let totalPositions = 0;
     let totalOccupied = 0;
-    const nearCapacityBoxes: Array<{ tankName: string; rackName: string; boxName: string; occupied: number; maxPositions: number; utilizationPercent: number }> = [];
+    const nearCapacityBoxes: Array<{
+      tankName: string;
+      rackName: string;
+      boxName: string;
+      occupied: number;
+      maxPositions: number;
+      utilizationPercent: number;
+    }> = [];
 
     const tanks = storage.equipment.getActiveTanks().map(tank => {
       let tankPositions = 0;
@@ -123,15 +139,20 @@ export class StorageAnalyticsApplicationService {
         const boxes = storage.equipment.getActiveBoxesForRack(tank.id, rack.id).map(box => {
           const maxPositions = box.maxPositions;
           const occupied = countMap.get(`${tank.id}|${rack.id}|${box.name}`) ?? 0;
-          const utilizationPercent = maxPositions > 0 ? Math.round((occupied / maxPositions) * 1000) / 10 : 0;
+          const utilizationPercent =
+            maxPositions > 0 ? Math.round((occupied / maxPositions) * 1000) / 10 : 0;
 
           rackPositions += maxPositions;
           rackOccupied += occupied;
 
           if (maxPositions > 0 && occupied / maxPositions >= NEAR_CAPACITY_THRESHOLD) {
             nearCapacityBoxes.push({
-              tankName: tank.name, rackName: rack.name, boxName: box.name,
-              occupied, maxPositions, utilizationPercent,
+              tankName: tank.name,
+              rackName: rack.name,
+              boxName: box.name,
+              occupied,
+              maxPositions,
+              utilizationPercent,
             });
           }
 
@@ -141,18 +162,35 @@ export class StorageAnalyticsApplicationService {
         tankPositions += rackPositions;
         tankOccupied += rackOccupied;
 
-        const rackUtilization = rackPositions > 0 ? Math.round((rackOccupied / rackPositions) * 1000) / 10 : 0;
-        return { rackId: rack.id, rackName: rack.name, totalPositions: rackPositions, occupied: rackOccupied, utilizationPercent: rackUtilization, boxes };
+        const rackUtilization =
+          rackPositions > 0 ? Math.round((rackOccupied / rackPositions) * 1000) / 10 : 0;
+        return {
+          rackId: rack.id,
+          rackName: rack.name,
+          totalPositions: rackPositions,
+          occupied: rackOccupied,
+          utilizationPercent: rackUtilization,
+          boxes,
+        };
       });
 
       totalPositions += tankPositions;
       totalOccupied += tankOccupied;
 
-      const tankUtilization = tankPositions > 0 ? Math.round((tankOccupied / tankPositions) * 1000) / 10 : 0;
-      return { tankId: tank.id, tankName: tank.name, totalPositions: tankPositions, occupied: tankOccupied, utilizationPercent: tankUtilization, racks };
+      const tankUtilization =
+        tankPositions > 0 ? Math.round((tankOccupied / tankPositions) * 1000) / 10 : 0;
+      return {
+        tankId: tank.id,
+        tankName: tank.name,
+        totalPositions: tankPositions,
+        occupied: tankOccupied,
+        utilizationPercent: tankUtilization,
+        racks,
+      };
     });
 
-    const utilizationPercent = totalPositions > 0 ? Math.round((totalOccupied / totalPositions) * 1000) / 10 : 0;
+    const utilizationPercent =
+      totalPositions > 0 ? Math.round((totalOccupied / totalPositions) * 1000) / 10 : 0;
 
     return { totalPositions, totalOccupied, utilizationPercent, tanks, nearCapacityBoxes };
   }

@@ -62,7 +62,6 @@ import type {
 } from '@odysseus/shared-schemas';
 
 export class EquipmentApplicationService {
-
   constructor(
     private categoryRepository: CategoryRepository<EquipmentCategory>,
     private itemRepository: EquipmentItemRepository,
@@ -95,9 +94,9 @@ export class EquipmentApplicationService {
 
     await this.categoryRepository.save(category);
 
-    await this.eventBus.publish(new EquipmentCategoryCreatedEvent(
-      category.id, category.name, data.parentId, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentCategoryCreatedEvent(category.id, category.name, data.parentId, user.id, labId)
+    );
 
     return EquipmentDto.categoryToResponse(category);
   }
@@ -132,9 +131,9 @@ export class EquipmentApplicationService {
 
     await this.categoryRepository.save(category);
 
-    await this.eventBus.publish(new EquipmentCategoryUpdatedEvent(
-      category.id, category.name, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentCategoryUpdatedEvent(category.id, category.name, user.id, labId)
+    );
 
     return EquipmentDto.categoryToResponse(category);
   }
@@ -149,7 +148,9 @@ export class EquipmentApplicationService {
 
     const hasItems = await this.categoryRepository.hasItemsIncludingChildren(id, labId);
     if (hasItems) {
-      throw new ValidationError('Cannot delete category — equipment items are still assigned to it or its subcategories');
+      throw new ValidationError(
+        'Cannot delete category — equipment items are still assigned to it or its subcategories'
+      );
     }
 
     // Delete empty subcategories first (RESTRICT FK requires children deleted before parent)
@@ -164,9 +165,9 @@ export class EquipmentApplicationService {
 
     await this.categoryRepository.delete(id, labId);
 
-    await this.eventBus.publish(new EquipmentCategoryDeletedEvent(
-      id, category.name, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentCategoryDeletedEvent(id, category.name, user.id, labId)
+    );
   }
 
   // Items
@@ -216,9 +217,9 @@ export class EquipmentApplicationService {
 
     await this.itemRepository.save(item);
 
-    await this.eventBus.publish(new EquipmentItemCreatedEvent(
-      item.id, item.name, item.categoryId, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentItemCreatedEvent(item.id, item.name, item.categoryId, user.id, labId)
+    );
 
     return EquipmentDto.itemToResponse(item);
   }
@@ -286,17 +287,13 @@ export class EquipmentApplicationService {
       throw new ValidationError('Equipment is already decommissioned');
     }
 
-    item.decommission(
-      data.decommissionDate,
-      data.decommissionReason,
-      data.disposalMethod
-    );
+    item.decommission(data.decommissionDate, data.decommissionReason, data.disposalMethod);
 
     await this.itemRepository.save(item);
 
-    await this.eventBus.publish(new EquipmentItemDecommissionedEvent(
-      item.id, data.decommissionReason, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentItemDecommissionedEvent(item.id, data.decommissionReason, user.id, labId)
+    );
 
     return EquipmentDto.itemToResponse(item);
   }
@@ -307,9 +304,7 @@ export class EquipmentApplicationService {
     const item = await this.getItemOrThrow(id, labId);
     await this.itemRepository.delete(id, labId);
 
-    await this.eventBus.publish(new EquipmentItemDeletedEvent(
-      item.id, item.name, user.id, labId
-    ));
+    await this.eventBus.publish(new EquipmentItemDeletedEvent(item.id, item.name, user.id, labId));
   }
 
   // Documents
@@ -332,9 +327,9 @@ export class EquipmentApplicationService {
 
     await this.itemRepository.saveDocument(document);
 
-    await this.eventBus.publish(new EquipmentDocumentAddedEvent(
-      itemId, data.label, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentDocumentAddedEvent(itemId, data.label, user.id, labId)
+    );
 
     return EquipmentDto.documentToResponse(document);
   }
@@ -353,7 +348,8 @@ export class EquipmentApplicationService {
       url: data.url,
       notes: data.notes,
     });
-    if (!updated) throw new NotFoundError('This document could not be found. It may have been deleted.');
+    if (!updated)
+      throw new NotFoundError('This document could not be found. It may have been deleted.');
     return EquipmentDto.documentToResponse(updated);
   }
 
@@ -365,9 +361,7 @@ export class EquipmentApplicationService {
       throw new NotFoundError('Document not found');
     }
 
-    await this.eventBus.publish(new EquipmentDocumentRemovedEvent(
-      itemId, user.id, labId
-    ));
+    await this.eventBus.publish(new EquipmentDocumentRemovedEvent(itemId, user.id, labId));
   }
 
   // Maintenance log
@@ -402,7 +396,11 @@ export class EquipmentApplicationService {
     }
 
     const event = new EquipmentMaintenanceLoggedEvent(
-      itemId, data.maintenanceType, data.datePerformed, user.id, labId
+      itemId,
+      data.maintenanceType,
+      data.datePerformed,
+      user.id,
+      labId
     );
     if (options?.bulkOperation) event.partOfBulkOperation = true;
     await this.eventBus.publish(event);
@@ -444,9 +442,9 @@ export class EquipmentApplicationService {
       await this.itemRepository.save(item);
     }
 
-    await this.eventBus.publish(new EquipmentMaintenanceUpdatedEvent(
-      itemId, entry.maintenanceType, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentMaintenanceUpdatedEvent(itemId, entry.maintenanceType, user.id, labId)
+    );
 
     return EquipmentDto.maintenanceEntryToResponse(entry);
   }
@@ -472,16 +470,15 @@ export class EquipmentApplicationService {
       const remainingEntries = await this.itemRepository.findMaintenanceLogByItemId(itemId);
       const latestNextDate = remainingEntries
         .filter(e => e.nextScheduledDate)
-        .sort((a, b) => b.datePerformed.localeCompare(a.datePerformed))[0]
-        ?.nextScheduledDate;
+        .sort((a, b) => b.datePerformed.localeCompare(a.datePerformed))[0]?.nextScheduledDate;
 
       item.updateNextMaintenanceDate(latestNextDate);
       await this.itemRepository.save(item);
     }
 
-    await this.eventBus.publish(new EquipmentMaintenanceDeletedEvent(
-      itemId, entry.maintenanceType, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentMaintenanceDeletedEvent(itemId, entry.maintenanceType, user.id, labId)
+    );
   }
 
   // Bulk operations
@@ -496,7 +493,7 @@ export class EquipmentApplicationService {
 
     const result = await executeBulk(
       itemIds,
-      async (itemId) => {
+      async itemId => {
         await this.addMaintenanceEntry(labId, itemId, data, user, { bulkOperation: true });
         return itemId;
       },
@@ -504,9 +501,15 @@ export class EquipmentApplicationService {
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new EquipmentBulkMaintenanceLoggedEvent(
-        result.succeeded, data.maintenanceType, data.datePerformed, user.id, labId
-      ));
+      await this.eventBus.publish(
+        new EquipmentBulkMaintenanceLoggedEvent(
+          result.succeeded,
+          data.maintenanceType,
+          data.datePerformed,
+          user.id,
+          labId
+        )
+      );
     }
 
     return result;
@@ -522,17 +525,23 @@ export class EquipmentApplicationService {
 
     const result = await executeBulk(
       itemIds,
-      async (itemId) => {
-        await this.updateItem(labId, itemId, { status: data.status, conditionNotes: data.conditionNotes }, user, { bulkOperation: true });
+      async itemId => {
+        await this.updateItem(
+          labId,
+          itemId,
+          { status: data.status, conditionNotes: data.conditionNotes },
+          user,
+          { bulkOperation: true }
+        );
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new EquipmentBulkStatusChangedEvent(
-        result.succeeded, data.status, user.id, labId
-      ));
+      await this.eventBus.publish(
+        new EquipmentBulkStatusChangedEvent(result.succeeded, data.status, user.id, labId)
+      );
     }
 
     return result;
@@ -553,17 +562,19 @@ export class EquipmentApplicationService {
 
     const result = await executeBulk(
       itemIds,
-      async (itemId) => {
-        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user, { bulkOperation: true });
+      async itemId => {
+        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user, {
+          bulkOperation: true,
+        });
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new EquipmentBulkRelocatedEvent(
-        result.succeeded, data.categoryId, user.id, labId
-      ));
+      await this.eventBus.publish(
+        new EquipmentBulkRelocatedEvent(result.succeeded, data.categoryId, user.id, labId)
+      );
     }
 
     return result;

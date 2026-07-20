@@ -70,7 +70,10 @@ export class AuditService {
     }
   }
 
-  async getAuditLogForLab(filters: AuditLogFilters = {}, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
+  async getAuditLogForLab(
+    filters: AuditLogFilters = {},
+    labId: string
+  ): Promise<PaginatedResult<AuditLogEntry>> {
     return await this.auditRepository.findAllForLab(filters, labId);
   }
 

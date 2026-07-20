@@ -13,7 +13,10 @@ import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
 export class TransactionalContext implements Queryable {
   constructor(private client: PoolClient) {}
 
-  async query<T extends QueryResultRow = QueryResultRow>(sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
+  async query<T extends QueryResultRow = QueryResultRow>(
+    sql: string,
+    params: unknown[] = []
+  ): Promise<QueryResult<T>> {
     return this.client.query<T>(sql, params);
   }
 
@@ -37,7 +40,11 @@ export class TransactionalContext implements Queryable {
     }
   }
 
-  async queryByIds<T extends QueryResultRow>(table: string, columns: string, ids: string[]): Promise<T[]> {
+  async queryByIds<T extends QueryResultRow>(
+    table: string,
+    columns: string,
+    ids: string[]
+  ): Promise<T[]> {
     if (ids.length === 0) return [];
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     return this.queryMany<T>(`SELECT ${columns} FROM ${table} WHERE id IN (${placeholders})`, ids);

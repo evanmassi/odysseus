@@ -74,7 +74,7 @@ export async function executeResourceAssignment(
 
   const { previousUserId } = descriptor;
   const previousUsername = previousUserId
-    ? (await deps.userRepository.findById(previousUserId, command.labId))?.username ?? 'Unknown'
+    ? ((await deps.userRepository.findById(previousUserId, command.labId))?.username ?? 'Unknown')
     : '';
 
   if (previousUserId === command.assignedUserId) {
@@ -91,11 +91,13 @@ export async function executeResourceAssignment(
   const expectedVersion = currentConfig.version;
   currentConfig.updateFromData({
     tanks: configData.tanks,
-    systemSettings: configData.systemSettings
+    systemSettings: configData.systemSettings,
   });
 
   const action = command.assignedUserId
-    ? (previousUserId ? 'Reassigned' : 'Assigned')
+    ? previousUserId
+      ? 'Reassigned'
+      : 'Assigned'
     : 'Unassigned';
   const newVersion = await deps.storageRepository.saveWithOptimisticLock(
     command.labId,
@@ -120,9 +122,7 @@ export async function executeResourceAssignment(
       descriptor.buildAssignedEvent(command.assignedUserId, assignedUser!.username)
     );
   } else if (previousUserId) {
-    await deps.eventBus.publish(
-      descriptor.buildUnassignedEvent(previousUserId, previousUsername)
-    );
+    await deps.eventBus.publish(descriptor.buildUnassignedEvent(previousUserId, previousUsername));
   }
   // Moving a box between its two ownerless states (common <-> inherit) takes nobody's access
   // away, so there is no assignee to name in an Unassigned event; the config version records it.

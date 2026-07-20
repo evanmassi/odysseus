@@ -24,7 +24,6 @@ export interface EquipmentMaintenanceLogRow {
 }
 
 export class EquipmentMaintenanceLogMapper {
-
   static toRow(entry: EquipmentMaintenanceLog): EquipmentMaintenanceLogRow {
     return {
       id: entry.id,

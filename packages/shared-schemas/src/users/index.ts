@@ -21,7 +21,4 @@ export {
   type UserDisplayInfo,
 } from './userLookupSchemas';
 
-export {
-  activeSessionSchema,
-  type ActiveSession,
-} from './userSessionSchemas';
+export { activeSessionSchema, type ActiveSession } from './userSessionSchemas';

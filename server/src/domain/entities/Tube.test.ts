@@ -25,7 +25,9 @@ describe('Tube', () => {
     });
 
     it('should accept custom location', () => {
-      const tube = createTestTube({ location: { tankId: 'T2', rackId: 'R3', boxId: 'B', position: 5 } });
+      const tube = createTestTube({
+        location: { tankId: 'T2', rackId: 'R3', boxId: 'B', position: 5 },
+      });
       expect(tube.location.tankId).toBe('T2');
       expect(tube.location.position).toBe(5);
     });
@@ -41,17 +43,21 @@ describe('Tube', () => {
     });
 
     it('should throw for missing tank ID', () => {
-      expect(() => Tube.create({
-        location: { tankId: '', rackId: 'R1', boxId: 'A', position: 1 },
-        sample: {},
-      })).toThrow('Tank ID is required');
+      expect(() =>
+        Tube.create({
+          location: { tankId: '', rackId: 'R1', boxId: 'A', position: 1 },
+          sample: {},
+        })
+      ).toThrow('Tank ID is required');
     });
 
     it('should throw for invalid position', () => {
-      expect(() => Tube.create({
-        location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 0 },
-        sample: {},
-      })).toThrow();
+      expect(() =>
+        Tube.create({
+          location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 0 },
+          sample: {},
+        })
+      ).toThrow();
     });
   });
 

@@ -11,18 +11,12 @@ export class PermissionError extends DomainError {
   readonly code = API_ERROR_CODES.FORBIDDEN;
   readonly statusCode = 403;
 
-  constructor(
-    message: string,
-    context?: Record<string, unknown>
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
   }
 
   static forAction(action: string, userId?: string): PermissionError {
-    return new PermissionError(
-      `Permission denied for action: ${action}`,
-      { action, userId }
-    );
+    return new PermissionError(`Permission denied for action: ${action}`, { action, userId });
   }
 
   static configurationManagement(operation: string, userId?: string): PermissionError {

@@ -9,7 +9,10 @@
 import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
 
 export interface Queryable {
-  query<T extends QueryResultRow = QueryResultRow>(sql: string, params?: unknown[]): Promise<QueryResult<T>>;
+  query<T extends QueryResultRow = QueryResultRow>(
+    sql: string,
+    params?: unknown[]
+  ): Promise<QueryResult<T>>;
   queryOne<T extends QueryResultRow>(sql: string, params?: unknown[]): Promise<T | null>;
   queryMany<T extends QueryResultRow>(sql: string, params?: unknown[]): Promise<T[]>;
   queryByIds<T extends QueryResultRow>(table: string, columns: string, ids: string[]): Promise<T[]>;

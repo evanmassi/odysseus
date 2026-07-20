@@ -21,7 +21,6 @@ export interface LabRow {
 }
 
 export class LabMapper {
-
   static toRow(lab: Lab): LabRow {
     const data = lab.toData();
     return {

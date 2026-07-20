@@ -10,14 +10,14 @@ import { requireUser } from '@application/guards/UserGuards';
 import { Storage } from '@domain/entities/Storage';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import {
-  RackLabelUpdatedEvent,
-  BoxLabelUpdatedEvent
-} from '@domain/events/StorageEvents';
+import { RackLabelUpdatedEvent, BoxLabelUpdatedEvent } from '@domain/events/StorageEvents';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { AccessControlService , ResourceWithOwnership } from '@domain/services/AccessControlService';
+import type {
+  AccessControlService,
+  ResourceWithOwnership,
+} from '@domain/services/AccessControlService';
 import type { ValidationService } from '@domain/services/ValidationService';
 import type { StorageImportData } from '@domain/types/storageTypes';
 
@@ -136,7 +136,7 @@ export class ResetStorageToDefaultCommandHandler {
     if (tubeCount > 0) {
       throw new ValidationError(
         `Cannot reset configuration: ${tubeCount} tube(s) exist in the system. ` +
-        `Delete all tubes before resetting the configuration to prevent orphaned data.`
+          `Delete all tubes before resetting the configuration to prevent orphaned data.`
       );
     }
 
@@ -177,7 +177,7 @@ export class ImportStorageCommandHandler {
           isValid: true,
           configuration: importedConfig,
           warnings: [],
-          errors: []
+          errors: [],
         };
       }
 
@@ -196,7 +196,7 @@ export class ImportStorageCommandHandler {
             isValid: false,
             configuration: null,
             warnings: [],
-            errors: validationResult.errors
+            errors: validationResult.errors,
           };
         }
       }
@@ -215,15 +215,14 @@ export class ImportStorageCommandHandler {
         isValid: true,
         configuration: importedConfig,
         warnings: [],
-        errors: []
+        errors: [],
       };
-
     } catch (error) {
       return {
         isValid: false,
         configuration: null,
         warnings: [],
-        errors: [error instanceof Error ? error.message : 'Unknown import error']
+        errors: [error instanceof Error ? error.message : 'Unknown import error'],
       };
     }
   }
@@ -259,7 +258,7 @@ export class UpdateResourceLabelCommandHandler {
 
     const user = await requireUser(this.userRepository, command.userId);
 
-    let resource: ResourceWithOwnership & { customLabel?: string } | null = null;
+    let resource: (ResourceWithOwnership & { customLabel?: string }) | null = null;
     let parentRack: ResourceWithOwnership | undefined = undefined;
     let tankName = '';
     let rackName = '';
@@ -268,9 +267,7 @@ export class UpdateResourceLabelCommandHandler {
     if (command.resourceType === 'rack') {
       const result = currentConfig.getRack(command.tankId, command.rackId);
       if (!result) {
-        throw new ValidationError(
-          `Rack '${command.rackId}' not found in tank '${command.tankId}'`
-        );
+        throw new ValidationError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
       }
       resource = result.rack;
       tankName = result.tank.name;
@@ -289,11 +286,7 @@ export class UpdateResourceLabelCommandHandler {
       boxName = result.box.name;
     }
 
-    const canEdit = this.accessControlService.canEditResource(
-      user,
-      resource,
-      parentRack
-    );
+    const canEdit = this.accessControlService.canEditResource(user, resource, parentRack);
 
     if (!canEdit) {
       throw new PermissionError(

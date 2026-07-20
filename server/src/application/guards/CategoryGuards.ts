@@ -45,10 +45,14 @@ export async function validateCategoryDepth(
   }
 
   if (parent.parentId) {
-    throw new ValidationError('Cannot nest a category under a subcategory — the hierarchy is two levels deep');
+    throw new ValidationError(
+      'Cannot nest a category under a subcategory — the hierarchy is two levels deep'
+    );
   }
 
-  if (movingCategoryId && await repository.hasChildren(movingCategoryId, labId)) {
-    throw new ValidationError('Cannot nest a category that has subcategories — the hierarchy is two levels deep');
+  if (movingCategoryId && (await repository.hasChildren(movingCategoryId, labId))) {
+    throw new ValidationError(
+      'Cannot nest a category that has subcategories — the hierarchy is two levels deep'
+    );
   }
 }

@@ -19,7 +19,9 @@ function createApp(...middlewares: express.RequestHandler[]): express.Applicatio
   for (const mw of middlewares) {
     app.use(mw);
   }
-  app.get('/test', (_req, res) => { res.json({ ok: true }); });
+  app.get('/test', (_req, res) => {
+    res.json({ ok: true });
+  });
   return app;
 }
 
@@ -126,8 +128,12 @@ describe('apiRateLimiter', () => {
       const moderate = createModerateRateLimiter();
 
       const app = express();
-      app.get('/strict', strict, (_req, res) => { res.json({ ok: true }); });
-      app.get('/moderate', moderate, (_req, res) => { res.json({ ok: true }); });
+      app.get('/strict', strict, (_req, res) => {
+        res.json({ ok: true });
+      });
+      app.get('/moderate', moderate, (_req, res) => {
+        res.json({ ok: true });
+      });
 
       const agent = supertest(app);
 

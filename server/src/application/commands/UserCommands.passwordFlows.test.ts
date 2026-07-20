@@ -21,35 +21,61 @@ import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 function makeChangeHandler(opts: { verify?: boolean } = {}) {
   const setPasswordHash = jest.fn();
   const user = {
-    id: 'u1', username: 'bob', labId: 'lab1',
-    hasPassword: () => true, passwordHash: 'H', salt: 'S', setPasswordHash,
+    id: 'u1',
+    username: 'bob',
+    labId: 'lab1',
+    hasPassword: () => true,
+    passwordHash: 'H',
+    salt: 'S',
+    setPasswordHash,
   } as unknown as User;
 
   const save = jest.fn();
-  const userRepository = { findByIdAnyLab: jest.fn().mockResolvedValue(user), save } as unknown as UserRepository;
+  const userRepository = {
+    findByIdAnyLab: jest.fn().mockResolvedValue(user),
+    save,
+  } as unknown as UserRepository;
   const publish = jest.fn();
   const eventBus = { publish } as unknown as EventBus;
-  const storageRepository = { getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG) } as unknown as StorageRepository;
+  const storageRepository = {
+    getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG),
+  } as unknown as StorageRepository;
   const userSessionRepository = {
     findActiveSessionsByUserId: jest.fn().mockResolvedValue([]),
     bulkRevoke: jest.fn().mockResolvedValue(0),
   } as unknown as UserSessionRepository;
   const hash = jest.fn().mockResolvedValue('NEWHASH');
-  const passwordService = { verify: jest.fn().mockResolvedValue(opts.verify ?? true), hash } as unknown as PasswordService;
+  const passwordService = {
+    verify: jest.fn().mockResolvedValue(opts.verify ?? true),
+    hash,
+  } as unknown as PasswordService;
 
   const unitOfWork: UnitOfWork = {
-    withTransaction: work => work({
-      users: userRepository,
-      userSessions: userSessionRepository,
-    } as Repositories),
+    withTransaction: work =>
+      work({
+        users: userRepository,
+        userSessions: userSessionRepository,
+      } as Repositories),
   };
 
-  const handler = new ChangeUserPasswordCommandHandler(userRepository, eventBus, storageRepository, passwordService, unitOfWork);
+  const handler = new ChangeUserPasswordCommandHandler(
+    userRepository,
+    eventBus,
+    storageRepository,
+    passwordService,
+    unitOfWork
+  );
   return { handler, setPasswordHash, save, publish, hash };
 }
 
 describe('ChangeUserPasswordCommandHandler', () => {
-  const command = { userId: 'u1', currentPassword: 'pw', newPassword: 'longpassword', currentSessionId: undefined, initiatedBy: 'u1' };
+  const command = {
+    userId: 'u1',
+    currentPassword: 'pw',
+    newPassword: 'longpassword',
+    currentSessionId: undefined,
+    initiatedBy: 'u1',
+  };
 
   it('rejects an incorrect current password without saving', async () => {
     const { handler, save } = makeChangeHandler({ verify: false });
@@ -70,9 +96,16 @@ describe('ChangeUserPasswordCommandHandler', () => {
 function makeLoginHandler(opts: { needsUpgrade?: boolean } = {}) {
   const setPasswordHash = jest.fn();
   const user = {
-    id: 'u1', username: 'bob', labId: undefined,
-    hasPassword: () => true, passwordHash: 'H', salt: 'S', setPasswordHash,
-    status: 'approved', isEmailVerified: () => true, isPasswordChangeRequired: () => false,
+    id: 'u1',
+    username: 'bob',
+    labId: undefined,
+    hasPassword: () => true,
+    passwordHash: 'H',
+    salt: 'S',
+    setPasswordHash,
+    status: 'approved',
+    isEmailVerified: () => true,
+    isPasswordChangeRequired: () => false,
   } as unknown as User;
 
   const save = jest.fn();

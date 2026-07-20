@@ -4,9 +4,14 @@
  * Endpoints for invite code lifecycle management.
  */
 
-
-import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
-import type { ValidateInviteCodeQueryHandler, ListInviteCodesQueryHandler } from '@application/queries/InviteCodeQueries';
+import type {
+  CreateInviteCodeCommandHandler,
+  DeactivateInviteCodeCommandHandler,
+} from '@application/commands/InviteCodeCommands';
+import type {
+  ValidateInviteCodeQueryHandler,
+  ListInviteCodesQueryHandler,
+} from '@application/queries/InviteCodeQueries';
 import { logger } from '@infrastructure/logging/logger';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -57,7 +62,12 @@ export class InviteCodeController extends BaseController {
       const { role, createResearcher, maxUses, expiresAt } = req.body;
 
       const result = await this.deps.createInviteCodeHandler.handle({
-        userId, labId, role, createResearcher, maxUses, expiresAt,
+        userId,
+        labId,
+        role,
+        createResearcher,
+        maxUses,
+        expiresAt,
       });
 
       res.status(201).json(ResponseBuilder.success({ inviteCode: result }));

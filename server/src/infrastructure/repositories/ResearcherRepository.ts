@@ -15,7 +15,6 @@ const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, source, lab_id';
 const RESEARCHER_COLUMNS_JOINED = 'r.id, r.person_id, r.active, r.created_at, r.source, r.lab_id';
 
 export class ResearcherRepository implements IResearcherRepository {
-
   constructor(private context: Queryable) {}
 
   async findById(id: string, labId: string): Promise<Researcher | null> {
@@ -43,22 +42,28 @@ export class ResearcherRepository implements IResearcherRepository {
   }
 
   async findByLabId(labId: string): Promise<Researcher[]> {
-    const rows = await this.context.queryMany<ResearcherRow>(`
+    const rows = await this.context.queryMany<ResearcherRow>(
+      `
       SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE r.lab_id = $1
       ORDER BY p.last_name, p.first_name
-    `, [labId]);
+    `,
+      [labId]
+    );
     return ResearcherMapper.fromRows(rows);
   }
 
   async findActiveByLabId(labId: string): Promise<Researcher[]> {
-    const rows = await this.context.queryMany<ResearcherRow>(`
+    const rows = await this.context.queryMany<ResearcherRow>(
+      `
       SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE r.lab_id = $1 AND r.active = TRUE
       ORDER BY p.last_name, p.first_name
-    `, [labId]);
+    `,
+      [labId]
+    );
     return ResearcherMapper.fromRows(rows);
   }
 
@@ -75,7 +80,8 @@ export class ResearcherRepository implements IResearcherRepository {
   async save(researcher: Researcher): Promise<void> {
     const row = ResearcherMapper.toRow(researcher);
 
-    await this.context.execute(`
+    await this.context.execute(
+      `
       INSERT INTO researchers (id, person_id, active, created_at, source, lab_id)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (id) DO UPDATE SET
@@ -84,11 +90,16 @@ export class ResearcherRepository implements IResearcherRepository {
         created_at = EXCLUDED.created_at,
         source = EXCLUDED.source,
         lab_id = EXCLUDED.lab_id
-    `, [row.id, row.person_id, row.active, row.created_at, row.source, row.lab_id]);
+    `,
+      [row.id, row.person_id, row.active, row.created_at, row.source, row.lab_id]
+    );
   }
 
   async delete(id: string, labId: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM researchers WHERE id = $1 AND lab_id = $2', [id, labId]);
+    const result = await this.context.execute(
+      'DELETE FROM researchers WHERE id = $1 AND lab_id = $2',
+      [id, labId]
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -108,7 +119,11 @@ export class ResearcherRepository implements IResearcherRepository {
     return row?.exists ?? false;
   }
 
-  async findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null> {
+  async findDeactivatedByName(
+    firstName: string,
+    lastName: string,
+    labId: string
+  ): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(
       `SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id

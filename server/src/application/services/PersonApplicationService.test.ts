@@ -39,17 +39,23 @@ function makeFullUser(setPasswordHash = jest.fn()): User {
   } as unknown as User;
 }
 
-function makeService(opts: {
-  person?: Person | null;
-  emailOwner?: Person | null;
-  fullUser?: User | null;
-  verify?: boolean;
-  needsUpgrade?: boolean;
-} = {}) {
+function makeService(
+  opts: {
+    person?: Person | null;
+    emailOwner?: Person | null;
+    fullUser?: User | null;
+    verify?: boolean;
+    needsUpgrade?: boolean;
+  } = {}
+) {
   const findById = jest.fn().mockResolvedValue(opts.person ?? null);
   const findByEmail = jest.fn().mockResolvedValue(opts.emailOwner ?? null);
   const savePerson = jest.fn();
-  const personRepository = { findById, findByEmail, save: savePerson } as unknown as PersonRepository;
+  const personRepository = {
+    findById,
+    findByEmail,
+    save: savePerson,
+  } as unknown as PersonRepository;
 
   const findByIdAnyLab = jest.fn().mockResolvedValue(opts.fullUser ?? makeFullUser());
   const saveUser = jest.fn();
@@ -61,7 +67,11 @@ function makeService(opts: {
     hash: jest.fn().mockResolvedValue('NEWHASH'),
   } as unknown as PasswordService;
 
-  const service = new PersonApplicationService({ personRepository, userRepository, passwordService });
+  const service = new PersonApplicationService({
+    personRepository,
+    userRepository,
+    passwordService,
+  });
   return { service, findById, findByEmail, savePerson, findByIdAnyLab, saveUser, passwordService };
 }
 
@@ -104,13 +114,17 @@ describe('PersonApplicationService.updateMyProfile', () => {
   it('rejects demo users with a permission error', async () => {
     const { service, findById } = makeService({ person: makePerson() });
     const demoUser = { id: 'u1', personId: 'p1', isDemo: true } as unknown as User;
-    await expect(service.updateMyProfile(demoUser, { currentPassword: 'pw' })).rejects.toBeInstanceOf(PermissionError);
+    await expect(
+      service.updateMyProfile(demoUser, { currentPassword: 'pw' })
+    ).rejects.toBeInstanceOf(PermissionError);
     expect(findById).not.toHaveBeenCalled();
   });
 
   it('requires the current password', async () => {
     const { service } = makeService({ person: makePerson() });
-    await expect(service.updateMyProfile(user, { firstName: 'New' })).rejects.toBeInstanceOf(ValidationError);
+    await expect(service.updateMyProfile(user, { firstName: 'New' })).rejects.toBeInstanceOf(
+      ValidationError
+    );
   });
 
   it('rejects an incorrect current password', async () => {
@@ -125,8 +139,12 @@ describe('PersonApplicationService.updateMyProfile', () => {
     const { service } = makeService({
       person: makePerson(),
       emailOwner: Person.fromData({
-        id: 'other', firstName: 'A', lastName: 'B', email: 'taken@example.com',
-        createdAt: new Date(), updatedAt: new Date(),
+        id: 'other',
+        firstName: 'A',
+        lastName: 'B',
+        email: 'taken@example.com',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }),
     });
     await expect(
@@ -144,7 +162,11 @@ describe('PersonApplicationService.updateMyProfile', () => {
     });
 
     expect(savePerson).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject({ firstName: 'Janet', lastName: 'Doe', email: 'janet@example.com' });
+    expect(result).toMatchObject({
+      firstName: 'Janet',
+      lastName: 'Doe',
+      email: 'janet@example.com',
+    });
   });
 
   it('clears an optional field sent as an empty string', async () => {

@@ -6,7 +6,8 @@
 
 import { z } from 'zod';
 
-export const passwordField = z.string()
+export const passwordField = z
+  .string()
   .min(4, 'Password must be at least 4 characters')
   .max(128, 'Password cannot exceed 128 characters');
 
@@ -19,9 +20,7 @@ export const passwordField = z.string()
 export const adminResetPasswordRequestSchema = z.object({
   newPassword: passwordField,
 
-  requirePasswordChange: z.boolean()
-    .optional()
-    .default(true)
+  requirePasswordChange: z.boolean().optional().default(true),
 });
 
 /**
@@ -36,7 +35,9 @@ export const generatePasswordResetTokenResponseSchema = z.object({
   message: z.string(),
 });
 
-export type GeneratePasswordResetTokenResponse = z.infer<typeof generatePasswordResetTokenResponseSchema>;
+export type GeneratePasswordResetTokenResponse = z.infer<
+  typeof generatePasswordResetTokenResponseSchema
+>;
 
 /**
  * User resets password with token (public endpoint)
@@ -45,9 +46,7 @@ export type GeneratePasswordResetTokenResponse = z.infer<typeof generatePassword
  * No authentication required - token itself is the authentication.
  */
 export const resetPasswordWithTokenRequestSchema = z.object({
-  token: z.string()
-    .min(32, 'Invalid reset token')
-    .max(256, 'Token too long'),
+  token: z.string().min(32, 'Invalid reset token').max(256, 'Token too long'),
 
   newPassword: passwordField,
 });
@@ -59,9 +58,7 @@ export const resetPasswordWithTokenRequestSchema = z.object({
  * Temp token is short-lived (5 min) and only allows password change endpoint.
  */
 export const forceChangePasswordRequestSchema = z.object({
-  tempToken: z.string()
-    .min(20, 'Invalid temp token')
-    .max(512, 'Token too long'),
+  tempToken: z.string().min(20, 'Invalid temp token').max(512, 'Token too long'),
 
   newPassword: passwordField,
 });
@@ -88,8 +85,8 @@ export const passwordChangeRequiredResponseSchema = z.object({
   tempToken: z.string(),
   user: z.object({
     id: z.string(),
-    username: z.string()
-  })
+    username: z.string(),
+  }),
 });
 
 export type PasswordChangeRequiredResponse = z.infer<typeof passwordChangeRequiredResponseSchema>;

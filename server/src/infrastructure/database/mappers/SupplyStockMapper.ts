@@ -17,7 +17,6 @@ export interface SupplyStockDbRow {
 }
 
 export class SupplyStockMapper {
-
   static fromRow(row: SupplyStockDbRow): SupplyStockRow {
     return {
       id: row.id,

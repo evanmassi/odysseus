@@ -103,12 +103,15 @@ export class EquipmentMaintenanceLog {
   }
 
   update(data: MaintenanceLogUpdateData): void {
-    if (data.datePerformed !== undefined) this._datePerformed = data.datePerformed ?? this._datePerformed;
-    if (data.maintenanceType !== undefined) this._maintenanceType = data.maintenanceType ?? this._maintenanceType;
+    if (data.datePerformed !== undefined)
+      this._datePerformed = data.datePerformed ?? this._datePerformed;
+    if (data.maintenanceType !== undefined)
+      this._maintenanceType = data.maintenanceType ?? this._maintenanceType;
     if (data.performedBy !== undefined) this._performedBy = data.performedBy ?? undefined;
     if (data.technician !== undefined) this._technician = data.technician ?? undefined;
     if (data.description !== undefined) this._description = data.description ?? undefined;
-    if (data.nextScheduledDate !== undefined) this._nextScheduledDate = data.nextScheduledDate ?? undefined;
+    if (data.nextScheduledDate !== undefined)
+      this._nextScheduledDate = data.nextScheduledDate ?? undefined;
     if (data.cost !== undefined) this._cost = data.cost ?? undefined;
     if (data.notes !== undefined) this._notes = data.notes ?? undefined;
 
@@ -116,16 +119,40 @@ export class EquipmentMaintenanceLog {
     this._updatedAt = new Date();
   }
 
-  get id(): string { return this._id; }
-  get itemId(): string { return this._itemId; }
-  get datePerformed(): string { return this._datePerformed; }
-  get maintenanceType(): string { return this._maintenanceType; }
-  get performedBy(): string | undefined { return this._performedBy; }
-  get technician(): string | undefined { return this._technician; }
-  get description(): string | undefined { return this._description; }
-  get nextScheduledDate(): string | undefined { return this._nextScheduledDate; }
-  get cost(): number | undefined { return this._cost; }
-  get notes(): string | undefined { return this._notes; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
+  get id(): string {
+    return this._id;
+  }
+  get itemId(): string {
+    return this._itemId;
+  }
+  get datePerformed(): string {
+    return this._datePerformed;
+  }
+  get maintenanceType(): string {
+    return this._maintenanceType;
+  }
+  get performedBy(): string | undefined {
+    return this._performedBy;
+  }
+  get technician(): string | undefined {
+    return this._technician;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get nextScheduledDate(): string | undefined {
+    return this._nextScheduledDate;
+  }
+  get cost(): number | undefined {
+    return this._cost;
+  }
+  get notes(): string | undefined {
+    return this._notes;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
 }

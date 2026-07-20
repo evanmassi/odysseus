@@ -29,7 +29,8 @@ function makeService(options: { allowedTankIds?: string[]; counts?: LocationCoun
   });
   const storageRepository = { getForLab } as unknown as StorageRepository;
 
-  const countGroupedByLocation = jest.fn<Promise<LocationCountRow[]>, [string]>()
+  const countGroupedByLocation = jest
+    .fn<Promise<LocationCountRow[]>, [string]>()
     .mockResolvedValue(options.counts ?? []);
   const tubeRepository = { countGroupedByLocation } as unknown as TubeRepository;
 
@@ -41,7 +42,7 @@ function makeService(options: { allowedTankIds?: string[]; counts?: LocationCoun
     storageRepository,
     {} as TubePositionService,
     accessControlService,
-    {} as EventBus,
+    {} as EventBus
   );
 
   return { service, requireCanViewTubes, countGroupedByLocation };

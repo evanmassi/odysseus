@@ -11,7 +11,9 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 
 import { verifyCurrentPassword, upgradePasswordHashIfNeeded } from './passwordCredentials';
 
-function makeUser(overrides: Partial<Record<'hasPassword' | 'setPasswordHash', unknown>> = {}): User {
+function makeUser(
+  overrides: Partial<Record<'hasPassword' | 'setPasswordHash', unknown>> = {}
+): User {
   return {
     hasPassword: () => true,
     passwordHash: 'HASH',
@@ -26,15 +28,21 @@ describe('verifyCurrentPassword', () => {
     const user = makeUser({ hasPassword: () => false });
     const passwordService = { verify: jest.fn() } as unknown as PasswordService;
 
-    await expect(verifyCurrentPassword(user, 'pw', passwordService)).rejects.toBeInstanceOf(InvalidCredentialsError);
+    await expect(verifyCurrentPassword(user, 'pw', passwordService)).rejects.toBeInstanceOf(
+      InvalidCredentialsError
+    );
     expect(passwordService.verify).not.toHaveBeenCalled();
   });
 
   it('throws when the password does not match', async () => {
     const user = makeUser();
-    const passwordService = { verify: jest.fn().mockResolvedValue(false) } as unknown as PasswordService;
+    const passwordService = {
+      verify: jest.fn().mockResolvedValue(false),
+    } as unknown as PasswordService;
 
-    await expect(verifyCurrentPassword(user, 'pw', passwordService)).rejects.toBeInstanceOf(InvalidCredentialsError);
+    await expect(verifyCurrentPassword(user, 'pw', passwordService)).rejects.toBeInstanceOf(
+      InvalidCredentialsError
+    );
   });
 
   it('resolves and passes the stored hash + salt when the password matches', async () => {

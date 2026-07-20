@@ -48,9 +48,7 @@ export function buildAuditFilterClauses(
     params.push(filters.dateTo);
   }
 
-  const whereClause = whereClauses.length > 0
-    ? 'WHERE ' + whereClauses.join(' AND ')
-    : '';
+  const whereClause = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
 
   return { whereClause, params, nextParamIndex: paramIndex };
 }

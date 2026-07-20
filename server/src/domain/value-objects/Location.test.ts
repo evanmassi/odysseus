@@ -67,8 +67,9 @@ describe('Location', () => {
     });
 
     it('should reject position exceeding max', () => {
-      expect(() => Location.create('T1', 'R1', 'A', EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX + 1))
-        .toThrow('Position must be between');
+      expect(() =>
+        Location.create('T1', 'R1', 'A', EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX + 1)
+      ).toThrow('Position must be between');
     });
 
     it('should reject non-integer position', () => {

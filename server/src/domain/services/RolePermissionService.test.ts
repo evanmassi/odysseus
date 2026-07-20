@@ -17,24 +17,40 @@ describe('RolePermissionService', () => {
     it('should deny users admin-level permissions', () => {
       expect(RolePermissionService.hasPermission('user', Permission.BULK_EDIT)).toBe(false);
       expect(RolePermissionService.hasPermission('user', Permission.MANAGE_USERS)).toBe(false);
-      expect(RolePermissionService.hasPermission('user', Permission.MANAGE_RESEARCHERS)).toBe(false);
+      expect(RolePermissionService.hasPermission('user', Permission.MANAGE_RESEARCHERS)).toBe(
+        false
+      );
       expect(RolePermissionService.hasPermission('user', Permission.ADMIN_SETTINGS)).toBe(false);
-      expect(RolePermissionService.hasPermission('user', Permission.MANAGE_CONFIGURATION)).toBe(false);
+      expect(RolePermissionService.hasPermission('user', Permission.MANAGE_CONFIGURATION)).toBe(
+        false
+      );
     });
 
     it('should grant lab_admin all lab-scoped permissions', () => {
       expect(RolePermissionService.hasPermission('lab_admin', Permission.BULK_EDIT)).toBe(true);
       expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_USERS)).toBe(true);
-      expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_RESEARCHERS)).toBe(true);
-      expect(RolePermissionService.hasPermission('lab_admin', Permission.ADMIN_SETTINGS)).toBe(true);
-      expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_CONFIGURATION)).toBe(true);
-      expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_INVITE_CODES)).toBe(true);
+      expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_RESEARCHERS)).toBe(
+        true
+      );
+      expect(RolePermissionService.hasPermission('lab_admin', Permission.ADMIN_SETTINGS)).toBe(
+        true
+      );
+      expect(
+        RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_CONFIGURATION)
+      ).toBe(true);
+      expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_INVITE_CODES)).toBe(
+        true
+      );
     });
 
     it('should deny lab_admin system-level permissions', () => {
       expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_LABS)).toBe(false);
-      expect(RolePermissionService.hasPermission('lab_admin', Permission.VIEW_ALL_LABS)).toBe(false);
-      expect(RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_GLOBAL_SETTINGS)).toBe(false);
+      expect(RolePermissionService.hasPermission('lab_admin', Permission.VIEW_ALL_LABS)).toBe(
+        false
+      );
+      expect(
+        RolePermissionService.hasPermission('lab_admin', Permission.MANAGE_GLOBAL_SETTINGS)
+      ).toBe(false);
     });
 
     it('should grant system_admin all permissions', () => {
@@ -44,7 +60,9 @@ describe('RolePermissionService', () => {
     });
 
     it('should return false for invalid roles', () => {
-      expect(RolePermissionService.hasPermission('invalid' as any, Permission.VIEW_TUBES)).toBe(false);
+      expect(RolePermissionService.hasPermission('invalid' as any, Permission.VIEW_TUBES)).toBe(
+        false
+      );
     });
   });
 
@@ -97,5 +115,4 @@ describe('RolePermissionService', () => {
       expect(RolePermissionService.isValidRole('')).toBe(false);
     });
   });
-
 });

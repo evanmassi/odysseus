@@ -33,7 +33,7 @@ describe('supply child-resource lab-scoping', () => {
   });
 
   describe('documents', () => {
-    it('updateDocument leaves another lab\'s document untouched', async () => {
+    it("updateDocument leaves another lab's document untouched", async () => {
       const labA = await seed.lab();
       const labB = await seed.lab();
       const itemA = await seed.supplyItem({ labId: labA.id });
@@ -49,10 +49,12 @@ describe('supply child-resource lab-scoping', () => {
       const itemA = await seed.supplyItem({ labId: labA.id });
       const doc = await seed.supplyDocument({ itemId: itemA.id, label: 'original' });
 
-      expect((await repo.updateDocument(doc.id, itemA.id, { label: 'renamed' }))?.label).toBe('renamed');
+      expect((await repo.updateDocument(doc.id, itemA.id, { label: 'renamed' }))?.label).toBe(
+        'renamed'
+      );
     });
 
-    it('deleteDocument does not delete another lab\'s document', async () => {
+    it("deleteDocument does not delete another lab's document", async () => {
       const labA = await seed.lab();
       const labB = await seed.lab();
       const itemA = await seed.supplyItem({ labId: labA.id });
@@ -74,7 +76,7 @@ describe('supply child-resource lab-scoping', () => {
   });
 
   describe('barcodes', () => {
-    it('updateBarcode leaves another lab\'s barcode untouched', async () => {
+    it("updateBarcode leaves another lab's barcode untouched", async () => {
       const labA = await seed.lab();
       const labB = await seed.lab();
       const itemA = await seed.supplyItem({ labId: labA.id });
@@ -90,10 +92,12 @@ describe('supply child-resource lab-scoping', () => {
       const itemA = await seed.supplyItem({ labId: labA.id });
       const barcode = await seed.supplyBarcode({ itemId: itemA.id, label: 'original' });
 
-      expect((await repo.updateBarcode(barcode.id, itemA.id, { label: 'renamed' }))?.label).toBe('renamed');
+      expect((await repo.updateBarcode(barcode.id, itemA.id, { label: 'renamed' }))?.label).toBe(
+        'renamed'
+      );
     });
 
-    it('deleteBarcode does not delete another lab\'s barcode', async () => {
+    it("deleteBarcode does not delete another lab's barcode", async () => {
       const labA = await seed.lab();
       const labB = await seed.lab();
       const itemA = await seed.supplyItem({ labId: labA.id });
@@ -104,5 +108,4 @@ describe('supply child-resource lab-scoping', () => {
       expect(await repo.findBarcodesByItemId(itemA.id)).toHaveLength(1);
     });
   });
-
 });

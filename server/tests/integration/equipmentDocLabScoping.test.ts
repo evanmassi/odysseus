@@ -32,7 +32,7 @@ describe('equipment document lab-scoping', () => {
     await context.close();
   });
 
-  it('updateDocument leaves a document under another lab\'s item untouched', async () => {
+  it("updateDocument leaves a document under another lab's item untouched", async () => {
     const labA = await seed.lab();
     const labB = await seed.lab();
     const itemA = await seed.equipmentItem({ labId: labA.id });
@@ -56,7 +56,7 @@ describe('equipment document lab-scoping', () => {
     expect(result?.label).toBe('renamed');
   });
 
-  it('deleteDocument does not delete a document under another lab\'s item', async () => {
+  it("deleteDocument does not delete a document under another lab's item", async () => {
     const labA = await seed.lab();
     const labB = await seed.lab();
     const itemA = await seed.equipmentItem({ labId: labA.id });

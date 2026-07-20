@@ -18,7 +18,6 @@ export interface DocumentRow {
 }
 
 export class DocumentMapper {
-
   static toRow(document: Document): DocumentRow {
     return {
       id: document.id,

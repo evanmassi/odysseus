@@ -8,7 +8,6 @@ import { type TubeSearchCriteria } from '@domain/types/repository';
 
 import type { SearchFilters } from '@odysseus/shared-schemas';
 
-
 export class SearchCriteriaMapper {
   static toTubeSearchCriteria(
     filters?: SearchFilters,
@@ -39,7 +38,7 @@ export class SearchCriteriaMapper {
       cultureConditions: filters?.cultureConditions,
       researcherIds: filters?.researcherIds,
       dateFrom: filters?.dateFrom,
-      dateTo: filters?.dateTo
+      dateTo: filters?.dateTo,
     };
   }
 

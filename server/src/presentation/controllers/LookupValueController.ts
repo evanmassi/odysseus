@@ -4,7 +4,6 @@
  * HTTP handlers for lab lookup values — form dropdowns and admin catalog management.
  */
 
-
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 import { BaseController } from '@presentation/controllers/BaseController';

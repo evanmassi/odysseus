@@ -21,7 +21,7 @@ export class LookupValueApplicationService {
     private equipmentItemRepository?: EquipmentItemRepository,
     private donorRepository?: DonorRepository,
     private supplyItemRepository?: SupplyItemRepository,
-    private storageRepository?: StorageRepository,
+    private storageRepository?: StorageRepository
   ) {}
 
   /** Seeded demo labs lock the catalog to non-admins; system admins are exempt. */
@@ -35,24 +35,44 @@ export class LookupValueApplicationService {
     }
   }
 
-  async getActiveByCategory(labId: string, category: LookupCategory): Promise<ReturnType<LookupValue['toData']>[]> {
-    const values = await this.lookupValueRepository.findActiveByCategoryForDropdown(category, labId);
+  async getActiveByCategory(
+    labId: string,
+    category: LookupCategory
+  ): Promise<ReturnType<LookupValue['toData']>[]> {
+    const values = await this.lookupValueRepository.findActiveByCategoryForDropdown(
+      category,
+      labId
+    );
     return values.map(v => v.toData());
   }
 
-  async getAllByCategory(labId: string, category: LookupCategory): Promise<Array<ReturnType<LookupValue['toData']> & { usageCount: number }>> {
+  async getAllByCategory(
+    labId: string,
+    category: LookupCategory
+  ): Promise<Array<ReturnType<LookupValue['toData']> & { usageCount: number }>> {
     const values = await this.lookupValueRepository.findByCategory(category, labId);
-    const countMap = await this.getUsageCounts(category, values.map(v => v.value), labId);
+    const countMap = await this.getUsageCounts(
+      category,
+      values.map(v => v.value),
+      labId
+    );
     return values.map(v => ({ ...v.toData(), usageCount: countMap.get(v.value) ?? 0 }));
   }
 
-  private async getUsageCounts(category: LookupCategory, values: string[], labId: string): Promise<Map<string, number>> {
+  private async getUsageCounts(
+    category: LookupCategory,
+    values: string[],
+    labId: string
+  ): Promise<Map<string, number>> {
     if (values.length === 0) return new Map();
 
     if (category === 'equipment_maintenance_type' && this.equipmentItemRepository) {
       const counts = new Map<string, number>();
       for (const value of values) {
-        counts.set(value, await this.equipmentItemRepository.countMaintenanceEntriesUsingType(value, labId));
+        counts.set(
+          value,
+          await this.equipmentItemRepository.countMaintenanceEntriesUsingType(value, labId)
+        );
       }
       return counts;
     }
@@ -60,7 +80,10 @@ export class LookupValueApplicationService {
     if (category === 'specimen_type' && this.donorRepository) {
       const counts = new Map<string, number>();
       for (const value of values) {
-        counts.set(value, await this.donorRepository.countCollectionEntriesUsingSpecimenType(value, labId));
+        counts.set(
+          value,
+          await this.donorRepository.countCollectionEntriesUsingSpecimenType(value, labId)
+        );
       }
       return counts;
     }
@@ -79,10 +102,19 @@ export class LookupValueApplicationService {
     return this.lookupValueRepository.countTubesUsingValues(category, values, labId);
   }
 
-  async create(labId: string, category: LookupCategory, value: string, user: User): Promise<ReturnType<LookupValue['toData']>> {
+  async create(
+    labId: string,
+    category: LookupCategory,
+    value: string,
+    user: User
+  ): Promise<ReturnType<LookupValue['toData']>> {
     await this.rejectIfSeededDemo(labId, user);
 
-    const existing = await this.lookupValueRepository.findByCategoryAndValue(category, value.trim(), labId);
+    const existing = await this.lookupValueRepository.findByCategoryAndValue(
+      category,
+      value.trim(),
+      labId
+    );
     if (existing) {
       throw new ValidationError(`A ${category} value "${value.trim()}" already exists`);
     }
@@ -92,7 +124,12 @@ export class LookupValueApplicationService {
     return entity.toData();
   }
 
-  async rename(labId: string, id: string, newValue: string, user: User): Promise<ReturnType<LookupValue['toData']>> {
+  async rename(
+    labId: string,
+    id: string,
+    newValue: string,
+    user: User
+  ): Promise<ReturnType<LookupValue['toData']>> {
     await this.rejectIfSeededDemo(labId, user);
 
     const entity = await this.lookupValueRepository.findById(id, labId);
@@ -105,7 +142,11 @@ export class LookupValueApplicationService {
       return entity.toData();
     }
 
-    const existing = await this.lookupValueRepository.findByCategoryAndValue(entity.category, newValue.trim(), labId);
+    const existing = await this.lookupValueRepository.findByCategoryAndValue(
+      entity.category,
+      newValue.trim(),
+      labId
+    );
     if (existing) {
       throw new ValidationError(`A ${entity.category} value "${newValue.trim()}" already exists`);
     }
@@ -120,10 +161,20 @@ export class LookupValueApplicationService {
     } else if (this.supplyItemRepository) {
       const renamed = await this.renameSupplyValue(entity.category, oldValue, entity.value, labId);
       if (!renamed) {
-        await this.lookupValueRepository.renameTubeValues(entity.category, oldValue, entity.value, labId);
+        await this.lookupValueRepository.renameTubeValues(
+          entity.category,
+          oldValue,
+          entity.value,
+          labId
+        );
       }
     } else {
-      await this.lookupValueRepository.renameTubeValues(entity.category, oldValue, entity.value, labId);
+      await this.lookupValueRepository.renameTubeValues(
+        entity.category,
+        oldValue,
+        entity.value,
+        labId
+      );
     }
 
     return entity.toData();
@@ -137,7 +188,8 @@ export class LookupValueApplicationService {
       throw new NotFoundError('Lookup value not found');
     }
 
-    const usageCount = (await this.getUsageCounts(entity.category, [entity.value], labId)).get(entity.value) ?? 0;
+    const usageCount =
+      (await this.getUsageCounts(entity.category, [entity.value], labId)).get(entity.value) ?? 0;
 
     if (usageCount > 0) {
       const labelMap: Partial<Record<LookupCategory, [string, string]>> = {
@@ -159,27 +211,48 @@ export class LookupValueApplicationService {
     await this.lookupValueRepository.delete(id, labId);
   }
 
-  private getSupplyCountFn(category: LookupCategory): ((value: string, labId: string) => Promise<number>) | undefined {
+  private getSupplyCountFn(
+    category: LookupCategory
+  ): ((value: string, labId: string) => Promise<number>) | undefined {
     if (!this.supplyItemRepository) return undefined;
     const repo = this.supplyItemRepository;
     switch (category) {
-      case 'supply_item_property': return (v, l) => repo.countItemsUsingProperty(v, l);
-      case 'supply_stock_unit': return (v, l) => repo.countItemsUsingStockUnit(v, l);
-      case 'supply_vendor': return (v, l) => repo.countItemsUsingVendor(v, l);
-      case 'supply_manufacturer': return (v, l) => repo.countItemsUsingManufacturer(v, l);
-      default: return undefined;
+      case 'supply_item_property':
+        return (v, l) => repo.countItemsUsingProperty(v, l);
+      case 'supply_stock_unit':
+        return (v, l) => repo.countItemsUsingStockUnit(v, l);
+      case 'supply_vendor':
+        return (v, l) => repo.countItemsUsingVendor(v, l);
+      case 'supply_manufacturer':
+        return (v, l) => repo.countItemsUsingManufacturer(v, l);
+      default:
+        return undefined;
     }
   }
 
-  private async renameSupplyValue(category: LookupCategory, oldValue: string, newValue: string, labId: string): Promise<boolean> {
+  private async renameSupplyValue(
+    category: LookupCategory,
+    oldValue: string,
+    newValue: string,
+    labId: string
+  ): Promise<boolean> {
     if (!this.supplyItemRepository) return false;
     const repo = this.supplyItemRepository;
     switch (category) {
-      case 'supply_item_property': await repo.renameProperty(oldValue, newValue, labId); return true;
-      case 'supply_stock_unit': await repo.renameStockUnit(oldValue, newValue, labId); return true;
-      case 'supply_vendor': await repo.renameVendor(oldValue, newValue, labId); return true;
-      case 'supply_manufacturer': await repo.renameManufacturer(oldValue, newValue, labId); return true;
-      default: return false;
+      case 'supply_item_property':
+        await repo.renameProperty(oldValue, newValue, labId);
+        return true;
+      case 'supply_stock_unit':
+        await repo.renameStockUnit(oldValue, newValue, labId);
+        return true;
+      case 'supply_vendor':
+        await repo.renameVendor(oldValue, newValue, labId);
+        return true;
+      case 'supply_manufacturer':
+        await repo.renameManufacturer(oldValue, newValue, labId);
+        return true;
+      default:
+        return false;
     }
   }
 }

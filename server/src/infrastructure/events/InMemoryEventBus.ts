@@ -26,7 +26,7 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Publishing domain event', {
       eventName: event.eventName(),
       aggregateId: event.getAggregateId(),
-      handlerCount: this.handlers.get(event.eventName())?.length ?? 0
+      handlerCount: this.handlers.get(event.eventName())?.length ?? 0,
     });
 
     this.eventQueue.push(event);
@@ -60,10 +60,10 @@ export class InMemoryEventBus implements EventBus {
 
     logger.debug('Processing domain event', {
       eventName,
-      handlerCount: handlers.length
+      handlerCount: handlers.length,
     });
 
-    const handlerPromises = handlers.map(async (handler) => {
+    const handlerPromises = handlers.map(async handler => {
       try {
         if (typeof handler === 'function') {
           await handler(event);
@@ -74,7 +74,7 @@ export class InMemoryEventBus implements EventBus {
         logger.debug('Event handler completed successfully', {
           eventName,
           eventId: event.eventId,
-          handler: handlerName(handler)
+          handler: handlerName(handler),
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -85,7 +85,7 @@ export class InMemoryEventBus implements EventBus {
           eventId: event.eventId,
           handler: handlerName(handler),
           error: errorMessage,
-          stack: errorStack
+          stack: errorStack,
         });
 
         // One handler failure shouldn't stop others
@@ -97,7 +97,7 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Domain event processing completed', {
       eventName,
       eventId: event.eventId,
-      handlerCount: handlers.length
+      handlerCount: handlers.length,
     });
   }
 
@@ -112,8 +112,7 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Event handler subscribed', {
       eventName,
       handler: handlerName(handler as AnyEventHandler),
-      totalHandlers: existingHandlers.length
+      totalHandlers: existingHandlers.length,
     });
   }
-
 }

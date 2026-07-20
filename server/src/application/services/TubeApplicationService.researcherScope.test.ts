@@ -25,7 +25,9 @@ import type { CreateTubeRequest, UpdateTubeRequest } from '@odysseus/shared-sche
 function makeService(overrides: { researcher?: Researcher | null } = {}) {
   const findResearcher = jest.fn().mockResolvedValue(overrides.researcher ?? null);
   const researcherRepository = { findById: findResearcher } as unknown as ResearcherRepository;
-  const personRepository = { findById: jest.fn().mockResolvedValue(null) } as unknown as PersonRepository;
+  const personRepository = {
+    findById: jest.fn().mockResolvedValue(null),
+  } as unknown as PersonRepository;
 
   const save = jest.fn().mockResolvedValue(undefined);
   const saveWithOptimisticLock = jest.fn().mockResolvedValue(1);
@@ -99,10 +101,15 @@ describe('TubeApplicationService researcher lab-scoping', () => {
       const existing = createTestTube({ labId: 'lab_1' });
 
       await expect(
-        service.updateTube(existing.id, { researcherId: 'res_foreign' } as UpdateTubeRequest, user, {
-          preloadedTube: existing,
-          config: null,
-        })
+        service.updateTube(
+          existing.id,
+          { researcherId: 'res_foreign' } as UpdateTubeRequest,
+          user,
+          {
+            preloadedTube: existing,
+            config: null,
+          }
+        )
       ).rejects.toThrow(ValidationError);
       expect(findResearcher).toHaveBeenCalledWith('res_foreign', 'lab_1');
     });

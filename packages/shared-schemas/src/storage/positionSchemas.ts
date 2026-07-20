@@ -14,28 +14,33 @@ export const alphanumericConfigSchema = z.object({
   format: z.enum(['row-col', 'col-row']).default('row-col'), // "A5" vs "5A"
 });
 
-export const positionDisplayConfigSchema = z.object({
-  format: positionDisplayFormatSchema,
-  alphanumericConfig: alphanumericConfigSchema.optional(),
-}).refine(
-  (config) => {
-    // If format is alphanumeric, alphanumericConfig MUST exist
-    if (config.format === 'alphanumeric') {
-      return config.alphanumericConfig !== undefined &&
-             config.alphanumericConfig !== null &&
-             config.alphanumericConfig.rowLabels.length > 0 &&
-             config.alphanumericConfig.colLabels.length > 0;
+export const positionDisplayConfigSchema = z
+  .object({
+    format: positionDisplayFormatSchema,
+    alphanumericConfig: alphanumericConfigSchema.optional(),
+  })
+  .refine(
+    config => {
+      // If format is alphanumeric, alphanumericConfig MUST exist
+      if (config.format === 'alphanumeric') {
+        return (
+          config.alphanumericConfig !== undefined &&
+          config.alphanumericConfig !== null &&
+          config.alphanumericConfig.rowLabels.length > 0 &&
+          config.alphanumericConfig.colLabels.length > 0
+        );
+      }
+      // If format is numeric, alphanumericConfig should NOT exist
+      if (config.format === 'numeric') {
+        return config.alphanumericConfig === undefined;
+      }
+      return true;
+    },
+    {
+      message:
+        'Alphanumeric format requires valid alphanumericConfig; numeric format must not have alphanumericConfig',
     }
-    // If format is numeric, alphanumericConfig should NOT exist
-    if (config.format === 'numeric') {
-      return config.alphanumericConfig === undefined;
-    }
-    return true;
-  },
-  {
-    message: 'Alphanumeric format requires valid alphanumericConfig; numeric format must not have alphanumericConfig',
-  }
-);
+  );
 
 export type PositionDisplayConfig = z.infer<typeof positionDisplayConfigSchema>;
 

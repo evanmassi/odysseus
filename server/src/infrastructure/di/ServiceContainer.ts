@@ -148,10 +148,7 @@ export class ServiceContainer {
   private getTubePositionService(): TubePositionService {
     if (!this.tubePositionService) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.tubePositionService = new TubePositionService(
-        repositories.tubes,
-        repositories.storage
-      );
+      this.tubePositionService = new TubePositionService(repositories.tubes, repositories.storage);
     }
     return this.tubePositionService;
   }
@@ -159,9 +156,7 @@ export class ServiceContainer {
   private getAccessControlService(): AccessControlService {
     if (!this.accessControlService) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.accessControlService = new AccessControlService(
-        repositories.tubes
-      );
+      this.accessControlService = new AccessControlService(repositories.tubes);
     }
     return this.accessControlService;
   }
@@ -250,9 +245,11 @@ export class ServiceContainer {
         getCheckFirstTimeHandler: () => this.getUserModule().getCheckFirstTimeHandler(),
         getChangeRoleHandler: () => this.getUserModule().getChangeRoleHandler(),
         getUserApplicationService: () => this.getUserModule().getUserApplicationService(),
-        getResearcherApplicationService: () => this.getUserModule().getResearcherApplicationService(),
+        getResearcherApplicationService: () =>
+          this.getUserModule().getResearcherApplicationService(),
         getPersonApplicationService: () => this.getUserModule().getPersonApplicationService(),
-        getSecurityConfigApplicationService: () => this.getStorageModule().getSecurityConfigApplicationService(),
+        getSecurityConfigApplicationService: () =>
+          this.getStorageModule().getSecurityConfigApplicationService(),
       });
     }
     return this._authModule;
@@ -267,7 +264,6 @@ export class ServiceContainer {
   getSocketEventHandler(): SocketEventHandler | null {
     return this.getEventModule().getSocketEventHandler();
   }
-
 
   // Public API — AuditModule
 

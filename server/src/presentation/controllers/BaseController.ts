@@ -8,9 +8,7 @@ import type { User } from '@domain/entities/User';
 
 import type { Request } from 'express';
 
-
 export abstract class BaseController {
-
   protected getAuthenticatedUser(req: Request): User {
     const user = req.user;
     if (!user) {

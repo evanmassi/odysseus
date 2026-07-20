@@ -21,7 +21,6 @@ export interface UserSessionRow {
 }
 
 export class UserSessionMapper {
-
   static toRow(session: UserSession): UserSessionRow {
     return {
       id: session.id,
@@ -33,7 +32,7 @@ export class UserSessionMapper {
       created_at: session.createdAt,
       last_used_at: session.lastUsedAt,
       expires_at: session.expiresAt,
-      is_active: session.isActive
+      is_active: session.isActive,
     };
   }
 
@@ -48,7 +47,7 @@ export class UserSessionMapper {
       isActive: row.is_active,
       deviceInfo: row.device_info ?? undefined,
       ipAddress: row.ip_address ?? undefined,
-      userAgent: row.user_agent ?? undefined
+      userAgent: row.user_agent ?? undefined,
     });
   }
 

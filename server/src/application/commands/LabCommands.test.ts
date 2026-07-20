@@ -19,7 +19,9 @@ import { CreateLabCommandHandler, UpdateLabCommandHandler } from './LabCommands'
 const systemAdmin = { isSystemAdmin: () => true } as unknown as User;
 
 function makeCreateHandler(opts: { existingSlug?: unknown } = {}) {
-  const userRepository = { findByIdAnyLab: jest.fn().mockResolvedValue(systemAdmin) } as unknown as UserRepository;
+  const userRepository = {
+    findByIdAnyLab: jest.fn().mockResolvedValue(systemAdmin),
+  } as unknown as UserRepository;
   const save = jest.fn();
   const findBySlug = jest.fn().mockResolvedValue(opts.existingSlug ?? null);
   const labRepository = { save, findBySlug } as unknown as LabRepository;
@@ -28,7 +30,12 @@ function makeCreateHandler(opts: { existingSlug?: unknown } = {}) {
   const publish = jest.fn();
   const eventBus = { publish } as unknown as EventBus;
 
-  const handler = new CreateLabCommandHandler(labRepository, storageRepository, userRepository, eventBus);
+  const handler = new CreateLabCommandHandler(
+    labRepository,
+    storageRepository,
+    userRepository,
+    eventBus
+  );
   return { handler, save, ensureDefaultForLab, publish };
 }
 
@@ -37,7 +44,9 @@ describe('CreateLabCommandHandler', () => {
 
   it('rejects an empty name', async () => {
     const { handler, save } = makeCreateHandler();
-    await expect(handler.handle({ userId: 'admin', name: '  ' })).rejects.toBeInstanceOf(ValidationError);
+    await expect(handler.handle({ userId: 'admin', name: '  ' })).rejects.toBeInstanceOf(
+      ValidationError
+    );
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -58,7 +67,9 @@ describe('CreateLabCommandHandler', () => {
 });
 
 function makeUpdateHandler(opts: { lab?: unknown; existingSlug?: unknown } = {}) {
-  const userRepository = { findByIdAnyLab: jest.fn().mockResolvedValue(systemAdmin) } as unknown as UserRepository;
+  const userRepository = {
+    findByIdAnyLab: jest.fn().mockResolvedValue(systemAdmin),
+  } as unknown as UserRepository;
   const save = jest.fn();
   const findById = jest.fn().mockResolvedValue(opts.lab ?? null);
   const findBySlug = jest.fn().mockResolvedValue(opts.existingSlug ?? null);
@@ -73,7 +84,9 @@ function makeUpdateHandler(opts: { lab?: unknown; existingSlug?: unknown } = {})
 describe('UpdateLabCommandHandler', () => {
   it('throws when the lab is not found', async () => {
     const { handler } = makeUpdateHandler({ lab: null });
-    await expect(handler.handle({ userId: 'admin', labId: 'l1', name: 'X' })).rejects.toBeInstanceOf(NotFoundError);
+    await expect(
+      handler.handle({ userId: 'admin', labId: 'l1', name: 'X' })
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('returns the lab without saving when the name is unchanged', async () => {

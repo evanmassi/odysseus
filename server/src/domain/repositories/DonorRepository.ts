@@ -8,7 +8,6 @@ import type { Donor } from '@domain/entities/Donor';
 import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 
 export interface DonorRepository {
-
   // Donor CRUD
 
   findById(id: string, labId: string): Promise<Donor | null>;

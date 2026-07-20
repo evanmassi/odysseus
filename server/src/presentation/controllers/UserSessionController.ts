@@ -23,7 +23,10 @@ export class UserSessionController extends BaseController {
   async getUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
-      const sessions = await this.deps.userSessionApplicationService.getActiveSessions(user, req.sessionId);
+      const sessions = await this.deps.userSessionApplicationService.getActiveSessions(
+        user,
+        req.sessionId
+      );
 
       res.json(ResponseBuilder.success(sessions));
     } catch (error) {
@@ -34,7 +37,11 @@ export class UserSessionController extends BaseController {
   async revokeSession(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
-      await this.deps.userSessionApplicationService.revokeSession(user, req.params.id, req.sessionId);
+      await this.deps.userSessionApplicationService.revokeSession(
+        user,
+        req.params.id,
+        req.sessionId
+      );
 
       res.json(ResponseBuilder.success({ message: 'Session revoked successfully' }));
     } catch (error) {

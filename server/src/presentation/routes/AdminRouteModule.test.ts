@@ -41,9 +41,11 @@ describe('AdminRouteModule system-admin wiring', () => {
     );
 
     const routes: { method: string; path: string; handlers: unknown[] }[] = [];
-    const record = (method: string) => (path: string, ...handlers: unknown[]) => {
-      routes.push({ method, path, handlers });
-    };
+    const record =
+      (method: string) =>
+      (path: string, ...handlers: unknown[]) => {
+        routes.push({ method, path, handlers });
+      };
     const router = {
       get: record('get'),
       post: record('post'),

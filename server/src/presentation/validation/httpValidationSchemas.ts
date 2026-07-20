@@ -83,7 +83,7 @@ export const CategoryParams = z.object({ category: z.string().min(1) });
 // Supports both single tube creation and bulk paste operations (copy/cut)
 export const CreateTubeHttpSchema = z.union([
   createTubeRequestSchema,
-  z.array(createTubeRequestSchema)
+  z.array(createTubeRequestSchema),
 ]);
 
 export const UpdateTubeHttpSchema = updateTubeRequestSchema;
@@ -95,23 +95,35 @@ export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
 export const RackQuerySchema = tubeLocationSchema.pick({ tankId: true, rackId: true });
 
 export const TubeFilterOptionsQuerySchema = z.object({
-  fields: z.string().min(1).transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
+  fields: z
+    .string()
+    .min(1)
+    .transform(val =>
+      val
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    )
     .pipe(z.array(z.enum(TUBE_FILTERABLE_FIELDS)).min(1)),
 });
 
 export const BulkUpdateHttpSchema = z.object({
-  updates: z.array(z.object({
-    id: z.string().min(1),
-    updates: UpdateTubeHttpSchema
-  })).min(1, "At least one update is required")
+  updates: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        updates: UpdateTubeHttpSchema,
+      })
+    )
+    .min(1, 'At least one update is required'),
 });
 
 export const BulkDeleteHttpSchema = z.object({
-  tubeIds: z.array(z.string().min(1)).min(1, "At least one tube ID is required")
+  tubeIds: z.array(z.string().min(1)).min(1, 'At least one tube ID is required'),
 });
 
 export const BulkFetchHttpSchema = z.object({
-  tubeIds: z.array(z.string().min(1)).min(1, "At least one tube ID is required").max(100)
+  tubeIds: z.array(z.string().min(1)).min(1, 'At least one tube ID is required').max(100),
 });
 
 export const BulkMoveHttpSchema = bulkMoveRequestSchema;
@@ -159,13 +171,15 @@ export const UpdateRoleBodySchema = z.object({
   role: z.enum(['lab_admin', 'user']),
 });
 
-export const LinkResearcherBodySchema = z.object({
-  researcherId: z.string().optional(),
-  newResearcher: createResearcherProfileSchema.optional(),
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- '' must count as absent, so || not ??
-}).refine(data => data.researcherId || data.newResearcher, {
-  message: 'Must provide either researcherId or newResearcher',
-});
+export const LinkResearcherBodySchema = z
+  .object({
+    researcherId: z.string().optional(),
+    newResearcher: createResearcherProfileSchema.optional(),
+  })
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- '' must count as absent, so || not ??
+  .refine(data => data.researcherId || data.newResearcher, {
+    message: 'Must provide either researcherId or newResearcher',
+  });
 
 export const CreateInviteCodeBodySchema = createInviteCodeRequestSchema;
 
@@ -193,7 +207,10 @@ export const DonorSearchQuery = z.object({
 
 export const EquipmentCategoryIdParams = z.object({ categoryId: z.string().min(1) });
 export const EquipmentDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
-export const EquipmentMaintenanceEntryIdParams = z.object({ id: z.string().min(1), entryId: z.string().min(1) });
+export const EquipmentMaintenanceEntryIdParams = z.object({
+  id: z.string().min(1),
+  entryId: z.string().min(1),
+});
 export const CreateEquipmentCategoryHttpSchema = createEquipmentCategoryRequestSchema;
 export const UpdateEquipmentCategoryHttpSchema = updateEquipmentCategoryRequestSchema;
 export const CreateEquipmentItemHttpSchema = createEquipmentItemRequestSchema;
@@ -211,7 +228,11 @@ export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchem
 
 export const TankIdParams = z.object({ tankId: z.string().min(1) });
 export const RackIdParams = z.object({ tankId: z.string().min(1), rackId: z.string().min(1) });
-export const BoxIdParams = z.object({ tankId: z.string().min(1), rackId: z.string().min(1), boxId: z.string().min(1) });
+export const BoxIdParams = z.object({
+  tankId: z.string().min(1),
+  rackId: z.string().min(1),
+  boxId: z.string().min(1),
+});
 export const AddTankHttpSchema = addTankRequestSchema;
 export const UpdateTankHttpSchema = updateTankRequestSchema;
 export const AddRacksHttpSchema = addRacksRequestSchema;
@@ -232,8 +253,14 @@ export const ResetStorageHttpSchema = z.object({ confirmationToken: z.string().m
 export const SupplyCategoryIdParams = z.object({ categoryId: z.string().min(1) });
 export const SupplyLocationIdParams = z.object({ locationId: z.string().min(1) });
 export const SupplyDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
-export const SupplyBarcodeIdParams = z.object({ id: z.string().min(1), barcodeId: z.string().min(1) });
-export const SupplyPackagingLevelIdParams = z.object({ id: z.string().min(1), levelId: z.string().min(1) });
+export const SupplyBarcodeIdParams = z.object({
+  id: z.string().min(1),
+  barcodeId: z.string().min(1),
+});
+export const SupplyPackagingLevelIdParams = z.object({
+  id: z.string().min(1),
+  levelId: z.string().min(1),
+});
 export const CreateSupplyCategoryHttpSchema = createSupplyCategoryRequestSchema;
 export const UpdateSupplyCategoryHttpSchema = updateSupplyCategoryRequestSchema;
 export const CreateSupplyLocationHttpSchema = createSupplyLocationRequestSchema;
@@ -255,4 +282,3 @@ export const VoidSupplyTransactionHttpSchema = voidSupplyTransactionRequestSchem
 export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
 export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
 export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
-

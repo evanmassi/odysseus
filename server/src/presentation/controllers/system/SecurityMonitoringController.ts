@@ -78,7 +78,10 @@ export class SecurityMonitoringController extends BaseController {
       const { sessionIds } = req.body as { sessionIds: string[] };
       const result = await this.deps.securityMonitoringService.bulkRevokeSessions(sessionIds);
 
-      logger.info('Admin bulk revoked sessions', { count: result.revokedCount, requestId: req.requestId });
+      logger.info('Admin bulk revoked sessions', {
+        count: result.revokedCount,
+        requestId: req.requestId,
+      });
 
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -92,7 +95,11 @@ export class SecurityMonitoringController extends BaseController {
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
 
-      const result = await this.deps.securityMonitoringService.getFailedLogins(limit, startDate, endDate);
+      const result = await this.deps.securityMonitoringService.getFailedLogins(
+        limit,
+        startDate,
+        endDate
+      );
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get failed logins', req.requestId);

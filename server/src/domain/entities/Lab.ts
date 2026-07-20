@@ -140,12 +140,28 @@ export class Lab {
     };
   }
 
-  get id(): string { return this._id; }
-  get name(): string { return this._name; }
-  get slug(): string { return this._slug; }
-  get isActive(): boolean { return this._isActive; }
-  get isDemo(): boolean { return this._isDemo; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
-  get demoLimits(): DemoLimits | undefined { return this._demoLimits ? { ...this._demoLimits } : undefined; }
+  get id(): string {
+    return this._id;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get slug(): string {
+    return this._slug;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get isDemo(): boolean {
+    return this._isDemo;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
+  get demoLimits(): DemoLimits | undefined {
+    return this._demoLimits ? { ...this._demoLimits } : undefined;
+  }
 }

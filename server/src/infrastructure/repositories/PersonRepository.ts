@@ -15,7 +15,6 @@ const PERSON_COLUMNS = `
 `.trim();
 
 export class PersonRepository implements IPersonRepository {
-
   constructor(private context: Queryable) {}
 
   async findById(id: string): Promise<Person | null> {
@@ -38,7 +37,8 @@ export class PersonRepository implements IPersonRepository {
   async save(person: Person): Promise<void> {
     const row = PersonMapper.toRow(person);
 
-    await this.context.execute(`
+    await this.context.execute(
+      `
       INSERT INTO persons (
         id, first_name, last_name, email, position, department, created_at, updated_at
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -49,17 +49,22 @@ export class PersonRepository implements IPersonRepository {
         position = EXCLUDED.position,
         department = EXCLUDED.department,
         updated_at = EXCLUDED.updated_at
-    `, [
-      row.id, row.first_name, row.last_name, row.email,
-      row.position, row.department, row.created_at, row.updated_at
-    ]);
+    `,
+      [
+        row.id,
+        row.first_name,
+        row.last_name,
+        row.email,
+        row.position,
+        row.department,
+        row.created_at,
+        row.updated_at,
+      ]
+    );
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM persons WHERE id = $1',
-      [id]
-    );
+    const result = await this.context.execute('DELETE FROM persons WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 
