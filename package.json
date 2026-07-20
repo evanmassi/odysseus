@@ -25,8 +25,8 @@
     "lint:server:fix": "cd server && npm run lint:fix",
     "lint:shared": "cd packages/shared-schemas && npm run lint",
     "lint:shared:fix": "cd packages/shared-schemas && npm run lint:fix",
-    "format": "npm run format:client",
-    "format:client": "cd client && npm run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "pretypecheck": "npm run build:shared",
     "typecheck": "npm run typecheck:client && npm run typecheck:server",
     "typecheck:client": "cd client && npm run typecheck",
@@ -45,6 +45,7 @@
   "devDependencies": {
     "concurrently": "^9.2.1",
     "husky": "^9.0.11",
+    "prettier": "^3.2.5",
     "rimraf": "^6.1.0"
   },
   "author": "Evan Massi",
