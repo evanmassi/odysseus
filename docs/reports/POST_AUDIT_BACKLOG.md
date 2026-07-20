@@ -1,7 +1,7 @@
 # Post-Audit Backlog — Major Follow-Ups
 
 **As of:** 2026-07-12, after the four-bucket quality review (every audit finding closed or
-deliberately skipped — see the `*_FINDINGS.md` ledgers in this directory).
+deliberately skipped).
 
 This captures the larger, out-of-scope items worth investigating later — the "real work," not
 polish. Each has a starting point so it can be picked up cold. Ranked roughly by ongoing cost.
@@ -147,7 +147,7 @@ because the rule lived in two places.
 | Application service | 38% (19 vs 34 public methods) |
 
 So the category and document surfaces are a genuine twin; the item surface only looks like one. That
-matches what `P1B_EQUIPMENT_SUPPLIES_TWIN.md` concluded for the client in July.
+matches what the client-side twin analysis concluded in July.
 
 **Done** (`f966d4b7`, `c9ee8994`, `66c06491`): the depth rule extracted to one guard; category and
 document entities, repositories, and mappers collapsed to one implementation each; eight duplicate
@@ -250,12 +250,12 @@ it turned out to be the most urgent thing in this document.
   ledger, E3). Candidate for consolidation.
 - **Category-tree twin** — server-side equipment ↔ supplies category-tree duplication (E4); part of #3
   above.
-- **Deliberate security skips** (see `SECURITY_FINDINGS.md` for the rationale, revisit if desired):
+- **Deliberate security skips** (rationale inline, revisit if desired):
   - **L5** — `POST /storage/import` has no `validateBody` (domain-defended; `StorageImportData` is a
     hand-rolled interface with no shared schema, so a bespoke one would be a drift-prone parallel shape).
   - **I3** — registration reveals email/name-taken (invite-gated; the specific messages are better UX).
 
 ## Reference
 
-The completed-work ledgers: `docs/reports/{DOMAIN,APPLICATION,INFRASTRUCTURE,PRESENTATION,SHARED_SCHEMAS,SECURITY}_*.md`
-and the standing conventions in `AGENTS.md` + `docs/audit-rubric.md`.
+The standing conventions in `AGENTS.md` + `docs/audit-rubric.md`. (The per-layer findings ledgers and
+priority reports were removed once their work landed — git history and AGENTS.md are the source of truth.)

@@ -1,7 +1,8 @@
 # Client Audit — Backlog
 
-Everything from the client audit (`docs/reports/CLIENT_FINDINGS.md`) that was **deferred**,
-**skipped**, or **needs a decision** — with enough detail to act without re-deriving it.
+Everything from the client audit that was **deferred**, **skipped**, or **needs a decision** — with
+enough detail to act without re-deriving it. (The source `CLIENT_FINDINGS.md` report was removed once
+its findings were resolved; the items below stand on their own.)
 
 **Status:** §1 (S1 bugs), §2 (S2 by area), §3 (themes), §4 (dead code), §6 (comments/naming) are
 **done**. §5 (consolidations) is done except the items below. Branch: `audit/fixes`. Line numbers
