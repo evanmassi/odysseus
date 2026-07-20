@@ -5,25 +5,20 @@
  * Shown when no system admin exists (detected during bootstrap).
  */
 
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, ShieldCheck, Building2, BriefcaseBusiness } from 'lucide-react';
 
+import { usePasswordRequirementsQuery } from '@domains/authentication/hooks/usePasswordRequirementsQuery';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
-import {
-  authService,
-  type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
-import {
-  generateUsernamePreview,
-  getValidationState,
-  isValidEmail,
-} from '@domains/authentication/utils/registrationUtils';
+import { generateUsernamePreview } from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
 export function AuthSysAdminSetupPage() {
   const [firstName, setFirstName] = useState('');
@@ -43,7 +38,7 @@ export function AuthSysAdminSetupPage() {
 
   const firstNameRef = useRef<HTMLInputElement>(null);
 
-  const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
+  const { data: passwordConfig } = usePasswordRequirementsQuery();
 
   const requireSetupKey = !!import.meta.env['VITE_REQUIRE_SETUP_KEY'];
 
@@ -53,18 +48,6 @@ export function AuthSysAdminSetupPage() {
   );
 
   const emailIsValid = useMemo(() => isValidEmail(email), [email]);
-
-  useEffect(() => {
-    async function loadPasswordRequirements() {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordConfig(requirements);
-      } catch (error) {
-        logger.error('Failed to load password requirements', { error });
-      }
-    }
-    void loadPasswordRequirements();
-  }, []);
 
   const passwordIsValid = useMemo(() => {
     if (!passwordConfig || !password) return false;
@@ -87,7 +70,7 @@ export function AuthSysAdminSetupPage() {
 
     if (!passwordIsValid) {
       setPasswordTouched(true);
-      notifications.error('Password must be at least 8 characters');
+      notifications.error('Password does not meet requirements');
       return;
     }
 
@@ -142,7 +125,7 @@ export function AuthSysAdminSetupPage() {
 
   return (
     <div key="sysadmin-setup" className="animate-auth-stack">
-      <AlertBanner variant="info" spacing="none" className="text-xs mb-3">
+      <AlertBanner variant="info" spacing="none" className="text-caption mb-3">
         No system administrator exists yet. Create one to manage labs and global settings.
       </AlertBanner>
 
@@ -164,7 +147,7 @@ export function AuthSysAdminSetupPage() {
               disabled={isLoading}
               maxLength={50}
             />
-            <div className="min-h-[18px] ml-1 font-mono text-[10px]">
+            <div className="min-h-[18px] ml-1 font-mono text-data-sm">
               {usernamePreview ? (
                 <p className="text-[rgb(var(--auth-text-mute))]">
                   Username:{' '}

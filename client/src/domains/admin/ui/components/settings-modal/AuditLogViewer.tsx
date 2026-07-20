@@ -3,7 +3,7 @@
  *
  * Paginated audit log table with filtering and archive search
  */
-import { useState, useEffect, useCallback, createElement } from 'react';
+import { useState, useCallback, createElement } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import {
@@ -20,17 +20,18 @@ import {
   Box,
   Dna,
   Microscope,
+  Package,
+  Droplet,
 } from 'lucide-react';
 
-import { auditService } from '@domains/admin/services/AuditService';
-import { labService } from '@domains/admin/services/LabService';
-import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
-import { logger } from '@infra/logger';
 import { Button, Table, Tooltip } from '@shared/ui';
+import { getErrorMessage } from '@shared/utils/getErrorMessage';
+
+import { useAuditLogQuery } from '../../../hooks/useAuditLogQuery';
+import { formatAuditDetails } from '../../../utils/auditLogFormatters';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
-import type { Pagination } from '@domains/admin/types/auditTypes';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { TableColumn } from '@shared/ui';
 
@@ -84,62 +85,51 @@ const SUFFIX_BADGE_MAP: Record<string, string> = {
   revoked: 'badge-audit-action-unlinked',
 };
 
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  equipment_item: 'Equipment',
+  supply_item: 'Supply',
+};
+
+const ENTITY_BADGE_CLASSES: Record<string, string> = {
+  tube: 'badge-audit-entity-tube',
+  user: 'badge-audit-entity-user',
+  researcher: 'badge-audit-entity-researcher',
+  tank: 'badge-audit-entity-tank',
+  rack: 'badge-audit-entity-rack',
+  box: 'badge-audit-entity-box',
+  lab: 'badge-audit-entity-lab',
+  configuration: 'badge-audit-entity-configuration',
+  equipment_item: 'badge-audit-entity-equipment',
+  supply_item: 'badge-audit-entity-supply',
+  donor: 'badge-audit-entity-donor',
+};
+
 interface AuditLogViewerProps {
-  initialFilters?: Partial<AuditLogFilters>;
-  onFiltersChange?: (filters: AuditLogFilters) => void;
   labId?: string;
   readOnly?: boolean;
   hideHeader?: boolean;
 }
 
-export function AuditLogViewer({
-  initialFilters = {},
-  onFiltersChange,
-  labId,
-  readOnly,
-  hideHeader = false,
-}: AuditLogViewerProps) {
-  const [entries, setEntries] = useState<AuditLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLogViewerProps) {
   const [filters, setFilters] = useState<AuditLogFilters>({
     limit: 50,
     offset: 0,
-    ...initialFilters,
-  });
-
-  const [pagination, setPagination] = useState<Pagination>({
-    total: 0,
-    limit: 50,
-    offset: 0,
-    hasMore: false,
   });
 
   const [showFilters, setShowFilters] = useState(false);
   const [filterState, setFilterState] = useState<AuditFilterState>({});
   const [includeArchive, setIncludeArchive] = useState(false);
 
-  const loadAuditLog = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = labId
-        ? await labService.getLabAuditLog(labId, filters, includeArchive)
-        : await auditService.searchAuditLogs(filters, includeArchive);
-      setEntries(result.entries);
-      setPagination(result.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load audit log');
-      logger.error('Failed to load audit log', { err });
-    } finally {
-      setLoading(false);
-    }
-  }, [filters, includeArchive, labId]);
-
-  useEffect(() => {
-    void loadAuditLog();
-  }, [loadAuditLog]);
+  const query = useAuditLogQuery(labId, filters, includeArchive);
+  const entries = query.data?.entries ?? [];
+  const pagination = query.data?.pagination ?? {
+    total: 0,
+    limit: filters.limit ?? 50,
+    offset: filters.offset ?? 0,
+    hasMore: false,
+  };
+  const loading = query.isFetching;
+  const error = query.isError ? getErrorMessage(query.error) : null;
 
   const handleFilterChange = useCallback(
     (newFilterState: AuditFilterState) => {
@@ -149,15 +139,14 @@ export function AuditLogViewer({
         limit: filters.limit,
         offset: 0,
         username: newFilterState.username,
-        action: newFilterState.actions?.[0], // Backend only supports single action currently
-        entityType: newFilterState.entityTypes?.[0], // Backend only supports single entity type currently
+        action: newFilterState.actions,
+        entityType: newFilterState.entityTypes,
         dateFrom: newFilterState.dateFrom,
         dateTo: newFilterState.dateTo,
       };
       setFilters(newFilters);
-      onFiltersChange?.(newFilters);
     },
-    [filters.limit, onFiltersChange]
+    [filters.limit]
   );
 
   const clearFilters = useCallback(() => {
@@ -167,10 +156,8 @@ export function AuditLogViewer({
     };
     setFilters(resetFilters);
     setFilterState({});
-    onFiltersChange?.(resetFilters);
-  }, [onFiltersChange]);
+  }, []);
 
-  // Pagination
   const goToNextPage = () => {
     if (pagination.hasMore) {
       setFilters(prev => ({ ...prev, offset: (prev.offset ?? 0) + (prev.limit ?? 50) }));
@@ -186,15 +173,18 @@ export function AuditLogViewer({
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleString('en-US', {
-      year: 'numeric',
+  const formatAuditDate = (timestamp: Date) =>
+    timestamp.toLocaleDateString('en-GB', {
+      day: '2-digit',
       month: 'short',
-      day: 'numeric',
+      year: 'numeric',
+    });
+
+  const formatAuditTime = (timestamp: Date) =>
+    timestamp.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
     });
-  };
 
   const formatAction = (action: string) => {
     const override = ACTION_LABEL_OVERRIDES[action];
@@ -215,28 +205,14 @@ export function AuditLogViewer({
     return SUFFIX_BADGE_MAP[suffix] ?? 'badge-audit-action-default';
   };
 
-  const ENTITY_TYPE_LABELS: Record<string, string> = {
-    equipment_item: 'Equipment',
-  };
-
   const formatEntityType = (entityType: string) => {
     return (
       ENTITY_TYPE_LABELS[entityType] ?? entityType.charAt(0).toUpperCase() + entityType.slice(1)
     );
   };
 
-  const getEntityBadgeClass = (entityType: string) => {
-    if (entityType === 'tube') return 'badge-audit-entity-tube';
-    if (entityType === 'user') return 'badge-audit-entity-user';
-    if (entityType === 'researcher') return 'badge-audit-entity-researcher';
-    if (entityType === 'tank') return 'badge-audit-entity-tank';
-    if (entityType === 'rack') return 'badge-audit-entity-rack';
-    if (entityType === 'box') return 'badge-audit-entity-box';
-    if (entityType === 'lab') return 'badge-audit-entity-lab';
-    if (entityType === 'configuration') return 'badge-audit-entity-configuration';
-    if (entityType === 'equipment_item') return 'badge-audit-entity-equipment';
-    return 'badge-audit-entity-default';
-  };
+  const getEntityBadgeClass = (entityType: string) =>
+    ENTITY_BADGE_CLASSES[entityType] ?? 'badge-audit-entity-default';
 
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {
@@ -254,6 +230,10 @@ export function AuditLogViewer({
         return Box;
       case 'equipment_item':
         return Microscope;
+      case 'supply_item':
+        return Package;
+      case 'donor':
+        return Droplet;
       default:
         return null;
     }
@@ -263,7 +243,6 @@ export function AuditLogViewer({
     key => key !== 'datePreset' && filterState[key as keyof AuditFilterState]
   );
 
-  // Define table columns - use TableRow base type, cast in render functions
   const auditLogColumns: TableColumn<AuditLogEntry>[] = [
     {
       id: 'timestamp',
@@ -271,9 +250,14 @@ export function AuditLogViewer({
       width: '8rem',
       render: (_, entry) => {
         return (
-          <span className="whitespace-nowrap text-muted-foreground text-[11px]">
-            {formatTimestamp(entry.timestamp)}
-          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-data-sm text-secondary-foreground whitespace-nowrap">
+              {formatAuditDate(entry.timestamp)}
+            </span>
+            <span className="text-label-xs text-muted-foreground whitespace-nowrap">
+              {formatAuditTime(entry.timestamp)}
+            </span>
+          </div>
         );
       },
     },
@@ -295,7 +279,7 @@ export function AuditLogViewer({
       width: '6rem',
       render: (_, entry) => {
         return (
-          <span className={`whitespace-nowrap ${getActionBadgeClass(entry.action)}`}>
+          <span className={`badge-audit ${getActionBadgeClass(entry.action)}`}>
             {formatAction(entry.action)}
           </span>
         );
@@ -307,11 +291,11 @@ export function AuditLogViewer({
       width: '7rem',
       render: (_, entry) => {
         if (!entry.entityType) {
-          return <span className="text-muted-foreground text-xs">-</span>;
+          return <span className="text-muted-foreground text-data">-</span>;
         }
         const icon = getEntityIcon(entry.entityType);
         return (
-          <span className={`whitespace-nowrap ${getEntityBadgeClass(entry.entityType)} gap-1`}>
+          <span className={`badge-audit ${getEntityBadgeClass(entry.entityType)}`}>
             {icon === 'researcher' ? (
               <Dna size={12} />
             ) : icon === 'tank' ? (
@@ -327,14 +311,13 @@ export function AuditLogViewer({
     {
       id: 'details',
       header: 'Details',
+      width: '100%',
       render: (_, entry) => {
         const { text, fullText } = formatAuditDetails(entry);
         const tooltipContent = fullText ?? text;
         return (
           <Tooltip content={tooltipContent} side="bottom" align="start" disabled={text === '-'}>
-            <div className="overflow-hidden max-w-[40vw]">
-              <span className="text-secondary-foreground truncate block">{text}</span>
-            </div>
+            <div className="w-full truncate text-secondary-foreground">{text}</div>
           </Tooltip>
         );
       },
@@ -346,13 +329,12 @@ export function AuditLogViewer({
 
   return (
     <div className="space-y-3">
-      {/* Header with Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {!hideHeader && (
-            <h4 className="text-base font-semibold text-card-foreground">Audit Log</h4>
+            <h4 className="text-body font-semibold text-card-foreground">Audit Log</h4>
           )}
-          <span className="text-xs text-muted-foreground">
+          <span className="text-caption text-muted-foreground">
             ({(pagination?.total || 0).toLocaleString()} total entries)
           </span>
         </div>
@@ -401,7 +383,7 @@ export function AuditLogViewer({
           <Button
             variant="secondary"
             size="xs"
-            onClick={loadAuditLog}
+            onClick={() => query.refetch()}
             leftIcon={<RefreshCw size={12} />}
           >
             Refresh
@@ -409,7 +391,6 @@ export function AuditLogViewer({
         </div>
       </div>
 
-      {/* Filter Panel */}
       {showFilters && (
         <AuditLogFilterPanel
           filters={filterState}
@@ -418,39 +399,36 @@ export function AuditLogViewer({
         />
       )}
 
-      {/* Loading State */}
       {loading && (
-        <div className="text-center py-8 text-sm text-muted-foreground">Loading audit log...</div>
+        <div className="text-center py-8 text-body-sm text-muted-foreground">
+          Loading audit log...
+        </div>
       )}
 
-      {/* Error State */}
       {error && (
-        <div className="bg-muted border border-danger-border text-danger-text px-3 py-2 rounded text-sm">
+        <div className="bg-muted border border-danger-border text-danger-text px-3 py-2 rounded text-body-sm">
           {error}
         </div>
       )}
 
-      {/* Audit Log Table */}
       {!loading && !error && entries && entries.length > 0 && (
         <Table
           columns={auditLogColumns}
           data={entries}
           hoverable
-          className="text-xs table-fixed"
+          className="text-data table-fixed"
           aria-label="Audit log entries"
         />
       )}
 
-      {/* Empty State */}
       {!loading && !error && (!entries || entries.length === 0) && (
-        <div className="text-center py-8 text-sm text-muted-foreground">
+        <div className="text-center py-8 text-body-sm text-muted-foreground">
           No audit log entries found.
         </div>
       )}
 
-      {/* Pagination */}
       {!loading && entries && entries.length > 0 && (
-        <div className="flex items-center justify-between text-xs text-secondary-foreground">
+        <div className="flex items-center justify-between text-caption text-secondary-foreground">
           <div>
             Showing {(filters.offset ?? 0) + 1} -{' '}
             {Math.min((filters.offset ?? 0) + (entries?.length ?? 0), pagination?.total ?? 0)} of{' '}

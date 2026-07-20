@@ -1,14 +1,12 @@
 /**
  * Application Bootstrap Service
  *
- * Manages the ordered initialization sequence: auth check, session restore,
- * cache validation, network setup, and socket connection.
+ * Runs the ordered startup sequence and publishes its state to the app shell.
  */
 
-import { authService } from '@domains/authentication/services/AuthService';
-import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
-import { useSearchStore } from '@domains/search/stores/searchStore';
-import { useTubeStore } from '@domains/tubes/stores/tubeStore';
+import { firstTimeSetupQueryOptions, useAuthStore, sessionManager } from '@domains/authentication';
+import { useSearchStore } from '@domains/search';
+import { useTubeStore } from '@domains/tubes';
 import {
   initializeNetworkMonitor,
   cleanupNetworkMonitor,
@@ -18,29 +16,33 @@ import {
 import { logger } from '@infra/logger';
 import { initializeSocket, cleanupSocket } from '@infra/socket';
 
-import { validateCacheVersion } from '../cache';
+import { validateCacheVersion } from '../cache/cacheVersionValidation';
 import { queryClient } from '../cache/queryClient';
+import { queryKeys } from '../cache/queryKeys';
 
 import { clearChunkReloadFlag } from './chunkErrorRecovery';
-import { BOOTSTRAP_STEPS } from './constants';
 
 import type { AppBootstrapState, BootstrapStep } from './types';
-import type { QueryClient } from '@tanstack/react-query';
 
-export class AppBootstrapService {
+/** Delay before heavy init so the loading screen can paint first. */
+const LOADING_SCREEN_RENDER_DELAY_MS = 500;
+
+/**
+ * Socket.IO reports transport failures as free-text; match the known offline-ish
+ * ones so we show the offline screen instead of a hard error.
+ */
+const OFFLINE_ERROR_FRAGMENTS = ['xhr poll error', 'timeout', 'network'];
+
+class AppBootstrapService {
   private state: AppBootstrapState = {
     isLoading: true,
     currentStep: 'initialization',
     error: null,
-    steps: [...BOOTSTRAP_STEPS],
-    flags: {
-      firstTimeSetupRequired: false,
-      needsSystemAdmin: false,
-    },
   };
 
   private listeners: Array<(state: AppBootstrapState) => void> = [];
   private isInitialized = false;
+  private inFlight: Promise<void> | null = null;
   private authUnsubscribe: (() => void) | null = null;
 
   constructor() {
@@ -65,16 +67,8 @@ export class AppBootstrapService {
     this.listeners.forEach(listener => listener(this.getState()));
   }
 
-  private updateStep(step: BootstrapStep, completed: boolean, error?: string) {
+  private updateStep(step: BootstrapStep, error?: string) {
     this.state.currentStep = step;
-    const stepIndex = this.state.steps.findIndex(s => s.step === step);
-    if (stepIndex !== -1) {
-      this.state.steps[stepIndex] = {
-        ...this.state.steps[stepIndex],
-        completed,
-        error,
-      };
-    }
     if (error) {
       this.state.error = error;
       this.state.currentStep = 'error';
@@ -90,11 +84,7 @@ export class AppBootstrapService {
     this.notify();
   }
 
-  /**
-   * Session Cleanup Subscription
-   *
-   * Resets domain UI stores on logout. Socket reconnection on login handled by useAuthSocketSync.
-   */
+  // Resets domain UI stores on logout; login reconnection is handled by useAuthSocketSync.
   private setupAuthSubscription(): () => void {
     let wasAuthenticated = useAuthStore.getState().isAuthenticated;
     return useAuthStore.subscribe(state => {
@@ -105,7 +95,7 @@ export class AppBootstrapService {
         useSearchStore.getState().clearSearch();
 
         // Clear all user queries (presence, list) to ensure fresh state on next login
-        queryClient.removeQueries({ queryKey: ['users'] });
+        queryClient.removeQueries({ queryKey: queryKeys.users.all });
 
         // Disconnect socket to trigger user_offline event on server
         // This notifies other clients that this user is no longer online
@@ -116,55 +106,48 @@ export class AppBootstrapService {
     });
   }
 
-  async bootstrap(queryClient: QueryClient): Promise<void> {
-    // GUARD: Prevent duplicate bootstrap in React StrictMode
+  async bootstrap(): Promise<void> {
     if (this.isInitialized) {
       logger.warn('Bootstrap already initialized, skipping duplicate');
       return;
     }
 
+    // isInitialized only flips at the end, so a second caller during a run — StrictMode's double
+    // effect — would start its own. Callers join the run already in flight instead.
+    this.inFlight ??= this.runBootstrap().finally(() => {
+      this.inFlight = null;
+    });
+
+    return this.inFlight;
+  }
+
+  private async runBootstrap(): Promise<void> {
     try {
       this.state.isLoading = true;
       this.state.error = null;
       this.notify();
 
-      this.updateStep('initialization', false);
-      // Brief delay to let the loading screen render before heavier initialization work begins.
-      await new Promise(resolve => setTimeout(resolve, 500));
-      this.updateStep('initialization', true);
+      this.updateStep('initialization');
+      await new Promise(resolve => setTimeout(resolve, LOADING_SCREEN_RENDER_DELAY_MS));
 
-      // Check auth - detect first-time setup and system admin status
-      this.updateStep('auth-check', false);
-      try {
-        const firstTimeResult = await authService.checkFirstTime();
+      // Warm the first-time setup check so the auth gateway reflects current server
+      // truth before first paint (checkFirstTime swallows errors, returning safe defaults).
+      this.updateStep('auth-check');
+      await queryClient.prefetchQuery(firstTimeSetupQueryOptions);
 
-        this.state.flags.firstTimeSetupRequired = firstTimeResult.isFirstTime;
-        this.state.flags.needsSystemAdmin = firstTimeResult.needsSystemAdmin;
-
-        this.updateStep('auth-check', true);
-      } catch (error) {
-        logger.error('Bootstrap auth check failed', { error });
-        this.updateStep('auth-check', false, 'Failed to check authentication status');
-        throw error;
-      }
-
-      // Restore session from SessionService
       // SessionService already loaded tokens in constructor, now sync with auth store
-      this.updateStep('session-restore', false);
+      this.updateStep('session-restore');
       try {
         const authStore = useAuthStore.getState();
         authStore.initializeFromStorage();
-        this.updateStep('session-restore', true);
       } catch (error) {
         logger.error('Bootstrap session restoration failed', { error });
         // Non-fatal: Continue bootstrap even if session restoration fails
         // User will simply need to log in again
-        this.updateStep('session-restore', true);
       }
 
-      // Validate cached data against server version
-      // Clears stale cache if database was reset or version mismatch detected
-      this.updateStep('cache-validation', false);
+      // Drops the persisted cache if the server version changed or the DB was reset.
+      this.updateStep('cache-validation');
       try {
         const tokens = sessionManager.getTokens();
         const accessToken = tokens?.accessToken ?? null;
@@ -177,14 +160,12 @@ export class AppBootstrapService {
             cachedVersion: result.cachedVersion,
           });
         }
-        this.updateStep('cache-validation', true);
       } catch (error) {
         logger.warn('Cache validation failed, continuing with existing cache', { error });
         // Non-fatal: Continue even if validation fails
-        this.updateStep('cache-validation', true);
       }
 
-      this.updateStep('socket-connection', false);
+      this.updateStep('socket-connection');
 
       // Early offline detection - check before attempting network operations
       if (!navigator.onLine) {
@@ -207,16 +188,11 @@ export class AppBootstrapService {
 
         // Socket will notify NetworkMonitor of connection state changes
         await initializeSocket(queryClient);
-
-        this.updateStep('socket-connection', true);
       } catch (socketError) {
-        // Check if this is an offline-related error
         const errorMessage =
           socketError instanceof Error ? socketError.message : String(socketError);
         const isOfflineError =
-          errorMessage.includes('xhr poll error') ||
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('network') ||
+          OFFLINE_ERROR_FRAGMENTS.some(fragment => errorMessage.includes(fragment)) ||
           !navigator.onLine;
 
         if (isOfflineError) {
@@ -226,16 +202,14 @@ export class AppBootstrapService {
         }
 
         logger.error('Bootstrap real-time systems initialization failed', { socketError });
-        this.updateStep('socket-connection', false, 'Failed to initialize real-time systems');
+        this.updateStep('socket-connection', 'Failed to initialize real-time systems');
         throw socketError;
       }
 
-      // Data loading handled by React Query (on-demand, component-driven)
-      // Components call hooks (useTubesQuery, useResearchersQuery, etc.)
-      // Socket.IO keeps cache fresh via real-time invalidation
-      this.updateStep('data-loading', true);
+      // No explicit fetch: React Query loads data on demand and Socket.IO keeps it fresh.
+      this.updateStep('data-loading');
 
-      this.updateStep('complete', true);
+      this.updateStep('complete');
       this.state.isLoading = false;
       this.isInitialized = true;
 
@@ -245,10 +219,14 @@ export class AppBootstrapService {
 
       this.notify();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Bootstrap failed';
-      this.updateStep('error', false, errorMessage);
+      // Step handlers set a descriptive error before throwing; fall back to the raw message.
+      if (!this.state.error) {
+        this.state.error = error instanceof Error ? error.message : 'Bootstrap failed';
+      }
+      this.state.currentStep = 'error';
       this.state.isLoading = false;
-      this.isInitialized = false; // Allow retry after error
+      this.isInitialized = false;
+      this.notify();
     }
   }
 
@@ -260,19 +238,13 @@ export class AppBootstrapService {
     this.isInitialized = false;
   }
 
-  retry(queryClient: QueryClient): void {
-    this.state.steps = this.state.steps.map(step => ({
-      ...step,
-      completed: false,
-      error: undefined,
-    }));
-
+  retry(): void {
     // Reset network state so we get fresh connectivity check on retry
     resetNetworkState();
     cleanupNetworkMonitor();
 
     this.isInitialized = false;
-    void this.bootstrap(queryClient);
+    void this.bootstrap();
   }
 }
 

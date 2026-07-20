@@ -6,30 +6,19 @@
 
 export {
   userSettingsSchema,
-  updateUserSettingsRequestSchema,
   userSettingsDataSchema,
   themePreferenceSchema,
   DEFAULT_USER_SETTINGS,
   type UserSettings,
-  type UpdateUserSettingsRequest,
-  type UserSettingsData,
   type ThemePreference,
+  type ResolvedTheme,
 } from './userSettingsSchemas';
 
 export {
   userLookupRequestSchema,
   userDisplayInfoSchema,
   usersLookupListSchema,
-  type UserLookupRequest,
   type UserDisplayInfo,
-  type UsersLookupList,
 } from './userLookupSchemas';
 
-export {
-  userSessionSchema,
-  activeSessionSchema,
-  revokeAllResponseSchema,
-  type UserSession,
-  type ActiveSession,
-  type RevokeAllResponse,
-} from './userSessionSchemas';
+export { activeSessionSchema, type ActiveSession } from './userSessionSchemas';

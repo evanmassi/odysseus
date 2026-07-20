@@ -4,34 +4,25 @@
  * Context-aware permission checks that combine role, ownership, and resource assignment rules.
  */
 
-import type { Researcher } from '@domain/entities/Researcher';
 import type { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
 import type { Location } from '@domain/value-objects/Location';
 
-/**
- * Minimal interface for resource ownership checking.
- * Only requires assignedUserId since that's all canEditResource uses.
- */
+/** Minimal ownership shape for containers (racks/boxes): only assignedUserId is consulted. */
 export interface ResourceWithOwnership {
   assignedUserId?: string | null;
 }
 export class AccessControlService {
-  
-  constructor(
-    private userRepository: UserRepository,
-    private tubeRepository: TubeRepository
-  ) {}
+  constructor(private tubeRepository: TubeRepository) {}
 
   // TUBE OPERATIONS
 
   async canCreateTube(user: User): Promise<AccessResult> {
     if (!user.hasPermission('create_tubes')) {
-      return this.createDeniedResult('User does not have permission to create tubes');
+      return this.createDeniedResult('You do not have permission to create tubes');
     }
 
     if (user.isAdmin()) {
@@ -46,58 +37,66 @@ export class AccessControlService {
 
   async canEditTube(user: User, tube: Tube): Promise<AccessResult> {
     if (!user.hasPermission('edit_tubes')) {
-      return this.createDeniedResult('User does not have permission to edit tubes');
+      return this.createDeniedResult('You do not have permission to edit tubes');
     }
 
     if (user.isAdmin()) {
       return this.createAllowedResult('Admin access');
     }
 
-    if (tube.researcherId && tube.researcherId === user.researcherId) {
+    if (this.isOwnedBy(tube, user)) {
       return this.createAllowedResult('Owner access');
     }
 
-    if (!tube.researcherId || tube.researcherId.trim() === '') {
+    if (this.isUnassigned(tube)) {
       return this.createAllowedResult('Unassigned tube');
     }
 
-    return this.createDeniedResult(`Only the assigned researcher or administrators can edit this tube`);
+    return this.createDeniedResult(
+      `Only the assigned researcher or administrators can edit this tube`
+    );
   }
 
   async canDeleteTube(user: User, tube: Tube): Promise<AccessResult> {
     if (!user.hasPermission('delete_tubes')) {
-      return this.createDeniedResult('User does not have permission to delete tubes');
+      return this.createDeniedResult('You do not have permission to delete tubes');
     }
 
     if (user.isAdmin()) {
       return this.createAllowedResult('Admin access');
     }
 
-    if (tube.researcherId && tube.researcherId === user.researcherId) {
+    if (this.isOwnedBy(tube, user)) {
       const daysSinceCreation = (Date.now() - tube.createdAt.getTime()) / (1000 * 60 * 60 * 24);
       // Prevent accidental deletion of old data — admins can still delete
       if (daysSinceCreation > 365) {
-        return this.createDeniedResult('Cannot delete tubes older than 1 year. Please contact an administrator.');
+        return this.createDeniedResult(
+          'Cannot delete tubes older than 1 year. Please contact an administrator.'
+        );
       }
 
       return this.createAllowedResult('Owner access');
     }
 
     // Unassigned tubes can only be deleted within 7 days of creation
-    if (!tube.researcherId || tube.researcherId.trim() === '') {
+    if (this.isUnassigned(tube)) {
       const daysSinceCreation = (Date.now() - tube.createdAt.getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceCreation <= 7) {
         return this.createAllowedResult('Recent unassigned tube');
       }
-      return this.createDeniedResult('Cannot delete old unassigned tubes. Please contact an administrator.');
+      return this.createDeniedResult(
+        'Cannot delete old unassigned tubes. Please contact an administrator.'
+      );
     }
 
-    return this.createDeniedResult(`Only the assigned researcher or administrators can delete this tube`);
+    return this.createDeniedResult(
+      `Only the assigned researcher or administrators can delete this tube`
+    );
   }
 
   async canViewTubes(user: User): Promise<AccessResult> {
     if (!user.hasPermission('view_tubes')) {
-      return this.createDeniedResult('User does not have permission to view tubes');
+      return this.createDeniedResult('You do not have permission to view tubes');
     }
 
     return this.createAllowedResult();
@@ -135,14 +134,14 @@ export class AccessControlService {
 
       if (box?.assignedUserId !== undefined && box.assignedUserId !== null) {
         if (box.assignedUserId !== user.id) {
-          return this.createDeniedResult('Cannot lock tube in another user\'s assigned box');
+          return this.createDeniedResult("Cannot lock tube in another user's assigned box");
         }
         return this.createAllowedResult('Box owner');
       }
 
       if (rack?.assignedUserId !== undefined && rack.assignedUserId !== null) {
         if (rack.assignedUserId !== user.id) {
-          return this.createDeniedResult('Cannot lock tube in another user\'s assigned rack');
+          return this.createDeniedResult("Cannot lock tube in another user's assigned rack");
         }
         return this.createAllowedResult('Rack owner');
       }
@@ -212,12 +211,16 @@ export class AccessControlService {
 
   // BULK OPERATIONS
 
-  async canPerformBulkOperation(user: User, operation: BulkOperation, tubeIds: string[]): Promise<BulkAccessResult> {
+  async canPerformBulkOperation(
+    user: User,
+    operation: BulkOperation,
+    tubeIds: string[]
+  ): Promise<BulkAccessResult> {
     const results: BulkAccessResult = {
       allowed: true,
       allowedTubes: [],
       deniedTubes: [],
-      errors: []
+      errors: [],
     };
 
     if (!user.isAdmin() && tubeIds.length > 50) {
@@ -225,7 +228,7 @@ export class AccessControlService {
         allowed: false,
         allowedTubes: [],
         deniedTubes: tubeIds,
-        errors: ['Bulk operations limited to 50 tubes for non-administrators']
+        errors: ['Bulk operations limited to 50 tubes for non-administrators'],
       };
     }
 
@@ -275,35 +278,7 @@ export class AccessControlService {
 
   async canManageResearchers(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_researchers')) {
-      return this.createDeniedResult('User does not have permission to manage researchers');
-    }
-
-    return this.createAllowedResult();
-  }
-
-  async canEditResearcher(user: User, researcher: Researcher): Promise<AccessResult> {
-    const manageCheck = await this.canManageResearchers(user);
-    if (!manageCheck.allowed) {
-      return manageCheck;
-    }
-
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id, user.labId ?? '');
-    if (tubeCount > 0) {
-      return this.createAllowedResult(`Researcher has ${tubeCount} tubes`, { tubeCount });
-    }
-
-    return this.createAllowedResult();
-  }
-
-  async canDeleteResearcher(user: User, researcher: Researcher): Promise<AccessResult> {
-    const manageCheck = await this.canManageResearchers(user);
-    if (!manageCheck.allowed) {
-      return manageCheck;
-    }
-
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id, user.labId ?? '');
-    if (tubeCount > 0) {
-      return this.createDeniedResult(`Cannot delete researcher with ${tubeCount} active tubes. Reassign or delete tubes first.`);
+      return this.createDeniedResult('You do not have permission to manage researchers');
     }
 
     return this.createAllowedResult();
@@ -313,36 +288,7 @@ export class AccessControlService {
 
   async canManageUsers(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_users')) {
-      return this.createDeniedResult('User does not have permission to manage users');
-    }
-
-    return this.createAllowedResult();
-  }
-
-  async canManageUser(user: User, targetUser: User): Promise<AccessResult> {
-    const manageCheck = await this.canManageUsers(user);
-    if (!manageCheck.allowed) {
-      return manageCheck;
-    }
-
-    if (user.equals(targetUser)) {
-      return this.createDeniedResult('Cannot manage your own user account');
-    }
-
-    if (user.isLabAdmin() && !user.isSystemAdmin()) {
-      if (user.labId !== targetUser.labId) {
-        return this.createDeniedResult('Lab administrators can only manage users within their own lab');
-      }
-      if (targetUser.isSystemAdmin()) {
-        return this.createDeniedResult('Lab administrators cannot manage system admin accounts');
-      }
-    }
-
-    if (targetUser.isLabAdmin() && !targetUser.isSystemAdmin() && targetUser.labId) {
-      const labAdminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
-      if (labAdminCount <= 1) {
-        return this.createDeniedResult('Cannot modify the last lab administrator account');
-      }
+      return this.createDeniedResult('You do not have permission to manage users');
     }
 
     return this.createAllowedResult();
@@ -352,7 +298,7 @@ export class AccessControlService {
 
   async canModifyStorage(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_configuration')) {
-      return this.createDeniedResult('User does not have permission to modify configuration');
+      return this.createDeniedResult('You do not have permission to modify configuration');
     }
 
     return this.createAllowedResult();
@@ -421,11 +367,9 @@ export class AccessControlService {
       return lockAccess;
     }
 
-    return this.createAllowedResult(hasContainerAccess ? containerAccess.reason : 'Shared access to tube');
-  }
-
-  canAssignResource(user: User): boolean {
-    return user.isAdmin();
+    return this.createAllowedResult(
+      hasContainerAccess ? containerAccess.reason : 'Shared access to tube'
+    );
   }
 
   /**
@@ -450,7 +394,11 @@ export class AccessControlService {
     }
 
     // Box with undefined assignment inherits from parent rack
-    if (parentRack && resource.assignedUserId === undefined && parentRack.assignedUserId === user.id) {
+    if (
+      parentRack &&
+      resource.assignedUserId === undefined &&
+      parentRack.assignedUserId === user.id
+    ) {
       return true;
     }
 
@@ -461,27 +409,21 @@ export class AccessControlService {
 
   async canAccessAdminFeatures(user: User): Promise<AccessResult> {
     if (!user.hasPermission('admin_settings')) {
-      return this.createDeniedResult('User does not have administrative privileges');
-    }
-
-    return this.createAllowedResult();
-  }
-
-  async canPerformMaintenance(user: User): Promise<AccessResult> {
-    const adminCheck = await this.canAccessAdminFeatures(user);
-    if (!adminCheck.allowed) {
-      return adminCheck;
-    }
-
-    const labAdminCount = await this.userRepository.countByRole('lab_admin');
-    if (labAdminCount < 2) {
-      return this.createDeniedResult('System maintenance requires at least 2 active administrators');
+      return this.createDeniedResult('You do not have administrative privileges.');
     }
 
     return this.createAllowedResult();
   }
 
   // HELPER METHODS
+
+  private isOwnedBy(tube: Tube, user: User): boolean {
+    return !!tube.researcherId && tube.researcherId === user.researcherId;
+  }
+
+  private isUnassigned(tube: Tube): boolean {
+    return !tube.researcherId || tube.researcherId.trim() === '';
+  }
 
   private checkActiveResearcher(user: User): AccessResult | null {
     if (!user.hasResearcherProfile()) {
@@ -495,23 +437,25 @@ export class AccessControlService {
     return null;
   }
 
-  private createAllowedResult(reason?: string, metadata?: Record<string, unknown>): AccessResult {
+  private createAllowedResult(reason?: string): AccessResult {
     return {
       allowed: true,
       reason: reason ?? 'Access granted',
-      metadata
     };
   }
 
-  private createDeniedResult(reason: string, metadata?: Record<string, unknown>): AccessResult {
+  private createDeniedResult(reason: string): AccessResult {
     return {
       allowed: false,
       reason,
-      metadata
     };
   }
 
-  async requireTubeAccess(user: User, tube: Tube, operation: 'create' | 'edit' | 'delete' | 'move'): Promise<void> {
+  async requireTubeAccess(
+    user: User,
+    tube: Tube,
+    operation: 'create' | 'edit' | 'delete' | 'move'
+  ): Promise<void> {
     let result: AccessResult;
 
     switch (operation) {
@@ -535,7 +479,7 @@ export class AccessControlService {
       throw new PermissionError(result.reason, {
         userId: user.id,
         tubeId: tube.id,
-        operation
+        operation,
       });
     }
   }
@@ -577,4 +521,3 @@ export class AccessControlService {
     }
   }
 }
-

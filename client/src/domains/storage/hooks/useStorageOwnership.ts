@@ -5,10 +5,15 @@
  */
 import { useMemo } from 'react';
 
-import { getUserInitials } from '@shared/utils/userDisplayFormatters';
+import { getPersonInitials } from '@odysseus/shared-schemas';
 
-import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
-import type { UserDisplayInfo } from '@odysseus/shared-schemas';
+import { getEffectiveOwnerId } from '../utils/effectiveOwner';
+
+import type {
+  BoxConfiguration,
+  RackConfiguration,
+  UserDisplayInfo,
+} from '@odysseus/shared-schemas';
 
 export interface UserInfo {
   initials: string;
@@ -19,10 +24,6 @@ export interface UserInfo {
 
 interface UseStorageOwnershipResult {
   getUserInfo: (userId: string) => UserInfo | null;
-  getEffectiveOwner: (
-    resource: BoxConfiguration,
-    parentRack: RackConfiguration
-  ) => string | undefined;
   isOwnedByCurrentUser: (
     resource: RackConfiguration | BoxConfiguration,
     parentRack?: RackConfiguration
@@ -40,7 +41,11 @@ export function useStorageOwnership(
         if (!user) return null;
 
         return {
-          initials: getUserInitials(user.username, user.firstName, user.lastName),
+          initials: getPersonInitials({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          }),
           username: user.username,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -49,44 +54,19 @@ export function useStorageOwnership(
     [users]
   );
 
-  const getEffectiveOwner = useMemo(
-    () =>
-      (resource: BoxConfiguration, parentRack: RackConfiguration): string | undefined => {
-        // null = explicitly unassigned/common (no owner)
-        if (resource.assignedUserId === null) return undefined;
-        // undefined = inherit from rack
-        return resource.assignedUserId ?? parentRack.assignedUserId;
-      },
-    []
-  );
-
   const isOwnedByCurrentUser = useMemo(
     () =>
       (resource: RackConfiguration | BoxConfiguration, parentRack?: RackConfiguration): boolean => {
         if (!currentUserId) return false;
-
-        // null = explicitly unassigned/common (not owned by anyone)
-        if (resource.assignedUserId === null) return false;
-
-        if (resource.assignedUserId === currentUserId) return true;
-
-        // Cascade: box inherits rack owner if unassigned (undefined, not null)
-        if (
-          parentRack &&
-          resource.assignedUserId === undefined &&
-          parentRack.assignedUserId === currentUserId
-        ) {
-          return true;
-        }
-
-        return false;
+        return (
+          getEffectiveOwnerId(resource.assignedUserId, parentRack?.assignedUserId) === currentUserId
+        );
       },
     [currentUserId]
   );
 
   return {
     getUserInfo,
-    getEffectiveOwner,
     isOwnedByCurrentUser,
   };
 }

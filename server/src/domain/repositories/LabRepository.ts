@@ -10,8 +10,5 @@ export interface LabRepository {
   findById(id: string): Promise<Lab | null>;
   findBySlug(slug: string): Promise<Lab | null>;
   findAll(): Promise<Lab[]>;
-  findActive(): Promise<Lab[]>;
   save(lab: Lab): Promise<void>;
-  delete(id: string): Promise<boolean>;
-  exists(id: string): Promise<boolean>;
 }

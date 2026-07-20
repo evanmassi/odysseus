@@ -1,3 +1,7 @@
+/**
+ * Supplies Barrel
+ */
+
 export {
   supplyItemStatusValues,
   supplyItemStatusSchema,
@@ -26,6 +30,7 @@ export {
   createSupplyBarcodeRequestSchema,
   updateSupplyBarcodeRequestSchema,
   supplyBarcodeResponseSchema,
+  supplyResolveBarcodeResponseSchema,
   supplyTransactionSchema,
   recordSupplyTransactionRequestSchema,
   recordSupplyStockCountRequestSchema,
@@ -38,10 +43,8 @@ export {
   createSupplyDocumentRequestSchema,
   updateSupplyDocumentRequestSchema,
   supplyDocumentResponseSchema,
-  supplyDocumentListResponseSchema,
   supplyPackagingLevelSchema,
   createSupplyPackagingLevelRequestSchema,
-  updateSupplyPackagingLevelRequestSchema,
   supplyPackagingLevelResponseSchema,
   supplyItemDetailResponseSchema,
   supplyBulkReceiveRequestSchema,
@@ -59,9 +62,9 @@ export {
   type SupplyItem,
   type SupplyItemWithStock,
   type SupplyLocation,
-  type SupplyStock,
   type SupplyBarcode,
   type SupplyTransaction,
+  type SupplyVoidTransactionResponse,
   type SupplyDocument,
   type SupplyItemDetail,
   type CreateSupplyCategoryRequest,
@@ -80,12 +83,8 @@ export {
   type UpdateSupplyDocumentRequest,
   type SupplyBulkReceiveRequest,
   type SupplyBulkIssueRequest,
-  type SupplyBulkReassignCategoryRequest,
-  type SupplyBulkArchiveRequest,
   type SupplyBulkResponse,
-  type SupplyBulkBarcodesRequest,
   type SupplyBulkBarcodesResponse,
   type SupplyPackagingLevel,
   type CreateSupplyPackagingLevelRequest,
-  type UpdateSupplyPackagingLevelRequest,
 } from './supplySchemas';

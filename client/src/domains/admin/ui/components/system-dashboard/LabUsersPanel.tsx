@@ -6,10 +6,11 @@
 
 import { useMemo, useState } from 'react';
 
-import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
+import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
+import { Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Chip, ConsolePanel, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -21,6 +22,8 @@ import {
   useDeleteLabUserMutation,
 } from '../../../hooks/useLabMutations';
 import { getRoleLabel } from '../../../utils/auditLogFormatters';
+import { CollapsibleInactiveSection } from '../displays/CollapsibleInactiveSection';
+import { LinkedPersonCell } from '../displays/LinkedPersonCell';
 
 import type { LabDetailsUser } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -42,15 +45,12 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   const activateUserMutation = useActivateLabUserMutation();
 
   const [userAction, setUserAction] = useState<UserAction | null>(null);
-  const [showInactive, setShowInactive] = useState(false);
 
-  const handleActivate = async (user: LabDetailsUser) => {
-    try {
-      await activateUserMutation.mutateAsync({ labId, userId: user.id });
-      notifications.success(`${user.username} activated`);
-    } catch {
-      notifications.error('Failed to activate user');
-    }
+  const handleActivate = (user: LabDetailsUser) => {
+    activateUserMutation.mutate(
+      { labId, userId: user.id },
+      { onSuccess: () => notifications.success(`${user.username} activated`) }
+    );
   };
 
   const activeUsers = useMemo(() => users.filter(u => u.status === 'approved'), [users]);
@@ -59,54 +59,44 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
     [users]
   );
 
+  const columns = getUserColumns({
+    onUserAction: setUserAction,
+    onActivate: handleActivate,
+    currentUserId,
+  });
+
   return (
     <>
-      <div>
-        <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
-        <Table
-          columns={getUserColumns({
-            onUserAction: setUserAction,
-            onActivate: handleActivate,
-            currentUserId,
-          })}
-          data={activeUsers}
-          sortable
-          sortConfig={sortConfig}
-          onSort={onSort}
-          emptyMessage="No users in this lab"
-          aria-label="Lab users"
-        />
+      <ConsolePanel intensity="soft">
+        <div className="p-4">
+          <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
+          <Table
+            columns={columns}
+            data={activeUsers}
+            sortable
+            sortConfig={sortConfig}
+            onSort={onSort}
+            emptyMessage="No users in this lab"
+            aria-label="Lab users"
+          />
 
-        {inactiveUsers.length > 0 && (
-          <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.14)_42%,hsl(var(--foreground)/0.06)_82%,transparent_100%)]">
-            <button
-              onClick={() => setShowInactive(prev => !prev)}
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          {inactiveUsers.length > 0 && (
+            <CollapsibleInactiveSection
+              label="Inactive Users"
+              count={inactiveUsers.length}
+              variant="stripe"
             >
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
+              <Table
+                columns={columns}
+                data={inactiveUsers}
+                emptyMessage=""
+                aria-label="Inactive lab users"
+                rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
               />
-              Inactive Users ({inactiveUsers.length})
-            </button>
-            {showInactive && (
-              <div className="mt-2">
-                <Table
-                  columns={getUserColumns({
-                    onUserAction: setUserAction,
-                    onActivate: handleActivate,
-                    currentUserId,
-                  })}
-                  data={inactiveUsers}
-                  emptyMessage=""
-                  aria-label="Inactive lab users"
-                  rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+            </CollapsibleInactiveSection>
+          )}
+        </div>
+      </ConsolePanel>
 
       <ConfirmDialog
         isOpen={userAction !== null}
@@ -137,24 +127,27 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
           suspendUserMutation.isPending ||
           deactivateUserMutation.isPending
         }
-        onConfirm={async () => {
+        onConfirm={() => {
           if (!userAction) return;
           const { type, user } = userAction;
-          try {
-            if (type === 'delete') {
-              await deleteUserMutation.mutateAsync({ labId, userId: user.id });
-              notifications.success(`${user.username} deleted`);
-            } else if (type === 'suspend') {
-              await suspendUserMutation.mutateAsync({ labId, userId: user.id });
-              notifications.success(`${user.username} suspended`);
-            } else {
-              await deactivateUserMutation.mutateAsync({ labId, userId: user.id });
-              notifications.success(`${user.username} deactivated`);
-            }
-          } catch {
-            notifications.error(`Failed to ${type} user`);
+          const vars = { labId, userId: user.id };
+          const onSettled = () => setUserAction(null);
+          if (type === 'delete') {
+            deleteUserMutation.mutate(vars, {
+              onSuccess: () => notifications.success(`${user.username} deleted`),
+              onSettled,
+            });
+          } else if (type === 'suspend') {
+            suspendUserMutation.mutate(vars, {
+              onSuccess: () => notifications.success(`${user.username} suspended`),
+              onSettled,
+            });
+          } else {
+            deactivateUserMutation.mutate(vars, {
+              onSuccess: () => notifications.success(`${user.username} deactivated`),
+              onSettled,
+            });
           }
-          setUserAction(null);
         }}
         onCancel={() => setUserAction(null)}
       />
@@ -179,23 +172,15 @@ function getUserColumns({
       header: 'User',
       sortable: true,
       render: (_value, row) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy
-        const hasName = row.lastName || row.firstName;
-        const displayName = hasName
-          ? `${row.lastName ?? ''}${row.lastName && row.firstName ? ', ' : ''}${row.firstName ?? ''}`
-          : row.username;
-
-        const initials =
-          row.firstName && row.lastName
-            ? `${row.firstName[0]}${row.lastName[0]}`.toUpperCase()
-            : row.username.slice(0, 2).toUpperCase();
+        const displayName = getPersonSortName(row);
+        const initials = getPersonInitials(row);
 
         return (
           <div className="flex items-center gap-3 whitespace-nowrap">
             <UserBadge type="otherUser" initials={initials} username={row.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-sans text-[13px] font-medium text-foreground">
+                <span className="font-sans text-body-sm font-medium text-foreground">
                   {displayName}
                 </span>
                 {row.status === 'deactivated' && (
@@ -209,11 +194,11 @@ function getUserColumns({
                   </Tooltip>
                 )}
               </div>
-              <div className="mt-0.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/55">
+              <div className="mt-0.5 font-mono text-data-sm tracking-[0.04em] text-foreground/55">
                 {row.username}
               </div>
               {row.email && (
-                <div className="font-mono text-[10.5px] tracking-[0.04em] text-foreground/40">
+                <div className="font-mono text-data-sm tracking-[0.04em] text-foreground/40">
                   {row.email}
                 </div>
               )}
@@ -229,14 +214,14 @@ function getUserColumns({
         <div className="max-w-[150px] whitespace-nowrap">
           {row.position ? (
             <Tooltip content={row.position} side="bottom">
-              <div className="font-sans truncate text-[13px] text-foreground">{row.position}</div>
+              <div className="font-sans truncate text-body-sm text-foreground">{row.position}</div>
             </Tooltip>
           ) : (
-            <div className="font-mono text-[10.5px] text-foreground/30">—</div>
+            <div className="font-mono text-data-sm text-foreground/30">—</div>
           )}
           {row.department && (
             <Tooltip content={row.department} side="bottom">
-              <div className="truncate font-mono text-[10.5px] tracking-[0.04em] text-foreground/55">
+              <div className="truncate font-mono text-data-sm tracking-[0.04em] text-foreground/55">
                 {row.department}
               </div>
             </Tooltip>
@@ -257,41 +242,21 @@ function getUserColumns({
     {
       id: 'linkedResearcher',
       header: 'Linked Researcher',
-      render: (_value, row) => {
-        if (row.researcher) {
-          const isDeactivated = !row.researcher.active;
-          return (
-            <div className="flex flex-col gap-0.5">
-              <div
-                className={`flex items-center gap-1.5 whitespace-nowrap text-[13px] ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
-              >
-                <Link2
-                  size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-foreground/30' : 'text-success-text'}`}
-                />
-                <span className="font-sans">{row.researcher.name}</span>
-              </div>
-              {isDeactivated && (
-                <Chip size="sm" color="default" className="w-fit">
-                  Deactivated
-                </Chip>
-              )}
-            </div>
-          );
-        }
-        return (
-          <Chip size="sm" color="outlined">
-            None
-          </Chip>
-        );
-      },
+      render: (_value, row) => (
+        <LinkedPersonCell
+          label={row.researcher ? row.researcher.name : null}
+          deactivated={row.researcher ? !row.researcher.active : false}
+          tone="console"
+          sans
+        />
+      ),
     },
     {
       id: 'lastActivity',
       header: 'Last Active',
       sortable: true,
       render: (_value, row) => (
-        <span className="whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-foreground/70">
+        <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground/70">
           {formatRelativeTime(row.lastActivity)}
         </span>
       ),

@@ -1,15 +1,9 @@
 /**
  * Badge Components
  *
- * Circular avatar badges for users, labs, and online presence indicators.
+ * Square initials chips for user ownership, lab identity, and online presence.
  */
 
-export {
-  UserBadge,
-  getUserBadgeStyles,
-  type UserBadgeType,
-  type UserBadgeStyles,
-} from './UserBadge';
+export { UserBadge, type UserBadgeType } from './UserBadge';
 export { LabBadge } from './LabBadge';
 export { OnlineUsersBadgeList } from './OnlineUsersBadgeList';
-export { UserPresenceBadge } from './UserPresenceBadge';

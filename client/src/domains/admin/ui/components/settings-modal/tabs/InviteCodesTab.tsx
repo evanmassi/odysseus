@@ -5,11 +5,10 @@
  * or any lab (system admins via the system admin dashboard).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 
 import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
-import { logger } from '@infra/logger';
 import {
   Button,
   Chip,
@@ -23,9 +22,13 @@ import {
   Toggle,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { notifications } from '@shared/utils';
+import { MS_PER_DAY, notifications } from '@shared/utils';
 
-import { adminService } from '../../../../services/AdminService';
+import {
+  useCreateInviteCodeMutation,
+  useDeactivateInviteCodeMutation,
+} from '../../../../hooks/useInviteCodeMutations';
+import { useInviteCodesQuery } from '../../../../hooks/useInviteCodesQuery';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 import type { SelectOption, TableColumn } from '@shared/ui';
@@ -44,12 +47,12 @@ const EXPIRY_OPTIONS: SelectOption[] = [
 ];
 
 const DEFAULT_EXPIRY_DAYS = 7;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
-  const [codes, setCodes] = useState<InviteCodeData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const { data: codes = [], isLoading, isFetching, refetch } = useInviteCodesQuery();
+  const createMutation = useCreateInviteCodeMutation();
+  const deactivateMutation = useDeactivateInviteCodeMutation();
+
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // New code form
@@ -59,58 +62,39 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [newCodeExpiryDays, setNewCodeExpiryDays] = useState(DEFAULT_EXPIRY_DAYS);
   const [showInactive, setShowInactive] = useState(false);
 
-  const loadCodes = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const result = await adminService.getInviteCodes();
-      setCodes(result);
-    } catch (error) {
-      logger.error('Failed to load invite codes', { error });
-      notifications.error('Failed to load invite codes');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const resetForm = () => {
+    setShowCreateForm(false);
+    setNewCodeMaxUses(1);
+    setNewCodeCreateResearcher(false);
+    setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
+  };
 
-  useEffect(() => {
-    void loadCodes();
-  }, [loadCodes]);
-
-  const handleCreate = async () => {
-    setIsCreating(true);
-    try {
-      await adminService.createInviteCode({
+  const handleCreate = () => {
+    createMutation.mutate(
+      {
         createResearcher: newCodeCreateResearcher,
         maxUses: newCodeMaxUses,
         expiresAt:
           newCodeExpiryDays > 0
             ? new Date(Date.now() + newCodeExpiryDays * MS_PER_DAY).toISOString()
             : undefined,
-      });
-      notifications.success('Invite code created');
-      setShowCreateForm(false);
-      setNewCodeMaxUses(1);
-      setNewCodeCreateResearcher(false);
-      setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
-      await loadCodes();
-    } catch (error) {
-      logger.error('Failed to create invite code', { error });
-      notifications.error('Failed to create invite code');
-    } finally {
-      setIsCreating(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          notifications.success('Invite code created');
+          resetForm();
+        },
+      }
+    );
   };
 
-  const handleDeactivate = async (id: string) => {
-    try {
-      await adminService.deactivateInviteCode(id);
-      notifications.success('Invite code deactivated');
-      setDeleteTarget(null);
-      await loadCodes();
-    } catch (error) {
-      logger.error('Failed to deactivate invite code', { error });
-      notifications.error('Failed to deactivate invite code');
-    }
+  const handleDeactivate = (id: string) => {
+    deactivateMutation.mutate(id, {
+      onSuccess: () => {
+        notifications.success('Invite code deactivated');
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const handleCopy = async (code: string) => {
@@ -131,7 +115,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       id: 'code',
       header: 'Code',
       render: (_, code) => (
-        <code className="font-mono text-sm font-semibold tracking-wide text-foreground">
+        <code className="font-mono text-data font-semibold tracking-wide text-foreground">
           {code.code}
         </code>
       ),
@@ -202,7 +186,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       id: 'code',
       header: 'Code',
       render: (_, code) => (
-        <code className="font-mono text-sm text-muted-foreground">{code.code}</code>
+        <code className="font-mono text-data text-muted-foreground">{code.code}</code>
       ),
     },
     {
@@ -231,7 +215,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               Deactivated
             </Chip>
           );
-        return <span className="text-xs text-muted-foreground">{code.useCount} uses</span>;
+        return <span className="text-caption text-muted-foreground">{code.useCount} uses</span>;
       },
     },
   ];
@@ -275,19 +259,15 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
             </SettingsRow>
           </Subsection>
           <div className="flex justify-end gap-2 border-t border-line-soft px-5 py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setShowCreateForm(false);
-                setNewCodeMaxUses(1);
-                setNewCodeCreateResearcher(false);
-                setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
-              }}
-            >
+            <Button variant="ghost" size="sm" onClick={resetForm}>
               Cancel
             </Button>
-            <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleCreate}
+              isLoading={createMutation.isPending}
+            >
               Create
             </Button>
           </div>
@@ -298,7 +278,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
         columns={activeColumns}
         data={activeCodes}
         hoverable
-        loading={isLoading && codes.length === 0}
+        loading={isLoading}
         emptyMessage="No active invite codes. Create one to invite new users to your lab."
         loadingMessage="Loading invite codes..."
         aria-label="Active invite codes"
@@ -308,9 +288,9 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={loadCodes}
-                disabled={isLoading}
-                leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+                onClick={() => refetch()}
+                disabled={isFetching}
+                leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
               >
                 Refresh
               </Button>
@@ -339,10 +319,10 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               size={13}
               className={`text-foreground/40 transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
             />
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70 transition-colors group-hover:text-foreground/90">
+            <span className="type-label text-label-xs tracking-label-wide text-foreground/70 transition-colors group-hover:text-foreground/90">
               Inactive Codes
             </span>
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
+            <span className="type-label text-label-2xs text-foreground/35">
               {inactiveCodes.length}
             </span>
           </button>

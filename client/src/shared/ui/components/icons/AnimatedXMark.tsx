@@ -3,7 +3,8 @@
  *
  * SVG-based animated X mark using Lucide OctagonX's exact geometry.
  */
-import { useEffect, useState } from 'react';
+
+import { useRevealOnMount } from './useRevealOnMount';
 
 interface AnimatedXMarkProps {
   size?: number;
@@ -11,17 +12,12 @@ interface AnimatedXMarkProps {
 }
 
 export function AnimatedXMark({ size = 48, className = '' }: AnimatedXMarkProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
+  const isVisible = useRevealOnMount();
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">
-        {/* Octagon (Lucide OctagonX path with rounded corners via arc commands) */}
+        {/* Octagon */}
         <path
           d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z"
           fill="none"
@@ -37,7 +33,7 @@ export function AnimatedXMark({ size = 48, className = '' }: AnimatedXMarkProps)
           }}
         />
 
-        {/* X Line 1: top-right to bottom-left (Lucide: m15 9-6 6) */}
+        {/* X Line 1: top-right to bottom-left */}
         <path
           fill="none"
           stroke="currentColor"
@@ -51,7 +47,7 @@ export function AnimatedXMark({ size = 48, className = '' }: AnimatedXMarkProps)
           }}
         />
 
-        {/* X Line 2: top-left to bottom-right (Lucide: m9 9 6 6) */}
+        {/* X Line 2: top-left to bottom-right */}
         <path
           fill="none"
           stroke="currentColor"

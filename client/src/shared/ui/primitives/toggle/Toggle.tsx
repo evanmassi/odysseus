@@ -7,7 +7,7 @@
 
 import { forwardRef } from 'react';
 
-export interface ToggleProps {
+interface ToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   'aria-label'?: string;
@@ -21,7 +21,7 @@ const SIZES = {
     track: 'w-[48px] h-[22px]',
     knob: 'h-[16px] w-[16px]',
     knobOnX: 'translate-x-[26px]',
-    label: 'text-[8px]',
+    label: 'text-label-2xs',
     onLabelInset: 'left-1.5',
     offLabelInset: 'right-1.5',
   },
@@ -29,28 +29,31 @@ const SIZES = {
     track: 'w-[64px] h-[28px]',
     knob: 'h-[22px] w-[22px]',
     knobOnX: 'translate-x-[36px]',
-    label: 'text-[9px]',
+    label: 'text-label-2xs',
     onLabelInset: 'left-2',
     offLabelInset: 'right-2',
   },
 } as const;
+
+const LABEL_BASE =
+  'absolute bottom-0 top-0 flex items-center type-label font-medium transition-opacity duration-200';
 
 export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
   (
     { checked, onChange, 'aria-label': ariaLabel, disabled = false, size = 'md', className = '' },
     ref
   ) => {
-    const s = SIZES[size];
+    const sizeStyle = SIZES[size];
 
     const trackTone = checked
-      ? 'bg-[hsl(var(--primary)/0.10)] border-primary/40 shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]'
-      : 'border-line-mid shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
+      ? 'bg-[hsl(var(--primary)/0.10)] border-primary/40 dark:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]'
+      : 'border-line-mid dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
 
     const knobTone = checked
-      ? `${s.knobOnX} bg-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]`
+      ? `${sizeStyle.knobOnX} bg-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.55)] dark:shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]`
       : 'translate-x-0 bg-muted-foreground';
 
-    const knobLineTone = checked ? 'bg-black/35' : 'bg-black/40';
+    const knobLineTone = checked ? 'bg-shade/35' : 'bg-shade/40';
 
     return (
       <label
@@ -74,20 +77,20 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
         <span
           className={`
             relative inline-block border
-            ${s.track}
+            ${sizeStyle.track}
             ${trackTone}
             transition-[background-color,border-color,box-shadow] duration-200
           `}
         >
           <span
             aria-hidden
-            className={`absolute bottom-0 top-0 flex items-center font-medium uppercase tracking-[0.18em] text-muted-foreground transition-opacity duration-200 ${s.label} ${s.offLabelInset} ${checked ? 'opacity-0' : 'opacity-100'}`}
+            className={`${LABEL_BASE} text-muted-foreground ${sizeStyle.label} ${sizeStyle.offLabelInset} ${checked ? 'opacity-0' : 'opacity-100'}`}
           >
             OFF
           </span>
           <span
             aria-hidden
-            className={`absolute bottom-0 top-0 flex items-center font-medium uppercase tracking-[0.18em] text-primary transition-opacity duration-200 ${s.label} ${s.onLabelInset} ${checked ? 'opacity-100' : 'opacity-0'}`}
+            className={`${LABEL_BASE} text-primary ${sizeStyle.label} ${sizeStyle.onLabelInset} ${checked ? 'opacity-100' : 'opacity-0'}`}
           >
             ON
           </span>
@@ -96,7 +99,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
             aria-hidden
             className={`
               absolute left-[2px] top-[2px]
-              ${s.knob}
+              ${sizeStyle.knob}
               ${knobTone}
               [transition:transform_200ms_cubic-bezier(.6,.2,.2,1),background-color_160ms_ease,box-shadow_200ms_ease]
             `}

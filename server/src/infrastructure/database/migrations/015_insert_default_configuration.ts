@@ -5,7 +5,6 @@
  * Non-fatal: logs errors but does not crash startup (preserves existing behavior).
  */
 
-
 import { logger } from '@infrastructure/logging/logger';
 
 import type { Migration } from './migrationRunner';
@@ -20,10 +19,9 @@ export const migration015: Migration = {
       const labId = firstLab.rows[0]?.id;
       if (!labId) return;
 
-      const existing = await pool.query(
-        'SELECT lab_id FROM storage_current WHERE lab_id = $1',
-        [labId]
-      );
+      const existing = await pool.query('SELECT lab_id FROM storage_current WHERE lab_id = $1', [
+        labId,
+      ]);
 
       if (existing.rows.length === 0) {
         const { Storage } = await import('../../../domain/entities/Storage');
@@ -50,7 +48,10 @@ export const migration015: Migration = {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
-      logger.error('Failed to initialize default configuration:', { message: errorMessage, stack: errorStack });
+      logger.error('Failed to initialize default configuration:', {
+        message: errorMessage,
+        stack: errorStack,
+      });
     }
-  }
+  },
 };

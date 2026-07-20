@@ -1,14 +1,14 @@
 /**
  * Modal Store
  *
- * Declarative modal API with complete lifecycle management.
+ * Centralized open/close state for the app's confirmation dialogs and modals.
  */
 
 import type { ReactNode } from 'react';
 
 import { create } from 'zustand';
 
-import { type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import type { PositionKey } from '@domains/tubes';
 
 interface ConfirmDialogState {
   isOpen: boolean;
@@ -17,7 +17,6 @@ interface ConfirmDialogState {
   confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface UnsavedConfirmState {
@@ -26,7 +25,6 @@ interface UnsavedConfirmState {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface TubeEditorModalState {
@@ -35,8 +33,6 @@ interface TubeEditorModalState {
   tubeId?: string; // Single edit mode - tube ID only
   tubeIds?: string[]; // Bulk edit mode - tube IDs only
   positions?: PositionKey[]; // Add mode - position keys
-  rackId?: string;
-  boxId?: string;
   previousFocusElement?: HTMLElement | null;
   preserveSelection?: boolean; // Don't restore focus to specific position (for bulk operations)
 }
@@ -44,13 +40,11 @@ interface TubeEditorModalState {
 interface LockTubesModalState {
   isOpen: boolean;
   tubeIds: string[];
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface ShareAccessModalState {
   isOpen: boolean;
   tubeIds: string[];
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface SessionTimeoutWarningState {
@@ -93,15 +87,9 @@ interface ModalActions {
   }) => void;
   hideUnsavedConfirm: () => void;
 
-  showTubeEditorModal: (config: {
-    mode: 'add' | 'edit' | 'bulk';
-    tubeId?: string; // Single edit mode
-    tubeIds?: string[]; // Bulk edit mode
-    positions?: PositionKey[]; // Add mode
-    rackId?: string;
-    boxId?: string;
-    preserveSelection?: boolean; // Don't restore focus to specific position (for bulk operations)
-  }) => void;
+  showTubeEditorModal: (
+    config: Omit<TubeEditorModalState, 'isOpen' | 'previousFocusElement'>
+  ) => void;
   hideTubeEditorModal: () => void;
 
   showLockTubesModal: (tubeIds: string[]) => void;
@@ -117,8 +105,6 @@ interface ModalActions {
   }) => void;
   updateSessionTimeoutWarning: (timeRemainingMs: number) => void;
   hideSessionTimeoutWarning: () => void;
-
-  hideAllModals: () => void;
 }
 
 const initialConfirmDialog: ConfirmDialogState = {
@@ -169,12 +155,10 @@ const buildConfirmState = (
   confirmText: config.confirmText,
   onConfirm: config.onConfirm,
   onCancel: config.onCancel ?? defaultCancel,
-  previousFocusElement: document.activeElement as HTMLElement,
 });
 
 // Exported raw for direct .getState() access from non-React code (e.g., authStore)
 export const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
-  // Initial state
   deleteConfirm: initialConfirmDialog,
   overwriteConfirm: initialConfirmDialog,
   unsavedConfirm: initialUnsavedConfirm,
@@ -183,7 +167,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   shareAccessModal: initialShareAccessModal,
   sessionTimeoutWarning: initialSessionTimeoutWarning,
 
-  // Delete confirmation actions
   showDeleteConfirm: config => {
     set({ deleteConfirm: buildConfirmState(config, () => get().hideDeleteConfirm()) });
   },
@@ -195,7 +178,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
-  // Overwrite confirmation actions
   showOverwriteConfirm: config => {
     set({ overwriteConfirm: buildConfirmState(config, () => get().hideOverwriteConfirm()) });
   },
@@ -206,10 +188,7 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
-  // Unsaved changes confirmation actions
   showUnsavedConfirm: config => {
-    const previousFocusElement = document.activeElement as HTMLElement;
-
     set({
       unsavedConfirm: {
         isOpen: true,
@@ -217,7 +196,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
         message: config.message ?? 'You have unsaved changes. Are you sure you want to close?',
         onConfirm: config.onConfirm,
         onCancel: config.onCancel ?? (() => get().hideUnsavedConfirm()),
-        previousFocusElement,
       },
     });
   },
@@ -228,7 +206,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
-  // Tube modal actions
   showTubeEditorModal: config => {
     // Capture focus BEFORE modal opens (before React renders)
     // For bulk operations with preserveSelection, don't capture focus element
@@ -243,8 +220,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
         tubeId: config.tubeId,
         tubeIds: config.tubeIds,
         positions: config.positions,
-        rackId: config.rackId,
-        boxId: config.boxId,
         previousFocusElement,
         preserveSelection: config.preserveSelection,
       },
@@ -257,14 +232,11 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
-  // Lock tubes modal actions
   showLockTubesModal: tubeIds => {
-    const previousFocusElement = document.activeElement as HTMLElement;
     set({
       lockTubesModal: {
         isOpen: true,
         tubeIds,
-        previousFocusElement,
       },
     });
   },
@@ -275,14 +247,11 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
-  // Share access modal actions
   showShareAccessModal: tubeIds => {
-    const previousFocusElement = document.activeElement as HTMLElement;
     set({
       shareAccessModal: {
         isOpen: true,
         tubeIds,
-        previousFocusElement,
       },
     });
   },
@@ -293,7 +262,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
-  // Session timeout warning actions
   showSessionTimeoutWarning: config => {
     set({
       sessionTimeoutWarning: {
@@ -319,19 +287,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
 
   hideSessionTimeoutWarning: () => {
     set({ sessionTimeoutWarning: initialSessionTimeoutWarning });
-  },
-
-  // Utility to hide all modals
-  hideAllModals: () => {
-    set({
-      deleteConfirm: initialConfirmDialog,
-      overwriteConfirm: initialConfirmDialog,
-      unsavedConfirm: initialUnsavedConfirm,
-      tubeEditorModal: initialTubeEditorModal,
-      lockTubesModal: initialLockTubesModal,
-      shareAccessModal: initialShareAccessModal,
-      sessionTimeoutWarning: initialSessionTimeoutWarning,
-    });
   },
 }));
 

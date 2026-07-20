@@ -1,7 +1,7 @@
 /**
  * Active Researchers Query
  *
- * Server-side filtered to approved+active only — pending researchers excluded from dropdowns.
+ * Server-side filtered to active researchers only.
  */
 
 import { type Researcher, sortByName } from '@odysseus/shared-schemas';
@@ -13,20 +13,16 @@ import { useLabId } from '@domains/authentication';
 
 import { ResearcherService } from '../services/ResearcherService';
 
-import type { UseQueryOptions } from '@tanstack/react-query';
-
-export function useActiveResearchersQuery(options?: {
-  queryOptions?: Omit<UseQueryOptions<Researcher[], Error, Researcher[]>, 'queryKey' | 'queryFn'>;
-}) {
+export function useActiveResearchersQuery() {
   const labId = useLabId();
 
-  return useQuery<Researcher[], Error, Researcher[]>({
+  return useQuery({
     queryKey: queryKeys.researchers.visible(labId),
-    queryFn: async () => {
+    queryFn: async (): Promise<Researcher[]> => {
       const researchers = await ResearcherService.list({ visible: true });
       return sortByName(researchers);
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
-    ...options?.queryOptions,
+    enabled: !!labId,
   });
 }

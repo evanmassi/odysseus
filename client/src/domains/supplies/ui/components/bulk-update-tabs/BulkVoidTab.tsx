@@ -10,17 +10,18 @@ import { PackagePlus, PackageMinus, ClipboardCheck, Trash2, Search } from 'lucid
 
 import { useSupplyLocationsQuery, useSupplyTransactionHistoryQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkVoidMutation } from '@domains/supplies/hooks/useSupplyMutations';
+import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
 import { Autocomplete, Button, Checkbox, NubDivider } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
-import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
-import { SEARCH_INPUT_CLASS, SELECT_LABEL } from './fieldLabelStyle';
+import { SEARCH_INPUT_CLASS } from './searchInputStyle';
 
 import type { SupplyItemWithStock, SupplyTransaction } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -64,14 +65,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
   const selectedItem = items.find(p => p.id === selectedItemId);
 
   const itemOptions: AutocompleteOption[] = useMemo(
-    () =>
-      items
-        .filter(p => p.status === 'active')
-        .map(p => ({
-          value: p.id,
-          label: p.name,
-          secondary: [p.manufacturer, p.catalogNumber].filter(Boolean).join(' · '),
-        })),
+    () => toItemAutocompleteOptions(items),
     [items]
   );
 
@@ -104,21 +98,20 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
     [selectItem]
   );
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (selectedTxnIds.size === 0 || !reason.trim()) return;
-    try {
-      const result = await bulkVoidMutation.mutateAsync({
-        transactionIds: [...selectedTxnIds],
-        reason: reason.trim(),
-      });
-      notifyBulkResult(result, 'transactions');
-      setSelectedItemId(undefined);
-      setSelectedTxnIds(new Set());
-      setReason('');
-      onComplete();
-    } catch {
-      notifications.error('Failed to void transactions');
-    }
+    bulkVoidMutation.mutate(
+      { transactionIds: [...selectedTxnIds], reason: reason.trim() },
+      {
+        onSuccess: result => {
+          notifyBulkResult(result, { entityLabel: 'transactions', actionVerb: 'Voided' });
+          setSelectedItemId(undefined);
+          setSelectedTxnIds(new Set());
+          setReason('');
+          onComplete();
+        },
+      }
+    );
   }, [selectedTxnIds, reason, bulkVoidMutation, onComplete]);
 
   return (
@@ -142,7 +135,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
           </div>
         </div>
         {selectedItem && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-caption text-muted-foreground">
             {eligibleTransactions.length} voidable transaction
             {eligibleTransactions.length !== 1 ? 's' : ''} for{' '}
             <span className="font-medium text-card-foreground">{selectedItem.name}</span>
@@ -162,7 +155,6 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
               txn.quantityChange >= 0 ? `+${txn.quantityChange}` : String(txn.quantityChange);
 
             return (
-              // eslint-disable-next-line jsx-a11y/label-has-associated-control -- Checkbox is the control
               <label
                 key={txn.id}
                 className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md border border-border hover:bg-accent/30 cursor-pointer transition-colors"
@@ -172,13 +164,13 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
                   onChange={() => toggleTransaction(txn.id)}
                 />
                 <Icon size={14} className="flex-shrink-0 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground flex-shrink-0">
+                <span className="text-caption text-muted-foreground flex-shrink-0">
                   {formatDateForDisplay(txn.createdAt)}
                 </span>
-                <span className="text-xs font-medium flex-shrink-0">
+                <span className="text-caption font-medium flex-shrink-0">
                   {qty} {unit}
                 </span>
-                <span className="text-xs text-muted-foreground truncate">
+                <span className="text-caption text-muted-foreground truncate">
                   {TYPE_LABELS[txn.type] ?? txn.type} ·{' '}
                   {locationNameMap.get(txn.locationId) ?? txn.locationId}
                 </span>
@@ -186,7 +178,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
             );
           })}
           {selectedItemId && eligibleTransactions.length === 0 && (
-            <p className="text-xs text-muted-foreground italic text-center py-4">
+            <p className="text-caption text-muted-foreground italic text-center py-4">
               No voidable transactions
             </p>
           )}
@@ -196,7 +188,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
       <div className="relative px-4 pt-3 pb-4 border-t border-line-faint flex-shrink-0 space-y-3">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div>
-          <label htmlFor="bulk-void-reason" className={SELECT_LABEL}>
+          <label htmlFor="bulk-void-reason" className={FIELD_LABEL_COMPACT}>
             Reason for voiding *
           </label>
           <Textarea
@@ -210,7 +202,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
           />
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">{selectedTxnIds.size} selected</span>
+          <span className="text-caption text-muted-foreground">{selectedTxnIds.size} selected</span>
           <div className="flex gap-2">
             <Button variant="secondary" onClick={onComplete}>
               Cancel

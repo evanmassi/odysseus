@@ -10,7 +10,7 @@ export interface LABColor {
   B: number;
 }
 
-export interface RGBColor {
+interface RGBColor {
   r: number;
   g: number;
   b: number;
@@ -100,18 +100,18 @@ function xyzToRGB(xyz: { x: number; y: number; z: number }): RGBColor {
   };
 }
 
-export function rgbToLAB(rgb: RGBColor): LABColor {
+function rgbToLAB(rgb: RGBColor): LABColor {
   const xyz = rgbToXYZ(rgb);
   return xyzToLAB(xyz);
 }
 
-export function labToRGB(lab: LABColor): RGBColor {
+function labToRGB(lab: LABColor): RGBColor {
   const xyz = labToXYZ(lab);
   return xyzToRGB(xyz);
 }
 
 /** Delta E (CIE76) perceptual color difference. */
-export function calculateDeltaE(color1: LABColor, color2: LABColor): number {
+function calculateDeltaE(color1: LABColor, color2: LABColor): number {
   const deltaL = color1.L - color2.L;
   const deltaA = color1.A - color2.A;
   const deltaB = color1.B - color2.B;
@@ -119,12 +119,12 @@ export function calculateDeltaE(color1: LABColor, color2: LABColor): number {
   return Math.sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
 }
 
-export function rgbToHex(rgb: RGBColor): string {
+function rgbToHex(rgb: RGBColor): string {
   const { r, g, b } = rgb;
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-export function hexToRGB(hex: string): RGBColor {
+function hexToRGB(hex: string): RGBColor {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) throw new Error('Invalid hex color');
 
@@ -170,11 +170,6 @@ export function generateOptimalColorPalette(options: {
 
       const candidate: LABColor = { L, A, B };
 
-      const rgb = labToRGB(candidate);
-      if (rgb.r < 0 || rgb.r > 255 || rgb.g < 0 || rgb.g > 255 || rgb.b < 0 || rgb.b > 255) {
-        continue;
-      }
-
       let minDistanceToExisting = Infinity;
       for (const existing of colors) {
         const distance = calculateDeltaE(candidate, existing);
@@ -200,7 +195,7 @@ export function generateOptimalColorPalette(options: {
 }
 
 // WCAG 2.0 relative luminance formula (uses simplified 0.03928 threshold)
-export function getLuminance(rgb: RGBColor): number {
+function getLuminance(rgb: RGBColor): number {
   const { r, g, b } = rgb;
 
   const sR = r / 255;
@@ -214,7 +209,7 @@ export function getLuminance(rgb: RGBColor): number {
   return 0.2126 * rL + 0.7152 * gL + 0.0722 * bL;
 }
 
-export function getContrastRatio(color1: RGBColor, color2: RGBColor): number {
+function getContrastRatio(color1: RGBColor, color2: RGBColor): number {
   const lum1 = getLuminance(color1);
   const lum2 = getLuminance(color2);
 

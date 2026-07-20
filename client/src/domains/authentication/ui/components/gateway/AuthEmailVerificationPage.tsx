@@ -9,7 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { AlertBanner, Button, LoadingSpinner } from '@shared/ui';
@@ -74,8 +74,7 @@ function VerifyContent() {
     void navigate('/');
   };
 
-  const { displayed: state, isTransitioning } = useDelayedTransition(status, 200);
-  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+  const { state, exitClass } = useAuthStackTransition(status);
 
   useShellConfig(getShellConfig(state));
 
@@ -83,8 +82,8 @@ function VerifyContent() {
     return (
       <div key="verify-verifying" className={`animate-auth-stack ${exitClass}`}>
         <div className="flex flex-col items-center gap-4 py-2">
-          <LoadingSpinner size="lg" />
-          <p className="text-sm text-[rgb(var(--auth-text-dim))]">Verifying your email…</p>
+          <LoadingSpinner size="lg" className="text-[rgb(var(--auth-text))]" />
+          <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">Verifying your email…</p>
         </div>
       </div>
     );
@@ -116,7 +115,7 @@ function VerifyContent() {
         {error}
       </AlertBanner>
 
-      <p className="mb-6 font-mono text-xs text-[rgb(var(--auth-text-mute))]">
+      <p className="mb-6 font-mono text-data-sm text-[rgb(var(--auth-text-mute))]">
         Links expire after 48 hours and can only be used once.
       </p>
 

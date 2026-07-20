@@ -35,15 +35,19 @@ import {
   useUpdateSupplyBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
+import { orderPackagingChain, thresholdInEntryUnit } from '@domains/supplies/utils/packagingChain';
+import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
 import {
   Button,
   Chip,
   DetailRow,
+  HeaderStrip,
   Input,
   NubDivider,
   OverflowMenu,
   PanelHeader,
   SectionHeader,
+  StripLabel,
   Tooltip,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -61,18 +65,9 @@ import { SupplyBarcodeForm } from './SupplyBarcodeForm';
 import { SupplyBarcodePrint } from './SupplyBarcodePrint';
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 
-import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyBarcode, SupplyDocument } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
-
-const STATUS_LABELS: Record<
-  string,
-  { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
-> = {
-  active: { color: 'success', label: 'Active' },
-  discontinued: { color: 'warning', label: 'Discontinued' },
-  archived: { color: 'danger', label: 'Archived' },
-};
 
 const BARCODE_TYPE_LABELS: Record<string, string> = {
   internal: 'Internal',
@@ -86,23 +81,11 @@ interface SupplyItemInfoPanelProps {
   onRecordTransaction: () => void;
   onVoidAndReplace: (
     itemId: string,
-    initialTab: 'received' | 'issued' | 'count' | 'disposed',
+    initialTab: TransactionMode,
     prefill: TransactionPrefill
   ) => void;
   onDeleted: () => void;
   categoryName?: string;
-}
-
-function StripLabel({ children }: { children: string }) {
-  return (
-    <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-      <span
-        aria-hidden
-        className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-      />
-      {children}
-    </span>
-  );
 }
 
 export function SupplyItemInfoPanel({
@@ -149,7 +132,7 @@ export function SupplyItemInfoPanel({
         intensity="soft"
         className="flex h-full min-h-0 flex-col items-center justify-center"
       >
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-xs tracking-label-wide text-muted-foreground">
           Loading…
         </span>
       </ConsolePanel>
@@ -157,7 +140,7 @@ export function SupplyItemInfoPanel({
   }
 
   const { item, documents, barcodes, stock } = detail;
-  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
+  const statusConfig = SUPPLY_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
 
@@ -172,21 +155,16 @@ export function SupplyItemInfoPanel({
           if (!item.reorderThresholdUnit || item.reorderThresholdUnit === item.stockUnit) {
             return `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`;
           }
-          const levels = detail.packagingLevels;
-          let multiplier = 1;
-          let current = item.reorderThresholdUnit;
-          for (let i = 0; i < levels.length + 1; i++) {
-            const level = levels.find(l => l.unitName === current);
-            if (!level) break;
-            multiplier *= level.quantity;
-            if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
-            current = level.parentUnit;
-          }
-          const inputQty = Math.round(item.reorderThreshold / multiplier);
+          const inputQty = thresholdInEntryUnit(
+            item.reorderThreshold,
+            item.reorderThresholdUnit,
+            item.stockUnit ?? '',
+            detail.packagingLevels
+          );
           return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
         })()}
         {item.reorderThresholdUnit && item.reorderThresholdUnit !== item.stockUnit && (
-          <span className="ml-1 text-xs text-muted-foreground">
+          <span className="ml-1 text-caption text-muted-foreground">
             ({item.reorderThreshold}{' '}
             {pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)})
           </span>
@@ -196,83 +174,75 @@ export function SupplyItemInfoPanel({
       <span className="text-muted-foreground">—</span>
     );
 
-  const handleDelete = async () => {
-    try {
-      await deleteItemMutation.mutateAsync(itemId);
-      notifications.success('Item removed');
-      onDeleted();
-    } catch {
-      notifications.error('Failed to remove item');
-    }
-    setShowDeleteConfirm(false);
+  const handleDelete = () => {
+    deleteItemMutation.mutate(itemId, {
+      onSuccess: () => {
+        notifications.success('Item removed');
+        onDeleted();
+      },
+      onSettled: () => {
+        setShowDeleteConfirm(false);
+      },
+    });
   };
 
-  const handleArchive = async () => {
-    try {
-      await archiveItemMutation.mutateAsync(itemId);
-      notifications.success('Item archived');
-      onDeleted();
-    } catch {
-      notifications.error('Failed to archive item');
-    }
+  const handleArchive = () => {
+    archiveItemMutation.mutate(itemId, {
+      onSuccess: () => {
+        notifications.success('Item archived');
+        onDeleted();
+      },
+    });
   };
 
-  const handleRemoveDocument = async (docId: string) => {
-    try {
-      await removeDocumentMutation.mutateAsync({ itemId, docId });
-      notifications.success('Document removed');
-    } catch {
-      notifications.error('Failed to remove document');
-    }
+  const handleRemoveDocument = (docId: string) => {
+    removeDocumentMutation.mutate(
+      { itemId, docId },
+      {
+        onSuccess: () => {
+          notifications.success('Document removed');
+        },
+      }
+    );
   };
 
   const handleSaveDocument = async (values: DocumentLinkValues) => {
     if (documentModal.mode === 'edit' && documentModal.doc) {
-      try {
-        await updateDocumentMutation.mutateAsync({
-          itemId,
-          docId: documentModal.doc.id,
-          data: { label: values.label, url: values.url, notes: values.notes ?? null },
-        });
-        notifications.success('Document updated');
-      } catch (error) {
-        notifications.error('Failed to update document');
-        throw error;
-      }
-    } else {
-      try {
-        await addDocumentMutation.mutateAsync({
-          itemId,
-          data: { label: values.label, url: values.url, notes: values.notes },
-        });
-        notifications.success('Document added');
-      } catch (error) {
-        notifications.error('Failed to add document');
-        throw error;
-      }
-    }
-  };
-
-  const handleRemoveBarcode = async (barcodeId: string) => {
-    try {
-      await removeBarcodeMutation.mutateAsync({ itemId, barcodeId });
-      notifications.success('Barcode removed');
-    } catch {
-      notifications.error('Failed to remove barcode');
-    }
-  };
-
-  const handleSaveBarcodeLabel = async (barcodeId: string) => {
-    try {
-      await updateBarcodeMutation.mutateAsync({
+      await updateDocumentMutation.mutateAsync({
         itemId,
-        barcodeId,
-        data: { label: editingLabel.trim() || null },
+        docId: documentModal.doc.id,
+        data: { label: values.label, url: values.url, notes: values.notes ?? null },
       });
-      setEditingBarcodeId(null);
-    } catch {
-      notifications.error('Failed to update barcode label');
+      notifications.success('Document updated');
+    } else {
+      await addDocumentMutation.mutateAsync({
+        itemId,
+        data: { label: values.label, url: values.url, notes: values.notes },
+      });
+      notifications.success('Document added');
     }
+  };
+
+  const handleRemoveBarcode = (barcodeId: string) => {
+    removeBarcodeMutation.mutate(
+      { itemId, barcodeId },
+      {
+        onSuccess: () => {
+          notifications.success('Barcode removed');
+        },
+      }
+    );
+  };
+
+  const handleSaveBarcodeLabel = (barcodeId: string) => {
+    updateBarcodeMutation.mutate(
+      { itemId, barcodeId, data: { label: editingLabel.trim() || null } },
+      {
+        onSuccess: () => {
+          setEditingBarcodeId(null);
+        },
+      }
+    );
   };
 
   return (
@@ -281,11 +251,7 @@ export function SupplyItemInfoPanel({
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Supply Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-3 gap-y-2">
           <StripLabel>Status</StripLabel>
           <Chip size="sm" color={statusConfig.color}>
@@ -294,7 +260,7 @@ export function SupplyItemInfoPanel({
           {categoryName && (
             <>
               <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" leftIcon={<FolderOpen />}>
+              <Chip size="sm" color="info" lead={<FolderOpen />}>
                 {categoryName}
               </Chip>
             </>
@@ -304,7 +270,7 @@ export function SupplyItemInfoPanel({
               <StripLabel>Location</StripLabel>
               <div className="flex flex-wrap gap-1.5">
                 {locationChips.map(loc => (
-                  <Chip key={loc.id} size="sm" color="info" leftIcon={<MapPin />}>
+                  <Chip key={loc.id} size="sm" color="info" lead={<MapPin />}>
                     {loc.name}
                   </Chip>
                 ))}
@@ -312,15 +278,14 @@ export function SupplyItemInfoPanel({
             </>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-base font-semibold text-card-foreground">{item.name}</h3>
+            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
             {item.description && (
-              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-card-foreground/70">
+              <p className="mt-1 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -351,21 +316,9 @@ export function SupplyItemInfoPanel({
             <div>
               <SectionHeader title="Packaging" size="sm" />
               {(() => {
-                // Walk the chain base-up, accumulating the running base-unit total so
+                // Accumulate the running base-unit total over the base-up chain so
                 // each tier can show the multiplicative scale the flat text hid.
-                const levels = detail.packagingLevels;
-                const bottomUp: typeof levels = [];
-                const bottom = levels.find(l => l.parentUnit === null);
-                if (bottom) {
-                  bottomUp.push(bottom);
-                  let current = bottom;
-                  for (let i = 0; i < levels.length; i++) {
-                    const next = levels.find(l => l.parentUnit === current.unitName);
-                    if (!next) break;
-                    bottomUp.push(next);
-                    current = next;
-                  }
-                }
+                const bottomUp = orderPackagingChain(detail.packagingLevels);
                 const baseName = item.baseItemName ?? item.stockUnit ?? 'unit';
                 let running = 1;
                 const tiers = bottomUp.map(level => {
@@ -402,20 +355,20 @@ export function SupplyItemInfoPanel({
                                 toned ? 'bg-primary' : 'bg-muted-foreground/30'
                               }`}
                             />
-                            <span className="font-display text-sm capitalize text-card-foreground">
+                            <span className="font-display text-body-sm capitalize text-card-foreground">
                               {row.name}
                             </span>
                           </div>
-                          <span className="font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+                          <span className="font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
                             contains {row.contains}
                           </span>
                           <span
-                            className={`text-right font-mono text-xs tracking-[0.04em] ${
+                            className={`text-right font-mono text-data-sm tracking-[0.04em] ${
                               toned ? 'text-primary' : 'text-foreground/70'
                             }`}
                           >
                             {row.roll.toLocaleString()}
-                            <span className="ml-1 text-[9.5px] text-foreground/40">
+                            <span className="ml-1 text-label-2xs text-foreground/40">
                               {pluralizeUnit(baseName, row.roll)}
                             </span>
                           </span>
@@ -433,7 +386,7 @@ export function SupplyItemInfoPanel({
             {stock.length > 0 ? (
               <div className="space-y-1">
                 {stock.map(s => (
-                  <div key={s.id} className="flex justify-between text-sm">
+                  <div key={s.id} className="flex justify-between text-body-sm">
                     <span className="text-muted-foreground">
                       {locationNameMap.get(s.locationId) ?? s.locationId}
                     </span>
@@ -442,7 +395,7 @@ export function SupplyItemInfoPanel({
                     </span>
                   </div>
                 ))}
-                <div className="flex justify-between border-t border-border pt-1 text-sm font-semibold">
+                <div className="flex justify-between border-t border-border pt-1 text-body-sm font-semibold">
                   <span>Total</span>
                   <span>
                     {totalStock} {pluralizeUnit(item.stockUnit ?? 'unit', totalStock)}
@@ -450,7 +403,7 @@ export function SupplyItemInfoPanel({
                 </div>
               </div>
             ) : (
-              <p className="text-xs italic text-muted-foreground">No stock entries</p>
+              <p className="text-caption italic text-muted-foreground">No stock entries</p>
             )}
           </div>
 
@@ -492,13 +445,13 @@ export function SupplyItemInfoPanel({
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-body-sm">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-caption text-muted-foreground">
                             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string should fallback to type label */}
                             {bc.label || (BARCODE_TYPE_LABELS[bc.barcodeType] ?? bc.barcodeType)}:
                           </span>
-                          <span className="font-mono text-xs text-card-foreground">
+                          <span className="font-mono text-data-sm text-card-foreground">
                             {bc.barcodeValue}
                           </span>
                           {bc.isPrimary && (
@@ -515,7 +468,7 @@ export function SupplyItemInfoPanel({
                                   variant="ghost"
                                   size="xs"
                                   iconOnly
-                                  onClick={() => void regenerateBarcodeMutation.mutateAsync(itemId)}
+                                  onClick={() => regenerateBarcodeMutation.mutate(itemId)}
                                   isLoading={regenerateBarcodeMutation.isPending}
                                 >
                                   <RefreshCw className="h-3 w-3" />
@@ -563,11 +516,11 @@ export function SupplyItemInfoPanel({
                 ))}
               </div>
             ) : (
-              <p className="text-xs italic text-muted-foreground">No barcodes</p>
+              <p className="text-caption italic text-muted-foreground">No barcodes</p>
             )}
             {isAdmin && (
               <div className="mt-2">
-                <SupplyBarcodeForm itemId={itemId} onAdded={() => {}} />
+                <SupplyBarcodeForm itemId={itemId} />
               </div>
             )}
           </div>
@@ -578,7 +531,7 @@ export function SupplyItemInfoPanel({
               <div className="space-y-1.5">
                 {documents.map(doc => (
                   <div key={doc.id}>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-body-sm">
                       <a
                         href={doc.url}
                         target="_blank"
@@ -614,13 +567,13 @@ export function SupplyItemInfoPanel({
                       )}
                     </div>
                     {doc.notes && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
+                      <p className="mt-0.5 text-caption text-muted-foreground">{doc.notes}</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs italic text-muted-foreground">No documents</p>
+              <p className="text-caption italic text-muted-foreground">No documents</p>
             )}
             {isAdmin && (
               <Button
@@ -638,7 +591,7 @@ export function SupplyItemInfoPanel({
           {item.notes && (
             <div>
               <SectionHeader title="Notes" size="sm" />
-              <p className="whitespace-pre-wrap text-sm text-card-foreground">{item.notes}</p>
+              <p className="whitespace-pre-wrap text-body text-card-foreground">{item.notes}</p>
             </div>
           )}
 
@@ -670,7 +623,7 @@ export function SupplyItemInfoPanel({
       </ScrollArea>
 
       {isAdmin && (
-        <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             <OverflowMenu

@@ -8,10 +8,9 @@ import type { Donor } from '@domain/entities/Donor';
 import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 
 export interface DonorRepository {
-
   // Donor CRUD
 
-  findById(id: string): Promise<Donor | null>;
+  findById(id: string, labId: string): Promise<Donor | null>;
   findByLabId(labId: string): Promise<Donor[]>;
 
   /** Finds a donor matching either source or internal ID within a lab. */
@@ -21,7 +20,7 @@ export interface DonorRepository {
   search(labId: string, query: string, limit?: number): Promise<Donor[]>;
 
   save(donor: Donor): Promise<void>;
-  delete(id: string): Promise<boolean>;
+  delete(id: string, labId: string): Promise<boolean>;
 
   /**
    * Atomically creates a donor stub only if no donor with matching IDs exists.
@@ -35,11 +34,11 @@ export interface DonorRepository {
 
   // Collection history
 
-  findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]>;
-  findCollectionHistoryById(id: string): Promise<DonorCollectionHistory | null>;
+  findCollectionHistory(donorId: string, labId: string): Promise<DonorCollectionHistory[]>;
+  findCollectionHistoryById(id: string, labId: string): Promise<DonorCollectionHistory | null>;
   saveCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
-  updateCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
-  deleteCollectionHistory(id: string): Promise<boolean>;
+  updateCollectionHistory(entry: DonorCollectionHistory, labId: string): Promise<void>;
+  deleteCollectionHistory(id: string, labId: string): Promise<boolean>;
 
   // Lookup value support
 

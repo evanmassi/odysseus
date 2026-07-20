@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { NubDivider, Tooltip } from '@shared/ui';
+import { NubDivider, ScrimHalo, Tooltip } from '@shared/ui';
 
 import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
@@ -48,10 +48,8 @@ const CORNER_PINS = [
 function LedgerRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-tooltip-muted">
-        {label}
-      </span>
-      <span className="font-mono text-[11px] text-tooltip-foreground">{value}</span>
+      <span className="type-label text-label-2xs text-tooltip-muted">{label}</span>
+      <span className="font-mono text-data-sm text-tooltip-foreground">{value}</span>
     </div>
   );
 }
@@ -99,30 +97,27 @@ export function TubeGridTooltip({
 
   const tooltipContent = (
     <div className="relative isolate min-w-[172px] max-w-[260px] px-4 py-3.5">
+      <ScrimHalo />
       <span
         aria-hidden
-        className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"
+        className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground dark:shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"
       />
       {CORNER_PINS.map(pos => (
         <span
           key={pos}
           aria-hidden
-          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)] ${pos}`}
+          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground dark:shadow-[0_0_5px_hsl(var(--foreground)/0.8)] ${pos}`}
         />
       ))}
 
       <div className="mb-2 flex items-baseline gap-1.5">
-        <span className="text-[15px] font-semibold leading-tight text-tooltip-foreground">
+        <span className="text-body font-semibold leading-tight text-tooltip-foreground">
           {cellType}
         </span>
         {tube.sample?.species && (
           <>
             <span className="text-tooltip-foreground/30">·</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-tooltip-muted">
+            <span className="type-label text-label-2xs tracking-meta text-tooltip-muted">
               {tube.sample.species}
             </span>
           </>
@@ -145,10 +140,10 @@ export function TubeGridTooltip({
             className={`flex items-center gap-1.5 ${isLockedOut ? 'text-danger-text' : 'text-tooltip-foreground'}`}
           >
             <LockIcon size={11} strokeWidth={2.5} />
-            <span className="font-mono text-[10.5px]">{lockLabel}</span>
+            <span className="font-mono text-data-sm">{lockLabel}</span>
           </div>
           {tube.lockNote && (
-            <div className="mt-1 font-mono text-[10px] italic text-tooltip-muted">
+            <div className="mt-1 font-mono text-data-sm italic text-tooltip-muted">
               &ldquo;{tube.lockNote}&rdquo;
             </div>
           )}

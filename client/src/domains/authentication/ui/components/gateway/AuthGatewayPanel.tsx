@@ -57,7 +57,6 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
 
   const trapRef = useFocusTrap({
     isOpen: true,
-    restoreFocus: true,
     initialFocusRef: config?.initialFocusRef,
   });
 
@@ -173,7 +172,7 @@ function BrandBlock({ config, isStack }: BrandBlockProps) {
         />
       )}
       {config.brandGreeting && (
-        <span className="text-sm text-[rgb(var(--auth-text-dim))] phosphor-text">
+        <span className="text-body-sm text-[rgb(var(--auth-text-dim))] phosphor-text">
           {config.brandGreeting}
         </span>
       )}

@@ -18,11 +18,24 @@ function escapeValue(value: unknown, forceText = false): string {
     return `="${stringValue.replace(/"/g, '""')}"`;
   }
 
-  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
+  // Prevent CSV formula injection: a spreadsheet evaluates a cell beginning with = + - @ (or
+  // tab/CR) as a formula. Prefix an apostrophe to neutralize it, but leave genuine numbers alone
+  // so negatives aren't turned into text.
+  const guarded =
+    /^[=+\-@\t\r]/.test(stringValue) && Number.isNaN(Number(stringValue))
+      ? `'${stringValue}`
+      : stringValue;
+
+  if (
+    guarded.includes(',') ||
+    guarded.includes('"') ||
+    guarded.includes('\n') ||
+    guarded.includes('\r')
+  ) {
+    return `"${guarded.replace(/"/g, '""')}"`;
   }
 
-  return stringValue;
+  return guarded;
 }
 
 /** If columns not provided, uses keys from first object. */
@@ -34,15 +47,17 @@ export function generateCsv<T extends object>(
     return '';
   }
 
-  const columnConfig = columns ?? Object.keys(data[0]).map(key => ({
-    key: key as keyof T,
-    header: key
-  }));
+  const columnConfig: Array<{ key: keyof T; header: string; forceText?: boolean }> =
+    columns ??
+    Object.keys(data[0]).map(key => ({
+      key: key as keyof T,
+      header: key,
+    }));
 
   const headerRow = columnConfig.map(col => escapeValue(col.header)).join(',');
 
   const dataRows = data.map(row =>
-    columnConfig.map(col => escapeValue(row[col.key], 'forceText' in col ? (col as { forceText?: boolean }).forceText : false)).join(',')
+    columnConfig.map(col => escapeValue(row[col.key], col.forceText)).join(',')
   );
 
   return [headerRow, ...dataRows].join('\n');

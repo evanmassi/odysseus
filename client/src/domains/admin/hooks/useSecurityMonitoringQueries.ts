@@ -10,16 +10,8 @@ import { queryKeys } from '@app/cache/queryKeys';
 
 import { securityMonitoringService } from '../services/SecurityMonitoringService';
 
-import type {
-  SecurityOverviewResponse,
-  ActiveSessionsResponse,
-  IpActivityResponse,
-  FailedLoginsResponse,
-  SessionActivityResponse,
-} from '@odysseus/shared-schemas';
-
 export function useSecurityOverviewQuery() {
-  return useQuery<SecurityOverviewResponse>({
+  return useQuery({
     queryKey: queryKeys.security.overview(),
     queryFn: () => securityMonitoringService.getSecurityOverview(),
     staleTime: 30_000,
@@ -27,7 +19,7 @@ export function useSecurityOverviewQuery() {
 }
 
 export function useActiveSessionsQuery() {
-  return useQuery<ActiveSessionsResponse>({
+  return useQuery({
     queryKey: queryKeys.security.sessions(),
     queryFn: () => securityMonitoringService.getActiveSessions(),
     staleTime: 30_000,
@@ -35,7 +27,7 @@ export function useActiveSessionsQuery() {
 }
 
 export function useIpActivityQuery(startDate?: string, endDate?: string) {
-  return useQuery<IpActivityResponse>({
+  return useQuery({
     queryKey: queryKeys.security.ipActivity(startDate, endDate),
     queryFn: () => securityMonitoringService.getIpActivity(startDate, endDate),
     staleTime: 60_000,
@@ -44,7 +36,7 @@ export function useIpActivityQuery(startDate?: string, endDate?: string) {
 }
 
 export function useFailedLoginsQuery(limit?: number, startDate?: string, endDate?: string) {
-  return useQuery<FailedLoginsResponse>({
+  return useQuery({
     queryKey: queryKeys.security.failedLogins(limit, startDate, endDate),
     queryFn: () => securityMonitoringService.getFailedLogins(limit, startDate, endDate),
     staleTime: 60_000,
@@ -52,7 +44,7 @@ export function useFailedLoginsQuery(limit?: number, startDate?: string, endDate
 }
 
 export function useSessionActivityQuery(hours?: number) {
-  return useQuery<SessionActivityResponse>({
+  return useQuery({
     queryKey: queryKeys.security.sessionActivity(hours),
     queryFn: () => securityMonitoringService.getSessionActivity(hours),
     staleTime: 60_000,

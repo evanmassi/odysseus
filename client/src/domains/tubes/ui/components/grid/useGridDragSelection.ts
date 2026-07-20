@@ -7,7 +7,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import {
   toPositionKey,
   type PositionContext,
@@ -25,7 +25,6 @@ export interface UseGridDragSelectionProps {
 }
 
 export interface UseGridDragSelectionReturn {
-  isDragging: boolean;
   dragPreview: Set<PositionKey>;
   handleMouseDown: (position: number, event: React.MouseEvent) => void;
   handleMouseMove: (position: number) => void;
@@ -58,7 +57,8 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
       const dragStart = dragStartPositionRef.current;
       const withCtrl = isDragWithCtrlRef.current;
 
-      if (dragStart !== null && dragStart !== position) {
+      // Keep recomputing once dragging so a return to origin shrinks the preview
+      if (dragStart !== null && (isDraggingRef.current || dragStart !== position)) {
         if (!isDraggingRef.current) {
           isDraggingRef.current = true;
           setIsDragging(true);
@@ -147,7 +147,6 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
   }, [isDragging, dragPreview, onSelectionChange]);
 
   return {
-    isDragging,
     dragPreview,
     handleMouseDown,
     handleMouseMove,

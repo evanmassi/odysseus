@@ -1,20 +1,22 @@
 /**
  * Well
  *
- * Recessed surface — a sunken, inset tile matching the app's input wells and empty
- * grid cells. Pass onClick to render an interactive button that lights up on hover.
+ * Recessed, inset tile matching the app's input wells and empty grid cells. Pass onClick to make it an interactive button.
  */
 import type { ReactNode } from 'react';
 
+// Mirrors the empty grid cell exactly: --grid-empty fill + a --recess inset shadow
+// (neutral in both themes, unlike --shade which is navy in light).
 const WELL_BASE =
-  'border border-line-faint bg-black/20 ' +
-  'shadow-[inset_0_1px_3px_rgba(0,0,0,0.45),inset_0_0_0_1px_hsl(var(--foreground)/0.04)]';
+  'border border-line-faint bg-[hsl(var(--grid-empty))] ' +
+  'shadow-[inset_0_1px_3px_hsl(var(--recess)/0.5),inset_0_0_0_1px_hsl(var(--foreground)/0.05)]';
 
 const WELL_INTERACTIVE =
   'cursor-pointer transition-[border-color,box-shadow] duration-150 hover:border-primary/40 ' +
-  'hover:shadow-[inset_0_1px_3px_rgba(0,0,0,0.45),inset_0_0_0_1px_hsl(var(--primary)/0.18),0_0_18px_-6px_hsl(var(--primary)/0.55)]';
+  'hover:shadow-[inset_0_1px_3px_hsl(var(--recess)/0.5),inset_0_0_0_1px_hsl(var(--primary)/0.18)] ' +
+  'dark:hover:shadow-[inset_0_1px_3px_hsl(var(--recess)/0.5),inset_0_0_0_1px_hsl(var(--primary)/0.18),0_0_18px_-6px_hsl(var(--primary)/0.55)]';
 
-export interface WellProps {
+interface WellProps {
   children: ReactNode;
   className?: string;
   onClick?: () => void;

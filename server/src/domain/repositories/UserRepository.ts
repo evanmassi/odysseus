@@ -6,14 +6,14 @@
 
 import type { User } from '@domain/entities/User';
 
+import type { UserStatus } from '@odysseus/shared-schemas';
+
 export interface UserRepository {
+  /** Lab-scoped lookup — the default. Returns null for a user in another lab. */
+  findById(id: string, labId: string): Promise<User | null>;
 
-  // BASIC CRUD OPERATIONS
-
-  findById(id: string): Promise<User | null>;
-
-  /** Primary authentication lookup. */
-  findByApiKey(apiKey: string): Promise<User | null>;
+  /** Cross-lab lookup for identity/auth and system-admin paths only. Prefer findById. */
+  findByIdAnyLab(id: string): Promise<User | null>;
 
   findByUsername(username: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
@@ -24,17 +24,18 @@ export interface UserRepository {
   findAll(): Promise<User[]>;
   findAllWithLastActivity(): Promise<User[]>;
 
-  /** Returns only found users — no errors for missing IDs. */
-  findByIds(ids: string[]): Promise<User[]>;
+  /**
+   * Returns only found users — no errors for missing IDs.
+   * When `labId` is provided, results are scoped to that lab; omit for
+   * cross-lab (system-admin) access.
+   */
+  findByIds(ids: string[], labId?: string): Promise<User[]>;
 
   /** Create vs update determined by existence. */
   save(user: User): Promise<void>;
 
-  delete(id: string): Promise<boolean>;
+  delete(id: string, labId: string): Promise<boolean>;
 
-  // AUTHENTICATION OPERATIONS
-
-  apiKeyExists(apiKey: string): Promise<boolean>;
   usernameExists(username: string): Promise<boolean>;
   emailExists(email: string): Promise<boolean>;
 
@@ -42,15 +43,12 @@ export interface UserRepository {
 
   countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number>;
   isEmpty(): Promise<boolean>;
-  findByStatus(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended'): Promise<User[]>;
 
   // LAB-SCOPED OPERATIONS
 
   findByLabId(labId: string): Promise<User[]>;
-  findByStatusInLab(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended', labId: string): Promise<User[]>;
+  findByStatusInLab(status: UserStatus, labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
-
-  // MAINTENANCE OPERATIONS
 
   isHealthy(): Promise<boolean>;
 }

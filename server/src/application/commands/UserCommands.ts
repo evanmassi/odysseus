@@ -4,41 +4,41 @@
  * Account lifecycle operations — registration, login, password changes, role changes, deletion.
  */
 
+import {
+  verifyCurrentPassword,
+  upgradePasswordHashIfNeeded,
+} from '@application/authentication/passwordCredentials';
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
+import {
+  UserAlreadyExistsError,
+  InvalidCredentialsError,
+  UserNotFoundError,
+} from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
   UserRoleChangedEvent,
-  UserLoggedInEvent
+  UserLoggedInEvent,
 } from '@domain/events/UserEvents';
-import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
 
 // COMMAND INTERFACES
-
-export interface CreateUserCommand {
-  username: string;
-  password: string;
-  role: UserRole;
-  initiatedBy: string;
-  inviteCode?: string;
-}
 
 export interface CreateSystemAdminCommand {
   username: string;
@@ -49,7 +49,6 @@ export interface CreateSystemAdminCommand {
   setupKey?: string;
   department?: string;
   position?: string;
-  initiatedBy?: string;
 }
 
 export interface ChangeUserPasswordCommand {
@@ -78,72 +77,6 @@ export interface UpdateUserSettingsCommand {
 
 // COMMAND HANDLERS
 
-export class CreateUserCommandHandler {
-  constructor(
-    private userRepository: UserRepository,
-    private eventBus: EventBus,
-    private storageRepository: StorageRepository,
-    private passwordService: PasswordService,
-    private inviteCodeRepository?: InviteCodeRepository
-  ) {}
-
-  async handle(command: CreateUserCommand): Promise<User> {
-    const existingUser = await this.userRepository.findByUsername(command.username);
-    if (existingUser) {
-      throw new UserAlreadyExistsError(command.username);
-    }
-
-    await validatePasswordPolicy(this.storageRepository, command.password);
-    const passwordHash = await this.passwordService.hash(command.password);
-
-    let labId: string | undefined;
-    let resolvedRole = command.role;
-    let autoApprove = false;
-
-    if (command.inviteCode && this.inviteCodeRepository) {
-      const inviteCode = await this.inviteCodeRepository.findByCode(command.inviteCode);
-      if (!inviteCode || !inviteCode.isValid()) {
-        throw new ValidationError('Invalid or expired invite code');
-      }
-
-      labId = inviteCode.labId;
-      resolvedRole = UserRole.create(inviteCode.role);
-
-      // Lab admins designated by invite code are auto-approved
-      if (inviteCode.role === 'lab_admin') {
-        autoApprove = true;
-      }
-
-      inviteCode.recordUse();
-      await this.inviteCodeRepository.save(inviteCode);
-
-      await this.eventBus.publish(new InviteCodeUsedEvent(
-        inviteCode.id,
-        inviteCode.labId,
-        command.initiatedBy
-      ));
-    }
-
-    const status = autoApprove ? 'approved' : 'pending';
-    const user = User.createWithPassword(
-      command.username,
-      passwordHash,
-      resolvedRole,
-      undefined,
-      undefined,
-      status,
-      labId
-    );
-
-    await this.userRepository.save(user);
-
-    const event = new UserCreatedEvent(user.id, user.username, user.role, user.labId);
-    await this.eventBus.publish(event);
-
-    return user;
-  }
-}
-
 export class CreateSystemAdminCommandHandler {
   constructor(
     private userRepository: UserRepository,
@@ -151,7 +84,8 @@ export class CreateSystemAdminCommandHandler {
     private eventBus: EventBus,
     private personRepository: PersonRepository,
     private passwordService: PasswordService,
-    private setupKey?: string
+    private setupKey?: string,
+    private requireSetupKey: boolean = false
   ) {}
 
   async handle(command: CreateSystemAdminCommand): Promise<User> {
@@ -160,8 +94,14 @@ export class CreateSystemAdminCommandHandler {
       throw new ValidationError('System admin already exists');
     }
 
+    // Fail closed where a setup key is mandatory (production) but none is configured, so the
+    // first-admin endpoint can never be created without one.
+    if (this.requireSetupKey && !this.setupKey) {
+      throw new ValidationError('System admin setup key is not configured');
+    }
+
     if (this.setupKey) {
-      if (!command.setupKey || command.setupKey !== this.setupKey) {
+      if (!command.setupKey || !constantTimeEqual(command.setupKey, this.setupKey)) {
         throw new PermissionError('Invalid setup key');
       }
     }
@@ -179,7 +119,13 @@ export class CreateSystemAdminCommandHandler {
     await validatePasswordPolicy(this.storageRepository, command.password);
     const passwordHash = await this.passwordService.hash(command.password);
 
-    const person = Person.create(command.firstName, command.lastName, command.email, command.position, command.department);
+    const person = Person.create(
+      command.firstName,
+      command.lastName,
+      command.email,
+      command.position,
+      command.department
+    );
     await this.personRepository.save(person);
 
     const user = User.createWithPassword(
@@ -205,44 +151,50 @@ export class ChangeUserPasswordCommandHandler {
     private userRepository: UserRepository,
     private eventBus: EventBus,
     private storageRepository: StorageRepository,
-    private userSessionRepository: UserSessionRepository,
-    private passwordService: PasswordService
+    private passwordService: PasswordService,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async handle(command: ChangeUserPasswordCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
 
-    if (!user.hasPassword()) {
-      throw new InvalidCredentialsError('Current password is incorrect');
-    }
-    const isCurrentPasswordValid = await this.passwordService.verify(command.currentPassword, user.passwordHash!, user.salt);
-    if (!isCurrentPasswordValid) {
-      throw new InvalidCredentialsError('Current password is incorrect');
-    }
+    await verifyCurrentPassword(user, command.currentPassword, this.passwordService);
 
     await validatePasswordPolicy(this.storageRepository, command.newPassword);
     const newHash = await this.passwordService.hash(command.newPassword);
 
     user.setPasswordHash(newHash);
-    await this.userRepository.save(user);
 
-    // Changing password revokes all other sessions for security
-    if (command.currentSessionId) {
-      const activeSessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
-      const otherSessionIds = activeSessions
-        .filter(s => s.id !== command.currentSessionId)
-        .map(s => s.id);
+    // Atomic: a new password that failed to revoke the old sessions leaves them alive — the
+    // opposite of what changing a password is for.
+    await this.unitOfWork.withTransaction(async repos => {
+      await repos.users.save(user);
 
-      if (otherSessionIds.length > 0) {
-        const revokedCount = await this.userSessionRepository.bulkRevoke(otherSessionIds);
-        logger.info(`Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
+      // The session the change was made from survives; every other one is revoked.
+      if (command.currentSessionId) {
+        const activeSessions = await repos.userSessions.findActiveSessionsByUserId(user.id);
+        const otherSessionIds = activeSessions
+          .filter(s => s.id !== command.currentSessionId)
+          .map(s => s.id);
+
+        if (otherSessionIds.length > 0) {
+          const revokedCount = await repos.userSessions.bulkRevoke(otherSessionIds);
+          logger.info(
+            `Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`
+          );
+        }
       }
-    }
+    });
 
-    const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy, user.labId);
+    const event = new UserPasswordChangedEvent(
+      user.id,
+      user.username,
+      command.initiatedBy,
+      user.labId
+    );
     await this.eventBus.publish(event);
   }
 }
@@ -254,14 +206,17 @@ export class ChangeUserRoleCommandHandler {
   ) {}
 
   async handle(command: ChangeUserRoleCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
-    if (!user) {
-      throw new UserNotFoundError(command.userId);
-    }
-
-    const performingUser = await this.userRepository.findById(command.initiatedBy);
+    const performingUser = await this.userRepository.findByIdAnyLab(command.initiatedBy);
     if (!performingUser) {
       throw new UserNotFoundError(command.initiatedBy);
+    }
+
+    const user = await findByIdForRequester(this.userRepository, command.userId, {
+      labId: performingUser.labId,
+      isSystemAdmin: performingUser.isSystemAdmin(),
+    });
+    if (!user) {
+      throw new UserNotFoundError(command.userId);
     }
 
     const oldRole = user.role;
@@ -280,10 +235,8 @@ export class ChangeUserRoleCommandHandler {
   }
 }
 
-
 export interface LoginResult {
   user: User;
-  sessionToken: string;
   requirePasswordChange: boolean;
 }
 
@@ -303,64 +256,66 @@ export class LoginCommandHandler {
     }
 
     if (!user || !user.hasPassword()) {
+      // Equalize response time with the valid-user path (which runs a bcrypt verify below) so
+      // login latency can't be used to enumerate which usernames/emails exist.
+      await this.passwordService.hash(command.password);
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
-    const isPasswordValid = await this.passwordService.verify(command.password, user.passwordHash!, user.salt);
+    const isPasswordValid = await this.passwordService.verify(
+      command.password,
+      user.passwordHash!,
+      user.salt
+    );
     if (!isPasswordValid) {
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
     // Lazy migration: re-hash PBKDF2 passwords to bcrypt on successful login
-    if (this.passwordService.needsUpgrade(user.passwordHash!, user.salt)) {
-      const newHash = await this.passwordService.hash(command.password);
-      user.setPasswordHash(newHash);
-      await this.userRepository.save(user);
-    }
-
-    // Check admin approval status FIRST (gates access before email verification)
-    if (user.status === 'pending') {
-      throw new InvalidCredentialsError('Account pending administrator approval. You will be notified when approved.');
-    }
-
-    if (user.status === 'rejected') {
-      throw new InvalidCredentialsError('Account access has been denied. Contact administrator for more information.');
-    }
+    await upgradePasswordHashIfNeeded(
+      user,
+      command.password,
+      this.passwordService,
+      this.userRepository
+    );
 
     if (user.status === 'deactivated') {
-      throw new InvalidCredentialsError('Account has been deactivated. Contact your lab administrator.');
+      throw new InvalidCredentialsError(
+        'Account has been deactivated. Contact your lab administrator.'
+      );
     }
 
     if (user.status === 'suspended') {
-      throw new InvalidCredentialsError('Account has been suspended. Contact your system administrator.');
+      throw new InvalidCredentialsError(
+        'Account has been suspended. Contact your system administrator.'
+      );
     }
 
     if (this.labRepository && user.labId) {
       const lab = await this.labRepository.findById(user.labId);
       if (lab && !lab.isActive) {
-        throw new InvalidCredentialsError('Your lab has been deactivated. Contact your system administrator.');
+        throw new InvalidCredentialsError(
+          'Your lab has been deactivated. Contact your system administrator.'
+        );
       }
     }
 
     // Admin approval bypasses email verification (admin manually vets users)
     if (!user.isEmailVerified() && user.status !== 'approved') {
-      throw new InvalidCredentialsError('Email not verified. Check your inbox for verification link.');
+      throw new InvalidCredentialsError(
+        'Email not verified. Check your inbox for verification link.'
+      );
     }
 
     const requirePasswordChange = user.isPasswordChangeRequired();
 
     if (!requirePasswordChange) {
-      await this.eventBus.publish(new UserLoggedInEvent(
-        user.id,
-        user.username,
-        user.labId
-      ));
+      await this.eventBus.publish(new UserLoggedInEvent(user.id, user.username, user.labId));
     }
 
     return {
       user,
-      sessionToken: '', // Legacy field - OAuth 2.0 tokens created by AuthController
-      requirePasswordChange
+      requirePasswordChange,
     };
   }
 }
@@ -371,7 +326,7 @@ export class UpdateUserSettingsCommandHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(command: UpdateUserSettingsCommand): Promise<User> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }

@@ -6,13 +6,17 @@
 
 import { createContext, useContext } from 'react';
 
-import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
-import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
-import type { NavigatorOccupancy } from '@domains/storage/ui/components/storage-navigator';
-import type { DemoLimits, UserDisplayInfo } from '@odysseus/shared-schemas';
+import type { UserInfo } from '../../../hooks/useStorageOwnership';
+import type { NavigatorOccupancy } from '../storage-navigator';
+import type {
+  BoxConfiguration,
+  RackConfiguration,
+  TankConfiguration,
+  DemoLimits,
+  UserDisplayInfo,
+} from '@odysseus/shared-schemas';
 
 interface StorageManagerContextValue {
-  // Data
   users: UserDisplayInfo[];
   currentUser: { id: string; role?: string } | null;
   isDemo: boolean;
@@ -21,7 +25,6 @@ interface StorageManagerContextValue {
   /** Per-box/rack/tank tube fill against capacity, for the occupancy minimaps + bars. */
   occupancy: NavigatorOccupancy;
 
-  // Business logic functions
   getUserInfo: (userId: string) => UserInfo | null;
   isOwnedByCurrentUser: (
     resource: RackConfiguration | BoxConfiguration,
@@ -34,12 +37,10 @@ interface StorageManagerContextValue {
   canManageStorage: boolean;
   isResourceLocked: (resource: TankConfiguration | RackConfiguration | BoxConfiguration) => boolean;
 
-  // Tank handlers
   onEditTank: (tank: TankConfiguration) => void;
   onDeleteTank: (tankId: string) => void;
   onAddRacks: (tankId: string, count: number, options?: { onSuccess?: () => void }) => void;
 
-  // Rack handlers
   onEditRack: (tankId: string, rack: RackConfiguration) => void;
   onDeleteRack: (tankId: string, rackId: string) => void;
   onAddBoxes: (
@@ -51,7 +52,6 @@ interface StorageManagerContextValue {
   onAssignRack: (tankId: string, rackId: string, userId: string | undefined) => void;
   onEditRackLabel: (tankId: string, rackId: string, currentLabel: string) => void;
 
-  // Box handlers
   onEditBox: (tankId: string, rackId: string, box: BoxConfiguration) => void;
   onDeleteBox: (tankId: string, rackId: string, boxId: string) => void;
   onAssignBox: (

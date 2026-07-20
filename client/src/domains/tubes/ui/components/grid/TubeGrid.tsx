@@ -3,14 +3,20 @@
  *
  * Configuration-driven grid supporting individual box customization and dynamic grid sizes.
  */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
-import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { getAxisLabelsForBox } from '@domains/storage/utils/positionDisplayUtils';
+import {
+  useStorageData,
+  getGridTotalPositions,
+  DEFAULT_GRID_CONFIG,
+  getAxisLabelsForBox,
+} from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { useUserSettings } from '@domains/users/hooks/useUserSettings';
+import { useUserSettings } from '@domains/users';
+import { LoadingSpinner } from '@shared/ui';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import { TubeGridCell } from './TubeGridCell';
 import { TubeGridContextMenu } from './TubeGridContextMenu';
@@ -36,6 +42,16 @@ interface TubeGridProps {
   gridController: GridControllerReturn;
   lockContext?: LockContext;
 }
+
+function deriveLockState(tube: TubeData | undefined, lockContext: LockContext | undefined) {
+  const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
+  const isLockedByCurrentUser =
+    tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
+  const hasSharedAccess = tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
+  const lockOwnerName = tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
+  return { isLockedOut, isLockedByCurrentUser, hasSharedAccess, lockOwnerName };
+}
+
 export function TubeGrid({
   tankId,
   rackId,
@@ -50,7 +66,7 @@ export function TubeGrid({
     isLoading,
     error,
   } = useTubesByLocation(tankId, rackId, boxId, {
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * MS_PER_MINUTE,
   });
   const { getBox, currentLab } = useStorageData();
   const { settings } = useUserSettings();
@@ -66,6 +82,7 @@ export function TubeGrid({
   const setClipboard = useGridClipboardStore(state => state.setClipboard);
 
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
+  const skipNextFocusSelect = useRef(false);
 
   // Shared tooltip state - singleton pattern avoids Radix composeRefs bug
   const [hoveredTube, setHoveredTube] = useState<TubeData | null>(null);
@@ -120,6 +137,20 @@ export function TubeGrid({
     [gridController]
   );
 
+  const handleGridFocus = useCallback(
+    (event: React.FocusEvent<HTMLDivElement>) => {
+      if (event.target !== event.currentTarget) return;
+      if (skipNextFocusSelect.current) {
+        skipNextFocusSelect.current = false;
+        return;
+      }
+      if (selectedPositions.size === 0) {
+        gridController.actions.setSelection(focusedPosition);
+      }
+    },
+    [selectedPositions.size, gridController, focusedPosition]
+  );
+
   const handlePositionRightClick = useCallback(
     (position: number, event: React.MouseEvent) => {
       event.preventDefault();
@@ -140,21 +171,19 @@ export function TubeGrid({
       setHoverAnchorRect(rect);
 
       if (tube.isLocked && lockContext) {
-        const ownerName = lockContext.getLockOwnerName(tube);
-        const isMine = lockContext.isLockedByCurrentUser(tube);
-        const isShared = lockContext.hasExplicitSharedAccess(tube);
-        const isOut = lockContext.isLockedOutFrom(tube);
+        const { isLockedByCurrentUser, hasSharedAccess, isLockedOut, lockOwnerName } =
+          deriveLockState(tube, lockContext);
 
-        if (isMine) {
+        if (isLockedByCurrentUser) {
           setHoveredLockVariant('own');
-        } else if (isShared) {
+        } else if (hasSharedAccess) {
           setHoveredLockVariant('shared');
-        } else if (isOut) {
+        } else if (isLockedOut) {
           setHoveredLockVariant('other');
         } else {
           setHoveredLockVariant('admin-override');
         }
-        setHoveredLockOwnerName(ownerName);
+        setHoveredLockOwnerName(lockOwnerName);
       } else {
         setHoveredLockVariant(undefined);
         setHoveredLockOwnerName(undefined);
@@ -172,21 +201,10 @@ export function TubeGrid({
 
   useEffect(() => {
     if (gridNode) {
+      skipNextFocusSelect.current = true;
       gridNode.focus();
     }
   }, [gridNode]);
-
-  useEffect(() => {
-    if (!gridNode) return;
-
-    const selectedElements = gridNode.querySelectorAll('.selected');
-    selectedElements.forEach(el => {
-      const element = el as HTMLElement;
-      element.style.animation = 'none';
-      element.offsetHeight; // Force reflow to restart animation
-      element.style.animation = '';
-    });
-  }, [selectedPositions, gridNode]);
 
   const gridStyle = {
     display: 'grid',
@@ -199,10 +217,10 @@ export function TubeGrid({
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
         <div className="flex items-center space-x-3 mb-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <LoadingSpinner size="lg" className="text-primary" />
           <span className="text-lg font-medium text-secondary-foreground">Loading tubes...</span>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-body-sm text-muted-foreground">
           {boxId ? `${tankId} › Rack ${rackId} › Box ${boxId}` : `${tankId} › Rack ${rackId}`}
         </div>
       </div>
@@ -213,7 +231,7 @@ export function TubeGrid({
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
         <div className="text-danger-text mb-4">Failed to load tubes</div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-body-sm text-muted-foreground">
           {boxId ? `${tankId} › Rack ${rackId} › Box ${boxId}` : `${tankId} › Rack ${rackId}`}
         </div>
       </div>
@@ -269,6 +287,7 @@ export function TubeGrid({
             aria-multiselectable="true"
             tabIndex={0}
             data-focus="custom"
+            onFocus={handleGridFocus}
             onKeyDown={keyboardNav.handleGridKeyDown}
           >
             {positions.map(position => {
@@ -278,17 +297,11 @@ export function TubeGrid({
               const isCut = gridController.clipboard.cutPositions.has(positionKey);
               const isCopied = gridController.clipboard.copyPositions.has(positionKey);
               const inDragPreview = dragSelection.dragPreview.has(positionKey);
-              const isKeyboardFocused = position === focusedPosition;
 
-              const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
-              const isLockedByCurrentUser =
-                tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
-              const hasSharedAccess =
-                tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
+              const { isLockedOut, isLockedByCurrentUser, hasSharedAccess, lockOwnerName } =
+                deriveLockState(tube, lockContext);
               const hasAdminOverride =
                 tube?.isLocked && !isLockedByCurrentUser && !hasSharedAccess && !isLockedOut;
-              const lockOwnerName =
-                tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
               return (
                 <TubeGridCell
@@ -302,7 +315,6 @@ export function TubeGrid({
                   isDragPreview={inDragPreview && !selected}
                   isCut={isCut}
                   isCopied={isCopied}
-                  _isKeyboardFocused={isKeyboardFocused}
                   gridConfig={gridConfig}
                   fontSize={fontSize}
                   onPositionClick={handlePositionClick}

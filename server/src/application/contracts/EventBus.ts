@@ -11,20 +11,10 @@ import type { DomainEventMap, DomainEventName } from '@domain/events/DomainEvent
 export interface EventBus {
   publish(event: DomainEvent): Promise<void>;
 
-  publishAll(events: DomainEvent[]): Promise<void>;
-
   subscribe<K extends DomainEventName>(
     eventName: K,
     handler: EventHandler<DomainEventMap[K]>
   ): void;
-
-  unsubscribe<K extends DomainEventName>(
-    eventName: K,
-    handler: EventHandler<DomainEventMap[K]>
-  ): void;
-
-  /** For monitoring active subscription counts. */
-  getSubscriptions(): Map<string, number>;
 }
 
 export type EventHandler<T extends DomainEvent> =

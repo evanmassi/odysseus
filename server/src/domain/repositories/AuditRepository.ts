@@ -9,32 +9,14 @@ import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface AuditRepository {
-
-  // WRITE OPERATIONS
-
   save(entry: AuditLogEntry): Promise<void>;
   saveMany(entries: AuditLogEntry[]): Promise<void>;
 
-  // READ OPERATIONS
-
-  findByUserId(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]>;
-  findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]>;
-  findByEntityIdForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]>;
   findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]>;
   findAll(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>>;
   findAllForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>>;
 
-  // MAINTENANCE OPERATIONS
-
-  /** Used for retention policy enforcement. */
-  deleteOlderThan(date: Date): Promise<number>;
   deleteByLabId(labId: string): Promise<number>;
-  count(): Promise<number>;
-  countForLab(labId: string): Promise<number>;
-  countInRange(dateFrom: Date, dateTo: Date): Promise<number>;
-  countInRangeForLab(dateFrom: Date, dateTo: Date, labId: string): Promise<number>;
-
-  // ARCHIVAL OPERATIONS
 
   findOlderThan(date: Date, limit?: number): Promise<AuditLogEntry[]>;
 

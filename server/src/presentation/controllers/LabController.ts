@@ -4,16 +4,14 @@
  * System admin endpoints for lab tenant management.
  */
 
-import { API_ERROR_CODES , DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
-
 import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
-import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
-import type { LabRepository } from '@domain/repositories/LabRepository';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
+import type {
+  CreateLabCommandHandler,
+  UpdateLabCommandHandler,
+  DeactivateLabCommandHandler,
+  ActivateLabCommandHandler,
+} from '@application/commands/LabCommands';
+import type { LabApplicationService } from '@application/services/LabApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -28,12 +26,7 @@ export interface LabControllerDeps {
   deactivateLabHandler: DeactivateLabCommandHandler;
   activateLabHandler: ActivateLabCommandHandler;
   updateDemoLimitsHandler: UpdateDemoLimitsCommandHandler;
-  labRepository: LabRepository;
-  userRepository: UserRepository;
-  tubeRepository: TubeRepository;
-  storageRepository: StorageRepository;
-  researcherRepository: ResearcherRepository;
-  personRepository: PersonRepository;
+  labApplicationService: LabApplicationService;
 }
 
 export class LabController extends BaseController {
@@ -43,23 +36,10 @@ export class LabController extends BaseController {
 
   async listLabs(req: Request, res: Response): Promise<void> {
     try {
-      const labs = await this.deps.labRepository.findAll();
-
-      const demoLab = labs.find(lab => lab.isDemo);
-      let demoIsSeeded = false;
-      if (demoLab) {
-        const config = await this.deps.storageRepository.getForLab(demoLab.id);
-        demoIsSeeded = config?.hasAnySeededResources() ?? false;
-      }
-
-      res.status(200).json(ResponseBuilder.success({
-        labs: labs.map(lab => ({
-          ...lab.toData(),
-          ...(lab.isDemo && { isSeeded: demoIsSeeded }),
-        })),
-      }));
+      const labs = await this.deps.labApplicationService.listLabs();
+      res.status(200).json(ResponseBuilder.success({ labs }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to list labs');
+      handleControllerError(error, res, 'Failed to list labs', req.requestId);
     }
   }
 
@@ -68,14 +48,13 @@ export class LabController extends BaseController {
       const userId = this.extractUserId(req);
       const { name, isDemo } = req.body;
 
-      const result = await this.deps.createLabHandler.handle({ userId, name, isDemo });
-      const lab = await this.deps.labRepository.findById(result.labId);
+      const lab = await this.deps.createLabHandler.handle({ userId, name, isDemo });
 
-      res.status(201).json(ResponseBuilder.success({ lab: lab?.toData() }));
+      res.status(201).json(ResponseBuilder.success({ lab: lab.toData() }));
 
-      logger.info('Lab created', { labId: result.labId, createdBy: userId });
+      logger.info('Lab created', { labId: lab.id, createdBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create lab');
+      handleControllerError(error, res, 'Failed to create lab', req.requestId);
     }
   }
 
@@ -85,14 +64,13 @@ export class LabController extends BaseController {
       const labId = req.params.id;
       const { name } = req.body;
 
-      await this.deps.updateLabHandler.handle({ userId, labId, name });
-      const lab = await this.deps.labRepository.findById(labId);
+      const lab = await this.deps.updateLabHandler.handle({ userId, labId, name });
 
-      res.status(200).json(ResponseBuilder.success({ lab: lab?.toData() }));
+      res.status(200).json(ResponseBuilder.success({ lab: lab.toData() }));
 
       logger.info('Lab updated', { labId, updatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update lab');
+      handleControllerError(error, res, 'Failed to update lab', req.requestId);
     }
   }
 
@@ -107,90 +85,16 @@ export class LabController extends BaseController {
 
       logger.info('Lab deactivated', { labId, deactivatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate lab');
+      handleControllerError(error, res, 'Failed to deactivate lab', req.requestId);
     }
   }
 
   async getLabDetails(req: Request, res: Response): Promise<void> {
     try {
-      const labId = req.params.labId;
-      const lab = await this.deps.labRepository.findById(labId);
-      if (!lab) {
-        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Lab not found'));
-        return;
-      }
-
-      const [users, researchers, tubeCount, config] = await Promise.all([
-        this.deps.userRepository.findByLabId(labId),
-        this.deps.researcherRepository.findByLabId(labId),
-        this.deps.tubeRepository.countByLabId(labId),
-        this.deps.storageRepository.getForLab(labId),
-      ]);
-
-      const userPersonIds = users.map(u => u.personId).filter((id): id is string => !!id);
-      const researcherPersonIds = researchers.map(r => r.personId);
-      const allPersonIds = [...new Set([...userPersonIds, ...researcherPersonIds])];
-      const persons = allPersonIds.length > 0 ? await this.deps.personRepository.findByIds(allPersonIds) : [];
-      const personMap = new Map(persons.map(p => [p.id, p]));
-
-      const researcherMap = new Map(researchers.map(r => [r.id, r]));
-
-      const tubeCountMap = await this.deps.researcherRepository.getTubeCountsByResearcherIds(
-        researchers.map(r => r.id)
-      );
-
-      const userByResearcherId = new Map(
-        users.filter(u => u.researcherId).map(u => [u.researcherId!, u])
-      );
-
-      const storageCounts = this.countStorage(config);
-
-      res.status(200).json(ResponseBuilder.success({
-        lab: lab.toData(),
-        users: users.map(u => {
-          const person = u.personId ? personMap.get(u.personId) : undefined;
-          const researcher = u.researcherId ? researcherMap.get(u.researcherId) : undefined;
-          const researcherPerson = researcher?.personId ? personMap.get(researcher.personId) : undefined;
-
-          return {
-            id: u.id,
-            firstName: person?.firstName ?? null,
-            lastName: person?.lastName ?? null,
-            username: u.username,
-            email: person?.email ?? null,
-            position: person?.position ?? null,
-            department: person?.department ?? null,
-            role: u.roleString,
-            status: u.status,
-            isDemo: u.isDemo,
-            lastActivity: u.lastActivity.toISOString(),
-            researcher: u.researcherId ? {
-              name: researcherPerson ? `${researcherPerson.firstName} ${researcherPerson.lastName}` : 'Unknown',
-              tubeCount: tubeCountMap.get(u.researcherId) ?? 0,
-              active: researcher?.active ?? false,
-            } : null,
-          };
-        }),
-        researchers: researchers.map(r => {
-          const person = personMap.get(r.personId);
-          const linkedUser = userByResearcherId.get(r.id);
-          return {
-            id: r.id,
-            firstName: person?.firstName ?? 'Unknown',
-            lastName: person?.lastName ?? '',
-            email: person?.email,
-            active: r.active,
-            tubeCount: tubeCountMap.get(r.id) ?? 0,
-            linkedUser: linkedUser ? { id: linkedUser.id, username: linkedUser.username, status: linkedUser.status } : null,
-          };
-        }),
-        researcherCount: researchers.length,
-        tubeCount,
-        storageSummary: storageCounts,
-        isSeeded: config?.hasAnySeededResources() ?? false,
-      }));
+      const details = await this.deps.labApplicationService.getLabDetails(req.params.labId);
+      res.status(200).json(ResponseBuilder.success(details));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get lab details');
+      handleControllerError(error, res, 'Failed to get lab details', req.requestId);
     }
   }
 
@@ -205,88 +109,25 @@ export class LabController extends BaseController {
 
       logger.info('Lab activated', { labId, activatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate lab');
+      handleControllerError(error, res, 'Failed to activate lab', req.requestId);
     }
   }
 
   async getOverview(req: Request, res: Response): Promise<void> {
     try {
-      const [labs, allUsers] = await Promise.all([
-        this.deps.labRepository.findAll(),
-        this.deps.userRepository.findAllWithLastActivity(),
-      ]);
-
-      const usersByLab = new Map<string, { total: number; admins: number }>();
-      for (const user of allUsers) {
-        if (user.labId) {
-          const entry = usersByLab.get(user.labId) ?? { total: 0, admins: 0 };
-          entry.total++;
-          if (user.roleString === 'lab_admin') entry.admins++;
-          usersByLab.set(user.labId, entry);
-        }
-      }
-
-      const labIds = labs.map(lab => lab.id);
-      const [tubeCountMap, researcherCountMap, configMap] = await Promise.all([
-        this.deps.tubeRepository.countByLabIds(labIds),
-        this.deps.researcherRepository.countByLabIds(labIds),
-        this.deps.storageRepository.getForLabs(labIds),
-      ]);
-
-      const labStats = labs.map((lab) => {
-        const userEntry = usersByLab.get(lab.id) ?? { total: 0, admins: 0 };
-        const { tankCount, rackCount, boxCount } = this.countStorage(configMap.get(lab.id) ?? null);
-        return {
-          labId: lab.id,
-          labName: lab.name,
-          adminCount: userEntry.admins,
-          userCount: userEntry.total,
-          researcherCount: researcherCountMap.get(lab.id) ?? 0,
-          tubeCount: tubeCountMap.get(lab.id) ?? 0,
-          tankCount,
-          rackCount,
-          boxCount,
-        };
-      });
-
-      let totalTubes = 0;
-      for (const count of tubeCountMap.values()) totalTubes += count;
-      const activeLabs = labs.filter(l => l.isActive).length;
-      const inactiveLabs = labs.length - activeLabs;
-      const now = Date.now();
-      const oneDayAgo = now - 24 * 60 * 60 * 1000;
-      const activeUsersLast24h = allUsers.filter(
-        u => u.lastActivity && new Date(u.lastActivity).getTime() > oneDayAgo
-      ).length;
-
-      res.status(200).json(ResponseBuilder.success({
-        totalLabs: labs.length,
-        activeLabs,
-        inactiveLabs,
-        totalUsers: allUsers.length,
-        activeUsersLast24h,
-        totalTubes,
-        labStats,
-      }));
+      const overview = await this.deps.labApplicationService.getOverview();
+      res.status(200).json(ResponseBuilder.success(overview));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get overview');
+      handleControllerError(error, res, 'Failed to get overview', req.requestId);
     }
   }
 
   async getDemoLimits(req: Request, res: Response): Promise<void> {
     try {
-      const labId = req.params.labId;
-      const lab = await this.deps.labRepository.findById(labId);
-      if (!lab) {
-        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Lab not found'));
-        return;
-      }
-
-      res.status(200).json(ResponseBuilder.success({
-        limits: lab.demoLimits ?? DEMO_LIMITS_DEFAULTS,
-      }));
+      const demoLimits = await this.deps.labApplicationService.getDemoLimits(req.params.labId);
+      res.status(200).json(ResponseBuilder.success(demoLimits));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get demo limits');
+      handleControllerError(error, res, 'Failed to get demo limits', req.requestId);
     }
   }
 
@@ -305,20 +146,7 @@ export class LabController extends BaseController {
 
       logger.info('Demo limits updated', { labId, updatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update demo limits');
+      handleControllerError(error, res, 'Failed to update demo limits', req.requestId);
     }
-  }
-
-  private countStorage(config: { toData(): { tanks: { racks: { boxes: unknown[] }[] }[] } } | null | undefined): { tankCount: number; rackCount: number; boxCount: number } {
-    if (!config) return { tankCount: 0, rackCount: 0, boxCount: 0 };
-    const data = config.toData();
-    let rackCount = 0, boxCount = 0;
-    for (const tank of data.tanks) {
-      rackCount += tank.racks.length;
-      for (const rack of tank.racks) {
-        boxCount += rack.boxes.length;
-      }
-    }
-    return { tankCount: data.tanks.length, rackCount, boxCount };
   }
 }

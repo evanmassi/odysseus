@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 
-import { parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
@@ -43,35 +43,24 @@ export function useGridSelectionAnalysis(
       return EMPTY_ANALYSIS;
     }
 
-    const selectedTubes = Array.from(selectedPositions)
-      .map(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-      .filter((tube): tube is TubeData => tube !== undefined);
+    const tubeByPosition = new Map<PositionKey, TubeData>();
+    for (const tube of tubes) {
+      tubeByPosition.set(toPositionKey(tube.location, tube.location.position), tube);
+    }
 
-    const emptyPositions = new Set(
-      Array.from(selectedPositions).filter(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return !tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-    );
+    const selectedTubes: TubeData[] = [];
+    const emptyPositions = new Set<string>();
+    const filledPositions = new Set<string>();
 
-    const filledPositions = new Set(
-      Array.from(selectedPositions).filter(key => !emptyPositions.has(key))
-    );
+    for (const key of selectedPositions) {
+      const tube = tubeByPosition.get(key);
+      if (tube) {
+        selectedTubes.push(tube);
+        filledPositions.add(key);
+      } else {
+        emptyPositions.add(key);
+      }
+    }
 
     const hasEmpty = emptyPositions.size > 0;
     const hasFilled = filledPositions.size > 0;

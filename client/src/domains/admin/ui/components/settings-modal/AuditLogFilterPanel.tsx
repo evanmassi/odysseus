@@ -3,12 +3,17 @@
  *
  * Multi-select filters for actions, entity types, users, and date ranges.
  */
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
 
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
-import { Button, Chip, DatePicker, Input, Tooltip } from '@shared/ui';
+import { Chip, DatePicker, Input, Tooltip } from '@shared/ui';
+import {
+  headerSurface,
+  HEADER_TOP_EDGE,
+} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { MS_PER_DAY } from '@shared/utils';
 
 export interface AuditFilterState {
   actions?: string[];
@@ -56,7 +61,7 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'box_created', label: 'Box Created' },
       { value: 'box_updated', label: 'Box Updated' },
       { value: 'box_deleted', label: 'Box Deleted' },
-      { value: 'lab_name_changed', label: 'Lab Name Changed' },
+      { value: 'lab_renamed', label: 'Lab Name Changed' },
     ],
   },
   {
@@ -149,7 +154,10 @@ const ALL_ACTIONS = ACTION_SECTIONS.flatMap(s => s.actions);
 
 const ENTITY_TYPES = [
   { value: 'tube', label: 'Tube' },
-  { value: 'storage', label: 'Storage' },
+  { value: 'tank', label: 'Tank' },
+  { value: 'rack', label: 'Rack' },
+  { value: 'box', label: 'Box' },
+  { value: 'lab', label: 'Lab' },
   { value: 'equipment_item', label: 'Equipment' },
   { value: 'supply_item', label: 'Supply' },
   { value: 'donor', label: 'Donor' },
@@ -174,11 +182,11 @@ interface AuditLogFilterPanelProps {
 
 interface CollapsibleSectionProps {
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   count: number;
   isOpen: boolean;
   onToggle: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function CollapsibleSection({
@@ -190,33 +198,39 @@ function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   return (
-    <div className="border-b border-border last:border-b-0">
-      <div className="p-1">
-        <button
-          onClick={onToggle}
-          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors"
-        >
-          <div className="flex items-center space-x-2">
-            {isOpen ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            )}
-            <div className="flex items-center space-x-2">
-              {icon}
-              <span className="text-sm font-semibold text-card-foreground">{title}</span>
-            </div>
-          </div>
-          {count > 0 && (
-            <span className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs font-medium">
-              {count}
-            </span>
+    <div className="border-b border-line-soft last:border-b-0">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-foreground/[0.03]"
+      >
+        <div className="flex items-center gap-2.5">
+          {isOpen ? (
+            <ChevronDown className="h-3.5 w-3.5 text-foreground/40" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-foreground/40" />
           )}
-        </button>
-      </div>
-      {isOpen && <div className="px-4 pb-3">{children}</div>}
+          <span className="flex items-center text-foreground/55">{icon}</span>
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/80">
+            {title}
+          </span>
+        </div>
+        {count > 0 && (
+          <span className="font-mono text-data-sm tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
+            {count}
+          </span>
+        )}
+      </button>
+      {isOpen && <div className="px-4 pb-3 pt-0.5">{children}</div>}
     </div>
   );
+}
+
+interface ActionSubsectionProps {
+  section: ActionSection;
+  isOpen: boolean;
+  onToggle: () => void;
+  selectedActions: string[];
+  onToggleAction: (action: string) => void;
 }
 
 function ActionSubsection({
@@ -225,27 +239,21 @@ function ActionSubsection({
   onToggle,
   selectedActions,
   onToggleAction,
-}: {
-  section: ActionSection;
-  isOpen: boolean;
-  onToggle: () => void;
-  selectedActions: string[];
-  onToggleAction: (action: string) => void;
-}) {
+}: ActionSubsectionProps) {
   const count = selectedActions.filter(a => section.prefixes.some(p => a.startsWith(p))).length;
 
   return (
     <div>
       <button
         onClick={onToggle}
-        className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
+        className="mb-2 flex items-center gap-1.5 text-foreground/55 transition-colors hover:text-primary"
       >
-        {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-        <span className="text-xs font-medium text-secondary-foreground">{section.label}</span>
+        {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        <span className="type-label text-label-2xs tracking-label-wide text-foreground/55">
+          {section.label}
+        </span>
         {count > 0 && (
-          <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-            {count}
-          </span>
+          <span className="font-mono text-data-sm tabular-nums text-primary/90">{count}</span>
         )}
       </button>
       {isOpen && (
@@ -305,16 +313,16 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
         dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         break;
       case 'last7days':
-        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 7 * MS_PER_DAY);
         break;
       case 'last30days':
-        dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 30 * MS_PER_DAY);
         break;
       case 'last6months':
-        dateFrom = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 180 * MS_PER_DAY);
         break;
       case 'lastyear':
-        dateFrom = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 365 * MS_PER_DAY);
         break;
       case 'alltime':
         onChange({ ...filters, dateFrom: undefined, dateTo: undefined, datePreset: preset });
@@ -393,22 +401,36 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
   const selectedActions = filters.actions ?? [];
 
   return (
-    <div className="bg-card rounded-lg border border-border">
-      <div className="flex items-center justify-between p-3 border-b bg-muted rounded-t-lg">
-        <h4 className="text-sm font-bold text-card-foreground">Filters</h4>
+    <div className="border border-line-soft bg-card">
+      <div
+        className="relative flex items-center justify-between border-b border-line-soft px-4 py-2.5"
+        style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+          />
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
+            Filters
+          </span>
+        </div>
         <Tooltip content="Clear all filters" side="bottom">
-          <Button variant="ghost" size="xs" onClick={onClear}>
+          <button
+            onClick={onClear}
+            className="px-2 py-1 type-label text-label-2xs text-foreground/55 transition-colors hover:text-primary"
+          >
             Clear All
-          </Button>
+          </button>
         </Tooltip>
       </div>
 
       <ScrollArea className="max-h-96 p-1" tabIndex={-1}>
         <div className="grid grid-cols-2">
-          <div className="border-r border-border">
+          <div className="border-r border-line-soft">
             <CollapsibleSection
               title="User"
-              icon={<UserRound className="w-4 h-4 text-muted-foreground" />}
+              icon={<UserRound className="h-3.5 w-3.5" />}
               count={getSectionCount('user')}
               isOpen={openSections['user'] ?? false}
               onToggle={() => toggleSection('user')}
@@ -425,7 +447,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
 
             <CollapsibleSection
               title="Action"
-              icon={<Zap className="w-4 h-4 text-muted-foreground" />}
+              icon={<Zap className="h-3.5 w-3.5" />}
               count={getSectionCount('actions')}
               isOpen={openSections['actions'] ?? false}
               onToggle={() => toggleSection('actions')}
@@ -448,7 +470,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
           <div>
             <CollapsibleSection
               title="Item"
-              icon={<Box className="w-4 h-4 text-muted-foreground" />}
+              icon={<Box className="h-3.5 w-3.5" />}
               count={getSectionCount('entityTypes')}
               isOpen={openSections['entityTypes'] ?? false}
               onToggle={() => toggleSection('entityTypes')}
@@ -470,14 +492,14 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
 
             <CollapsibleSection
               title="Date Range"
-              icon={<Calendar className="w-4 h-4 text-muted-foreground" />}
+              icon={<Calendar className="h-3.5 w-3.5" />}
               count={getSectionCount('date')}
               isOpen={openSections['date'] ?? false}
               onToggle={() => toggleSection('date')}
             >
               <div className="space-y-3">
                 <div>
-                  <div className="text-xs font-medium text-secondary-foreground mb-2">
+                  <div className="mb-2 type-label text-label-2xs tracking-label-wide text-foreground/55">
                     Quick Ranges
                   </div>
                   <div
@@ -500,7 +522,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                 </div>
 
                 <fieldset className="border-0 p-0 m-0">
-                  <legend className="text-xs font-medium text-secondary-foreground mb-1">
+                  <legend className="mb-1 type-label text-label-2xs tracking-label-wide text-foreground/55">
                     Custom Range
                   </legend>
                   <div className="space-y-2">
@@ -521,7 +543,9 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                     />
                     <DatePicker
                       value={filters.dateTo?.slice(0, 10) ?? ''}
-                      onChange={v => onChange({ ...filters, dateTo: v || undefined })}
+                      onChange={v =>
+                        onChange({ ...filters, dateTo: v || undefined, datePreset: undefined })
+                      }
                       placeholder="To"
                       aria-label="Filter end date"
                       size="xs"
@@ -537,7 +561,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
       </ScrollArea>
 
       {hasActiveFilters && (
-        <div className="px-3 py-2 bg-muted border-t border-border rounded-b-lg">
+        <div className="border-t border-line-soft bg-foreground/[0.02] px-3 py-2">
           <div className="flex flex-wrap gap-1 items-center">
             {visibleFilters.map((filter, idx) => (
               <Tooltip
@@ -551,9 +575,12 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
               </Tooltip>
             ))}
             {hiddenCount > 0 && (
-              <Button variant="ghost" size="xs" onClick={() => setShowAllFilters(!showAllFilters)}>
+              <button
+                onClick={() => setShowAllFilters(!showAllFilters)}
+                className="px-2 py-0.5 type-label text-label-2xs text-foreground/60 transition-colors hover:text-primary"
+              >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
-              </Button>
+              </button>
             )}
           </div>
         </div>

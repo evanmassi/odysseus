@@ -6,13 +6,15 @@
 
 import { useMemo } from 'react';
 
-import { PasswordValidator, type PasswordRequirement } from '@odysseus/shared-schemas';
+import {
+  PasswordValidator,
+  type PasswordRequirement,
+  type PasswordRequirementsResponse as PasswordConfig,
+} from '@odysseus/shared-schemas';
 
-import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
+type PasswordRequirementsVariant = 'card' | 'console';
 
-export type PasswordRequirementsVariant = 'card' | 'console';
-
-export interface PasswordRequirementsProps {
+interface PasswordRequirementsProps {
   password: string;
   config: PasswordConfig;
   showError?: boolean;
@@ -48,7 +50,7 @@ export function PasswordRequirements({
       {requirements.map((requirement: PasswordRequirement) => (
         <li
           key={requirement.id}
-          className={`text-[10px] flex items-start ${getRequirementColor(requirement.isMet)}`}
+          className={`text-caption flex items-start ${getRequirementColor(requirement.isMet)}`}
         >
           <span className="mr-1">{requirement.isMet ? '✓' : showError ? '✗' : '•'}</span>
           <span>{requirement.label}</span>

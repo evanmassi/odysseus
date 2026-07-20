@@ -8,9 +8,9 @@ import React, { forwardRef, useState } from 'react';
 
 import { Eye, EyeOff } from 'lucide-react';
 
-export type AuthInputValidationState = 'default' | 'success' | 'warning' | 'error';
+import type { InputState } from './types';
 
-export type AuthInputVariant = 'card' | 'console';
+type AuthInputVariant = 'card' | 'console';
 
 export interface AuthInputProps {
   id: string;
@@ -24,7 +24,7 @@ export interface AuthInputProps {
   /** Rendered on the left side of the input */
   icon?: React.ReactNode;
   /** Controls border and label colors */
-  state?: AuthInputValidationState;
+  state?: InputState;
   /** Surface treatment: 'card' for light/regular forms (default), 'console' for the auth gateway dark surface. */
   variant?: AuthInputVariant;
   /** Shows required asterisk after label */
@@ -34,6 +34,27 @@ export interface AuthInputProps {
   autoFocus?: boolean;
   /** Applied to the outer container */
   className?: string;
+}
+
+function PasswordToggle({
+  show,
+  onToggle,
+  className,
+}: {
+  show: boolean;
+  onToggle: () => void;
+  className: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={className}
+      aria-label={show ? 'Hide password' : 'Show password'}
+    >
+      {show ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  );
 }
 
 export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
@@ -87,14 +108,11 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
               className={`auth-input-console__control${icon ? ' auth-input-console__control--has-icon' : ''}${isPasswordType ? ' auth-input-console__control--has-toggle' : ''}`}
             />
             {isPasswordType && (
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
+              <PasswordToggle
+                show={showPassword}
+                onToggle={() => setShowPassword(!showPassword)}
                 className="auth-input-console__toggle"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+              />
             )}
           </div>
         </div>
@@ -109,16 +127,8 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       error: 'input-field-error',
     }[state];
 
-    // Label color based on validation state
-    const labelColorClass = {
-      default: 'text-muted-foreground',
-      success: 'text-success-text',
-      warning: 'text-warning-text',
-      error: 'text-danger-text',
-    }[state];
-
-    // Icon color based on validation state
-    const iconColorClass = {
+    // Label and icon share the validation-state color
+    const stateTextColor = {
       default: 'text-muted-foreground',
       success: 'text-success-text',
       warning: 'text-warning-text',
@@ -137,7 +147,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       <div className={`auth-input-container ${borderClass} ${className}`}>
         <label
           htmlFor={id}
-          className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${labelColorClass}`}
+          className={`absolute -top-2 left-3 bg-card px-1 text-label-2xs font-medium transition-colors ${stateTextColor}`}
         >
           {label}
           {required && <span className="text-danger-text"> *</span>}
@@ -145,7 +155,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
         <div className="relative px-3 py-2">
           {icon && (
             <span
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${iconColorClass}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${stateTextColor}`}
             >
               {icon}
             </span>
@@ -162,18 +172,15 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
             maxLength={maxLength}
             // eslint-disable-next-line jsx-a11y/no-autofocus -- Controlled by parent for intentional UX
             autoFocus={autoFocus}
-            className={`${icon ? 'pl-7' : ''} ${isPasswordType ? 'pr-8' : ''} text-sm placeholder:text-muted-foreground placeholder:opacity-40 ${inputTextClass}`}
+            className={`${icon ? 'pl-7' : ''} ${isPasswordType ? 'pr-8' : ''} text-body placeholder:text-muted-foreground placeholder:opacity-40 ${inputTextClass}`}
             placeholder={placeholder}
           />
           {isPasswordType && (
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
+            <PasswordToggle
+              show={showPassword}
+              onToggle={() => setShowPassword(!showPassword)}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+            />
           )}
         </div>
       </div>

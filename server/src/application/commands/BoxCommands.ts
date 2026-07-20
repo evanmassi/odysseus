@@ -7,10 +7,10 @@
 
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
+import { executeResourceAssignment } from '@application/commands/resourceAssignment';
 import type { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddBoxesLimit } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -20,7 +20,7 @@ import {
   BoxDeletedEvent,
   BoxAssignedEvent,
   BoxUnassignedEvent,
-  BoxReassignedEvent
+  BoxReassignedEvent,
 } from '@domain/events/StorageEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -29,7 +29,6 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-
 
 // COMMAND INTERFACES
 
@@ -67,7 +66,8 @@ export interface AssignBoxCommand {
   tankId: string;
   rackId: string;
   boxId: string;
-  assignedUserId: string | null;
+  /** A user id, null (common — everyone), or undefined (inherit from the rack). */
+  assignedUserId: string | null | undefined;
 }
 
 // COMMAND HANDLERS
@@ -98,18 +98,19 @@ export class AddBoxesCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
 
     const lab = await this.labRepository.findById(command.labId);
-    if (lab) enforceAddBoxesLimit(user, currentConfig, lab, command.tankId, command.rackId, command.count);
+    if (lab)
+      enforceAddBoxesLimit(user, currentConfig, lab, command.tankId, command.rackId, command.count);
 
     const existingBoxNames = new Set(rack.boxes.map(b => b.name.toUpperCase()));
     const boxIds: string[] = [];
@@ -117,7 +118,10 @@ export class AddBoxesCommandHandler {
 
     let letterIndex = 0;
     for (let i = 0; i < command.count; i++) {
-      while (letterIndex < 26 && existingBoxNames.has(NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex))) {
+      while (
+        letterIndex < 26 &&
+        existingBoxNames.has(NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex))
+      ) {
         letterIndex++;
       }
 
@@ -128,24 +132,24 @@ export class AddBoxesCommandHandler {
       const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex);
       existingBoxNames.add(boxName);
 
-      currentConfig.addBox(
-        command.tankId,
-        command.rackId,
-        boxName,
-        { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS }
-      );
+      currentConfig.addBox(command.tankId, command.rackId, boxName, {
+        rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
+        cols: EQUIPMENT_DEFAULTS.GRID_COLS,
+      });
 
       boxIds.push(boxName);
-      events.push(new BoxAddedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxName,
-        boxName,
-        command.labId
-      ));
+      events.push(
+        new BoxAddedEvent(
+          command.userId,
+          command.tankId,
+          tank.name,
+          command.rackId,
+          rack.name,
+          boxName,
+          boxName,
+          command.labId
+        )
+      );
 
       letterIndex++;
     }
@@ -168,7 +172,6 @@ export class AddBoxesCommandHandler {
   }
 }
 
-/** Updates an existing box's properties. */
 export class UpdateBoxCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -191,18 +194,18 @@ export class UpdateBoxCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
-      throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
+      throw new NotFoundError('That box could not be found in the selected rack.');
     }
 
     const changes: FieldChange[] = [];
@@ -222,7 +225,10 @@ export class UpdateBoxCommandHandler {
 
     if (command.gridConfig !== undefined) {
       const oldConfig = box.gridConfig;
-      if (command.gridConfig.rows !== oldConfig.rows || command.gridConfig.cols !== oldConfig.cols) {
+      if (
+        command.gridConfig.rows !== oldConfig.rows ||
+        command.gridConfig.cols !== oldConfig.cols
+      ) {
         changes.push({ field: 'gridConfig', oldValue: oldConfig, newValue: command.gridConfig });
         boxData.gridConfig = command.gridConfig;
         boxData.maxPositions = command.gridConfig.rows * command.gridConfig.cols;
@@ -231,7 +237,11 @@ export class UpdateBoxCommandHandler {
 
     if (command.positionDisplay !== undefined) {
       const oldDisplay = box.positionDisplay;
-      changes.push({ field: 'positionDisplay', oldValue: oldDisplay, newValue: command.positionDisplay });
+      changes.push({
+        field: 'positionDisplay',
+        oldValue: oldDisplay,
+        newValue: command.positionDisplay,
+      });
       boxData.positionDisplay = command.positionDisplay ?? undefined;
     }
 
@@ -247,7 +257,7 @@ export class UpdateBoxCommandHandler {
     const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
-      systemSettings: configData.systemSettings
+      systemSettings: configData.systemSettings,
     });
 
     const newVersion = await this.storageRepository.saveWithOptimisticLock(
@@ -293,7 +303,8 @@ export class DeleteBoxCommandHandler {
     }
 
     const currentConfig = await this.storageRepository.getForLab(command.labId);
-    if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
+    if (currentConfig)
+      rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName, boxName } = await this.storageRepository.deleteEmptyBox(
@@ -318,7 +329,6 @@ export class DeleteBoxCommandHandler {
   }
 }
 
-/** Assigns or unassigns a box to/from a user. */
 export class AssignBoxCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -341,112 +351,86 @@ export class AssignBoxCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
-      throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
+      throw new NotFoundError('That box could not be found in the selected rack.');
     }
 
-    let assignedUser: User | null = null;
-    if (command.assignedUserId) {
-      assignedUser = await this.userRepository.findById(command.assignedUserId);
-      if (!assignedUser) {
-        throw new ValidationError(`User '${command.assignedUserId}' not found`);
-      }
-      if (!assignedUser.hasResearcherProfile()) {
-        throw new ValidationError('Cannot assign box to a user without a linked researcher profile');
-      }
-    }
-
-    const previousUserId = box.assignedUserId;
-    const previousUsername = previousUserId
-      ? (await this.userRepository.findById(previousUserId))?.username ?? 'Unknown'
-      : '';
-
-    if (previousUserId === command.assignedUserId) {
-      return;
-    }
-
-    const configData = currentConfig.toData();
-    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-    const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
-    const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
-      b => b.name === boxIdUpper
-    );
-
-    configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = command.assignedUserId;
-
-    const expectedVersion = currentConfig.version;
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-
-    const action = command.assignedUserId
-      ? (previousUserId ? 'Reassigned' : 'Assigned')
-      : 'Unassigned';
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
+    await executeResourceAssignment(
+      {
+        storageRepository: this.storageRepository,
+        userRepository: this.userRepository,
+        eventBus: this.eventBus,
+      },
       currentConfig,
-      expectedVersion,
-      `${action} box '${box.name}' in rack '${rack.name}'`,
-      command.userId
+      command,
+      {
+        resourceType: 'box',
+        previousUserId: box.assignedUserId,
+        applyAssignment: (configData, assignedUserId) => {
+          const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
+          const rackIndex = configData.tanks[tankIndex].racks.findIndex(
+            r => r.id === command.rackId
+          );
+          const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
+            b => b.name === boxIdUpper
+          );
+          // Kept as-is: null means common (everyone), undefined means inherit from the rack.
+          configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId =
+            assignedUserId;
+        },
+        buildSaveMessage: action => `${action} box '${box.name}' in rack '${rack.name}'`,
+        buildReassignedEvent: (previousUserId, previousUsername, newUserId, newUsername) =>
+          new BoxReassignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            boxIdUpper,
+            box.name,
+            previousUserId,
+            previousUsername,
+            newUserId,
+            newUsername,
+            command.labId
+          ),
+        buildAssignedEvent: (newUserId, newUsername) =>
+          new BoxAssignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            boxIdUpper,
+            box.name,
+            newUserId,
+            newUsername,
+            command.labId
+          ),
+        buildUnassignedEvent: (previousUserId, previousUsername) =>
+          new BoxUnassignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            boxIdUpper,
+            box.name,
+            previousUserId,
+            previousUsername,
+            command.labId
+          ),
+      }
     );
-    currentConfig.applyPersistedVersion(newVersion);
-
-    if (command.assignedUserId && previousUserId) {
-      const event = new BoxReassignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxIdUpper,
-        box.name,
-        previousUserId,
-        previousUsername,
-        command.assignedUserId,
-        assignedUser!.username,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    } else if (command.assignedUserId) {
-      const event = new BoxAssignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxIdUpper,
-        box.name,
-        command.assignedUserId,
-        assignedUser!.username,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    } else {
-      const event = new BoxUnassignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxIdUpper,
-        box.name,
-        previousUserId!,
-        previousUsername,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    }
   }
-
 }

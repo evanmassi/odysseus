@@ -9,13 +9,14 @@ import { Settings, Table2, UserRound, Shield } from 'lucide-react';
 
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { useUserSessions } from '@domains/users';
-import { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
+import { useAuthStore } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { Button, Tab, LoadingSkeleton, SectionHeader, Tabs } from '@shared/ui';
+import { AccentTick, Button, Tab, LoadingSkeleton, SectionHeader, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
+
+import { useUserSessions } from '../../../hooks/useUserSessions';
+import { useUserSettings, useUserSettingsActions } from '../../../hooks/useUserSettings';
 
 import type {
   UserSettings,
@@ -92,7 +93,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       },
       onError: (error: Error) => {
         logger.error('UserSettingsModal display save failed', { error });
-        notifications.error(`Failed to save settings: ${error.message}`);
       },
     });
   };
@@ -110,7 +110,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     if (anyDirty) {
       modalService.showUnsavedConfirm({
         onConfirm: () => {
-          // Revert theme to original if it was changed
           if (localSettings.theme !== originalSettings.theme) {
             setPreference(originalSettings.theme ?? 'auto');
           }
@@ -141,19 +140,14 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     </div>
   );
 
-  const accentBar = (
-    <span
-      aria-hidden
-      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-    />
-  );
-
   const locator = (
     <div className="flex items-center gap-3 font-mono">
       <div className="flex items-center gap-2.5">
-        {accentBar}
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">User</span>
-        <span className="phosphor-text text-xs text-secondary-foreground">
+        <AccentTick />
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
+          User
+        </span>
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
           {user?.username ?? '—'}
         </span>
       </div>
@@ -161,10 +155,12 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         ·
       </span>
       <div className="flex items-center gap-2.5">
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Sessions
         </span>
-        <span className="phosphor-text text-xs text-secondary-foreground">{sessions.length}</span>
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
+          {sessions.length}
+        </span>
       </div>
     </div>
   );
@@ -176,7 +172,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       title="User Settings"
       subtitle="Account & Personal Preferences"
       size="lg"
-      animation="slide"
       tabs={tabs}
       tabOrientation="vertical"
       footer={footer}

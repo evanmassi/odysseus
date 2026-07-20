@@ -140,35 +140,28 @@ export class Lab {
     };
   }
 
-  toPublicData(): {
-    id: string;
-    name: string;
-    slug: string;
-    isActive: boolean;
-    isDemo: boolean;
-    demoLimits?: DemoLimits;
-  } {
-    return {
-      id: this._id,
-      name: this._name,
-      slug: this._slug,
-      isActive: this._isActive,
-      isDemo: this._isDemo,
-      ...(this._demoLimits && { demoLimits: this._demoLimits }),
-    };
+  get id(): string {
+    return this._id;
   }
-
-  equals(other: Lab): boolean {
-    if (!other) return false;
-    return this._id === other._id;
+  get name(): string {
+    return this._name;
   }
-
-  get id(): string { return this._id; }
-  get name(): string { return this._name; }
-  get slug(): string { return this._slug; }
-  get isActive(): boolean { return this._isActive; }
-  get isDemo(): boolean { return this._isDemo; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
-  get demoLimits(): DemoLimits | undefined { return this._demoLimits ? { ...this._demoLimits } : undefined; }
+  get slug(): string {
+    return this._slug;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get isDemo(): boolean {
+    return this._isDemo;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
+  get demoLimits(): DemoLimits | undefined {
+    return this._demoLimits ? { ...this._demoLimits } : undefined;
+  }
 }

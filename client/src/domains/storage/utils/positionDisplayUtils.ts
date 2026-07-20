@@ -40,13 +40,6 @@ function preferenceToConfig(
   return getDefaultPositionDisplay(gridRows, gridCols);
 }
 
-/**
- * 4-Tier Hierarchy (highest to lowest priority):
- * 1. Box override — full config stored per-box
- * 2. User preference — format-only, converted to full config on-demand
- * 3. Lab default — full config stored lab-wide
- * 4. System default — alphanumeric (built-in fallback)
- */
 function getResolvedPositionDisplay(
   tankId: string,
   rackId: string,
@@ -132,13 +125,11 @@ export function getAxisLabelsForBox(
 }
 
 /**
- * Builds consecutive ranges from positions, then formats labels per box config.
- *
- * @example
- * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, lab, settings)
- * // alphanumeric: "A1-A3, C5-C7" | numeric: "1-3, 23-25"
+ * Groups positions into consecutive runs and formats each run to a `start` or
+ * `start-end` label. Returns one entry per run (e.g. `['A1-A3', 'C5']`), letting
+ * callers join or truncate the runs however they display them.
  */
-export function formatPositionRangesForBox(
+export function buildPositionRangeLabels(
   positions: number[],
   tankId: string,
   rackId: string,
@@ -146,19 +137,8 @@ export function formatPositionRangesForBox(
   gridConfig: GridConfiguration,
   currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
-): string {
-  if (positions.length === 0) return '';
-  if (positions.length === 1) {
-    return formatPositionForBox(
-      positions[0],
-      tankId,
-      rackId,
-      boxId,
-      gridConfig,
-      currentLab,
-      userSettings
-    );
-  }
+): string[] {
+  if (positions.length === 0) return [];
 
   const sorted = [...new Set(positions)].sort((a, b) => a - b);
 
@@ -177,7 +157,7 @@ export function formatPositionRangesForBox(
   }
   ranges.push({ start: rangeStart, end: rangeEnd });
 
-  const formattedRanges = ranges.map(({ start, end }) => {
+  return ranges.map(({ start, end }) => {
     const startLabel = formatPositionForBox(
       start,
       tankId,
@@ -203,6 +183,31 @@ export function formatPositionRangesForBox(
     );
     return `${startLabel}-${endLabel}`;
   });
+}
 
-  return formattedRanges.join(', ');
+/**
+ * Joins consecutive position runs into a display string.
+ *
+ * @example
+ * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, lab, settings)
+ * // alphanumeric: "A1-A3, C5-C7" | numeric: "1-3, 23-25"
+ */
+export function formatPositionRangesForBox(
+  positions: number[],
+  tankId: string,
+  rackId: string,
+  boxId: string,
+  gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
+  userSettings?: UserSettings | null
+): string {
+  return buildPositionRangeLabels(
+    positions,
+    tankId,
+    rackId,
+    boxId,
+    gridConfig,
+    currentLab,
+    userSettings
+  ).join(', ');
 }

@@ -15,11 +15,9 @@ export interface TreeLine {
   x2: number;
   y2: number;
   strokeWidth: number;
-  type: string;
 }
 
 export const LINE_OFFSET = 11;
-export const VERTICAL_OFFSET = 0;
 
 const RESIZE_THROTTLE_MS = 16;
 
@@ -79,7 +77,7 @@ export function useTreeLines(
     hasInitializedRef.current = true;
     const raf = requestAnimationFrame(() => calculate());
     return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Runs once on mount; subsequent recalcs are handled by the effect below
   }, []);
 
   // Recalculate on next frame when expand/collapse state changes (after initial)
@@ -96,7 +94,6 @@ export function useTreeLines(
     };
   }, [calculate]);
 
-  // Observer setup for resize and DOM mutations
   useEffect(() => {
     resizeObserverRef.current = new ResizeObserver(() => {
       throttledCalculate();

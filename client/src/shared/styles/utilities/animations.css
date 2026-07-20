@@ -34,29 +34,4 @@
         0 0 14px 4px hsl(var(--color-danger-bg) / 0.5);
     }
   }
-
-  /* pulseSelectionRing is defined in tube-grid.css for grid selection */
-
-  @keyframes countdownPulse {
-    0%,
-    100% {
-      opacity: 1;
-      filter: drop-shadow(0 0 4px currentColor);
-    }
-    50% {
-      opacity: 0.85;
-      filter: drop-shadow(0 0 8px currentColor);
-    }
-  }
-
-  .animate-countdown-pulse {
-    animation: countdownPulse 2.5s ease-in-out infinite;
-  }
-
-  .badge-glow {
-    box-shadow:
-      0 0 5px 2px currentColor,
-      0 0 10px 4px currentColor;
-    opacity: 0.6;
-  }
 }

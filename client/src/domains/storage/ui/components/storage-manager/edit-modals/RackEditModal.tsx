@@ -11,7 +11,7 @@ import { AlertBanner, Button, Checkbox, Input } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { RackConfiguration } from '@domains/storage';
+import type { RackConfiguration } from '@odysseus/shared-schemas';
 
 interface RackEditModalProps {
   isOpen: boolean;
@@ -39,11 +39,11 @@ export function RackEditModal({
   } = useEditModalForm(isOpen, initialRack);
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(tankId, editedRack.id, {
       name: editedRack.name,
       isActive: editedRack.isActive,
     });
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(async () => {
@@ -74,14 +74,14 @@ export function RackEditModal({
       title="Edit Rack"
       icon={<RackIcon size={24} />}
       onClose={onClose}
-      className="max-w-sm"
+      size="xs"
       footer={footer}
     >
       <form id="rack-edit-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="rack-name"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             System Name
           </label>
@@ -94,7 +94,7 @@ export function RackEditModal({
             fullWidth
             aria-required
           />
-          <AlertBanner variant="info" spacing="none" className="mt-2 text-xs">
+          <AlertBanner variant="info" spacing="none" className="mt-2 text-body-sm">
             Custom labels display alongside this name.
           </AlertBanner>
         </div>
@@ -105,7 +105,7 @@ export function RackEditModal({
             checked={editedRack.isActive}
             onChange={checked => setEditedRack({ ...editedRack, isActive: checked })}
           />
-          <label htmlFor="rackActive" className="text-sm font-medium">
+          <label htmlFor="rackActive" className="text-body-sm font-medium">
             Active (visible in rack selector)
           </label>
         </div>

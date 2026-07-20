@@ -11,35 +11,15 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 
 import type { TubeData } from '@odysseus/shared-schemas';
 
-interface ContainerInfo {
-  assignedUserId?: string | null;
-  sharedWithUserIds?: string[];
-}
-
 interface UseTubeAccessControlResult {
-  canLockTube: (tube: TubeData, container?: ContainerInfo) => boolean;
+  canLockTube: (tube: TubeData) => boolean;
   canUnlockTube: (tube: TubeData) => boolean;
-  canAccessLockedTube: (tube: TubeData) => boolean;
   canShareTubeAccess: (tube: TubeData) => boolean;
   isLockedOutFrom: (tube: TubeData) => boolean;
   isLockedByCurrentUser: (tube: TubeData) => boolean;
   hasExplicitSharedAccess: (tube: TubeData) => boolean;
 }
 
-/**
- * @example
- * ```tsx
- * const { canLockTube, isLockedOutFrom } = useTubeAccessControl(currentUser);
- *
- * if (canLockTube(tube, containerInfo)) {
- *   // Show lock button
- * }
- *
- * if (isLockedOutFrom(tube)) {
- *   // Show lock indicator, dim tube
- * }
- * ```
- */
 export function useTubeAccessControl(
   currentUser: { id: string; role?: string } | null | undefined
 ): UseTubeAccessControlResult {
@@ -47,21 +27,13 @@ export function useTubeAccessControl(
   const userId = currentUser?.id;
 
   const canLockTube = useCallback(
-    (tube: TubeData, container?: ContainerInfo): boolean => {
+    (tube: TubeData): boolean => {
       if (!userId) return false;
-      if (isAdmin) return !tube.isLocked;
-      if (tube.isLocked) return false;
-
-      // In user's own assigned space
-      if (container?.assignedUserId === userId) return true;
-
-      // In common/unassigned space (null or undefined)
-      if (!container?.assignedUserId) return true;
-
-      // In another user's space - cannot lock
-      return false;
+      // Optimistic: the server's AccessControlService enforces assigned-space rules and rejects
+      // locking a tube in another user's box/rack; that denial surfaces as an error toast.
+      return !tube.isLocked;
     },
-    [userId, isAdmin]
+    [userId]
   );
 
   const canUnlockTube = useCallback(
@@ -70,18 +42,6 @@ export function useTubeAccessControl(
       if (!tube.isLocked) return false;
       if (isAdmin) return true;
       return tube.lockedBy === userId;
-    },
-    [userId, isAdmin]
-  );
-
-  const canAccessLockedTube = useCallback(
-    (tube: TubeData): boolean => {
-      if (!userId) return false;
-      if (!tube.isLocked) return true;
-      if (isAdmin) return true;
-      if (tube.lockedBy === userId) return true;
-      if (tube.sharedWithUserIds?.includes(userId)) return true;
-      return false;
     },
     [userId, isAdmin]
   );
@@ -127,7 +87,6 @@ export function useTubeAccessControl(
   return {
     canLockTube,
     canUnlockTube,
-    canAccessLockedTube,
     canShareTubeAccess,
     isLockedOutFrom,
     isLockedByCurrentUser,

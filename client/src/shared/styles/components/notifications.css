@@ -1,9 +1,0 @@
-/**
- * Toast Notification Styles
- *
- * Minimal styling - custom Toast component handles its own appearance.
- */
-
-.react-hot-toast-container {
-  gap: 8px !important;
-}

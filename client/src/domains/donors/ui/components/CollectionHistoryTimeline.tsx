@@ -14,27 +14,24 @@ import {
   useDeleteCollectionHistoryMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Tooltip } from '@shared/ui';
+import { Button, lookupOptions, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { CollectionHistoryEntryForm } from './CollectionHistoryEntryForm';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface CollectionHistoryTimelineProps {
   history: DonorCollectionHistory[];
   donorId: string;
   isAdmin: boolean;
-  onHistoryChange: () => void;
 }
 
 export function CollectionHistoryTimeline({
   history,
   donorId,
   isAdmin,
-  onHistoryChange,
 }: CollectionHistoryTimelineProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -49,21 +46,21 @@ export function CollectionHistoryTimeline({
   const { data: specimenTypeValues = [] } = useLookupValuesQuery('specimen_type');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
 
-  const specimenTypeOptions: SelectOption[] = [
-    { value: '', label: 'Select specimen type...' },
-    ...specimenTypeValues.map(v => ({ value: v.value, label: v.value })),
-  ];
-
-  const sourceOptions: SelectOption[] = [
-    { value: '', label: 'Select source...' },
-    ...sourceValues.map(v => ({ value: v.value, label: v.value })),
-  ];
+  const specimenTypeOptions = lookupOptions(specimenTypeValues, 'Select specimen type...');
+  const sourceOptions = lookupOptions(sourceValues, 'Select source...');
 
   const addMutation = useAddCollectionHistoryMutation();
   const updateMutation = useUpdateCollectionHistoryMutation();
   const deleteMutation = useDeleteCollectionHistoryMutation();
 
   const hasAnyField = !!(newDate || newSpecimenType || newSource);
+
+  const resetAddForm = () => {
+    setIsAdding(false);
+    setNewDate('');
+    setNewSpecimenType('');
+    setNewSource('');
+  };
 
   const handleAdd = () => {
     if (!hasAnyField) return;
@@ -77,15 +74,7 @@ export function CollectionHistoryTimeline({
           source: newSource || undefined,
         },
       },
-      {
-        onSuccess: () => {
-          setIsAdding(false);
-          setNewDate('');
-          setNewSpecimenType('');
-          setNewSource('');
-          onHistoryChange();
-        },
-      }
+      { onSuccess: resetAddForm }
     );
   };
 
@@ -96,7 +85,6 @@ export function CollectionHistoryTimeline({
     deleteMutation.mutate(pendingDeleteId, {
       onSuccess: () => {
         setPendingDeleteId(null);
-        onHistoryChange();
       },
     });
   };
@@ -134,7 +122,6 @@ export function CollectionHistoryTimeline({
       {
         onSuccess: () => {
           setEditingId(null);
-          onHistoryChange();
         },
       }
     );
@@ -155,14 +142,14 @@ export function CollectionHistoryTimeline({
           onSpecimenTypeChange={setNewSpecimenType}
           onSourceChange={setNewSource}
           onSave={handleAdd}
-          onCancel={() => setIsAdding(false)}
+          onCancel={resetAddForm}
           saveDisabled={!hasAnyField}
           isPending={addMutation.isPending}
         />
       )}
 
       {history.length === 0 && !isAdding ? (
-        <p className="text-card-foreground/30 text-sm italic">No collection history</p>
+        <p className="text-card-foreground/30 text-body-sm italic">No collection history</p>
       ) : (
         <div className="space-y-1.5">
           {history.map(entry =>
@@ -182,7 +169,10 @@ export function CollectionHistoryTimeline({
                 isPending={updateMutation.isPending}
               />
             ) : (
-              <div key={entry.id} className="group flex items-center gap-2 text-sm font-medium">
+              <div
+                key={entry.id}
+                className="group flex items-center gap-2 text-body-sm font-medium"
+              >
                 {entry.collectionDate && (
                   <span className="text-card-foreground/60 whitespace-nowrap">
                     {formatDateForDisplay(entry.collectionDate)}

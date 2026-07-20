@@ -1,19 +1,10 @@
 /**
  * Tube Display Formatters
  *
- * Presentation-only utilities for formatting tube location, concentration, and date values in UI components.
+ * Presentation-only utility for formatting tube concentration values in scientific notation for UI components.
  */
 
-import type { TubeLocation, ConcentrationUnit } from './tubeSchemas';
-import { positionToLabel } from '../storage/positionFormatters';
-import type { PositionDisplayConfig } from '../storage/positionSchemas';
-
-export interface TubeLocationFormatOptions {
-  includePosition?: boolean;
-  positionDisplayConfig?: PositionDisplayConfig;
-  gridRows?: number;
-  gridCols?: number;
-}
+import type { ConcentrationUnit } from './tubeSchemas';
 
 /**
  * Format concentration for display in scientific notation (X.XEX format)
@@ -42,95 +33,4 @@ export function formatConcentrationDisplay(
   const scientificNotation = `${mantissaFormatted}E${exponentFormatted}`;
 
   return unit ? `${scientificNotation} ${unit}` : scientificNotation;
-}
-
-/**
- * Examples:
- * - "Tank 1 / Rack A / Box 1 / Pos 42" (numeric)
- * - "Tank 1 / Rack A / Box 1 / Pos C5" (alphanumeric)
- */
-export function formatTubeLocation(
-  location: TubeLocation,
-  options: TubeLocationFormatOptions = {}
-): string {
-  const { includePosition = true, positionDisplayConfig, gridRows = 9, gridCols = 9 } = options;
-
-  const base = `Tank ${location.tankId} / Rack ${location.rackId} / Box ${location.boxId}`;
-
-  if (!includePosition) {
-    return base;
-  }
-
-  let positionLabel = location.position.toString();
-  if (positionDisplayConfig) {
-    try {
-      positionLabel = positionToLabel(
-        location.position,
-        gridRows,
-        gridCols,
-        positionDisplayConfig
-      );
-    } catch {
-      positionLabel = location.position.toString();
-    }
-  }
-
-  return `${base} / Pos ${positionLabel}`;
-}
-
-/**
- * Format tube location (short version for grid cells)
- *
- * Example: "T1/RA/B1/P42"
- */
-export function formatTubeLocationShort(location: TubeLocation): string {
-  return `T${location.tankId}/R${location.rackId}/B${location.boxId}/P${location.position}`;
-}
-
-/**
- * Format date for display (handles ISO strings and Date objects)
- *
- * Example: "2024-01-15" → "Jan 15, 2024"
- */
-export function formatTubeDate(date: string | Date | undefined): string {
-  if (!date) return '';
-
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  } catch {
-    return String(date);
-  }
-}
-
-/**
- * Parse concentration display string back to number (for editing)
- *
- * NOT for validation — use schema preprocessor instead.
- *
- * Examples:
- * - "5.0E+6" → 5000000
- * - "1.5E6" → 1500000
- * - "5000000" → 5000000
- */
-export function parseConcentrationDisplay(displayValue: string): number | undefined {
-  if (!displayValue || displayValue.trim() === '') return undefined;
-
-  const trimmed = displayValue.trim().replace(/[,\s]/g, '');
-
-  const scientificRegex = /^([+-]?\d*\.?\d+)[eE]([+-]?\d+)$/;
-  const match = trimmed.match(scientificRegex);
-
-  if (match) {
-    const mantissa = parseFloat(match[1]);
-    const exponent = parseInt(match[2]);
-    return mantissa * Math.pow(10, exponent);
-  }
-
-  const num = Number(trimmed);
-  return Number.isFinite(num) ? num : undefined;
 }

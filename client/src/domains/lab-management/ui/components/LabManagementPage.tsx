@@ -9,10 +9,10 @@ import { Microscope, Package, Biohazard, FlaskConical } from 'lucide-react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { AppHeader } from '@app/components/layout/AppHeader';
-import { EquipmentTab } from '@domains/equipment/ui/components/EquipmentTab';
+import { EquipmentTab } from '@domains/equipment';
 import { useStorageData } from '@domains/storage';
-import { SuppliesTab } from '@domains/supplies/ui/components/SuppliesTab';
-import { NubDivider, PanelHeader, Tab, Tabs } from '@shared/ui';
+import { SuppliesTab } from '@domains/supplies';
+import { AccentTick, HeaderStrip, PanelHeader, Tab, Tabs } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import '@shared/styles/base/layout.css';
@@ -29,13 +29,7 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
   { id: 'equipment', label: 'Equipment', icon: Microscope, path: '/lab/equipment', enabled: true },
-  {
-    id: 'supplies',
-    label: 'Supplies',
-    icon: Package,
-    path: '/lab/supplies',
-    enabled: true,
-  },
+  { id: 'supplies', label: 'Supplies', icon: Package, path: '/lab/supplies', enabled: true },
   { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
 ];
 
@@ -68,27 +62,18 @@ export function LabManagementPage() {
               />
             </div>
 
-            {/* Locator strip: suite counts */}
-            <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-black/35 px-4 py-2.5">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-              />
+            <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
               <span className="flex min-w-0 items-center gap-1.5">
-                <span
-                  aria-hidden
-                  className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-                />
-                <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+                <AccentTick />
+                <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground">
                   {TABS.length} <span className="text-foreground/45">suites</span>
                 </span>
               </span>
               <span className="flex-1" />
-              <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+              <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.06em] text-foreground/45">
                 {onlineCount} online
               </span>
-              <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-            </div>
+            </HeaderStrip>
 
             <nav className="py-2">
               <Tabs orientation="vertical" value={activeTab} onChange={handleTabChange}>
@@ -99,11 +84,11 @@ export function LabManagementPage() {
                     return (
                       <div
                         key={tab.id}
-                        className="relative z-10 flex w-full cursor-not-allowed items-center gap-2 px-4 py-2.5 text-left font-mono text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground/40"
+                        className="relative z-10 flex w-full cursor-not-allowed items-center gap-2 px-4 py-2.5 text-left type-label text-label-lg font-medium text-muted-foreground/40"
                       >
                         <Icon size={18} />
                         <span>{tab.label}</span>
-                        <span className="ml-auto text-[9px] tracking-[0.16em]">soon</span>
+                        <span className="ml-auto text-label-2xs tracking-label">soon</span>
                       </div>
                     );
                   }

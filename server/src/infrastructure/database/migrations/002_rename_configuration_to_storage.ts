@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration002: Migration = {
   id: 2,
   name: 'rename_configuration_to_storage',
@@ -41,5 +40,5 @@ export const migration002: Migration = {
         END IF;
       END $$
     `);
-  }
+  },
 };

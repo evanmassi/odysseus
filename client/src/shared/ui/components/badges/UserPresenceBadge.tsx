@@ -5,8 +5,9 @@
  * badge legible when stacked in OnlineUsersBadgeList.
  */
 
+import { getPersonInitials, getPersonDisplayName } from '@odysseus/shared-schemas';
+
 import { Badge, Tooltip } from '@shared/ui';
-import { getUserInitials, getUserDisplayName } from '@shared/utils/userDisplayFormatters';
 
 interface UserPresenceBadgeProps {
   username: string;
@@ -15,8 +16,8 @@ interface UserPresenceBadgeProps {
 }
 
 export function UserPresenceBadge({ username, firstName, lastName }: UserPresenceBadgeProps) {
-  const initials = getUserInitials(username, firstName, lastName);
-  const displayName = getUserDisplayName(username, firstName, lastName);
+  const initials = getPersonInitials({ username, firstName, lastName });
+  const displayName = getPersonDisplayName({ username, firstName, lastName });
 
   return (
     <Tooltip content={`${displayName} is online`} side="bottom">

@@ -6,7 +6,6 @@
 
 import { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import { PresenceService } from '@application/services/PresenceService';
-import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -16,10 +15,7 @@ export class EventModule {
   private socketIO?: SocketIOServer;
   private presenceService?: PresenceService;
   private socketEventHandler?: SocketEventHandler;
-  constructor(
-    private shared: SharedServices,
-    private repositoryFactory: RepositoryFactory
-  ) {}
+  constructor(private shared: SharedServices) {}
 
   setSocketIO(io: SocketIOServer): void {
     this.socketIO = io;
@@ -47,5 +43,4 @@ export class EventModule {
     }
     return this.socketEventHandler;
   }
-
 }

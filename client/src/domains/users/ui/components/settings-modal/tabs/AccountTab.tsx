@@ -5,28 +5,18 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 
-import {
-  UserRound,
-  Mail,
-  Building2,
-  BriefcaseBusiness,
-  KeyRound,
-  Save,
-  RefreshCw,
-} from 'lucide-react';
+import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
+import { useIsDemo } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
+import { AuthInput, Button, ConsolePanel, LoadingSpinner, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
-import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
+import { useUserProfile, useUserProfileActions } from '../../../../hooks/useUserProfile';
+import { DemoModeBanner } from '../DemoModeBanner';
 
-function getValidationState(touched: boolean, isValid: boolean) {
-  if (!touched) return 'default' as const;
-  return isValid ? ('success' as const) : ('error' as const);
-}
+import type { UpdateMyProfileRequest } from '@odysseus/shared-schemas';
 
 interface AccountTabProps {
   /** Reports the number of unsaved profile field edits to the modal footer. */
@@ -34,8 +24,7 @@ interface AccountTabProps {
 }
 
 export function AccountTab({ onDirtyChange }: AccountTabProps) {
-  const user = useAuthStore(state => state.user);
-  const isDemo = user?.isDemo ?? false;
+  const isDemo = useIsDemo();
   const { profile, isLoading } = useUserProfile();
   const { updateProfile, isUpdating } = useUserProfileActions();
 
@@ -61,11 +50,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
     }
   }, [profile]);
 
-  const emailIsValid = useMemo(() => {
-    if (!email.trim()) return false;
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailPattern.test(email.trim());
-  }, [email]);
+  const emailIsValid = useMemo(() => isValidEmail(email), [email]);
 
   const dirtyCount = useMemo(() => {
     if (!profile) return 0;
@@ -104,16 +89,17 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       return;
     }
 
-    const updateData: UpdatePersonProfileWithPassword = {
+    const updateData: UpdateMyProfileRequest = {
       currentPassword,
     };
 
     if (firstName !== profile?.firstName) updateData.firstName = firstName.trim();
     if (lastName !== profile?.lastName) updateData.lastName = lastName.trim();
     if (email !== profile?.email) updateData.email = email.trim();
-    if (department !== (profile?.department ?? ''))
-      updateData.department = department.trim() || undefined;
-    if (position !== (profile?.position ?? '')) updateData.position = position.trim() || undefined;
+    // Send the empty string rather than undefined: JSON.stringify drops undefined, and an absent
+    // field means "unchanged" to the server, which is what made these fields unclearable.
+    if (department !== (profile?.department ?? '')) updateData.department = department.trim();
+    if (position !== (profile?.position ?? '')) updateData.position = position.trim();
 
     updateProfile(updateData, {
       onSuccess: () => {
@@ -123,10 +109,10 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       },
       onError: (error: Error) => {
         logger.error('AccountTab update failed', { error });
+        // Flag the password field too; the global handler shows the server message as a toast.
         if (error.message.includes('password')) {
           setPasswordTouched(true);
         }
-        notifications.error(error.message || 'Failed to update profile');
       },
     });
   };
@@ -134,7 +120,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="w-6 h-6 animate-spin text-action" />
+        <LoadingSpinner size="md" className="text-primary" />
       </div>
     );
   }
@@ -143,11 +129,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
     <ConsolePanel intensity="soft">
       <Subsection title="Identity" index={1} accent>
         <div className="col-span-2 space-y-4 py-4">
-          {isDemo && (
-            <AlertBanner variant="demo" spacing="sm">
-              Account changes are not available in demo mode
-            </AlertBanner>
-          )}
+          <DemoModeBanner />
 
           <div className="grid grid-cols-2 gap-3">
             <AuthInput
@@ -231,7 +213,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       {hasChanges && (
         <Subsection title="Confirm Changes" index={2} accent>
           <div className="col-span-2 space-y-3 py-4">
-            <p className="text-xs text-secondary-foreground">
+            <p className="text-body-sm text-secondary-foreground">
               Enter your current password to save changes
             </p>
 

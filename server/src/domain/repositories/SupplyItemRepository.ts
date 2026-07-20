@@ -48,6 +48,7 @@ export interface SupplyTransactionRow {
 
 export interface VoidTransactionData {
   transactionId: string;
+  labId: string;
   voidedBy: string;
   voidReason: string;
 }
@@ -81,13 +82,10 @@ export interface SupplyPackagingLevelRow {
 }
 
 export interface SupplyItemRepository {
-
   // Items
 
   findById(id: string, labId: string): Promise<SupplyItem | null>;
-  findByLabId(labId: string): Promise<SupplyItem[]>;
   findByLabIdWithStock(labId: string): Promise<ItemWithStock[]>;
-  findByCategoryId(categoryId: string, labId: string): Promise<SupplyItem[]>;
   save(item: SupplyItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
   hasTransactions(id: string): Promise<boolean>;
@@ -96,8 +94,12 @@ export interface SupplyItemRepository {
 
   findDocumentsByItemId(itemId: string): Promise<SupplyDocument[]>;
   saveDocument(document: SupplyDocument): Promise<void>;
-  updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
-  deleteDocument(id: string): Promise<boolean>;
+  updateDocument(
+    id: string,
+    itemId: string,
+    fields: { label?: string; url?: string; notes?: string | null }
+  ): Promise<SupplyDocument | null>;
+  deleteDocument(id: string, itemId: string): Promise<boolean>;
 
   // Barcodes
 
@@ -105,20 +107,25 @@ export interface SupplyItemRepository {
   findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<SupplyBarcodeRow[]>;
   findByBarcodeValue(barcodeValue: string): Promise<SupplyBarcodeRow | null>;
   saveBarcode(barcode: SupplyBarcodeRow): Promise<void>;
-  updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void>;
-  deleteBarcode(id: string): Promise<boolean>;
+  updateBarcode(
+    id: string,
+    itemId: string,
+    fields: { label?: string | null; isPrimary?: boolean }
+  ): Promise<SupplyBarcodeRow | null>;
+  deleteBarcode(id: string, itemId: string): Promise<boolean>;
 
   // Stock
 
   findStockByItemId(itemId: string): Promise<SupplyStockRow[]>;
-  getTotalStock(itemId: string): Promise<number>;
 
   // Transactions — recordTransaction is atomic: UPSERT stock RETURNING → INSERT transaction
 
   findTransactionsByItemId(itemId: string, limit?: number): Promise<SupplyTransactionRow[]>;
-  findTransactionById(id: string): Promise<SupplyTransactionRow | null>;
+  findTransactionById(id: string, labId: string): Promise<SupplyTransactionRow | null>;
   recordTransaction(data: RecordTransactionData): Promise<SupplyTransactionRow>;
-  voidTransaction(data: VoidTransactionData): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }>;
+  voidTransaction(
+    data: VoidTransactionData
+  ): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }>;
 
   // Reorder
 
@@ -139,6 +146,5 @@ export interface SupplyItemRepository {
 
   findPackagingLevelsByItemId(itemId: string): Promise<SupplyPackagingLevelRow[]>;
   savePackagingLevel(level: SupplyPackagingLevelRow): Promise<void>;
-  updatePackagingLevel(id: string, quantity: number): Promise<void>;
   deletePackagingLevel(id: string): Promise<boolean>;
 }

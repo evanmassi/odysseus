@@ -4,12 +4,18 @@
  * OAuth 2.0 session lifecycle with automatic token refresh and idle timeout monitoring.
  */
 
+import {
+  ApiError,
+  refreshTokenResponseSchema,
+  sessionInfoResponseSchema,
+} from '@odysseus/shared-schemas';
+
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
+import { MS_PER_SECOND, MS_PER_MINUTE } from '@shared/utils/timeConstants';
 
-import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';
+import type { SessionDebugInfo } from '@domains/authentication';
 import type { SessionHttpClient } from '@infra/api/SessionHttpClient';
-import type { SessionInfoResponse } from '@odysseus/shared-schemas';
 import type {
   TokenPair,
   SessionStatus,
@@ -63,18 +69,18 @@ export class SessionService implements TokenProvider {
   private config: SessionConfig;
   private onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
   private warningCallbacks?: SessionWarningCallbacks;
-  private isWarningShown: boolean = false;
+  private isWarningShown = false;
 
   // Activity tracking state
-  private isTrackingActivity: boolean = false;
-  private lastHeartbeatTime: number = 0;
+  private isTrackingActivity = false;
+  private lastHeartbeatTime = 0;
   private lastKnownTimeUntilTimeout?: number;
   private lastKnownWarningThresholdMs?: number;
   private boundActivityHandler?: () => void;
 
   // Tracks whether server has confirmed authentication in this app instance (page load)
   // Used to distinguish "session expired while here" vs "session already expired on arrival"
-  private hasConfirmedAuth: boolean = false;
+  private hasConfirmedAuth = false;
 
   constructor(
     private sessionHttpClient: SessionHttpClient,
@@ -98,7 +104,6 @@ export class SessionService implements TokenProvider {
     const existingTokens = this.storage.getTokens();
     if (existingTokens) {
       this.scheduleTokenRefresh(existingTokens.accessTokenExpiry);
-      // Start server-side session monitoring and activity tracking
       this.startSessionInfoPolling();
       this.startActivityTracking();
     }
@@ -116,12 +121,10 @@ export class SessionService implements TokenProvider {
 
     const validation = this.validateTokens(tokens);
 
-    // Return valid token immediately
     if (validation.isValid) {
       return tokens.accessToken;
     }
 
-    // Auto-refresh expired tokens
     const refreshSuccess = await this.refreshTokens();
 
     if (refreshSuccess) {
@@ -132,9 +135,9 @@ export class SessionService implements TokenProvider {
     return null;
   }
 
-  isAuthenticated(): boolean {
-    const status = this.getSessionStatus();
-    return status === 'authenticated' || status === 'refreshing';
+  async forceRefresh(): Promise<string | null> {
+    const refreshSuccess = await this.refreshTokens();
+    return refreshSuccess ? (this.storage.getTokens()?.accessToken ?? null) : null;
   }
 
   getSessionStatus(): SessionStatus {
@@ -157,13 +160,11 @@ export class SessionService implements TokenProvider {
 
   validateTokens(tokens: TokenPair): TokenValidation {
     const now = Date.now();
-    const expiresIn = tokens.accessTokenExpiry.getTime() - now;
-    const bufferMs = this.config.refreshBufferMinutes * 60 * 1000;
+    const expiresInMs = tokens.accessTokenExpiry.getTime() - now;
 
     return {
-      isValid: expiresIn > 60000, // Valid if more than 1 minute remaining
-      expiresIn,
-      needsRefresh: expiresIn <= bufferMs, // Refresh if within buffer time
+      isValid: expiresInMs > MS_PER_MINUTE, // Valid if more than 1 minute remaining
+      expiresInMs,
     };
   }
 
@@ -192,7 +193,6 @@ export class SessionService implements TokenProvider {
       return false;
     }
 
-    // Check if refresh token is still valid
     if (tokens.refreshTokenExpiry <= new Date()) {
       logger.error('Refresh token expired');
       const reason = this.hasConfirmedAuth ? 'token_expired' : 'manual_logout';
@@ -202,33 +202,38 @@ export class SessionService implements TokenProvider {
 
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
-        const response = await this.sessionHttpClient.post('/public/auth/refresh', {
-          refreshToken: tokens.refreshToken,
-        });
+        const response = await this.sessionHttpClient.post<ApiEnvelope<unknown>>(
+          '/public/auth/refresh',
+          { refreshToken: tokens.refreshToken }
+        );
 
-        if (response.success) {
-          const refreshData = response.data;
-
-          if (!refreshData.accessToken || !refreshData.accessTokenExpiry) {
-            throw new Error('Invalid refresh response format');
-          }
-
-          // SessionHttpClient returns raw JSON — coerce date string manually since there's no Zod layer
-          const updatedTokens: TokenPair = {
-            ...tokens,
-            accessToken: refreshData.accessToken,
-            accessTokenExpiry: new Date(refreshData.accessTokenExpiry),
-          };
-
-          this.setTokens(updatedTokens);
-          this.state.lastRefreshTime = new Date();
-
-          return true;
-        } else {
+        if (!response.success) {
           throw new Error('Refresh request failed');
         }
+
+        const refreshData = refreshTokenResponseSchema.parse(response.data);
+
+        // The refresh token rotates on every use, so persist the newly issued one.
+        const updatedTokens: TokenPair = {
+          ...tokens,
+          accessToken: refreshData.accessToken,
+          accessTokenExpiry: refreshData.accessTokenExpiry,
+          refreshToken: refreshData.refreshToken,
+          refreshTokenExpiry: refreshData.refreshTokenExpiry,
+        };
+
+        this.setTokens(updatedTokens);
+        this.state.lastRefreshTime = new Date();
+
+        return true;
       } catch (error) {
         logger.error(`Token refresh attempt ${attempt} failed`, { error, attempt });
+
+        // A 4xx means the server rejected the refresh token itself; retrying replays the same
+        // rejected token and only delays the logout. Matches mutationRetryLogic.
+        if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+          break;
+        }
 
         if (attempt < this.config.maxRetries) {
           // Wait before retry with exponential backoff
@@ -252,7 +257,6 @@ export class SessionService implements TokenProvider {
   setTokens(tokens: TokenPair): void {
     this.storage.setTokens(tokens);
     this.scheduleTokenRefresh(tokens.accessTokenExpiry);
-    // Start server-side session monitoring and activity tracking
     this.startSessionInfoPolling();
     this.startActivityTracking();
   }
@@ -274,15 +278,15 @@ export class SessionService implements TokenProvider {
 
     // Dynamic buffer: use configured buffer OR 20% of token lifetime, whichever is smaller
     // This prevents refresh loops when sessionTimeoutMinutes <= refreshBufferMinutes
-    const configuredBufferMs = this.config.refreshBufferMinutes * 60 * 1000;
-    const dynamicBufferMs = Math.floor(tokenLifetimeMs * 0.2); // 20% of token lifetime
+    const configuredBufferMs = this.config.refreshBufferMinutes * MS_PER_MINUTE;
+    const dynamicBufferMs = Math.floor(tokenLifetimeMs * 0.2);
     const bufferMs = Math.min(configuredBufferMs, dynamicBufferMs);
 
     const refreshTime = accessTokenExpiry.getTime() - bufferMs;
     const delay = Math.max(0, refreshTime - now);
 
     // Minimum delay of 10 seconds to prevent rapid refresh loops
-    const MIN_REFRESH_DELAY_MS = 10000;
+    const MIN_REFRESH_DELAY_MS = 10 * MS_PER_SECOND;
     const safeDelay = Math.max(delay, MIN_REFRESH_DELAY_MS);
 
     this.state.nextRefreshTime = new Date(now + safeDelay);
@@ -298,13 +302,10 @@ export class SessionService implements TokenProvider {
    * Clear session and logout
    *
    * Clears only tokens. User data is cleared by auth store's clearAuth().
-   *
-   * @param reason - Why the session is being cleared (for UX messaging)
    */
   clearSession(reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout'): void {
     this.stopTimersAndTracking();
 
-    // Token storage only - user data cleared by Zustand auth store
     this.storage.clearTokens();
 
     this.state = {
@@ -316,14 +317,6 @@ export class SessionService implements TokenProvider {
     this.hasConfirmedAuth = false;
 
     this.onSessionExpired?.(reason);
-  }
-
-  getState(): SessionServiceState {
-    return { ...this.state };
-  }
-
-  getNextRefreshTime(): Date | null {
-    return this.state.nextRefreshTime;
   }
 
   private stopTimersAndTracking(): void {
@@ -403,7 +396,7 @@ export class SessionService implements TokenProvider {
     }
 
     try {
-      const response = await this.sessionHttpClient.get<ApiEnvelope<SessionInfoResponse>>(
+      const response = await this.sessionHttpClient.get<ApiEnvelope<unknown>>(
         '/public/auth/session-info',
         { Authorization: `Bearer ${tokens.accessToken}` }
       );
@@ -414,14 +407,14 @@ export class SessionService implements TokenProvider {
         return;
       }
 
-      const data = response.data;
+      const data = sessionInfoResponseSchema.parse(response.data);
 
       // Track server-sent timing for adaptive polling
       if (data.timeUntilIdleTimeoutMs !== undefined) {
         this.lastKnownTimeUntilTimeout = data.timeUntilIdleTimeoutMs;
       }
       if (data.idleWarningMinutes !== undefined) {
-        this.lastKnownWarningThresholdMs = data.idleWarningMinutes * 60 * 1000;
+        this.lastKnownWarningThresholdMs = data.idleWarningMinutes * MS_PER_MINUTE;
       }
 
       // Session no longer authenticated - server may have logged us out
@@ -433,7 +426,6 @@ export class SessionService implements TokenProvider {
         return;
       }
 
-      // Mark that we've confirmed authentication in this app instance
       this.hasConfirmedAuth = true;
 
       if (data.showWarning && data.timeUntilIdleTimeoutMs !== undefined) {
@@ -518,7 +510,6 @@ export class SessionService implements TokenProvider {
     // Create bound handler for cleanup
     this.boundActivityHandler = this.handleUserActivity.bind(this);
 
-    // Add listeners for all activity events
     // Use capture phase so stopPropagation() in component handlers doesn't block us
     ACTIVITY_EVENTS.forEach(event => {
       window.addEventListener(event, this.boundActivityHandler!, { capture: true, passive: true });
@@ -586,15 +577,15 @@ export class SessionService implements TokenProvider {
     }
 
     const validation = this.validateTokens(tokens);
-    const timeUntilExpiry = Math.floor(validation.expiresIn / 60000);
+    const timeUntilExpiry = Math.floor(validation.expiresInMs / MS_PER_MINUTE);
     const timeUntilRefresh = this.state.nextRefreshTime
-      ? Math.floor((this.state.nextRefreshTime.getTime() - Date.now()) / 60000)
+      ? Math.floor((this.state.nextRefreshTime.getTime() - Date.now()) / MS_PER_MINUTE)
       : null;
 
     return {
       sessionStatus: this.getSessionStatus(),
       accessTokenExpiresIn: `${timeUntilExpiry} minutes`,
-      nextRefreshIn: timeUntilRefresh ? `${timeUntilRefresh} minutes` : 'Not scheduled',
+      nextRefreshIn: timeUntilRefresh !== null ? `${timeUntilRefresh} minutes` : 'Not scheduled',
       isRefreshing: this.state.isRefreshing,
       lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never',
     };

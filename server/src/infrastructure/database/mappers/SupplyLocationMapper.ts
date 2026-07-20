@@ -18,7 +18,6 @@ export interface SupplyLocationRow {
 }
 
 export class SupplyLocationMapper {
-
   static toRow(location: SupplyLocation): SupplyLocationRow {
     return {
       id: location.id,

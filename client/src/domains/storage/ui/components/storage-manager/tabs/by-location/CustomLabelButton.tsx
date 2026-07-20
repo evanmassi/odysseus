@@ -11,17 +11,16 @@ import { Tooltip } from '@shared/ui';
 interface CustomLabelButtonProps {
   onClick: () => void;
   size?: number;
-  className?: string;
 }
 
-export function CustomLabelButton({
-  onClick,
-  size = 14,
-  className = 'text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded',
-}: CustomLabelButtonProps) {
+export function CustomLabelButton({ onClick, size = 14 }: CustomLabelButtonProps) {
   return (
     <Tooltip content="Edit custom label" side="bottom">
-      <button type="button" onClick={onClick} className={className}>
+      <button
+        type="button"
+        onClick={onClick}
+        className="text-secondary-foreground hover:bg-shade/10 transition-colors p-1 rounded"
+      >
         <Tag size={size} />
       </button>
     </Tooltip>

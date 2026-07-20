@@ -4,10 +4,19 @@
  * Lazy-singleton wiring for user management, roles, settings, researchers, and persons.
  */
 
-import { ChangeUserRoleCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
-import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import {
+  ChangeUserRoleCommandHandler,
+  UpdateUserSettingsCommandHandler,
+} from '@application/commands/UserCommands';
+import {
+  GetUserSettingsQueryHandler,
+  CheckFirstTimeSetupQueryHandler,
+} from '@application/queries/UserQueries';
+import { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import { SecurityMonitoringApplicationService } from '@application/services/SecurityMonitoringApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
+import { UserSessionApplicationService } from '@application/services/UserSessionApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { PersonController } from '@presentation/controllers/PersonController';
@@ -22,10 +31,11 @@ export class UserModule {
   private updateUserSettingsHandler?: UpdateUserSettingsCommandHandler;
   private getUserSettingsHandler?: GetUserSettingsQueryHandler;
   private checkFirstTimeHandler?: CheckFirstTimeSetupQueryHandler;
-  private getUserByIdHandler?: GetUserByIdQueryHandler;
-  private getUserStatsHandler?: GetUserStatisticsQueryHandler;
   private userApplicationService?: UserApplicationService;
   private researcherApplicationService?: ResearcherApplicationService;
+  private personApplicationService?: PersonApplicationService;
+  private userSessionApplicationService?: UserSessionApplicationService;
+  private securityMonitoringApplicationService?: SecurityMonitoringApplicationService;
   private userController?: UserController;
   private personController?: PersonController;
   private userSessionController?: UserSessionController;
@@ -54,9 +64,7 @@ export class UserModule {
   getUpdateUserSettingsHandler(): UpdateUserSettingsCommandHandler {
     if (!this.updateUserSettingsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.updateUserSettingsHandler = new UpdateUserSettingsCommandHandler(
-        repositories.users
-      );
+      this.updateUserSettingsHandler = new UpdateUserSettingsCommandHandler(repositories.users);
     }
     return this.updateUserSettingsHandler;
   }
@@ -64,9 +72,7 @@ export class UserModule {
   getGetUserSettingsHandler(): GetUserSettingsQueryHandler {
     if (!this.getUserSettingsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getUserSettingsHandler = new GetUserSettingsQueryHandler(
-        repositories.users
-      );
+      this.getUserSettingsHandler = new GetUserSettingsQueryHandler(repositories.users);
     }
     return this.getUserSettingsHandler;
   }
@@ -74,31 +80,9 @@ export class UserModule {
   getCheckFirstTimeHandler(): CheckFirstTimeSetupQueryHandler {
     if (!this.checkFirstTimeHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.checkFirstTimeHandler = new CheckFirstTimeSetupQueryHandler(
-        repositories.users
-      );
+      this.checkFirstTimeHandler = new CheckFirstTimeSetupQueryHandler(repositories.users);
     }
     return this.checkFirstTimeHandler;
-  }
-
-  getGetUserByIdHandler(): GetUserByIdQueryHandler {
-    if (!this.getUserByIdHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.getUserByIdHandler = new GetUserByIdQueryHandler(
-        repositories.users
-      );
-    }
-    return this.getUserByIdHandler;
-  }
-
-  getGetUserStatsHandler(): GetUserStatisticsQueryHandler {
-    if (!this.getUserStatsHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.getUserStatsHandler = new GetUserStatisticsQueryHandler(
-        repositories.users
-      );
-    }
-    return this.getUserStatsHandler;
   }
 
   // Services
@@ -138,6 +122,37 @@ export class UserModule {
     return this.researcherApplicationService;
   }
 
+  getPersonApplicationService(): PersonApplicationService {
+    if (!this.personApplicationService) {
+      this.personApplicationService = new PersonApplicationService({
+        personRepository: this.repositoryFactory.getPersonRepository(),
+        userRepository: this.repositoryFactory.getUserRepository(),
+        passwordService: this.shared.passwordService,
+      });
+    }
+    return this.personApplicationService;
+  }
+
+  getUserSessionApplicationService(): UserSessionApplicationService {
+    if (!this.userSessionApplicationService) {
+      this.userSessionApplicationService = new UserSessionApplicationService({
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+      });
+    }
+    return this.userSessionApplicationService;
+  }
+
+  getSecurityMonitoringApplicationService(): SecurityMonitoringApplicationService {
+    if (!this.securityMonitoringApplicationService) {
+      this.securityMonitoringApplicationService = new SecurityMonitoringApplicationService({
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+        refreshTokenRepository: this.repositoryFactory.getRefreshTokenRepository(),
+        auditRepository: this.repositoryFactory.getAuditRepository(),
+      });
+    }
+    return this.securityMonitoringApplicationService;
+  }
+
   // Controllers
 
   getUserController(): UserController {
@@ -145,8 +160,7 @@ export class UserModule {
       this.userController = new UserController({
         updateUserSettingsHandler: this.getUpdateUserSettingsHandler(),
         getUserSettingsHandler: this.getGetUserSettingsHandler(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
+        userApplicationService: this.getUserApplicationService(),
       });
     }
     return this.userController;
@@ -155,9 +169,7 @@ export class UserModule {
   getPersonController(): PersonController {
     if (!this.personController) {
       this.personController = new PersonController({
-        personRepository: this.repositoryFactory.getPersonRepository(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        passwordService: this.shared.passwordService,
+        personApplicationService: this.getPersonApplicationService(),
       });
     }
     return this.personController;
@@ -166,7 +178,7 @@ export class UserModule {
   getUserSessionController(): UserSessionController {
     if (!this.userSessionController) {
       this.userSessionController = new UserSessionController({
-        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+        userSessionApplicationService: this.getUserSessionApplicationService(),
       });
     }
     return this.userSessionController;
@@ -184,9 +196,7 @@ export class UserModule {
   getSecurityMonitoringController(): SecurityMonitoringController {
     if (!this.securityMonitoringController) {
       this.securityMonitoringController = new SecurityMonitoringController({
-        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
-        refreshTokenRepository: this.repositoryFactory.getRefreshTokenRepository(),
-        auditRepository: this.repositoryFactory.getAuditRepository(),
+        securityMonitoringService: this.getSecurityMonitoringApplicationService(),
       });
     }
     return this.securityMonitoringController;

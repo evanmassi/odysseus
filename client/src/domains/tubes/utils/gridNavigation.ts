@@ -4,18 +4,14 @@
  * Coordinates location changes across the tube store with reentrancy protection.
  */
 
-import { useTubeStore } from '@domains/tubes';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { logger } from '@infra/logger';
 
-interface GridLocation {
-  tankId: string;
-  rackId: string;
-  boxId: string;
-}
+import type { PositionContext } from '@domains/tubes/types/gridSelectionTypes';
 
 let isNavigating = false;
 
-export async function navigateToLocation(location: GridLocation) {
+export async function navigateToLocation(location: PositionContext) {
   if (isNavigating) return;
 
   isNavigating = true;

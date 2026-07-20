@@ -9,73 +9,25 @@ import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
-export interface EquipmentCategoryResponse {
-  id: string;
-  labId: string;
-  name: string;
-  parentId: string | null;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import type {
+  EquipmentCategory as EquipmentCategoryData,
+  EquipmentDocument as EquipmentDocumentData,
+  EquipmentItem as EquipmentItemData,
+  EquipmentMaintenanceLog as EquipmentMaintenanceLogData,
+  EquipmentItemDetail as EquipmentItemDetailData,
+} from '@odysseus/shared-schemas';
 
-export interface EquipmentItemResponse {
-  id: string;
-  labId: string;
-  categoryId: string;
-  name: string;
-  serialNumber?: string;
-  manufacturer?: string;
-  model?: string;
-  description?: string;
-  location?: string;
-  status: string;
-  conditionNotes?: string;
-  purchaseDate?: string;
-  warrantyExpiration?: string;
-  purchaseCost?: number;
-  assetTag?: string;
-  nextMaintenanceDate?: string;
-  decommissionDate?: string;
-  decommissionReason?: string;
-  disposalMethod?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export type EquipmentCategoryResponse = EquipmentCategoryData;
 
-export interface EquipmentItemDetailResponse {
-  item: EquipmentItemResponse;
-  documents: EquipmentDocumentResponse[];
-  maintenanceLog: EquipmentMaintenanceLogResponse[];
-}
+export type EquipmentItemResponse = EquipmentItemData;
 
-export interface EquipmentDocumentResponse {
-  id: string;
-  itemId: string;
-  label: string;
-  url: string;
-  notes?: string;
-  createdAt: string;
-}
+export type EquipmentDocumentResponse = EquipmentDocumentData;
 
-export interface EquipmentMaintenanceLogResponse {
-  id: string;
-  itemId: string;
-  datePerformed: string;
-  maintenanceType: string;
-  performedBy?: string;
-  technician?: string;
-  description?: string;
-  nextScheduledDate?: string;
-  cost?: number;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export type EquipmentMaintenanceLogResponse = EquipmentMaintenanceLogData;
+
+export type EquipmentItemDetailResponse = EquipmentItemDetailData;
 
 export class EquipmentDto {
-
   static categoryToResponse(category: EquipmentCategory): EquipmentCategoryResponse {
     return {
       id: category.id,
@@ -83,8 +35,8 @@ export class EquipmentDto {
       name: category.name,
       parentId: category.parentId ?? null,
       sortOrder: category.sortOrder,
-      createdAt: category.createdAt.toISOString(),
-      updatedAt: category.updatedAt.toISOString(),
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
     };
   }
 
@@ -110,8 +62,8 @@ export class EquipmentDto {
       decommissionReason: item.decommissionReason,
       disposalMethod: item.disposalMethod,
       notes: item.notes,
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
     };
   }
 
@@ -134,11 +86,13 @@ export class EquipmentDto {
       label: document.label,
       url: document.url,
       notes: document.notes,
-      createdAt: document.createdAt.toISOString(),
+      createdAt: document.createdAt,
     };
   }
 
-  static maintenanceEntryToResponse(entry: EquipmentMaintenanceLog): EquipmentMaintenanceLogResponse {
+  static maintenanceEntryToResponse(
+    entry: EquipmentMaintenanceLog
+  ): EquipmentMaintenanceLogResponse {
     return {
       id: entry.id,
       itemId: entry.itemId,
@@ -150,8 +104,8 @@ export class EquipmentDto {
       nextScheduledDate: entry.nextScheduledDate,
       cost: entry.cost,
       notes: entry.notes,
-      createdAt: entry.createdAt.toISOString(),
-      updatedAt: entry.updatedAt.toISOString(),
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
     };
   }
 }

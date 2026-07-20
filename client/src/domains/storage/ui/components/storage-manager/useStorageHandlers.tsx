@@ -7,6 +7,8 @@
 import { useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { notifications } from '@shared/utils/notifications';
+
 import {
   useAddTankMutation,
   useDeleteTankMutation,
@@ -18,11 +20,9 @@ import {
   useAssignBoxMutation,
   useBulkUnassignMutation,
   useBulkReassignMutation,
-} from '@domains/storage';
-import { notifications } from '@shared/utils/notifications';
+} from '../../../hooks/useStorageMutations';
 
-import type { TankConfiguration } from '@domains/storage';
-import type { LabConfiguration } from '@odysseus/shared-schemas';
+import type { LabConfiguration, TankConfiguration } from '@odysseus/shared-schemas';
 
 function countAssignedResources(
   tanks: TankConfiguration[],
@@ -98,7 +98,9 @@ export function useStorageHandlers({
 
   const handleAssignBox = useCallback(
     (tankId: string, rackId: string, boxId: string, userId: string | null | undefined) => {
-      assignBoxMutation.mutate({ tankId, rackId, boxId, assignedUserId: userId ?? null });
+      // Forwarded unflattened: null is "common", undefined is "inherit from the rack". Collapsing
+      // the two here is what made a box impossible to mark common.
+      assignBoxMutation.mutate({ tankId, rackId, boxId, assignedUserId: userId });
     },
     [assignBoxMutation]
   );

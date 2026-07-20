@@ -4,7 +4,7 @@
  * Invite-code-based registration with auto-generated usernames.
  */
 
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 
 import { PasswordValidator, type PublicUserData } from '@odysseus/shared-schemas';
 import {
@@ -17,21 +17,15 @@ import {
   Info,
 } from 'lucide-react';
 
-import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
+import { usePasswordRequirementsQuery } from '@domains/authentication/hooks/usePasswordRequirementsQuery';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
-import {
-  authService,
-  type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import {
-  generateUsernamePreview,
-  getValidationState,
-  isValidEmail,
-} from '@domains/authentication/utils/registrationUtils';
-import { logger } from '@infra/logger';
-import { AuthInput, Button } from '@shared/ui';
+import { generateUsernamePreview } from '@domains/authentication/utils/registrationUtils';
+import { AuthInput, AuthLinkButton, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
 import { PasswordRequirements } from '../password/PasswordRequirements';
 
@@ -67,7 +61,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   const [codeCreateResearcher, setCodeCreateResearcher] = useState(false);
 
   // Password validation
-  const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
+  const { data: passwordConfig } = usePasswordRequirementsQuery();
 
   // Field touched state for validation
   const [firstNameTouched, setFirstNameTouched] = useState(false);
@@ -95,19 +89,6 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
     () => generateUsernamePreview(firstName, lastName),
     [firstName, lastName]
   );
-
-  useEffect(() => {
-    async function loadPasswordRequirements() {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordConfig(requirements);
-      } catch (error) {
-        logger.error('Failed to load password requirements', { error });
-        // Keep default requirements on error
-      }
-    }
-    void loadPasswordRequirements();
-  }, []);
 
   const handleValidateInviteCode = useCallback(async () => {
     const trimmed = inviteCode.trim();
@@ -224,8 +205,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
   const inputRegState: 'invite' | 'form' | 'success' =
     showSuccessModal && !!registrationResult ? 'success' : inviteCodeValidated ? 'form' : 'invite';
-  const { displayed: regState, isTransitioning } = useDelayedTransition(inputRegState, 200);
-  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+  const { state: regState, exitClass } = useAuthStackTransition(inputRegState);
 
   useShellConfig(
     regState === 'success'
@@ -277,7 +257,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
               maxLength={20}
             />
             {inviteCodeError && (
-              <p className="text-[11px] text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
+              <p className="text-caption text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
             )}
             <Button
               type="button"
@@ -296,11 +276,11 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
           <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-2 px-2.5 h-7 bg-[rgb(var(--auth-ambient)/0.07)] border border-[rgb(var(--auth-ambient)/0.25)] min-w-0">
               <TicketCheck size={11} className="text-[rgb(var(--auth-ambient))] shrink-0" />
-              <code className="font-mono text-xs text-[rgb(var(--auth-text))] truncate">
+              <code className="font-mono text-data-sm text-[rgb(var(--auth-text))] truncate">
                 {inviteCode}
               </code>
-              <span className="font-mono text-[10px] text-[rgb(var(--auth-text-faint))]">·</span>
-              <span className="font-mono text-[10px] text-[rgb(var(--auth-ambient))] truncate">
+              <span className="font-mono text-data-sm text-[rgb(var(--auth-text-faint))]">·</span>
+              <span className="font-mono text-data-sm text-[rgb(var(--auth-ambient))] truncate">
                 {inviteCodeLabName}
               </span>
             </div>
@@ -340,7 +320,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   disabled={isLoading}
                   maxLength={50}
                 />
-                <div className="min-h-[18px] ml-1 font-mono text-[10px]">
+                <div className="min-h-[18px] ml-1 font-mono text-data-sm">
                   {usernamePreview ? (
                     <p className="text-[rgb(var(--auth-text-mute))]">
                       Username:{' '}
@@ -391,7 +371,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   disabled={isLoading}
                   maxLength={255}
                 />
-                {emailError && <p className="text-[11px] text-danger-text ml-1">{emailError}</p>}
+                {emailError && <p className="text-caption text-danger-text ml-1">{emailError}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3 items-start">
@@ -422,7 +402,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
               <div className="flex items-center gap-1.5 ml-1">
                 <Info size={14} className="text-[rgb(var(--auth-text-mute))] shrink-0" />
-                <p className="text-xs text-[rgb(var(--auth-text-dim))]">
+                <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">
                   {codeRole === 'lab_admin'
                     ? "You'll have lab administrator privileges and researcher access."
                     : codeCreateResearcher
@@ -493,15 +473,9 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
       {onSwitchToLogin && (
         <div className="mt-5 text-center">
-          <p className="font-mono text-xs text-[rgb(var(--auth-text-mute))]">
+          <p className="font-mono text-data-sm text-[rgb(var(--auth-text-mute))]">
             Already have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
-            >
-              Sign in
-            </button>
+            <AuthLinkButton onClick={onSwitchToLogin}>Sign in</AuthLinkButton>
           </p>
         </div>
       )}

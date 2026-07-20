@@ -1,13 +1,18 @@
 /**
- * Sort Dropdown
+ * Sort Controls
  *
  * Field and direction controls for search result ordering.
  */
 
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
-import { useSearchStore, type SortField } from '@domains/search';
 import { Select, Tooltip } from '@shared/ui';
+import {
+  headerSurface,
+  HEADER_TOP_EDGE,
+} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
+
+import { useSearchStore, type SortField } from '../../stores/searchStore';
 
 import type { SelectOption } from '@shared/ui';
 
@@ -26,8 +31,11 @@ export function SearchSortControls() {
   const toggleSortDirection = useSearchStore(state => state.toggleSortDirection);
 
   return (
-    <div className="flex items-center gap-2 h-9 px-4 bg-muted border-b border-border">
-      <span className="text-xs font-medium text-secondary-foreground">Sort by:</span>
+    <div
+      className="relative flex h-9 items-center gap-2.5 border-b border-line-soft px-4"
+      style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
+    >
+      <span className="type-label text-label-2xs tracking-label-wide text-foreground/55">Sort</span>
 
       <Select
         options={SORT_OPTIONS}
@@ -41,12 +49,12 @@ export function SearchSortControls() {
       <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
         <button
           onClick={toggleSortDirection}
-          className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
+          className="p-1 text-foreground/55 transition-colors hover:text-primary"
         >
           {sortDirection === 'asc' ? (
-            <ArrowUp className="w-4 h-4" />
+            <ArrowUp className="h-3.5 w-3.5" />
           ) : (
-            <ArrowDown className="w-4 h-4" />
+            <ArrowDown className="h-3.5 w-3.5" />
           )}
         </button>
       </Tooltip>

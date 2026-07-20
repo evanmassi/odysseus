@@ -1,4 +1,4 @@
-/*
+/**
  * Tube Grid Styles
  *
  * Selection glow, drag preview, clipboard marching ants, and position cell layout.
@@ -26,10 +26,23 @@
 .cell-line {
   font-weight: 600;
   line-height: 1.1;
-  white-space: nowrap;
+  /* Wrap to two lines instead of shrinking to fit, so cell type stays a consistent,
+     readable size above the donor IDs (ellipsis kicks in past two lines). */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wrap multi-word names; let a single long word truncate, not break mid-word. */
+  overflow-wrap: normal;
   max-width: 100%;
+}
+
+/* Unbreakable single-word names: one line with a clean ellipsis instead of a hard clip. */
+.cell-line--nowrap {
+  display: block;
+  -webkit-line-clamp: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .empty-coord {
@@ -73,17 +86,6 @@
   animation: syncedGlowPulse 2.5s ease-in-out infinite;
 }
 
-/* Legacy fallback for browsers without @property support */
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
 /* Respect user's reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .tube-position.freshly-selected {
@@ -102,7 +104,7 @@
    focus-ring suppression below; selected/drag-preview draw their own states. */
 .tube-position.empty:not(.selected):not(.drag-preview) {
   box-shadow:
-    inset 0 1px 3px rgba(0, 0, 0, 0.5),
+    inset 0 1px 3px hsl(var(--recess) / 0.5),
     inset 0 0 0 1px hsl(var(--foreground) / 0.05) !important;
 }
 
@@ -117,23 +119,51 @@
   filter: brightness(1.1);
 }
 
-/* Dim unselected filled tubes only while a selection is active, for contrast. */
-.tube-grid:has(.tube-position.selected)
+/* Dark theme spotlight: dim unselected filled tubes against the void while a
+   selection is active. Light mode instead makes the selection self-sufficient
+   (bold ring + fill tint + elevation, see the light block below) and leaves
+   unselected cells fully legible. */
+[data-theme='dark']
+  .tube-grid:has(.tube-position.selected)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
   filter: brightness(0.72);
 }
 
-.tube-grid:has(.tube-position.selected)
+[data-theme='dark']
+  .tube-grid:has(.tube-position.selected)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube):hover {
   filter: none;
 }
 
-/* Mid-drag, dim the untouched filled tubes harder than the settled state, so the
+/* Mid-drag, dim the untouched tubes harder than the settled state, so the
    grid lightens slightly when the drag is released. Placed after the settled rule
    so it wins while dragging to extend an existing selection. */
-.tube-grid:has(.tube-position.drag-preview)
+[data-theme='dark']
+  .tube-grid:has(.tube-position.drag-preview)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
   filter: brightness(0.55);
+}
+
+/* Light theme: unselected filled tubes recede gently toward the page — a light
+   desaturation plus a touch of lighten + fade (NOT a heavy gray-down, which deadens the
+   board). Kept subtle because the selected cell also boosts its own saturation, so the
+   contrast comes from both ends. Hover restores full color for inspection. */
+[data-theme='light']
+  .tube-grid:has(.tube-position.selected)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
+  filter: saturate(0.945) brightness(1.013) opacity(0.965);
+}
+
+[data-theme='light']
+  .tube-grid:has(.tube-position.selected)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube):hover {
+  filter: none;
+}
+
+[data-theme='light']
+  .tube-grid:has(.tube-position.drag-preview)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
+  filter: saturate(0.912) brightness(1.02) opacity(0.944);
 }
 
 .tube-position.selected {
@@ -181,7 +211,7 @@
 }
 
 .tube-position.selected.empty .empty-coord {
-  color: hsl(0 0% 100%);
+  color: hsl(var(--grid-selection-coord));
   text-shadow: 0 0 6px hsl(var(--grid-selection-glow));
 }
 
@@ -194,8 +224,8 @@
   background: linear-gradient(
     180deg,
     hsl(var(--grid-selection-overlay)) 0%,
-    rgba(255, 255, 255, 0.14) 42%,
-    rgba(255, 255, 255, 0) 82%
+    hsl(var(--sheen) / 0.14) 42%,
+    hsl(var(--sheen) / 0) 82%
   );
   pointer-events: none;
   border-radius: inherit;
@@ -266,7 +296,7 @@
 }
 
 .tube-position.drag-preview.empty .empty-coord {
-  color: hsl(0 0% 100%);
+  color: hsl(var(--grid-preview-coord));
   text-shadow: 0 0 6px hsl(var(--grid-preview-glow));
 }
 
@@ -285,8 +315,8 @@
   background: linear-gradient(
     180deg,
     hsl(var(--grid-preview-overlay)) 0%,
-    rgba(255, 255, 255, 0.12) 42%,
-    rgba(255, 255, 255, 0) 82%
+    hsl(var(--sheen) / 0.12) 42%,
+    hsl(var(--sheen) / 0) 82%
   );
   pointer-events: none;
   border-radius: inherit;
@@ -342,4 +372,48 @@
   pointer-events: none;
   border-radius: inherit;
   z-index: 100;
+}
+
+/* Light theme: the selection stands on its own by rising off the plane — bold ring +
+   fill tint + real elevation — rather than dimming the rest. No glow bloom, no halo. */
+[data-theme='light'] .tube-position.selected::after {
+  box-shadow: none;
+}
+
+/* The selected cell floats above its neighbors via shadow + ring (no resting scale —
+   that would grow adjacent selections into each other) — elevation is light mode's
+   stand-in for the dark-mode glow. The cell rests at its true grid footprint; the brief
+   freshly-selected `transform` pulse still fires for tactile feedback on select. */
+[data-theme='light'] .tube-position.selected {
+  z-index: 2;
+}
+
+/* Double-stroke + layered raised-card shadow: the white inner hairline keeps the frame
+   visible against dark, saturated cells; the bright outer ring reads against page and
+   pale cells; the contact + mid + ambient shadow stack floats the cell well above the
+   field without any footprint change (so grouped selections never overlap). The boost
+   filter intensifies the cell's own color so it pops on its own merits (hue unchanged —
+   the data encoding stays readable), the additive counterpart to the field's gentle recede. */
+[data-theme='light'] .tube-position.selected.occupied {
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.6),
+    0 0 0 2px hsl(var(--grid-selection)),
+    0 1px 2px -1px hsl(var(--recess) / 0.5),
+    0 10px 20px -6px hsl(var(--recess) / 0.62),
+    0 16px 32px -10px hsl(var(--recess) / 0.4);
+  filter: saturate(1.3) brightness(1.04) contrast(1.03);
+}
+
+/* Flat navy fill so the selection reads as a block, not just an outline. */
+[data-theme='light'] .tube-position.selected.occupied::before {
+  background: hsl(var(--grid-selection-overlay));
+}
+
+[data-theme='light'] .tube-position.drag-preview.occupied::before {
+  background: hsl(var(--grid-preview-overlay));
+}
+
+[data-theme='light'] .tube-position.selected.empty .empty-coord,
+[data-theme='light'] .tube-position.drag-preview.empty .empty-coord {
+  text-shadow: none;
 }

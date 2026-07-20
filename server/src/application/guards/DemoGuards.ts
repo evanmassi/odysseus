@@ -13,7 +13,6 @@ import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 
-
 export function rejectIfSeeded(
   user: User,
   config: Storage,
@@ -27,17 +26,15 @@ export function rejectIfSeeded(
   }
 }
 
-export function enforceAddTankLimit(
-  user: User,
-  config: Storage,
-  lab: Lab
-): void {
+export function enforceAddTankLimit(user: User, config: Storage, lab: Lab): void {
   if (!user.isDemo) return;
   if (!config.hasAnySeededResources()) return;
   const limits = lab.demoLimits ?? DEMO_LIMITS_DEFAULTS;
   const nonSeededCount = config.countNonSeededTanks();
   if (nonSeededCount >= limits.maxTanks) {
-    throw new ValidationError(`Demo limit reached: maximum ${limits.maxTanks} additional tanks allowed`);
+    throw new ValidationError(
+      `Demo limit reached: maximum ${limits.maxTanks} additional tanks allowed`
+    );
   }
 }
 
@@ -56,7 +53,9 @@ export function enforceAddRacksLimit(
   const baseline = tank && !tank.isSeeded ? 1 : 0;
   const extras = Math.max(0, nonSeededCount - baseline);
   if (extras + count > limits.maxRacksPerTank) {
-    throw new ValidationError(`Demo limit reached: maximum ${limits.maxRacksPerTank} additional racks per tank allowed`);
+    throw new ValidationError(
+      `Demo limit reached: maximum ${limits.maxRacksPerTank} additional racks per tank allowed`
+    );
   }
 }
 
@@ -77,14 +76,18 @@ export function enforceAddBoxesLimit(
   const baseline = rack && !rack.isSeeded ? EQUIPMENT_DEFAULTS.BOXES_PER_RACK : 0;
   const extras = Math.max(0, nonSeededCount - baseline);
   if (extras + count > limits.maxBoxesPerRack) {
-    throw new ValidationError(`Demo limit reached: maximum ${limits.maxBoxesPerRack} additional boxes per rack allowed`);
+    throw new ValidationError(
+      `Demo limit reached: maximum ${limits.maxBoxesPerRack} additional boxes per rack allowed`
+    );
   }
 }
 
-export function rejectDemoConfigOperation(
-  user: User,
-  operation: string
-): void {
+export function rejectDemoConfigOperation(user: User, operation: string): void {
   if (!user.isDemo) return;
   throw new PermissionError(`${operation} is not allowed in the demo environment`);
+}
+
+export function rejectDemoManagementOperation(user: User, subject: string): void {
+  if (!user.isDemo) return;
+  throw new PermissionError(`${subject} is restricted in the demo environment`);
 }

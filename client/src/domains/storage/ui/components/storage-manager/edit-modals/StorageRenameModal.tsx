@@ -11,7 +11,7 @@ import { useEditModalForm } from '@shared/hooks';
 import { Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { LabConfiguration } from '@domains/storage';
+import type { LabConfiguration } from '@odysseus/shared-schemas';
 
 interface StorageRenameModalProps {
   isOpen: boolean;
@@ -56,6 +56,7 @@ export function StorageRenameModal({
   const previewName = formatStorageDisplayName(genericName, label);
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(
       resourceInfo.type,
       resourceInfo.tankId,
@@ -63,7 +64,6 @@ export function StorageRenameModal({
       resourceInfo.boxId,
       label
     );
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(handleSave);
@@ -91,12 +91,12 @@ export function StorageRenameModal({
       title={isRack ? 'Rename Rack' : 'Rename Box'}
       icon={<Tag size={24} />}
       onClose={onClose}
-      className="max-w-sm"
+      size="xs"
       footer={footer}
     >
       <form id="storage-rename-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <div className="block text-sm font-medium mb-1 text-secondary-foreground">
+          <div className="block text-body-sm font-medium mb-1 text-secondary-foreground">
             System Name
           </div>
           <div className="px-3 py-2 bg-muted rounded text-secondary-foreground font-medium">
@@ -107,7 +107,7 @@ export function StorageRenameModal({
         <div>
           <label
             htmlFor="custom-label-input"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             Display Name
           </label>
@@ -121,12 +121,12 @@ export function StorageRenameModal({
             fullWidth
           />
           <div className="flex justify-between mt-1">
-            <p className="text-xs text-muted-foreground">Leave blank to use system name.</p>
-            <p className="text-xs text-muted-foreground">{label.length}/50</p>
+            <p className="text-caption text-muted-foreground">Leave blank to use system name.</p>
+            <p className="text-caption text-muted-foreground">{label.length}/50</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
           <span>Preview:</span>
           <span className="font-semibold text-secondary-foreground">{previewName}</span>
         </div>

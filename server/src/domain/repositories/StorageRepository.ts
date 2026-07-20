@@ -10,14 +10,12 @@ import type { Location } from '@domain/value-objects/Location';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
 export interface StorageRepository {
-
   getForLab(labId: string): Promise<Storage | null>;
   getForLabs(labIds: string[]): Promise<Map<string, Storage>>;
   ensureDefaultForLab(labId: string): Promise<Storage>;
 
   getByVersion(labId: string, version: number): Promise<Storage | null>;
   getHistory(labId: string, limit?: number): Promise<StorageHistory[]>;
-  saveWithVersioning(labId: string, storage: Storage, changeDescription?: string, changedBy?: string): Promise<number>;
 
   /** Save with optimistic locking. @throws ConflictError if version mismatch. */
   saveWithOptimisticLock(
@@ -34,11 +32,7 @@ export interface StorageRepository {
    * @throws ValidationError if tubes exist in the equipment
    * @throws NotFoundError if equipment doesn't exist
    */
-  deleteEmptyTank(
-    labId: string,
-    tankId: string,
-    changedBy: string
-  ): Promise<{ tankName: string }>;
+  deleteEmptyTank(labId: string, tankId: string, changedBy: string): Promise<{ tankName: string }>;
 
   deleteEmptyRack(
     labId: string,
@@ -60,19 +54,7 @@ export interface StorageRepository {
   rackExists(labId: string, tankId: string, rackId: string): Promise<boolean>;
   boxExists(labId: string, tankId: string, rackId: string, boxId: string): Promise<boolean>;
 
-  getAvailablePositions(
-    labId: string,
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    occupiedPositions: number[]
-  ): Promise<number[]>;
-
   getMaxPosition(labId: string, tankId: string, rackId: string, boxId: string): Promise<number>;
-
-  exportStorage(labId: string): Promise<StorageExport>;
-  importStorage(labId: string, storageExport: StorageExport): Promise<Storage>;
-  validateStorage(labId: string, storage: Storage): Promise<StorageValidationResult>;
 
   isHealthy(): Promise<boolean>;
 
@@ -87,25 +69,4 @@ export interface StorageHistory {
   changeDescription?: string;
   changedBy?: string;
   storage: Storage;
-}
-
-export interface StorageExport {
-  version: string;
-  timestamp: Date;
-  storage: Storage;
-  metadata: {
-    exportedBy?: string;
-    description?: string;
-    systemInfo: {
-      appVersion: string;
-      platform: string;
-    };
-  };
-}
-
-export interface StorageValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  recommendations?: string[];
 }

@@ -10,14 +10,14 @@ import type { ConcentrationUnit } from './tubeSchemas';
 // Concentration Parsing
 
 const SUFFIX_MULTIPLIERS: Record<string, number> = {
-  'k': 1e3,
-  'K': 1e3,
-  'm': 1e6,
-  'M': 1e6,
-  'b': 1e9,
-  'B': 1e9,
-  't': 1e12,
-  'T': 1e12,
+  k: 1e3,
+  K: 1e3,
+  m: 1e6,
+  M: 1e6,
+  b: 1e9,
+  B: 1e9,
+  t: 1e12,
+  T: 1e12,
 };
 
 /**
@@ -25,7 +25,7 @@ const SUFFIX_MULTIPLIERS: Record<string, number> = {
  */
 type ConcentrationParseResult =
   | { success: true; value: number }
-  | { success: true; value: undefined }  // Empty input (valid for optional field)
+  | { success: true; value: undefined } // Empty input (valid for optional field)
   | { success: false; error: string };
 
 /**
@@ -43,7 +43,7 @@ type ConcentrationParseResult =
  * - { success: true, value: undefined } for empty input (optional field)
  * - { success: false, error: string } for malformed input
  */
-export function parseConcentrationInput(value: unknown): ConcentrationParseResult {
+function parseConcentrationInput(value: unknown): ConcentrationParseResult {
   if (value === undefined || value === null || value === '') {
     return { success: true, value: undefined };
   }
@@ -108,7 +108,10 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
   // Check for incomplete suffix (e.g., "5z" - number followed by invalid letter)
   // Only flag if it looks like they're trying to use a suffix
   if (/^\d+\.?\d*[a-zA-Z]$/.test(cleaned) && !/^[+-]?\d*\.?\d+[kKmMbBtT]$/.test(cleaned)) {
-    return { success: false, error: 'Invalid suffix. Use K (thousand), M (million), B (billion), or T (trillion)' };
+    return {
+      success: false,
+      error: 'Invalid suffix. Use K (thousand), M (million), B (billion), or T (trillion)',
+    };
   }
 
   // 3. Check for caret notation: 10^6, 1.5x10^6, 1.5*10^6, 1.5×10^6
@@ -176,9 +179,7 @@ export const concentrationPreprocessor = z
 
     return result.value;
   })
-  .pipe(
-    z.number().positive('Concentration must be positive').optional()
-  );
+  .pipe(z.number().positive('Concentration must be positive').optional());
 
 /**
  * Concentration schema for UPDATE operations (PATCH semantics)
@@ -209,9 +210,7 @@ export const concentrationPreprocessorNullable = z
 
     return result.value;
   })
-  .pipe(
-    z.number().positive('Concentration must be positive').nullable().optional()
-  );
+  .pipe(z.number().positive('Concentration must be positive').nullable().optional());
 
 // DATE PREPROCESSING (HTML5 Date Input → YYYY-MM-DD)
 
@@ -262,11 +261,13 @@ export function parseDate(value: unknown): string | undefined {
  * Converts Date objects and various string formats to YYYY-MM-DD
  */
 export const datePreprocessor = z.preprocess(
-  (val) => parseDate(val),
-  z.union([
-    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
-    z.string().datetime('Invalid date format')
-  ]).optional()
+  val => parseDate(val),
+  z
+    .union([
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
+      z.string().datetime('Invalid date format'),
+    ])
+    .optional()
 );
 
 /**
@@ -276,14 +277,17 @@ export const datePreprocessor = z.preprocess(
  * - Date/string → YYYY-MM-DD string (set/update)
  */
 export const datePreprocessorNullable = z.preprocess(
-  (val) => {
+  val => {
     if (val === null) return null; // Preserve null for tri-state PATCH
     return parseDate(val);
   },
-  z.union([
-    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
-    z.string().datetime('Invalid date format')
-  ]).nullable().optional()
+  z
+    .union([
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
+      z.string().datetime('Invalid date format'),
+    ])
+    .nullable()
+    .optional()
 );
 
 /**
@@ -291,55 +295,41 @@ export const datePreprocessorNullable = z.preprocess(
  * Use for: HTML form fields that can be left blank
  */
 export const optionalFromEmpty = <S extends z.ZodTypeAny>(schema: S) =>
-  z.preprocess(
-    (val) => {
-      if (val === undefined || val === null) return undefined;
-      if (typeof val === 'string' && val.trim() === '') return undefined;
-      return val;
-    },
-    schema.optional()
-  );
+  z.preprocess(val => {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === 'string' && val.trim() === '') return undefined;
+    return val;
+  }, schema.optional());
 
 /**
  * Generic helper: make schema nullable + optional, normalize empty strings
  * Preserves null for tri-state PATCH semantics
  */
 export const nullableOptionalFromEmpty = <S extends z.ZodTypeAny>(schema: S) =>
-  z.preprocess(
-    (val) => {
-      if (val === null) return null;
-      if (val === undefined) return undefined;
-      if (typeof val === 'string' && val.trim() === '') return null; // Convert empty strings to null for tri-state PATCH
-      return val;
-    },
-    schema.nullable().optional()
-  );
-
-/**
- * Business Rule: concentration and unit must both be present or both absent.
- */
-function validateConcentrationUnit(
-  concentration: number | undefined | null,
-  unit: ConcentrationUnit | undefined | null
-): boolean {
-  const hasConcentration = concentration !== undefined && concentration !== null;
-  const hasUnit = unit !== undefined && unit !== null;
-  return (hasConcentration && hasUnit) || (!hasConcentration && !hasUnit);
-}
+  z.preprocess(val => {
+    if (val === null) return null;
+    if (val === undefined) return undefined;
+    if (typeof val === 'string' && val.trim() === '') return null; // Convert empty strings to null for tri-state PATCH
+    return val;
+  }, schema.nullable().optional());
 
 /**
  * Zod refinement for concentration + unit invariant
- * Apply to sample schemas to enforce business rule
+ * Business rule: concentration and unit must both be present or both absent.
  */
-export const concentrationUnitRefinement = <T extends {
-  concentration?: number | null;
-  concentrationUnit?: ConcentrationUnit | null;
-}>(schema: z.ZodType<T>) =>
+export const concentrationUnitRefinement = <
+  T extends {
+    concentration?: number | null;
+    concentrationUnit?: ConcentrationUnit | null;
+  },
+>(
+  schema: z.ZodType<T>
+) =>
   schema.superRefine((data, ctx) => {
     const hasConcentration = data.concentration !== undefined && data.concentration !== null;
     const hasUnit = data.concentrationUnit !== undefined && data.concentrationUnit !== null;
 
-    if (validateConcentrationUnit(data.concentration, data.concentrationUnit)) {
+    if ((hasConcentration && hasUnit) || (!hasConcentration && !hasUnit)) {
       return;
     }
 
@@ -347,13 +337,13 @@ export const concentrationUnitRefinement = <T extends {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Missing concentration value',
-        path: ['concentration']
+        path: ['concentration'],
       });
     } else {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Missing concentration unit',
-        path: ['concentrationUnit']
+        path: ['concentrationUnit'],
       });
     }
   });

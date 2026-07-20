@@ -4,7 +4,12 @@
  * Position management, clipboard, navigation, lock context, and controller interfaces for the tube grid.
  */
 
-import type { TubeData, TubeLocation, CreateTubeRequest } from '@odysseus/shared-schemas';
+import type {
+  TubeData,
+  TubeLocation,
+  CreateTubeRequest,
+  BulkMoveResponse,
+} from '@odysseus/shared-schemas';
 
 export interface PositionContext {
   tankId: string;
@@ -56,7 +61,7 @@ export interface GridControllerProps {
   onPasteTubes?: (tubes: CreateTubeRequest[]) => Promise<void>;
   onMoveTubes?: (
     moves: Array<{ tubeId: string; version: number; destination: TubeLocation }>
-  ) => Promise<void>;
+  ) => Promise<BulkMoveResponse>;
 
   onLockTubes?: (tubeIds: string[]) => void;
   onUnlockTubes?: (tubeIds: string[]) => Promise<void>;
@@ -75,27 +80,14 @@ export interface GridControllerProps {
 }
 
 export interface GridControllerReturn {
-  handlePositionClick: (
-    position: number,
-    event: React.MouseEvent | React.KeyboardEvent,
-    gridSize?: number
-  ) => void;
+  handlePositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
   handlePositionDoubleClick: (position: number) => void;
-  handleBulkSelection: (positions: number[]) => void;
   isPositionSelected: (position: number) => boolean;
-  setMousePosition: (position: { x: number; y: number } | null) => void;
 
   openModal: () => void;
 
-  copy: () => Promise<void>;
-  cut: () => Promise<void>;
-  paste: (options?: { targetStart?: number }) => Promise<void>;
-  delete: () => Promise<void>;
-
   actions: {
     setSelection: (position: number) => void;
-    addToSelection: (position: number) => void;
-    removeFromSelection: (position: number) => void;
     toggleInSelection: (position: number) => void;
     clearSelection: () => void;
     copy: () => Promise<void>;
@@ -110,7 +102,6 @@ export interface GridControllerReturn {
 
   clipboard: {
     hasData: boolean;
-    count: number;
     cutPositions: Set<PositionKey>;
     copyPositions: Set<PositionKey>;
   };
@@ -126,15 +117,9 @@ export interface GridControllerReturn {
   selection: {
     hasFilledSelection: boolean;
     isMixed: boolean;
-    filledCount: number;
-    emptyCount: number;
     lockableCount?: number;
     unlockableCount?: number;
     sharableCount?: number;
     isUnlocking?: boolean;
   };
-
-  getCopyLabel: () => string;
-  getCutLabel: () => string;
-  getPasteLabel: () => string;
 }

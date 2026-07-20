@@ -4,9 +4,12 @@
  * Lazy-singleton wiring for all repository implementations against PostgreSQL.
  */
 
+import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
+import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
+import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
-import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
@@ -15,7 +18,6 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -23,9 +25,15 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
+import { TransactionalContext } from '@infrastructure/database/TransactionalContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
+import {
+  CategoryRepository as CategoryRepositoryImpl,
+  EQUIPMENT_CATEGORY_TABLES,
+  SUPPLY_CATEGORY_TABLES,
+} from '@infrastructure/repositories/CategoryRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
-import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
@@ -34,14 +42,13 @@ import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/reposi
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
-import { SupplyCategoryRepository as SupplyCategoryRepositoryImpl } from '@infrastructure/repositories/SupplyCategoryRepository';
 import { SupplyItemRepository as SupplyItemRepositoryImpl } from '@infrastructure/repositories/SupplyItemRepository';
 import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
-import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
+import { UserSessionRepository as UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
 
-export class RepositoryFactory {
+export class RepositoryFactory implements UnitOfWork {
   private postgresContext: PostgresContext;
   private tubeRepository?: TubeRepository;
   private userRepository?: UserRepository;
@@ -55,9 +62,9 @@ export class RepositoryFactory {
   private labRepository?: LabRepository;
   private inviteCodeRepository?: InviteCodeRepository;
   private donorRepository?: DonorRepository;
-  private equipmentCategoryRepository?: EquipmentCategoryRepository;
+  private equipmentCategoryRepository?: CategoryRepository<EquipmentCategory>;
   private equipmentItemRepository?: EquipmentItemRepository;
-  private supplyCategoryRepository?: SupplyCategoryRepository;
+  private supplyCategoryRepository?: CategoryRepository<SupplyCategory>;
   private supplyItemRepository?: SupplyItemRepository;
   private supplyLocationRepository?: SupplyLocationRepository;
 
@@ -154,9 +161,11 @@ export class RepositoryFactory {
     return this.donorRepository;
   }
 
-  getEquipmentCategoryRepository(): EquipmentCategoryRepository {
+  getEquipmentCategoryRepository(): CategoryRepository<EquipmentCategory> {
     if (!this.equipmentCategoryRepository) {
-      this.equipmentCategoryRepository = new EquipmentCategoryRepositoryImpl(this.postgresContext);
+      this.equipmentCategoryRepository = this.buildEquipmentCategoryRepository(
+        this.postgresContext
+      );
     }
     return this.equipmentCategoryRepository;
   }
@@ -168,9 +177,9 @@ export class RepositoryFactory {
     return this.equipmentItemRepository;
   }
 
-  getSupplyCategoryRepository(): SupplyCategoryRepository {
+  getSupplyCategoryRepository(): CategoryRepository<SupplyCategory> {
     if (!this.supplyCategoryRepository) {
-      this.supplyCategoryRepository = new SupplyCategoryRepositoryImpl(this.postgresContext);
+      this.supplyCategoryRepository = this.buildSupplyCategoryRepository(this.postgresContext);
     }
     return this.supplyCategoryRepository;
   }
@@ -189,7 +198,7 @@ export class RepositoryFactory {
     return this.supplyLocationRepository;
   }
 
-  getRepositories() {
+  getRepositories(): Repositories {
     return {
       tubes: this.getTubeRepository(),
       users: this.getUserRepository(),
@@ -211,6 +220,53 @@ export class RepositoryFactory {
     };
   }
 
+  /**
+   * Runs `work` inside one transaction. The repositories passed to it are freshly bound to that
+   * transaction's client — distinct from the pool-backed singletons above, which is what keeps
+   * event-handler writes (audit) out of the caller's transaction and safe from its rollback.
+   */
+  async withTransaction<T>(work: (repos: Repositories) => Promise<T>): Promise<T> {
+    return this.postgresContext.transaction(async client => {
+      return work(this.buildRepositories(new TransactionalContext(client)));
+    });
+  }
+
+  private buildEquipmentCategoryRepository(db: Queryable): CategoryRepository<EquipmentCategory> {
+    return new CategoryRepositoryImpl(db, EQUIPMENT_CATEGORY_TABLES, data =>
+      EquipmentCategory.fromData(data)
+    );
+  }
+
+  private buildSupplyCategoryRepository(db: Queryable): CategoryRepository<SupplyCategory> {
+    return new CategoryRepositoryImpl(db, SUPPLY_CATEGORY_TABLES, data =>
+      SupplyCategory.fromData(data)
+    );
+  }
+
+  private buildRepositories(db: Queryable): Repositories {
+    const storage = new StorageRepositoryImpl(db);
+
+    return {
+      tubes: new TubeRepositoryImpl(db, storage),
+      users: new UserRepositoryImpl(db),
+      researchers: new ResearcherRepositoryImpl(db),
+      persons: new PersonRepositoryImpl(db),
+      storage,
+      refreshTokens: new RefreshTokenRepositoryImpl(db),
+      userSessions: new UserSessionRepositoryImpl(db),
+      audit: new AuditRepositoryImpl(db),
+      lookupValues: new LookupValueRepositoryImpl(db),
+      labs: new LabRepositoryImpl(db),
+      inviteCodes: new InviteCodeRepositoryImpl(db),
+      donors: new DonorRepositoryImpl(db),
+      equipmentCategories: this.buildEquipmentCategoryRepository(db),
+      equipmentItems: new EquipmentItemRepositoryImpl(db),
+      supplyCategories: this.buildSupplyCategoryRepository(db),
+      supplyItems: new SupplyItemRepositoryImpl(db),
+      supplyLocations: new SupplyLocationRepositoryImpl(db),
+    };
+  }
+
   async isHealthy(): Promise<boolean> {
     try {
       const repositories = this.getRepositories();
@@ -218,7 +274,7 @@ export class RepositoryFactory {
         repositories.tubes.isHealthy(),
         repositories.users.isHealthy(),
         repositories.researchers.isHealthy(),
-        repositories.storage.isHealthy()
+        repositories.storage.isHealthy(),
       ]);
       return healthChecks.every(healthy => healthy);
     } catch {

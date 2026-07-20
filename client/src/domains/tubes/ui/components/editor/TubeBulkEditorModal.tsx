@@ -14,7 +14,6 @@ import {
 } from '@odysseus/shared-schemas';
 import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
-import { useActiveResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
   useStorageLocationNames,
@@ -28,25 +27,26 @@ import {
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@infra/logger';
-import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { AlertBanner, Button } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/overlays';
+import { AccentTick, AlertBanner, Button } from '@shared/ui';
+import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
 import { countDirtyFields } from './countDirtyFields';
 import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { TubeForm } from './TubeForm';
+import { useTubeFormOptions } from './useTubeFormOptions';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeFieldResolver';
-import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
+import type { BulkUpdateResult } from '@domains/tubes/types';
 import type {
   Control,
   UseFormRegister,
@@ -129,27 +129,14 @@ function pickDirtyFields(
 }
 
 export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBulkEditorModalProps) {
-  const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: sourceValues = [] } = useLookupValuesQuery('source');
-  const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const speciesOptions = useMemo(
-    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
-    [speciesValues]
-  );
-  const sourceOptions = useMemo(
-    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
-    [sourceValues]
-  );
-  const mediaOptions = useMemo(
-    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
-    [mediaValues]
-  );
+  const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
 
   // Fetch specific tubes by ID - ensures fresh data regardless of cache state
   const { data: tubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
 
   useTubeModalFocusReturn();
+
+  const modalRef = useRef<BaseModalHandle>(null);
 
   const conflictAnalysis = useMemo(() => {
     const analysis = {
@@ -224,7 +211,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         date:
           analysis.date.state !== 'conflict'
             ? analysis.date.commonValue
-              ? formatDateForInput(analysis.date.commonValue)
+              ? normalizeDateString(analysis.date.commonValue)
               : ''
             : '',
         mediaType:
@@ -264,13 +251,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
-  const [progress, setProgress] = useState<BulkUpdateProgress>({
-    current: 0,
-    total: 0,
-    completed: 0,
-    phase: 'preparing',
-    errors: [],
-  });
   const [result, setResult] = useState<BulkUpdateResult | null>(null);
   const [dataReady, setDataReady] = useState(false);
 
@@ -301,7 +281,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       form.reset(resolvedData);
       setDataReady(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-syncs form only on open or resolved-data change; form and setters are stable
   }, [isOpen, resolvedData, tubes.length]);
 
   useEffect(() => {
@@ -358,13 +338,12 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       if (bulkResult.success) {
         notifications.success(`Updated ${tubeIds.length} tubes successfully`);
         setShowProgress(false);
-        onClose();
+        modalRef.current?.requestClose();
       } else {
         notifications.error('Some tubes failed to update');
       }
     } catch (error) {
       logger.error('Bulk update error', { error });
-      notifications.error('Failed to update tubes');
       setShowProgress(false);
     }
   };
@@ -376,7 +355,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const handleRetryFailures = async () => {
     if (!result || result.success) return;
 
-    const failedTubeIds = result.errors.map(error => error.itemId);
+    const failedTubeIds = result.errors.map(error => error.tubeId);
 
     if (failedTubeIds.length === 0) {
       notifications.info('No retryable failures found');
@@ -416,7 +395,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       if (retryResult.success) {
         notifications.success(`Retry successful: Updated ${retryResult.successCount} tubes`);
         setShowProgress(false);
-        onClose();
+        modalRef.current?.requestClose();
       } else {
         notifications.warning(
           `Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`
@@ -424,7 +403,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       }
     } catch (error) {
       logger.error('Retry error', { error });
-      notifications.error('Retry failed');
       setShowProgress(false);
     }
   };
@@ -443,16 +421,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       const deleteResult = await bulkDeleteMutation.mutateAsync({
         tubeIds,
         location: deleteLocation,
-        onProgress: progress => {
-          setProgress({
-            current: progress.completed,
-            total: progress.total,
-            completed: progress.completed,
-            currentTubeId: progress.currentId,
-            phase: 'updating',
-            errors: [],
-          });
-        },
       });
 
       if (deleteResult.success) {
@@ -465,7 +433,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       }
     } catch (error) {
       logger.error('Bulk delete error', { error });
-      notifications.error('Failed to remove tubes');
     } finally {
       setShowDeleteConfirm(false);
     }
@@ -564,10 +531,12 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   }
 
   const dirtyFieldCount = countDirtyFields(dirtyFields);
+  const removeConfirm = buildRemoveTubeConfirmation(tubes.length);
 
   return (
     <>
       <BaseModal
+        ref={modalRef}
         isOpen={isOpen}
         title={`Edit ${tubes.length} Tubes`}
         icon={<Edit className="w-5 h-5" />}
@@ -578,7 +547,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         contentClassName="p-5"
         locator={
           <TubeLocationDisplay
-            variant="strip"
             tankName={tankName}
             rackName={rackName}
             boxName={boxName}
@@ -588,11 +556,8 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         footer={
           <div className="flex items-center justify-between gap-4">
             {dirtyFieldCount > 0 ? (
-              <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground whitespace-nowrap">
-                <span
-                  aria-hidden
-                  className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-                />
+              <div className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground whitespace-nowrap">
+                <AccentTick tone="warning" />
                 <span className="text-secondary-foreground">{dirtyFieldCount}</span>
                 <span>unsaved {dirtyFieldCount === 1 ? 'change' : 'changes'}</span>
               </div>
@@ -600,7 +565,11 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
               <span />
             )}
             <div className="flex justify-end space-x-4">
-              <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+              <Button
+                variant="secondary"
+                onClick={() => modalRef.current?.requestClose()}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
               <Button
@@ -675,46 +644,40 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
             <div className="max-h-32 overflow-y-auto space-y-2">
               {result.errors.slice(0, 5).map((error, index) => (
-                <div key={index} className="text-sm text-danger-text flex items-start space-x-2">
-                  <div className="font-mono text-xs bg-muted px-2 py-1 rounded">{error.itemId}</div>
-                  <div className="flex-1">
-                    {error.error}
-                    {error.field && (
-                      <span className="ml-2 text-xs text-danger-text">({error.field})</span>
-                    )}
+                <div
+                  key={index}
+                  className="text-body-sm text-danger-text flex items-start space-x-2"
+                >
+                  <div className="font-mono text-data-sm bg-muted px-2 py-1 rounded">
+                    {error.tubeId}
                   </div>
+                  <div className="flex-1">{error.error}</div>
                 </div>
               ))}
               {result.errors.length > 5 && (
-                <div className="text-sm text-danger-text italic">
+                <div className="text-body-sm text-danger-text italic">
                   +{result.errors.length - 5} more errors...
                 </div>
               )}
             </div>
-
-            {result.duration && (
-              <div className="mt-2 text-xs text-secondary-foreground">
-                Completed in {(result.duration / 1000).toFixed(1)}s
-              </div>
-            )}
           </div>
         )}
       </BaseModal>
 
       <TubeBulkProgressModal
         isOpen={showProgress}
-        progress={progress}
         onClose={handleProgressClose}
         canClose={!isSubmitting && result !== null}
         tubeCount={tubeIds.length}
+        hasErrors={result !== null && !result.success}
       />
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         variant="danger"
-        title="Remove All Tubes"
-        message={`Are you sure you want to remove all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
-        confirmText={`Remove All ${tubes.length}`}
+        title={removeConfirm.title}
+        message={removeConfirm.message}
+        confirmText={removeConfirm.confirmText}
         onConfirm={handleBulkDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         isLoading={isSubmitting}

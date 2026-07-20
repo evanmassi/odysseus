@@ -12,7 +12,7 @@ declare global {
     __ODYSSEUS_SESSION_DEBUG__?: () => AuthDebugInfo | null;
   }
 
-  // eslint-disable-next-line no-var
+  // eslint-disable-next-line no-var -- global augmentation must use var to merge into globalThis
   var __ODYSSEUS_SESSION_DEBUG__: (() => AuthDebugInfo | null) | undefined;
 }
 

@@ -5,16 +5,49 @@
  * lookup values, and demo seeding.
  */
 
-import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
-import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
-import { SeedDemoCommandHandler, UnseedDemoCommandHandler } from '@application/commands/DemoSeedCommands';
+import {
+  AddBoxesCommandHandler,
+  UpdateBoxCommandHandler,
+  DeleteBoxCommandHandler,
+  AssignBoxCommandHandler,
+} from '@application/commands/BoxCommands';
+import {
+  BulkUnassignResourcesCommandHandler,
+  BulkReassignResourcesCommandHandler,
+} from '@application/commands/BulkAssignmentCommands';
+import {
+  SeedDemoCommandHandler,
+  UnseedDemoCommandHandler,
+} from '@application/commands/DemoSeedCommands';
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
-import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
-import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
-import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
-import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler } from '@application/queries/StorageQueries';
-import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import {
+  AddRacksCommandHandler,
+  UpdateRackCommandHandler,
+  DeleteRackCommandHandler,
+  AssignRackCommandHandler,
+} from '@application/commands/RackCommands';
+import {
+  UpdateSystemStorageCommandHandler,
+  ResetStorageToDefaultCommandHandler,
+  ImportStorageCommandHandler,
+  UpdateResourceLabelCommandHandler,
+} from '@application/commands/StorageCommands';
+import {
+  AddTankCommandHandler,
+  UpdateTankCommandHandler,
+  DeleteTankCommandHandler,
+  ResetDemoDataCommandHandler,
+} from '@application/commands/TankCommands';
+import {
+  GetCurrentStorageQueryHandler,
+  GetStorageHistoryQueryHandler,
+  GetStorageByVersionQueryHandler,
+  CheckStorageHealthQueryHandler,
+  GetSystemMetricsQueryHandler,
+} from '@application/queries/StorageQueries';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
+import { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
+import { StorageAnalyticsApplicationService } from '@application/services/StorageAnalyticsApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
@@ -22,17 +55,11 @@ import { LookupValueController } from '@presentation/controllers/LookupValueCont
 import { StorageController } from '@presentation/controllers/StorageController';
 import { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 
-interface StorageCrossModuleDeps {
-  getGetUserStatsHandler: () => GetUserStatisticsQueryHandler;
-}
-
 export class StorageModule {
   // Storage command handlers
   private updateSystemStorageHandler?: UpdateSystemStorageCommandHandler;
   private resetStorageToDefaultHandler?: ResetStorageToDefaultCommandHandler;
   private importStorageHandler?: ImportStorageCommandHandler;
-  private updateBoxPositionDisplayHandler?: UpdateBoxPositionDisplayCommandHandler;
-  private updateLabDefaultPositionDisplayHandler?: UpdateLabDefaultPositionDisplayCommandHandler;
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
 
   // Tank/rack/box handlers
@@ -50,7 +77,7 @@ export class StorageModule {
   private assignBoxHandler?: AssignBoxCommandHandler;
   private bulkUnassignHandler?: BulkUnassignResourcesCommandHandler;
   private bulkReassignHandler?: BulkReassignResourcesCommandHandler;
-  private initializeConfigHandler?: InitializeStorageCommandHandler;
+  private initializeStorageHandler?: InitializeStorageCommandHandler;
   private seedDemoHandler?: SeedDemoCommandHandler;
   private unseedDemoHandler?: UnseedDemoCommandHandler;
 
@@ -59,9 +86,12 @@ export class StorageModule {
   private getStorageHistoryHandler?: GetStorageHistoryQueryHandler;
   private getStorageByVersionHandler?: GetStorageByVersionQueryHandler;
   private checkStorageHealthHandler?: CheckStorageHealthQueryHandler;
+  private getSystemMetricsHandler?: GetSystemMetricsQueryHandler;
 
   // Services
   private lookupValueApplicationService?: LookupValueApplicationService;
+  private securityConfigApplicationService?: SecurityConfigApplicationService;
+  private storageAnalyticsApplicationService?: StorageAnalyticsApplicationService;
 
   // Controllers
   private storageController?: StorageController;
@@ -71,8 +101,7 @@ export class StorageModule {
 
   constructor(
     private shared: SharedServices,
-    private repositoryFactory: RepositoryFactory,
-    private crossModuleDeps: StorageCrossModuleDeps
+    private repositoryFactory: RepositoryFactory
   ) {}
 
   // Storage command handlers
@@ -101,7 +130,7 @@ export class StorageModule {
     return this.resetStorageToDefaultHandler;
   }
 
-  getImportConfigurationHandler(): ImportStorageCommandHandler {
+  getImportStorageHandler(): ImportStorageCommandHandler {
     if (!this.importStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.importStorageHandler = new ImportStorageCommandHandler(
@@ -111,30 +140,6 @@ export class StorageModule {
       );
     }
     return this.importStorageHandler;
-  }
-
-  getUpdateBoxPositionDisplayHandler(): UpdateBoxPositionDisplayCommandHandler {
-    if (!this.updateBoxPositionDisplayHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateBoxPositionDisplayHandler = new UpdateBoxPositionDisplayCommandHandler(
-        repositories.storage,
-        this.shared.validationService,
-        repositories.users
-      );
-    }
-    return this.updateBoxPositionDisplayHandler;
-  }
-
-  getUpdateLabDefaultPositionDisplayHandler(): UpdateLabDefaultPositionDisplayCommandHandler {
-    if (!this.updateLabDefaultPositionDisplayHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateLabDefaultPositionDisplayHandler = new UpdateLabDefaultPositionDisplayCommandHandler(
-        repositories.storage,
-        this.shared.validationService,
-        repositories.users
-      );
-    }
-    return this.updateLabDefaultPositionDisplayHandler;
   }
 
   getUpdateResourceLabelHandler(): UpdateResourceLabelCommandHandler {
@@ -325,16 +330,16 @@ export class StorageModule {
     return this.bulkReassignHandler;
   }
 
-  getInitializeConfigHandler(): InitializeStorageCommandHandler {
-    if (!this.initializeConfigHandler) {
+  getInitializeStorageHandler(): InitializeStorageCommandHandler {
+    if (!this.initializeStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.initializeConfigHandler = new InitializeStorageCommandHandler(
+      this.initializeStorageHandler = new InitializeStorageCommandHandler(
         repositories.storage,
         repositories.users,
         this.shared.eventBus
       );
     }
-    return this.initializeConfigHandler;
+    return this.initializeStorageHandler;
   }
 
   getSeedDemoHandler(): SeedDemoCommandHandler {
@@ -368,7 +373,8 @@ export class StorageModule {
     if (!this.getCurrentStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.getCurrentStorageHandler = new GetCurrentStorageQueryHandler(
-        repositories.storage
+        repositories.storage,
+        repositories.labs
       );
     }
     return this.getCurrentStorageHandler;
@@ -377,9 +383,7 @@ export class StorageModule {
   getGetStorageHistoryHandler(): GetStorageHistoryQueryHandler {
     if (!this.getStorageHistoryHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getStorageHistoryHandler = new GetStorageHistoryQueryHandler(
-        repositories.storage
-      );
+      this.getStorageHistoryHandler = new GetStorageHistoryQueryHandler(repositories.storage);
     }
     return this.getStorageHistoryHandler;
   }
@@ -387,24 +391,38 @@ export class StorageModule {
   getGetStorageByVersionHandler(): GetStorageByVersionQueryHandler {
     if (!this.getStorageByVersionHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getStorageByVersionHandler = new GetStorageByVersionQueryHandler(
-        repositories.storage
-      );
+      this.getStorageByVersionHandler = new GetStorageByVersionQueryHandler(repositories.storage);
     }
     return this.getStorageByVersionHandler;
   }
 
-  getGetCheckConfigurationHealthHandler(): CheckStorageHealthQueryHandler {
+  getCheckStorageHealthHandler(): CheckStorageHealthQueryHandler {
     if (!this.checkStorageHealthHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.checkStorageHealthHandler = new CheckStorageHealthQueryHandler(
-        repositories.storage
-      );
+      this.checkStorageHealthHandler = new CheckStorageHealthQueryHandler(repositories.storage);
     }
     return this.checkStorageHealthHandler;
   }
 
+  getGetSystemMetricsHandler(): GetSystemMetricsQueryHandler {
+    if (!this.getSystemMetricsHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.getSystemMetricsHandler = new GetSystemMetricsQueryHandler(repositories.storage);
+    }
+    return this.getSystemMetricsHandler;
+  }
+
   // Services
+
+  getSecurityConfigApplicationService(): SecurityConfigApplicationService {
+    if (!this.securityConfigApplicationService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.securityConfigApplicationService = new SecurityConfigApplicationService({
+        storageRepository: repositories.storage,
+      });
+    }
+    return this.securityConfigApplicationService;
+  }
 
   getLookupValueApplicationService(): LookupValueApplicationService {
     if (!this.lookupValueApplicationService) {
@@ -414,9 +432,22 @@ export class StorageModule {
         repositories.equipmentItems,
         repositories.donors,
         repositories.supplyItems,
+        repositories.storage
       );
     }
     return this.lookupValueApplicationService;
+  }
+
+  getStorageAnalyticsApplicationService(): StorageAnalyticsApplicationService {
+    if (!this.storageAnalyticsApplicationService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.storageAnalyticsApplicationService = new StorageAnalyticsApplicationService({
+        storageRepository: repositories.storage,
+        tubeRepository: repositories.tubes,
+        labRepository: repositories.labs,
+      });
+    }
+    return this.storageAnalyticsApplicationService;
   }
 
   // Controllers
@@ -427,12 +458,10 @@ export class StorageModule {
         getCurrentStorageHandler: this.getGetCurrentStorageHandler(),
         getStorageHistoryHandler: this.getGetStorageHistoryHandler(),
         getStorageByVersionHandler: this.getGetStorageByVersionHandler(),
-        checkStorageHealthHandler: this.getGetCheckConfigurationHealthHandler(),
+        checkStorageHealthHandler: this.getCheckStorageHealthHandler(),
         updateSystemStorageHandler: this.getUpdateSystemStorageHandler(),
         resetStorageHandler: this.getResetStorageToDefaultHandler(),
-        importStorageHandler: this.getImportConfigurationHandler(),
-        updateBoxPositionDisplayHandler: this.getUpdateBoxPositionDisplayHandler(),
-        updateLabDefaultPositionDisplayHandler: this.getUpdateLabDefaultPositionDisplayHandler(),
+        importStorageHandler: this.getImportStorageHandler(),
         updateResourceLabelHandler: this.getUpdateResourceLabelHandler(),
         addTankHandler: this.getAddTankHandler(),
         updateTankHandler: this.getUpdateTankHandler(),
@@ -450,8 +479,7 @@ export class StorageModule {
         bulkReassignHandler: this.getBulkReassignHandler(),
         seedDemoHandler: this.getSeedDemoHandler(),
         unseedDemoHandler: this.getUnseedDemoHandler(),
-        initializeConfigHandler: this.getInitializeConfigHandler(),
-        labRepository: this.repositoryFactory.getLabRepository(),
+        initializeConfigHandler: this.getInitializeStorageHandler(),
       });
     }
     return this.storageController;
@@ -460,8 +488,8 @@ export class StorageModule {
   getAdminConfigController(): AdminConfigController {
     if (!this.adminConfigController) {
       this.adminConfigController = new AdminConfigController({
-        getUserStatsHandler: this.crossModuleDeps.getGetUserStatsHandler(),
-        configRepository: this.repositoryFactory.getStorageRepository(),
+        securityConfigService: this.getSecurityConfigApplicationService(),
+        getSystemMetricsHandler: this.getGetSystemMetricsHandler(),
       });
     }
     return this.adminConfigController;
@@ -469,10 +497,8 @@ export class StorageModule {
 
   getLookupValueController(): LookupValueController {
     if (!this.lookupValueController) {
-      const repositories = this.repositoryFactory.getRepositories();
       this.lookupValueController = new LookupValueController({
         lookupValueService: this.getLookupValueApplicationService(),
-        storageRepository: repositories.storage,
       });
     }
     return this.lookupValueController;
@@ -480,11 +506,8 @@ export class StorageModule {
 
   getStorageAnalyticsController(): StorageAnalyticsController {
     if (!this.storageAnalyticsController) {
-      const repositories = this.repositoryFactory.getRepositories();
       this.storageAnalyticsController = new StorageAnalyticsController({
-        storageRepository: repositories.storage,
-        tubeRepository: repositories.tubes,
-        labRepository: repositories.labs,
+        storageAnalyticsService: this.getStorageAnalyticsApplicationService(),
       });
     }
     return this.storageAnalyticsController;

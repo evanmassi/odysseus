@@ -6,7 +6,12 @@
 
 import { User } from './User';
 import { UserRole } from '@domain/value-objects/UserRole';
-import { createTestUser, createTestAdmin, createTestSystemAdmin, TEST_PASSWORD_HASH } from '@domain/__tests__/helpers';
+import {
+  createTestUser,
+  createTestAdmin,
+  createTestSystemAdmin,
+  TEST_PASSWORD_HASH,
+} from '@domain/__tests__/helpers';
 
 describe('User', () => {
   describe('factory methods', () => {
@@ -16,7 +21,7 @@ describe('User', () => {
         expect(user.id).toMatch(/^user_/);
         expect(user.username).toBe('testuser');
         expect(user.role.isUser()).toBe(true);
-        expect(user.status).toBe('pending');
+        expect(user.status).toBe('approved');
         expect(user.isDemo).toBe(false);
       });
 
@@ -31,7 +36,14 @@ describe('User', () => {
       });
 
       it('should accept labId', () => {
-        const user = User.create('test', 'api_' + 'x'.repeat(32), false, undefined, undefined, 'lab_123');
+        const user = User.create(
+          'test',
+          'api_' + 'x'.repeat(32),
+          false,
+          undefined,
+          undefined,
+          'lab_123'
+        );
         expect(user.labId).toBe('lab_123');
       });
     });
@@ -49,8 +61,8 @@ describe('User', () => {
       });
 
       it('should set the requested status', () => {
-        const pending = createTestUser({ status: 'pending' });
-        expect(pending.isPending()).toBe(true);
+        const suspended = createTestUser({ status: 'suspended' });
+        expect(suspended.isSuspended()).toBe(true);
       });
     });
 
@@ -140,7 +152,9 @@ describe('User', () => {
     it('should prevent lab_admin from assigning system_admin role', () => {
       const labAdmin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ labId: 'lab_1' });
-      expect(() => user.changeRole('system_admin', labAdmin)).toThrow('Lab administrators cannot assign system admin role');
+      expect(() => user.changeRole('system_admin', labAdmin)).toThrow(
+        'Lab administrators cannot assign system admin role'
+      );
     });
 
     it('should prevent lab_admin from changing roles in another lab', () => {
@@ -155,16 +169,6 @@ describe('User', () => {
       const user = createTestUser();
       expect(user.hasPermission('view_tubes')).toBe(true);
       expect(user.hasPermission('manage_users')).toBe(false);
-    });
-
-    it('requirePermission should throw when denied', () => {
-      const user = createTestUser();
-      expect(() => user.requirePermission('manage_users')).toThrow('Permission denied');
-    });
-
-    it('requirePermission should not throw when allowed', () => {
-      const user = createTestUser();
-      expect(() => user.requirePermission('view_tubes')).not.toThrow();
     });
   });
 
@@ -213,56 +217,23 @@ describe('User', () => {
     });
   });
 
-  describe('approval workflow', () => {
-    it('should approve pending user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      user.approve(admin);
-      expect(user.isApproved()).toBe(true);
-    });
-
-    it('should reject pending user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      user.reject(admin);
-      expect(user.isRejected()).toBe(true);
-    });
-
-    it('should not allow approving rejected user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      user.reject(admin);
-      expect(() => user.approve(admin)).toThrow('Rejected users cannot be approved');
-    });
-
-    it('should not allow approving already approved user', () => {
+  describe('reactivation guards', () => {
+    it('should not reactivate an already-active user', () => {
       const admin = createTestSystemAdmin();
       const user = createTestUser({ status: 'approved' });
-      expect(() => user.approve(admin)).toThrow('User is already approved');
+      expect(() => user.reactivate(admin)).toThrow('User is already active');
     });
 
-    it('should only allow rejecting pending users', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'approved' });
-      expect(() => user.reject(admin)).toThrow('Only pending users can be rejected');
-    });
-
-    it('should not allow rejecting deactivated user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'deactivated' });
-      expect(() => user.reject(admin)).toThrow('Only pending users can be rejected');
-    });
-
-    it('should not allow non-admin to approve', () => {
+    it('should not allow a non-admin to reactivate', () => {
       const regular = createTestUser({ username: 'regular' });
-      const pending = createTestUser({ username: 'pending', status: 'pending' });
-      expect(() => pending.approve(regular)).toThrow('Cannot manage user');
+      const user = createTestUser({ username: 'target', status: 'deactivated' });
+      expect(() => user.reactivate(regular)).toThrow('Cannot manage user');
     });
 
-    it('should not allow lab_admin to approve users from other labs', () => {
+    it('should not allow a lab admin to reactivate a user in another lab', () => {
       const admin = createTestAdmin({ labId: 'lab_1' });
-      const user = createTestUser({ status: 'pending', labId: 'lab_2' });
-      expect(() => user.approve(admin)).toThrow('Cannot manage user');
+      const user = createTestUser({ status: 'deactivated', labId: 'lab_2' });
+      expect(() => user.reactivate(admin)).toThrow('Cannot manage user');
     });
   });
 
@@ -276,7 +247,7 @@ describe('User', () => {
 
     it('should not deactivate non-approved user', () => {
       const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
+      const user = createTestUser({ status: 'suspended' });
       expect(() => user.deactivate(admin)).toThrow('Only approved users can be deactivated');
     });
 
@@ -295,7 +266,7 @@ describe('User', () => {
     it('should reactivate deactivated user (any admin)', () => {
       const admin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'deactivated', labId: 'lab_1' });
-      user.approve(admin);
+      user.reactivate(admin);
       expect(user.isApproved()).toBe(true);
     });
   });
@@ -321,37 +292,36 @@ describe('User', () => {
       expect(user.isSuspended()).toBe(true);
     });
 
-    it('should not suspend pending user', () => {
+    it('should not suspend an already-suspended user', () => {
       const sysAdmin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      expect(() => user.suspend(sysAdmin)).toThrow('Only approved or deactivated users can be suspended');
+      const user = createTestUser({ status: 'suspended' });
+      expect(() => user.suspend(sysAdmin)).toThrow(
+        'Only approved or deactivated users can be suspended'
+      );
     });
 
     it('should unsuspend user (system admin only)', () => {
       const sysAdmin = createTestSystemAdmin();
       const user = createTestUser({ status: 'suspended' });
-      user.approve(sysAdmin);
+      user.reactivate(sysAdmin);
       expect(user.isApproved()).toBe(true);
     });
 
     it('should not allow lab admin to unsuspend', () => {
       const labAdmin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'suspended', labId: 'lab_1' });
-      expect(() => user.approve(labAdmin)).toThrow('Only system administrators can unsuspend users');
+      expect(() => user.reactivate(labAdmin)).toThrow(
+        'Only system administrators can unsuspend users'
+      );
     });
   });
 
   describe('status queries', () => {
     it('should report correct status', () => {
-      const pending = createTestUser({ status: 'pending' });
-      expect(pending.isPending()).toBe(true);
-      expect(pending.isApproved()).toBe(false);
-      expect(pending.isRejected()).toBe(false);
-      expect(pending.isDeactivated()).toBe(false);
-      expect(pending.isSuspended()).toBe(false);
-
       const approved = createTestUser({ status: 'approved' });
       expect(approved.isApproved()).toBe(true);
+      expect(approved.isDeactivated()).toBe(false);
+      expect(approved.isSuspended()).toBe(false);
 
       const deactivated = createTestUser({ status: 'deactivated' });
       expect(deactivated.isDeactivated()).toBe(true);
@@ -379,18 +349,6 @@ describe('User', () => {
       const user = createTestUser();
       expect(user.isUser()).toBe(true);
       expect(user.isAdmin()).toBe(false);
-    });
-  });
-
-  describe('hasHigherPrivilegesThan', () => {
-    it('should compare privilege levels correctly', () => {
-      const sysAdmin = createTestSystemAdmin();
-      const labAdmin = createTestAdmin();
-      const user = createTestUser();
-
-      expect(sysAdmin.hasHigherPrivilegesThan(labAdmin)).toBe(true);
-      expect(labAdmin.hasHigherPrivilegesThan(user)).toBe(true);
-      expect(user.hasHigherPrivilegesThan(labAdmin)).toBe(false);
     });
   });
 
@@ -488,7 +446,9 @@ describe('User', () => {
       const user = createTestUser();
       user.generatePasswordResetToken();
       (user as any)._passwordResetExpiry = new Date(Date.now() - 1000);
-      expect(() => user.resetPasswordWithToken('anytoken', '$2b$12$hash')).toThrow('Password reset token expired');
+      expect(() => user.resetPasswordWithToken('anytoken', '$2b$12$hash')).toThrow(
+        'Password reset token expired'
+      );
     });
 
     it('should clear requirePasswordChange after reset', () => {
@@ -503,7 +463,9 @@ describe('User', () => {
 
     it('should reject reset without token', () => {
       const user = createTestUser();
-      expect(() => user.resetPasswordWithToken('token', '$2b$12$hash')).toThrow('No password reset token found');
+      expect(() => user.resetPasswordWithToken('token', '$2b$12$hash')).toThrow(
+        'No password reset token found'
+      );
     });
   });
 
@@ -600,18 +562,7 @@ describe('User', () => {
     });
   });
 
-  describe('toData / fromData roundtrip', () => {
-    it('should preserve core fields', () => {
-      const original = createTestUser({ labId: 'lab_1', researcherId: 'res_1' });
-      const data = original.toData();
-      expect(data.id).toBe(original.id);
-      expect(data.username).toBe(original.username);
-      expect(data.role).toBe('user');
-      expect(data.labId).toBe('lab_1');
-      expect(data.researcherId).toBe('res_1');
-      expect(data.status).toBe('approved');
-    });
-
+  describe('fromData', () => {
     it('should reconstitute from data', () => {
       const original = createTestUser({ labId: 'lab_1' });
       const fromDataUser = User.fromData({
@@ -686,14 +637,6 @@ describe('User', () => {
       const user1 = createTestUser({ username: 'user1' });
       const user2 = createTestUser({ username: 'user2' });
       expect(user1.equals(user2)).toBe(false);
-    });
-  });
-
-  describe('toString', () => {
-    it('should include username and role', () => {
-      const user = createTestUser({ username: 'johndoe' });
-      expect(user.toString()).toContain('johndoe');
-      expect(user.toString()).toContain('user');
     });
   });
 

@@ -1,13 +1,7 @@
 /**
  * Supplies Domain Public API
  *
- * Supply inventory query hooks for cross-domain issuance.
+ * Supplies management, mounted as a tab in Lab Management.
  */
 
-export {
-  useSupplyCategoriesQuery,
-  useSupplyItemsQuery,
-  useSupplyItemDetailQuery,
-  useSupplyLocationsQuery,
-  useSupplyReorderListQuery,
-} from './hooks';
+export { SuppliesTab } from './ui/components/SuppliesTab';

@@ -25,6 +25,7 @@
 }
 
 .storage-nav-button {
+  --row-tone: var(--primary);
   display: flex;
   align-items: center;
   width: 100%;
@@ -64,88 +65,115 @@
   border-radius: 0;
 }
 
-/* Hover preview mirrors the data Table's row hover (and the box minimaps): a
-   directional primary wash + glowing leading stripe + bloom. Skipped on
-   selected/expanded rows so they keep their own stripe-on-open treatment. */
+/* Hover/open/selected — light: flat primary tint + soft accent stripe (no scanline,
+   no gradient wash, no bloom). Dark restores the lit recipe further below. */
 [data-tree-id='navigator'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
 [data-tree-id^='modal'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.12) 0,
-      rgba(0, 0, 0, 0.12) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(
-      90deg,
-      hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
-      hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
-      hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
-      hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
-      hsl(var(--primary) / 0) 100%
-    );
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe)),
-    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
-    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
-    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
-    0 0 22px -4px hsl(var(--primary) / var(--alpha-hover-bloom)),
-    0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
+  background: hsl(var(--primary) / 0.06);
+  box-shadow: inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe));
 }
 
-/* Open container that isn't the current selection: a quiet wash + leading stripe
-   so it recedes beneath the selected target (which gets the full glow below). */
 [data-tree-id='navigator'] .storage-nav-button[aria-expanded='true']:not(.selected),
 [data-tree-id^='modal'] .storage-nav-button[aria-expanded='true']:not(.selected) {
+  border-color: hsl(var(--primary) / 0.4);
+  background: hsl(var(--primary) / 0.07);
+  box-shadow: inset 2px 0 0 hsl(var(--primary));
+}
+
+[data-tree-id='navigator'] .storage-nav-button.selected,
+[data-tree-id^='modal'] .storage-nav-button.selected {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.1);
+  box-shadow: inset 3px 0 0 0 hsl(var(--primary));
+}
+
+/* Light: hovering an already-selected row lifts the tint so it still reacts. */
+[data-tree-id='navigator'] .storage-nav-button.selected:hover,
+[data-tree-id^='modal'] .storage-nav-button.selected:hover {
+  background: hsl(var(--primary) / 0.15);
+}
+
+/* Dark theme: restore the lit recipe (scanline + directional wash + bloom). */
+[data-theme='dark']
+  [data-tree-id='navigator']
+  .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
+[data-theme='dark']
+  [data-tree-id^='modal']
+  .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
+  background: var(--scanline-layer), var(--glow-hover-wash);
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
+    var(--glow-hover-shadow);
+}
+
+[data-theme='dark']
+  [data-tree-id='navigator']
+  .storage-nav-button[aria-expanded='true']:not(.selected),
+[data-theme='dark']
+  [data-tree-id^='modal']
+  .storage-nav-button[aria-expanded='true']:not(.selected) {
   border-color: hsl(var(--primary) / 0.5);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.12) 0,
-      rgba(0, 0, 0, 0.12) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
+    var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
   box-shadow:
     inset 2px 0 0 hsl(var(--primary)),
     0 0 12px -6px hsl(var(--primary) / 0.55);
 }
 
-/* Selected node at any level (tank/rack/box): the full data-table glow shared
-   with the box minimaps, so the actual pick always reads strongest. */
-[data-tree-id='navigator'] .storage-nav-button.selected,
-[data-tree-id^='modal'] .storage-nav-button.selected {
+[data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button.selected,
+[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button.selected {
   border-color: hsl(var(--primary) / 0.6);
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.12) 0,
-      rgba(0, 0, 0, 0.12) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(
-      180deg,
-      hsl(var(--primary) / var(--alpha-glow-tint)),
-      hsl(var(--primary) / var(--alpha-glow-tint))
-    ),
-    linear-gradient(
-      90deg,
-      hsl(var(--primary) / var(--alpha-glow-wash-1)) 0%,
-      hsl(var(--primary) / var(--alpha-glow-wash-2)) 18%,
-      hsl(var(--primary) / var(--alpha-glow-wash-3)) 48%,
-      hsl(var(--primary) / var(--alpha-glow-wash-4)) 78%,
-      hsl(var(--primary) / 0) 100%
-    );
+  background: var(--scanline-layer), var(--glow-selected-tint), var(--glow-selected-wash);
+  box-shadow: var(--glow-selected-shadow);
+}
+
+/* Dark: hovering an already-selected row intensifies the lit glow. */
+[data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button.selected:hover,
+[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button.selected:hover {
+  filter: brightness(1.2);
+}
+
+/* Box minimaps (navigator box level) — same light/dark split as the nav buttons:
+   light is a flat tint + soft leading stripe, dark restores the lit glow. Full
+   boxes retint via --row-tone (primary → warning) so one rule set covers both. */
+.storage-nav-minimap {
+  --row-tone: var(--primary);
+}
+
+.storage-nav-minimap[data-full] {
+  --row-tone: var(--color-warning-bg);
+}
+
+.storage-nav-minimap:not([aria-selected='true']):hover {
+  background: hsl(var(--row-tone) / 0.06);
+  box-shadow: inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe));
+}
+
+.storage-nav-minimap[aria-selected='true'] {
+  background: hsl(var(--row-tone) / 0.1);
+  box-shadow: inset 3px 0 0 0 hsl(var(--row-tone));
+}
+
+/* Light: hovering an already-selected box lifts the tint so it still reacts. */
+.storage-nav-minimap[aria-selected='true']:hover {
+  background: hsl(var(--row-tone) / 0.15);
+}
+
+[data-theme='dark'] .storage-nav-minimap:not([aria-selected='true']):hover {
+  background: var(--scanline-layer), var(--glow-hover-wash);
   box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary)),
-    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-glow-edge-inner)),
-    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
-    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
-    0 0 32px -4px hsl(var(--primary) / var(--alpha-glow-outer-near)),
-    0 0 80px 4px hsl(var(--primary) / var(--alpha-glow-outer-far));
+    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
+    var(--glow-hover-shadow);
+}
+
+[data-theme='dark'] .storage-nav-minimap[aria-selected='true'] {
+  background: var(--scanline-layer), var(--glow-selected-tint), var(--glow-selected-wash);
+  box-shadow: var(--glow-selected-shadow);
+}
+
+/* Dark: hovering an already-selected box intensifies the lit glow. */
+[data-theme='dark'] .storage-nav-minimap[aria-selected='true']:hover {
+  filter: brightness(1.2);
 }
 
 /* Glowing-blue connectors for both the dashboard navigator and the StorageManager
@@ -155,7 +183,7 @@
 [data-tree-id^='modal'] .tree-line {
   stroke: hsl(var(--primary) / 0.55);
   opacity: 1;
-  filter: drop-shadow(0 0 3px hsl(var(--primary) / 0.5));
+  filter: drop-shadow(0 0 3px hsl(var(--primary) / calc(0.5 * var(--lit))));
 }
 
 .storage-nav-button--tank {

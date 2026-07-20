@@ -4,10 +4,14 @@
  * Endpoints for invite code lifecycle management.
  */
 
-
-import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
-import type { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
-import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type {
+  CreateInviteCodeCommandHandler,
+  DeactivateInviteCodeCommandHandler,
+} from '@application/commands/InviteCodeCommands';
+import type {
+  ValidateInviteCodeQueryHandler,
+  ListInviteCodesQueryHandler,
+} from '@application/queries/InviteCodeQueries';
 import { logger } from '@infrastructure/logging/logger';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -20,7 +24,7 @@ export interface InviteCodeControllerDeps {
   createInviteCodeHandler: CreateInviteCodeCommandHandler;
   deactivateInviteCodeHandler: DeactivateInviteCodeCommandHandler;
   validateInviteCodeHandler: ValidateInviteCodeQueryHandler;
-  inviteCodeRepository: InviteCodeRepository;
+  listInviteCodesHandler: ListInviteCodesQueryHandler;
 }
 
 export class InviteCodeController extends BaseController {
@@ -28,18 +32,13 @@ export class InviteCodeController extends BaseController {
     super();
   }
 
-  /** List invite codes for a specific lab (system admin — any lab via :labId param) */
-  async listForLab(req: Request, res: Response): Promise<void> {
-    return this.listCodes(req.params.labId, res);
-  }
-
   /** List invite codes for the current user's lab (lab admin) */
   async listForCurrentLab(req: Request, res: Response): Promise<void> {
-    return this.listCodes(this.extractLabId(req), res);
+    return this.listCodes(this.extractLabId(req), req, res);
   }
 
   async create(req: Request, res: Response): Promise<void> {
-    const labId = req.params.labId ?? req.body.labId;
+    const labId = req.params.labId;
     return this.createCode(labId, req, res);
   }
 
@@ -48,14 +47,12 @@ export class InviteCodeController extends BaseController {
     return this.createCode(this.extractLabId(req), req, res);
   }
 
-  private async listCodes(labId: string, res: Response): Promise<void> {
+  private async listCodes(labId: string, req: Request, res: Response): Promise<void> {
     try {
-      const codes = await this.deps.inviteCodeRepository.findByLabId(labId);
-      res.status(200).json(ResponseBuilder.success({
-        inviteCodes: codes.map(c => c.toData()),
-      }));
+      const inviteCodes = await this.deps.listInviteCodesHandler.handle({ labId });
+      res.status(200).json(ResponseBuilder.success({ inviteCodes }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to list invite codes');
+      handleControllerError(error, res, 'Failed to list invite codes', req.requestId);
     }
   }
 
@@ -65,13 +62,18 @@ export class InviteCodeController extends BaseController {
       const { role, createResearcher, maxUses, expiresAt } = req.body;
 
       const result = await this.deps.createInviteCodeHandler.handle({
-        userId, labId, role, createResearcher, maxUses, expiresAt,
+        userId,
+        labId,
+        role,
+        createResearcher,
+        maxUses,
+        expiresAt,
       });
 
       res.status(201).json(ResponseBuilder.success({ inviteCode: result }));
       logger.info('Invite code created', { codeId: result.id, labId, createdBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create invite code');
+      handleControllerError(error, res, 'Failed to create invite code', req.requestId);
     }
   }
 
@@ -86,7 +88,7 @@ export class InviteCodeController extends BaseController {
 
       logger.info('Invite code deactivated', { codeId, deactivatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate invite code');
+      handleControllerError(error, res, 'Failed to deactivate invite code', req.requestId);
     }
   }
 
@@ -99,7 +101,7 @@ export class InviteCodeController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to validate invite code');
+      handleControllerError(error, res, 'Failed to validate invite code', req.requestId);
     }
   }
 }

@@ -4,25 +4,25 @@
  * Admin modal for managing storage layout (tanks, racks, boxes) and user assignments.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 
-import { sortByName } from '@odysseus/shared-schemas';
+import { sortByName, GRID_TEMPLATES } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useStorageData, extractAssignedUserIds, GRID_TEMPLATES } from '@domains/storage';
-import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
-import { useStoragePermissions } from '@domains/storage/hooks/useStoragePermissions';
-import { useLocationCounts } from '@domains/tubes/hooks';
+import { useLocationCounts } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
-import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
+import { AccentTick, AlertBanner, Button, OccupancyBar, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
+import { useStorageData } from '../../../hooks/useStorageData';
+import { useStorageOwnership } from '../../../hooks/useStorageOwnership';
+import { useStoragePermissions } from '../../../hooks/useStoragePermissions';
+import { extractAssignedUserIds } from '../../../utils/extractAssignedUserIds';
 import { buildStorageHierarchy, computeNavigatorOccupancy } from '../storage-navigator';
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
-import '../storage-navigator/storage-navigator.css';
 import { BoxEditModal } from './edit-modals/BoxEditModal';
 import { RackEditModal } from './edit-modals/RackEditModal';
 import { StorageRenameModal } from './edit-modals/StorageRenameModal';
@@ -116,16 +116,23 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   );
 
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
-  const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(() => {
-    // Default all racks to collapsed for cleaner initial view
+  const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(new Set());
+
+  // Collapse every rack once the config first loads. Seeding this in a useState initializer read
+  // currentLab before the query resolved, so the tree opened fully expanded.
+  const hasSeededCollapse = useRef(false);
+  useEffect(() => {
+    if (hasSeededCollapse.current || !currentLab) return;
+    hasSeededCollapse.current = true;
+
     const allRackKeys = new Set<string>();
-    currentLab?.equipment.tanks.forEach(tank => {
+    currentLab.equipment.tanks.forEach(tank => {
       tank.racks.forEach(rack => {
         allRackKeys.add(`${tank.id}-rack-${rack.id}`);
       });
     });
-    return allRackKeys;
-  });
+    setCollapsedRacks(allRackKeys);
+  }, [currentLab]);
 
   const editModals = useEditModals();
   const handlers = useStorageHandlers({ currentLab, getUserInfo, setCollapsedRacks });
@@ -230,11 +237,8 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const locator = (
     <div className="flex min-h-[2rem] items-center gap-3">
-      <span
-        aria-hidden
-        className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-      />
-      <span className="flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/75">
+      <AccentTick tone="warning" />
+      <span className="flex items-center gap-1.5 font-mono text-data-sm tracking-[0.04em] text-foreground/75">
         <span className="text-foreground">{scope.tanks}</span> tanks
         <span className="text-foreground/25">·</span>
         <span className="text-foreground">{scope.racks}</span> racks
@@ -243,15 +247,14 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       </span>
       <span className="flex-1" />
       <span className="flex flex-shrink-0 items-center gap-2" title="Facility occupancy">
-        <span className="relative h-1 w-16 bg-foreground/[0.07]">
-          <span
-            className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-            style={{
-              width: `${occupancy.facility.capacity > 0 ? (occupancy.facility.filled / occupancy.facility.capacity) * 100 : 0}%`,
-            }}
-          />
-        </span>
-        <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+        <OccupancyBar
+          filled={occupancy.facility.filled}
+          capacity={occupancy.facility.capacity}
+          size="lg"
+          glow
+          className="w-16"
+        />
+        <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
           {occupancy.facility.filled}
           <span className="text-foreground/35">/{occupancy.facility.capacity}</span>
         </span>
@@ -259,7 +262,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       {canManageStorage && viewMode === 'tree' && (
         <div className="flex items-center gap-2">
           {demoLimitsActive && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-caption text-muted-foreground">
               {nonSeededTankCount}/{demoLimits.maxTanks} tanks
             </span>
           )}
@@ -281,7 +284,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-shrink min-w-0">
+      <div className="flex items-center gap-4 text-caption text-muted-foreground flex-shrink min-w-0">
         {OWNERSHIP_LEGEND.map(({ label, token }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span
@@ -312,7 +315,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         subtitle="Storage Layout & Assignments"
         size="md-lg"
         fixedHeight
-        animation="slide"
         locator={locator}
         tabs={tabs}
         tabOrientation="horizontal"

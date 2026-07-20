@@ -48,15 +48,3 @@ export function useEquipmentItemDetailQuery(id: string | undefined) {
     refetchOnMount: 'always',
   });
 }
-
-export function useEquipmentMaintenanceLogQuery(itemId: string | undefined) {
-  const labId = useLabId();
-
-  return useQuery({
-    queryKey: queryKeys.equipment.maintenance(labId, itemId ?? ''),
-    queryFn: () => EquipmentService.getMaintenanceLog(itemId!),
-    enabled: !!labId && !!itemId,
-    staleTime: CACHE_TIMES.STABLE.staleTime,
-    gcTime: CACHE_TIMES.STABLE.gcTime,
-  });
-}

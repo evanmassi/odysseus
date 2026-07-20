@@ -4,8 +4,9 @@
  * Transforms domain data into CSV/JSON export formats for admin users.
  */
 
+import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { Person } from '@domain/entities/Person';
-import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
@@ -74,7 +75,6 @@ interface ResearcherExportRow {
   position: string;
   department: string;
   active: string;
-  approvalStatus: string;
   tubeCount: number;
   linkedUserId: string;
   createdAt: string;
@@ -128,9 +128,9 @@ export class ExportService {
     private personRepository: PersonRepository,
     private storageRepository: StorageRepository,
     private appVersion: string,
-    private equipmentItemRepository?: EquipmentItemRepository,
-    private equipmentCategoryRepository?: EquipmentCategoryRepository,
-    private supplyItemRepository?: SupplyItemRepository,
+    private equipmentItemRepository: EquipmentItemRepository,
+    private equipmentCategoryRepository: CategoryRepository<EquipmentCategory>,
+    private supplyItemRepository: SupplyItemRepository
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -142,7 +142,7 @@ export class ExportService {
     const storageConfig = await this.storageRepository.getForLab(labId);
 
     const researcherIds = [...new Set(tubes.map(t => t.researcherId).filter(Boolean))] as string[];
-    const researchers = await this.researcherRepository.findByIds(researcherIds);
+    const researchers = await this.researcherRepository.findByIds(researcherIds, labId);
     const personMap = await this.buildPersonMap(researchers.map(r => r.personId));
 
     const researcherNameMap = new Map<string, string>();
@@ -189,7 +189,7 @@ export class ExportService {
       isLocked: tube.isLocked ? 'Yes' : 'No',
       lockedBy: tube.lockedBy ?? '',
       createdAt: formatDateForCsv(tube.createdAt),
-      updatedAt: formatDateForCsv(tube.updatedAt)
+      updatedAt: formatDateForCsv(tube.updatedAt),
     }));
 
     if (format === 'json') {
@@ -219,7 +219,7 @@ export class ExportService {
       { key: 'notes', header: 'Notes' },
       { key: 'isLocked', header: 'Locked' },
       { key: 'createdAt', header: 'Created At' },
-      { key: 'updatedAt', header: 'Updated At' }
+      { key: 'updatedAt', header: 'Updated At' },
     ]);
   }
 
@@ -244,7 +244,7 @@ export class ExportService {
         status: String(user.status),
         emailVerified: user.emailVerified ? 'Yes' : 'No',
         createdAt: formatDateForCsv(user.createdAt),
-        researcherId: user.researcherId ?? ''
+        researcherId: user.researcherId ?? '',
       };
     });
 
@@ -262,13 +262,16 @@ export class ExportService {
       { key: 'status', header: 'Status' },
       { key: 'emailVerified', header: 'Email Verified' },
       { key: 'createdAt', header: 'Created At' },
-      { key: 'researcherId', header: 'Linked Researcher ID' }
+      { key: 'researcherId', header: 'Linked Researcher ID' },
     ]);
   }
 
   async exportResearchers(labId: string, format: 'csv'): Promise<string>;
   async exportResearchers(labId: string, format: 'json'): Promise<ResearcherExportRow[]>;
-  async exportResearchers(labId: string, format: 'csv' | 'json'): Promise<string | ResearcherExportRow[]> {
+  async exportResearchers(
+    labId: string,
+    format: 'csv' | 'json'
+  ): Promise<string | ResearcherExportRow[]> {
     logger.info('[ExportService] Exporting researchers', { format, labId });
 
     const researchers = await this.researcherRepository.findByLabId(labId);
@@ -296,10 +299,9 @@ export class ExportService {
         position: person?.position ?? '',
         department: person?.department ?? '',
         active: researcher.active ? 'Yes' : 'No',
-        approvalStatus: researcher.approvalStatus,
         tubeCount: tubeCounts.get(researcher.id) ?? 0,
         linkedUserId: userByResearcherId.get(researcher.id) ?? '',
-        createdAt: formatDateForCsv(researcher.createdAt)
+        createdAt: formatDateForCsv(researcher.createdAt),
       };
     });
 
@@ -315,21 +317,19 @@ export class ExportService {
       { key: 'position', header: 'Position' },
       { key: 'department', header: 'Department' },
       { key: 'active', header: 'Active' },
-      { key: 'approvalStatus', header: 'Approval Status' },
       { key: 'tubeCount', header: 'Tube Count' },
       { key: 'linkedUserId', header: 'Linked User ID' },
-      { key: 'createdAt', header: 'Created At' }
+      { key: 'createdAt', header: 'Created At' },
     ]);
   }
 
   async exportEquipment(labId: string, format: 'csv'): Promise<string>;
   async exportEquipment(labId: string, format: 'json'): Promise<EquipmentExportRow[]>;
-  async exportEquipment(labId: string, format: 'csv' | 'json'): Promise<string | EquipmentExportRow[]> {
+  async exportEquipment(
+    labId: string,
+    format: 'csv' | 'json'
+  ): Promise<string | EquipmentExportRow[]> {
     logger.info('[ExportService] Exporting equipment', { labId, format });
-
-    if (!this.equipmentItemRepository || !this.equipmentCategoryRepository) {
-      throw new Error('Equipment repositories not configured');
-    }
 
     const items = await this.equipmentItemRepository.findByLabId(labId);
     const categories = await this.equipmentCategoryRepository.findByLabId(labId);
@@ -395,47 +395,48 @@ export class ExportService {
     return {
       exportedAt: new Date().toISOString(),
       version: this.appVersion,
-      configuration: configuration ? {
-        version: configuration.version,
-        systemSettings: configuration.systemSettings,
-        equipment: {
-          tanks: configuration.equipment.tanks.map(t => ({
-            id: t.id,
-            name: t.name,
-            location: t.location,
-            isActive: t.isActive,
-            racks: t.racks.map(r => ({
-              id: r.id,
-              name: r.name,
-              capacity: r.capacity,
-              isActive: r.isActive,
-              customLabel: r.customLabel,
-              assignedUserId: r.assignedUserId,
-              boxes: r.boxes.map(b => ({
-                id: b.name,
-                name: b.name,
-                gridConfig: b.gridConfig,
-                positionDisplay: b.positionDisplay,
-                isActive: b.isActive,
-                customLabel: b.customLabel,
-                assignedUserId: b.assignedUserId
-              }))
-            }))
-          }))
-        }
-      } : null,
-      securityConfig: securityConfig ?? null
+      configuration: configuration
+        ? {
+            version: configuration.version,
+            systemSettings: configuration.systemSettings,
+            equipment: {
+              tanks: configuration.equipment.tanks.map(t => ({
+                id: t.id,
+                name: t.name,
+                location: t.location,
+                isActive: t.isActive,
+                racks: t.racks.map(r => ({
+                  id: r.id,
+                  name: r.name,
+                  capacity: r.capacity,
+                  isActive: r.isActive,
+                  customLabel: r.customLabel,
+                  assignedUserId: r.assignedUserId,
+                  boxes: r.boxes.map(b => ({
+                    id: b.name,
+                    name: b.name,
+                    gridConfig: b.gridConfig,
+                    positionDisplay: b.positionDisplay,
+                    isActive: b.isActive,
+                    customLabel: b.customLabel,
+                    assignedUserId: b.assignedUserId,
+                  })),
+                })),
+              })),
+            },
+          }
+        : null,
+      securityConfig: securityConfig ?? null,
     };
   }
 
   async exportSupplyReorderList(labId: string, format: 'csv'): Promise<string>;
   async exportSupplyReorderList(labId: string, format: 'json'): Promise<SupplyReorderExportRow[]>;
-  async exportSupplyReorderList(labId: string, format: 'csv' | 'json'): Promise<string | SupplyReorderExportRow[]> {
+  async exportSupplyReorderList(
+    labId: string,
+    format: 'csv' | 'json'
+  ): Promise<string | SupplyReorderExportRow[]> {
     logger.info('[ExportService] Exporting supply reorder list', { labId, format });
-
-    if (!this.supplyItemRepository) {
-      throw new Error('Supply item repository not configured');
-    }
 
     const itemsWithStock = await this.supplyItemRepository.findItemsAtOrBelowThreshold(labId);
 

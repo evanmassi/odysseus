@@ -4,51 +4,29 @@
  * React Query mutations for security monitoring actions.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { logger } from '@infra/logger';
 
 import { securityMonitoringService } from '../services/SecurityMonitoringService';
 
 export function usePurgeExpiredSessionsMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: () => securityMonitoringService.purgeExpiredSessions(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
-    },
-    onError: error => {
-      logger.error('Failed to purge expired sessions', { error });
-    },
+    meta: { invalidates: [queryKeys.security.all] },
   });
 }
 
 export function useRevokeSessionMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (sessionId: string) => securityMonitoringService.revokeSession(sessionId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
-    },
-    onError: error => {
-      logger.error('Failed to revoke session', { error });
-    },
+    meta: { invalidates: [queryKeys.security.all] },
   });
 }
 
 export function useBulkRevokeSessionsMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (sessionIds: string[]) => securityMonitoringService.bulkRevokeSessions(sessionIds),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
-    },
-    onError: error => {
-      logger.error('Failed to bulk revoke sessions', { error });
-    },
+    meta: { invalidates: [queryKeys.security.all] },
   });
 }

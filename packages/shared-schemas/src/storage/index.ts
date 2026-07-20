@@ -15,54 +15,49 @@ export {
   GlobalSettingsSchema,
   SystemConfigurationSchema,
   StorageResponseSchema,
-  SaveStorageRequestSchema,
+  storageVersionResponseSchema,
   type GridConfiguration,
   type BoxConfiguration,
   type RackConfiguration,
   type TankConfiguration,
-  type ColorScheme,
   type EquipmentConfiguration,
   type LabConfiguration,
-  type GlobalSettings,
   type SystemConfiguration,
   type StorageResponse,
-  type SaveStorageRequest,
   addTankResponseSchema,
   addRacksResponseSchema,
   addBoxesResponseSchema,
   bulkOperationResponseSchema,
-  positionDisplayPresetsResponseSchema,
-  type AddTankResponse,
-  type AddRacksResponse,
-  type AddBoxesResponse,
-  type BulkOperationResponse,
-  type PositionDisplayPresetsResponse,
 } from './storageSchemas';
 
 export {
-  formatStorageDisplayName,
-} from './storageFormatters';
+  addTankRequestSchema,
+  updateTankRequestSchema,
+  addRacksRequestSchema,
+  updateRackRequestSchema,
+  assignRackRequestSchema,
+  addBoxesRequestSchema,
+  updateBoxRequestSchema,
+  assignBoxRequestSchema,
+  updateResourceLabelRequestSchema,
+  updateSystemStorageRequestSchema,
+  initializeStorageRequestSchema,
+  bulkUnassignRequestSchema,
+  bulkReassignRequestSchema,
+} from './storageRequestSchemas';
+
+export { formatStorageDisplayName } from './storageFormatters';
 
 export {
   positionDisplayFormatSchema,
   alphanumericConfigSchema,
   positionDisplayConfigSchema,
   positionDisplayPreferenceSchema,
-  POSITION_DISPLAY_PRESETS,
-  type PositionDisplayFormat,
-  type AlphanumericConfig,
   type PositionDisplayConfig,
   type PositionDisplayPreference,
-  generateAlphabeticLabels,
-  generateNumericLabels,
   createAlphanumericConfig,
   createNumericConfig,
   getDefaultPositionDisplay,
 } from './positionSchemas';
 
-export {
-  positionToLabel,
-  labelToPosition,
-  isValidPositionLabel,
-  generatePositionLabels,
-} from './positionFormatters';
+export { positionToLabel, labelToPosition } from './positionFormatters';

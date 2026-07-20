@@ -4,13 +4,13 @@
  * Orchestrates user CRUD, authentication, registration, and approval workflows.
  */
 
-import { PasswordValidator } from '@odysseus/shared-schemas';
 import { nanoid } from 'nanoid';
 
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
-import { UserDto } from '@application/dto/UserDto';
-import type { AuthResponse, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
+import { rejectDemoManagementOperation } from '@application/guards/DemoGuards';
+import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
@@ -26,7 +26,7 @@ import {
   UserUnlinkedFromResearcherEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
-  UserReactivatedEvent
+  UserReactivatedEvent,
 } from '@domain/events/UserEvents';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
@@ -40,9 +40,7 @@ import type { AccessControlService } from '@domain/services/AccessControlService
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 
-import type { RegisterWithProfileRequest } from '@odysseus/shared-schemas';
-
-
+import type { RegisterWithProfileRequest, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   firstName?: string;
@@ -69,85 +67,12 @@ export class UserApplicationService {
   ) {}
 
   /**
-   * First user: auto-approved as admin.
-   * Subsequent users: pending (requires admin approval).
-   */
-  async registerWithPassword(request: RegisterRequest): Promise<AuthResponse> {
-    const isFirstUser = await this.userRepository.isEmpty();
-    const targetRole = isFirstUser ? 'admin' : (request.role ?? 'user');
-    const status = isFirstUser ? 'approved' : 'pending';
-
-    const existingUser = await this.userRepository.findByUsername(request.username);
-    if (existingUser) {
-      throw new ValidationError('Username already exists');
-    }
-
-    const user = User.createWithPassword(
-      request.username,
-      request.password,
-      UserRole.create(targetRole),
-      undefined, // No researcher link
-      status
-    );
-
-    await this.userRepository.save(user);
-
-    return UserDto.toAuthResponse(user);
-  }
-
-  /** Accepts username or email as the identifier. */
-  async login(request: PasswordLoginRequest): Promise<AuthResponse> {
-    const input = request.username.trim();
-    const isEmail = input.includes('@');
-
-    const user = isEmail
-      ? await this.userRepository.findByEmail(input)
-      : await this.userRepository.findByUsername(input);
-
-    if (!user) {
-      throw new PermissionError('Invalid credentials');
-    }
-
-    if (user.isPending()) {
-      throw new PermissionError('Account is awaiting administrator approval');
-    }
-
-    if (user.isRejected()) {
-      throw new PermissionError('Account access has been denied');
-    }
-
-    if (user.isDeactivated()) {
-      throw new PermissionError('Account has been deactivated. Contact your lab administrator');
-    }
-
-    if (user.isSuspended()) {
-      throw new PermissionError('Account has been suspended. Contact your system administrator');
-    }
-
-    if (!user.isApproved()) {
-      throw new PermissionError('Account is not approved for access');
-    }
-
-    user.recordActivity();
-    await this.userRepository.save(user);
-
-    return UserDto.toAuthResponse(user);
-  }
-
-  async isFirstTimeSetup(): Promise<{ isEmpty: boolean; needsSystemAdmin: boolean }> {
-    const isEmpty = await this.userRepository.isEmpty();
-    const systemAdminCount = await this.userRepository.countByRole('system_admin');
-    return { isEmpty, needsSystemAdmin: systemAdminCount === 0 };
-  }
-
-  /**
-   * Returns non-pending lab users enriched with Person names.
+   * Returns lab users enriched with Person names.
    * Name resolution priority: direct personId link, then linked researcher's person.
    */
   async getEnrichedLabUsers(labId: string): Promise<EnrichedPublicUser[]> {
     const users = await this.userRepository.findByLabId(labId);
-    const nonPendingUsers = users.filter(u => !u.isPending());
-    const publicDataList = nonPendingUsers.map(u => u.toPublicData());
+    const publicDataList = users.map(u => u.toPublicData());
 
     if (!this.personRepository || !this.researcherRepository) {
       return publicDataList;
@@ -162,7 +87,7 @@ export class UserApplicationService {
 
     const [directPersons, researchers] = await Promise.all([
       this.personRepository.findByIds(directPersonIds),
-      this.researcherRepository.findByIds(researcherIds)
+      this.researcherRepository.findByIds(researcherIds, labId),
     ]);
 
     const researcherPersonIds = researchers
@@ -212,17 +137,53 @@ export class UserApplicationService {
   }
 
   /**
+   * Resolves slim display info (name via linked person) for the given user ids.
+   * Scoped to `labId` when provided so callers cannot resolve other labs' users;
+   * omit for cross-lab (system-admin) access.
+   */
+  async lookupUsers(userIds: string[], labId?: string): Promise<UserDisplayInfo[]> {
+    const users = await this.userRepository.findByIds(userIds, labId);
+    return this.toDisplayUsers(users);
+  }
+
+  /** Approved users in the lab, for user-selection dropdowns. */
+  async listActiveUsers(labId: string): Promise<UserDisplayInfo[]> {
+    const users = await this.userRepository.findByStatusInLab('approved', labId);
+    return this.toDisplayUsers(users);
+  }
+
+  private async toDisplayUsers(users: User[]): Promise<UserDisplayInfo[]> {
+    const personIds = users
+      .map(u => u.toPublicData().personId)
+      .filter((id): id is string => id != null);
+
+    const persons = this.personRepository ? await this.personRepository.findByIds(personIds) : [];
+    const personMap = new Map(persons.map(p => [p.id, p]));
+
+    return users.map(user => {
+      const publicData = user.toPublicData();
+      const person = publicData.personId ? personMap.get(publicData.personId) : undefined;
+      return {
+        id: publicData.id,
+        username: publicData.username,
+        firstName: person?.firstName,
+        lastName: person?.lastName,
+        hasResearcher: user.hasResearcherProfile(),
+      };
+    });
+  }
+
+  /**
    * Auto-clears storage assignments, deletes user, and cleans up linked records.
    * Researchers with tubes are preserved for history (email cleared); otherwise deleted.
    */
   async deleteUser(userId: string, admin: User): Promise<void> {
-    const targetUser = await this.getUserOrThrow(userId);
+    const targetUser = await this.getUserOrThrow(userId, admin);
 
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
     admin.requireCanManage(targetUser);
 
-    await this.ensureNotLastAdmin(targetUser, 'delete');
+    await this.ensureNotLastAdmin(targetUser);
 
     const username = targetUser.username;
     const personId = targetUser.personId;
@@ -245,20 +206,23 @@ export class UserApplicationService {
       await this.userRepository.save(targetUser);
     }
 
-    await this.userRepository.delete(userId);
+    await this.userRepository.delete(userId, targetUser.labId ?? '');
 
     // Clean up linked researcher and person records
     if (researcherId && this.researcherRepository && this.personRepository) {
       const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcherId);
 
       if (tubeCount === 0) {
-        await this.researcherRepository.delete(researcherId);
+        await this.researcherRepository.delete(researcherId, targetUser.labId ?? '');
         if (personId) {
           await this.personRepository.delete(personId);
         }
       } else {
         // Researcher has tubes — deactivate and preserve for history, release the email
-        const researcher = await this.researcherRepository.findById(researcherId);
+        const researcher = await findByIdForRequester(this.researcherRepository, researcherId, {
+          labId: admin.labId,
+          isSystemAdmin: admin.isSystemAdmin(),
+        });
         if (researcher) {
           researcher.deactivate();
           await this.researcherRepository.save(researcher);
@@ -277,41 +241,53 @@ export class UserApplicationService {
     }
 
     if (this.eventBus) {
-      await this.eventBus.publish(new UserDeletedEvent(userId, username, admin.id, targetUser.labId));
+      await this.eventBus.publish(
+        new UserDeletedEvent(userId, username, admin.id, targetUser.labId)
+      );
 
       if (racksAffected > 0 || boxesAffected > 0) {
-        await this.eventBus.publish(new BulkResourcesUnassignedEvent(
-          admin.id, userId, username, racksAffected, boxesAffected, targetUser.labId!
-        ));
+        await this.eventBus.publish(
+          new BulkResourcesUnassignedEvent(
+            admin.id,
+            userId,
+            username,
+            racksAffected,
+            boxesAffected,
+            targetUser.labId!
+          )
+        );
       }
     }
 
     if (tubesUnlocked > 0) {
       logger.info(`Auto-unlocked ${tubesUnlocked} tube(s) during deletion of user ${username}`, {
-        userId, tubesUnlocked,
+        userId,
+        tubesUnlocked,
       });
     }
   }
 
-  private rejectIfDemoLab(admin: User): void {
-    if (admin.isDemo) {
-      throw new PermissionError('User management is restricted in the demo environment');
-    }
+  private async requireUserManagementAllowed(admin: User): Promise<void> {
+    await this.accessControlService.requireCanManageUsers(admin);
+    rejectDemoManagementOperation(admin, 'User management');
   }
 
-  private async getUserOrThrow(id: string): Promise<User> {
-    const user = await this.userRepository.findById(id);
+  private async getUserOrThrow(id: string, admin: User): Promise<User> {
+    const user = await findByIdForRequester(this.userRepository, id, {
+      labId: admin.labId,
+      isSystemAdmin: admin.isSystemAdmin(),
+    });
     if (!user) {
-      throw new NotFoundError(`User not found: ${id}`, { userId: id });
+      throw new NotFoundError('This user could not be found.', { userId: id });
     }
     return user;
   }
 
-  private async ensureNotLastAdmin(user: User, action: string): Promise<void> {
+  private async ensureNotLastAdmin(user: User): Promise<void> {
     if (user.isAdmin() && user.labId) {
       const adminCount = await this.userRepository.countByRoleInLab('lab_admin', user.labId);
       if (adminCount <= 1) {
-        throw new ValidationError(`Cannot ${action} the last admin user`, { adminCount });
+        throw new ValidationError('Cannot delete the last admin user', { adminCount });
       }
     }
   }
@@ -322,14 +298,13 @@ export class UserApplicationService {
     action: 'deactivate' | 'suspend',
     expectedLabId?: string
   ): Promise<void> {
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
     if (admin.id === userId) {
       throw new PermissionError(`Cannot ${action} yourself`, { userId: admin.id });
     }
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
 
     if (expectedLabId && user.labId !== expectedLabId) {
       throw new ValidationError('User does not belong to the specified lab');
@@ -348,12 +323,7 @@ export class UserApplicationService {
 
     if (this.eventBus) {
       const Event = action === 'deactivate' ? UserDeactivatedEvent : UserSuspendedEvent;
-      await this.eventBus.publish(new Event(
-        user.id,
-        user.username,
-        admin.username,
-        user.labId
-      ));
+      await this.eventBus.publish(new Event(user.id, user.username, admin.username, user.labId));
     }
   }
 
@@ -369,11 +339,12 @@ export class UserApplicationService {
 
     let labId: string | undefined;
     let resolvedRole: 'lab_admin' | 'user' | undefined;
-    let autoApprove = false;
     let createResearcher = true;
 
     if (request.inviteCode && this.inviteCodeRepository && this.labRepository) {
-      const inviteCode = await this.inviteCodeRepository.findByCode(request.inviteCode.trim().toUpperCase());
+      const inviteCode = await this.inviteCodeRepository.findByCode(
+        request.inviteCode.trim().toUpperCase()
+      );
       if (!inviteCode || !inviteCode.isValid()) {
         throw new ValidationError('Invalid or expired invite code');
       }
@@ -383,7 +354,6 @@ export class UserApplicationService {
       }
       labId = inviteCode.labId;
       resolvedRole = inviteCode.role as 'lab_admin' | 'user';
-      autoApprove = true;
       createResearcher = inviteCode.createResearcher;
       inviteCode.recordUse();
       await this.inviteCodeRepository.save(inviteCode);
@@ -410,14 +380,19 @@ export class UserApplicationService {
       // Returning user — reactivate their deactivated researcher profile
       if (labId) {
         const deactivated = await this.researcherRepository.findDeactivatedByName(
-          request.firstName, request.lastName, labId
+          request.firstName,
+          request.lastName,
+          labId
         );
         if (deactivated && this.personRepository) {
           const existingPerson = await this.personRepository.findById(deactivated.personId);
           if (existingPerson) {
             existingPerson.updateEmail(request.email);
             existingPerson.updateProfile(
-              request.firstName, request.lastName, request.position, request.department
+              request.firstName,
+              request.lastName,
+              request.position,
+              request.department
             );
             deactivated.activate();
             relinkedResearcher = deactivated;
@@ -438,12 +413,10 @@ export class UserApplicationService {
 
     const emailExists = await this.userRepository.emailExists(request.email);
     if (emailExists) {
-      throw new ValidationError(
-        'Email already in use. Try another or contact your administrator.'
-      );
+      throw new ValidationError('Email already in use. Try another or contact your administrator.');
     }
 
-    await this.validatePasswordPolicy(request.password);
+    await validatePasswordPolicy(this.storageRepository, request.password);
 
     if (!this.passwordService) {
       throw new Error('PasswordService is required for registration');
@@ -452,13 +425,15 @@ export class UserApplicationService {
 
     const username = await this.generateUsername(request.firstName, request.lastName);
 
-    const person = relinkedPerson ?? Person.create(
-      request.firstName,
-      request.lastName,
-      request.email,
-      request.position,
-      request.department
-    );
+    const person =
+      relinkedPerson ??
+      Person.create(
+        request.firstName,
+        request.lastName,
+        request.email,
+        request.position,
+        request.department
+      );
 
     let researcherId: string | undefined;
     let researcher: Researcher | undefined;
@@ -468,17 +443,17 @@ export class UserApplicationService {
       researcher = relinkedResearcher;
     } else if (createResearcher) {
       researcher = Researcher.create(person.id, {
-        isUserApproved: isFirstUser || autoApprove,
         source: 'registration',
-        labId
+        labId,
       });
       researcherId = researcher.id;
     }
 
     const role = isFirstUser
       ? UserRole.labAdmin()
-      : resolvedRole === 'lab_admin' ? UserRole.labAdmin() : UserRole.user();
-    const status = (isFirstUser || autoApprove) ? 'approved' : 'pending';
+      : resolvedRole === 'lab_admin'
+        ? UserRole.labAdmin()
+        : UserRole.user();
 
     const user = User.createWithPassword(
       username,
@@ -486,13 +461,11 @@ export class UserApplicationService {
       role,
       researcherId,
       person.id,
-      status,
+      'approved',
       labId
     );
 
-    if (isFirstUser || autoApprove) {
-      user.markEmailVerified();
-    }
+    user.markEmailVerified();
 
     await this.personRepository!.save(person);
 
@@ -520,7 +493,10 @@ export class UserApplicationService {
    */
   private async generateUsername(firstName: string, lastName: string): Promise<string> {
     const sanitize = (name: string) =>
-      name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .trim();
 
     const first = sanitize(firstName);
     const last = sanitize(lastName);
@@ -542,39 +518,19 @@ export class UserApplicationService {
     return `${first}.${last}.${nanoid(6)}`;
   }
 
-  /** Uses shared PasswordValidator for consistent validation across client/server. */
-  private async validatePasswordPolicy(password: string): Promise<void> {
-    if (!this.storageRepository) {
-      throw new Error('StorageRepository is required for password validation');
-    }
-
-    const securityConfig = await this.storageRepository.getSecurityConfig();
-
-    try {
-      PasswordValidator.enforce(password, securityConfig);
-    } catch (error) {
-      throw new ValidationError((error as Error).message);
-    }
-  }
-
   async reactivateUser(userId: string, admin: User): Promise<void> {
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
     const previousStatus = user.status as 'deactivated' | 'suspended';
 
     user.reactivate(admin);
     await this.userRepository.save(user);
 
     if (this.eventBus) {
-      await this.eventBus.publish(new UserReactivatedEvent(
-        user.id,
-        user.username,
-        previousStatus,
-        admin.username,
-        user.labId
-      ));
+      await this.eventBus.publish(
+        new UserReactivatedEvent(user.id, user.username, previousStatus, admin.username, user.labId)
+      );
     }
   }
 
@@ -586,7 +542,6 @@ export class UserApplicationService {
     return this.disableUser(userId, admin, 'suspend', expectedLabId);
   }
 
-
   /**
    * For users who registered without a researcher profile.
    * @throws ValidationError if user already has a linked researcher
@@ -596,20 +551,23 @@ export class UserApplicationService {
       throw new Error('ResearcherRepository is required for this operation');
     }
 
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
+    admin.requireCanManage(user);
 
-    const researcher = await this.researcherRepository.findById(researcherId);
+    const researcher = await findByIdForRequester(this.researcherRepository, researcherId, {
+      labId: admin.labId,
+      isSystemAdmin: admin.isSystemAdmin(),
+    });
     if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${researcherId}`, { researcherId });
+      throw new NotFoundError('This researcher could not be found.', { researcherId });
     }
 
     if (user.hasResearcherProfile()) {
       throw new ValidationError('User already has a linked researcher profile', {
         userId,
-        currentResearcherId: user.researcherId
+        currentResearcherId: user.researcherId,
       });
     }
 
@@ -620,14 +578,16 @@ export class UserApplicationService {
       const person = await this.personRepository.findById(researcher.personId);
       const researcherName = person ? `${person.firstName} ${person.lastName}` : researcherId;
 
-      await this.eventBus.publish(new UserLinkedToResearcherEvent(
-        userId,
-        user.username,
-        researcherId,
-        researcherName,
-        admin.id,
-        user.labId
-      ));
+      await this.eventBus.publish(
+        new UserLinkedToResearcherEvent(
+          userId,
+          user.username,
+          researcherId,
+          researcherName,
+          admin.id,
+          user.labId
+        )
+      );
     }
   }
 
@@ -636,10 +596,10 @@ export class UserApplicationService {
    * @throws ValidationError if user has no linked researcher
    */
   async unlinkResearcherFromUser(userId: string, admin: User): Promise<void> {
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
+    admin.requireCanManage(user);
 
     if (!user.hasResearcherProfile()) {
       throw new ValidationError('User has no linked researcher profile', { userId });
@@ -650,7 +610,10 @@ export class UserApplicationService {
     let researcherName = oldResearcherId ?? '';
 
     if (oldResearcherId && this.researcherRepository && this.personRepository) {
-      const researcher = await this.researcherRepository.findById(oldResearcherId);
+      const researcher = await findByIdForRequester(this.researcherRepository, oldResearcherId, {
+        labId: admin.labId,
+        isSystemAdmin: admin.isSystemAdmin(),
+      });
       if (researcher) {
         const person = await this.personRepository.findById(researcher.personId);
         researcherName = person ? `${person.firstName} ${person.lastName}` : oldResearcherId;
@@ -664,44 +627,46 @@ export class UserApplicationService {
       ? await this.clearStorageAssignments(userId, user.username, user.labId, admin.id, 'unlinked')
       : { racks: 0, boxes: 0 };
 
-    const tubesUnlocked = user.labId
-      ? await this.unlockTubesForUser(userId, user.labId)
-      : 0;
+    const tubesUnlocked = user.labId ? await this.unlockTubesForUser(userId, user.labId) : 0;
 
     if (this.eventBus && oldResearcherId) {
-      await this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
-        userId,
-        user.username,
-        oldResearcherId,
-        researcherName,
-        admin.id,
-        user.labId
-      ));
+      await this.eventBus.publish(
+        new UserUnlinkedFromResearcherEvent(
+          userId,
+          user.username,
+          oldResearcherId,
+          researcherName,
+          admin.id,
+          user.labId
+        )
+      );
 
       if (racksAffected > 0 || boxesAffected > 0) {
-        await this.eventBus.publish(new BulkResourcesUnassignedEvent(
-          admin.id, userId, user.username, racksAffected, boxesAffected, user.labId!
-        ));
+        await this.eventBus.publish(
+          new BulkResourcesUnassignedEvent(
+            admin.id,
+            userId,
+            user.username,
+            racksAffected,
+            boxesAffected,
+            user.labId!
+          )
+        );
       }
     }
 
     if (tubesUnlocked > 0) {
       logger.info(`Auto-unlocked ${tubesUnlocked} tube(s) during unlink of user ${user.username}`, {
-        userId, tubesUnlocked,
+        userId,
+        tubesUnlocked,
       });
     }
   }
 
-  /**
-   * Get user by username (public helper for resend verification)
-   */
   async getUserByUsername(username: string): Promise<User | null> {
     return await this.userRepository.findByUsername(username);
   }
 
-  /**
-   * Get user by email (public helper for resend verification)
-   */
   async getUserByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findByEmail(email);
   }
@@ -737,13 +702,17 @@ export class UserApplicationService {
         );
 
         logger.info(`Cleared resource assignments for ${reason} user ${username}`, {
-          userId, racksAffected: counts.racks, boxesAffected: counts.boxes, attempt,
+          userId,
+          racksAffected: counts.racks,
+          boxesAffected: counts.boxes,
+          attempt,
         });
         return counts;
       } catch (error) {
         if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
           logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for ${reason}`, {
-            userId, expectedVersion,
+            userId,
+            expectedVersion,
           });
           continue;
         }
@@ -772,7 +741,8 @@ export class UserApplicationService {
       } catch (error) {
         if (error instanceof ConflictError) {
           logger.warn('Skipped unlocking tube due to version conflict during cascade', {
-            tubeId: tube.id, userId,
+            tubeId: tube.id,
+            userId,
           });
           continue;
         }
@@ -785,5 +755,4 @@ export class UserApplicationService {
     }
     return unlocked;
   }
-
 }

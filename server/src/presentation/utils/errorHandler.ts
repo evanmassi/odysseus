@@ -7,11 +7,7 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-
 import { DomainError } from '@domain/errors/DomainError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { ValidationError } from '@domain/errors/ValidationError';
 import { logger } from '@infrastructure/logging/logger';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
@@ -24,6 +20,30 @@ function isZodError(value: unknown): value is { name: 'ZodError'; errors: unknow
     'name' in value &&
     (value as { name: unknown }).name === 'ZodError'
   );
+}
+
+// Domain-error `context` is internal by default (logged, never returned). Only these keys —
+// the ones a client legitimately consumes (position-conflict location, optimistic-lock versions) —
+// are echoed back, so a future error can't leak a sensitive value it happens to stash in context.
+const CLIENT_SAFE_CONTEXT_KEYS = [
+  'code',
+  'tankId',
+  'rackId',
+  'boxId',
+  'position',
+  'currentVersion',
+  'expectedVersion',
+] as const;
+
+export function filterPublicContext(
+  context: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!context) return undefined;
+  const safe: Record<string, unknown> = {};
+  for (const key of CLIENT_SAFE_CONTEXT_KEYS) {
+    if (key in context) safe[key] = context[key];
+  }
+  return Object.keys(safe).length > 0 ? safe : undefined;
 }
 
 export function handleControllerError(
@@ -39,31 +59,27 @@ export function handleControllerError(
     errorType: err.constructor.name,
     message: err.message,
     stack: err.stack,
-    ...(isZodError(error) && { validationErrors: error.errors })
+    ...(err instanceof DomainError && err.context && { errorContext: err.context }),
+    ...(isZodError(error) && { validationErrors: error.errors }),
   });
 
   if (isZodError(error)) {
-    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, 'Invalid request data', error.errors));
-    return;
-  }
-
-  if (err instanceof ValidationError) {
-    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, err.message, err.context ?? {}));
-    return;
-  }
-
-  if (err instanceof NotFoundError) {
-    res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, err.message, err.context ?? {}));
-    return;
-  }
-
-  if (err instanceof PermissionError) {
-    res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, err.message, err.context ?? {}));
+    res
+      .status(400)
+      .json(
+        ResponseBuilder.error(
+          API_ERROR_CODES.VALIDATION_FAILED,
+          'Invalid request data',
+          error.errors
+        )
+      );
     return;
   }
 
   if (err instanceof DomainError) {
-    res.status(err.statusCode).json(ResponseBuilder.error(API_ERROR_CODES.BUSINESS_RULE_VIOLATION, err.message, err.context ?? {}));
+    res
+      .status(err.statusCode)
+      .json(ResponseBuilder.error(err.code, err.message, filterPublicContext(err.context)));
     return;
   }
 

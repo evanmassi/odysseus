@@ -7,26 +7,13 @@
  */
 
 import { useTextTruncation } from '@shared/hooks';
-import { Tooltip } from '@shared/ui';
+import { OccupancyBar, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import { BoxOccupancyMatrix } from './BoxOccupancyMatrix';
 import { TreeNub } from './TreeNub';
 
 import type { StorageBoxMinimapProps } from './storageNavigatorTypes';
-
-// Selected/hover treatment mirrors the data Table's row glow (shared --alpha-glow-* /
-// --alpha-hover-* tokens): a glowing leading stripe + directional primary wash + soft bloom.
-const SELECTED_GLOW =
-  '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/var(--alpha-glow-tint)),hsl(var(--primary)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
-const HOVER_GLOW =
-  'hover:[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-hover-wash-1))_0%,hsl(var(--primary)/var(--alpha-hover-wash-2))_18%,hsl(var(--primary)/var(--alpha-hover-wash-3))_48%,hsl(var(--primary)/var(--alpha-hover-wash-4))_78%,hsl(var(--primary)/0)_100%)] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--primary)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--primary)/var(--alpha-hover-bloom-far))]';
-// Full boxes reuse the same recipes in the warning tone, so the "full" state reads
-// in hover and selected too — not just at rest (nub, border, fill bar).
-const SELECTED_GLOW_FULL =
-  '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-warning-bg)/var(--alpha-glow-tint)),hsl(var(--color-warning-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)] shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-inner)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-far))]';
-const HOVER_GLOW_FULL =
-  'hover:[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)] hover:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-hover-edge)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-far))]';
 
 export function StorageBoxMinimap({
   box,
@@ -60,15 +47,16 @@ export function StorageBoxMinimap({
         aria-posinset={ariaPosinset}
         aria-setsize={ariaSetsize}
         aria-selected={isSelected}
+        data-full={isFull || undefined}
         aria-label={`Box ${box.name}, ${filled} of ${capacity} filled`}
-        className={`relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[box-shadow,border-color] duration-150 ${
+        className={`storage-nav-minimap relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[box-shadow,border-color] duration-150 ${
           isSelected
             ? isFull
-              ? `border-warning-border text-foreground ${SELECTED_GLOW_FULL}`
-              : `border-primary text-foreground ${SELECTED_GLOW}`
+              ? 'border-warning-border text-foreground'
+              : 'border-primary text-foreground'
             : isFull
-              ? `border-warning-border/60 text-foreground/70 ${HOVER_GLOW_FULL}`
-              : `border-line-faint text-foreground/70 ${HOVER_GLOW}`
+              ? 'border-warning-border/60 text-foreground/70'
+              : 'border-line-faint text-foreground/70'
         }`}
       >
         <TreeNub full={isFull} />
@@ -80,7 +68,7 @@ export function StorageBoxMinimap({
             <Tooltip content={box.name} disabled={!isTruncated} side="top" delayDuration={400}>
               <span
                 ref={nameRef}
-                className={`min-w-0 truncate font-mono text-[13px] tracking-[0.04em] ${
+                className={`min-w-0 truncate font-mono text-data-sm tracking-[0.04em] ${
                   isSelected ? 'font-medium' : ''
                 }`}
               >
@@ -92,14 +80,9 @@ export function StorageBoxMinimap({
             )}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="relative h-0.5 flex-1 bg-foreground/[0.07]">
-              <span
-                className={`absolute inset-y-0 left-0 ${isFull ? 'bg-warning-bg' : 'bg-primary/80'}`}
-                style={{ width: `${capacity > 0 ? (filled / capacity) * 100 : 0}%` }}
-              />
-            </span>
+            <OccupancyBar filled={filled} capacity={capacity} full={isFull} className="flex-1" />
             <span
-              className={`flex-none font-mono text-[8.5px] tracking-[0.08em] ${
+              className={`w-20 flex-none text-right font-mono text-data-sm tabular-nums tracking-[0.08em] ${
                 isFull ? 'text-warning-text' : isSelected ? 'text-primary' : 'text-foreground/40'
               }`}
             >

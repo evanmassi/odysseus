@@ -4,6 +4,7 @@
  * Manages invite code lifecycle for lab registration.
  */
 
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import { requireUser } from '@application/guards/UserGuards';
 import { InviteCode } from '@domain/entities/InviteCode';
@@ -15,8 +16,6 @@ import type { InviteCodeRepository } from '@domain/repositories/InviteCodeReposi
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-
-// COMMAND INTERFACES
 
 export interface CreateInviteCodeCommand {
   userId: string;
@@ -31,8 +30,6 @@ export interface DeactivateInviteCodeCommand {
   userId: string;
   codeId: string;
 }
-
-// COMMAND HANDLERS
 
 export class CreateInviteCodeCommandHandler {
   constructor(
@@ -51,13 +48,19 @@ export class CreateInviteCodeCommandHandler {
     if (!user.isSystemAdmin()) {
       if (user.isLabAdmin()) {
         if (user.labId !== command.labId) {
-          throw new PermissionError('Lab admins can only create invite codes for their own lab', { userId: command.userId });
+          throw new PermissionError('Lab admins can only create invite codes for their own lab', {
+            userId: command.userId,
+          });
         }
         if (role === 'lab_admin') {
-          throw new PermissionError('Only system admins can create lab_admin invite codes', { userId: command.userId });
+          throw new PermissionError('Only system admins can create lab_admin invite codes', {
+            userId: command.userId,
+          });
         }
       } else {
-        throw new PermissionError('Only admins can create invite codes', { userId: command.userId });
+        throw new PermissionError('Only admins can create invite codes', {
+          userId: command.userId,
+        });
       }
     }
 
@@ -93,11 +96,9 @@ export class CreateInviteCodeCommandHandler {
 
     await this.inviteCodeRepository.save(inviteCode);
 
-    await this.eventBus.publish(new InviteCodeCreatedEvent(
-      inviteCode.id,
-      inviteCode.labId,
-      command.userId
-    ));
+    await this.eventBus.publish(
+      new InviteCodeCreatedEvent(inviteCode.id, inviteCode.labId, command.userId)
+    );
 
     return inviteCode.toData();
   }
@@ -112,19 +113,16 @@ export class DeactivateInviteCodeCommandHandler {
   async handle(command: DeactivateInviteCodeCommand): Promise<void> {
     const user = await requireUser(this.userRepository, command.userId);
 
-    const inviteCode = await this.inviteCodeRepository.findById(command.codeId);
-    if (!inviteCode) {
-      throw NotFoundError.forEntity('InviteCode', command.codeId);
+    if (!user.isSystemAdmin() && !user.isLabAdmin()) {
+      throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });
     }
 
-    if (!user.isSystemAdmin()) {
-      if (user.isLabAdmin()) {
-        if (user.labId !== inviteCode.labId) {
-          throw new PermissionError('Lab admins can only manage invite codes for their own lab', { userId: command.userId });
-        }
-      } else {
-        throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });
-      }
+    const inviteCode = await findByIdForRequester(this.inviteCodeRepository, command.codeId, {
+      labId: user.labId,
+      isSystemAdmin: user.isSystemAdmin(),
+    });
+    if (!inviteCode) {
+      throw NotFoundError.forEntity('InviteCode', command.codeId);
     }
 
     if (!inviteCode.isActive) {

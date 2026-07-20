@@ -15,7 +15,7 @@ export class TubesLockedEvent extends DomainEvent {
     public readonly lockNote: string | undefined,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -24,16 +24,6 @@ export class TubesLockedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeIds.length === 1 ? this.tubeIds[0] : `batch-${this.tubeIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      count: this.tubeIds.length,
-      lockedBy: this.lockedBy,
-      lockNote: this.lockNote
-    };
   }
 }
 
@@ -44,7 +34,7 @@ export class TubesUnlockedEvent extends DomainEvent {
     public readonly unlockedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -53,15 +43,6 @@ export class TubesUnlockedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeIds.length === 1 ? this.tubeIds[0] : `batch-${this.tubeIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      count: this.tubeIds.length,
-      unlockedBy: this.unlockedBy
-    };
   }
 }
 
@@ -74,7 +55,7 @@ export class TubeAccessSharedEvent extends DomainEvent {
     public readonly sharedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -83,16 +64,6 @@ export class TubeAccessSharedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeIds.length === 1 ? this.tubeIds[0] : `batch-${this.tubeIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      addedUserIds: this.addedUserIds,
-      tubeSharedUsers: this.tubeSharedUsers,
-      sharedBy: this.sharedBy
-    };
   }
 }
 
@@ -105,7 +76,7 @@ export class TubeAccessRevokedEvent extends DomainEvent {
     public readonly revokedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -114,15 +85,5 @@ export class TubeAccessRevokedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeIds.length === 1 ? this.tubeIds[0] : `batch-${this.tubeIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      revokedUserIds: this.revokedUserIds,
-      tubeSharedUsers: this.tubeSharedUsers,
-      revokedBy: this.revokedBy
-    };
   }
 }

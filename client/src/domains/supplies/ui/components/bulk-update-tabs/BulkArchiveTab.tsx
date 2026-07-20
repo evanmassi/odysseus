@@ -11,7 +11,7 @@ interface BulkArchiveTabProps {
 export function BulkArchiveTab({ selectedCount }: BulkArchiveTabProps) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         Archive {selectedCount} selected item{selectedCount !== 1 ? 's' : ''}. Archived items are
         hidden by default but their transaction history is preserved.
       </p>

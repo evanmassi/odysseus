@@ -37,13 +37,11 @@ import {
   SupplyTransactionVoidParams,
   SupplyPackagingLevelIdParams,
   CreateSupplyPackagingLevelHttpSchema,
-  UpdateSupplyPackagingLevelHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
 
 export class SupplyRouteModule implements RouteModule {
-
   constructor(
     private supplyController: SupplyController,
     private authMiddleware: AuthMiddleware
@@ -54,114 +52,115 @@ export class SupplyRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate.bind(this.authMiddleware)
-    ];
+    return [this.authMiddleware.authenticate.bind(this.authMiddleware)];
   }
 
   configure(router: Router): void {
-
     // Categories — registered before /:id to avoid matching as an ID
 
-    router.get('/categories',
-      this.supplyController.listCategories.bind(this.supplyController)
-    );
+    router.get('/categories', this.supplyController.listCategories.bind(this.supplyController));
 
-    router.post('/categories',
+    router.post(
+      '/categories',
       validateBody(CreateSupplyCategoryHttpSchema),
       this.supplyController.createCategory.bind(this.supplyController)
     );
 
-    router.put('/categories/:categoryId',
+    router.put(
+      '/categories/:categoryId',
       validateParams(SupplyCategoryIdParams),
       validateBody(UpdateSupplyCategoryHttpSchema),
       this.supplyController.updateCategory.bind(this.supplyController)
     );
 
-    router.delete('/categories/:categoryId',
+    router.delete(
+      '/categories/:categoryId',
       validateParams(SupplyCategoryIdParams),
       this.supplyController.deleteCategory.bind(this.supplyController)
     );
 
     // Locations — registered before /:id
 
-    router.get('/locations',
-      this.supplyController.listLocations.bind(this.supplyController)
-    );
+    router.get('/locations', this.supplyController.listLocations.bind(this.supplyController));
 
-    router.post('/locations',
+    router.post(
+      '/locations',
       validateBody(CreateSupplyLocationHttpSchema),
       this.supplyController.createLocation.bind(this.supplyController)
     );
 
-    router.put('/locations/:locationId',
+    router.put(
+      '/locations/:locationId',
       validateParams(SupplyLocationIdParams),
       validateBody(UpdateSupplyLocationHttpSchema),
       this.supplyController.updateLocation.bind(this.supplyController)
     );
 
-    router.delete('/locations/:locationId',
-      validateParams(SupplyLocationIdParams),
-      this.supplyController.deleteLocation.bind(this.supplyController)
-    );
-
     // Bulk operations — registered before /:id
 
-    router.post('/bulk/receive',
+    router.post(
+      '/bulk/receive',
       validateBody(SupplyBulkReceiveHttpSchema),
       this.supplyController.bulkReceive.bind(this.supplyController)
     );
 
-    router.post('/bulk/issue',
+    router.post(
+      '/bulk/issue',
       validateBody(SupplyBulkIssueHttpSchema),
       this.supplyController.bulkIssue.bind(this.supplyController)
     );
 
-    router.post('/bulk/reassign-category',
+    router.post(
+      '/bulk/reassign-category',
       validateBody(SupplyBulkReassignCategoryHttpSchema),
       this.supplyController.bulkReassignCategory.bind(this.supplyController)
     );
 
-    router.post('/bulk/archive',
+    router.post(
+      '/bulk/archive',
       validateBody(SupplyBulkArchiveHttpSchema),
       this.supplyController.bulkArchive.bind(this.supplyController)
     );
 
-    router.post('/bulk/void',
+    router.post(
+      '/bulk/void',
       validateBody(SupplyBulkVoidHttpSchema),
       this.supplyController.bulkVoidTransactions.bind(this.supplyController)
     );
 
-    router.post('/bulk/barcodes',
+    router.post(
+      '/bulk/barcodes',
       validateBody(SupplyBulkBarcodesHttpSchema),
       this.supplyController.bulkGetBarcodes.bind(this.supplyController)
     );
 
     // Barcode resolution — query param, registered before /:id
 
-    router.get('/barcodes/resolve',
+    router.get(
+      '/barcodes/resolve',
       this.supplyController.resolveBarcode.bind(this.supplyController)
     );
 
     // Reorder list — registered before /:id
 
-    router.get('/reorder-list',
-      this.supplyController.getReorderList.bind(this.supplyController)
-    );
+    router.get('/reorder-list', this.supplyController.getReorderList.bind(this.supplyController));
 
     // Stock operations (not scoped to an item)
 
-    router.post('/transactions',
+    router.post(
+      '/transactions',
       validateBody(RecordSupplyTransactionHttpSchema),
       this.supplyController.recordTransaction.bind(this.supplyController)
     );
 
-    router.post('/stock-counts',
+    router.post(
+      '/stock-counts',
       validateBody(RecordSupplyStockCountHttpSchema),
       this.supplyController.recordStockCount.bind(this.supplyController)
     );
 
-    router.post('/transactions/:transactionId/void',
+    router.post(
+      '/transactions/:transactionId/void',
       validateParams(SupplyTransactionVoidParams),
       validateBody(VoidSupplyTransactionHttpSchema),
       this.supplyController.voidTransaction.bind(this.supplyController)
@@ -169,101 +168,108 @@ export class SupplyRouteModule implements RouteModule {
 
     // Items
 
-    router.get('/',
-      this.supplyController.listItems.bind(this.supplyController)
-    );
+    router.get('/', this.supplyController.listItems.bind(this.supplyController));
 
-    router.post('/',
+    router.post(
+      '/',
       validateBody(CreateSupplyItemHttpSchema),
       this.supplyController.createItem.bind(this.supplyController)
     );
 
-    router.get('/:id',
+    router.get(
+      '/:id',
       validateParams(IdParams),
       this.supplyController.getItem.bind(this.supplyController)
     );
 
-    router.put('/:id',
+    router.put(
+      '/:id',
       validateParams(IdParams),
       validateBody(UpdateSupplyItemHttpSchema),
       this.supplyController.updateItem.bind(this.supplyController)
     );
 
-    router.delete('/:id',
+    router.delete(
+      '/:id',
       validateParams(IdParams),
       this.supplyController.deleteItem.bind(this.supplyController)
     );
 
-    router.post('/:id/archive',
+    router.post(
+      '/:id/archive',
       validateParams(IdParams),
       this.supplyController.archiveItem.bind(this.supplyController)
     );
 
     // Documents
 
-    router.post('/:id/documents',
+    router.post(
+      '/:id/documents',
       validateParams(IdParams),
       validateBody(CreateSupplyDocumentHttpSchema),
       this.supplyController.addDocument.bind(this.supplyController)
     );
 
-    router.put('/:id/documents/:docId',
+    router.put(
+      '/:id/documents/:docId',
       validateParams(SupplyDocIdParams),
       validateBody(UpdateSupplyDocumentHttpSchema),
       this.supplyController.updateDocument.bind(this.supplyController)
     );
 
-    router.delete('/:id/documents/:docId',
+    router.delete(
+      '/:id/documents/:docId',
       validateParams(SupplyDocIdParams),
       this.supplyController.removeDocument.bind(this.supplyController)
     );
 
     // Barcodes
 
-    router.post('/:id/barcodes',
+    router.post(
+      '/:id/barcodes',
       validateParams(IdParams),
       validateBody(CreateSupplyBarcodeHttpSchema),
       this.supplyController.addBarcode.bind(this.supplyController)
     );
 
-    router.post('/:id/barcodes/regenerate-internal',
+    router.post(
+      '/:id/barcodes/regenerate-internal',
       validateParams(IdParams),
       this.supplyController.regenerateInternalBarcode.bind(this.supplyController)
     );
 
-    router.put('/:id/barcodes/:barcodeId',
+    router.put(
+      '/:id/barcodes/:barcodeId',
       validateParams(SupplyBarcodeIdParams),
       validateBody(UpdateSupplyBarcodeHttpSchema),
       this.supplyController.updateBarcode.bind(this.supplyController)
     );
 
-    router.delete('/:id/barcodes/:barcodeId',
+    router.delete(
+      '/:id/barcodes/:barcodeId',
       validateParams(SupplyBarcodeIdParams),
       this.supplyController.removeBarcode.bind(this.supplyController)
     );
 
     // Packaging levels
 
-    router.post('/:id/packaging-levels',
+    router.post(
+      '/:id/packaging-levels',
       validateParams(IdParams),
       validateBody(CreateSupplyPackagingLevelHttpSchema),
       this.supplyController.addPackagingLevel.bind(this.supplyController)
     );
 
-    router.put('/:id/packaging-levels/:levelId',
-      validateParams(SupplyPackagingLevelIdParams),
-      validateBody(UpdateSupplyPackagingLevelHttpSchema),
-      this.supplyController.updatePackagingLevel.bind(this.supplyController)
-    );
-
-    router.delete('/:id/packaging-levels/:levelId',
+    router.delete(
+      '/:id/packaging-levels/:levelId',
       validateParams(SupplyPackagingLevelIdParams),
       this.supplyController.removePackagingLevel.bind(this.supplyController)
     );
 
     // Transaction history
 
-    router.get('/:id/transactions',
+    router.get(
+      '/:id/transactions',
       validateParams(IdParams),
       this.supplyController.getTransactionHistory.bind(this.supplyController)
     );

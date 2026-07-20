@@ -6,12 +6,14 @@
 
 import { useEffect, useState } from 'react';
 
-import { Lock, Notebook } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
-import { AlertBanner, Button, Input } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
+
+import { LockNoteField } from './LockNoteField';
 
 export interface TubeLockModalProps {
   isOpen?: boolean;
@@ -31,31 +33,29 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
     }
   }, [isOpen]);
 
-  const handleLock = async () => {
-    try {
-      const result = await lockMutation.mutateAsync({
-        tubeIds,
-        lockNote: lockNote.trim() || undefined,
-      });
+  const handleLock = () => {
+    lockMutation.mutate(
+      { tubeIds, lockNote: lockNote.trim() || undefined },
+      {
+        onSuccess: result => {
+          const lockedCount = result.locked.length;
+          const skippedCount = result.skipped.length;
 
-      const lockedCount = result.locked.length;
-      const skippedCount = result.skipped.length;
+          if (lockedCount > 0 && skippedCount === 0) {
+            notifications.success(`Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}`);
+          } else if (lockedCount > 0 && skippedCount > 0) {
+            notifications.success(
+              `Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
+            );
+          } else {
+            notifications.warning('No tubes were locked');
+          }
 
-      if (lockedCount > 0 && skippedCount === 0) {
-        notifications.success(`Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}`);
-      } else if (lockedCount > 0 && skippedCount > 0) {
-        notifications.success(
-          `Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
-        );
-      } else {
-        notifications.warning('No tubes were locked');
+          onSuccess?.();
+          onClose();
+        },
       }
-
-      onSuccess?.();
-      onClose();
-    } catch (error) {
-      notifications.error('Failed to lock tubes');
-    }
+    );
   };
 
   const tubeCount = tubeIds.length;
@@ -63,7 +63,7 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !lockMutation.isPending) {
       e.preventDefault();
-      void handleLock();
+      handleLock();
     }
   };
 
@@ -73,37 +73,12 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
       title={`Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
       icon={<Lock size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="lockNote"
-            className="flex items-center gap-1.5 text-sm font-medium text-secondary-foreground mb-1"
-          >
-            <Notebook className="w-4 h-4" />
-            Lock Note (optional)
-          </label>
-          <div className="relative">
-            <Input
-              id="lockNote"
-              type="text"
-              value={lockNote}
-              onValueChange={setLockNote}
-              onKeyDown={handleKeyDown}
-              placeholder="e.g., Project X - Donor 123"
-              maxLength={100}
-              fullWidth
-              inputClassName="pr-12"
-            />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 pointer-events-none">
-              {lockNote.length}/100
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">Provides context for the lock.</p>
-        </div>
+        <LockNoteField value={lockNote} onValueChange={setLockNote} onKeyDown={handleKeyDown} />
 
-        <AlertBanner variant="info" spacing="none" className="text-xs">
+        <AlertBanner variant="info" spacing="none" className="text-caption">
           Locking prevents other users from editing or moving these tubes. You can unlock or share
           access anytime.
         </AlertBanner>

@@ -1,23 +1,21 @@
 /**
- * Reusable password creation form with real-time validation.
- * Used by AuthLoginModal (force change) and AuthPasswordResetPage (token reset).
+ * Password Creation Form
+ *
+ * New-password entry with live requirement validation, shared by the force-change
+ * (AuthLoginModal) and token-reset (AuthPasswordResetPage) flows.
  */
 
-import { useState, useEffect, useMemo, type ReactNode } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound } from 'lucide-react';
 
-import {
-  authService,
-  type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthService';
-import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { usePasswordRequirementsQuery } from '@domains/authentication/hooks/usePasswordRequirementsQuery';
+import { AlertBanner, AuthInput, AuthLinkButton, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
-export interface AuthPasswordCreateFormProps {
+interface AuthPasswordCreateFormProps {
   onSubmit: (newPassword: string) => Promise<void>;
   onCancel?: () => void;
   cancelText?: string;
@@ -43,19 +41,9 @@ export function AuthPasswordCreateForm({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [internalError, setInternalError] = useState<string | null>(null);
-  const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
   const [newPasswordTouched, setNewPasswordTouched] = useState(false);
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordConfig(requirements);
-      } catch (err) {
-        logger.error('Failed to load password requirements', { error: err });
-      }
-    })();
-  }, []);
+  const { data: passwordConfig } = usePasswordRequirementsQuery();
 
   const passwordMeetsRequirements = useMemo(() => {
     if (!passwordConfig || !newPassword) return false;
@@ -76,11 +64,10 @@ export function AuthPasswordCreateForm({
   const confirmPasswordValidationState = useMemo(() => {
     if (!confirmPassword) return 'default' as const;
     if (passwordsMatch && passwordMeetsRequirements) return 'success' as const;
-    if (confirmPassword.length > 0 && !passwordsMatch) return 'error' as const;
+    if (!passwordsMatch) return 'error' as const;
     return 'default' as const;
   }, [confirmPassword, passwordsMatch, passwordMeetsRequirements]);
 
-  // Combined error (internal takes precedence, then external)
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string error should fall through
   const displayError = internalError || externalError;
 
@@ -119,7 +106,6 @@ export function AuthPasswordCreateForm({
       setConfirmPassword('');
       setNewPasswordTouched(false);
     } catch (err) {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Error message could be empty string
       const message =
         (err instanceof Error && err.message) || 'Password change failed. Please try again.';
       setInternalError(message);
@@ -191,16 +177,11 @@ export function AuthPasswordCreateForm({
 
       {onCancel && (
         <div className="mt-4 text-center">
-          <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">
+          <p className="text-data-sm font-mono text-[rgb(var(--auth-text-mute))]">
             Return to{' '}
-            <button
-              type="button"
-              onClick={onCancel}
-              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
-              disabled={isLoading}
-            >
+            <AuthLinkButton onClick={onCancel} disabled={isLoading}>
               {cancelText}
-            </button>
+            </AuthLinkButton>
           </p>
         </div>
       )}

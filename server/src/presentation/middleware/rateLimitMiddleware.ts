@@ -4,7 +4,6 @@
  * Express middleware that enforces login rate limits via RateLimitingService.
  */
 
-
 import { RateLimitingService } from '@application/services/RateLimitingService';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { logger } from '@infrastructure/logging/logger';
@@ -25,7 +24,7 @@ export function createRateLimitMiddleware(
         return next();
       }
 
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- fall through on empty-string ip, so || not ??
       const identifier = req.ip || req.socket.remoteAddress || 'unknown';
       const blockStatus = await service.isBlocked(identifier);
 
@@ -33,7 +32,7 @@ export function createRateLimitMiddleware(
         logger.warn('Blocked request due to rate limiting', {
           ip: identifier,
           path: req.path,
-          timeRemaining: blockStatus.timeRemaining
+          timeRemaining: blockStatus.timeRemaining,
         });
 
         onBlock?.(req);
@@ -42,7 +41,7 @@ export function createRateLimitMiddleware(
           success: false,
           error: 'Too many login attempts',
           message: `Please try again in ${blockStatus.timeRemaining} seconds`,
-          retryAfter: blockStatus.timeRemaining
+          retryAfter: blockStatus.timeRemaining,
         });
         return;
       }

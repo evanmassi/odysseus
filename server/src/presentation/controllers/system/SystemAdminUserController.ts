@@ -29,13 +29,12 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'User activated successfully'
+        message: 'User activated successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate user');
+      handleControllerError(error, res, 'Failed to activate user', req.requestId);
     }
   }
 
@@ -47,13 +46,12 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.deactivateUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'User deactivated successfully'
+        message: 'User deactivated successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate user');
+      handleControllerError(error, res, 'Failed to deactivate user', req.requestId);
     }
   }
 
@@ -65,13 +63,12 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.suspendUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'User suspended successfully'
+        message: 'User suspended successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to suspend user');
+      handleControllerError(error, res, 'Failed to suspend user', req.requestId);
     }
   }
 
@@ -83,13 +80,12 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.deleteUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'User deleted successfully'
+        message: 'User deleted successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete user');
+      handleControllerError(error, res, 'Failed to delete user', req.requestId);
     }
   }
 }

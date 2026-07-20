@@ -4,21 +4,20 @@
 
 import { AccessControlService } from './AccessControlService';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { createTestUser, createTestAdmin, createTestSystemAdmin, createTestTube } from '@domain/__tests__/helpers';
-
-const mockUserRepository = {
-  countByRole: jest.fn(),
-  countByRoleInLab: jest.fn(),
-} as any;
+import {
+  createTestUser,
+  createTestAdmin,
+  createTestSystemAdmin,
+  createTestTube,
+} from '@domain/__tests__/helpers';
 
 const mockTubeRepository = {
   findById: jest.fn(),
-  countByResearcher: jest.fn(),
   countByTank: jest.fn(),
 } as any;
 
 function createService() {
-  return new AccessControlService(mockUserRepository, mockTubeRepository);
+  return new AccessControlService(mockTubeRepository);
 }
 
 beforeEach(() => {
@@ -284,47 +283,6 @@ describe('AccessControlService', () => {
     });
   });
 
-  describe('canManageUser', () => {
-    it('should deny self-management', async () => {
-      const admin = createTestAdmin();
-      mockUserRepository.countByRoleInLab.mockResolvedValue(2);
-      const result = await createService().canManageUser(admin, admin);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('own user account');
-    });
-
-    it('should deny lab admin managing cross-lab user', async () => {
-      const admin = createTestAdmin({ labId: 'lab_1' });
-      const user = createTestUser({ labId: 'lab_2' });
-      const result = await createService().canManageUser(admin, user);
-      expect(result.allowed).toBe(false);
-    });
-
-    it('should deny lab admin managing system admin', async () => {
-      const labAdmin = createTestAdmin({ labId: 'lab_1' });
-      const sysAdmin = createTestSystemAdmin();
-      const result = await createService().canManageUser(labAdmin, sysAdmin);
-      expect(result.allowed).toBe(false);
-    });
-
-    it('should prevent removing last lab admin', async () => {
-      const sysAdmin = createTestSystemAdmin();
-      const labAdmin = createTestAdmin({ labId: 'lab_1' });
-      mockUserRepository.countByRoleInLab.mockResolvedValue(1);
-      const result = await createService().canManageUser(sysAdmin, labAdmin);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('last lab administrator');
-    });
-
-    it('should allow managing user when multiple lab admins exist', async () => {
-      const sysAdmin = createTestSystemAdmin();
-      const labAdmin = createTestAdmin({ labId: 'lab_1' });
-      mockUserRepository.countByRoleInLab.mockResolvedValue(2);
-      const result = await createService().canManageUser(sysAdmin, labAdmin);
-      expect(result.allowed).toBe(true);
-    });
-  });
-
   describe('canModifyStorage', () => {
     it('should allow admin', async () => {
       const admin = createTestAdmin();
@@ -393,18 +351,6 @@ describe('AccessControlService', () => {
     });
   });
 
-  describe('canAssignResource', () => {
-    it('should allow admin', () => {
-      const admin = createTestAdmin();
-      expect(createService().canAssignResource(admin)).toBe(true);
-    });
-
-    it('should deny regular user', () => {
-      const user = createTestUser();
-      expect(createService().canAssignResource(user)).toBe(false);
-    });
-  });
-
   describe('canEditResource', () => {
     it('should allow admin to edit any resource', () => {
       const admin = createTestAdmin();
@@ -434,45 +380,20 @@ describe('AccessControlService', () => {
     });
   });
 
-  describe('canPerformMaintenance', () => {
-    it('should deny non-admin', async () => {
-      const user = createTestUser();
-      const result = await createService().canPerformMaintenance(user);
-      expect(result.allowed).toBe(false);
-    });
-
-    it('should deny when fewer than 2 admins', async () => {
-      const admin = createTestAdmin();
-      mockUserRepository.countByRole.mockResolvedValue(1);
-      const result = await createService().canPerformMaintenance(admin);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('at least 2');
-    });
-
-    it('should allow when 2+ admins exist', async () => {
-      const admin = createTestAdmin();
-      mockUserRepository.countByRole.mockResolvedValue(2);
-      const result = await createService().canPerformMaintenance(admin);
-      expect(result.allowed).toBe(true);
-    });
-  });
-
   describe('require methods', () => {
     describe('requireTubeAccess', () => {
       it('should not throw when allowed', async () => {
         const admin = createTestAdmin();
         const tube = createTestTube();
-        await expect(
-          createService().requireTubeAccess(admin, tube, 'edit')
-        ).resolves.not.toThrow();
+        await expect(createService().requireTubeAccess(admin, tube, 'edit')).resolves.not.toThrow();
       });
 
       it('should throw PermissionError when denied', async () => {
         const user = createTestUser({ researcherId: 'res_1' });
         const tube = createTestTube({ researcherId: 'res_other' });
-        await expect(
-          createService().requireTubeAccess(user, tube, 'edit')
-        ).rejects.toThrow(PermissionError);
+        await expect(createService().requireTubeAccess(user, tube, 'edit')).rejects.toThrow(
+          PermissionError
+        );
       });
     });
 

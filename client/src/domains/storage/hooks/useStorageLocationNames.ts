@@ -15,7 +15,7 @@ import type {
   BoxConfiguration,
 } from '@odysseus/shared-schemas';
 
-export interface LocationDisplayNames {
+interface LocationDisplayNames {
   tankName: string;
   rackName: string;
   boxName: string;

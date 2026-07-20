@@ -20,7 +20,6 @@ export interface RefreshTokenRow {
 }
 
 export class RefreshTokenMapper {
-
   static toRow(refreshToken: RefreshToken): RefreshTokenRow {
     return {
       id: refreshToken.id,
@@ -31,7 +30,7 @@ export class RefreshTokenMapper {
       last_used_at: refreshToken.lastUsedAt ?? null,
       is_revoked: refreshToken.isRevoked,
       user_agent: refreshToken.userAgent ?? null,
-      ip_address: refreshToken.ipAddress ?? null
+      ip_address: refreshToken.ipAddress ?? null,
     };
   }
 
@@ -45,11 +44,7 @@ export class RefreshTokenMapper {
       lastUsedAt: row.last_used_at ? toDate(row.last_used_at) : undefined,
       isRevoked: row.is_revoked,
       userAgent: row.user_agent ?? undefined,
-      ipAddress: row.ip_address ?? undefined
+      ipAddress: row.ip_address ?? undefined,
     });
-  }
-
-  static fromRows(rows: RefreshTokenRow[]): RefreshToken[] {
-    return rows.map(row => this.fromRow(row));
   }
 }

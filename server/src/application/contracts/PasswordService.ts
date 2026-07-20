@@ -1,9 +1,7 @@
 /**
  * Password Service Interface
  *
- * Defines the contract for password hashing and verification operations.
- * This abstraction allows for different password hashing implementations
- * (bcrypt, argon2, etc.) without changing application logic.
+ * Password hashing and verification, decoupled from the hashing algorithm.
  */
 
 export interface PasswordService {
@@ -11,6 +9,9 @@ export interface PasswordService {
 
   verify(plainPassword: string, storedHash: string, salt?: string): Promise<boolean>;
 
-  /** Returns true if the stored hash should be re-hashed with the current algorithm. */
-  needsUpgrade(storedHash: string, salt?: string): boolean;
+  /**
+   * Returns true if the stored credential should be re-hashed with the current
+   * algorithm. Legacy PBKDF2 credentials carry a salt and need re-hashing to bcrypt.
+   */
+  needsUpgrade(salt?: string): boolean;
 }

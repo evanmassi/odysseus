@@ -8,9 +8,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { deriveLabelSize, type SheetTemplate } from './sheetTemplates';
-import { BarcodeLabel } from './SupplyBarcodePrint';
+import { BarcodeLabel } from './SupplyBarcodeLabel';
 
-import type { BarcodeFormat } from './SupplyBarcodePrint';
+import type { BarcodeFormat } from './SupplyBarcodeLabel';
 import type { PrintableLabel } from './supplyBarcodeSheetTypes';
 
 const CSS_PX_PER_INCH = 96;

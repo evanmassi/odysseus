@@ -28,11 +28,7 @@ export class ResponseBuilder {
     };
   }
 
-  static error(
-    code: string,
-    message: string,
-    details?: unknown
-  ): ErrorResponse {
+  static error(code: string, message: string, details?: unknown): ErrorResponse {
     return {
       success: false,
       error: message,
@@ -42,30 +38,14 @@ export class ResponseBuilder {
     };
   }
 
-  static validationError(message: string, details?: unknown): ErrorResponse {
-    return ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, message, details);
-  }
-
-  static unauthorized(message: string = 'Authentication required'): ErrorResponse {
-    return ResponseBuilder.error(API_ERROR_CODES.UNAUTHORIZED, message);
-  }
-
   static forbidden(message: string = 'Access forbidden'): ErrorResponse {
     return ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, message);
   }
 
-  static notFound(resource: string, identifier?: string): ErrorResponse {
-    const msg = identifier
-      ? `${resource} not found: ${identifier}`
-      : `${resource} not found`;
-    return ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, msg);
-  }
-
-  static conflict(message: string, details?: unknown): ErrorResponse {
-    return ResponseBuilder.error(API_ERROR_CODES.DATA_CONFLICT, message, details);
-  }
-
-  static internalError(message: string = 'Internal server error', details?: unknown): ErrorResponse {
+  static internalError(
+    message: string = 'Internal server error',
+    details?: unknown
+  ): ErrorResponse {
     return ResponseBuilder.error(API_ERROR_CODES.INTERNAL_SERVER_ERROR, message, details);
   }
 }

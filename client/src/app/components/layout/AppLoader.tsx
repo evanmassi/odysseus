@@ -1,38 +1,34 @@
 /**
  * App Loader
  *
- * Branded boot splash shown while the app bootstraps. Calm in the happy path —
- * a breathing mark on the always-dark auth field, so it flows straight into the
- * gateway's CRT power-on. Diagnostics surface only when boot is slow or fails.
+ * Branded boot splash shown while the app bootstraps; surfaces diagnostics when boot is slow or fails.
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
-import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { env } from '@shared/config';
-import { Button } from '@shared/ui';
+import { Button, LoadingSpinner } from '@shared/ui';
 
-import { OfflineInitializationPage } from '../../bootstrap/OfflineInitializationPage';
+import { OfflineInitializationPage } from './OfflineInitializationPage';
 
-import type { UseAppBootstrapResult } from '../../bootstrap/types';
+import type { UseAppBootstrapResult } from '@app/bootstrap';
 
 interface AppLoaderProps {
   context: UseAppBootstrapResult;
   onRetry?: () => void;
-  onCancel?: () => void;
 }
 
 // Defer the "taking longer" hint until boot is genuinely dragging; a fast boot
 // never shows it.
 const SLOW_BOOT_MS = 4000;
 
+// Bloom alphas scale by --lit (1 dark, 0 light), so the glow drops to zero in light.
 const HERO_BLOOM =
-  'drop-shadow(0 0 26px rgb(var(--auth-ambient) / 0.35)) drop-shadow(0 0 60px rgb(var(--auth-ambient) / 0.15))';
+  'drop-shadow(0 0 26px rgb(var(--auth-ambient) / calc(0.35 * var(--lit)))) drop-shadow(0 0 60px rgb(var(--auth-ambient) / calc(0.15 * var(--lit))))';
 
-export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
+export function AppLoader({ context, onRetry }: AppLoaderProps) {
   const { state, error, canRetry } = context;
 
   const [isSlow, setIsSlow] = useState(false);
@@ -53,23 +49,10 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
         <div className="flex max-w-xs flex-col items-center gap-5 px-8 text-center">
           <AlertCircle className="h-12 w-12 text-[hsl(var(--color-danger-bg))]" />
           <div className="flex flex-col items-center gap-2">
-            <OdysseusLogo
-              className="h-7 w-auto text-[rgb(var(--auth-text-dim))] drop-shadow-icon-bloom"
-              aria-label="Odysseus"
-            />
+            <SplashLogo />
             <ConsoleStatus label="Initialization failed" />
           </div>
-          {error && <p className="text-sm text-[rgb(var(--auth-text-dim))]">{error}</p>}
-          {env.isDev() && error && (
-            <details className="w-full text-left">
-              <summary className="cursor-pointer text-xs text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text-dim))]">
-                Debug information
-              </summary>
-              <pre className="mt-2 overflow-auto rounded bg-black/30 p-2 text-xs text-[rgb(var(--auth-text-mute))]">
-                {error}
-              </pre>
-            </details>
-          )}
+          {error && <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">{error}</p>}
           <div className="flex gap-3">
             {canRetry && onRetry && (
               <Button
@@ -78,11 +61,6 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
                 leftIcon={<RefreshCw className="h-4 w-4" />}
               >
                 Try Again
-              </Button>
-            )}
-            {onCancel && (
-              <Button variant="cancel" onClick={onCancel}>
-                Cancel
               </Button>
             )}
           </div>
@@ -94,22 +72,15 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
   return (
     <BootSplashField>
       <div className="flex animate-in flex-col items-center gap-6 px-8 fade-in-0 duration-500">
-        <img
-          src={odysseusIcon}
-          alt=""
-          aria-hidden
-          className="phosphor-breathe h-24 w-24 object-contain"
-          style={{ filter: HERO_BLOOM }}
-        />
+        <div aria-hidden style={{ filter: HERO_BLOOM }}>
+          <LoadingSpinner size={96} className="text-[rgb(var(--auth-text))]" />
+        </div>
         <div className="flex flex-col items-center gap-3">
-          <OdysseusLogo
-            className="h-7 w-auto text-[rgb(var(--auth-text-dim))] drop-shadow-icon-bloom"
-            aria-label="Odysseus"
-          />
+          <SplashLogo />
           <ConsoleStatus label="Initializing" />
         </div>
         <p
-          className={`text-sm text-[rgb(var(--auth-text-mute))] transition-opacity duration-500 ${
+          className={`text-body-sm text-[rgb(var(--auth-text-mute))] transition-opacity duration-500 ${
             isSlow ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -133,9 +104,18 @@ function BootSplashField({ children }: { children: ReactNode }) {
   );
 }
 
+function SplashLogo() {
+  return (
+    <OdysseusLogo
+      className="h-7 w-auto text-[rgb(var(--auth-text-dim))] drop-shadow-icon-bloom"
+      aria-label="Odysseus"
+    />
+  );
+}
+
 function ConsoleStatus({ label }: { label: string }) {
   return (
-    <span className="phosphor-text font-mono text-[10px] uppercase tracking-[0.28em] text-[rgb(var(--auth-text-mute))]">
+    <span className="phosphor-text type-label text-label-2xs tracking-ceremonial text-[rgb(var(--auth-text-mute))]">
       [ {label} ]
     </span>
   );

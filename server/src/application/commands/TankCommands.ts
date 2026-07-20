@@ -10,11 +10,7 @@ import { requireUser } from '@application/guards/UserGuards';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import {
-  TankAddedEvent,
-  TankUpdatedEvent,
-  TankDeletedEvent
-} from '@domain/events/StorageEvents';
+import { TankAddedEvent, TankUpdatedEvent, TankDeletedEvent } from '@domain/events/StorageEvents';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -29,7 +25,6 @@ export interface AddTankCommand {
   userId: string;
   labId: string;
   name: string;
-  location?: string;
 }
 
 export interface UpdateTankCommand {
@@ -89,12 +84,7 @@ export class AddTankCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    const event = new TankAddedEvent(
-      command.userId,
-      tankId,
-      command.name,
-      command.labId
-    );
+    const event = new TankAddedEvent(command.userId, tankId, command.name, command.labId);
     await this.eventBus.publish(event);
 
     return { tankId };
@@ -123,7 +113,7 @@ export class UpdateTankCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const changes: FieldChange[] = [];
@@ -152,7 +142,7 @@ export class UpdateTankCommandHandler {
     const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
-      systemSettings: configData.systemSettings
+      systemSettings: configData.systemSettings,
     });
 
     const newVersion = await this.storageRepository.saveWithOptimisticLock(
@@ -202,12 +192,7 @@ export class DeleteTankCommandHandler {
       command.userId
     );
 
-    const event = new TankDeletedEvent(
-      command.userId,
-      command.tankId,
-      tankName,
-      command.labId
-    );
+    const event = new TankDeletedEvent(command.userId, command.tankId, tankName, command.labId);
     await this.eventBus.publish(event);
   }
 }
@@ -244,7 +229,7 @@ export class ResetDemoDataCommandHandler {
     if (this.donorRepository) {
       const donors = await this.donorRepository.findByLabId(command.labId);
       for (const donor of donors) {
-        await this.donorRepository.delete(donor.id);
+        await this.donorRepository.delete(donor.id, command.labId);
       }
     }
 

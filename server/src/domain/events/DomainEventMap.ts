@@ -4,15 +4,11 @@
  * Central registry enabling compile-time verification of event handler subscriptions.
  */
 
-import type {
-  DonorCreatedEvent,
-  DonorUpdatedEvent,
-  DonorDeletedEvent
-} from './DonorEvents';
+import type { DonorCreatedEvent, DonorUpdatedEvent, DonorDeletedEvent } from './DonorEvents';
 import type {
   VerificationEmailSentEvent,
   EmailVerifiedEvent,
-  VerificationEmailResentEvent
+  VerificationEmailResentEvent,
 } from './EmailVerificationEvents';
 import type {
   EquipmentItemCreatedEvent,
@@ -37,12 +33,11 @@ import type {
   LabActivatedEvent,
   LabDeactivatedEvent,
   InviteCodeCreatedEvent,
-  InviteCodeUsedEvent
 } from './LabEvents';
 import type {
   PasswordResetByAdminEvent,
   PasswordResetTokenGeneratedEvent,
-  PasswordResetCompletedEvent
+  PasswordResetCompletedEvent,
 } from './PasswordResetEvents';
 import type {
   ResearcherCreatedEvent,
@@ -50,7 +45,6 @@ import type {
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
   ResearcherDeletedEvent,
-  ResearcherApprovedEvent
 } from './ResearcherEvents';
 import type {
   StorageUpdatedEvent,
@@ -63,7 +57,6 @@ import type {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent,
   RackAssignedEvent,
   RackUnassignedEvent,
   RackReassignedEvent,
@@ -73,7 +66,7 @@ import type {
   RackLabelUpdatedEvent,
   BoxLabelUpdatedEvent,
   BulkResourcesUnassignedEvent,
-  BulkResourcesReassignedEvent
+  BulkResourcesReassignedEvent,
 } from './StorageEvents';
 import type {
   SupplyItemCreatedEvent,
@@ -96,8 +89,22 @@ import type {
   SupplyBulkArchivedEvent,
   SupplyBulkVoidedEvent,
 } from './SupplyEvents';
-import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesCreatedEvent, BulkTubesUpdatedEvent, BulkTubesDeletedEvent, BulkTubesMovedEvent } from './TubeEvents';
-import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
+import type {
+  TubeCreatedEvent,
+  TubeUpdatedEvent,
+  TubeLocationChangedEvent,
+  TubeDeletedEvent,
+  BulkTubesCreatedEvent,
+  BulkTubesUpdatedEvent,
+  BulkTubesDeletedEvent,
+  BulkTubesMovedEvent,
+} from './TubeEvents';
+import type {
+  TubesLockedEvent,
+  TubesUnlockedEvent,
+  TubeAccessSharedEvent,
+  TubeAccessRevokedEvent,
+} from './TubeLockEvents';
 import type {
   UserCreatedEvent,
   UserPasswordChangedEvent,
@@ -110,137 +117,134 @@ import type {
   UserUnlinkedFromResearcherEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
-  UserReactivatedEvent
+  UserReactivatedEvent,
 } from './UserEvents';
 
 export interface DomainEventMap {
   // Tube CRUD events
-  'TubeCreated': TubeCreatedEvent;
-  'TubeUpdated': TubeUpdatedEvent;
-  'TubeLocationChanged': TubeLocationChangedEvent;
-  'TubeDeleted': TubeDeletedEvent;
-  'BulkTubesCreated': BulkTubesCreatedEvent;
-  'BulkTubesUpdated': BulkTubesUpdatedEvent;
-  'BulkTubesDeleted': BulkTubesDeletedEvent;
-  'BulkTubesMoved': BulkTubesMovedEvent;
+  TubeCreated: TubeCreatedEvent;
+  TubeUpdated: TubeUpdatedEvent;
+  TubeLocationChanged: TubeLocationChangedEvent;
+  TubeDeleted: TubeDeletedEvent;
+  BulkTubesCreated: BulkTubesCreatedEvent;
+  BulkTubesUpdated: BulkTubesUpdatedEvent;
+  BulkTubesDeleted: BulkTubesDeletedEvent;
+  BulkTubesMoved: BulkTubesMovedEvent;
 
   // Tube lock/access events
-  'TubesLocked': TubesLockedEvent;
-  'TubesUnlocked': TubesUnlockedEvent;
-  'TubeAccessShared': TubeAccessSharedEvent;
-  'TubeAccessRevoked': TubeAccessRevokedEvent;
+  TubesLocked: TubesLockedEvent;
+  TubesUnlocked: TubesUnlockedEvent;
+  TubeAccessShared: TubeAccessSharedEvent;
+  TubeAccessRevoked: TubeAccessRevokedEvent;
 
   // Storage events
-  'StorageUpdated': StorageUpdatedEvent;
-  'TankUpdated': TankUpdatedEvent;
-  'TankAdded': TankAddedEvent;
-  'TankDeleted': TankDeletedEvent;
-  'RackAdded': RackAddedEvent;
-  'RackDeleted': RackDeletedEvent;
-  'RackUpdated': RackUpdatedEvent;
-  'BoxAdded': BoxAddedEvent;
-  'BoxDeleted': BoxDeletedEvent;
-  'BoxUpdated': BoxUpdatedEvent;
-  'LabNameChanged': LabNameChangedEvent;
+  StorageUpdated: StorageUpdatedEvent;
+  TankUpdated: TankUpdatedEvent;
+  TankAdded: TankAddedEvent;
+  TankDeleted: TankDeletedEvent;
+  RackAdded: RackAddedEvent;
+  RackDeleted: RackDeletedEvent;
+  RackUpdated: RackUpdatedEvent;
+  BoxAdded: BoxAddedEvent;
+  BoxDeleted: BoxDeletedEvent;
+  BoxUpdated: BoxUpdatedEvent;
 
   // Assignment events
-  'RackAssigned': RackAssignedEvent;
-  'RackUnassigned': RackUnassignedEvent;
-  'RackReassigned': RackReassignedEvent;
-  'BoxAssigned': BoxAssignedEvent;
-  'BoxUnassigned': BoxUnassignedEvent;
-  'BoxReassigned': BoxReassignedEvent;
+  RackAssigned: RackAssignedEvent;
+  RackUnassigned: RackUnassignedEvent;
+  RackReassigned: RackReassignedEvent;
+  BoxAssigned: BoxAssignedEvent;
+  BoxUnassigned: BoxUnassignedEvent;
+  BoxReassigned: BoxReassignedEvent;
 
   // Label events
-  'RackLabelUpdated': RackLabelUpdatedEvent;
-  'BoxLabelUpdated': BoxLabelUpdatedEvent;
+  RackLabelUpdated: RackLabelUpdatedEvent;
+  BoxLabelUpdated: BoxLabelUpdatedEvent;
 
   // Bulk resource events
-  'BulkResourcesUnassigned': BulkResourcesUnassignedEvent;
-  'BulkResourcesReassigned': BulkResourcesReassignedEvent;
+  BulkResourcesUnassigned: BulkResourcesUnassignedEvent;
+  BulkResourcesReassigned: BulkResourcesReassignedEvent;
 
   // User events
-  'UserCreated': UserCreatedEvent;
-  'UserPasswordChanged': UserPasswordChangedEvent;
-  'UserRoleChanged': UserRoleChangedEvent;
-  'UserDeleted': UserDeletedEvent;
-  'UserLoggedIn': UserLoggedInEvent;
-  'UserLoginFailed': UserLoginFailedEvent;
-  'UserLoggedOut': UserLoggedOutEvent;
-  'UserLinkedToResearcher': UserLinkedToResearcherEvent;
-  'UserUnlinkedFromResearcher': UserUnlinkedFromResearcherEvent;
-  'UserDeactivated': UserDeactivatedEvent;
-  'UserSuspended': UserSuspendedEvent;
-  'UserReactivated': UserReactivatedEvent;
+  UserCreated: UserCreatedEvent;
+  UserPasswordChanged: UserPasswordChangedEvent;
+  UserRoleChanged: UserRoleChangedEvent;
+  UserDeleted: UserDeletedEvent;
+  UserLoggedIn: UserLoggedInEvent;
+  UserLoginFailed: UserLoginFailedEvent;
+  UserLoggedOut: UserLoggedOutEvent;
+  UserLinkedToResearcher: UserLinkedToResearcherEvent;
+  UserUnlinkedFromResearcher: UserUnlinkedFromResearcherEvent;
+  UserDeactivated: UserDeactivatedEvent;
+  UserSuspended: UserSuspendedEvent;
+  UserReactivated: UserReactivatedEvent;
 
   // Researcher events
-  'ResearcherCreated': ResearcherCreatedEvent;
-  'ResearcherUpdated': ResearcherUpdatedEvent;
-  'ResearcherDeactivated': ResearcherDeactivatedEvent;
-  'ResearcherReactivated': ResearcherReactivatedEvent;
-  'ResearcherDeleted': ResearcherDeletedEvent;
-  'ResearcherApproved': ResearcherApprovedEvent;
+  ResearcherCreated: ResearcherCreatedEvent;
+  ResearcherUpdated: ResearcherUpdatedEvent;
+  ResearcherDeactivated: ResearcherDeactivatedEvent;
+  ResearcherReactivated: ResearcherReactivatedEvent;
+  ResearcherDeleted: ResearcherDeletedEvent;
 
   // Email verification events
-  'VerificationEmailSent': VerificationEmailSentEvent;
-  'EmailVerified': EmailVerifiedEvent;
-  'VerificationEmailResent': VerificationEmailResentEvent;
+  VerificationEmailSent: VerificationEmailSentEvent;
+  EmailVerified: EmailVerifiedEvent;
+  VerificationEmailResent: VerificationEmailResentEvent;
 
   // Password reset events
-  'PasswordResetByAdmin': PasswordResetByAdminEvent;
-  'PasswordResetTokenGenerated': PasswordResetTokenGeneratedEvent;
-  'PasswordResetCompleted': PasswordResetCompletedEvent;
+  PasswordResetByAdmin: PasswordResetByAdminEvent;
+  PasswordResetTokenGenerated: PasswordResetTokenGeneratedEvent;
+  PasswordResetCompleted: PasswordResetCompletedEvent;
 
   // Donor events
-  'DonorCreated': DonorCreatedEvent;
-  'DonorUpdated': DonorUpdatedEvent;
-  'DonorDeleted': DonorDeletedEvent;
+  DonorCreated: DonorCreatedEvent;
+  DonorUpdated: DonorUpdatedEvent;
+  DonorDeleted: DonorDeletedEvent;
 
   // Equipment events
-  'EquipmentItemCreated': EquipmentItemCreatedEvent;
-  'EquipmentItemUpdated': EquipmentItemUpdatedEvent;
-  'EquipmentItemDecommissioned': EquipmentItemDecommissionedEvent;
-  'EquipmentItemDeleted': EquipmentItemDeletedEvent;
-  'EquipmentMaintenanceLogged': EquipmentMaintenanceLoggedEvent;
-  'EquipmentMaintenanceUpdated': EquipmentMaintenanceUpdatedEvent;
-  'EquipmentMaintenanceDeleted': EquipmentMaintenanceDeletedEvent;
-  'EquipmentCategoryCreated': EquipmentCategoryCreatedEvent;
-  'EquipmentCategoryUpdated': EquipmentCategoryUpdatedEvent;
-  'EquipmentCategoryDeleted': EquipmentCategoryDeletedEvent;
-  'EquipmentDocumentAdded': EquipmentDocumentAddedEvent;
-  'EquipmentDocumentRemoved': EquipmentDocumentRemovedEvent;
-  'EquipmentBulkMaintenanceLogged': EquipmentBulkMaintenanceLoggedEvent;
-  'EquipmentBulkStatusChanged': EquipmentBulkStatusChangedEvent;
-  'EquipmentBulkRelocated': EquipmentBulkRelocatedEvent;
+  EquipmentItemCreated: EquipmentItemCreatedEvent;
+  EquipmentItemUpdated: EquipmentItemUpdatedEvent;
+  EquipmentItemDecommissioned: EquipmentItemDecommissionedEvent;
+  EquipmentItemDeleted: EquipmentItemDeletedEvent;
+  EquipmentMaintenanceLogged: EquipmentMaintenanceLoggedEvent;
+  EquipmentMaintenanceUpdated: EquipmentMaintenanceUpdatedEvent;
+  EquipmentMaintenanceDeleted: EquipmentMaintenanceDeletedEvent;
+  EquipmentCategoryCreated: EquipmentCategoryCreatedEvent;
+  EquipmentCategoryUpdated: EquipmentCategoryUpdatedEvent;
+  EquipmentCategoryDeleted: EquipmentCategoryDeletedEvent;
+  EquipmentDocumentAdded: EquipmentDocumentAddedEvent;
+  EquipmentDocumentRemoved: EquipmentDocumentRemovedEvent;
+  EquipmentBulkMaintenanceLogged: EquipmentBulkMaintenanceLoggedEvent;
+  EquipmentBulkStatusChanged: EquipmentBulkStatusChangedEvent;
+  EquipmentBulkRelocated: EquipmentBulkRelocatedEvent;
 
   // Supply events
-  'SupplyItemCreated': SupplyItemCreatedEvent;
-  'SupplyItemUpdated': SupplyItemUpdatedEvent;
-  'SupplyItemArchived': SupplyItemArchivedEvent;
-  'SupplyItemDeleted': SupplyItemDeletedEvent;
-  'SupplyCategoryCreated': SupplyCategoryCreatedEvent;
-  'SupplyCategoryUpdated': SupplyCategoryUpdatedEvent;
-  'SupplyCategoryDeleted': SupplyCategoryDeletedEvent;
-  'SupplyDocumentAdded': SupplyDocumentAddedEvent;
-  'SupplyDocumentRemoved': SupplyDocumentRemovedEvent;
-  'SupplyStockReceived': SupplyStockReceivedEvent;
-  'SupplyStockIssued': SupplyStockIssuedEvent;
-  'SupplyStockCountAdjusted': SupplyStockCountAdjustedEvent;
-  'SupplyStockDisposed': SupplyStockDisposedEvent;
-  'SupplyStockVoided': SupplyStockVoidedEvent;
-  'SupplyBulkReceived': SupplyBulkReceivedEvent;
-  'SupplyBulkIssued': SupplyBulkIssuedEvent;
-  'SupplyBulkCategoryReassigned': SupplyBulkCategoryReassignedEvent;
-  'SupplyBulkArchived': SupplyBulkArchivedEvent;
-  'SupplyBulkVoided': SupplyBulkVoidedEvent;
+  SupplyItemCreated: SupplyItemCreatedEvent;
+  SupplyItemUpdated: SupplyItemUpdatedEvent;
+  SupplyItemArchived: SupplyItemArchivedEvent;
+  SupplyItemDeleted: SupplyItemDeletedEvent;
+  SupplyCategoryCreated: SupplyCategoryCreatedEvent;
+  SupplyCategoryUpdated: SupplyCategoryUpdatedEvent;
+  SupplyCategoryDeleted: SupplyCategoryDeletedEvent;
+  SupplyDocumentAdded: SupplyDocumentAddedEvent;
+  SupplyDocumentRemoved: SupplyDocumentRemovedEvent;
+  SupplyStockReceived: SupplyStockReceivedEvent;
+  SupplyStockIssued: SupplyStockIssuedEvent;
+  SupplyStockCountAdjusted: SupplyStockCountAdjustedEvent;
+  SupplyStockDisposed: SupplyStockDisposedEvent;
+  SupplyStockVoided: SupplyStockVoidedEvent;
+  SupplyBulkReceived: SupplyBulkReceivedEvent;
+  SupplyBulkIssued: SupplyBulkIssuedEvent;
+  SupplyBulkCategoryReassigned: SupplyBulkCategoryReassignedEvent;
+  SupplyBulkArchived: SupplyBulkArchivedEvent;
+  SupplyBulkVoided: SupplyBulkVoidedEvent;
 
   // Lab events
-  'LabCreated': LabCreatedEvent;
-  'LabRenamed': LabRenamedEvent;
-  'LabActivated': LabActivatedEvent;
-  'LabDeactivated': LabDeactivatedEvent;
-  'InviteCodeCreated': InviteCodeCreatedEvent;
-  'InviteCodeUsed': InviteCodeUsedEvent;
+  LabCreated: LabCreatedEvent;
+  LabRenamed: LabRenamedEvent;
+  LabActivated: LabActivatedEvent;
+  LabDeactivated: LabDeactivatedEvent;
+  InviteCodeCreated: InviteCodeCreatedEvent;
 }
 
 export type DomainEventName = keyof DomainEventMap;

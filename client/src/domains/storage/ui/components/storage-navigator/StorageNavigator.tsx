@@ -9,10 +9,15 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
 import { Compass } from 'lucide-react';
 
-import { useLocationCounts, useTubesByRack } from '@domains/tubes/hooks';
-import { NubDivider, PanelHeader } from '@shared/ui';
+// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
+import { useLocationCounts } from '@domains/tubes/hooks/useTubeQueries';
+import { AccentTick, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
+import { useRackTubesByBox } from '../../../hooks/useRackTubesByBox';
+import { getEffectiveOwnerId } from '../../../utils/effectiveOwner';
+
+import './storage-navigator.css';
 import { StorageBoxMinimap } from './StorageBoxMinimap';
 import { StorageNavigatorNode } from './StorageNavigatorNode';
 import {
@@ -37,14 +42,6 @@ function getNodeKey(
   if (level === 'tank') return `tank:${tankId}`;
   if (level === 'rack') return `rack:${tankId}:${rackId}`;
   return `box:${tankId}:${rackId}:${boxId}`;
-}
-
-function getEffectiveOwner(
-  assignedUserId: string | null | undefined,
-  parentAssignedUserId?: string | null
-): string | null | undefined {
-  // Box inherits from rack if undefined (not explicitly set)
-  return assignedUserId === undefined ? parentAssignedUserId : assignedUserId;
 }
 
 function computeOwnershipType(
@@ -242,39 +239,30 @@ export function StorageNavigator({
         <PanelHeader icon={<Compass className="h-4 w-4" />} title="Navigator" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="flex min-w-0 items-center gap-1.5">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-            />
-            <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+            <AccentTick tone="warning" />
+            <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
               {data.tanks.length} {data.tanks.length === 1 ? 'tank' : 'tanks'}
             </span>
           </span>
           <span className="flex-1" />
           <span className="flex flex-shrink-0 items-center gap-2">
-            <span className="relative h-1 w-20 bg-foreground/[0.07]">
-              <span
-                className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-                style={{
-                  width: `${occupancy.facility.capacity > 0 ? (occupancy.facility.filled / occupancy.facility.capacity) * 100 : 0}%`,
-                }}
-              />
-            </span>
-            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+            <OccupancyBar
+              filled={occupancy.facility.filled}
+              capacity={occupancy.facility.capacity}
+              size="lg"
+              glow
+              className="w-20"
+            />
+            <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
               {occupancy.facility.filled}
               <span className="text-foreground/35">/{occupancy.facility.capacity}</span>
             </span>
           </span>
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <div
         className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3"
@@ -372,7 +360,7 @@ export function StorageNavigator({
                             const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
                             const boxNodeIndex = nodeKeyToIndex.get(boxKey) ?? -1;
                             const boxNode = visibleNodes[boxNodeIndex];
-                            const effectiveBoxOwner = getEffectiveOwner(
+                            const effectiveBoxOwner = getEffectiveOwnerId(
                               box.assignedUserId,
                               rack.assignedUserId
                             );
@@ -425,22 +413,9 @@ interface RackBoxMinimapsProps {
   renderBox: (box: Box, tubes: RackTube[]) => React.ReactNode;
 }
 
-/** Loads one open rack's slim tube colors once and hands each box its own tubes. */
+/** Feeds each box its own tubes from the open rack's grouped fetch. */
 function RackBoxMinimaps({ tankId, rackId, boxes, renderBox }: RackBoxMinimapsProps) {
-  const { data: tubes = [] } = useTubesByRack(tankId, rackId);
-
-  const tubesByBox = useMemo(() => {
-    const grouped = new Map<string, RackTube[]>();
-    for (const tube of tubes) {
-      const list = grouped.get(tube.boxId);
-      if (list) {
-        list.push(tube);
-      } else {
-        grouped.set(tube.boxId, [tube]);
-      }
-    }
-    return grouped;
-  }, [tubes]);
+  const tubesByBox = useRackTubesByBox(tankId, rackId);
 
   return <>{boxes.map(box => renderBox(box, tubesByBox.get(box.id) ?? []))}</>;
 }

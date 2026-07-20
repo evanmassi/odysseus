@@ -1,9 +1,7 @@
 /**
  * Chip
  *
- * Stencil-plate tag: two cells (lead · label), 6px chamfered top-right.
- * Tone drives the colour palette; success/warning/danger fill the lead
- * with an auto-glyph when no explicit `lead` is provided.
+ * Stencil-plate tag — a lead cell and a label cell with a chamfered corner; tone drives the palette.
  */
 
 import React, { forwardRef } from 'react';
@@ -90,8 +88,8 @@ const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
 // Selected selectable chips light up with the primary treatment. clip-path crops
 // outer box-shadows, so the glow must stay inset.
 const SELECTED_BORDER = 'border-primary/55';
-const SELECTED_GLOW = 'shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
-const SELECTED_LABEL = 'opacity-100 [text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
+const SELECTED_GLOW = 'dark:shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
+const SELECTED_LABEL = 'opacity-100 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
 
 interface SizeConfig {
   height: string;
@@ -109,9 +107,9 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
   sm: {
     height: 'h-5',
     chamfer: 6,
-    leadText: 'text-[11px]',
-    lblText: 'text-[9.5px]',
-    numText: 'text-[12.5px]',
+    leadText: 'text-label-xs',
+    lblText: 'text-label-2xs',
+    numText: 'text-data-sm',
     leadPx: 'px-[7px]',
     lblPx: 'pl-2 pr-2.5',
     removeIcon: 10,
@@ -119,9 +117,9 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
   xs: {
     height: 'h-[18px]',
     chamfer: 5,
-    leadText: 'text-[10px]',
-    lblText: 'text-[9px]',
-    numText: 'text-[11px]',
+    leadText: 'text-label-2xs',
+    lblText: 'text-label-2xs',
+    numText: 'text-data-sm',
     leadPx: 'px-1.5',
     lblPx: 'pl-1.5 pr-2',
     removeIcon: 9,
@@ -160,7 +158,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     {
       children,
       lead,
-      leftIcon,
       color = defaultChipProps.color,
       size = defaultChipProps.size,
       behavior = defaultChipProps.behavior,
@@ -181,19 +178,18 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const isSelectable = behavior === 'selectable';
     const isAction = behavior === 'action';
     const isInteractive = isSelectable || isAction;
-    const tone = TONE_CLASSES[color!];
-    const sizeCfg = SIZE_CONFIG[size!];
+    const tone = TONE_CLASSES[color];
+    const sizeCfg = SIZE_CONFIG[size];
 
-    // Lead resolution: explicit prop > deprecated leftIcon > tone auto-glyph > non-specific square.
-    const leadFromProps = lead ?? leftIcon;
-    const autoGlyph = AUTO_GLYPHS[color!];
-    const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
+    // Lead resolution: explicit prop > tone auto-glyph > non-specific square.
+    const autoGlyph = AUTO_GLYPHS[color];
+    const displayLead: React.ReactNode = lead ?? autoGlyph ?? (
       <span
         aria-hidden="true"
-        className="block h-[3px] w-[3px] bg-current shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
+        className="block h-[3px] w-[3px] bg-current dark:shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
       />
     );
-    const leadIsAutoFilled = leadFromProps == null;
+    const leadIsAutoFilled = lead == null;
 
     const isLit = isSelectable && selected;
     const borderClass = isLit ? SELECTED_BORDER : tone.border;
@@ -209,14 +205,14 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       borderClass,
       labelBgClass,
       isLit ? SELECTED_GLOW : '',
-      LIT_CLASSES[color!] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
+      LIT_CLASSES[color] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
         ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
         : '',
       isSelectable && !disabled ? 'hover:brightness-110' : '',
       isAction && !disabled
-        ? 'hover:bg-foreground/[0.06] hover:brightness-110 hover:[text-shadow:0_0_1px_currentColor,0_0_6px_color-mix(in_srgb,currentColor_40%,transparent)]'
+        ? 'hover:bg-foreground/[0.06] hover:brightness-110 dark:hover:[text-shadow:0_0_1px_currentColor,0_0_6px_color-mix(in_srgb,currentColor_40%,transparent)]'
         : '',
       className ?? '',
     ]
@@ -231,22 +227,15 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       if (isAction && onClick) onClick();
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        handleClick();
-      }
-    };
-
     const handleRemove = (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!disabled && onRemove) onRemove();
     };
 
     const labelTypography = numeric
-      ? `${sizeCfg.numText} font-semibold tabular-nums tracking-[0.02em]`
-      : `${sizeCfg.lblText} uppercase tracking-[0.24em]`;
-    const labelState = isLit ? SELECTED_LABEL : numeric ? '' : 'opacity-[0.82]';
+      ? `${sizeCfg.numText} font-semibold tabular-nums tracking-data`
+      : `${sizeCfg.lblText} type-label tracking-label-wide`;
+    const labelState = isLit ? SELECTED_LABEL : '';
 
     const content = (
       <>
@@ -262,7 +251,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           {children}
         </span>
         {behavior === 'removable' && onRemove && (
-          <RemoveButton onClick={handleRemove} disabled={disabled} size={size!} />
+          <RemoveButton onClick={handleRemove} disabled={disabled} size={size} />
         )}
       </>
     );
@@ -275,7 +264,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           className={wrapperClasses}
           style={style}
           onClick={handleClick}
-          onKeyDown={handleKeyDown}
           disabled={disabled}
           aria-label={ariaLabel}
           aria-pressed={isSelectable ? selected : undefined}

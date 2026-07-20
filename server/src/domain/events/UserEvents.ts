@@ -1,7 +1,5 @@
 /**
  * User Domain Events
- *
- * Events that occur within the User aggregate.
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
@@ -14,7 +12,7 @@ export class UserCreatedEvent extends DomainEvent {
     public readonly role: UserRole,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -23,14 +21,6 @@ export class UserCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      role: this.role.value
-    };
   }
 }
 
@@ -41,7 +31,7 @@ export class UserPasswordChangedEvent extends DomainEvent {
     public readonly changedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -50,14 +40,6 @@ export class UserPasswordChangedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      changedBy: this.changedBy
-    };
   }
 }
 
@@ -70,7 +52,7 @@ export class UserRoleChangedEvent extends DomainEvent {
     public readonly changedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -79,16 +61,6 @@ export class UserRoleChangedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      oldRole: this.oldRole.value,
-      newRole: this.newRole.value,
-      changedBy: this.changedBy
-    };
   }
 }
 
@@ -99,7 +71,7 @@ export class UserDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -109,14 +81,6 @@ export class UserDeletedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.userId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      deletedBy: this.deletedBy
-    };
-  }
 }
 
 export class UserLoggedInEvent extends DomainEvent {
@@ -125,7 +89,7 @@ export class UserLoggedInEvent extends DomainEvent {
     public readonly username: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -134,13 +98,6 @@ export class UserLoggedInEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username
-    };
   }
 }
 
@@ -151,7 +108,7 @@ export class UserLoginFailedEvent extends DomainEvent {
     public readonly reason: string,
     public readonly userId?: string
   ) {
-    super(1);
+    super();
   }
 
   eventName(): string {
@@ -161,15 +118,6 @@ export class UserLoginFailedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.userId ?? this.username;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      ipAddress: this.ipAddress,
-      reason: this.reason
-    };
-  }
 }
 
 export class UserLoggedOutEvent extends DomainEvent {
@@ -178,7 +126,7 @@ export class UserLoggedOutEvent extends DomainEvent {
     public readonly username: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -187,13 +135,6 @@ export class UserLoggedOutEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username
-    };
   }
 }
 
@@ -206,7 +147,7 @@ export class UserLinkedToResearcherEvent extends DomainEvent {
     public readonly linkedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -215,16 +156,6 @@ export class UserLinkedToResearcherEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      researcherId: this.researcherId,
-      researcherName: this.researcherName,
-      linkedBy: this.linkedBy
-    };
   }
 }
 
@@ -237,7 +168,7 @@ export class UserUnlinkedFromResearcherEvent extends DomainEvent {
     public readonly unlinkedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -246,16 +177,6 @@ export class UserUnlinkedFromResearcherEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      researcherId: this.researcherId,
-      researcherName: this.researcherName,
-      unlinkedBy: this.unlinkedBy
-    };
   }
 }
 
@@ -266,7 +187,7 @@ export class UserDeactivatedEvent extends DomainEvent {
     public readonly deactivatedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -275,14 +196,6 @@ export class UserDeactivatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      deactivatedBy: this.deactivatedBy
-    };
   }
 }
 
@@ -293,7 +206,7 @@ export class UserSuspendedEvent extends DomainEvent {
     public readonly suspendedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -302,14 +215,6 @@ export class UserSuspendedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      suspendedBy: this.suspendedBy
-    };
   }
 }
 
@@ -321,7 +226,7 @@ export class UserReactivatedEvent extends DomainEvent {
     public readonly reactivatedBy: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -330,14 +235,5 @@ export class UserReactivatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      previousStatus: this.previousStatus,
-      reactivatedBy: this.reactivatedBy
-    };
   }
 }

@@ -4,28 +4,23 @@
  * Admin interface for lab settings, audit configuration, data export, and system statistics.
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   HardDrive,
   Icon,
   Rows3,
   Box as BoxIcon,
   ChevronRight,
-  ChevronDown,
   TestTubes,
   UsersRound,
   Dna,
   DatabaseBackup,
 } from 'lucide-react';
 
-import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore } from '@domains/authentication';
+import { useLabId } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
-import { httpClient } from '@infra/api';
-import { logger } from '@infra/logger';
 import {
   Button,
   Chip,
@@ -33,62 +28,42 @@ import {
   Input,
   SettingsRow,
   StatCell,
+  STAT_STRIP,
   Subsection,
-  Toggle,
 } from '@shared/ui';
+import { NavTreeLines } from '@shared/ui/components/tree-lines';
 import { notifications } from '@shared/utils';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useLabStorageAnalyticsQuery } from '../../../../hooks/useStorageAnalyticsQueries';
-import { adminService } from '../../../../services/AdminService';
+import { useUpdateSystemSettingsMutation } from '../../../../hooks/useSystemSettingsMutation';
+import { useVersionInfoQuery } from '../../../../hooks/useVersionInfoQuery';
 import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
 
-import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
+import type { SystemMetrics } from '@odysseus/shared-schemas';
 
-export interface SystemTabProps {
-  config: SecurityConfig;
+interface SystemTabProps {
   stats: SystemMetrics | null;
-  onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
 }
 
-export function SystemTab({ config, stats, onChange }: SystemTabProps) {
-  const labId = useAuthStore(s => s.user?.labId);
+export function SystemTab({ stats }: SystemTabProps) {
+  const labId = useLabId();
   const hasLab = !!labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
-  const queryClient = useQueryClient();
+  const { data: versionInfo } = useVersionInfoQuery();
+  const updateSystemSettingsMutation = useUpdateSystemSettingsMutation();
 
   // Lab name editing state
   const [isEditingLabName, setIsEditingLabName] = useState(false);
   const [labNameInput, setLabNameInput] = useState(currentLab?.name ?? '');
-  const [isSavingLabName, setIsSavingLabName] = useState(false);
-
-  // Version info state
-  const [versionInfo, setVersionInfo] = useState<{
-    version: string;
-    environment: string;
-    nodeVersion: string;
-    platform: string;
-  } | null>(null);
 
   useEffect(() => {
     setLabNameInput(currentLab?.name ?? '');
   }, [currentLab?.name]);
 
-  useEffect(() => {
-    async function fetchVersionInfo() {
-      try {
-        const versionData = await adminService.getVersionInfo();
-        setVersionInfo(versionData);
-      } catch (error) {
-        logger.error('Failed to fetch version info', { error });
-      }
-    }
-    void fetchVersionInfo();
-  }, []);
-
-  const handleSaveLabName = useCallback(async () => {
-    if (isSavingLabName) return;
+  const handleSaveLabName = useCallback(() => {
+    if (updateSystemSettingsMutation.isPending) return;
     const trimmedName = labNameInput.trim();
     if (!trimmedName) {
       notifications.error('Lab name cannot be empty');
@@ -100,24 +75,17 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
       return;
     }
 
-    setIsSavingLabName(true);
-    try {
-      // Use dedicated system settings endpoint - only updates labName, preserves all equipment
-      await httpClient.put('/storage/system', { labName: trimmedName });
-
-      if (labId) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
-      }
-
-      notifications.success('Lab name updated successfully');
-      setIsEditingLabName(false);
-    } catch {
-      notifications.error('Failed to update lab name');
-      setLabNameInput(currentLab?.name ?? '');
-    } finally {
-      setIsSavingLabName(false);
-    }
-  }, [isSavingLabName, labNameInput, currentLab?.name, queryClient, labId]);
+    updateSystemSettingsMutation.mutate(trimmedName, {
+      onSuccess: () => {
+        notifications.success('Lab name updated successfully');
+        setIsEditingLabName(false);
+      },
+      onError: () => {
+        // Global handler toasts; revert the field to the last saved name.
+        setLabNameInput(currentLab?.name ?? '');
+      },
+    });
+  }, [labNameInput, currentLab?.name, updateSystemSettingsMutation]);
 
   const handleCancelLabNameEdit = useCallback(() => {
     setLabNameInput(currentLab?.name ?? '');
@@ -127,7 +95,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   const handleLabNameKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
-        void handleSaveLabName();
+        handleSaveLabName();
       } else if (e.key === 'Escape') {
         handleCancelLabNameEdit();
       }
@@ -139,7 +107,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
     <div className="space-y-4">
       {stats && (
         <ConsolePanel intensity="soft">
-          <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
+          <div className={STAT_STRIP}>
             <StatCell
               size="sm"
               label="Total Tubes"
@@ -163,7 +131,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
             />
             <StatCell
               size="sm"
-              label="Last Backup"
+              label="Config Modified"
               value={stats.lastBackup ? formatDateForDisplay(stats.lastBackup) : 'Never'}
               icon={<DatabaseBackup size={11} />}
               className="flex-1"
@@ -173,8 +141,8 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
       )}
 
       <ConsolePanel intensity="soft">
-        <Subsection title="Laboratory" index={1} accent>
-          {hasLab && (
+        {hasLab && (
+          <Subsection title="Laboratory" index={1} accent>
             <SettingsRow label="Lab Name" hint="Display name shown across the app">
               <div className="flex w-48 items-center justify-end gap-2">
                 {isEditingLabName ? (
@@ -183,7 +151,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                     value={labNameInput}
                     onValueChange={setLabNameInput}
                     onKeyDown={handleLabNameKeyDown}
-                    onBlur={() => void handleSaveLabName()}
+                    onBlur={() => handleSaveLabName()}
                     size="sm"
                     className="w-full"
                     title="Enter to save · Esc to cancel"
@@ -193,7 +161,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                 ) : (
                   <>
                     <span
-                      className="truncate font-mono text-xs text-secondary-foreground phosphor-text"
+                      className="truncate font-mono text-data-sm font-semibold text-foreground phosphor-text"
                       title={currentLab?.name ?? undefined}
                     >
                       {currentLab?.name ?? '—'}
@@ -205,30 +173,18 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                 )}
               </div>
             </SettingsRow>
-          )}
-
-          <SettingsRow
-            label="Detailed System Logging"
-            hint="Verbose audit logging for all operations"
-            className={hasLab ? undefined : 'col-span-2'}
-          >
-            <Toggle
-              checked={config.enableDetailedLogging}
-              onChange={checked => onChange('enableDetailedLogging', checked)}
-              aria-label="Enable detailed logging for all system operations"
-            />
-          </SettingsRow>
-        </Subsection>
+          </Subsection>
+        )}
 
         {hasLab && <StorageUtilizationSection />}
 
-        <Subsection title="Data Export" index={hasLab ? 3 : 2} accent>
+        <Subsection title="Data Export" index={hasLab ? 3 : 1} accent>
           <div className="col-span-2 py-4">
             <DataExportForm />
           </div>
         </Subsection>
 
-        <div className="border-t border-line-soft px-5 py-2.5 text-right font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground/60">
+        <div className="border-t border-line-soft px-5 py-2.5 text-right type-label text-label-2xs text-muted-foreground/60">
           Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
         </div>
       </ConsolePanel>
@@ -236,15 +192,25 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   );
 }
 
+function toggleInSet(
+  setExpanded: (updater: (prev: Set<string>) => Set<string>) => void,
+  id: string
+) {
+  setExpanded(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  });
+}
+
 function StorageUtilizationSection() {
   const { data } = useLabStorageAnalyticsQuery();
-  const [expandedTankId, setExpandedTankId] = useState<string | null>(null);
-  const [expandedRackId, setExpandedRackId] = useState<string | null>(null);
+  const [expandedTanks, setExpandedTanks] = useState<Set<string>>(new Set());
+  const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
-  const expandedTank = useMemo(
-    () => data?.tanks.find(t => t.tankId === expandedTankId),
-    [data, expandedTankId]
-  );
+  const toggleTank = (id: string) => toggleInSet(setExpandedTanks, id);
+  const toggleRack = (id: string) => toggleInSet(setExpandedRacks, id);
 
   if (!data) return null;
 
@@ -254,7 +220,7 @@ function StorageUtilizationSection() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <HardDrive size={16} className="text-muted-foreground" />
-            <span className="font-mono text-[11px] tracking-[0.04em] text-secondary-foreground">
+            <span className="font-mono text-data-sm tracking-data text-secondary-foreground">
               {data.totalOccupied} / {data.totalPositions} positions used
             </span>
           </div>
@@ -262,88 +228,89 @@ function StorageUtilizationSection() {
         </div>
 
         {data.tanks.length > 0 && (
-          <div className="space-y-1">
+          <div data-tree-id="storage-utilization" className="nav-tree relative flex flex-col gap-1">
+            <NavTreeLines treeId="storage-utilization" expandedCategoryIds={expandedTanks} />
             {data.tanks.map(tank => {
-              const isExpanded = tank.tankId === expandedTankId;
+              const isTankOpen = expandedTanks.has(tank.tankId);
               return (
-                <div key={tank.tankId}>
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between text-xs py-1 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      setExpandedTankId(isExpanded ? null : tank.tankId);
-                      setExpandedRackId(null);
+                <div key={tank.tankId} data-level="l1" data-id={tank.tankId}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isTankOpen}
+                    className={`nav-tree-row nav-tree-row--category ${isTankOpen ? 'is-open' : ''}`}
+                    onClick={() => toggleTank(tank.tankId)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') toggleTank(tank.tankId);
                     }}
                   >
-                    <div className="flex items-center gap-1.5">
-                      {isExpanded ? (
-                        <ChevronDown size={10} className="text-muted-foreground" />
-                      ) : (
-                        <ChevronRight size={10} className="text-muted-foreground" />
-                      )}
-                      <Icon
-                        iconNode={refrigeratorFreezer}
-                        size={12}
-                        className="text-muted-foreground"
-                      />
-                      <span className="text-secondary-foreground">{tank.tankName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        {tank.occupied}/{tank.totalPositions}
-                      </span>
-                      <UtilizationBar percent={tank.utilizationPercent} width="w-16" />
-                    </div>
-                  </button>
+                    <ChevronRight
+                      size={11}
+                      className={`nav-tree-row__chevron ${isTankOpen ? 'rotate-90' : ''}`}
+                    />
+                    <Icon
+                      iconNode={refrigeratorFreezer}
+                      size={14}
+                      className="flex-shrink-0 text-muted-foreground"
+                    />
+                    <span className="nav-tree-row__label flex-1 font-display text-body-sm text-secondary-foreground">
+                      {tank.tankName}
+                    </span>
+                    <StorageRowMeter
+                      occupied={tank.occupied}
+                      total={tank.totalPositions}
+                      percent={tank.utilizationPercent}
+                    />
+                  </div>
 
-                  {isExpanded && expandedTank && (
-                    <div className="ml-6 mt-1 mb-2 space-y-0.5 border-l-2 border-border pl-3">
-                      {expandedTank.racks.map(rack => {
-                        const isRackExpanded = rack.rackId === expandedRackId;
+                  {isTankOpen && (
+                    <div className="nav-tree-children">
+                      {tank.racks.map(rack => {
+                        const isRackOpen = expandedRacks.has(rack.rackId);
                         return (
-                          <div key={rack.rackId}>
-                            <button
-                              type="button"
-                              className="w-full flex items-center justify-between text-xs py-0.5 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
-                              onClick={() => setExpandedRackId(isRackExpanded ? null : rack.rackId)}
+                          <div key={rack.rackId} data-level="l2" data-id={rack.rackId}>
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              aria-expanded={isRackOpen}
+                              className={`nav-tree-row nav-tree-row--subcategory ${isRackOpen ? 'is-open' : ''}`}
+                              onClick={() => toggleRack(rack.rackId)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') toggleRack(rack.rackId);
+                              }}
                             >
-                              <div className="flex items-center gap-1.5">
-                                {isRackExpanded ? (
-                                  <ChevronDown size={8} className="text-muted-foreground" />
-                                ) : (
-                                  <ChevronRight size={8} className="text-muted-foreground" />
-                                )}
-                                <Rows3 size={10} className="text-muted-foreground" />
-                                <span className="text-secondary-foreground">{rack.rackName}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-[10px] text-muted-foreground">
-                                  {rack.occupied}/{rack.totalPositions}
-                                </span>
-                                <UtilizationBar percent={rack.utilizationPercent} width="w-14" />
-                              </div>
-                            </button>
+                              <ChevronRight
+                                size={11}
+                                className={`nav-tree-row__chevron ${isRackOpen ? 'rotate-90' : ''}`}
+                              />
+                              <Rows3 size={13} className="flex-shrink-0 text-muted-foreground" />
+                              <span className="nav-tree-row__label flex-1 text-caption text-secondary-foreground">
+                                {rack.rackName}
+                              </span>
+                              <StorageRowMeter
+                                occupied={rack.occupied}
+                                total={rack.totalPositions}
+                                percent={rack.utilizationPercent}
+                              />
+                            </div>
 
-                            {isRackExpanded && (
-                              <div className="ml-5 mt-0.5 mb-1 space-y-0.5 border-l-2 border-border/50 pl-2.5">
+                            {isRackOpen && rack.boxes.length > 0 && (
+                              <div className="nav-tree-children">
                                 {rack.boxes.map(box => (
-                                  <div
-                                    key={box.boxName}
-                                    className="flex items-center justify-between text-xs py-0.5"
-                                  >
-                                    <div className="flex items-center gap-1.5">
-                                      <BoxIcon size={9} className="text-muted-foreground" />
-                                      <span className="text-secondary-foreground">
+                                  <div key={box.boxName} data-level="l3" data-id={box.boxName}>
+                                    <div className="nav-tree-row nav-tree-row--subcategory nav-tree-row--static">
+                                      <span className="nav-tree-row__chevron" aria-hidden />
+                                      <BoxIcon
+                                        size={12}
+                                        className="flex-shrink-0 text-muted-foreground"
+                                      />
+                                      <span className="nav-tree-row__label flex-1 text-caption text-secondary-foreground">
                                         {box.boxName}
                                       </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-mono text-[10px] text-muted-foreground">
-                                        {box.occupied}/{box.maxPositions}
-                                      </span>
-                                      <UtilizationBar
+                                      <StorageRowMeter
+                                        occupied={box.occupied}
+                                        total={box.maxPositions}
                                         percent={box.utilizationPercent}
-                                        width="w-12"
                                       />
                                     </div>
                                   </div>
@@ -376,5 +343,23 @@ function StorageUtilizationSection() {
         )}
       </div>
     </Subsection>
+  );
+}
+
+interface StorageRowMeterProps {
+  occupied: number;
+  total: number;
+  percent: number;
+}
+
+/** Fixed-width count + bar pinned to the row's right edge so meters align across tree depths. */
+function StorageRowMeter({ occupied, total, percent }: StorageRowMeterProps) {
+  return (
+    <div className="flex flex-shrink-0 items-center gap-2.5">
+      <span className="w-20 text-right font-mono text-data-sm tabular-nums text-muted-foreground">
+        {occupied}/{total}
+      </span>
+      <UtilizationBar percent={percent} />
+    </div>
   );
 }

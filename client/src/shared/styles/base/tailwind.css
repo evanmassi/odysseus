@@ -1,3 +1,8 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+/**
+ * Tailwind Layers
+ *
+ * Injects Tailwind's base, components, and utilities layers.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

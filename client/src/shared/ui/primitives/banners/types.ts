@@ -1,7 +1,5 @@
 /**
  * Alert Banner Types
- *
- * Type definitions for the alert banner primitive.
  */
 
 import type { ReactNode } from 'react';
@@ -17,15 +15,13 @@ export interface AlertBannerProps {
   icon?: LucideIcon;
   title?: string;
   actions?: ReactNode;
-  /** Mono code-lead text — defaults per variant (Alert / Notice / Advisory / Success / Demo) */
-  lead?: string;
   animate?: boolean;
   className?: string;
   /** Bottom margin preset */
   spacing?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-export const defaultAlertBannerProps: Partial<AlertBannerProps> = {
+export const defaultAlertBannerProps = {
   animate: true,
   spacing: 'md',
-};
+} satisfies Partial<AlertBannerProps>;

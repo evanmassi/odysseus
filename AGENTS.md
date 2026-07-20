@@ -38,7 +38,7 @@ server/src/
 │   ├── commands/     # CQRS commands (Tank, Rack, Box, User, etc.)
 │   ├── queries/      # CQRS queries
 │   ├── dto/          # Data transfer objects
-│   └── eventHandlers/# Audit, Socket, ResearcherApproval handlers
+│   └── event-handlers/# Audit, Socket handlers
 ├── infrastructure/   # External concerns
 │   ├── database/     # PostgresContext, schema, mappers
 │   ├── repositories/ # Postgres implementations
@@ -67,11 +67,16 @@ client/src/
 ├── domains/          # Feature modules
 │   ├── tubes/        # Tube management
 │   ├── researchers/  # Researcher profiles
+│   ├── donors/       # Donor registry & collection history
+│   ├── equipment/    # Equipment inventory & maintenance
+│   ├── supplies/     # Supply inventory & transactions
 │   ├── search/       # Advanced search
 │   ├── storage/      # Tank/Rack/Box configuration
 │   ├── admin/        # Admin panel, user management
 │   ├── users/        # User profile, sessions
 │   ├── authentication/
+│   ├── lab-management/
+│   ├── help/
 │   └── grid/         # Grid utilities
 ├── shared/           # Cross-cutting
 │   ├── ui/           # Components, primitives, design tokens
@@ -98,6 +103,47 @@ client/src/
 
 ---
 
+## Client Error Handling
+
+One model, no exceptions: **the server owns error *text*; the client owns *presentation* and *cache reaction*.**
+
+**The single resolver.** `getErrorMessage(error)` (`shared/utils/getErrorMessage.ts`) maps any thrown
+value to the string shown to the user. Server 4xx responses carry specific, user-ready messages and
+are surfaced **verbatim** — never rewrite them client-side. Infrastructure failures (network,
+timeout, 5xx, 429) get canned copy. This is the *only* place error→text mapping lives; both global
+handlers call it. Never hand-roll `error.message` fallbacks at a call site.
+
+**One toaster per concern** (`app/cache/queryClient.ts`):
+- `MutationCache.onError` is the **sole** mutation-error toaster — every failed mutation toasts here.
+- `QueryCache.onError` toasts **infrastructure** errors only (`isInfrastructureError`); a 4xx query
+  failure stays silent — the component renders its own error/empty state from the query's `isError`.
+- A mutation hook's own `onError` **never toasts**. It does cache reactions (optimistic rollback,
+  conflict invalidation) and logging only.
+
+**Call style.** Component-triggered mutations use `mutation.mutate(vars, { onSuccess })`. Do **not**
+drive a mutation with `mutateAsync` + `try/catch` — it forces an empty catch whose only job is to
+swallow a rejection the global handler already owns. Reserve `mutateAsync` for genuine sequencing
+(awaiting one mutation before starting the next).
+
+**Escape hatch: `meta: { suppressErrorToast: true }`.** The one supported way to opt a mutation out
+of the global toast — for a mutation that surfaces its error inline (e.g. a "current password is
+incorrect" field error). There is no `meta.errorMessage` / per-operation-context convention: 5xx and
+network copy is deliberately generic, because the user can't act on it and already knows what they
+were doing.
+
+**Stays local — these are not mutation errors:**
+- Pre-flight validation guards — client-side checks *before* calling `mutate`.
+- Partial-success `notifications.warning` on bulk operations.
+- Non-mutation query/blob catches that must react in place (barcode resolve, export downloads).
+
+**Enrichment lives on the server.** When an error deserves richer text than a generic line —
+position-occupied naming the location, a human-readable conflict message — the *server* makes its
+4xx message self-contained and the client shows it verbatim. The client never rebuilds error text
+from IDs or cache. A mutation's `onError` may still *react* to a specific code (e.g. invalidate a
+stale query on a 409 conflict), but it never toasts.
+
+---
+
 ## Shared Schemas
 
 All validation in `@odysseus/shared-schemas`. Always import from here, never define locally.
@@ -106,9 +152,9 @@ All validation in `@odysseus/shared-schemas`. Always import from here, never def
 import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas';
 ```
 
-**Modules**: tubes, researchers, search, storage, admin, auth, users, persons, events, infrastructure
+**Modules**: tubes, researchers, donors, search, storage, admin, auth, users, persons, events, infrastructure, equipment, supplies, labs, lookups, demo
 
-**Response schemas live in shared-schemas, not in client services.** Every Zod schema used to validate an HTTP response — whether a data wrapper (`{ users: [...] }`), a standalone response (`{ message: string }`), or an event payload — must be defined in `@odysseus/shared-schemas`. Client service files import these schemas; they never define them inline with `z.object()`. The only valid `zod` import in client code is in `AuthenticatedHttpClient` (the HTTP infrastructure layer).
+**Response schemas live in shared-schemas, not in client services.** Every Zod schema used to validate an HTTP response — whether a data wrapper (`{ users: [...] }`), a standalone response (`{ message: string }`), or an event payload — must be defined in `@odysseus/shared-schemas`. Client service files import these schemas; they never define them inline with `z.object()`. The only valid `zod` import in client code is in `HttpClient` (the HTTP infrastructure layer).
 
 **`success` belongs exclusively in the response envelope.** The server wraps all responses in `{ success: true, data: <T> }` via `ResponseBuilder.success()`. The client's `AuthenticatedHttpClient` strips this envelope automatically. Data schemas (the `<T>` inside) must never include a `success` field — it would be redundant and create a second source of truth for operation outcome.
 
@@ -159,19 +205,58 @@ When writing new code, pattern it after these already-audited files. They define
 
 | Layer | Exemplar |
 |-------|----------|
-| Server controller | `server/src/presentation/controllers/UserController.ts` |
+| Server controller | `server/src/presentation/controllers/DonorController.ts` |
 | Server application service | `server/src/application/services/DonorApplicationService.ts` |
-| Server domain entity | `server/src/domain/entities/Researcher.ts` |
+| Server domain entity | `server/src/domain/entities/Donor.ts` |
 | Server repository interface | `server/src/domain/repositories/ResearcherRepository.ts` |
 | Server repository (Postgres impl) | `server/src/infrastructure/repositories/ResearcherRepository.ts` |
-| Server route module | `server/src/presentation/routes/SearchRouteModule.ts` |
+| Server route module | `server/src/presentation/routes/DonorRouteModule.ts` |
 | Client TanStack Query hook | `client/src/domains/donors/hooks/useDonorsQuery.ts` |
 | Client feature component | `client/src/domains/donors/ui/components/DonorEditForm.tsx` |
-| Client HTTP service | `client/src/domains/researchers/services/ResearcherService.ts` |
-| Client Zustand store | `client/src/app/stores/errorStore.ts` |
-| Shared schema module | `packages/shared-schemas/src/auth/authSchemas.ts` |
+| Client HTTP service | `client/src/domains/donors/services/DonorService.ts` |
+| Client Zustand store | `client/src/app/stores/modalStore.ts` |
+| Shared schema module | `packages/shared-schemas/src/donors/donorSchemas.ts` |
 
-The **equipment, supply, supplies, and consumables** domains have NOT been audited — never use them as references.
+~~The equipment domain has NOT been audited.~~ **Stale — it was.** That line predated the layer
+audits (2026-07-11/12), which do carry findings against `EquipmentApplicationService`,
+`SupplyApplicationService`, and `SupplyItemRepository`. Every layer of this repo has now had a pass.
+
+Still, prefer the exemplars above: the equipment and supply **item** services are large and were
+never rewritten to the standard the Donor domain sets. Their shared **category/document** code is
+the exemplar for a two-catalog abstraction — see *Equipment ↔ Supplies* below.
+
+---
+
+## Equipment ↔ Supplies
+
+The two catalogs are **partly** the same thing. The line has been drawn, and it is not negotiable
+per-PR: the category and document surfaces are shared, the item surface is permanently separate.
+
+**Shared — do not re-duplicate.** Categories and documents were independent copies until the code
+below was extracted. They differed by an ID prefix and a header comment, and that duplication had
+already produced a real bug (supplies could reparent a category into a third level because only
+equipment's `updateCategory` enforced the depth rule).
+
+| Concern | Shared home |
+|---------|-------------|
+| Category behaviour | `domain/entities/Category.ts` — `EquipmentCategory` / `SupplyCategory` add only an ID prefix |
+| Category persistence | `infrastructure/repositories/CategoryRepository.ts` (+ `CategoryMapper`) |
+| Two-level depth rule | `application/guards/CategoryGuards.ts` |
+| Document behaviour | `domain/entities/Document.ts` — subclasses add only an ID prefix |
+| Document persistence | `infrastructure/repositories/DocumentQueries.ts` (+ `DocumentMapper`) |
+
+**Separate — do not merge.** The item surfaces only *look* alike. They share ~6 of 15+ fields and
+nothing else: equipment tracks asset lifecycle (serial, warranty, decommission, maintenance logs);
+supplies tracks inventory (barcodes, stock ledger, packaging levels, reorder thresholds). The supply
+item repository is 2.3× the size of equipment's for that reason. A generic "inventory item" would be
+a ten-field lowest common denominator wrapped around two unrelated subsystems — the wrong
+abstraction, and far harder to unwind than the duplication. Leave them alone.
+
+**Types stay distinct even where code is shared.** `EquipmentCategory` and `SupplyCategory` are
+separate classes on purpose, and the byte-identical Zod schema pairs are *deliberately* not merged.
+Merging them would make a supply category assignable to an equipment repository. Share behaviour;
+never share the identity. (The client made the same call: the shared components in
+`shared/ui/components/inventory/` are generic over a structural shape, not a merged type.)
 
 ---
 
@@ -439,6 +524,7 @@ When infrastructure exists for a concern, use it. Never create a second way to d
 | Controller auth | `BaseController` helpers (`this.extractUserId(req)`, `this.extractLabId(req)`, `this.getAuthenticatedUser(req)`) | Raw `req.user` access |
 | Success responses | `ResponseBuilder.success(data)` | Raw `{ success: true, data }` objects |
 | Error handling | `handleControllerError` from `@presentation/utils/errorHandler` | Per-controller `handleError` methods |
+| Lab-scoped by-id access | repo scopes `lab_id` in SQL (`findById(id, labId)`); cross-lab is an explicit `findByIdAnyLab` / `findByIdForRequester` | bare `findById(id)` on a `lab_id`-bearing table |
 
 ### No Convenience Wrappers
 

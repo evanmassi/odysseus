@@ -11,7 +11,10 @@ import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 export interface AuditArchiveRepository {
   saveArchived(entries: AuditLogEntry[]): Promise<void>;
   findArchived(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>>;
-  findArchivedForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>>;
+  findArchivedForLab(
+    filters: AuditLogFilters,
+    labId: string
+  ): Promise<PaginatedResult<AuditLogEntry>>;
   countArchived(): Promise<number>;
 
   /** Used for retention metrics and cleanup scheduling. */

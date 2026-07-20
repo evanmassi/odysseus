@@ -77,48 +77,51 @@ export class Location {
       throw new ValidationError('Position must be an integer');
     }
     if (this._position < 1 || this._position > EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX) {
-      throw new ValidationError(`Position must be between 1 and ${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`);
+      throw new ValidationError(
+        `Position must be between 1 and ${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`
+      );
     }
   }
 
   equals(other: Location): boolean {
     if (!other) return false;
-    
-    return this._tankId === other._tankId &&
-           this._rackId === other._rackId &&
-           this._boxId.toUpperCase() === other._boxId.toUpperCase() &&
-           this._position === other._position;
+
+    return (
+      this._tankId === other._tankId &&
+      this._rackId === other._rackId &&
+      this._boxId.toUpperCase() === other._boxId.toUpperCase() &&
+      this._position === other._position
+    );
   }
 
   toString(): string {
     return `Tank-${this._tankId}/Rack-${this._rackId}/Box-${this._boxId}/Pos-${this._position}`;
   }
 
-  toKey(): string {
-    return `${this._tankId}-${this._rackId}-${this._boxId.toUpperCase()}-${this._position}`;
-  }
-
-  toData(): {tankId: string, rackId: string, boxId: string, position: number} {
+  toData(): { tankId: string; rackId: string; boxId: string; position: number } {
     return {
       tankId: this._tankId,
       rackId: this._rackId,
       boxId: this._boxId.toUpperCase(),
-      position: this._position
+      position: this._position,
     };
   }
 
-  // Getters
-  get tankId(): string { return this._tankId; }
-  get rackId(): string { return this._rackId; }
-  get boxId(): string { return this._boxId.toUpperCase(); }
-  get position(): number { return this._position; }
+  get tankId(): string {
+    return this._tankId;
+  }
+  get rackId(): string {
+    return this._rackId;
+  }
+  get boxId(): string {
+    return this._boxId.toUpperCase();
+  }
+  get position(): number {
+    return this._position;
+  }
 
   isInSameRack(other: Location): boolean {
     return this._tankId === other._tankId && this._rackId === other._rackId;
-  }
-
-  isInSameBox(other: Location): boolean {
-    return this.isInSameRack(other) && this._boxId.toUpperCase() === other._boxId.toUpperCase();
   }
 
   update(updates: {
@@ -131,7 +134,7 @@ export class Location {
       tankId: updates.tankId ?? this._tankId,
       rackId: updates.rackId ?? this._rackId,
       boxId: updates.boxId ?? this._boxId,
-      position: updates.position ?? this._position
+      position: updates.position ?? this._position,
     });
   }
 }

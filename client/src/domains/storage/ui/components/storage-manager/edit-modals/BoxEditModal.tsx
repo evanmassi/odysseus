@@ -13,7 +13,7 @@ import { Button, Select } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { BoxConfiguration, GridConfiguration } from '@domains/storage';
+import type { BoxConfiguration, GridConfiguration } from '@odysseus/shared-schemas';
 
 interface BoxEditModalProps {
   isOpen: boolean;
@@ -62,8 +62,8 @@ export function BoxEditModal({
   };
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(tankId, rackId, initialBox.id, selectedGridConfig);
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(handleSave);
@@ -91,7 +91,7 @@ export function BoxEditModal({
       title="Edit Box"
       icon={<BoxIcon size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
       footer={footer}
     >
       <form id="box-edit-form" onSubmit={handleSubmit} className="space-y-4">

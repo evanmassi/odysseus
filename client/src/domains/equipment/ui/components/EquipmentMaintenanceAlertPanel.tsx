@@ -8,8 +8,9 @@ import { useState, useMemo, useEffect } from 'react';
 
 import { ChevronRight } from 'lucide-react';
 
+import { resolveMaintenanceDue } from '@domains/equipment/utils/maintenanceSchedule';
 import { NubDivider, Table } from '@shared/ui';
-import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import type { EquipmentItem } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -36,27 +37,20 @@ export function EquipmentMaintenanceAlertPanel({
   onSelectItem,
 }: EquipmentMaintenanceAlertPanelProps) {
   const alertRows = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const rows: MaintenanceAlertRow[] = [];
 
     items.forEach(item => {
-      if (!item.nextMaintenanceDate || item.status === 'decommissioned') return;
-      const dateStr = normalizeDateString(item.nextMaintenanceDate);
-      if (!dateStr) return;
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const date = new Date(y, m - 1, d);
-      const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (item.status === 'decommissioned' || !item.nextMaintenanceDate) return;
+      const due = resolveMaintenanceDue(item.nextMaintenanceDate);
+      if (!due || due.daysUntil > 30) return;
 
-      if (daysUntil <= 30) {
-        rows.push({
-          id: item.id,
-          name: item.name,
-          categoryName: categoryNameMap.get(item.categoryId) ?? '—',
-          dueDate: dateStr,
-          daysUntil,
-        });
-      }
+      rows.push({
+        id: item.id,
+        name: item.name,
+        categoryName: categoryNameMap.get(item.categoryId) ?? '—',
+        dueDate: due.dateStr,
+        daysUntil: due.daysUntil,
+      });
     });
 
     rows.sort((a, b) => a.daysUntil - b.daysUntil);
@@ -162,14 +156,14 @@ export function EquipmentMaintenanceAlertPanel({
   const dueSoonCount = totalAlerts - overdueCount;
   const hasOverdue = overdueCount > 0;
   const stripeClass = hasOverdue
-    ? 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
-    : 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
+    ? 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
+    : 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
   const labelClass = hasOverdue ? 'text-danger-text' : 'text-warning-text';
 
   return (
     <div className="mb-2 flex-shrink-0 overflow-hidden border border-line-faint">
       <div
-        className="relative flex items-center gap-2 bg-black/35 px-3 py-2 cursor-pointer transition-colors hover:bg-black/45"
+        className="relative flex items-center gap-2 bg-[hsl(var(--primary)/0.07)] dark:bg-shade/35 px-3 py-2 cursor-pointer transition-[background-color,filter] hover:brightness-[0.97] dark:hover:brightness-100 dark:hover:bg-shade/45"
         onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter') toggleExpanded();
@@ -186,13 +180,13 @@ export function EquipmentMaintenanceAlertPanel({
           className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
         />
         <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${stripeClass}`} />
-        <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
+        <span className={`type-label text-label-2xs tracking-label-wide ${labelClass}`}>
           Maintenance Alerts
         </span>
-        <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
-          {totalAlerts}
+        <span aria-hidden className="font-mono text-data-sm text-foreground/30">
+          {'//'}
         </span>
-        <span className="ml-auto flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+        <span className="flex items-center gap-2 font-mono text-data-sm tracking-[0.04em]">
           {overdueCount > 0 && <span className="text-danger-text">{overdueCount} overdue</span>}
           {overdueCount > 0 && dueSoonCount > 0 && <span className="text-foreground/25">·</span>}
           {dueSoonCount > 0 && <span className="text-warning-text">{dueSoonCount} due soon</span>}
@@ -217,7 +211,7 @@ export function EquipmentMaintenanceAlertPanel({
           selectedRowGlow
           rowState={row => (row.daysUntil < 0 ? 'danger' : 'warning')}
           density="compact"
-          className="text-xs"
+          className="text-data"
           aria-label="Maintenance alerts"
         />
       )}

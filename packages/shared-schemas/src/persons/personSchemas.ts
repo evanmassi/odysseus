@@ -21,23 +21,39 @@ export const personSchema = z.object({
 export type Person = z.infer<typeof personSchema>;
 
 export const updatePersonProfileSchema = z.object({
-  firstName: z.string().min(1, 'First name cannot be empty').max(50, 'First name too long').optional(),
+  firstName: z
+    .string()
+    .min(1, 'First name cannot be empty')
+    .max(50, 'First name too long')
+    .optional(),
   lastName: z.string().min(1, 'Last name cannot be empty').max(50, 'Last name too long').optional(),
   email: z.string().email('Invalid email format').optional(),
   position: z.string().max(100, 'Position too long').optional(),
-  department: z.string().max(100, 'Department too long').optional()
+  department: z.string().max(100, 'Department too long').optional(),
 });
 
 export type UpdatePersonProfile = z.infer<typeof updatePersonProfileSchema>;
+
+/**
+ * Self-service profile update request.
+ *
+ * Requires the caller's current password to authorize the change; the profile
+ * fields themselves remain optional.
+ */
+export const updateMyProfileRequestSchema = updatePersonProfileSchema.extend({
+  currentPassword: z.string().min(1),
+});
+
+export type UpdateMyProfileRequest = z.infer<typeof updateMyProfileRequestSchema>;
 
 /**
  * Objects that can be sorted by name. Supports flexible field presence:
  * researchers have firstName/lastName, users fall back to username.
  */
 export interface NameSortable {
-  lastName?: string;
-  firstName?: string;
-  username?: string;
+  lastName?: string | null;
+  firstName?: string | null;
+  username?: string | null;
 }
 
 /**
@@ -55,13 +71,13 @@ export interface NameSortable {
 export function sortByName<T extends NameSortable>(items: T[]): T[] {
   return [...items].sort((a, b) => {
     // Hyphenated last names sort by first segment
-    const getLastNameKey = (name?: string): string => {
+    const getLastNameKey = (name?: string | null): string => {
       if (!name?.trim()) return '\uffff'; // Sort empty to end
       const parts = name.split('-');
       return parts[0].trim().toLowerCase();
     };
 
-    const getNameKey = (name?: string): string => {
+    const getNameKey = (name?: string | null): string => {
       if (!name?.trim()) return '\uffff'; // Sort empty to end
       return name.trim().toLowerCase();
     };

@@ -3,7 +3,7 @@
  *
  * Phosphor countdown readout + diamond depletion track for the session-timeout
  * modal. A single --tint, driven by the modal's data-state, warms amber → crimson
- * as time runs out; the surrounding chrome glow follows at low intensity.
+ * as time runs out.
  */
 
 @layer components {
@@ -32,7 +32,7 @@
     transition: box-shadow 600ms ease;
   }
 
-  /* ── readout: phosphor digits + faint caption ── */
+  /* Readout: phosphor digits + faint caption */
   .session-timeout-modal .st-readout {
     display: flex;
     align-items: baseline;
@@ -58,7 +58,7 @@
     content: attr(data-text);
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.3) 2px 3px);
+    background: repeating-linear-gradient(0deg, transparent 0 2px, hsl(var(--shade) / 0.3) 2px 3px);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -93,7 +93,7 @@
     }
   }
 
-  /* ── diamond depletion track ── */
+  /* Diamond depletion track */
   .session-timeout-modal .st-track {
     display: flex;
     align-items: center;
@@ -128,6 +128,22 @@
   }
   .session-timeout-modal .st-slot.is-lead .st-diamond {
     filter: drop-shadow(0 0 1px var(--tint)) drop-shadow(0 0 6px var(--tint-soft));
+  }
+
+  /* Light: flat white panel — drop the phosphor optics, keep the amber → crimson tint. */
+  [data-theme='light'] .session-timeout-modal::after {
+    box-shadow: none;
+  }
+  [data-theme='light'] .session-timeout-modal .st-time {
+    text-shadow: none;
+    animation: none;
+  }
+  [data-theme='light'] .session-timeout-modal .st-time::after {
+    display: none;
+  }
+  [data-theme='light'] .session-timeout-modal .st-diamond,
+  [data-theme='light'] .session-timeout-modal .st-slot.is-lead .st-diamond {
+    filter: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

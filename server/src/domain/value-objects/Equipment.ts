@@ -7,10 +7,8 @@
 import {
   EQUIPMENT_DEFAULTS,
   VALIDATION_LIMITS,
-  NAMING_PATTERNS,
   positionToLabel,
   labelToPosition,
-  generatePositionLabels,
   getDefaultPositionDisplay,
   type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
@@ -58,24 +56,33 @@ export class Tank {
       throw new ValidationError('Tank ID is required');
     }
     if (this._id.length > VALIDATION_LIMITS.TANK.ID_MAX_LENGTH) {
-      throw new ValidationError(`Tank ID cannot exceed ${VALIDATION_LIMITS.TANK.ID_MAX_LENGTH} characters`);
+      throw new ValidationError(
+        `Tank ID cannot exceed ${VALIDATION_LIMITS.TANK.ID_MAX_LENGTH} characters`
+      );
     }
     if (!this._name || this._name.trim().length === 0) {
       throw new ValidationError('Tank name is required');
     }
     if (this._name.length > VALIDATION_LIMITS.TANK.NAME_MAX_LENGTH) {
-      throw new ValidationError(`Tank name cannot exceed ${VALIDATION_LIMITS.TANK.NAME_MAX_LENGTH} characters`);
+      throw new ValidationError(
+        `Tank name cannot exceed ${VALIDATION_LIMITS.TANK.NAME_MAX_LENGTH} characters`
+      );
     }
-    if (this._maxRacks < VALIDATION_LIMITS.TANK.MIN_RACKS || this._maxRacks > VALIDATION_LIMITS.TANK.MAX_RACKS) {
-      throw new ValidationError(`Tank must support between ${VALIDATION_LIMITS.TANK.MIN_RACKS} and ${VALIDATION_LIMITS.TANK.MAX_RACKS} racks`);
+    if (
+      this._maxRacks < VALIDATION_LIMITS.TANK.MIN_RACKS ||
+      this._maxRacks > VALIDATION_LIMITS.TANK.MAX_RACKS
+    ) {
+      throw new ValidationError(
+        `Tank must support between ${VALIDATION_LIMITS.TANK.MIN_RACKS} and ${VALIDATION_LIMITS.TANK.MAX_RACKS} racks`
+      );
     }
 
-    // Validate rack count doesn't exceed capacity
     if (this._racks.length > this._maxRacks) {
-      throw new ValidationError(`Tank '${this._name}' has ${this._racks.length} racks but max capacity is ${this._maxRacks}`);
+      throw new ValidationError(
+        `Tank '${this._name}' has ${this._racks.length} racks but max capacity is ${this._maxRacks}`
+      );
     }
 
-    // Validate rack IDs are unique within this tank
     const rackIds = this._racks.map(r => r.id);
     if (new Set(rackIds).size !== rackIds.length) {
       throw new ValidationError(`Tank '${this._name}' has duplicate rack IDs`);
@@ -84,11 +91,6 @@ export class Tank {
 
   canAccommodateRack(): boolean {
     return this._racks.length < this._maxRacks;
-  }
-
-  equals(other: Tank): boolean {
-    if (!other) return false;
-    return this._id === other._id;
   }
 
   toData(): {
@@ -111,14 +113,27 @@ export class Tank {
     };
   }
 
-  // Getters
-  get id(): string { return this._id; }
-  get name(): string { return this._name; }
-  get racks(): readonly Rack[] { return this._racks; }
-  get maxRacks(): number { return this._maxRacks; }
-  get isActive(): boolean { return this._isActive; }
-  get location(): string { return this._location; }
-  get isSeeded(): boolean { return this._isSeeded; }
+  get id(): string {
+    return this._id;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get racks(): readonly Rack[] {
+    return this._racks;
+  }
+  get maxRacks(): number {
+    return this._maxRacks;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get location(): string {
+    return this._location;
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
+  }
 }
 
 export interface CreateRackOptions {
@@ -172,16 +187,21 @@ export class Rack {
     if (!this._name || this._name.trim().length === 0) {
       throw new ValidationError('Rack name is required');
     }
-    if (this._maxBoxes < VALIDATION_LIMITS.RACK.MIN_BOXES || this._maxBoxes > VALIDATION_LIMITS.RACK.MAX_BOXES) {
-      throw new ValidationError(`Rack must support between ${VALIDATION_LIMITS.RACK.MIN_BOXES} and ${VALIDATION_LIMITS.RACK.MAX_BOXES} boxes`);
+    if (
+      this._maxBoxes < VALIDATION_LIMITS.RACK.MIN_BOXES ||
+      this._maxBoxes > VALIDATION_LIMITS.RACK.MAX_BOXES
+    ) {
+      throw new ValidationError(
+        `Rack must support between ${VALIDATION_LIMITS.RACK.MIN_BOXES} and ${VALIDATION_LIMITS.RACK.MAX_BOXES} boxes`
+      );
     }
 
-    // Validate box count doesn't exceed capacity
     if (this._boxes.length > this._maxBoxes) {
-      throw new ValidationError(`Rack ${this._id} has ${this._boxes.length} boxes but max capacity is ${this._maxBoxes}`);
+      throw new ValidationError(
+        `Rack ${this._id} has ${this._boxes.length} boxes but max capacity is ${this._maxBoxes}`
+      );
     }
 
-    // Validate box names are unique within this rack
     const boxNames = this._boxes.map(b => b.name.toUpperCase());
     if (new Set(boxNames).size !== boxNames.length) {
       throw new ValidationError(`Rack ${this._id} has duplicate box names`);
@@ -192,20 +212,6 @@ export class Rack {
     const letter = boxId.toUpperCase();
     if (!/^[A-Z]$/.test(letter)) return false;
     return this._boxes.length < VALIDATION_LIMITS.RACK.MAX_BOXES;
-  }
-
-  private getValidBoxNames(): string[] {
-    const limit = Math.max(this._maxBoxes, VALIDATION_LIMITS.RACK.MAX_BOXES);
-    const boxes = [];
-    for (let i = 0; i < limit; i++) {
-      boxes.push(NAMING_PATTERNS.BOX.LETTER_NAME(i));
-    }
-    return boxes;
-  }
-
-  equals(other: Rack): boolean {
-    if (!other) return false;
-    return this._id === other._id;
   }
 
   toData(): {
@@ -234,18 +240,36 @@ export class Rack {
     };
   }
 
-  // Getters
-  get id(): string { return this._id; }
-  get name(): string { return this._name; }
-  get boxes(): readonly Box[] { return this._boxes; }
-  get maxBoxes(): number { return this._maxBoxes; }
-  get capacity(): number { return this._capacity; }
-  get isActive(): boolean { return this._isActive; }
-  get assignedUserId(): string | undefined { return this._assignedUserId; }
-  get customLabel(): string | undefined { return this._customLabel; }
-  get sharedWithUserIds(): string[] { return [...this._sharedWithUserIds]; }
-  get validBoxNames(): string[] { return this.getValidBoxNames(); }
-  get isSeeded(): boolean { return this._isSeeded; }
+  get id(): string {
+    return this._id;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get boxes(): readonly Box[] {
+    return this._boxes;
+  }
+  get maxBoxes(): number {
+    return this._maxBoxes;
+  }
+  get capacity(): number {
+    return this._capacity;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get assignedUserId(): string | undefined {
+    return this._assignedUserId;
+  }
+  get customLabel(): string | undefined {
+    return this._customLabel;
+  }
+  get sharedWithUserIds(): string[] {
+    return [...this._sharedWithUserIds];
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
+  }
 }
 
 export interface CreateBoxOptions {
@@ -282,8 +306,8 @@ export class Box {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
     };
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const positions = options.maxPositions || (gridConfig.rows * gridConfig.cols);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- 0 is not a valid position count; fall back to the grid size
+    const positions = options.maxPositions || gridConfig.rows * gridConfig.cols;
     return new Box(
       options.name,
       gridConfig,
@@ -307,38 +331,25 @@ export class Box {
       throw new ValidationError('Box name must be a single letter A-Z');
     }
 
-    if (this._maxPositions < VALIDATION_LIMITS.BOX.MIN_POSITIONS || this._maxPositions > VALIDATION_LIMITS.BOX.MAX_POSITIONS) {
-      throw new ValidationError(`Box must support between ${VALIDATION_LIMITS.BOX.MIN_POSITIONS} and ${VALIDATION_LIMITS.BOX.MAX_POSITIONS} positions`);
+    if (
+      this._maxPositions < VALIDATION_LIMITS.BOX.MIN_POSITIONS ||
+      this._maxPositions > VALIDATION_LIMITS.BOX.MAX_POSITIONS
+    ) {
+      throw new ValidationError(
+        `Box must support between ${VALIDATION_LIMITS.BOX.MIN_POSITIONS} and ${VALIDATION_LIMITS.BOX.MAX_POSITIONS} positions`
+      );
     }
 
-    if (this._gridConfig.rows < VALIDATION_LIMITS.BOX.MIN_GRID_DIMENSION || this._gridConfig.cols < VALIDATION_LIMITS.BOX.MIN_GRID_DIMENSION) {
+    if (
+      this._gridConfig.rows < VALIDATION_LIMITS.BOX.MIN_GRID_DIMENSION ||
+      this._gridConfig.cols < VALIDATION_LIMITS.BOX.MIN_GRID_DIMENSION
+    ) {
       throw new ValidationError('Grid configuration must have positive rows and columns');
     }
   }
 
   canAccommodatePosition(position: number): boolean {
     return Number.isInteger(position) && position >= 1 && position <= this._maxPositions;
-  }
-
-  /** Convert 1D position to 2D grid coordinates. */
-  positionToGridCoordinates(position: number): { row: number; col: number } {
-    if (!this.canAccommodatePosition(position)) {
-      throw new ValidationError(`Position ${position} is not valid for this box`);
-    }
-
-    const row = Math.ceil(position / this._gridConfig.cols);
-    const col = ((position - 1) % this._gridConfig.cols) + 1;
-
-    return { row, col };
-  }
-
-  /** Convert 2D grid coordinates to 1D position. */
-  gridCoordinatesToPosition(row: number, col: number): number {
-    if (row < 1 || row > this._gridConfig.rows || col < 1 || col > this._gridConfig.cols) {
-      throw new ValidationError('Grid coordinates are out of bounds');
-    }
-
-    return (row - 1) * this._gridConfig.cols + col;
   }
 
   /**
@@ -350,10 +361,9 @@ export class Box {
    * @returns Display label (e.g., "C5" or "23")
    */
   formatPosition(position: number): string {
-    const config = this._positionDisplay ?? getDefaultPositionDisplay(
-      this._gridConfig.rows,
-      this._gridConfig.cols
-    );
+    const config =
+      this._positionDisplay ??
+      getDefaultPositionDisplay(this._gridConfig.rows, this._gridConfig.cols);
 
     return positionToLabel(position, this._gridConfig.rows, this._gridConfig.cols, config);
   }
@@ -366,10 +376,9 @@ export class Box {
    * @throws ValidationError if label is invalid
    */
   parsePositionLabel(label: string): number {
-    const config = this._positionDisplay ?? getDefaultPositionDisplay(
-      this._gridConfig.rows,
-      this._gridConfig.cols
-    );
+    const config =
+      this._positionDisplay ??
+      getDefaultPositionDisplay(this._gridConfig.rows, this._gridConfig.cols);
 
     try {
       return labelToPosition(label, this._gridConfig.rows, this._gridConfig.cols, config);
@@ -377,20 +386,6 @@ export class Box {
       const message = error instanceof Error ? error.message : String(error);
       throw new ValidationError(`Invalid position label: ${message}`);
     }
-  }
-
-  getAllPositionLabels(): string[] {
-    const config = this._positionDisplay ?? getDefaultPositionDisplay(
-      this._gridConfig.rows,
-      this._gridConfig.cols
-    );
-
-    return generatePositionLabels(this._gridConfig.rows, this._gridConfig.cols, config);
-  }
-
-  equals(other: Box): boolean {
-    if (!other) return false;
-    return this._name.toUpperCase() === other._name.toUpperCase();
   }
 
   toData(): {
@@ -417,24 +412,38 @@ export class Box {
     };
   }
 
-  // Getters
-  get name(): string { return this._name.toUpperCase(); }
-  get gridConfig(): { rows: number; cols: number } { return this._gridConfig; }
-  get maxPositions(): number { return this._maxPositions; }
-  get positionDisplay(): PositionDisplayConfig | undefined { return this._positionDisplay; }
-  get isActive(): boolean { return this._isActive; }
-  get assignedUserId(): string | null | undefined { return this._assignedUserId; }
-  get customLabel(): string | undefined { return this._customLabel; }
-  get sharedWithUserIds(): string[] { return [...this._sharedWithUserIds]; }
-  get gridSize(): number { return Math.sqrt(this._maxPositions); }
-  get isSeeded(): boolean { return this._isSeeded; }
+  get name(): string {
+    return this._name.toUpperCase();
+  }
+  get gridConfig(): { rows: number; cols: number } {
+    return this._gridConfig;
+  }
+  get maxPositions(): number {
+    return this._maxPositions;
+  }
+  get positionDisplay(): PositionDisplayConfig | undefined {
+    return this._positionDisplay;
+  }
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  get assignedUserId(): string | null | undefined {
+    return this._assignedUserId;
+  }
+  get customLabel(): string | undefined {
+    return this._customLabel;
+  }
+  get sharedWithUserIds(): string[] {
+    return [...this._sharedWithUserIds];
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
+  }
 }
 
 /** Top-level equipment container: Tank → Rack[] → Box[]. */
 export class EquipmentConfiguration {
-  private constructor(
-    private readonly _tanks: Tank[]
-  ) {
+  private constructor(private readonly _tanks: Tank[]) {
     this.validate();
   }
 
@@ -447,7 +456,6 @@ export class EquipmentConfiguration {
   }
 
   private validate(): void {
-    // Validate tank IDs are unique
     const tankIds = this._tanks.map(t => t.id);
     if (new Set(tankIds).size !== tankIds.length) {
       throw new ValidationError('Tank IDs must be unique');
@@ -510,10 +518,11 @@ export class EquipmentConfiguration {
     tanks: ReturnType<Tank['toData']>[];
   } {
     return {
-      tanks: this._tanks.map(t => t.toData())
+      tanks: this._tanks.map(t => t.toData()),
     };
   }
 
-  // Getters
-  get tanks(): readonly Tank[] { return this._tanks; }
+  get tanks(): readonly Tank[] {
+    return this._tanks;
+  }
 }

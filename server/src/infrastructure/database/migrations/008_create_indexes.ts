@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration008: Migration = {
   id: 8,
   name: 'create_indexes',
@@ -82,5 +81,5 @@ export const migration008: Migration = {
     for (const indexSql of indexes) {
       await pool.query(indexSql);
     }
-  }
+  },
 };

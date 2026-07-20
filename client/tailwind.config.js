@@ -20,6 +20,7 @@ export default {
           panel: 'hsl(var(--bg-panel) / <alpha-value>)',
           'panel-2': 'hsl(var(--bg-panel-2) / <alpha-value>)',
           elev: 'hsl(var(--bg-elev) / <alpha-value>)',
+          strip: 'hsl(var(--strip-surface) / <alpha-value>)',
         },
         card: {
           DEFAULT: 'hsl(var(--card) / <alpha-value>)',
@@ -60,6 +61,11 @@ export default {
           mid: 'hsl(var(--line-mid))',
           strong: 'hsl(var(--line-strong))',
         },
+
+        /* Console overlay washes — alpha set per use (bg-shade/35, bg-sheen/20). */
+        shade: 'hsl(var(--shade) / <alpha-value>)',
+        sheen: 'hsl(var(--sheen) / <alpha-value>)',
+        scrim: 'hsl(var(--scrim) / <alpha-value>)',
 
         /* Application-specific extensions */
 
@@ -160,72 +166,107 @@ export default {
           'unassigned-badge': 'hsl(var(--ownership-unassigned-badge) / <alpha-value>)',
         },
       },
+      fontSize: {
+        // Semantic type tokens — see docs/typography-refactor-plan.md.
+        // The numeric ladder (text-xs…text-4xl) stays at Tailwind defaults
+        // (12/14/16/18/20/24/30/36) and is the escape hatch; reach for the
+        // semantic tokens below first. Format: [size, { lineHeight }]; px @16px root.
+
+        // Prose (sans, sentence case)
+        caption: ['0.8125rem', { lineHeight: '1.4' }], // 13px
+        'body-sm': ['0.875rem', { lineHeight: '1.45' }], // 14px (was "secondary"; renamed — color collision)
+        body: ['1rem', { lineHeight: '1.5' }], // 16px — workhorse
+        'body-lg': ['1.125rem', { lineHeight: '1.5' }], // 18px
+
+        // Heading (sans, weighted)
+        'title-sm': ['1.125rem', { lineHeight: '1.3', fontWeight: '600' }], // 18px
+        title: ['1.25rem', { lineHeight: '1.25', fontWeight: '600' }], // 20px
+        'title-lg': ['1.5rem', { lineHeight: '1.2', fontWeight: '700' }], // 24px
+        display: ['1.875rem', { lineHeight: '1.15', fontWeight: '700' }], // 30px
+
+        // Label / chrome (mono · uppercase · tracked — pair with .type-label)
+        'label-2xs': ['0.625rem', { lineHeight: '1' }], // 10px (floor)
+        'label-xs': ['0.6875rem', { lineHeight: '1' }], // 11px
+        'label-sm': ['0.75rem', { lineHeight: '1.1' }], // 12px
+        'label-md': ['0.875rem', { lineHeight: '1.1' }], // 14px
+        'label-lg': ['1rem', { lineHeight: '1.1' }], // 16px — tabs
+
+        // Data / numeric (mono · tabular)
+        'data-sm': ['0.8125rem', { lineHeight: '1.2' }], // 13px
+        data: ['0.875rem', { lineHeight: '1.3' }], // 14px
+        'data-lg': ['1rem', { lineHeight: '1.3' }], // 16px
+        stat: ['1.875rem', { lineHeight: '1.05' }], // 30px — hero numbers
+      },
+      letterSpacing: {
+        // Tracking tokens for the label/data voices — see plan §4.3.
+        // Adds to Tailwind defaults (tight/normal/wide/…); no key overlap.
+        data: '0.02em', // tabular numerals, data cells
+        meta: '0.10em', // mono meta — IdStamp, Kbd, menu items
+        label: '0.18em', // standard uppercase chrome (default in .type-label)
+        'label-wide': '0.24em', // emphasized labels — subsection, table headers
+        ceremonial: '0.32em', // auth register, loaders
+      },
       fontFamily: {
-        sans: ['"Space Grotesk"', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
-        display: ['"Space Grotesk"', '"Helvetica Neue"', 'sans-serif'],
-        mono: [
-          '"JetBrains Mono"',
-          'ui-monospace',
-          'SFMono-Regular',
-          'Menlo',
-          'Monaco',
-          'Consolas',
-          '"Liberation Mono"',
-          '"Courier New"',
-          'monospace',
-        ],
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
       },
       boxShadow: {
-        sheen: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.18)',
+        sheen: 'inset 0 1px 0 0 hsl(var(--sheen) / 0.18)',
         /* Inset top sheen + single soft halo. Mirrors LabBadge `lit` + Toggle ON vocabulary. */
         'glow-primary':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
         'glow-danger':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-danger-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-danger-bg) / 0.50)',
         'glow-success':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-success-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-success-bg) / 0.50)',
         'glow-warning':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
         'glow-info':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
+        /* Standard-weight button surface. Light (1 - --lit): paper-sheen highlight +
+           faint contact shadow — the part sits ON the page, no emission. Dark (--lit):
+           the inset + outer tonal glow. Both baked in; the gate swaps them per theme. */
         'standard-primary':
-          'inset 0 0 12px -2px hsl(var(--primary) / 0.20), 0 0 14px -4px hsl(var(--primary) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--primary) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--primary) / calc(0.40 * var(--lit)))',
         'standard-primary-hover':
-          'inset 0 0 16px -2px hsl(var(--primary) / 0.35), 0 0 22px -2px hsl(var(--primary) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--primary) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--primary) / calc(0.55 * var(--lit)))',
         'standard-danger':
-          'inset 0 0 12px -2px hsl(var(--color-danger-bg) / 0.20), 0 0 14px -4px hsl(var(--color-danger-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-danger-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-danger-bg) / calc(0.40 * var(--lit)))',
         'standard-danger-hover':
-          'inset 0 0 16px -2px hsl(var(--color-danger-bg) / 0.35), 0 0 22px -2px hsl(var(--color-danger-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-danger-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-danger-bg) / calc(0.55 * var(--lit)))',
         'standard-success':
-          'inset 0 0 12px -2px hsl(var(--color-success-bg) / 0.20), 0 0 14px -4px hsl(var(--color-success-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-success-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-success-bg) / calc(0.40 * var(--lit)))',
         'standard-success-hover':
-          'inset 0 0 16px -2px hsl(var(--color-success-bg) / 0.35), 0 0 22px -2px hsl(var(--color-success-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-success-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-success-bg) / calc(0.55 * var(--lit)))',
         'standard-warning':
-          'inset 0 0 12px -2px hsl(var(--color-warning-bg) / 0.20), 0 0 14px -4px hsl(var(--color-warning-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-warning-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-warning-bg) / calc(0.40 * var(--lit)))',
         'standard-warning-hover':
-          'inset 0 0 16px -2px hsl(var(--color-warning-bg) / 0.35), 0 0 22px -2px hsl(var(--color-warning-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-warning-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-warning-bg) / calc(0.55 * var(--lit)))',
         'standard-info':
-          'inset 0 0 12px -2px hsl(var(--color-info-bg) / 0.20), 0 0 14px -4px hsl(var(--color-info-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-info-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-info-bg) / calc(0.40 * var(--lit)))',
         'standard-info-hover':
-          'inset 0 0 16px -2px hsl(var(--color-info-bg) / 0.35), 0 0 22px -2px hsl(var(--color-info-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-info-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-info-bg) / calc(0.55 * var(--lit)))',
       },
       backgroundImage: {
         scanlines:
-          'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+          'repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
         /* Stacked, paints front-to-back:
            1. Primary-tinted 1px hairline at the very top — etched HUD edge
            2. Off-axis sheen (115°) — implies a light source above-left, not the
               symmetric top-down sheen used by generic glass UI
            3. Scanlines — material texture */
         'lit-fill':
-          'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+          'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, hsl(var(--sheen) / 0.08) 0%, hsl(var(--sheen) / 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
-        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own color. */
-        'icon-bloom': '0 0 6px color-mix(in srgb, currentColor 55%, transparent)',
+        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own
+           color. Bloom strength scales by --lit, so the glow drops to zero in light. */
+        'icon-bloom':
+          '0 0 6px color-mix(in srgb, currentColor calc(55% * var(--lit)), transparent)',
         'icon-bloom-hover': [
-          '0 0 8px color-mix(in srgb, currentColor 70%, transparent)',
-          '0 0 14px color-mix(in srgb, currentColor 35%, transparent)',
+          '0 0 8px color-mix(in srgb, currentColor calc(70% * var(--lit)), transparent)',
+          '0 0 14px color-mix(in srgb, currentColor calc(35% * var(--lit)), transparent)',
         ],
       },
       keyframes: {

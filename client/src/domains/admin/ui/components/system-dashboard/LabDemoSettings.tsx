@@ -49,45 +49,44 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
   const [unseedConfirm, setUnseedConfirm] = useState(false);
   const [editedLimits, setEditedLimits] = useState<Partial<DemoLimits> | null>(null);
 
-  const handleResetDemo = async () => {
-    try {
-      await resetDemoMutation.mutateAsync(labId);
-      notifications.success('Demo data reset');
-      setResetDemoConfirm(false);
-    } catch {
-      notifications.error('Failed to reset demo data');
-    }
+  const handleResetDemo = () => {
+    resetDemoMutation.mutate(labId, {
+      onSuccess: () => {
+        notifications.success('Demo data reset');
+        setResetDemoConfirm(false);
+      },
+    });
   };
 
-  const handleSeedDemo = async () => {
-    try {
-      await seedDemoMutation.mutateAsync(labId);
-      notifications.success('Demo infrastructure seeded');
-      setSeedConfirm(false);
-    } catch {
-      notifications.error('Failed to seed demo');
-    }
+  const handleSeedDemo = () => {
+    seedDemoMutation.mutate(labId, {
+      onSuccess: () => {
+        notifications.success('Demo infrastructure seeded');
+        setSeedConfirm(false);
+      },
+    });
   };
 
-  const handleUnseedDemo = async () => {
-    try {
-      await unseedDemoMutation.mutateAsync(labId);
-      notifications.success('Demo infrastructure unseeded');
-      setUnseedConfirm(false);
-    } catch {
-      notifications.error('Failed to unseed demo');
-    }
+  const handleUnseedDemo = () => {
+    unseedDemoMutation.mutate(labId, {
+      onSuccess: () => {
+        notifications.success('Demo infrastructure unseeded');
+        setUnseedConfirm(false);
+      },
+    });
   };
 
-  const handleSaveLimits = async () => {
+  const handleSaveLimits = () => {
     if (!editedLimits) return;
-    try {
-      await updateDemoLimitsMutation.mutateAsync({ labId, limits: editedLimits });
-      notifications.success('Demo limits updated');
-      setEditedLimits(null);
-    } catch {
-      notifications.error('Failed to update demo limits');
-    }
+    updateDemoLimitsMutation.mutate(
+      { labId, limits: editedLimits },
+      {
+        onSuccess: () => {
+          notifications.success('Demo limits updated');
+          setEditedLimits(null);
+        },
+      }
+    );
   };
 
   const baselineTanks = demoLimits?.maxTanks ?? DEMO_LIMITS_DEFAULTS.maxTanks;
@@ -105,8 +104,9 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
 
   return (
     <>
-      <div>
+      <ConsolePanel intensity="soft">
         <SectionHeader
+          className="px-4 pt-4"
           title="Demo Settings"
           meta={
             <button
@@ -123,7 +123,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
           }
         />
         {isExpanded && (
-          <ConsolePanel>
+          <>
             <Subsection title="Resource Limits" index={1}>
               <SettingsRow label="Additional Tanks" hint="Max tanks beyond seeded baseline">
                 <NumberInput
@@ -162,7 +162,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
                 />
               </SettingsRow>
             </Subsection>
-            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
               <UnsavedChangesIndicator count={changedCount} />
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <Button
@@ -206,9 +206,9 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
                 </Button>
               </div>
             </div>
-          </ConsolePanel>
+          </>
         )}
-      </div>
+      </ConsolePanel>
 
       <ConfirmDialog
         isOpen={resetDemoConfirm}

@@ -6,7 +6,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore } from '@domains/authentication';
+import { useLabId } from '@domains/authentication';
 
 /**
  * Why no REST fetch:
@@ -15,7 +15,7 @@ import { useAuthStore } from '@domains/authentication';
  * - Socket is the authoritative real-time source for presence
  */
 export function useUserPresenceQuery() {
-  const labId = useAuthStore(s => s.user?.labId);
+  const labId = useLabId();
 
   return useQuery({
     queryKey: queryKeys.users.presence(labId),

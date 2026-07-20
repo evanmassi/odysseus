@@ -13,16 +13,19 @@ import { createPortal } from 'react-dom';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import { PRINT_PORTAL_CLASS, buildBarcodePrintStyles } from './barcodePrintStyles';
+import {
+  PRINT_PORTAL_CLASS,
+  PRINT_SHEET_CLASS,
+  buildBarcodePrintStyles,
+} from './barcodePrintStyles';
 import { deriveLabelSize, type SheetTemplate } from './sheetTemplates';
-import { BarcodeLabel } from './SupplyBarcodePrint';
+import { BarcodeLabel } from './SupplyBarcodeLabel';
 import { SupplyBarcodeSheetPreview } from './SupplyBarcodeSheetPreview';
 
-import type { BarcodeFormat } from './SupplyBarcodePrint';
+import type { BarcodeFormat } from './SupplyBarcodeLabel';
 import type { PrintableLabel } from './supplyBarcodeSheetTypes';
 
 const PRINT_STYLE_ID = 'barcode-sheet-print-styles';
-const PRINT_SHEET_CLASS = 'barcode-print-sheet';
 
 const EMPTY_SKIPPED_SLOTS: ReadonlySet<number> = new Set();
 
@@ -141,7 +144,7 @@ export function SupplyBarcodeSheetModal({
     return () => clearTimeout(timer);
     // Intentionally only reacting to the sheets-mounted transition; format is
     // stable per modal instance (changing it requires closing and reopening).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- format is stable per modal instance; only the sheets-mounted transition should trigger print
   }, [hasMountedSheets]);
 
   const handlePrint = useCallback(() => {
@@ -176,7 +179,7 @@ export function SupplyBarcodeSheetModal({
     >
       <div className="flex flex-col gap-3 h-full min-h-0">
         <div className="flex items-center justify-between flex-shrink-0">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body-sm text-muted-foreground">
             {labels.length} label{labels.length === 1 ? '' : 's'} · {totalPages} sheet
             {totalPages === 1 ? '' : 's'} · {template.name}
           </p>
@@ -193,7 +196,7 @@ export function SupplyBarcodeSheetModal({
               >
                 <ChevronLeft size={16} />
               </Button>
-              <span className="text-sm text-card-foreground">
+              <span className="text-body-sm text-card-foreground">
                 Sheet {safeCurrentPage} of {totalPages}
               </span>
               <Button

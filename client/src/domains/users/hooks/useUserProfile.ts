@@ -6,20 +6,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { MS_PER_MINUTE } from '@shared/utils';
 
-import { PersonService, type UpdatePersonProfileWithPassword } from '../services/PersonService';
+import { PersonService } from '../services/PersonService';
 
-import type { Person } from '@odysseus/shared-schemas';
+import type { UpdateMyProfileRequest, Person } from '@odysseus/shared-schemas';
 
-function useUserProfileQuery(options?: { enabled?: boolean }) {
+function useUserProfileQuery() {
   return useQuery({
     queryKey: queryKeys.users.profile(),
     queryFn: () => PersonService.getMyProfile(),
-    staleTime: 5 * 60 * 1000,
-    enabled: options?.enabled ?? true,
-    meta: {
-      errorMessage: 'Failed to load profile',
-    },
+    staleTime: 5 * MS_PER_MINUTE,
   });
 }
 
@@ -27,24 +24,19 @@ function useUpdateUserProfileMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdatePersonProfileWithPassword) => PersonService.updateMyProfile(data),
+    mutationFn: (data: UpdateMyProfileRequest) => PersonService.updateMyProfile(data),
     onSuccess: (updatedProfile: Person) => {
       queryClient.setQueryData(queryKeys.users.profile(), updatedProfile);
-    },
-    meta: {
-      errorMessage: 'Failed to update profile',
     },
   });
 }
 
 export function useUserProfile() {
-  const { data: profile, isLoading, error } = useUserProfileQuery();
+  const { data: profile, isLoading } = useUserProfileQuery();
 
   return {
     profile,
     isLoading,
-    error,
-    hasProfile: !!profile,
   };
 }
 
@@ -53,9 +45,6 @@ export function useUserProfileActions() {
 
   return {
     updateProfile: updateProfileMutation.mutate,
-    updateProfileAsync: updateProfileMutation.mutateAsync,
     isUpdating: updateProfileMutation.isPending,
-    updateError: updateProfileMutation.error,
-    resetError: updateProfileMutation.reset,
   };
 }

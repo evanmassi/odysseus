@@ -6,69 +6,36 @@
 
 import { useEffect, useState } from 'react';
 
-import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 import { ChevronDown, Save } from 'lucide-react';
 
 import { Button, ConsolePanel, SectionHeader, UnsavedChangesIndicator } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../services/AdminService';
+import { useSecurityConfig } from '../../../hooks/useSecurityConfig';
 import { SecurityTab } from '../settings-modal/tabs/SecurityTab';
 
-import type { SecurityConfig } from '@odysseus/shared-schemas';
-
 export function SecuritySettings() {
-  const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
-  const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
-  const [isSaving, setSaving] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { config, handleConfigChange, changedCount, hasChanges, isLoaded, isSaving, load, save } =
+    useSecurityConfig();
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const loaded = await adminService.getSecurityConfig();
-        const merged = { ...DEFAULT_SECURITY_CONFIG, ...loaded };
-        setConfig(merged);
-        setOriginalConfig(merged);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
     void load();
-  }, []);
-
-  const handleConfigChange = (field: keyof SecurityConfig, value: boolean | number | string) => {
-    setConfig(prev => ({ ...prev, [field]: value }));
-  };
-
-  const changedKeys = (Object.keys(config) as (keyof SecurityConfig)[]).filter(
-    key => config[key] !== originalConfig[key]
-  );
-  const hasChanges = changedKeys.length > 0;
+  }, [load]);
 
   const saveConfiguration = async () => {
-    const changes: Partial<SecurityConfig> = {};
-    changedKeys.forEach(key => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic property assignment to partial config object
-      (changes as any)[key] = config[key];
-    });
-
-    setSaving(true);
     try {
-      await adminService.updateSecurityConfigAsSystemAdmin(changes);
+      await save();
       notifications.success('Security configuration updated');
-      setOriginalConfig(config);
     } catch {
-      notifications.error('Failed to update security configuration');
-    } finally {
-      setSaving(false);
+      // The save mutation surfaces the error toast globally; keep the form for retry.
     }
   };
 
   return (
-    <div>
+    <ConsolePanel intensity="soft">
       <SectionHeader
+        className="px-4 pt-4"
         title="Security Settings"
         meta={
           <button
@@ -86,10 +53,10 @@ export function SecuritySettings() {
       />
       {isExpanded &&
         (isLoaded ? (
-          <ConsolePanel>
+          <>
             <SecurityTab config={config} onChange={handleConfigChange} />
-            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
-              <UnsavedChangesIndicator count={changedKeys.length} />
+            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+              <UnsavedChangesIndicator count={changedCount} />
               <Button
                 variant="primary"
                 size="sm"
@@ -101,10 +68,10 @@ export function SecuritySettings() {
                 Save Changes
               </Button>
             </div>
-          </ConsolePanel>
+          </>
         ) : (
-          <div className="py-4 text-center text-sm text-muted-foreground">Loading...</div>
+          <div className="px-4 pb-4 text-center text-body-sm text-muted-foreground">Loading...</div>
         ))}
-    </div>
+    </ConsolePanel>
   );
 }

@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration009: Migration = {
   id: 9,
   name: 'create_full_text_search',
@@ -31,11 +30,21 @@ export const migration009: Migration = {
       ON tubes USING GIN(search_vector)
     `);
 
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_cell_type_trgm ON tubes USING GIN(cell_type gin_trgm_ops)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_donor_internal_trgm ON tubes USING GIN(donor_internal_id gin_trgm_ops)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_donor_source_trgm ON tubes USING GIN(donor_source_id gin_trgm_ops)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_lot_number_trgm ON tubes USING GIN(lot_number gin_trgm_ops)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_notes_trgm ON tubes USING GIN(notes gin_trgm_ops)');
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_tubes_cell_type_trgm ON tubes USING GIN(cell_type gin_trgm_ops)'
+    );
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_tubes_donor_internal_trgm ON tubes USING GIN(donor_internal_id gin_trgm_ops)'
+    );
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_tubes_donor_source_trgm ON tubes USING GIN(donor_source_id gin_trgm_ops)'
+    );
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_tubes_lot_number_trgm ON tubes USING GIN(lot_number gin_trgm_ops)'
+    );
+    await pool.query(
+      'CREATE INDEX IF NOT EXISTS idx_tubes_notes_trgm ON tubes USING GIN(notes gin_trgm_ops)'
+    );
 
     await pool.query(`
       CREATE OR REPLACE FUNCTION tubes_search_vector_update() RETURNS trigger AS $$
@@ -69,5 +78,5 @@ export const migration009: Migration = {
     `);
 
     await pool.query(`UPDATE tubes SET updated_at = updated_at`);
-  }
+  },
 };

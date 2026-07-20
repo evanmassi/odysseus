@@ -6,12 +6,14 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-import { Notebook, SquarePen } from 'lucide-react';
+import { SquarePen } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
-import { AlertBanner, Button, Input } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
+
+import { LockNoteField } from './LockNoteField';
 
 import type { TubeData } from '@domains/tubes/types';
 
@@ -60,24 +62,20 @@ export function TubeLockNoteModal({
   const tubeCount = tubes.length;
   const isSingleTube = tubeCount === 1;
 
-  const handleSave = async () => {
-    try {
-      await bulkUpdateMutation.mutateAsync({
-        tubeIds,
-        updates: {
-          lockNote: lockNote.trim() || undefined,
+  const handleSave = () => {
+    bulkUpdateMutation.mutate(
+      { tubeIds, updates: { lockNote: lockNote.trim() || undefined } },
+      {
+        onSuccess: () => {
+          const message = isSingleTube
+            ? 'Lock note updated'
+            : `Lock note updated on ${tubeCount} tubes`;
+          notifications.success(message);
+          onSuccess?.();
+          onClose();
         },
-      });
-
-      const message = isSingleTube
-        ? 'Lock note updated'
-        : `Lock note updated on ${tubeCount} tubes`;
-      notifications.success(message);
-      onSuccess?.();
-      onClose();
-    } catch {
-      notifications.error('Failed to update lock note');
-    }
+      }
+    );
   };
 
   // For mixed notes, initialNote is empty so user must type something
@@ -86,7 +84,7 @@ export function TubeLockNoteModal({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && hasChanges && !bulkUpdateMutation.isPending) {
       e.preventDefault();
-      void handleSave();
+      handleSave();
     }
   };
 
@@ -98,7 +96,7 @@ export function TubeLockNoteModal({
       title={title}
       icon={<SquarePen size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
         {hasMixedNotes && (
@@ -107,34 +105,12 @@ export function TubeLockNoteModal({
           </AlertBanner>
         )}
 
-        <div>
-          <label
-            htmlFor="lockNote"
-            className="flex items-center gap-1.5 text-sm font-medium text-secondary-foreground mb-1"
-          >
-            <Notebook className="w-4 h-4" />
-            Lock Note (optional)
-          </label>
-          <div className="relative">
-            <Input
-              id="lockNote"
-              type="text"
-              value={lockNote}
-              onValueChange={setLockNote}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                hasMixedNotes ? 'Enter new note for all tubes...' : 'e.g., Project X - Donor 123'
-              }
-              maxLength={100}
-              fullWidth
-              inputClassName="pr-12"
-            />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 pointer-events-none">
-              {lockNote.length}/100
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">Provides context for the lock.</p>
-        </div>
+        <LockNoteField
+          value={lockNote}
+          onValueChange={setLockNote}
+          onKeyDown={handleKeyDown}
+          placeholder={hasMixedNotes ? 'Enter new note for all tubes...' : undefined}
+        />
 
         <div className="flex justify-end space-x-3 pt-2">
           <Button variant="secondary" onClick={onClose}>

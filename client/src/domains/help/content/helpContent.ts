@@ -68,7 +68,7 @@ export const HELP_TABS: HelpTabMeta[] = [
   { id: 'donors', label: 'Donors', icon: BookUser },
   { id: 'researchers', label: 'Researchers', icon: Dna },
   { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
-  { id: 'administration', label: 'Administration', icon: ShieldUser, adminOnly: true },
+  { id: 'administration', label: 'Admin', icon: ShieldUser, adminOnly: true },
 ];
 
 export const HELP_TAB_META: Record<HelpTabId, HelpTabMeta> = HELP_TABS.reduce(
@@ -91,7 +91,7 @@ export interface HelpSectionMeta {
  * Every help section, keyed by a stable anchor id. The section component reads its
  * title/icon from here; search filters across title + keywords.
  */
-export const HELP_SECTIONS: HelpSectionMeta[] = [
+const HELP_SECTIONS: HelpSectionMeta[] = [
   // Getting Started
   {
     id: 'gs-grid',
@@ -327,7 +327,19 @@ export const HELP_SECTIONS: HelpSectionMeta[] = [
     tabId: 'administration',
     title: 'Catalog Management',
     icon: BookOpen,
-    keywords: ['species', 'source', 'media', 'specimen type', 'options', 'rename', 'lookup'],
+    keywords: [
+      'species',
+      'source',
+      'media',
+      'specimen type',
+      'equipment maintenance',
+      'vendor',
+      'manufacturer',
+      'stock unit',
+      'options',
+      'rename',
+      'lookup',
+    ],
     adminOnly: true,
   },
   {

@@ -16,17 +16,31 @@ import {
   useRecordSupplyTransactionMutation,
   useRecordSupplyStockCountMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, DatePicker, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
+import {
+  computePackagingMultiplier,
+  orderPackagingChain,
+} from '@domains/supplies/utils/packagingChain';
+import {
+  AccentTick,
+  Button,
+  DatePicker,
+  HeaderStrip,
+  Input,
+  NubDivider,
+  Select,
+  Tab,
+  Tabs,
+  withPlaceholder,
+} from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import type { SelectOption } from '@shared/ui/primitives/select/types';
-
-type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
+export type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
 
 const MODE_LABELS: Record<TransactionMode, string> = {
   received: 'Receive',
@@ -34,10 +48,6 @@ const MODE_LABELS: Record<TransactionMode, string> = {
   count: 'Count',
   disposed: 'Dispose',
 };
-
-// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
-const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 export interface TransactionPrefill {
   locationId?: string;
@@ -75,11 +85,12 @@ export function SupplyTransactionForm({
   const recordTransactionMutation = useRecordSupplyTransactionMutation();
   const recordStockCountMutation = useRecordSupplyStockCountMutation();
 
-  const locationOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select location...' },
-      ...locations.map(l => ({ value: l.id, label: l.name })),
-    ],
+  const locationOptions = useMemo(
+    () =>
+      withPlaceholder(
+        'Select location...',
+        locations.map(l => ({ value: l.id, label: l.name }))
+      ),
     [locations]
   );
 
@@ -92,39 +103,11 @@ export function SupplyTransactionForm({
   const identityParts = [manufacturer, catalogNumber].filter(Boolean);
 
   const computeMultiplier = useCallback(
-    (fromUnit: string): number => {
-      if (fromUnit === stockUnit) return 1;
-      let multiplier = 1;
-      let current = fromUnit;
-      for (let i = 0; i < packagingLevels.length + 1; i++) {
-        const level = packagingLevels.find(l => l.unitName === current);
-        if (!level) return 1;
-        multiplier *= level.quantity;
-        if (level.parentUnit === null || level.parentUnit === stockUnit) return multiplier;
-        current = level.parentUnit;
-      }
-      return multiplier;
-    },
+    (fromUnit: string) => computePackagingMultiplier(packagingLevels, fromUnit, stockUnit),
     [stockUnit, packagingLevels]
   );
 
-  const orderedLevels = useMemo(() => {
-    if (!hasPackaging) return [];
-    const levels = [...packagingLevels];
-    const ordered: typeof levels = [];
-    const bottom = levels.find(l => l.parentUnit === null);
-    if (bottom) {
-      ordered.push(bottom);
-      let current = bottom;
-      for (let i = 0; i < levels.length; i++) {
-        const next = levels.find(l => l.parentUnit === current.unitName);
-        if (!next) break;
-        ordered.push(next);
-        current = next;
-      }
-    }
-    return ordered;
-  }, [hasPackaging, packagingLevels]);
+  const orderedLevels = useMemo(() => orderPackagingChain(packagingLevels), [packagingLevels]);
 
   const showLooseRow = hasPackaging && !packagingLevels.some(l => l.unitName === stockUnit);
 
@@ -149,10 +132,9 @@ export function SupplyTransactionForm({
     watch,
     reset,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     defaultValues: {
-      itemId,
       locationId: prefill?.locationId ?? '',
       type: (initialTab ?? 'received') as string,
       quantity: prefill?.quantity as number | undefined,
@@ -188,37 +170,19 @@ export function SupplyTransactionForm({
     }
   }, [hasPackaging, computedTotal, setValue]);
 
-  const onFormSubmit = async (data: FieldValues) => {
-    const quantity = Number(data['quantity']);
-    const locationId = data['locationId'] as string;
-    if (!locationId || isNaN(quantity)) {
-      notifications.error('Quantity and location are required');
-      return;
+  // A count of zero is a real measurement; receiving, issuing, or disposing of zero is not.
+  const validateQuantity = (value: unknown) => {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return mode === 'count' ? 'Count is required' : 'Quantity is required';
     }
+    if (mode === 'count') return value >= 0 || 'Count cannot be negative';
+    return value > 0 || 'Quantity must be greater than 0';
+  };
 
-    try {
-      if (mode === 'count') {
-        await recordStockCountMutation.mutateAsync({
-          itemId,
-          locationId: data['locationId'] as string,
-          actualCount: quantity,
-          lotNumber: (data['lotNumber'] as string) || undefined,
-          expirationDate: (data['expirationDate'] as string) || undefined,
-          notes: (data['notes'] as string) || undefined,
-        });
-      } else {
-        await recordTransactionMutation.mutateAsync({
-          itemId,
-          locationId: data['locationId'] as string,
-          type: data['type'] as 'received' | 'issued' | 'disposed',
-          quantity,
-          lotNumber: (data['lotNumber'] as string) || undefined,
-          expirationDate: (data['expirationDate'] as string) || undefined,
-          poNumber: (data['poNumber'] as string) || undefined,
-          cost: data['cost'] as number | undefined,
-          notes: (data['notes'] as string) || undefined,
-        });
-      }
+  const onFormSubmit = (data: FieldValues) => {
+    const quantity = data['quantity'] as number;
+
+    const onSuccess = () => {
       notifications.success(
         mode === 'received'
           ? 'Stock received'
@@ -230,15 +194,41 @@ export function SupplyTransactionForm({
       );
       reset();
       onSubmit();
-    } catch {
-      notifications.error('Failed to record transaction');
+    };
+
+    if (mode === 'count') {
+      recordStockCountMutation.mutate(
+        {
+          itemId,
+          locationId: data['locationId'] as string,
+          actualCount: quantity,
+          lotNumber: (data['lotNumber'] as string) || undefined,
+          expirationDate: (data['expirationDate'] as string) || undefined,
+          notes: (data['notes'] as string) || undefined,
+        },
+        { onSuccess }
+      );
+    } else {
+      recordTransactionMutation.mutate(
+        {
+          itemId,
+          locationId: data['locationId'] as string,
+          type: data['type'] as 'received' | 'issued' | 'disposed',
+          quantity,
+          lotNumber: (data['lotNumber'] as string) || undefined,
+          expirationDate: (data['expirationDate'] as string) || undefined,
+          poNumber: (data['poNumber'] as string) || undefined,
+          cost: data['cost'] as number | undefined,
+          notes: (data['notes'] as string) || undefined,
+        },
+        { onSuccess }
+      );
     }
   };
 
   const handleModeChange = (newMode: string) => {
     setQtyByLevel({});
     reset({
-      itemId,
       locationId: '',
       type: newMode,
       quantity: undefined,
@@ -264,19 +254,12 @@ export function SupplyTransactionForm({
         <h2 className="text-lg font-medium text-foreground">Record Transaction</h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
-          <span
-            aria-hidden
-            className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-          />
-          <span className="truncate font-display text-sm text-foreground">{itemName}</span>
+          <AccentTick />
+          <span className="truncate font-display text-body-sm text-foreground">{itemName}</span>
           {identityParts.length > 0 && (
-            <span className="truncate font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+            <span className="truncate font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
               {identityParts.map((part, i) => (
                 <span key={i}>
                   {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
@@ -286,8 +269,7 @@ export function SupplyTransactionForm({
             </span>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <div className="flex-shrink-0 border-b border-line-faint px-4">
         <Tabs
@@ -317,12 +299,11 @@ export function SupplyTransactionForm({
           onSubmit={handleSubmit(onFormSubmit)}
           className="space-y-3 p-4"
         >
-          <input type="hidden" {...register('itemId')} />
           <input type="hidden" {...register('type')} />
 
           {hasPackaging ? (
             <div className="space-y-2">
-              <span className={SELECT_LABEL}>{MODE_LABELS[mode]}</span>
+              <span className={FIELD_LABEL_COMPACT}>{MODE_LABELS[mode]}</span>
               <div className="space-y-1.5">
                 {orderedLevels.map(level => (
                   <div key={level.unitName} className="flex items-center gap-2">
@@ -337,10 +318,10 @@ export function SupplyTransactionForm({
                         aria-label={pluralizeUnit(level.unitName, 2)}
                       />
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-body-sm text-muted-foreground">
                       {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
                     </span>
-                    <span className="text-xs text-muted-foreground/50">
+                    <span className="text-caption text-muted-foreground/50">
                       ({level.quantity}{' '}
                       {pluralizeUnit(
                         level.parentUnit ?? detail?.item.baseItemName ?? 'item',
@@ -363,14 +344,14 @@ export function SupplyTransactionForm({
                         aria-label={`Loose ${stockUnitLabel}`}
                       />
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-body-sm text-muted-foreground">
                       loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
                     </span>
                   </div>
                 )}
               </div>
               {computedTotal !== undefined && computedTotal > 0 && (
-                <div className="border border-line-faint bg-black/20 px-3 py-1.5 text-sm font-medium">
+                <div className="border border-line-faint bg-shade/20 px-3 py-1.5 text-body-sm font-medium">
                   Total: {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
                 </div>
               )}
@@ -378,8 +359,12 @@ export function SupplyTransactionForm({
                 type="hidden"
                 {...register('quantity', {
                   setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                  validate: validateQuantity,
                 })}
               />
+              {errors.quantity && (
+                <p className="text-caption text-danger-text">{errors.quantity.message as string}</p>
+              )}
             </div>
           ) : (
             <ValidatedInput
@@ -392,12 +377,13 @@ export function SupplyTransactionForm({
               helperText={(errors.quantity?.message as string) ?? undefined}
               registration={register('quantity', {
                 setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                validate: validateQuantity,
               })}
             />
           )}
 
           {mode === 'count' && selectedLocationId && actualCount !== undefined && (
-            <div className="space-y-0.5 px-1 text-xs">
+            <div className="space-y-0.5 px-1 text-caption">
               <div className="flex justify-between text-muted-foreground">
                 <span>Current stock at location:</span>
                 <span className="font-medium">
@@ -427,10 +413,11 @@ export function SupplyTransactionForm({
           <Controller
             name="locationId"
             control={control}
+            rules={{ required: 'Location is required' }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="txn-location-label" className={SELECT_LABEL}>
+                <label id="txn-location-label" className={FIELD_LABEL_COMPACT}>
                   Location
                 </label>
                 <Select
@@ -456,13 +443,13 @@ export function SupplyTransactionForm({
                   registration={register('lotNumber')}
                 />
                 <div>
-                  <span className={SELECT_LABEL}>Expiration Date</span>
+                  <span className={FIELD_LABEL_COMPACT}>Expiration Date</span>
                   <Controller
                     name="expirationDate"
                     control={control}
                     render={({ field: { value, onChange } }) => (
                       <DatePicker
-                        value={formatDateForInput(value)}
+                        value={normalizeDateString(value)}
                         onChange={onChange}
                         clearable
                         fullWidth
@@ -502,7 +489,7 @@ export function SupplyTransactionForm({
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
@@ -513,7 +500,7 @@ export function SupplyTransactionForm({
             form="supply-transaction-form"
             variant="primary"
             size="sm"
-            isLoading={isSubmitting}
+            isLoading={recordStockCountMutation.isPending || recordTransactionMutation.isPending}
             loadingText="Recording..."
           >
             {mode === 'received'

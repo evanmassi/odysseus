@@ -11,8 +11,8 @@ export function buildAuditFilterParams(filters: AuditLogFilters): URLSearchParam
   if (filters.limit !== undefined) params.append('limit', filters.limit.toString());
   if (filters.offset !== undefined) params.append('offset', filters.offset.toString());
   if (filters.username) params.append('username', filters.username);
-  if (filters.action) params.append('action', filters.action);
-  if (filters.entityType) params.append('entityType', filters.entityType);
+  filters.action?.forEach(action => params.append('action', action));
+  filters.entityType?.forEach(entityType => params.append('entityType', entityType));
   if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
   if (filters.dateTo) params.append('dateTo', filters.dateTo);
   return params;

@@ -24,7 +24,6 @@ interface DonorIdAutocompleteProps {
   fieldType: 'source' | 'internal';
   badge?: React.ReactNode;
   hasConflict?: boolean;
-  state?: InputState;
   onPairSelect?: (secondaryValue: string) => void;
 }
 
@@ -41,7 +40,7 @@ export function DonorIdAutocomplete({
   hasConflict,
   onPairSelect,
 }: DonorIdAutocompleteProps) {
-  const debouncedQuery = useDebounce(value, 300);
+  const debouncedQuery = useDebounce(value);
   const { data: results = [] } = useDonorSearchQuery(debouncedQuery);
 
   const options: AutocompleteOption[] = useMemo(
@@ -64,7 +63,7 @@ export function DonorIdAutocomplete({
   return (
     <div>
       <label
-        className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${error ? 'text-danger-text' : 'text-muted-foreground'}`}
+        className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${error ? 'text-danger-text' : 'text-muted-foreground'}`}
       >
         <span className="flex items-center gap-1.5">
           {label}
@@ -88,7 +87,7 @@ export function DonorIdAutocomplete({
       />
       {helperText && (
         <div
-          className={`flex items-center mt-1 text-xs ${error ? 'text-danger-text' : 'text-muted-foreground'}`}
+          className={`flex items-center mt-1 text-caption ${error ? 'text-danger-text' : 'text-muted-foreground'}`}
         >
           <span>{helperText}</span>
         </div>

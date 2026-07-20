@@ -4,13 +4,15 @@
  * Accessible tooltip built on Radix UI — tactical fuzzy-black card with mono text.
  */
 
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
-export interface TooltipProps {
-  content: React.ReactNode;
-  children: React.ReactNode;
+import { ScrimHalo } from '../scrim-halo/ScrimHalo';
+
+interface TooltipProps {
+  content: ReactNode;
+  children: ReactNode;
   side?: 'top' | 'right' | 'bottom' | 'left';
   align?: 'start' | 'center' | 'end';
   /** Delay in ms before showing */
@@ -27,7 +29,7 @@ export interface TooltipProps {
 const ANIMATION =
   'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2';
 
-export const Tooltip: React.FC<TooltipProps> = ({
+export const Tooltip = ({
   content,
   children,
   side = 'top',
@@ -38,14 +40,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   open,
   onOpenChange,
   bare = false,
-}) => {
+}: TooltipProps) => {
   if (!content) {
     return <>{children}</>;
   }
 
   const contentClassName = bare
     ? `relative z-50 ${ANIMATION} ${className}`
-    : `relative isolate z-50 px-3 py-1.5 font-mono text-xs text-tooltip-foreground ${ANIMATION} ${className}`;
+    : `relative isolate z-50 px-3 py-1.5 font-mono text-data-sm text-tooltip-foreground ${ANIMATION} ${className}`;
 
   // Always render the Radix tree to keep children's DOM nodes stable.
   // Prevents ref detachment when disabled toggles (e.g., truncation detection).
@@ -62,14 +64,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
             side={side}
             align={align}
             sideOffset={6}
+            data-theme="dark"
             className={contentClassName}
           >
-            {!bare && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
-              />
-            )}
+            {!bare && <ScrimHalo />}
             {content}
           </TooltipPrimitive.Content>
         </TooltipPrimitive.Portal>

@@ -38,14 +38,14 @@ export class SupplyItemCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyItemCreated'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, name: this.name, categoryId: this.categoryId, createdBy: this.createdBy };
+  eventName(): string {
+    return 'SupplyItemCreated';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -56,14 +56,14 @@ export class SupplyItemUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyItemUpdated'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, changes: this.changes, updatedBy: this.updatedBy };
+  eventName(): string {
+    return 'SupplyItemUpdated';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -74,14 +74,14 @@ export class SupplyItemArchivedEvent extends DomainEvent {
     public readonly archivedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyItemArchived'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, name: this.name, archivedBy: this.archivedBy };
+  eventName(): string {
+    return 'SupplyItemArchived';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -92,14 +92,14 @@ export class SupplyItemDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyItemDeleted'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, name: this.name, deletedBy: this.deletedBy };
+  eventName(): string {
+    return 'SupplyItemDeleted';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -113,14 +113,14 @@ export class SupplyCategoryCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyCategoryCreated'; }
-  getAggregateId(): string { return this.categoryId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { categoryId: this.categoryId, name: this.name, parentId: this.parentId, createdBy: this.createdBy };
+  eventName(): string {
+    return 'SupplyCategoryCreated';
+  }
+  getAggregateId(): string {
+    return this.categoryId;
   }
 }
 
@@ -131,14 +131,14 @@ export class SupplyCategoryUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyCategoryUpdated'; }
-  getAggregateId(): string { return this.categoryId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { categoryId: this.categoryId, name: this.name, updatedBy: this.updatedBy };
+  eventName(): string {
+    return 'SupplyCategoryUpdated';
+  }
+  getAggregateId(): string {
+    return this.categoryId;
   }
 }
 
@@ -149,14 +149,14 @@ export class SupplyCategoryDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyCategoryDeleted'; }
-  getAggregateId(): string { return this.categoryId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { categoryId: this.categoryId, name: this.name, deletedBy: this.deletedBy };
+  eventName(): string {
+    return 'SupplyCategoryDeleted';
+  }
+  getAggregateId(): string {
+    return this.categoryId;
   }
 }
 
@@ -169,14 +169,14 @@ export class SupplyDocumentAddedEvent extends DomainEvent {
     public readonly addedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyDocumentAdded'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, label: this.label, addedBy: this.addedBy };
+  eventName(): string {
+    return 'SupplyDocumentAdded';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -186,14 +186,14 @@ export class SupplyDocumentRemovedEvent extends DomainEvent {
     public readonly removedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyDocumentRemoved'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, removedBy: this.removedBy };
+  eventName(): string {
+    return 'SupplyDocumentRemoved';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -207,14 +207,14 @@ export class SupplyStockReceivedEvent extends DomainEvent {
     public readonly receivedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyStockReceived'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, quantity: this.quantity, locationId: this.locationId, receivedBy: this.receivedBy };
+  eventName(): string {
+    return 'SupplyStockReceived';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -226,14 +226,14 @@ export class SupplyStockIssuedEvent extends DomainEvent {
     public readonly issuedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyStockIssued'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, quantity: this.quantity, locationId: this.locationId, issuedBy: this.issuedBy };
+  eventName(): string {
+    return 'SupplyStockIssued';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -245,14 +245,14 @@ export class SupplyStockCountAdjustedEvent extends DomainEvent {
     public readonly adjustedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyStockCountAdjusted'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, delta: this.delta, locationId: this.locationId, adjustedBy: this.adjustedBy };
+  eventName(): string {
+    return 'SupplyStockCountAdjusted';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -264,14 +264,14 @@ export class SupplyStockDisposedEvent extends DomainEvent {
     public readonly disposedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyStockDisposed'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemId: this.itemId, quantity: this.quantity, locationId: this.locationId, disposedBy: this.disposedBy };
+  eventName(): string {
+    return 'SupplyStockDisposed';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -286,18 +286,14 @@ export class SupplyStockVoidedEvent extends DomainEvent {
     public readonly voidedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyStockVoided'; }
-  getAggregateId(): string { return this.itemId; }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId, originalTransactionId: this.originalTransactionId,
-      reversalTransactionId: this.reversalTransactionId, quantityReversed: this.quantityReversed,
-      locationId: this.locationId, voidReason: this.voidReason, voidedBy: this.voidedBy,
-    };
+  eventName(): string {
+    return 'SupplyStockVoided';
+  }
+  getAggregateId(): string {
+    return this.itemId;
   }
 }
 
@@ -309,14 +305,14 @@ export class SupplyBulkReceivedEvent extends DomainEvent {
     public readonly receivedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkReceived'; }
-  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { perItemData: this.perItemData, receivedBy: this.receivedBy };
+  eventName(): string {
+    return 'SupplyBulkReceived';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.perItemData.length}`;
   }
 }
 
@@ -326,14 +322,14 @@ export class SupplyBulkIssuedEvent extends DomainEvent {
     public readonly issuedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkIssued'; }
-  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { perItemData: this.perItemData, issuedBy: this.issuedBy };
+  eventName(): string {
+    return 'SupplyBulkIssued';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.perItemData.length}`;
   }
 }
 
@@ -344,14 +340,14 @@ export class SupplyBulkCategoryReassignedEvent extends DomainEvent {
     public readonly reassignedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkCategoryReassigned'; }
-  getAggregateId(): string { return `bulk-${this.itemIds.length}`; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemIds: this.itemIds, categoryId: this.categoryId, reassignedBy: this.reassignedBy };
+  eventName(): string {
+    return 'SupplyBulkCategoryReassigned';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
   }
 }
 
@@ -361,14 +357,14 @@ export class SupplyBulkArchivedEvent extends DomainEvent {
     public readonly archivedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkArchived'; }
-  getAggregateId(): string { return `bulk-${this.itemIds.length}`; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { itemIds: this.itemIds, archivedBy: this.archivedBy };
+  eventName(): string {
+    return 'SupplyBulkArchived';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
   }
 }
 
@@ -379,13 +375,13 @@ export class SupplyBulkVoidedEvent extends DomainEvent {
     public readonly voidReason: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
-  eventName(): string { return 'SupplyBulkVoided'; }
-  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
-
-  protected getEventData(): Record<string, unknown> {
-    return { perItemData: this.perItemData, voidedBy: this.voidedBy, voidReason: this.voidReason };
+  eventName(): string {
+    return 'SupplyBulkVoided';
+  }
+  getAggregateId(): string {
+    return `bulk-${this.perItemData.length}`;
   }
 }

@@ -1,85 +1,44 @@
 /**
  * Authenticated Session Controller
  *
- * Endpoints for logged-in users managing their own session — verify, logout, heartbeat,
- * password change, and email verification status.
+ * Endpoints for logged-in users managing their own session — logout, heartbeat,
+ * and password change.
  */
 
-
-import type { ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import type { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
+import type {
+  ChangeUserPasswordCommand,
+  ChangeUserPasswordCommandHandler,
+} from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
-import { PermissionError } from '@domain/errors/PermissionError';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { logger } from '@infrastructure/logging/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
+import type { MessageResponse } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
 
 export interface AuthControllerDeps {
   changePasswordHandler: ChangeUserPasswordCommandHandler;
-  resendVerificationHandler: ResendVerificationEmailCommandHandler;
-  personRepository: PersonRepository;
+  userSessionRepository: UserSessionRepository;
   eventBus: EventBus;
 }
 
-export class AuthController {
-  constructor(private deps: AuthControllerDeps) {}
-
-  async verifySession(req: Request, res: Response): Promise<void> {
-    try {
-      const user = req.user;
-
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to verify session');
-        return;
-      }
-
-      logger.debug('Session verified', {
-        userId: user.id,
-        username: user.username
-      });
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData()
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to verify session');
-    }
-  }
-
-  async getCurrentUser(req: Request, res: Response): Promise<void> {
-    try {
-      const user = req.user;
-
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to get current user');
-        return;
-      }
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData(),
-        permissions: user.getPermissions()
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get current user');
-    }
+export class AuthController extends BaseController {
+  constructor(private deps: AuthControllerDeps) {
+    super();
   }
 
   async changePassword(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to change password');
-        return;
-      }
+      const user = this.getAuthenticatedUser(req);
 
       if (user.isDemo) {
-        res.status(403).json(ResponseBuilder.forbidden('Password change is not available in demo mode'));
+        res
+          .status(403)
+          .json(ResponseBuilder.forbidden('Password change is not available in demo mode'));
         return;
       }
 
@@ -95,13 +54,11 @@ export class AuthController {
 
       await this.deps.changePasswordHandler.handle(command);
 
-      logger.info('Password changed successfully', {
-        userId: user.id,
-        username: user.username
-      });
+      logger.info('Password changed successfully', { userId: user.id, username: user.username });
 
-      const response = ResponseBuilder.success({ message: 'Password changed successfully' });
-      res.status(200).json(response);
+      const payload: MessageResponse = { message: 'Password changed successfully' };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to change password');
     }
@@ -109,25 +66,21 @@ export class AuthController {
 
   async logout(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to logout');
-        return;
+      const user = this.getAuthenticatedUser(req);
+
+      // Revoke the session server-side so the access token and its refresh token
+      // (rejected on an inactive session) stop working immediately, not just client-side.
+      if (req.sessionId) {
+        await this.deps.userSessionRepository.revokeSession(req.sessionId);
       }
 
-      await this.deps.eventBus.publish(new UserLoggedOutEvent(
-        user.id,
-        user.username,
-        user.labId
-      ));
+      await this.deps.eventBus.publish(new UserLoggedOutEvent(user.id, user.username, user.labId));
 
-      logger.info('User logged out', {
-        userId: user.id,
-        username: user.username
-      });
+      logger.info('User logged out', { userId: user.id, username: user.username });
 
-      const response = ResponseBuilder.success({ message: 'Logged out successfully' });
-      res.status(200).json(response);
+      const payload: MessageResponse = { message: 'Logged out successfully' };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to logout');
     }
@@ -139,75 +92,19 @@ export class AuthController {
    */
   async heartbeat(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to process heartbeat');
-        return;
-      }
+      const user = this.getAuthenticatedUser(req);
 
       logger.debug('Session heartbeat received', {
         userId: user.id,
         username: user.username,
-        sessionId: req.sessionId
+        sessionId: req.sessionId,
       });
 
-      const response = ResponseBuilder.success({ message: 'Session extended' });
-      res.status(200).json(response);
+      const payload: MessageResponse = { message: 'Session extended' };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to process heartbeat');
-    }
-  }
-
-  /** Deprecated — use public endpoint. */
-  async resendVerification(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        throw new PermissionError('Authentication required');
-      }
-
-      const command = { userId: req.user.id };
-      await this.deps.resendVerificationHandler.handle(command);
-
-      if (req.user.personId) {
-        const person = await this.deps.personRepository.findById(req.user.personId);
-        logger.info('Verification email resent', {
-          userId: req.user.id,
-          email: person?.email ?? 'unknown'
-        });
-      }
-
-      res.status(200).json(ResponseBuilder.success({
-        message: 'Verification email sent. Check your inbox.',
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to resend verification');
-    }
-  }
-
-  async getVerificationStatus(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        throw new PermissionError('Authentication required');
-      }
-
-      logger.info('Verification status checked', {
-        userId: req.user.id,
-        emailVerified: req.user.emailVerified
-      });
-
-      let email: string | null = null;
-      if (req.user.personId) {
-        const person = await this.deps.personRepository.findById(req.user.personId);
-        email = person?.email ?? null;
-      }
-
-      res.status(200).json(ResponseBuilder.success({
-        emailVerified: req.user.emailVerified,
-        email
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get verification status');
     }
   }
 }

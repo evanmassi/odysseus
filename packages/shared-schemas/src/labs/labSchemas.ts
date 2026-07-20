@@ -23,17 +23,6 @@ export const labDataSchema = z.object({
 
 export type LabData = z.infer<typeof labDataSchema>;
 
-export const labPublicDataSchema = labDataSchema.pick({
-  id: true,
-  name: true,
-  slug: true,
-  isActive: true,
-  isDemo: true,
-  demoLimits: true,
-});
-
-export type LabPublicData = z.infer<typeof labPublicDataSchema>;
-
 export const inviteCodeDataSchema = z.object({
   id: z.string(),
   labId: z.string(),
@@ -52,14 +41,13 @@ export const inviteCodeDataSchema = z.object({
 export type InviteCodeData = z.infer<typeof inviteCodeDataSchema>;
 
 export const createLabRequestSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(1, 'Lab name is required')
     .max(200, 'Lab name cannot exceed 200 characters')
     .transform(val => val.trim()),
   isDemo: z.boolean().optional().default(false),
 });
-
-export type CreateLabRequest = z.infer<typeof createLabRequestSchema>;
 
 export const labDetailsUserSchema = z.object({
   id: z.string(),
@@ -73,27 +61,31 @@ export const labDetailsUserSchema = z.object({
   status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
   lastActivity: dateField,
-  researcher: z.object({
-    name: z.string(),
-    tubeCount: z.number(),
-    active: z.boolean(),
-  }).nullable(),
+  researcher: z
+    .object({
+      name: z.string(),
+      tubeCount: z.number(),
+      active: z.boolean(),
+    })
+    .nullable(),
 });
 
 export type LabDetailsUser = z.infer<typeof labDetailsUserSchema>;
 
-export const labDetailsResearcherSchema = z.object({
+const labDetailsResearcherSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   email: z.string().optional(),
   active: z.boolean(),
   tubeCount: z.number(),
-  linkedUser: z.object({
-    id: z.string(),
-    username: z.string(),
-    status: z.string(),
-  }).nullable(),
+  linkedUser: z
+    .object({
+      id: z.string(),
+      username: z.string(),
+      status: z.string(),
+    })
+    .nullable(),
 });
 
 export type LabDetailsResearcher = z.infer<typeof labDetailsResearcherSchema>;
@@ -126,8 +118,6 @@ const systemOverviewLabStatSchema = z.object({
   boxCount: z.number(),
 });
 
-export type SystemOverviewLabStat = z.infer<typeof systemOverviewLabStatSchema>;
-
 export const systemOverviewSchema = z.object({
   totalLabs: z.number(),
   activeLabs: z.number(),
@@ -155,13 +145,9 @@ export const labsListSchema = z.object({
   labs: z.array(labDataSchema),
 });
 
-export type LabsList = z.infer<typeof labsListSchema>;
-
 export const labDataResponseSchema = z.object({
   lab: labDataSchema,
 });
-
-export type LabDataResponse = z.infer<typeof labDataResponseSchema>;
 
 export const demoLimitsDataSchema = z.object({
   limits: demoLimitsSchema,

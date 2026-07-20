@@ -16,7 +16,7 @@ export class DonorCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -25,16 +25,6 @@ export class DonorCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.donorId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      donorId: this.donorId,
-      donorSourceId: this.donorSourceId,
-      donorInternalId: this.donorInternalId,
-      isCurated: this.isCurated,
-      createdBy: this.createdBy
-    };
   }
 }
 
@@ -45,7 +35,7 @@ export class DonorUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -54,14 +44,6 @@ export class DonorUpdatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.donorId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      donorId: this.donorId,
-      changes: this.changes,
-      updatedBy: this.updatedBy
-    };
   }
 }
 
@@ -73,7 +55,7 @@ export class DonorDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -82,14 +64,5 @@ export class DonorDeletedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.donorId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      donorId: this.donorId,
-      donorSourceId: this.donorSourceId,
-      donorInternalId: this.donorInternalId,
-      deletedBy: this.deletedBy
-    };
   }
 }

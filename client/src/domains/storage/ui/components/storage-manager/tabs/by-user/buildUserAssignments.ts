@@ -4,10 +4,10 @@
  * Groups storage resources by assigned user for the By User tab display.
  */
 
-import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
+import type { UserInfo } from '../../../../../hooks/useStorageOwnership';
 import type { LabConfiguration } from '@odysseus/shared-schemas';
 
-export interface ResourceAssignment {
+interface ResourceAssignment {
   type: 'rack' | 'box';
   tankId: string;
   tankName: string;
@@ -17,20 +17,16 @@ export interface ResourceAssignment {
   boxId?: string;
   boxName?: string;
   boxCustomLabel?: string;
-  isInherited?: boolean;
 }
 
-export interface UserAssignments {
+interface UserAssignments {
   userId: string | null;
   username: string;
   initials: string;
-  firstName?: string;
-  lastName?: string;
   displayName: string;
   assignments: ResourceAssignment[];
   rackCount: number;
   boxCount: number;
-  inheritedBoxCount: number;
 }
 
 export function buildUserAssignments(
@@ -72,7 +68,6 @@ export function buildUserAssignments(
             boxId: box.id,
             boxName: box.name,
             boxCustomLabel: box.customLabel,
-            isInherited: true,
           });
         } else {
           addAssignment(box.assignedUserId, {
@@ -85,7 +80,6 @@ export function buildUserAssignments(
             boxId: box.id,
             boxName: box.name,
             boxCustomLabel: box.customLabel,
-            isInherited: false,
           });
         }
       }
@@ -96,9 +90,7 @@ export function buildUserAssignments(
 
   for (const [userId, assignments] of grouped) {
     const rackCount = assignments.filter(a => a.type === 'rack').length;
-    const boxes = assignments.filter(a => a.type === 'box');
-    const boxCount = boxes.length;
-    const inheritedBoxCount = boxes.filter(b => b.isInherited).length;
+    const boxCount = assignments.filter(a => a.type === 'box').length;
 
     if (userId === null) {
       result.push({
@@ -109,7 +101,6 @@ export function buildUserAssignments(
         assignments,
         rackCount,
         boxCount,
-        inheritedBoxCount,
       });
     } else {
       const userInfo = getUserInfo(userId);
@@ -124,13 +115,10 @@ export function buildUserAssignments(
         userId,
         username,
         initials: userInfo?.initials ?? '??',
-        firstName,
-        lastName,
         displayName,
         assignments,
         rackCount,
         boxCount,
-        inheritedBoxCount,
       });
     }
   }

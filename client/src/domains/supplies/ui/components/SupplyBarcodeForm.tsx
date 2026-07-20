@@ -23,10 +23,9 @@ const BARCODE_TYPE_OPTIONS: SelectOption[] = [
 
 interface SupplyBarcodeFormProps {
   itemId: string;
-  onAdded: () => void;
 }
 
-export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
+export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState('');
   const [barcodeType, setBarcodeType] = useState<SupplyBarcodeType>('manufacturer_sku');
@@ -34,10 +33,10 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
   const [label, setLabel] = useState('');
   const addMutation = useAddSupplyBarcodeMutation();
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!barcodeValue.trim()) return;
-    try {
-      await addMutation.mutateAsync({
+    addMutation.mutate(
+      {
         itemId,
         data: {
           barcodeValue: barcodeValue.trim(),
@@ -45,17 +44,18 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
           isPrimary: isPrimary || undefined,
           label: label.trim() || undefined,
         },
-      });
-      notifications.success('Barcode added');
-      setBarcodeValue('');
-      setBarcodeType('manufacturer_sku');
-      setIsPrimary(false);
-      setLabel('');
-      setIsOpen(false);
-      onAdded();
-    } catch {
-      notifications.error('Failed to add barcode — it may already be in use');
-    }
+      },
+      {
+        onSuccess: () => {
+          notifications.success('Barcode added');
+          setBarcodeValue('');
+          setBarcodeType('manufacturer_sku');
+          setIsPrimary(false);
+          setLabel('');
+          setIsOpen(false);
+        },
+      }
+    );
   };
 
   if (!isOpen) {
@@ -76,7 +76,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
       <div>
         <label
           htmlFor="bc-value"
-          className="text-xs font-medium text-secondary-foreground block mb-0.5"
+          className="text-body-sm font-medium text-secondary-foreground block mb-0.5"
         >
           Barcode Value *
         </label>
@@ -102,7 +102,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
         <div>
           <label
             htmlFor="bc-label"
-            className="text-xs font-medium text-secondary-foreground block mb-0.5"
+            className="text-body-sm font-medium text-secondary-foreground block mb-0.5"
           >
             Label
           </label>
@@ -118,7 +118,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
         </div>
       </div>
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Checkbox is the control */}
-      <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+      <label className="flex items-center gap-1.5 text-body-sm cursor-pointer">
         <Checkbox checked={isPrimary} onChange={setIsPrimary} />
         Set as primary barcode
       </label>
@@ -128,7 +128,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
         </Button>
         <Button
           size="sm"
-          onClick={() => void handleSubmit()}
+          onClick={handleSubmit}
           disabled={!barcodeValue.trim()}
           isLoading={addMutation.isPending}
         >

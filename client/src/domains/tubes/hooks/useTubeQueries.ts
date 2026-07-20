@@ -4,30 +4,18 @@
  * React Query hooks for tube read operations.
  */
 
-import {
-  type TubeData as SchemaTubeData,
-  type TubeFilterableField,
-} from '@odysseus/shared-schemas';
+import { type TubeFilterableField } from '@odysseus/shared-schemas';
 import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import { normalizeConcentration } from '@shared/utils/concentrationConverter';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import type { TubeData } from '@domains/tubes/types';
 
-/** Normalizes concentration type from API responses (string → number). */
-function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
-  return {
-    ...schemaTube,
-    sample: {
-      ...schemaTube.sample,
-      concentration: normalizeConcentration(schemaTube.sample.concentration),
-    },
-    timestamps: schemaTube.timestamps,
-  };
-}
+const TUBE_STALE_TIME = 5 * MS_PER_MINUTE; // WebSocket keeps data fresh
+const TUBE_GC_TIME = 10 * MS_PER_MINUTE;
 
 export const useTubesByLocation = (
   tankId: string,
@@ -39,14 +27,13 @@ export const useTubesByLocation = (
 
   return useQuery({
     queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
-    queryFn: async (): Promise<TubeData[]> => {
-      const schemaTubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
-      return schemaTubes.map(convertSchemaToSharedTubeData);
-    },
-    enabled: !!(tankId && rackId && boxId),
-    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
-    gcTime: 10 * 60 * 1000,
+    queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, boxId),
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
     ...options,
+    // After the spread: a lab is a precondition no caller may override — the server rejects a
+    // lab-less request outright, and the query key would otherwise cache under a blank lab.
+    enabled: !!labId && !!(tankId && rackId && boxId) && (options.enabled ?? true),
   });
 };
 
@@ -58,8 +45,8 @@ export const useTubesByRack = (tankId: string, rackId: string) => {
     queryKey: queryKeys.tubes.byRack(labId, tankId, rackId),
     queryFn: () => TubeService.fetchTubesByRack(tankId, rackId),
     enabled: !!(labId && tankId && rackId),
-    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
   });
 };
 
@@ -71,8 +58,8 @@ export const useLocationCounts = () => {
     queryKey: queryKeys.tubes.locationCounts(labId),
     queryFn: () => TubeService.fetchLocationCounts(),
     enabled: !!labId,
-    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
   });
 };
 
@@ -101,27 +88,24 @@ export const useTube = (
 
   return useQuery({
     queryKey: queryKeys.tubes.detail(labId, id),
-    queryFn: async (): Promise<TubeData> => {
-      const schemaTube = await TubeService.fetchTubeById(id);
-      return convertSchemaToSharedTubeData(schemaTube);
-    },
+    queryFn: () => TubeService.fetchTubeById(id),
     initialData,
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: 15 * MS_PER_MINUTE,
     ...options,
+    enabled: !!labId && !!id && (options.enabled ?? true),
   });
 };
 
-export const useTubeFilterOptionsQuery = (fields: TubeFilterableField[]) => {
+export const useTubeFilterOptions = (fields: TubeFilterableField[]) => {
   const labId = useLabId();
 
   return useQuery({
     queryKey: queryKeys.tubes.filterOptions(labId, fields),
     queryFn: () => TubeService.fetchFilterOptions(fields),
     enabled: !!labId && fields.length > 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
   });
 };
 
@@ -138,12 +122,11 @@ export const useBulkTubes = (
         return [];
       }
 
-      const schemaTubes = await TubeService.bulkFetchTubes(tubeIds);
-      return schemaTubes.map(convertSchemaToSharedTubeData);
+      return TubeService.bulkFetchTubes(tubeIds);
     },
-    enabled: tubeIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
     ...options,
+    enabled: !!labId && tubeIds.length > 0 && (options.enabled ?? true),
   });
 };

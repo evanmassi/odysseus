@@ -6,11 +6,7 @@
 
 import { useMemo, useState } from 'react';
 
-import {
-  EQUIPMENT_DEFAULTS,
-  formatStorageDisplayName,
-  isAdminRole,
-} from '@odysseus/shared-schemas';
+import { EQUIPMENT_DEFAULTS, formatStorageDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Lock, Plus, SquarePen, Tag, Trash2 } from 'lucide-react';
 
@@ -26,7 +22,7 @@ import { CustomLabelButton } from './CustomLabelButton';
 import { RackBoxMinimaps } from './RackBoxMinimaps';
 import { RowMeta } from './RowMeta';
 
-import type { RackConfiguration } from '@domains/storage';
+import type { RackConfiguration } from '@odysseus/shared-schemas';
 
 interface RackRowProps {
   rack: RackConfiguration;
@@ -169,7 +165,7 @@ export function RackRow({
                 parts={[`${rack.boxes.length} ${rack.boxes.length === 1 ? 'box' : 'boxes'}`]}
               />
             </div>
-            {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
+            {canManageStorage && !locked && (
               <div
                 role="presentation"
                 onClick={e => e.stopPropagation()}
@@ -211,7 +207,7 @@ export function RackRow({
             {canManageStorage && !locked && (
               <div className="storage-nav-add-controls storage-nav-item--box">
                 {demoLimitsActive && (
-                  <span className="text-xs text-muted-foreground mr-1">
+                  <span className="text-caption text-muted-foreground mr-1">
                     {extraBoxCount}/{demoLimits.maxBoxesPerRack}
                   </span>
                 )}

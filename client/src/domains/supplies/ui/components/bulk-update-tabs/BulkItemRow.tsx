@@ -6,30 +6,35 @@
  * inputs when available, or a single quantity field otherwise.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 
 import { X } from 'lucide-react';
 
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
+import {
+  computePackagingMultiplier,
+  orderPackagingChain,
+} from '@domains/supplies/utils/packagingChain';
 import { Input, Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
-
-import { SELECT_LABEL } from './fieldLabelStyle';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface BulkItemRowProps {
+  rowId: string;
   itemId: string;
   itemName: string;
   locationId: string;
   locationOptions: SelectOption[];
-  onLocationChange: (locationId: string) => void;
-  onQuantityChange: (quantity: number) => void;
-  onRemove: () => void;
+  onLocationChange: (rowId: string, locationId: string) => void;
+  onQuantityChange: (rowId: string, quantity: number) => void;
+  onRemove: (rowId: string) => void;
   children?: React.ReactNode;
 }
 
 export function BulkItemRow({
+  rowId,
   itemId,
   itemName,
   locationId,
@@ -49,38 +54,11 @@ export function BulkItemRow({
   const [simpleQty, setSimpleQty] = useState(1);
 
   const computeMultiplier = useCallback(
-    (fromUnit: string): number => {
-      if (fromUnit === stockUnit) return 1;
-      let multiplier = 1;
-      let current = fromUnit;
-      for (let i = 0; i < packagingLevels.length + 1; i++) {
-        const level = packagingLevels.find(l => l.unitName === current);
-        if (!level) return 1;
-        multiplier *= level.quantity;
-        if (level.parentUnit === null || level.parentUnit === stockUnit) return multiplier;
-        current = level.parentUnit;
-      }
-      return multiplier;
-    },
+    (fromUnit: string) => computePackagingMultiplier(packagingLevels, fromUnit, stockUnit),
     [stockUnit, packagingLevels]
   );
 
-  const orderedLevels = useMemo(() => {
-    if (!hasPackaging) return [];
-    const ordered: typeof packagingLevels = [];
-    const bottom = packagingLevels.find(l => l.parentUnit === null);
-    if (bottom) {
-      ordered.push(bottom);
-      let current = bottom;
-      for (let i = 0; i < packagingLevels.length; i++) {
-        const next = packagingLevels.find(l => l.parentUnit === current.unitName);
-        if (!next) break;
-        ordered.push(next);
-        current = next;
-      }
-    }
-    return ordered;
-  }, [hasPackaging, packagingLevels]);
+  const orderedLevels = useMemo(() => orderPackagingChain(packagingLevels), [packagingLevels]);
 
   const showLooseRow = hasPackaging && !packagingLevels.some(l => l.unitName === stockUnit);
 
@@ -94,39 +72,28 @@ export function BulkItemRow({
     return total;
   }, [hasPackaging, simpleQty, qtyByLevel, packagingLevels, computeMultiplier]);
 
-  const handleLevelChange = useCallback(
-    (key: string, value: string) => {
-      const num = value === '' ? 0 : Number(value);
-      setQtyByLevel(prev => {
-        const next = { ...prev, [key]: num };
-        let total = next['__stock__'] ?? 0;
-        for (const level of packagingLevels) {
-          const qty = next[level.unitName] ?? 0;
-          if (qty > 0) total += qty * computeMultiplier(level.unitName);
-        }
-        onQuantityChange(total);
-        return next;
-      });
-    },
-    [packagingLevels, computeMultiplier, onQuantityChange]
-  );
+  // The parent mirrors this total rather than owning it. Reporting on every change — not just on
+  // edit — keeps the two in step when the quantity moves without one: on mount, and when a lazily
+  // fetched packaging chain arrives and switches the row from a simple quantity to per-level inputs.
+  useEffect(() => {
+    onQuantityChange(rowId, computedTotal);
+  }, [rowId, computedTotal, onQuantityChange]);
 
-  const handleSimpleQtyChange = useCallback(
-    (value: string) => {
-      const num = parseInt(value) || 0;
-      setSimpleQty(num);
-      onQuantityChange(num);
-    },
-    [onQuantityChange]
-  );
+  const handleLevelChange = useCallback((key: string, value: string) => {
+    setQtyByLevel(prev => ({ ...prev, [key]: value === '' ? 0 : Number(value) }));
+  }, []);
+
+  const handleSimpleQtyChange = useCallback((value: string) => {
+    setSimpleQty(parseInt(value) || 0);
+  }, []);
 
   return (
     <div className="border border-border rounded-lg p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-card-foreground">{itemName}</span>
+        <span className="text-body-sm font-semibold text-card-foreground">{itemName}</span>
         <button
           type="button"
-          onClick={onRemove}
+          onClick={() => onRemove(rowId)}
           className="p-1 text-muted-foreground hover:text-danger-text rounded transition-colors"
           aria-label={`Remove ${itemName}`}
         >
@@ -148,7 +115,7 @@ export function BulkItemRow({
                   fullWidth
                 />
               </div>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-caption text-muted-foreground">
                 {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
               </span>
             </div>
@@ -165,13 +132,13 @@ export function BulkItemRow({
                   fullWidth
                 />
               </div>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-caption text-muted-foreground">
                 loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
               </span>
             </div>
           )}
           {computedTotal > 0 && (
-            <p className="text-xs font-medium text-muted-foreground px-1">
+            <p className="text-caption font-medium text-muted-foreground px-1">
               = {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
             </p>
           )}
@@ -179,7 +146,7 @@ export function BulkItemRow({
       ) : (
         <div className="flex items-center gap-2">
           <div className="w-16">
-            <span className={SELECT_LABEL}>Qty *</span>
+            <span className={FIELD_LABEL_COMPACT}>Qty *</span>
             <Input
               type="number"
               value={String(simpleQty)}
@@ -189,7 +156,7 @@ export function BulkItemRow({
             />
           </div>
           {stockUnit && (
-            <span className="text-xs text-muted-foreground mt-4">
+            <span className="text-caption text-muted-foreground mt-4">
               {pluralizeUnit(stockUnitSingular, simpleQty)}
             </span>
           )}
@@ -197,11 +164,11 @@ export function BulkItemRow({
       )}
 
       <div>
-        <span className={SELECT_LABEL}>Location *</span>
+        <span className={FIELD_LABEL_COMPACT}>Location *</span>
         <Select
           options={locationOptions}
           value={locationId}
-          onChange={v => onLocationChange(String(v ?? ''))}
+          onChange={v => onLocationChange(rowId, String(v ?? ''))}
           size="sm"
           fullWidth
         />

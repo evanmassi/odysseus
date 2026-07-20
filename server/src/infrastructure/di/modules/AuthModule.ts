@@ -4,13 +4,29 @@
  * Lazy-singleton wiring for auth handlers, controllers, and middleware.
  */
 
-import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
+import {
+  SendVerificationEmailCommandHandler,
+  VerifyEmailCommandHandler,
+  ResendVerificationEmailCommandHandler,
+} from '@application/commands/EmailVerificationCommands';
+import {
+  AdminResetPasswordCommandHandler,
+  GeneratePasswordResetTokenCommandHandler,
+  ResetPasswordWithTokenCommandHandler,
+  ForceChangePasswordCommandHandler,
+} from '@application/commands/PasswordResetCommands';
+import {
+  LoginCommandHandler,
+  ChangeUserPasswordCommandHandler,
+  CreateSystemAdminCommandHandler,
+} from '@application/commands/UserCommands';
 import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
+import { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
+import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
+import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
@@ -21,14 +37,14 @@ import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthC
 
 interface AuthCrossModuleDeps {
   getCheckFirstTimeHandler: () => CheckFirstTimeSetupQueryHandler;
-  getGetUserByIdHandler: () => GetUserByIdQueryHandler;
   getChangeRoleHandler: () => ChangeUserRoleCommandHandler;
   getUserApplicationService: () => UserApplicationService;
   getResearcherApplicationService: () => ResearcherApplicationService;
+  getPersonApplicationService: () => PersonApplicationService;
+  getSecurityConfigApplicationService: () => SecurityConfigApplicationService;
 }
 
 export class AuthModule {
-  private createUserHandler?: CreateUserCommandHandler;
   private loginHandler?: LoginCommandHandler;
   private changePasswordHandler?: ChangeUserPasswordCommandHandler;
   private sendVerificationEmailHandler?: SendVerificationEmailCommandHandler;
@@ -38,6 +54,8 @@ export class AuthModule {
   private generatePasswordResetTokenHandler?: GeneratePasswordResetTokenCommandHandler;
   private resetPasswordWithTokenHandler?: ResetPasswordWithTokenCommandHandler;
   private createSystemAdminHandler?: CreateSystemAdminCommandHandler;
+  private forceChangePasswordHandler?: ForceChangePasswordCommandHandler;
+  private getSessionInfoHandler?: GetSessionInfoQueryHandler;
   private publicAuthController?: PublicAuthController;
   private authController?: AuthController;
   private adminUserController?: AdminUserController;
@@ -50,19 +68,6 @@ export class AuthModule {
   ) {}
 
   // Handlers
-
-  getCreateUserHandler(): CreateUserCommandHandler {
-    if (!this.createUserHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.createUserHandler = new CreateUserCommandHandler(
-        repositories.users,
-        this.shared.eventBus,
-        repositories.storage,
-        this.shared.passwordService
-      );
-    }
-    return this.createUserHandler;
-  }
 
   getLoginHandler(): LoginCommandHandler {
     if (!this.loginHandler) {
@@ -84,8 +89,8 @@ export class AuthModule {
         repositories.users,
         this.shared.eventBus,
         repositories.storage,
-        repositories.userSessions,
-        this.shared.passwordService
+        this.shared.passwordService,
+        this.repositoryFactory
       );
     }
     return this.changePasswordHandler;
@@ -135,10 +140,9 @@ export class AuthModule {
       this.adminResetPasswordHandler = new AdminResetPasswordCommandHandler(
         repositories.users,
         this.shared.eventBus,
-        repositories.refreshTokens,
-        repositories.userSessions,
         this.shared.passwordService,
-        repositories.storage
+        repositories.storage,
+        this.repositoryFactory
       );
     }
     return this.adminResetPasswordHandler;
@@ -162,10 +166,9 @@ export class AuthModule {
       this.resetPasswordWithTokenHandler = new ResetPasswordWithTokenCommandHandler(
         repositories.users,
         this.shared.eventBus,
-        repositories.refreshTokens,
-        repositories.userSessions,
         this.shared.passwordService,
-        repositories.storage
+        repositories.storage,
+        this.repositoryFactory
       );
     }
     return this.resetPasswordWithTokenHandler;
@@ -180,10 +183,37 @@ export class AuthModule {
         this.shared.eventBus,
         repositories.persons,
         this.shared.passwordService,
-        this.shared.configurationService.get('security').systemAdminSetupKey
+        this.shared.configurationService.get('security').systemAdminSetupKey,
+        this.shared.configurationService.get('server').environment === 'production'
       );
     }
     return this.createSystemAdminHandler;
+  }
+
+  getForceChangePasswordHandler(): ForceChangePasswordCommandHandler {
+    if (!this.forceChangePasswordHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.forceChangePasswordHandler = new ForceChangePasswordCommandHandler(
+        repositories.users,
+        this.shared.eventBus,
+        this.shared.passwordService,
+        repositories.storage,
+        this.repositoryFactory
+      );
+    }
+    return this.forceChangePasswordHandler;
+  }
+
+  getGetSessionInfoHandler(): GetSessionInfoQueryHandler {
+    if (!this.getSessionInfoHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.getSessionInfoHandler = new GetSessionInfoQueryHandler(
+        this.shared.sessionService,
+        repositories.userSessions,
+        repositories.storage
+      );
+    }
+    return this.getSessionInfoHandler;
   }
 
   // Controllers
@@ -191,7 +221,6 @@ export class AuthModule {
   getPublicAuthController(): PublicAuthController {
     if (!this.publicAuthController) {
       this.publicAuthController = new PublicAuthController({
-        createUserHandler: this.getCreateUserHandler(),
         loginHandler: this.getLoginHandler(),
         createSystemAdminHandler: this.getCreateSystemAdminHandler(),
         checkFirstTimeHandler: this.crossModuleDeps.getCheckFirstTimeHandler(),
@@ -199,13 +228,12 @@ export class AuthModule {
         verifyEmailHandler: this.getVerifyEmailHandler(),
         resendVerificationHandler: this.getResendVerificationHandler(),
         resetPasswordWithTokenHandler: this.getResetPasswordWithTokenHandler(),
+        forceChangePasswordHandler: this.getForceChangePasswordHandler(),
+        getSessionInfoHandler: this.getGetSessionInfoHandler(),
         sessionService: this.shared.sessionService,
         userApplicationService: this.crossModuleDeps.getUserApplicationService(),
-        configRepository: this.repositoryFactory.getStorageRepository(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
-        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        passwordService: this.shared.passwordService,
+        securityConfigService: this.crossModuleDeps.getSecurityConfigApplicationService(),
+        personApplicationService: this.crossModuleDeps.getPersonApplicationService(),
         eventBus: this.shared.eventBus,
       });
     }
@@ -216,8 +244,7 @@ export class AuthModule {
     if (!this.authController) {
       this.authController = new AuthController({
         changePasswordHandler: this.getChangePasswordHandler(),
-        resendVerificationHandler: this.getResendVerificationHandler(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
+        userSessionRepository: this.repositoryFactory.getRepositories().userSessions,
         eventBus: this.shared.eventBus,
       });
     }
@@ -230,7 +257,6 @@ export class AuthModule {
         changeRoleHandler: this.crossModuleDeps.getChangeRoleHandler(),
         adminResetPasswordHandler: this.getAdminResetPasswordHandler(),
         generatePasswordResetTokenHandler: this.getGeneratePasswordResetTokenHandler(),
-        getUserByIdHandler: this.crossModuleDeps.getGetUserByIdHandler(),
         userApplicationService: this.crossModuleDeps.getUserApplicationService(),
         researcherApplicationService: this.crossModuleDeps.getResearcherApplicationService(),
       });
@@ -242,9 +268,7 @@ export class AuthModule {
 
   getAuthMiddleware(): AuthMiddleware {
     if (!this.authMiddleware) {
-      this.authMiddleware = new ExpressAuthMiddleware(
-        this.shared.sessionService
-      );
+      this.authMiddleware = new ExpressAuthMiddleware(this.shared.sessionService);
     }
     return this.authMiddleware;
   }

@@ -11,7 +11,15 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { CircleHelp, Search, X } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Button, Tab, LoadingSkeleton, SearchInput, SectionHeader, Tabs } from '@shared/ui';
+import {
+  AccentTick,
+  Button,
+  Tab,
+  LoadingSkeleton,
+  SearchInput,
+  SectionHeader,
+  Tabs,
+} from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
 import { getHelpSection, HELP_TABS, HELP_TAB_META } from '../../../content/helpContent';
@@ -132,14 +140,11 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const locator = (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2.5 font-mono">
-        <span
-          aria-hidden
-          className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-        />
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <AccentTick />
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Guide
         </span>
-        <span className="phosphor-text text-xs text-secondary-foreground">
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
           {isSearching ? 'Search' : activeMeta.label}
         </span>
       </div>
@@ -182,7 +187,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         title="Help"
         subtitle="Reference Guide"
         size="lg"
-        animation="slide"
         tabs={tabs}
         tabOrientation="vertical"
         locator={locator}

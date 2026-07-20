@@ -7,7 +7,6 @@
 export interface AccessResult {
   allowed: boolean;
   reason: string;
-  metadata?: Record<string, unknown>;
 }
 
 export interface BulkAccessResult {

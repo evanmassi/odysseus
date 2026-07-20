@@ -1,13 +1,7 @@
 /**
  * Audit Log Formatters
  *
- * Formats audit log entry details for display with consistent separators:
- *   · (center dot) for location paths
- *   — (em dash) for separating location from change details
- *   → (arrow) for before/after transitions
- *   : (colon) after subject names or counts
- *   , (comma) for listing multiple items
- *   () for parenthetical metadata
+ * Formats audit log entry details into concise human-readable summaries for the audit table.
  */
 
 import type { AuditLogEntry } from '@odysseus/shared-schemas';
@@ -64,6 +58,11 @@ function getStringProperty(details: Record<string, unknown>, key: string): strin
 function getNumberProperty(details: Record<string, unknown>, key: string): number {
   const value = details[key];
   return typeof value === 'number' ? value : 0;
+}
+
+function getStringArray(details: Record<string, unknown>, key: string): string[] {
+  const value = details[key];
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
 }
 
 function findChangeByField(
@@ -191,10 +190,45 @@ function formatUserList(users: unknown[]): { text: string; full?: string } {
   };
 }
 
-export interface AuditDetailFormatted {
+interface AuditDetailFormatted {
   text: string;
   /** Only set when content was truncated */
   fullText?: string;
+}
+
+const BULK_POSITION_PREVIEW = 6;
+
+const STOCK_MOVEMENT_VERBS: Record<string, string> = {
+  supply_stock_received: 'Received',
+  supply_stock_issued: 'Issued',
+  supply_stock_disposed: 'Disposed',
+};
+
+const BULK_SUPPLY_VERBS: Record<string, string> = {
+  supply_bulk_received: 'Received',
+  supply_bulk_issued: 'Issued',
+  supply_bulk_archived: 'Archived',
+  supply_bulk_category_reassigned: 'Recategorized',
+};
+
+/** Appends a bulk operation's location scope and cell coordinates to its summary line,
+    previewing the first few positions inline with the full list in the tooltip. */
+function formatBulkScope(
+  summary: string,
+  scope: string,
+  positions: string[]
+): AuditDetailFormatted {
+  if (!scope) return { text: summary };
+  if (positions.length === 0) return { text: `${summary} — ${scope}` };
+
+  const full = `${summary} — ${scope} · ${positions.join(', ')}`;
+  if (positions.length <= BULK_POSITION_PREVIEW) return { text: full };
+
+  const preview = positions.slice(0, BULK_POSITION_PREVIEW).join(', ');
+  return {
+    text: `${summary} — ${scope} · ${preview} +${positions.length - BULK_POSITION_PREVIEW}`,
+    fullText: full,
+  };
 }
 
 export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
@@ -210,26 +244,45 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     if (entityType === 'tube') {
       if (action === 'tube_bulk_created') {
         const count = getNumberProperty(details, 'count');
-        return plain(`${count} tube${count !== 1 ? 's' : ''} created`);
+        const summary = `${count} tube${count !== 1 ? 's' : ''} created`;
+        return formatBulkScope(
+          summary,
+          getStringProperty(details, 'displayLocation'),
+          getStringArray(details, 'positions')
+        );
       }
 
       if (action === 'tube_bulk_deleted') {
         const count = getNumberProperty(details, 'count');
-        return plain(`${count} tube${count !== 1 ? 's' : ''} removed`);
+        const summary = `${count} tube${count !== 1 ? 's' : ''} removed`;
+        return formatBulkScope(
+          summary,
+          getStringProperty(details, 'displayLocation'),
+          getStringArray(details, 'positions')
+        );
       }
 
       if (action === 'tube_bulk_updated') {
         const count = getNumberProperty(details, 'count');
-        const summary = getStringProperty(details, 'changesSummary');
         if (count > 0) {
-          return plain(summary || `${count} tube${count !== 1 ? 's' : ''} updated`);
+          const changeSummary = getStringProperty(details, 'changesSummary');
+          const summary = changeSummary || `${count} tube${count !== 1 ? 's' : ''} updated`;
+          return formatBulkScope(
+            summary,
+            getStringProperty(details, 'displayLocation'),
+            getStringArray(details, 'positions')
+          );
         }
       }
 
       if (action === 'tube_bulk_moved') {
         const count = getNumberProperty(details, 'count');
         if (count > 0) {
-          return plain(`${count} tube${count !== 1 ? 's' : ''} moved`);
+          const from = getStringProperty(details, 'oldDisplayLocation');
+          const to = getStringProperty(details, 'displayLocation');
+          const route = from && to ? `${from} → ${to}` : to;
+          const summary = `${count} tube${count !== 1 ? 's' : ''} moved`;
+          return formatBulkScope(summary, route, getStringArray(details, 'positions'));
         }
       }
 
@@ -559,7 +612,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     if (entityType === 'donor') {
       const sourceId = getStringProperty(details, 'donorSourceId');
       const internalId = getStringProperty(details, 'donorInternalId');
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentional: empty strings from getStringProperty should be treated as absent
       const donorLabel = sourceId
         ? `S.ID: ${sourceId}`
         : internalId
@@ -781,6 +833,8 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     // ── SUPPLY EVENTS ──
 
     if (entityType === 'supply_item') {
+      const name = getStringProperty(details, 'name');
+
       if (action === 'supply_stock_voided') {
         const voidReason = getStringProperty(details, 'voidReason');
         const username = getStringProperty(details, 'voidedBy');
@@ -794,6 +848,69 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
           `${count} transaction${count !== 1 ? 's' : ''} voided${voidReason ? ` — ${voidReason}` : ''}`
         );
       }
+
+      if (action === 'supply_item_created') {
+        return plain(name ? `${name} added` : 'Supply added');
+      }
+
+      if (action === 'supply_item_updated') {
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          const label = name ? `${name} — ` : '';
+          return {
+            text: `${label}${fields.text} changed`,
+            fullText: fields.full ? `${label}${fields.full} changed` : undefined,
+          };
+        }
+        return plain(name ? `${name} updated` : 'Supply updated');
+      }
+
+      if (action === 'supply_item_archived') {
+        return plain(name ? `${name} archived` : 'Supply archived');
+      }
+
+      if (action === 'supply_item_deleted') {
+        return plain(name ? `${name} removed` : 'Supply removed');
+      }
+
+      if (action === 'supply_category_created') {
+        return plain(name ? `${name} category added` : 'Category added');
+      }
+
+      if (action === 'supply_category_updated') {
+        return plain(name ? `${name} category updated` : 'Category updated');
+      }
+
+      if (action === 'supply_category_deleted') {
+        return plain(name ? `${name} category removed` : 'Category removed');
+      }
+
+      if (action === 'supply_document_added') {
+        const label = getStringProperty(details, 'label');
+        return plain(label ? `${label} attached` : 'Document attached');
+      }
+
+      if (action === 'supply_document_removed') {
+        return plain('Document removed');
+      }
+
+      if (STOCK_MOVEMENT_VERBS[action]) {
+        const quantity = getNumberProperty(details, 'quantity');
+        return plain(`${STOCK_MOVEMENT_VERBS[action]} ${quantity}`);
+      }
+
+      if (action === 'supply_stock_count_adjusted') {
+        const delta = getNumberProperty(details, 'delta');
+        return plain(`Count adjusted by ${delta > 0 ? '+' : ''}${delta}`);
+      }
+
+      if (BULK_SUPPLY_VERBS[action]) {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${BULK_SUPPLY_VERBS[action]} ${count} item${count !== 1 ? 's' : ''}`);
+      }
+
+      return plain(name ? name : '-');
     }
 
     return plain('-');

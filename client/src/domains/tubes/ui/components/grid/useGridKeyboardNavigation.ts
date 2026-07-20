@@ -7,7 +7,7 @@
 import { useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { logger } from '@infra/logger';
 import { getSelectionRange } from '@shared/utils/gridCoordinates';
@@ -65,50 +65,58 @@ export function useGridKeyboardNavigation(
   const handleGridKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       const { key, shiftKey, ctrlKey, metaKey } = event;
+      // Normalize letter shortcuts so CapsLock (which flips key case) doesn't break them.
+      const lowerKey = key.toLowerCase();
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
         event.preventDefault();
 
-        const currentIndex = focusedPosition - 1;
-        let newIndex = currentIndex;
+        const { cols } = gridConfig;
+        const totalPositions = getGridTotalPositions(gridConfig);
+        const lastRow = Math.floor((totalPositions - 1) / cols);
+        const row = Math.floor((focusedPosition - 1) / cols);
+        const col = (focusedPosition - 1) % cols;
 
+        let newRow = row;
+        let newCol = col;
+
+        // Clamp at edges instead of wrapping
         switch (key) {
           case 'ArrowUp':
-            newIndex = currentIndex - gridConfig.cols;
+            newRow = Math.max(0, row - 1);
             break;
           case 'ArrowDown':
-            newIndex = currentIndex + gridConfig.cols;
+            newRow = Math.min(lastRow, row + 1);
             break;
           case 'ArrowLeft':
-            newIndex = currentIndex - 1;
+            newCol = Math.max(0, col - 1);
             break;
           case 'ArrowRight':
-            newIndex = currentIndex + 1;
+            newCol = Math.min(cols - 1, col + 1);
             break;
         }
 
-        // Wrapping via modulo handles negative indices correctly
-        const totalPositions = getGridTotalPositions(gridConfig);
-        newIndex = ((newIndex % totalPositions) + totalPositions) % totalPositions;
-        const newPosition = newIndex + 1;
+        const newPosition = newRow * cols + newCol + 1;
 
-        if (newPosition >= 1 && newPosition <= totalPositions) {
-          setFocusedPosition(newPosition);
+        if (newPosition === focusedPosition || newPosition < 1 || newPosition > totalPositions) {
+          return;
+        }
 
-          if (shiftKey) {
-            const currentAnchor = useTubeStore.getState().selectionAnchor ?? focusedPosition;
-            const rangePositions = getSelectionRange(currentAnchor, newPosition);
-            const newSelection = new Set<PositionKey>();
-            rangePositions.forEach(pos => {
-              newSelection.add(toPositionKey(ctx, pos));
-            });
-            onSelectionChange(newSelection);
-            // Don't update anchor during range selection - keeps extending from original position
-          } else {
-            const positionKey = toPositionKey(ctx, newPosition);
-            onSelectionChange(new Set([positionKey]));
-            useTubeStore.getState().setSelectionAnchor(newPosition);
-          }
+        setFocusedPosition(newPosition);
+
+        if (shiftKey) {
+          const currentAnchor = useTubeStore.getState().selectionAnchor ?? focusedPosition;
+          const rangePositions = getSelectionRange(currentAnchor, newPosition);
+          const newSelection = new Set<PositionKey>();
+          rangePositions.forEach(pos => {
+            newSelection.add(toPositionKey(ctx, pos));
+          });
+          onSelectionChange(newSelection);
+          // Don't update anchor during range selection - keeps extending from original position
+        } else {
+          const positionKey = toPositionKey(ctx, newPosition);
+          onSelectionChange(new Set([positionKey]));
+          useTubeStore.getState().setSelectionAnchor(newPosition);
         }
         return;
       }
@@ -124,10 +132,9 @@ export function useGridKeyboardNavigation(
         if (selectedPositions.size > 0) {
           controller.openModal();
         } else {
-          const positionKey = toPositionKey(ctx, focusedPosition);
-          onSelectionChange(new Set([positionKey]));
-          // Defer so selection state settles before modal reads it
-          setTimeout(() => controller.openModal(), 0);
+          // openModal() reads selection that hasn't settled yet; activate the
+          // focused cell through the same path as a double-click instead.
+          controller.handlePositionDoubleClick(focusedPosition);
         }
         return;
       }
@@ -140,7 +147,7 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'a' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'a' && (ctrlKey || metaKey)) {
         event.preventDefault();
         const allPositions = new Set<PositionKey>();
         const totalPositions = getGridTotalPositions(gridConfig);
@@ -158,19 +165,19 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'c' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'c' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void controller.actions.copy();
         return;
       }
 
-      if (key === 'x' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'x' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void controller.actions.cut();
         return;
       }
 
-      if (key === 'v' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'v' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void (async () => {
           try {
@@ -183,7 +190,7 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'L' && shiftKey && !ctrlKey && !metaKey) {
+      if (lowerKey === 'l' && shiftKey && !ctrlKey && !metaKey) {
         event.preventDefault();
         if (controller.actions.toggleLock) {
           void controller.actions.toggleLock();
@@ -191,7 +198,7 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'S' && shiftKey && !ctrlKey && !metaKey) {
+      if (lowerKey === 's' && shiftKey && !ctrlKey && !metaKey) {
         event.preventDefault();
         if (controller.actions.shareAccess) {
           controller.actions.shareAccess();

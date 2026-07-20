@@ -22,7 +22,6 @@ interface ExportOption {
   value: ExportType;
   label: string;
   description: string;
-  defaultFormat: ExportFormat;
   jsonOnly?: boolean;
 }
 
@@ -31,31 +30,26 @@ const exportOptions: ExportOption[] = [
     value: 'tubes',
     label: 'Tube Inventory',
     description: 'All tubes with researcher names',
-    defaultFormat: 'csv',
   },
   {
     value: 'users',
     label: 'Users',
     description: 'User accounts (excludes passwords)',
-    defaultFormat: 'csv',
   },
   {
     value: 'researchers',
     label: 'Researchers',
     description: 'All researchers with tube counts',
-    defaultFormat: 'csv',
   },
   {
     value: 'equipment',
     label: 'Equipment Inventory',
     description: 'All equipment items with categories',
-    defaultFormat: 'csv',
   },
   {
     value: 'system-backup',
-    label: 'System Backup',
-    description: 'Configuration and settings',
-    defaultFormat: 'json',
+    label: 'Configuration Backup',
+    description: 'Configuration and settings — no inventory data',
     jsonOnly: true,
   },
 ];
@@ -145,7 +139,7 @@ export function DataExportForm() {
             onSelect={() => setSelectedFormat('csv')}
             disabled={isJsonOnly}
             size="sm"
-            leftIcon={<FileSpreadsheet size={12} />}
+            lead={<FileSpreadsheet size={12} />}
             aria-label="Export as CSV"
           >
             CSV
@@ -155,7 +149,7 @@ export function DataExportForm() {
             selected={selectedFormat === 'json' || isJsonOnly}
             onSelect={() => setSelectedFormat('json')}
             size="sm"
-            leftIcon={<FileJson size={12} />}
+            lead={<FileJson size={12} />}
             aria-label="Export as JSON"
           >
             JSON
@@ -177,7 +171,7 @@ export function DataExportForm() {
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground pl-[30px]">{currentOption?.description}</p>
+      <p className="text-body-sm text-muted-foreground pl-[30px]">{currentOption?.description}</p>
     </div>
   );
 }

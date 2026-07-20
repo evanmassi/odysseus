@@ -6,8 +6,7 @@
  */
 import { Lock, Notebook, ShieldCheck } from 'lucide-react';
 
-import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePropertyIndicator';
-import { cellLineCategories } from '@domains/tubes/utils/tubeColorCoding';
+import { TubePropertyIndicator, cellLineCategories } from '@domains/tubes';
 import { Well } from '@shared/ui';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
@@ -82,7 +81,6 @@ const DONOR_BRIGHTNESS_SWATCHES = [
 export function TubesTab() {
   return (
     <div className="space-y-8">
-      {/* Section A: Annotated Tube Diagram */}
       <HelpSection id="tubes-anatomy">
         <div className="flex justify-center">
           <svg
@@ -100,7 +98,7 @@ export function TubesTab() {
               </linearGradient>
             </defs>
 
-            {/* Tube cell replica — sharp-cornered square, centered at x=310, size 120x120 */}
+            {/* Tube cell replica */}
             <rect
               x={250}
               y={110}
@@ -197,7 +195,7 @@ export function TubesTab() {
               strokeLinejoin="round"
             />
 
-            {/* --- Callout lines --- anchors (x1,y1) sit AT each visual element --- */}
+            {/* Callout lines — anchors (x1,y1) sit at each visual element */}
 
             {/* Lot indicator — anchor at the square's outer corner */}
             <Callout
@@ -279,44 +277,41 @@ export function TubesTab() {
         </div>
       </HelpSection>
 
-      {/* Section B: Lock States Legend */}
       <HelpSection id="tubes-lock-states">
         <div className="grid grid-cols-3 gap-4">
           <Well className="flex flex-col items-center gap-2 p-3">
             <Lock size={20} className="text-secondary-foreground" />
-            <span className="text-xs font-medium text-card-foreground">Your Lock</span>
-            <span className="text-[11px] text-muted-foreground text-center">
+            <span className="text-body-sm font-medium text-card-foreground">Your Lock</span>
+            <span className="text-caption text-muted-foreground text-center">
               You locked this tube
             </span>
           </Well>
 
           <Well className="flex flex-col items-center gap-2 p-3">
             <ShieldCheck size={20} className="text-secondary-foreground" />
-            <span className="text-xs font-medium text-card-foreground">Shared Access</span>
-            <span className="text-[11px] text-muted-foreground text-center">
+            <span className="text-body-sm font-medium text-card-foreground">Shared Access</span>
+            <span className="text-caption text-muted-foreground text-center">
               Another user shared access with you
             </span>
           </Well>
 
           <Well className="flex flex-col items-center gap-2 p-3">
             <Lock size={20} className="text-red-500" />
-            <span className="text-xs font-medium text-card-foreground">Locked Out</span>
-            <span className="text-[11px] text-muted-foreground text-center">
+            <span className="text-body-sm font-medium text-card-foreground">Locked Out</span>
+            <span className="text-caption text-muted-foreground text-center">
               Locked by another user; cell appears dimmed
             </span>
           </Well>
         </div>
-        <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
+        <p className="text-body-sm text-muted-foreground mt-3 flex items-center gap-1.5">
           <Notebook size={14} className="flex-shrink-0 text-secondary-foreground" />
           Lock notes appear when hovering over the tube, or in the Tube Information panel.
         </p>
       </HelpSection>
 
-      {/* Section C: Color Coding */}
       <HelpSection id="tubes-color">
-        {/* Cell line swatches */}
-        <h4 className="text-xs font-medium text-card-foreground mb-1">Cell Lines</h4>
-        <p className="text-xs text-muted-foreground mb-2">
+        <h4 className="text-body-sm font-medium text-card-foreground mb-1">Cell Lines</h4>
+        <p className="text-body-sm text-muted-foreground mb-2">
           Known and commonly used cell lines have fixed, recognizable colors.
         </p>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -326,16 +321,17 @@ export function TubesTab() {
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-none"
               style={{ backgroundColor: s.color }}
             >
-              <span className="text-xs font-semibold" style={{ color: s.textColor }}>
+              <span className="text-body-sm font-semibold" style={{ color: s.textColor }}>
                 {s.name}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Donor brightness example */}
-        <h4 className="text-xs font-medium text-card-foreground mb-1">Donor-Based Brightness</h4>
-        <p className="text-xs text-muted-foreground mb-2">
+        <h4 className="text-body-sm font-medium text-card-foreground mb-1">
+          Donor-Based Brightness
+        </h4>
+        <p className="text-body-sm text-muted-foreground mb-2">
           Each donor gets a unique base color. Cell type shifts the brightness.
         </p>
         <div className="flex flex-wrap gap-2 mb-2">
@@ -345,19 +341,18 @@ export function TubesTab() {
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-none"
               style={{ backgroundColor: s.color }}
             >
-              <span className="text-xs font-semibold" style={{ color: s.textColor }}>
+              <span className="text-body-sm font-semibold" style={{ color: s.textColor }}>
                 {s.name}
               </span>
             </div>
           ))}
         </div>
 
-        <p className="text-xs text-muted-foreground mb-4">
+        <p className="text-body-sm text-muted-foreground mb-4">
           Text color adjusts automatically for contrast.
         </p>
 
-        {/* Indicator examples */}
-        <h4 className="text-xs font-medium text-card-foreground mb-2">Indicators</h4>
+        <h4 className="text-body-sm font-medium text-card-foreground mb-2">Indicators</h4>
         <div className="flex items-center gap-2">
           <TubePropertyIndicator
             shape="square"
@@ -366,7 +361,7 @@ export function TubesTab() {
             size={16}
             title="Lot number indicator"
           />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-body-sm text-muted-foreground">
             Lot Number — top-left corner, unique color and pattern per lot
           </span>
         </div>
@@ -378,7 +373,7 @@ export function TubesTab() {
             size={16}
             title="Culture condition indicator"
           />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-body-sm text-muted-foreground">
             Culture Condition — bottom-right corner, unique color per condition
           </span>
         </div>

@@ -8,12 +8,11 @@ import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'rea
 
 import { Minus, Plus } from 'lucide-react';
 
-const CONTAINER_FOCUS_SHADOW =
-  'focus-within:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const CONTAINER_FOCUS_SHADOW = 'focus-within:shadow-[var(--input-focus-shadow)]';
 
 // Resting inner glow — Toggle's inset primary pool, dialed below the focus state so
 // the well reads lit/dimensional without looking focused.
-const WELL_GLOW = 'shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
+const WELL_GLOW = 'dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
 
 const DIVIDER =
   '[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]';
@@ -24,9 +23,11 @@ const CHARGE_GLOW =
   'shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]';
 
 const RAMP_DELAY = 350; // ms held before auto-repeat begins
+const RAMP_DOUBLE = 600; // ms held to reach ×2
 const RAMP_FULL = 1500; // ms held to reach full charge / ×5
 
-const multiplierFor = (heldMs: number): number => (heldMs >= RAMP_FULL ? 5 : heldMs >= 600 ? 2 : 1);
+const multiplierFor = (heldMs: number): number =>
+  heldMs >= RAMP_FULL ? 5 : heldMs >= RAMP_DOUBLE ? 2 : 1;
 const intervalFor = (heldMs: number): number => Math.max(45, 150 - heldMs / 12);
 
 /**
@@ -100,7 +101,7 @@ export interface NumberInputProps {
   min?: number;
   max?: number;
   step?: number;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md';
   disabled?: boolean;
   allowDecimals?: boolean;
   'aria-label'?: string;
@@ -116,7 +117,7 @@ const sizeStyles = {
     button: 'w-5',
     inputWidth: 'w-8',
     cellH: 16,
-    font: 'text-[12px]',
+    font: 'text-data-sm',
     icon: 12,
   },
   sm: {
@@ -124,7 +125,7 @@ const sizeStyles = {
     button: 'w-7',
     inputWidth: 'w-12',
     cellH: 18,
-    font: 'text-[13px]',
+    font: 'text-data-sm',
     icon: 14,
   },
   md: {
@@ -132,16 +133,8 @@ const sizeStyles = {
     button: 'w-8',
     inputWidth: 'w-14',
     cellH: 20,
-    font: 'text-[14px]',
+    font: 'text-data',
     icon: 16,
-  },
-  lg: {
-    container: 'h-12',
-    button: 'w-9',
-    inputWidth: 'w-16',
-    cellH: 26,
-    font: 'text-[16px]',
-    icon: 18,
   },
 } as const;
 
@@ -211,15 +204,23 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     const valueRef = useRef(value);
     valueRef.current = value;
 
+    const clamp = useCallback(
+      (n: number) => {
+        let r = n;
+        if (min !== undefined && r < min) r = min;
+        if (max !== undefined && r > max) r = max;
+        return r;
+      },
+      [min, max]
+    );
+
     const stepBy = useCallback(
       (delta: number) => {
         const cur = valueRef.current;
-        let next = cur + delta;
-        if (min !== undefined && next < min) next = min;
-        if (max !== undefined && next > max) next = max;
+        const next = clamp(cur + delta);
         if (next !== cur) onChange(next);
       },
-      [min, max, onChange]
+      [clamp, onChange]
     );
 
     const ramp = useHoldRamp(stepBy, step, disabled);
@@ -239,12 +240,10 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         setInputText(String(value));
         return;
       }
-      let next = parsed;
-      if (min !== undefined && next < min) next = min;
-      if (max !== undefined && next > max) next = max;
+      const next = clamp(parsed);
       onChange(next);
       setInputText(String(next));
-    }, [allowDecimals, inputText, min, max, onChange, value]);
+    }, [allowDecimals, inputText, clamp, onChange, value]);
 
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,12 +253,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         }
         const parsed = parseInt(e.target.value, 10);
         if (isNaN(parsed)) return;
-        let next = parsed;
-        if (min !== undefined && next < min) next = min;
-        if (max !== undefined && next > max) next = max;
-        onChange(next);
+        onChange(clamp(parsed));
       },
-      [min, max, onChange, allowDecimals]
+      [clamp, onChange, allowDecimals]
     );
 
     const handleKeyDown = useCallback(
@@ -311,7 +307,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             ${styles.button} h-full
             flex items-center justify-center
             text-secondary-foreground
-            hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
+            hover:text-foreground dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
             focus-visible:text-foreground
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-[color,text-shadow,box-shadow] duration-150
@@ -364,7 +360,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           {ramp.activeDir !== 0 && ramp.multiplier > 1 && (
             <span
               aria-hidden
-              className="pointer-events-none absolute right-0.5 top-0.5 font-mono text-[8px] font-medium uppercase tracking-[0.12em] text-primary"
+              className="type-label tracking-meta pointer-events-none absolute right-0.5 top-0.5 text-label-2xs font-medium text-primary"
             >
               ×{ramp.multiplier}
             </span>

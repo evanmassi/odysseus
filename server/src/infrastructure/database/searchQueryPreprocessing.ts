@@ -4,7 +4,11 @@
  * Normalization, synonym expansion, tsquery building, and fuzzy matching for laboratory sample search.
  */
 
-import { LAB_SYNONYMS, SYNONYM_REVERSE_LOOKUP, FUZZY_SKIP_WORDS } from '@infrastructure/database/searchDictionary';
+import {
+  LAB_SYNONYMS,
+  SYNONYM_REVERSE_LOOKUP,
+  FUZZY_SKIP_WORDS,
+} from '@infrastructure/database/searchDictionary';
 
 export function normalizeSearchQuery(query: string): string {
   return query
@@ -26,7 +30,7 @@ export function normalizeSearchQuery(query: string): string {
  * "HEK293" → ["hek293", "hek-293", "hek 293"]
  * "human" → ["human"] (no boundaries, unchanged)
  */
-export function generateAlphanumericVariants(term: string): string[] {
+function generateAlphanumericVariants(term: string): string[] {
   const normalized = term.toLowerCase().trim();
   if (!normalized) return [];
 
@@ -164,12 +168,14 @@ export function buildTsQueryFromConcepts(concepts: string[][]): string {
 
     for (const term of synonymGroup) {
       const words = term.split(/\s+/).filter(w => w.length > 0);
-      const escapedWords = words.map(word => {
-        const escaped = word.replace(/['"\\:&|!()#]/g, '');
-        if (!escaped) return null;
-        if (/^\d+$/.test(escaped)) return escaped;
-        return `${escaped}:*`;
-      }).filter(Boolean);
+      const escapedWords = words
+        .map(word => {
+          const escaped = word.replace(/['"\\:&|!()#]/g, '');
+          if (!escaped) return null;
+          if (/^\d+$/.test(escaped)) return escaped;
+          return `${escaped}:*`;
+        })
+        .filter(Boolean);
 
       if (escapedWords.length > 0) {
         termQueries.push(`(${escapedWords.join(' & ')})`);
@@ -195,7 +201,7 @@ export enum SearchRankTier {
  * Scales tolerance with word length: shorter words match stricter
  * to avoid false positives, longer words allow more typo tolerance.
  */
-export function getFuzzyThreshold(termLength: number): number {
+function getFuzzyThreshold(termLength: number): number {
   if (termLength <= 2) return 0.7;
   if (termLength <= 4) return 0.6;
   if (termLength <= 6) return 0.4;
@@ -207,7 +213,9 @@ export function getFuzzyThreshold(termLength: number): number {
  * since that's the most likely source of false positives.
  */
 export function calculateQueryFuzzyThreshold(query: string): number {
-  const words = normalizeSearchQuery(query).split(/\s+/).filter(w => w.length > 1);
+  const words = normalizeSearchQuery(query)
+    .split(/\s+/)
+    .filter(w => w.length > 1);
   if (words.length === 0) return 0.4;
 
   const shortestLength = Math.min(...words.map(w => w.length));

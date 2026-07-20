@@ -1,252 +1,176 @@
 /**
  * Application Error Boundary
  *
- * Catches React render errors and presents recovery options rather than a blank screen.
+ * App-shell recovery screen — wraps the shared ErrorBoundary with a full-page
+ * fallback offering retry, reload, go-home, and copy-details.
  */
 
 import type { ErrorInfo, ReactNode } from 'react';
-import { Component } from 'react';
 
 import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react';
 
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { Button } from '@shared/ui';
+import { Button, ErrorBoundary } from '@shared/ui';
+import { notifications } from '@shared/utils/notifications';
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
   onRetry?: () => void;
 }
 
-interface AppErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
+interface AppErrorFallbackProps {
+  error: Error;
   errorInfo: ErrorInfo | null;
+  retry: () => void;
   errorId: string;
 }
 
-export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
-  constructor(props: AppErrorBoundaryProps) {
-    super(props);
-
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      errorId: AppErrorBoundary.generateErrorId(),
-    };
-  }
-
-  static getDerivedStateFromError(error: Error): Partial<AppErrorBoundaryState> {
-    return {
-      hasError: true,
-      error,
-      errorId: AppErrorBoundary.generateErrorId(),
-    };
-  }
-
-  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({
-      error,
-      errorInfo,
-    });
-
-    logger.error('Error boundary caught React error', {
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      errorId: this.state.errorId,
-    });
-
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
-    }
-
-    if (env.isProd()) {
-      this.reportError(error, errorInfo);
-    }
-  }
-
-  private static generateErrorId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
-  }
-
-  private reportError(error: Error, errorInfo: ErrorInfo): void {
-    // TODO: Wire up to error reporting service (Sentry, etc.) when monitoring is configured
-    logger.info('Error would be reported to monitoring service', {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-      errorId: this.state.errorId,
-    });
-  }
-
-  private handleRetry = (): void => {
-    if (this.props.onRetry) {
-      this.props.onRetry();
-    }
-
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      errorId: AppErrorBoundary.generateErrorId(),
-    });
+function copyErrorDetails({ error, errorInfo, errorId }: AppErrorFallbackProps): void {
+  const details = {
+    errorId,
+    message: error.message,
+    stack: error.stack,
+    componentStack: errorInfo?.componentStack,
+    userAgent: navigator.userAgent,
+    timestamp: new Date().toISOString(),
   };
 
-  private handleReload = (): void => {
-    window.location.reload();
-  };
+  navigator.clipboard
+    .writeText(JSON.stringify(details, null, 2))
+    .then(() => notifications.success('Error details copied to clipboard'))
+    .catch(() => notifications.error('Failed to copy error details'));
+}
 
-  private handleGoHome = (): void => {
-    window.location.href = '/';
-  };
+function AppErrorFallback(props: AppErrorFallbackProps) {
+  const { error, errorInfo, retry, errorId } = props;
 
-  private copyErrorDetails = (): void => {
-    const errorDetails = {
-      errorId: this.state.errorId,
-      message: this.state.error?.message,
-      stack: this.state.error?.stack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      componentStack: this.state.errorInfo?.componentStack,
-    };
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-muted to-muted flex items-center justify-center p-4">
+      <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-lg">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-danger-bg" />
+          </div>
 
-    navigator.clipboard
-      .writeText(JSON.stringify(errorDetails, null, 2))
-      .then(() => {
-        alert('Error details copied to clipboard');
-      })
-      .catch(() => {
-        alert('Failed to copy error details');
-      });
-  };
+          <h1 className="text-2xl font-bold text-card-foreground mb-2">Something went wrong</h1>
 
-  override render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
+          <p className="text-muted-foreground">
+            The application encountered an unexpected error and needs to recover.
+          </p>
+        </div>
 
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-muted to-muted flex items-center justify-center p-4">
-          <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-lg">
-            {/* Error Icon and Title */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-danger-bg" />
-              </div>
-
-              <h1 className="text-2xl font-bold text-card-foreground mb-2">Something went wrong</h1>
-
-              <p className="text-muted-foreground">
-                The application encountered an unexpected error and needs to recover.
+        <div className="bg-muted border border-danger-border rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-3">
+            <Bug className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <h4 className="text-body-sm font-medium text-danger-text mb-1">Error Details</h4>
+              <p className="text-body text-danger-text break-words">
+                {error.message ? error.message : 'Unknown error occurred'}
               </p>
-            </div>
-
-            {/* Error Details */}
-            <div className="bg-muted border border-danger-border rounded-lg p-4 mb-6">
-              <div className="flex items-start space-x-3">
-                <Bug className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-danger-text mb-1">Error Details</h4>
-                  <p className="text-sm text-danger-text break-words">
-                    {this.state.error?.message ?? 'Unknown error occurred'}
-                  </p>
-                  <p className="text-xs text-danger-text mt-2">Error ID: {this.state.errorId}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Debug Information (Development Only) */}
-            {env.isDev() && this.state.error?.stack && (
-              <details className="mb-6">
-                <summary className="text-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mb-2">
-                  🔧 Stack Trace (Development)
-                </summary>
-                <pre className="text-xs text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
-                  {this.state.error.stack}
-                </pre>
-                {this.state.errorInfo?.componentStack && (
-                  <>
-                    <summary className="text-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mt-3 mb-2">
-                      🧩 Component Stack
-                    </summary>
-                    <pre className="text-xs text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
-                      {this.state.errorInfo.componentStack}
-                    </pre>
-                  </>
-                )}
-              </details>
-            )}
-
-            {/* Recovery Actions */}
-            <div className="space-y-3 mb-6">
-              {/* Primary Recovery Action */}
-              {this.props.onRetry && (
-                <Button
-                  variant="primary"
-                  fullWidth
-                  onClick={this.handleRetry}
-                  leftIcon={<RefreshCw className="w-4 h-4" />}
-                >
-                  Try Again
-                </Button>
-              )}
-
-              {/* Secondary Recovery Actions */}
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="cancel"
-                  onClick={this.handleReload}
-                  leftIcon={<RefreshCw className="w-4 h-4" />}
-                >
-                  Reload Page
-                </Button>
-
-                <Button
-                  variant="cancel"
-                  onClick={this.handleGoHome}
-                  leftIcon={<Home className="w-4 h-4" />}
-                >
-                  Go Home
-                </Button>
-              </div>
-            </div>
-
-            {/* Support Actions */}
-            <div className="border-t border-border pt-6">
-              <h3 className="text-sm font-medium text-card-foreground mb-3">Need Help?</h3>
-
-              <div className="space-y-2">
-                <button
-                  onClick={this.copyErrorDetails}
-                  className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-accent rounded-lg transition-colors flex items-center space-x-2"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>Copy error details for support</span>
-                </button>
-
-                <p className="text-xs text-muted-foreground">
-                  If this error persists, please contact your system administrator with the error ID
-                  above.
-                </p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-6 text-center border-t border-border pt-4">
-              <p className="text-xs text-muted-foreground">Odysseus Laboratory Management System</p>
+              <p className="text-caption text-danger-text mt-2">Error ID: {errorId}</p>
             </div>
           </div>
         </div>
-      );
-    }
 
-    return this.props.children;
-  }
+        {env.isDev() && error.stack && (
+          <details className="mb-6">
+            <summary className="text-body-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mb-2">
+              Stack Trace (Development)
+            </summary>
+            <pre className="text-data-sm text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
+              {error.stack}
+            </pre>
+          </details>
+        )}
+
+        {env.isDev() && errorInfo?.componentStack && (
+          <details className="mb-6">
+            <summary className="text-body-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mb-2">
+              Component Stack (Development)
+            </summary>
+            <pre className="text-data-sm text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
+              {errorInfo.componentStack}
+            </pre>
+          </details>
+        )}
+
+        <div className="space-y-3 mb-6">
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={retry}
+            leftIcon={<RefreshCw className="w-4 h-4" />}
+          >
+            Try Again
+          </Button>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="cancel"
+              onClick={() => window.location.reload()}
+              leftIcon={<RefreshCw className="w-4 h-4" />}
+            >
+              Reload Page
+            </Button>
+
+            <Button
+              variant="cancel"
+              onClick={() => {
+                window.location.href = '/';
+              }}
+              leftIcon={<Home className="w-4 h-4" />}
+            >
+              Go Home
+            </Button>
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-6">
+          <h3 className="text-body-sm font-medium text-card-foreground mb-3">Need Help?</h3>
+
+          <div className="space-y-2">
+            <button
+              onClick={() => copyErrorDetails(props)}
+              className="w-full text-left px-3 py-2 text-body-sm text-muted-foreground hover:bg-accent rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Copy error details for support</span>
+            </button>
+
+            <p className="text-caption text-muted-foreground">
+              If this error persists, please contact your system administrator with the error ID
+              above.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center border-t border-border pt-4">
+          <p className="text-caption text-muted-foreground">
+            Odysseus Laboratory Management System
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function AppErrorBoundary({ children, onRetry }: AppErrorBoundaryProps) {
+  return (
+    <ErrorBoundary
+      name="App Shell"
+      onRetry={onRetry}
+      onError={(error, errorInfo, errorId) =>
+        logger.error('App error boundary caught React error', {
+          error: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+          errorId,
+        })
+      }
+      fallback={AppErrorFallback}
+    >
+      {children}
+    </ErrorBoundary>
+  );
 }

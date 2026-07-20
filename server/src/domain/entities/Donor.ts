@@ -120,7 +120,8 @@ export class Donor {
 
   update(data: DonorUpdateData): void {
     if (data.donorSourceId !== undefined) this._donorSourceId = data.donorSourceId ?? undefined;
-    if (data.donorInternalId !== undefined) this._donorInternalId = data.donorInternalId ?? undefined;
+    if (data.donorInternalId !== undefined)
+      this._donorInternalId = data.donorInternalId ?? undefined;
     if (data.species !== undefined) this._species = data.species ?? undefined;
     if (data.age !== undefined) this._age = data.age ?? undefined;
     if (data.sex !== undefined) this._sex = data.sex ?? undefined;
@@ -135,19 +136,49 @@ export class Donor {
     this._updatedAt = new Date();
   }
 
-  get id(): string { return this._id; }
-  get labId(): string { return this._labId; }
-  get donorSourceId(): string | undefined { return this._donorSourceId; }
-  get donorInternalId(): string | undefined { return this._donorInternalId; }
-  get species(): string | undefined { return this._species; }
-  get age(): string | undefined { return this._age; }
-  get sex(): string | undefined { return this._sex; }
-  get ethnicity(): string | undefined { return this._ethnicity; }
-  get clinicalStatus(): string | undefined { return this._clinicalStatus; }
-  get diagnosis(): string | undefined { return this._diagnosis; }
-  get diseaseStage(): string | undefined { return this._diseaseStage; }
-  get notes(): string | undefined { return this._notes; }
-  get isCurated(): boolean { return this._isCurated; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
+  get id(): string {
+    return this._id;
+  }
+  get labId(): string {
+    return this._labId;
+  }
+  get donorSourceId(): string | undefined {
+    return this._donorSourceId;
+  }
+  get donorInternalId(): string | undefined {
+    return this._donorInternalId;
+  }
+  get species(): string | undefined {
+    return this._species;
+  }
+  get age(): string | undefined {
+    return this._age;
+  }
+  get sex(): string | undefined {
+    return this._sex;
+  }
+  get ethnicity(): string | undefined {
+    return this._ethnicity;
+  }
+  get clinicalStatus(): string | undefined {
+    return this._clinicalStatus;
+  }
+  get diagnosis(): string | undefined {
+    return this._diagnosis;
+  }
+  get diseaseStage(): string | undefined {
+    return this._diseaseStage;
+  }
+  get notes(): string | undefined {
+    return this._notes;
+  }
+  get isCurated(): boolean {
+    return this._isCurated;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
 }

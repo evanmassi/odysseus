@@ -35,13 +35,23 @@ export const migration016: Migration = {
     `);
 
     await pool.query(`CREATE INDEX idx_donors_lab_id ON donors(lab_id)`);
-    await pool.query(`CREATE INDEX idx_donors_source_id ON donors(lab_id, donor_source_id) WHERE donor_source_id IS NOT NULL`);
-    await pool.query(`CREATE INDEX idx_donors_internal_id ON donors(lab_id, donor_internal_id) WHERE donor_internal_id IS NOT NULL`);
-    await pool.query(`CREATE INDEX idx_donors_uncurated ON donors(lab_id, is_curated) WHERE is_curated = FALSE`);
+    await pool.query(
+      `CREATE INDEX idx_donors_source_id ON donors(lab_id, donor_source_id) WHERE donor_source_id IS NOT NULL`
+    );
+    await pool.query(
+      `CREATE INDEX idx_donors_internal_id ON donors(lab_id, donor_internal_id) WHERE donor_internal_id IS NOT NULL`
+    );
+    await pool.query(
+      `CREATE INDEX idx_donors_uncurated ON donors(lab_id, is_curated) WHERE is_curated = FALSE`
+    );
 
     // Trigram indexes for autocomplete search (pg_trgm enabled in migration 009)
-    await pool.query(`CREATE INDEX idx_donors_source_id_trgm ON donors USING gin (donor_source_id gin_trgm_ops) WHERE donor_source_id IS NOT NULL`);
-    await pool.query(`CREATE INDEX idx_donors_internal_id_trgm ON donors USING gin (donor_internal_id gin_trgm_ops) WHERE donor_internal_id IS NOT NULL`);
+    await pool.query(
+      `CREATE INDEX idx_donors_source_id_trgm ON donors USING gin (donor_source_id gin_trgm_ops) WHERE donor_source_id IS NOT NULL`
+    );
+    await pool.query(
+      `CREATE INDEX idx_donors_internal_id_trgm ON donors USING gin (donor_internal_id gin_trgm_ops) WHERE donor_internal_id IS NOT NULL`
+    );
 
     await pool.query(`
       CREATE TABLE donor_collection_history (
@@ -54,7 +64,9 @@ export const migration016: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_donor_collection_history_donor_id ON donor_collection_history(donor_id)`);
+    await pool.query(
+      `CREATE INDEX idx_donor_collection_history_donor_id ON donor_collection_history(donor_id)`
+    );
 
     // Extend lookup category constraint to include 'specimen_type'
     await pool.query(`
@@ -94,5 +106,5 @@ export const migration016: Migration = {
       WHERE donor_source_id IS NOT NULL OR donor_internal_id IS NOT NULL
       GROUP BY lab_id, COALESCE(donor_source_id, ''), COALESCE(donor_internal_id, '')
     `);
-  }
+  },
 };

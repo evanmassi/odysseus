@@ -9,10 +9,14 @@ import { randomUUID } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 
 import type { ConfigurationService } from '@application/contracts/ConfigurationService';
-import type { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/contracts/SessionService';
+import type {
+  SessionService,
+  SessionValidationResult,
+  SessionValidationOutcome,
+} from '@application/contracts/SessionService';
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type {
   TokenPair,
-  RefreshTokenRecord,
   AccessTokenPayload,
   EnhancedLoginResponse,
   RefreshTokenResponse,
@@ -29,9 +33,8 @@ import { logger } from '@infrastructure/logging/logger';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
-export interface JwtSessionConfig {
+interface JwtSessionConfig {
   secret: string;
-  expirationTime: string;
   issuer: string;
   audience: string;
   algorithm: jwt.Algorithm;
@@ -54,22 +57,22 @@ export class JwtSessionService implements SessionService {
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly storageRepository: StorageRepository,
     private readonly userSessionRepository: UserSessionRepository,
+    private readonly unitOfWork: UnitOfWork,
     private readonly labRepository?: LabRepository
   ) {
     const jwtConfig = configurationService.get('jwt');
 
     this.config = {
       secret: jwtConfig.secret,
-      expirationTime: jwtConfig.expirationTime,
       issuer: jwtConfig.issuer,
       audience: jwtConfig.audience,
-      algorithm: jwtConfig.algorithm as jwt.Algorithm
+      algorithm: jwtConfig.algorithm as jwt.Algorithm,
     };
   }
 
   private async getCachedSecurityConfig(): Promise<SecurityConfig> {
     const now = Date.now();
-    if (this.securityConfigCache && (now - this.securityConfigCacheTime) < this.CACHE_TTL_MS) {
+    if (this.securityConfigCache && now - this.securityConfigCacheTime < this.CACHE_TTL_MS) {
       return this.securityConfigCache;
     }
 
@@ -99,9 +102,8 @@ export class JwtSessionService implements SessionService {
 
       const currentSessionCount = await this.userSessionRepository.countActiveSessions(userId);
 
-      const sessionsToRevoke = currentSessionCount >= maxSessions
-        ? (currentSessionCount - maxSessions + 1)
-        : 0;
+      const sessionsToRevoke =
+        currentSessionCount >= maxSessions ? currentSessionCount - maxSessions + 1 : 0;
 
       if (sessionsToRevoke <= 0) {
         return 0;
@@ -109,8 +111,8 @@ export class JwtSessionService implements SessionService {
 
       const activeSessions = await this.userSessionRepository.findActiveSessionsByUserId(userId);
 
-      const sortedSessions = activeSessions.sort((a, b) =>
-        a.createdAt.getTime() - b.createdAt.getTime()
+      const sortedSessions = activeSessions.sort(
+        (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
       );
 
       const sessionsToRevokeIds = sortedSessions
@@ -119,7 +121,9 @@ export class JwtSessionService implements SessionService {
 
       if (sessionsToRevokeIds.length > 0) {
         const revokedCount = await this.userSessionRepository.bulkRevoke(sessionsToRevokeIds);
-        logger.info(`Revoked ${revokedCount} old sessions for user ${userId} (limit: ${maxSessions})`);
+        logger.info(
+          `Revoked ${revokedCount} old sessions for user ${userId} (limit: ${maxSessions})`
+        );
         return revokedCount;
       }
 
@@ -131,13 +135,23 @@ export class JwtSessionService implements SessionService {
     }
   }
 
+  private signToken(payload: object): string {
+    return jwt.sign(payload, this.config.secret, {
+      algorithm: this.config.algorithm,
+    } as jwt.SignOptions);
+  }
+
+  private verifyToken<T>(token: string): T {
+    return jwt.verify(token, this.config.secret, {
+      issuer: this.config.issuer,
+      audience: this.config.audience,
+      algorithms: [this.config.algorithm],
+    }) as T;
+  }
+
   async validateSession(token: string): Promise<SessionValidationResult | null> {
     try {
-      const decoded = jwt.verify(token, this.config.secret, {
-        issuer: this.config.issuer,
-        audience: this.config.audience,
-        algorithms: [this.config.algorithm]
-      }) as AccessTokenPayload;
+      const decoded = this.verifyToken<AccessTokenPayload>(token);
 
       // RFC 7519 'sub' claim
       const userId = decoded.sub;
@@ -154,18 +168,17 @@ export class JwtSessionService implements SessionService {
       }
 
       // Ensures disabled users can't authenticate and permissions are current
-      const user = await this.userRepository.findById(userId);
+      const user = await this.userRepository.findByIdAnyLab(userId);
 
       if (!user) {
         return null;
       }
 
       return { user, sessionId };
-
     } catch (error) {
       logger.error('JWT validation failed:', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        tokenLength: token?.length || 0
+        tokenLength: token?.length || 0,
       });
       return null;
     }
@@ -227,32 +240,8 @@ export class JwtSessionService implements SessionService {
     return {
       success: true,
       user: jwtResult.user,
-      sessionId: jwtResult.sessionId
+      sessionId: jwtResult.sessionId,
     };
-  }
-
-  async revokeSession(token: string): Promise<void> {
-    try {
-      const decoded = jwt.verify(token, this.config.secret) as AccessTokenPayload;
-
-      // Fetch session FIRST to get refreshToken before revoking
-      const session = await this.userSessionRepository.findById(decoded.sessionId);
-      const refreshTokenValue = session?.refreshToken;
-
-      await this.userSessionRepository.revokeSession(decoded.sessionId);
-
-      if (refreshTokenValue) {
-        const refreshToken = await this.refreshTokenRepository.findByToken(refreshTokenValue);
-        if (refreshToken) {
-          refreshToken.revoke();
-          await this.refreshTokenRepository.save(refreshToken);
-        }
-      }
-
-      logger.info(`Session ${decoded.sessionId} revoked`);
-    } catch (error) {
-      logger.warn('Could not revoke session:', { error });
-    }
   }
 
   async createTokenPair(
@@ -267,12 +256,19 @@ export class JwtSessionService implements SessionService {
 
     // Demo users get shorter session expiry to prevent accumulation
     const refreshTokenExpiry = user.isDemo
-      ? new Date(Date.now() + (JwtSessionService.DEMO_SESSION_EXPIRY_HOURS * 60 * 60 * 1000))
-      : new Date(Date.now() + (JwtSessionService.REAL_USER_REFRESH_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
+      ? new Date(Date.now() + JwtSessionService.DEMO_SESSION_EXPIRY_HOURS * 60 * 60 * 1000)
+      : new Date(
+          Date.now() + JwtSessionService.REAL_USER_REFRESH_EXPIRY_DAYS * 24 * 60 * 60 * 1000
+        );
 
-    const refreshToken = await this.createRefreshToken(user);
+    const refreshToken = this.buildRefreshToken(user);
+    const rawRefreshToken = refreshToken.rawToken;
+    if (!rawRefreshToken) {
+      throw new Error('Refresh token is missing its raw value immediately after creation');
+    }
 
-    // Create session FIRST — its ID will be embedded in the JWT
+    // The session stores the token hash so `findByRefreshToken` matches (hashing its input)
+    // without persisting the raw token.
     const userSession = UserSession.create(
       user.id,
       refreshToken.token,
@@ -282,8 +278,13 @@ export class JwtSessionService implements SessionService {
       userAgent
     );
 
+    // Atomic: a token persisted without its session is unusable and unreachable — the refresh
+    // that presented it would fail on the missing session and strand the row.
     try {
-      await this.userSessionRepository.save(userSession);
+      await this.unitOfWork.withTransaction(async repos => {
+        await repos.refreshTokens.save(refreshToken);
+        await repos.userSessions.save(userSession);
+      });
       logger.info(`Created session ${userSession.id} for user ${user.username}`);
     } catch (error) {
       logger.error('Failed to create user session:', { error });
@@ -297,19 +298,18 @@ export class JwtSessionService implements SessionService {
 
     const tokenPair: TokenPair = {
       accessToken,
-      refreshToken: refreshToken.token,
+      refreshToken: rawRefreshToken,
       accessTokenExpiry,
       refreshTokenExpiry,
       tokenType: 'Bearer',
       lastActivityTime: new Date(),
       sessionTimeoutMinutes: securityConfig.sessionTimeoutMinutes,
-      idleWarningMinutes: securityConfig.idleWarningMinutes
+      idleWarningMinutes: securityConfig.idleWarningMinutes,
     };
 
     return {
       user: user.toPublicData(),
-      sessionToken: accessToken, // Backward compatibility
-      tokens: tokenPair
+      tokens: tokenPair,
     };
   }
 
@@ -333,36 +333,41 @@ export class JwtSessionService implements SessionService {
       sessionId,
       username: user.username,
       role: user.role.value,
-      labId: user.labId
+      labId: user.labId,
     };
 
-    return jwt.sign(payload, this.config.secret, {
-      algorithm: this.config.algorithm
-    } as jwt.SignOptions);
+    return this.signToken(payload);
   }
 
-  private async createRefreshToken(user: User): Promise<RefreshTokenRecord> {
+  /** Builds the entity only — the caller persists it, so the write can join a transaction. */
+  private buildRefreshToken(user: User): RefreshToken {
     // Demo users get shorter refresh token expiry
     const expiryDays = user.isDemo
       ? JwtSessionService.DEMO_SESSION_EXPIRY_HOURS / 24
       : JwtSessionService.REAL_USER_REFRESH_EXPIRY_DAYS;
 
-    const refreshTokenEntity = RefreshToken.create(user.id, expiryDays);
-    await this.refreshTokenRepository.save(refreshTokenEntity);
-
-    // RefreshTokenRecord shape expected by callers
-    return {
-      id: refreshTokenEntity.id,
-      userId: refreshTokenEntity.userId,
-      token: refreshTokenEntity.token,
-      expiresAt: refreshTokenEntity.expiresAt,
-      createdAt: refreshTokenEntity.createdAt,
-      lastUsedAt: refreshTokenEntity.lastUsedAt,
-      isRevoked: refreshTokenEntity.isRevoked
-    };
+    return RefreshToken.create(user.id, expiryDays);
   }
 
-  /** OAuth 2.0 token rotation — issues new access token from a valid refresh token. */
+  /**
+   * Revokes every refresh token and active session for a user — the response to token reuse.
+   * Atomic: this is the containment step for a suspected compromise, so it must not half-apply
+   * and leave the attacker holding live credentials.
+   */
+  private async revokeUserTokenFamily(userId: string): Promise<void> {
+    await this.unitOfWork.withTransaction(async repos => {
+      const sessions = await repos.userSessions.findActiveSessionsByUserId(userId);
+      if (sessions.length > 0) {
+        await repos.userSessions.bulkRevoke(sessions.map(session => session.id));
+      }
+      await repos.refreshTokens.revokeAllForUser(userId);
+    });
+  }
+
+  /**
+   * Rotates the refresh token on every use: issues a fresh access + refresh token, revokes the
+   * presented one, and treats replay of an already-rotated token as compromise (revokes the family).
+   */
   async refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse> {
     try {
       const tokenRecord = await this.refreshTokenRepository.findByToken(refreshToken);
@@ -370,50 +375,82 @@ export class JwtSessionService implements SessionService {
         throw new Error('INVALID_REFRESH_TOKEN');
       }
 
+      if (tokenRecord.isRevoked) {
+        // The token was rotated away earlier; replaying it signals theft — revoke the whole
+        // family (all of the user's refresh tokens and active sessions) as a precaution.
+        await this.revokeUserTokenFamily(tokenRecord.userId);
+        throw new Error('REVOKED_REFRESH_TOKEN');
+      }
+
       if (tokenRecord.isExpired()) {
         await this.refreshTokenRepository.delete(tokenRecord.id);
         throw new Error('EXPIRED_REFRESH_TOKEN');
       }
 
-      if (tokenRecord.isRevoked) {
-        throw new Error('REVOKED_REFRESH_TOKEN');
-      }
-
-      const user = await this.userRepository.findById(tokenRecord.userId);
+      const user = await this.userRepository.findByIdAnyLab(tokenRecord.userId);
       if (!user) {
         await this.refreshTokenRepository.delete(tokenRecord.id);
         throw new Error('USER_NOT_FOUND');
       }
 
-      tokenRecord.recordUsage();
-      await this.refreshTokenRepository.save(tokenRecord);
-
       const userSession = await this.userSessionRepository.findByRefreshToken(refreshToken);
       if (!userSession) {
         throw new Error('USER_SESSION_NOT_FOUND');
       }
+      // A revoked session (logout, admin revoke, password change) must not mint new access tokens.
+      if (!userSession.isActive) {
+        throw new Error('REVOKED_REFRESH_TOKEN');
+      }
 
-      // Don't update lastUsedAt — token refresh is automatic, not user activity
+      // Rotate: revoke the presented token (kept, not deleted, so a later replay is detected as
+      // reuse), issue a new token that inherits the session's remaining lifetime, and point the
+      // session at it so the old token can never mint again.
+      const remainingDays = (userSession.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+      const rotatedToken = RefreshToken.create(user.id, remainingDays);
+
+      const rotatedRawToken = rotatedToken.rawToken;
+      if (!rotatedRawToken) {
+        throw new Error('Rotated refresh token is missing its raw value');
+      }
+
+      // Minted before the commit: a throw after it would hand the caller an error even though the
+      // rotation had already landed, leaving them holding a token the next refresh reads as reuse.
       const newAccessToken = await this.createAccessToken(user, userSession.id);
       const accessTokenExpiryMs = await this.getAccessTokenExpiryMs();
       const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
 
+      // Atomic: a partial write would point the session at a revoked token, and the next refresh
+      // would read that as replay and revoke the user's whole token family.
+      await this.unitOfWork.withTransaction(async repos => {
+        tokenRecord.revoke();
+        await repos.refreshTokens.save(tokenRecord);
+
+        await repos.refreshTokens.save(rotatedToken);
+
+        userSession.rotateRefreshToken(rotatedToken.token);
+        await repos.userSessions.save(userSession);
+      });
+
       return {
         accessToken: newAccessToken,
         accessTokenExpiry,
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
+        refreshToken: rotatedRawToken,
+        refreshTokenExpiry: rotatedToken.expiresAt,
       };
-
     } catch (error) {
       logger.error('Token refresh failed:', { error });
 
-      if (error instanceof Error && [
-        'INVALID_REFRESH_TOKEN',
-        'EXPIRED_REFRESH_TOKEN',
-        'REVOKED_REFRESH_TOKEN',
-        'USER_NOT_FOUND',
-        'USER_SESSION_NOT_FOUND'
-      ].includes(error.message)) {
+      if (
+        error instanceof Error &&
+        [
+          'INVALID_REFRESH_TOKEN',
+          'EXPIRED_REFRESH_TOKEN',
+          'REVOKED_REFRESH_TOKEN',
+          'USER_NOT_FOUND',
+          'USER_SESSION_NOT_FOUND',
+        ].includes(error.message)
+      ) {
         throw error;
       }
 
@@ -434,35 +471,31 @@ export class JwtSessionService implements SessionService {
       aud: this.config.audience,
       exp: nowSeconds + TEMP_TOKEN_EXPIRY_SECONDS,
       iat: nowSeconds,
-      jti: randomUUID()
+      jti: randomUUID(),
     };
 
-    return jwt.sign(payload, this.config.secret, {
-      algorithm: this.config.algorithm
-    } as jwt.SignOptions);
+    return this.signToken(payload);
   }
 
   /** Only accepts tokens with purpose='password_change'. */
-  async verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null> {
+  async verifyPasswordChangeTempToken(
+    token: string
+  ): Promise<{ userId: string; username: string } | null> {
     try {
-      const decoded = jwt.verify(token, this.config.secret, {
-        issuer: this.config.issuer,
-        audience: this.config.audience,
-        algorithms: [this.config.algorithm]
-      }) as {
+      const decoded = this.verifyToken<{
         sub: string;
         username: string;
         purpose: string;
         exp: number;
         iat: number;
-      };
+      }>(token);
 
       if (decoded.purpose !== 'password_change') {
         logger.warn('Token is not a password change token');
         return null;
       }
 
-      const user = await this.userRepository.findById(decoded.sub);
+      const user = await this.userRepository.findByIdAnyLab(decoded.sub);
       if (!user) {
         logger.warn('User not found for temp token', { userId: decoded.sub });
         return null;
@@ -470,12 +503,11 @@ export class JwtSessionService implements SessionService {
 
       return {
         userId: decoded.sub,
-        username: decoded.username
+        username: decoded.username,
       };
-
     } catch (error) {
       logger.warn('Temp token validation failed:', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       return null;
     }

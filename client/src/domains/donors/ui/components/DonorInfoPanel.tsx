@@ -6,7 +6,16 @@
 
 import { BookUser, SquarePen, Trash2 } from 'lucide-react';
 
-import { Button, Chip, DetailRow, NubDivider, PanelHeader, SectionHeader } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  DetailRow,
+  HeaderStrip,
+  NubDivider,
+  PanelHeader,
+  SectionHeader,
+  StripLabel,
+} from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -20,7 +29,6 @@ interface DonorInfoPanelProps {
   collectionHistory: DonorCollectionHistory[];
   onEdit: () => void;
   onDelete: () => void;
-  onHistoryChange: () => void;
   isAdmin: boolean;
 }
 
@@ -29,7 +37,6 @@ export function DonorInfoPanel({
   collectionHistory,
   onEdit,
   onDelete,
-  onHistoryChange,
   isAdmin,
 }: DonorInfoPanelProps) {
   const collectionCount = collectionHistory.length;
@@ -47,20 +54,10 @@ export function DonorInfoPanel({
         <PanelHeader icon={<BookUser className="h-4 w-4" />} title="Donor Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-baseline gap-2">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Collections
-          </span>
-          <span className="min-w-0 truncate font-mono text-[11px] tracking-[0.06em] text-foreground">
+          <StripLabel>Collections</StripLabel>
+          <span className="min-w-0 truncate font-mono text-data-sm tracking-[0.06em] text-foreground">
             {collectionCount === 0 ? (
               <span className="text-muted-foreground">None yet</span>
             ) : (
@@ -73,8 +70,7 @@ export function DonorInfoPanel({
             )}
           </span>
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
@@ -123,7 +119,6 @@ export function DonorInfoPanel({
               history={collectionHistory}
               donorId={donor.id}
               isAdmin={isAdmin}
-              onHistoryChange={onHistoryChange}
             />
           </div>
 
@@ -131,9 +126,11 @@ export function DonorInfoPanel({
             <div>
               <SectionHeader title="Notes" size="sm" />
               {donor.notes ? (
-                <div className="text-sm leading-relaxed text-card-foreground/85">{donor.notes}</div>
+                <div className="text-body leading-relaxed text-card-foreground/85">
+                  {donor.notes}
+                </div>
               ) : (
-                <div className="text-sm italic text-card-foreground/30">Unknown</div>
+                <div className="text-body-sm italic text-card-foreground/30">Unknown</div>
               )}
             </div>
           )}
@@ -141,7 +138,7 @@ export function DonorInfoPanel({
       </ScrollArea>
 
       {isAdmin && (
-        <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex gap-2">
             <Button

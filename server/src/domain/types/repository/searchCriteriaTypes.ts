@@ -6,6 +6,8 @@
 
 import type { Tube } from '@domain/entities/Tube';
 
+import type { TUBE_SORT_FIELDS } from '@odysseus/shared-schemas';
+
 /**
  * Enhanced search result with matched terms for highlighting
  *
@@ -61,17 +63,12 @@ export interface TubeSearchCriteria {
   // Status
   hasConcentration?: boolean;
   isComplete?: boolean;
-  isExpired?: boolean;
 
   // Pagination
   limit?: number;
   offset?: number;
 
   // Sorting
-  sortBy?: 'createdAt' | 'updatedAt' | 'position' | 'researcherId' | 'cellType';
+  sortBy?: (typeof TUBE_SORT_FIELDS)[number];
   sortOrder?: 'asc' | 'desc';
-
-  // Grouping
-  groupBy?: 'auto' | 'none' | 'donor' | 'cellType' | 'researcher' | 'lotNumber' | 'media' | 'location';
 }
-

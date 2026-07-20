@@ -102,12 +102,10 @@ export function TubeGridContextMenu({
   const OpenIcon = isEditMode ? Edit : Plus;
   const hasClipboardSection = hasFilledSelection || (canPaste && selectedCount > 0);
 
-  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
   const hasLockSection =
-    (lockableCount > 0 && onLock) ||
-    (unlockableCount > 0 && onUnlock) ||
-    (sharableCount > 0 && onShare);
-  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    (lockableCount > 0 && !!onLock) ||
+    (unlockableCount > 0 && !!onUnlock) ||
+    (sharableCount > 0 && !!onShare);
 
   return (
     <DropdownMenu
@@ -127,9 +125,16 @@ export function TubeGridContextMenu({
         {selectedCount > 0 && (
           <>
             <div>
-              <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
+              <MenuItem
+                icon={OpenIcon}
+                label={openLabel}
+                shortcut="Enter"
+                onClick={() => {
+                  onOpen();
+                  onClose();
+                }}
+              />
             </div>
-            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {(hasClipboardSection || hasLockSection || hasFilledSelection) && (
               <MenuDivider subtle />
             )}
@@ -173,7 +178,6 @@ export function TubeGridContextMenu({
                 />
               )}
             </div>
-            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {(hasLockSection || hasFilledSelection) && <MenuDivider subtle />}
           </>
         )}

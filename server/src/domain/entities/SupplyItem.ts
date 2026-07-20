@@ -5,12 +5,10 @@
  * Supports manufacturer/vendor info, stock configuration, and flexible lab-defined properties.
  */
 
+import { supplyItemStatusValues, type SupplyItemStatus } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-
-import type { SupplyItemStatus } from '@odysseus/shared-schemas';
-
-const VALID_STATUSES: SupplyItemStatus[] = ['active', 'discontinued', 'archived'];
 
 interface ItemCreateData {
   labId: string;
@@ -165,8 +163,8 @@ export class SupplyItem {
     if (!this._categoryId) {
       throw new ValidationError('Category is required');
     }
-    if (!VALID_STATUSES.includes(this._status)) {
-      throw new ValidationError(`Invalid item status: ${this._status}`);
+    if (!supplyItemStatusValues.includes(this._status)) {
+      throw new ValidationError('That item status is not valid.');
     }
   }
 
@@ -180,16 +178,22 @@ export class SupplyItem {
     if (data.manufacturer !== undefined) this._manufacturer = data.manufacturer ?? undefined;
     if (data.catalogNumber !== undefined) this._catalogNumber = data.catalogNumber ?? undefined;
     if (data.vendorName !== undefined) this._vendorName = data.vendorName ?? undefined;
-    if (data.vendorCatalogNumber !== undefined) this._vendorCatalogNumber = data.vendorCatalogNumber ?? undefined;
+    if (data.vendorCatalogNumber !== undefined)
+      this._vendorCatalogNumber = data.vendorCatalogNumber ?? undefined;
     if (data.stockUnit !== undefined) this._stockUnit = data.stockUnit ?? undefined;
     if (data.baseItemName !== undefined) this._baseItemName = data.baseItemName ?? undefined;
-    if (data.reorderThreshold !== undefined) this._reorderThreshold = data.reorderThreshold ?? undefined;
-    if (data.reorderThresholdUnit !== undefined) this._reorderThresholdUnit = data.reorderThresholdUnit ?? undefined;
-    if (data.reorderQuantity !== undefined) this._reorderQuantity = data.reorderQuantity ?? undefined;
+    if (data.reorderThreshold !== undefined)
+      this._reorderThreshold = data.reorderThreshold ?? undefined;
+    if (data.reorderThresholdUnit !== undefined)
+      this._reorderThresholdUnit = data.reorderThresholdUnit ?? undefined;
+    if (data.reorderQuantity !== undefined)
+      this._reorderQuantity = data.reorderQuantity ?? undefined;
     if (data.reorderUnit !== undefined) this._reorderUnit = data.reorderUnit ?? undefined;
     if (data.unitPrice !== undefined) this._unitPrice = data.unitPrice ?? undefined;
-    if (data.properties !== undefined) this._properties = SupplyItem.deduplicateProperties(data.properties ?? []);
-    if (data.currentLotNumber !== undefined) this._currentLotNumber = data.currentLotNumber ?? undefined;
+    if (data.properties !== undefined)
+      this._properties = SupplyItem.deduplicateProperties(data.properties ?? []);
+    if (data.currentLotNumber !== undefined)
+      this._currentLotNumber = data.currentLotNumber ?? undefined;
     if (data.description !== undefined) this._description = data.description ?? undefined;
     if (data.notes !== undefined) this._notes = data.notes ?? undefined;
 
@@ -207,26 +211,70 @@ export class SupplyItem {
     this._updatedAt = new Date();
   }
 
-  get id(): string { return this._id; }
-  get labId(): string { return this._labId; }
-  get categoryId(): string { return this._categoryId; }
-  get name(): string { return this._name; }
-  get manufacturer(): string | undefined { return this._manufacturer; }
-  get catalogNumber(): string | undefined { return this._catalogNumber; }
-  get vendorName(): string | undefined { return this._vendorName; }
-  get vendorCatalogNumber(): string | undefined { return this._vendorCatalogNumber; }
-  get stockUnit(): string | undefined { return this._stockUnit; }
-  get baseItemName(): string | undefined { return this._baseItemName; }
-  get reorderThreshold(): number | undefined { return this._reorderThreshold; }
-  get reorderThresholdUnit(): string | undefined { return this._reorderThresholdUnit; }
-  get reorderQuantity(): number | undefined { return this._reorderQuantity; }
-  get reorderUnit(): string | undefined { return this._reorderUnit; }
-  get unitPrice(): number | undefined { return this._unitPrice; }
-  get properties(): string[] { return [...this._properties]; }
-  get currentLotNumber(): string | undefined { return this._currentLotNumber; }
-  get description(): string | undefined { return this._description; }
-  get notes(): string | undefined { return this._notes; }
-  get status(): SupplyItemStatus { return this._status; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
+  get id(): string {
+    return this._id;
+  }
+  get labId(): string {
+    return this._labId;
+  }
+  get categoryId(): string {
+    return this._categoryId;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get manufacturer(): string | undefined {
+    return this._manufacturer;
+  }
+  get catalogNumber(): string | undefined {
+    return this._catalogNumber;
+  }
+  get vendorName(): string | undefined {
+    return this._vendorName;
+  }
+  get vendorCatalogNumber(): string | undefined {
+    return this._vendorCatalogNumber;
+  }
+  get stockUnit(): string | undefined {
+    return this._stockUnit;
+  }
+  get baseItemName(): string | undefined {
+    return this._baseItemName;
+  }
+  get reorderThreshold(): number | undefined {
+    return this._reorderThreshold;
+  }
+  get reorderThresholdUnit(): string | undefined {
+    return this._reorderThresholdUnit;
+  }
+  get reorderQuantity(): number | undefined {
+    return this._reorderQuantity;
+  }
+  get reorderUnit(): string | undefined {
+    return this._reorderUnit;
+  }
+  get unitPrice(): number | undefined {
+    return this._unitPrice;
+  }
+  get properties(): string[] {
+    return [...this._properties];
+  }
+  get currentLotNumber(): string | undefined {
+    return this._currentLotNumber;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get notes(): string | undefined {
+    return this._notes;
+  }
+  get status(): SupplyItemStatus {
+    return this._status;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
 }

@@ -6,8 +6,10 @@
 
 import { io } from 'socket.io-client';
 
-import { sessionManager, useAuthStore } from '@domains/authentication/stores/authStore';
+import { sessionManager, useAuthStore } from '@domains/authentication';
+import { StorageService } from '@domains/storage';
 import { logger } from '@infra/logger';
+import { env } from '@shared/config';
 
 import { getSocketBridge, cleanupSocketBridge } from './SocketQueryBridge';
 
@@ -15,8 +17,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 
 const SOCKET_CONFIG = {
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-  url: import.meta.env['VITE_SOCKET_URL'] || 'http://localhost:3001',
+  url: env.socketUrl(),
   options: {
     reconnection: true,
     reconnectionAttempts: 5,
@@ -43,22 +44,28 @@ class SocketService {
     }
 
     try {
-      // Auth token enables server-side presence tracking
-      const authToken = await sessionManager.getValidAccessToken();
-
       this.socket = io(SOCKET_CONFIG.url, {
         ...SOCKET_CONFIG.options,
-        auth: authToken ? { token: authToken } : undefined,
+        // Resolved per (re)connection so reconnects use a fresh, auto-refreshed token.
+        auth: (cb: (data: Record<string, string>) => void) => {
+          void sessionManager.getValidAccessToken().then(token => {
+            cb(token ? { token } : {});
+          });
+        },
       });
 
       const labId = useAuthStore.getState().user?.labId;
-      const bridge = getSocketBridge(this.queryClient, labId);
+      const bridge = getSocketBridge(this.queryClient, labId, () =>
+        StorageService.getConfigVersion()
+      );
       bridge.initializeSocket(this.socket);
 
       await this.waitForConnection();
       this.isInitialized = true;
     } catch (error) {
       logger.error('Socket service failed to initialize', { error });
+      // Tear down partial state so a retry starts clean, not bound to an orphaned socket.
+      this.disconnect();
       throw error;
     }
   }
@@ -69,24 +76,6 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isInitialized = false;
-    }
-  }
-
-  /** Refreshes auth token before reconnecting to maintain presence tracking. */
-  public async reconnect(): Promise<void> {
-    if (!this.socket) {
-      await this.initialize();
-      return;
-    }
-
-    if (!this.socket.connected) {
-      const authToken = await sessionManager.getValidAccessToken();
-      if (authToken) {
-        this.socket.auth = { token: authToken };
-      }
-
-      this.socket.connect();
-      await this.waitForConnection();
     }
   }
 
@@ -131,21 +120,14 @@ class SocketService {
   }
 }
 
-// Global Instance Management
-
 let globalSocketService: SocketService | null = null;
 
-const getSocketService = (queryClient: QueryClient): SocketService => {
+export const initializeSocket = async (queryClient: QueryClient): Promise<SocketService> => {
   if (!globalSocketService) {
     globalSocketService = new SocketService(queryClient);
   }
+  await globalSocketService.initialize();
   return globalSocketService;
-};
-
-export const initializeSocket = async (queryClient: QueryClient): Promise<SocketService> => {
-  const service = getSocketService(queryClient);
-  await service.initialize();
-  return service;
 };
 
 export const cleanupSocket = (): void => {

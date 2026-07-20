@@ -17,7 +17,7 @@
     "build": "tsup",
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --report-unused-disable-directives",
     "lint:fix": "eslint src --ext .ts --fix"
   },
   "peerDependencies": {

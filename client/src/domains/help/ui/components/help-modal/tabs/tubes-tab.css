@@ -1,6 +1,9 @@
-/* Callout connector styles for the annotated tube diagram.
-   Connectors read as muted primary at rest and light up — brighter line,
-   glowing nubs and label — on hover, matching the app's lit-divider treatment. */
+/**
+ * Tube Diagram Callout Connectors
+ *
+ * Connectors read as muted primary at rest and light up — brighter line,
+ * glowing nubs and label — on hover, matching the app's lit-divider treatment.
+ */
 
 .callout-group {
   cursor: default;
@@ -11,12 +14,12 @@
   stroke-width: 1;
   transition:
     stroke 160ms ease,
+    stroke-width 160ms ease,
     filter 160ms ease;
 }
 
 .callout-dot {
   fill: hsl(var(--primary) / 0.7);
-  filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.5));
   transition:
     fill 160ms ease,
     filter 160ms ease;
@@ -28,17 +31,36 @@
     filter 160ms ease;
 }
 
+/* Hover (both themes): brighten the line/dot/label, thicken the line, and bolden the
+   label so the connection pops. The glow (drop-shadow) is dark-only — light leans on
+   weight + colour instead of emission. */
 .callout-group:hover .callout-line {
   stroke: hsl(var(--primary) / 0.9);
-  filter: drop-shadow(0 0 4px hsl(var(--primary) / 0.55));
+  stroke-width: 1.75;
 }
 
 .callout-group:hover .callout-dot {
   fill: hsl(var(--primary));
-  filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.9));
 }
 
 .callout-group:hover .callout-label {
   color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+/* Dark: the lit recipe — resting dot halo + glowing line/dot/label on hover. */
+[data-theme='dark'] .callout-dot {
+  filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.5));
+}
+
+[data-theme='dark'] .callout-group:hover .callout-line {
+  filter: drop-shadow(0 0 4px hsl(var(--primary) / 0.55));
+}
+
+[data-theme='dark'] .callout-group:hover .callout-dot {
+  filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.9));
+}
+
+[data-theme='dark'] .callout-group:hover .callout-label {
   filter: drop-shadow(0 0 4px hsl(var(--primary) / 0.5));
 }

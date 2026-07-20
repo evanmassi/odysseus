@@ -5,13 +5,9 @@
  * Development: all levels output. Production: only warn/error.
  */
 
-/* eslint-disable no-console */
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogContext {
-  [key: string]: unknown;
-}
+type LogContext = Record<string, unknown>;
 
 class ClientLogger {
   private readonly isDevelopment = import.meta.env.DEV;
@@ -27,14 +23,6 @@ class ClientLogger {
     const logArgs = context ? [prefix, message, context] : [prefix, message];
 
     console[level](...logArgs);
-
-    if (!this.isDevelopment && level === 'error') {
-      this.sendToMonitoring(message, context);
-    }
-  }
-
-  private sendToMonitoring(_message: string, _context?: LogContext): void {
-    // TODO: Integrate with monitoring service when ready
   }
 
   debug(message: string, context?: LogContext): void {

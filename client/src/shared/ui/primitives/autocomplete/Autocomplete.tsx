@@ -4,18 +4,29 @@
  * Text input with keyboard-navigable dropdown suggestions. Supports free text entry.
  */
 
-import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
+import React, {
+  forwardRef,
+  useState,
+  useRef,
+  useCallback,
+  useId,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 
 import { createPortal } from 'react-dom';
 
+import { useMergedRef } from '@shared/hooks';
+
+import { INPUT_WELL_BASE, INPUT_WELL_BORDER_DEFAULT } from '../input/fieldStyles';
 import { ScrollArea } from '../scroll-area/ScrollArea';
 
 import type { AutocompleteProps, AutocompleteRef, AutocompleteOption } from './types';
 
-const FOCUS_SHADOW =
-  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
-const POPUP_SHADOW =
-  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
+
+const MIN_CHARS = 2;
+const BLUR_CLOSE_DELAY_MS = 150;
 
 export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
   (
@@ -28,11 +39,8 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       disabled = false,
       state = 'default',
       fullWidth = false,
-      minChars = 2,
       'aria-label': ariaLabel,
-      className = '',
       inputClassName,
-      renderOption,
     },
     ref
   ) => {
@@ -43,18 +51,12 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const blurTimerRef = useRef<ReturnType<typeof setTimeout>>();
     const listboxId = useId();
 
-    const combinedRef = useCallback(
-      (node: HTMLInputElement | null) => {
-        (inputRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
-      },
-      [ref]
-    );
+    const combinedRef = useMergedRef(ref, inputRef);
 
-    const shouldShow = isOpen && value.length >= minChars && options.length > 0;
+    const shouldShow = isOpen && value.length >= MIN_CHARS && options.length > 0;
 
     const updateDropdownPosition = useCallback(() => {
       if (!containerRef.current) return;
@@ -68,7 +70,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       });
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (!shouldShow) return;
 
       updateDropdownPosition();
@@ -80,11 +82,12 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       };
     }, [shouldShow, updateDropdownPosition]);
 
+    useEffect(() => () => clearTimeout(blurTimerRef.current), []);
+
     useEffect(() => {
       setHighlightedIndex(-1);
     }, [options]);
 
-    // Scroll highlighted option into view
     useEffect(() => {
       if (highlightedIndex >= 0) {
         optionRefs.current[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
@@ -114,7 +117,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (!shouldShow) {
-          if (e.key === 'ArrowDown' && value.length >= minChars && options.length > 0) {
+          if (e.key === 'ArrowDown' && value.length >= MIN_CHARS && options.length > 0) {
             e.preventDefault();
             setIsOpen(true);
           }
@@ -151,19 +154,20 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
             break;
         }
       },
-      [shouldShow, highlightedIndex, options, handleSelect, value.length, minChars]
+      [shouldShow, highlightedIndex, options, handleSelect, value.length]
     );
 
     const handleFocus = useCallback(() => {
-      if (value.length >= minChars && options.length > 0) {
+      clearTimeout(blurTimerRef.current);
+      if (value.length >= MIN_CHARS && options.length > 0) {
         setIsOpen(true);
       }
-    }, [value.length, minChars, options.length]);
+    }, [value.length, options.length]);
 
     const handleBlur = useCallback((e: React.FocusEvent) => {
       const relatedTarget = e.relatedTarget as Node | null;
       if (containerRef.current?.contains(relatedTarget)) return;
-      setTimeout(() => setIsOpen(false), 150);
+      blurTimerRef.current = setTimeout(() => setIsOpen(false), BLUR_CLOSE_DELAY_MS);
     }, []);
 
     const stateBorder =
@@ -171,7 +175,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
         ? 'border-danger-border'
         : state === 'warning'
           ? 'border-warning-border'
-          : 'border-line-faint hover:border-foreground/30';
+          : INPUT_WELL_BORDER_DEFAULT;
 
     const dropdown = shouldShow
       ? createPortal(
@@ -184,13 +188,14 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                   return (
                     <div
                       key={option.value}
+                      id={`${listboxId}-option-${index}`}
                       ref={el => {
                         optionRefs.current[index] = el;
                       }}
                       role="option"
                       tabIndex={-1}
                       aria-selected={isHighlighted}
-                      className={`px-3 py-1.5 cursor-pointer text-sm transition-colors duration-150 ${
+                      className={`px-3 py-1.5 cursor-pointer text-body transition-colors duration-150 ${
                         isHighlighted ? 'bg-foreground/5' : 'hover:bg-foreground/5'
                       }`}
                       onMouseDown={e => {
@@ -199,17 +204,11 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                       }}
                       onMouseEnter={() => setHighlightedIndex(index)}
                     >
-                      {renderOption ? (
-                        renderOption(option, { isHighlighted })
-                      ) : (
-                        <>
-                          <span className="font-medium">{option.label}</span>
-                          {option.secondary && (
-                            <span className="text-foreground/50 ml-2 text-xs">
-                              ({option.secondary})
-                            </span>
-                          )}
-                        </>
+                      <span className="font-medium">{option.label}</span>
+                      {option.secondary && (
+                        <span className="text-foreground/50 ml-2 text-caption">
+                          ({option.secondary})
+                        </span>
                       )}
                     </div>
                   );
@@ -222,7 +221,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       : null;
 
     return (
-      <div ref={containerRef} className={`relative ${fullWidth ? 'w-full' : ''} ${className}`}>
+      <div ref={containerRef} className={`relative ${fullWidth ? 'w-full' : ''}`}>
         <input
           ref={combinedRef}
           type="text"
@@ -246,7 +245,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           disabled={disabled}
           className={
             inputClassName ??
-            `w-full h-9 px-3 text-sm bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
+            `w-full h-9 px-3 text-body ${INPUT_WELL_BASE} ${stateBorder} disabled:opacity-50 disabled:cursor-not-allowed`
           }
         />
         {dropdown}

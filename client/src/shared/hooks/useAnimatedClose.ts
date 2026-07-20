@@ -20,7 +20,7 @@ interface UseAnimatedCloseReturn {
 
 /**
  * Handles two close flows:
- * - Internal: X button calls triggerClose → animate → call onClose
+ * - Internal: caller calls triggerClose → animate → call onClose
  * - External: Parent sets isOpen=false → animate → unmount (no onClose needed)
  */
 export function useAnimatedClose({
@@ -38,11 +38,12 @@ export function useAnimatedClose({
     prevIsOpenRef.current = isOpen;
 
     if (isOpen && !wasOpen) {
-      // Opening: show immediately
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setIsVisible(true);
       setIsClosing(false);
     } else if (!isOpen && wasOpen && !isClosing) {
-      // External close: parent set isOpen=false, trigger exit animation
       setIsClosing(true);
 
       timeoutRef.current = setTimeout(() => {

@@ -112,18 +112,6 @@ describe('Permission', () => {
     });
   });
 
-  describe('getAllCategories', () => {
-    it('should return all categories', () => {
-      const categories = Permission.getAllCategories();
-      expect(categories).toContain('TUBE_MANAGEMENT');
-      expect(categories).toContain('USER_MANAGEMENT');
-      expect(categories).toContain('RESEARCHER_MANAGEMENT');
-      expect(categories).toContain('SYSTEM_ADMIN');
-      expect(categories).toContain('MULTI_TENANCY');
-      expect(categories.length).toBe(5);
-    });
-  });
-
   describe('equals', () => {
     it('should return true for same permission', () => {
       expect(Permission.VIEW_TUBES.equals(Permission.VIEW_TUBES)).toBe(true);
@@ -134,22 +122,10 @@ describe('Permission', () => {
     });
   });
 
-  describe('serialization', () => {
-    it('should serialize to key via toString', () => {
-      expect(Permission.VIEW_TUBES.toString()).toBe('view_tubes');
-    });
-
-    it('should serialize to key via toJSON', () => {
-      expect(Permission.VIEW_TUBES.toJSON()).toBe('view_tubes');
-    });
-  });
-
   describe('properties', () => {
-    it('should expose key, description, and category', () => {
+    it('should expose key', () => {
       const perm = Permission.MANAGE_LABS;
       expect(perm.key).toBe('manage_labs');
-      expect(perm.description).toBe('Create and manage labs');
-      expect(perm.category).toBe('MULTI_TENANCY');
     });
   });
 });

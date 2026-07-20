@@ -15,122 +15,48 @@ import type {
   SupplyPackagingLevelRow,
 } from '@domain/repositories/SupplyItemRepository';
 
-export interface SupplyCategoryResponse {
-  id: string;
-  labId: string;
-  name: string;
-  parentId: string | null;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import type {
+  SupplyBarcodeType,
+  SupplyTransactionType,
+  SupplyCategory as SupplyCategoryData,
+  SupplyItem as SupplyItemData,
+  SupplyItemWithStock,
+  SupplyLocation as SupplyLocationData,
+  SupplyDocument as SupplyDocumentData,
+  SupplyBarcode,
+  SupplyPackagingLevel,
+  SupplyTransaction as SupplyTransactionData,
+  SupplyItemDetail as SupplyItemDetailData,
+} from '@odysseus/shared-schemas';
 
-export interface SupplyItemResponse {
-  id: string;
-  labId: string;
-  categoryId: string;
-  name: string;
-  manufacturer?: string;
-  catalogNumber?: string;
-  vendorName?: string;
-  vendorCatalogNumber?: string;
-  stockUnit?: string;
-  baseItemName?: string;
-  reorderThreshold?: number;
-  reorderThresholdUnit?: string;
-  reorderQuantity?: number;
-  reorderUnit?: string;
-  unitPrice?: number;
-  properties: string[];
-  currentLotNumber?: string;
-  description?: string;
-  notes?: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export type SupplyCategoryResponse = SupplyCategoryData;
 
-export interface SupplyItemWithStockResponse extends SupplyItemResponse {
-  totalStock: number;
-  locationNames: string[];
-}
+export type SupplyItemResponse = SupplyItemData;
 
-export interface SupplyPackagingLevelResponse {
-  id: string;
-  itemId: string;
-  unitName: string;
-  quantity: number;
-  parentUnit: string | null;
-}
+export type SupplyItemWithStockResponse = SupplyItemWithStock;
 
-export interface SupplyItemDetailResponse {
-  item: SupplyItemResponse;
-  documents: SupplyDocumentResponse[];
-  barcodes: SupplyBarcodeResponse[];
-  stock: SupplyStockResponse[];
-  recentTransactions: SupplyTransactionResponse[];
-  packagingLevels: SupplyPackagingLevelResponse[];
-}
+export type SupplyPackagingLevelResponse = SupplyPackagingLevel;
 
-export interface SupplyLocationResponse {
-  id: string;
-  labId: string;
-  name: string;
-  description?: string;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type SupplyItemDetailResponse = SupplyItemDetailData;
 
-export interface SupplyDocumentResponse {
-  id: string;
-  itemId: string;
-  label: string;
-  url: string;
-  notes?: string;
-  createdAt: string;
-}
+export type SupplyLocationResponse = SupplyLocationData;
 
-export interface SupplyBarcodeResponse {
-  id: string;
-  itemId: string;
-  barcodeValue: string;
-  barcodeType: string;
-  isPrimary: boolean;
-  label?: string;
-}
+export type SupplyDocumentResponse = SupplyDocumentData;
 
+export type SupplyBarcodeResponse = SupplyBarcode;
+
+// Hand-rolled: SupplyStock has no domain entity; shape matches supplyStockSchema.
 export interface SupplyStockResponse {
   id: string;
   itemId: string;
   locationId: string;
   quantity: number;
-  updatedAt: string;
+  updatedAt: Date;
 }
 
-export interface SupplyTransactionResponse {
-  id: string;
-  itemId: string;
-  locationId: string;
-  labId: string;
-  type: string;
-  quantityChange: number;
-  quantityAfter: number;
-  lotNumber?: string;
-  expirationDate?: string;
-  poNumber?: string;
-  cost?: number;
-  performedBy: string;
-  notes?: string;
-  createdAt: string;
-  voidedAt?: string;
-  voidedBy?: string;
-  voidReason?: string;
-  relatedTransactionId?: string;
-}
+export type SupplyTransactionResponse = SupplyTransactionData;
 
 export class SupplyDto {
-
   static categoryToResponse(category: SupplyCategory): SupplyCategoryResponse {
     return {
       id: category.id,
@@ -138,39 +64,43 @@ export class SupplyDto {
       name: category.name,
       parentId: category.parentId ?? null,
       sortOrder: category.sortOrder,
-      createdAt: category.createdAt.toISOString(),
-      updatedAt: category.updatedAt.toISOString(),
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
     };
   }
 
   static itemToResponse(item: SupplyItem): SupplyItemResponse {
     return {
-      id:item.id,
-      labId:item.labId,
-      categoryId:item.categoryId,
-      name:item.name,
-      manufacturer:item.manufacturer,
-      catalogNumber:item.catalogNumber,
-      vendorName:item.vendorName,
-      vendorCatalogNumber:item.vendorCatalogNumber,
-      stockUnit:item.stockUnit,
-      baseItemName:item.baseItemName,
-      reorderThreshold:item.reorderThreshold,
-      reorderThresholdUnit:item.reorderThresholdUnit,
-      reorderQuantity:item.reorderQuantity,
-      reorderUnit:item.reorderUnit,
-      unitPrice:item.unitPrice,
-      properties:item.properties,
-      currentLotNumber:item.currentLotNumber,
-      description:item.description,
-      notes:item.notes,
-      status:item.status,
-      createdAt:item.createdAt.toISOString(),
-      updatedAt:item.updatedAt.toISOString(),
+      id: item.id,
+      labId: item.labId,
+      categoryId: item.categoryId,
+      name: item.name,
+      manufacturer: item.manufacturer,
+      catalogNumber: item.catalogNumber,
+      vendorName: item.vendorName,
+      vendorCatalogNumber: item.vendorCatalogNumber,
+      stockUnit: item.stockUnit,
+      baseItemName: item.baseItemName,
+      reorderThreshold: item.reorderThreshold,
+      reorderThresholdUnit: item.reorderThresholdUnit,
+      reorderQuantity: item.reorderQuantity,
+      reorderUnit: item.reorderUnit,
+      unitPrice: item.unitPrice,
+      properties: item.properties,
+      currentLotNumber: item.currentLotNumber,
+      description: item.description,
+      notes: item.notes,
+      status: item.status,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
     };
   }
 
-  static itemWithStockToResponse(item: SupplyItem, totalStock: number, locationNames: string[]): SupplyItemWithStockResponse {
+  static itemWithStockToResponse(
+    item: SupplyItem,
+    totalStock: number,
+    locationNames: string[]
+  ): SupplyItemWithStockResponse {
     return {
       ...this.itemToResponse(item),
       totalStock,
@@ -203,8 +133,8 @@ export class SupplyDto {
       name: location.name,
       description: location.description,
       sortOrder: location.sortOrder,
-      createdAt: location.createdAt.toISOString(),
-      updatedAt: location.updatedAt.toISOString(),
+      createdAt: location.createdAt,
+      updatedAt: location.updatedAt,
     };
   }
 
@@ -215,7 +145,7 @@ export class SupplyDto {
       label: document.label,
       url: document.url,
       notes: document.notes,
-      createdAt: document.createdAt.toISOString(),
+      createdAt: document.createdAt,
     };
   }
 
@@ -224,7 +154,7 @@ export class SupplyDto {
       id: barcode.id,
       itemId: barcode.itemId,
       barcodeValue: barcode.barcodeValue,
-      barcodeType: barcode.barcodeType,
+      barcodeType: barcode.barcodeType as SupplyBarcodeType,
       isPrimary: barcode.isPrimary,
       label: barcode.label,
     };
@@ -236,7 +166,7 @@ export class SupplyDto {
       itemId: stock.itemId,
       locationId: stock.locationId,
       quantity: stock.quantity,
-      updatedAt: typeof stock.updatedAt === 'string' ? stock.updatedAt : (stock.updatedAt as Date).toISOString(),
+      updatedAt: new Date(stock.updatedAt),
     };
   }
 
@@ -246,7 +176,7 @@ export class SupplyDto {
       itemId: txn.itemId,
       locationId: txn.locationId,
       labId: txn.labId,
-      type: txn.type,
+      type: txn.type as SupplyTransactionType,
       quantityChange: txn.quantityChange,
       quantityAfter: txn.quantityAfter,
       lotNumber: txn.lotNumber,
@@ -255,8 +185,8 @@ export class SupplyDto {
       cost: txn.cost,
       performedBy: txn.performedBy,
       notes: txn.notes,
-      createdAt: typeof txn.createdAt === 'string' ? txn.createdAt : (txn.createdAt as Date).toISOString(),
-      voidedAt: txn.voidedAt,
+      createdAt: new Date(txn.createdAt),
+      voidedAt: txn.voidedAt ? new Date(txn.voidedAt) : undefined,
       voidedBy: txn.voidedBy,
       voidReason: txn.voidReason,
       relatedTransactionId: txn.relatedTransactionId,

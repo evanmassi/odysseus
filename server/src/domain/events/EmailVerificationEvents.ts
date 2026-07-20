@@ -1,7 +1,5 @@
 /**
  * Email Verification Domain Events
- *
- * Events that occur during email verification processes
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
@@ -12,7 +10,7 @@ export class VerificationEmailSentEvent extends DomainEvent {
     public readonly email: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -22,13 +20,6 @@ export class VerificationEmailSentEvent extends DomainEvent {
   getAggregateId(): string {
     return this.userId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      email: this.email
-    };
-  }
 }
 
 export class EmailVerifiedEvent extends DomainEvent {
@@ -37,7 +28,7 @@ export class EmailVerifiedEvent extends DomainEvent {
     public readonly email: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -47,13 +38,6 @@ export class EmailVerifiedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.userId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      email: this.email
-    };
-  }
 }
 
 export class VerificationEmailResentEvent extends DomainEvent {
@@ -62,7 +46,7 @@ export class VerificationEmailResentEvent extends DomainEvent {
     public readonly email: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -71,12 +55,5 @@ export class VerificationEmailResentEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      email: this.email
-    };
   }
 }

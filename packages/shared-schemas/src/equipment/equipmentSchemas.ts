@@ -5,10 +5,10 @@
  */
 
 import { z } from 'zod';
-import { dateField, optionalDateField } from '../utils/dateFields';
+import { dateField, dateOnlyField, optionalDateOnlyField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
 
-// Status and category enums
+// Status enum
 
 export const equipmentStatusValues = [
   'active',
@@ -66,12 +66,12 @@ export const equipmentItemSchema = z.object({
   location: z.string().optional(),
   status: equipmentStatusSchema,
   conditionNotes: z.string().optional(),
-  purchaseDate: optionalDateField,
-  warrantyExpiration: optionalDateField,
+  purchaseDate: optionalDateOnlyField,
+  warrantyExpiration: optionalDateOnlyField,
   purchaseCost: z.number().optional(),
   assetTag: z.string().optional(),
-  nextMaintenanceDate: optionalDateField,
-  decommissionDate: optionalDateField,
+  nextMaintenanceDate: optionalDateOnlyField,
+  decommissionDate: optionalDateOnlyField,
   decommissionReason: z.string().optional(),
   disposalMethod: z.string().optional(),
   notes: z.string().optional(),
@@ -156,21 +156,17 @@ export const equipmentDocumentResponseSchema = z.object({
   document: equipmentDocumentSchema,
 });
 
-export const equipmentDocumentListResponseSchema = z.object({
-  documents: z.array(equipmentDocumentSchema),
-});
-
 // Maintenance log schemas
 
 export const equipmentMaintenanceLogSchema = z.object({
   id: z.string(),
   itemId: z.string(),
-  datePerformed: dateField,
+  datePerformed: dateOnlyField,
   maintenanceType: z.string(),
   performedBy: z.string().optional(),
   technician: z.string().optional(),
   description: z.string().optional(),
-  nextScheduledDate: optionalDateField,
+  nextScheduledDate: optionalDateOnlyField,
   cost: z.number().optional(),
   notes: z.string().optional(),
   createdAt: dateField,
@@ -203,10 +199,6 @@ export const equipmentMaintenanceLogEntryResponseSchema = z.object({
   entry: equipmentMaintenanceLogSchema,
 });
 
-export const equipmentMaintenanceLogListResponseSchema = z.object({
-  entries: z.array(equipmentMaintenanceLogSchema),
-});
-
 // Composed detail response — item with its documents and maintenance log
 
 export const equipmentItemDetailResponseSchema = z.object({
@@ -224,12 +216,8 @@ export const equipmentBulkMaintenanceRequestSchema = z.object({
   data: createEquipmentMaintenanceLogRequestSchema,
 });
 
-export const equipmentBulkStatusValues = equipmentStatusValues.filter(
-  (s): s is Exclude<(typeof equipmentStatusValues)[number], 'decommissioned'> => s !== 'decommissioned'
-);
-export const equipmentBulkStatusSchema = z.enum(
-  equipmentBulkStatusValues as unknown as [string, ...string[]]
-);
+export const equipmentBulkStatusSchema = equipmentStatusSchema.exclude(['decommissioned']);
+export const equipmentBulkStatusValues = equipmentBulkStatusSchema.options;
 
 export const equipmentBulkStatusRequestSchema = z.object({
   itemIds: itemIdsField,
@@ -254,7 +242,6 @@ export const equipmentBulkResponseSchema = z.object({
 // Type exports
 
 export type EquipmentStatus = z.infer<typeof equipmentStatusSchema>;
-export type EquipmentBulkStatus = z.infer<typeof equipmentBulkStatusSchema>;
 export type EquipmentCategory = z.infer<typeof equipmentCategorySchema>;
 export type EquipmentItem = z.infer<typeof equipmentItemSchema>;
 export type EquipmentDocument = z.infer<typeof equipmentDocumentSchema>;
@@ -264,12 +251,17 @@ export type CreateEquipmentCategoryRequest = z.infer<typeof createEquipmentCateg
 export type UpdateEquipmentCategoryRequest = z.infer<typeof updateEquipmentCategoryRequestSchema>;
 export type CreateEquipmentItemRequest = z.infer<typeof createEquipmentItemRequestSchema>;
 export type UpdateEquipmentItemRequest = z.infer<typeof updateEquipmentItemRequestSchema>;
-export type DecommissionEquipmentItemRequest = z.infer<typeof decommissionEquipmentItemRequestSchema>;
+export type DecommissionEquipmentItemRequest = z.infer<
+  typeof decommissionEquipmentItemRequestSchema
+>;
 export type CreateEquipmentDocumentRequest = z.infer<typeof createEquipmentDocumentRequestSchema>;
 export type UpdateEquipmentDocumentRequest = z.infer<typeof updateEquipmentDocumentRequestSchema>;
-export type CreateEquipmentMaintenanceLogRequest = z.infer<typeof createEquipmentMaintenanceLogRequestSchema>;
-export type UpdateEquipmentMaintenanceLogRequest = z.infer<typeof updateEquipmentMaintenanceLogRequestSchema>;
-export type EquipmentBulkMaintenanceRequest = z.infer<typeof equipmentBulkMaintenanceRequestSchema>;
+export type CreateEquipmentMaintenanceLogRequest = z.infer<
+  typeof createEquipmentMaintenanceLogRequestSchema
+>;
+export type UpdateEquipmentMaintenanceLogRequest = z.infer<
+  typeof updateEquipmentMaintenanceLogRequestSchema
+>;
 export type EquipmentBulkStatusRequest = z.infer<typeof equipmentBulkStatusRequestSchema>;
 export type EquipmentBulkRelocateRequest = z.infer<typeof equipmentBulkRelocateRequestSchema>;
 export type EquipmentBulkResponse = z.infer<typeof equipmentBulkResponseSchema>;

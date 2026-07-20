@@ -7,7 +7,6 @@
 import { ValidationError } from '@domain/errors/ValidationError';
 import { Permission } from '@domain/value-objects/Permission';
 export class RolePermissionService {
-  
   static readonly ROLES = ['system_admin', 'lab_admin', 'user'] as const;
 
   private static readonly ROLE_PERMISSION_MATRIX: Record<UserRole, readonly Permission[]> = {
@@ -15,8 +14,6 @@ export class RolePermissionService {
     lab_admin: Permission.LAB_ADMIN_PERMISSIONS,
     user: Permission.USER_PERMISSIONS,
   } as const;
-
-  // PERMISSION CHECKING
 
   static hasPermission(role: UserRole, permission: Permission): boolean {
     try {
@@ -39,16 +36,6 @@ export class RolePermissionService {
     return this.hasPermission(role, permission);
   }
 
-  static hasAnyPermission(role: UserRole, permissions: readonly Permission[]): boolean {
-    return permissions.some(permission => this.hasPermission(role, permission));
-  }
-
-  static hasAllPermissions(role: UserRole, permissions: readonly Permission[]): boolean {
-    return permissions.every(permission => this.hasPermission(role, permission));
-  }
-
-  // ROLE MANAGEMENT
-
   static getPermissionsForRole(role: UserRole): readonly Permission[] {
     this.validateRole(role);
     return this.ROLE_PERMISSION_MATRIX[role];
@@ -62,25 +49,12 @@ export class RolePermissionService {
     return this.ROLES.includes(role as UserRole);
   }
 
-  static getAllRoles(): readonly UserRole[] {
-    return this.ROLES;
-  }
-
-  // PERMISSION ANALYSIS
-
-  static getRolesWithPermission(permission: Permission): readonly UserRole[] {
-    return this.ROLES.filter(role => this.hasPermission(role, permission));
-  }
-
-  // VALIDATION
-
   /** @throws ValidationError if role is invalid */
   private static validateRole(role: UserRole): void {
     if (!this.isValidRole(role)) {
-      throw new ValidationError(`Invalid role: ${role}. Valid roles: ${this.ROLES.join(', ')}`);
+      throw new ValidationError('That role is not valid. Choose System Admin, Lab Admin, or User.');
     }
   }
-
 }
 
-export type UserRole = typeof RolePermissionService.ROLES[number];
+export type UserRole = (typeof RolePermissionService.ROLES)[number];

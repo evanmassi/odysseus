@@ -4,15 +4,18 @@
  * Paired numeric input + unit selector with scientific notation formatting.
  */
 
-import React, { useRef, useState } from 'react';
+import React from 'react';
 
+import { formatConcentrationDisplay } from '@odysseus/shared-schemas';
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
 import { Input, Select, type InputState } from '@shared/ui';
-import {
-  formatToScientificNotation,
-  isScientificNotationInput,
-} from '@shared/utils/scientificNotation';
+
+const UNIT_OPTIONS = [
+  { value: '', label: '--' },
+  { value: 'c/v', label: 'c/v' },
+  { value: 'c/mL', label: 'c/mL' },
+];
 
 interface ConcentrationFieldProps {
   label: string;
@@ -31,6 +34,8 @@ interface ConcentrationFieldProps {
   className?: string;
   badge?: React.ReactNode;
   hasConflict?: boolean;
+  /** Whether the field differs from its form default (from RHF fieldState), used for the success state. */
+  isDirty?: boolean;
 }
 
 export function TubeConcentrationField({
@@ -45,24 +50,8 @@ export function TubeConcentrationField({
   className = '',
   badge,
   hasConflict = false,
+  isDirty = false,
 }: ConcentrationFieldProps) {
-  const unitOptions = [
-    { value: '', label: '--' },
-    { value: 'c/v', label: 'c/v' },
-    { value: 'c/mL', label: 'c/mL' },
-  ];
-
-  // useRef captures initial value on first render only
-  const initialValueRef = useRef<string>(value);
-  const initialUnitRef = useRef<string>(unitValue);
-  const [isDirty, setIsDirty] = useState(false);
-
-  const checkDirty = (newValue: string, newUnit: string) => {
-    const valueChanged = newValue !== initialValueRef.current;
-    const unitChanged = newUnit !== initialUnitRef.current;
-    setIsDirty(valueChanged || unitChanged);
-  };
-
   // Only show success state if user has actually edited the field
   const getInputState = (): InputState => {
     if (validation?.error) return 'error';
@@ -73,7 +62,7 @@ export function TubeConcentrationField({
   };
 
   const getLabelClasses = () => {
-    const baseClasses = 'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5';
+    const baseClasses = 'block type-label text-label-2xs tracking-label-wide mb-1.5';
 
     if (validation?.error) {
       return `${baseClasses} text-danger-text`;
@@ -87,21 +76,12 @@ export function TubeConcentrationField({
   const handleFormat = (inputValue: string): string => {
     if (!inputValue || inputValue.trim() === '') return inputValue;
 
-    if (isScientificNotationInput(inputValue) || inputValue.includes('E')) {
-      return inputValue;
-    }
-
     const numValue = parseFloat(inputValue);
     if (!isNaN(numValue) && numValue >= 1000) {
-      return formatToScientificNotation(inputValue);
+      return formatConcentrationDisplay(numValue);
     }
 
     return inputValue;
-  };
-
-  const handleInputChange = (newValue: string) => {
-    onChange(newValue);
-    checkDirty(newValue, unitValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -136,24 +116,22 @@ export function TubeConcentrationField({
         <Input
           type="text"
           value={value}
-          onValueChange={handleInputChange}
+          onValueChange={onChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
           state={getInputState()}
-          inputClassName="border-r-0 focus:relative focus:z-10"
+          inputClassName="hover:z-10 focus:z-10"
           className="flex-1 min-w-0"
         />
 
-        <div className="w-20 relative flex-shrink-0 [&_[role=combobox]]:focus-within:relative [&_[role=combobox]]:focus-within:z-10">
+        <div className="w-20 relative flex-shrink-0 -ml-px [&_[role=combobox]]:hover:z-10 [&_[role=combobox]]:focus-within:z-10">
           <Select
-            options={unitOptions}
+            options={UNIT_OPTIONS}
             value={unitValue}
             onChange={newValue => {
-              const newUnit = String(newValue ?? '');
-              onUnitChange(newUnit);
-              checkDirty(value, newUnit);
+              onUnitChange(String(newValue ?? ''));
             }}
             disabled={disabled}
             state={
@@ -172,7 +150,7 @@ export function TubeConcentrationField({
       {validation?.helperText && (
         <div
           className={`
-          flex items-center mt-1 text-xs
+          flex items-center mt-1 text-body-sm
           ${
             validation.error
               ? 'text-danger-text'

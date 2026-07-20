@@ -1,25 +1,26 @@
 /**
  * Base Modal
  *
- * Reusable modal with animation, focus trap, and nested Escape support
+ * Reusable modal with animation, focus trap, and nested Escape support.
  */
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useId } from 'react';
 
 import { X } from 'lucide-react';
 
 import { useAnimatedClose, useFocusTrap, useModalKeyboardNavigation } from '@shared/hooks';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { HeaderStrip } from '@shared/ui/primitives/header-strip/HeaderStrip';
 import { NubDivider } from '@shared/ui/primitives/nub-divider/NubDivider';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { ModalPortal } from './ModalPortal';
 
-export type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
-export type ModalAnimation = 'zoom' | 'slide';
-export type TabOrientation = 'horizontal' | 'vertical';
-export type ModalChassis = 'default' | 'lit';
+import type { TabOrientation } from '@shared/ui/primitives/tabs/Tabs';
 
-export interface BaseModalProps {
+type ModalSize = 'xs' | 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
+type ModalChassis = 'default' | 'lit';
+
+interface BaseModalProps {
   isOpen: boolean;
   title: string;
   icon: React.ReactNode;
@@ -29,7 +30,6 @@ export interface BaseModalProps {
   size?: ModalSize;
   /** Locks height at 85vh with scrollable content area */
   fixedHeight?: boolean;
-  animation?: ModalAnimation;
   tabs?: React.ReactNode;
   tabOrientation?: TabOrientation;
   footer?: React.ReactNode;
@@ -47,7 +47,13 @@ export interface BaseModalProps {
   mode?: string;
 }
 
+export interface BaseModalHandle {
+  /** Plays the exit animation, then invokes onClose. For consumer-driven closes (Cancel, save success). */
+  requestClose: () => void;
+}
+
 const SIZE_CLASSES: Record<ModalSize, string> = {
+  xs: 'max-w-sm',
   sm: 'max-w-md',
   md: 'max-w-lg',
   'md-lg': 'max-w-[736px]',
@@ -56,45 +62,45 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   full: 'max-w-[90vw]',
 };
 
-const ANIMATION_CLASSES: Record<ModalAnimation, { enter: string; exit: string }> = {
-  zoom: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' },
-  slide: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' }, // TODO: implement distinct slide animation
-};
-
 const EXIT_DURATION_MS = 300;
 
-export function BaseModal({
-  isOpen,
-  title,
-  icon,
-  onClose,
-  children,
-  subtitle,
-  size = 'lg',
-  fixedHeight = false,
-  animation = 'zoom',
-  tabs,
-  tabOrientation = 'horizontal',
-  footer,
-  tabFooter,
-  tabSidebarFooter,
-  chassis = 'lit',
-  locator,
-  contentClassName = 'p-6',
-  dataAttribute,
-  className = '',
-  mode,
-}: BaseModalProps) {
+export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function BaseModal(
+  {
+    isOpen,
+    title,
+    icon,
+    onClose,
+    children,
+    subtitle,
+    size = 'lg',
+    fixedHeight = false,
+    tabs,
+    tabOrientation = 'horizontal',
+    footer,
+    tabFooter,
+    tabSidebarFooter,
+    chassis = 'lit',
+    locator,
+    contentClassName = 'p-6',
+    dataAttribute,
+    className = '',
+    mode,
+  },
+  ref
+) {
+  const titleId = useId();
+
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
     onClose,
     exitDuration: EXIT_DURATION_MS,
   });
 
+  useImperativeHandle(ref, () => ({ requestClose: triggerClose }), [triggerClose]);
+
   // Focus trap must exist before keyboard hook so we can pass containerRef
   const trapRef = useFocusTrap({
     isOpen: isVisible,
-    restoreFocus: true,
     autoFocusFirstInput: true,
   });
 
@@ -116,8 +122,7 @@ export function BaseModal({
   }
 
   const sizeClass = SIZE_CLASSES[size];
-  const animationClasses = ANIMATION_CLASSES[animation];
-  const modalAnimationClass = isClosing ? animationClasses.exit : animationClasses.enter;
+  const modalAnimationClass = isClosing ? 'animate-modal-reveal-out' : 'animate-modal-reveal-in';
   const backdropAnimationClass = isClosing
     ? 'animate-modal-backdrop-out'
     : 'animate-modal-backdrop-in';
@@ -128,10 +133,10 @@ export function BaseModal({
   const chassisIntensity = size === 'lg' || size === 'xl' || size === 'full' ? 'medium' : 'lit';
 
   const borderClass = isLit ? 'border-line-faint' : 'border-border';
-  // Lit chrome (footer/tabs/sidebar) gets a dark wash so it sits on top of the
-  // chassis lighting. The header stays transparent so it reads body-tone — the
-  // light is concentrated inside the form, framed by the dark locator + footer.
-  const surfaceClass = isLit ? 'bg-black/15' : 'bg-card';
+  // Lit chrome (footer/tab-footer) gets a dark wash in dark so it sits on top of the
+  // chassis lighting. In light --shade is navy, which read wrong as a footer wash, so
+  // light uses the plain card surface. The header stays transparent so it reads body-tone.
+  const surfaceClass = isLit ? 'bg-card dark:bg-shade/15' : 'bg-card';
   const headerSurface = isLit ? '' : 'bg-card';
 
   const headerBlock = (
@@ -141,16 +146,16 @@ export function BaseModal({
           <div className="p-1.5 text-muted-foreground">{icon}</div>
           <div>
             <h2
-              id="modal-title"
+              id={titleId}
               className={
                 isLit
-                  ? 'text-lg font-medium text-foreground'
-                  : 'text-lg font-bold text-card-foreground'
+                  ? 'text-title font-medium text-foreground'
+                  : 'text-title font-bold text-card-foreground'
               }
             >
               {title}
             </h2>
-            {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
+            {subtitle && <p className="text-muted-foreground text-body-sm">{subtitle}</p>}
           </div>
         </div>
         <button
@@ -165,22 +170,13 @@ export function BaseModal({
   );
 
   const locatorBlock =
-    isLit && locator ? (
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-6 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
-        {locator}
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
-    ) : null;
+    isLit && locator ? <HeaderStrip className="px-6 py-2.5">{locator}</HeaderStrip> : null;
 
   const bodyBlock = (
     <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
       {hasVerticalTabs && (
         <div
-          className={`w-48 ${surfaceClass} border-r ${borderClass} py-4 flex-shrink-0 flex flex-col`}
+          className={`w-56 ${surfaceClass} border-r ${borderClass} py-4 flex-shrink-0 flex flex-col`}
         >
           <div className="flex-1">{tabs}</div>
           {tabSidebarFooter && <div className="px-3 pb-2">{tabSidebarFooter}</div>}
@@ -242,7 +238,7 @@ export function BaseModal({
               ref={trapRef}
               role="dialog"
               aria-modal="true"
-              aria-labelledby="modal-title"
+              aria-labelledby={titleId}
               {...dataAttrs}
               className="flex flex-1 flex-col min-h-0"
             >
@@ -254,7 +250,7 @@ export function BaseModal({
             ref={trapRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="modal-title"
+            aria-labelledby={titleId}
             {...dataAttrs}
             className={`bg-card rounded-2xl shadow-2xl shadow-black/10 border border-border ${sharedClassName}`}
           >
@@ -264,4 +260,6 @@ export function BaseModal({
       </div>
     </ModalPortal>
   );
-}
+});
+
+BaseModal.displayName = 'BaseModal';

@@ -7,8 +7,12 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
-import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
-import type { SupplyItemRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyItemRepository';
+import type { SupplyCategory } from '@domain/entities/SupplyCategory';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type {
+  SupplyItemRepository,
+  SupplyBarcodeRow,
+} from '@domain/repositories/SupplyItemRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 
@@ -22,11 +26,11 @@ function makeService(repoOverrides: Partial<SupplyItemRepository> = {}) {
   } as unknown as SupplyItemRepository;
 
   const service = new SupplyApplicationService(
-    {} as SupplyCategoryRepository,
+    {} as CategoryRepository<SupplyCategory>,
     repo,
     {} as SupplyLocationRepository,
     {} as AccessControlService,
-    {} as EventBus,
+    {} as EventBus
   );
   return { service, repo };
 }
@@ -69,9 +73,7 @@ describe('SupplyApplicationService.getBulkBarcodes', () => {
 
   it('returns barcodeValue: null for items missing a primary barcode', async () => {
     const { service } = makeService({
-      findPrimaryBarcodesByItemIds: jest
-        .fn()
-        .mockResolvedValue([row('item_1', 'AAA')]),
+      findPrimaryBarcodesByItemIds: jest.fn().mockResolvedValue([row('item_1', 'AAA')]),
     });
 
     const result = await service.getBulkBarcodes('lab_1', ['item_1', 'item_2', 'item_3']);

@@ -1,7 +1,7 @@
 /**
  * Storage CQRS Commands
  *
- * System-wide storage operations — settings, reset, import, position display, and resource labels.
+ * System-wide storage operations not tied to a single tank, rack, or box.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
@@ -10,34 +10,23 @@ import { requireUser } from '@application/guards/UserGuards';
 import { Storage } from '@domain/entities/Storage';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import {
-  RackLabelUpdatedEvent,
-  BoxLabelUpdatedEvent
-} from '@domain/events/StorageEvents';
+import { RackLabelUpdatedEvent, BoxLabelUpdatedEvent } from '@domain/events/StorageEvents';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { AccessControlService , ResourceWithOwnership } from '@domain/services/AccessControlService';
+import type {
+  AccessControlService,
+  ResourceWithOwnership,
+} from '@domain/services/AccessControlService';
 import type { ValidationService } from '@domain/services/ValidationService';
 import type { StorageImportData } from '@domain/types/storageTypes';
-
-import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-
 
 // COMMAND INTERFACES
 
 export interface UpdateSystemStorageCommand {
   userId: string;
   labId: string;
-  systemSettings: {
-    labName?: string;
-    timezone?: string;
-    dateFormat?: string;
-    temperatureUnit?: 'celsius' | 'fahrenheit';
-    enableAuditTrail?: boolean;
-    autoBackupEnabled?: boolean;
-    backupRetentionDays?: number;
-  };
+  systemSettings: { labName?: string };
 }
 
 export interface ResetStorageToDefaultCommand {
@@ -51,21 +40,6 @@ export interface ImportStorageCommand {
   labId: string;
   configurationData: StorageImportData;
   validateOnly?: boolean;
-}
-
-export interface UpdateBoxPositionDisplayCommand {
-  userId: string;
-  labId: string;
-  tankId: string;
-  rackId: string;
-  boxId: string;
-  positionDisplay: PositionDisplayConfig | null;
-}
-
-export interface UpdateLabDefaultPositionDisplayCommand {
-  userId: string;
-  labId: string;
-  positionDisplay: PositionDisplayConfig | null;
 }
 
 export interface UpdateResourceLabelCommand {
@@ -162,7 +136,7 @@ export class ResetStorageToDefaultCommandHandler {
     if (tubeCount > 0) {
       throw new ValidationError(
         `Cannot reset configuration: ${tubeCount} tube(s) exist in the system. ` +
-        `Delete all tubes before resetting the configuration to prevent orphaned data.`
+          `Delete all tubes before resetting the configuration to prevent orphaned data.`
       );
     }
 
@@ -203,7 +177,7 @@ export class ImportStorageCommandHandler {
           isValid: true,
           configuration: importedConfig,
           warnings: [],
-          errors: []
+          errors: [],
         };
       }
 
@@ -222,7 +196,7 @@ export class ImportStorageCommandHandler {
             isValid: false,
             configuration: null,
             warnings: [],
-            errors: validationResult.errors
+            errors: validationResult.errors,
           };
         }
       }
@@ -241,127 +215,16 @@ export class ImportStorageCommandHandler {
         isValid: true,
         configuration: importedConfig,
         warnings: [],
-        errors: []
+        errors: [],
       };
-
     } catch (error) {
       return {
         isValid: false,
         configuration: null,
         warnings: [],
-        errors: [error instanceof Error ? error.message : 'Unknown import error']
+        errors: [error instanceof Error ? error.message : 'Unknown import error'],
       };
     }
-  }
-}
-
-export class UpdateBoxPositionDisplayCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private validationService: ValidationService,
-    private userRepository: UserRepository
-  ) {}
-
-  async handle(command: UpdateBoxPositionDisplayCommand): Promise<Storage> {
-    const currentConfig = await this.storageRepository.getForLab(command.labId);
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize system first.');
-    }
-
-    const user = await requireUser(this.userRepository, command.userId);
-
-    const box = currentConfig.equipment.findBox(
-      command.tankId,
-      command.rackId,
-      command.boxId
-    );
-
-    if (!box) {
-      throw new ValidationError(
-        `Box '${command.boxId}' not found in tank '${command.tankId}', rack ${command.rackId}`
-      );
-    }
-
-    const updatedConfig = currentConfig.updateBoxPositionDisplay(
-      command.tankId,
-      command.rackId,
-      command.boxId,
-      command.positionDisplay
-    );
-
-    const validationResult = await this.validationService.validateStorageUpdate(
-      currentConfig,
-      updatedConfig,
-      user,
-      command.labId
-    );
-
-    if (!validationResult.isValid) {
-      throw new ValidationError(
-        `Box position display update failed: ${validationResult.errors.join(', ')}`
-      );
-    }
-
-    const expectedVersion = currentConfig.version;
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      updatedConfig,
-      expectedVersion,
-      `Updated position display for box ${command.boxId} in tank ${command.tankId}, rack ${command.rackId}`,
-      command.userId
-    );
-    updatedConfig.applyPersistedVersion(newVersion);
-
-    return updatedConfig;
-  }
-}
-
-export class UpdateLabDefaultPositionDisplayCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private validationService: ValidationService,
-    private userRepository: UserRepository
-  ) {}
-
-  async handle(command: UpdateLabDefaultPositionDisplayCommand): Promise<Storage> {
-    const currentConfig = await this.storageRepository.getForLab(command.labId);
-
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize configuration first.');
-    }
-
-    const user = await requireUser(this.userRepository, command.userId);
-
-    const updatedConfig = currentConfig.updateLabDefaultPositionDisplay(
-      command.positionDisplay
-    );
-
-    const validationResult = await this.validationService.validateStorageUpdate(
-      currentConfig,
-      updatedConfig,
-      user,
-      command.labId
-    );
-
-    if (!validationResult.isValid) {
-      throw new ValidationError(
-        `Lab default position display update failed: ${validationResult.errors.join(', ')}`
-      );
-    }
-
-    const expectedVersion = currentConfig.version;
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      updatedConfig,
-      expectedVersion,
-      command.positionDisplay
-        ? `Updated lab default position display to ${command.positionDisplay.format}`
-        : 'Cleared lab default position display',
-      command.userId
-    );
-    updatedConfig.applyPersistedVersion(newVersion);
-
-    return updatedConfig;
   }
 }
 
@@ -395,7 +258,7 @@ export class UpdateResourceLabelCommandHandler {
 
     const user = await requireUser(this.userRepository, command.userId);
 
-    let resource: ResourceWithOwnership & { customLabel?: string } | null = null;
+    let resource: (ResourceWithOwnership & { customLabel?: string }) | null = null;
     let parentRack: ResourceWithOwnership | undefined = undefined;
     let tankName = '';
     let rackName = '';
@@ -404,9 +267,7 @@ export class UpdateResourceLabelCommandHandler {
     if (command.resourceType === 'rack') {
       const result = currentConfig.getRack(command.tankId, command.rackId);
       if (!result) {
-        throw new ValidationError(
-          `Rack '${command.rackId}' not found in tank '${command.tankId}'`
-        );
+        throw new ValidationError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
       }
       resource = result.rack;
       tankName = result.tank.name;
@@ -425,15 +286,11 @@ export class UpdateResourceLabelCommandHandler {
       boxName = result.box.name;
     }
 
-    const canEdit = this.accessControlService.canEditResource(
-      user,
-      resource,
-      parentRack
-    );
+    const canEdit = this.accessControlService.canEditResource(user, resource, parentRack);
 
     if (!canEdit) {
       throw new PermissionError(
-        `User ${user.username} does not have permission to edit this ${command.resourceType}'s label`
+        `You do not have permission to edit this ${command.resourceType}'s label.`
       );
     }
 
@@ -457,7 +314,7 @@ export class UpdateResourceLabelCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty/whitespace label must coerce to undefined; ?? would keep ''
     const newLabel = command.customLabel?.trim() || undefined;
     if (oldLabel !== newLabel) {
       if (command.resourceType === 'rack') {

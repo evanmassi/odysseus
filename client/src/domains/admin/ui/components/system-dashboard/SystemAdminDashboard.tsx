@@ -37,7 +37,7 @@ export function SystemAdminDashboard() {
     <div className="h-full overflow-y-auto">
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <div>
-          <h1 className="flex items-center gap-3 font-display text-[32px] font-normal tracking-[-0.015em] leading-none">
+          <h1 className="flex items-center gap-3 font-display text-display font-normal tracking-[-0.015em] leading-none">
             <LayoutDashboard size={28} className="text-foreground/60" />
             System Overview
           </h1>
@@ -58,8 +58,22 @@ export function SystemAdminDashboard() {
           )}
         </div>
 
-        {overview && (
-          <ConsolePanel>
+        <ConsolePanel className="overflow-hidden">
+          <div className={overview ? 'border-b border-line-faint' : undefined}>
+            <Tabs value={activeTab} onChange={setActiveTab} orientation="horizontal">
+              <Tab id="labs" icon={<FlaskConical size={18} />}>
+                Labs
+              </Tab>
+              <Tab id="security" icon={<Shield size={18} />}>
+                Security
+              </Tab>
+              <Tab id="storage" icon={<HardDrive size={18} />}>
+                Storage
+              </Tab>
+            </Tabs>
+          </div>
+
+          {overview && (
             <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.18)_10%,hsl(var(--foreground)/0.18)_90%,transparent_100%)_1]">
               <StatCell
                 label="Labs Online"
@@ -86,26 +100,8 @@ export function SystemAdminDashboard() {
                 className="flex-1"
               />
             </div>
-          </ConsolePanel>
-        )}
-
-        <div className="relative border-b border-transparent">
-          <Tabs value={activeTab} onChange={setActiveTab} orientation="horizontal">
-            <Tab id="labs" icon={<FlaskConical size={18} />}>
-              Labs
-            </Tab>
-            <Tab id="security" icon={<Shield size={18} />}>
-              Security
-            </Tab>
-            <Tab id="storage" icon={<HardDrive size={18} />}>
-              Storage
-            </Tab>
-          </Tabs>
-          <div
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.15)_4%,hsl(var(--foreground)/0.15)_78%,transparent_100%)]"
-          />
-        </div>
+          )}
+        </ConsolePanel>
 
         <div className="pt-2">
           {activeTab === 'labs' && <LabsPanel onSelectLab={setSelectedLabId} />}

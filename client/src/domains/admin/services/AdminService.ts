@@ -15,7 +15,6 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
-import { logger } from '@infra/logger';
 
 import type {
   SecurityConfig,
@@ -26,134 +25,59 @@ import type {
   LookupValue,
   InviteCodeData,
   CreateInviteCodeRequest,
+  VersionInfo,
 } from '@odysseus/shared-schemas';
 
-export class AdminService {
+class AdminService {
   async getMetrics(): Promise<SystemMetrics> {
-    try {
-      return await httpClient.getData('/admin/metrics', systemMetricsSchema);
-    } catch (error) {
-      logger.error('Failed to get admin metrics', { error });
-      throw error;
-    }
+    return await httpClient.getData('/admin/metrics', systemMetricsSchema);
   }
 
   async getSecurityConfig(): Promise<SecurityConfig> {
-    try {
-      const data = await httpClient.getData('/admin/security-config', securityConfigDataSchema);
-      return data.config;
-    } catch (error) {
-      logger.error('Failed to get security config', { error });
-      throw error;
-    }
+    const data = await httpClient.getData('/admin/security-config', securityConfigDataSchema);
+    return data.config;
   }
 
-  async updateSecurityConfig(config: UpdateSecurityConfig): Promise<void> {
-    try {
-      await httpClient.putData('/admin/security-config', config, securityConfigDataSchema);
-    } catch (error) {
-      logger.error('Failed to update security config', { error });
-      throw error;
-    }
-  }
-
-  async getVersionInfo(): Promise<{
-    version: string;
-    environment: string;
-    nodeVersion: string;
-    platform: string;
-  }> {
-    try {
-      return await httpClient.getData('/public/version', versionInfoSchema);
-    } catch (error) {
-      logger.error('Failed to get version info', { error });
-      throw error;
-    }
+  async getVersionInfo(): Promise<VersionInfo> {
+    return await httpClient.getData('/public/version', versionInfoSchema);
   }
 
   async getLookupValues(category: LookupCategory): Promise<LookupValueWithCount[]> {
-    try {
-      return await httpClient.getArray(`/admin/lookups/${category}`, lookupValueWithCountSchema);
-    } catch (error) {
-      logger.error('Failed to get lookup values', { category, error });
-      throw error;
-    }
+    return await httpClient.getArray(`/admin/lookups/${category}`, lookupValueWithCountSchema);
   }
 
   async createLookupValue(category: LookupCategory, value: string): Promise<LookupValue> {
-    try {
-      return await httpClient.postData('/admin/lookups', { category, value }, lookupValueSchema);
-    } catch (error) {
-      logger.error('Failed to create lookup value', { category, value, error });
-      throw error;
-    }
+    return await httpClient.postData('/admin/lookups', { category, value }, lookupValueSchema);
   }
 
   async renameLookupValue(id: string, newValue: string): Promise<LookupValue> {
-    try {
-      return await httpClient.putData(
-        `/admin/lookups/${id}/rename`,
-        { newValue },
-        lookupValueSchema
-      );
-    } catch (error) {
-      logger.error('Failed to rename lookup value', { id, newValue, error });
-      throw error;
-    }
+    return await httpClient.putData(`/admin/lookups/${id}/rename`, { newValue }, lookupValueSchema);
   }
 
   async deleteLookupValue(id: string): Promise<void> {
-    try {
-      await httpClient.deleteData(`/admin/lookups/${id}`);
-    } catch (error) {
-      logger.error('Failed to delete lookup value', { id, error });
-      throw error;
-    }
+    await httpClient.deleteData(`/admin/lookups/${id}`);
   }
 
   async getInviteCodes(): Promise<InviteCodeData[]> {
-    try {
-      const data = await httpClient.getData('/admin/invite-codes', inviteCodesListSchema);
-      return data.inviteCodes;
-    } catch (error) {
-      logger.error('Failed to get invite codes', { error });
-      throw error;
-    }
+    const data = await httpClient.getData('/admin/invite-codes', inviteCodesListSchema);
+    return data.inviteCodes;
   }
 
   async createInviteCode(data: CreateInviteCodeRequest): Promise<InviteCodeData> {
-    try {
-      const result = await httpClient.postData(
-        '/admin/invite-codes',
-        data,
-        inviteCodeDataResponseSchema
-      );
-      return result.inviteCode;
-    } catch (error) {
-      logger.error('Failed to create invite code', { error });
-      throw error;
-    }
+    const result = await httpClient.postData(
+      '/admin/invite-codes',
+      data,
+      inviteCodeDataResponseSchema
+    );
+    return result.inviteCode;
   }
 
   async deactivateInviteCode(id: string): Promise<void> {
-    try {
-      await httpClient.deleteData(`/admin/invite-codes/${id}`);
-    } catch (error) {
-      logger.error('Failed to deactivate invite code', { id, error });
-      throw error;
-    }
+    await httpClient.deleteData(`/admin/invite-codes/${id}`);
   }
 
-  /**
-   * Update security config — routes to system admin endpoint for system admins
-   */
-  async updateSecurityConfigAsSystemAdmin(config: UpdateSecurityConfig): Promise<void> {
-    try {
-      await httpClient.putData('/system/security-config', config, securityConfigDataSchema);
-    } catch (error) {
-      logger.error('Failed to update security config (system)', { error });
-      throw error;
-    }
+  async updateSecurityConfig(config: UpdateSecurityConfig): Promise<void> {
+    await httpClient.putData('/system/security-config', config, securityConfigDataSchema);
   }
 }
 

@@ -26,6 +26,10 @@ import { migration019 } from './019_nullable_person_email';
 import { migration020 } from './020_create_equipment';
 import { migration021 } from './021_create_supplies';
 import { migration022 } from './022_nullable_audit_log_user_id';
+import { migration023 } from './023_hash_refresh_tokens';
+import { migration024 } from './024_drop_dead_logging_flags';
+import { migration025 } from './025_drop_user_approval_statuses';
+import { migration026 } from './026_drop_researcher_approval_status';
 
 import type { Migration } from './migrationRunner';
 
@@ -52,4 +56,8 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration020,
   migration021,
   migration022,
+  migration023,
+  migration024,
+  migration025,
+  migration026,
 ];

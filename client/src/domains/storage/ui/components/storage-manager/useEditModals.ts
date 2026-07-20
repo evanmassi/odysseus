@@ -11,14 +11,14 @@ import {
   useUpdateRackMutation,
   useUpdateBoxMutation,
   useUpdateResourceLabelMutation,
-} from '@domains/storage';
+} from '../../../hooks/useStorageMutations';
 
 import type {
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
   GridConfiguration,
-} from '@domains/storage';
+} from '@odysseus/shared-schemas';
 
 export function useEditModals() {
   const updateTankMutation = useUpdateTankMutation();
@@ -110,7 +110,6 @@ export function useEditModals() {
         rackId,
         updates: {
           name: updates.name,
-          capacity: updates.capacity,
           isActive: updates.isActive,
         },
       },
@@ -138,7 +137,7 @@ export function useEditModals() {
     label: string
   ) => {
     updateLabelMutation.mutate(
-      { resourceType: type, tankId, rackId, boxId, customLabel: label || undefined },
+      { resourceType: type, tankId, rackId, boxId, customLabel: label },
       { onSuccess: () => setIsLabelModalOpen(false) }
     );
   };

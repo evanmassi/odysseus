@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { FileText, Plus, Save } from 'lucide-react';
 
 import { Button, Input } from '../../primitives';
+import { FIELD_LABEL_COMPACT } from '../inputs/fieldLabelClass';
 
 import { BaseModal } from './BaseModal';
 
@@ -18,7 +19,7 @@ export interface DocumentLinkValues {
   notes?: string;
 }
 
-export interface DocumentLinkModalProps {
+interface DocumentLinkModalProps {
   isOpen: boolean;
   mode: 'add' | 'edit';
   initialValues?: DocumentLinkValues;
@@ -27,9 +28,6 @@ export interface DocumentLinkModalProps {
   onSave: (values: DocumentLinkValues) => Promise<void>;
   onClose: () => void;
 }
-
-const FIELD_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 export function DocumentLinkModal({
   isOpen,
@@ -103,7 +101,7 @@ export function DocumentLinkModal({
     >
       <div className="space-y-3">
         <div>
-          <label htmlFor="doc-label" className={FIELD_LABEL}>
+          <label htmlFor="doc-label" className={FIELD_LABEL_COMPACT}>
             Label
           </label>
           <Input
@@ -118,7 +116,7 @@ export function DocumentLinkModal({
           />
         </div>
         <div>
-          <label htmlFor="doc-url" className={FIELD_LABEL}>
+          <label htmlFor="doc-url" className={FIELD_LABEL_COMPACT}>
             URL
           </label>
           <Input
@@ -133,7 +131,7 @@ export function DocumentLinkModal({
           />
         </div>
         <div>
-          <label htmlFor="doc-notes" className={FIELD_LABEL}>
+          <label htmlFor="doc-notes" className={FIELD_LABEL_COMPACT}>
             Notes
           </label>
           <Input

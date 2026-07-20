@@ -58,9 +58,7 @@ export class AuditModule {
 
   getAuditArchivalJob(): AuditArchivalJob {
     if (!this.auditArchivalJob) {
-      this.auditArchivalJob = new AuditArchivalJob(
-        this.getAuditRetentionService()
-      );
+      this.auditArchivalJob = new AuditArchivalJob(this.getAuditRetentionService());
     }
     return this.auditArchivalJob;
   }
@@ -102,7 +100,7 @@ export class AuditModule {
         this.shared.configurationService.get('app').version,
         repositories.equipmentItems,
         repositories.equipmentCategories,
-        repositories.supplyItems,
+        repositories.supplyItems
       );
     }
     return this.exportService;

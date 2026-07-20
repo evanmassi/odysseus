@@ -7,12 +7,6 @@
 import { z } from 'zod';
 
 export const userEventSchemas = {
-  user_approved: z.object({
-    userId: z.string(),
-    username: z.string(),
-    approvedBy: z.string(),
-    updatedAt: z.string(),
-  }),
   user_deleted: z.object({
     userId: z.string(),
     username: z.string(),

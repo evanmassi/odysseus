@@ -6,9 +6,14 @@
 
 import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
-import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
+import {
+  buildAuditFilterClauses,
+  DEFAULT_AUDIT_PAGE_LIMIT,
+  type FilterResult,
+} from '@infrastructure/database/auditFilterBuilder';
+import { AuditLogEntryMapper } from '@infrastructure/database/mappers/AuditLogEntryMapper';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
@@ -18,7 +23,6 @@ const AUDIT_LOG_COLUMNS = `
 `.trim();
 
 const COLUMNS_PER_ROW = 11;
-
 
 interface AuditLogRow {
   id: string;
@@ -35,7 +39,7 @@ interface AuditLogRow {
 }
 
 export class AuditRepository implements IAuditRepository {
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   // WRITE OPERATIONS
 
@@ -59,12 +63,12 @@ export class AuditRepository implements IAuditRepository {
       const offset = i * COLUMNS_PER_ROW;
       valueSets.push(
         `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, ` +
-        `$${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`
+          `$${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11})`
       );
       params.push(...this.entryToParams(entries[i]));
     }
 
-    await this.context.transaction(async (client) => {
+    await this.context.transaction(async client => {
       await client.query(
         `INSERT INTO audit_log (
           id, user_id, username, action, entity_type, entity_id,
@@ -77,30 +81,6 @@ export class AuditRepository implements IAuditRepository {
 
   // READ OPERATIONS
 
-  async findByUserId(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
-    return this.findWithOptions(['user_id = $1'], [userId], options);
-  }
-
-  async findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]> {
-    const rows = await this.context.queryMany<AuditLogRow>(
-      `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log
-       WHERE entity_id = $1 AND entity_type = $2
-       ORDER BY timestamp DESC`,
-      [entityId, entityType]
-    );
-    return rows.map(this.rowToEntry);
-  }
-
-  async findByEntityIdForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]> {
-    const rows = await this.context.queryMany<AuditLogRow>(
-      `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log
-       WHERE entity_id = $1 AND entity_type = $2 AND lab_id = $3
-       ORDER BY timestamp DESC`,
-      [entityId, entityType, labId]
-    );
-    return rows.map(this.rowToEntry);
-  }
-
   async findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
     return this.findWithOptions(['action = $1'], [action], options);
   }
@@ -111,60 +91,18 @@ export class AuditRepository implements IAuditRepository {
 
   // LAB-SCOPED OPERATIONS
 
-  async findAllForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
-    return this.findPaginated(
-      filters,
-      buildAuditFilterClauses(filters, ['lab_id = $1'], [labId])
-    );
+  async findAllForLab(
+    filters: AuditLogFilters,
+    labId: string
+  ): Promise<PaginatedResult<AuditLogEntry>> {
+    return this.findPaginated(filters, buildAuditFilterClauses(filters, ['lab_id = $1'], [labId]));
   }
 
   // MAINTENANCE OPERATIONS
 
-  async deleteOlderThan(date: Date): Promise<number> {
-    const result = await this.context.execute(
-      'DELETE FROM audit_log WHERE timestamp < $1',
-      [date]
-    );
-    return result.rowCount ?? 0;
-  }
-
   async deleteByLabId(labId: string): Promise<number> {
-    const result = await this.context.execute(
-      'DELETE FROM audit_log WHERE lab_id = $1',
-      [labId]
-    );
+    const result = await this.context.execute('DELETE FROM audit_log WHERE lab_id = $1', [labId]);
     return result.rowCount ?? 0;
-  }
-
-  async count(): Promise<number> {
-    const row = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM audit_log'
-    );
-    return parseCount(row);
-  }
-
-  async countForLab(labId: string): Promise<number> {
-    const row = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM audit_log WHERE lab_id = $1',
-      [labId]
-    );
-    return parseCount(row);
-  }
-
-  async countInRange(dateFrom: Date, dateTo: Date): Promise<number> {
-    const row = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2',
-      [dateFrom, dateTo]
-    );
-    return parseCount(row);
-  }
-
-  async countInRangeForLab(dateFrom: Date, dateTo: Date, labId: string): Promise<number> {
-    const row = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2 AND lab_id = $3',
-      [dateFrom, dateTo, labId]
-    );
-    return parseCount(row);
   }
 
   // ARCHIVAL OPERATIONS
@@ -179,7 +117,7 @@ export class AuditRepository implements IAuditRepository {
     }
 
     const rows = await this.context.queryMany<AuditLogRow>(query, params);
-    return rows.map(this.rowToEntry);
+    return rows.map(AuditLogEntryMapper.fromRow);
   }
 
   async deleteArchived(entryIds: string[]): Promise<number> {
@@ -231,7 +169,10 @@ export class AuditRepository implements IAuditRepository {
     ];
   }
 
-  private async findPaginated(filters: AuditLogFilters, filterResult: FilterResult): Promise<PaginatedResult<AuditLogEntry>> {
+  private async findPaginated(
+    filters: AuditLogFilters,
+    filterResult: FilterResult
+  ): Promise<PaginatedResult<AuditLogEntry>> {
     const { whereClause, params, nextParamIndex } = filterResult;
 
     const countQuery = `SELECT COUNT(*) as count FROM audit_log ${whereClause}`;
@@ -248,13 +189,10 @@ export class AuditRepository implements IAuditRepository {
       LIMIT $${nextParamIndex} OFFSET $${nextParamIndex + 1}
     `;
 
-    const rows = await this.context.queryMany<AuditLogRow>(
-      dataQuery,
-      [...params, limit, offset]
-    );
+    const rows = await this.context.queryMany<AuditLogRow>(dataQuery, [...params, limit, offset]);
 
     return {
-      items: rows.map(this.rowToEntry),
+      items: rows.map(AuditLogEntryMapper.fromRow),
       pagination: {
         total,
         limit,
@@ -294,22 +232,6 @@ export class AuditRepository implements IAuditRepository {
     }
 
     const rows = await this.context.queryMany<AuditLogRow>(query, params);
-    return rows.map(this.rowToEntry);
-  }
-
-  private rowToEntry(row: AuditLogRow): AuditLogEntry {
-    return {
-      id: row.id,
-      labId: row.lab_id ?? undefined,
-      userId: row.user_id ?? undefined,
-      username: row.username,
-      action: row.action,
-      entityType: row.entity_type,
-      entityId: row.entity_id ?? undefined,
-      details: row.details,
-      timestamp: toDate(row.timestamp),
-      ipAddress: row.ip_address ?? undefined,
-      userAgent: row.user_agent ?? undefined,
-    };
+    return rows.map(AuditLogEntryMapper.fromRow);
   }
 }

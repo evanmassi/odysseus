@@ -1,34 +1,22 @@
 /**
- * Token Types - OAuth 2.0 / JWT Types
+ * Token Types
  *
  * Implements RFC 6749 OAuth 2.0 for dual token architecture.
  */
 
 import type { User } from '@domain/entities/User';
 
-import type { TokenPair } from '@odysseus/shared-schemas';
-export type { TokenPair };
-
-/** Stored in database as refresh_tokens row. */
-export interface RefreshTokenRecord {
-  id: string;
-  userId: string;
-  token: string;
-  expiresAt: Date;
-  createdAt: Date;
-  lastUsedAt: Date | null;  // null = never used (for analytics)
-  isRevoked: boolean;
-  deviceFingerprint?: string;
-}
+import type { RefreshTokenResponse, TokenPair } from '@odysseus/shared-schemas';
+export type { RefreshTokenResponse, TokenPair };
 
 export interface AccessTokenPayload {
   // Standard JWT claims (RFC 7519)
-  sub: string;              // Subject (user ID)
-  iss: string;              // Issuer
-  aud: string;              // Audience
-  exp: number;              // Expiration time
-  iat: number;              // Issued at
-  jti: string;              // JWT ID (unique)
+  sub: string; // Subject (user ID)
+  iss: string; // Issuer
+  aud: string; // Audience
+  exp: number; // Expiration time
+  iat: number; // Issued at
+  jti: string; // JWT ID (unique)
 
   // Custom claims
   sessionId: string;
@@ -40,27 +28,5 @@ export interface AccessTokenPayload {
 
 export interface EnhancedLoginResponse {
   user: ReturnType<User['toPublicData']>;
-  sessionToken: string;     // Legacy field (populated from accessToken)
   tokens: TokenPair;
-}
-
-export interface RefreshTokenResponse {
-  accessToken: string;
-  accessTokenExpiry: Date;
-  tokenType: 'Bearer';
-}
-
-export interface TokenConfiguration {
-  // Access token settings
-  accessTokenExpiry: string;    // e.g. '30m'
-  accessTokenSecret: string;
-
-  // Refresh token settings
-  refreshTokenExpiry: string;   // e.g. '7d'
-  refreshTokenLength: number;   // Bytes (32-64)
-
-  // Security settings
-  allowConcurrentSessions: boolean;
-  maxConcurrentSessions: number;
-  rotateRefreshTokens: boolean; // New refresh token on each renewal
 }

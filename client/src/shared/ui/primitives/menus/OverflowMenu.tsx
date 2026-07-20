@@ -4,7 +4,7 @@
  * Three-dot dropdown menu with portal rendering and viewport collision detection.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 
 import { MoreVertical } from 'lucide-react';
 
@@ -13,6 +13,14 @@ import { MenuDivider } from './MenuDivider';
 import { MenuItem } from './MenuItem';
 
 import type { OverflowMenuProps } from './types';
+
+// Width mirrors the DropdownMenu's min-w-40 (10rem) so the flip math matches the render.
+const MENU_WIDTH = 160;
+const ITEM_HEIGHT = 40;
+const DIVIDER_HEIGHT = 8;
+const MENU_PADDING_Y = 12;
+const TRIGGER_GAP = 4;
+const VIEWPORT_MARGIN = 10;
 
 export function OverflowMenu({
   items,
@@ -35,32 +43,31 @@ export function OverflowMenu({
     setIsOpen(false);
   }, []);
 
-  // Calculate position when menu opens
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
 
     const rect = triggerRef.current.getBoundingClientRect();
-    const menuWidth = 160;
-    const menuHeight = items.length * 40 + dividerBefore.length * 8 + 12;
+    const menuHeight =
+      items.length * ITEM_HEIGHT + dividerBefore.length * DIVIDER_HEIGHT + MENU_PADDING_Y;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let top = rect.bottom + 4;
-    let left = rect.right - menuWidth;
+    let top = rect.bottom + TRIGGER_GAP;
+    let left = rect.right - MENU_WIDTH;
     let vertical: 'below' | 'above' = 'below';
     let horizontal: 'right' | 'left' = 'right';
 
-    if (left < 10) {
+    if (left < VIEWPORT_MARGIN) {
       left = rect.left;
       horizontal = 'left';
     }
 
-    if (left + menuWidth > viewportWidth - 10) {
-      left = viewportWidth - menuWidth - 10;
+    if (left + MENU_WIDTH > viewportWidth - VIEWPORT_MARGIN) {
+      left = viewportWidth - MENU_WIDTH - VIEWPORT_MARGIN;
     }
 
-    if (top + menuHeight > viewportHeight - 10) {
-      top = rect.top - menuHeight - 4;
+    if (top + menuHeight > viewportHeight - VIEWPORT_MARGIN) {
+      top = rect.top - menuHeight - TRIGGER_GAP;
       vertical = 'above';
     }
 
@@ -68,20 +75,17 @@ export function OverflowMenu({
     setPlacement({ vertical, horizontal });
   }, [items.length, dividerBefore.length]);
 
-  // Update position when opening and on scroll/resize
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen) return;
 
     updatePosition();
 
-    const handleScrollOrResize = () => updatePosition();
-
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
 
     return () => {
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
     };
   }, [isOpen, updatePosition]);
 

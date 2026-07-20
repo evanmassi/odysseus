@@ -19,7 +19,9 @@ function createApp(...middlewares: express.RequestHandler[]): express.Applicatio
   for (const mw of middlewares) {
     app.use(mw);
   }
-  app.get('/test', (_req, res) => { res.json({ ok: true }); });
+  app.get('/test', (_req, res) => {
+    res.json({ ok: true });
+  });
   return app;
 }
 
@@ -49,10 +51,10 @@ describe('apiRateLimiter', () => {
 
       const res = await agent.get('/test');
 
-      // Draft-7 uses a combined header: "limit=100, remaining=99, reset=60"
+      // Draft-7 uses a combined header: "limit=300, remaining=299, reset=60"
       expect(res.headers).toHaveProperty('ratelimit');
       expect(res.headers).toHaveProperty('ratelimit-policy');
-      expect(res.headers['ratelimit']).toContain('limit=100');
+      expect(res.headers['ratelimit']).toContain('limit=300');
     });
 
     it('should not include legacy X-RateLimit headers', async () => {
@@ -126,8 +128,12 @@ describe('apiRateLimiter', () => {
       const moderate = createModerateRateLimiter();
 
       const app = express();
-      app.get('/strict', strict, (_req, res) => { res.json({ ok: true }); });
-      app.get('/moderate', moderate, (_req, res) => { res.json({ ok: true }); });
+      app.get('/strict', strict, (_req, res) => {
+        res.json({ ok: true });
+      });
+      app.get('/moderate', moderate, (_req, res) => {
+        res.json({ ok: true });
+      });
 
       const agent = supertest(app);
 

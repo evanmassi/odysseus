@@ -1,5 +1,5 @@
 /**
- * Suspense Boundary Component
+ * Suspense Boundary
  *
  * Suspense boundary with error handling and loading states.
  */
@@ -11,14 +11,13 @@ import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
 import { Button } from '../../primitives';
+import { LoadingSpinner } from '../loading';
 
 import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
 interface SuspenseBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
-  errorFallback?: ErrorBoundaryProps['fallback'];
   'aria-label'?: string;
   className?: string;
   name?: string;
@@ -41,8 +40,8 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
     aria-label={ariaLabel ?? `Loading ${name ?? 'component'}...`}
   >
     <div className="flex items-center space-x-3">
-      <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
-      <span className="text-muted-foreground text-sm">
+      <LoadingSpinner size="md" className="text-primary" />
+      <span className="text-muted-foreground text-body-sm">
         {name ? `Loading ${name}...` : 'Loading...'}
       </span>
     </div>
@@ -52,8 +51,6 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
 export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
   children,
   fallback,
-  onError,
-  errorFallback,
   'aria-label': ariaLabel,
   className = '',
   name,
@@ -94,10 +91,9 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
   );
 
   const errorBoundaryConfig: Omit<ErrorBoundaryProps, 'children'> = {
-    fallback: errorFallback ?? defaultErrorFallback,
+    fallback: defaultErrorFallback,
     onError: (error, errorInfo) => {
       if (env.isDev()) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown Component'
         // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
         console.group(`🚨 Lazy Loading Error: ${name ?? 'Unknown Component'}`);
         logger.error('Error', { error });
@@ -105,10 +101,7 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
         // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
         console.groupEnd();
       }
-
-      onError?.(error, errorInfo);
     },
-    isolate: true,
   };
 
   return (

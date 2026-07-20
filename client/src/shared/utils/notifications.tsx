@@ -6,7 +6,7 @@
 
 import { toast } from 'react-hot-toast';
 
-import { Toast } from '@shared/ui/components/overlays/Toast';
+import { Toast, type ToastType } from '@shared/ui/components/overlays/Toast';
 
 const DURATION = {
   SUCCESS: 3000,
@@ -16,69 +16,38 @@ const DURATION = {
   PERSISTENT: Infinity,
 } as const;
 
+function showToast(type: ToastType, message: string, duration: number, id?: string): string {
+  return toast.custom(t => <Toast type={type} message={message} visible={t.visible} />, {
+    id,
+    duration,
+    position: 'bottom-right',
+  });
+}
+
 /** Use these instead of direct toast.* calls for consistency. */
 export const notifications = {
-  success: (message: string, options?: { id?: string }): string => {
-    return toast.custom(t => <Toast type="success" message={message} visible={t.visible} />, {
-      id: options?.id,
-      duration: DURATION.SUCCESS,
-      position: 'bottom-right',
-    });
-  },
+  success: (message: string, options?: { id?: string }): string =>
+    showToast('success', message, DURATION.SUCCESS, options?.id),
 
-  error: (message: string, options?: { id?: string }): string => {
-    return toast.custom(t => <Toast type="error" message={message} visible={t.visible} />, {
-      id: options?.id,
-      duration: DURATION.ERROR,
-      position: 'bottom-right',
-    });
-  },
+  error: (message: string, options?: { id?: string }): string =>
+    showToast('error', message, DURATION.ERROR, options?.id),
 
   // Fixed ID prevents duplicate toasts when offline
-  offlineError: (): string => {
-    return toast.custom(
-      t => (
-        <Toast
-          type="error"
-          message="You're offline. Changes cannot be saved until connection is restored."
-          visible={t.visible}
-        />
-      ),
-      {
-        id: 'offline-write-error',
-        duration: DURATION.ERROR,
-        position: 'bottom-right',
-      }
-    );
-  },
+  offlineError: (): string =>
+    showToast(
+      'error',
+      "You're offline. Changes cannot be saved until connection is restored.",
+      DURATION.ERROR,
+      'offline-write-error'
+    ),
 
-  persistentError: (message: string): string => {
-    return toast.custom(t => <Toast type="error" message={message} visible={t.visible} />, {
-      duration: DURATION.PERSISTENT,
-      position: 'bottom-right',
-    });
-  },
+  persistentError: (message: string): string => showToast('error', message, DURATION.PERSISTENT),
 
-  warning: (message: string): string => {
-    return toast.custom(t => <Toast type="warning" message={message} visible={t.visible} />, {
-      duration: DURATION.WARNING,
-      position: 'bottom-right',
-    });
-  },
+  warning: (message: string): string => showToast('warning', message, DURATION.WARNING),
 
-  info: (message: string): string => {
-    return toast.custom(t => <Toast type="info" message={message} visible={t.visible} />, {
-      duration: DURATION.INFO,
-      position: 'bottom-right',
-    });
-  },
+  info: (message: string): string => showToast('info', message, DURATION.INFO),
 
-  loading: (message: string): string => {
-    return toast.custom(t => <Toast type="loading" message={message} visible={t.visible} />, {
-      duration: DURATION.PERSISTENT,
-      position: 'bottom-right',
-    });
-  },
+  loading: (message: string): string => showToast('loading', message, DURATION.PERSISTENT),
 
   dismiss: (toastId?: string): void => {
     toast.dismiss(toastId);

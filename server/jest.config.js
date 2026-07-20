@@ -25,5 +25,7 @@ module.exports = {
     '^@presentation/(.*)$': '<rootDir>/src/presentation/$1',
     '^@odysseus/shared-schemas$': '<rootDir>/../packages/shared-schemas/src/index.ts',
   },
-  testTimeout: 10000
+  testTimeout: 10000,
+  // Integration suites need a live Postgres; run them via jest.integration.config.js instead.
+  testPathIgnorePatterns: ['/node_modules/', '/tests/integration/']
 };

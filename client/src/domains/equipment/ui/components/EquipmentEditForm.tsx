@@ -4,28 +4,33 @@
  * React Hook Form for creating and editing equipment items with category tree dropdown.
  */
 
-import { useMemo } from 'react';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createEquipmentItemRequestSchema,
   updateEquipmentItemRequestSchema,
 } from '@odysseus/shared-schemas';
-import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Save, SquarePen } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { queryKeys } from '@app/cache/queryKeys';
-import { useLabId } from '@domains/authentication';
 import {
   useCreateEquipmentItemMutation,
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, DatePicker, NubDivider, SectionHeader, Select } from '@shared/ui';
+import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
+import {
+  Button,
+  CompletenessMeter,
+  DatePicker,
+  NubDivider,
+  SectionHeader,
+  Select,
+} from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type {
@@ -34,7 +39,6 @@ import type {
   CreateEquipmentItemRequest,
   UpdateEquipmentItemRequest,
 } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface EquipmentEditFormProps {
   item?: EquipmentItem;
@@ -43,15 +47,9 @@ interface EquipmentEditFormProps {
   onCancel: () => void;
 }
 
-const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'under_maintenance', label: 'Under Maintenance' },
-  { value: 'out_of_service', label: 'Out of Service' },
-];
+const STATUS_OPTIONS = (['active', 'inactive', 'under_maintenance', 'out_of_service'] as const).map(
+  status => ({ value: status, label: EQUIPMENT_STATUS_DISPLAY[status].label })
+);
 
 const TRACKED_FIELDS = [
   'name',
@@ -78,46 +76,15 @@ export function EquipmentEditForm({
   onCancel,
 }: EquipmentEditFormProps) {
   const isEditing = !!item;
-  const queryClient = useQueryClient();
-  const labId = useLabId();
   const createMutation = useCreateEquipmentItemMutation();
   const updateMutation = useUpdateEquipmentItemMutation();
-
-  const parentNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    categories.forEach(c => {
-      if (c.parentId) {
-        const parent = categories.find(p => p.id === c.parentId);
-        if (parent) map.set(c.id, parent.name);
-      }
-    });
-    return map;
-  }, [categories]);
-
-  const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-
-    const options: SelectOption[] = [];
-    topLevel.forEach(parent => {
-      options.push({ value: parent.id, label: parent.name });
-      const subs = categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-      subs.forEach(sub => {
-        options.push({ value: sub.id, label: sub.name, description: parent.name });
-      });
-    });
-    return options;
-  }, [categories]);
 
   const {
     register,
     handleSubmit,
     control,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(
       isEditing ? updateEquipmentItemRequestSchema : createEquipmentItemRequestSchema
@@ -133,11 +100,11 @@ export function EquipmentEditForm({
           location: item.location ?? '',
           status: item.status,
           conditionNotes: item.conditionNotes ?? '',
-          purchaseDate: formatDateForInput(item.purchaseDate),
-          warrantyExpiration: formatDateForInput(item.warrantyExpiration),
+          purchaseDate: normalizeDateString(item.purchaseDate),
+          warrantyExpiration: normalizeDateString(item.warrantyExpiration),
           purchaseCost: item.purchaseCost,
           assetTag: item.assetTag ?? '',
-          nextMaintenanceDate: formatDateForInput(item.nextMaintenanceDate),
+          nextMaintenanceDate: normalizeDateString(item.nextMaintenanceDate),
           notes: item.notes ?? '',
         }
       : {
@@ -150,24 +117,25 @@ export function EquipmentEditForm({
     const v = allValues[f];
     return v != null && String(v).trim() !== '';
   }).length;
-  const completionPct = Math.round((filledCount / TRACKED_FIELDS.length) * 100);
 
-  const onFormSubmit = async (data: FieldValues) => {
-    try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({
-          id: item.id,
-          data: data as UpdateEquipmentItemRequest,
-        });
-        notifications.success('Equipment updated');
-      } else {
-        await createMutation.mutateAsync(data as CreateEquipmentItemRequest);
-        notifications.success('Equipment created');
-      }
-      await queryClient.refetchQueries({ queryKey: queryKeys.equipment.items(labId) });
-      onSubmit();
-    } catch {
-      notifications.error(isEditing ? 'Failed to update equipment' : 'Failed to create equipment');
+  const onFormSubmit = (data: FieldValues) => {
+    if (isEditing) {
+      updateMutation.mutate(
+        { id: item.id, data: data as UpdateEquipmentItemRequest },
+        {
+          onSuccess: () => {
+            notifications.success('Equipment updated');
+            onSubmit();
+          },
+        }
+      );
+    } else {
+      createMutation.mutate(data as CreateEquipmentItemRequest, {
+        onSuccess: () => {
+          notifications.success('Equipment created');
+          onSubmit();
+        },
+      });
     }
   };
 
@@ -182,31 +150,7 @@ export function EquipmentEditForm({
         </h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Completeness
-          </span>
-          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
-            {filledCount}/{TRACKED_FIELDS.length}
-          </span>
-          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
-            <span
-              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </span>
-        </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      <CompletenessMeter filled={filledCount} total={TRACKED_FIELDS.length} />
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="equipment-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-2 p-4">
@@ -225,53 +169,13 @@ export function EquipmentEditForm({
               name="categoryId"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <div>
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="category-label" className={SELECT_LABEL}>
-                    Category
-                  </label>
-                  <Select
-                    options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
-                    value={value ?? ''}
-                    onChange={v => onChange(v)}
-                    state={error ? 'error' : 'default'}
-                    error={error?.message}
-                    fullWidth
-                    aria-labelledby="category-label"
-                    renderOption={option => {
-                      const isSub = !!option.description;
-                      return (
-                        <div className="w-full">
-                          {isSub ? (
-                            <span className="pl-4 text-sm">{option.label}</span>
-                          ) : (
-                            <span className="text-sm font-semibold">{option.label}</span>
-                          )}
-                        </div>
-                      );
-                    }}
-                    renderValue={selected => {
-                      const opt = selected[0];
-                      if (!opt)
-                        return (
-                          <span className="text-muted-foreground opacity-40">
-                            Select category...
-                          </span>
-                        );
-                      const parentName = parentNameMap.get(opt.value as string);
-                      if (parentName) {
-                        return (
-                          <span className="text-sm text-foreground">
-                            <span className="text-muted-foreground">{parentName}</span>
-                            <span className="mx-1 text-muted-foreground">›</span>
-                            {opt.label}
-                          </span>
-                        );
-                      }
-                      return <span className="text-sm text-foreground">{opt.label}</span>;
-                    }}
-                  />
-                </div>
+                <CategoryHierarchySelect
+                  categories={categories}
+                  value={(value as string) ?? ''}
+                  onChange={onChange}
+                  error={error?.message}
+                  labelId="category-label"
+                />
               )}
             />
             <Controller
@@ -280,7 +184,7 @@ export function EquipmentEditForm({
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="status-label" className={SELECT_LABEL}>
+                  <label id="status-label" className={FIELD_LABEL_COMPACT}>
                     Status
                   </label>
                   <Select
@@ -359,7 +263,7 @@ export function EquipmentEditForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Purchase Date</span>
+                  <span className={FIELD_LABEL_COMPACT}>Purchase Date</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -367,7 +271,7 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
@@ -387,7 +291,7 @@ export function EquipmentEditForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Warranty Expiration</span>
+                  <span className={FIELD_LABEL_COMPACT}>Warranty Expiration</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -395,7 +299,7 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
@@ -410,7 +314,7 @@ export function EquipmentEditForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Next Maintenance</span>
+                  <span className={FIELD_LABEL_COMPACT}>Next Maintenance</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -418,7 +322,7 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
@@ -444,7 +348,7 @@ export function EquipmentEditForm({
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
@@ -455,7 +359,7 @@ export function EquipmentEditForm({
             form="equipment-form"
             variant="primary"
             size="sm"
-            disabled={isSubmitting}
+            disabled={updateMutation.isPending || createMutation.isPending}
             leftIcon={
               isEditing ? <Save className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />
             }

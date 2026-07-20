@@ -6,11 +6,11 @@
  * for nested property access.
  */
 
-export type FieldValue = string | number | boolean | Date | null | undefined;
+type FieldValue = string | number | boolean | Date | null | undefined;
 
-export type ComplexFieldValue = Record<string, FieldValue>;
+type ComplexFieldValue = Record<string, FieldValue>;
 
-export type ValidFieldValue = FieldValue | ComplexFieldValue;
+type ValidFieldValue = FieldValue | ComplexFieldValue;
 
 // Date objects are converted to ISO strings at runtime
 export type NormalizedFieldValue = Exclude<FieldValue, Date> | ComplexFieldValue;

@@ -45,7 +45,7 @@ export function canModifyTube(
   return true;
 }
 
-export interface BulkModifyResult {
+interface BulkModifyResult {
   canModifyAll: boolean;
   blockedCount: number;
   lockedCount: number;

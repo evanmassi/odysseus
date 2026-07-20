@@ -16,7 +16,6 @@ export interface SupplyPackagingLevelDbRow {
 }
 
 export class SupplyPackagingLevelMapper {
-
   static fromRow(row: SupplyPackagingLevelDbRow): SupplyPackagingLevelRow {
     return {
       id: row.id,

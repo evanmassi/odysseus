@@ -8,12 +8,12 @@ import type { EventBus } from '@application/contracts/EventBus';
 import type { PresenceService } from '@application/services/PresenceService';
 import {
   ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent
+  ResearcherReactivatedEvent,
 } from '@domain/events/ResearcherEvents';
 import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
-  ResearcherDeletedEvent
+  ResearcherDeletedEvent,
 } from '@domain/events/ResearcherEvents';
 import type {
   TankUpdatedEvent,
@@ -25,7 +25,6 @@ import type {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent,
   RackLabelUpdatedEvent,
   BoxLabelUpdatedEvent,
   RackAssignedEvent,
@@ -35,7 +34,7 @@ import type {
   BoxUnassignedEvent,
   BoxReassignedEvent,
   BulkResourcesUnassignedEvent,
-  BulkResourcesReassignedEvent
+  BulkResourcesReassignedEvent,
 } from '@domain/events/StorageEvents';
 import { TubeLocationChangedEvent } from '@domain/events/TubeEvents';
 import type {
@@ -45,20 +44,20 @@ import type {
   BulkTubesCreatedEvent,
   BulkTubesUpdatedEvent,
   BulkTubesDeletedEvent,
-  BulkTubesMovedEvent
+  BulkTubesMovedEvent,
 } from '@domain/events/TubeEvents';
 import type {
   TubesLockedEvent,
   TubesUnlockedEvent,
   TubeAccessSharedEvent,
-  TubeAccessRevokedEvent
+  TubeAccessRevokedEvent,
 } from '@domain/events/TubeLockEvents';
 import type {
   UserDeletedEvent,
   UserRoleChangedEvent,
   UserCreatedEvent,
   UserLinkedToResearcherEvent,
-  UserUnlinkedFromResearcherEvent
+  UserUnlinkedFromResearcherEvent,
 } from '@domain/events/UserEvents';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -85,11 +84,13 @@ export class SocketEventHandler {
   }
 
   private emitToLabRooms(labId: string | undefined, eventName: string, payload: unknown): void {
-    if (labId) {
-      this.io.to(this.getLabRoomName(labId)).emit(eventName, payload);
-    } else {
-      this.io.emit(eventName, payload);
+    // Fail closed: a lab-scoped event with no lab must never broadcast to every socket
+    // (including unauthenticated ones) — drop it and surface the anomaly instead.
+    if (!labId) {
+      logger.warn('Dropped socket emit with no lab scope', { eventName });
+      return;
     }
+    this.io.to(this.getLabRoomName(labId)).emit(eventName, payload);
   }
 
   private emitSystemAdminUpdate(labId: string | undefined, trigger: string): void {
@@ -102,19 +103,31 @@ export class SocketEventHandler {
   }
 
   private setupPresenceHandlers(): void {
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       if (socket.userId && socket.username) {
         try {
-          this.presenceService.registerConnection(socket.userId, socket.id, socket.username, socket.labId);
+          this.presenceService.registerConnection(
+            socket.userId,
+            socket.id,
+            socket.username,
+            socket.labId
+          );
 
           if (socket.labId) {
             const labRoom = this.getLabRoomName(socket.labId);
             void socket.join(labRoom);
-            logger.debug('Socket joined lab room', { socketId: socket.id, room: labRoom, labId: socket.labId });
+            logger.debug('Socket joined lab room', {
+              socketId: socket.id,
+              room: labRoom,
+              labId: socket.labId,
+            });
           } else {
             // System admins have no labId — join a shared room for cross-lab notifications
             void socket.join(SYSTEM_ADMIN_ROOM);
-            logger.debug('Socket joined system admin room', { socketId: socket.id, userId: socket.userId });
+            logger.debug('Socket joined system admin room', {
+              socketId: socket.id,
+              userId: socket.userId,
+            });
           }
 
           const onlinePayload = {
@@ -122,20 +135,20 @@ export class SocketEventHandler {
             onlineUserIds: socket.labId
               ? this.presenceService.getOnlineUserIdsForLab(socket.labId)
               : this.presenceService.getOnlineUserIds(),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
           this.emitToLabRooms(socket.labId, 'user_online', onlinePayload);
 
           logger.debug('Emitting user_online socket event', {
             userId: socket.userId,
             onlineCount: this.presenceService.getOnlineCount(),
-            connectedClients: this.io.sockets.sockets.size
+            connectedClients: this.io.sockets.sockets.size,
           });
         } catch (error) {
           logger.error('Failed to register presence on connection', {
             error: error instanceof Error ? error.message : String(error),
             userId: socket.userId,
-            socketId: socket.id
+            socketId: socket.id,
           });
         }
       }
@@ -143,24 +156,27 @@ export class SocketEventHandler {
       // Handle explicit presence state requests from clients
       // Used after socket connects to get authoritative state (avoids race conditions)
       socket.on('request_presence', () => {
+        // Unauthenticated sockets have no lab scope — deny presence rather than leaking the
+        // cross-lab online-user list via the system-admin (no-labId) branch below.
+        if (!socket.userId) return;
         try {
           const onlineUserIds = socket.labId
             ? this.presenceService.getOnlineUserIdsForLab(socket.labId)
             : this.presenceService.getOnlineUserIds();
           socket.emit('presence_state', {
             onlineUserIds,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
 
           logger.debug('Sent presence_state to client', {
             socketId: socket.id,
             userId: socket.userId,
-            onlineCount: onlineUserIds.length
+            onlineCount: onlineUserIds.length,
           });
         } catch (error) {
           logger.error('Failed to handle request_presence', {
             error: error instanceof Error ? error.message : String(error),
-            socketId: socket.id
+            socketId: socket.id,
           });
         }
       });
@@ -179,21 +195,21 @@ export class SocketEventHandler {
               onlineUserIds: socket.labId
                 ? this.presenceService.getOnlineUserIdsForLab(socket.labId)
                 : this.presenceService.getOnlineUserIds(),
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             };
             this.emitToLabRooms(socket.labId, 'user_offline', offlinePayload);
 
             logger.debug('Emitting user_offline socket event', {
               userId,
               onlineCount: this.presenceService.getOnlineCount(),
-              connectedClients: this.io.sockets.sockets.size
+              connectedClients: this.io.sockets.sockets.size,
             });
           }
         } catch (error) {
           logger.error('Failed to handle presence on disconnect', {
             error: error instanceof Error ? error.message : String(error),
             userId: socket.userId,
-            socketId: socket.id
+            socketId: socket.id,
           });
         }
       });
@@ -202,71 +218,86 @@ export class SocketEventHandler {
 
   private subscribeToEvents(): void {
     // Configuration events - debounced to batch rapid changes
-    this.eventBus.subscribe('TankAdded', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('TankUpdated', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('TankDeleted', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('RackAdded', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('RackUpdated', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('RackDeleted', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxAdded', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxUpdated', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxDeleted', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('LabNameChanged', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('RackLabelUpdated', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxLabelUpdated', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('TankAdded', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('TankUpdated', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('TankDeleted', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackAdded', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackUpdated', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackDeleted', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxAdded', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxUpdated', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxDeleted', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackLabelUpdated', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxLabelUpdated', e => this.handleStorageChange(e));
 
     // Assignment events - also configuration changes
-    this.eventBus.subscribe('RackAssigned', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('RackUnassigned', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('RackReassigned', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxAssigned', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxUnassigned', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BoxReassigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackAssigned', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackUnassigned', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackReassigned', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxAssigned', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxUnassigned', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxReassigned', e => this.handleStorageChange(e));
 
     // Bulk resource events - triggered during user deletion cascade
-    this.eventBus.subscribe('BulkResourcesUnassigned', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('BulkResourcesReassigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BulkResourcesUnassigned', e => this.handleStorageChange(e));
+    this.eventBus.subscribe('BulkResourcesReassigned', e => this.handleStorageChange(e));
 
     // Lab lifecycle events — system admin only
-    this.eventBus.subscribe('LabCreated', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabCreated'));
-    this.eventBus.subscribe('LabRenamed', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabRenamed'));
-    this.eventBus.subscribe('LabActivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabActivated'));
-    this.eventBus.subscribe('LabDeactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabDeactivated'));
+    this.eventBus.subscribe('LabCreated', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'LabCreated')
+    );
+    this.eventBus.subscribe('LabRenamed', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'LabRenamed')
+    );
+    this.eventBus.subscribe('LabActivated', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'LabActivated')
+    );
+    this.eventBus.subscribe('LabDeactivated', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'LabDeactivated')
+    );
 
     // User status events — system admin only (lab-scoped events handled by existing user handlers)
-    this.eventBus.subscribe('UserDeactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserDeactivated'));
-    this.eventBus.subscribe('UserSuspended', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserSuspended'));
-    this.eventBus.subscribe('UserReactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserReactivated'));
+    this.eventBus.subscribe('UserDeactivated', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'UserDeactivated')
+    );
+    this.eventBus.subscribe('UserSuspended', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'UserSuspended')
+    );
+    this.eventBus.subscribe('UserReactivated', async e =>
+      this.emitSystemAdminUpdate(e.labId, 'UserReactivated')
+    );
 
     // User events
-    this.eventBus.subscribe('UserDeleted', (e) => this.handleUserDeleted(e));
-    this.eventBus.subscribe('UserRoleChanged', (e) => this.handleUserRoleChanged(e));
-    this.eventBus.subscribe('UserCreated', (e) => this.handleUserCreated(e));
-    this.eventBus.subscribe('UserLinkedToResearcher', (e) => this.handleUserLinkedToResearcher(e));
-    this.eventBus.subscribe('UserUnlinkedFromResearcher', (e) => this.handleUserUnlinkedFromResearcher(e));
+    this.eventBus.subscribe('UserDeleted', e => this.handleUserDeleted(e));
+    this.eventBus.subscribe('UserRoleChanged', e => this.handleUserRoleChanged(e));
+    this.eventBus.subscribe('UserCreated', e => this.handleUserCreated(e));
+    this.eventBus.subscribe('UserLinkedToResearcher', e => this.handleUserLinkedToResearcher(e));
+    this.eventBus.subscribe('UserUnlinkedFromResearcher', e =>
+      this.handleUserUnlinkedFromResearcher(e)
+    );
 
     // Tube CRUD events
-    this.eventBus.subscribe('TubeCreated', (e) => this.handleTubeCreated(e));
-    this.eventBus.subscribe('TubeUpdated', (e) => this.handleTubeUpdated(e));
-    this.eventBus.subscribe('TubeLocationChanged', (e) => this.handleTubeUpdated(e));
-    this.eventBus.subscribe('TubeDeleted', (e) => this.handleTubeDeleted(e));
-    this.eventBus.subscribe('BulkTubesCreated', (e) => this.handleBulkTubesCreated(e));
-    this.eventBus.subscribe('BulkTubesUpdated', (e) => this.handleBulkTubesUpdated(e));
-    this.eventBus.subscribe('BulkTubesDeleted', (e) => this.handleBulkTubesDeleted(e));
-    this.eventBus.subscribe('BulkTubesMoved', (e) => this.handleBulkTubesMoved(e));
+    this.eventBus.subscribe('TubeCreated', e => this.handleTubeCreated(e));
+    this.eventBus.subscribe('TubeUpdated', e => this.handleTubeUpdated(e));
+    this.eventBus.subscribe('TubeLocationChanged', e => this.handleTubeUpdated(e));
+    this.eventBus.subscribe('TubeDeleted', e => this.handleTubeDeleted(e));
+    this.eventBus.subscribe('BulkTubesCreated', e => this.handleBulkTubesCreated(e));
+    this.eventBus.subscribe('BulkTubesUpdated', e => this.handleBulkTubesUpdated(e));
+    this.eventBus.subscribe('BulkTubesDeleted', e => this.handleBulkTubesDeleted(e));
+    this.eventBus.subscribe('BulkTubesMoved', e => this.handleBulkTubesMoved(e));
 
     // Tube lock/access events
-    this.eventBus.subscribe('TubesLocked', (e) => this.handleTubesLocked(e));
-    this.eventBus.subscribe('TubesUnlocked', (e) => this.handleTubesUnlocked(e));
-    this.eventBus.subscribe('TubeAccessShared', (e) => this.handleTubeAccessShared(e));
-    this.eventBus.subscribe('TubeAccessRevoked', (e) => this.handleTubeAccessRevoked(e));
+    this.eventBus.subscribe('TubesLocked', e => this.handleTubesLocked(e));
+    this.eventBus.subscribe('TubesUnlocked', e => this.handleTubesUnlocked(e));
+    this.eventBus.subscribe('TubeAccessShared', e => this.handleTubeAccessShared(e));
+    this.eventBus.subscribe('TubeAccessRevoked', e => this.handleTubeAccessRevoked(e));
 
     // Researcher CRUD events
-    this.eventBus.subscribe('ResearcherCreated', (e) => this.handleResearcherCreated(e));
-    this.eventBus.subscribe('ResearcherUpdated', (e) => this.handleResearcherUpdated(e));
-    this.eventBus.subscribe('ResearcherDeactivated', (e) => this.handleResearcherUpdated(e));
-    this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherUpdated(e));
-    this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
+    this.eventBus.subscribe('ResearcherCreated', e => this.handleResearcherCreated(e));
+    this.eventBus.subscribe('ResearcherUpdated', e => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherDeactivated', e => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherReactivated', e => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherDeleted', e => this.handleResearcherDeleted(e));
   }
 
   // CONFIGURATION EVENT HANDLERS
@@ -283,7 +314,6 @@ export class SocketEventHandler {
       | BoxAddedEvent
       | BoxUpdatedEvent
       | BoxDeletedEvent
-      | LabNameChangedEvent
       | RackLabelUpdatedEvent
       | BoxLabelUpdatedEvent
       | RackAssignedEvent
@@ -317,9 +347,12 @@ export class SocketEventHandler {
         clearTimeout(existingTimer);
       }
 
-      this.configTimersByLab.set(labId, setTimeout(() => {
-        this.emitStorageUpdate(labId);
-      }, this.DEBOUNCE_DELAY_MS));
+      this.configTimersByLab.set(
+        labId,
+        setTimeout(() => {
+          this.emitStorageUpdate(labId);
+        }, this.DEBOUNCE_DELAY_MS)
+      );
     } catch (error) {
       logger.error('Failed to queue configuration event', {
         error: error instanceof Error ? error.message : String(error),
@@ -352,7 +385,11 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size,
       });
 
-      this.emitToLabRooms(labId === 'unknown' ? undefined : labId, 'configuration_updated', payload);
+      this.emitToLabRooms(
+        labId === 'unknown' ? undefined : labId,
+        'configuration_updated',
+        payload
+      );
     } catch (error) {
       logger.error('Failed to emit configuration_updated event', {
         error: error instanceof Error ? error.message : String(error),
@@ -376,21 +413,21 @@ export class SocketEventHandler {
         tubeId: event.tubeId,
         location: locationData,
         createdBy: event.createdBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tube_created socket event', {
         tubeId: event.tubeId,
         location: locationData,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tube_created', payload);
     } catch (error) {
       logger.error('Failed to emit tube_created event', {
         error: error instanceof Error ? error.message : String(error),
-        tubeId: event.tubeId
+        tubeId: event.tubeId,
       });
     }
   }
@@ -400,9 +437,7 @@ export class SocketEventHandler {
   ): Promise<void> {
     if (event.partOfBulkOperation) return;
     try {
-      const changedBy = event instanceof TubeLocationChangedEvent
-        ? event.movedBy
-        : event.updatedBy;
+      const changedBy = event instanceof TubeLocationChangedEvent ? event.movedBy : event.updatedBy;
 
       const oldLocationData = event.oldLocation.toData();
       const newLocationData = event.newLocation.toData();
@@ -412,20 +447,20 @@ export class SocketEventHandler {
         oldLocation: oldLocationData,
         newLocation: newLocationData,
         updatedBy: changedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tube_updated socket event', {
         tubeId: event.tubeId,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tube_updated', payload);
     } catch (error) {
       logger.error('Failed to emit tube_updated event', {
         error: error instanceof Error ? error.message : String(error),
-        tubeId: event.tubeId
+        tubeId: event.tubeId,
       });
     }
   }
@@ -439,20 +474,20 @@ export class SocketEventHandler {
         tubeId: event.tubeId,
         location: locationData,
         deletedBy: event.deletedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tube_deleted socket event', {
         tubeId: event.tubeId,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tube_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit tube_deleted event', {
         error: error instanceof Error ? error.message : String(error),
-        tubeId: event.tubeId
+        tubeId: event.tubeId,
       });
     }
   }
@@ -465,20 +500,20 @@ export class SocketEventHandler {
         operation: 'bulk_update',
         changesSummary: event.changesSummary,
         updatedBy: event.updatedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tubes_bulk_updated socket event', {
         count: event.tubeIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tubes_bulk_updated', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_updated event', {
         error: error instanceof Error ? error.message : String(error),
-        count: event.tubeIds.length
+        count: event.tubeIds.length,
       });
     }
   }
@@ -490,20 +525,20 @@ export class SocketEventHandler {
         count: event.tubeIds.length,
         operation: 'bulk_create',
         createdBy: event.createdBy,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tubes_bulk_created socket event', {
         count: event.tubeIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tubes_bulk_created', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_created event', {
         error: error instanceof Error ? error.message : String(error),
-        count: event.tubeIds.length
+        count: event.tubeIds.length,
       });
     }
   }
@@ -515,20 +550,20 @@ export class SocketEventHandler {
         count: event.tubeIds.length,
         operation: 'bulk_delete',
         deletedBy: event.deletedBy,
-        deletedAt: new Date().toISOString()
+        deletedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tubes_bulk_deleted socket event', {
         count: event.tubeIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tubes_bulk_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_deleted event', {
         error: error instanceof Error ? error.message : String(error),
-        count: event.tubeIds.length
+        count: event.tubeIds.length,
       });
     }
   }
@@ -540,20 +575,20 @@ export class SocketEventHandler {
         count: event.tubeIds.length,
         operation: 'bulk_move' as const,
         movedBy: event.movedBy,
-        movedAt: new Date().toISOString()
+        movedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tubes_bulk_moved socket event', {
         count: event.tubeIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tubes_bulk_moved', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_moved event', {
         error: error instanceof Error ? error.message : String(error),
-        count: event.tubeIds.length
+        count: event.tubeIds.length,
       });
     }
   }
@@ -570,12 +605,12 @@ export class SocketEventHandler {
         email: event.email,
         position: event.position,
         updatedBy: event.createdBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting researcher_created socket event', {
         researcherId: event.researcherId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'researcher_created', payload);
@@ -583,22 +618,22 @@ export class SocketEventHandler {
     } catch (error) {
       logger.error('Failed to emit researcher_created event', {
         error: error instanceof Error ? error.message : String(error),
-        researcherId: event.researcherId
+        researcherId: event.researcherId,
       });
     }
   }
 
   private async handleResearcherUpdated(
-    event:
-      | ResearcherUpdatedEvent
-      | ResearcherDeactivatedEvent
-      | ResearcherReactivatedEvent
+    event: ResearcherUpdatedEvent | ResearcherDeactivatedEvent | ResearcherReactivatedEvent
   ): Promise<void> {
     try {
       const eventType = event.eventName();
-      const socketEvent = eventType === 'ResearcherDeactivated' ? 'researcher_deactivated'
-        : eventType === 'ResearcherReactivated' ? 'researcher_reactivated'
-        : 'researcher_updated';
+      const socketEvent =
+        eventType === 'ResearcherDeactivated'
+          ? 'researcher_deactivated'
+          : eventType === 'ResearcherReactivated'
+            ? 'researcher_reactivated'
+            : 'researcher_updated';
 
       let changedBy: string;
       if (event instanceof ResearcherDeactivatedEvent) {
@@ -613,12 +648,12 @@ export class SocketEventHandler {
         researcherId: event.researcherId,
         eventType,
         updatedBy: changedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug(`Emitting ${socketEvent} socket event`, {
         researcherId: event.researcherId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, socketEvent, payload);
@@ -626,7 +661,7 @@ export class SocketEventHandler {
       logger.error('Failed to emit researcher event', {
         error: error instanceof Error ? error.message : String(error),
         researcherId: event.researcherId,
-        eventType: event.eventName()
+        eventType: event.eventName(),
       });
     }
   }
@@ -639,12 +674,12 @@ export class SocketEventHandler {
         firstName: event.firstName,
         lastName: event.lastName,
         deletedBy: event.deletedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting researcher_deleted socket event', {
         researcherId: event.researcherId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'researcher_deleted', payload);
@@ -652,13 +687,12 @@ export class SocketEventHandler {
     } catch (error) {
       logger.error('Failed to emit researcher_deleted event', {
         error: error instanceof Error ? error.message : String(error),
-        researcherId: event.researcherId
+        researcherId: event.researcherId,
       });
     }
   }
 
   // USER EVENT HANDLERS
-
 
   private async handleUserDeleted(event: UserDeletedEvent): Promise<void> {
     try {
@@ -666,12 +700,12 @@ export class SocketEventHandler {
         userId: event.userId,
         username: event.username,
         deletedBy: event.deletedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting user_deleted socket event', {
         userId: event.userId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'user_deleted', payload);
@@ -679,7 +713,7 @@ export class SocketEventHandler {
     } catch (error) {
       logger.error('Failed to emit user_deleted event', {
         error: error instanceof Error ? error.message : String(error),
-        userId: event.userId
+        userId: event.userId,
       });
     }
   }
@@ -692,12 +726,12 @@ export class SocketEventHandler {
         oldRole: event.oldRole.value,
         newRole: event.newRole.value,
         changedBy: event.changedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting user_role_changed socket event', {
         userId: event.userId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'user_role_changed', payload);
@@ -705,7 +739,7 @@ export class SocketEventHandler {
     } catch (error) {
       logger.error('Failed to emit user_role_changed event', {
         error: error instanceof Error ? error.message : String(error),
-        userId: event.userId
+        userId: event.userId,
       });
     }
   }
@@ -716,12 +750,12 @@ export class SocketEventHandler {
         userId: event.userId,
         username: event.username,
         role: event.role.value,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting user_created socket event', {
         userId: event.userId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'user_created', payload);
@@ -729,7 +763,7 @@ export class SocketEventHandler {
     } catch (error) {
       logger.error('Failed to emit user_created event', {
         error: error instanceof Error ? error.message : String(error),
-        userId: event.userId
+        userId: event.userId,
       });
     }
   }
@@ -742,25 +776,27 @@ export class SocketEventHandler {
         researcherId: event.researcherId,
         researcherName: event.researcherName,
         linkedBy: event.linkedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting user_linked_to_researcher socket event', {
         userId: event.userId,
         researcherId: event.researcherId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'user_linked_to_researcher', payload);
     } catch (error) {
       logger.error('Failed to emit user_linked_to_researcher event', {
         error: error instanceof Error ? error.message : String(error),
-        userId: event.userId
+        userId: event.userId,
       });
     }
   }
 
-  private async handleUserUnlinkedFromResearcher(event: UserUnlinkedFromResearcherEvent): Promise<void> {
+  private async handleUserUnlinkedFromResearcher(
+    event: UserUnlinkedFromResearcherEvent
+  ): Promise<void> {
     try {
       const payload = {
         userId: event.userId,
@@ -768,20 +804,20 @@ export class SocketEventHandler {
         researcherId: event.researcherId,
         researcherName: event.researcherName,
         unlinkedBy: event.unlinkedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting user_unlinked_from_researcher socket event', {
         userId: event.userId,
         researcherId: event.researcherId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'user_unlinked_from_researcher', payload);
     } catch (error) {
       logger.error('Failed to emit user_unlinked_from_researcher event', {
         error: error instanceof Error ? error.message : String(error),
-        userId: event.userId
+        userId: event.userId,
       });
     }
   }
@@ -795,20 +831,20 @@ export class SocketEventHandler {
         count: event.tubeIds.length,
         lockedBy: event.lockedBy,
         lockNote: event.lockNote,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tubes_locked socket event', {
         count: event.tubeIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tubes_locked', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_locked event', {
         error: error instanceof Error ? error.message : String(error),
-        count: event.tubeIds.length
+        count: event.tubeIds.length,
       });
     }
   }
@@ -819,20 +855,20 @@ export class SocketEventHandler {
         tubeIds: event.tubeIds,
         count: event.tubeIds.length,
         unlockedBy: event.unlockedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       logger.debug('Emitting tubes_unlocked socket event', {
         count: event.tubeIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tubes_unlocked', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_unlocked event', {
         error: error instanceof Error ? error.message : String(error),
-        count: event.tubeIds.length
+        count: event.tubeIds.length,
       });
     }
   }
@@ -844,21 +880,21 @@ export class SocketEventHandler {
         addedUserIds: event.addedUserIds,
         tubeSharedUsers: event.tubeSharedUsers,
         sharedBy: event.sharedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
-      logger.debug('Emitting tube_access_shared Socket event', {
+      logger.debug('Emitting tube_access_shared socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.addedUserIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tube_access_shared', payload);
     } catch (error) {
       logger.error('Failed to emit tube_access_shared event', {
         error: error instanceof Error ? error.message : String(error),
-        tubeIds: event.tubeIds
+        tubeIds: event.tubeIds,
       });
     }
   }
@@ -870,21 +906,21 @@ export class SocketEventHandler {
         revokedUserIds: event.revokedUserIds,
         tubeSharedUsers: event.tubeSharedUsers,
         revokedBy: event.revokedBy,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
-      logger.debug('Emitting tube_access_revoked Socket event', {
+      logger.debug('Emitting tube_access_revoked socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.revokedUserIds.length,
         labId: event.labId,
-        connectedClients: this.io.sockets.sockets.size
+        connectedClients: this.io.sockets.sockets.size,
       });
 
       this.emitToLabRooms(event.labId, 'tube_access_revoked', payload);
     } catch (error) {
       logger.error('Failed to emit tube_access_revoked event', {
         error: error instanceof Error ? error.message : String(error),
-        tubeIds: event.tubeIds
+        tubeIds: event.tubeIds,
       });
     }
   }

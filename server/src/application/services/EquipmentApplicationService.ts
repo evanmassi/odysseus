@@ -14,6 +14,7 @@ import type {
   EquipmentDocumentResponse,
   EquipmentMaintenanceLogResponse,
 } from '@application/dto/EquipmentDto';
+import { validateCategoryDepth } from '@application/guards/CategoryGuards';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import { EquipmentItem } from '@domain/entities/EquipmentItem';
@@ -38,10 +39,12 @@ import {
   EquipmentBulkStatusChangedEvent,
   EquipmentBulkRelocatedEvent,
 } from '@domain/events/EquipmentEvents';
-import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+
+import { executeBulk } from './executeBulk';
 
 import type {
   CreateEquipmentCategoryRequest,
@@ -53,13 +56,14 @@ import type {
   UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
-  EquipmentStatus,
+  EquipmentBulkStatusRequest,
+  EquipmentBulkRelocateRequest,
+  EquipmentBulkResponse,
 } from '@odysseus/shared-schemas';
 
 export class EquipmentApplicationService {
-
   constructor(
-    private categoryRepository: EquipmentCategoryRepository,
+    private categoryRepository: CategoryRepository<EquipmentCategory>,
     private itemRepository: EquipmentItemRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
@@ -79,16 +83,7 @@ export class EquipmentApplicationService {
   ): Promise<EquipmentCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    if (data.parentId) {
-      const parent = await this.categoryRepository.findById(data.parentId, labId);
-      if (!parent) {
-        throw new NotFoundError('Parent category not found');
-      }
-      // 2-level max: parent must be top-level
-      if (parent.parentId) {
-        throw new ValidationError('Cannot create subcategory under another subcategory — maximum depth is 2 levels');
-      }
-    }
+    await validateCategoryDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
     const category = EquipmentCategory.create({
       labId,
@@ -99,9 +94,9 @@ export class EquipmentApplicationService {
 
     await this.categoryRepository.save(category);
 
-    await this.eventBus.publish(new EquipmentCategoryCreatedEvent(
-      category.id, category.name, data.parentId, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentCategoryCreatedEvent(category.id, category.name, data.parentId, user.id, labId)
+    );
 
     return EquipmentDto.categoryToResponse(category);
   }
@@ -119,22 +114,13 @@ export class EquipmentApplicationService {
       throw new NotFoundError('Category not found');
     }
 
-    // Depth validation when parentId is changing
+    // Only a change of parent can violate the depth rule.
     if (data.parentId !== undefined && data.parentId !== category.parentId) {
-      if (data.parentId !== null) {
-        const newParent = await this.categoryRepository.findById(data.parentId, labId);
-        if (!newParent) {
-          throw new NotFoundError('New parent category not found');
-        }
-        if (newParent.parentId) {
-          throw new ValidationError('Cannot move category under a subcategory — maximum depth is 2 levels');
-        }
-        // Can't nest a category that already has children
-        const hasChildren = await this.categoryRepository.hasChildren(id, labId);
-        if (hasChildren) {
-          throw new ValidationError('Cannot move a category with subcategories under another category — would exceed 2-level depth');
-        }
-      }
+      await validateCategoryDepth(this.categoryRepository, {
+        labId,
+        parentId: data.parentId,
+        movingCategoryId: id,
+      });
     }
 
     category.update({
@@ -145,9 +131,9 @@ export class EquipmentApplicationService {
 
     await this.categoryRepository.save(category);
 
-    await this.eventBus.publish(new EquipmentCategoryUpdatedEvent(
-      category.id, category.name, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentCategoryUpdatedEvent(category.id, category.name, user.id, labId)
+    );
 
     return EquipmentDto.categoryToResponse(category);
   }
@@ -162,7 +148,9 @@ export class EquipmentApplicationService {
 
     const hasItems = await this.categoryRepository.hasItemsIncludingChildren(id, labId);
     if (hasItems) {
-      throw new ValidationError('Cannot delete category — equipment items are still assigned to it or its subcategories');
+      throw new ValidationError(
+        'Cannot delete category — equipment items are still assigned to it or its subcategories'
+      );
     }
 
     // Delete empty subcategories first (RESTRICT FK requires children deleted before parent)
@@ -177,9 +165,9 @@ export class EquipmentApplicationService {
 
     await this.categoryRepository.delete(id, labId);
 
-    await this.eventBus.publish(new EquipmentCategoryDeletedEvent(
-      id, category.name, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentCategoryDeletedEvent(id, category.name, user.id, labId)
+    );
   }
 
   // Items
@@ -229,9 +217,9 @@ export class EquipmentApplicationService {
 
     await this.itemRepository.save(item);
 
-    await this.eventBus.publish(new EquipmentItemCreatedEvent(
-      item.id, item.name, item.categoryId, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentItemCreatedEvent(item.id, item.name, item.categoryId, user.id, labId)
+    );
 
     return EquipmentDto.itemToResponse(item);
   }
@@ -299,17 +287,13 @@ export class EquipmentApplicationService {
       throw new ValidationError('Equipment is already decommissioned');
     }
 
-    item.decommission(
-      data.decommissionDate,
-      data.decommissionReason,
-      data.disposalMethod
-    );
+    item.decommission(data.decommissionDate, data.decommissionReason, data.disposalMethod);
 
     await this.itemRepository.save(item);
 
-    await this.eventBus.publish(new EquipmentItemDecommissionedEvent(
-      item.id, data.decommissionReason, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentItemDecommissionedEvent(item.id, data.decommissionReason, user.id, labId)
+    );
 
     return EquipmentDto.itemToResponse(item);
   }
@@ -320,18 +304,10 @@ export class EquipmentApplicationService {
     const item = await this.getItemOrThrow(id, labId);
     await this.itemRepository.delete(id, labId);
 
-    await this.eventBus.publish(new EquipmentItemDeletedEvent(
-      item.id, item.name, user.id, labId
-    ));
+    await this.eventBus.publish(new EquipmentItemDeletedEvent(item.id, item.name, user.id, labId));
   }
 
   // Documents
-
-  async listDocuments(labId: string, itemId: string): Promise<EquipmentDocumentResponse[]> {
-    await this.getItemOrThrow(itemId, labId);
-    const documents = await this.itemRepository.findDocumentsByItemId(itemId);
-    return documents.map(EquipmentDto.documentToResponse);
-  }
 
   async addDocument(
     labId: string,
@@ -351,9 +327,9 @@ export class EquipmentApplicationService {
 
     await this.itemRepository.saveDocument(document);
 
-    await this.eventBus.publish(new EquipmentDocumentAddedEvent(
-      itemId, data.label, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentDocumentAddedEvent(itemId, data.label, user.id, labId)
+    );
 
     return EquipmentDto.documentToResponse(document);
   }
@@ -367,37 +343,28 @@ export class EquipmentApplicationService {
   ): Promise<EquipmentDocumentResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    await this.itemRepository.updateDocument(docId, {
+    const updated = await this.itemRepository.updateDocument(docId, itemId, {
       label: data.label,
       url: data.url,
       notes: data.notes,
     });
-    const docs = await this.itemRepository.findDocumentsByItemId(itemId);
-    const updated = docs.find(d => d.id === docId);
-    if (!updated) throw new NotFoundError(`Document ${docId} not found`);
+    if (!updated)
+      throw new NotFoundError('This document could not be found. It may have been deleted.');
     return EquipmentDto.documentToResponse(updated);
   }
 
   async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    const deleted = await this.itemRepository.deleteDocument(docId);
+    const deleted = await this.itemRepository.deleteDocument(docId, itemId);
     if (!deleted) {
       throw new NotFoundError('Document not found');
     }
 
-    await this.eventBus.publish(new EquipmentDocumentRemovedEvent(
-      itemId, user.id, labId
-    ));
+    await this.eventBus.publish(new EquipmentDocumentRemovedEvent(itemId, user.id, labId));
   }
 
   // Maintenance log
-
-  async getMaintenanceLog(labId: string, itemId: string): Promise<EquipmentMaintenanceLogResponse[]> {
-    await this.getItemOrThrow(itemId, labId);
-    const entries = await this.itemRepository.findMaintenanceLogByItemId(itemId);
-    return entries.map(EquipmentDto.maintenanceEntryToResponse);
-  }
 
   async addMaintenanceEntry(
     labId: string,
@@ -429,7 +396,11 @@ export class EquipmentApplicationService {
     }
 
     const event = new EquipmentMaintenanceLoggedEvent(
-      itemId, data.maintenanceType, data.datePerformed, user.id, labId
+      itemId,
+      data.maintenanceType,
+      data.datePerformed,
+      user.id,
+      labId
     );
     if (options?.bulkOperation) event.partOfBulkOperation = true;
     await this.eventBus.publish(event);
@@ -471,9 +442,9 @@ export class EquipmentApplicationService {
       await this.itemRepository.save(item);
     }
 
-    await this.eventBus.publish(new EquipmentMaintenanceUpdatedEvent(
-      itemId, entry.maintenanceType, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentMaintenanceUpdatedEvent(itemId, entry.maintenanceType, user.id, labId)
+    );
 
     return EquipmentDto.maintenanceEntryToResponse(entry);
   }
@@ -499,16 +470,15 @@ export class EquipmentApplicationService {
       const remainingEntries = await this.itemRepository.findMaintenanceLogByItemId(itemId);
       const latestNextDate = remainingEntries
         .filter(e => e.nextScheduledDate)
-        .sort((a, b) => b.datePerformed.localeCompare(a.datePerformed))[0]
-        ?.nextScheduledDate;
+        .sort((a, b) => b.datePerformed.localeCompare(a.datePerformed))[0]?.nextScheduledDate;
 
       item.updateNextMaintenanceDate(latestNextDate);
       await this.itemRepository.save(item);
     }
 
-    await this.eventBus.publish(new EquipmentMaintenanceDeletedEvent(
-      itemId, entry.maintenanceType, user.id, labId
-    ));
+    await this.eventBus.publish(
+      new EquipmentMaintenanceDeletedEvent(itemId, entry.maintenanceType, user.id, labId)
+    );
   }
 
   // Bulk operations
@@ -518,12 +488,12 @@ export class EquipmentApplicationService {
     itemIds: string[],
     data: CreateEquipmentMaintenanceLogRequest,
     user: User
-  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
-      async (itemId) => {
+      async itemId => {
         await this.addMaintenanceEntry(labId, itemId, data, user, { bulkOperation: true });
         return itemId;
       },
@@ -531,9 +501,15 @@ export class EquipmentApplicationService {
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new EquipmentBulkMaintenanceLoggedEvent(
-        result.succeeded, data.maintenanceType, data.datePerformed, user.id, labId
-      ));
+      await this.eventBus.publish(
+        new EquipmentBulkMaintenanceLoggedEvent(
+          result.succeeded,
+          data.maintenanceType,
+          data.datePerformed,
+          user.id,
+          labId
+        )
+      );
     }
 
     return result;
@@ -542,24 +518,30 @@ export class EquipmentApplicationService {
   async bulkChangeStatus(
     labId: string,
     itemIds: string[],
-    data: { status: EquipmentStatus; conditionNotes?: string },
+    data: EquipmentBulkStatusRequest['data'],
     user: User
-  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
-      async (itemId) => {
-        await this.updateItem(labId, itemId, { status: data.status, conditionNotes: data.conditionNotes }, user, { bulkOperation: true });
+      async itemId => {
+        await this.updateItem(
+          labId,
+          itemId,
+          { status: data.status, conditionNotes: data.conditionNotes },
+          user,
+          { bulkOperation: true }
+        );
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new EquipmentBulkStatusChangedEvent(
-        result.succeeded, data.status, user.id, labId
-      ));
+      await this.eventBus.publish(
+        new EquipmentBulkStatusChangedEvent(result.succeeded, data.status, user.id, labId)
+      );
     }
 
     return result;
@@ -568,9 +550,9 @@ export class EquipmentApplicationService {
   async bulkRelocate(
     labId: string,
     itemIds: string[],
-    data: { categoryId: string },
+    data: EquipmentBulkRelocateRequest['data'],
     user: User
-  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
@@ -578,19 +560,21 @@ export class EquipmentApplicationService {
       throw new NotFoundError('Target category not found');
     }
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
-      async (itemId) => {
-        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user, { bulkOperation: true });
+      async itemId => {
+        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user, {
+          bulkOperation: true,
+        });
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new EquipmentBulkRelocatedEvent(
-        result.succeeded, data.categoryId, user.id, labId
-      ));
+      await this.eventBus.publish(
+        new EquipmentBulkRelocatedEvent(result.succeeded, data.categoryId, user.id, labId)
+      );
     }
 
     return result;
@@ -598,29 +582,10 @@ export class EquipmentApplicationService {
 
   // Helpers
 
-  private async executeBulk<TItem, TSuccess, TFailure>(
-    items: TItem[],
-    operation: (item: TItem, index: number) => Promise<TSuccess>,
-    onFailure: (item: TItem, index: number, error: string) => TFailure
-  ): Promise<{ succeeded: TSuccess[]; failed: TFailure[] }> {
-    const succeeded: TSuccess[] = [];
-    const failed: TFailure[] = [];
-
-    for (let i = 0; i < items.length; i++) {
-      try {
-        succeeded.push(await operation(items[i], i));
-      } catch (error) {
-        failed.push(onFailure(items[i], i, error instanceof Error ? error.message : 'Unknown error'));
-      }
-    }
-
-    return { succeeded, failed };
-  }
-
   private async getItemOrThrow(id: string, labId: string): Promise<EquipmentItem> {
     const item = await this.itemRepository.findById(id, labId);
     if (!item) {
-      throw new NotFoundError(`Equipment item not found: ${id}`, { itemId: id });
+      throw new NotFoundError('This equipment item could not be found.', { itemId: id });
     }
     return item;
   }

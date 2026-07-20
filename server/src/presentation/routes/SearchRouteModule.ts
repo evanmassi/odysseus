@@ -1,11 +1,10 @@
 /**
  * Search Route Module
  *
- * Handles search-related routes with proper authentication.
+ * Authenticated route for advanced tube search.
  */
 
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
-
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -34,14 +33,12 @@ export class SearchRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate,
-      this.rateLimitMiddleware
-    ];
+    return [this.authMiddleware.authenticate, this.rateLimitMiddleware];
   }
 
   configure(router: Router): void {
-    router.post('/tubes/advanced',
+    router.post(
+      '/tubes/advanced',
       this.moderateLimiter,
       validateBody(AdvancedSearchOptionsSchema),
       this.searchController.advancedSearch.bind(this.searchController)

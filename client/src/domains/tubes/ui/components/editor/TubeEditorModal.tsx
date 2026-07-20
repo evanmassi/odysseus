@@ -4,7 +4,7 @@
  * Modal for creating and editing tubes with create, edit, and mixed modes.
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 
 import {
   type CreateTubeFormInput,
@@ -21,9 +21,8 @@ import {
 import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { useTubesByLocation, useTube } from '@domains/tubes';
+import { useTubesByLocation, useTube } from '@domains/tubes/hooks';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useUpdateTubeMutation,
@@ -31,20 +30,21 @@ import {
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { parsePositionKey, type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { AlertBanner, Button, Checkbox } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/overlays';
+import { AccentTick, AlertBanner, Button, Checkbox, LoadingSpinner } from '@shared/ui';
+import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
 import { countDirtyFields } from './countDirtyFields';
 import { TubeForm } from './TubeForm';
+import { useTubeFormOptions } from './useTubeFormOptions';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -60,8 +60,6 @@ export interface TubeEditorModalProps {
   isOpen?: boolean;
   onClose: () => void;
   tubeId?: string;
-  rackId?: string;
-  boxId?: string;
   selectedPositions?: Set<PositionKey>;
 }
 
@@ -83,22 +81,7 @@ interface EditModeContentProps {
 }
 
 function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
-  const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: sourceValues = [] } = useLookupValuesQuery('source');
-  const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const speciesOptions = useMemo(
-    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
-    [speciesValues]
-  );
-  const sourceOptions = useMemo(
-    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
-    [sourceValues]
-  );
-  const mediaOptions = useMemo(
-    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
-    [mediaValues]
-  );
+  const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
 
   const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
 
@@ -129,7 +112,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
         mode="edit"
       >
         <div className="flex items-center justify-center py-12">
-          <div className="spinner w-8 h-8"></div>
+          <LoadingSpinner size={32} className="text-primary" />
           <span className="ml-3 text-muted-foreground">Loading tube data...</span>
         </div>
       </BaseModal>
@@ -172,6 +155,7 @@ function EditModeForm({
   onClose,
 }: EditModeFormProps) {
   const modalService = useModalStore();
+  const modalRef = useRef<BaseModalHandle>(null);
   // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = useMemo(
     () => ({
@@ -179,10 +163,9 @@ function EditModeForm({
         cellType: tube.sample.cellType ?? '',
         donorInternalId: tube.sample.donorInternalId ?? '',
         donorSourceId: tube.sample.donorSourceId ?? '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Convert empty string to undefined for form
         concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
         concentrationUnit: tube.sample.concentrationUnit ?? undefined,
-        date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
+        date: tube.sample.date ? normalizeDateString(tube.sample.date) : '',
         mediaType: tube.sample.mediaType ?? '',
         mediaSupplements: tube.sample.mediaSupplements ?? '',
         mediaSelection: tube.sample.mediaSelection ?? '',
@@ -224,7 +207,7 @@ function EditModeForm({
     setStaleWarningDismissed(false);
   };
 
-  // Reset all state when modal opens (component stays mounted, only isOpen changes)
+  // Reset all state when the modal opens
   useEffect(() => {
     if (isOpen) {
       form.reset(initialData);
@@ -258,10 +241,9 @@ function EditModeForm({
 
       if (result.success) {
         notifications.success('Tube updated successfully');
-        onClose();
+        modalRef.current?.requestClose();
       } else {
         setIsSavingLocal(false);
-        notifications.error(result.error ?? 'Failed to update tube');
       }
     } catch (error) {
       setIsSavingLocal(false);
@@ -273,17 +255,14 @@ function EditModeForm({
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      await deleteMutation.mutateAsync(tubeId);
-      notifications.success('Tube removed successfully');
-      onClose();
-    } catch (error) {
-      // Skip notification for offline errors - global handler already shows it
-      if (!isOfflineError(error)) {
-        notifications.error('Failed to remove tube');
-      }
-    }
+  const handleDelete = () => {
+    modalService.hideDeleteConfirm();
+    deleteMutation.mutate(tubeId, {
+      onSuccess: () => {
+        notifications.success('Tube removed successfully');
+        onClose();
+      },
+    });
   };
 
   const { isValid: isFormValid, isDirty } = form.formState;
@@ -293,6 +272,7 @@ function EditModeForm({
 
   return (
     <BaseModal
+      ref={modalRef}
       isOpen={isOpen}
       title="Edit Tube"
       icon={<Edit className="w-5 h-5" />}
@@ -304,7 +284,6 @@ function EditModeForm({
       contentClassName="p-5"
       locator={
         <TubeLocationDisplay
-          variant="strip"
           tankId={tube.location.tankId}
           rackId={tube.location.rackId}
           boxId={tube.location.boxId}
@@ -314,11 +293,8 @@ function EditModeForm({
       footer={
         <div className="flex items-center justify-between gap-4">
           {dirtyFieldCount > 0 ? (
-            <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground whitespace-nowrap">
-              <span
-                aria-hidden
-                className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-              />
+            <div className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground whitespace-nowrap">
+              <AccentTick tone="warning" />
               <span className="text-secondary-foreground">{dirtyFieldCount}</span>
               <span>unsaved {dirtyFieldCount === 1 ? 'change' : 'changes'}</span>
             </div>
@@ -326,7 +302,11 @@ function EditModeForm({
             <span />
           )}
           <div className="flex justify-end space-x-4">
-            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              variant="secondary"
+              onClick={() => modalRef.current?.requestClose()}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button
@@ -335,9 +315,7 @@ function EditModeForm({
               leftIcon={<Trash2 className="w-4 h-4" />}
               onClick={() => {
                 modalService.showDeleteConfirm({
-                  title: 'Remove Tube',
-                  message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                  confirmText: 'Remove',
+                  ...buildRemoveTubeConfirmation(1),
                   onConfirm: handleDelete,
                 });
               }}
@@ -364,26 +342,25 @@ function EditModeForm({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-3"
       >
-        {/* Stale Form Warning Banner */}
         {showStaleWarning && (
           <AlertBanner
             variant="warning"
             title="This tube was modified by another user"
             spacing="none"
-            className="text-xs"
+            className="text-caption"
             actions={
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleRefresh}
-                  className="text-xs font-medium px-2 py-1 rounded bg-warning-bg text-warning-btnText hover:bg-warning-hover transition-colors"
+                  className="text-body-sm font-medium px-2 py-1 rounded bg-warning-bg text-warning-btnText hover:bg-warning-hover transition-colors"
                 >
                   Refresh
                 </button>
                 <button
                   type="button"
                   onClick={() => setStaleWarningDismissed(true)}
-                  className="text-xs font-medium px-2 py-1 rounded bg-warning-light-hover text-warning-text hover:bg-warning-border transition-colors"
+                  className="text-body-sm font-medium px-2 py-1 rounded bg-warning-light-hover text-warning-text hover:bg-warning-border transition-colors"
                 >
                   Continue Editing
                 </button>
@@ -415,10 +392,7 @@ function EditModeForm({
 }
 
 function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEditorModalProps) {
-  const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: sourceValues = [] } = useLookupValuesQuery('source');
-  const { data: mediaValues = [] } = useLookupValuesQuery('media');
+  const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
   // All selected positions are within a single box (tubeStore clears selection on box change).
   const firstPositionLocation = useMemo(() => {
     if (!selectedPositions || selectedPositions.size === 0) return undefined;
@@ -437,22 +411,12 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
   const updateTubeMutation = useUpdateTubeMutation();
   const pasteTubesMutation = usePasteTubesMutation();
 
-  const speciesOptions = useMemo(
-    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
-    [speciesValues]
-  );
-  const sourceOptions = useMemo(
-    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
-    [sourceValues]
-  );
-  const mediaOptions = useMemo(
-    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
-    [mediaValues]
-  );
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
 
   const [allowOverwrite, setAllowOverwrite] = useState(false);
+
+  const modalRef = useRef<BaseModalHandle>(null);
 
   useTubeModalFocusReturn();
 
@@ -512,7 +476,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     const boxGenericName = box?.name ?? `Box ${firstLocation.boxId}`;
     const boxName = formatStorageDisplayName(boxGenericName, box?.customLabel);
 
-    // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);
     const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
@@ -564,17 +527,9 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     onSuccess: isSingleTube
       ? data => {
           notifications.success(`Successfully created tube at position ${data.location.position}`);
-          onClose();
+          modalRef.current?.requestClose();
         }
       : undefined, // Bulk mode: notification handled after all tubes are created
-    onError: isSingleTube
-      ? error => {
-          // Skip notification for offline errors - global handler already shows it
-          if (!isOfflineError(error)) {
-            notifications.error(`Failed to create tube: ${error.message}`);
-          }
-        }
-      : undefined, // Bulk mode: errors handled in handleFormSubmit
   });
 
   // Reset form when modal opens to clear any stale data
@@ -598,7 +553,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         const result = await submitTube(formData, parsedPositions[0].location);
 
         if (result.success) {
-          onClose();
+          modalRef.current?.requestClose();
         }
         return;
       }
@@ -662,22 +617,33 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         }
       }
 
-      if (successCount === parsedPositions.length) {
-        const createCount = positionAnalysis.emptyPositions.length;
-        const updateCount = positionAnalysis.occupiedPositions.length;
+      // Occupied positions are only attempted when overwrite is enabled; otherwise they are
+      // intentionally skipped and must not count against the "processed / failed" tally.
+      const createCount = positionAnalysis.emptyPositions.length;
+      const updateCount = allowOverwrite ? positionAnalysis.occupiedPositions.length : 0;
+      const skippedCount = allowOverwrite ? 0 : positionAnalysis.occupiedPositions.length;
+      const attemptedCount = createCount + updateCount;
+      const positionRange = bulkLocationDisplay?.positionRanges ?? '';
 
-        // Build position range display for notification
-        const positionRange = bulkLocationDisplay?.positionRanges ?? '';
+      if (attemptedCount === 0) {
+        notifications.info(
+          `All ${skippedCount} selected position${skippedCount !== 1 ? 's are' : ' is'} occupied. Enable overwrite to update.`
+        );
+      } else if (successCount === attemptedCount) {
+        const skippedNote =
+          skippedCount > 0
+            ? ` (${skippedCount} occupied position${skippedCount !== 1 ? 's' : ''} skipped)`
+            : '';
 
         if (createCount > 0 && updateCount > 0) {
           notifications.success(
-            `Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}`
+            `Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}${skippedNote}`
           );
         } else if (createCount > 0) {
           const message =
             successCount > 1
-              ? `Successfully created ${successCount} tubes at positions ${positionRange}`
-              : `Successfully created tube at position ${positionRange}`;
+              ? `Successfully created ${successCount} tubes at positions ${positionRange}${skippedNote}`
+              : `Successfully created tube at position ${positionRange}${skippedNote}`;
           notifications.success(message);
         } else {
           const message =
@@ -686,10 +652,10 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
               : `Successfully updated tube at position ${positionRange}`;
           notifications.success(message);
         }
-        onClose();
+        modalRef.current?.requestClose();
       } else if (successCount > 0) {
         notifications.warning(
-          `Processed ${successCount} of ${parsedPositions.length} positions. ${errorCount} failed.`
+          `Processed ${successCount} of ${attemptedCount} positions. ${errorCount} failed.`
         );
         if (errors.length > 0) {
           logger.warn('Tube operation errors', { errors });
@@ -717,7 +683,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
   const locatorNode =
     parsedPositions.length === 1 && parsedPositions[0] ? (
       <TubeLocationDisplay
-        variant="strip"
         tankId={parsedPositions[0].location.tankId}
         rackId={parsedPositions[0].location.rackId}
         boxId={parsedPositions[0].location.boxId}
@@ -725,7 +690,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       />
     ) : parsedPositions.length > 1 && bulkLocationDisplay ? (
       <TubeLocationDisplay
-        variant="strip"
         tankName={bulkLocationDisplay.tankName}
         rackName={bulkLocationDisplay.rackName}
         boxName={bulkLocationDisplay.boxName}
@@ -735,6 +699,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
   return (
     <BaseModal
+      ref={modalRef}
       isOpen={isOpen}
       title={`Add ${parsedPositions.length > 1 ? parsedPositions.length : ''} Tube${parsedPositions.length > 1 ? 's' : ''}`}
       icon={<Plus className="w-5 h-5" />}

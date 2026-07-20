@@ -14,7 +14,6 @@ export const migration021: Migration = {
   id: 21,
   name: 'create_supplies',
   async up(pool: Pool): Promise<void> {
-
     // Categories — two-level hierarchy (same pattern as equipment_categories)
 
     await pool.query(`
@@ -153,7 +152,9 @@ export const migration021: Migration = {
 
     await pool.query(`CREATE INDEX idx_supply_transactions_item ON supply_transactions(item_id)`);
     await pool.query(`CREATE INDEX idx_supply_transactions_lab ON supply_transactions(lab_id)`);
-    await pool.query(`CREATE INDEX idx_supply_transactions_related ON supply_transactions(related_transaction_id) WHERE related_transaction_id IS NOT NULL`);
+    await pool.query(
+      `CREATE INDEX idx_supply_transactions_related ON supply_transactions(related_transaction_id) WHERE related_transaction_id IS NOT NULL`
+    );
 
     // Documents — linked docs, SOPs, item page URLs
 
@@ -183,7 +184,9 @@ export const migration021: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_packaging_levels_item ON supply_packaging_levels(item_id)`);
+    await pool.query(
+      `CREATE INDEX idx_supply_packaging_levels_item ON supply_packaging_levels(item_id)`
+    );
 
     // Extend lookup category constraint to include supply categories
 

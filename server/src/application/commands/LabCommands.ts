@@ -9,13 +9,16 @@ import { requireSystemAdmin } from '@application/guards/UserGuards';
 import { Lab } from '@domain/entities/Lab';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { LabCreatedEvent, LabRenamedEvent, LabActivatedEvent, LabDeactivatedEvent } from '@domain/events/LabEvents';
+import {
+  LabCreatedEvent,
+  LabRenamedEvent,
+  LabActivatedEvent,
+  LabDeactivatedEvent,
+} from '@domain/events/LabEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-
-// COMMAND INTERFACES
 
 export interface CreateLabCommand {
   userId: string;
@@ -39,8 +42,6 @@ export interface ActivateLabCommand {
   labId: string;
 }
 
-// COMMAND HANDLERS
-
 export class CreateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
@@ -49,7 +50,7 @@ export class CreateLabCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: CreateLabCommand): Promise<{ labId: string }> {
+  async handle(command: CreateLabCommand): Promise<Lab> {
     await requireSystemAdmin(this.userRepository, command.userId);
 
     if (!command.name || command.name.trim().length === 0) {
@@ -60,7 +61,9 @@ export class CreateLabCommandHandler {
 
     const existingBySlug = await this.labRepository.findBySlug(lab.slug);
     if (existingBySlug) {
-      throw new ValidationError(`A lab with a similar name already exists: '${existingBySlug.name}'`);
+      throw new ValidationError(
+        `A lab with a similar name already exists: '${existingBySlug.name}'`
+      );
     }
 
     await this.labRepository.save(lab);
@@ -68,7 +71,7 @@ export class CreateLabCommandHandler {
 
     await this.eventBus.publish(new LabCreatedEvent(lab.id, lab.name));
 
-    return { labId: lab.id };
+    return lab;
   }
 }
 
@@ -79,7 +82,7 @@ export class UpdateLabCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: UpdateLabCommand): Promise<void> {
+  async handle(command: UpdateLabCommand): Promise<Lab> {
     await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
@@ -88,20 +91,26 @@ export class UpdateLabCommandHandler {
     }
 
     if (lab.name === command.name) {
-      return;
+      return lab;
     }
 
     const oldName = lab.name;
     const newSlug = Lab.generateSlug(command.name);
     const existingBySlug = await this.labRepository.findBySlug(newSlug);
     if (existingBySlug && existingBySlug.id !== lab.id) {
-      throw new ValidationError(`A lab with a similar name already exists: '${existingBySlug.name}'`);
+      throw new ValidationError(
+        `A lab with a similar name already exists: '${existingBySlug.name}'`
+      );
     }
 
     lab.updateName(command.name);
     await this.labRepository.save(lab);
 
-    await this.eventBus.publish(new LabRenamedEvent(command.labId, oldName, command.name, command.userId));
+    await this.eventBus.publish(
+      new LabRenamedEvent(command.labId, oldName, command.name, command.userId)
+    );
+
+    return lab;
   }
 }
 
@@ -129,9 +138,7 @@ export class DeactivateLabCommandHandler {
     await this.labRepository.save(lab);
 
     const labUsers = await this.userRepository.findByLabId(command.labId);
-    await Promise.all(
-      labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id))
-    );
+    await Promise.all(labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id)));
 
     await this.eventBus.publish(new LabDeactivatedEvent(command.labId, command.userId));
   }

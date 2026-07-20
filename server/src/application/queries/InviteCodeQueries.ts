@@ -1,19 +1,19 @@
 /**
- * Invite Code CQRS Queries
+ * Invite Code Queries
  *
- * Read-only operations for invite code validation during registration.
+ * Read-only operations — invite code validation for registration and listing for the admin console.
  */
 
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 
-// QUERY INTERFACES
-
 export interface ValidateInviteCodeQuery {
   code: string;
 }
 
-// QUERY HANDLERS
+export interface ListInviteCodesQuery {
+  labId: string;
+}
 
 /** Public query — validates an invite code for the registration flow. */
 export class ValidateInviteCodeQueryHandler {
@@ -22,7 +22,13 @@ export class ValidateInviteCodeQueryHandler {
     private labRepository: LabRepository
   ) {}
 
-  async handle(query: ValidateInviteCodeQuery): Promise<{ valid: boolean; labName?: string; labId?: string; role?: 'lab_admin' | 'user'; createResearcher?: boolean }> {
+  async handle(query: ValidateInviteCodeQuery): Promise<{
+    valid: boolean;
+    labName?: string;
+    labId?: string;
+    role?: 'lab_admin' | 'user';
+    createResearcher?: boolean;
+  }> {
     if (!query.code || query.code.trim().length === 0) {
       return { valid: false };
     }
@@ -37,6 +43,22 @@ export class ValidateInviteCodeQueryHandler {
       return { valid: false };
     }
 
-    return { valid: true, labName: lab.name, labId: lab.id, role: inviteCode.role, createResearcher: inviteCode.createResearcher };
+    return {
+      valid: true,
+      labName: lab.name,
+      labId: lab.id,
+      role: inviteCode.role,
+      createResearcher: inviteCode.createResearcher,
+    };
+  }
+}
+
+/** Lists a lab's invite codes for the admin console. */
+export class ListInviteCodesQueryHandler {
+  constructor(private inviteCodeRepository: InviteCodeRepository) {}
+
+  async handle(query: ListInviteCodesQuery) {
+    const codes = await this.inviteCodeRepository.findByLabId(query.labId);
+    return codes.map(c => c.toData());
   }
 }

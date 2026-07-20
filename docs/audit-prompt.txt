@@ -1,14 +1,34 @@
-You are auditing a codebase file-by-file. I will provide you with one or more files to examine. Your job is to analyze
-each file and report findings — DO NOT make any changes.
+You are auditing a codebase file-by-file toward an immaculate result. I will provide you with one or more files to
+examine. Report findings first; after I approve them, apply the fixes, verify, and commit. This is an audit-AND-fix
+pass — not read-only.
 
-## Rules
+## Workflow
 
-- **Read-only.** Report findings only. Do not edit, refactor, or rewrite anything.
-- **No assumptions.** If something looks like it might be dead code or duplicated, but you aren't sure without seeing
-  other files, flag it as "needs verification" and tell me what file/context you'd need to confirm.
-- **Stay scoped.** Only analyze the file(s) I give you. Do not go searching through the codebase on your own. If you
-  need to see another file to make a judgment, ask me.
-- **Be specific.** Reference exact line numbers and code. No vague observations.
+- **Findings first, then fix.** Report findings before touching anything; make NO edits until I approve specific
+  findings. After approval: apply, verify, and commit when I say.
+- **Verify, don't guess.** Search the codebase as needed to confirm cross-file claims — consumers, dead code,
+  duplication, import conventions — BEFORE finalizing a finding or making a change. Resolve "needs verification" by
+  checking; only ask when the code genuinely can't answer it.
+- **Fix as found; don't defer.** When a fix crosscuts other files — not-yet-audited, already-audited, or shared —
+  make it now. Don't park work in TODOs/memos. The goal is that a later file is already clean when we reach it.
+- **Verify before deleting.** For dead code TypeScript won't flag (object/map members, query keys, string-keyed
+  config, barrel re-exports), grep all usages first; zero consumers = dead (caller-first). When deleting a file or
+  barrel, grep EVERY import form — relative (`./x`, `../x`), aliased (`@app/x`), AND `export *` re-export chains; a
+  partial-path grep misses re-exporters (e.g. an aggregate barrel that re-exports the one you're deleting).
+- **A "DRY" swap can change behavior.** Replacing inline logic with a shared util/type may differ on edge cases —
+  diff the two implementations and flag the behavior change; don't present it as behavior-neutral.
+- **No tests = the diff is the gate.** When a refactor touches behavior-sensitive code with no test coverage,
+  "tests pass" is vacuous — gate on a careful per-item diff trace + typecheck, and note the missing coverage in the
+  finding.
+- **Decide by convention, with data.** When choosing to keep/remove/standardize a pattern (barrels, accessors,
+  naming), measure the dominant convention with grep counts instead of assuming. Keep what's the real import
+  surface; remove what's vestigial.
+- **Immaculate = no dead weight AND no un-consolidated duplication — be decisive.** Clean, behavior-neutral wins that
+  clear the bar (≥2 identical callers with an existing precedent, a grep-proven dead export) are not "optional" — apply
+  them; don't hand a clean call back as "your call." Reserve genuine consultation for real judgment: over-abstraction
+  risk, a behavior/visual change, or a large multi-file refactor — present those and get explicit sign-off.
+- **Be specific.** Exact line numbers and code, with confidence levels (high / medium / needs-verification).
+- **Gate on green.** After changes, run typecheck + lint + tests and report results; don't claim done without them.
 
 ## What to look for
 
@@ -16,6 +36,9 @@ each file and report findings — DO NOT make any changes.
 
 The project philosophy: comments explain **why** (business rationale, non-obvious decisions), not **what** (the code
 already shows what it does). The best comment is a well-named function.
+
+Scrutinize comments with the SAME rigor as code, on the first pass — a restatement comment is dead weight just like
+dead code, and it's easy to skim past while auditing the logic. Don't wait for a second pass (or a reviewer) to catch it.
 
 **File headers** — every file needs one BEFORE imports:
 ```typescript
@@ -41,11 +64,20 @@ Comments that should NOT exist — flag for removal:
   refetchOnWindowFocus: false). The property name IS the documentation.
 - Parenthetical restatements on section divider comments (e.g., // Admin (admin-only operations) — the parenthetical
   restates the label). Keep dividers bare.
+- Section dividers that only restate the adjacent symbol (e.g. // TUBE EVENT HANDLERS above setupTubeEventHandlers) →
+  remove. A divider with a strategy/why suffix (e.g. // … — patches cache directly instead of invalidation) earns
+  its place → keep.
 - Self-promotional language: "INDUSTRY STANDARD", "BEST PRACTICE", "Enterprise-grade", "A++++ QUALITY", "Type-safe"
 - Redundant markers: checkmarks (✅), "NEW:", "FIXED:", "ARCHITECTURAL FIX:"
 - Process references: "Phase 2", "Refactored from", "Added in January 2025", "migrated from", "expanded from"
 - Decorative dividers: //=====, // ***, decorative headers
 - Commented-out code with no explanation of why it's kept
+- "Defaults to X" JSDoc/comment that restates a default already in the code (a `?? X` or `= X` in the body) — the code
+  is the source of truth; drop the restatement.
+- Value/coordinate restatements sitting next to the literal they describe (e.g. `// (Lucide: cx=12, cy=12, r=10)` above
+  `cx="12" cy="12" r="10"`, or a file-header description that just restates the title) — drop.
+- Visual "narration" that describes what CSS/JSX renders rather than why (e.g. `// lift the tint + border so it reacts`
+  above the hover rule) — drop; keep only the non-obvious why (a `!important`-avoidance trick, an intentional `||`).
 
 JSDoc rules:
 - USE JSDoc for: Public API functions, complex return types, @throws declarations
@@ -55,6 +87,10 @@ JSDoc rules:
 - GOOD JSDoc adds behavioral context: /** Creates tube with position conflict validation. Emits 'tube_created' socket
   event. */
 - Flag any JSDoc that just repeats parameter names/types without adding meaning
+- Once a type/interface is UNEXPORTED (internal to its file), its per-field JSDoc bar rises sharply — the impl is right
+  there, so document only genuinely non-obvious fields, not every one.
+- Every `eslint-disable` / `eslint-disable-next-line` must carry a `-- reason`; flag bare ones. A `prefer-nullish-coalescing`
+  disable sitting on code that already uses `??` is dead (the rule never fires) — remove it.
 
 Self-documenting code check:
 - If a comment exists only to compensate for a poor function/variable name, flag the naming as the real issue, not the
@@ -113,13 +149,25 @@ Loose files:
 ### 3. Duplication
 
 - Logic duplicated WITHIN the file (similar blocks, repeated patterns that could be consolidated)
-- Logic that looks like it MIGHT be duplicated elsewhere — flag these as "needs verification" with your reasoning
+- Logic duplicated ELSEWHERE — verify by searching, then consolidate to a shared home
+- Magic strings/keys duplicated across files (localStorage keys, base URLs, query-key roots, event names) →
+  centralize to a single owner
 
 ### 4. Technical Debt
 
 - Overly complex logic that could be simplified
 - Inconsistent patterns (e.g., mixing async styles, inconsistent error handling)
-- Magic numbers/strings without explanation
+- Magic numbers/strings without explanation. (Numbers inside a named-key config object are self-documenting; flag
+  standalone literals that recur or carry meaning.)
+- Redundant type annotations the initializer already fixes (`x: boolean = false`, `x: number = 0`) → drop them; but
+  KEEP load-bearing ones that widen on purpose (e.g. `Set<string>` so `.has(someString)` typechecks instead of a
+  literal-union)
+- Redundant parameters that are always passed the same module singleton (e.g. a queryClient param that's always the
+  imported instance) → drop the param, use the import
+- Thin handler wrappers that only forward to a store action or prop (`const handleX = () => clearX()`) → pass the
+  action directly
+- Single-use components/helpers extracted only to shrink a file — premature abstraction; extract on genuine reuse or
+  to isolate a cohesive, separable concern (e.g. a modal stack), not the interdependent core of a large component
 - Poor naming that obscures intent
 - Awkward/redundant naming where the method name restates its parent (e.g., storage.storage(), tubes.lists() that
   returns the same key as tubes.list()). Flag with a suggested rename.
@@ -129,14 +177,27 @@ Loose files:
 
 ### 5. Dead/Zombie Code
 
-- Exported functions/variables that appear unused within the file (flag as "needs verification" — they may be imported
-  elsewhere)
-- Unreachable code paths, including branches hidden by earlier, broader checks (e.g., a 401/403 check after a general
-  4xx check that already covers it)
+- Exported functions/variables unused codebase-wide (verify by grepping all consumers, not just this file)
+- Speculative exports/keys/fields/props with zero PRODUCTION consumers — a prop/export used only by a dev preview,
+  mock, or test harness still counts as speculative (dead query keys, unused result fields, "for later" methods)
+- Barrels are a two-part decision: DELETE a barrel with zero external importers (everyone deep-imports it, so it
+  isn't the real surface); KEEP-and-TRIM a barrel that IS the surface (re-export only the externally-consumed
+  symbols, drop the rest). Decide with grep counts — barrel-path imports vs deep-path imports. Don't go barrel-free;
+  barrel headers may stay title-only. With a two-layer barrel (a folder `index.ts` PLUS an aggregate like `@shared/ui`),
+  decide per symbol kind: COMPONENTS stay in the barrel (it's the component surface) even when some consumers deep-import
+  them; TYPE re-exports trim to only those consumed via that barrel (a type consumed only via a deep path → drop the
+  barrel re-export, keep it exported at source); HELPER FUNCTIONS don't belong in the barrel. A `*Props` interface used
+  only in its own file with no external importer → unexport it (drop `export`).
+- Unreachable or constant-by-guard code paths: branches hidden by earlier, broader checks (e.g., a 401/403 check
+  after a general 4xx check that already covers it); a condition made always-true/false by an enclosing guard (e.g.
+  `{(a || b) && …}` inside a branch already gated on `a || b`); an `else` unreachable because an upstream check returned
 - Variables assigned but never read
 - Imports that aren't used in the file
 - Feature flags or conditional branches that appear permanently stale
-- Completely unused or dead files
+- Completely unused or dead files — a whole component can be exported through its folder barrel AND re-exported through
+  an aggregate barrel (e.g. `@shared/ui`) yet have zero real consumers, which makes it look alive. Confirm liveness by
+  grepping the JSX render site (`<Name`) and every import site across the tree — not just "is it exported." (Several
+  fully-built, barrel-re-exported components this pass turned out to have zero consumers.)
 
 ## Output Format
 
@@ -154,8 +215,12 @@ If a file looks clean, say so — don't manufacture findings.
 
 ## After Changes
 
-Provide a commit message in this exact format: audit: <directory scope> — <specific changes, comma-separated>
-ONLY PROVIDE A COMMIT MESSAGE AFTER THE CHANGES HAVE BEEN CONFIRMED AND MADE AND NOT BEFORE.
+Commit only when I say. Commits are batched by top-level directory, in this exact format:
+audit: <directory scope> — <specific changes, comma-separated>
+
+Collateral cross-cutting changes from a dir's audit ride along in that dir's commit — don't split them out. No
+co-author footer. Before committing: gate on green (typecheck + lint + tests), then stage precisely — exclude
+unrelated work-in-progress from other sessions.
 
 Examples:
 - audit: hooks directory — move field resolver hooks to @domains/tubes/hooks, move useAuthSocketSync into lifecycle
@@ -166,5 +231,3 @@ Examples:
 
 The directory scope stays consistent across related commits. Each commit message describes the specific changes made
 in that pass.
-
-Do NOT commit or push. I handle all git operations.

@@ -36,7 +36,6 @@ export interface SupplyItemRow {
 }
 
 export class SupplyItemMapper {
-
   static toRow(item: SupplyItem): SupplyItemRow {
     return {
       id: item.id,
@@ -76,7 +75,8 @@ export class SupplyItemMapper {
       vendorCatalogNumber: row.vendor_catalog_number ?? undefined,
       stockUnit: row.stock_unit ?? undefined,
       baseItemName: row.base_item_name ?? undefined,
-      reorderThreshold: row.reorder_threshold != null ? parseFloat(row.reorder_threshold) : undefined,
+      reorderThreshold:
+        row.reorder_threshold != null ? parseFloat(row.reorder_threshold) : undefined,
       reorderThresholdUnit: row.reorder_threshold_unit ?? undefined,
       reorderQuantity: row.reorder_quantity != null ? parseFloat(row.reorder_quantity) : undefined,
       reorderUnit: row.reorder_unit ?? undefined,
@@ -89,9 +89,5 @@ export class SupplyItemMapper {
       createdAt: toISOString(row.created_at),
       updatedAt: toISOString(row.updated_at),
     });
-  }
-
-  static fromRows(rows: SupplyItemRow[]): SupplyItem[] {
-    return rows.map(row => this.fromRow(row));
   }
 }

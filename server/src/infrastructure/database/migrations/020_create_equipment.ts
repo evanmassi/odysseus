@@ -25,7 +25,9 @@ export const migration020: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_equipment_categories_lab_id ON equipment_categories(lab_id)`);
+    await pool.query(
+      `CREATE INDEX idx_equipment_categories_lab_id ON equipment_categories(lab_id)`
+    );
 
     // No duplicate top-level category names per lab
     await pool.query(`
@@ -69,7 +71,9 @@ export const migration020: Migration = {
     `);
 
     await pool.query(`CREATE INDEX idx_equipment_items_lab_id ON equipment_items(lab_id)`);
-    await pool.query(`CREATE INDEX idx_equipment_items_lab_status ON equipment_items(lab_id, status)`);
+    await pool.query(
+      `CREATE INDEX idx_equipment_items_lab_status ON equipment_items(lab_id, status)`
+    );
     await pool.query(`CREATE INDEX idx_equipment_items_category ON equipment_items(category_id)`);
 
     // Asset tags must be unique per lab when set
@@ -109,7 +113,9 @@ export const migration020: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_equipment_maintenance_item ON equipment_maintenance_log(item_id)`);
+    await pool.query(
+      `CREATE INDEX idx_equipment_maintenance_item ON equipment_maintenance_log(item_id)`
+    );
 
     // Extend lookup category constraint to include 'equipment_maintenance_type'
     await pool.query(`

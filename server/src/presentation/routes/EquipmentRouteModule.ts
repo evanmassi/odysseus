@@ -30,7 +30,6 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class EquipmentRouteModule implements RouteModule {
-
   constructor(
     private equipmentController: EquipmentController,
     private authMiddleware: AuthMiddleware
@@ -41,80 +40,87 @@ export class EquipmentRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate.bind(this.authMiddleware)
-    ];
+    return [this.authMiddleware.authenticate.bind(this.authMiddleware)];
   }
 
   configure(router: Router): void {
-
     // Categories — registered before /:id to avoid "categories" matching as an ID
 
-    router.get('/categories',
+    router.get(
+      '/categories',
       this.equipmentController.listCategories.bind(this.equipmentController)
     );
 
-    router.post('/categories',
+    router.post(
+      '/categories',
       validateBody(CreateEquipmentCategoryHttpSchema),
       this.equipmentController.createCategory.bind(this.equipmentController)
     );
 
-    router.put('/categories/:categoryId',
+    router.put(
+      '/categories/:categoryId',
       validateParams(EquipmentCategoryIdParams),
       validateBody(UpdateEquipmentCategoryHttpSchema),
       this.equipmentController.updateCategory.bind(this.equipmentController)
     );
 
-    router.delete('/categories/:categoryId',
+    router.delete(
+      '/categories/:categoryId',
       validateParams(EquipmentCategoryIdParams),
       this.equipmentController.deleteCategory.bind(this.equipmentController)
     );
 
     // Bulk operations — registered before /:id to avoid "bulk" matching as an ID
 
-    router.post('/bulk/maintenance',
+    router.post(
+      '/bulk/maintenance',
       validateBody(EquipmentBulkMaintenanceHttpSchema),
       this.equipmentController.bulkLogMaintenance.bind(this.equipmentController)
     );
 
-    router.post('/bulk/status',
+    router.post(
+      '/bulk/status',
       validateBody(EquipmentBulkStatusHttpSchema),
       this.equipmentController.bulkChangeStatus.bind(this.equipmentController)
     );
 
-    router.post('/bulk/relocate',
+    router.post(
+      '/bulk/relocate',
       validateBody(EquipmentBulkRelocateHttpSchema),
       this.equipmentController.bulkRelocate.bind(this.equipmentController)
     );
 
     // Items
 
-    router.get('/',
-      this.equipmentController.listItems.bind(this.equipmentController)
-    );
+    router.get('/', this.equipmentController.listItems.bind(this.equipmentController));
 
-    router.get('/:id',
+    router.get(
+      '/:id',
       validateParams(IdParams),
       this.equipmentController.getItem.bind(this.equipmentController)
     );
 
-    router.post('/',
+    router.post(
+      '/',
       validateBody(CreateEquipmentItemHttpSchema),
       this.equipmentController.createItem.bind(this.equipmentController)
     );
 
-    router.put('/:id',
+    router.put(
+      '/:id',
       validateParams(IdParams),
       validateBody(UpdateEquipmentItemHttpSchema),
       this.equipmentController.updateItem.bind(this.equipmentController)
     );
 
-    router.delete('/:id',
+    router.delete(
+      '/:id',
       validateParams(IdParams),
       this.equipmentController.deleteItem.bind(this.equipmentController)
     );
 
-    router.post('/:id/decommission',
+    router.post(
+      '/:id/decommission',
       validateParams(IdParams),
       validateBody(DecommissionEquipmentItemHttpSchema),
       this.equipmentController.decommissionItem.bind(this.equipmentController)
@@ -122,48 +128,44 @@ export class EquipmentRouteModule implements RouteModule {
 
     // Documents
 
-    router.get('/:id/documents',
-      validateParams(IdParams),
-      this.equipmentController.listDocuments.bind(this.equipmentController)
-    );
-
-    router.post('/:id/documents',
+    router.post(
+      '/:id/documents',
       validateParams(IdParams),
       validateBody(CreateEquipmentDocumentHttpSchema),
       this.equipmentController.addDocument.bind(this.equipmentController)
     );
 
-    router.put('/:id/documents/:docId',
+    router.put(
+      '/:id/documents/:docId',
       validateParams(EquipmentDocIdParams),
       validateBody(UpdateEquipmentDocumentHttpSchema),
       this.equipmentController.updateDocument.bind(this.equipmentController)
     );
 
-    router.delete('/:id/documents/:docId',
+    router.delete(
+      '/:id/documents/:docId',
       validateParams(EquipmentDocIdParams),
       this.equipmentController.removeDocument.bind(this.equipmentController)
     );
 
     // Maintenance log
 
-    router.get('/:id/maintenance',
-      validateParams(IdParams),
-      this.equipmentController.getMaintenanceLog.bind(this.equipmentController)
-    );
-
-    router.post('/:id/maintenance',
+    router.post(
+      '/:id/maintenance',
       validateParams(IdParams),
       validateBody(CreateEquipmentMaintenanceLogHttpSchema),
       this.equipmentController.addMaintenanceEntry.bind(this.equipmentController)
     );
 
-    router.put('/:id/maintenance/:entryId',
+    router.put(
+      '/:id/maintenance/:entryId',
       validateParams(EquipmentMaintenanceEntryIdParams),
       validateBody(UpdateEquipmentMaintenanceLogHttpSchema),
       this.equipmentController.updateMaintenanceEntry.bind(this.equipmentController)
     );
 
-    router.delete('/:id/maintenance/:entryId',
+    router.delete(
+      '/:id/maintenance/:entryId',
       validateParams(EquipmentMaintenanceEntryIdParams),
       this.equipmentController.deleteMaintenanceEntry.bind(this.equipmentController)
     );

@@ -45,7 +45,7 @@ export function OnlineUsersBadgeList() {
       </div>
 
       {onlineUsers.length > MAX_VISIBLE_BADGES && (
-        <span className="ml-1 text-xs text-muted-foreground font-medium">
+        <span className="ml-1 text-caption text-muted-foreground font-medium">
           +{onlineUsers.length - MAX_VISIBLE_BADGES}
         </span>
       )}

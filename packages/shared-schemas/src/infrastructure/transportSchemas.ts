@@ -8,23 +8,21 @@ import { z } from 'zod';
 
 // Envelope schemas
 
-// Maps to ErrorDto.success
 export const successEnvelopeSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({
     success: z.literal(true),
     data: dataSchema,
     message: z.string().optional(),
     timestamp: z.string().datetime().optional(),
-    requestId: z.string().optional()
+    requestId: z.string().optional(),
   });
 
-// Maps to ErrorDto.fromDomainError
 export const errorEnvelopeSchema = z.object({
   success: z.literal(false),
   error: z.string(),
   code: z.string().optional(),
   details: z.unknown().optional(),
-  timestamp: z.string().datetime()
+  timestamp: z.string().datetime(),
 });
 
 // Base response schemas
@@ -36,8 +34,6 @@ export const messageResponseSchema = z.object({
 export type MessageResponse = z.infer<typeof messageResponseSchema>;
 
 export const emptyResponseSchema = z.object({});
-
-export type EmptyResponse = z.infer<typeof emptyResponseSchema>;
 
 export const versionInfoSchema = z.object({
   version: z.string(),

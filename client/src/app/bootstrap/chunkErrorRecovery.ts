@@ -29,6 +29,6 @@ export function clearChunkReloadFlag(): void {
 export function initChunkErrorRecovery(): void {
   window.addEventListener('vite:preloadError', handleChunkError);
 
-  // Note: The reload flag is cleared by clearChunkReloadFlag() after successful bootstrap,
+  // The reload flag is cleared by clearChunkReloadFlag() after successful bootstrap,
   // not here. This prevents infinite reloads if the HTML is still stale after reload.
 }

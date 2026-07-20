@@ -6,7 +6,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 
-import { formatStorageDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { UsersRound, ChevronDown, UserRoundX, UserRoundPen } from 'lucide-react';
 
@@ -21,8 +21,8 @@ import { AssignmentDropdown } from './AssignmentDropdown';
 import { buildUserAssignments, buildRackGroups } from './buildUserAssignments';
 import { TreeLinesByUser } from './TreeLinesByUser';
 
-import type { LabConfiguration } from '@domains/storage';
-import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
+import type { UserInfo } from '../../../../../hooks/useStorageOwnership';
+import type { LabConfiguration, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface ByUserTabProps {
   lab: LabConfiguration;
@@ -96,13 +96,13 @@ export function ByUserTab({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
         <UsersRound size={48} className="mb-4 opacity-50" />
-        <p className="text-sm">No resource assignments found</p>
+        <p className="text-body-sm">No resource assignments found</p>
       </div>
     );
   }
 
   return (
-    <div className="relative" role="tree" data-view="by-user" data-tree-id="modal-user">
+    <div className="relative" data-view="by-user" data-tree-id="modal-user">
       <TreeLinesByUser expandedUsers={expandedUsers} />
       <div className="space-y-1">
         {assignmentsByUser.map(userAssignment => {
@@ -203,7 +203,7 @@ export function ByUserTab({
                         <button
                           type="button"
                           onClick={() => setReassigningUserId(null)}
-                          className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors"
+                          className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-shade/10 transition-colors"
                         >
                           ×
                         </button>
@@ -222,11 +222,7 @@ export function ByUserTab({
                           data-id={`${rackGroup.tankId}-${rackGroup.rackId}`}
                         >
                           <div className="storage-nav-item--modal storage-nav-item--rack">
-                            <button
-                              type="button"
-                              className="storage-nav-button storage-nav-button--rack"
-                              aria-label={`${rackGroup.tankName} / ${rackGroup.rackName}`}
-                            >
+                            <div className="storage-nav-button storage-nav-button--rack">
                               <TreeNub />
                               <UserBadge
                                 type={badgeType}
@@ -245,7 +241,7 @@ export function ByUserTab({
                                     rackGroup.rackCustomLabel
                                   )}
                                   {!rackGroup.ownsRack && (
-                                    <span className="ml-1.5 text-xs text-muted-foreground italic font-normal">
+                                    <span className="ml-1.5 text-caption text-muted-foreground italic font-normal">
                                       (boxes only)
                                     </span>
                                   )}
@@ -258,7 +254,7 @@ export function ByUserTab({
                                   />
                                 )}
                               </div>
-                            </button>
+                            </div>
                           </div>
 
                           {rackGroup.boxes.length > 0 && (
@@ -269,10 +265,7 @@ export function ByUserTab({
                                   data-level="box"
                                   data-id={box.boxId}
                                 >
-                                  <div
-                                    className="storage-nav-item--modal storage-nav-item--box"
-                                    role="listitem"
-                                  >
+                                  <div className="storage-nav-item--modal storage-nav-item--box">
                                     <div className="storage-nav-button storage-nav-button--box">
                                       <TreeNub />
                                       <UserBadge

@@ -12,9 +12,10 @@ import type { UserRepository as IUserRepository } from '@domain/repositories/Use
 import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
 import type { UserRow } from '@infrastructure/database/mappers/UserMapper';
 import { UserMapper } from '@infrastructure/database/mappers/UserMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
+import type { UserStatus } from '@odysseus/shared-schemas';
 
 const USER_COLUMNS = `
   u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
@@ -27,23 +28,22 @@ const USER_COLUMNS = `
 const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id LEFT JOIN researchers r ON u.researcher_id = r.id`;
 
 export class UserRepository implements IUserRepository {
-
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   // BASIC CRUD OPERATIONS
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string, labId: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1`,
-      [id]
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1 AND u.lab_id = $2`,
+      [id, labId]
     );
     return row ? UserMapper.fromRow(row) : null;
   }
 
-  async findByApiKey(apiKey: string): Promise<User | null> {
+  async findByIdAnyLab(id: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.api_key = $1`,
-      [apiKey]
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1`,
+      [id]
     );
     return row ? UserMapper.fromRow(row) : null;
   }
@@ -83,11 +83,21 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {
-    return this.findByHashedToken(token, 'email_verification_token', 'email_verification_expiry', 'emailVerificationToken');
+    return this.findByHashedToken(
+      token,
+      'email_verification_token',
+      'email_verification_expiry',
+      'emailVerificationToken'
+    );
   }
 
   async findByPasswordResetToken(token: string): Promise<User | null> {
-    return this.findByHashedToken(token, 'password_reset_token', 'password_reset_expiry', 'passwordResetToken');
+    return this.findByHashedToken(
+      token,
+      'password_reset_token',
+      'password_reset_expiry',
+      'passwordResetToken'
+    );
   }
 
   async findAll(): Promise<User[]> {
@@ -106,12 +116,20 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
-  async findByIds(ids: string[]): Promise<User[]> {
+  async findByIds(ids: string[], labId?: string): Promise<User[]> {
     if (ids.length === 0) return [];
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const params: string[] = [...ids];
+
+    let labClause = '';
+    if (labId !== undefined) {
+      params.push(labId);
+      labClause = ` AND u.lab_id = $${params.length}`;
+    }
+
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id IN (${placeholders})`,
-      ids
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id IN (${placeholders})${labClause}`,
+      params
     );
     return UserMapper.fromRows(rows);
   }
@@ -120,7 +138,8 @@ export class UserRepository implements IUserRepository {
     const row = UserMapper.toRow(user);
 
     try {
-      await this.context.execute(`
+      await this.context.execute(
+        `
         INSERT INTO users (
           id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
           email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
@@ -146,13 +165,30 @@ export class UserRepository implements IUserRepository {
           last_password_change = EXCLUDED.last_password_change,
           settings = EXCLUDED.settings,
           lab_id = EXCLUDED.lab_id
-      `, [
-        row.id, row.username, row.api_key, row.role, row.password_hash, row.salt, row.created_at,
-        row.researcher_id, row.person_id, row.status, row.email_verified, row.email_verification_token,
-        row.email_verification_expiry, row.last_verification_email_sent, row.password_reset_token,
-        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.settings,
-        row.lab_id
-      ]);
+      `,
+        [
+          row.id,
+          row.username,
+          row.api_key,
+          row.role,
+          row.password_hash,
+          row.salt,
+          row.created_at,
+          row.researcher_id,
+          row.person_id,
+          row.status,
+          row.email_verified,
+          row.email_verification_token,
+          row.email_verification_expiry,
+          row.last_verification_email_sent,
+          row.password_reset_token,
+          row.password_reset_expiry,
+          row.require_password_change,
+          row.last_password_change,
+          row.settings,
+          row.lab_id,
+        ]
+      );
     } catch (error) {
       if (isEmailConstraintError(error)) {
         throw new EmailAlreadyExistsError();
@@ -161,20 +197,15 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM users WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.context.execute('DELETE FROM users WHERE id = $1 AND lab_id = $2', [
+      id,
+      labId,
+    ]);
     return (result.rowCount ?? 0) > 0;
   }
 
   // AUTHENTICATION OPERATIONS
-
-  async apiKeyExists(apiKey: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM users WHERE api_key = $1) as exists',
-      [apiKey]
-    );
-    return result?.exists ?? false;
-  }
 
   async usernameExists(username: string): Promise<boolean> {
     const result = await this.context.queryOne<{ exists: boolean }>(
@@ -210,14 +241,6 @@ export class UserRepository implements IUserRepository {
     return !(result?.exists ?? false);
   }
 
-  async findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.status = $1 ORDER BY u.created_at DESC`,
-      [status]
-    );
-    return UserMapper.fromRows(rows);
-  }
-
   // LAB-SCOPED OPERATIONS
 
   async findByLabId(labId: string): Promise<User[]> {
@@ -230,7 +253,7 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
-  async findByStatusInLab(status: 'pending' | 'approved' | 'rejected', labId: string): Promise<User[]> {
+  async findByStatusInLab(status: UserStatus, labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.status = $1 AND u.lab_id = $2 ORDER BY u.created_at DESC`,
       [status, labId]
@@ -238,7 +261,10 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
-  async countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number> {
+  async countByRoleInLab(
+    role: 'system_admin' | 'lab_admin' | 'user',
+    labId: string
+  ): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM users WHERE role = $1 AND lab_id = $2',
       [role, labId]
@@ -283,5 +309,4 @@ export class UserRepository implements IUserRepository {
 
     return null;
   }
-
 }

@@ -1,13 +1,11 @@
 /**
  * Storage Data Transfer Object
  *
- * Bidirectional transformation between Domain Entity and API format.
- * Key responsibility — box name transformation:
- *   LOAD: server {name: "A"} → client {id: "A", name: "Box A"}
- *   SAVE: client {id: "A", name: "Box A"} → server {name: "A"}
+ * Maps the Storage entity to its API response shape. Key responsibility — box
+ * name mapping: server {name: "A"} → client {id: "A", name: "Box A"}.
  */
 
-import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import { NAMING_PATTERNS, DEFAULT_GRID_CONFIG } from '@odysseus/shared-schemas';
 
 import type { Storage } from '@domain/entities/Storage';
 import type { Tank, Rack, Box } from '@domain/value-objects/Equipment';
@@ -15,47 +13,43 @@ import type { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import type { StorageResponse } from '@odysseus/shared-schemas';
 
 export class StorageDto {
-
   static toResponse(config: Storage): StorageResponse {
     const configData = config.toData();
     const updatedAtDate = new Date(configData.updatedAt);
-    const defaultGridConfig = {
-      rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-      template: 'standard' as const
-    };
 
     const defaultBoxConfig = {
       id: 'A',
       name: 'Box A',
-      gridConfig: defaultGridConfig,
-      position: 1
+      gridConfig: DEFAULT_GRID_CONFIG,
+      position: 1,
     };
 
     return {
       configuration: {
         systemConfig: {
           currentLabId: 'default-lab',
-          availableLabs: [{
-            id: 'default-lab',
-            name: configData.systemSettings.labName,
-            organization: 'Default Organization',
-            isActive: true,
-            createdAt: updatedAtDate,
-            updatedAt: updatedAtDate,
-            equipment: {
-              tanks: configData.tanks.map(tank => this.transformTank(tank, updatedAtDate)),
-              defaultBoxConfig,
-              defaultGridConfig
-            }
-          }],
+          availableLabs: [
+            {
+              id: 'default-lab',
+              name: configData.systemSettings.labName,
+              organization: 'Default Organization',
+              isActive: true,
+              createdAt: updatedAtDate,
+              updatedAt: updatedAtDate,
+              equipment: {
+                tanks: configData.tanks.map(tank => this.transformTank(tank, updatedAtDate)),
+                defaultBoxConfig,
+                defaultGridConfig: DEFAULT_GRID_CONFIG,
+              },
+            },
+          ],
           globalSettings: {
             theme: 'light' as const,
             language: 'en',
             timezone: 'America/New_York',
-            autoBackup: configData.systemSettings.autoSave
+            autoBackup: configData.systemSettings.autoSave,
           },
-          version: configData.version
+          version: configData.version,
         },
         currentLab: {
           id: 'default-lab',
@@ -67,20 +61,14 @@ export class StorageDto {
           equipment: {
             tanks: configData.tanks.map(tank => this.transformTank(tank, updatedAtDate)),
             defaultBoxConfig,
-            defaultGridConfig
-          }
-        }
-      }
+            defaultGridConfig: DEFAULT_GRID_CONFIG,
+          },
+        },
+      },
     };
   }
 
   private static transformTank(tankData: ReturnType<Tank['toData']>, updatedAt: Date) {
-    const defaultGridConfig = {
-      rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-      template: 'standard' as const
-    };
-
     return {
       id: tankData.id,
       name: tankData.name,
@@ -88,9 +76,9 @@ export class StorageDto {
       isActive: tankData.isActive,
       createdAt: updatedAt,
       updatedAt: updatedAt,
-      defaultGridConfig,
+      defaultGridConfig: DEFAULT_GRID_CONFIG,
       ...(tankData.isSeeded && { isSeeded: true }),
-      racks: tankData.racks.map(rack => this.transformRack(rack))
+      racks: tankData.racks.map(rack => this.transformRack(rack)),
     };
   }
 
@@ -103,7 +91,7 @@ export class StorageDto {
       assignedUserId: rackData.assignedUserId,
       customLabel: rackData.customLabel,
       ...(rackData.isSeeded && { isSeeded: true }),
-      boxes: rackData.boxes.map((box, index) => this.transformBox(box, index))
+      boxes: rackData.boxes.map((box, index) => this.transformBox(box, index)),
     };
   }
 
@@ -120,12 +108,12 @@ export class StorageDto {
       name: NAMING_PATTERNS.BOX.DEFAULT_NAME(letterIndex),
       gridConfig: {
         ...boxData.gridConfig,
-        template: 'standard' as const
+        template: 'standard' as const,
       },
       position: index + 1,
       assignedUserId: boxData.assignedUserId,
       customLabel: boxData.customLabel,
-      ...(boxData.isSeeded && { isSeeded: true })
+      ...(boxData.isSeeded && { isSeeded: true }),
     };
   }
 }

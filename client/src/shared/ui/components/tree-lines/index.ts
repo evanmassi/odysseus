@@ -5,8 +5,8 @@
  * keeps lines in sync with layout and expand/collapse.
  */
 
-export { calculateTreeLines, type TreeLineCalcConfig } from './calculateTreeLines';
+export { calculateTreeLines } from './calculateTreeLines';
 export { TreeLinesDisplay } from './TreeLinesDisplay';
-export { useTreeLines, type TreeLine } from './useTreeLines';
+export { useTreeLines } from './useTreeLines';
 export { NavTreeLines } from './NavTreeLines';
 export { BulkSelectTreeLines } from './BulkSelectTreeLines';

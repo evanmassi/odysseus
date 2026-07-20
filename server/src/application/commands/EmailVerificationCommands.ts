@@ -1,7 +1,5 @@
 /**
  * Email Verification Commands
- *
- * Commands for email verification operations.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
@@ -11,13 +9,11 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import {
   VerificationEmailSentEvent,
   EmailVerifiedEvent,
-  VerificationEmailResentEvent
+  VerificationEmailResentEvent,
 } from '@domain/events/EmailVerificationEvents';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { EmailService } from '@domain/services/EmailService';
-
-// COMMAND INTERFACES
 
 export interface SendVerificationEmailCommand {
   userId: string;
@@ -31,8 +27,6 @@ export interface ResendVerificationEmailCommand {
   userId: string;
 }
 
-// COMMAND HANDLERS
-
 export class SendVerificationEmailCommandHandler {
   constructor(
     private userRepository: UserRepository,
@@ -42,7 +36,7 @@ export class SendVerificationEmailCommandHandler {
   ) {}
 
   async handle(command: SendVerificationEmailCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new NotFoundError('User not found');
     }
@@ -59,11 +53,7 @@ export class SendVerificationEmailCommandHandler {
     const token = user.generateVerificationToken();
     await this.userRepository.save(user);
 
-    await this.emailService.sendVerificationEmail(
-      person.email!,
-      token,
-      user.username
-    );
+    await this.emailService.sendVerificationEmail(person.email!, token, user.username);
 
     const event = new VerificationEmailSentEvent(user.id, person.email!, user.labId);
     await this.eventBus.publish(event);
@@ -105,7 +95,7 @@ export class ResendVerificationEmailCommandHandler {
   ) {}
 
   async handle(command: ResendVerificationEmailCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new NotFoundError('User not found');
     }
@@ -130,11 +120,7 @@ export class ResendVerificationEmailCommandHandler {
     const token = user.generateVerificationToken();
     await this.userRepository.save(user);
 
-    await this.emailService.sendVerificationEmail(
-      person.email!,
-      token,
-      user.username
-    );
+    await this.emailService.sendVerificationEmail(person.email!, token, user.username);
 
     const event = new VerificationEmailResentEvent(user.id, person.email!, user.labId);
     await this.eventBus.publish(event);

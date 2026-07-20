@@ -1,8 +1,11 @@
+/**
+ * Info Display Components
+ */
+
+export { AccentTick } from './AccentTick';
+export type { AccentTickTone } from './AccentTick';
+export { CompletenessMeter } from './CompletenessMeter';
 export { DetailRow } from './DetailRow';
-export type { DetailRowProps } from './DetailRow';
-
-export { InfoField } from './InfoField';
-export type { InfoFieldProps } from './InfoField';
-
-export { InfoGroup } from './InfoGroup';
-export type { InfoGroupProps } from './InfoGroup';
+export { InfoPanelEmpty } from './InfoPanelEmpty';
+export { OccupancyBar } from './OccupancyBar';
+export { StripLabel } from './StripLabel';

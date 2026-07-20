@@ -6,23 +6,19 @@
 
 import { ApiError } from '@odysseus/shared-schemas';
 
+import { env } from '@shared/config';
+
+const REQUEST_TIMEOUT_MS = 30_000;
+
 export class SessionHttpClient {
-  private readonly baseURL: string;
-  private readonly timeout: number;
+  private readonly baseURL = env.apiBaseUrl();
+  private readonly timeout = REQUEST_TIMEOUT_MS;
 
-  constructor(
-    config: { baseURL: string; timeout?: number } = {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-      baseURL: import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api',
-    }
-  ) {
-    this.baseURL = config.baseURL;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
-    this.timeout = config.timeout || 30000;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client, accepts any request body
-  async post<T = any>(path: string, data: any, headers?: Record<string, string>): Promise<T> {
+  async post<T = unknown>(
+    path: string,
+    data: unknown,
+    headers?: Record<string, string>
+  ): Promise<T> {
     return this.request<T>(path, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -30,8 +26,7 @@ export class SessionHttpClient {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client response type
-  async get<T = any>(path: string, headers?: Record<string, string>): Promise<T> {
+  async get<T = unknown>(path: string, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(path, {
       method: 'GET',
       headers,
@@ -58,7 +53,7 @@ export class SessionHttpClient {
 
       if (!response.ok) {
         throw new ApiError(
-          responseData.message || `Authentication request failed: ${response.status}`,
+          responseData.error || `Authentication request failed: ${response.status}`,
           response.status,
           responseData.code,
           responseData.details
@@ -71,7 +66,7 @@ export class SessionHttpClient {
         throw error;
       }
 
-      if ((error as Error).name === 'AbortError') {
+      if ((error as Error).name === 'TimeoutError') {
         throw new ApiError('Authentication request timeout', 408);
       }
 

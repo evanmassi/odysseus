@@ -14,7 +14,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Controller, useWatch } from 'react-hook-form';
 
 import { DonorIdAutocomplete } from '@domains/donors';
-import { DatePicker, SectionHeader, Select, ValidatedInput } from '@shared/ui';
+import { DatePicker, SectionHeader, Select, ValidatedInput, withPlaceholder } from '@shared/ui';
 
 import { TubeConcentrationField } from './TubeConcentrationField';
 
@@ -25,6 +25,7 @@ import type {
   UseFormSetValue,
   FieldErrors,
   UseFormTrigger,
+  FieldPath,
 } from 'react-hook-form';
 
 const CONFLICT_FIELD_MAP: Record<string, string> = {
@@ -47,7 +48,6 @@ const CONFLICT_FIELD_MAP: Record<string, string> = {
   researcherId: 'researcherId',
 };
 
-// Conflict indicator icon for fields with mixed values
 const ConflictIcon = () => <AlertTriangle className="w-3.5 h-3.5 text-warning-text" />;
 
 type TubeFormValues = CreateTubeRequest | UpdateTubeRequest;
@@ -89,7 +89,6 @@ export const TubeForm = ({
     return hasConflict(fieldPath) ? <ConflictIcon /> : undefined;
   };
 
-  // Helper function to get field errors from nested React Hook Form structure
   const getFieldError = (
     fieldPath: string,
     errors: FieldErrors<CreateTubeRequest>
@@ -114,11 +113,9 @@ export const TubeForm = ({
 
   // Helper to get concentration field errors (checks both nested and refinement errors)
   const getConcentrationError = (): string | undefined => {
-    // Check for direct concentration field error
     const directError = getFieldError('sample.concentration', errors);
     if (directError) return directError;
 
-    // Check for concentrationUnit field error
     const unitError = getFieldError('sample.concentrationUnit', errors);
     if (unitError) return unitError;
 
@@ -135,6 +132,49 @@ export const TubeForm = ({
 
     return undefined;
   };
+
+  const renderSelectField = (
+    name: FieldPath<TubeFormValues>,
+    label: string,
+    options: SelectOption[],
+    placeholder: string
+  ) => (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field: { value, onChange } }) => {
+        const error = getFieldError(name, errors);
+        return (
+          <div>
+            <label
+              className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
+                error ? 'text-danger-text' : 'text-muted-foreground'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                {label}
+                {getConflictBadge(name)}
+              </span>
+            </label>
+            <Select
+              options={withPlaceholder(placeholder, options)}
+              value={(value as string | undefined) ?? ''}
+              onChange={newValue => onChange(newValue ?? '')}
+              disabled={isLoading}
+              state={error ? 'error' : hasConflict(name) ? 'warning' : 'default'}
+              fullWidth
+              placeholder={placeholder}
+            />
+            {error && (
+              <div className="flex items-center mt-1 text-body-sm text-danger-text">
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
+        );
+      }}
+    />
+  );
 
   return (
     <div className="space-y-2">
@@ -155,42 +195,7 @@ export const TubeForm = ({
           badge={getConflictBadge('sample.cellType')}
           hasConflict={hasConflict('sample.cellType')}
         />
-        <Controller
-          name="sample.species"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('sample.species', errors);
-            const hasFieldConflict = hasConflict('sample.species');
-            return (
-              <div>
-                <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
-                    error ? 'text-danger-text' : 'text-muted-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Species
-                    {getConflictBadge('sample.species')}
-                  </span>
-                </label>
-                <Select
-                  options={[{ value: '', label: 'Select species...' }, ...speciesOptions]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select species..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
+        {renderSelectField('sample.species', 'Species', speciesOptions, 'Select species...')}
       </div>
 
       {/* ROW 2: Donor IDs */}
@@ -250,11 +255,14 @@ export const TubeForm = ({
         <Controller
           name="sample.concentration"
           control={control}
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value, onChange }, fieldState: concentrationState }) => (
             <Controller
               name="sample.concentrationUnit"
               control={control}
-              render={({ field: { value: unitValue, onChange: onUnitChange } }) => (
+              render={({
+                field: { value: unitValue, onChange: onUnitChange },
+                fieldState: unitState,
+              }) => (
                 <TubeConcentrationField
                   label="Concentration"
                   value={String(value ?? '')}
@@ -277,6 +285,7 @@ export const TubeForm = ({
                   }}
                   badge={getConflictBadge('sample.concentration')}
                   hasConflict={hasConflict('sample.concentration')}
+                  isDirty={concentrationState.isDirty || unitState.isDirty}
                 />
               )}
             />
@@ -310,42 +319,7 @@ export const TubeForm = ({
 
       {/* ROW 4: Media */}
       <div className="grid grid-cols-[1fr_1.4fr_1.2fr] gap-2.5 [&>*]:min-w-0">
-        <Controller
-          name="sample.mediaType"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('sample.mediaType', errors);
-            const hasFieldConflict = hasConflict('sample.mediaType');
-            return (
-              <div>
-                <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
-                    error ? 'text-danger-text' : 'text-muted-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Media Type
-                    {getConflictBadge('sample.mediaType')}
-                  </span>
-                </label>
-                <Select
-                  options={[{ value: '', label: 'Select media...' }, ...mediaOptions]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select media..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
+        {renderSelectField('sample.mediaType', 'Media Type', mediaOptions, 'Select media...')}
         <ValidatedInput
           label="Supplements"
           labelStyle="compact"
@@ -374,42 +348,7 @@ export const TubeForm = ({
 
       {/* ROW 5: Source, Catalog #, Lot # */}
       <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-2.5 [&>*]:min-w-0">
-        <Controller
-          name="sample.source"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('sample.source', errors);
-            const hasFieldConflict = hasConflict('sample.source');
-            return (
-              <div>
-                <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
-                    error ? 'text-danger-text' : 'text-muted-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Source
-                    {getConflictBadge('sample.source')}
-                  </span>
-                </label>
-                <Select
-                  options={[{ value: '', label: 'Select source...' }, ...sourceOptions]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select source..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
+        {renderSelectField('sample.source', 'Source', sourceOptions, 'Select source...')}
         <ValidatedInput
           label="Catalog #"
           labelStyle="compact"
@@ -447,7 +386,7 @@ export const TubeForm = ({
             return (
               <div>
                 <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                  className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
                     error ? 'text-danger-text' : 'text-muted-foreground'
                   }`}
                 >
@@ -465,7 +404,7 @@ export const TubeForm = ({
                   clearable
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                  <div className="flex items-center mt-1 text-body-sm text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}
@@ -473,48 +412,12 @@ export const TubeForm = ({
             );
           }}
         />
-        <Controller
-          name="researcherId"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('researcherId', errors);
-            const hasFieldConflict = hasConflict('researcherId');
-            return (
-              <div>
-                <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
-                    error ? 'text-danger-text' : 'text-muted-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Researcher
-                    {getConflictBadge('researcherId')}
-                  </span>
-                </label>
-                <Select
-                  options={[
-                    { value: '', label: 'Select researcher...' },
-                    ...researchers.map(r => ({
-                      value: r.id,
-                      label: formatResearcherDropdownDisplay(r),
-                    })),
-                  ]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select researcher..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
+        {renderSelectField(
+          'researcherId',
+          'Researcher',
+          researchers.map(r => ({ value: r.id, label: formatResearcherDropdownDisplay(r) })),
+          'Select researcher...'
+        )}
       </div>
 
       {/* ROW 7: Notes */}
@@ -538,7 +441,7 @@ export const TubeForm = ({
           disabled={isLoading}
           hasConflict={hasConflict('sample.notes')}
         />
-        <span className="pointer-events-none absolute -top-2 right-3 z-10 border border-line-faint bg-card px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.22em] text-foreground/40">
+        <span className="pointer-events-none absolute -top-2 right-3 z-10 border border-line-faint bg-card px-2 py-0.5 type-label text-label-2xs tracking-label-wide text-foreground/40">
           {`${(notesValue ?? '').length}/500`}
         </span>
       </div>

@@ -134,15 +134,15 @@ export function SupplyLowStockAlertPanel({
   const lowCount = totalAlerts - outOfStockCount;
   const hasOutOfStock = outOfStockCount > 0;
   const stripeClass = hasOutOfStock
-    ? 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
-    : 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
+    ? 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
+    : 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
   const labelClass = hasOutOfStock ? 'text-danger-text' : 'text-warning-text';
 
   return (
     <>
       <div className="mb-2 flex-shrink-0 overflow-hidden border border-line-faint">
         <div
-          className="relative flex items-center gap-2 bg-black/35 px-3 py-2 cursor-pointer transition-colors hover:bg-black/45"
+          className="relative flex items-center gap-2 bg-[hsl(var(--primary)/0.07)] dark:bg-shade/35 px-3 py-2 cursor-pointer transition-[background-color,filter] hover:brightness-[0.97] dark:hover:brightness-100 dark:hover:bg-shade/45"
           onClick={toggleExpanded}
           onKeyDown={e => {
             if (e.key === 'Enter') toggleExpanded();
@@ -159,13 +159,13 @@ export function SupplyLowStockAlertPanel({
             className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
           />
           <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${stripeClass}`} />
-          <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
+          <span className={`type-label text-label-2xs tracking-label-wide ${labelClass}`}>
             Low Stock Alerts
           </span>
-          <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
-            {totalAlerts}
+          <span aria-hidden className="font-mono text-data-sm text-foreground/30">
+            {'//'}
           </span>
-          <span className="ml-auto flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+          <span className="flex items-center gap-2 font-mono text-data-sm tracking-[0.04em]">
             {outOfStockCount > 0 && (
               <span className="text-danger-text">{outOfStockCount} out of stock</span>
             )}
@@ -193,7 +193,7 @@ export function SupplyLowStockAlertPanel({
               selectedRowGlow
               rowState={row => (row.totalStock <= 0 ? 'danger' : 'warning')}
               density="compact"
-              className="text-xs"
+              className="text-data"
               aria-label="Low stock alerts"
             />
             <div className="flex justify-center px-3 py-3">

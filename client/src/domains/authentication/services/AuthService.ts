@@ -9,7 +9,6 @@ import {
   loginResponseSchema,
   registerWithProfileResponseSchema,
   passwordRequirementsResponseSchema,
-  verificationStatusResponseSchema,
   validateInviteCodeResponseSchema,
   firstTimeResponseSchema,
   verifyEmailResponseSchema,
@@ -18,11 +17,10 @@ import {
   type LoginResponse,
   type RegisterWithProfileResponse,
   type PasswordChangeRequiredResponse,
-  type VerificationStatusResponse,
-  type UserRole,
+  type PasswordRequirementsResponse,
+  type ValidateInviteCodeResponse,
 } from '@odysseus/shared-schemas';
 
-import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
@@ -32,29 +30,12 @@ export function isPasswordChangeRequired(
   return 'requirePasswordChange' in response && response.requirePasswordChange === true;
 }
 
-export interface RegisterRequest {
-  username: string;
-  password: string;
-  role?: UserRole;
-}
-
-export interface LoginRequest {
+interface LoginRequest {
   username: string;
   password: string;
 }
 
-export interface PasswordRequirements {
-  passwordMinLength: number;
-  requireStrongPasswords: boolean;
-  passwordRequireSpecialChars: boolean;
-}
-
-export class AuthService {
-  /** Used only during first-time setup — bypasses approval workflow. */
-  async register(request: RegisterRequest): Promise<AuthResponse> {
-    return await httpClient.postData('/public/auth/register', request, authResponseSchema);
-  }
-
+class AuthService {
   /**
    * First user: auto-approved as admin (returns tokens).
    * Subsequent users: pending approval (no tokens).
@@ -83,10 +64,6 @@ export class AuthService {
     );
   }
 
-  async verifySession(): Promise<AuthResponse> {
-    return await httpClient.getData('/auth/verify', authResponseSchema);
-  }
-
   async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
     try {
       const data = await httpClient.getData('/public/auth/first-time', firstTimeResponseSchema);
@@ -100,14 +77,7 @@ export class AuthService {
     }
   }
 
-  async validateInviteCode(
-    code: string
-  ): Promise<{
-    valid: boolean;
-    labName?: string;
-    role?: 'lab_admin' | 'user';
-    createResearcher?: boolean;
-  }> {
+  async validateInviteCode(code: string): Promise<ValidateInviteCodeResponse> {
     try {
       return await httpClient.postData(
         '/public/invite-codes/validate',
@@ -133,7 +103,7 @@ export class AuthService {
     return await httpClient.postData('/public/auth/setup-system-admin', data, authResponseSchema);
   }
 
-  async getPasswordRequirements(): Promise<PasswordRequirements> {
+  async getPasswordRequirements(): Promise<PasswordRequirementsResponse> {
     try {
       return await httpClient.getData(
         '/public/auth/password-requirements',
@@ -162,10 +132,6 @@ export class AuthService {
     );
   }
 
-  async getVerificationStatus(): Promise<VerificationStatusResponse> {
-    return await httpClient.getData('/auth/verification-status', verificationStatusResponseSchema);
-  }
-
   async resetPasswordWithToken(token: string, newPassword: string): Promise<void> {
     await httpClient.postData(
       '/public/auth/reset-password',
@@ -175,8 +141,13 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    // SessionService will handle token cleanup and HTTP client state
-    queryClient.clear();
+    // Best-effort server-side session revocation; never block local logout if it fails
+    // (e.g. the access token already expired).
+    try {
+      await httpClient.postData('/auth/logout', {}, messageResponseSchema);
+    } catch (error) {
+      logger.error('Server logout failed; clearing local session anyway', { error });
+    }
   }
 }
 

@@ -8,10 +8,11 @@ import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
 import type { LookupValueRepository as ILookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';
 import { LookupValueMapper } from '@infrastructure/database/mappers/LookupValueMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
-const LOOKUP_VALUE_COLUMNS = 'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
+const LOOKUP_VALUE_COLUMNS =
+  'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
 
 const CATEGORY_COLUMN_MAP: Partial<Record<LookupCategory, string>> = {
   species: 'species',
@@ -20,12 +21,12 @@ const CATEGORY_COLUMN_MAP: Partial<Record<LookupCategory, string>> = {
 };
 
 export class LookupValueRepository implements ILookupValueRepository {
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
-  async findById(id: string): Promise<LookupValue | null> {
+  async findById(id: string, labId: string): Promise<LookupValue | null> {
     const row = await this.context.queryOne<LookupValueRow>(
-      `SELECT ${LOOKUP_VALUE_COLUMNS} FROM lookup_values WHERE id = $1`,
-      [id]
+      `SELECT ${LOOKUP_VALUE_COLUMNS} FROM lookup_values WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
     );
     return row ? LookupValueMapper.fromRow(row) : null;
   }
@@ -38,7 +39,10 @@ export class LookupValueRepository implements ILookupValueRepository {
     return LookupValueMapper.fromRows(rows);
   }
 
-  async findActiveByCategoryForDropdown(category: LookupCategory, labId: string): Promise<LookupValue[]> {
+  async findActiveByCategoryForDropdown(
+    category: LookupCategory,
+    labId: string
+  ): Promise<LookupValue[]> {
     const rows = await this.context.queryMany<LookupValueRow>(
       `SELECT ${LOOKUP_VALUE_COLUMNS} FROM lookup_values WHERE category = $1 AND lab_id = $2 AND is_active = TRUE ORDER BY sort_order, value`,
       [category, labId]
@@ -46,7 +50,11 @@ export class LookupValueRepository implements ILookupValueRepository {
     return LookupValueMapper.fromRows(rows);
   }
 
-  async findByCategoryAndValue(category: LookupCategory, value: string, labId: string): Promise<LookupValue | null> {
+  async findByCategoryAndValue(
+    category: LookupCategory,
+    value: string,
+    labId: string
+  ): Promise<LookupValue | null> {
     const row = await this.context.queryOne<LookupValueRow>(
       `SELECT ${LOOKUP_VALUE_COLUMNS} FROM lookup_values WHERE category = $1 AND value = $2 AND lab_id = $3`,
       [category, value, labId]
@@ -56,7 +64,8 @@ export class LookupValueRepository implements ILookupValueRepository {
 
   async save(entity: LookupValue): Promise<void> {
     const row = LookupValueMapper.toRow(entity);
-    await this.context.execute(`
+    await this.context.execute(
+      `
       INSERT INTO lookup_values (id, category, value, sort_order, is_active, created_at, updated_at, lab_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       ON CONFLICT (id) DO UPDATE SET
@@ -65,25 +74,33 @@ export class LookupValueRepository implements ILookupValueRepository {
         is_active = EXCLUDED.is_active,
         updated_at = EXCLUDED.updated_at,
         lab_id = EXCLUDED.lab_id
-    `, [row.id, row.category, row.value, row.sort_order, row.is_active, row.created_at, row.updated_at, row.lab_id]);
+    `,
+      [
+        row.id,
+        row.category,
+        row.value,
+        row.sort_order,
+        row.is_active,
+        row.created_at,
+        row.updated_at,
+        row.lab_id,
+      ]
+    );
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM lookup_values WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.context.execute(
+      'DELETE FROM lookup_values WHERE id = $1 AND lab_id = $2',
+      [id, labId]
+    );
     return (result.rowCount ?? 0) > 0;
   }
 
-  async countTubesUsingValue(category: LookupCategory, value: string, labId: string): Promise<number> {
-    const column = CATEGORY_COLUMN_MAP[category];
-    if (!column) return 0;
-    const result = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(*) as count FROM tubes WHERE ${column} = $1 AND lab_id = $2`,
-      [value, labId]
-    );
-    return parseCount(result);
-  }
-
-  async countTubesUsingValues(category: LookupCategory, values: string[], labId: string): Promise<Map<string, number>> {
+  async countTubesUsingValues(
+    category: LookupCategory,
+    values: string[],
+    labId: string
+  ): Promise<Map<string, number>> {
     if (values.length === 0) return new Map();
 
     const column = CATEGORY_COLUMN_MAP[category];
@@ -98,7 +115,12 @@ export class LookupValueRepository implements ILookupValueRepository {
     return new Map(rows.map(r => [r.value, parseCount(r)]));
   }
 
-  async renameTubeValues(category: LookupCategory, oldValue: string, newValue: string, labId: string): Promise<number> {
+  async renameTubeValues(
+    category: LookupCategory,
+    oldValue: string,
+    newValue: string,
+    labId: string
+  ): Promise<number> {
     const column = CATEGORY_COLUMN_MAP[category];
     if (!column) return 0;
     const result = await this.context.execute(

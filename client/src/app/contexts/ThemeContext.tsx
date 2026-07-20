@@ -1,28 +1,18 @@
 /**
  * Theme Context
  *
- * Provides theme state management for the application.
- * Supports light, dark, and auto (system preference) modes.
- *
- * The theme is persisted in two places:
- * 1. Cookie (for immediate access on page load, survives most "clear data" operations)
- * 2. Server (authoritative source, syncs across devices)
+ * Owns the active light/dark/auto theme and persists it to a cookie for instant paint
+ * on next load. The authoritative server preference is reconciled by useServerThemeSync.
  */
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
-import type { ThemePreference } from '@odysseus/shared-schemas';
+import { themePreferenceSchema } from '@odysseus/shared-schemas';
 
-/**
- * Resolved theme - the actual theme being displayed (never 'auto')
- */
-export type ResolvedTheme = 'light' | 'dark';
+import type { ThemePreference, ResolvedTheme } from '@odysseus/shared-schemas';
 
-export interface ThemeContextValue {
-  theme: ResolvedTheme;
-  preference: ThemePreference;
+interface ThemeContextValue {
   setPreference: (preference: ThemePreference) => void;
-  systemPreference: ResolvedTheme;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -61,25 +51,12 @@ function applyTheme(theme: ResolvedTheme): void {
 
 interface ThemeProviderProps {
   children: ReactNode;
-  initialPreference?: ThemePreference;
-  /** Callback when preference changes (for syncing to server) */
-  onPreferenceChange?: (preference: ThemePreference) => void;
 }
 
-export function ThemeProvider({
-  children,
-  initialPreference,
-  onPreferenceChange,
-}: ThemeProviderProps) {
+export function ThemeProvider({ children }: ThemeProviderProps) {
   const getInitialPreference = (): ThemePreference => {
-    if (initialPreference) {
-      return initialPreference;
-    }
-    const cookieValue = getCookie(THEME_COOKIE_NAME);
-    if (cookieValue === 'light' || cookieValue === 'dark' || cookieValue === 'auto') {
-      return cookieValue;
-    }
-    return 'auto';
+    const parsed = themePreferenceSchema.safeParse(getCookie(THEME_COOKIE_NAME));
+    return parsed.success ? parsed.data : 'auto';
   };
 
   const [preference, setPreferenceState] = useState<ThemePreference>(getInitialPreference);
@@ -91,7 +68,6 @@ export function ThemeProvider({
     applyTheme(theme);
   }, [theme]);
 
-  // Listen for system preference changes
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) {
       return;
@@ -114,41 +90,17 @@ export function ThemeProvider({
     return () => mediaQuery.removeListener(handleChange);
   }, []);
 
-  // Sync preference from server when it changes
-  useEffect(() => {
-    if (initialPreference) {
-      setPreferenceState(initialPreference);
-      setThemeCookie(initialPreference);
-    }
-  }, [initialPreference]);
+  const setPreference = useCallback((newPreference: ThemePreference) => {
+    setPreferenceState(newPreference);
+    setThemeCookie(newPreference);
+  }, []);
 
-  const setPreference = useCallback(
-    (newPreference: ThemePreference) => {
-      setPreferenceState(newPreference);
-      setThemeCookie(newPreference);
-      onPreferenceChange?.(newPreference);
-    },
-    [onPreferenceChange]
-  );
-
-  const value = useMemo<ThemeContextValue>(
-    () => ({
-      theme,
-      preference,
-      setPreference,
-      systemPreference,
-    }),
-    [theme, preference, setPreference, systemPreference]
-  );
+  const value = useMemo<ThemeContextValue>(() => ({ setPreference }), [setPreference]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-/**
- * Hook to access theme context
- *
- * @throws Error if used outside of ThemeProvider
- */
+/** @throws if used outside a ThemeProvider */
 export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext);
 

@@ -7,13 +7,16 @@
 import { errorEnvelopeSchema, ApiError } from '@odysseus/shared-schemas';
 
 import { isOffline } from '@infra/connection';
+import { env } from '@shared/config';
+
+export const OFFLINE_WRITE_BLOCKED_CODE = 'OFFLINE_WRITE_BLOCKED';
 
 export class OfflineWriteError extends ApiError {
   constructor() {
     super(
       "You're offline. Changes cannot be saved until connection is restored.",
       0, // status 0 indicates network error
-      'OFFLINE_WRITE_BLOCKED'
+      OFFLINE_WRITE_BLOCKED_CODE
     );
     this.name = 'OfflineWriteError';
   }
@@ -21,28 +24,10 @@ export class OfflineWriteError extends ApiError {
 
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-/** Use to avoid showing duplicate error notifications for offline writes. */
-export function isOfflineError(error: unknown): boolean {
-  return (
-    error instanceof OfflineWriteError ||
-    (typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code: unknown }).code === 'OFFLINE_WRITE_BLOCKED')
-  );
-}
-
 export interface HttpTransportConfig {
   baseURL?: string;
   timeout?: number;
   headers?: Record<string, string>;
-}
-
-export interface ApiResponse<T = unknown> {
-  data: T;
-  status: number;
-  statusText: string;
-  headers: Record<string, string>;
 }
 
 export class HttpTransport {
@@ -66,7 +51,7 @@ export class HttpTransport {
     url: string,
     data?: unknown,
     headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     // Uses shared network state (server-verified) instead of unreliable navigator.onLine
     if (WRITE_METHODS.has(method) && isOffline()) {
       throw new OfflineWriteError();
@@ -86,30 +71,10 @@ export class HttpTransport {
       const responseData = await response.json().catch(() => null);
 
       if (!response.ok) {
-        const errorParsed = errorEnvelopeSchema.safeParse(responseData);
-
-        if (errorParsed.success) {
-          throw new ApiError(
-            errorParsed.data.error,
-            response.status,
-            errorParsed.data.code,
-            errorParsed.data.details
-          );
-        }
-
-        throw new ApiError(
-          responseData?.message || `HTTP ${response.status}: ${response.statusText}`,
-          response.status,
-          responseData?.code
-        );
+        throw this.buildApiError(response, responseData);
       }
 
-      return {
-        data: responseData,
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-      };
+      return responseData as T;
     } catch (error) {
       if (error instanceof Error) {
         throw error;
@@ -118,7 +83,23 @@ export class HttpTransport {
     }
   }
 
-  async get<T = unknown>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+  private buildApiError(response: Response, body: unknown): ApiError {
+    const parsed = errorEnvelopeSchema.safeParse(body);
+    if (parsed.success) {
+      return new ApiError(
+        parsed.data.error,
+        response.status,
+        parsed.data.code,
+        parsed.data.details
+      );
+    }
+    const fallback = body as { message?: string; code?: string } | null;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty/missing message should fall back to the HTTP status line
+    const message = fallback?.message || `HTTP ${response.status}: ${response.statusText}`;
+    return new ApiError(message, response.status, fallback?.code);
+  }
+
+  async get<T = unknown>(url: string, headers?: Record<string, string>): Promise<T> {
     return this.request<T>('GET', url, undefined, headers);
   }
 
@@ -136,22 +117,7 @@ export class HttpTransport {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      const errorParsed = errorEnvelopeSchema.safeParse(errorData);
-
-      if (errorParsed.success) {
-        throw new ApiError(
-          errorParsed.data.error,
-          response.status,
-          errorParsed.data.code,
-          errorParsed.data.details
-        );
-      }
-
-      throw new ApiError(
-        errorData?.message || `HTTP ${response.status}: ${response.statusText}`,
-        response.status,
-        errorData?.code
-      );
+      throw this.buildApiError(response, errorData);
     }
 
     return response.blob();
@@ -161,7 +127,7 @@ export class HttpTransport {
     url: string,
     data?: unknown,
     headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     return this.request<T>('POST', url, data, headers);
   }
 
@@ -169,21 +135,15 @@ export class HttpTransport {
     url: string,
     data?: unknown,
     headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     return this.request<T>('PUT', url, data, headers);
   }
 
-  async delete<T = unknown>(
-    url: string,
-    headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(url: string, headers?: Record<string, string>): Promise<T> {
     return this.request<T>('DELETE', url, undefined, headers);
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-const API_BASE_URL = import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api';
-
 export const baseTransport = new HttpTransport({
-  baseURL: API_BASE_URL,
+  baseURL: env.apiBaseUrl(),
 });

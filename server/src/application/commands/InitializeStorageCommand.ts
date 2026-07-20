@@ -17,8 +17,6 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import { generateId } from '@domain/utils/generateId';
 import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 
-// COMMAND INTERFACE
-
 export interface InitializeStorageCommand {
   userId: string;
   labId: string;
@@ -27,8 +25,6 @@ export interface InitializeStorageCommand {
   racksPerTank?: number;
   boxesPerRack?: number;
 }
-
-// COMMAND HANDLER
 
 /** Creates default configuration for fresh installs. Only runs if no configuration exists. */
 export class InitializeStorageCommandHandler {
@@ -80,27 +76,36 @@ export class InitializeStorageCommandHandler {
 
         for (let b = 0; b < boxesPerRack; b++) {
           const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(b);
-          boxes.push(Box.create({
-            name: boxName,
-            gridConfig: { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-            maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
-          }));
+          boxes.push(
+            Box.create({
+              name: boxName,
+              gridConfig: {
+                rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
+                cols: EQUIPMENT_DEFAULTS.GRID_COLS,
+              },
+              maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+            })
+          );
         }
 
-        racks.push(Rack.create({
-          id: rackId,
-          name: rackName,
-          boxes,
-          maxBoxes: boxesPerRack,
-          capacity: boxesPerRack,
-        }));
+        racks.push(
+          Rack.create({
+            id: rackId,
+            name: rackName,
+            boxes,
+            maxBoxes: boxesPerRack,
+            capacity: boxesPerRack,
+          })
+        );
       }
 
-      tanks.push(Tank.create({
-        id: tankId,
-        name: tankName,
-        racks,
-      }));
+      tanks.push(
+        Tank.create({
+          id: tankId,
+          name: tankName,
+          racks,
+        })
+      );
     }
 
     const config = Storage.fromData({
@@ -110,8 +115,8 @@ export class InitializeStorageCommandHandler {
         defaultResearcher: '',
         autoSave: true,
         auditTrailEnabled: true,
-        syncEnabled: true
-      }
+        syncEnabled: true,
+      },
     });
 
     // Use version 0 since no config exists yet (protects against concurrent initialization)
@@ -123,21 +128,23 @@ export class InitializeStorageCommandHandler {
       command.userId
     );
 
-    await this.eventBus.publish(new StorageUpdatedEvent(
-      command.userId,
-      {
-        tanksAdded: tankCount,
-        tanksUpdated: 0,
-        tanksDeleted: 0,
-        racksAdded: tankCount * racksPerTank,
-        racksUpdated: 0,
-        racksDeleted: 0,
-        boxesAdded: tankCount * racksPerTank * boxesPerRack,
-        boxesUpdated: 0,
-        boxesDeleted: 0,
-        labNameChanged: true
-      },
-      command.labId
-    ));
+    await this.eventBus.publish(
+      new StorageUpdatedEvent(
+        command.userId,
+        {
+          tanksAdded: tankCount,
+          tanksUpdated: 0,
+          tanksDeleted: 0,
+          racksAdded: tankCount * racksPerTank,
+          racksUpdated: 0,
+          racksDeleted: 0,
+          boxesAdded: tankCount * racksPerTank * boxesPerRack,
+          boxesUpdated: 0,
+          boxesDeleted: 0,
+          labNameChanged: true,
+        },
+        command.labId
+      )
+    );
   }
 }

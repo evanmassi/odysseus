@@ -1,3 +1,7 @@
+/**
+ * Equipment Barrel
+ */
+
 export {
   equipmentStatusValues,
   equipmentStatusSchema,
@@ -17,12 +21,10 @@ export {
   createEquipmentDocumentRequestSchema,
   updateEquipmentDocumentRequestSchema,
   equipmentDocumentResponseSchema,
-  equipmentDocumentListResponseSchema,
   equipmentMaintenanceLogSchema,
   createEquipmentMaintenanceLogRequestSchema,
   updateEquipmentMaintenanceLogRequestSchema,
   equipmentMaintenanceLogEntryResponseSchema,
-  equipmentMaintenanceLogListResponseSchema,
   equipmentBulkMaintenanceRequestSchema,
   equipmentBulkStatusValues,
   equipmentBulkStatusSchema,
@@ -30,7 +32,6 @@ export {
   equipmentBulkRelocateRequestSchema,
   equipmentBulkResponseSchema,
   type EquipmentStatus,
-  type EquipmentBulkStatus,
   type EquipmentCategory,
   type EquipmentItem,
   type EquipmentDocument,
@@ -45,7 +46,6 @@ export {
   type UpdateEquipmentDocumentRequest,
   type CreateEquipmentMaintenanceLogRequest,
   type UpdateEquipmentMaintenanceLogRequest,
-  type EquipmentBulkMaintenanceRequest,
   type EquipmentBulkStatusRequest,
   type EquipmentBulkRelocateRequest,
   type EquipmentBulkResponse,

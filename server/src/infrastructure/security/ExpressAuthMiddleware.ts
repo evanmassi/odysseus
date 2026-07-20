@@ -5,6 +5,7 @@
  * Uses SessionService for session validation with timeout enforcement.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { SessionService } from '@application/contracts/SessionService';
@@ -12,21 +13,12 @@ import { logger } from '@infrastructure/logging/logger';
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
-function errorResponse(
-  res: Response,
-  req: Request,
-  status: number,
-  code: string,
-  message: string
-): void {
+function errorResponse(res: Response, status: number, code: string, message: string): void {
   res.status(status).json({
     success: false,
-    error: { code, message },
-    meta: {
-      timestamp: new Date().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      requestId: req.headers['x-request-id'] || 'unknown'
-    }
+    error: message,
+    code,
+    timestamp: new Date().toISOString(),
   });
 }
 
@@ -37,7 +29,7 @@ function requireRoleMiddleware(
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
-        errorResponse(res, req, 401, 'UNAUTHORIZED', 'Authentication required');
+        errorResponse(res, 401, API_ERROR_CODES.UNAUTHORIZED, 'Authentication required');
         return;
       }
 
@@ -47,10 +39,10 @@ function requireRoleMiddleware(
           username: req.user.username,
           role: req.user.role.value,
           path: req.path,
-          method: req.method
+          method: req.method,
         });
 
-        errorResponse(res, req, 403, 'FORBIDDEN', `${label} access required`);
+        errorResponse(res, 403, API_ERROR_CODES.FORBIDDEN, `${label} access required`);
         return;
       }
 
@@ -60,18 +52,16 @@ function requireRoleMiddleware(
       logger.error(`${label} authorization middleware error`, {
         error: errorMessage,
         path: req.path,
-        method: req.method
+        method: req.method,
       });
 
-      errorResponse(res, req, 500, 'AUTHORIZATION_ERROR', 'Authorization service error');
+      errorResponse(res, 500, API_ERROR_CODES.INTERNAL_SERVER_ERROR, 'Authorization service error');
     }
   };
 }
 
 export class ExpressAuthMiddleware implements AuthMiddleware {
-  constructor(
-    private sessionService: SessionService
-  ) {}
+  constructor(private sessionService: SessionService) {}
 
   get authenticate(): RequestHandler {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -79,7 +69,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          errorResponse(res, req, 401, 'UNAUTHORIZED', 'Authorization header required');
+          errorResponse(res, 401, API_ERROR_CODES.UNAUTHORIZED, 'Authorization header required');
           return;
         }
 
@@ -91,12 +81,18 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           const errorMessages: Record<string, string> = {
             INVALID_TOKEN: 'Invalid or expired token',
             SESSION_REVOKED: 'Session has been revoked',
+            SESSION_EXPIRED: 'Session expired - please log in again',
             SESSION_IDLE_TIMEOUT: 'Session timed out due to inactivity',
             SESSION_ABSOLUTE_TIMEOUT: 'Session expired - please log in again',
-            LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator'
+            LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator',
           };
 
-          errorResponse(res, req, 401, result.code, errorMessages[result.code] || 'Authentication failed');
+          errorResponse(
+            res,
+            401,
+            result.code,
+            errorMessages[result.code] || 'Authentication failed'
+          );
           return;
         }
 
@@ -105,12 +101,11 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           const statusMessages: Record<string, string> = {
             deactivated: 'Account has been deactivated. Contact your lab administrator',
             suspended: 'Account has been suspended. Contact your system administrator',
-            pending: 'Account is awaiting administrator approval',
-            rejected: 'Account access has been denied'
           };
-          const message = statusMessages[result.user.status] || 'Account is not approved for access';
+          const message =
+            statusMessages[result.user.status] || 'Account is not approved for access';
 
-          errorResponse(res, req, 403, 'ACCOUNT_INACTIVE', message);
+          errorResponse(res, 403, API_ERROR_CODES.FORBIDDEN, message);
           return;
         }
 
@@ -122,7 +117,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           username: result.user.username,
           role: result.user.role.value,
           sessionId: result.sessionId,
-          path: req.path
+          path: req.path,
         });
 
         next();
@@ -131,10 +126,15 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         logger.error('Authentication middleware error', {
           error: errorMessage,
           path: req.path,
-          method: req.method
+          method: req.method,
         });
 
-        errorResponse(res, req, 500, 'AUTHENTICATION_ERROR', 'Authentication service error');
+        errorResponse(
+          res,
+          500,
+          API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+          'Authentication service error'
+        );
       }
     };
   }

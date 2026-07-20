@@ -12,19 +12,16 @@ import { useSearchStore } from '../stores/searchStore';
 import { navigateToResult } from '../utils/navigateToResult';
 import { formatResultsForDisplay } from '../utils/searchFormatters';
 
-import { useSearchTubesQuery } from './useSearchQuery';
+import { useSearchQuery } from './useSearchQuery';
 
 import type { DisplayResults } from '../utils/searchFormatters';
 
 export function useSearch() {
-  // UI State
-  const { query, filters, setSearchQuery, setSearchFilters, clearSearch, hasActiveFilters } =
-    useSearchStore();
+  const { query, filters, setSearchQuery, clearSearch, hasActiveFilters } = useSearchStore();
 
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query);
 
-  // Memoize search options to prevent unnecessary React Query cache misses
-  // React Query uses referential equality for query keys - must memoize objects
+  // Stable reference so React Query's key comparison doesn't refetch on every render
   const searchOptions = useMemo(
     () => ({
       query: debouncedQuery,
@@ -33,36 +30,27 @@ export function useSearch() {
     [debouncedQuery, filters]
   );
 
-  // Server State
   const isSearchActive = !!debouncedQuery.trim() || hasActiveFilters();
 
-  const searchResult = useSearchTubesQuery(searchOptions, {
+  const searchResult = useSearchQuery(searchOptions, {
     enabled: isSearchActive,
   });
 
-  // Use original query for highlighting (immediate feedback), not debounced query
+  // Highlight against the live query for immediate feedback, not the debounced one
   const formattedResults: DisplayResults | null = isSearchActive
     ? formatResultsForDisplay(searchResult.data, query)
     : null;
 
   return {
-    // State
     query,
     filters,
     isSearching: searchResult.isLoading,
-    error: searchResult.error,
-
-    // Results (formatted and ready for display)
+    // isFetching stays true through refetches that keep placeholder data, where isLoading does not.
+    isFetching: searchResult.isFetching,
     results: formattedResults,
-    hasResults: formattedResults?.hasResults ?? false,
-
-    // Actions
     search: setSearchQuery,
-    updateFilters: setSearchFilters,
     clear: clearSearch,
     navigateToResult,
-
-    // Raw query result (for advanced use cases)
     refetch: searchResult.refetch,
   };
 }

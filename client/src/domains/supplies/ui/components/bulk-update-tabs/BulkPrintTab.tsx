@@ -10,6 +10,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { NumberInput } from '@shared/ui/primitives/input/NumberInput';
 import { notifications } from '@shared/utils/notifications';
 
@@ -19,29 +20,26 @@ import {
   getTemplateById,
   type SheetTemplate,
 } from '../sheetTemplates';
-import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodePrint';
-
-import { SELECT_LABEL } from './fieldLabelStyle';
+import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodeLabel';
 
 import type { PrintableLabel } from '../supplyBarcodeSheetTypes';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
-// Selection-card styling shared with the user-settings display-preferences tab.
 const FORMAT_CARD_BASE =
   'relative border px-3 py-2 transition-[background-color,border-color,box-shadow,color] duration-200 ' +
   'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
 const FORMAT_CARD_SELECTED =
   'border-primary/60 bg-[hsl(var(--primary)/0.10)] text-foreground ' +
-  'shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
+  'dark:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
 const FORMAT_CARD_UNSELECTED =
-  'border-line-mid text-secondary-foreground shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
+  'border-line-mid text-secondary-foreground dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
   'hover:border-primary/40 hover:text-foreground ' +
-  'hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
+  'dark:hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
 
 const PAPER_ORDER: Record<SheetTemplate['paperSize'], number> = { letter: 0, a4: 1 };
 
-export const CUSTOM_TEMPLATE_ID = 'custom';
+const CUSTOM_TEMPLATE_ID = 'custom';
 
 const PAPER_LABEL: Record<SheetTemplate['paperSize'], string> = { letter: 'Letter', a4: 'A4' };
 
@@ -70,7 +68,7 @@ const PAPER_DIMENSIONS: Record<SheetTemplate['paperSize'], { width: number; heig
   a4: { width: 8.27, height: 11.69 },
 };
 
-export interface CustomTemplateInputs {
+interface CustomTemplateInputs {
   paperSize: SheetTemplate['paperSize'];
   labelWidth: number;
   labelHeight: number;
@@ -237,6 +235,7 @@ export function usePrintTabState(
         return;
       }
       setPrintableLabels(labels);
+      setIsLoading(false);
       setIsPreviewOpen(true);
     } catch {
       notifications.error('Failed to fetch barcodes');
@@ -308,13 +307,13 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         Print barcodes for {selectedCount} selected item{selectedCount === 1 ? '' : 's'} onto a
         standard label sheet.
       </p>
 
       <div>
-        <h4 className={SELECT_LABEL}>Format</h4>
+        <h4 className={FIELD_LABEL_COMPACT}>Format</h4>
         <div className="grid grid-cols-2 gap-2">
           {FORMAT_OPTIONS.map(({ value, label, Icon }) => {
             const isSelected = format === value;
@@ -331,11 +330,11 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
                   size={18}
                   className={
                     isSelected
-                      ? 'text-primary [filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
+                      ? 'text-primary dark:[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
                       : 'text-muted-foreground'
                   }
                 />
-                <span className={`text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                <span className={`text-body-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
                   {label}
                 </span>
               </button>
@@ -346,7 +345,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
 
       <div>
         {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-        <label id="bulk-print-template-label" className={SELECT_LABEL}>
+        <label id="bulk-print-template-label" className={FIELD_LABEL_COMPACT}>
           Sheet template
         </label>
         <Select
@@ -357,9 +356,9 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
           fullWidth
           renderOption={option => (
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-card-foreground">{option.label}</span>
+              <span className="text-body-sm font-medium text-card-foreground">{option.label}</span>
               {option.description && (
-                <span className="text-xs text-muted-foreground">({option.description})</span>
+                <span className="text-caption text-muted-foreground">({option.description})</span>
               )}
             </div>
           )}
@@ -370,7 +369,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
         <div className="space-y-3 p-3 rounded-md border border-border bg-muted/20">
           <div>
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-            <label id="bulk-print-paper-label" className={SELECT_LABEL}>
+            <label id="bulk-print-paper-label" className={FIELD_LABEL_COMPACT}>
               Paper size
             </label>
             <Select
@@ -447,12 +446,12 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
               step={0.0625}
             />
           </div>
-          {customError && <p className="text-xs text-destructive">{customError}</p>}
+          {customError && <p className="text-body-sm text-destructive">{customError}</p>}
         </div>
       )}
 
       <div>
-        <h4 className={SELECT_LABEL}>Starting position</h4>
+        <h4 className={FIELD_LABEL_COMPACT}>Starting position</h4>
         <div className="flex items-center gap-2">
           <NumberInput
             value={startingPosition}
@@ -461,7 +460,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
             max={slotsPerSheet}
             aria-label="Starting slot on first sheet"
           />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-caption text-muted-foreground">
             of {slotsPerSheet} slots ({currentTemplate.columns} × {currentTemplate.rows})
           </span>
         </div>
@@ -482,7 +481,7 @@ interface CustomFieldProps {
 function CustomField({ label, value, onChange, min, step, allowDecimals }: CustomFieldProps) {
   return (
     <div className="flex flex-col items-start">
-      <span className={SELECT_LABEL}>{label}</span>
+      <span className={FIELD_LABEL_COMPACT}>{label}</span>
       <NumberInput
         value={value}
         onChange={onChange}

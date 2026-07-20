@@ -21,14 +21,7 @@ export class ConsoleEmailService implements EmailService {
       subject: 'Verify your Odysseus account',
       username,
       verificationUrl,
-      expiresIn: '48 hours'
-    });
-  }
-
-  async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    logger.debug('Password reset email (dev mode)', {
-      to: email,
-      tokenProvided: !!token
+      expiresIn: '48 hours',
     });
   }
 }

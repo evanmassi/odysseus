@@ -75,8 +75,6 @@ CREATE TABLE security_config (
   login_attempts_per_minute INTEGER NOT NULL DEFAULT 10,
   lockout_duration_minutes INTEGER NOT NULL DEFAULT 15,
   enable_admin_controls BOOLEAN NOT NULL DEFAULT TRUE,
-  enable_detailed_logging BOOLEAN NOT NULL DEFAULT TRUE,
-  log_failed_attempts BOOLEAN NOT NULL DEFAULT TRUE,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -105,14 +103,12 @@ CREATE TABLE researchers (
   lab_id TEXT NOT NULL REFERENCES labs(id),
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL,
-  approval_status TEXT NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved')),
   source TEXT NOT NULL DEFAULT 'admin' CHECK (source IN ('registration', 'admin')),
   FOREIGN KEY (person_id) REFERENCES persons(id)
 );
 
 CREATE INDEX idx_researchers_active ON researchers(active);
 CREATE INDEX idx_researchers_person_id ON researchers(person_id);
-CREATE INDEX idx_researchers_approval_status ON researchers(approval_status);
 CREATE INDEX idx_researchers_lab_id ON researchers(lab_id);
 
 -- USERS TABLE
@@ -128,7 +124,7 @@ CREATE TABLE users (
   researcher_id TEXT,
   person_id TEXT,
   lab_id TEXT REFERENCES labs(id),
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'deactivated', 'suspended')),
+  status TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('approved', 'deactivated', 'suspended')),
   email_verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expiry TIMESTAMPTZ,

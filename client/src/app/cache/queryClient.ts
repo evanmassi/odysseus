@@ -9,42 +9,38 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
+import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
+import {
+  getErrorMessage,
+  isInfrastructureError,
+  hasStatus,
+  hasMessage,
+} from '@shared/utils/getErrorMessage';
 import { notifications } from '@shared/utils/notifications';
+import { MS_PER_SECOND, MS_PER_MINUTE, MS_PER_HOUR, MS_PER_DAY } from '@shared/utils/timeConstants';
 
-import type { DefaultOptions } from '@tanstack/react-query';
+import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
 
-// React Query v5 types errors as `unknown`.
+import type { DefaultOptions, QueryKey, Mutation } from '@tanstack/react-query';
 
-function hasStatus(error: unknown): error is { status: number } {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    typeof (error as Record<string, unknown>)['status'] === 'number'
-  );
+declare module '@tanstack/react-query' {
+  interface Register {
+    mutationMeta: {
+      /** Static query keys to invalidate on success (consumed by handleMutationSuccess). */
+      invalidates?: QueryKey[];
+      /**
+       * Suppress the global error toast — for a mutation that surfaces its own error inline
+       * (e.g. a form field). The mutation still logs; only the toast is skipped.
+       */
+      suppressErrorToast?: boolean;
+    };
+  }
 }
 
-function hasMessage(error: unknown): error is { message: string } {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>)['message'] === 'string'
-  );
-}
+// React Query v5 types errors as `unknown`; these guards narrow the shapes we log.
 
-function hasCode(error: unknown): error is { code: string } {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    typeof (error as Record<string, unknown>)['code'] === 'string'
-  );
-}
-
-/** Matches the AppError shape */
 function hasDetails(error: unknown): error is { details: Record<string, unknown> } {
   return (
     typeof error === 'object' &&
@@ -59,40 +55,30 @@ function isQuery(query: unknown): query is { queryKey: unknown } {
   return typeof query === 'object' && query !== null && 'queryKey' in query;
 }
 
-function isMutation(mutation: unknown): mutation is { options: { mutationKey?: unknown } } {
-  return (
-    typeof mutation === 'object' &&
-    mutation !== null &&
-    'options' in mutation &&
-    typeof (mutation as Record<string, unknown>)['options'] === 'object' &&
-    (mutation as Record<string, unknown>)['options'] !== null
-  );
-}
-
 export const CACHE_TIMES = {
   REAL_TIME: {
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 3 * MS_PER_MINUTE,
+    gcTime: 15 * MS_PER_MINUTE,
   },
 
   MEDIUM: {
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 10 * MS_PER_MINUTE,
+    gcTime: 30 * MS_PER_MINUTE,
   },
 
   STABLE: {
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    gcTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 30 * MS_PER_MINUTE,
+    gcTime: MS_PER_HOUR,
   },
 
   CONFIG: {
-    staleTime: 60 * 60 * 1000, // 1 hour
-    gcTime: 2 * 60 * 60 * 1000, // 2 hours
+    staleTime: MS_PER_HOUR,
+    gcTime: 2 * MS_PER_HOUR,
   },
 
   SEARCH: {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 30 * MS_PER_SECOND,
+    gcTime: 5 * MS_PER_MINUTE,
   },
 } as const;
 
@@ -109,7 +95,7 @@ const mutationRetryLogic = (failureCount: number, error: unknown): boolean => {
     return false;
   }
 
-  if (hasCode(error) && error.code === 'OFFLINE_WRITE_BLOCKED') {
+  if (isOfflineError(error)) {
     return false;
   }
 
@@ -139,23 +125,17 @@ const handleQueryError = (error: unknown, query: unknown): void => {
     });
   }
 
-  if (hasStatus(error) && error.status === 429) {
-    notifications.error('Too many requests. Please wait a moment and try again.');
-  } else if (hasStatus(error) && error.status >= 500) {
-    notifications.error('Server error occurred. Please try again.');
-  } else if (
-    (hasStatus(error) && error.status === 0) ||
-    (hasCode(error) && error.code === 'NETWORK_ERROR')
-  ) {
-    notifications.error('Network error. Check your connection.');
+  // Infrastructure failures get a toast; 4xx query errors stay silent — the component renders
+  // its own error state from the query's `isError`.
+  if (isInfrastructureError(error)) {
+    notifications.error(getErrorMessage(error));
   }
 };
 
 const handleMutationError = (
   error: unknown,
   variables: unknown,
-  _context: unknown,
-  mutation: unknown
+  mutation: Mutation<unknown, unknown, unknown, unknown>
 ): void => {
   if (env.isDev()) {
     const originalError =
@@ -164,9 +144,9 @@ const handleMutationError = (
         : error;
 
     logger.error('Mutation failed', {
-      mutationKey: isMutation(mutation) ? mutation.options.mutationKey : 'unknown',
+      mutationKey: mutation.options.mutationKey ?? 'unknown',
       wrapperMessage: hasMessage(error) ? error.message : undefined,
-      originalError: originalError,
+      originalError,
       status: hasStatus(error)
         ? error.status
         : hasStatus(originalError)
@@ -175,28 +155,29 @@ const handleMutationError = (
       errorDetails: hasDetails(error) ? error.details : undefined,
       variables,
     });
-
-    logger.error('Full error object', { error });
-    if (originalError !== error) {
-      logger.error('Original unwrapped error', { originalError });
-    }
   }
 
-  if (hasCode(error) && error.code === 'OFFLINE_WRITE_BLOCKED') {
+  if (isOfflineError(error)) {
     notifications.offlineError();
     return;
   }
 
-  if (hasStatus(error) && error.status === 429) {
-    notifications.error('Too many requests. Please wait a moment and try again.');
-  } else if (hasStatus(error) && error.status >= 500) {
-    notifications.error('Server error. Your changes could not be saved.');
-  } else if (hasStatus(error) && error.status >= 400 && error.status < 500) {
-    const message = hasMessage(error) ? error.message : 'Invalid request. Please check your input.';
-    notifications.error(message);
-  } else {
-    notifications.error('Network error. Please try again.');
+  // A mutation that renders its error inline opts out of the global toast via meta.
+  if (mutation.options.meta?.suppressErrorToast) {
+    return;
   }
+
+  notifications.error(getErrorMessage(error));
+};
+
+// Central post-write invalidation: a mutation declares `meta: { invalidates: [queryKey, ...] }` and
+// this refetches those keys on success, so hooks don't repeat useQueryClient + an onSuccess block.
+// Use meta ONLY for pure static-key invalidation; keep onSuccess for anything more — keys derived from
+// the mutation's (typed) variables or result, success toasts, cache patching, or optimistic updates.
+const handleMutationSuccess = (mutation: Mutation<unknown, unknown, unknown, unknown>): void => {
+  mutation.options.meta?.invalidates?.forEach(
+    queryKey => void queryClient.invalidateQueries({ queryKey })
+  );
 };
 
 const defaultOptions: DefaultOptions = {
@@ -221,44 +202,6 @@ const defaultOptions: DefaultOptions = {
   },
 };
 
-export const cacheMetrics = {
-  hits: 0,
-  misses: 0,
-  invalidations: 0,
-
-  recordHit(): void {
-    this.hits++;
-  },
-
-  recordMiss(): void {
-    this.misses++;
-  },
-
-  recordInvalidation(): void {
-    this.invalidations++;
-  },
-
-  getHitRate(): number {
-    const total = this.hits + this.misses;
-    return total === 0 ? 0 : this.hits / total;
-  },
-
-  reset(): void {
-    this.hits = 0;
-    this.misses = 0;
-    this.invalidations = 0;
-  },
-
-  getStats(): { hits: number; misses: number; hitRate: string; invalidations: number } {
-    return {
-      hits: this.hits,
-      misses: this.misses,
-      hitRate: `${(this.getHitRate() * 100).toFixed(1)}%`,
-      invalidations: this.invalidations,
-    };
-  },
-};
-
 export const queryClient = new QueryClient({
   defaultOptions,
   queryCache: new QueryCache({
@@ -267,53 +210,46 @@ export const queryClient = new QueryClient({
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error, variables, context, mutation) => {
-      handleMutationError(error, variables, context, mutation);
+    onError: (error, variables, _context, mutation) => {
+      handleMutationError(error, variables, mutation);
+    },
+    onSuccess: (_data, _variables, _context, mutation) => {
+      handleMutationSuccess(mutation);
     },
   }),
 });
 
 export const DOMAIN_QUERY_OPTIONS = {
-  tubes: {
-    staleTime: CACHE_TIMES.REAL_TIME.staleTime,
-    gcTime: CACHE_TIMES.REAL_TIME.gcTime,
-    refetchOnMount: false,
-  },
-
   researchers: {
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
     refetchOnMount: false,
   },
 
-  configuration: {
-    staleTime: CACHE_TIMES.CONFIG.staleTime,
-    gcTime: CACHE_TIMES.CONFIG.gcTime,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  },
-
   search: {
     staleTime: CACHE_TIMES.SEARCH.staleTime,
     gcTime: CACHE_TIMES.SEARCH.gcTime,
-    refetchOnMount: true,
-  },
-
-  statistics: {
-    staleTime: CACHE_TIMES.REAL_TIME.staleTime,
-    gcTime: CACHE_TIMES.REAL_TIME.gcTime,
     refetchOnMount: false,
   },
 } as const;
 
-const EXCLUDED_QUERY_PREFIXES = ['users', 'admin', 'auth', 'security'] as const;
+// Admin-scoped data stays out of localStorage. 'labs' and 'storageAnalytics' are system-admin
+// surfaces spanning every lab, so they belong here alongside the rest.
+const NON_PERSISTED_QUERY_KEYS: readonly string[] = [
+  'users',
+  'admin',
+  'auth',
+  'security',
+  'labs',
+  'storageAnalytics',
+];
 
 function shouldPersistQuery(queryKey: readonly unknown[]): boolean {
   const firstKey = queryKey[0];
   if (typeof firstKey !== 'string') return false;
 
-  return !EXCLUDED_QUERY_PREFIXES.some(prefix => firstKey.startsWith(prefix));
+  // Matched exactly, not by prefix: 'storage' would otherwise swallow 'storageAnalytics'.
+  return !NON_PERSISTED_QUERY_KEYS.includes(firstKey);
 }
 
 // JSON.parse revives Date.prototype.toISOString() strings back to Date objects.
@@ -330,7 +266,7 @@ function reviveDates(_key: string, value: unknown): unknown {
 export function setupQueryPersistence(): void {
   const persister = createSyncStoragePersister({
     storage: window.localStorage,
-    key: 'odysseus-query-cache',
+    key: QUERY_CACHE_KEY,
     serialize: data => JSON.stringify(data),
     deserialize: str => JSON.parse(str, reviveDates),
   });
@@ -338,7 +274,7 @@ export function setupQueryPersistence(): void {
   void persistQueryClient({
     queryClient,
     persister,
-    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    maxAge: MS_PER_DAY,
     dehydrateOptions: {
       shouldDehydrateQuery: query => {
         const defaultShouldDehydrate = query.state.status === 'success';
@@ -351,6 +287,6 @@ export function setupQueryPersistence(): void {
 /** Ensures the next user gets fresh data filtered for their demo status. */
 export function clearAllCaches(): void {
   queryClient.clear();
-  localStorage.removeItem('odysseus-query-cache');
-  localStorage.removeItem('odysseus-configuration-version');
+  localStorage.removeItem(QUERY_CACHE_KEY);
+  localStorage.removeItem(CONFIG_VERSION_KEY);
 }

@@ -1,5 +1,5 @@
 /**
- * Error Boundary Component
+ * Error Boundary
  *
  * Error boundary with retry functionality and error reporting.
  */
@@ -36,7 +36,6 @@ export interface ErrorBoundaryProps {
       }) => ReactNode);
   onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void;
   onRetry?: () => void;
-  isolate?: boolean;
   level?: 'page' | 'section' | 'component';
   name?: string;
 }
@@ -85,7 +84,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
           <summary className="cursor-pointer text-danger-text font-medium mb-2">
             Error Details
           </summary>
-          <div className="bg-muted p-4 rounded border border-danger-border text-sm font-mono text-card-foreground overflow-auto max-h-40">
+          <div className="bg-muted p-4 rounded border border-danger-border text-data font-mono text-card-foreground overflow-auto max-h-40">
             <div className="mb-2">
               <strong>Error ID:</strong> {errorId}
             </div>
@@ -115,7 +114,6 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
           <Button
             variant="secondary"
             onClick={() => {
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
               // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
               console.group(`🚨 Error Boundary: ${name ?? 'Unknown'}`);
               logger.error('Error', { error });
@@ -132,7 +130,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
       {level === 'page' && (
         <button
           onClick={() => window.location.reload()}
-          className="mt-3 text-danger-text hover:text-danger-bg underline text-sm"
+          className="mt-3 text-danger-text hover:text-danger-bg underline text-body-sm"
         >
           Reload Page
         </button>
@@ -168,16 +166,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error ID is invalid, generate unique ID
-    const errorId = this.state.errorId || generateErrorId();
+    // getDerivedStateFromError always sets errorId before this runs.
+    const errorId = this.state.errorId!;
 
-    this.setState({
-      errorInfo,
-      errorId,
-    });
+    this.setState({ errorInfo });
 
     if (env.isDev()) {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
       // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
       console.group(`🚨 Error Boundary Caught Error: ${this.props.name ?? 'Unknown'}`);
       logger.error('Error', { error });

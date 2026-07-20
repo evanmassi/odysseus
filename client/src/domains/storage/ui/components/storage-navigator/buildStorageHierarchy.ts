@@ -8,7 +8,7 @@
 import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 
 import type { StorageHierarchy } from './storageNavigatorTypes';
-import type { TankConfiguration } from '@domains/storage';
+import type { TankConfiguration } from '@odysseus/shared-schemas';
 
 export function buildStorageHierarchy(tanks: TankConfiguration[]): StorageHierarchy {
   return {

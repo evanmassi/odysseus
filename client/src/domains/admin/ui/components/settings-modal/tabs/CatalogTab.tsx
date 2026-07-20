@@ -4,21 +4,30 @@
  * Admin interface for managing lookup values (species, source, media, specimen type dropdowns).
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronDown, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { Check, ChevronRight, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-import { queryKeys } from '@app/cache/queryKeys';
-import { useLabId } from '@domains/authentication';
-import { logger } from '@infra/logger';
-import { AlertBanner, Button, Chip, SubsectionHeader, Table, Tooltip } from '@shared/ui';
+import {
+  AlertBanner,
+  Button,
+  Chip,
+  NubDivider,
+  SubsectionHeader,
+  Table,
+  Tooltip,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../../services/AdminService';
+import { EMPTY_CATALOG, useCatalogValuesQuery } from '../../../../hooks/useCatalogValuesQuery';
+import {
+  useCreateLookupValueMutation,
+  useDeleteLookupValueMutation,
+  useRenameLookupValueMutation,
+} from '../../../../hooks/useLookupValueMutations';
 
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -73,7 +82,7 @@ interface CategorySectionProps {
   values: LookupValueWithCount[];
   loading: boolean;
   onAdd: (value: string) => Promise<void>;
-  onRename: (id: string, newValue: string) => Promise<void>;
+  onRename: (id: string, newValue: string) => void;
   onDelete: (id: string, value: string) => void;
   deletingId: string | null;
   readOnly?: boolean;
@@ -105,6 +114,8 @@ function CategorySection({
     try {
       await onAdd(trimmed);
       setNewValue('');
+    } catch {
+      // Add failed — keep the typed value so the user can retry; the global handler toasts.
     } finally {
       setAdding(false);
     }
@@ -116,7 +127,7 @@ function CategorySection({
     requestAnimationFrame(() => editInputRef.current?.focus());
   };
 
-  const handleRenameSave = async () => {
+  const handleRenameSave = () => {
     if (!editingId) return;
     const trimmed = editValue.trim();
     if (!trimmed) {
@@ -128,11 +139,8 @@ function CategorySection({
       setEditingId(null);
       return;
     }
-    try {
-      await onRename(editingId, trimmed);
-    } finally {
-      setEditingId(null);
-    }
+    onRename(editingId, trimmed);
+    setEditingId(null);
   };
 
   const sortedValues = useMemo(() => {
@@ -164,7 +172,7 @@ function CategorySection({
               value={editValue}
               onChange={e => setEditValue(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') void handleRenameSave();
+                if (e.key === 'Enter') handleRenameSave();
                 if (e.key === 'Escape') setEditingId(null);
               }}
               size="xs"
@@ -172,7 +180,7 @@ function CategorySection({
             />
           );
         }
-        return <span className="font-display text-sm text-card-foreground">{item.value}</span>;
+        return <span className="font-display text-body-sm text-card-foreground">{item.value}</span>;
       },
     },
     {
@@ -186,7 +194,7 @@ function CategorySection({
             {item.usageCount}
           </Chip>
         ) : (
-          <span className="font-mono text-sm text-muted-foreground/40">—</span>
+          <span className="font-mono text-data text-muted-foreground/40">—</span>
         ),
     },
     {
@@ -202,7 +210,7 @@ function CategorySection({
                 variant="ghost"
                 size="xs"
                 iconOnly
-                onClick={() => void handleRenameSave()}
+                onClick={() => handleRenameSave()}
                 aria-label="Save"
                 className="text-success-text hover:text-success-text-hover"
               >
@@ -268,7 +276,7 @@ function CategorySection({
           <SubsectionHeader
             index={index}
             title={title}
-            meta={String(values.length)}
+            meta={`// ${values.length} ${values.length === 1 ? 'entry' : 'entries'}`}
             accent
             className="phosphor-text"
           />
@@ -282,7 +290,7 @@ function CategorySection({
               onKeyDown={e => {
                 if (e.key === 'Enter' && !readOnly) void handleAdd();
               }}
-              placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
+              placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category]}...`}
               size="sm"
               disabled={readOnly}
             />
@@ -305,8 +313,8 @@ function CategorySection({
       sortConfig={sortConfig}
       onSort={setSortConfig}
       loading={loading}
-      emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category] ?? category} yet`}
-      loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category] ?? category}...`}
+      emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category]} yet`}
+      loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category]}...`}
       aria-label={`${title} list`}
     />
   );
@@ -320,70 +328,39 @@ interface CatalogGroupProps {
   children: React.ReactNode;
 }
 
-function GroupReticle({ active }: { active: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={`relative flex h-3 w-3 shrink-0 rotate-45 items-center justify-center border transition ${
-        active
-          ? 'border-primary/80 shadow-[0_0_6px_1px_hsl(var(--primary)/0.65)]'
-          : 'border-foreground/35'
-      }`}
-    >
-      <span
-        className={`h-1 w-1 bg-primary transition-shadow ${
-          active
-            ? 'shadow-[0_0_7px_1px_hsl(var(--primary)/0.85)]'
-            : 'shadow-[0_0_5px_0_hsl(var(--primary)/0.5)]'
-        }`}
-      />
-    </span>
-  );
-}
-
 function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGroupProps) {
   return (
-    <div>
+    <div className="overflow-hidden border border-line-faint">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="group flex w-full items-center gap-2.5"
+        className="relative flex w-full items-center gap-2 bg-[hsl(var(--primary)/0.07)] px-3 py-2 text-left transition-[background-color,filter] hover:brightness-[0.97] dark:bg-shade/35 dark:hover:bg-shade/45 dark:hover:brightness-100"
       >
-        <span className="flex items-center gap-2.5">
-          <ChevronDown
-            size={13}
-            className={`text-foreground/40 transition-transform ${expanded ? 'rotate-0' : '-rotate-90'}`}
-          />
-          <GroupReticle active={expanded} />
-        </span>
         <span
-          className={`font-mono text-[12.5px] uppercase tracking-[0.26em] transition-colors ${
-            expanded
-              ? 'phosphor-text font-medium text-foreground'
-              : 'text-foreground/80 group-hover:text-foreground/95'
-          }`}
-        >
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <ChevronRight
+          size={11}
+          className={`flex-shrink-0 text-foreground/40 transition-transform ${expanded ? 'rotate-90' : ''}`}
+        />
+        <span
+          aria-hidden
+          className="h-[11px] w-0.5 flex-shrink-0 bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.6)]"
+        />
+        <span className="type-label text-label-md tracking-label-wide text-foreground">
           {title}
         </span>
-        <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+        <span aria-hidden className="font-mono text-data-sm text-foreground/30">
           {'//'}
         </span>
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
+        <span className="font-mono text-data-sm tracking-data text-foreground/55">
           {count} {count === 1 ? 'entry' : 'entries'}
         </span>
-        <span className="relative flex flex-1 items-center">
-          <span
-            aria-hidden
-            className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.22)_0%,hsl(var(--foreground)/0.12)_60%,transparent_100%)]"
-          />
-          <span
-            aria-hidden
-            className="absolute right-0 top-1/2 h-0.5 w-0.5 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
-          />
-        </span>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </button>
-      {expanded && <div className="mt-3 space-y-3">{children}</div>}
+      {expanded && <div className="space-y-3 p-3">{children}</div>}
     </div>
   );
 }
@@ -394,8 +371,6 @@ interface CatalogTabProps {
 }
 
 export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
-  const queryClient = useQueryClient();
-  const labId = useLabId();
   const location = useLocation();
   const isSuppliesRoute = location.pathname.startsWith('/lab/supplies');
   const isLabRoute = location.pathname.startsWith('/lab');
@@ -403,184 +378,90 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [biobankExpanded, setBiobankExpanded] = useState(isBiobankRoute);
   const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isSuppliesRoute);
   const [suppliesExpanded, setSuppliesExpanded] = useState(isSuppliesRoute);
-  const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
-  const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
-  const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
-  const [specimenTypeValues, setSpecimenTypeValues] = useState<LookupValueWithCount[]>([]);
-  const [equipmentMaintenanceTypeValues, setEquipmentMaintenanceTypeValues] = useState<
-    LookupValueWithCount[]
-  >([]);
-  const [supplyItemPropertyValues, setSupplyItemPropertyValues] = useState<LookupValueWithCount[]>(
-    []
-  );
-  const [supplyStockUnitValues, setSupplyStockUnitValues] = useState<LookupValueWithCount[]>([]);
-  const [supplyVendorValues, setSupplyVendorValues] = useState<LookupValueWithCount[]>([]);
-  const [supplyManufacturerValues, setSupplyManufacturerValues] = useState<LookupValueWithCount[]>(
-    []
-  );
-  const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     id: string;
     value: string;
     category: LookupCategory;
   } | null>(null);
 
-  const setterForCategory: Record<
-    LookupCategory,
-    React.Dispatch<React.SetStateAction<LookupValueWithCount[]>>
-  > = useMemo(
-    () => ({
-      species: setSpeciesValues,
-      source: setSourceValues,
-      media: setMediaValues,
-      specimen_type: setSpecimenTypeValues,
-      equipment_maintenance_type: setEquipmentMaintenanceTypeValues,
-      supply_item_property: setSupplyItemPropertyValues,
-      supply_stock_unit: setSupplyStockUnitValues,
-      supply_vendor: setSupplyVendorValues,
-      supply_manufacturer: setSupplyManufacturerValues,
-    }),
-    []
-  );
+  const { data: catalog = EMPTY_CATALOG, isLoading, isFetching, refetch } = useCatalogValuesQuery();
+  const createMutation = useCreateLookupValueMutation();
+  const renameMutation = useRenameLookupValueMutation();
+  const deleteMutation = useDeleteLookupValueMutation();
 
-  const loadValues = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [
-        species,
-        sources,
-        media,
-        specimenTypes,
-        equipmentMaintenanceTypes,
-        supplyItemProperties,
-        supplyStockUnits,
-        supplyVendors,
-        supplyManufacturers,
-      ] = await Promise.all([
-        adminService.getLookupValues('species'),
-        adminService.getLookupValues('source'),
-        adminService.getLookupValues('media'),
-        adminService.getLookupValues('specimen_type'),
-        adminService.getLookupValues('equipment_maintenance_type'),
-        adminService.getLookupValues('supply_item_property'),
-        adminService.getLookupValues('supply_stock_unit'),
-        adminService.getLookupValues('supply_vendor'),
-        adminService.getLookupValues('supply_manufacturer'),
-      ]);
-      setSpeciesValues(species);
-      setSourceValues(sources);
-      setMediaValues(media);
-      setSpecimenTypeValues(specimenTypes);
-      setEquipmentMaintenanceTypeValues(equipmentMaintenanceTypes);
-      setSupplyItemPropertyValues(supplyItemProperties);
-      setSupplyStockUnitValues(supplyStockUnits);
-      setSupplyVendorValues(supplyVendors);
-      setSupplyManufacturerValues(supplyManufacturers);
-    } catch (error) {
-      logger.error('Failed to load lookup values', { error });
-      notifications.error('Failed to load catalog values');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadValues();
-  }, [loadValues]);
+  const deletingId = deleteMutation.isPending ? (confirmDialog?.id ?? null) : null;
 
   useEffect(() => {
     onTabFooter?.(
-      <AlertBanner variant="info" spacing="none" className="text-xs">
+      <AlertBanner variant="info" spacing="none" className="text-body-sm">
         Entries in use cannot be deleted. Renaming an entry updates every record that references it.
       </AlertBanner>
     );
   }, [onTabFooter]);
 
+  // mutateAsync so the child form can await the result and keep the typed value on failure.
   const handleAdd = async (category: LookupCategory, value: string) => {
-    try {
-      const created = await adminService.createLookupValue(category, value);
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.lookups.byCategory(labId, category),
-      });
-      setterForCategory[category](prev => [...prev, { ...created, usageCount: 0 }]);
-      notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category] ?? category}`);
-    } catch (error: unknown) {
-      const msg =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to add ${CATEGORY_SINGULAR_LABELS[category] ?? category}`;
-      notifications.error(msg);
-    }
+    await createMutation.mutateAsync({ category, value });
+    notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category]}`);
   };
 
-  const handleRename = async (category: LookupCategory, id: string, newValue: string) => {
-    try {
-      const updated = await adminService.renameLookupValue(id, newValue);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all(labId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-      setterForCategory[category](prev =>
-        prev.map(item => (item.id === id ? { ...updated, usageCount: item.usageCount } : item))
-      );
-      notifications.success(`Renamed to "${newValue}"`);
-    } catch (error: unknown) {
-      const msg =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to rename ${CATEGORY_SINGULAR_LABELS[category] ?? category}`;
-      notifications.error(msg);
-    }
+  const handleRename = (category: LookupCategory, id: string, newValue: string) => {
+    renameMutation.mutate(
+      { category, id, value: newValue },
+      {
+        onSuccess: () => {
+          notifications.success(`Renamed to "${newValue}"`);
+        },
+      }
+    );
   };
 
   const handleDeleteRequest = (category: LookupCategory, id: string, value: string) => {
     setConfirmDialog({ id, value, category });
   };
 
-  const executeDelete = async () => {
-    if (!confirmDialog) return;
-    setDeletingId(confirmDialog.id);
-    try {
-      await adminService.deleteLookupValue(confirmDialog.id);
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.lookups.byCategory(labId, confirmDialog.category),
-      });
-      setterForCategory[confirmDialog.category](prev =>
-        prev.filter(item => item.id !== confirmDialog.id)
-      );
-      notifications.success(`Deleted "${confirmDialog.value}"`);
-      setConfirmDialog(null);
-    } catch (error: unknown) {
-      const msg =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`;
-      notifications.error(msg);
-      setConfirmDialog(null);
-    } finally {
-      setDeletingId(null);
-    }
+  const executeDelete = () => {
+    const target = confirmDialog;
+    if (!target) return;
+    deleteMutation.mutate(
+      { category: target.category, id: target.id },
+      {
+        onSuccess: () => {
+          notifications.success(`Deleted "${target.value}"`);
+        },
+        onSettled: () => {
+          setConfirmDialog(null);
+        },
+      }
+    );
   };
 
   const biobankCount =
-    speciesValues.length + sourceValues.length + mediaValues.length + specimenTypeValues.length;
-  const equipmentCount = equipmentMaintenanceTypeValues.length;
+    catalog.species.length +
+    catalog.source.length +
+    catalog.media.length +
+    catalog.specimen_type.length;
+  const equipmentCount = catalog.equipment_maintenance_type.length;
   const suppliesCount =
-    supplyItemPropertyValues.length +
-    supplyStockUnitValues.length +
-    supplyVendorValues.length +
-    supplyManufacturerValues.length;
+    catalog.supply_item_property.length +
+    catalog.supply_stock_unit.length +
+    catalog.supply_vendor.length +
+    catalog.supply_manufacturer.length;
 
   return (
     <div className="space-y-2">
       <div className="mb-4 flex justify-end">
         <Button
           variant="secondary"
-          onClick={() => void loadValues()}
-          isLoading={loading}
+          onClick={() => refetch()}
+          isLoading={isFetching}
           leftIcon={<RefreshCw size={14} />}
         >
           Refresh
         </Button>
       </div>
 
-      <div className="space-y-7">
+      <div className="space-y-3">
         <CatalogGroup
           title="Biobank"
           count={biobankCount}
@@ -591,8 +472,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="species"
             index={1}
             title="Species"
-            values={speciesValues}
-            loading={loading}
+            values={catalog.species}
+            loading={isLoading}
             onAdd={value => handleAdd('species', value)}
             onRename={(id, newValue) => handleRename('species', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('species', id, value)}
@@ -603,8 +484,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="source"
             index={2}
             title="Sources"
-            values={sourceValues}
-            loading={loading}
+            values={catalog.source}
+            loading={isLoading}
             onAdd={value => handleAdd('source', value)}
             onRename={(id, newValue) => handleRename('source', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('source', id, value)}
@@ -615,8 +496,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="media"
             index={3}
             title="Media Types"
-            values={mediaValues}
-            loading={loading}
+            values={catalog.media}
+            loading={isLoading}
             onAdd={value => handleAdd('media', value)}
             onRename={(id, newValue) => handleRename('media', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('media', id, value)}
@@ -627,8 +508,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="specimen_type"
             index={4}
             title="Specimens"
-            values={specimenTypeValues}
-            loading={loading}
+            values={catalog.specimen_type}
+            loading={isLoading}
             onAdd={value => handleAdd('specimen_type', value)}
             onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
@@ -647,8 +528,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="equipment_maintenance_type"
             index={1}
             title="Maintenance Activities"
-            values={equipmentMaintenanceTypeValues}
-            loading={loading}
+            values={catalog.equipment_maintenance_type}
+            loading={isLoading}
             onAdd={value => handleAdd('equipment_maintenance_type', value)}
             onRename={(id, newValue) => handleRename('equipment_maintenance_type', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('equipment_maintenance_type', id, value)}
@@ -667,8 +548,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="supply_item_property"
             index={1}
             title="Item Properties"
-            values={supplyItemPropertyValues}
-            loading={loading}
+            values={catalog.supply_item_property}
+            loading={isLoading}
             onAdd={value => handleAdd('supply_item_property', value)}
             onRename={(id, newValue) => handleRename('supply_item_property', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('supply_item_property', id, value)}
@@ -679,8 +560,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="supply_stock_unit"
             index={2}
             title="Stock Units"
-            values={supplyStockUnitValues}
-            loading={loading}
+            values={catalog.supply_stock_unit}
+            loading={isLoading}
             onAdd={value => handleAdd('supply_stock_unit', value)}
             onRename={(id, newValue) => handleRename('supply_stock_unit', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('supply_stock_unit', id, value)}
@@ -691,8 +572,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="supply_vendor"
             index={3}
             title="Vendors"
-            values={supplyVendorValues}
-            loading={loading}
+            values={catalog.supply_vendor}
+            loading={isLoading}
             onAdd={value => handleAdd('supply_vendor', value)}
             onRename={(id, newValue) => handleRename('supply_vendor', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('supply_vendor', id, value)}
@@ -703,8 +584,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             category="supply_manufacturer"
             index={4}
             title="Manufacturers"
-            values={supplyManufacturerValues}
-            loading={loading}
+            values={catalog.supply_manufacturer}
+            loading={isLoading}
             onAdd={value => handleAdd('supply_manufacturer', value)}
             onRename={(id, newValue) => handleRename('supply_manufacturer', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('supply_manufacturer', id, value)}
@@ -721,7 +602,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
           title={`Delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${CATEGORY_PLURAL_LABELS[confirmDialog.category] ?? confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
-          onConfirm={() => void executeDelete()}
+          onConfirm={executeDelete}
           onCancel={() => setConfirmDialog(null)}
           isLoading={deletingId === confirmDialog.id}
         />

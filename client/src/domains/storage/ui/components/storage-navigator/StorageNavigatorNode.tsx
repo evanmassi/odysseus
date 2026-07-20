@@ -10,7 +10,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronRight, Icon, Rows3 } from 'lucide-react';
 
 import { useTextTruncation } from '@shared/hooks';
-import { Tooltip } from '@shared/ui';
+import { OccupancyBar, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import { TreeNub } from './TreeNub';
@@ -48,9 +48,6 @@ export function StorageNavigatorNode({
 }: StorageNavigatorNodeProps) {
   const { ref: textRef, isTruncated } = useTextTruncation<HTMLSpanElement>([name]);
   const showOccupancy = occupancyCapacity !== undefined && occupancyCapacity > 0;
-  const fillRatio = showOccupancy
-    ? Math.min(100, ((occupancyFilled ?? 0) / occupancyCapacity) * 100)
-    : 0;
 
   return (
     <Collapsible.Root open={isExpanded} onOpenChange={onToggle}>
@@ -88,13 +85,12 @@ export function StorageNavigatorNode({
           </Tooltip>
           {showOccupancy && (
             <span className="flex flex-none items-center gap-1.5">
-              <span className="relative h-0.5 w-8 bg-foreground/[0.07]">
-                <span
-                  className="absolute inset-y-0 left-0 bg-primary/80"
-                  style={{ width: `${fillRatio}%` }}
-                />
-              </span>
-              <span className="font-mono text-[8.5px] tracking-[0.04em] text-foreground/45">
+              <OccupancyBar
+                filled={occupancyFilled ?? 0}
+                capacity={occupancyCapacity ?? 0}
+                className="w-8"
+              />
+              <span className="font-mono text-data-sm tabular-nums tracking-[0.04em] text-foreground/45">
                 {occupancyFilled ?? 0}
                 <span className="text-foreground/25">/{occupancyCapacity}</span>
               </span>

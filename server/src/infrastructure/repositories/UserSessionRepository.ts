@@ -5,20 +5,24 @@
  */
 
 import type { UserSession } from '@domain/entities/UserSession';
-import type { UserSessionRepository, ActiveSessionWithUser, IpSessionCount } from '@domain/repositories/UserSessionRepository';
+import type {
+  UserSessionRepository as IUserSessionRepository,
+  ActiveSessionWithUser,
+  IpSessionCount,
+} from '@domain/repositories/UserSessionRepository';
+import { hashToken } from '@domain/utils/tokenHash';
 import type { UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
 import { UserSessionMapper } from '@infrastructure/database/mappers/UserSessionMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const SESSION_COLUMNS = `
   id, user_id, refresh_token, device_info, ip_address, user_agent,
   created_at, last_used_at, expires_at, is_active
 `.trim();
 
-export class UserSessionRepositoryImpl implements UserSessionRepository {
-
-  constructor(private context: PostgresContext) {}
+export class UserSessionRepository implements IUserSessionRepository {
+  constructor(private context: Queryable) {}
 
   // BASIC CRUD OPERATIONS
 
@@ -44,7 +48,7 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
   async findByRefreshToken(refreshToken: string): Promise<UserSession | null> {
     const row = await this.context.queryOne<UserSessionRow>(
       `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE refresh_token = $1`,
-      [refreshToken]
+      [hashToken(refreshToken)]
     );
     return row ? UserSessionMapper.fromRow(row) : null;
   }
@@ -65,7 +69,8 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
   async save(session: UserSession): Promise<void> {
     const row = UserSessionMapper.toRow(session);
 
-    await this.context.execute(`
+    await this.context.execute(
+      `
       INSERT INTO user_sessions (
         id, user_id, refresh_token, device_info, ip_address, user_agent,
         created_at, last_used_at, expires_at, is_active
@@ -80,18 +85,20 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
         last_used_at = EXCLUDED.last_used_at,
         expires_at = EXCLUDED.expires_at,
         is_active = EXCLUDED.is_active
-    `, [
-      row.id, row.user_id, row.refresh_token, row.device_info, row.ip_address, row.user_agent,
-      row.created_at, row.last_used_at, row.expires_at, row.is_active
-    ]);
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM user_sessions WHERE id = $1',
-      [id]
+    `,
+      [
+        row.id,
+        row.user_id,
+        row.refresh_token,
+        row.device_info,
+        row.ip_address,
+        row.user_agent,
+        row.created_at,
+        row.last_used_at,
+        row.expires_at,
+        row.is_active,
+      ]
     );
-    return (result.rowCount ?? 0) > 0;
   }
 
   // SESSION MANAGEMENT OPERATIONS
@@ -224,15 +231,14 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
 
   async purgeExpiredSessions(): Promise<number> {
     const now = new Date();
-    const result = await this.context.execute(
-      `DELETE FROM user_sessions WHERE expires_at <= $1`,
-      [now]
-    );
+    const result = await this.context.execute(`DELETE FROM user_sessions WHERE expires_at <= $1`, [
+      now,
+    ]);
     return result.rowCount ?? 0;
   }
 
   async getSessionCountsByIp(startDate?: Date, endDate?: Date): Promise<IpSessionCount[]> {
-    const params: (Date)[] = [];
+    const params: Date[] = [];
     let dateFilter: string;
 
     if (startDate && endDate) {
@@ -282,5 +288,4 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
       count: parseInt(row.count, 10),
     }));
   }
-
 }

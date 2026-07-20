@@ -14,10 +14,7 @@ import type { TokenPair } from '@shared/types/sessionTypes';
 // Hoisted mocks must be declared before vi.mock calls
 const mockAuthService = vi.hoisted(() => ({
   login: vi.fn(),
-  register: vi.fn(),
   logout: vi.fn(),
-  checkFirstTime: vi.fn(),
-  verifySession: vi.fn(),
   registerWithProfile: vi.fn(),
   forceChangePassword: vi.fn(),
 }));
@@ -90,8 +87,17 @@ const mockLoginResponse = {
 describe('Enhanced AuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset store state
-    useAuthStore.getState().reset();
+    useAuthStore.setState({
+      user: null,
+      tokens: null,
+      sessionStatus: 'unauthenticated',
+      isLoading: false,
+      error: null,
+      logoutReason: null,
+      passwordChangeRequired: null,
+      passwordChangeSuccess: false,
+      isAuthenticated: false,
+    });
   });
 
   describe('Initial State', () => {
@@ -205,90 +211,6 @@ describe('Enhanced AuthStore', () => {
     });
   });
 
-  describe('Registration Flow', () => {
-    it('should register successfully with valid data', async () => {
-      // AuthService.register returns { user, tokens } directly
-      mockAuthService.register.mockResolvedValue(mockLoginResponse);
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const success = await result.current.register('newuser', 'password');
-        expect(success).toBe(true);
-      });
-
-      // User has fresh lastActivity added by the store
-      expect(result.current.user?.id).toBe(mockUser.id);
-      expect(result.current.user?.username).toBe(mockUser.username);
-      expect(result.current.tokens).toEqual(mockTokens);
-      expect(result.current.sessionStatus).toBe('authenticated');
-    });
-
-    it('should handle registration failure', async () => {
-      // AuthService throws on failure
-      mockAuthService.register.mockRejectedValue(new Error('Username already exists'));
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const success = await result.current.register('existinguser', 'password');
-        expect(success).toBe(false);
-      });
-
-      expect(result.current.error).toBe('Username already exists');
-    });
-  });
-
-  describe('Session Verification', () => {
-    it('should verify valid session', async () => {
-      // verify() first checks sessionManager.getTokens(), then getValidAccessToken()
-      mockSessionService.getTokens.mockReturnValue(mockTokens);
-      mockSessionService.getValidAccessToken.mockResolvedValue('valid-token');
-      // verifySession returns { user, tokens }
-      mockAuthService.verifySession.mockResolvedValue({ user: mockUser, tokens: mockTokens });
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const isValid = await result.current.verify();
-        expect(isValid).toBe(true);
-      });
-
-      // User has fresh lastActivity added by the store
-      expect(result.current.user?.id).toBe(mockUser.id);
-      expect(result.current.sessionStatus).toBe('authenticated');
-    });
-
-    it('should handle invalid session when no tokens', async () => {
-      // No tokens in session manager
-      mockSessionService.getTokens.mockReturnValue(null);
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const isValid = await result.current.verify();
-        expect(isValid).toBe(false);
-      });
-
-      expect(result.current.sessionStatus).toBe('unauthenticated');
-    });
-
-    it('should handle invalid session when token refresh fails', async () => {
-      mockSessionService.getTokens.mockReturnValue(mockTokens);
-      mockSessionService.getValidAccessToken.mockResolvedValue(null);
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const isValid = await result.current.verify();
-        expect(isValid).toBe(false);
-      });
-
-      expect(result.current.user).toBeNull();
-      expect(result.current.sessionStatus).toBe('unauthenticated');
-    });
-  });
-
   describe('Logout Flow', () => {
     it('should logout and clear all session data', async () => {
       // Set up authenticated state first
@@ -329,18 +251,6 @@ describe('Enhanced AuthStore', () => {
   });
 
   describe('Session Status Management', () => {
-    it('should update session status based on SessionService', () => {
-      mockSessionService.getSessionStatus.mockReturnValue('refreshing');
-
-      const { result } = renderHook(() => useAuthStore());
-
-      act(() => {
-        result.current.updateSessionStatus();
-      });
-
-      expect(result.current.sessionStatus).toBe('refreshing');
-    });
-
     it('should provide isAuthenticated computed property', () => {
       // Use renderHook to properly observe reactive state changes
       const { result } = renderHook(() => useAuthStore());
@@ -366,7 +276,7 @@ describe('Enhanced AuthStore', () => {
 
       // Set error state
       act(() => {
-        result.current.setError('Previous error');
+        useAuthStore.setState({ error: 'Previous error' });
       });
 
       expect(result.current.error).toBe('Previous error');
@@ -403,36 +313,6 @@ describe('Enhanced AuthStore', () => {
 
     // Note: Production check uses env.isDev() which requires more complex mocking
     // Skipping production test as it requires mocking the env module
-  });
-
-  describe('First Time Setup', () => {
-    it('should check first time setup correctly', async () => {
-      mockAuthService.checkFirstTime.mockResolvedValue({
-        isFirstTime: true,
-        needsSystemAdmin: true,
-      });
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const isFirstTime = await result.current.checkFirstTime();
-        expect(isFirstTime).toBe(true);
-      });
-    });
-
-    it('should return false when not first time', async () => {
-      mockAuthService.checkFirstTime.mockResolvedValue({
-        isFirstTime: false,
-        needsSystemAdmin: false,
-      });
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const isFirstTime = await result.current.checkFirstTime();
-        expect(isFirstTime).toBe(false);
-      });
-    });
   });
 
   describe('State Persistence', () => {

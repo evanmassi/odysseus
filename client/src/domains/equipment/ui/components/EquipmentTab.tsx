@@ -8,24 +8,44 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
+import { Layers, Plus, Eye, EyeOff, Microscope } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
-import { useDeleteEquipmentCategoryMutation } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, NubDivider, PanelHeader, SearchInput, Select, Tooltip } from '@shared/ui';
+import {
+  useCreateEquipmentCategoryMutation,
+  useDeleteEquipmentCategoryMutation,
+  useUpdateEquipmentCategoryMutation,
+} from '@domains/equipment/hooks/useEquipmentMutations';
+import {
+  useEquipmentCategoriesQuery,
+  useEquipmentItemsQuery,
+} from '@domains/equipment/hooks/useEquipmentQueries';
+import {
+  AccentTick,
+  Button,
+  HeaderStrip,
+  InfoPanelEmpty,
+  PanelHeader,
+  SearchInput,
+} from '@shared/ui';
+import {
+  CategoryModal,
+  CategoryTreePanel,
+  type CategoryTreePanelLabels,
+  INVENTORY_SORT_OPTIONS,
+  SortControls,
+  type InventorySortField,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { EquipmentBulkUpdateModal } from './EquipmentBulkUpdateModal';
-import { EquipmentCategoryModal } from './EquipmentCategoryModal';
-import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
-import { EquipmentInfoPanelEmpty } from './EquipmentInfoPanelEmpty';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
+import { EquipmentItemRow } from './EquipmentItemRow';
 import { EquipmentMaintenanceAlertPanel } from './EquipmentMaintenanceAlertPanel';
 import { EquipmentMaintenanceForm } from './EquipmentMaintenanceForm';
 
@@ -34,15 +54,24 @@ import type {
   EquipmentItem,
   EquipmentMaintenanceLog,
 } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui';
 
-type SortField = 'name' | 'manufacturer' | 'dateAdded';
+const isEquipmentHidden = (item: EquipmentItem) => item.status === 'decommissioned';
 
-const SORT_OPTIONS: SelectOption[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'manufacturer', label: 'Manufacturer' },
-  { value: 'dateAdded', label: 'Date Added' },
+const getEquipmentSearchFields = (item: EquipmentItem) => [
+  item.name,
+  item.manufacturer,
+  item.model,
+  item.serialNumber,
+  item.assetTag,
+  item.location,
 ];
+
+const TREE_LABELS: CategoryTreePanelLabels = {
+  countNoun: ['unit', 'units'],
+  emptyCategories: 'No equipment categories yet.',
+  noSearchMatch: 'No equipment matching',
+  emptyCategoryBody: 'No equipment',
+};
 
 type RightPanelView =
   | { type: 'info'; itemId: string }
@@ -56,6 +85,8 @@ export function EquipmentTab() {
 
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
+  const createCategoryMutation = useCreateEquipmentCategoryMutation();
+  const updateCategoryMutation = useUpdateEquipmentCategoryMutation();
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
@@ -63,7 +94,7 @@ export function EquipmentTab() {
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
     isOpen: boolean;
@@ -155,15 +186,17 @@ export function EquipmentTab() {
     setDeleteConfirm({ isOpen: true, category });
   }, []);
 
-  const executeDeleteCategory = useCallback(async () => {
-    if (!deleteConfirm.category) return;
-    try {
-      await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
-      notifications.success(`"${deleteConfirm.category.name}" removed`);
-    } catch {
-      notifications.error('Cannot remove — category still contains equipment');
-    }
-    setDeleteConfirm({ isOpen: false });
+  const executeDeleteCategory = useCallback(() => {
+    const category = deleteConfirm.category;
+    if (!category) return;
+    deleteCategoryMutation.mutate(category.id, {
+      onSuccess: () => {
+        notifications.success(`"${category.name}" removed`);
+      },
+      onSettled: () => {
+        setDeleteConfirm({ isOpen: false });
+      },
+    });
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const unitCount = showDecommissioned
@@ -174,7 +207,6 @@ export function EquipmentTab() {
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
-        {/* Left Panel: Equipment list chassis */}
         <ConsolePanel
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
@@ -183,30 +215,20 @@ export function EquipmentTab() {
             <PanelHeader icon={<Microscope className="h-4 w-4" />} title="Equipment" />
           </div>
 
-          {/* Locator strip: inventory counts */}
-          <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-black/35 px-4 py-2.5">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-            />
+          <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
-              <span
-                aria-hidden
-                className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-              />
-              <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+              <AccentTick />
+              <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
                 {unitCount}{' '}
                 <span className="text-foreground/45">{unitCount === 1 ? 'unit' : 'units'}</span>
               </span>
             </span>
             <span className="flex-1" />
-            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+            <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
               {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
             </span>
-            <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-          </div>
+          </HeaderStrip>
 
-          {/* Toolbar: search · sort · decommissioned · actions — the table's own header */}
           <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
             <SearchInput
               value={searchQuery}
@@ -216,35 +238,18 @@ export function EquipmentTab() {
               className="w-64"
               aria-label="Search equipment"
             />
-            <span className="flex-shrink-0 text-xs font-medium text-secondary-foreground">
-              Sort
-            </span>
-            <Select
-              options={SORT_OPTIONS}
+            <SortControls
               value={sortField}
-              onChange={value => setSortField(value as SortField)}
-              size="xs"
-              aria-label="Sort field"
-              className="w-32"
+              onChange={setSortField}
+              direction={sortDirection}
+              onToggleDirection={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+              options={INVENTORY_SORT_OPTIONS}
             />
-            <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
-              <button
-                type="button"
-                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
-                className="rounded p-1 text-secondary-foreground transition-colors hover:bg-secondary hover:text-accent-foreground"
-              >
-                {sortDirection === 'asc' ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
-              </button>
-            </Tooltip>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowDecommissioned(!showDecommissioned)}
-              className="h-8 text-xs"
+              className="h-8 text-label-sm"
               leftIcon={
                 showDecommissioned ? (
                   <EyeOff className="h-3.5 w-3.5" />
@@ -279,7 +284,6 @@ export function EquipmentTab() {
             )}
           </div>
 
-          {/* Body: pinned maintenance alerts + scrolling category tree */}
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
             <EquipmentMaintenanceAlertPanel
               items={items}
@@ -288,31 +292,45 @@ export function EquipmentTab() {
               onSelectItem={handleSelectItem}
             />
             <ScrollArea className="min-h-0 flex-1">
-              <EquipmentCategoryPanel
+              <CategoryTreePanel
                 categories={categories}
                 items={items}
-                selectedItemId={selectedItemId}
-                onSelectItem={handleSelectItem}
-                showDecommissioned={showDecommissioned}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                showHidden={showDecommissioned}
+                isHidden={isEquipmentHidden}
+                getSearchFields={getEquipmentSearchFields}
+                renderItem={item => (
+                  <EquipmentItemRow
+                    item={item}
+                    isSelected={item.id === selectedItemId}
+                    onSelect={handleSelectItem}
+                  />
+                )}
+                treeId="equipment"
+                labels={TREE_LABELS}
                 onAddCategory={handleAddCategory}
                 onAddSubcategory={handleAddSubcategory}
                 onRenameCategory={handleRenameCategory}
                 onDeleteCategory={handleDeleteCategory}
-                sortField={sortField}
-                sortDirection={sortDirection}
               />
             </ScrollArea>
           </div>
         </ConsolePanel>
 
-        {/* Right Panel: Detail / Edit / Maintenance */}
         <div
-          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden"
+          className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {!rightPanel && <EquipmentInfoPanelEmpty />}
+          {!rightPanel && (
+            <InfoPanelEmpty
+              title="Equipment Information"
+              emptyIcon={Microscope}
+              emptyMessage="Select equipment to view details"
+            />
+          )}
 
           {rightPanel?.type === 'info' && (
             <EquipmentItemInfoPanel
@@ -356,12 +374,17 @@ export function EquipmentTab() {
           )}
         </div>
 
-        <EquipmentCategoryModal
+        <CategoryModal
           isOpen={categoryModal.isOpen}
           parentId={categoryModal.parentId}
           parentName={categoryModal.parentName}
           category={categoryModal.category}
           onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
+          onCreate={(name, parentId) => createCategoryMutation.mutateAsync({ name, parentId })}
+          onRename={(id, name) => updateCategoryMutation.mutateAsync({ id, data: { name } })}
+          isPending={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+          categoryPlaceholder="e.g., Pipettes"
+          subcategoryPlaceholder="e.g., Single Channel"
         />
 
         <ConfirmDialog

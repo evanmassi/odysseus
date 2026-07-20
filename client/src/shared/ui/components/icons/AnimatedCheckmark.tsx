@@ -3,26 +3,16 @@
  *
  * SVG-based animated checkmark using Lucide CircleCheckBig's exact geometry.
  */
-import { useEffect, useState } from 'react';
+
+import { useRevealOnMount } from './useRevealOnMount';
 
 interface AnimatedCheckmarkProps {
   size?: number;
   className?: string;
-  /** Delay in ms before animation starts (useful when inside animated containers) */
-  delay?: number;
 }
 
-export function AnimatedCheckmark({
-  size = 48,
-  className = '',
-  delay = 50,
-}: AnimatedCheckmarkProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
+export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckmarkProps) {
+  const isVisible = useRevealOnMount();
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>

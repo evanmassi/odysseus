@@ -2,33 +2,17 @@
  * Session Management Types
  *
  * Dual-token (access + refresh) session architecture types.
- *
- * - TokenPair: Persistent state (survives app restart, stored in localStorage)
- * - SessionService: Ephemeral state (resets on app restart, in-memory only)
- *   - Activity tracking is session-scoped
- *   - Token expiry is persistent
  */
 
 import type { TokenPair } from '@odysseus/shared-schemas';
 export type { TokenPair };
 
-export type SessionStatus =
-  | 'authenticated'
-  | 'refreshing'
-  | 'expired'
-  | 'invalid'
-  | 'unauthenticated';
-
-export interface RefreshResponse {
-  accessToken: string;
-  accessTokenExpiry: Date;
-  tokenType: 'Bearer';
-}
+export type SessionStatus = 'authenticated' | 'refreshing' | 'expired' | 'unauthenticated';
 
 export interface SessionConfig {
-  refreshBufferMinutes: number; // Default: 5
-  maxRetries: number; // Default: 3
-  retryDelayMs: number; // Default: 1000
+  refreshBufferMinutes: number;
+  maxRetries: number;
+  retryDelayMs: number;
 }
 
 export interface SessionServiceState {
@@ -39,8 +23,7 @@ export interface SessionServiceState {
 
 export interface TokenValidation {
   isValid: boolean;
-  expiresIn: number; // Milliseconds
-  needsRefresh: boolean;
+  expiresInMs: number;
 }
 
 /**
@@ -54,6 +37,7 @@ export interface SessionStorage {
 
 export interface TokenProvider {
   getValidAccessToken(): Promise<string | null>;
-  isAuthenticated(): boolean;
+  /** Refreshes unconditionally, bypassing the local-expiry check — recovers from a 401. */
+  forceRefresh(): Promise<string | null>;
   getSessionStatus(): SessionStatus;
 }

@@ -6,16 +6,18 @@
 
 import * as crypto from 'crypto';
 
-import { type UserSettings, type UserStatus, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
+import {
+  type UserSettings,
+  type UserStatus,
+  DEFAULT_USER_SETTINGS,
+} from '@odysseus/shared-schemas';
 
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 import { generateId } from '@domain/utils/generateId';
 import { UserRole } from '@domain/value-objects/UserRole';
-
-
-
 
 interface UserConstructorProps {
   id: string;
@@ -76,24 +78,32 @@ export class User {
     this._lastActivity = props.lastActivity;
     this._researcherId = props.researcherId;
     this._personId = props.personId;
-    this._status = props.status ?? 'pending';
+    this._status = props.status ?? 'approved';
     this._labId = props.labId;
 
     this._emailVerified = props.emailVerified ?? false;
     this._emailVerificationToken = props.emailVerificationToken;
     this._emailVerificationExpiry = props.emailVerificationExpiry
-      ? (typeof props.emailVerificationExpiry === 'string' ? new Date(props.emailVerificationExpiry) : props.emailVerificationExpiry)
+      ? typeof props.emailVerificationExpiry === 'string'
+        ? new Date(props.emailVerificationExpiry)
+        : props.emailVerificationExpiry
       : undefined;
     this._lastVerificationEmailSent = props.lastVerificationEmailSent
-      ? (typeof props.lastVerificationEmailSent === 'string' ? new Date(props.lastVerificationEmailSent) : props.lastVerificationEmailSent)
+      ? typeof props.lastVerificationEmailSent === 'string'
+        ? new Date(props.lastVerificationEmailSent)
+        : props.lastVerificationEmailSent
       : undefined;
     this._passwordResetToken = props.passwordResetToken;
     this._passwordResetExpiry = props.passwordResetExpiry
-      ? (typeof props.passwordResetExpiry === 'string' ? new Date(props.passwordResetExpiry) : props.passwordResetExpiry)
+      ? typeof props.passwordResetExpiry === 'string'
+        ? new Date(props.passwordResetExpiry)
+        : props.passwordResetExpiry
       : undefined;
     this._requirePasswordChange = props.requirePasswordChange ?? false;
     this._lastPasswordChange = props.lastPasswordChange
-      ? (typeof props.lastPasswordChange === 'string' ? new Date(props.lastPasswordChange) : props.lastPasswordChange)
+      ? typeof props.lastPasswordChange === 'string'
+        ? new Date(props.lastPasswordChange)
+        : props.lastPasswordChange
       : undefined;
     this._labIsDemo = props.labIsDemo ?? false;
     this._researcherActive = props.researcherActive;
@@ -119,12 +129,18 @@ export class User {
       lastActivity: now,
       researcherId,
       personId,
-      status: 'pending',
+      status: 'approved',
       labId,
     });
   }
 
-  static createLabAdmin(username: string, apiKey: string, labId: string, researcherId?: string, personId?: string): User {
+  static createLabAdmin(
+    username: string,
+    apiKey: string,
+    labId: string,
+    researcherId?: string,
+    personId?: string
+  ): User {
     const now = new Date();
     return new User({
       id: generateId('user'),
@@ -135,7 +151,7 @@ export class User {
       lastActivity: now,
       researcherId,
       personId,
-      status: 'pending',
+      status: 'approved',
       labId,
     });
   }
@@ -160,7 +176,7 @@ export class User {
     role: UserRole,
     researcherId?: string,
     personId?: string,
-    status: UserStatus = 'pending',
+    status: UserStatus = 'approved',
     labId?: string
   ): User {
     const now = new Date();
@@ -236,7 +252,7 @@ export class User {
       lastActivity: new Date(data.lastActivity),
       researcherId: data.researcherId,
       personId: data.personId,
-      status: data.status ?? 'pending',
+      status: data.status ?? 'approved',
       emailVerified: data.emailVerified === 1,
       emailVerificationToken: data.emailVerificationToken,
       emailVerificationExpiry: data.emailVerificationExpiry,
@@ -263,6 +279,10 @@ export class User {
     return 'api_' + crypto.randomBytes(32).toString('hex');
   }
 
+  private static hashToken(token: string, salt: string): string {
+    return crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+  }
+
   private validate(): void {
     this.validateUsername();
     this.validateApiKey();
@@ -273,14 +293,16 @@ export class User {
     if (!this._username || this._username.trim().length === 0) {
       throw new ValidationError('Username is required');
     }
-    
+
     if (this._username.length > 100) {
       throw new ValidationError('Username cannot exceed 100 characters');
     }
 
     const usernamePattern = /^[a-zA-Z0-9_\-.@]+$/;
     if (!usernamePattern.test(this._username)) {
-      throw new ValidationError('Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols');
+      throw new ValidationError(
+        'Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols'
+      );
     }
   }
 
@@ -288,7 +310,7 @@ export class User {
     if (!this._apiKey || this._apiKey.trim().length === 0) {
       throw new ValidationError('API key is required');
     }
-    
+
     if (this._apiKey.length < 10) {
       throw new ValidationError('API key must be at least 10 characters long');
     }
@@ -337,18 +359,6 @@ export class User {
     return this._role.hasPermission(action);
   }
 
-  /** @throws PermissionError if user lacks the given permission */
-  requirePermission(action: string): void {
-    if (!this.hasPermission(action)) {
-      throw new PermissionError(`Permission denied for action: ${action}`, {
-        userId: this._id,
-        username: this._username,
-        role: this._role.value,
-        action
-      });
-    }
-  }
-
   canManage(other: User): boolean {
     if (!this.isAdmin()) {
       return false;
@@ -382,7 +392,7 @@ export class User {
       throw new PermissionError('Cannot manage user', {
         managerId: this._id,
         managerRole: this._role.value,
-        targetUserId: other._id
+        targetUserId: other._id,
       });
     }
   }
@@ -404,10 +414,6 @@ export class User {
     return this._role.isUser();
   }
 
-  hasHigherPrivilegesThan(other: User): boolean {
-    return this._role.hasHigherPrivilegesThan(other._role);
-  }
-
   reactivate(reactivatedBy: User): void {
     reactivatedBy.requireCanManage(this);
 
@@ -422,7 +428,6 @@ export class User {
     this._status = 'approved';
     this.recordActivity();
   }
-
 
   deactivate(deactivatedBy: User): void {
     deactivatedBy.requireCanManage(this);
@@ -448,16 +453,8 @@ export class User {
     this.recordActivity();
   }
 
-  isPending(): boolean {
-    return this._status === 'pending';
-  }
-
   isApproved(): boolean {
     return this._status === 'approved';
-  }
-
-  isRejected(): boolean {
-    return this._status === 'rejected';
   }
 
   isDeactivated(): boolean {
@@ -482,52 +479,12 @@ export class User {
     return this._researcherId != null;
   }
 
-  getPermissions(): string[] {
-    const allPermissions = [
-      'create_tubes', 'edit_tubes', 'delete_tubes',
-      'manage_users', 'admin_settings', 'manage_configuration',
-      'view_audit_trails', 'export_data', 'import_data',
-      'manage_backups', 'delete_tanks', 'manage_researchers',
-      'manage_sync'
-    ];
-
-    return allPermissions.filter(permission => this.hasPermission(permission));
-  }
-
-  toData(): {
-    id: string;
-    username: string;
-    apiKey: string;
-    role: 'system_admin' | 'lab_admin' | 'user';
-    createdAt: string;
-    lastActivity: string;
-    researcherId?: string;
-    personId?: string;
-    status: UserStatus;
-    settings: UserSettings;
-    labId?: string;
-  } {
-    return {
-      id: this._id,
-      username: this._username,
-      apiKey: this._apiKey,
-      role: this._role.value,
-      createdAt: this._createdAt.toISOString(),
-      lastActivity: this._lastActivity.toISOString(),
-      researcherId: this._researcherId,
-      personId: this._personId,
-      status: this._status,
-      settings: this._settings,
-      labId: this._labId,
-    };
-  }
-
   toPublicData(): {
     id: string;
     username: string;
     role: 'system_admin' | 'lab_admin' | 'user';
-    createdAt: string;
-    lastActivity: string;
+    createdAt: Date;
+    lastActivity: Date;
     status: UserStatus;
     isDemo: boolean;
     researcherId?: string;
@@ -539,8 +496,8 @@ export class User {
       id: this._id,
       username: this._username,
       role: this._role.value,
-      createdAt: this._createdAt.toISOString(),
-      lastActivity: this._lastActivity.toISOString(),
+      createdAt: this._createdAt,
+      lastActivity: this._lastActivity,
       status: this._status,
       isDemo: this._labIsDemo,
       researcherId: this._researcherId,
@@ -555,53 +512,95 @@ export class User {
     return this._id === other._id;
   }
 
-  toString(): string {
-    return `User(${this._username}) - ${this._role.toString()}`;
-  }
-
   // GETTERS
 
-  get id(): string { return this._id; }
-  get username(): string { return this._username; }
-  get apiKey(): string { return this._apiKey; }
-  get role(): UserRole { return this._role; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get lastActivity(): Date { return new Date(this._lastActivity); }
-  get researcherId(): string | undefined { return this._researcherId; }
-  get personId(): string | undefined { return this._personId; }
-  get status(): UserStatus { return this._status; }
+  get id(): string {
+    return this._id;
+  }
+  get username(): string {
+    return this._username;
+  }
+  get apiKey(): string {
+    return this._apiKey;
+  }
+  get role(): UserRole {
+    return this._role;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
+  get lastActivity(): Date {
+    return new Date(this._lastActivity);
+  }
+  get researcherId(): string | undefined {
+    return this._researcherId;
+  }
+  get personId(): string | undefined {
+    return this._personId;
+  }
+  get status(): UserStatus {
+    return this._status;
+  }
 
   // PASSWORD
 
-  get passwordHash(): string | undefined { return this._passwordHash; }
-  get salt(): string | undefined { return this._salt; }
+  get passwordHash(): string | undefined {
+    return this._passwordHash;
+  }
+  get salt(): string | undefined {
+    return this._salt;
+  }
 
   // EMAIL VERIFICATION
 
-  get emailVerified(): boolean { return this._emailVerified; }
-  get emailVerificationToken(): string | undefined { return this._emailVerificationToken; }
-  get emailVerificationExpiry(): Date | undefined { return this._emailVerificationExpiry ? new Date(this._emailVerificationExpiry) : undefined; }
-  get lastVerificationEmailSent(): Date | undefined { return this._lastVerificationEmailSent ? new Date(this._lastVerificationEmailSent) : undefined; }
+  get emailVerified(): boolean {
+    return this._emailVerified;
+  }
+  get emailVerificationToken(): string | undefined {
+    return this._emailVerificationToken;
+  }
+  get emailVerificationExpiry(): Date | undefined {
+    return this._emailVerificationExpiry ? new Date(this._emailVerificationExpiry) : undefined;
+  }
+  get lastVerificationEmailSent(): Date | undefined {
+    return this._lastVerificationEmailSent ? new Date(this._lastVerificationEmailSent) : undefined;
+  }
 
   // PASSWORD RESET
 
-  get passwordResetToken(): string | undefined { return this._passwordResetToken; }
-  get passwordResetExpiry(): Date | undefined { return this._passwordResetExpiry ? new Date(this._passwordResetExpiry) : undefined; }
-  get requirePasswordChange(): boolean { return this._requirePasswordChange; }
-  get lastPasswordChange(): Date | undefined { return this._lastPasswordChange ? new Date(this._lastPasswordChange) : undefined; }
-  get isDemo(): boolean { return this._labIsDemo; }
-  get researcherActive(): boolean | undefined { return this._researcherActive; }
+  get passwordResetToken(): string | undefined {
+    return this._passwordResetToken;
+  }
+  get passwordResetExpiry(): Date | undefined {
+    return this._passwordResetExpiry ? new Date(this._passwordResetExpiry) : undefined;
+  }
+  get requirePasswordChange(): boolean {
+    return this._requirePasswordChange;
+  }
+  get lastPasswordChange(): Date | undefined {
+    return this._lastPasswordChange ? new Date(this._lastPasswordChange) : undefined;
+  }
+  get isDemo(): boolean {
+    return this._labIsDemo;
+  }
+  get researcherActive(): boolean | undefined {
+    return this._researcherActive;
+  }
 
-  get labId(): string | undefined { return this._labId; }
+  get labId(): string | undefined {
+    return this._labId;
+  }
 
-  get roleString(): 'system_admin' | 'lab_admin' | 'user' { return this._role.value; }
+  get roleString(): 'system_admin' | 'lab_admin' | 'user' {
+    return this._role.value;
+  }
 
   /** @returns Unhashed token for the email — only time it's visible */
   generateVerificationToken(): string {
     const token = crypto.randomBytes(32).toString('hex');
 
     const salt = crypto.randomBytes(16).toString('hex');
-    const hashedToken = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+    const hashedToken = User.hashToken(token, salt);
 
     // Store as salt:hash so verification can re-derive the hash
     this._emailVerificationToken = `${salt}:${hashedToken}`;
@@ -625,15 +624,13 @@ export class User {
       throw EmailVerificationError.invalid();
     }
 
-    const providedHash = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+    const providedHash = User.hashToken(token, salt);
 
-    if (providedHash !== storedHash) {
+    if (!constantTimeEqual(providedHash, storedHash)) {
       throw EmailVerificationError.invalid();
     }
 
-    this._emailVerified = true;
-    this._emailVerificationToken = undefined;
-    this._emailVerificationExpiry = undefined;
+    this.markEmailVerified();
   }
 
   markEmailVerified(): void {
@@ -673,7 +670,7 @@ export class User {
     const token = crypto.randomBytes(32).toString('hex');
 
     const salt = crypto.randomBytes(16).toString('hex');
-    const hashedToken = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+    const hashedToken = User.hashToken(token, salt);
 
     this._passwordResetToken = `${salt}:${hashedToken}`;
     this._passwordResetExpiry = new Date(Date.now() + 15 * 60 * 1000);
@@ -696,8 +693,8 @@ export class User {
       throw new ValidationError('Invalid password reset token format');
     }
 
-    const testHash = crypto.pbkdf2Sync(token, storedSalt, 10000, 64, 'sha512').toString('hex');
-    if (testHash !== storedHash) {
+    const testHash = User.hashToken(token, storedSalt);
+    if (!constantTimeEqual(testHash, storedHash)) {
       throw new ValidationError('Invalid password reset token');
     }
 
@@ -753,5 +750,4 @@ export class User {
   get settings(): UserSettings {
     return this._settings;
   }
-
 }

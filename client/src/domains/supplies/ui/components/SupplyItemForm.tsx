@@ -5,7 +5,7 @@
  * dropdowns, packaging hierarchy management, and multi-select properties.
  */
 
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createSupplyItemRequestSchema } from '@odysseus/shared-schemas';
@@ -20,9 +20,25 @@ import {
   useRemoveSupplyPackagingLevelMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
+import {
+  computePackagingMultiplier,
+  thresholdInEntryUnit,
+} from '@domains/supplies/utils/packagingChain';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Checkbox, Input, NubDivider, SectionHeader, Select } from '@shared/ui';
+import {
+  Button,
+  Checkbox,
+  CompletenessMeter,
+  Input,
+  lookupOptions,
+  NubDivider,
+  SectionHeader,
+  Select,
+  withPlaceholder,
+} from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -48,10 +64,6 @@ interface LocalPackagingLevel {
   quantity: number;
   parentUnit: string | null;
 }
-
-// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
-const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 const TRACKED_FIELDS = [
   'name',
@@ -88,12 +100,18 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
   const [newLevelQty, setNewLevelQty] = useState('');
   const [newLevelUnit, setNewLevelUnit] = useState('');
-  const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
+  // '__base__' = parent to the base item, '' = unset (defaults to the top of the chain), else a unit.
+  const [newLevelParent, setNewLevelParent] = useState('');
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
   const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
   const [thresholdInputQty, setThresholdInputQty] = useState('');
+  // Stop the initializer below from overwriting the field once the user has edited it — otherwise
+  // adding a packaging level (which changes packagingLevels) resets the display to the stored value
+  // while the form still holds the user's number.
+  const thresholdUserEdited = useRef(false);
 
   useEffect(() => {
+    if (thresholdUserEdited.current) return;
     if (!isEditing || item?.reorderThreshold == null) return;
     if (!item.reorderThresholdUnit || item.reorderThresholdUnit === item.stockUnit) {
       setThresholdInputQty(String(item.reorderThreshold));
@@ -101,16 +119,16 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     }
     const levels = detail?.packagingLevels ?? [];
     if (levels.length === 0) return;
-    let multiplier = 1;
-    let current = item.reorderThresholdUnit;
-    for (let i = 0; i < levels.length + 1; i++) {
-      const level = levels.find(l => l.unitName === current);
-      if (!level) break;
-      multiplier *= level.quantity;
-      if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
-      current = level.parentUnit;
-    }
-    setThresholdInputQty(String(Math.round(item.reorderThreshold / multiplier)));
+    setThresholdInputQty(
+      String(
+        thresholdInEntryUnit(
+          item.reorderThreshold,
+          item.reorderThresholdUnit,
+          item.stockUnit ?? '',
+          levels
+        )
+      )
+    );
   }, [
     isEditing,
     item?.reorderThreshold,
@@ -127,73 +145,28 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const { data: stockUnits = [] } = useLookupValuesQuery('supply_stock_unit');
   const { data: itemProperties = [] } = useLookupValuesQuery('supply_item_property');
 
-  const manufacturerOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...manufacturers.map((m: { value: string }) => ({ value: m.value, label: m.value })),
-    ],
-    [manufacturers]
-  );
-
-  const vendorOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...vendors.map((v: { value: string }) => ({ value: v.value, label: v.value })),
-    ],
-    [vendors]
-  );
-
-  const stockUnitOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...stockUnits.map((u: { value: string }) => ({ value: u.value, label: u.value })),
-    ],
-    [stockUnits]
-  );
-
-  const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-    const options: SelectOption[] = [{ value: '', label: 'Select category...' }];
-    topLevel.forEach(parent => {
-      options.push({ value: parent.id, label: parent.name });
-      categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
-        .forEach(sub => options.push({ value: sub.id, label: sub.name, description: parent.name }));
-    });
-    return options;
-  }, [categories]);
+  const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
+  const vendorOptions = useMemo(() => lookupOptions(vendors), [vendors]);
+  const stockUnitOptions = useMemo(() => lookupOptions(stockUnits), [stockUnits]);
 
   // Available units for the add-level "unit" dropdown (exclude already-used names)
-  const availableUnitOptions: SelectOption[] = useMemo(() => {
-    const usedNames = packagingLevels.map(l => ('unitName' in l ? l.unitName : ''));
-    return [
-      { value: '', label: 'Select...' },
-      ...stockUnits
-        .filter((u: { value: string }) => !usedNames.includes(u.value))
-        .map((u: { value: string }) => ({ value: u.value, label: u.value })),
-    ];
+  const availableUnitOptions = useMemo(() => {
+    const usedNames = packagingLevels.map(l => l.unitName);
+    return lookupOptions(stockUnits.filter(u => !usedNames.includes(u.value)));
   }, [stockUnits, packagingLevels]);
 
   // Parent options for the add-level "per" dropdown
   const parentOptions: SelectOption[] = useMemo(
     () => [
       { value: '__base__', label: 'base item' },
-      ...packagingLevels.map(l => ({
-        value: 'unitName' in l ? l.unitName : '',
-        label: 'unitName' in l ? l.unitName : '',
-      })),
+      ...packagingLevels.map(l => ({ value: l.unitName, label: l.unitName })),
     ],
     [packagingLevels]
   );
 
   const topOfChain = useMemo(() => {
     if (packagingLevels.length === 0) return null;
-    const childParents = new Set(
-      packagingLevels.map(l => ('parentUnit' in l ? l.parentUnit : null)).filter(Boolean)
-    );
+    const childParents = new Set(packagingLevels.map(l => l.parentUnit).filter(Boolean));
     const top = packagingLevels.find(l => !childParents.has(l.unitName));
     return top?.unitName ?? null;
   }, [packagingLevels]);
@@ -201,31 +174,15 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const thresholdUnitOptions: SelectOption[] = useMemo(() => {
     const hasLevels = packagingLevels.length > 0;
     if (!hasLevels) return [];
-    return [
-      { value: '', label: 'stock unit' },
-      ...packagingLevels.map(l => ({
-        value: 'unitName' in l ? l.unitName : '',
-        label: 'unitName' in l ? l.unitName : '',
-      })),
-    ];
+    return withPlaceholder(
+      'stock unit',
+      packagingLevels.map(l => ({ value: l.unitName, label: l.unitName }))
+    );
   }, [packagingLevels]);
 
   const computeThresholdMultiplier = useCallback(
-    (fromUnit: string, stockUnitOverride?: string): number => {
-      const stockUnitVal = stockUnitOverride ?? '';
-      if (!fromUnit || fromUnit === stockUnitVal) return 1;
-      let multiplier = 1;
-      let current = fromUnit;
-      for (let i = 0; i < packagingLevels.length + 1; i++) {
-        const level = packagingLevels.find(l => ('unitName' in l ? l.unitName : '') === current);
-        if (!level) return 1;
-        multiplier *= level.quantity;
-        const parent = 'parentUnit' in level ? level.parentUnit : null;
-        if (parent === null || parent === stockUnitVal) return multiplier;
-        current = parent;
-      }
-      return multiplier;
-    },
+    (fromUnit: string, stockUnitOverride?: string) =>
+      computePackagingMultiplier(packagingLevels, fromUnit, stockUnitOverride ?? ''),
     [packagingLevels]
   );
 
@@ -270,7 +227,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     if (Array.isArray(v)) return v.length > 0;
     return v != null && String(v).trim() !== '';
   }).length;
-  const completionPct = Math.round((filledCount / TRACKED_FIELDS.length) * 100);
 
   const currentBaseItemName = allValues['baseItemName'] as string | undefined;
   const currentStockUnit = allValues['stockUnit'] as string | undefined;
@@ -279,19 +235,22 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     const qty = Number(newLevelQty);
     if (!newLevelUnit || qty <= 0) return;
 
-    const resolvedParent = newLevelParent ?? topOfChain;
+    const resolvedParent = newLevelParent === '__base__' ? null : newLevelParent || topOfChain;
     const addedUnit = newLevelUnit;
     if (isEditing && item) {
-      void addPackagingMutation
-        .mutateAsync({
+      addPackagingMutation.mutate(
+        {
           itemId: item.id,
           data: { unitName: newLevelUnit, quantity: qty, parentUnit: resolvedParent },
-        })
-        .then(() => {
-          setNewLevelQty('');
-          setNewLevelUnit('');
-          setNewLevelParent(addedUnit);
-        });
+        },
+        {
+          onSuccess: () => {
+            setNewLevelQty('');
+            setNewLevelUnit('');
+            setNewLevelParent(addedUnit);
+          },
+        }
+      );
     } else {
       setLocalPackagingLevels(prev => [
         ...prev,
@@ -314,7 +273,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const handleRemoveLevel = useCallback(
     (index: number, levelId?: string) => {
       if (isEditing && item && levelId) {
-        void removePackagingMutation.mutateAsync({ itemId: item.id, levelId });
+        removePackagingMutation.mutate({ itemId: item.id, levelId });
       } else {
         setLocalPackagingLevels(prev => prev.filter((_, i) => i !== index));
       }
@@ -363,7 +322,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       }
       onSubmit();
     } catch {
-      notifications.error(isEditing ? 'Failed to update item' : 'Failed to create item');
+      // Kept as mutateAsync: the create is awaited so the barcode + packaging follow-ups sequence
+      // off the new item id, and RHF's isSubmitting spans the whole flow. The global handler still
+      // toasts create/update failures.
     }
   };
 
@@ -387,31 +348,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
         </h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Completeness
-          </span>
-          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
-            {filledCount}/{TRACKED_FIELDS.length}
-          </span>
-          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
-            <span
-              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </span>
-        </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      <CompletenessMeter filled={filledCount} total={TRACKED_FIELDS.length} />
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="supply-item-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-2 p-4">
@@ -429,35 +366,13 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             name="categoryId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="supply-category-label" className={SELECT_LABEL}>
-                  Category
-                </label>
-                <Select
-                  aria-labelledby="supply-category-label"
-                  options={categoryOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  state={error ? 'error' : 'default'}
-                  error={error?.message}
-                  fullWidth
-                  renderOption={option => (
-                    <div className="w-full">
-                      {option.description ? (
-                        <span className="pl-4 text-sm">{option.label}</span>
-                      ) : (
-                        <span className="text-sm font-semibold">{option.label}</span>
-                      )}
-                    </div>
-                  )}
-                  renderValue={selected => {
-                    const opt = selected[0];
-                    if (!opt?.value) return 'Select category...';
-                    return opt.description ? `${opt.description} > ${opt.label}` : opt.label;
-                  }}
-                />
-              </div>
+              <CategoryHierarchySelect
+                categories={categories}
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                labelId="supply-category-label"
+                error={error?.message}
+              />
             )}
           />
 
@@ -468,7 +383,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             <div>
               <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
                 <div>
-                  <label htmlFor="mfg-barcode" className={SELECT_LABEL}>
+                  <label htmlFor="mfg-barcode" className={FIELD_LABEL_COMPACT}>
                     Manufacturer Barcode
                   </label>
                   <Input
@@ -481,7 +396,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   />
                 </div>
                 <div>
-                  <label htmlFor="mfg-barcode-label" className={SELECT_LABEL}>
+                  <label htmlFor="mfg-barcode-label" className={FIELD_LABEL_COMPACT}>
                     Barcode Label
                   </label>
                   <Input
@@ -494,7 +409,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   />
                 </div>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-caption text-muted-foreground">
                 Optional — scan the barcode on the physical box to link it automatically
               </p>
             </div>
@@ -506,7 +421,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-manufacturer-label" className={SELECT_LABEL}>
+                  <label id="supply-manufacturer-label" className={FIELD_LABEL_COMPACT}>
                     Manufacturer
                   </label>
                   <Select
@@ -531,7 +446,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-vendor-label" className={SELECT_LABEL}>
+                  <label id="supply-vendor-label" className={FIELD_LABEL_COMPACT}>
                     Vendor
                   </label>
                   <Select
@@ -568,7 +483,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-stock-unit-label" className={SELECT_LABEL}>
+                  <label id="supply-stock-unit-label" className={FIELD_LABEL_COMPACT}>
                     Stock Unit
                   </label>
                   <Select
@@ -583,23 +498,23 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             />
           </div>
           <div>
-            <span className={SELECT_LABEL}>Packaging</span>
+            <span className={FIELD_LABEL_COMPACT}>Packaging</span>
             {packagingLevels.length > 0 && (
               <div className="mb-2 space-y-1">
                 {packagingLevels.map((level, index) => {
                   const levelData = {
                     unitName: level.unitName,
                     quantity: level.quantity,
-                    parentUnit: ('parentUnit' in level ? level.parentUnit : null) as string | null,
+                    parentUnit: level.parentUnit,
                   };
                   const levelId = 'id' in level ? (level.id as string) : undefined;
                   const hasChildren = packagingLevels.some(
-                    l => ('parentUnit' in l ? l.parentUnit : null) === levelData.unitName
+                    l => l.parentUnit === levelData.unitName
                   );
                   return (
                     <div
                       key={levelId ?? `local-${index}`}
-                      className="flex items-center justify-between border border-line-faint bg-black/20 px-2.5 py-1.5 text-sm"
+                      className="flex items-center justify-between border border-line-faint bg-shade/20 px-2.5 py-1.5 text-body-sm"
                     >
                       <span>{formatLevelDisplay(levelData)}</span>
                       <button
@@ -631,14 +546,15 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               <div className="flex-1">
                 <Select
                   options={parentOptions}
-                  value={newLevelParent ?? topOfChain ?? '__base__'}
-                  onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- '' means unset and must fall through to the default
+                  value={newLevelParent || topOfChain || '__base__'}
+                  onChange={v => setNewLevelParent(String(v ?? ''))}
                   size="sm"
                   fullWidth
                   aria-label="Contents"
                 />
               </div>
-              <span className="pb-1.5 text-xs text-muted-foreground">per</span>
+              <span className="pb-1.5 text-caption text-muted-foreground">per</span>
               <div className="flex-1">
                 <Select
                   options={availableUnitOptions}
@@ -690,7 +606,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                       {itemProperties.map((pp: { id: string; value: string }) => (
                         <label
                           key={pp.id}
-                          className="flex cursor-pointer items-center gap-1.5 text-sm"
+                          className="flex cursor-pointer items-center gap-1.5 text-body-sm"
                         >
                           <Checkbox
                             checked={(value as string[]).includes(pp.value)}
@@ -715,7 +631,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
           </div>
           <div className="grid grid-cols-3 items-end gap-2.5">
             <div>
-              <label htmlFor="threshold-qty" className={SELECT_LABEL}>
+              <label htmlFor="threshold-qty" className={FIELD_LABEL_COMPACT}>
                 Threshold
               </label>
               <Input
@@ -723,6 +639,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                 type="number"
                 value={thresholdInputQty}
                 onValueChange={v => {
+                  thresholdUserEdited.current = true;
                   setThresholdInputQty(v);
                   const qty = v === '' ? undefined : Number(v);
                   const multiplier = thresholdUnit
@@ -739,7 +656,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             {thresholdUnitOptions.length > 0 ? (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="supply-threshold-unit-label" className={SELECT_LABEL}>
+                <label id="supply-threshold-unit-label" className={FIELD_LABEL_COMPACT}>
                   Unit
                 </label>
                 <Select
@@ -767,7 +684,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               {thresholdUnit &&
                 thresholdInputQty &&
                 computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
-                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                  <span className="whitespace-nowrap text-caption text-muted-foreground">
                     ={' '}
                     {Number(thresholdInputQty) *
                       computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}
@@ -780,13 +697,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                 )}
             </div>
           </div>
-          <input
-            type="hidden"
-            {...register('reorderThreshold', {
-              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-            })}
-          />
-          <input type="hidden" {...register('reorderThresholdUnit')} />
           <div className="grid grid-cols-3 gap-2.5 [&>*]:min-w-0">
             <ValidatedInput
               label="Reorder Qty"
@@ -803,7 +713,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-reorder-unit-label" className={SELECT_LABEL}>
+                  <label id="supply-reorder-unit-label" className={FIELD_LABEL_COMPACT}>
                     Reorder Unit
                   </label>
                   <Select
@@ -848,7 +758,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

@@ -10,6 +10,4 @@ export interface SupplyLocationRepository {
   findById(id: string, labId: string): Promise<SupplyLocation | null>;
   findByLabId(labId: string): Promise<SupplyLocation[]>;
   save(location: SupplyLocation): Promise<void>;
-  delete(id: string, labId: string): Promise<boolean>;
-  hasStock(id: string): Promise<boolean>;
 }

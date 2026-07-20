@@ -4,6 +4,23 @@
  * Type definitions for tube creation, update, and validation operations.
  */
 
+import { type ConcentrationUnit } from '@odysseus/shared-schemas';
+
+export interface TubeSampleInput {
+  cellType?: string;
+  donorInternalId?: string;
+  donorSourceId?: string;
+  concentration?: number;
+  concentrationUnit?: ConcentrationUnit;
+  date?: string;
+  mediaType?: string;
+  mediaSupplements?: string;
+  mediaSelection?: string;
+  cultureCondition?: string;
+  lotNumber?: string;
+  notes?: string;
+}
+
 export interface TubeCreationData {
   location: {
     tankId: string;
@@ -11,26 +28,13 @@ export interface TubeCreationData {
     boxId: string;
     position: number;
   };
-  sample: {
-    cellType?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    mediaType?: string;
-    mediaSupplements?: string;
-    mediaSelection?: string;
-    cultureCondition?: string;
-    lotNumber?: string;
-    notes?: string;
-  };
+  sample: TubeSampleInput;
   researcherId?: string;
 }
 
 interface SampleValidationFields {
   concentration?: number;
-  concentrationUnit?: 'c/v' | 'c/mL';
+  concentrationUnit?: ConcentrationUnit;
   date?: string;
   donorInternalId?: string;
 }
@@ -46,19 +50,6 @@ export interface TubeUpdateData {
     boxId?: string;
     position?: number;
   };
-  sample?: {
-    cellType?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    mediaType?: string;
-    mediaSupplements?: string;
-    mediaSelection?: string;
-    cultureCondition?: string;
-    lotNumber?: string;
-    notes?: string;
-  };
+  sample?: TubeSampleInput;
   researcherId?: string;
 }

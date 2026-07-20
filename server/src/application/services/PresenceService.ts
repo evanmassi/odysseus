@@ -28,7 +28,7 @@ export class PresenceService {
       logger.debug('User reconnected, replacing old socket', {
         userId,
         oldSocketId: existing.socketId,
-        newSocketId: socketId
+        newSocketId: socketId,
       });
     }
 
@@ -45,7 +45,7 @@ export class PresenceService {
       userId,
       username,
       socketId,
-      onlineCount: this.connectedUsers.size
+      onlineCount: this.connectedUsers.size,
     });
   }
 
@@ -63,7 +63,7 @@ export class PresenceService {
         userId,
         username: connectedUser.username,
         socketId,
-        onlineCount: this.connectedUsers.size
+        onlineCount: this.connectedUsers.size,
       });
     }
 
@@ -87,9 +87,5 @@ export class PresenceService {
 
   getOnlineCount(): number {
     return this.connectedUsers.size;
-  }
-
-  getConnectedUsers(): ConnectedUser[] {
-    return Array.from(this.connectedUsers.values());
   }
 }

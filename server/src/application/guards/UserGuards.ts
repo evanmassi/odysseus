@@ -10,7 +10,7 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 
 export async function requireUser(userRepository: UserRepository, userId: string): Promise<User> {
-  const user = await userRepository.findById(userId);
+  const user = await userRepository.findByIdAnyLab(userId);
   if (!user) {
     throw NotFoundError.forEntity('User', userId);
   }
@@ -25,7 +25,10 @@ export async function requireAdmin(userRepository: UserRepository, userId: strin
   return user;
 }
 
-export async function requireSystemAdmin(userRepository: UserRepository, userId: string): Promise<User> {
+export async function requireSystemAdmin(
+  userRepository: UserRepository,
+  userId: string
+): Promise<User> {
   const user = await requireUser(userRepository, userId);
   if (!user.isSystemAdmin()) {
     throw new PermissionError('Only system admins can perform this operation', { userId });

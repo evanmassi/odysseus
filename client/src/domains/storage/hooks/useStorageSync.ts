@@ -8,9 +8,12 @@ import { useEffect, useRef } from 'react';
 import { SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { CONFIG_VERSION_KEY } from '@app/cache/cacheStorageKeys';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
+// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
+import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import { useInitializeConfigurationMutation } from './useStorageMutations';
@@ -26,6 +29,8 @@ export function useStorageSync() {
 
   // Track if initial save has been attempted (for fresh installs only)
   const hasInitialized = useRef(false);
+  const initAttempts = useRef(0);
+  const MAX_INIT_ATTEMPTS = 3;
 
   // Initialize server with defaults if no config exists (fresh install)
   // Only runs when server is reachable but returns 404/error for config
@@ -34,8 +39,14 @@ export function useStorageSync() {
   useEffect(() => {
     if (!hasLab) return;
 
-    if (isError && !hasInitialized.current && !initializeMutation.isPending) {
+    if (
+      isError &&
+      !hasInitialized.current &&
+      !initializeMutation.isPending &&
+      initAttempts.current < MAX_INIT_ATTEMPTS
+    ) {
       hasInitialized.current = true;
+      initAttempts.current += 1;
 
       initializeMutation.mutate(
         {
@@ -52,11 +63,7 @@ export function useStorageSync() {
             // Do NOT retry for "config already exists" - that means config IS there
             const errorMessage = initError instanceof Error ? initError.message : String(initError);
             const isAlreadyExists = errorMessage.toLowerCase().includes('already exists');
-            const isOffline =
-              typeof initError === 'object' &&
-              initError !== null &&
-              'code' in initError &&
-              (initError as { code: unknown }).code === 'OFFLINE_WRITE_BLOCKED';
+            const isOffline = isOfflineError(initError);
 
             if (isAlreadyExists || isOffline) {
               // Config exists or we're offline - don't retry, just wait for query to succeed
@@ -64,7 +71,7 @@ export function useStorageSync() {
                 reason: isAlreadyExists ? 'already exists' : 'offline',
               });
             } else {
-              // Transient error - allow retry
+              // Transient error - allow retry until the attempt cap, then give up
               logger.error('Failed to initialize configuration', { initError });
               hasInitialized.current = false;
             }
@@ -78,16 +85,16 @@ export function useStorageSync() {
   // These may persist from a previous user's session via localStorage cache
   useEffect(() => {
     if (!hasLab) {
-      queryClient.removeQueries({ queryKey: ['storage'] });
-      queryClient.removeQueries({ queryKey: ['tubes'] });
-      queryClient.removeQueries({ queryKey: ['researchers'] });
+      queryClient.removeQueries({ queryKey: queryKeys.storage.root });
+      queryClient.removeQueries({ queryKey: queryKeys.tubes.root });
+      queryClient.removeQueries({ queryKey: queryKeys.researchers.root });
     }
   }, [hasLab, queryClient]);
 
   // Multi-tab synchronization via storage events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'odysseus-configuration-version' && user?.labId) {
+      if (e.key === CONFIG_VERSION_KEY && user?.labId) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.storage.data(user.labId),
         });
@@ -105,10 +112,7 @@ export function useStorageSync() {
   // Broadcast version changes to other tabs when data updates
   useEffect(() => {
     if (isSuccess && data?.configuration.systemConfig.version) {
-      localStorage.setItem(
-        'odysseus-configuration-version',
-        String(data.configuration.systemConfig.version)
-      );
+      localStorage.setItem(CONFIG_VERSION_KEY, String(data.configuration.systemConfig.version));
     }
   }, [isSuccess, data?.configuration.systemConfig.version]);
 

@@ -1,10 +1,7 @@
 /**
  * Chip Styles
  *
- * Banner-aligned lighting: 1.5px lit left edge with soft halo, diffuse radial
- * wash anchored at the start of the label cell, and a softened tone border
- * sharing the banner's --c / 0.28 alpha. The chamfer and two-cell silhouette
- * stay — those are the chip's identity.
+ * Lit chip treatment — lit left edge + dark radial wash + tone border, aligned with the alert banner's tokens.
  */
 
 /* Rules deliberately unlayered so they outrank Tailwind utility classes
@@ -12,12 +9,11 @@
 .chip-lit {
   position: relative;
   isolation: isolate;
+  border-color: hsl(var(--c) / 0.28);
 }
 
-/* Radial wash anchored off the icon cell so the lead reads as a discrete
-   island and the wash glows out of the label side, mirroring how the banner
-   has no icon-island and the wash sits under everything. */
-.chip-lit::before {
+/* Radial wash behind the label, dark only — light stays flat (the tone's label fill carries it). */
+[data-theme='dark'] .chip-lit::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -31,9 +27,8 @@
   z-index: 0;
 }
 
-/* 1.5px lit edge with halo — same recipe as the banner's 3px edge, scaled to
-   chip height. top/bottom extend by 1px so the edge meets the top and bottom
-   borders cleanly (clip-path then trims anything beyond the chamfer). */
+/* Lit left edge — solid bar in both themes, halo dark only. top/bottom extend 1px
+   so it meets the borders; the clip-path trims the overflow. */
 .chip-lit::after {
   content: '';
   position: absolute;
@@ -42,11 +37,14 @@
   bottom: -1px;
   width: 1.5px;
   background: hsl(var(--c));
+  pointer-events: none;
+  z-index: 2;
+}
+
+[data-theme='dark'] .chip-lit::after {
   box-shadow:
     0 0 5px 0 hsl(var(--c) / 0.5),
     0 0 11px -1px hsl(var(--c) / 0.3);
-  pointer-events: none;
-  z-index: 2;
 }
 
 .chip-lit > * {
@@ -54,35 +52,28 @@
   z-index: 1;
 }
 
-/* Tone bindings + softened outer border. --color-{tone}-text matches the banner's
-   token source so chip + banner read in the same light/dark across themes. */
+/* Tone bindings — --color-{tone}-text matches the banner's tokens so chip and
+   banner read alike across themes. */
 .chip-lit.chip-lit--success {
   --c: var(--color-success-text);
-  border-color: hsl(var(--c) / 0.28);
 }
 .chip-lit.chip-lit--warning {
   --c: var(--color-warning-text);
-  border-color: hsl(var(--c) / 0.28);
 }
 .chip-lit.chip-lit--danger {
   --c: var(--color-danger-text);
-  border-color: hsl(var(--c) / 0.28);
 }
 .chip-lit.chip-lit--info {
   --c: var(--color-info-text);
-  border-color: hsl(var(--c) / 0.28);
 }
 .chip-lit.chip-lit--primary {
   --c: var(--primary);
-  border-color: hsl(var(--c) / 0.28);
 }
 .chip-lit.chip-lit--neutral {
   --c: var(--foreground);
-  border-color: hsl(var(--c) / 0.28);
 }
 
-/* Inner lead/label divider tracks the same alpha so the soft outer frame
-   doesn't feel orphaned from a bright internal line. */
+/* Inner lead/label divider uses the same alpha as the outer border, so they read as one frame. */
 .chip-lit > *:first-child {
   border-right-color: hsl(var(--c) / 0.28);
 }

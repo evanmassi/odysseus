@@ -7,13 +7,14 @@
 import { useState, useMemo } from 'react';
 
 import { formatDistanceToNow, format } from 'date-fns';
-import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'lucide-react';
+import { Monitor, TabletSmartphone, MonitorCheck, LogOut } from 'lucide-react';
 import { UAParser } from 'ua-parser-js';
 
-import { useUserSessions } from '@domains/users';
-import { Button, Table, Tooltip } from '@shared/ui';
+import { Button, LoadingSpinner, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
+
+import { useUserSessions } from '../../../hooks/useUserSessions';
 
 import type { ActiveSession } from '@odysseus/shared-schemas';
 import type { TableColumn } from '@shared/ui';
@@ -53,7 +54,7 @@ function getDeviceIcon(isCurrentSession: boolean, deviceType: string) {
 
 function CurrentSessionBadge() {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-medium bg-success-light text-success-text mt-1">
       Current Session
     </span>
   );
@@ -66,19 +67,19 @@ type DisplaySession = ActiveSession & {
 };
 
 export function SessionListPanel() {
-  const { sessions, isLoading, revokeSession, revokeSessionAsync, isRevoking } = useUserSessions();
+  const { sessions, isLoading, revokeSession, isRevoking, bulkRevoke, isBulkRevoking } =
+    useUserSessions();
 
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
   const [selectedSessionIds, setSelectedSessionIds] = useState<(string | number)[]>([]);
   const [showBulkRevokeConfirm, setShowBulkRevokeConfirm] = useState(false);
-  const [isBulkRevoking, setIsBulkRevoking] = useState(false);
 
   const displayedSessions = useMemo(() => {
     const sorted = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 
     const current = sorted.find(s => s.isCurrentSession);
-    const others = sorted.filter(s => !s.isCurrentSession).slice(0, 4);
-    const selected = current ? [current, ...others] : others.slice(0, 5);
+    const others = sorted.filter(s => !s.isCurrentSession).slice(0, current ? 4 : 5);
+    const selected = current ? [current, ...others] : others;
 
     return selected.map(session => {
       const parsed = parseUserAgent(session.userAgent);
@@ -96,31 +97,31 @@ export function SessionListPanel() {
     revokeSession(sessionId, {
       onSuccess: () => {
         notifications.success('Logged out successfully');
-        setRevokingSessionId(null);
       },
-      onError: (error: Error) => {
-        notifications.error(error.message || 'Failed to logout');
+      onSettled: () => {
         setRevokingSessionId(null);
       },
     });
   };
 
-  const handleBulkRevoke = async () => {
-    const ids = selectedSessionIds.map(String);
+  const handleBulkRevoke = () => {
+    // Drop the current session — the server skips it anyway, so there's no reason to send it.
+    const currentSessionId = displayedSessions.find(s => s.isCurrentSession)?.id;
+    const ids = selectedSessionIds.map(String).filter(id => id !== currentSessionId);
     if (ids.length === 0) return;
-    setIsBulkRevoking(true);
-    const results = await Promise.allSettled(ids.map(id => revokeSessionAsync(id)));
-    const succeeded = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.length - succeeded;
-    if (succeeded > 0) {
-      notifications.success(`Logged out of ${succeeded} session${succeeded !== 1 ? 's' : ''}`);
-    }
-    if (failed > 0) {
-      notifications.error(`Failed to revoke ${failed} session${failed !== 1 ? 's' : ''}`);
-    }
-    setSelectedSessionIds([]);
-    setShowBulkRevokeConfirm(false);
-    setIsBulkRevoking(false);
+    bulkRevoke(ids, {
+      onSuccess: result => {
+        if (result.revokedCount > 0) {
+          notifications.success(
+            `Logged out of ${result.revokedCount} session${result.revokedCount !== 1 ? 's' : ''}`
+          );
+        }
+      },
+      onSettled: () => {
+        setSelectedSessionIds([]);
+        setShowBulkRevokeConfirm(false);
+      },
+    });
   };
 
   const sessionColumns: TableColumn<DisplaySession>[] = [
@@ -135,7 +136,7 @@ export function SessionListPanel() {
           />
           <div>
             <p
-              className={`text-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+              className={`text-body-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
             >
               {row.device}
             </p>
@@ -149,7 +150,7 @@ export function SessionListPanel() {
       header: 'Location',
       render: (_val, row) => (
         <p
-          className={`text-sm ${row.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
+          className={`text-body-sm ${row.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
         >
           {row.ipAddress ?? 'Unknown'}
         </p>
@@ -161,12 +162,12 @@ export function SessionListPanel() {
       render: (_val, row) => (
         <div>
           <p
-            className={`text-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+            className={`text-body-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
           >
             {row.timestamp.relative}
           </p>
           <p
-            className={`text-xs ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
+            className={`text-caption ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
           >
             {row.timestamp.absolute}
           </p>
@@ -198,8 +199,8 @@ export function SessionListPanel() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <RefreshCw className="animate-spin text-muted-foreground" size={24} />
-        <span className="ml-2 text-sm text-secondary-foreground">Loading sessions...</span>
+        <LoadingSpinner size="md" className="text-primary" />
+        <span className="ml-2 text-body-sm text-secondary-foreground">Loading sessions...</span>
       </div>
     );
   }
@@ -220,7 +221,7 @@ export function SessionListPanel() {
         selectedRowGlow
         toolbar={{
           left: (
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body-sm text-secondary-foreground">
               Showing {displayedSessions.length} of {sessions.length} active session
               {sessions.length !== 1 ? 's' : ''}
             </p>

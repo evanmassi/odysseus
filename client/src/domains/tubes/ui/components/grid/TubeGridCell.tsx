@@ -5,9 +5,8 @@
  */
 import React, { memo, useMemo, useRef, useCallback, useEffect } from 'react';
 
-import { useStorageData } from '@domains/storage';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { useUserSettings } from '@domains/users/hooks/useUserSettings';
+import { useStorageData, formatPositionForBox } from '@domains/storage';
+import { useUserSettings } from '@domains/users';
 
 import {
   getTubeColor,
@@ -24,13 +23,16 @@ import type { LockVariant, TubeData } from '@domains/tubes/types';
 
 import './tube-grid.css';
 
-/** Avoids mid-word breaks and truncation by scaling font to fit longer cell type names. */
+/**
+ * Cell type wraps to two lines (see .cell-line), so it holds a consistent size slightly
+ * above the base font for a clear type→donor hierarchy — only very long names step back
+ * toward the base rather than shrinking aggressively to fit a single line.
+ */
 function getCellTypeFontSize(baseFont: number, text: string): number {
   const len = text.length;
-  if (len <= 6) return baseFont;
-  if (len <= 10) return baseFont * 0.85;
-  if (len <= 16) return baseFont * 0.72;
-  return baseFont * 0.62;
+  if (len <= 20) return Math.min(baseFont * 1.06, 18);
+  if (len <= 32) return baseFont;
+  return baseFont * 0.9;
 }
 
 interface TubeGridCellProps {
@@ -43,7 +45,6 @@ interface TubeGridCellProps {
   isDragPreview?: boolean; // Visual preview only, no animation
   isCut: boolean;
   isCopied: boolean;
-  _isKeyboardFocused: boolean;
   gridConfig: GridConfiguration;
   fontSize: { cellFont: number; donorFont: number; positionFont: number };
   onPositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
@@ -72,7 +73,6 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     isDragPreview = false,
     isCut,
     isCopied,
-    _isKeyboardFocused: _,
     gridConfig,
     fontSize,
     onPositionClick,
@@ -100,6 +100,10 @@ export const TubeGridCell = memo<TubeGridCellProps>(
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
     const cellTypeText = tube?.sample?.cellType || 'Unknown';
+    // A name with no break opportunity (no space/hyphen) can't wrap, so truncate it on one
+    // line with an ellipsis — the two-line clamp only ellipsizes multi-line overflow, which
+    // leaves a lone long word (e.g. "Macrophages") hard-clipped with no "…".
+    const cellTypeSingleWord = !/[\s-]/.test(cellTypeText);
     const cellTypeFontSize = useMemo(
       () => getCellTypeFontSize(fontSize.cellFont, cellTypeText),
       [fontSize.cellFont, cellTypeText]
@@ -177,7 +181,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
             : `Position ${position}, empty, ${selected ? 'selected' : 'not selected'}`
         }
         aria-selected={selected}
-        tabIndex={selected ? 0 : -1}
+        tabIndex={-1}
         data-focus="custom"
         className={`
         tube-position relative group cursor-pointer
@@ -191,15 +195,15 @@ export const TubeGridCell = memo<TubeGridCellProps>(
       `}
         style={
           {
-            backgroundColor: tube ? fill : 'rgba(0,0,0,0.32)',
+            backgroundColor: tube ? fill : 'hsl(var(--grid-empty))',
             backgroundImage: tube
-              ? 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 46%, rgba(0,0,0,0.14) 100%)'
+              ? 'linear-gradient(180deg, hsl(var(--sheen) / 0.12) 0%, hsl(var(--sheen) / 0) 46%, hsl(var(--shade) / 0.14) 100%)'
               : 'none',
             color: tube ? ink : 'hsl(var(--grid-empty-foreground))',
             width: '100%',
             height: '100%',
             aspectRatio: '1',
-            '--border-color': tube ? 'rgba(0,0,0,0.22)' : 'transparent',
+            '--border-color': tube ? 'hsl(var(--shade) / 0.22)' : 'transparent',
           } as React.CSSProperties
         }
         data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}
@@ -251,7 +255,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
               style={{ left: 3, right: triLeg + 3, bottom: 2, color: ink }}
             >
               <div
-                className="cell-line font-semibold"
+                className={`cell-line font-semibold ${cellTypeSingleWord ? 'cell-line--nowrap' : ''}`}
                 style={{ fontSize: `${cellTypeFontSize}px` }}
               >
                 {cellTypeText}

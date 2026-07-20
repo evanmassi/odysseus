@@ -20,16 +20,15 @@ import {
   type CreateEquipmentMaintenanceLogRequest,
   type UpdateEquipmentMaintenanceLogRequest,
   type EquipmentBulkResponse,
-  type EquipmentStatus,
+  type EquipmentBulkStatusRequest,
+  type EquipmentBulkRelocateRequest,
   equipmentCategoryResponseSchema,
   equipmentCategoryListResponseSchema,
   equipmentItemResponseSchema,
   equipmentItemListResponseSchema,
   equipmentItemDetailResponseSchema,
   equipmentDocumentResponseSchema,
-  equipmentDocumentListResponseSchema,
   equipmentMaintenanceLogEntryResponseSchema,
-  equipmentMaintenanceLogListResponseSchema,
   equipmentBulkResponseSchema,
 } from '@odysseus/shared-schemas';
 
@@ -116,14 +115,6 @@ export class EquipmentService {
 
   // Documents
 
-  static async listDocuments(itemId: string): Promise<EquipmentDocument[]> {
-    const response = await httpClient.getData(
-      `${this.BASE_PATH}/${itemId}/documents`,
-      equipmentDocumentListResponseSchema
-    );
-    return response.documents;
-  }
-
   static async addDocument(
     itemId: string,
     data: CreateEquipmentDocumentRequest
@@ -154,14 +145,6 @@ export class EquipmentService {
   }
 
   // Maintenance log
-
-  static async getMaintenanceLog(itemId: string): Promise<EquipmentMaintenanceLog[]> {
-    const response = await httpClient.getData(
-      `${this.BASE_PATH}/${itemId}/maintenance`,
-      equipmentMaintenanceLogListResponseSchema
-    );
-    return response.entries;
-  }
 
   static async addMaintenanceEntry(
     itemId: string,
@@ -207,7 +190,7 @@ export class EquipmentService {
 
   static async bulkChangeStatus(
     itemIds: string[],
-    data: { status: EquipmentStatus; conditionNotes?: string }
+    data: EquipmentBulkStatusRequest['data']
   ): Promise<EquipmentBulkResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk/status`,
@@ -218,7 +201,7 @@ export class EquipmentService {
 
   static async bulkRelocate(
     itemIds: string[],
-    data: { categoryId: string }
+    data: EquipmentBulkRelocateRequest['data']
   ): Promise<EquipmentBulkResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk/relocate`,

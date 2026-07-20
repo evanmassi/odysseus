@@ -9,39 +9,41 @@ import { useMemo } from 'react';
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
+  formatResearcherListDisplay,
   formatStorageDisplayName,
 } from '@odysseus/shared-schemas';
-import { Download, MapPin } from 'lucide-react';
+import { Download, MapPin, TestTubeDiagonal } from 'lucide-react';
 
 import { useResearchersQuery } from '@domains/researchers';
-import { useSearch, useSearchStore } from '@domains/search';
-import { useStorageData } from '@domains/storage';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import { useStorageData, formatPositionForBox, buildPositionRangeLabels } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettings, useUserLookupQuery } from '@domains/users';
-import { Button, Chip, Tooltip } from '@shared/ui';
+import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
-import { highlightMatches } from '../../utils/searchFormatters';
+import { useSearch } from '../../hooks/useSearch';
+import { useSearchStore } from '../../stores/searchStore';
+import { highlightMatches, type DisplayResults } from '../../utils/searchFormatters';
 
 import { SearchSortControls } from './SearchSortControls';
 
-import type { SearchResults } from '@domains/search';
-import type { TubeData } from '@domains/tubes/types';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 interface SearchResultsPanelProps {
-  results: SearchResults | null;
+  results: DisplayResults | null;
   isSearching?: boolean;
+  isFetching?: boolean;
   onClose?: () => void;
 }
 
 export function SearchResultsPanel({
   results,
   isSearching = false,
+  isFetching = false,
   onClose,
 }: SearchResultsPanelProps) {
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { navigateToResult } = useSearch();
   const { currentTank } = useTubeStore();
   const { currentLab, getCurrentTanks, getBox } = useStorageData();
@@ -75,7 +77,6 @@ export function SearchResultsPanel({
 
       switch (sortField) {
         case 'location': {
-          // Sort by tankId → rackId → boxId → position
           const locationA = `${firstTubeA.location.tankId}:${firstTubeA.location.rackId}:${firstTubeA.location.boxId}:${firstTubeA.location.position}`;
           const locationB = `${firstTubeB.location.tankId}:${firstTubeB.location.rackId}:${firstTubeB.location.boxId}:${firstTubeB.location.position}`;
           compareValue = locationA.localeCompare(locationB);
@@ -99,8 +100,8 @@ export function SearchResultsPanel({
         case 'researcher': {
           const researcherA = researchers.find(r => r.id === firstTubeA.researcherId);
           const researcherB = researchers.find(r => r.id === firstTubeB.researcherId);
-          const nameA = researcherA ? `${researcherA.lastName}, ${researcherA.firstName}` : '';
-          const nameB = researcherB ? `${researcherB.lastName}, ${researcherB.firstName}` : '';
+          const nameA = researcherA ? formatResearcherListDisplay(researcherA) : '';
+          const nameB = researcherB ? formatResearcherListDisplay(researcherB) : '';
           compareValue = nameA.localeCompare(nameB);
           break;
         }
@@ -126,8 +127,8 @@ export function SearchResultsPanel({
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="flex items-center">
-          <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full" />
-          <span className="ml-2 text-sm text-secondary-foreground">Searching...</span>
+          <LoadingSpinner size="md" className="text-primary" />
+          <span className="ml-2 text-body-sm text-secondary-foreground">Searching...</span>
         </div>
       </div>
     );
@@ -135,12 +136,13 @@ export function SearchResultsPanel({
 
   if (!results) {
     return (
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="text-center text-muted-foreground">
-          <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Search inventory</p>
-          <p className="text-xs mt-1">Browse with filters</p>
-        </div>
+      <div className="flex-1 flex p-4">
+        <PanelEmptyState
+          icon={TestTubeDiagonal}
+          message="Search inventory"
+          description="Browse with filters"
+          className="flex-1"
+        />
       </div>
     );
   }
@@ -180,9 +182,12 @@ export function SearchResultsPanel({
     const tankName = tank?.name ?? `Tank ${tankId}`;
 
     const rack = tank?.racks?.find(r => r.id === rackId);
-    const rackName = rack?.name ?? `Rack ${rackId}`;
+    const rackName = formatStorageDisplayName(rack?.name ?? `Rack ${rackId}`, rack?.customLabel);
 
-    return `${tankName} → ${rackName} → Box ${boxId}`;
+    const box = rack?.boxes?.find(b => b.id === boxId);
+    const boxName = formatStorageDisplayName(box?.name ?? `Box ${boxId}`, box?.customLabel);
+
+    return `${tankName} → ${rackName} → ${boxName}`;
   };
 
   const getResearcherName = (researcherId: string | undefined): string => {
@@ -199,19 +204,6 @@ export function SearchResultsPanel({
       return `${user.lastName}, ${user.firstName}`;
     }
     return user.username;
-  };
-
-  const formatDate = (dateString: string | Date | undefined): string => {
-    if (!dateString) return '';
-    try {
-      const date = dateString instanceof Date ? dateString : new Date(dateString);
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${month}/${day}/${year}`;
-    } catch {
-      return typeof dateString === 'string' ? dateString : '';
-    }
   };
 
   const handleExportResults = () => {
@@ -304,7 +296,7 @@ export function SearchResultsPanel({
           tube.sample.donorInternalId ?? '',
           tube.sample.donorSourceId ?? '',
           formatConcentrationDisplay(tube.sample.concentration, tube.sample.concentrationUnit),
-          formatDate(tube.sample.date),
+          formatDateForDisplay(tube.sample.date),
           tube.sample.lotNumber ?? '',
           tube.sample.source ?? '',
           tube.sample.catalogNumber ?? '',
@@ -318,8 +310,8 @@ export function SearchResultsPanel({
           tube.isLocked ? 'Yes' : 'No',
           getUserDisplayName(tube.lockedBy),
           tube.lockNote ?? '',
-          formatDate(tube.timestamps.createdAt),
-          formatDate(tube.timestamps.updatedAt),
+          formatDateForDisplay(tube.timestamps.createdAt),
+          formatDateForDisplay(tube.timestamps.updatedAt),
         ];
 
         return values.map(escapeCsvValue).join(',');
@@ -369,7 +361,6 @@ export function SearchResultsPanel({
 
     const box = getBox(tankId, rackId, boxId);
     if (!box?.gridConfig) {
-      // Fallback to numeric if box config not found
       return positions.length === 1 ? `Pos: ${positions[0]}` : `Pos: ${positions.join(', ')}`;
     }
 
@@ -393,41 +384,8 @@ export function SearchResultsPanel({
       return `Pos: ${labels.join(', ')}`;
     }
 
-    // Create smart ranges (work on numeric positions, then convert boundaries to labels)
-    const ranges: string[] = [];
-    let start = positions[0];
-    let end = positions[0];
-
-    for (let i = 1; i < positions.length; i++) {
-      if (positions[i] === end + 1) {
-        end = positions[i];
-      } else {
-        const startLabel = formatPositionForBox(
-          start,
-          tankId,
-          rackId,
-          boxId,
-          box.gridConfig,
-          currentLab,
-          userSettings
-        );
-        const endLabel = formatPositionForBox(
-          end,
-          tankId,
-          rackId,
-          boxId,
-          box.gridConfig,
-          currentLab,
-          userSettings
-        );
-        ranges.push(start === end ? startLabel : `${startLabel}-${endLabel}`);
-        start = positions[i];
-        end = positions[i];
-      }
-    }
-    // Don't forget the last range
-    const startLabel = formatPositionForBox(
-      start,
+    const ranges = buildPositionRangeLabels(
+      positions,
       tankId,
       rackId,
       boxId,
@@ -435,16 +393,6 @@ export function SearchResultsPanel({
       currentLab,
       userSettings
     );
-    const endLabel = formatPositionForBox(
-      end,
-      tankId,
-      rackId,
-      boxId,
-      box.gridConfig,
-      currentLab,
-      userSettings
-    );
-    ranges.push(start === end ? startLabel : `${startLabel}-${endLabel}`);
 
     if (ranges.length > 4) {
       const displayRanges = ranges.slice(0, 4);
@@ -457,159 +405,133 @@ export function SearchResultsPanel({
 
   return (
     <div className="flex-1 max-h-[600px] overflow-hidden relative flex flex-col">
-      {/* Loading overlay when refetching */}
-      {isSearching && (
+      {isFetching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
-          <div className="flex items-center bg-card px-3 py-1 rounded-full shadow-sm border border-border">
-            <div className="animate-spin w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full" />
-            <span className="ml-2 text-xs text-secondary-foreground">Updating...</span>
+          <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
+            <LoadingSpinner size={12} className="text-primary" />
+            <span className="ml-2 type-label text-label-2xs text-foreground/60">Updating</span>
           </div>
         </div>
       )}
 
-      {/* Sort Controls */}
       <SearchSortControls />
 
-      {/* Scrollable Results Container */}
-      <ScrollArea className="flex-1 p-4 space-y-3">
-        {/* Results Header */}
-        <div className="flex items-center justify-between border-b pb-2">
-          <div className="text-sm text-secondary-foreground font-medium">
-            {totalCount} tube{totalCount !== 1 ? 's' : ''} found
+      <ScrollArea className="flex-1 p-4">
+        <div className="flex min-h-full flex-col space-y-3">
+          <div className="flex items-center justify-between border-b border-line-soft pb-2">
+            <div className="type-label text-label-2xs text-foreground/60">
+              <span className="tabular-nums text-foreground/85">{totalCount}</span> tube
+              {totalCount !== 1 ? 's' : ''} found
+            </div>
+
+            {tubes.length > 0 && (
+              <Tooltip content="Export search results" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  leftIcon={<Download className="w-3 h-3" />}
+                  onClick={handleExportResults}
+                >
+                  Export
+                </Button>
+              </Tooltip>
+            )}
           </div>
 
-          {tubes.length > 0 && (
-            <Tooltip content="Export search results" side="bottom">
-              <Button
-                variant="ghost"
-                size="xs"
-                leftIcon={<Download className="w-3 h-3" />}
-                onClick={handleExportResults}
-              >
-                Export
-              </Button>
-            </Tooltip>
+          {sortedGroups.length > 0 ? (
+            <div className="space-y-2">
+              {sortedGroups.map((group, index) => {
+                const firstTube = group.tubes[0];
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
+                const cellType = firstTube.sample?.cellType || 'Unknown';
+                const species = firstTube.sample?.species ?? '';
+                const donorInternal = firstTube.sample?.donorInternalId ?? '';
+                const donorSource = firstTube.sample?.donorSourceId ?? '';
+                const lotNumber = firstTube.sample?.lotNumber ?? '';
+                const date = formatDateForDisplay(firstTube.sample?.date);
+                const researcherName = getResearcherName(firstTube.researcherId);
+                const location = getDisplayLocation(group.primaryLocation);
+
+                return (
+                  <button
+                    type="button"
+                    key={index}
+                    onClick={() => handleGroupClick(group)}
+                    className="w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)]"
+                    aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <TubeIcon
+                          className="text-secondary-foreground flex-shrink-0"
+                          size={14}
+                          aria-hidden="true"
+                        />
+                        <span className="text-body-sm font-semibold text-card-foreground">
+                          {highlightText(cellType, query)}
+                        </span>
+                        {species && (
+                          <>
+                            <span className="text-muted-foreground">·</span>
+                            <span className="text-body-sm text-secondary-foreground">
+                              {highlightText(species, query)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <Chip size="sm" color="default" className="flex-shrink-0">
+                        {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
+                      </Chip>
+                    </div>
+
+                    <div className="flex mt-1">
+                      <div className="ml-[11px] mr-2 border-l-2 border-line-soft"></div>
+                      <div className="flex-1 space-y-0.5 text-caption text-secondary-foreground">
+                        {(donorInternal || donorSource) && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
+                            {donorInternal && donorSource && (
+                              <span className="text-muted-foreground">·</span>
+                            )}
+                            {donorSource && <span>{highlightText(donorSource, query)}</span>}
+                          </div>
+                        )}
+
+                        {(lotNumber || date || researcherName) && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
+                            {lotNumber && (date || researcherName) && (
+                              <span className="text-muted-foreground">·</span>
+                            )}
+                            {date && <span>{date}</span>}
+                            {date && researcherName && (
+                              <span className="text-muted-foreground">·</span>
+                            )}
+                            {researcherName && <span>{highlightText(researcherName, query)}</span>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="inline-flex items-center gap-1.5 text-caption text-muted-foreground mt-1">
+                      <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+                      <span>{location}</span>
+                      <span className="text-muted-foreground">·</span>
+                      <span>{formatPositions(group.tubes)}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <PanelEmptyState
+              icon={TestTubeDiagonal}
+              message="No results found"
+              description="Try adjusting your search or filters"
+              className="flex-1"
+            />
           )}
         </div>
-
-        {/* Grouped Results - New 4-line format */}
-        {sortedGroups.length > 0 ? (
-          <div className="space-y-2">
-            {sortedGroups.map((group, index) => {
-              const firstTube = group.tubes[0];
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
-              const cellType = firstTube.sample?.cellType || 'Unknown';
-              const species = firstTube.sample?.species ?? '';
-              const donorInternal = firstTube.sample?.donorInternalId ?? '';
-              const donorSource = firstTube.sample?.donorSourceId ?? '';
-              const cultureCondition = firstTube.sample?.cultureCondition ?? '';
-              const lotNumber = firstTube.sample?.lotNumber ?? '';
-              const concentration = formatConcentrationDisplay(
-                firstTube.sample?.concentration,
-                firstTube.sample?.concentrationUnit
-              );
-              const date = formatDate(firstTube.sample?.date);
-              const researcherName = getResearcherName(firstTube.researcherId);
-              const location = getDisplayLocation(group.primaryLocation);
-
-              return (
-                <button
-                  type="button"
-                  key={index}
-                  onClick={() => handleGroupClick(group)}
-                  className="w-full text-left p-2.5 bg-muted rounded-md hover:bg-accent cursor-pointer transition-all"
-                  aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
-                >
-                  {/* Line 1: Cell Type with tube count badge */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <TubeIcon
-                        className="text-secondary-foreground flex-shrink-0"
-                        size={14}
-                        aria-hidden="true"
-                      />
-                      <span className="text-xs font-semibold text-card-foreground">
-                        {highlightText(cellType, query)}
-                      </span>
-                      {species && (
-                        <>
-                          <span className="text-muted-foreground">·</span>
-                          <span className="text-xs text-secondary-foreground">
-                            {highlightText(species, query)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <Chip size="sm" color="default" className="flex-shrink-0">
-                      {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
-                    </Chip>
-                  </div>
-
-                  {/* Lines 2-4: Compact details with vertical indicator */}
-                  <div className="flex mt-1">
-                    <div className="ml-[11px] mr-2 border-l-2 border-border"></div>
-                    <div className="flex-1 space-y-0.5 text-xs text-secondary-foreground">
-                      {/* Line 2: Donor Internal ID · Donor Source ID */}
-                      {(donorInternal || donorSource) && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
-                          {donorInternal && donorSource && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {donorSource && <span>{highlightText(donorSource, query)}</span>}
-                        </div>
-                      )}
-
-                      {/* Line 3: Culture Condition · Lot Number · Concentration */}
-                      {(cultureCondition || lotNumber || concentration) && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {cultureCondition && (
-                            <span>{highlightText(cultureCondition, query)}</span>
-                          )}
-                          {cultureCondition && lotNumber && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
-                          {(cultureCondition || lotNumber) && concentration && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {concentration && <span>{concentration}</span>}
-                        </div>
-                      )}
-
-                      {/* Line 4: Date · Researcher */}
-                      {(date || researcherName) && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {date && <span>{date}</span>}
-                          {date && researcherName && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {researcherName && <span>{highlightText(researcherName, query)}</span>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Line 5: Location */}
-                  <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                    <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
-                    <span>{location}</span>
-                    <span className="text-muted-foreground">·</span>
-                    <span>{formatPositions(group.tubes)}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No results found</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Try adjusting your search or filters
-            </p>
-          </div>
-        )}
       </ScrollArea>
     </div>
   );

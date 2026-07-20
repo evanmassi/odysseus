@@ -41,7 +41,7 @@ export function createSocketAuthMiddleware(
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
-          labId: socket.labId
+          labId: socket.labId,
         });
       } else {
         logger.debug('Socket auth token invalid or expired', { socketId: socket.id });
@@ -51,7 +51,7 @@ export function createSocketAuthMiddleware(
     } catch (error) {
       logger.error('Socket auth error', {
         error: error instanceof Error ? error.message : String(error),
-        socketId: socket.id
+        socketId: socket.id,
       });
       // Don't reject — allow connection but without auth
       next();

@@ -3,7 +3,6 @@
  */
 
 import { Storage } from './Storage';
-import { Box, Rack, Tank } from '@domain/value-objects/Equipment';
 import { generateId } from '@domain/utils/generateId';
 
 function createMinimalStorage(): Storage {
@@ -48,10 +47,12 @@ describe('Storage', () => {
 
   describe('validate', () => {
     it('should throw for version less than 1', () => {
-      expect(() => Storage.fromData({
-        ...Storage.createDefault().toData(),
-        version: -1,
-      })).toThrow('Storage configuration version must be at least 1');
+      expect(() =>
+        Storage.fromData({
+          ...Storage.createDefault().toData(),
+          version: -1,
+        })
+      ).toThrow('Storage configuration version must be at least 1');
     });
   });
 
@@ -139,16 +140,14 @@ describe('Storage', () => {
 
     it('should throw for non-existent tank', () => {
       const storage = createMinimalStorage();
-      expect(() => storage.addRack('bad_id', 'rack_1', 'Rack'))
-        .toThrow("Tank 'bad_id' not found");
+      expect(() => storage.addRack('bad_id', 'rack_1', 'Rack')).toThrow("Tank 'bad_id' not found");
     });
 
     it('should throw for duplicate rack ID within tank', () => {
       const storage = createMinimalStorage();
       const tankId = storage.tanks[0].id;
       const existingRackId = storage.tanks[0].racks[0].id;
-      expect(() => storage.addRack(tankId, existingRackId, 'Dup'))
-        .toThrow('already exists');
+      expect(() => storage.addRack(tankId, existingRackId, 'Dup')).toThrow('already exists');
     });
   });
 
@@ -163,38 +162,20 @@ describe('Storage', () => {
 
     it('should throw for non-existent tank', () => {
       const storage = createMinimalStorage();
-      expect(() => storage.addBox('bad', 'bad', 'A'))
-        .toThrow("Tank 'bad' not found");
+      expect(() => storage.addBox('bad', 'bad', 'A')).toThrow("Tank 'bad' not found");
     });
 
     it('should throw for non-existent rack', () => {
       const storage = createMinimalStorage();
       const tankId = storage.tanks[0].id;
-      expect(() => storage.addBox(tankId, 'bad', 'A'))
-        .toThrow('not found');
+      expect(() => storage.addBox(tankId, 'bad', 'A')).toThrow('not found');
     });
 
     it('should throw for duplicate box name within rack', () => {
       const storage = createMinimalStorage();
       const tankId = storage.tanks[0].id;
       const rackId = storage.tanks[0].racks[0].id;
-      expect(() => storage.addBox(tankId, rackId, 'A'))
-        .toThrow('already exists');
-    });
-  });
-
-  describe('removeTank', () => {
-    it('should remove an existing tank', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      storage.removeTank(tankId);
-      expect(storage.tanks).toHaveLength(0);
-    });
-
-    it('should throw for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(() => storage.removeTank('bad_id'))
-        .toThrow("Tank 'bad_id' not found");
+      expect(() => storage.addBox(tankId, rackId, 'A')).toThrow('already exists');
     });
   });
 
@@ -215,86 +196,6 @@ describe('Storage', () => {
     });
   });
 
-  describe('updateTanks', () => {
-    it('should return new Storage with replaced tanks', () => {
-      const storage = createMinimalStorage();
-      const newTank = Tank.create({ id: generateId('tank'), name: 'Custom Tank' });
-      const updated = storage.updateTanks([newTank]);
-      expect(updated.tanks).toHaveLength(1);
-      expect(updated.tanks[0].name).toBe('Custom Tank');
-    });
-  });
-
-  describe('updateRacks', () => {
-    it('should return new Storage with replaced racks for a tank', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const newRack = Rack.create({ id: generateId('rack'), name: 'Custom Rack' });
-      const updated = storage.updateRacks(tankId, [newRack]);
-      expect(updated.tanks[0].racks).toHaveLength(1);
-      expect(updated.tanks[0].racks[0].name).toBe('Custom Rack');
-    });
-
-    it('should throw for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(() => storage.updateRacks('bad_id', []))
-        .toThrow("Tank 'bad_id' not found");
-    });
-  });
-
-  describe('updateBoxes', () => {
-    it('should return new Storage with replaced boxes for a rack', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const newBox = Box.create({ name: 'A' });
-      const updated = storage.updateBoxes(tankId, rackId, [newBox]);
-      expect(updated.tanks[0].racks[0].boxes).toHaveLength(1);
-    });
-
-    it('should throw for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(() => storage.updateBoxes('bad', 'bad', []))
-        .toThrow("Tank 'bad' not found");
-    });
-
-    it('should throw for non-existent rack', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      expect(() => storage.updateBoxes(tankId, 'bad', []))
-        .toThrow('not found');
-    });
-  });
-
-  describe('updateBoxPositionDisplay', () => {
-    it('should update position display for a specific box', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const config = { format: 'numeric' as const };
-      const updated = storage.updateBoxPositionDisplay(tankId, rackId, 'A', config);
-      const box = updated.toData().tanks[0].racks[0].boxes[0];
-      expect(box.positionDisplay).toEqual(config);
-    });
-
-    it('should clear position display when null is passed', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const updated = storage.updateBoxPositionDisplay(tankId, rackId, 'A', null);
-      const box = updated.toData().tanks[0].racks[0].boxes[0];
-      expect(box.positionDisplay).toBeUndefined();
-    });
-
-    it('should throw for non-existent box', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      expect(() => storage.updateBoxPositionDisplay(tankId, rackId, 'Z', null))
-        .toThrow('not found');
-    });
-  });
-
   describe('clearInheritedBoxLabelsForRack', () => {
     it('should clear custom labels on boxes without explicit assignedUserId', () => {
       const data = Storage.createDefault().toData();
@@ -303,7 +204,11 @@ describe('Storage', () => {
       rackData.assignedUserId = 'user_1';
       rackData.boxes[0] = { ...rackData.boxes[0], customLabel: 'My Box' };
       // Box B has its own assignment — should keep label
-      rackData.boxes[1] = { ...rackData.boxes[1], assignedUserId: 'user_2', customLabel: 'Owned Box' };
+      rackData.boxes[1] = {
+        ...rackData.boxes[1],
+        assignedUserId: 'user_2',
+        customLabel: 'Owned Box',
+      };
 
       const storage = Storage.fromData(data);
       const tankId = storage.tanks[0].id;
@@ -451,29 +356,33 @@ describe('Storage', () => {
       const storage = createMinimalStorage();
       const tankId = storage.tanks[0].id;
       const rackId = storage.tanks[0].racks[0].id;
-      expect(() => storage.updateResourceCustomLabel('box', tankId, rackId, undefined, 'Label'))
-        .toThrow('boxId is required');
+      expect(() =>
+        storage.updateResourceCustomLabel('box', tankId, rackId, undefined, 'Label')
+      ).toThrow('boxId is required');
     });
 
     it('should throw for non-existent tank', () => {
       const storage = createMinimalStorage();
-      expect(() => storage.updateResourceCustomLabel('rack', 'bad', 'bad', undefined, 'x'))
-        .toThrow('not found');
+      expect(() => storage.updateResourceCustomLabel('rack', 'bad', 'bad', undefined, 'x')).toThrow(
+        'not found'
+      );
     });
 
     it('should throw for non-existent rack', () => {
       const storage = createMinimalStorage();
       const tankId = storage.tanks[0].id;
-      expect(() => storage.updateResourceCustomLabel('rack', tankId, 'bad', undefined, 'x'))
-        .toThrow('not found');
+      expect(() =>
+        storage.updateResourceCustomLabel('rack', tankId, 'bad', undefined, 'x')
+      ).toThrow('not found');
     });
 
     it('should throw for non-existent box', () => {
       const storage = createMinimalStorage();
       const tankId = storage.tanks[0].id;
       const rackId = storage.tanks[0].racks[0].id;
-      expect(() => storage.updateResourceCustomLabel('box', tankId, rackId, 'Z', 'x'))
-        .toThrow('not found');
+      expect(() => storage.updateResourceCustomLabel('box', tankId, rackId, 'Z', 'x')).toThrow(
+        'not found'
+      );
     });
   });
 
@@ -529,78 +438,6 @@ describe('Storage', () => {
     });
   });
 
-  describe('updateLabDefaultPositionDisplay', () => {
-    it('should set lab default position display', () => {
-      const storage = createMinimalStorage();
-      const config = { format: 'numeric' as const };
-      const updated = storage.updateLabDefaultPositionDisplay(config);
-      expect(updated.systemSettings.defaultPositionDisplay).toEqual(config);
-    });
-
-    it('should clear lab default when null', () => {
-      const storage = createMinimalStorage();
-      const config = { format: 'numeric' as const };
-      const withConfig = storage.updateLabDefaultPositionDisplay(config);
-      const cleared = withConfig.updateLabDefaultPositionDisplay(null);
-      expect(cleared.systemSettings.defaultPositionDisplay).toBeUndefined();
-    });
-  });
-
-  describe('isLocationValid / locationExists', () => {
-    it('should validate a valid location', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      expect(storage.locationExists(tankId, rackId, 'A', 1)).toBe(true);
-    });
-
-    it('should reject invalid tank', () => {
-      const storage = createMinimalStorage();
-      expect(storage.locationExists('bad', 'bad', 'A', 1)).toBe(false);
-    });
-  });
-
-  describe('getAvailablePositions', () => {
-    it('should return all positions when none occupied', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const positions = storage.getAvailablePositions(tankId, rackId, 'A', []);
-      expect(positions).toHaveLength(81); // 9x9
-      expect(positions[0]).toBe(1);
-      expect(positions[80]).toBe(81);
-    });
-
-    it('should exclude occupied positions', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const positions = storage.getAvailablePositions(tankId, rackId, 'A', [1, 5, 10]);
-      expect(positions).toHaveLength(78);
-      expect(positions).not.toContain(1);
-      expect(positions).not.toContain(5);
-      expect(positions).not.toContain(10);
-    });
-
-    it('should return empty array for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(storage.getAvailablePositions('bad', 'bad', 'A', [])).toEqual([]);
-    });
-
-    it('should return empty array for non-existent rack', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      expect(storage.getAvailablePositions(tankId, 'bad', 'A', [])).toEqual([]);
-    });
-
-    it('should return empty array for non-existent box', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      expect(storage.getAvailablePositions(tankId, rackId, 'Z', [])).toEqual([]);
-    });
-  });
-
   describe('updateFromData', () => {
     it('should replace equipment and system settings', () => {
       const storage = createMinimalStorage();
@@ -630,15 +467,12 @@ describe('Storage', () => {
       storage.seedAll();
       expect(storage.hasAnySeededResources()).toBe(true);
       expect(storage.isResourceSeeded(storage.tanks[0].id)).toBe(true);
-      expect(storage.isResourceSeeded(
-        storage.tanks[0].id,
-        storage.tanks[0].racks[0].id,
-      )).toBe(true);
-      expect(storage.isResourceSeeded(
-        storage.tanks[0].id,
-        storage.tanks[0].racks[0].id,
-        'A',
-      )).toBe(true);
+      expect(storage.isResourceSeeded(storage.tanks[0].id, storage.tanks[0].racks[0].id)).toBe(
+        true
+      );
+      expect(storage.isResourceSeeded(storage.tanks[0].id, storage.tanks[0].racks[0].id, 'A')).toBe(
+        true
+      );
     });
 
     it('unseedAll should mark all resources as unseeded', () => {
@@ -689,7 +523,9 @@ describe('Storage', () => {
       const storage = createMinimalStorage();
       expect(storage.isResourceSeeded('bad')).toBe(false);
       expect(storage.isResourceSeeded(storage.tanks[0].id, 'bad')).toBe(false);
-      expect(storage.isResourceSeeded(storage.tanks[0].id, storage.tanks[0].racks[0].id, 'Z')).toBe(false);
+      expect(storage.isResourceSeeded(storage.tanks[0].id, storage.tanks[0].racks[0].id, 'Z')).toBe(
+        false
+      );
     });
 
     it('countNonSeeded should return 0 for non-existent resources', () => {
@@ -706,18 +542,6 @@ describe('Storage', () => {
       expect(storage.version).toBe(1);
       storage.applyPersistedVersion(42);
       expect(storage.version).toBe(42);
-    });
-  });
-
-  describe('toApiData', () => {
-    it('should return structured API response format', () => {
-      const storage = createMinimalStorage();
-      const api = storage.toApiData();
-
-      expect(api.equipment.tanks).toHaveLength(1);
-      expect(api.systemSettings.labName).toBe('Standard Laboratory');
-      expect(api.metadata.version).toBe(1);
-      expect(api.metadata.updatedAt).toBeDefined();
     });
   });
 
@@ -747,7 +571,9 @@ describe('Storage', () => {
     it('should throw for default researcher exceeding 100 characters', () => {
       const data = Storage.createDefault().toData();
       data.systemSettings.defaultResearcher = 'x'.repeat(101);
-      expect(() => Storage.fromData(data)).toThrow('Default researcher name cannot exceed 100 characters');
+      expect(() => Storage.fromData(data)).toThrow(
+        'Default researcher name cannot exceed 100 characters'
+      );
     });
   });
 });

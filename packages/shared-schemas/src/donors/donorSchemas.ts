@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { dateField } from '../utils/dateFields';
+import { dateField, optionalDateOnlyField } from '../utils/dateFields';
 
 // Entity schema
 
@@ -34,8 +34,7 @@ export const donorWithTubeCountSchema = donorSchema.extend({
 export const donorCollectionHistorySchema = z.object({
   id: z.string(),
   donorId: z.string(),
-  // Date-only string, not a Date — coercing to a Date shifts the day across timezones.
-  collectionDate: z.string().optional(),
+  collectionDate: optionalDateOnlyField,
   specimenType: z.string().optional(),
   source: z.string().optional(),
   createdAt: dateField,
@@ -43,60 +42,69 @@ export const donorCollectionHistorySchema = z.object({
 
 // Request schemas
 
-export const createDonorRequestSchema = z.object({
-  donorSourceId: z.string().max(200).optional(),
-  donorInternalId: z.string().max(200).optional(),
-  species: z.string().max(200).optional(),
-  age: z.string().max(50).optional(),
-  sex: z.string().max(50).optional(),
-  ethnicity: z.string().max(200).optional(),
-  clinicalStatus: z.string().max(50).optional(),
-  diagnosis: z.string().max(500).optional(),
-  diseaseStage: z.string().max(200).optional(),
-  notes: z.string().max(2000).optional(),
-}).refine(
-  (data) => data.donorSourceId || data.donorInternalId,
-  { message: 'At least one donor ID (source or internal) is required' }
-);
+export const createDonorRequestSchema = z
+  .object({
+    donorSourceId: z.string().max(200).optional(),
+    donorInternalId: z.string().max(200).optional(),
+    species: z.string().max(200).optional(),
+    age: z.string().max(50).optional(),
+    sex: z.string().max(50).optional(),
+    ethnicity: z.string().max(200).optional(),
+    clinicalStatus: z.string().max(50).optional(),
+    diagnosis: z.string().max(500).optional(),
+    diseaseStage: z.string().max(200).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .refine(data => data.donorSourceId || data.donorInternalId, {
+    message: 'At least one donor ID (source or internal) is required',
+  });
 
-export const updateDonorRequestSchema = z.object({
-  donorSourceId: z.string().max(200).nullish(),
-  donorInternalId: z.string().max(200).nullish(),
-  species: z.string().max(200).nullish(),
-  age: z.string().max(50).nullish(),
-  sex: z.string().max(50).nullish(),
-  ethnicity: z.string().max(200).nullish(),
-  clinicalStatus: z.string().max(50).nullish(),
-  diagnosis: z.string().max(500).nullish(),
-  diseaseStage: z.string().max(200).nullish(),
-  notes: z.string().max(2000).nullish(),
-}).refine(
-  (data) => {
-    const sourceCleared = data.donorSourceId === null;
-    const internalCleared = data.donorInternalId === null;
-    if (sourceCleared && internalCleared) return false;
-    return true;
-  },
-  { message: 'Cannot clear both donor IDs — at least one must remain' }
-);
+export const updateDonorRequestSchema = z
+  .object({
+    donorSourceId: z.string().max(200).nullish(),
+    donorInternalId: z.string().max(200).nullish(),
+    species: z.string().max(200).nullish(),
+    age: z.string().max(50).nullish(),
+    sex: z.string().max(50).nullish(),
+    ethnicity: z.string().max(200).nullish(),
+    clinicalStatus: z.string().max(50).nullish(),
+    diagnosis: z.string().max(500).nullish(),
+    diseaseStage: z.string().max(200).nullish(),
+    notes: z.string().max(2000).nullish(),
+  })
+  .refine(
+    data => {
+      const sourceCleared = data.donorSourceId === null;
+      const internalCleared = data.donorInternalId === null;
+      if (sourceCleared && internalCleared) return false;
+      return true;
+    },
+    { message: 'Cannot clear both donor IDs — at least one must remain' }
+  );
 
-export const createCollectionHistoryRequestSchema = z.object({
-  collectionDate: z.string().optional(),
-  specimenType: z.string().max(200).optional(),
-  source: z.string().max(200).optional(),
-}).refine(
-  (data) => data.collectionDate || data.specimenType || data.source,
-  { message: 'At least one field (date, specimen type, or source) is required' }
-);
+export const createCollectionHistoryRequestSchema = z
+  .object({
+    collectionDate: z.string().optional(),
+    specimenType: z.string().max(200).optional(),
+    source: z.string().max(200).optional(),
+  })
+  .refine(data => data.collectionDate || data.specimenType || data.source, {
+    message: 'At least one field (date, specimen type, or source) is required',
+  });
 
-export const updateCollectionHistoryRequestSchema = z.object({
-  collectionDate: z.string().nullish(),
-  specimenType: z.string().max(200).nullish(),
-  source: z.string().max(200).nullish(),
-}).refine(
-  (data) => data.collectionDate !== undefined || data.specimenType !== undefined || data.source !== undefined,
-  { message: 'At least one field must be provided' }
-);
+export const updateCollectionHistoryRequestSchema = z
+  .object({
+    collectionDate: z.string().nullish(),
+    specimenType: z.string().max(200).nullish(),
+    source: z.string().max(200).nullish(),
+  })
+  .refine(
+    data =>
+      data.collectionDate !== undefined ||
+      data.specimenType !== undefined ||
+      data.source !== undefined,
+    { message: 'At least one field must be provided' }
+  );
 
 // Response schemas
 

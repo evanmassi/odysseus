@@ -36,7 +36,11 @@ export class EquipmentController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const category = await this.deps.equipmentApplicationService.createCategory(labId, req.body, user);
+      const category = await this.deps.equipmentApplicationService.createCategory(
+        labId,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ category }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create equipment category', req.requestId);
@@ -47,7 +51,12 @@ export class EquipmentController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const category = await this.deps.equipmentApplicationService.updateCategory(labId, req.params.categoryId, req.body, user);
+      const category = await this.deps.equipmentApplicationService.updateCategory(
+        labId,
+        req.params.categoryId,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ category }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update equipment category', req.requestId);
@@ -58,7 +67,11 @@ export class EquipmentController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.equipmentApplicationService.deleteCategory(labId, req.params.categoryId, user);
+      await this.deps.equipmentApplicationService.deleteCategory(
+        labId,
+        req.params.categoryId,
+        user
+      );
       res.json(ResponseBuilder.success({ message: 'Category deleted' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete equipment category', req.requestId);
@@ -102,7 +115,12 @@ export class EquipmentController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const item = await this.deps.equipmentApplicationService.updateItem(labId, req.params.id, req.body, user);
+      const item = await this.deps.equipmentApplicationService.updateItem(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ item }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update equipment item', req.requestId);
@@ -113,7 +131,12 @@ export class EquipmentController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const item = await this.deps.equipmentApplicationService.decommissionItem(labId, req.params.id, req.body, user);
+      const item = await this.deps.equipmentApplicationService.decommissionItem(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.json(ResponseBuilder.success({ item }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to decommission equipment item', req.requestId);
@@ -133,21 +156,16 @@ export class EquipmentController extends BaseController {
 
   // Documents
 
-  async listDocuments(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const documents = await this.deps.equipmentApplicationService.listDocuments(labId, req.params.id);
-      res.json(ResponseBuilder.success({ documents }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to list equipment documents', req.requestId);
-    }
-  }
-
   async addDocument(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const document = await this.deps.equipmentApplicationService.addDocument(labId, req.params.id, req.body, user);
+      const document = await this.deps.equipmentApplicationService.addDocument(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ document }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to add equipment document', req.requestId);
@@ -159,7 +177,11 @@ export class EquipmentController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const document = await this.deps.equipmentApplicationService.updateDocument(
-        labId, req.params.id, req.params.docId, req.body, user
+        labId,
+        req.params.id,
+        req.params.docId,
+        req.body,
+        user
       );
       res.json(ResponseBuilder.success({ document }));
     } catch (error) {
@@ -171,7 +193,12 @@ export class EquipmentController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.equipmentApplicationService.removeDocument(labId, req.params.id, req.params.docId, user);
+      await this.deps.equipmentApplicationService.removeDocument(
+        labId,
+        req.params.id,
+        req.params.docId,
+        user
+      );
       res.json(ResponseBuilder.success({ message: 'Document removed' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to remove equipment document', req.requestId);
@@ -185,7 +212,12 @@ export class EquipmentController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const { itemIds, data } = req.body;
-      const result = await this.deps.equipmentApplicationService.bulkLogMaintenance(labId, itemIds, data, user);
+      const result = await this.deps.equipmentApplicationService.bulkLogMaintenance(
+        labId,
+        itemIds,
+        data,
+        user
+      );
       const status = result.failed.length > 0 ? 207 : 201;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -198,7 +230,12 @@ export class EquipmentController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const { itemIds, data } = req.body;
-      const result = await this.deps.equipmentApplicationService.bulkChangeStatus(labId, itemIds, data, user);
+      const result = await this.deps.equipmentApplicationService.bulkChangeStatus(
+        labId,
+        itemIds,
+        data,
+        user
+      );
       const status = result.failed.length > 0 ? 207 : 201;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -211,7 +248,12 @@ export class EquipmentController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const { itemIds, data } = req.body;
-      const result = await this.deps.equipmentApplicationService.bulkRelocate(labId, itemIds, data, user);
+      const result = await this.deps.equipmentApplicationService.bulkRelocate(
+        labId,
+        itemIds,
+        data,
+        user
+      );
       const status = result.failed.length > 0 ? 207 : 201;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -221,21 +263,16 @@ export class EquipmentController extends BaseController {
 
   // Maintenance log
 
-  async getMaintenanceLog(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const entries = await this.deps.equipmentApplicationService.getMaintenanceLog(labId, req.params.id);
-      res.json(ResponseBuilder.success({ entries }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get maintenance log', req.requestId);
-    }
-  }
-
   async addMaintenanceEntry(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const entry = await this.deps.equipmentApplicationService.addMaintenanceEntry(labId, req.params.id, req.body, user);
+      const entry = await this.deps.equipmentApplicationService.addMaintenanceEntry(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
       res.status(201).json(ResponseBuilder.success({ entry }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to add maintenance entry', req.requestId);
@@ -247,7 +284,11 @@ export class EquipmentController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       const entry = await this.deps.equipmentApplicationService.updateMaintenanceEntry(
-        labId, req.params.id, req.params.entryId, req.body, user
+        labId,
+        req.params.id,
+        req.params.entryId,
+        req.body,
+        user
       );
       res.json(ResponseBuilder.success({ entry }));
     } catch (error) {
@@ -260,7 +301,10 @@ export class EquipmentController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       await this.deps.equipmentApplicationService.deleteMaintenanceEntry(
-        labId, req.params.id, req.params.entryId, user
+        labId,
+        req.params.id,
+        req.params.entryId,
+        user
       );
       res.json(ResponseBuilder.success({ message: 'Maintenance entry deleted' }));
     } catch (error) {

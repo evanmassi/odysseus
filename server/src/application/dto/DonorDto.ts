@@ -7,39 +7,19 @@
 import type { Donor } from '@domain/entities/Donor';
 import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 
-export interface DonorResponse {
-  id: string;
-  labId: string;
-  donorSourceId?: string;
-  donorInternalId?: string;
-  species?: string;
-  age?: string;
-  sex?: string;
-  ethnicity?: string;
-  clinicalStatus?: string;
-  diagnosis?: string;
-  diseaseStage?: string;
-  notes?: string;
-  isCurated: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type {
+  Donor as DonorData,
+  DonorWithTubeCount,
+  DonorCollectionHistory as DonorCollectionHistoryData,
+} from '@odysseus/shared-schemas';
 
-export interface DonorWithTubeCountResponse extends DonorResponse {
-  tubeCount: number;
-}
+export type DonorResponse = DonorData;
 
-export interface DonorCollectionHistoryResponse {
-  id: string;
-  donorId: string;
-  collectionDate?: string;
-  specimenType?: string;
-  source?: string;
-  createdAt: string;
-}
+export type DonorWithTubeCountResponse = DonorWithTubeCount;
+
+export type DonorCollectionHistoryResponse = DonorCollectionHistoryData;
 
 export class DonorDto {
-
   static toResponse(donor: Donor): DonorResponse {
     return {
       id: donor.id,
@@ -55,8 +35,8 @@ export class DonorDto {
       diseaseStage: donor.diseaseStage,
       notes: donor.notes,
       isCurated: donor.isCurated,
-      createdAt: donor.createdAt.toISOString(),
-      updatedAt: donor.updatedAt.toISOString(),
+      createdAt: donor.createdAt,
+      updatedAt: donor.updatedAt,
     };
   }
 
@@ -74,7 +54,7 @@ export class DonorDto {
       collectionDate: entry.collectionDate,
       specimenType: entry.specimenType,
       source: entry.source,
-      createdAt: entry.createdAt.toISOString(),
+      createdAt: entry.createdAt,
     };
   }
 }

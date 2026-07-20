@@ -8,11 +8,11 @@ import { useEffect, useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
-import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, AuthLinkButton, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthPasswordCreateForm } from '../password/AuthPasswordCreateForm';
@@ -33,7 +33,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [errorPulse, setErrorPulse] = useState(0);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const {
@@ -41,7 +40,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     forceChangePassword,
     clearPasswordChangeRequired,
     logoutReason,
-    error: authError,
     passwordChangeRequired,
     passwordChangeSuccess,
   } = useAuthStore();
@@ -101,14 +99,15 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     const success = await forceChangePassword(newPassword);
 
     if (!success) {
+      // Read the error the action just set, not a stale render-time binding.
+      const storeError = useAuthStore.getState().error;
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default
-      throw new Error(authError || 'Password change failed. Please try again.');
+      throw new Error(storeError || 'Password change failed. Please try again.');
     }
   };
 
   const handleCancelPasswordChange = () => {
     clearPasswordChangeRequired();
-    setPasswordError(null);
   };
 
   const handleResendVerification = async () => {
@@ -143,8 +142,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
       : showForgotPassword
         ? 'forgot'
         : 'login';
-  const { displayed: state, isTransitioning } = useDelayedTransition(inputState, 200);
-  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+  const { state, exitClass } = useAuthStackTransition(inputState);
 
   useShellConfig(getShellConfig(state, usernameInputRef));
 
@@ -159,17 +157,16 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   if (state === 'forgot') {
     return (
       <div key="forgot" className={`animate-auth-stack ${exitClass}`}>
-        <p className="text-sm text-[rgb(var(--auth-text-dim))]">
+        <p className="text-body text-[rgb(var(--auth-text-dim))]">
           Please contact your administrator to reset your password.
         </p>
         <div className="mt-5 text-center">
-          <button
-            type="button"
+          <AuthLinkButton
             onClick={() => setShowForgotPassword(false)}
-            className="font-mono text-xs text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
+            className="font-mono text-data-sm"
           >
             ← Back to sign in
-          </button>
+          </AuthLinkButton>
         </div>
       </div>
     );
@@ -182,8 +179,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           onSubmit={handlePasswordChange}
           onCancel={handleCancelPasswordChange}
           cancelText="Login"
-          error={passwordError}
-          onErrorClear={() => setPasswordError(null)}
         />
       </div>
     );
@@ -208,8 +203,8 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           <div className="flex items-start gap-3 mb-3">
             <Mail className="w-5 h-5 text-info-text flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-info-text">Email Verification Required</p>
-              <p className="text-xs text-[rgb(var(--auth-text-dim))] mt-1">{loginError}</p>
+              <p className="text-body font-semibold text-info-text">Email Verification Required</p>
+              <p className="text-body-sm text-[rgb(var(--auth-text-dim))] mt-1">{loginError}</p>
             </div>
           </div>
           <Button
@@ -266,13 +261,12 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
             disabled={isLoading}
           />
           <div className="text-right mt-0.5">
-            <button
-              type="button"
+            <AuthLinkButton
               onClick={() => setShowForgotPassword(true)}
-              className="text-xs font-mono text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
+              className="font-mono text-data-sm"
             >
               Forgot password?
-            </button>
+            </AuthLinkButton>
           </div>
         </div>
 
@@ -291,15 +285,9 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
 
       {onSwitchToRegister && (
         <div className="mt-4 text-center">
-          <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">
+          <p className="text-data-sm font-mono text-[rgb(var(--auth-text-mute))]">
             Don&apos;t have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToRegister}
-              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
-            >
-              Register here
-            </button>
+            <AuthLinkButton onClick={onSwitchToRegister}>Register here</AuthLinkButton>
           </p>
         </div>
       )}

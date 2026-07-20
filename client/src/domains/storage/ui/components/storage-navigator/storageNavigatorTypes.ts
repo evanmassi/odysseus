@@ -11,17 +11,17 @@ export interface StorageHierarchy {
   tanks: Tank[];
 }
 
-export interface Tank {
+interface Tank {
   id: string;
   name: string;
   racks: Rack[];
 }
 
-export interface Rack {
+interface Rack {
   id: string;
   name: string;
   boxes: Box[];
-  assignedUserId?: string | null;
+  assignedUserId?: string;
 }
 
 export interface Box {

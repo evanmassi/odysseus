@@ -5,11 +5,10 @@
  */
 import {
   activeSessionSchema,
-  revokeAllResponseSchema,
+  bulkRevokeResponseSchema,
   type ActiveSession,
+  type BulkRevokeResponse,
 } from '@odysseus/shared-schemas';
-
-export type { ActiveSession } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 
@@ -25,12 +24,12 @@ export class UserSessionService {
     await httpClient.deleteData(`${this.BASE_PATH}/${sessionId}`);
   }
 
-  /** @returns Number of sessions revoked */
-  static async revokeAllOtherSessions(): Promise<number> {
-    const response = await httpClient.deleteWithData(
-      `${this.BASE_PATH}/all`,
-      revokeAllResponseSchema
+  /** Revokes several of the user's own sessions in one request; the current session is skipped. */
+  static async bulkRevokeSessions(sessionIds: string[]): Promise<BulkRevokeResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk-revoke`,
+      { sessionIds },
+      bulkRevokeResponseSchema
     );
-    return response.revokedCount;
   }
 }

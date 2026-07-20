@@ -4,11 +4,9 @@
  * Navigates to a tube's storage location and selects it in the grid.
  */
 
-import { useTubeStore } from '@domains/tubes';
-import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
+import { useTubeStore, toPositionKey, navigateToLocation } from '@domains/tubes';
 
-import type { TubeData } from '@domains/tubes/types';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 export async function navigateToResult(tubes: TubeData[]): Promise<void> {
   if (tubes.length === 0) return;

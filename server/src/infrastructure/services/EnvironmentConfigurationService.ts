@@ -9,7 +9,10 @@ import * as path from 'path';
 
 import { z } from 'zod';
 
-import type { ConfigurationService, Configuration } from '@application/contracts/ConfigurationService';
+import type {
+  ConfigurationService,
+  Configuration,
+} from '@application/contracts/ConfigurationService';
 
 const ConfigurationSchema = z.object({
   server: z.object({
@@ -26,15 +29,9 @@ const ConfigurationSchema = z.object({
   }),
   jwt: z.object({
     secret: z.string().min(32, 'JWT secret must be at least 32 characters'),
-    expirationTime: z.string().default('24h'),
     issuer: z.string().default('odysseus-api'),
     audience: z.string().default('odysseus-client'),
     algorithm: z.enum(['HS256', 'HS384', 'HS512']).default('HS256'),
-  }),
-  logging: z.object({
-    level: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
-    enableConsole: z.boolean().default(true),
-    enableFile: z.boolean().default(false),
   }),
   email: z.object({
     verificationBaseUrl: z.string(),
@@ -59,27 +56,21 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     return this.config[key];
   }
 
-  getAll(): Configuration {
-    return { ...this.config };
-  }
-
   isDevelopment(): boolean {
     return this.config.server.environment === 'development';
   }
 
-  isProduction(): boolean {
-    return this.config.server.environment === 'production';
-  }
-
   private loadConfiguration(): Configuration {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const environment = process.env.NODE_ENV || 'development';
+    // Unset/empty NODE_ENV defaults to 'production' so security decisions (JWT secret required,
+    // DB SSL) fail closed on a misconfigured deploy. Local dev sets NODE_ENV via .env.development.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
+    const environment = process.env.NODE_ENV || 'production';
 
     const rawConfig = {
       server: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         port: parseInt(process.env.PORT || '3001', 10),
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         host: process.env.HOST || 'localhost',
         environment,
         allowedOrigins: process.env.ALLOWED_ORIGINS
@@ -90,36 +81,29 @@ export class EnvironmentConfigurationService implements ConfigurationService {
         type: 'postgresql',
         url: process.env.DATABASE_URL,
         ssl: environment === 'production',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         maxConnections: parseInt(process.env.DATABASE_MAX_CONNECTIONS || '10', 10),
       },
       jwt: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         secret: process.env.JWT_SECRET || this.getJwtSecret(environment),
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        expirationTime: process.env.JWT_EXPIRATION || '24h',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         issuer: process.env.JWT_ISSUER || 'odysseus-api',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         audience: process.env.JWT_AUDIENCE || 'odysseus-client',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         algorithm: process.env.JWT_ALGORITHM || 'HS256',
       },
-      logging: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        level: process.env.LOG_LEVEL ||
-               (environment === 'development' ? 'debug' : 'info'),
-        enableConsole: process.env.LOG_CONSOLE !== 'false',
-        enableFile: process.env.LOG_FILE === 'true',
-      },
       email: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        verificationBaseUrl: process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        resetPasswordBaseUrl: process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password',
+        verificationBaseUrl:
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
+          process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email',
+        resetPasswordBaseUrl:
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
+          process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password',
       },
       security: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must normalize to undefined
         systemAdminSetupKey: process.env.SYSTEM_ADMIN_SETUP_KEY || undefined,
       },
       app: {
@@ -131,18 +115,23 @@ export class EnvironmentConfigurationService implements ConfigurationService {
   }
 
   private getJwtSecret(environment: string): string {
-    if (environment === 'production') {
+    // The fixed dev secret is only ever handed out for local development/CI; any other
+    // environment (production, staging, unset) must supply JWT_SECRET or the server refuses to boot.
+    if (environment !== 'development' && environment !== 'test') {
       throw new Error(
-        'JWT_SECRET environment variable is required in production. ' +
-        'Generate a secure secret with: openssl rand -base64 64'
+        'JWT_SECRET environment variable is required outside development. ' +
+          'Generate a secure secret with: openssl rand -base64 64'
       );
     }
 
     // Fixed secret so dev sessions survive server restarts
-    const devSecret = 'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
+    const devSecret =
+      'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
 
     // eslint-disable-next-line no-console -- runs before logger is initialized
-    console.warn('Using fixed development JWT secret. Set JWT_SECRET environment variable for production.');
+    console.warn(
+      'Using fixed development JWT secret. Set JWT_SECRET environment variable for production.'
+    );
 
     return devSecret;
   }
@@ -151,7 +140,6 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     try {
       const packagePath = path.resolve(__dirname, '..', '..', '..', 'package.json');
       const raw = fs.readFileSync(packagePath, 'utf-8');
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return JSON.parse(raw).version || '1.0.0';
     } catch {
       return '1.0.0';

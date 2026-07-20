@@ -11,10 +11,11 @@ import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import { useDecommissionEquipmentItemMutation } from '@domains/equipment/hooks/useEquipmentMutations';
 import { Button, DatePicker, NubDivider } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type { DecommissionEquipmentItemRequest } from '@odysseus/shared-schemas';
@@ -25,9 +26,6 @@ interface EquipmentDecommissionFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
-
-const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 export function EquipmentDecommissionForm({
   itemId,
@@ -41,27 +39,26 @@ export function EquipmentDecommissionForm({
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(decommissionEquipmentItemRequestSchema),
     defaultValues: {
-      decommissionDate: formatDateForInput(new Date()),
+      decommissionDate: normalizeDateString(new Date()),
       decommissionReason: '',
       disposalMethod: '',
     },
   });
 
-  const onFormSubmit = async (data: FieldValues) => {
-    try {
-      await decommissionMutation.mutateAsync({
-        id: itemId,
-        data: data as DecommissionEquipmentItemRequest,
-      });
-      notifications.success(`"${itemName}" has been decommissioned`);
-      onSubmit();
-    } catch {
-      notifications.error('Failed to decommission equipment');
-    }
+  const onFormSubmit = (data: FieldValues) => {
+    decommissionMutation.mutate(
+      { id: itemId, data: data as DecommissionEquipmentItemRequest },
+      {
+        onSuccess: () => {
+          notifications.success(`"${itemName}" has been decommissioned`);
+          onSubmit();
+        },
+      }
+    );
   };
 
   return (
@@ -79,7 +76,7 @@ export function EquipmentDecommissionForm({
           onSubmit={handleSubmit(onFormSubmit)}
           className="space-y-4 p-4"
         >
-          <p className="text-xs leading-relaxed text-muted-foreground">
+          <p className="text-body-sm leading-relaxed text-muted-foreground">
             Decommissioning <span className="font-medium text-foreground">{itemName}</span> will
             mark it as permanently retired. It will be hidden from the main list but can still be
             viewed using the &quot;Show Decommissioned&quot; toggle.
@@ -91,14 +88,14 @@ export function EquipmentDecommissionForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Decommission Date</span>
+                  <span className={FIELD_LABEL_COMPACT}>Decommission Date</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
                     state={error ? 'error' : 'default'}
                     fullWidth
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
@@ -122,7 +119,7 @@ export function EquipmentDecommissionForm({
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="warning" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
@@ -133,7 +130,7 @@ export function EquipmentDecommissionForm({
             form="decommission-form"
             variant="warning"
             size="sm"
-            disabled={isSubmitting}
+            disabled={decommissionMutation.isPending}
             leftIcon={<Power className="h-3.5 w-3.5" />}
           >
             Decommission

@@ -13,6 +13,7 @@ import type { Request, Response } from 'express';
 import type { RateLimitRequestHandler } from 'express-rate-limit';
 
 const ONE_MINUTE = 60_000;
+const GLOBAL_API_LIMIT = 300;
 
 function rateLimitHandler(_req: Request, res: Response): void {
   res.status(429).json({
@@ -35,8 +36,8 @@ function createLimiter(limit: number, windowMs: number = ONE_MINUTE): RateLimitR
 }
 
 export function createGlobalRateLimiter(): RateLimitRequestHandler {
-  logger.info('Global API rate limiter enabled', { limit: 300, windowMs: ONE_MINUTE });
-  return createLimiter(300);
+  logger.info('Global API rate limiter enabled', { limit: GLOBAL_API_LIMIT, windowMs: ONE_MINUTE });
+  return createLimiter(GLOBAL_API_LIMIT);
 }
 
 export function createStrictRateLimiter(): RateLimitRequestHandler {

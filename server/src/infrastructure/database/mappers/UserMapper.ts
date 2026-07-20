@@ -7,6 +7,8 @@
 import { User } from '@domain/entities/User';
 import { toDate, toISOString } from '@infrastructure/database/PostgresContext';
 
+import type { UserStatus } from '@odysseus/shared-schemas';
+
 export interface UserRow {
   id: string;
   username: string;
@@ -17,7 +19,7 @@ export interface UserRow {
   created_at: Date | string;
   researcher_id?: string;
   person_id?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+  status: UserStatus;
   email_verified?: boolean;
   email_verification_token?: string;
   email_verification_expiry?: Date | string;
@@ -34,7 +36,6 @@ export interface UserRow {
 }
 
 export class UserMapper {
-
   static toRow(user: User): UserRow {
     const settingsJson = JSON.stringify(user.settings);
 
@@ -58,7 +59,7 @@ export class UserMapper {
       require_password_change: user.requirePasswordChange,
       last_password_change: user.lastPasswordChange ?? undefined,
       settings: settingsJson,
-      lab_id: user.labId
+      lab_id: user.labId,
     };
   }
 
@@ -86,9 +87,7 @@ export class UserMapper {
       username: row.username,
       apiKey: row.api_key,
       role: row.role,
-      lastActivity: row.last_activity
-        ? toISOString(row.last_activity)
-        : createdAt.toISOString(),
+      lastActivity: row.last_activity ? toISOString(row.last_activity) : createdAt.toISOString(),
       createdAt: createdAt.toISOString(),
       passwordHash: row.password_hash,
       salt: row.salt,
@@ -106,7 +105,7 @@ export class UserMapper {
       labIsDemo: row.lab_is_demo ?? false,
       researcherActive: row.researcher_active ?? undefined,
       settings: row.settings,
-      labId: row.lab_id ?? undefined
+      labId: row.lab_id ?? undefined,
     });
   }
 

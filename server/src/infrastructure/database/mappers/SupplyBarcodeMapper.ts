@@ -16,7 +16,6 @@ export interface SupplyBarcodeDbRow {
 }
 
 export class SupplyBarcodeMapper {
-
   static fromRow(row: SupplyBarcodeDbRow): SupplyBarcodeRow {
     return {
       id: row.id,

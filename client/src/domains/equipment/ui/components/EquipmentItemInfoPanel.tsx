@@ -22,15 +22,25 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks';
 import {
   useAddEquipmentDocumentMutation,
   useUpdateEquipmentDocumentMutation,
   useRemoveEquipmentDocumentMutation,
   useDeleteEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
+import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
-import { Button, Chip, DetailRow, NubDivider, PanelHeader, SectionHeader } from '@shared/ui';
+import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
+import {
+  Button,
+  Chip,
+  DetailRow,
+  HeaderStrip,
+  NubDivider,
+  PanelHeader,
+  SectionHeader,
+  StripLabel,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -55,32 +65,9 @@ interface EquipmentItemInfoPanelProps {
   categoryName?: string;
 }
 
-const STATUS_LABELS: Record<
-  string,
-  { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
-> = {
-  active: { color: 'success', label: 'Active' },
-  inactive: { color: 'default', label: 'Inactive' },
-  under_maintenance: { color: 'warning', label: 'Under Maintenance' },
-  out_of_service: { color: 'danger', label: 'Out of Service' },
-  decommissioned: { color: 'danger', label: 'Decommissioned' },
-};
-
 function formatDate(date: Date | string | undefined): string | undefined {
   if (!date) return undefined;
   return formatDateForDisplay(date) || undefined;
-}
-
-function StripLabel({ children }: { children: string }) {
-  return (
-    <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-      <span
-        aria-hidden
-        className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-      />
-      {children}
-    </span>
-  );
 }
 
 export function EquipmentItemInfoPanel({
@@ -118,7 +105,7 @@ export function EquipmentItemInfoPanel({
         intensity="soft"
         className="flex h-full min-h-0 flex-col items-center justify-center"
       >
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-xs tracking-label-wide text-muted-foreground">
           Loading…
         </span>
       </ConsolePanel>
@@ -126,7 +113,8 @@ export function EquipmentItemInfoPanel({
   }
 
   const { item, documents, maintenanceLog } = detail;
-  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
+  const statusColor = EQUIPMENT_STATUS_DISPLAY[item.status].color;
+  const statusLabel = EQUIPMENT_STATUS_DISPLAY[item.status].label;
   const isDecommissioned = item.status === 'decommissioned';
 
   const hasIdentification = [item.manufacturer, item.model, item.serialNumber, item.assetTag].some(
@@ -135,50 +123,43 @@ export function EquipmentItemInfoPanel({
   const hasProcurement =
     item.purchaseCost != null || Boolean(item.purchaseDate) || Boolean(item.warrantyExpiration);
 
-  const handleDelete = async () => {
-    try {
-      await deleteItemMutation.mutateAsync(itemId);
-      notifications.success('Equipment removed');
-      onDeleted();
-    } catch {
-      notifications.error('Failed to remove equipment');
-    }
-    setShowDeleteConfirm(false);
+  const handleDelete = () => {
+    deleteItemMutation.mutate(itemId, {
+      onSuccess: () => {
+        notifications.success('Equipment removed');
+        onDeleted();
+      },
+      onSettled: () => {
+        setShowDeleteConfirm(false);
+      },
+    });
   };
 
-  const handleRemoveDocument = async (docId: string) => {
-    try {
-      await removeDocumentMutation.mutateAsync({ itemId, docId });
-      notifications.success('Document removed');
-    } catch {
-      notifications.error('Failed to remove document');
-    }
+  const handleRemoveDocument = (docId: string) => {
+    removeDocumentMutation.mutate(
+      { itemId, docId },
+      {
+        onSuccess: () => {
+          notifications.success('Document removed');
+        },
+      }
+    );
   };
 
   const handleSaveDocument = async (values: DocumentLinkValues) => {
     if (documentModal.mode === 'edit' && documentModal.doc) {
-      try {
-        await updateDocumentMutation.mutateAsync({
-          itemId,
-          docId: documentModal.doc.id,
-          data: { label: values.label, url: values.url, notes: values.notes ?? null },
-        });
-        notifications.success('Document updated');
-      } catch (error) {
-        notifications.error('Failed to update document');
-        throw error;
-      }
+      await updateDocumentMutation.mutateAsync({
+        itemId,
+        docId: documentModal.doc.id,
+        data: { label: values.label, url: values.url, notes: values.notes ?? null },
+      });
+      notifications.success('Document updated');
     } else {
-      try {
-        await addDocumentMutation.mutateAsync({
-          itemId,
-          data: { label: values.label, url: values.url, notes: values.notes },
-        });
-        notifications.success('Document added');
-      } catch (error) {
-        notifications.error('Failed to add document');
-        throw error;
-      }
+      await addDocumentMutation.mutateAsync({
+        itemId,
+        data: { label: values.label, url: values.url, notes: values.notes },
+      });
+      notifications.success('Document added');
     }
   };
 
@@ -188,20 +169,16 @@ export function EquipmentItemInfoPanel({
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-3 gap-y-2">
           <StripLabel>Status</StripLabel>
-          <Chip size="sm" color={statusConfig.color}>
-            {statusConfig.label}
+          <Chip size="sm" color={statusColor}>
+            {statusLabel}
           </Chip>
           {categoryName && (
             <>
               <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" leftIcon={<FolderOpen />}>
+              <Chip size="sm" color="info" lead={<FolderOpen />}>
                 {categoryName}
               </Chip>
             </>
@@ -209,21 +186,20 @@ export function EquipmentItemInfoPanel({
           {item.location && (
             <>
               <StripLabel>Location</StripLabel>
-              <Chip size="sm" color="info" leftIcon={<MapPin />}>
+              <Chip size="sm" color="info" lead={<MapPin />}>
                 {item.location}
               </Chip>
             </>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-base font-semibold text-card-foreground">{item.name}</h3>
+            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
             {item.description && (
-              <p className="mt-1 text-sm leading-relaxed text-card-foreground/70">
+              <p className="mt-1 text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -274,7 +250,7 @@ export function EquipmentItemInfoPanel({
           <div>
             <SectionHeader title="Documents" size="sm" />
             {documents.length === 0 ? (
-              <p className="text-sm italic text-card-foreground/30">No documents attached</p>
+              <p className="text-body-sm italic text-card-foreground/30">No documents attached</p>
             ) : (
               <div>
                 {documents.map(doc => (
@@ -287,7 +263,7 @@ export function EquipmentItemInfoPanel({
                         href={doc.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex min-w-0 items-center gap-1.5 text-sm text-primary hover:underline"
+                        className="flex min-w-0 items-center gap-1.5 text-body-sm text-primary hover:underline"
                       >
                         <ExternalLink size={12} className="flex-shrink-0" />
                         <span className="truncate">{doc.label}</span>
@@ -316,7 +292,7 @@ export function EquipmentItemInfoPanel({
                       )}
                     </div>
                     {doc.notes && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
+                      <p className="mt-0.5 text-caption text-muted-foreground">{doc.notes}</p>
                     )}
                   </div>
                 ))}
@@ -338,7 +314,7 @@ export function EquipmentItemInfoPanel({
           {item.notes && (
             <div>
               <SectionHeader title="Notes" size="sm" />
-              <div className="whitespace-pre-wrap text-sm leading-relaxed text-card-foreground/85">
+              <div className="whitespace-pre-wrap text-body leading-relaxed text-card-foreground/85">
                 {item.notes}
               </div>
             </div>
@@ -358,7 +334,7 @@ export function EquipmentItemInfoPanel({
       </ScrollArea>
 
       {isAdmin && (
-        <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex gap-2">
             <Button

@@ -1,11 +1,10 @@
 /**
  * Input Styles
  *
- * Base, search, auth, and form field input classes for the design system.
+ * Auth and form-field input classes for the design system.
  */
 
 @layer components {
-  /* Auth Input Container */
   .auth-input-container {
     @apply relative border rounded-lg transition-all duration-200;
   }
@@ -13,10 +12,7 @@
   .auth-input-container:focus-within {
     outline: 1px solid hsl(var(--focus-ring-contrast));
     outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px hsl(var(--ring)),
-      0 0 6px 2px hsl(var(--focus-ring-glow-outer)),
-      0 0 14px 4px hsl(var(--focus-ring-blur));
+    box-shadow: var(--focus-ring-shadow);
   }
 
   .auth-input-container input {
@@ -26,28 +22,9 @@
   .auth-input-container input:focus {
     outline: none;
   }
-
-  /* Search Input */
-  .input-search {
-    @apply flex h-8 w-full rounded-lg px-2 py-1 text-sm text-foreground;
-    @apply bg-muted border border-transparent;
-    @apply placeholder:text-muted-foreground placeholder:opacity-40;
-    @apply disabled:cursor-not-allowed disabled:opacity-50;
-    transition:
-      background-color 200ms,
-      border-color 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .input-search:focus {
-    @apply bg-input border-border;
-  }
 }
 
 @layer utilities {
-  /* Form Input Fields */
-
   .input-field {
     @apply h-9 px-4 py-1 rounded-lg transition-colors duration-200;
     @apply bg-input text-foreground placeholder:text-muted-foreground placeholder:opacity-40;
@@ -78,18 +55,5 @@
     @apply border-danger-bg outline-none;
     animation: pulseErrorRing 2.5s ease-in-out infinite;
     transition: border-color 0.3s;
-  }
-
-  /* Conflict state - for bulk edit fields with mixed values */
-  .input-field-conflict {
-    @apply border-2 border-warning-border;
-  }
-
-  .input-field-conflict:hover:not(:disabled) {
-    @apply border-warning-bg;
-  }
-
-  .input-field-conflict:focus {
-    @apply border-warning-bg ring-2 ring-warning-border outline-none;
   }
 }

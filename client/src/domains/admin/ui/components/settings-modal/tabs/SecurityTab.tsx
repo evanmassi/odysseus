@@ -8,7 +8,7 @@ import { NumberInput, SettingsRow, Subsection, Toggle } from '@shared/ui';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
-export interface SecurityTabProps {
+interface SecurityTabProps {
   config: SecurityConfig;
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
   readOnly?: boolean;

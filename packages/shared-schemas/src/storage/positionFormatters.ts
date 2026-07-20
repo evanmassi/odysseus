@@ -15,7 +15,7 @@ import type { PositionDisplayConfig } from './positionSchemas';
  * positionToLabel(23, 9, 9, { format: 'numeric' }) // "23"
  *
  * // Alphanumeric format (9x9 grid)
- * positionToLabel(23, 9, 9, ALPHANUMERIC_STANDARD) // "C5"
+ * positionToLabel(23, 9, 9, createAlphanumericConfig(9, 9, 'row-col')) // "C5"
  */
 export function positionToLabel(
   position: number,
@@ -64,7 +64,7 @@ export function positionToLabel(
  * labelToPosition('23', 9, 9, { format: 'numeric' }) // 23
  *
  * // Alphanumeric format (9x9 grid)
- * labelToPosition('C5', 9, 9, ALPHANUMERIC_STANDARD) // 23
+ * labelToPosition('C5', 9, 9, createAlphanumericConfig(9, 9, 'row-col')) // 23
  */
 export function labelToPosition(
   label: string,
@@ -119,45 +119,4 @@ export function labelToPosition(
 
   // Convert 0-based row/col to 1-based position
   return rowIndex * gridCols + colIndex + 1;
-}
-
-export function isValidPositionLabel(
-  label: string,
-  gridRows: number,
-  gridCols: number,
-  config: PositionDisplayConfig
-): boolean {
-  try {
-    labelToPosition(label, gridRows, gridCols, config);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Generates all position labels for a grid in row-major order.
- *
- * @example
- * // Numeric 3x3
- * generatePositionLabels(3, 3, { format: 'numeric' })
- * // ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
- *
- * // Alphanumeric 3x3
- * generatePositionLabels(3, 3, ALPHANUMERIC_STANDARD)
- * // ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
- */
-export function generatePositionLabels(
-  gridRows: number,
-  gridCols: number,
-  config: PositionDisplayConfig
-): string[] {
-  const totalPositions = gridRows * gridCols;
-  const labels: string[] = [];
-
-  for (let position = 1; position <= totalPositions; position++) {
-    labels.push(positionToLabel(position, gridRows, gridCols, config));
-  }
-
-  return labels;
 }

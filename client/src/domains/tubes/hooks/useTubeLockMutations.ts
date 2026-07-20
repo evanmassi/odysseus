@@ -4,7 +4,7 @@
  * React Query hooks for tube locking operations.
  */
 
-import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
+import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
@@ -26,7 +26,6 @@ import type {
 export const useLockTubesMutation = (
   options: UseMutationOptions<BulkLockResult, Error, LockTubesRequest> = {}
 ) => {
-  const queryClient = useQueryClient();
   const labId = useLabId();
 
   return useMutation({
@@ -34,9 +33,7 @@ export const useLockTubesMutation = (
       return await TubeService.lockTubes(request);
     },
 
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.tubes.all(labId)] },
 
     onError: error => {
       logger.error('Failed to lock tubes', { error });
@@ -50,7 +47,6 @@ export const useLockTubesMutation = (
 export const useUnlockTubesMutation = (
   options: UseMutationOptions<BulkUnlockResult, Error, UnlockTubesRequest> = {}
 ) => {
-  const queryClient = useQueryClient();
   const labId = useLabId();
 
   return useMutation({
@@ -58,9 +54,7 @@ export const useUnlockTubesMutation = (
       return await TubeService.unlockTubes(request);
     },
 
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.tubes.all(labId)] },
 
     onError: error => {
       logger.error('Failed to unlock tubes', { error });
@@ -74,7 +68,6 @@ export const useUnlockTubesMutation = (
 export const useShareTubeAccessMutation = (
   options: UseMutationOptions<ShareAccessResult, Error, ShareTubeAccessRequest> = {}
 ) => {
-  const queryClient = useQueryClient();
   const labId = useLabId();
 
   return useMutation({
@@ -82,9 +75,7 @@ export const useShareTubeAccessMutation = (
       return await TubeService.shareTubeAccess(request);
     },
 
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.tubes.all(labId)] },
 
     onError: error => {
       logger.error('Failed to share tube access', { error });
@@ -98,7 +89,6 @@ export const useShareTubeAccessMutation = (
 export const useRevokeTubeAccessMutation = (
   options: UseMutationOptions<RevokeAccessResult, Error, RevokeTubeAccessRequest> = {}
 ) => {
-  const queryClient = useQueryClient();
   const labId = useLabId();
 
   return useMutation({
@@ -106,9 +96,7 @@ export const useRevokeTubeAccessMutation = (
       return await TubeService.revokeTubeAccess(request);
     },
 
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.tubes.all(labId)] },
 
     onError: error => {
       logger.error('Failed to revoke tube access', { error });

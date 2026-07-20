@@ -1,7 +1,5 @@
 /**
  * Researcher Domain Events
- *
- * Events that occur within the Researcher aggregate.
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
@@ -17,7 +15,7 @@ export class ResearcherCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -26,17 +24,6 @@ export class ResearcherCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.researcherId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      researcherId: this.researcherId,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      email: this.email,
-      position: this.position,
-      createdBy: this.createdBy
-    };
   }
 }
 
@@ -49,7 +36,7 @@ export class ResearcherUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -58,16 +45,6 @@ export class ResearcherUpdatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.researcherId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      researcherId: this.researcherId,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      changes: this.changes,
-      updatedBy: this.updatedBy
-    };
   }
 }
 
@@ -80,7 +57,7 @@ export class ResearcherDeactivatedEvent extends DomainEvent {
     public readonly deactivatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -89,16 +66,6 @@ export class ResearcherDeactivatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.researcherId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      researcherId: this.researcherId,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      tubeCount: this.tubeCount,
-      deactivatedBy: this.deactivatedBy
-    };
   }
 }
 
@@ -110,7 +77,7 @@ export class ResearcherReactivatedEvent extends DomainEvent {
     public readonly reactivatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -119,15 +86,6 @@ export class ResearcherReactivatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.researcherId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      researcherId: this.researcherId,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      reactivatedBy: this.reactivatedBy
-    };
   }
 }
 
@@ -139,7 +97,7 @@ export class ResearcherDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -148,46 +106,5 @@ export class ResearcherDeletedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.researcherId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      researcherId: this.researcherId,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      deletedBy: this.deletedBy
-    };
-  }
-}
-
-/** Emitted when a researcher is approved due to user approval cascade */
-export class ResearcherApprovedEvent extends DomainEvent {
-  constructor(
-    public readonly researcherId: string,
-    public readonly firstName: string,
-    public readonly lastName: string,
-    public readonly linkedUserId: string,
-    public readonly approvedBy: string,
-    labId: string
-  ) {
-    super(1, labId);
-  }
-
-  eventName(): string {
-    return 'ResearcherApproved';
-  }
-
-  getAggregateId(): string {
-    return this.researcherId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      researcherId: this.researcherId,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      linkedUserId: this.linkedUserId,
-      approvedBy: this.approvedBy
-    };
   }
 }

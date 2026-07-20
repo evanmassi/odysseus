@@ -28,13 +28,9 @@ describe('EnvironmentConfigurationService', () => {
     delete process.env.DATABASE_URL;
     delete process.env.DATABASE_MAX_CONNECTIONS;
     delete process.env.JWT_SECRET;
-    delete process.env.JWT_EXPIRATION;
     delete process.env.JWT_ISSUER;
     delete process.env.JWT_AUDIENCE;
     delete process.env.JWT_ALGORITHM;
-    delete process.env.LOG_LEVEL;
-    delete process.env.LOG_CONSOLE;
-    delete process.env.LOG_FILE;
     delete process.env.VERIFICATION_BASE_URL;
     delete process.env.RESET_PASSWORD_BASE_URL;
     delete process.env.SYSTEM_ADMIN_SETUP_KEY;
@@ -74,20 +70,10 @@ describe('EnvironmentConfigurationService', () => {
       const service = createService();
       const jwt = service.get('jwt');
 
-      expect(jwt.expirationTime).toBe('24h');
       expect(jwt.issuer).toBe('odysseus-api');
       expect(jwt.audience).toBe('odysseus-client');
       expect(jwt.algorithm).toBe('HS256');
       expect(jwt.secret.length).toBeGreaterThanOrEqual(32);
-    });
-
-    it('should apply logging defaults for development', () => {
-      const service = createService();
-      const logging = service.get('logging');
-
-      expect(logging.level).toBe('debug');
-      expect(logging.enableConsole).toBe(true);
-      expect(logging.enableFile).toBe(false);
     });
 
     it('should apply email defaults', () => {
@@ -135,22 +121,12 @@ describe('EnvironmentConfigurationService', () => {
       const secret = 'custom-secret-that-is-at-least-32-chars-long';
       const service = createService({
         JWT_SECRET: secret,
-        JWT_EXPIRATION: '1h',
         JWT_ALGORITHM: 'HS512',
       });
       const jwt = service.get('jwt');
 
       expect(jwt.secret).toBe(secret);
-      expect(jwt.expirationTime).toBe('1h');
       expect(jwt.algorithm).toBe('HS512');
-    });
-
-    it('should use info log level in production', () => {
-      const service = createService({
-        NODE_ENV: 'production',
-        JWT_SECRET: 'a'.repeat(64),
-      });
-      expect(service.get('logging').level).toBe('info');
     });
 
     it('should pass through system admin setup key', () => {
@@ -172,44 +148,35 @@ describe('EnvironmentConfigurationService', () => {
     });
 
     it('should reject JWT secret shorter than 32 characters', () => {
-      expect(() => createService({
-        NODE_ENV: 'production',
-        JWT_SECRET: 'too-short',
-      })).toThrow(/JWT secret must be at least 32 characters/);
+      expect(() =>
+        createService({
+          NODE_ENV: 'production',
+          JWT_SECRET: 'too-short',
+        })
+      ).toThrow(/JWT secret must be at least 32 characters/);
     });
 
     it('should require JWT_SECRET in production', () => {
-      expect(() => createService({
-        NODE_ENV: 'production',
-      })).toThrow(/JWT_SECRET environment variable is required in production/);
+      expect(() =>
+        createService({
+          NODE_ENV: 'production',
+        })
+      ).toThrow(/JWT_SECRET environment variable is required/);
     });
   });
 
-  describe('isDevelopment / isProduction', () => {
-    it('should return true for isDevelopment in development', () => {
+  describe('isDevelopment', () => {
+    it('should return true in development', () => {
       const service = createService({ NODE_ENV: 'development' });
       expect(service.isDevelopment()).toBe(true);
-      expect(service.isProduction()).toBe(false);
     });
 
-    it('should return true for isProduction in production', () => {
+    it('should return false in production', () => {
       const service = createService({
         NODE_ENV: 'production',
         JWT_SECRET: 'a'.repeat(64),
       });
       expect(service.isDevelopment()).toBe(false);
-      expect(service.isProduction()).toBe(true);
-    });
-  });
-
-  describe('getAll', () => {
-    it('should return a shallow copy of config', () => {
-      const service = createService();
-      const config1 = service.getAll();
-      const config2 = service.getAll();
-
-      expect(config1).toEqual(config2);
-      expect(config1).not.toBe(config2);
     });
   });
 });

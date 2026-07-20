@@ -7,11 +7,12 @@
 
 import { useMemo } from 'react';
 
-import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import { Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
-import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
+import { OccupancyBar, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 
+import { getEffectiveOwnerId } from '../../../../../utils/effectiveOwner';
 import { BoxOccupancyMatrix, boxOccupancyKey } from '../../../storage-navigator';
 import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
@@ -21,8 +22,7 @@ import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 import { CustomLabelButton } from './CustomLabelButton';
 import { RowMeta } from './RowMeta';
 
-import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
-import type { RackTube } from '@odysseus/shared-schemas';
+import type { BoxConfiguration, RackConfiguration, RackTube } from '@odysseus/shared-schemas';
 
 interface BoxRowProps {
   box: BoxConfiguration;
@@ -47,9 +47,8 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
     onDeleteBox,
   } = useStorageManagerContext();
 
-  // null = explicitly unassigned/common, undefined = inherit from rack
   const effectiveOwnerId =
-    box.assignedUserId === null ? undefined : (box.assignedUserId ?? rack.assignedUserId);
+    getEffectiveOwnerId(box.assignedUserId, rack.assignedUserId) ?? undefined;
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
   const locked = isResourceLocked(box);
 
@@ -108,8 +107,6 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
 
   const dividerBefore = canDeleteBox ? ['Delete Box'] : [];
 
-  const isAdmin = isAdminRole(currentUser?.role);
-
   return (
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
@@ -134,7 +131,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
                 </Tooltip>
               ) : (
                 <>
-                  {canManageStorage && isAdmin && (
+                  {canManageStorage && (
                     <AssignmentDropdown
                       value={box.assignedUserId}
                       users={users}
@@ -156,21 +153,15 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
                     <CustomLabelButton
                       onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
                       size={12}
-                      className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded"
                     />
                   )}
                 </>
               )}
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="relative h-0.5 flex-1 bg-foreground/[0.07]">
-                <span
-                  className={`absolute inset-y-0 left-0 ${isFull ? 'bg-warning-bg' : 'bg-primary/80'}`}
-                  style={{ width: `${capacity > 0 ? (filled / capacity) * 100 : 0}%` }}
-                />
-              </span>
+              <OccupancyBar filled={filled} capacity={capacity} full={isFull} className="flex-1" />
               <span
-                className={`flex-none font-mono text-[8.5px] tracking-[0.08em] ${
+                className={`flex-none font-mono text-data-sm tracking-[0.08em] ${
                   isFull ? 'text-warning-text' : 'text-foreground/40'
                 }`}
               >

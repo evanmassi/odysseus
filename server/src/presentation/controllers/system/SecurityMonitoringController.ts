@@ -4,10 +4,7 @@
  * System admin endpoints for session/token monitoring, IP activity, and session cleanup.
  */
 
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import type { AuditRepository } from '@domain/repositories/AuditRepository';
-import type { RefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
-import type { UserSessionRepository, IpSessionCount } from '@domain/repositories/UserSessionRepository';
+import type { SecurityMonitoringApplicationService } from '@application/services/SecurityMonitoringApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -16,9 +13,7 @@ import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { Request, Response } from 'express';
 
 export interface SecurityMonitoringControllerDeps {
-  userSessionRepository: UserSessionRepository;
-  refreshTokenRepository: RefreshTokenRepository;
-  auditRepository: AuditRepository;
+  securityMonitoringService: SecurityMonitoringApplicationService;
 }
 
 export class SecurityMonitoringController extends BaseController {
@@ -26,51 +21,21 @@ export class SecurityMonitoringController extends BaseController {
     super();
   }
 
-  async getSecurityOverview(_req: Request, res: Response): Promise<void> {
+  async getSecurityOverview(req: Request, res: Response): Promise<void> {
     try {
-      const [
-        activeSessions,
-        expiredAwaitingCleanup,
-        avgSessionDurationMinutes,
-        activeTokens,
-        expiredTokens,
-        revokedTokens,
-        avgLifespanDays,
-      ] = await Promise.all([
-        this.deps.userSessionRepository.countAllActiveSessions(),
-        this.deps.userSessionRepository.countExpiredSessions(),
-        this.deps.userSessionRepository.getAverageSessionDurationMinutes(),
-        this.deps.refreshTokenRepository.countAllActiveTokens(),
-        this.deps.refreshTokenRepository.countExpiredTokens(),
-        this.deps.refreshTokenRepository.countRevokedTokens(),
-        this.deps.refreshTokenRepository.getAverageTokenLifespanDays(),
-      ]);
-
-      res.status(200).json(ResponseBuilder.success({
-        sessionOverview: { activeSessions, expiredAwaitingCleanup, avgSessionDurationMinutes },
-        tokenHealth: { activeTokens, expiredTokens, revokedTokens, avgLifespanDays },
-      }));
+      const result = await this.deps.securityMonitoringService.getSecurityOverview();
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get security overview');
+      handleControllerError(error, res, 'Failed to get security overview', req.requestId);
     }
   }
 
-  async getActiveSessions(_req: Request, res: Response): Promise<void> {
+  async getActiveSessions(req: Request, res: Response): Promise<void> {
     try {
-      const sessions = await this.deps.userSessionRepository.findAllActiveSessionsWithUserInfo();
-
-      const serialized = sessions.map(s => ({
-        ...s,
-        loginTime: s.loginTime.toISOString(),
-        lastActivity: s.lastActivity.toISOString(),
-      }));
-
-      res.status(200).json(ResponseBuilder.success({
-        sessions: serialized,
-        total: serialized.length,
-      }));
+      const result = await this.deps.securityMonitoringService.getActiveSessions();
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get active sessions');
+      handleControllerError(error, res, 'Failed to get active sessions', req.requestId);
     }
   }
 
@@ -79,92 +44,48 @@ export class SecurityMonitoringController extends BaseController {
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
 
-      const [sessionCounts, tokenCounts] = await Promise.all([
-        this.deps.userSessionRepository.getSessionCountsByIp(startDate, endDate),
-        this.deps.refreshTokenRepository.getTokenCountsByIp(startDate, endDate),
-      ]);
-
-      const merged = this.mergeIpActivity(sessionCounts, tokenCounts);
-
-      res.status(200).json(ResponseBuilder.success({ entries: merged }));
+      const result = await this.deps.securityMonitoringService.getIpActivity(startDate, endDate);
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get IP activity');
+      handleControllerError(error, res, 'Failed to get IP activity', req.requestId);
     }
   }
 
-  async purgeExpiredSessions(_req: Request, res: Response): Promise<void> {
+  async purgeExpiredSessions(req: Request, res: Response): Promise<void> {
     try {
-      const [purgedSessions, purgedTokens] = await Promise.all([
-        this.deps.userSessionRepository.purgeExpiredSessions(),
-        this.deps.refreshTokenRepository.cleanupExpiredTokens(0),
-      ]);
-
-      logger.info('Purged expired sessions and tokens', { purgedSessions, purgedTokens });
-
-      res.status(200).json(ResponseBuilder.success({ purgedSessions, purgedTokens }));
+      const result = await this.deps.securityMonitoringService.purgeExpiredSessions();
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to purge expired sessions');
+      handleControllerError(error, res, 'Failed to purge expired sessions', req.requestId);
     }
   }
 
   async revokeSession(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-
-      const session = await this.deps.userSessionRepository.findById(id);
-      if (!session) {
-        throw new NotFoundError('Session not found');
-      }
-
-      await this.deps.userSessionRepository.revokeSession(id);
-
-      // Revoke the associated refresh token
-      const refreshTokenValue = session.refreshToken;
-      if (refreshTokenValue) {
-        const refreshToken = await this.deps.refreshTokenRepository.findByToken(refreshTokenValue);
-        if (refreshToken) {
-          refreshToken.revoke();
-          await this.deps.refreshTokenRepository.save(refreshToken);
-        }
-      }
+      await this.deps.securityMonitoringService.revokeSession(id);
 
       logger.info('Admin revoked session', { sessionId: id, requestId: req.requestId });
 
       res.status(200).json(ResponseBuilder.success({ message: 'Session revoked successfully' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to revoke session');
+      handleControllerError(error, res, 'Failed to revoke session', req.requestId);
     }
   }
 
   async bulkRevokeSessions(req: Request, res: Response): Promise<void> {
     try {
       const { sessionIds } = req.body as { sessionIds: string[] };
+      const result = await this.deps.securityMonitoringService.bulkRevokeSessions(sessionIds);
 
-      const sessions = await this.deps.userSessionRepository.findByIds(sessionIds);
-      if (sessions.length === 0) {
-        res.status(200).json(ResponseBuilder.success({ revokedCount: 0 }));
-        return;
-      }
+      logger.info('Admin bulk revoked sessions', {
+        count: result.revokedCount,
+        requestId: req.requestId,
+      });
 
-      const activeIds = sessions.map(s => s.id);
-      const revokedCount = await this.deps.userSessionRepository.bulkRevoke(activeIds);
-
-      // Revoke associated refresh tokens
-      for (const session of sessions) {
-        if (session.refreshToken) {
-          const refreshToken = await this.deps.refreshTokenRepository.findByToken(session.refreshToken);
-          if (refreshToken) {
-            refreshToken.revoke();
-            await this.deps.refreshTokenRepository.save(refreshToken);
-          }
-        }
-      }
-
-      logger.info('Admin bulk revoked sessions', { count: revokedCount, requestId: req.requestId });
-
-      res.status(200).json(ResponseBuilder.success({ revokedCount }));
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to bulk revoke sessions');
+      handleControllerError(error, res, 'Failed to bulk revoke sessions', req.requestId);
     }
   }
 
@@ -174,28 +95,14 @@ export class SecurityMonitoringController extends BaseController {
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
       const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
 
-      const entries = await this.deps.auditRepository.findByAction('user_login_failed', {
+      const result = await this.deps.securityMonitoringService.getFailedLogins(
         limit,
-        dateFrom: startDate,
-        dateTo: endDate,
-      });
-
-      const serialized = entries.map(e => {
-        const details = typeof e.details === 'string' ? JSON.parse(e.details) : e.details;
-        return {
-          username: details?.username ?? e.entityId,
-          ipAddress: details?.ipAddress ?? null,
-          reason: details?.reason ?? 'Unknown',
-          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
-        };
-      });
-
-      res.status(200).json(ResponseBuilder.success({
-        entries: serialized,
-        total: serialized.length,
-      }));
+        startDate,
+        endDate
+      );
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get failed logins');
+      handleControllerError(error, res, 'Failed to get failed logins', req.requestId);
     }
   }
 
@@ -203,55 +110,10 @@ export class SecurityMonitoringController extends BaseController {
     try {
       const hours = req.query.hours ? parseInt(req.query.hours as string, 10) : 24;
 
-      const activity = await this.deps.userSessionRepository.getSessionActivityByHour(hours);
-
-      const entries = activity.map(a => ({
-        hour: a.hour.toISOString(),
-        count: a.count,
-      }));
-
-      res.status(200).json(ResponseBuilder.success({ entries }));
+      const result = await this.deps.securityMonitoringService.getSessionActivity(hours);
+      res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get session activity');
+      handleControllerError(error, res, 'Failed to get session activity', req.requestId);
     }
-  }
-
-  private mergeIpActivity(
-    sessionCounts: IpSessionCount[],
-    tokenCounts: IpTokenCount[]
-  ): Array<{ ipAddress: string; sessionCount: number; tokenCount: number; uniqueUserCount: number; userIds: string[] }> {
-    const merged = new Map<string, { sessionCount: number; tokenCount: number; userIds: Set<string> }>();
-
-    for (const entry of sessionCounts) {
-      merged.set(entry.ipAddress, {
-        sessionCount: entry.sessionCount,
-        tokenCount: 0,
-        userIds: new Set(entry.userIds),
-      });
-    }
-
-    for (const entry of tokenCounts) {
-      const existing = merged.get(entry.ipAddress);
-      if (existing) {
-        existing.tokenCount = entry.tokenCount;
-        for (const uid of entry.userIds) existing.userIds.add(uid);
-      } else {
-        merged.set(entry.ipAddress, {
-          sessionCount: 0,
-          tokenCount: entry.tokenCount,
-          userIds: new Set(entry.userIds),
-        });
-      }
-    }
-
-    return Array.from(merged.entries())
-      .map(([ipAddress, data]) => ({
-        ipAddress,
-        sessionCount: data.sessionCount,
-        tokenCount: data.tokenCount,
-        uniqueUserCount: data.userIds.size,
-        userIds: Array.from(data.userIds),
-      }))
-      .sort((a, b) => (b.sessionCount + b.tokenCount) - (a.sessionCount + a.tokenCount));
   }
 }

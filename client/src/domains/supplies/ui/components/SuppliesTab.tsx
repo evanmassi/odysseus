@@ -8,50 +8,65 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Plus, Eye, EyeOff, ArrowUp, ArrowDown, Package, MapPin, Layers } from 'lucide-react';
+import { Plus, Eye, EyeOff, Package, MapPin, Layers } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
-import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import {
+  useCreateSupplyCategoryMutation,
+  useDeleteSupplyCategoryMutation,
+  useUpdateSupplyCategoryMutation,
+} from '@domains/supplies/hooks/useSupplyMutations';
+import {
+  AccentTick,
   Button,
-  NubDivider,
+  HeaderStrip,
+  InfoPanelEmpty,
   OverflowMenu,
   PanelHeader,
   SearchInput,
-  Select,
-  Tooltip,
 } from '@shared/ui';
+import {
+  CategoryModal,
+  CategoryTreePanel,
+  type CategoryTreePanelLabels,
+  INVENTORY_SORT_OPTIONS,
+  SortControls,
+  type InventorySortField,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
-import { SupplyCategoryModal } from './SupplyCategoryModal';
-import { SupplyCategoryPanel } from './SupplyCategoryPanel';
-import { SupplyInfoPanelEmpty } from './SupplyInfoPanelEmpty';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
+import { SupplyItemRow } from './SupplyItemRow';
 import { SupplyLocationModal } from './SupplyLocationModal';
 import { SupplyLowStockAlertPanel } from './SupplyLowStockAlertPanel';
 import { SupplyQuickScanBar } from './SupplyQuickScanBar';
 import { SupplyTransactionForm } from './SupplyTransactionForm';
 
-import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
-type SortField = 'name' | 'manufacturer' | 'dateAdded';
+const isSupplyHidden = (item: SupplyItemWithStock) => item.status === 'archived';
 
-const SORT_OPTIONS: SelectOption[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'manufacturer', label: 'Manufacturer' },
-  { value: 'dateAdded', label: 'Date Added' },
+const getSupplySearchFields = (item: SupplyItemWithStock) => [
+  item.name,
+  item.manufacturer,
+  item.catalogNumber,
+  item.vendorName,
 ];
 
-type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
+const TREE_LABELS: CategoryTreePanelLabels = {
+  countNoun: ['item', 'items'],
+  emptyCategories: 'No supply categories yet.',
+  noSearchMatch: 'No items matching',
+  emptyCategoryBody: 'No items',
+};
 
 type RightPanelView =
   | { type: 'info'; itemId: string }
@@ -59,7 +74,7 @@ type RightPanelView =
   | {
       type: 'transaction';
       itemId: string;
-      initialTab?: TransactionTab;
+      initialTab?: TransactionMode;
       prefill?: TransactionPrefill;
     };
 
@@ -69,13 +84,15 @@ export function SuppliesTab() {
 
   const { data: categories = [] } = useSupplyCategoriesQuery();
   const { data: items = [] } = useSupplyItemsQuery();
+  const createCategoryMutation = useCreateSupplyCategoryMutation();
+  const updateCategoryMutation = useUpdateSupplyCategoryMutation();
   const deleteCategoryMutation = useDeleteSupplyCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
     isOpen: boolean;
@@ -127,13 +144,13 @@ export function SuppliesTab() {
     setRightPanel({ type: 'info', itemId });
   }, []);
 
-  const handleScanRecordTransaction = useCallback((itemId: string, initialTab: TransactionTab) => {
+  const handleScanRecordTransaction = useCallback((itemId: string, initialTab: TransactionMode) => {
     setSelectedItemId(itemId);
     setRightPanel({ type: 'transaction', itemId, initialTab });
   }, []);
 
   const handleVoidAndReplace = useCallback(
-    (itemId: string, initialTab: TransactionTab, prefill: TransactionPrefill) => {
+    (itemId: string, initialTab: TransactionMode, prefill: TransactionPrefill) => {
       setSelectedItemId(itemId);
       setRightPanel({ type: 'transaction', itemId, initialTab, prefill });
     },
@@ -173,15 +190,17 @@ export function SuppliesTab() {
     setDeleteConfirm({ isOpen: true, category });
   }, []);
 
-  const executeDeleteCategory = useCallback(async () => {
-    if (!deleteConfirm.category) return;
-    try {
-      await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
-      notifications.success(`"${deleteConfirm.category.name}" removed`);
-    } catch {
-      notifications.error('Cannot remove — category still contains items');
-    }
-    setDeleteConfirm({ isOpen: false });
+  const executeDeleteCategory = useCallback(() => {
+    const category = deleteConfirm.category;
+    if (!category) return;
+    deleteCategoryMutation.mutate(category.id, {
+      onSuccess: () => {
+        notifications.success(`"${category.name}" removed`);
+      },
+      onSettled: () => {
+        setDeleteConfirm({ isOpen: false });
+      },
+    });
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const bulkMenuItems: OverflowMenuItem[] = [
@@ -205,27 +224,19 @@ export function SuppliesTab() {
           </div>
 
           {/* Locator strip: inventory counts */}
-          <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-black/35 px-4 py-2.5">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-            />
+          <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
-              <span
-                aria-hidden
-                className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-              />
-              <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+              <AccentTick />
+              <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
                 {itemCount}{' '}
                 <span className="text-foreground/45">{itemCount === 1 ? 'item' : 'items'}</span>
               </span>
             </span>
             <span className="flex-1" />
-            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+            <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
               {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
             </span>
-            <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-          </div>
+          </HeaderStrip>
 
           {/* Toolbar: search · scan · sort · archived · actions — the table's own header */}
           <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
@@ -242,35 +253,18 @@ export function SuppliesTab() {
               onViewItem={handleScanViewItem}
               onRecordTransaction={handleScanRecordTransaction}
             />
-            <span className="flex-shrink-0 text-xs font-medium text-secondary-foreground">
-              Sort
-            </span>
-            <Select
-              options={SORT_OPTIONS}
+            <SortControls
               value={sortField}
-              onChange={value => setSortField(value as SortField)}
-              size="xs"
-              aria-label="Sort field"
-              className="w-32"
+              onChange={setSortField}
+              direction={sortDirection}
+              onToggleDirection={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+              options={INVENTORY_SORT_OPTIONS}
             />
-            <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
-              <button
-                type="button"
-                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
-                className="rounded p-1 text-secondary-foreground transition-colors hover:bg-secondary hover:text-accent-foreground"
-              >
-                {sortDirection === 'asc' ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
-              </button>
-            </Tooltip>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowArchived(!showArchived)}
-              className="h-8 text-xs"
+              className="h-8 text-label-sm"
               leftIcon={
                 showArchived ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />
               }
@@ -300,20 +294,29 @@ export function SuppliesTab() {
               onSelectItem={handleSelectItem}
             />
             <ScrollArea className="min-h-0 flex-1">
-              <SupplyCategoryPanel
+              <CategoryTreePanel
                 categories={categories}
                 items={items}
-                selectedItemId={selectedItemId}
-                onSelectItem={handleSelectItem}
-                showArchived={showArchived}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                showHidden={showArchived}
+                isHidden={isSupplyHidden}
+                getSearchFields={getSupplySearchFields}
+                renderItem={item => (
+                  <SupplyItemRow
+                    item={item}
+                    isSelected={item.id === selectedItemId}
+                    onSelect={handleSelectItem}
+                  />
+                )}
+                treeId="supplies"
+                labels={TREE_LABELS}
                 onAddCategory={handleAddCategory}
                 onAddSubcategory={handleAddSubcategory}
                 onRenameCategory={handleRenameCategory}
                 onDeleteCategory={handleDeleteCategory}
-                sortField={sortField}
-                sortDirection={sortDirection}
               />
             </ScrollArea>
           </div>
@@ -321,10 +324,16 @@ export function SuppliesTab() {
 
         {/* Right Panel: Detail / Edit / Transaction */}
         <div
-          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden"
+          className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {!rightPanel && <SupplyInfoPanelEmpty />}
+          {!rightPanel && (
+            <InfoPanelEmpty
+              title="Supply Information"
+              emptyIcon={Package}
+              emptyMessage="Select an item to view details"
+            />
+          )}
 
           {rightPanel?.type === 'info' && (
             <SupplyItemInfoPanel
@@ -367,12 +376,17 @@ export function SuppliesTab() {
             })()}
         </div>
 
-        <SupplyCategoryModal
+        <CategoryModal
           isOpen={categoryModal.isOpen}
           parentId={categoryModal.parentId}
           parentName={categoryModal.parentName}
           category={categoryModal.category}
           onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
+          onCreate={(name, parentId) => createCategoryMutation.mutateAsync({ name, parentId })}
+          onRename={(id, name) => updateCategoryMutation.mutateAsync({ id, data: { name } })}
+          isPending={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+          categoryPlaceholder="e.g., Pipette Tips"
+          subcategoryPlaceholder="e.g., 15mL Conicals"
         />
 
         <ConfirmDialog

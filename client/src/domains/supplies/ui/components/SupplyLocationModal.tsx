@@ -1,98 +1,71 @@
 /**
  * Supply Location Modal
  *
- * Creates or edits a named storage location where supplies are kept.
+ * Creates a named storage location where supplies are kept.
  */
 
 import { useState, useEffect, useRef } from 'react';
 
-import { MapPin, Plus, SquarePen } from 'lucide-react';
+import { MapPin, Plus } from 'lucide-react';
 
-import {
-  useCreateSupplyLocationMutation,
-  useUpdateSupplyLocationMutation,
-} from '@domains/supplies/hooks/useSupplyMutations';
+import { useCreateSupplyLocationMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Input } from '@shared/ui';
+import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SupplyLocation } from '@odysseus/shared-schemas';
-
-export interface SupplyLocationModalProps {
+interface SupplyLocationModalProps {
   isOpen: boolean;
-  location?: SupplyLocation;
   onClose: () => void;
 }
 
-export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocationModalProps) {
+export function SupplyLocationModal({ isOpen, onClose }: SupplyLocationModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const createMutation = useCreateSupplyLocationMutation();
-  const updateMutation = useUpdateSupplyLocationMutation();
   const prevIsOpenRef = useRef(isOpen);
-
-  const isEditing = !!location;
-  const isPending = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
-      setName(location?.name ?? '');
-      setDescription(location?.description ?? '');
+      setName('');
+      setDescription('');
     }
     prevIsOpenRef.current = isOpen;
-  }, [isOpen, location?.name, location?.description]);
+  }, [isOpen]);
 
-  const title = isEditing ? 'Edit Location' : 'Add Location';
-
-  const handleSave = async () => {
+  const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({
-          id: location.id,
-          data: { name: trimmed, description: description.trim() || undefined },
-        });
-        notifications.success(`Location updated`);
-      } else {
-        await createMutation.mutateAsync({
-          name: trimmed,
-          description: description.trim() || undefined,
-        });
-        notifications.success(`Location "${trimmed}" created`);
+    createMutation.mutate(
+      { name: trimmed, description: description.trim() || undefined },
+      {
+        onSuccess: () => {
+          notifications.success(`Location "${trimmed}" created`);
+          onClose();
+        },
       }
-      onClose();
-    } catch {
-      notifications.error(isEditing ? 'Failed to update location' : 'Failed to create location');
-    }
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && name.trim() && !isPending) {
+    if (e.key === 'Enter' && name.trim() && !createMutation.isPending) {
       e.preventDefault();
-      void handleSave();
+      handleSave();
     }
   };
-
-  const hasChanges = isEditing
-    ? name.trim() !== location.name || (description.trim() ?? '') !== (location.description ?? '')
-    : !!name.trim();
 
   return (
     <BaseModal
       isOpen={isOpen}
-      title={title}
-      icon={isEditing ? <SquarePen size={24} /> : <MapPin size={24} />}
+      title="Add Location"
+      icon={<MapPin size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
         <div>
-          <label
-            htmlFor="locationName"
-            className="text-sm font-medium text-secondary-foreground mb-1 block"
-          >
+          <label htmlFor="locationName" className={FIELD_LABEL_STANDARD}>
             Location Name
           </label>
           <Input
@@ -108,10 +81,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
         </div>
 
         <div>
-          <label
-            htmlFor="locationDescription"
-            className="text-sm font-medium text-secondary-foreground mb-1 block"
-          >
+          <label htmlFor="locationDescription" className={FIELD_LABEL_STANDARD}>
             Description
           </label>
           <Input
@@ -132,12 +102,12 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
           <Button
             variant="primary"
             onClick={() => void handleSave()}
-            disabled={!hasChanges}
-            isLoading={isPending}
-            loadingText={isEditing ? 'Saving...' : 'Adding...'}
-            leftIcon={isEditing ? <SquarePen size={16} /> : <Plus size={16} />}
+            disabled={!name.trim()}
+            isLoading={createMutation.isPending}
+            loadingText="Adding..."
+            leftIcon={<Plus size={16} />}
           >
-            {isEditing ? 'Save' : 'Add'}
+            Add
           </Button>
         </div>
       </div>

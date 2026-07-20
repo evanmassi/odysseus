@@ -7,24 +7,23 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 
 import { storageAnalyticsService } from '../services/StorageAnalyticsService';
 
-import type {
-  LabStorageAnalyticsResponse,
-  CrossLabStorageAnalyticsResponse,
-} from '@odysseus/shared-schemas';
-
 export function useLabStorageAnalyticsQuery() {
-  return useQuery<LabStorageAnalyticsResponse>({
+  const labId = useLabId();
+
+  return useQuery({
     queryKey: queryKeys.storageAnalytics.lab('self'),
     queryFn: () => storageAnalyticsService.getLabAnalytics(),
+    enabled: !!labId,
     staleTime: 60_000,
   });
 }
 
 export function useLabStorageAnalyticsSystemQuery(labId: string) {
-  return useQuery<LabStorageAnalyticsResponse>({
+  return useQuery({
     queryKey: queryKeys.storageAnalytics.lab(labId),
     queryFn: () => storageAnalyticsService.getLabAnalyticsAsSystemAdmin(labId),
     staleTime: 60_000,
@@ -33,7 +32,7 @@ export function useLabStorageAnalyticsSystemQuery(labId: string) {
 }
 
 export function useCrossLabStorageAnalyticsQuery() {
-  return useQuery<CrossLabStorageAnalyticsResponse>({
+  return useQuery({
     queryKey: queryKeys.storageAnalytics.crossLab(),
     queryFn: () => storageAnalyticsService.getCrossLabAnalytics(),
     staleTime: 60_000,

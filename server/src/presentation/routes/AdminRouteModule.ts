@@ -5,12 +5,11 @@
  */
 
 import {
-  updateSecurityConfigSchema,
   adminResetPasswordRequestSchema,
   createLookupValueRequestSchema,
-  renameLookupValueRequestSchema
+  renameLookupValueRequestSchema,
+  auditSearchQuerySchema,
 } from '@odysseus/shared-schemas';
-
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
@@ -22,17 +21,20 @@ import type { LookupValueController } from '@presentation/controllers/LookupValu
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
-import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
   UserIdParams,
   ResearcherIdParams,
   CategoryParams,
-  EntityHistoryParams,
   UpdateRoleBodySchema,
   LinkResearcherBodySchema,
-  CreateInviteCodeBodySchema
+  CreateInviteCodeBodySchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -57,69 +59,67 @@ export class AdminRouteModule implements RouteModule {
   }
 
   getMiddleware(): RequestHandler[] {
-    return [
-      this.authMiddleware.authenticate,
-      this.authMiddleware.requireAdmin
-    ];
+    return [this.authMiddleware.authenticate, this.authMiddleware.requireAdmin];
   }
 
   configure(router: Router): void {
     // USER MANAGEMENT ENDPOINTS
 
-    router.get('/users',
-      this.adminUserController.getAllUsers.bind(this.adminUserController)
-    );
+    router.get('/users', this.adminUserController.getAllUsers.bind(this.adminUserController));
 
     // USER ACTIVATION ENDPOINTS (must come before /users/:id to avoid route collision)
 
-    router.post('/users/:userId/deactivate',
+    router.post(
+      '/users/:userId/deactivate',
       validateParams(UserIdParams),
       this.adminUserController.deactivateUser.bind(this.adminUserController)
     );
 
-    router.post('/users/:userId/activate',
+    router.post(
+      '/users/:userId/activate',
       validateParams(UserIdParams),
       this.adminUserController.activateUser.bind(this.adminUserController)
     );
 
-    router.post('/users/:userId/link-researcher',
+    router.post(
+      '/users/:userId/link-researcher',
       validateParams(UserIdParams),
       validateBody(LinkResearcherBodySchema),
       this.adminUserController.linkResearcherToUser.bind(this.adminUserController)
     );
 
-    router.post('/users/:userId/unlink-researcher',
+    router.post(
+      '/users/:userId/unlink-researcher',
       validateParams(UserIdParams),
       this.adminUserController.unlinkResearcherFromUser.bind(this.adminUserController)
     );
 
     // USER CRUD ENDPOINTS (parameterized routes come after specific routes)
 
-    router.get('/users/:id',
-      validateParams(IdParams),
-      this.adminUserController.getUserById.bind(this.adminUserController)
-    );
-
-    router.put('/users/:id/role',
+    router.put(
+      '/users/:id/role',
       validateParams(IdParams),
       validateBody(UpdateRoleBodySchema),
       this.adminUserController.updateUserRole.bind(this.adminUserController)
     );
 
-    router.delete('/users/:id',
+    router.delete(
+      '/users/:id',
       validateParams(IdParams),
       this.adminUserController.deleteUser.bind(this.adminUserController)
     );
 
     // PASSWORD RESET ENDPOINTS (admin-initiated)
 
-    router.post('/users/:userId/reset-password',
+    router.post(
+      '/users/:userId/reset-password',
       validateParams(UserIdParams),
       validateBody(adminResetPasswordRequestSchema),
       this.adminUserController.adminResetPassword.bind(this.adminUserController)
     );
 
-    router.post('/users/:userId/generate-reset-token',
+    router.post(
+      '/users/:userId/generate-reset-token',
       validateParams(UserIdParams),
       this.adminUserController.generatePasswordResetToken.bind(this.adminUserController)
     );
@@ -127,152 +127,155 @@ export class AdminRouteModule implements RouteModule {
     // RESEARCHER MANAGEMENT ENDPOINTS
 
     // Must come before /researchers to avoid route collision
-    router.get('/researchers/unlinked',
+    router.get(
+      '/researchers/unlinked',
       this.researcherController.getUnlinkedResearchers.bind(this.researcherController)
     );
 
-    router.get('/researchers',
+    router.get(
+      '/researchers',
       this.researcherController.getResearchersWithMetadata.bind(this.researcherController)
     );
 
-    router.delete('/researchers/:researcherId',
+    router.delete(
+      '/researchers/:researcherId',
       validateParams(ResearcherIdParams),
       this.researcherController.deleteResearcher.bind(this.researcherController)
     );
 
     // SECURITY & CONFIGURATION ENDPOINTS
 
-    router.get('/security-config',
+    // Read-only here — security config is a single global row written only via the
+    // system-admin route (/api/system/security-config).
+    router.get(
+      '/security-config',
       this.adminConfigController.getSecurityConfig.bind(this.adminConfigController)
-    );
-
-    router.put('/security-config',
-      validateBody(updateSecurityConfigSchema),
-      this.adminConfigController.updateSecurityConfig.bind(this.adminConfigController)
     );
 
     // METRICS & MONITORING ENDPOINTS
 
-    router.get('/metrics',
-      this.adminConfigController.getMetrics.bind(this.adminConfigController)
-    );
-
-    router.get('/stats/users',
-      this.adminConfigController.getUserStatistics.bind(this.adminConfigController)
-    );
-
-    // AUDIT LOG ENDPOINTS
-
-    router.get('/audit/statistics',
-      this.auditController.getStatistics.bind(this.auditController)
-    );
-
-    // Must come before /audit to avoid route collision
-    router.get('/audit/entity/:entityType/:entityId',
-      validateParams(EntityHistoryParams),
-      this.auditController.getEntityHistory.bind(this.auditController)
-    );
-
-    router.get('/audit',
-      this.auditController.getAuditLog.bind(this.auditController)
-    );
+    router.get('/metrics', this.adminConfigController.getMetrics.bind(this.adminConfigController));
 
     // AUDIT RETENTION ENDPOINTS
 
-    router.get('/audit/retention/metrics',
+    router.get(
+      '/audit/retention/metrics',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.getRetentionMetrics.bind(this.auditController)
     );
 
-    router.get('/audit/retention/policy',
+    router.get(
+      '/audit/retention/policy',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.getRetentionPolicy.bind(this.auditController)
     );
 
-    router.get('/audit/retention/export',
+    router.get(
+      '/audit/retention/export',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.exportArchivedLogs.bind(this.auditController)
     );
 
-    router.post('/audit/retention/archive',
+    router.post(
+      '/audit/retention/archive',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.runManualArchival.bind(this.auditController)
     );
 
-    router.get('/audit/search',
+    router.get(
+      '/audit/search',
+      validateQuery(auditSearchQuerySchema),
       this.auditController.searchAuditLogs.bind(this.auditController)
     );
 
     // DATA EXPORT ENDPOINTS
 
-    router.get('/export/tubes',
+    router.get(
+      '/export/tubes',
       this.strictLimiter,
       this.exportController.exportTubes.bind(this.exportController)
     );
 
-    router.get('/export/users',
+    router.get(
+      '/export/users',
       this.strictLimiter,
       this.exportController.exportUsers.bind(this.exportController)
     );
 
-    router.get('/export/researchers',
+    router.get(
+      '/export/researchers',
       this.strictLimiter,
       this.exportController.exportResearchers.bind(this.exportController)
     );
 
-    router.get('/export/equipment',
+    router.get(
+      '/export/equipment',
       this.strictLimiter,
       this.exportController.exportEquipment.bind(this.exportController)
     );
 
-    router.get('/export/supply-reorder-list',
+    router.get(
+      '/export/supply-reorder-list',
       this.strictLimiter,
       this.exportController.exportSupplyReorderList.bind(this.exportController)
     );
 
-    router.get('/export/system-backup',
+    router.get(
+      '/export/system-backup',
       this.strictLimiter,
       this.exportController.exportSystemBackup.bind(this.exportController)
     );
 
     // LOOKUP VALUE MANAGEMENT (admin catalog)
 
-    router.get('/lookups/:category',
+    router.get(
+      '/lookups/:category',
       validateParams(CategoryParams),
       this.lookupValueController.getAllValues.bind(this.lookupValueController)
     );
 
-    router.post('/lookups',
+    router.post(
+      '/lookups',
       validateBody(createLookupValueRequestSchema),
       this.lookupValueController.createValue.bind(this.lookupValueController)
     );
 
-    router.put('/lookups/:id/rename',
+    router.put(
+      '/lookups/:id/rename',
       validateParams(IdParams),
       validateBody(renameLookupValueRequestSchema),
       this.lookupValueController.renameValue.bind(this.lookupValueController)
     );
 
-    router.delete('/lookups/:id',
+    router.delete(
+      '/lookups/:id',
       validateParams(IdParams),
       this.lookupValueController.deleteValue.bind(this.lookupValueController)
     );
 
     // INVITE CODE MANAGEMENT (lab admin — scoped to their own lab)
 
-    router.get('/invite-codes',
+    router.get(
+      '/invite-codes',
       this.inviteCodeController.listForCurrentLab.bind(this.inviteCodeController)
     );
 
-    router.post('/invite-codes',
+    router.post(
+      '/invite-codes',
       validateBody(CreateInviteCodeBodySchema),
       this.inviteCodeController.createForCurrentLab.bind(this.inviteCodeController)
     );
 
-    router.delete('/invite-codes/:id',
+    router.delete(
+      '/invite-codes/:id',
       validateParams(IdParams),
       this.inviteCodeController.deactivate.bind(this.inviteCodeController)
     );
 
     // STORAGE ANALYTICS
 
-    router.get('/storage/analytics',
+    router.get(
+      '/storage/analytics',
       this.storageAnalyticsController.getLabStorageAnalytics.bind(this.storageAnalyticsController)
     );
   }

@@ -5,52 +5,26 @@
  */
 
 import { httpClient } from '@infra/api';
-import { logger } from '@infra/logger';
 
-export class ExportService {
+class ExportService {
   async exportTubes(format: 'csv' | 'json'): Promise<Blob> {
-    try {
-      return await httpClient.getBlob(`/admin/export/tubes?format=${format}`);
-    } catch (error) {
-      logger.error('Failed to export tubes', { error });
-      throw error;
-    }
+    return await httpClient.getBlob(`/admin/export/tubes?format=${format}`);
   }
 
   async exportUsers(format: 'csv' | 'json'): Promise<Blob> {
-    try {
-      return await httpClient.getBlob(`/admin/export/users?format=${format}`);
-    } catch (error) {
-      logger.error('Failed to export users', { error });
-      throw error;
-    }
+    return await httpClient.getBlob(`/admin/export/users?format=${format}`);
   }
 
   async exportResearchers(format: 'csv' | 'json'): Promise<Blob> {
-    try {
-      return await httpClient.getBlob(`/admin/export/researchers?format=${format}`);
-    } catch (error) {
-      logger.error('Failed to export researchers', { error });
-      throw error;
-    }
+    return await httpClient.getBlob(`/admin/export/researchers?format=${format}`);
   }
 
   async exportEquipment(format: 'csv' | 'json'): Promise<Blob> {
-    try {
-      return await httpClient.getBlob(`/admin/export/equipment?format=${format}`);
-    } catch (error) {
-      logger.error('Failed to export equipment', { error });
-      throw error;
-    }
+    return await httpClient.getBlob(`/admin/export/equipment?format=${format}`);
   }
 
   async exportSystemBackup(): Promise<Blob> {
-    try {
-      return await httpClient.getBlob('/admin/export/system-backup');
-    } catch (error) {
-      logger.error('Failed to export system backup', { error });
-      throw error;
-    }
+    return await httpClient.getBlob('/admin/export/system-backup');
   }
 }
 

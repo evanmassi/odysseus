@@ -5,17 +5,12 @@
  */
 import {
   type Person,
-  type UpdatePersonProfile,
+  type UpdateMyProfileRequest,
   personSchema,
   updatePersonProfileSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
-
-/** Extended update type including password confirmation requirement. */
-export interface UpdatePersonProfileWithPassword extends UpdatePersonProfile {
-  currentPassword: string;
-}
 
 export class PersonService {
   private static readonly BASE_PATH = '/users/me/profile';
@@ -25,7 +20,7 @@ export class PersonService {
   }
 
   /** Requires current password for security. */
-  static async updateMyProfile(data: UpdatePersonProfileWithPassword): Promise<Person> {
+  static async updateMyProfile(data: UpdateMyProfileRequest): Promise<Person> {
     const { currentPassword, ...profileData } = data;
     const validated = updatePersonProfileSchema.parse(profileData);
 

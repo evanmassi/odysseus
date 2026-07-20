@@ -6,13 +6,14 @@
 
 import { Save } from 'lucide-react';
 
-import { getGridTotalPositions } from '@domains/storage';
 import { useEditModalForm } from '@shared/hooks';
 import { Button, Checkbox, Input } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { TankConfiguration } from '@domains/storage';
+import { getGridTotalPositions } from '../../../../utils/gridHelpers';
+
+import type { TankConfiguration } from '@odysseus/shared-schemas';
 
 interface TankEditModalProps {
   isOpen: boolean;
@@ -29,14 +30,12 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
   } = useEditModalForm(isOpen, initialTank);
 
   const handleSave = async () => {
-    if (editedTank.name.trim()) {
-      await onSave(editedTank.id, {
-        name: editedTank.name.trim(),
-        location: editedTank.location?.trim() || '',
-        isActive: editedTank.isActive,
-      });
-      onClose();
-    }
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
+    await onSave(editedTank.id, {
+      name: editedTank.name,
+      location: editedTank.location,
+      isActive: editedTank.isActive,
+    });
   };
 
   const handleSubmit = createSubmitHandler(async () => {
@@ -67,14 +66,14 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
       title="Edit Tank"
       icon={<TankIcon size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
       footer={footer}
     >
       <form id="tank-edit-form" onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="tank-name"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             Tank Name
           </label>
@@ -90,7 +89,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
             aria-invalid={!editedTank.name.trim()}
           />
           {!editedTank.name.trim() && (
-            <p id="tank-name-error" className="text-danger-text text-xs mt-1" role="alert">
+            <p id="tank-name-error" className="text-danger-text text-body-sm mt-1" role="alert">
               Tank name is required
             </p>
           )}
@@ -99,7 +98,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         <div>
           <label
             htmlFor="tank-location"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             Physical Location
           </label>
@@ -114,7 +113,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         </div>
 
         <div className="bg-muted border-l-4 border-l-muted-foreground px-3 py-2 rounded-lg">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
             <span>Racks:</span>
             <span className="font-semibold text-secondary-foreground">
               {editedTank.racks.length}
@@ -148,7 +147,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
             checked={editedTank.isActive}
             onChange={checked => setEditedTank({ ...editedTank, isActive: checked })}
           />
-          <label htmlFor="tankActive" className="text-sm">
+          <label htmlFor="tankActive" className="text-body-sm">
             Active (available for storage)
           </label>
         </div>

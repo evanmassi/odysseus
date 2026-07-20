@@ -1,7 +1,7 @@
 /**
  * Researchers Query
  *
- * Full researcher list with optional filters and sorted results.
+ * Full researcher list, sorted by name.
  */
 
 import { type Researcher, sortByName } from '@odysseus/shared-schemas';
@@ -13,23 +13,16 @@ import { useLabId } from '@domains/authentication';
 
 import { ResearcherService } from '../services/ResearcherService';
 
-import type { UseQueryOptions } from '@tanstack/react-query';
-
-export function useResearchersQuery(options?: {
-  filters?: { active?: boolean; search?: string };
-  queryOptions?: Omit<UseQueryOptions<Researcher[]>, 'queryKey' | 'queryFn'>;
-}) {
+export function useResearchersQuery() {
   const labId = useLabId();
-  const { filters, queryOptions } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.researchers.list(labId, filters),
+    queryKey: queryKeys.researchers.list(labId),
     queryFn: async (): Promise<Researcher[]> => {
-      const researchers = await ResearcherService.list({ filters });
+      const researchers = await ResearcherService.list();
       return sortByName(researchers);
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
     enabled: !!labId,
-    ...queryOptions,
   });
 }

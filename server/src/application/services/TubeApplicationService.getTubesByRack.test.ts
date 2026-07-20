@@ -28,7 +28,8 @@ function makeService(options: { allowedTankIds?: string[]; tubes?: Tube[] } = {}
   });
   const storageRepository = { getForLab } as unknown as StorageRepository;
 
-  const findByRack = jest.fn<Promise<Tube[]>, [string, string, string]>()
+  const findByRack = jest
+    .fn<Promise<Tube[]>, [string, string, string]>()
     .mockResolvedValue(options.tubes ?? []);
   const tubeRepository = { findByRack } as unknown as TubeRepository;
 
@@ -40,7 +41,7 @@ function makeService(options: { allowedTankIds?: string[]; tubes?: Tube[] } = {}
     storageRepository,
     {} as TubePositionService,
     accessControlService,
-    {} as EventBus,
+    {} as EventBus
   );
 
   return { service, requireCanViewTubes, findByRack };

@@ -9,12 +9,10 @@ import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
 export interface EquipmentItemRepository {
-
   // Items
 
   findById(id: string, labId: string): Promise<EquipmentItem | null>;
   findByLabId(labId: string): Promise<EquipmentItem[]>;
-  findByCategoryId(categoryId: string, labId: string): Promise<EquipmentItem[]>;
   save(item: EquipmentItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
 
@@ -22,8 +20,12 @@ export interface EquipmentItemRepository {
 
   findDocumentsByItemId(itemId: string): Promise<EquipmentDocument[]>;
   saveDocument(document: EquipmentDocument): Promise<void>;
-  updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
-  deleteDocument(id: string): Promise<boolean>;
+  updateDocument(
+    id: string,
+    itemId: string,
+    fields: { label?: string; url?: string; notes?: string | null }
+  ): Promise<EquipmentDocument | null>;
+  deleteDocument(id: string, itemId: string): Promise<boolean>;
 
   // Maintenance log
 

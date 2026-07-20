@@ -3,26 +3,21 @@
  *
  * SVG-based animated sparkles using Lucide Sparkles' exact geometry.
  */
-import { useEffect, useState } from 'react';
+
+import { useRevealOnMount } from './useRevealOnMount';
 
 interface AnimatedSparklesProps {
   size?: number;
   className?: string;
-  delay?: number;
 }
 
-export function AnimatedSparkles({ size = 48, className = '', delay = 50 }: AnimatedSparklesProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
+export function AnimatedSparkles({ size = 48, className = '' }: AnimatedSparklesProps) {
+  const isVisible = useRevealOnMount();
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">
-        {/* Main 4-pointed star (exact Lucide Sparkles path) */}
+        {/* Main 4-pointed star */}
         <path
           d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"
           fill="none"
@@ -38,7 +33,7 @@ export function AnimatedSparkles({ size = 48, className = '', delay = 50 }: Anim
           }}
         />
 
-        {/* Top-right small sparkle — vertical line (Lucide: M20 2v4) */}
+        {/* Top-right small sparkle — vertical line */}
         <path
           d="M20 2v4"
           fill="none"
@@ -53,7 +48,7 @@ export function AnimatedSparkles({ size = 48, className = '', delay = 50 }: Anim
           }}
         />
 
-        {/* Top-right small sparkle — horizontal line (Lucide: M22 4h-4) */}
+        {/* Top-right small sparkle — horizontal line */}
         <path
           d="M22 4h-4"
           fill="none"
@@ -68,7 +63,7 @@ export function AnimatedSparkles({ size = 48, className = '', delay = 50 }: Anim
           }}
         />
 
-        {/* Bottom-left small sparkle — circle (Lucide: cx=4, cy=20, r=2) */}
+        {/* Bottom-left small sparkle — circle */}
         <circle
           cx="4"
           cy="20"

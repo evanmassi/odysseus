@@ -7,7 +7,6 @@
 @import 'overlayscrollbars/overlayscrollbars.css';
 
 .os-theme-odysseus {
-  box-sizing: border-box;
   --os-size: 8px;
   --os-padding-perpendicular: 2px;
   --os-padding-axis: 2px;

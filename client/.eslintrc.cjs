@@ -119,6 +119,23 @@ module.exports = {
     'no-debugger': 'error',
     'prefer-const': 'error',
     'no-var': 'error',
+
+    // Typography system: forbid arbitrary font sizes — use the semantic tokens
+    // (text-body/body-sm/caption, text-label-*, text-data-*, text-title*, text-display).
+    // See docs/typography-refactor-plan.md.
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: 'Literal[value=/text-\\[[0-9]/]',
+        message:
+          'Arbitrary font size (text-[Npx]) is not allowed — use a semantic typography token (text-body/body-sm/caption, text-label-*, text-data-*, text-title*). See docs/typography-refactor-plan.md. For genuine physical/print sizing, disable this rule on the line with a reason.',
+      },
+      {
+        selector: 'TemplateElement[value.cooked=/text-\\[[0-9]/]',
+        message:
+          'Arbitrary font size (text-[Npx]) is not allowed — use a semantic typography token (text-body/body-sm/caption, text-label-*, text-data-*, text-title*). See docs/typography-refactor-plan.md.',
+      },
+    ],
   },
   overrides: [
     {
@@ -141,6 +158,13 @@ module.exports = {
       files: ['*.config.*', '.eslintrc.js'],
       rules: {
         '@typescript-eslint/no-var-requires': 'off',
+      },
+    },
+    {
+      // Barcode/print components render printed output at physical px sizes
+      files: ['**/SupplyBarcodeSheetPreview.tsx', '**/BarcodeLabel.tsx'],
+      rules: {
+        'no-restricted-syntax': 'off',
       },
     },
   ],

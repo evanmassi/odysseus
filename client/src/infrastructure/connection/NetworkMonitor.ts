@@ -5,6 +5,7 @@
  */
 
 import { logger } from '@infra/logger';
+import { env } from '@shared/config';
 import { notifications } from '@shared/utils/notifications';
 
 import { setOffline } from './networkState';
@@ -23,6 +24,12 @@ export type NetworkEvent =
   | 'reconnect-attempt'
   | 'reconnect-success'
   | 'reconnect-failed';
+
+const HEARTBEAT_INTERVAL_MS = 60_000;
+const PING_TIMEOUT_MS = 5_000;
+const MAX_RECONNECT_ATTEMPTS = 10;
+const MAX_BACKOFF_MS = 30_000;
+const BASE_RECONNECT_DELAY_MS = 1_000;
 
 export class NetworkMonitor {
   private queryClient: QueryClient;
@@ -164,10 +171,13 @@ export class NetworkMonitor {
       }
 
       // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (max)
-      const delay = Math.min(1000 * Math.pow(2, this.status.reconnectAttempts - 1), 30000);
+      const delay = Math.min(
+        BASE_RECONNECT_DELAY_MS * Math.pow(2, this.status.reconnectAttempts - 1),
+        MAX_BACKOFF_MS
+      );
       this.reconnectTimeout = setTimeout(attemptReconnect, delay);
 
-      if (this.status.reconnectAttempts >= 10) {
+      if (this.status.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
         logger.error('Maximum reconnection attempts reached');
         this.notifyListeners('reconnect-failed');
         notifications.persistentError('Unable to reconnect. Please check your connection.');
@@ -179,7 +189,7 @@ export class NetworkMonitor {
       }
     };
 
-    this.reconnectTimeout = setTimeout(attemptReconnect, 1000);
+    this.reconnectTimeout = setTimeout(attemptReconnect, BASE_RECONNECT_DELAY_MS);
   }
 
   // Trust browser's explicit offline signal; only ping when browser says online
@@ -189,12 +199,11 @@ export class NetworkMonitor {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      const healthUrl = `${import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api'}/public/health`;
+      const healthUrl = `${env.apiBaseUrl()}/public/health`;
       const response = await fetch(healthUrl, {
         method: 'GET',
         cache: 'no-cache',
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(PING_TIMEOUT_MS),
       });
       return response.ok;
     } catch {
@@ -210,7 +219,7 @@ export class NetworkMonitor {
           this.setOfflineState();
         }
       }
-    }, 60000);
+    }, HEARTBEAT_INTERVAL_MS);
   }
 
   public on(event: NetworkEvent, callback: (status: NetworkStatus) => void): void {
@@ -278,8 +287,6 @@ export class NetworkMonitor {
     this.listeners.clear();
   }
 }
-
-// Global Instance Management
 
 let globalNetworkMonitor: NetworkMonitor | null = null;
 

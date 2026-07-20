@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
+import { useDonorRegistryStore } from '@domains/donors';
 import { useResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
@@ -35,10 +35,12 @@ import {
   Button,
   Chip,
   DetailRow,
+  HeaderStrip,
   NubDivider,
   PanelEmptyState,
   PanelHeader,
   SectionHeader,
+  StripLabel,
   Tooltip,
 } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -254,14 +256,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="space-y-2">
           <TubeLocationDisplay
-            variant="strip"
             tankName={tankName}
             rackName={rackName}
             boxName={boxName}
@@ -269,22 +266,15 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           />
           {position.value && (
             <div className="flex items-baseline gap-2">
-              <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-                <span
-                  aria-hidden
-                  className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-                />
-                {position.word}
-              </span>
+              <StripLabel tone="warning">{position.word}</StripLabel>
               {/* Non-breaking hyphen so position ranges (A1-A9) don't wrap mid-range. */}
-              <span className="min-w-0 font-mono text-[11px] tracking-[0.06em] text-foreground">
+              <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
                 {position.value.replace(/-/g, '‑')}
               </span>
             </div>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       {scrollable ? (
         <ScrollArea className="min-h-0 flex-1">
@@ -345,6 +335,26 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const getDisplayValue = (path: string): string | number | null | undefined => {
     return fieldAnalysis.values[path];
   };
+
+  const renderDonorRow = (
+    label: string,
+    value: string | number | null | undefined,
+    path: string,
+    kind: 'internal' | 'source'
+  ) =>
+    value && !isFieldMixed(path) ? (
+      <DetailRow label={label}>
+        <button
+          type="button"
+          onClick={() => openDonorRegistry(value as string, kind)}
+          className="cursor-pointer break-all text-right text-body font-medium text-card-foreground hover:text-primary hover:underline"
+        >
+          {value}
+        </button>
+      </DetailRow>
+    ) : (
+      <DetailRow label={label} value={value} isMixed={isFieldMixed(path)} />
+    );
 
   const cellType = getDisplayValue('sample.cellType');
   const donorInternalId = getDisplayValue('sample.donorInternalId');
@@ -418,7 +428,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       {species}
     </Chip>
   ) : isFieldMixed('sample.species') ? (
-    <span className="flex items-center gap-1 text-sm text-card-foreground/30">
+    <span className="flex items-center gap-1 text-body-sm text-card-foreground/30">
       —
       <AlertTriangle className="h-3 w-3 text-warning-text" />
     </span>
@@ -433,7 +443,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             style={{
               backgroundColor: swatch.backgroundColor,
               backgroundImage:
-                'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.14) 100%)',
+                'linear-gradient(180deg, hsl(var(--sheen) / 0.18) 0%, hsl(var(--sheen) / 0) 48%, hsl(var(--shade) / 0.14) 100%)',
               borderColor: swatch.borderColor,
             }}
           >
@@ -463,12 +473,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </div>
           </div>
         ) : isFieldMixed('sample.cellType') ? (
-          <div className="flex flex-1 items-center gap-1 text-sm text-card-foreground/30">
+          <div className="flex flex-1 items-center gap-1 text-body-sm text-card-foreground/30">
             —
             <AlertTriangle className="h-3 w-3 text-warning-text" />
           </div>
         ) : (
-          <div className="flex-1 text-sm text-card-foreground/40">Unknown</div>
+          <div className="flex-1 text-body-sm text-card-foreground/40">Unknown</div>
         )}
 
         {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
@@ -478,7 +488,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
       {selectedTubes.length > 1 && (
         <div className="flex items-center gap-2">
-          <Chip size="sm" color="info" leftIcon={<TestTubeDiagonal />}>
+          <Chip size="sm" color="info" lead={<TestTubeDiagonal />}>
             {selectedTubes.length} selected
           </Chip>
           {hasConflicts && (
@@ -495,7 +505,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             size="sm"
             lit
             color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'info'}
-            leftIcon={<Lock />}
+            lead={<Lock />}
           >
             {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
           </Chip>
@@ -549,17 +559,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </Tooltip>
           ) : (
             firstTube.lockNote && (
-              <Chip
-                size="sm"
-                color={lockInfo.isLockedOut ? 'danger' : 'info'}
-                leftIcon={<Notebook />}
-              >
+              <Chip size="sm" color={lockInfo.isLockedOut ? 'danger' : 'info'} lead={<Notebook />}>
                 {firstTube.lockNote}
               </Chip>
             )
           )}
           {lockInfo.hasSharedUsers && (
-            <Chip size="sm" color="info" leftIcon={<UsersRound />}>
+            <Chip size="sm" color="info" lead={<UsersRound />}>
               {lockInfo.sharedNames.length > 0
                 ? lockInfo.sharedNames.join(', ')
                 : `${firstTube.sharedWithUserIds!.length} user(s)`}
@@ -571,40 +577,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <div>
         <SectionHeader title="Donor information" size="sm" />
         <div>
-          {donorInternalId && !isFieldMixed('sample.donorInternalId') ? (
-            <DetailRow label="Internal ID">
-              <button
-                type="button"
-                onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
-                className="cursor-pointer break-all text-right text-sm font-medium text-card-foreground hover:text-primary hover:underline"
-              >
-                {donorInternalId}
-              </button>
-            </DetailRow>
-          ) : (
-            <DetailRow
-              label="Internal ID"
-              value={donorInternalId}
-              isMixed={isFieldMixed('sample.donorInternalId')}
-            />
-          )}
-          {donorSourceId && !isFieldMixed('sample.donorSourceId') ? (
-            <DetailRow label="Source ID">
-              <button
-                type="button"
-                onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
-                className="cursor-pointer break-all text-right text-sm font-medium text-card-foreground hover:text-primary hover:underline"
-              >
-                {donorSourceId}
-              </button>
-            </DetailRow>
-          ) : (
-            <DetailRow
-              label="Source ID"
-              value={donorSourceId}
-              isMixed={isFieldMixed('sample.donorSourceId')}
-            />
-          )}
+          {renderDonorRow('Internal ID', donorInternalId, 'sample.donorInternalId', 'internal')}
+          {renderDonorRow('Source ID', donorSourceId, 'sample.donorSourceId', 'source')}
         </div>
       </div>
 
@@ -667,11 +641,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             }
           />
           {notes ? (
-            <div className="text-sm leading-relaxed text-card-foreground/85">{notes}</div>
+            <div className="text-body leading-relaxed text-card-foreground/85">{notes}</div>
           ) : (
             <div className="flex items-center gap-1">
               <AlertTriangle className="h-3 w-3 text-warning-text" />
-              <span className="text-sm text-card-foreground/30">—</span>
+              <span className="text-body-sm text-card-foreground/30">—</span>
             </div>
           )}
         </div>
@@ -681,7 +655,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const footer =
     selectedTubes.length === 1 ? (
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <Button
           variant="primary"

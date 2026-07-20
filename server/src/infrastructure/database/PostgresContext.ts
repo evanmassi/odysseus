@@ -4,12 +4,13 @@
  * Manages the PostgreSQL connection lifecycle and ensures schema is up-to-date on startup.
  */
 
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 
 import { logger } from '@infrastructure/logging/logger';
 
 import { runMigrations } from './migrations/migrationRunner';
 
+import type { Queryable } from './Queryable';
 import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
 
 export interface DatabaseConnectionConfig {
@@ -18,11 +19,15 @@ export interface DatabaseConnectionConfig {
   maxConnections: number;
 }
 
-export class PostgresContext {
+export class PostgresContext implements Queryable {
   private pool: Pool;
   private initialized: boolean = false;
 
   constructor(config: DatabaseConnectionConfig) {
+    // DATE columns (OID 1082) are calendar dates: return the raw 'YYYY-MM-DD' string
+    // rather than a local-midnight Date, whose UTC serialization shifts the day.
+    types.setTypeParser(1082, value => value);
+
     this.pool = new Pool({
       connectionString: config.connectionString,
       ssl: config.ssl ? { rejectUnauthorized: false } : false,
@@ -31,7 +36,7 @@ export class PostgresContext {
       connectionTimeoutMillis: 2000,
     });
 
-    this.pool.on('error', (err) => {
+    this.pool.on('error', err => {
       logger.error('Unexpected PostgreSQL pool error:', err);
     });
   }
@@ -57,7 +62,10 @@ export class PostgresContext {
     }
   }
 
-  async query<T extends QueryResultRow = QueryResultRow>(sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
+  async query<T extends QueryResultRow = QueryResultRow>(
+    sql: string,
+    params: unknown[] = []
+  ): Promise<QueryResult<T>> {
     return this.pool.query<T>(sql, params);
   }
 
@@ -89,10 +97,7 @@ export class PostgresContext {
   ): Promise<T[]> {
     if (ids.length === 0) return [];
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
-    return this.queryMany<T>(
-      `SELECT ${columns} FROM ${table} WHERE id IN (${placeholders})`,
-      ids
-    );
+    return this.queryMany<T>(`SELECT ${columns} FROM ${table} WHERE id IN (${placeholders})`, ids);
   }
 
   async execute(sql: string, params: unknown[] = []): Promise<QueryResult> {
@@ -139,10 +144,6 @@ export class PostgresContext {
     }
   }
 
-  async getClient(): Promise<PoolClient> {
-    return this.pool.connect();
-  }
-
   async isHealthy(): Promise<boolean> {
     try {
       const result = await this.pool.query('SELECT 1 as test');
@@ -174,7 +175,7 @@ export function toDate(value: Date | string): Date {
   return parseDateString(value);
 }
 
-export function parseDateString(value: string): Date {
+function parseDateString(value: string): Date {
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (match) {
     return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));

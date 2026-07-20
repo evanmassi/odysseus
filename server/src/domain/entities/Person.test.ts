@@ -44,15 +44,19 @@ describe('Person', () => {
     });
 
     it('should throw for first name exceeding 100 characters', () => {
-      expect(() => Person.create('x'.repeat(101), 'Doe', 'a@b.com')).toThrow('First name cannot exceed 100 characters');
+      expect(() => Person.create('x'.repeat(101), 'Doe', 'a@b.com')).toThrow(
+        'First name cannot exceed 100 characters'
+      );
     });
 
     it('should throw for last name exceeding 100 characters', () => {
-      expect(() => Person.create('John', 'x'.repeat(101), 'a@b.com')).toThrow('Last name cannot exceed 100 characters');
+      expect(() => Person.create('John', 'x'.repeat(101), 'a@b.com')).toThrow(
+        'Last name cannot exceed 100 characters'
+      );
     });
 
-    it('should throw for empty email', () => {
-      expect(() => Person.create('John', 'Doe', '')).toThrow('Email is required');
+    it('should allow empty email (historical persons kept for tube attribution have none)', () => {
+      expect(() => Person.create('John', 'Doe', '')).not.toThrow();
     });
 
     it('should throw for invalid email format', () => {
@@ -61,7 +65,9 @@ describe('Person', () => {
 
     it('should throw for email exceeding 255 characters', () => {
       const longEmail = 'a'.repeat(250) + '@b.com';
-      expect(() => Person.create('John', 'Doe', longEmail)).toThrow('Email cannot exceed 255 characters');
+      expect(() => Person.create('John', 'Doe', longEmail)).toThrow(
+        'Email cannot exceed 255 characters'
+      );
     });
   });
 
@@ -167,26 +173,6 @@ describe('Person', () => {
     });
   });
 
-  describe('equals', () => {
-    it('should return true for same id', () => {
-      const person = Person.create('John', 'Doe', 'john@test.com');
-      const data = person.toData();
-      const same = Person.fromData(data);
-      expect(person.equals(same)).toBe(true);
-    });
-
-    it('should return false for different id', () => {
-      const a = Person.create('John', 'Doe', 'john@test.com');
-      const b = Person.create('John', 'Doe', 'john@test.com');
-      expect(a.equals(b)).toBe(false);
-    });
-
-    it('should return false for null', () => {
-      const person = Person.create('John', 'Doe', 'john@test.com');
-      expect(person.equals(null as any)).toBe(false);
-    });
-  });
-
   describe('date immutability', () => {
     it('should return copies of createdAt to prevent mutation', () => {
       const person = Person.create('John', 'Doe', 'john@test.com');
@@ -202,13 +188,6 @@ describe('Person', () => {
       const date2 = person.updatedAt;
       expect(date1).not.toBe(date2);
       expect(date1.getTime()).toBe(date2.getTime());
-    });
-  });
-
-  describe('toString', () => {
-    it('should include name and email', () => {
-      const person = Person.create('John', 'Doe', 'john@test.com');
-      expect(person.toString()).toBe('Person(John Doe) - john@test.com');
     });
   });
 });

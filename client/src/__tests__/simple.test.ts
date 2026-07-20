@@ -1,4 +1,6 @@
-// Simple test to verify infrastructure
+/**
+ * Test Infrastructure Smoke Test
+ */
 
 describe('Infrastructure Test', () => {
   it('should run basic test', () => {

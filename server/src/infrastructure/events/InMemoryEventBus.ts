@@ -26,23 +26,10 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Publishing domain event', {
       eventName: event.eventName(),
       aggregateId: event.getAggregateId(),
-      handlerCount: this.handlers.get(event.eventName())?.length ?? 0
+      handlerCount: this.handlers.get(event.eventName())?.length ?? 0,
     });
 
     this.eventQueue.push(event);
-
-    if (!this.isProcessing) {
-      await this.processQueue();
-    }
-  }
-
-  async publishAll(events: DomainEvent[]): Promise<void> {
-    logger.debug('Publishing multiple domain events', {
-      eventCount: events.length,
-      eventNames: events.map(e => e.eventName())
-    });
-
-    this.eventQueue.push(...events);
 
     if (!this.isProcessing) {
       await this.processQueue();
@@ -73,10 +60,10 @@ export class InMemoryEventBus implements EventBus {
 
     logger.debug('Processing domain event', {
       eventName,
-      handlerCount: handlers.length
+      handlerCount: handlers.length,
     });
 
-    const handlerPromises = handlers.map(async (handler) => {
+    const handlerPromises = handlers.map(async handler => {
       try {
         if (typeof handler === 'function') {
           await handler(event);
@@ -87,7 +74,7 @@ export class InMemoryEventBus implements EventBus {
         logger.debug('Event handler completed successfully', {
           eventName,
           eventId: event.eventId,
-          handler: handlerName(handler)
+          handler: handlerName(handler),
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -98,7 +85,7 @@ export class InMemoryEventBus implements EventBus {
           eventId: event.eventId,
           handler: handlerName(handler),
           error: errorMessage,
-          stack: errorStack
+          stack: errorStack,
         });
 
         // One handler failure shouldn't stop others
@@ -110,7 +97,7 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Domain event processing completed', {
       eventName,
       eventId: event.eventId,
-      successfulHandlers: handlers.length
+      handlerCount: handlers.length,
     });
   }
 
@@ -125,37 +112,7 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Event handler subscribed', {
       eventName,
       handler: handlerName(handler as AnyEventHandler),
-      totalHandlers: existingHandlers.length
+      totalHandlers: existingHandlers.length,
     });
-  }
-
-  unsubscribe<K extends DomainEventName>(
-    eventName: K,
-    handler: EventHandler<DomainEventMap[K]>
-  ): void {
-    const existingHandlers = this.handlers.get(eventName) ?? [];
-    const updatedHandlers = existingHandlers.filter(h => h !== handler);
-
-    if (updatedHandlers.length === 0) {
-      this.handlers.delete(eventName);
-    } else {
-      this.handlers.set(eventName, updatedHandlers);
-    }
-
-    logger.debug('Event handler unsubscribed', {
-      eventName,
-      handler: handlerName(handler as AnyEventHandler),
-      remainingHandlers: updatedHandlers.length
-    });
-  }
-
-  getSubscriptions(): Map<string, number> {
-    const subscriptions = new Map<string, number>();
-
-    for (const [eventName, handlers] of this.handlers.entries()) {
-      subscriptions.set(eventName, handlers.length);
-    }
-
-    return subscriptions;
   }
 }

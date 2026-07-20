@@ -24,6 +24,7 @@ describe('InviteCode', () => {
       expect(code.labId).toBe('lab_1');
       expect(code.createdBy).toBe('user_admin');
       expect(code.role).toBe('user');
+      expect(code.createResearcher).toBe(false);
       expect(code.useCount).toBe(0);
       expect(code.isActive).toBe(true);
       expect(code.maxUses).toBeUndefined();
@@ -36,13 +37,13 @@ describe('InviteCode', () => {
     });
 
     it('should accept maxUses', () => {
-      const code = InviteCode.create('lab_1', 'user_admin', 'user', 5);
+      const code = InviteCode.create('lab_1', 'user_admin', 'user', false, 5);
       expect(code.maxUses).toBe(5);
     });
 
     it('should accept expiresAt', () => {
       const future = new Date(Date.now() + 86400000);
-      const code = InviteCode.create('lab_1', 'user_admin', 'user', undefined, future);
+      const code = InviteCode.create('lab_1', 'user_admin', 'user', false, undefined, future);
       expect(code.expiresAt!.getTime()).toBe(future.getTime());
     });
 
@@ -55,7 +56,9 @@ describe('InviteCode', () => {
     });
 
     it('should throw for maxUses less than 1', () => {
-      expect(() => InviteCode.create('lab_1', 'user_admin', 'user', 0)).toThrow('Max uses must be at least 1');
+      expect(() => InviteCode.create('lab_1', 'user_admin', 'user', false, 0)).toThrow(
+        'Max uses must be at least 1'
+      );
     });
   });
 
@@ -72,19 +75,19 @@ describe('InviteCode', () => {
     });
 
     it('should return false when max uses reached', () => {
-      const code = InviteCode.create('lab_1', 'user_admin', 'user', 1);
+      const code = InviteCode.create('lab_1', 'user_admin', 'user', false, 1);
       code.recordUse();
       expect(code.isValid()).toBe(false);
     });
 
     it('should return false when expired', () => {
       const past = new Date(Date.now() - 1000);
-      const code = InviteCode.create('lab_1', 'user_admin', 'user', undefined, past);
+      const code = InviteCode.create('lab_1', 'user_admin', 'user', false, undefined, past);
       expect(code.isValid()).toBe(false);
     });
 
     it('should return true when within use limit', () => {
-      const code = InviteCode.create('lab_1', 'user_admin', 'user', 3);
+      const code = InviteCode.create('lab_1', 'user_admin', 'user', false, 3);
       code.recordUse();
       code.recordUse();
       expect(code.isValid()).toBe(true);
@@ -102,7 +105,7 @@ describe('InviteCode', () => {
     });
 
     it('should throw when code is no longer valid', () => {
-      const code = InviteCode.create('lab_1', 'user_admin', 'user', 1);
+      const code = InviteCode.create('lab_1', 'user_admin', 'user', false, 1);
       code.recordUse();
       expect(() => code.recordUse()).toThrow('Invite code is no longer valid');
     });
@@ -124,7 +127,7 @@ describe('InviteCode', () => {
 
   describe('fromData / toData roundtrip', () => {
     it('should preserve all fields through roundtrip', () => {
-      const original = InviteCode.create('lab_1', 'user_admin', 'lab_admin', 10);
+      const original = InviteCode.create('lab_1', 'user_admin', 'lab_admin', false, 10);
       original.recordUse();
       const data = original.toData();
       const restored = InviteCode.fromData(data);
@@ -141,7 +144,7 @@ describe('InviteCode', () => {
 
     it('should handle expiresAt in roundtrip', () => {
       const future = new Date(Date.now() + 86400000);
-      const original = InviteCode.create('lab_1', 'user_admin', 'user', undefined, future);
+      const original = InviteCode.create('lab_1', 'user_admin', 'user', false, undefined, future);
       const data = original.toData();
       const restored = InviteCode.fromData(data);
 
@@ -154,20 +157,6 @@ describe('InviteCode', () => {
       expect(data.expiresAt).toBeUndefined();
       const restored = InviteCode.fromData(data);
       expect(restored.expiresAt).toBeUndefined();
-    });
-  });
-
-  describe('equals', () => {
-    it('should be equal when IDs match', () => {
-      const code = InviteCode.create('lab_1', 'user_admin');
-      const same = InviteCode.fromData(code.toData());
-      expect(code.equals(same)).toBe(true);
-    });
-
-    it('should not be equal for different invite codes', () => {
-      const code1 = InviteCode.create('lab_1', 'user_admin');
-      const code2 = InviteCode.create('lab_1', 'user_admin');
-      expect(code1.equals(code2)).toBe(false);
     });
   });
 });

@@ -52,7 +52,7 @@ function ShortcutList({ shortcuts }: { shortcuts: Shortcut[] }) {
           className="flex items-center gap-3 py-1 px-2 rounded hover:bg-foreground/[0.04]"
         >
           <KeyCombo keys={s.keys} className="min-w-[124px] flex-shrink-0" />
-          <span className="text-xs text-muted-foreground">{s.action}</span>
+          <span className="text-body-sm text-muted-foreground">{s.action}</span>
         </div>
       ))}
     </div>

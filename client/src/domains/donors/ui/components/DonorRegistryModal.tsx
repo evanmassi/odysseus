@@ -4,25 +4,22 @@
  * Browsable donor reference with searchable table and detail panel.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import { BookUser } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
+import { useDonorCollectionHistoryQuery } from '@domains/donors/hooks/useDonorCollectionHistoryQuery';
 import { useDeleteDonorMutation } from '@domains/donors/hooks/useDonorMutations';
 import { useDonorsQuery } from '@domains/donors/hooks/useDonorsQuery';
-import { DonorService } from '@domains/donors/services/DonorService';
-import { LoadingSpinner } from '@shared/ui';
+import { AccentTick, InfoPanelEmpty, LoadingSpinner } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { DonorEditForm } from './DonorEditForm';
 import { DonorInfoPanel } from './DonorInfoPanel';
-import { DonorInfoPanelEmpty } from './DonorInfoPanelEmpty';
 import { DonorTable } from './DonorTable';
-
-import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
 
 interface DonorRegistryModalProps {
   isOpen: boolean;
@@ -40,7 +37,7 @@ export function DonorRegistryModal({
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
 
-  const { data: donors = [], isLoading } = useDonorsQuery();
+  const { data: donors = [], isLoading } = useDonorsQuery({ enabled: isOpen });
   const deleteMutation = useDeleteDonorMutation();
 
   const [selectedDonorId, setSelectedDonorId] = useState<string | undefined>();
@@ -48,17 +45,20 @@ export function DonorRegistryModal({
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [collectionHistory, setCollectionHistory] = useState<DonorCollectionHistory[]>([]);
-  const [historyVersion, setHistoryVersion] = useState(0);
 
   const selectedDonor = useMemo(
     () => donors.find(d => d.id === selectedDonorId),
     [donors, selectedDonorId]
   );
 
-  // Deep-link: resolve initialDonorId to a donor record
+  const { data: collectionHistory = [] } = useDonorCollectionHistoryQuery(selectedDonorId);
+
+  // Deep-link: resolve initialDonorId to a donor record once, so a later refetch (new donors
+  // identity) doesn't override a selection the user has since changed.
+  const resolvedDeepLink = useRef<string | undefined>();
   useEffect(() => {
     if (!initialDonorId || donors.length === 0) return;
+    if (resolvedDeepLink.current === initialDonorId) return;
 
     const match = donors.find(d =>
       initialIdType === 'internal'
@@ -67,30 +67,10 @@ export function DonorRegistryModal({
     );
 
     if (match) {
+      resolvedDeepLink.current = initialDonorId;
       setSelectedDonorId(match.id);
     }
   }, [initialDonorId, initialIdType, donors]);
-
-  // Fetch collection history when a donor is selected
-  useEffect(() => {
-    if (!selectedDonorId) {
-      setCollectionHistory([]);
-      return;
-    }
-
-    let cancelled = false;
-    DonorService.getCollectionHistory(selectedDonorId)
-      .then(history => {
-        if (!cancelled) setCollectionHistory(history);
-      })
-      .catch(() => {
-        if (!cancelled) setCollectionHistory([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedDonorId, historyVersion]);
 
   const handleSelectDonor = useCallback((id: string) => {
     setSelectedDonorId(id);
@@ -127,35 +107,30 @@ export function DonorRegistryModal({
       setIsEditing(false);
       setIsCreating(false);
       setShowDeleteConfirm(false);
-      setCollectionHistory([]);
     }
   }, [isOpen]);
 
-  const accentBar = (
-    <span
-      aria-hidden
-      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-    />
-  );
   const reviewCount = donors.filter(d => !d.isCurated).length;
   const locator = (
     <div className="flex items-center gap-3 font-mono">
       <div className="flex items-center gap-2.5">
-        {accentBar}
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <AccentTick />
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Donors
         </span>
-        <span className="phosphor-text text-xs text-secondary-foreground">{donors.length}</span>
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
+          {donors.length}
+        </span>
       </div>
       <span aria-hidden className="text-muted-foreground/40">
         ·
       </span>
       <div className="flex items-center gap-2.5">
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Needs Review
         </span>
         <span
-          className={`phosphor-text text-xs ${reviewCount > 0 ? 'text-warning-text' : 'text-secondary-foreground'}`}
+          className={`phosphor-text text-data-sm ${reviewCount > 0 ? 'text-warning-text' : 'text-secondary-foreground'}`}
         >
           {reviewCount}
         </span>
@@ -174,11 +149,10 @@ export function DonorRegistryModal({
         onClose={onClose}
         size="xl"
         fixedHeight
-        animation="slide"
         contentClassName="p-4 h-full"
       >
-        <div className="flex gap-4 h-full min-h-0 overflow-hidden">
-          <div className="w-[60%] min-w-0 min-h-0 flex flex-col overflow-hidden pb-4">
+        <div className="flex gap-4 h-full min-h-0">
+          <div className="w-[60%] min-w-0 min-h-0 flex flex-col pb-4">
             <DonorTable
               donors={donors}
               selectedDonorId={selectedDonorId}
@@ -191,10 +165,10 @@ export function DonorRegistryModal({
             />
           </div>
 
-          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden pb-4">
+          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 pb-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
-                <LoadingSpinner />
+                <LoadingSpinner className="text-primary" />
               </div>
             ) : isCreating ? (
               <DonorEditForm onSubmit={handleEditComplete} onCancel={() => setIsCreating(false)} />
@@ -210,11 +184,16 @@ export function DonorRegistryModal({
                 collectionHistory={collectionHistory}
                 onEdit={() => setIsEditing(true)}
                 onDelete={() => setShowDeleteConfirm(true)}
-                onHistoryChange={() => setHistoryVersion(v => v + 1)}
                 isAdmin={isAdmin}
               />
             ) : (
-              <DonorInfoPanelEmpty />
+              <InfoPanelEmpty
+                title="Donor Information"
+                headerIcon={BookUser}
+                stripLabel="Collections"
+                emptyIcon={BookUser}
+                emptyMessage="Select a donor to view details"
+              />
             )}
           </div>
         </div>

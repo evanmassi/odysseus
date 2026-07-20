@@ -1,14 +1,10 @@
 /**
  * Menu Types
- *
- * Type definitions for menu primitives.
  */
 
 import type { LucideIcon } from 'lucide-react';
 
-export type MenuIconComponent =
-  | LucideIcon
-  | React.ComponentType<{ size?: number; className?: string }>;
+type MenuIconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
 
 export interface MenuItemProps {
   icon?: MenuIconComponent;
@@ -18,7 +14,6 @@ export interface MenuItemProps {
   warning?: boolean;
   disabled?: boolean;
   shortcut?: string;
-  isActive?: boolean;
   children?: React.ReactNode;
 }
 

@@ -6,7 +6,7 @@
  * isolation so both modes stay in sync.
  */
 
-export type PrintPageSize =
+type PrintPageSize =
   | { kind: 'label'; width: number; height: number }
   | { kind: 'sheet'; paperSize: 'letter' | 'a4' };
 
@@ -16,7 +16,7 @@ export interface PrintStyleOptions {
 }
 
 export const PRINT_PORTAL_CLASS = 'barcode-print-portal';
-const PRINT_SHEET_CLASS = 'barcode-print-sheet';
+export const PRINT_SHEET_CLASS = 'barcode-print-sheet';
 
 export function buildBarcodePrintStyles(opts: PrintStyleOptions): string {
   const pageRule =

@@ -5,7 +5,6 @@
  * Idempotent: skips if no `lab_default` row exists.
  */
 
-
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -25,10 +24,9 @@ export const migration013: Migration = {
     try {
       await client.query('BEGIN');
 
-      await client.query(
-        `UPDATE labs SET slug = $1 WHERE id = 'lab_default'`,
-        [`__migrating_${originalSlug}`]
-      );
+      await client.query(`UPDATE labs SET slug = $1 WHERE id = 'lab_default'`, [
+        `__migrating_${originalSlug}`,
+      ]);
 
       await client.query(
         `INSERT INTO labs (id, name, slug, is_active, created_at, updated_at)
@@ -37,9 +35,16 @@ export const migration013: Migration = {
       );
 
       const childTables = [
-        'users', 'researchers', 'tubes', 'lookup_values',
-        'storage_current', 'storage_versions', 'storage_snapshots',
-        'audit_log', 'audit_log_archive', 'invite_codes',
+        'users',
+        'researchers',
+        'tubes',
+        'lookup_values',
+        'storage_current',
+        'storage_versions',
+        'storage_snapshots',
+        'audit_log',
+        'audit_log_archive',
+        'invite_codes',
       ];
       for (const table of childTables) {
         await client.query(`UPDATE ${table} SET lab_id = $1 WHERE lab_id = 'lab_default'`, [newId]);
@@ -55,5 +60,5 @@ export const migration013: Migration = {
     } finally {
       client.release();
     }
-  }
+  },
 };

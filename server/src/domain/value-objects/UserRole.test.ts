@@ -179,7 +179,6 @@ describe('UserRole', () => {
     it('should convert to data', () => {
       expect(UserRole.user().toData()).toEqual({ role: 'user' });
     });
-
   });
 
   describe('static utilities', () => {

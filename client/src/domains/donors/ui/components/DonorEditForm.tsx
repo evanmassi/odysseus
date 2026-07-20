@@ -14,7 +14,15 @@ import {
   useUpdateDonorMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, NubDivider, SectionHeader, Select } from '@shared/ui';
+import {
+  Button,
+  CompletenessMeter,
+  lookupOptions,
+  NubDivider,
+  SectionHeader,
+  Select,
+} from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -26,9 +34,6 @@ interface DonorEditFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
-
-const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 const SEX_OPTIONS = [
   { value: '', label: 'Select sex...' },
@@ -50,10 +55,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const speciesOptions = [
-    { value: '', label: 'Select species...' },
-    ...speciesValues.map(v => ({ value: v.value, label: v.value })),
-  ];
+  const speciesOptions = lookupOptions(speciesValues, 'Select species...');
 
   const {
     register,
@@ -81,35 +83,21 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
   const clinicalStatus = allValues.clinicalStatus;
 
   // Profile completeness — diagnosis/disease stage only count when the donor is diseased.
-  const trackedFields: (keyof CreateDonorRequest)[] =
-    clinicalStatus === 'Diseased'
-      ? [
-          'donorSourceId',
-          'donorInternalId',
-          'species',
-          'age',
-          'sex',
-          'ethnicity',
-          'clinicalStatus',
-          'diagnosis',
-          'diseaseStage',
-          'notes',
-        ]
-      : [
-          'donorSourceId',
-          'donorInternalId',
-          'species',
-          'age',
-          'sex',
-          'ethnicity',
-          'clinicalStatus',
-          'notes',
-        ];
+  const trackedFields: (keyof CreateDonorRequest)[] = [
+    'donorSourceId',
+    'donorInternalId',
+    'species',
+    'age',
+    'sex',
+    'ethnicity',
+    'clinicalStatus',
+    ...(clinicalStatus === 'Diseased' ? (['diagnosis', 'diseaseStage'] as const) : []),
+    'notes',
+  ];
   const filledCount = trackedFields.filter(f => {
     const v = allValues[f];
     return v != null && String(v).trim() !== '';
   }).length;
-  const completionPct = Math.round((filledCount / trackedFields.length) * 100);
 
   const handleFormSubmit = (data: CreateDonorRequest) => {
     if (isEditMode && donor) {
@@ -119,6 +107,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
     }
   };
 
+  // zodResolver parks the schema's pathless .refine error under the '' key, not root.
   const rootError =
     errors.root?.message ?? (errors as Record<string, { message?: string }>)['']?.message;
 
@@ -133,35 +122,11 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
         </h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Completeness
-          </span>
-          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
-            {filledCount}/{trackedFields.length}
-          </span>
-          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
-            <span
-              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </span>
-        </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      <CompletenessMeter filled={filledCount} total={trackedFields.length} />
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="donor-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-2 p-4">
-          {rootError && <p className="text-xs text-danger-text">{rootError}</p>}
+          {rootError && <p className="text-caption text-danger-text">{rootError}</p>}
 
           <SectionHeader title="Identifiers" size="sm" />
           <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
@@ -197,7 +162,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="species-label" className={SELECT_LABEL}>
+                  <label id="species-label" className={FIELD_LABEL_COMPACT}>
                     Species
                   </label>
                   <Select
@@ -228,7 +193,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="sex-label" className={SELECT_LABEL}>
+                  <label id="sex-label" className={FIELD_LABEL_COMPACT}>
                     Sex
                   </label>
                   <Select
@@ -261,7 +226,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="clinical-status-label" className={SELECT_LABEL}>
+                  <label id="clinical-status-label" className={FIELD_LABEL_COMPACT}>
                     Clinical Status
                   </label>
                   <Select
@@ -320,7 +285,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

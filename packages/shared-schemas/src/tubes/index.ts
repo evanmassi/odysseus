@@ -6,37 +6,27 @@
 
 export {
   CONCENTRATION_UNITS,
-  UNKNOWN_RESEARCHER,
   tubeLocationSchema,
-  tubeSampleSchema,
-  tubeTimestampsSchema,
   tubeDataSchema,
-  tubeDataArraySchema,
   rackTubeSchema,
   tubeLocationCountSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
-  bulkTubeOperationSchema,
   TUBE_FILTERABLE_FIELDS,
+  TUBE_SORT_FIELDS,
   tubeFilterOptionsResponseSchema,
-  tubeValidationResultSchema,
   type TubeData,
-  type TubeLocation,
   type TubeSample,
+  type TubeLocation,
   type RackTube,
   type TubeLocationCount,
-  type TubeUpdateSample,
-  type TubeTimestamps,
   type CreateTubeRequest,
   type UpdateTubeRequest,
-  type BulkTubeOperation,
   type TubeFilterableField,
   type TubeFilterOptions,
-  type TubeValidationResult,
   type ConcentrationUnit,
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
-  validateTubePosition,
   bulkDeleteResponseSchema,
   pasteTubesResponseSchema,
   bulkUpdateResponseSchema,
@@ -50,37 +40,15 @@ export {
   type BulkMoveResponse,
 } from './tubeSchemas';
 
-export {
-  parseConcentrationInput,
-  concentrationPreprocessor,
-  concentrationPreprocessorNullable,
-  parseDate,
-  datePreprocessor,
-  datePreprocessorNullable,
-  optionalFromEmpty,
-  nullableOptionalFromEmpty,
-  concentrationUnitRefinement,
-} from './tubeValidation';
+export { formatConcentrationDisplay } from './tubeFormatters';
 
-export {
-  formatConcentrationDisplay,
-  formatTubeLocation,
-  formatTubeLocationShort,
-  formatTubeDate,
-  parseConcentrationDisplay,
-  type TubeLocationFormatOptions,
-} from './tubeFormatters';
-
-export {
-  tubeDataToCreateRequest,
-} from './tubeMappers';
+export { tubeDataToCreateRequest } from './tubeMappers';
 
 export {
   lockTubesRequestSchema,
   unlockTubesRequestSchema,
   shareTubeAccessRequestSchema,
   revokeTubeAccessRequestSchema,
-  skippedTubeSchema,
   bulkLockResultSchema,
   bulkUnlockResultSchema,
   shareAccessResultSchema,

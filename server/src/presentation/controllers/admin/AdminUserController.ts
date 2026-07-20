@@ -6,12 +6,14 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
-  ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
+  AdminResetPasswordCommandHandler,
+  GeneratePasswordResetTokenCommandHandler,
+} from '@application/commands/PasswordResetCommands';
+import type {
+  ChangeUserRoleCommand,
+  ChangeUserRoleCommandHandler,
 } from '@application/commands/UserCommands';
-import type { GetUserByIdQueryHandler } from '@application/queries/UserQueries';
-import { GetUserByIdQuery } from '@application/queries/UserQueries';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { UserRole } from '@domain/value-objects/UserRole';
@@ -26,7 +28,6 @@ export interface AdminUserControllerDeps {
   changeRoleHandler: ChangeUserRoleCommandHandler;
   adminResetPasswordHandler: AdminResetPasswordCommandHandler;
   generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler;
-  getUserByIdHandler: GetUserByIdQueryHandler;
   userApplicationService: UserApplicationService;
   researcherApplicationService: ResearcherApplicationService;
 }
@@ -38,35 +39,22 @@ export class AdminUserController extends BaseController {
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      const labId = req.user?.labId;
+      const labId = this.getAuthenticatedUser(req).labId;
       if (!labId) {
-        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
+        res
+          .status(403)
+          .json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
         return;
       }
 
       const enrichedUsers = await this.deps.userApplicationService.getEnrichedLabUsers(labId);
 
       const response = ResponseBuilder.success({
-        users: enrichedUsers
+        users: enrichedUsers,
       });
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get users');
-    }
-  }
-
-  async getUserById(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const query = new GetUserByIdQuery(id);
-      const user = await this.deps.getUserByIdHandler.handle(query);
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData()
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get user');
+      handleControllerError(error, res, 'Failed to get users', req.requestId);
     }
   }
 
@@ -87,13 +75,13 @@ export class AdminUserController extends BaseController {
       logger.info('User role updated', {
         targetUserId: id,
         newRole: role,
-        performedBy: adminUser.username
+        performedBy: adminUser.username,
       });
 
       const response = ResponseBuilder.success({ message: 'User role updated successfully' });
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update user role');
+      handleControllerError(error, res, 'Failed to update user role', req.requestId);
     }
   }
 
@@ -106,12 +94,12 @@ export class AdminUserController extends BaseController {
 
       logger.info('User deleted', {
         deletedUserId: id,
-        performedBy: adminUser.username
+        performedBy: adminUser.username,
       });
 
       res.status(200).json(ResponseBuilder.success({ message: 'User deleted successfully' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete user');
+      handleControllerError(error, res, 'Failed to delete user', req.requestId);
     }
   }
 
@@ -123,13 +111,12 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.deactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'User deactivated successfully'
+        message: 'User deactivated successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate user');
+      handleControllerError(error, res, 'Failed to deactivate user', req.requestId);
     }
   }
 
@@ -141,13 +128,12 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'User activated successfully'
+        message: 'User activated successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate user');
+      handleControllerError(error, res, 'Failed to activate user', req.requestId);
     }
   }
 
@@ -174,16 +160,19 @@ export class AdminUserController extends BaseController {
           researcherId: created.id,
           researcherName: `${created.firstName} ${created.lastName}`,
           userId,
-          createdBy: adminUser.username
+          createdBy: adminUser.username,
         });
       }
 
-      await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminUser);
+      await this.deps.userApplicationService.linkResearcherToUser(
+        userId,
+        targetResearcherId,
+        adminUser
+      );
 
       const response = ResponseBuilder.success({
-        success: true,
         researcherId: targetResearcherId,
-        message: 'Researcher linked to user successfully'
+        message: 'Researcher linked to user successfully',
       });
 
       res.status(200).json(response);
@@ -191,10 +180,10 @@ export class AdminUserController extends BaseController {
       logger.info('Researcher linked to user', {
         userId,
         researcherId: targetResearcherId,
-        linkedBy: adminUser.username
+        linkedBy: adminUser.username,
       });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to link researcher');
+      handleControllerError(error, res, 'Failed to link researcher', req.requestId);
     }
   }
 
@@ -207,18 +196,17 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'Researcher unlinked from user successfully'
+        message: 'Researcher unlinked from user successfully',
       });
 
       res.status(200).json(response);
 
       logger.info('Researcher unlinked from user', {
         userId,
-        unlinkedBy: adminUser.username
+        unlinkedBy: adminUser.username,
       });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to unlink researcher');
+      handleControllerError(error, res, 'Failed to unlink researcher', req.requestId);
     }
   }
 
@@ -236,24 +224,23 @@ export class AdminUserController extends BaseController {
         adminUserId: adminUser.id,
         targetUserId: userId,
         newPassword,
-        requirePasswordChange
+        requirePasswordChange,
       });
 
       logger.info('Password reset by admin', {
         adminUserId: adminUser.id,
         adminUsername: adminUser.username,
         targetUserId: userId,
-        requirePasswordChange
+        requirePasswordChange,
       });
 
       const response = ResponseBuilder.success({
-        success: true,
-        message: 'Password reset successfully'
+        message: 'Password reset successfully',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to reset password');
+      handleControllerError(error, res, 'Failed to reset password', req.requestId);
     }
   }
 
@@ -265,24 +252,24 @@ export class AdminUserController extends BaseController {
 
       const result = await this.deps.generatePasswordResetTokenHandler.handle({
         adminUserId: adminUser.id,
-        targetUserId: userId
+        targetUserId: userId,
       });
 
       logger.info('Password reset token generated', {
         adminUserId: adminUser.id,
         adminUsername: adminUser.username,
-        targetUserId: userId
+        targetUserId: userId,
       });
 
       const response = ResponseBuilder.success({
         resetUrl: result.resetUrl,
         expiresAt: result.expiresAt.toISOString(),
-        message: 'Password reset token generated. Share this link with the user.'
+        message: 'Password reset token generated. Share this link with the user.',
       });
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to generate reset token');
+      handleControllerError(error, res, 'Failed to generate reset token', req.requestId);
     }
   }
 }

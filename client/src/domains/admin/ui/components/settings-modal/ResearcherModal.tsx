@@ -3,7 +3,7 @@
  *
  * Create or link researcher profiles to user accounts.
  */
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -17,9 +17,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { AuthInput } from '@shared/ui/primitives';
-import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
+import { notifications } from '@shared/utils';
 
-export interface ResearcherModalProps {
+interface ResearcherModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'create-only' | 'select-or-create';
@@ -53,28 +53,32 @@ export function ResearcherModal({
   });
 
   const handleCreate = async (data: CreateResearcherProfile) => {
-    await withAsyncHandler(() => onCreateResearcher(data), {
-      setLoading: setIsSubmitting,
-      successMessage: 'Researcher added successfully',
-      errorMessage: 'Failed to add researcher',
-      onSuccess: () => {
-        reset();
-        onSuccess();
-        onClose();
-      },
-    });
+    setIsSubmitting(true);
+    try {
+      await onCreateResearcher(data);
+      notifications.success('Researcher added successfully');
+      reset();
+      onSuccess();
+      onClose();
+    } catch {
+      // The create mutation surfaces the error toast globally; keep the modal open to retry.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleLinkExisting = async (researcherId: string) => {
-    await withAsyncHandler(() => onLinkExisting(researcherId), {
-      setLoading: setIsSubmitting,
-      successMessage: 'Researcher linked successfully',
-      errorMessage: 'Failed to link researcher',
-      onSuccess: () => {
-        onSuccess();
-        onClose();
-      },
-    });
+    setIsSubmitting(true);
+    try {
+      await onLinkExisting(researcherId);
+      notifications.success('Researcher linked successfully');
+      onSuccess();
+      onClose();
+    } catch {
+      // The link mutation surfaces the error toast globally; keep the modal open to retry.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -89,7 +93,7 @@ export function ResearcherModal({
       title={mode === 'create-only' ? 'Add Researcher' : `Link Researcher to ${username}`}
       icon={<Dna size={24} />}
       onClose={handleClose}
-      className="max-w-2xl"
+      size="md-lg"
     >
       {mode === 'select-or-create' && (
         <div className="mb-4 flex space-x-4 border-b border-border pb-3">
@@ -100,7 +104,7 @@ export function ResearcherModal({
               onChange={() => setActionMode('create')}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-secondary-foreground">
+            <span className="text-body-sm font-medium text-secondary-foreground">
               Add New Researcher
             </span>
           </label>
@@ -111,7 +115,7 @@ export function ResearcherModal({
               onChange={() => setActionMode('select')}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-secondary-foreground">
+            <span className="text-body-sm font-medium text-secondary-foreground">
               Link Existing Researcher
             </span>
           </label>
@@ -196,14 +200,14 @@ export function ResearcherModal({
                 className="border border-border rounded p-3 flex items-center justify-between hover:bg-accent transition-colors"
               >
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-card-foreground">
+                  <div className="text-body-sm font-medium text-card-foreground">
                     {researcher.firstName} {researcher.lastName}
                   </div>
                   {researcher.email && (
-                    <div className="text-xs text-muted-foreground">{researcher.email}</div>
+                    <div className="text-caption text-muted-foreground">{researcher.email}</div>
                   )}
                   {researcher.position && (
-                    <div className="text-xs text-muted-foreground">{researcher.position}</div>
+                    <div className="text-caption text-muted-foreground">{researcher.position}</div>
                   )}
                 </div>
                 <Button
@@ -218,7 +222,9 @@ export function ResearcherModal({
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">No unlinked researchers available</p>
+              <p className="text-body-sm text-muted-foreground">
+                No unlinked researchers available
+              </p>
             </div>
           )}
         </div>
@@ -230,7 +236,7 @@ export function ResearcherModal({
 interface FormFieldProps {
   name: keyof CreateResearcherProfile;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   placeholder: string;
   type?: 'text' | 'email';
   required?: boolean;
@@ -269,7 +275,7 @@ function FormField({
           />
         )}
       />
-      {errorMessage && <p className="text-xs text-danger-text mt-1 ml-1">{errorMessage}</p>}
+      {errorMessage && <p className="text-body-sm text-danger-text mt-1 ml-1">{errorMessage}</p>}
     </div>
   );
 }

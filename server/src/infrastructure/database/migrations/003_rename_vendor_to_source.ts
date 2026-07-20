@@ -7,7 +7,6 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-
 export const migration003: Migration = {
   id: 3,
   name: 'rename_vendor_to_source',
@@ -67,5 +66,5 @@ export const migration003: Migration = {
         END IF;
       END $$
     `);
-  }
+  },
 };

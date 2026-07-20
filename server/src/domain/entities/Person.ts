@@ -122,15 +122,6 @@ export class Person {
     this._updatedAt = new Date();
   }
 
-  equals(other: Person): boolean {
-    if (!other) return false;
-    return this._id === other._id;
-  }
-
-  toString(): string {
-    return `Person(${this._firstName} ${this._lastName}) - ${this._email}`;
-  }
-
   toData(): {
     id: string;
     firstName: string;
@@ -149,7 +140,7 @@ export class Person {
       position: this._position,
       department: this._department,
       createdAt: this._createdAt.toISOString(),
-      updatedAt: this._updatedAt.toISOString()
+      updatedAt: this._updatedAt.toISOString(),
     };
   }
 

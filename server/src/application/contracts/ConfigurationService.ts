@@ -19,15 +19,9 @@ export interface Configuration {
   };
   jwt: {
     secret: string;
-    expirationTime: string;
     issuer: string;
     audience: string;
     algorithm: 'HS256' | 'HS384' | 'HS512';
-  };
-  logging: {
-    level: 'error' | 'warn' | 'info' | 'debug';
-    enableConsole: boolean;
-    enableFile: boolean;
   };
   email: {
     verificationBaseUrl: string;
@@ -43,7 +37,5 @@ export interface Configuration {
 
 export interface ConfigurationService {
   get<K extends keyof Configuration>(key: K): Configuration[K];
-  getAll(): Configuration;
   isDevelopment(): boolean;
-  isProduction(): boolean;
 }

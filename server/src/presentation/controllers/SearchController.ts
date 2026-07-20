@@ -12,15 +12,8 @@ import { SearchCriteriaMapper } from '@presentation/mappers/SearchCriteriaMapper
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
+import type { GroupedResult } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
-
-interface GroupedResult {
-  groupKey: string;
-  groupType: string;
-  tubes: TubeResponse[];
-  primaryLocation: string;
-  totalCount: number;
-}
 
 export interface SearchControllerDeps {
   tubeApplicationService: TubeApplicationService;
@@ -39,26 +32,21 @@ export class SearchController extends BaseController {
    */
   async advancedSearch(req: Request, res: Response): Promise<void> {
     try {
-      const { query, filters, limit, offset, sortBy, sortOrder, groupBy } = req.body;
+      const { query, filters, limit, sortBy, sortOrder } = req.body;
       const authenticatedUser = this.getAuthenticatedUser(req);
 
-      const shouldGroup = groupBy !== 'none';
-
-      // When grouping, fetch all matches so groups are complete — LIMIT on individual
-      // tubes randomly breaks apart groups that should be whole.
+      // Results are always grouped, so fetch all matches — a LIMIT on individual
+      // tubes would randomly break apart groups that should be whole.
       const searchCriteria = SearchCriteriaMapper.toTubeSearchCriteria(filters, {
         query: query || '',
-        limit: shouldGroup ? undefined : (limit || 50),
-        offset: shouldGroup ? undefined : (offset || 0),
+        limit: undefined,
         sortBy,
-        sortOrder
+        sortOrder,
       });
 
       logger.debug('Searching with criteria', {
         query: searchCriteria.query,
         activeFilters: SearchCriteriaMapper.countActiveFilters(searchCriteria),
-        limit: searchCriteria.limit,
-        offset: searchCriteria.offset,
       });
 
       const searchResult = await this.deps.tubeApplicationService.searchTubesWithHighlighting(
@@ -68,8 +56,8 @@ export class SearchController extends BaseController {
 
       const { tubes, matchedTerms } = searchResult;
 
-      const maxGroups = limit || 50;
-      const grouped = shouldGroup ? this.autoGroupTubes(tubes).slice(0, maxGroups) : undefined;
+      const maxGroups = limit;
+      const grouped = this.autoGroupTubes(tubes).slice(0, maxGroups);
 
       const result = {
         data: tubes,
@@ -77,21 +65,20 @@ export class SearchController extends BaseController {
         matchedTerms,
         pagination: {
           total: tubes.length,
-          limit: shouldGroup ? tubes.length : (limit || 50),
-          offset: shouldGroup ? 0 : (offset || 0),
-          hasMore: shouldGroup ? false : tubes.length >= (limit || 50),
+          limit: tubes.length,
+          offset: 0,
+          hasMore: false,
         },
         metadata: {
           query: query || '',
           searchTime: Date.now(),
-          totalMatches: tubes.length
-        }
+          totalMatches: tubes.length,
+        },
       };
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {
-      logger.error('Search failed:', error);
-      handleControllerError(error, res, 'Failed to perform advanced search');
+      handleControllerError(error, res, 'Failed to perform advanced search', req.requestId);
     }
   }
 
@@ -116,7 +103,7 @@ export class SearchController extends BaseController {
         researcherId: tube.researcherId ?? '',
         tankId: tube.location?.tankId || '',
         rackId: tube.location?.rackId || '',
-        boxId: tube.location?.boxId || ''
+        boxId: tube.location?.boxId || '',
       });
     };
 
@@ -130,7 +117,7 @@ export class SearchController extends BaseController {
       groups.get(batchKey)!.push(tube);
     }
 
-    const groupedResults = Array.from(groups.entries()).map(([, groupTubes]) => {
+    const groupedResults = Array.from(groups.entries()).map(([, groupTubes]): GroupedResult => {
       const firstTube = groupTubes[0];
 
       const cellType = firstTube.sample?.cellType ?? 'Unknown';
@@ -146,15 +133,16 @@ export class SearchController extends BaseController {
         locationCounts.set(location, (locationCounts.get(location) ?? 0) + 1);
       }
 
-      const primaryLocation = Array.from(locationCounts.entries())
-        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'Unknown:Unknown:Unknown';
+      const primaryLocation =
+        Array.from(locationCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+        'Unknown:Unknown:Unknown';
 
       return {
         groupKey,
         groupType: 'batch',
         tubes: groupTubes,
         primaryLocation,
-        totalCount: groupTubes.length
+        totalCount: groupTubes.length,
       };
     });
 

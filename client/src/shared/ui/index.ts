@@ -5,26 +5,26 @@
  */
 
 // UI Primitive Components
-export { InlineEditInput } from './components/inputs/InlineEditInput';
 export { ValidatedInput } from './components/inputs/ValidatedInput';
-export { ErrorBanner } from './primitives/banners/ErrorBanner';
 
 // Re-export all primitives for convenience
 export * from './primitives';
 
 // Error boundaries
 export { ErrorBoundary } from './components/boundaries/ErrorBoundary';
+export { LazyModalBoundary } from './components/boundaries/LazyModalBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
 // Info display components
-export { DetailRow, InfoField, InfoGroup } from './components/info-display';
-export type { DetailRowProps, InfoFieldProps } from './components/info-display';
-export type { InfoGroupProps } from './components/info-display';
+export {
+  AccentTick,
+  CompletenessMeter,
+  DetailRow,
+  InfoPanelEmpty,
+  OccupancyBar,
+  StripLabel,
+} from './components/info-display';
+export type { AccentTickTone } from './components/info-display';
 
 // Loading components
-export {
-  LoadingOverlay,
-  LoadingSkeleton,
-  LoadingSpinner,
-  ModalSkeleton,
-} from './components/loading';
+export { LoadingSkeleton, LoadingSpinner } from './components/loading';

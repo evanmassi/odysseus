@@ -5,46 +5,23 @@
  * Types from shared-schemas, data from React Query.
  */
 
-// Hooks
 export * from './hooks';
 
-// Services
 export { StorageService } from './services/StorageService';
 
-// Types and Schemas (re-exported from shared package)
-export type {
-  GridConfiguration,
-  BoxConfiguration,
-  RackConfiguration,
-  TankConfiguration,
-  ColorScheme,
-  EquipmentConfiguration,
-  LabConfiguration,
-  GlobalSettings,
-  SystemConfiguration,
-  StorageResponse,
-  SaveStorageRequest,
-} from '@odysseus/shared-schemas';
+export { getGridTotalPositions, DEFAULT_GRID_CONFIG } from './utils/gridHelpers';
+export {
+  formatPositionForBox,
+  getAxisLabelsForBox,
+  formatPositionRangesForBox,
+  buildPositionRangeLabels,
+} from './utils/positionDisplayUtils';
 
 export {
-  GridConfigurationSchema,
-  BoxConfigurationSchema,
-  RackConfigurationSchema,
-  TankConfigurationSchema,
-  ColorSchemeSchema,
-  EquipmentConfigurationSchema,
-  LabConfigurationSchema,
-  GlobalSettingsSchema,
-  SystemConfigurationSchema,
-  StorageResponseSchema,
-  SaveStorageRequestSchema,
-} from '@odysseus/shared-schemas';
+  StorageNavigator,
+  BoxOccupancyMatrix,
+  buildStorageHierarchy,
+} from './ui/components/storage-navigator';
 
-// UI Helpers (computed properties)
-export { getGridTotalPositions, GRID_TEMPLATES, DEFAULT_GRID_CONFIG } from './utils/gridHelpers';
-
-// Position Display Utilities
-export { formatPositionForBox, formatPositionRangesForBox } from './utils/positionDisplayUtils';
-
-// User Assignment Utilities
-export { extractAssignedUserIds } from './utils/extractAssignedUserIds';
+export type { GridConfiguration } from '@odysseus/shared-schemas';
+export type { StorageHierarchy, SelectedLocation } from './ui/components/storage-navigator';

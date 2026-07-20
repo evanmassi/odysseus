@@ -1,13 +1,8 @@
 /**
  * Date Formatting Utilities
  *
- * Treat date-only fields as strings, never Date objects.
- * This eliminates timezone bugs when storing dates without times.
- *
- * Storage:    YYYY-MM-DD strings in database
- * Transport:  YYYY-MM-DD strings in API
- * Comparison: Direct string comparison
- * Display:    Format using Intl.DateTimeFormat
+ * Date-only fields are treated as YYYY-MM-DD strings, never Date objects, to
+ * eliminate timezone bugs from storing dates without times.
  */
 
 import { logger } from '@infra/logger';
@@ -62,12 +57,4 @@ export function formatDateForDisplay(dateString: string | Date | null | undefine
 
   const [year, month, day] = normalized.split('-').map(Number);
   return `${day} ${MONTH_ABBR[month - 1]} ${year}`;
-}
-
-export function parseDateInputValue(value: string): string {
-  return normalizeDateString(value);
-}
-
-export function formatDateForInput(dateString: string | Date | null | undefined): string {
-  return normalizeDateString(dateString);
 }

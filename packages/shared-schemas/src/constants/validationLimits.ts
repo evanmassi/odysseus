@@ -1,7 +1,7 @@
 /**
  * Validation Limits
  *
- * Enforced in both domain entities and API validation.
+ * Enforced in the storage domain value-objects and request schemas.
  */
 
 export const VALIDATION_LIMITS = {

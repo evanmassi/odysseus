@@ -5,4 +5,5 @@
  */
 
 export { useAuthSocketSync } from './useAuthSocketSync';
+export { useServerThemeSync } from './useServerThemeSync';
 export { useSplashFloor } from './useSplashFloor';

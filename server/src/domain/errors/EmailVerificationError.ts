@@ -4,15 +4,14 @@
  * Email verification operation failure. Maps to HTTP 400.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import { DomainError } from './DomainError';
 export class EmailVerificationError extends DomainError {
-  readonly code = 'EMAIL_VERIFICATION_ERROR';
+  readonly code = API_ERROR_CODES.VALIDATION_FAILED;
   readonly statusCode = 400;
 
-  constructor(
-    message: string,
-    context?: Record<string, unknown>
-  ) {
+  constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
   }
 
@@ -29,9 +28,7 @@ export class EmailVerificationError extends DomainError {
   }
 
   static noToken(): EmailVerificationError {
-    return new EmailVerificationError(
-      'No verification token found for this account.'
-    );
+    return new EmailVerificationError('No verification token found for this account.');
   }
 
   static rateLimited(waitMinutes: number): EmailVerificationError {

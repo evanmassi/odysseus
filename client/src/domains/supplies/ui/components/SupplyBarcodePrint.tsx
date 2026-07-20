@@ -5,27 +5,18 @@
  * (only the label hits the page, anchored top-left).
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
-import JsBarcode from 'jsbarcode';
-import { Printer, Barcode, QrCode } from 'lucide-react';
-import { toCanvas as qrToCanvas } from 'qrcode';
+import { Printer } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
 import { PRINT_PORTAL_CLASS, buildBarcodePrintStyles } from './barcodePrintStyles';
+import { BarcodeLabel, FORMAT_OPTIONS } from './SupplyBarcodeLabel';
 
-export type BarcodeFormat = '1d' | '2d';
-
-export interface LabelSize {
-  name: string;
-  width: number;
-  height: number;
-  nameFont: number;
-  metaFont: number;
-}
+import type { BarcodeFormat, LabelSize } from './SupplyBarcodeLabel';
 
 const LABEL_SIZES: readonly LabelSize[] = [
   { name: '4 × 2"', width: 4, height: 2, nameFont: 0.18, metaFont: 0.12 },
@@ -36,15 +27,6 @@ const LABEL_SIZES: readonly LabelSize[] = [
 ] as const;
 
 const PREVIEW_MIN_HEIGHT_PX = 224;
-
-export const FORMAT_OPTIONS: {
-  value: BarcodeFormat;
-  label: string;
-  Icon: typeof Barcode;
-}[] = [
-  { value: '1d', label: 'Barcode', Icon: Barcode },
-  { value: '2d', label: 'QR Code', Icon: QrCode },
-];
 
 const SELECTED_CLASS =
   'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md';
@@ -113,7 +95,7 @@ export function SupplyBarcodePrint({
     >
       <div className="space-y-4">
         <div>
-          <h4 className="text-sm font-semibold text-card-foreground mb-2">Format</h4>
+          <h4 className="text-body-sm font-semibold text-card-foreground mb-2">Format</h4>
           <div className="grid grid-cols-2 gap-2">
             {FORMAT_OPTIONS.map(({ value, label, Icon }) => {
               const isSelected = format === value;
@@ -130,7 +112,7 @@ export function SupplyBarcodePrint({
                     size={18}
                     className={isSelected ? 'text-white' : 'text-secondary-foreground'}
                   />
-                  <span className="text-sm font-semibold">{label}</span>
+                  <span className="text-body-sm font-semibold">{label}</span>
                 </button>
               );
             })}
@@ -138,7 +120,7 @@ export function SupplyBarcodePrint({
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-card-foreground mb-2">Label Size</h4>
+          <h4 className="text-body-sm font-semibold text-card-foreground mb-2">Label Size</h4>
           <div className="grid grid-cols-5 gap-2">
             {LABEL_SIZES.map(size => {
               const isSelected = labelSize.name === size.name;
@@ -151,7 +133,7 @@ export function SupplyBarcodePrint({
                     isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
                   }`}
                 >
-                  <div className="text-xs font-semibold">{size.name}</div>
+                  <div className="text-caption font-semibold">{size.name}</div>
                 </button>
               );
             })}
@@ -159,7 +141,7 @@ export function SupplyBarcodePrint({
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-card-foreground mb-2">Preview</h4>
+          <h4 className="text-body-sm font-semibold text-card-foreground mb-2">Preview</h4>
           <div
             className="flex justify-center items-center p-4 bg-muted/30 rounded-lg border border-border"
             style={{ minHeight: `${PREVIEW_MIN_HEIGHT_PX}px` }}
@@ -189,148 +171,5 @@ export function SupplyBarcodePrint({
         document.body
       )}
     </BaseModal>
-  );
-}
-
-interface BarcodeLabelProps {
-  format: BarcodeFormat;
-  labelSize: LabelSize;
-  itemName: string;
-  manufacturer?: string;
-  catalogNumber?: string;
-  barcodeValue: string;
-}
-
-export function BarcodeLabel({
-  format,
-  labelSize,
-  itemName,
-  manufacturer,
-  catalogNumber,
-  barcodeValue,
-}: BarcodeLabelProps) {
-  const barcodeRef = useRef<SVGSVGElement>(null);
-  const qrRef = useRef<HTMLCanvasElement>(null);
-
-  const padIn = Math.max(0.05, labelSize.height * 0.06);
-  const innerHeightIn = labelSize.height - padIn * 2;
-  const qrSizeIn = innerHeightIn;
-
-  useEffect(() => {
-    if (format !== '1d' || !barcodeRef.current || !barcodeValue) return;
-    try {
-      JsBarcode(barcodeRef.current, barcodeValue, {
-        format: 'CODE128',
-        displayValue: false,
-        margin: 0,
-        height: 100,
-      });
-    } catch {
-      // Invalid value — SVG stays empty
-    }
-  }, [format, barcodeValue, labelSize]);
-
-  useEffect(() => {
-    if (format !== '2d' || !qrRef.current || !barcodeValue) return;
-    const canvas = qrRef.current;
-    const pixelSize = Math.max(256, Math.round(qrSizeIn * 300));
-    void qrToCanvas(canvas, barcodeValue, {
-      width: pixelSize,
-      margin: 0,
-    })
-      .then(() => {
-        canvas.style.width = `${qrSizeIn}in`;
-        canvas.style.height = `${qrSizeIn}in`;
-      })
-      .catch(() => {});
-  }, [format, barcodeValue, qrSizeIn]);
-
-  const metaLine = [manufacturer, catalogNumber, barcodeValue]
-    .filter((p): p is string => !!p && p.length > 0)
-    .join(' · ');
-
-  const nameFontStyle = {
-    fontSize: `${labelSize.nameFont}in`,
-    fontWeight: 700,
-    lineHeight: 1.15,
-    wordBreak: 'break-word' as const,
-  };
-  const metaFontStyle = {
-    fontSize: `${labelSize.metaFont}in`,
-    lineHeight: 1.15,
-  };
-  const truncate = {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  };
-
-  const containerStyle = {
-    width: `${labelSize.width}in`,
-    height: `${labelSize.height}in`,
-    maxWidth: `${labelSize.width}in`,
-    maxHeight: `${labelSize.height}in`,
-    padding: `${padIn}in`,
-    fontFamily: 'Arial, Helvetica, sans-serif',
-    color: '#000',
-    background: '#fff',
-    boxSizing: 'border-box' as const,
-    overflow: 'hidden' as const,
-  };
-
-  if (format === '1d') {
-    return (
-      <div className="flex flex-col" style={containerStyle}>
-        <div style={{ ...nameFontStyle, textAlign: 'center' }}>{itemName}</div>
-        <div
-          style={{
-            ...metaFontStyle,
-            ...truncate,
-            textAlign: 'center',
-            marginTop: `${padIn * 0.3}in`,
-          }}
-        >
-          {metaLine}
-        </div>
-        <div
-          className="flex-1 flex items-end"
-          style={{ marginTop: `${padIn * 0.4}in`, minHeight: 0 }}
-        >
-          <svg
-            ref={barcodeRef}
-            preserveAspectRatio="none"
-            style={{ width: '100%', height: '100%', display: 'block' }}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      style={{
-        ...containerStyle,
-        display: 'grid',
-        gridTemplateColumns: `1fr ${qrSizeIn}in`,
-        gridTemplateRows: `${innerHeightIn}in`,
-        gap: `${padIn}in`,
-        alignItems: 'center',
-      }}
-    >
-      <div style={{ minWidth: 0, overflow: 'hidden' }}>
-        <div style={nameFontStyle}>{itemName}</div>
-        {manufacturer && <div style={{ ...metaFontStyle, ...truncate }}>{manufacturer}</div>}
-        {catalogNumber && <div style={{ ...metaFontStyle, ...truncate }}>{catalogNumber}</div>}
-        <div style={{ ...metaFontStyle, ...truncate, fontFamily: 'monospace' }}>{barcodeValue}</div>
-      </div>
-      <canvas
-        ref={qrRef}
-        style={{
-          width: `${qrSizeIn}in`,
-          height: `${qrSizeIn}in`,
-          display: 'block',
-        }}
-      />
-    </div>
   );
 }

@@ -5,7 +5,7 @@
  * instead of creating individual observers per component.
  */
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 type TruncationCallback = (isTruncated: boolean) => void;
 
@@ -51,10 +51,6 @@ export function useTextTruncation<T extends HTMLElement = HTMLElement>(
   const ref = useRef<T>(null) as React.RefObject<T>;
   const [isTruncated, setIsTruncated] = useState(false);
 
-  const handleTruncationChange = useCallback((truncated: boolean) => {
-    setIsTruncated(truncated);
-  }, []);
-
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
@@ -62,13 +58,13 @@ export function useTextTruncation<T extends HTMLElement = HTMLElement>(
     const initialTruncated = element.scrollWidth > element.clientWidth;
     setIsTruncated(initialTruncated);
 
-    observeElement(element, handleTruncationChange);
+    observeElement(element, setIsTruncated);
 
     return () => {
       unobserveElement(element);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleTruncationChange, ...deps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps is the caller-supplied dependency list
+  }, [...deps]);
 
   return { ref, isTruncated };
 }

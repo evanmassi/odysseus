@@ -31,19 +31,27 @@ describe('LookupValue', () => {
     });
 
     it('should throw for empty value', () => {
-      expect(() => LookupValue.create({ category: 'species', value: '' })).toThrow('Lookup value cannot be empty');
+      expect(() => LookupValue.create({ category: 'species', value: '' })).toThrow(
+        'Lookup value cannot be empty'
+      );
     });
 
     it('should throw for whitespace-only value', () => {
-      expect(() => LookupValue.create({ category: 'species', value: '   ' })).toThrow('Lookup value cannot be empty');
+      expect(() => LookupValue.create({ category: 'species', value: '   ' })).toThrow(
+        'Lookup value cannot be empty'
+      );
     });
 
     it('should throw for value exceeding 200 characters', () => {
-      expect(() => LookupValue.create({ category: 'species', value: 'x'.repeat(201) })).toThrow('Lookup value cannot exceed 200 characters');
+      expect(() => LookupValue.create({ category: 'species', value: 'x'.repeat(201) })).toThrow(
+        'Lookup value cannot exceed 200 characters'
+      );
     });
 
     it('should throw for invalid category', () => {
-      expect(() => LookupValue.create({ category: 'invalid' as any, value: 'Test' })).toThrow('Invalid lookup category');
+      expect(() => LookupValue.create({ category: 'invalid' as any, value: 'Test' })).toThrow(
+        'Invalid lookup category'
+      );
     });
   });
 
@@ -80,7 +88,12 @@ describe('LookupValue', () => {
 
   describe('fromData / toData roundtrip', () => {
     it('should preserve all fields through roundtrip', () => {
-      const original = LookupValue.create({ category: 'source', value: 'Brain', sortOrder: 3, labId: 'lab_1' });
+      const original = LookupValue.create({
+        category: 'source',
+        value: 'Brain',
+        sortOrder: 3,
+        labId: 'lab_1',
+      });
       const data = original.toData();
       const restored = LookupValue.fromData(data);
 

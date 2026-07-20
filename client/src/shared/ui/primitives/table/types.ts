@@ -1,16 +1,14 @@
 /**
  * Table Component Types
- *
- * Type definitions for the Table primitive.
  */
 
 import type { ReactNode } from 'react';
 
-export type TableDensity = 'compact' | 'default';
+type TableDensity = 'compact' | 'default';
 
 export type RowState = 'success' | 'warning' | 'danger' | 'muted' | 'default';
 
-export type SortDirection = 'asc' | 'desc';
+type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {
   columnId: string;
@@ -34,7 +32,7 @@ interface TableRowMap extends TableRowBase {
   [key: string]: unknown;
 }
 
-export interface TableToolbar {
+interface TableToolbar {
   left?: ReactNode;
   right?: ReactNode;
 }
@@ -50,7 +48,6 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   sortConfig?: SortConfig;
   loading?: boolean;
   density?: TableDensity;
-  stickyHeader?: boolean;
   onSort?: (config: SortConfig) => void;
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (row: T, index: number) => void;
@@ -66,8 +63,6 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   chassis?: boolean;
 }
 
-export type TableRef = HTMLTableElement;
-
 // Internal
 export interface TableContextValue {
   selectable: boolean;
@@ -80,16 +75,15 @@ export interface TableContextValue {
   density: TableDensity;
 }
 
-export const defaultTableProps: Partial<TableProps> = {
+export const defaultTableProps = {
   density: 'default',
   sortable: false,
   selectable: false,
   multiSelect: false,
   hoverable: true,
   loading: false,
-  stickyHeader: false,
   selectedRows: [],
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',
   chassis: true,
-};
+} satisfies Partial<TableProps>;

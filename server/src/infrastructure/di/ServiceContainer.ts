@@ -10,17 +10,6 @@ import type { PasswordService } from '@application/contracts/PasswordService';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { AuditEventHandler } from '@application/event-handlers/AuditEventHandler';
 import type { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
-import type { AuditRetentionService } from '@application/services/AuditRetentionService';
-import type { AuditService } from '@application/services/AuditService';
-import type { DonorApplicationService } from '@application/services/DonorApplicationService';
-import type { EquipmentApplicationService } from '@application/services/EquipmentApplicationService';
-import type { ExportService } from '@application/services/ExportService';
-import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
-import type { PresenceService } from '@application/services/PresenceService';
-import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
-import type { SupplyApplicationService } from '@application/services/SupplyApplicationService';
-import type { TubeApplicationService } from '@application/services/TubeApplicationService';
-import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import type { EmailService } from '@domain/services/EmailService';
 import { TubePositionService } from '@domain/services/TubePositionService';
@@ -39,7 +28,6 @@ import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
 import type { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
-import type { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
 import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailService';
 import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
@@ -125,7 +113,7 @@ export class ServiceContainer {
     return this.eventBus;
   }
 
-  getPasswordService(): PasswordService {
+  private getPasswordService(): PasswordService {
     if (!this.passwordService) {
       this.passwordService = new BcryptPasswordService();
     }
@@ -141,13 +129,14 @@ export class ServiceContainer {
         repositories.refreshTokens,
         repositories.storage,
         repositories.userSessions,
+        this.repositoryFactory,
         repositories.labs
       );
     }
     return this.sessionService;
   }
 
-  getEmailService(): EmailService {
+  private getEmailService(): EmailService {
     if (!this.emailService) {
       this.emailService = new ConsoleEmailService(
         this.configurationService.get('email').verificationBaseUrl
@@ -159,10 +148,7 @@ export class ServiceContainer {
   private getTubePositionService(): TubePositionService {
     if (!this.tubePositionService) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.tubePositionService = new TubePositionService(
-        repositories.tubes,
-        repositories.storage
-      );
+      this.tubePositionService = new TubePositionService(repositories.tubes, repositories.storage);
     }
     return this.tubePositionService;
   }
@@ -170,10 +156,7 @@ export class ServiceContainer {
   private getAccessControlService(): AccessControlService {
     if (!this.accessControlService) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.accessControlService = new AccessControlService(
-        repositories.users,
-        repositories.tubes
-      );
+      this.accessControlService = new AccessControlService(repositories.tubes);
     }
     return this.accessControlService;
   }
@@ -183,11 +166,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.validationService = new ValidationService(
         repositories.tubes,
-        repositories.users,
-        repositories.researchers,
-        repositories.storage,
-        repositories.persons,
-        this.getTubePositionService(),
         this.getAccessControlService()
       );
     }
@@ -198,7 +176,7 @@ export class ServiceContainer {
 
   private getEventModule(): EventModule {
     if (!this._eventModule) {
-      this._eventModule = new EventModule(this.getShared(), this.repositoryFactory);
+      this._eventModule = new EventModule(this.getShared());
     }
     return this._eventModule;
   }
@@ -256,9 +234,7 @@ export class ServiceContainer {
 
   private getStorageModule(): StorageModule {
     if (!this._storageModule) {
-      this._storageModule = new StorageModule(this.getShared(), this.repositoryFactory, {
-        getGetUserStatsHandler: () => this.getUserModule().getGetUserStatsHandler(),
-      });
+      this._storageModule = new StorageModule(this.getShared(), this.repositoryFactory);
     }
     return this._storageModule;
   }
@@ -267,10 +243,13 @@ export class ServiceContainer {
     if (!this._authModule) {
       this._authModule = new AuthModule(this.getShared(), this.repositoryFactory, {
         getCheckFirstTimeHandler: () => this.getUserModule().getCheckFirstTimeHandler(),
-        getGetUserByIdHandler: () => this.getUserModule().getGetUserByIdHandler(),
         getChangeRoleHandler: () => this.getUserModule().getChangeRoleHandler(),
         getUserApplicationService: () => this.getUserModule().getUserApplicationService(),
-        getResearcherApplicationService: () => this.getUserModule().getResearcherApplicationService(),
+        getResearcherApplicationService: () =>
+          this.getUserModule().getResearcherApplicationService(),
+        getPersonApplicationService: () => this.getUserModule().getPersonApplicationService(),
+        getSecurityConfigApplicationService: () =>
+          this.getStorageModule().getSecurityConfigApplicationService(),
       });
     }
     return this._authModule;
@@ -282,28 +261,11 @@ export class ServiceContainer {
     this.getEventModule().setSocketIO(io);
   }
 
-  getPresenceService(): PresenceService {
-    return this.getEventModule().getPresenceService();
-  }
-
   getSocketEventHandler(): SocketEventHandler | null {
     return this.getEventModule().getSocketEventHandler();
   }
 
-
   // Public API — AuditModule
-
-  getAuditService(): AuditService {
-    return this.getAuditModule().getAuditService();
-  }
-
-  getAuditRetentionService(): AuditRetentionService {
-    return this.getAuditModule().getAuditRetentionService();
-  }
-
-  getAuditArchiveRepository(): AuditArchiveRepository {
-    return this.getAuditModule().getAuditArchiveRepository();
-  }
 
   getAuditArchivalJob(): AuditArchivalJob {
     return this.getAuditModule().getAuditArchivalJob();
@@ -317,19 +279,11 @@ export class ServiceContainer {
     return this.getAuditModule().getAuditController();
   }
 
-  getExportService(): ExportService {
-    return this.getAuditModule().getExportService();
-  }
-
   getExportController(): ExportController {
     return this.getAuditModule().getExportController();
   }
 
   // Public API — TubeModule
-
-  getTubeApplicationService(): TubeApplicationService {
-    return this.getTubeModule().getTubeApplicationService();
-  }
 
   getTubeController(): TubeController {
     return this.getTubeModule().getTubeController();
@@ -354,14 +308,6 @@ export class ServiceContainer {
   }
 
   // Public API — UserModule
-
-  getUserApplicationService(): UserApplicationService {
-    return this.getUserModule().getUserApplicationService();
-  }
-
-  getResearcherApplicationService(): ResearcherApplicationService {
-    return this.getUserModule().getResearcherApplicationService();
-  }
 
   getUserController(): UserController {
     return this.getUserModule().getUserController();
@@ -389,29 +335,17 @@ export class ServiceContainer {
 
   // Public API — DonorModule
 
-  getDonorApplicationService(): DonorApplicationService {
-    return this.getDonorModule().getDonorApplicationService();
-  }
-
   getDonorController(): DonorController {
     return this.getDonorModule().getDonorController();
   }
 
   // Public API — SupplyModule
 
-  getSupplyApplicationService(): SupplyApplicationService {
-    return this.getSupplyModule().getSupplyApplicationService();
-  }
-
   getSupplyController(): SupplyController {
     return this.getSupplyModule().getSupplyController();
   }
 
   // Public API — EquipmentModule
-
-  getEquipmentApplicationService(): EquipmentApplicationService {
-    return this.getEquipmentModule().getEquipmentApplicationService();
-  }
 
   getEquipmentController(): EquipmentController {
     return this.getEquipmentModule().getEquipmentController();
@@ -425,10 +359,6 @@ export class ServiceContainer {
 
   getAdminConfigController(): AdminConfigController {
     return this.getStorageModule().getAdminConfigController();
-  }
-
-  getLookupValueApplicationService(): LookupValueApplicationService {
-    return this.getStorageModule().getLookupValueApplicationService();
   }
 
   getLookupValueController(): LookupValueController {

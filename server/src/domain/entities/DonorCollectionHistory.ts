@@ -70,14 +70,26 @@ export class DonorCollectionHistory {
       data.collectionDate !== undefined ? toDateOnly(data.collectionDate) : this._collectionDate,
       data.specimenType !== undefined ? (data.specimenType ?? undefined) : this._specimenType,
       data.source !== undefined ? (data.source ?? undefined) : this._source,
-      this._createdAt,
+      this._createdAt
     );
   }
 
-  get id(): string { return this._id; }
-  get donorId(): string { return this._donorId; }
-  get collectionDate(): string | undefined { return this._collectionDate; }
-  get specimenType(): string | undefined { return this._specimenType; }
-  get source(): string | undefined { return this._source; }
-  get createdAt(): Date { return new Date(this._createdAt); }
+  get id(): string {
+    return this._id;
+  }
+  get donorId(): string {
+    return this._donorId;
+  }
+  get collectionDate(): string | undefined {
+    return this._collectionDate;
+  }
+  get specimenType(): string | undefined {
+    return this._specimenType;
+  }
+  get source(): string | undefined {
+    return this._source;
+  }
+  get createdAt(): Date {
+    return new Date(this._createdAt);
+  }
 }

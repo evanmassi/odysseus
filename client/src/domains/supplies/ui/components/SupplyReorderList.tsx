@@ -6,10 +6,12 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
+import { isAdminRole } from '@odysseus/shared-schemas';
 import { Download, ShoppingCart } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
 import { httpClient } from '@infra/api';
-import { Button, Table } from '@shared/ui';
+import { AccentTick, Button, Table } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { formatCurrency } from '@shared/utils/formatCurrency';
@@ -39,6 +41,9 @@ interface SupplyReorderListProps {
 }
 
 export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListProps) {
+  const { user } = useAuthStore();
+  const isAdmin = isAdminRole(user?.role);
+
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     columnId: 'totalStock',
     direction: 'asc',
@@ -100,7 +105,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
           <div className="flex flex-col leading-tight">
             <span className="text-muted-foreground">{row.manufacturer}</span>
             {row.catalogNumber !== '—' && (
-              <span className="font-mono text-[11px] tracking-[0.02em] text-foreground/45">
+              <span className="font-mono text-data-sm tracking-[0.02em] text-foreground/45">
                 {row.catalogNumber}
               </span>
             )}
@@ -115,7 +120,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
           <div className="flex flex-col leading-tight">
             <span className="text-muted-foreground">{row.vendorName}</span>
             {row.vendorCatalogNumber !== '—' && (
-              <span className="font-mono text-[11px] tracking-[0.02em] text-foreground/45">
+              <span className="font-mono text-data-sm tracking-[0.02em] text-foreground/45">
                 {row.vendorCatalogNumber}
               </span>
             )}
@@ -170,11 +175,8 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
       size="lg"
       locator={
         <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-          />
-          <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+          <AccentTick />
+          <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
             {items.length} <span className="text-foreground/45">below reorder</span>
           </span>
         </div>
@@ -188,9 +190,9 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
         sortConfig={sortConfig}
         onSort={setSortConfig}
         density="compact"
-        className="text-xs"
+        className="text-data"
         toolbar={{
-          right: (
+          right: isAdmin ? (
             <Button
               variant="secondary"
               size="sm"
@@ -199,7 +201,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
             >
               Export CSV
             </Button>
-          ),
+          ) : undefined,
         }}
         aria-label="Reorder list"
       />

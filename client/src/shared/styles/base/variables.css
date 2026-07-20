@@ -10,7 +10,7 @@
   }
 
   html {
-    font-family: 'Space Grotesk', 'Helvetica Neue', system-ui, sans-serif;
+    font-family: var(--font-sans);
   }
 
   body {
@@ -23,21 +23,36 @@
     color: hsl(var(--foreground));
   }
 
-  :root {
+  :root,
+  [data-theme='light'] {
     /* Color system: --{name} for backgrounds, --{name}-foreground for text */
     /* HSL format enables Tailwind opacity modifiers (e.g., text-foreground/50) */
+    /* [data-theme='light'] lets a subtree re-assert light tokens inside a forced-dark
+       island (e.g. a menu opened from the dark header). */
+
+    /* Typography — single source for the font stacks; Tailwind fontFamily references these. */
+    --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui, sans-serif;
+    --font-mono:
+      'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+      'Courier New', monospace;
+
+    /* Phosphor text glow — crisp core + soft halo on the element's own currentColor. */
+    --phosphor-shadow:
+      0 0 1px currentColor, 0 0 6px color-mix(in srgb, currentColor 40%, transparent);
 
     /* Core */
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
-    --page: 0 0% 100%;
+    --page: 214 22% 93%;
 
     /* Surfaces */
-    --bg-void: 220 20% 95%;
+    --bg-void: 214 24% 94%;
     --bg-base: 0 0% 100%;
     --bg-panel: 0 0% 100%;
     --bg-panel-2: 210 30% 98%;
     --bg-elev: 0 0% 100%;
+    /* Recessed header-strip channel fill (light); dark uses the shade wash. */
+    --strip-surface: 0 0% 100%;
 
     /* Hairlines */
     --line-faint: 222 47% 11% / 0.04;
@@ -48,6 +63,22 @@
     /* Input well — sunken surface overlay for text inputs/selects/etc. */
     --input-well: 0 0% 0% / 0.04;
 
+    /* CRT scanline tint — faint on the light surface; dark theme overrides to full. */
+    --scanline: 0 0% 0% / 0.035;
+
+    /* Overlay/shadow bases — alpha applied per use. shade = brand-navy band/fill tint;
+       recess = neutral inset/drop shadow (kept off the brand hue); sheen = light
+       highlight; scrim = always-dark floating halo. Dark theme overrides to black. */
+    --shade: 212 45% 43%;
+    --recess: 218 16% 34%;
+    --sheen: 0 0% 100%;
+    --scrim: 0 0% 0%;
+    /* Lit switch: 0 = unlit (light), 1 = lit (dark). Multiplies the glow/sheen/bloom
+       alphas; elevation ignores it. */
+    --lit: 0;
+    /* Table-header surface: % of card kept before mixing toward black (lighter in light). */
+    --header-mix: 96%;
+
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
@@ -56,18 +87,19 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
 
-    /* Primary */
-    --primary: 210 50% 56.7%;
+    /* Primary — deep-navy accent (#234a82). */
+    --primary: 213 60% 40%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
     --secondary: 214.3 31.8% 91.4%;
-    --secondary-foreground: 215.4 19.3% 34.5%;
+    /* Neutral text — muted near-black, cool-neutral to sit with the navy ink. */
+    --secondary-foreground: 220 9% 27%;
 
     /* Muted */
     --muted: 210 40% 96.1%;
     --muted-hover: 210 35% 93%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 220 8% 40%;
 
     /* Accent */
     --accent: 210 40% 98%;
@@ -81,75 +113,78 @@
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
-    /* Defined only on :root — auth surface intentionally does not follow app theme.
-       Values are plain channels (not Tailwind tokens) so they compose into the
-       multi-alpha box-shadow + gradient stacks in auth-console.css. */
-    --auth-ambient: 91 157 217;
-    --auth-surface: 14 22 34;
-    /* Field behind the console — darker than --auth-surface so the navy chrome floats. */
-    --auth-field-bg: 6 10 18;
-    --auth-edge-lift-top: 255 255 255 / 0.2;
-    --auth-edge-lift-left: 255 255 255 / 0.06;
-    --auth-edge-recess-bottom: 0 0 0 / 0.5;
-    --auth-edge-recess-right: 0 0 0 / 0.22;
-    --auth-rim: 232 227 213 / 0.07;
-    --auth-divider: 232 227 213 / 0.08;
-    --auth-text: 232 227 213;
-    --auth-text-dim: 232 227 213 / 0.62;
-    --auth-text-mute: 232 227 213 / 0.42;
-    --auth-text-faint: 232 227 213 / 0.28;
+    /* Auth surface tokens — light console palette. Plain space-separated channels
+       (not HSL Tailwind tokens) so they compose into the gradient/shadow stacks in
+       auth-console.css. Dark overrides below. */
+    --auth-ambient: 35 74 130;
+    --auth-surface: 255 255 255;
+    /* Field behind the console — cool canvas. */
+    --auth-field-bg: 236 239 243;
+    /* Inset edge tokens off in light; the rim hairline + soft shadow carry the console. */
+    --auth-edge-lift-top: 255 255 255 / 0;
+    --auth-edge-lift-left: 255 255 255 / 0;
+    --auth-edge-recess-bottom: 28 39 51 / 0;
+    --auth-edge-recess-right: 28 39 51 / 0;
+    --auth-rim: 221 227 236 / 1;
+    --auth-divider: 28 39 51 / 0.1;
+    --auth-text: 28 39 51;
+    --auth-text-dim: 28 39 51 / 0.75;
+    --auth-text-mute: 28 39 51 / 0.55;
+    --auth-text-faint: 28 39 51 / 0.38;
 
     /* Action Colors */
     --color-action-default: var(--primary);
-    --color-action-hover: 210 43.1% 50%;
-    --color-action-focus: 210 43.1% 50%;
-    --color-action-light: 210 50% 97%;
-    --color-action-light-hover: 210 50% 94%;
+    --color-action-hover: 213 60% 32%;
+    --color-action-focus: 213 60% 32%;
+    --color-action-light: 213 50% 97%;
+    --color-action-light-hover: 213 50% 94%;
 
-    /* Danger Theme */
-    --color-danger-bg: 1 62% 44%;
-    --color-danger-hover: 1 70% 36%;
-    --color-danger-text: 1 62% 44%;
-    --color-danger-text-hover: 1 70% 36%;
+    /* Danger Theme — brick/clay ink (≈ rgb(178,66,52)). */
+    --color-danger-bg: 7 55% 45%;
+    --color-danger-hover: 7 60% 38%;
+    --color-danger-text: 7 55% 45%;
+    --color-danger-text-hover: 7 60% 38%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 1 55% 97%;
-    --color-danger-light-hover: 1 60% 94%;
-    --color-danger-border: 1 55% 55%;
+    --color-danger-light: 7 55% 97%;
+    --color-danger-light-hover: 7 58% 94%;
+    --color-danger-border: 7 50% 55%;
 
     /* Clear Theme */
     --color-clear-bg: 220 13% 91%;
     --color-clear-hover: 220 13% 82.7%;
     --color-clear-text: 220 8.9% 46.1%;
 
-    /* Warning Theme */
-    --color-warning-bg: 44 74% 52%;
-    --color-warning-hover: 44 80% 44%;
-    --color-warning-text: 44 74% 45%;
-    --color-warning-text-hover: 44 80% 38%;
+    /* Warning Theme — ochre ink (≈ rgb(158,110,30)), deepened so amber doesn't wash
+       out at high lightness. */
+    --color-warning-bg: 38 68% 42%;
+    --color-warning-hover: 38 72% 35%;
+    --color-warning-text: 38 68% 37%;
+    --color-warning-text-hover: 38 72% 31%;
     --color-warning-btnText: 0 0% 100%;
-    --color-warning-light: 44 75% 97%;
-    --color-warning-light-hover: 44 78% 94%;
-    --color-warning-border: 44 70% 55%;
+    --color-warning-light: 40 70% 95%;
+    --color-warning-light-hover: 40 72% 91%;
+    --color-warning-border: 38 58% 50%;
 
-    /* Success Theme */
-    --color-success-bg: 152 38% 42%;
-    --color-success-hover: 152 45% 34%;
-    --color-success-text: 152 38% 42%;
-    --color-success-text-hover: 152 45% 34%;
+    /* Success Theme — pine ink (≈ rgb(46,116,78)). */
+    --color-success-bg: 147 43% 32%;
+    --color-success-hover: 147 48% 26%;
+    --color-success-text: 147 43% 32%;
+    --color-success-text-hover: 147 48% 26%;
     --color-success-btnText: 0 0% 100%;
-    --color-success-light: 152 40% 97%;
-    --color-success-light-hover: 152 45% 94%;
-    --color-success-border: 152 35% 50%;
+    --color-success-light: 147 40% 96%;
+    --color-success-light-hover: 147 43% 92%;
+    --color-success-border: 147 38% 42%;
 
-    /* Info Theme */
-    --color-info-bg: 210 70% 55%;
-    --color-info-hover: 210 75% 47%;
-    --color-info-text: 210 70% 50%;
-    --color-info-text-hover: 210 75% 42%;
+    /* Info Theme — deep azure; deepened from a sky blue that read lighter than the
+       primary. */
+    --color-info-bg: 206 62% 42%;
+    --color-info-hover: 206 66% 35%;
+    --color-info-text: 206 62% 41%;
+    --color-info-text-hover: 206 66% 34%;
     --color-info-btnText: 0 0% 100%;
-    --color-info-light: 210 50% 97%;
-    --color-info-light-hover: 210 55% 94%;
-    --color-info-border: 210 60% 65%;
+    --color-info-light: 206 55% 96%;
+    --color-info-light-hover: 206 58% 92%;
+    --color-info-border: 206 50% 52%;
 
     --color-demo-bg: 280 40% 50%;
     --color-demo-text: 280 38% 42%;
@@ -165,26 +200,29 @@
     /* Focus Ring System */
     --focus-ring-color: 200 85% 58%;
     --focus-ring-contrast: 0 0% 100%;
-    --focus-ring-glow-inner: 186.7 92.9% 90.6%;
     --focus-ring-glow-outer: 200 85% 58% / 0.45;
     --focus-ring-blur: 200 85% 58% / 0.3;
-    --focus-ring-width: 2px;
     --focus-ring-offset: 0px;
+    /* Composed ring shared by the global focus rule and the auth-container focus-within. */
+    --focus-ring-shadow:
+      0 0 0 3px hsl(var(--ring)), 0 0 6px 2px hsl(var(--focus-ring-glow-outer)),
+      0 0 14px 4px hsl(var(--focus-ring-blur));
+
+    /* Field focus glow — light = primary ring only; dark adds the phosphor bloom. */
+    --input-focus-shadow: 0 0 0 1px hsl(var(--primary) / 0.3);
+
+    /* Dropdown elevation — primary-tinted ring + soft halo. */
+    --popup-shadow: 0 0 0 1px hsl(var(--primary) / 0.15), 0 0 24px -4px hsl(var(--primary) / 0.3);
 
     /* Component library aliases */
     --ring: var(--focus-ring-color);
-    --ring-offset: var(--background);
-
-    /* Focus Ring System - Validation States */
-    --focus-ring-error: var(--color-danger-bg);
-    --focus-ring-warning: var(--color-warning-bg);
-    --focus-ring-success: var(--color-success-bg);
 
     /* Audit Log - Entity Colors */
     --color-audit-entity-tube: 209.3 89.7% 77.3%;
     --color-audit-entity-storage: 209.5 36.1% 52.7%;
     --color-audit-entity-person: 236.5 28.4% 59.4%;
     --color-audit-entity-system: 215.4 16.3% 46.9%;
+    --color-audit-entity-supply: 174 42% 45%;
 
     /* Audit Log - Action Colors */
     --color-audit-action-create: var(--color-success-text);
@@ -201,63 +239,105 @@
 
     /* Tube Grid */
     --grid-border: 220 13% 91%;
-    --grid-empty: 210 20% 96%;
-    --grid-empty-foreground: 0 0% 60%;
-    --grid-position-label: 0 0% 100%;
-    --grid-position-label-foreground: 215.4 19.3% 34.5%;
-    --grid-position-label-border: 220 13% 82.7%;
-    --grid-selection: 200 85% 58%;
-    --grid-selection-glow: 200 85% 58% / 0.8;
+    --grid-empty: 214 33% 96%;
+    --grid-empty-foreground: 213 16% 63%;
+    /* Light selection: bold ring + fill tint (overlay) + elevation, no glow bloom. Ring
+       is brighter/more saturated than the primary so it stays visible on pale and dark
+       cells. */
+    --grid-selection: 213 82% 47%;
+    --grid-selection-glow: 213 82% 50% / 0.45;
     --grid-selection-inner: 0 0% 100% / 0.5;
-    --grid-selection-overlay: 0 0% 100% / 0.45;
-    --grid-selection-empty: 200 85% 58% / 0.08;
-    --grid-preview: 210 30% 60%;
-    --grid-preview-glow: 210 40% 66% / 0.5;
-    --grid-preview-overlay: 0 0% 100% / 0.32;
-    --grid-preview-empty: 210 35% 60% / 0.12;
+    --grid-selection-overlay: 213 68% 44% / 0.04;
+    --grid-selection-empty: 213 68% 44% / 0.1;
+    --grid-selection-coord: 213 60% 24%;
+    --grid-preview: 213 45% 62%;
+    --grid-preview-glow: 213 50% 60% / 0.35;
+    --grid-preview-overlay: 213 45% 62% / 0.13;
+    --grid-preview-empty: 213 45% 62% / 0.12;
+    --grid-preview-coord: 213 50% 34%;
     --grid-cut-opacity: 0.65;
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
 
-    /* Table — alpha scale for row glow, checkbox glow, and surface overlays.
-       Defined theme-agnostic; same values in light and dark. */
-    --alpha-glow-wash-1: 0.21;
-    --alpha-glow-wash-2: 0.13;
-    --alpha-glow-wash-3: 0.06;
-    --alpha-glow-wash-4: 0.02;
-    --alpha-glow-tint: 0.025;
-    --alpha-glow-edge-inner: 0.43;
-    --alpha-glow-edge-rim: 0.16;
-    --alpha-glow-edge-bloom: 0.14;
-    --alpha-glow-outer-near: 0.2;
-    --alpha-glow-outer-far: 0.09;
-    --alpha-glow-bar-strong: 0.5;
-    --alpha-glow-bar-mid: 0.4;
-    --alpha-glow-bar-far: 0.19;
-    --alpha-checkbox-glow-inner: 0.55;
-    --alpha-checkbox-glow-outer: 0.22;
-    --alpha-checkbox-shadow: 0.6;
+    /* Row/table glow alpha scale — light flattens the blooms to 0 (no additive glow
+       on white); fill, accent bar, and rims stay. Dark block re-pins the lit values. */
+    --alpha-glow-wash-1: 0.14;
+    --alpha-glow-wash-2: 0.09;
+    --alpha-glow-wash-3: 0.045;
+    --alpha-glow-wash-4: 0.015;
+    --alpha-glow-tint: 0.05;
+    --alpha-glow-edge-inner: 0.12;
+    --alpha-glow-edge-rim: 0.12;
+    --alpha-glow-edge-bloom: 0;
+    --alpha-glow-outer-near: 0;
+    --alpha-glow-outer-far: 0;
+    --alpha-glow-bar-strong: 0;
+    --alpha-glow-bar-mid: 0;
+    --alpha-glow-bar-far: 0;
+    --alpha-checkbox-glow-inner: 0;
+    --alpha-checkbox-glow-outer: 0;
+    --alpha-checkbox-shadow: 0.25;
     --alpha-zebra: 0.02;
     --alpha-hover: 0.05;
-    --alpha-cell-rim: 0.12;
     --alpha-header-rim: 0.09;
-    --alpha-header-rule: 0.18;
-    --alpha-header-emit: 0.18;
-    --alpha-header-bloom: 0.1;
-    --alpha-phosphor-rim: 0.045;
-    --alpha-phosphor-bloom: 0.04;
+    --alpha-phosphor-rim: 0;
+    --alpha-phosphor-bloom: 0;
     --alpha-hover-stripe: 0.45;
-    --alpha-hover-edge: 0.18;
-    --alpha-hover-bloom: 0.08;
+    --alpha-hover-edge: 0.1;
+    --alpha-hover-bloom: 0;
     --alpha-hover-wash-1: 0.1;
     --alpha-hover-wash-2: 0.06;
     --alpha-hover-wash-3: 0.03;
     --alpha-hover-wash-4: 0.01;
     --alpha-hover-rim: 0.07;
-    --alpha-hover-bloom-edge: 0.06;
-    --alpha-hover-bloom-far: 0.04;
+    --alpha-hover-bloom-edge: 0;
+    --alpha-hover-bloom-far: 0;
     --alpha-stripe-muted: 0.3;
-    --bg-header-band: 0 0% 0% / 0.15;
+
+    /* Row-glow recipe layers — shared by table rows (rowHoverGlow.ts), nav trees
+       (nav-tree.css), and the storage navigator (storage-navigator.css). Tone-keyed
+       via --row-tone, which each consumer sets; alphas swap per theme above. */
+    --scanline-layer: repeating-linear-gradient(
+      to bottom,
+      hsl(var(--scanline)) 0,
+      hsl(var(--scanline)) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    --glow-hover-wash: linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-1)) 0%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-2)) 18%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-3)) 48%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-4)) 78%,
+      hsl(var(--row-tone) / 0) 100%
+    );
+    --glow-hover-shadow:
+      inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-hover-edge)),
+      inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
+      inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
+      0 0 22px -4px hsl(var(--row-tone) / var(--alpha-hover-bloom)),
+      0 0 50px 4px hsl(var(--row-tone) / var(--alpha-hover-bloom-far));
+    --glow-selected-tint: linear-gradient(
+      180deg,
+      hsl(var(--row-tone) / var(--alpha-glow-tint)),
+      hsl(var(--row-tone) / var(--alpha-glow-tint))
+    );
+    --glow-selected-wash: linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-1)) 0%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-2)) 18%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-3)) 48%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-4)) 78%,
+      hsl(var(--row-tone) / 0) 100%
+    );
+    --glow-selected-shadow:
+      inset 3px 0 0 0 hsl(var(--row-tone)),
+      inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-glow-edge-inner)),
+      inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
+      inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
+      0 0 32px -4px hsl(var(--row-tone) / var(--alpha-glow-outer-near)),
+      0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
 
     /* Always-dark components */
 
@@ -307,6 +387,17 @@
     /* Input well — dark theme: deeper black wash so fields read as recessed against panels */
     --input-well: 0 0% 0% / 0.15;
 
+    /* Field focus glow — phosphor bloom over the base ring (light is ring-only). */
+    --input-focus-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px -2px hsl(var(--primary) / 0.45),
+      inset 0 0 12px -4px hsl(var(--primary) / 0.25);
+
+    --scanline: 0 0% 0% / 0.12;
+    --shade: 0 0% 0%;
+    --recess: 0 0% 0%;
+    --lit: 1;
+    --header-mix: 85%;
+
     /* Card */
     --card: 217 32% 9%;
     --card-foreground: 45 29% 87%;
@@ -317,7 +408,6 @@
 
     /* Primary */
     --primary: 210 60% 60%;
-    --primary-foreground: 0 0% 100%;
 
     /* Secondary */
     --secondary: 217 26% 11%;
@@ -336,8 +426,25 @@
     --border: 215.3 25% 26.7%;
     --input: 217.2 25% 26.7%;
 
+    /* Auth surface tokens — always-dark navy console. Overrides the light values above. */
+    --auth-ambient: 91 157 217;
+    --auth-surface: 14 22 34;
+    --auth-field-bg: 6 10 18;
+    --auth-edge-lift-top: 255 255 255 / 0.2;
+    --auth-edge-lift-left: 255 255 255 / 0.06;
+    --auth-edge-recess-bottom: 0 0 0 / 0.5;
+    --auth-edge-recess-right: 0 0 0 / 0.22;
+    --auth-rim: 232 227 213 / 0.07;
+    --auth-divider: 232 227 213 / 0.08;
+    --auth-text: 232 227 213;
+    --auth-text-dim: 232 227 213 / 0.62;
+    --auth-text-mute: 232 227 213 / 0.42;
+    --auth-text-faint: 232 227 213 / 0.28;
+    /* Smoked input well — dark only; light fields use their own surfaces. */
+    --auth-well: 0 0 0 / 0.42;
+    --auth-well-hover: 0 0 0 / 0.55;
+
     /* Action Colors */
-    --color-action-default: var(--primary);
     --color-action-hover: 210 65% 52%;
     --color-action-focus: 210 65% 52%;
     --color-action-light: 210 45% 12%;
@@ -348,7 +455,6 @@
     --color-danger-hover: 5 58% 52%;
     --color-danger-text: 5 50% 65%;
     --color-danger-text-hover: 5 58% 58%;
-    --color-danger-btnText: 0 0% 100%;
     --color-danger-light: 5 30% 12%;
     --color-danger-light-hover: 5 35% 16%;
     --color-danger-border: 5 45% 45%;
@@ -358,7 +464,6 @@
     --color-warning-hover: 32 72% 54%;
     --color-warning-text: 32 67% 68%;
     --color-warning-text-hover: 32 72% 60%;
-    --color-warning-btnText: 0 0% 100%;
     --color-warning-light: 32 40% 10%;
     --color-warning-light-hover: 32 45% 14%;
     --color-warning-border: 32 60% 45%;
@@ -368,7 +473,6 @@
     --color-success-hover: 152 45% 42%;
     --color-success-text: 152 45% 60%;
     --color-success-text-hover: 152 50% 52%;
-    --color-success-btnText: 0 0% 100%;
     --color-success-light: 152 15% 12%;
     --color-success-light-hover: 152 20% 16%;
     --color-success-border: 152 35% 40%;
@@ -378,7 +482,6 @@
     --color-info-hover: 213 80% 52%;
     --color-info-text: 213 75% 70%;
     --color-info-text-hover: 213 80% 62%;
-    --color-info-btnText: 0 0% 100%;
     --color-info-light: 213 45% 12%;
     --color-info-light-hover: 213 50% 16%;
     --color-info-border: 213 55% 40%;
@@ -402,18 +505,15 @@
     /* Focus Ring System */
     --focus-ring-color: 213.1 93.9% 67.8%;
     --focus-ring-contrast: var(--page);
-    --focus-ring-glow-inner: 213.8 50% 24.3%;
     --focus-ring-glow-outer: 213.1 93.9% 67.8% / 0.35;
     --focus-ring-blur: 213.1 93.9% 67.8% / 0.25;
-
-    /* Component library aliases */
-    --ring: var(--focus-ring-color);
 
     /* Audit Log - Entity Colors */
     --color-audit-entity-tube: 199 85% 65%;
     --color-audit-entity-storage: 210 45% 60%;
     --color-audit-entity-person: 250 40% 70%;
     --color-audit-entity-system: 215 20% 60%;
+    --color-audit-entity-supply: 172 50% 58%;
 
     /* Audit Log - Action Colors (auth needs override, others use semantic colors) */
     --color-audit-action-auth: 215 20% 60%;
@@ -425,22 +525,44 @@
 
     /* Tube Grid */
     --grid-border: 217.2 19.2% 26.7%;
-    --grid-empty: 215 24% 19%;
-    --grid-position-label: 217.2 32.6% 15.5%;
-    --grid-position-label-foreground: 220 10.6% 64.9%;
-    --grid-position-label-border: 217.2 19.2% 26.7%;
+    --grid-empty: 0 0% 0% / 0.32;
     --grid-empty-foreground: 220 8.9% 46.1%;
     --grid-selection: 213.1 93.9% 67.8%;
     --grid-selection-glow: 213.1 93.9% 67.8% / 0.7;
-    --grid-selection-inner: 0 0% 100% / 0.5;
     --grid-selection-overlay: 0 0% 100% / 0.35;
     --grid-selection-empty: 213.1 93.9% 67.8% / 0.15;
+    --grid-selection-coord: 0 0% 100%;
     --grid-preview: 210 30% 74%;
     --grid-preview-glow: 210 40% 80% / 0.45;
     --grid-preview-overlay: 0 0% 100% / 0.3;
     --grid-preview-empty: 210 35% 74% / 0.16;
+    --grid-preview-coord: 0 0% 100%;
     --grid-cut-opacity: 0.5;
     --grid-copied: 215 20.2% 65.1%;
     --grid-copied-alt: 217.2 32.6% 17.5%;
+
+    /* Lit glow scale — dark re-pins the bloom/glow values that light flattens. */
+    --alpha-glow-wash-1: 0.21;
+    --alpha-glow-wash-2: 0.13;
+    --alpha-glow-wash-3: 0.06;
+    --alpha-glow-wash-4: 0.02;
+    --alpha-glow-tint: 0.025;
+    --alpha-glow-edge-inner: 0.43;
+    --alpha-glow-edge-rim: 0.16;
+    --alpha-glow-edge-bloom: 0.14;
+    --alpha-glow-outer-near: 0.2;
+    --alpha-glow-outer-far: 0.09;
+    --alpha-glow-bar-strong: 0.5;
+    --alpha-glow-bar-mid: 0.4;
+    --alpha-glow-bar-far: 0.19;
+    --alpha-checkbox-glow-inner: 0.55;
+    --alpha-checkbox-glow-outer: 0.22;
+    --alpha-checkbox-shadow: 0.6;
+    --alpha-phosphor-rim: 0.045;
+    --alpha-phosphor-bloom: 0.04;
+    --alpha-hover-edge: 0.18;
+    --alpha-hover-bloom: 0.08;
+    --alpha-hover-bloom-edge: 0.06;
+    --alpha-hover-bloom-far: 0.04;
   }
 }

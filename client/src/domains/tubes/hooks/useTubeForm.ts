@@ -15,19 +15,13 @@ import {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
   type TubeData,
+  type ZodType,
 } from '@odysseus/shared-schemas';
-import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-
-import { queryKeys } from '@app/cache/queryKeys';
-import { useLabId } from '@domains/authentication';
-import { TubeService } from '@domains/tubes/services/TubeService';
-import { logger } from '@infra/logger';
 
 import { useCreateTubeMutation, useUpdateTubeMutation } from './useTubeMutations';
 
 import type { UseFormReturn, FieldValues } from 'react-hook-form';
-import type { ZodType } from 'zod';
 
 /**
  * Submit context for providing non-editable external data (e.g., location from grid selection)
@@ -61,8 +55,6 @@ function useTubeForm<
   submitError: Error | null;
 } {
   const { mode, tubeId, initialData, onSuccess, onError } = config;
-  const queryClient = useQueryClient();
-  const labId = useLabId();
 
   // Type assertion needed for generic factory pattern - safety enforced at public wrappers
   const form = useForm<TInput>({
@@ -75,37 +67,6 @@ function useTubeForm<
 
   const createTubeMutation = useCreateTubeMutation();
   const updateTubeMutation = useUpdateTubeMutation();
-
-  const validateCompletePayload = useCallback(
-    async (payload: TOutput): Promise<{ warnings: Record<string, string> }> => {
-      const warnings: Record<string, string> = {};
-
-      if ('location' in payload && payload.location) {
-        const { tankId, rackId, boxId, position } = payload.location;
-        if (!tankId || !rackId || !boxId || position === undefined) {
-          return { warnings };
-        }
-
-        const boxTubes = await queryClient.fetchQuery({
-          queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
-          queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, boxId),
-        });
-
-        const candidates =
-          mode === 'edit' && tubeId ? boxTubes.filter(tube => tube.id !== tubeId) : boxTubes;
-
-        const duplicate = candidates.find(tube => tube.location.position === position);
-
-        if (duplicate) {
-          warnings['position'] =
-            `Position ${position} in Tank ${tankId}, Rack ${rackId}, Box ${boxId} is already occupied`;
-        }
-      }
-
-      return { warnings };
-    },
-    [queryClient, labId, mode, tubeId]
-  );
 
   const submitTube = useCallback(
     async (data: TInput, ctx?: SubmitContext): Promise<TubeFormSubmissionResult> => {
@@ -124,11 +85,6 @@ function useTubeForm<
 
           const validatedPayload = schema.parse(formInputWithLocation) as TOutput;
 
-          const { warnings } = await validateCompletePayload(validatedPayload);
-          if (Object.keys(warnings).length > 0) {
-            logger.warn('Tube creation warnings', { warnings });
-          }
-
           // Type assertion: we know TOutput is CreateTubeRequest when mode === 'create'
           result = await createTubeMutation.mutateAsync(validatedPayload as CreateTubeRequest);
         } else {
@@ -142,11 +98,6 @@ function useTubeForm<
           };
 
           const validatedPayload = schema.parse(formInputWithContext) as TOutput;
-
-          const { warnings } = await validateCompletePayload(validatedPayload);
-          if (Object.keys(warnings).length > 0) {
-            logger.warn('Tube update warnings', { warnings });
-          }
 
           // Type assertion: we know TOutput is UpdateTubeRequest when mode === 'edit'
           result = await updateTubeMutation.mutateAsync({
@@ -172,16 +123,7 @@ function useTubeForm<
         };
       }
     },
-    [
-      mode,
-      tubeId,
-      createTubeMutation,
-      updateTubeMutation,
-      validateCompletePayload,
-      schema,
-      onSuccess,
-      onError,
-    ]
+    [mode, tubeId, createTubeMutation, updateTubeMutation, schema, onSuccess, onError]
   );
 
   const isSubmitting = createTubeMutation.isPending || updateTubeMutation.isPending;
@@ -269,35 +211,5 @@ export function useBulkEditTubeForm(config?: {
     isSubmitting: base.isSubmitting,
     submitError: base.submitError,
     // Note: submitTube not exposed - bulk editor uses bulk mutations directly
-  };
-}
-
-export function useTubeFormTransform() {
-  const transformToFormData = useCallback((tubeData: TubeData): Partial<CreateTubeFormInput> => {
-    return {
-      sample: {
-        cellType: tubeData.sample.cellType,
-        donorInternalId: tubeData.sample.donorInternalId ?? '',
-        donorSourceId: tubeData.sample.donorSourceId ?? '',
-        concentration: tubeData.sample.concentration,
-        concentrationUnit: tubeData.sample.concentrationUnit,
-        date: tubeData.sample.date ?? '',
-        mediaType: tubeData.sample.mediaType ?? '',
-        mediaSupplements: tubeData.sample.mediaSupplements ?? '',
-        mediaSelection: tubeData.sample.mediaSelection ?? '',
-        cultureCondition: tubeData.sample.cultureCondition ?? '',
-        lotNumber: tubeData.sample.lotNumber ?? '',
-        species: tubeData.sample.species ?? '',
-        source: tubeData.sample.source ?? '',
-        catalogNumber: tubeData.sample.catalogNumber ?? '',
-        passageNumber: tubeData.sample.passageNumber ?? '',
-        notes: tubeData.sample.notes ?? '',
-      },
-      researcherId: tubeData.researcherId,
-    };
-  }, []);
-
-  return {
-    transformToFormData,
   };
 }

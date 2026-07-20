@@ -6,12 +6,20 @@
 
 import type { Storage } from '@domain/entities/Storage';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 
-// STORAGE QUERY CONTRACTS
+import type { DemoLimits, SystemMetrics } from '@odysseus/shared-schemas';
 
 export interface GetCurrentStorageQuery {
   labId: string;
+  /** Demo users get their lab's demo limits grafted onto the response. */
+  includeDemoLimits?: boolean;
+}
+
+export interface CurrentStorageResult {
+  storage: Storage;
+  demoLimits?: DemoLimits;
 }
 
 export interface GetStorageHistoryQuery {
@@ -24,20 +32,35 @@ export interface GetStorageByVersionQuery {
   version: number;
 }
 
-// STORAGE QUERY HANDLERS
+export interface GetSystemMetricsQuery {
+  labId: string;
+}
+
+export interface CheckStorageHealthQuery {
+  labId: string;
+}
 
 /** Creates default configuration if none exists. */
 export class GetCurrentStorageQueryHandler {
-  constructor(private storageRepository: StorageRepository) {}
+  constructor(
+    private storageRepository: StorageRepository,
+    private labRepository: LabRepository
+  ) {}
 
-  async handle(query: GetCurrentStorageQuery): Promise<Storage> {
-    let configuration = await this.storageRepository.getForLab(query.labId);
+  async handle(query: GetCurrentStorageQuery): Promise<CurrentStorageResult> {
+    let storage = await this.storageRepository.getForLab(query.labId);
 
-    if (!configuration) {
-      configuration = await this.storageRepository.ensureDefaultForLab(query.labId);
+    if (!storage) {
+      storage = await this.storageRepository.ensureDefaultForLab(query.labId);
     }
 
-    return configuration;
+    let demoLimits: DemoLimits | undefined;
+    if (query.includeDemoLimits) {
+      const lab = await this.labRepository.findById(query.labId);
+      demoLimits = lab?.demoLimits;
+    }
+
+    return { storage, demoLimits };
   }
 }
 
@@ -69,7 +92,7 @@ export class GetStorageByVersionQueryHandler {
 export class CheckStorageHealthQueryHandler {
   constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: { labId: string }): Promise<StorageHealthReport> {
+  async handle(query: CheckStorageHealthQuery): Promise<StorageHealthReport> {
     try {
       const configuration = await this.storageRepository.getForLab(query.labId);
 
@@ -78,7 +101,7 @@ export class CheckStorageHealthQueryHandler {
           isHealthy: false,
           issues: ['No configuration found'],
           lastUpdated: null,
-          version: 0
+          version: 0,
         };
       }
 
@@ -88,7 +111,10 @@ export class CheckStorageHealthQueryHandler {
         issues.push('No tanks configured');
       }
 
-      const totalRacks = configuration.equipment.tanks.reduce((sum, tank) => sum + tank.racks.length, 0);
+      const totalRacks = configuration.equipment.tanks.reduce(
+        (sum, tank) => sum + tank.racks.length,
+        0
+      );
       if (totalRacks === 0) {
         issues.push('No racks configured');
       }
@@ -105,21 +131,29 @@ export class CheckStorageHealthQueryHandler {
         isHealthy: issues.length === 0,
         issues,
         lastUpdated: configuration.updatedAt,
-        version: configuration.version
+        version: configuration.version,
       };
-
     } catch (error) {
       return {
         isHealthy: false,
-        issues: [`Storage configuration validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        issues: [
+          `Storage configuration validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ],
         lastUpdated: null,
-        version: 0
+        version: 0,
       };
     }
   }
 }
 
-// RESPONSE TYPES
+/** Aggregate lab metrics (tube/user/researcher counts, last backup) for the admin dashboard. */
+export class GetSystemMetricsQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
+
+  async handle(query: GetSystemMetricsQuery): Promise<SystemMetrics> {
+    return this.storageRepository.getSystemMetrics(query.labId);
+  }
+}
 
 export interface StorageHealthReport {
   isHealthy: boolean;

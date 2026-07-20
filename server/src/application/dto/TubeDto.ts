@@ -8,7 +8,8 @@ import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeData,
-  type RackTube
+  type RackTube,
+  type ConcentrationUnit,
 } from '@odysseus/shared-schemas';
 
 import type { Tube } from '@domain/entities/Tube';
@@ -32,6 +33,30 @@ export interface TubeSearchResponse {
   tubes: TubeResponse[];
   matchedTerms: string[];
 }
+
+/** Tri-state PATCH payload produced by fromUpdateRequest: null = clear field, undefined = no change. */
+type TubeUpdateData = {
+  location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
+  sample?: {
+    cellType?: string;
+    donorInternalId?: string | null;
+    donorSourceId?: string | null;
+    concentration?: number | null;
+    concentrationUnit?: ConcentrationUnit | null;
+    date?: string | null;
+    mediaType?: string | null;
+    mediaSupplements?: string | null;
+    mediaSelection?: string | null;
+    cultureCondition?: string | null;
+    lotNumber?: string | null;
+    species?: string | null;
+    source?: string | null;
+    catalogNumber?: string | null;
+    passageNumber?: number | null;
+    notes?: string | null;
+  };
+  researcherId?: string | null;
+};
 
 export class TubeDto {
   static toResponse(tube: Tube): TubeResponse {
@@ -72,7 +97,7 @@ export class TubeDto {
       donorInternalId?: string;
       donorSourceId?: string;
       concentration?: number;
-      concentrationUnit?: 'c/v' | 'c/mL';
+      concentrationUnit?: ConcentrationUnit;
       date?: string;
       mediaType?: string;
       mediaSupplements?: string;
@@ -105,59 +130,17 @@ export class TubeDto {
         source: request.sample.source,
         catalogNumber: request.sample.catalogNumber,
         passageNumber: request.sample.passageNumber,
-        notes: request.sample.notes
+        notes: request.sample.notes,
       },
-      researcherId: request.researcherId
+      researcherId: request.researcherId,
     };
   }
 
   /**
    * Tri-state PATCH semantics: null = clear field, undefined = no change, value = set field.
    */
-  static fromUpdateRequest(request: UpdateTubeRequest): {
-    location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
-    sample?: {
-      cellType?: string;
-      donorInternalId?: string | null;
-      donorSourceId?: string | null;
-      concentration?: number | null;
-      concentrationUnit?: 'c/v' | 'c/mL' | null;
-      date?: string | null;
-      mediaType?: string | null;
-      mediaSupplements?: string | null;
-      mediaSelection?: string | null;
-      cultureCondition?: string | null;
-      lotNumber?: string | null;
-      species?: string | null;
-      source?: string | null;
-      catalogNumber?: string | null;
-      passageNumber?: number | null;
-      notes?: string | null;
-    };
-    researcherId?: string | null;
-  } {
-    const result: {
-      location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
-      sample?: {
-        cellType?: string;
-        donorInternalId?: string | null;
-        donorSourceId?: string | null;
-        concentration?: number | null;
-        concentrationUnit?: 'c/v' | 'c/mL' | null;
-        date?: string | null;
-        mediaType?: string | null;
-        mediaSupplements?: string | null;
-        mediaSelection?: string | null;
-        cultureCondition?: string | null;
-        lotNumber?: string | null;
-        species?: string | null;
-        source?: string | null;
-        catalogNumber?: string | null;
-        passageNumber?: number | null;
-        notes?: string | null;
-      };
-      researcherId?: string | null;
-    } = {};
+  static fromUpdateRequest(request: UpdateTubeRequest): TubeUpdateData {
+    const result: TubeUpdateData = {};
 
     if (request.location) {
       result.location = request.location;
@@ -167,20 +150,31 @@ export class TubeDto {
       result.sample = {};
 
       if (request.sample.cellType !== undefined) result.sample.cellType = request.sample.cellType;
-      if (request.sample.donorInternalId !== undefined) result.sample.donorInternalId = request.sample.donorInternalId;
-      if (request.sample.donorSourceId !== undefined) result.sample.donorSourceId = request.sample.donorSourceId;
-      if (request.sample.concentration !== undefined) result.sample.concentration = request.sample.concentration;
-      if (request.sample.concentrationUnit !== undefined) result.sample.concentrationUnit = request.sample.concentrationUnit;
+      if (request.sample.donorInternalId !== undefined)
+        result.sample.donorInternalId = request.sample.donorInternalId;
+      if (request.sample.donorSourceId !== undefined)
+        result.sample.donorSourceId = request.sample.donorSourceId;
+      if (request.sample.concentration !== undefined)
+        result.sample.concentration = request.sample.concentration;
+      if (request.sample.concentrationUnit !== undefined)
+        result.sample.concentrationUnit = request.sample.concentrationUnit;
       if (request.sample.date !== undefined) result.sample.date = request.sample.date;
-      if (request.sample.mediaType !== undefined) result.sample.mediaType = request.sample.mediaType;
-      if (request.sample.mediaSupplements !== undefined) result.sample.mediaSupplements = request.sample.mediaSupplements;
-      if (request.sample.mediaSelection !== undefined) result.sample.mediaSelection = request.sample.mediaSelection;
-      if (request.sample.cultureCondition !== undefined) result.sample.cultureCondition = request.sample.cultureCondition;
-      if (request.sample.lotNumber !== undefined) result.sample.lotNumber = request.sample.lotNumber;
+      if (request.sample.mediaType !== undefined)
+        result.sample.mediaType = request.sample.mediaType;
+      if (request.sample.mediaSupplements !== undefined)
+        result.sample.mediaSupplements = request.sample.mediaSupplements;
+      if (request.sample.mediaSelection !== undefined)
+        result.sample.mediaSelection = request.sample.mediaSelection;
+      if (request.sample.cultureCondition !== undefined)
+        result.sample.cultureCondition = request.sample.cultureCondition;
+      if (request.sample.lotNumber !== undefined)
+        result.sample.lotNumber = request.sample.lotNumber;
       if (request.sample.species !== undefined) result.sample.species = request.sample.species;
       if (request.sample.source !== undefined) result.sample.source = request.sample.source;
-      if (request.sample.catalogNumber !== undefined) result.sample.catalogNumber = request.sample.catalogNumber;
-      if (request.sample.passageNumber !== undefined) result.sample.passageNumber = request.sample.passageNumber;
+      if (request.sample.catalogNumber !== undefined)
+        result.sample.catalogNumber = request.sample.catalogNumber;
+      if (request.sample.passageNumber !== undefined)
+        result.sample.passageNumber = request.sample.passageNumber;
       if (request.sample.notes !== undefined) result.sample.notes = request.sample.notes;
     }
 

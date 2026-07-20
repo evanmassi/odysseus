@@ -3,26 +3,27 @@
  *
  * Password management and active session controls for authenticated users.
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound, Save } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthService';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { PasswordRequirements } from '@domains/authentication/ui/components/password/PasswordRequirements';
-import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
+import {
+  useIsDemo,
+  usePasswordRequirementsQuery,
+  PasswordRequirements,
+} from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState } from '@shared/utils/fieldValidation';
 
+import { usePasswordChange } from '../../../../hooks/usePasswordChange';
+import { DemoModeBanner } from '../DemoModeBanner';
 import { SessionListPanel } from '../SessionListPanel';
 
-import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
-
 export function SecurityTab() {
-  const user = useAuthStore(state => state.user);
-  const isDemo = user?.isDemo ?? false;
+  const isDemo = useIsDemo();
   const { changePassword, isChanging, reset } = usePasswordChange();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -34,28 +35,9 @@ export function SecurityTab() {
 
   const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
 
-  const [passwordRequirements, setPasswordRequirements] = useState<PasswordConfig | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  useEffect(() => {
-    if (isDemo) return;
-
-    const fetchRequirements = async () => {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordRequirements(requirements);
-      } catch (error) {
-        logger.error('Failed to fetch password requirements', { error });
-      }
-    };
-    void fetchRequirements();
-  }, [isDemo]);
-
-  // Convert touched/valid to AuthInput validation state
-  const getValidationState = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'default' as const;
-    return isValid ? ('success' as const) : ('error' as const);
-  };
+  const { data: passwordRequirements } = usePasswordRequirementsQuery({ enabled: !isDemo });
 
   const newPasswordMeetsRequirements = useMemo(() => {
     if (!passwordRequirements || !newPassword) return false;
@@ -80,7 +62,7 @@ export function SecurityTab() {
     );
   }, [currentPassword, newPasswordMeetsRequirements, passwordsMatch, newPasswordIsDifferent]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!isFormValid) {
       if (currentPassword.trim().length === 0) {
         setCurrentPasswordError('Current password is required');
@@ -101,7 +83,6 @@ export function SecurityTab() {
         notifications.error('New password must be different from current password');
         return;
       }
-      return;
     }
 
     changePassword(
@@ -120,13 +101,13 @@ export function SecurityTab() {
         },
         onError: (error: Error) => {
           logger.error('SecurityTab password change failed', { error });
+          // Highlight the field too; the global handler shows the server message as a toast.
           if (
             error.message.toLowerCase().includes('incorrect') ||
             error.message.toLowerCase().includes('invalid')
           ) {
             setCurrentPasswordError('Current password is incorrect');
           }
-          notifications.error(error.message || 'Failed to change password');
         },
       }
     );
@@ -136,11 +117,7 @@ export function SecurityTab() {
     <ConsolePanel intensity="soft">
       <Subsection title="Password" index={1} accent>
         <div className="col-span-2 space-y-4 py-4">
-          {isDemo && (
-            <AlertBanner variant="demo" spacing="sm">
-              Account changes are not available in demo mode
-            </AlertBanner>
-          )}
+          <DemoModeBanner />
 
           <div className="space-y-1">
             <AuthInput
@@ -163,7 +140,7 @@ export function SecurityTab() {
               disabled={isChanging || isDemo}
             />
             {currentPasswordError && (
-              <p className="text-[10px] text-danger-text ml-1">{currentPasswordError}</p>
+              <p className="text-caption text-danger-text ml-1">{currentPasswordError}</p>
             )}
           </div>
 
@@ -196,7 +173,7 @@ export function SecurityTab() {
               />
             )}
             {!newPasswordIsDifferent && newPasswordTouched && (
-              <p className="text-[10px] text-danger-text ml-1">
+              <p className="text-caption text-danger-text ml-1">
                 New password must be different from current password
               </p>
             )}
@@ -221,13 +198,13 @@ export function SecurityTab() {
               disabled={isChanging || isDemo}
             />
             {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && !isDemo && (
-              <p className="text-[10px] text-danger-text ml-1">Passwords do not match</p>
+              <p className="text-caption text-danger-text ml-1">Passwords do not match</p>
             )}
           </div>
         </div>
       </Subsection>
 
-      <div className="flex items-center gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+      <div className="flex items-center gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
         {showSuccess && (
           <AlertBanner variant="success" spacing="none">
             Password changed successfully
@@ -249,7 +226,7 @@ export function SecurityTab() {
 
       <Subsection title="Active Sessions" index={2} accent>
         <div className="col-span-2 space-y-3 py-4">
-          <p className="text-xs text-secondary-foreground">
+          <p className="text-body-sm text-secondary-foreground">
             Manage your active sessions across all devices. You can revoke access from any device.
           </p>
           <SessionListPanel />

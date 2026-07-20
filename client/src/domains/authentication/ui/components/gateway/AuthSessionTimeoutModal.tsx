@@ -2,7 +2,6 @@
  * Session Timeout Warning Modal
  *
  * Displays a countdown warning when the user's session is about to expire.
- * Phosphor digits and a diamond depletion track that warm amber → crimson as time runs out.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -17,6 +16,10 @@ import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 const EXIT_DURATION = 200;
 
 const DIAMOND_COUNT = 24;
+
+// Countdown color stages: 'calm' above 1 min, 'warn' above 15s, 'crit' below.
+const CALM_ABOVE_MS = 60_000;
+const WARN_ABOVE_MS = 15_000;
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -58,10 +61,7 @@ export function AuthSessionTimeoutModal() {
 
   const trapRef = useFocusTrap({
     isOpen: isVisible,
-    restoreFocus: true,
-    initialFocusDelay: 150,
     initialFocusRef: stayLoggedInRef,
-    autoFocusFirstInput: false,
   });
 
   useEffect(() => {
@@ -137,7 +137,8 @@ export function AuthSessionTimeoutModal() {
   const formattedTime = formatTime(displayTime);
   const initialTime = initialTimeRef.current ?? timeRemainingMs;
   const progress = initialTime > 0 ? displayTime / initialTime : 0;
-  const state = displayTime > 60000 ? 'calm' : displayTime > 15000 ? 'warn' : 'crit';
+  const state =
+    displayTime > CALM_ABOVE_MS ? 'calm' : displayTime > WARN_ABOVE_MS ? 'warn' : 'crit';
   const litDiamonds = Math.round(progress * DIAMOND_COUNT);
 
   return (
@@ -190,7 +191,6 @@ export function AuthSessionTimeoutModal() {
             </AlertBanner>
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"

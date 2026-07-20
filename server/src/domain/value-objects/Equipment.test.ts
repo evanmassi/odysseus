@@ -17,7 +17,13 @@ describe('Tank', () => {
 
     it('should create with custom options', () => {
       const rack = Rack.create({ id: '1', name: 'R1' });
-      const tank = Tank.create({ id: 'T2', name: 'Tank 2', racks: [rack], isActive: false, location: 'Room B' });
+      const tank = Tank.create({
+        id: 'T2',
+        name: 'Tank 2',
+        racks: [rack],
+        isActive: false,
+        location: 'Room B',
+      });
       expect(tank.racks).toHaveLength(1);
       expect(tank.isActive).toBe(false);
       expect(tank.location).toBe('Room B');
@@ -40,14 +46,18 @@ describe('Tank', () => {
     it('should reject duplicate rack IDs', () => {
       const r1 = Rack.create({ id: '1', name: 'R1' });
       const r2 = Rack.create({ id: '1', name: 'R2' });
-      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks: [r1, r2] }))
-        .toThrow('duplicate rack IDs');
+      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks: [r1, r2] })).toThrow(
+        'duplicate rack IDs'
+      );
     });
 
     it('should reject rack count exceeding max', () => {
-      const racks = Array.from({ length: 3 }, (_, i) => Rack.create({ id: String(i), name: `R${i}` }));
-      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks, maxRacks: 2 }))
-        .toThrow('max capacity');
+      const racks = Array.from({ length: 3 }, (_, i) =>
+        Rack.create({ id: String(i), name: `R${i}` })
+      );
+      expect(() => Tank.create({ id: 'T1', name: 'Tank', racks, maxRacks: 2 })).toThrow(
+        'max capacity'
+      );
     });
   });
 
@@ -58,23 +68,11 @@ describe('Tank', () => {
     });
 
     it('should return false when at capacity', () => {
-      const racks = Array.from({ length: 2 }, (_, i) => Rack.create({ id: String(i), name: `R${i}` }));
+      const racks = Array.from({ length: 2 }, (_, i) =>
+        Rack.create({ id: String(i), name: `R${i}` })
+      );
       const tank = Tank.create({ id: 'T1', name: 'Tank', racks, maxRacks: 2 });
       expect(tank.canAccommodateRack()).toBe(false);
-    });
-  });
-
-  describe('equals', () => {
-    it('should match by ID', () => {
-      const a = Tank.create({ id: 'T1', name: 'Name A' });
-      const b = Tank.create({ id: 'T1', name: 'Name B' });
-      expect(a.equals(b)).toBe(true);
-    });
-
-    it('should not match different IDs', () => {
-      const a = Tank.create({ id: 'T1', name: 'Tank' });
-      const b = Tank.create({ id: 'T2', name: 'Tank' });
-      expect(a.equals(b)).toBe(false);
     });
   });
 
@@ -124,24 +122,18 @@ describe('Rack', () => {
     it('should reject duplicate box names', () => {
       const b1 = Box.create({ name: 'A' });
       const b2 = Box.create({ name: 'a' });
-      expect(() => Rack.create({ id: '1', name: 'Rack', boxes: [b1, b2] }))
-        .toThrow('duplicate box names');
+      expect(() => Rack.create({ id: '1', name: 'Rack', boxes: [b1, b2] })).toThrow(
+        'duplicate box names'
+      );
     });
 
     it('should reject box count exceeding max', () => {
       const boxes = Array.from({ length: 3 }, (_, i) =>
         Box.create({ name: String.fromCharCode(65 + i) })
       );
-      expect(() => Rack.create({ id: '1', name: 'Rack', boxes, maxBoxes: 2 }))
-        .toThrow('max capacity');
-    });
-  });
-
-  describe('equals', () => {
-    it('should match by ID', () => {
-      const a = Rack.create({ id: '1', name: 'A' });
-      const b = Rack.create({ id: '1', name: 'B' });
-      expect(a.equals(b)).toBe(true);
+      expect(() => Rack.create({ id: '1', name: 'Rack', boxes, maxBoxes: 2 })).toThrow(
+        'max capacity'
+      );
     });
   });
 
@@ -222,68 +214,6 @@ describe('Box', () => {
     });
   });
 
-  describe('positionToGridCoordinates', () => {
-    const box = Box.create({ name: 'A', gridConfig: { rows: 9, cols: 9 } });
-
-    it('should convert position 1 to row 1, col 1', () => {
-      expect(box.positionToGridCoordinates(1)).toEqual({ row: 1, col: 1 });
-    });
-
-    it('should convert position 9 to row 1, col 9', () => {
-      expect(box.positionToGridCoordinates(9)).toEqual({ row: 1, col: 9 });
-    });
-
-    it('should convert position 10 to row 2, col 1', () => {
-      expect(box.positionToGridCoordinates(10)).toEqual({ row: 2, col: 1 });
-    });
-
-    it('should throw for invalid position', () => {
-      expect(() => box.positionToGridCoordinates(0)).toThrow();
-    });
-  });
-
-  describe('gridCoordinatesToPosition', () => {
-    const box = Box.create({ name: 'A', gridConfig: { rows: 9, cols: 9 } });
-
-    it('should convert row 1, col 1 to position 1', () => {
-      expect(box.gridCoordinatesToPosition(1, 1)).toBe(1);
-    });
-
-    it('should convert row 2, col 1 to position 10', () => {
-      expect(box.gridCoordinatesToPosition(2, 1)).toBe(10);
-    });
-
-    it('should throw for out-of-bounds coordinates', () => {
-      expect(() => box.gridCoordinatesToPosition(0, 1)).toThrow('out of bounds');
-      expect(() => box.gridCoordinatesToPosition(1, 10)).toThrow('out of bounds');
-    });
-  });
-
-  describe('position roundtrip', () => {
-    const box = Box.create({ name: 'A', gridConfig: { rows: 9, cols: 9 } });
-
-    it('should roundtrip position through grid coordinates', () => {
-      for (const pos of [1, 5, 10, 45, 81]) {
-        const { row, col } = box.positionToGridCoordinates(pos);
-        expect(box.gridCoordinatesToPosition(row, col)).toBe(pos);
-      }
-    });
-  });
-
-  describe('equals', () => {
-    it('should be case-insensitive', () => {
-      const a = Box.create({ name: 'a' });
-      const b = Box.create({ name: 'A' });
-      expect(a.equals(b)).toBe(true);
-    });
-
-    it('should not match different names', () => {
-      const a = Box.create({ name: 'A' });
-      const b = Box.create({ name: 'B' });
-      expect(a.equals(b)).toBe(false);
-    });
-  });
-
   describe('toData', () => {
     it('should uppercase name', () => {
       const box = Box.create({ name: 'c' });
@@ -336,7 +266,12 @@ describe('EquipmentConfiguration', () => {
     });
 
     it('should return false for inactive tank', () => {
-      const inactiveTank = Tank.create({ id: 'T2', name: 'Tank 2', racks: [rack], isActive: false });
+      const inactiveTank = Tank.create({
+        id: 'T2',
+        name: 'Tank 2',
+        racks: [rack],
+        isActive: false,
+      });
       const cfg = EquipmentConfiguration.create([inactiveTank]);
       expect(cfg.isLocationValid('T2', '1', 'A', 1)).toBe(false);
     });

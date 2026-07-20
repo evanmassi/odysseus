@@ -1,0 +1,15 @@
+/**
+ * Typography Helpers
+ *
+ * Bundles a type voice's non-size properties (font, case, tracking); size comes from the `text-*` tokens.
+ */
+
+@layer components {
+  /* Pair with a size token (e.g. `text-label-md`); override tracking with
+     `tracking-label-wide` / `tracking-ceremonial`. */
+  .type-label {
+    font-family: theme('fontFamily.mono');
+    text-transform: uppercase;
+    letter-spacing: theme('letterSpacing.label');
+  }
+}

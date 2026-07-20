@@ -5,7 +5,6 @@
  * Idempotent: skips users that already have `person_id`.
  */
 
-
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -30,11 +29,8 @@ export const migration014: Migration = {
          VALUES ($1, $2, 'Admin', $3, $4, $4)`,
         [personId, row.username, `${row.username}@system.local`, now]
       );
-      await pool.query(
-        `UPDATE users SET person_id = $1 WHERE id = $2`,
-        [personId, row.id]
-      );
+      await pool.query(`UPDATE users SET person_id = $1 WHERE id = $2`, [personId, row.id]);
       logger.info(`Created Person record for system admin ${row.username}`);
     }
-  }
+  },
 };

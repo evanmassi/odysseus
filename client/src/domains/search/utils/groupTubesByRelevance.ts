@@ -4,8 +4,7 @@
  * Groups search result tubes by matched field and location for display.
  */
 
-import type { TubeData } from '@domains/tubes/types';
-import type { GroupedResult } from '@odysseus/shared-schemas';
+import type { TubeData, GroupedResult } from '@odysseus/shared-schemas';
 
 const getMediaString = (sample: TubeData['sample']): string => {
   return [sample.mediaType, sample.mediaSupplements, sample.mediaSelection]
@@ -52,14 +51,10 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'donor';
     } else if (tube.sample.cellType?.toLowerCase().includes(lowerQuery)) {
       groupType = 'cellType';
-    } else if (tube.researcherId?.toLowerCase().includes(lowerQuery)) {
-      groupType = 'researcher';
     } else if (tube.sample.lotNumber?.toLowerCase().includes(lowerQuery)) {
       groupType = 'lotNumber';
     } else if (getMediaString(tube.sample).toLowerCase().includes(lowerQuery)) {
       groupType = 'media';
-    } else {
-      groupType = 'cellType';
     }
 
     const tankId = tube.location.tankId;

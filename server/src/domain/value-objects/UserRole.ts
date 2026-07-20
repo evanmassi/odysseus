@@ -17,9 +17,7 @@ export class UserRole {
     user: 1,
   };
 
-  private constructor(
-    private readonly _role: 'system_admin' | 'lab_admin' | 'user'
-  ) {
+  private constructor(private readonly _role: 'system_admin' | 'lab_admin' | 'user') {
     this.validate();
   }
 
@@ -50,7 +48,7 @@ export class UserRole {
     }
 
     if (!UserRole.VALID_ROLES.includes(this._role)) {
-      throw new ValidationError(`Invalid user role. Must be one of: ${UserRole.VALID_ROLES.join(', ')}`);
+      throw new ValidationError('That role is not valid. Choose System Admin, Lab Admin, or User.');
     }
   }
 

@@ -4,17 +4,18 @@
  * React Query hooks for tube write operations.
  */
 
-import { formatStorageDisplayName } from '@odysseus/shared-schemas';
-import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type UseMutationOptions,
+} from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
-import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { TubeService } from '@domains/tubes/services/TubeService';
+import { isConflictError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { isConflictError } from '@shared/errors';
-import { notifications } from '@shared/utils/notifications';
 
 import type {
   TubeData,
@@ -23,127 +24,20 @@ import type {
   BulkUpdateResult,
 } from '@domains/tubes/types';
 
-/** Check if error is a position-already-occupied error from server. */
-function isPositionOccupiedError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) return false;
-
-  const err = error as { details?: { body?: { details?: { code?: string } } } };
-  return err.details?.body?.details?.code === 'POSITION_OCCUPIED';
-}
-
-/** Extract position info from position occupied error. */
-function getPositionFromError(error: unknown): {
-  tankId: string;
-  rackId: string;
-  boxId: string;
-  position: number;
-} | null {
-  if (typeof error !== 'object' || error === null) return null;
-
-  const err = error as {
-    details?: {
-      body?: {
-        details?: { tankId?: string; rackId?: string; boxId?: string; position?: number };
-      };
-    };
-  };
-  const details = err.details?.body?.details;
-
-  if (details?.tankId && details?.rackId && details?.boxId && details?.position !== undefined) {
-    return {
-      tankId: details.tankId,
-      rackId: details.rackId,
-      boxId: details.boxId,
-      position: details.position,
-    };
-  }
-  return null;
-}
-
-/** Format position with display names for user-friendly error message. */
-function formatPositionDisplayString(
-  queryClient: ReturnType<typeof useQueryClient>,
+function invalidateTubeLocation(
+  queryClient: QueryClient,
   labId: string | undefined,
-  tankId: string,
-  rackId: string,
-  boxId: string,
-  position: number
-): string {
-  const { currentLab } = getStorageDataFromCache(queryClient, labId);
-
-  const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
-  const rack = tank?.racks?.find(r => r.id === rackId);
-  const box = rack?.boxes?.find(b => b.id === boxId);
-
-  const tankName = tank?.name ?? tankId;
-  const rackName = formatStorageDisplayName(rack?.name ?? rackId, rack?.customLabel);
-  const boxName = formatStorageDisplayName(box?.name ?? boxId, box?.customLabel);
-
-  let positionLabel = String(position);
-  if (box?.gridConfig && currentLab) {
-    try {
-      positionLabel = formatPositionForBox(
-        position,
-        tankId,
-        rackId,
-        boxId,
-        box.gridConfig,
-        currentLab,
-        null
-      );
-    } catch {
-      // Fall back to numeric if formatting fails
-    }
-  }
-
-  return `${tankName} → ${rackName} → ${boxName} → ${positionLabel}`;
-}
-
-/** Show position occupied error message and refresh cache. */
-function handlePositionOccupiedError(
-  queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  error: unknown
+  location: TubeData['location']
 ): void {
-  const positionInfo = getPositionFromError(error);
-
-  let message = 'Position already occupied';
-  if (positionInfo) {
-    const locationString = formatPositionDisplayString(
-      queryClient,
-      labId,
-      positionInfo.tankId,
-      positionInfo.rackId,
-      positionInfo.boxId,
-      positionInfo.position
-    );
-    message = `Position already occupied\n${locationString}`;
+  if (location.tankId && location.rackId !== undefined && location.boxId) {
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.tubes.location(labId, location.tankId, location.rackId, location.boxId),
+    });
   }
-
-  notifications.error(message);
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-}
-
-/** Show conflict error message and refresh cache. */
-function handleTubeConflictError(
-  queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  tubeId: string
-): void {
-  notifications.error(
-    'Update failed: This tube was modified by another user. Please review the latest changes and try again.'
-  );
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(labId, tubeId) });
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 }
 
 export const useCreateTubeMutation = (
-  options: UseMutationOptions<
-    TubeData,
-    Error,
-    CreateTubeRequest,
-    { previousTubes: unknown; newTube: CreateTubeRequest }
-  > = {}
+  options: UseMutationOptions<TubeData, Error, CreateTubeRequest> = {}
 ) => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -153,43 +47,17 @@ export const useCreateTubeMutation = (
       return await TubeService.createTube(tubeData);
     },
 
-    onMutate: async newTube => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.tubes.all(labId) });
-      const previousTubes = queryClient.getQueryData(queryKeys.tubes.all(labId));
-
-      return { previousTubes, newTube };
-    },
-
-    onSuccess: (tube, _variables, _context) => {
+    onSuccess: tube => {
       queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 
-      if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-        void queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            labId,
-            tube.location.tankId,
-            tube.location.rackId,
-            tube.location.boxId
-          ),
-        });
-      }
+      invalidateTubeLocation(queryClient, labId, tube.location);
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
-    onError: (error, _variables, context) => {
+    onError: error => {
       logger.error('Create tube failed', { error });
-
-      if (isPositionOccupiedError(error)) {
-        handlePositionOccupiedError(queryClient, labId, error);
-        return;
-      }
-
-      if (context?.previousTubes) {
-        queryClient.setQueryData(queryKeys.tubes.all(labId), context.previousTubes);
-      }
     },
 
     ...options,
@@ -248,47 +116,23 @@ export const useUpdateTubeMutation = (
 
       const oldTube = context?.previousTube;
       if (oldTube) {
-        if (
-          oldTube.location.tankId &&
-          oldTube.location.rackId !== undefined &&
-          oldTube.location.boxId
-        ) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(
-              labId,
-              oldTube.location.tankId,
-              oldTube.location.rackId,
-              oldTube.location.boxId
-            ),
-          });
-        }
+        invalidateTubeLocation(queryClient, labId, oldTube.location);
       }
 
-      if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-        void queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            labId,
-            tube.location.tankId,
-            tube.location.rackId,
-            tube.location.boxId
-          ),
-        });
-      }
+      invalidateTubeLocation(queryClient, labId, tube.location);
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
     onError: (error, variables, context) => {
       logger.error(`Update tube ${variables.id} failed`, { error });
 
+      // Someone else changed this tube — refetch so the next edit starts from the latest.
       if (isConflictError(error)) {
-        handleTubeConflictError(queryClient, labId, variables.id);
-        return;
-      }
-
-      if (isPositionOccupiedError(error)) {
-        handlePositionOccupiedError(queryClient, labId, error);
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.detail(labId, variables.id),
+        });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
         return;
       }
 
@@ -334,19 +178,8 @@ export const useDeleteTubeMutation = (
 
       if (context?.previousTube) {
         const tube = context.previousTube;
-        if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(
-              labId,
-              tube.location.tankId,
-              tube.location.rackId,
-              tube.location.boxId
-            ),
-          });
-        }
+        invalidateTubeLocation(queryClient, labId, tube.location);
       }
-
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
     },
 
     onError: (error, id, _context) => {
@@ -385,7 +218,6 @@ export const useBulkUpdateTubesMutation = (
       const result = await TubeService.bulkUpdateTubes(bulkUpdateItems);
 
       const errors = result.failed.map(f => ({
-        itemId: f.id,
         tubeId: f.id,
         error: f.error,
       }));
@@ -394,22 +226,12 @@ export const useBulkUpdateTubesMutation = (
         success: result.failed.length === 0,
         totalProcessed: tubeIds.length,
         successCount: result.updated.length,
-        successful: result.updated.length,
-        failed: result.failed.length,
-        errorCount: result.failed.length,
-        total: tubeIds.length,
         results: [],
-        errors: errors,
-        duration: 0,
-        response: {
-          updated: result.updated.length,
-          errors: errors,
-        },
+        errors,
       } as BulkUpdateResult;
     },
 
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
 
       if (variables.location) {
@@ -444,7 +266,6 @@ export const useBulkDeleteTubesMutation = (
     {
       tubeIds: string[];
       location?: { tankId: string; rackId: string; boxId: string };
-      onProgress?: (progress: { completed: number; total: number; currentId: string }) => void;
     }
   > = {}
 ) => {
@@ -452,20 +273,11 @@ export const useBulkDeleteTubesMutation = (
   const labId = useLabId();
 
   return useMutation({
-    mutationFn: async ({ tubeIds, onProgress }) => {
-      onProgress?.({ completed: 0, total: tubeIds.length, currentId: tubeIds[0] });
-
+    mutationFn: async ({ tubeIds }) => {
       const result = await TubeService.bulkDeleteTubes(tubeIds);
-
-      onProgress?.({
-        completed: tubeIds.length,
-        total: tubeIds.length,
-        currentId: tubeIds[tubeIds.length - 1],
-      });
 
       const successfulIds = result.deleted;
       const errors = result.failed.map(f => ({
-        itemId: f.id,
         tubeId: f.id,
         error: f.error,
       }));
@@ -474,16 +286,11 @@ export const useBulkDeleteTubesMutation = (
         success: result.failed.length === 0,
         totalProcessed: tubeIds.length,
         successCount: successfulIds.length,
-        successful: successfulIds.length,
-        failed: result.failed.length,
-        errorCount: result.failed.length,
-        total: tubeIds.length,
         results: [
           ...successfulIds.map(id => ({ id, success: true })),
           ...result.failed.map(f => ({ id: f.id, success: false, error: f.error })),
         ],
         errors,
-        duration: 0,
       };
     },
 
@@ -493,8 +300,6 @@ export const useBulkDeleteTubesMutation = (
       successfulIds.forEach(id => {
         queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(labId, id) });
       });
-
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
 
       if (variables.location) {
         void queryClient.invalidateQueries({
@@ -567,7 +372,6 @@ export const usePasteTubesMutation = (
         });
       }
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
 
       if (failed.length > 0) {
@@ -619,66 +423,56 @@ export const useMoveTubesMutation = (
     },
 
     onMutate: async ({ moves }) => {
-      const affectedBoxKeys = new Set<string>();
       const moveMap = new Map(moves.map(m => [m.tubeId, m.destination]));
+      const boxKeyOf = (loc: { tankId: string; rackId: string; boxId: string }) =>
+        `${loc.tankId}:${loc.rackId}:${loc.boxId}`;
 
-      moves.forEach(m => {
-        affectedBoxKeys.add(
-          `${m.destination.tankId}:${m.destination.rackId}:${m.destination.boxId}`
-        );
+      // Enumerate location queries once, not per move.
+      const locationQueries = queryClient.getQueriesData<TubeData[]>({
+        queryKey: queryKeys.tubes.locationPrefix(labId),
       });
 
-      const snapshots = new Map<string, TubeData[] | undefined>();
+      // Current data for each moving tube, from whichever box holds it now.
+      const movingTubes = new Map<string, TubeData>();
+      for (const [, data] of locationQueries) {
+        data?.forEach(tube => {
+          if (moveMap.has(tube.id)) movingTubes.set(tube.id, tube);
+        });
+      }
 
-      for (const key of affectedBoxKeys) {
-        const [tankId, rackId, boxId] = key.split(':');
+      // Every box that loses a tube (source) or gains one (destination).
+      const affectedBoxKeys = new Set<string>();
+      moves.forEach(m => affectedBoxKeys.add(boxKeyOf(m.destination)));
+      for (const [key, data] of locationQueries) {
+        if (data?.some(t => moveMap.has(t.id))) {
+          // location key tail is [tankId, rackId, boxId]
+          affectedBoxKeys.add((key as string[]).slice(-3).join(':'));
+        }
+      }
+
+      // Snapshot + cancel each affected box before rewriting it.
+      const snapshots = new Map<string, TubeData[] | undefined>();
+      for (const boxKey of affectedBoxKeys) {
+        const [tankId, rackId, boxId] = boxKey.split(':');
         const queryKey = queryKeys.tubes.location(labId, tankId, rackId, boxId);
         await queryClient.cancelQueries({ queryKey });
-        snapshots.set(key, queryClient.getQueryData<TubeData[]>(queryKey));
+        snapshots.set(boxKey, queryClient.getQueryData<TubeData[]>(queryKey));
       }
 
-      // Also snapshot source boxes by finding tubes in the cache
-      for (const move of moves) {
-        const allLocationQueries = queryClient.getQueriesData<TubeData[]>({
-          queryKey: [...queryKeys.tubes.all(labId), 'location'],
-        });
-        for (const [key, data] of allLocationQueries) {
-          if (data?.some(t => t.id === move.tubeId)) {
-            const keyStr = (key as string[]).slice(3).join(':');
-            if (!snapshots.has(keyStr)) {
-              await queryClient.cancelQueries({ queryKey: key });
-              snapshots.set(keyStr, data);
-            }
-          }
+      // Rebuild each box by its own key: drop moved-out tubes, add moved-in tubes — including
+      // into a currently-empty destination box, which the previous oldData[0] approach skipped.
+      for (const boxKey of affectedBoxKeys) {
+        const [tankId, rackId, boxId] = boxKey.split(':');
+        const queryKey = queryKeys.tubes.location(labId, tankId, rackId, boxId);
+        const remaining = (snapshots.get(boxKey) ?? []).filter(tube => !moveMap.has(tube.id));
+        const incoming: TubeData[] = [];
+        for (const [tubeId, dest] of moveMap) {
+          if (boxKeyOf(dest) !== boxKey) continue;
+          const tube = movingTubes.get(tubeId);
+          if (tube) incoming.push({ ...tube, location: { ...tube.location, ...dest } });
         }
+        queryClient.setQueryData<TubeData[]>(queryKey, [...remaining, ...incoming]);
       }
-
-      // Optimistically remove from source and add to destination
-      queryClient.setQueriesData(
-        { queryKey: [...queryKeys.tubes.all(labId), 'location'] },
-        (oldData: TubeData[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData
-            .filter(tube => !moveMap.has(tube.id))
-            .concat(
-              oldData
-                .filter(tube => moveMap.has(tube.id))
-                .map(tube => {
-                  const dest = moveMap.get(tube.id)!;
-                  return { ...tube, location: { ...tube.location, ...dest } };
-                })
-                .filter(tube => {
-                  const firstTube = oldData[0];
-                  if (!firstTube) return false;
-                  return (
-                    tube.location.tankId === firstTube.location.tankId &&
-                    tube.location.rackId === firstTube.location.rackId &&
-                    tube.location.boxId === firstTube.location.boxId
-                  );
-                })
-            );
-        }
-      );
 
       return { snapshots };
     },
@@ -687,8 +481,6 @@ export const useMoveTubesMutation = (
       result.moved.forEach(tube => {
         queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
       });
-
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
 
       const boxes = new Set<string>();
       result.moved.forEach(tube => {
