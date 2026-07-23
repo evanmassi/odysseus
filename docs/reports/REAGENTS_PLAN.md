@@ -5,7 +5,22 @@ extend it with the things that make a reagent a reagent: per-lot expiry, chemist
 and a lab-configurable attribute system. This doc is the shared source of truth; we iterate on it as
 we build.
 
-**Status:** planning. Nothing implemented yet.
+**Status:** planning complete; implementation not started. Branch `feature/reagents`.
+
+### Progress ledger — check off as each phase lands (details in §10)
+
+- [ ] Phase 0 — shared extractions
+- [ ] Phase 1 — schema + DB foundation
+- [ ] Phase 2 — server core CRUD
+- [ ] Phase 3 — alerts
+- [ ] Phase 4 — attribute system
+- [ ] Phase 5 — client core
+- [ ] Phase 6 — client stock + alerts
+- [ ] Phase 7 — client attributes
+- [ ] Phase 8 — barcodes
+- [ ] Phase 9 — bulk ops + polish
+
+_Current: plan committed; ready to start Phase 0. Each session — read this plan, do the current phase, tick its box, commit._
 
 > **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
 > endpoints, and components exist — **not** a code reference. The audit rubric explicitly bars
