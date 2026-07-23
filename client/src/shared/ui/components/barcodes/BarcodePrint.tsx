@@ -1,5 +1,5 @@
 /**
- * Supply Barcode Print
+ * Barcode Print
  *
  * Modal with format/size selectors, live preview, and isolated print
  * (only the label hits the page, anchored top-left).
@@ -13,10 +13,10 @@ import { createPortal } from 'react-dom';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
+import { BarcodeLabel, FORMAT_OPTIONS } from './BarcodeLabel';
 import { PRINT_PORTAL_CLASS, buildBarcodePrintStyles } from './barcodePrintStyles';
-import { BarcodeLabel, FORMAT_OPTIONS } from './SupplyBarcodeLabel';
 
-import type { BarcodeFormat, LabelSize } from './SupplyBarcodeLabel';
+import type { BarcodeFormat, LabelSize } from './BarcodeLabel';
 
 const LABEL_SIZES: readonly LabelSize[] = [
   { name: '4 × 2"', width: 4, height: 2, nameFont: 0.18, metaFont: 0.12 },
@@ -35,7 +35,7 @@ const UNSELECTED_CLASS =
 
 const PRINT_STYLE_ID = 'barcode-print-styles';
 
-interface SupplyBarcodePrintProps {
+interface BarcodePrintProps {
   isOpen: boolean;
   onClose: () => void;
   barcodeValue: string;
@@ -44,14 +44,14 @@ interface SupplyBarcodePrintProps {
   catalogNumber?: string;
 }
 
-export function SupplyBarcodePrint({
+export function BarcodePrint({
   isOpen,
   onClose,
   barcodeValue,
   itemName,
   manufacturer,
   catalogNumber,
-}: SupplyBarcodePrintProps) {
+}: BarcodePrintProps) {
   const [format, setFormat] = useState<BarcodeFormat>('1d');
   const [labelSize, setLabelSize] = useState<LabelSize>(LABEL_SIZES[0]);
 

@@ -1,5 +1,5 @@
 /**
- * Supply Barcode Sheet Preview
+ * Barcode Sheet Preview
  *
  * On-screen scaled rendering of one label sheet. Matches the print layout
  * so the preview reflects the printed output.
@@ -7,15 +7,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { BarcodeLabel } from './BarcodeLabel';
 import { deriveLabelSize, type SheetTemplate } from './sheetTemplates';
-import { BarcodeLabel } from './SupplyBarcodeLabel';
 
-import type { BarcodeFormat } from './SupplyBarcodeLabel';
-import type { PrintableLabel } from './supplyBarcodeSheetTypes';
+import type { BarcodeFormat } from './BarcodeLabel';
+import type { PrintableLabel } from './barcodeSheetTypes';
 
 const CSS_PX_PER_INCH = 96;
 
-interface SupplyBarcodeSheetPreviewProps {
+interface BarcodeSheetPreviewProps {
   template: SheetTemplate;
   slots: ReadonlyArray<PrintableLabel | null>;
   format: BarcodeFormat;
@@ -24,14 +24,14 @@ interface SupplyBarcodeSheetPreviewProps {
   onToggleSkip: (globalSlot: number) => void;
 }
 
-export function SupplyBarcodeSheetPreview({
+export function BarcodeSheetPreview({
   template,
   slots,
   format,
   pageStartGlobalSlot,
   skippedSlots,
   onToggleSkip,
-}: SupplyBarcodeSheetPreviewProps) {
+}: BarcodeSheetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 

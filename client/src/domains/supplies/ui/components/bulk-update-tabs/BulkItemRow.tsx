@@ -11,12 +11,9 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
-import {
-  computePackagingMultiplier,
-  orderPackagingChain,
-} from '@domains/supplies/utils/packagingChain';
 import { Input, Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
+import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';

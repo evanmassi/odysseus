@@ -1,5 +1,5 @@
 /**
- * Supply Barcode Label
+ * Barcode Label
  *
  * Print-label renderer and format primitives shared by the single-label print
  * modal, the bulk sheet modal, the sheet preview, and the print tab.

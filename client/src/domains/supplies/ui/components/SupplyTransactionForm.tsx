@@ -17,10 +17,6 @@ import {
   useRecordSupplyStockCountMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import {
-  computePackagingMultiplier,
-  orderPackagingChain,
-} from '@domains/supplies/utils/packagingChain';
-import {
   AccentTick,
   Button,
   DatePicker,
@@ -38,6 +34,7 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
+import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 export type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';

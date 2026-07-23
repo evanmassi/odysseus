@@ -5,8 +5,8 @@
  * and the maintenance alert panel.
  */
 
+import { daysUntil } from '@shared/utils/dateExpiry';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
-import { MS_PER_DAY } from '@shared/utils/timeConstants';
 
 /**
  * Resolves a maintenance date to its normalized string and whole-day distance from
@@ -17,10 +17,7 @@ export function resolveMaintenanceDue(
 ): { daysUntil: number; dateStr: string } | undefined {
   const dateStr = normalizeDateString(date);
   if (!dateStr) return undefined;
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const target = new Date(y, m - 1, d);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysUntil = Math.round((target.getTime() - today.getTime()) / MS_PER_DAY);
-  return { daysUntil, dateStr };
+  const days = daysUntil(dateStr);
+  if (days === undefined) return undefined;
+  return { daysUntil: days, dateStr };
 }

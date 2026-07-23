@@ -5,10 +5,10 @@
  * cross-page overflow, and skipped-slot shift behavior.
  */
 
-import { placeLabelsOnSheets } from './SupplyBarcodeSheetModal';
+import { placeLabelsOnSheets } from './BarcodeSheetModal';
 
+import type { PrintableLabel } from './barcodeSheetTypes';
 import type { SheetTemplate } from './sheetTemplates';
-import type { PrintableLabel } from './supplyBarcodeSheetTypes';
 
 const TEMPLATE_3x10: SheetTemplate = {
   id: 'test',

@@ -1,5 +1,5 @@
 /**
- * Supply Barcode Sheet Types
+ * Barcode Sheet Types
  *
  * Shared types for the bulk barcode sheet printing flow (tab, modal, preview).
  */

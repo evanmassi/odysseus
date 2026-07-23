@@ -20,6 +20,7 @@ import {
 
 import { useSupplyBulkUpdateMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { AccentTick, Button, Tabs, Tab } from '@shared/ui';
+import { BarcodeSheetModal } from '@shared/ui/components/barcodes';
 import {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
@@ -34,7 +35,6 @@ import { BulkPrintTab, usePrintTabState } from './bulk-update-tabs/BulkPrintTab'
 import { BulkReassignTab } from './bulk-update-tabs/BulkReassignTab';
 import { BulkReceiveTab } from './bulk-update-tabs/BulkReceiveTab';
 import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
-import { SupplyBarcodeSheetModal } from './SupplyBarcodeSheetModal';
 
 import type {
   SupplyCategory,
@@ -283,7 +283,7 @@ export function SupplyBulkUpdateModal({
       />
 
       {printState.isPreviewOpen && printState.printableLabels && (
-        <SupplyBarcodeSheetModal
+        <BarcodeSheetModal
           isOpen={printState.isPreviewOpen}
           onClose={printState.closePreview}
           labels={printState.printableLabels}

@@ -5,7 +5,7 @@
  * for bulk barcode printing. Paper sizes and label geometry are in inches.
  */
 
-import type { LabelSize } from './SupplyBarcodeLabel';
+import type { LabelSize } from './BarcodeLabel';
 
 export interface SheetTemplate {
   id: string;

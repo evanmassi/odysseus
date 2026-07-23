@@ -20,10 +20,6 @@ import {
   useRemoveSupplyPackagingLevelMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
-import {
-  computePackagingMultiplier,
-  thresholdInEntryUnit,
-} from '@domains/supplies/utils/packagingChain';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
@@ -43,6 +39,7 @@ import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
+import { computePackagingMultiplier, thresholdInEntryUnit } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type {

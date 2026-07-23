@@ -1,8 +1,8 @@
 /**
  * Packaging Chain
  *
- * Traversals over a supply item's nested packaging levels: the unit→stock-unit
- * multiplier and the base-up chain ordering.
+ * Traversals over an inventory item's nested packaging levels: the
+ * unit→stock-unit multiplier and the base-up chain ordering.
  */
 
 interface PackagingChainLevel {

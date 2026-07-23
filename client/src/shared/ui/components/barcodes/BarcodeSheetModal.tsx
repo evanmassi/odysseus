@@ -1,5 +1,5 @@
 /**
- * Supply Barcode Sheet Modal
+ * Barcode Sheet Modal
  *
  * Full-size modal that previews and prints a multi-label sheet layout for
  * bulk barcode printing.
@@ -13,17 +13,17 @@ import { createPortal } from 'react-dom';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
+import { BarcodeLabel } from './BarcodeLabel';
 import {
   PRINT_PORTAL_CLASS,
   PRINT_SHEET_CLASS,
   buildBarcodePrintStyles,
 } from './barcodePrintStyles';
+import { BarcodeSheetPreview } from './BarcodeSheetPreview';
 import { deriveLabelSize, type SheetTemplate } from './sheetTemplates';
-import { BarcodeLabel } from './SupplyBarcodeLabel';
-import { SupplyBarcodeSheetPreview } from './SupplyBarcodeSheetPreview';
 
-import type { BarcodeFormat } from './SupplyBarcodeLabel';
-import type { PrintableLabel } from './supplyBarcodeSheetTypes';
+import type { BarcodeFormat } from './BarcodeLabel';
+import type { PrintableLabel } from './barcodeSheetTypes';
 
 const PRINT_STYLE_ID = 'barcode-sheet-print-styles';
 
@@ -66,7 +66,7 @@ export function placeLabelsOnSheets(
   };
 }
 
-interface SupplyBarcodeSheetModalProps {
+interface BarcodeSheetModalProps {
   isOpen: boolean;
   onClose: () => void;
   labels: PrintableLabel[];
@@ -75,14 +75,14 @@ interface SupplyBarcodeSheetModalProps {
   format: BarcodeFormat;
 }
 
-export function SupplyBarcodeSheetModal({
+export function BarcodeSheetModal({
   isOpen,
   onClose,
   labels,
   template,
   startingPosition,
   format,
-}: SupplyBarcodeSheetModalProps) {
+}: BarcodeSheetModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [skippedSlots, setSkippedSlots] = useState<ReadonlySet<number>>(EMPTY_SKIPPED_SLOTS);
 
@@ -214,7 +214,7 @@ export function SupplyBarcodeSheetModal({
         </div>
 
         <div className="flex-1 min-h-0">
-          <SupplyBarcodeSheetPreview
+          <BarcodeSheetPreview
             template={template}
             slots={currentPageSlots}
             format={format}

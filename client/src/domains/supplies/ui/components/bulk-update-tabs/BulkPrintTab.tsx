@@ -10,19 +10,19 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { Select } from '@shared/ui';
-import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
-import { NumberInput } from '@shared/ui/primitives/input/NumberInput';
-import { notifications } from '@shared/utils/notifications';
-
 import {
   DEFAULT_TEMPLATE_ID,
   SHEET_TEMPLATES,
   getTemplateById,
+  FORMAT_OPTIONS,
   type SheetTemplate,
-} from '../sheetTemplates';
-import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodeLabel';
+  type BarcodeFormat,
+  type PrintableLabel,
+} from '@shared/ui/components/barcodes';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
+import { NumberInput } from '@shared/ui/primitives/input/NumberInput';
+import { notifications } from '@shared/utils/notifications';
 
-import type { PrintableLabel } from '../supplyBarcodeSheetTypes';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 

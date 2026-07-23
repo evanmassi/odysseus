@@ -162,7 +162,7 @@ module.exports = {
     },
     {
       // Barcode/print components render printed output at physical px sizes
-      files: ['**/SupplyBarcodeSheetPreview.tsx', '**/BarcodeLabel.tsx'],
+      files: ['**/BarcodeSheetPreview.tsx'],
       rules: {
         'no-restricted-syntax': 'off',
       },

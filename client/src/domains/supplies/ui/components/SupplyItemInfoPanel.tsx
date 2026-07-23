@@ -35,7 +35,6 @@ import {
   useUpdateSupplyBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
-import { orderPackagingChain, thresholdInEntryUnit } from '@domains/supplies/utils/packagingChain';
 import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
 import {
   Button,
@@ -50,6 +49,7 @@ import {
   StripLabel,
   Tooltip,
 } from '@shared/ui';
+import { BarcodePrint } from '@shared/ui/components/barcodes';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -59,10 +59,10 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
+import { orderPackagingChain, thresholdInEntryUnit } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeForm } from './SupplyBarcodeForm';
-import { SupplyBarcodePrint } from './SupplyBarcodePrint';
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
@@ -681,7 +681,7 @@ export function SupplyItemInfoPanel({
       />
 
       {printingBarcode && (
-        <SupplyBarcodePrint
+        <BarcodePrint
           isOpen={true}
           onClose={() => setPrintingBarcode(null)}
           barcodeValue={printingBarcode.barcodeValue}

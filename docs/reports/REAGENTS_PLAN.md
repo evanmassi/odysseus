@@ -9,7 +9,7 @@ we build.
 
 ### Progress ledger — check off as each phase lands (details in §10)
 
-- [ ] Phase 0 — shared extractions
+- [x] Phase 0 — shared extractions
 - [ ] Phase 1 — schema + DB foundation
 - [ ] Phase 2 — server core CRUD
 - [ ] Phase 3 — alerts
@@ -20,7 +20,7 @@ we build.
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: plan committed; ready to start Phase 0. Each session — read this plan, do the current phase, tick its box, commit._
+_Current: Phase 0 landed (shared barcode/packaging/date-expiry extractions); ready to start Phase 1. Each session — read this plan, do the current phase, tick its box, commit._
 
 > **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
 > endpoints, and components exist — **not** a code reference. The audit rubric explicitly bars
