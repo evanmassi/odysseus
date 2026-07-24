@@ -63,6 +63,16 @@ export {
   type BulkMoveResponse,
 } from './tubes';
 
+// Units
+export {
+  CELL_CONCENTRATION_UNITS,
+  UNIT_REGISTRY,
+  formatQuantity,
+  formatScientific,
+  type UnitKind,
+  type UnitRegistryEntry,
+} from './units';
+
 // Lookups
 export {
   LOOKUP_CATEGORIES,

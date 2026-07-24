@@ -7,17 +7,20 @@
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import {
+  CELL_CONCENTRATION_UNITS,
   concentrationPreprocessor,
   concentrationPreprocessorNullable,
+  concentrationUnitRefinement,
+} from '../units';
+import {
   datePreprocessor,
   datePreprocessorNullable,
   optionalFromEmpty,
   nullableOptionalFromEmpty,
-  concentrationUnitRefinement,
 } from './tubeValidation';
 import { EQUIPMENT_DEFAULTS } from '../constants/equipmentDefaults';
 
-export const CONCENTRATION_UNITS = ['c/v', 'c/mL'] as const;
+export const CONCENTRATION_UNITS = CELL_CONCENTRATION_UNITS;
 export type ConcentrationUnit = (typeof CONCENTRATION_UNITS)[number];
 
 export const tubeLocationSchema = z.object({

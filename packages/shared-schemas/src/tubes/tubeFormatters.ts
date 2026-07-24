@@ -4,6 +4,8 @@
  * Presentation-only utility for formatting tube concentration values in scientific notation for UI components.
  */
 
+import { formatScientific } from '../units';
+
 import type { ConcentrationUnit } from './tubeSchemas';
 
 /**
@@ -21,16 +23,7 @@ export function formatConcentrationDisplay(
   value: number | undefined,
   unit?: ConcentrationUnit
 ): string {
-  if (value === undefined || value === null) return '';
-  if (value === 0) return '0';
-
-  const exponent = Math.floor(Math.log10(Math.abs(value)));
-  const mantissa = value / Math.pow(10, exponent);
-
-  // Two decimal places to distinguish close values (e.g. 4.90E+6 vs 4.92E+6)
-  const mantissaFormatted = mantissa.toFixed(2);
-  const exponentFormatted = exponent >= 0 ? `+${exponent}` : `${exponent}`;
-  const scientificNotation = `${mantissaFormatted}E${exponentFormatted}`;
-
-  return unit ? `${scientificNotation} ${unit}` : scientificNotation;
+  const scientific = formatScientific(value);
+  if (scientific === '' || scientific === '0') return scientific;
+  return unit ? `${scientific} ${unit}` : scientific;
 }
