@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { documentTypeSchema } from '../documents';
 import { dateField, dateOnlyField, optionalDateOnlyField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
 
@@ -137,6 +138,7 @@ export const equipmentDocumentSchema = z.object({
   label: z.string(),
   url: z.string(),
   notes: z.string().optional(),
+  docType: documentTypeSchema.optional(),
   createdAt: dateField,
 });
 
@@ -144,12 +146,14 @@ export const createEquipmentDocumentRequestSchema = z.object({
   label: z.string().min(1, 'Document label is required').max(200),
   url: z.string().min(1, 'Document URL is required').max(2000),
   notes: z.string().max(500).optional(),
+  docType: documentTypeSchema.optional(),
 });
 
 export const updateEquipmentDocumentRequestSchema = z.object({
   label: z.string().min(1).max(200).optional(),
   url: z.string().min(1).max(2000).optional(),
   notes: z.string().max(500).nullish(),
+  docType: documentTypeSchema.nullish(),
 });
 
 export const equipmentDocumentResponseSchema = z.object({

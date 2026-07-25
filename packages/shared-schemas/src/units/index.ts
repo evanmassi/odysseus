@@ -4,6 +4,7 @@
 
 export {
   CELL_CONCENTRATION_UNITS,
+  UNIT_KINDS,
   UNIT_REGISTRY,
   formatQuantity,
   formatScientific,
@@ -16,3 +17,16 @@ export {
   concentrationPreprocessorNullable,
   concentrationUnitRefinement,
 } from './concentrationFields';
+
+export {
+  unitKindSchema,
+  reagentCustomUnitSchema,
+  createReagentCustomUnitRequestSchema,
+  updateReagentCustomUnitRequestSchema,
+  reagentCustomUnitResponseSchema,
+  reagentCustomUnitListResponseSchema,
+  type UnitKindValue,
+  type ReagentCustomUnit,
+  type CreateReagentCustomUnitRequest,
+  type UpdateReagentCustomUnitRequest,
+} from './customUnitSchemas';

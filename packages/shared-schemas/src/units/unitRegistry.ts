@@ -7,18 +7,21 @@
  * dimension: cell counts render in scientific notation, everything else plain.
  */
 
-export type UnitKind =
-  | 'mass'
-  | 'volume'
-  | 'molarity'
-  | 'mass-conc'
-  | 'count-conc'
-  | 'percent'
-  | 'activity'
-  | 'activity-conc'
-  | 'fold'
-  | 'cell-conc'
-  | 'count';
+export const UNIT_KINDS = [
+  'mass',
+  'volume',
+  'molarity',
+  'mass-conc',
+  'count-conc',
+  'percent',
+  'activity',
+  'activity-conc',
+  'fold',
+  'cell-conc',
+  'count',
+] as const;
+
+export type UnitKind = (typeof UNIT_KINDS)[number];
 
 export interface UnitRegistryEntry {
   id: string;

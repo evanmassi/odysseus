@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { documentTypeSchema } from '../documents';
 import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/dateFields';
 
 // Enums
@@ -286,6 +287,7 @@ export const supplyDocumentSchema = z.object({
   label: z.string(),
   url: z.string(),
   notes: z.string().optional(),
+  docType: documentTypeSchema.optional(),
   createdAt: dateField,
 });
 
@@ -293,12 +295,14 @@ export const createSupplyDocumentRequestSchema = z.object({
   label: z.string().min(1, 'Document label is required').max(200),
   url: z.string().min(1, 'Document URL is required').max(2000),
   notes: z.string().max(500).optional(),
+  docType: documentTypeSchema.optional(),
 });
 
 export const updateSupplyDocumentRequestSchema = z.object({
   label: z.string().min(1).max(200).optional(),
   url: z.string().min(1).max(2000).optional(),
   notes: z.string().max(500).nullish(),
+  docType: documentTypeSchema.nullish(),
 });
 
 export const supplyDocumentResponseSchema = z.object({

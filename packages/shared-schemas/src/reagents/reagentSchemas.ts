@@ -1,0 +1,643 @@
+/**
+ * Reagent Inventory Schemas
+ *
+ * Validation and types for reagent categories, items, locations, lots,
+ * barcodes, transactions, documents, packaging, and lab-configurable attributes.
+ */
+
+import { z } from 'zod';
+
+import { documentTypeSchema } from '../documents';
+import {
+  concentrationPreprocessor,
+  concentrationPreprocessorNullable,
+  concentrationUnitRefinement,
+} from '../units';
+import {
+  dateField,
+  dateOnlyField,
+  optionalDateField,
+  optionalDateOnlyField,
+} from '../utils/dateFields';
+import { optionalText, patchText } from '../utils/stringFields';
+
+// Enums
+
+export const reagentItemStatusValues = ['active', 'discontinued', 'archived'] as const;
+export const reagentItemStatusSchema = z.enum(reagentItemStatusValues);
+
+export const reagentTransactionTypeValues = [
+  'received',
+  'issued',
+  'count_adjustment',
+  'disposed',
+  'void_reversal',
+] as const;
+export const reagentTransactionTypeSchema = z.enum(reagentTransactionTypeValues);
+
+export const reagentBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
+export const reagentBarcodeTypeSchema = z.enum(reagentBarcodeTypeValues);
+
+// Stored lot status; `expired` is derived at read time from the expiration date.
+export const reagentLotStatusValues = ['active', 'depleted', 'disposed'] as const;
+export const reagentLotStatusSchema = z.enum(reagentLotStatusValues);
+
+export const reagentAttributeValueTypeValues = [
+  'select',
+  'multi_select',
+  'text',
+  'number',
+] as const;
+export const reagentAttributeValueTypeSchema = z.enum(reagentAttributeValueTypeValues);
+
+// Category schemas
+
+export const reagentCategorySchema = z.object({
+  id: z.string(),
+  labId: z.string(),
+  name: z.string(),
+  parentId: z.string().nullable(),
+  sortOrder: z.number().int(),
+  createdAt: dateField,
+  updatedAt: dateField,
+});
+
+export const createReagentCategoryRequestSchema = z.object({
+  name: z.string().min(1, 'Category name is required').max(200),
+  parentId: z.string().optional(),
+  sortOrder: z.number().int().optional(),
+});
+
+export const updateReagentCategoryRequestSchema = z.object({
+  name: z.string().min(1).max(200).nullish(),
+  parentId: z.string().nullish(),
+  sortOrder: z.number().int().nullish(),
+});
+
+export const reagentCategoryResponseSchema = z.object({
+  category: reagentCategorySchema,
+});
+
+export const reagentCategoryListResponseSchema = z.object({
+  categories: z.array(reagentCategorySchema),
+});
+
+// Location schemas
+
+export const reagentLocationSchema = z.object({
+  id: z.string(),
+  labId: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  sortOrder: z.number().int(),
+  createdAt: dateField,
+  updatedAt: dateField,
+});
+
+export const createReagentLocationRequestSchema = z.object({
+  name: z.string().min(1, 'Location name is required').max(200),
+  description: optionalText(500),
+  sortOrder: z.number().int().optional(),
+});
+
+export const updateReagentLocationRequestSchema = z.object({
+  name: z.string().min(1).max(200).nullish(),
+  description: patchText(500),
+  sortOrder: z.number().int().nullish(),
+});
+
+export const reagentLocationResponseSchema = z.object({
+  location: reagentLocationSchema,
+});
+
+export const reagentLocationListResponseSchema = z.object({
+  locations: z.array(reagentLocationSchema),
+});
+
+// Attribute value summary — compact per-item attribute values for list filtering.
+
+export const reagentAttributeSummarySchema = z.object({
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
+// Item schemas
+
+export const reagentItemSchema = z.object({
+  id: z.string(),
+  labId: z.string(),
+  categoryId: z.string(),
+  name: z.string(),
+  manufacturer: z.string().optional(),
+  catalogNumber: z.string().optional(),
+  vendorName: z.string().optional(),
+  vendorCatalogNumber: z.string().optional(),
+  stockUnit: z.string().optional(),
+  reagentType: z.string().optional(),
+  casNumber: z.string().optional(),
+  concentration: z.number().optional(),
+  concentrationUnit: z.string().optional(),
+  expiryWarningDays: z.number().int().optional(),
+  reorderThreshold: z.number().optional(),
+  reorderThresholdUnit: z.string().optional(),
+  reorderQuantity: z.number().optional(),
+  reorderUnit: z.string().optional(),
+  unitPrice: z.number().optional(),
+  description: z.string().optional(),
+  notes: z.string().optional(),
+  status: reagentItemStatusSchema,
+  createdAt: dateField,
+  updatedAt: dateField,
+});
+
+export const reagentItemWithStockSchema = reagentItemSchema.extend({
+  totalStock: z.number(),
+  locationNames: z.array(z.string()),
+  soonestExpiration: optionalDateOnlyField,
+  attributeValues: z.array(reagentAttributeSummarySchema),
+});
+
+export const createReagentItemRequestSchema = concentrationUnitRefinement(
+  z.object({
+    categoryId: z.string().min(1, 'Category is required'),
+    name: z.string().min(1, 'Item name is required').max(200),
+    manufacturer: optionalText(200),
+    catalogNumber: optionalText(200),
+    vendorName: optionalText(200),
+    vendorCatalogNumber: optionalText(200),
+    stockUnit: optionalText(100),
+    reagentType: optionalText(200),
+    casNumber: optionalText(200),
+    concentration: concentrationPreprocessor,
+    concentrationUnit: optionalText(100),
+    expiryWarningDays: z.number().int().min(0).optional(),
+    reorderThreshold: z.number().min(0).optional(),
+    reorderThresholdUnit: optionalText(100),
+    reorderQuantity: z.number().min(0).optional(),
+    reorderUnit: optionalText(100),
+    unitPrice: z.number().min(0).optional(),
+    description: optionalText(2000),
+    notes: optionalText(5000),
+  })
+);
+
+export const updateReagentItemRequestSchema = concentrationUnitRefinement(
+  z.object({
+    categoryId: z.string().min(1).nullish(),
+    name: z.string().min(1).max(200).nullish(),
+    manufacturer: patchText(200),
+    catalogNumber: patchText(200),
+    vendorName: patchText(200),
+    vendorCatalogNumber: patchText(200),
+    stockUnit: patchText(100),
+    reagentType: patchText(200),
+    casNumber: patchText(200),
+    concentration: concentrationPreprocessorNullable,
+    concentrationUnit: patchText(100),
+    expiryWarningDays: z.number().int().min(0).nullish(),
+    reorderThreshold: z.number().min(0).nullish(),
+    reorderThresholdUnit: patchText(100),
+    reorderQuantity: z.number().min(0).nullish(),
+    reorderUnit: patchText(100),
+    unitPrice: z.number().min(0).nullish(),
+    description: patchText(2000),
+    notes: patchText(5000),
+  })
+);
+
+export const reagentItemResponseSchema = z.object({
+  item: reagentItemSchema,
+});
+
+export const reagentItemListResponseSchema = z.object({
+  items: z.array(reagentItemWithStockSchema),
+});
+
+// Lot schemas — the stock unit of a reagent (quantity, expiry, location).
+
+export const reagentLotSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  locationId: z.string(),
+  lotNumber: z.string().optional(),
+  quantity: z.number(),
+  expirationDate: optionalDateOnlyField,
+  openedDate: optionalDateOnlyField,
+  receivedDate: optionalDateOnlyField,
+  concentration: z.number().optional(),
+  concentrationUnit: z.string().optional(),
+  status: reagentLotStatusSchema,
+  createdAt: dateField,
+  updatedAt: dateField,
+});
+
+export const updateReagentLotRequestSchema = z.object({
+  openedDate: patchText(),
+  expirationDate: patchText(),
+  status: reagentLotStatusSchema.nullish(),
+});
+
+export const reagentLotResponseSchema = z.object({
+  lot: reagentLotSchema,
+});
+
+export const reagentLotListResponseSchema = z.object({
+  lots: z.array(reagentLotSchema),
+});
+
+// Barcode schemas — item-level (product) or lot-level (physical bottle) via lotId.
+
+export const reagentBarcodeSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  lotId: z.string().nullable(),
+  barcodeValue: z.string(),
+  barcodeType: reagentBarcodeTypeSchema,
+  isPrimary: z.boolean(),
+  label: z.string().optional(),
+});
+
+export const createReagentBarcodeRequestSchema = z.object({
+  barcodeValue: z.string().min(1, 'Barcode value is required').max(500),
+  barcodeType: reagentBarcodeTypeSchema,
+  lotId: optionalText(50),
+  isPrimary: z.boolean().optional(),
+  label: optionalText(200),
+});
+
+export const updateReagentBarcodeRequestSchema = z.object({
+  label: patchText(200),
+  isPrimary: z.boolean().optional(),
+});
+
+export const reagentBarcodeResponseSchema = z.object({
+  barcode: reagentBarcodeSchema,
+});
+
+export const reagentResolveBarcodeResponseSchema = z.object({
+  item: reagentItemSchema.nullable(),
+  lot: reagentLotSchema.nullable(),
+});
+
+// Transaction schemas — append-only ledger; each row references the lot it moved.
+
+export const reagentTransactionSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  lotId: z.string().nullable(),
+  locationId: z.string(),
+  labId: z.string(),
+  type: reagentTransactionTypeSchema,
+  quantityChange: z.number(),
+  quantityAfter: z.number(),
+  poNumber: z.string().optional(),
+  cost: z.number().optional(),
+  performedBy: z.string(),
+  notes: z.string().optional(),
+  createdAt: dateField,
+  voidedAt: optionalDateField,
+  voidedBy: z.string().optional(),
+  voidReason: z.string().optional(),
+  relatedTransactionId: z.string().optional(),
+});
+
+export const recordReagentTransactionRequestSchema = concentrationUnitRefinement(
+  z.object({
+    itemId: z.string().min(1, 'Item is required'),
+    locationId: z.string().min(1, 'Location is required'),
+    type: z.enum(['received', 'issued', 'disposed']),
+    quantity: z.number().positive('Quantity must be greater than 0'),
+    // received: creates or increments a lot
+    lotNumber: optionalText(200),
+    expirationDate: z.string().optional(),
+    openedDate: z.string().optional(),
+    receivedDate: z.string().optional(),
+    concentration: concentrationPreprocessor,
+    concentrationUnit: optionalText(100),
+    // issued/disposed: target a specific lot, else FEFO across lots
+    lotId: optionalText(50),
+    // acknowledge drawing from an expired lot (single issue only)
+    includeExpired: z.boolean().optional(),
+    poNumber: optionalText(200),
+    cost: z.number().min(0).optional(),
+    notes: optionalText(2000),
+  })
+);
+
+export const recordReagentStockCountRequestSchema = z.object({
+  itemId: z.string().min(1, 'Item is required'),
+  locationId: z.string().min(1, 'Location is required'),
+  lotId: optionalText(50),
+  actualCount: z.number().min(0, 'Count must be non-negative'),
+  lotNumber: optionalText(200),
+  expirationDate: z.string().optional(),
+  notes: optionalText(2000),
+});
+
+export const voidReagentTransactionRequestSchema = z.object({
+  reason: z.string().min(1, 'Void reason is required').max(2000),
+});
+
+export const reagentBulkVoidRequestSchema = z.object({
+  transactionIds: z
+    .array(z.string().min(1))
+    .min(1, 'At least one transaction is required')
+    .max(100),
+  reason: z.string().min(1, 'Void reason is required').max(2000),
+});
+
+export const reagentTransactionResponseSchema = z.object({
+  transaction: reagentTransactionSchema,
+});
+
+export const reagentVoidTransactionResponseSchema = z.object({
+  original: reagentTransactionSchema,
+  reversal: reagentTransactionSchema,
+});
+
+export const reagentTransactionListResponseSchema = z.object({
+  transactions: z.array(reagentTransactionSchema),
+});
+
+// Document schemas — shared Document shape plus the optional docType classification.
+
+export const reagentDocumentSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  label: z.string(),
+  url: z.string(),
+  notes: z.string().optional(),
+  docType: documentTypeSchema.optional(),
+  createdAt: dateField,
+});
+
+export const createReagentDocumentRequestSchema = z.object({
+  label: z.string().min(1, 'Document label is required').max(200),
+  url: z.string().min(1, 'Document URL is required').max(2000),
+  notes: optionalText(500),
+  docType: documentTypeSchema.optional(),
+});
+
+export const updateReagentDocumentRequestSchema = z.object({
+  label: z.string().min(1).max(200).optional(),
+  url: z.string().min(1).max(2000).optional(),
+  notes: patchText(500),
+  docType: documentTypeSchema.nullish(),
+});
+
+export const reagentDocumentResponseSchema = z.object({
+  document: reagentDocumentSchema,
+});
+
+// Packaging level schemas — per-item hierarchical unit chain.
+
+export const reagentPackagingLevelSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  unitName: z.string(),
+  quantity: z.number(),
+  parentUnit: z.string().nullable(),
+});
+
+export const createReagentPackagingLevelRequestSchema = z.object({
+  unitName: z.string().min(1, 'Unit name is required').max(100),
+  quantity: z.number().positive('Quantity must be greater than 0'),
+  parentUnit: z.string().nullable(),
+});
+
+export const reagentPackagingLevelResponseSchema = z.object({
+  packagingLevel: reagentPackagingLevelSchema,
+});
+
+// Attribute system schemas — lab-configurable, type-scoped metadata.
+
+export const reagentAttributeDefinitionSchema = z.object({
+  id: z.string(),
+  labId: z.string(),
+  name: z.string(),
+  valueType: reagentAttributeValueTypeSchema,
+  appliesToType: z.string().nullable(),
+  sortOrder: z.number().int(),
+  isSystem: z.boolean(),
+  systemKey: z.string().nullable(),
+  promptOnForm: z.boolean(),
+  createdAt: dateField,
+  updatedAt: dateField,
+});
+
+export const createReagentAttributeDefinitionRequestSchema = z.object({
+  name: z.string().min(1, 'Attribute name is required').max(200),
+  valueType: reagentAttributeValueTypeSchema,
+  appliesToType: optionalText(200),
+  sortOrder: z.number().int().optional(),
+  promptOnForm: z.boolean().optional(),
+});
+
+export const updateReagentAttributeDefinitionRequestSchema = z.object({
+  name: z.string().min(1).max(200).nullish(),
+  appliesToType: patchText(200),
+  sortOrder: z.number().int().nullish(),
+  promptOnForm: z.boolean().nullish(),
+});
+
+export const reagentAttributeOptionSchema = z.object({
+  id: z.string(),
+  definitionId: z.string(),
+  value: z.string(),
+  sortOrder: z.number().int(),
+});
+
+export const createReagentAttributeOptionRequestSchema = z.object({
+  value: z.string().min(1, 'Option value is required').max(200),
+  sortOrder: z.number().int().optional(),
+});
+
+export const updateReagentAttributeOptionRequestSchema = z.object({
+  value: z.string().min(1).max(200).nullish(),
+  sortOrder: z.number().int().nullish(),
+});
+
+export const reagentAttributeValueSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
+export const setReagentAttributeValueRequestSchema = z.object({
+  definitionId: z.string().min(1, 'Attribute is required'),
+  valueOptionIds: z.array(z.string().min(1)).optional(),
+  valueText: optionalText(2000),
+  valueNumber: z.number().optional(),
+});
+
+export const reagentAttributeDefinitionResponseSchema = z.object({
+  definition: reagentAttributeDefinitionSchema,
+});
+
+export const reagentAttributeDefinitionListResponseSchema = z.object({
+  definitions: z.array(reagentAttributeDefinitionSchema),
+  options: z.array(reagentAttributeOptionSchema),
+});
+
+export const reagentAttributeOptionResponseSchema = z.object({
+  option: reagentAttributeOptionSchema,
+});
+
+// Composed detail response
+
+export const reagentItemDetailResponseSchema = z.object({
+  item: reagentItemSchema,
+  lots: z.array(reagentLotSchema),
+  documents: z.array(reagentDocumentSchema),
+  barcodes: z.array(reagentBarcodeSchema),
+  recentTransactions: z.array(reagentTransactionSchema),
+  packagingLevels: z.array(reagentPackagingLevelSchema),
+  attributeValues: z.array(reagentAttributeValueSchema),
+});
+
+// Bulk operation schemas
+
+const itemIdsField = z.array(z.string().min(1)).min(1, 'At least one item is required').max(100);
+
+export const reagentBulkReceiveRequestSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().min(1),
+        locationId: z.string().min(1),
+        quantity: z.number().min(0),
+        lotNumber: optionalText(200),
+        expirationDate: z.string().optional(),
+        receivedDate: z.string().optional(),
+        poNumber: optionalText(200),
+        cost: z.number().min(0).optional(),
+      })
+    )
+    .min(1, 'At least one item is required')
+    .max(100),
+});
+
+export const reagentBulkIssueRequestSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().min(1),
+        locationId: z.string().min(1),
+        quantity: z.number().min(0),
+      })
+    )
+    .min(1, 'At least one item is required')
+    .max(100),
+});
+
+export const reagentBulkReassignCategoryRequestSchema = z.object({
+  itemIds: itemIdsField,
+  categoryId: z.string().min(1, 'Target category is required'),
+});
+
+export const reagentBulkArchiveRequestSchema = z.object({
+  itemIds: itemIdsField,
+});
+
+export const reagentBulkResponseSchema = z.object({
+  succeeded: z.array(z.string()),
+  failed: z.array(z.object({ id: z.string(), error: z.string() })),
+});
+
+export const reagentBulkBarcodesRequestSchema = z.object({
+  itemIds: itemIdsField,
+});
+
+export const reagentBulkBarcodesResponseSchema = z.object({
+  barcodes: z.array(
+    z.object({
+      itemId: z.string(),
+      barcodeValue: z.string().nullable(),
+    })
+  ),
+});
+
+// Alert list responses
+
+export const reagentReorderListResponseSchema = z.object({
+  items: z.array(reagentItemWithStockSchema),
+});
+
+export const reagentExpiringLotSchema = z.object({
+  itemId: z.string(),
+  itemName: z.string(),
+  categoryId: z.string(),
+  lotId: z.string(),
+  lotNumber: z.string().optional(),
+  expirationDate: dateOnlyField,
+  quantity: z.number(),
+  locationName: z.string().optional(),
+});
+
+export const reagentExpiryListResponseSchema = z.object({
+  lots: z.array(reagentExpiringLotSchema),
+});
+
+// Type exports
+
+export type ReagentItemStatus = z.infer<typeof reagentItemStatusSchema>;
+export type ReagentTransactionType = z.infer<typeof reagentTransactionTypeSchema>;
+export type ReagentBarcodeType = z.infer<typeof reagentBarcodeTypeSchema>;
+export type ReagentLotStatus = z.infer<typeof reagentLotStatusSchema>;
+export type ReagentAttributeValueType = z.infer<typeof reagentAttributeValueTypeSchema>;
+export type ReagentCategory = z.infer<typeof reagentCategorySchema>;
+export type ReagentLocation = z.infer<typeof reagentLocationSchema>;
+export type ReagentItem = z.infer<typeof reagentItemSchema>;
+export type ReagentItemWithStock = z.infer<typeof reagentItemWithStockSchema>;
+export type ReagentLot = z.infer<typeof reagentLotSchema>;
+export type ReagentBarcode = z.infer<typeof reagentBarcodeSchema>;
+export type ReagentTransaction = z.infer<typeof reagentTransactionSchema>;
+export type ReagentVoidTransactionResponse = z.infer<typeof reagentVoidTransactionResponseSchema>;
+export type ReagentDocument = z.infer<typeof reagentDocumentSchema>;
+export type ReagentPackagingLevel = z.infer<typeof reagentPackagingLevelSchema>;
+export type ReagentAttributeDefinition = z.infer<typeof reagentAttributeDefinitionSchema>;
+export type ReagentAttributeOption = z.infer<typeof reagentAttributeOptionSchema>;
+export type ReagentAttributeValue = z.infer<typeof reagentAttributeValueSchema>;
+export type ReagentAttributeSummary = z.infer<typeof reagentAttributeSummarySchema>;
+export type ReagentItemDetail = z.infer<typeof reagentItemDetailResponseSchema>;
+export type ReagentExpiringLot = z.infer<typeof reagentExpiringLotSchema>;
+export type CreateReagentCategoryRequest = z.infer<typeof createReagentCategoryRequestSchema>;
+export type UpdateReagentCategoryRequest = z.infer<typeof updateReagentCategoryRequestSchema>;
+export type CreateReagentLocationRequest = z.infer<typeof createReagentLocationRequestSchema>;
+export type UpdateReagentLocationRequest = z.infer<typeof updateReagentLocationRequestSchema>;
+export type CreateReagentItemRequest = z.infer<typeof createReagentItemRequestSchema>;
+export type UpdateReagentItemRequest = z.infer<typeof updateReagentItemRequestSchema>;
+export type UpdateReagentLotRequest = z.infer<typeof updateReagentLotRequestSchema>;
+export type CreateReagentBarcodeRequest = z.infer<typeof createReagentBarcodeRequestSchema>;
+export type UpdateReagentBarcodeRequest = z.infer<typeof updateReagentBarcodeRequestSchema>;
+export type RecordReagentTransactionRequest = z.infer<typeof recordReagentTransactionRequestSchema>;
+export type RecordReagentStockCountRequest = z.infer<typeof recordReagentStockCountRequestSchema>;
+export type VoidReagentTransactionRequest = z.infer<typeof voidReagentTransactionRequestSchema>;
+export type ReagentBulkVoidRequest = z.infer<typeof reagentBulkVoidRequestSchema>;
+export type CreateReagentDocumentRequest = z.infer<typeof createReagentDocumentRequestSchema>;
+export type UpdateReagentDocumentRequest = z.infer<typeof updateReagentDocumentRequestSchema>;
+export type CreateReagentPackagingLevelRequest = z.infer<
+  typeof createReagentPackagingLevelRequestSchema
+>;
+export type CreateReagentAttributeDefinitionRequest = z.infer<
+  typeof createReagentAttributeDefinitionRequestSchema
+>;
+export type UpdateReagentAttributeDefinitionRequest = z.infer<
+  typeof updateReagentAttributeDefinitionRequestSchema
+>;
+export type CreateReagentAttributeOptionRequest = z.infer<
+  typeof createReagentAttributeOptionRequestSchema
+>;
+export type UpdateReagentAttributeOptionRequest = z.infer<
+  typeof updateReagentAttributeOptionRequestSchema
+>;
+export type SetReagentAttributeValueRequest = z.infer<typeof setReagentAttributeValueRequestSchema>;
+export type ReagentBulkReceiveRequest = z.infer<typeof reagentBulkReceiveRequestSchema>;
+export type ReagentBulkIssueRequest = z.infer<typeof reagentBulkIssueRequestSchema>;
+export type ReagentBulkResponse = z.infer<typeof reagentBulkResponseSchema>;
+export type ReagentBulkBarcodesResponse = z.infer<typeof reagentBulkBarcodesResponseSchema>;
