@@ -16,7 +16,8 @@ export class SupplyDocument extends Document {
       data.label,
       data.url,
       data.notes,
-      new Date()
+      new Date(),
+      data.docType
     );
   }
 
@@ -27,7 +28,8 @@ export class SupplyDocument extends Document {
       data.label,
       data.url,
       data.notes,
-      toDomainDate(data.createdAt)
+      toDomainDate(data.createdAt),
+      data.docType
     );
   }
 }

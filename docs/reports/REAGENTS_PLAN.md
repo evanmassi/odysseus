@@ -10,7 +10,7 @@ we build.
 ### Progress ledger — check off as each phase lands (details in §10)
 
 - [x] Phase 0 — shared extractions
-- [ ] Phase 1 — schema + DB foundation
+- [x] Phase 1 — schema + DB foundation
 - [ ] Phase 2 — server core CRUD
 - [ ] Phase 3 — alerts
 - [ ] Phase 4 — attribute system
@@ -20,7 +20,7 @@ we build.
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phase 0 landed (shared barcode/packaging/date-expiry extractions); ready to start Phase 1. Each session — read this plan, do the current phase, tick its box, commit._
+_Current: Phase 1 landed (unit registry + tubes migration; reagent shared-schemas module + shared docType; migrations 027/028 + Document docType plumbing). Reagent lookup app-chain (widen LOOKUP_CATEGORIES + LookupValue domain + LookupValueApplicationService branches + client CatalogTab/hooks) deferred to Phase 2 — it needs the reagent repository and touches every Record<LookupCategory> consumer. Migration 027 already lists the reagent lookup categories in the DB CHECK. Ready to start Phase 2. Each session — read this plan, do the current phase, tick its box, commit._
 
 > **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
 > endpoints, and components exist — **not** a code reference. The audit rubric explicitly bars

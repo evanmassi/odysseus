@@ -8,11 +8,14 @@
 
 import { ValidationError } from '@domain/errors/ValidationError';
 
+import type { DocumentType } from '@odysseus/shared-schemas';
+
 export interface DocumentCreateData {
   itemId: string;
   label: string;
   url: string;
   notes?: string;
+  docType?: DocumentType;
 }
 
 export interface DocumentData {
@@ -21,6 +24,7 @@ export interface DocumentData {
   label: string;
   url: string;
   notes?: string;
+  docType?: DocumentType;
   createdAt: string | Date;
 }
 
@@ -34,7 +38,8 @@ export abstract class Document {
     private readonly _label: string,
     private readonly _url: string,
     private readonly _notes: string | undefined,
-    private readonly _createdAt: Date
+    private readonly _createdAt: Date,
+    private readonly _docType: DocumentType | undefined
   ) {
     this.validate();
   }
@@ -62,6 +67,9 @@ export abstract class Document {
   }
   get notes(): string | undefined {
     return this._notes;
+  }
+  get docType(): DocumentType | undefined {
+    return this._docType;
   }
   get createdAt(): Date {
     return new Date(this._createdAt);

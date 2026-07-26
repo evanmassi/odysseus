@@ -8,12 +8,15 @@
 import type { Document, DocumentFactory } from '@domain/entities/Document';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
+import type { DocumentType } from '@odysseus/shared-schemas';
+
 export interface DocumentRow {
   id: string;
   item_id: string;
   label: string;
   url: string;
   notes: string | null;
+  doc_type: DocumentType | null;
   created_at: Date | string;
 }
 
@@ -25,6 +28,7 @@ export class DocumentMapper {
       label: document.label,
       url: document.url,
       notes: document.notes ?? null,
+      doc_type: document.docType ?? null,
       created_at: document.createdAt,
     };
   }
@@ -36,6 +40,7 @@ export class DocumentMapper {
       label: row.label,
       url: row.url,
       notes: row.notes ?? undefined,
+      docType: row.doc_type ?? undefined,
       createdAt: toISOString(row.created_at),
     });
   }

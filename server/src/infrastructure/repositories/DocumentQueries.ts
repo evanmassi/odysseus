@@ -10,12 +10,15 @@ import type { DocumentRow } from '@infrastructure/database/mappers/DocumentMappe
 import { DocumentMapper } from '@infrastructure/database/mappers/DocumentMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
-const COLUMNS = 'id, item_id, label, url, notes, created_at';
+import type { DocumentType } from '@odysseus/shared-schemas';
+
+const COLUMNS = 'id, item_id, label, url, notes, doc_type, created_at';
 
 export interface DocumentPatch {
   label?: string;
   url?: string;
   notes?: string | null;
+  docType?: DocumentType | null;
 }
 
 export class DocumentQueries<T extends Document> {
@@ -43,9 +46,9 @@ export class DocumentQueries<T extends Document> {
     await this.db.execute(
       `
       INSERT INTO ${this.table} (${COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
     `,
-      [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]
+      [row.id, row.item_id, row.label, row.url, row.notes, row.doc_type, row.created_at]
     );
   }
 
@@ -66,6 +69,10 @@ export class DocumentQueries<T extends Document> {
     if (fields.notes !== undefined) {
       sets.push(`notes = $${idx++}`);
       params.push(fields.notes);
+    }
+    if (fields.docType !== undefined) {
+      sets.push(`doc_type = $${idx++}`);
+      params.push(fields.docType);
     }
 
     if (sets.length === 0) {
