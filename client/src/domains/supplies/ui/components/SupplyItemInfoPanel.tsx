@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useLocationsQuery } from '@domains/locations';
+import { useLocationsQuery } from '@domains/lab-management';
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useDeleteSupplyItemMutation,

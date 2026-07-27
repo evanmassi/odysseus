@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 
 import { Ban } from 'lucide-react';
 
-import { useLocationsQuery } from '@domains/locations';
+import { useLocationsQuery } from '@domains/lab-management';
 import { useVoidSupplyTransactionMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';

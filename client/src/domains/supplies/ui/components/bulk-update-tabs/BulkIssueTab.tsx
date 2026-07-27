@@ -8,7 +8,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 
 import { Search } from 'lucide-react';
 
-import { useLocationsQuery } from '@domains/locations';
+import { useLocationsQuery } from '@domains/lab-management';
 import { useSupplyBulkIssueMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
 import { Autocomplete, Button, NubDivider, withPlaceholder } from '@shared/ui';

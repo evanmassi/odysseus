@@ -11,7 +11,7 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { useLocationsQuery } from '@domains/locations';
+import { useLocationsQuery } from '@domains/lab-management';
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useRecordSupplyTransactionMutation,

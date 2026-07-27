@@ -107,11 +107,13 @@ subtree of height 1 from 2.
 
 **Naming.** Deliberately `locations`, not `lab_locations` — a store room isn't necessarily in the lab.
 
-**Client home.** `domains/locations/`. `lab-management` was the call until the import-cycle rule
-disproved it: its barrel exports `LabManagementPage`, which imports `SuppliesTab`, so a catalog
-importing locations *from the shell it is hosted by* closes a loop. The shell depends on the
-catalogs; the catalogs cannot depend on the shell. Not `domains/storage/` either — positional tube
-subsystem, disjoint consumers (see *Parked*).
+**Client home.** `domains/lab-management/`, which now holds lab-wide vocabularies rather than a page.
+The cycle that briefly ruled it out — its barrel exported `LabManagementPage`, which imports
+`SuppliesTab` — was the page's fault, not the domain's: that page owns no domain logic, has one
+consumer (`AppDashboard`), and even imported `@app/components/layout/AppHeader`, a domain reaching
+into the app shell. Moving it to `app/components/layout/` inverts the dependency correctly — the
+domain exports vocabularies, catalogs import them, `app/` composes both. Attributes and custom units
+land here too. Not `domains/storage/` — positional tube subsystem, disjoint consumers (see *Parked*).
 
 **Landed (4a).** One `locations` table with `parent_id`, created in the amended 027; migration 030
 moves supply rows across, repoints the `supply_stock` and `supply_transactions` FKs and drops
@@ -121,6 +123,11 @@ recurses so the third tier is selectable rather than schema-only.
 
 **Rehearsed** on a clone of dev through the whole 027→030 chain: both supply locations moved, the
 stock row and transaction still resolve, `supply_locations` dropped, dev itself untouched at 26.
+
+**Follow-on.** Lookups (species, vendor, manufacturer) are still administered from
+`domains/admin/CatalogTab` while these vocabularies live in lab-management — the same concept in two
+homes. Item 7's rail is the moment to reconcile that, since the rail *is* one surface for every lab
+vocabulary.
 
 **Outstanding (4b).** Equipment's free-text `location` column still needs backfilling onto the tree —
 deferred because converting it to a constrained dropdown is a product call, not plumbing.

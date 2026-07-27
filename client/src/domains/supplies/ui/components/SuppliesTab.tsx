@@ -11,7 +11,7 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { Plus, Eye, EyeOff, Package, MapPin, Layers } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { LocationModal } from '@domains/locations';
+import { LocationModal } from '@domains/lab-management';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import {
   useCreateSupplyCategoryMutation,

@@ -1,7 +1,13 @@
 /**
  * Lab Management Domain Public API
  *
- * Page shell for equipment, supplies, and reagents management.
+ * Lab-wide vocabularies the catalogs share — locations today, attributes and custom units next.
  */
 
-export { LabManagementPage } from './ui/components/LabManagementPage';
+export { useLocationsQuery } from './hooks/useLocationQueries';
+export {
+  useCreateLocationMutation,
+  useUpdateLocationMutation,
+  useDeleteLocationMutation,
+} from './hooks/useLocationMutations';
+export { LocationModal } from './ui/components/LocationModal';

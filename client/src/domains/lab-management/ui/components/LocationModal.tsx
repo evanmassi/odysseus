@@ -8,8 +8,8 @@ import { useState, useEffect, useRef } from 'react';
 
 import { MapPin, Plus } from 'lucide-react';
 
-import { useCreateLocationMutation } from '@domains/locations/hooks/useLocationMutations';
-import { useLocationsQuery } from '@domains/locations/hooks/useLocationQueries';
+import { useCreateLocationMutation } from '@domains/lab-management/hooks/useLocationMutations';
+import { useLocationsQuery } from '@domains/lab-management/hooks/useLocationQueries';
 import { Button, Input } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { CategoryHierarchySelect } from '@shared/ui/components/inventory';

@@ -23,7 +23,7 @@ const SystemAdminDashboard = lazy(() =>
 );
 
 const LabManagementPage = lazy(() =>
-  import('@domains/lab-management').then(m => ({ default: m.LabManagementPage }))
+  import('./LabManagementPage').then(m => ({ default: m.LabManagementPage }))
 );
 
 function DashboardChrome({ children }: { children: ReactNode }) {
