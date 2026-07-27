@@ -11,7 +11,7 @@ we build.
 
 - [x] Phase 0 — shared extractions
 - [x] Phase 1 — schema + DB foundation
-- [ ] Phase 2 — server core CRUD
+- [x] Phase 2 — server core CRUD
 - [ ] Phase 3 — alerts
 - [ ] Phase 4 — attribute system
 - [ ] Phase 5 — client core
@@ -20,10 +20,10 @@ we build.
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phase 2 in progress (split into 3 commits: 2a/2b done, 2c remaining)._
+_Current: Phase 2 ✅ complete (2a/2b/2c landed). Next: Phase 3 — alerts._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository; lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
-_- 2c ⬜ **NEXT — reagent lookup app-chain** (deferred from Phase 1; it widens the shared `LookupCategory` and breaks every `Record<LookupCategory>` consumer, so it lands atomically). Touch-points: `packages/shared-schemas/src/lookups/lookupSchemas.ts` LOOKUP_CATEGORIES (+reagent_type/reagent_vendor/reagent_manufacturer); server `domain/entities/LookupValue.ts` (union + validate array); `application/services/LookupValueApplicationService.ts` (constructor param + getReagentCountFn + renameReagentValue branch + delete labelMap) wired via `infrastructure/di/modules/StorageModule.ts` (inject `repositories.reagentItems`); client `admin/hooks/useCatalogValuesQuery.ts` (CATALOG_CATEGORIES + EMPTY_CATALOG), `admin/ui/components/settings-modal/tabs/CatalogTab.tsx` (3 label Records + a Reagents CatalogGroup), `admin/hooks/useLookupValueMutations.ts` (renameCascadeKeys switch), and a `queryKeys.reagents` block in `app/cache/queryKeys.ts` (minimal `all` now). The repo already exposes count/renameReagentItemsUsing{ReagentType,Vendor,Manufacturer}; migration 027's CHECK already permits the categories._
+_- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
 _Each session — read this plan, do the current sub-commit, gate green (server: typecheck + `npm test` unit + `npm run test:integration`), commit when told._
 
 > **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
@@ -638,6 +638,19 @@ if it's per-item metadata the lab curates and filters by → attribute.
 - **Lookup multi-place (~5 files)** → touch-points added to §12.
 
 ### Still parked
+- **Vendor / manufacturer duplication across catalogs** *(raised at 2c)* — `supply_vendor` and
+  `reagent_vendor` are separate lookup categories, so the Catalog tab now renders "Vendors" and
+  "Manufacturers" twice and an admin types *Thermo Fisher* once per catalog. (Equipment has no
+  vendor lookup at all today, so a third copy would follow if it ever gains one.) The *identity*
+  separation is deliberate — a supply vendor must not be assignable where a reagent vendor is
+  expected — but the *vocabulary* isn't obviously catalog-specific: a lab has one vendor list.
+  Option space to work through: **(a)** leave as-is; **(b)** collapse to shared `vendor` /
+  `manufacturer` categories consumed by every catalog — needs a migration merging existing values
+  (dedupe on collision) and a rename cascade that fans out across all item tables, and it widens
+  delete-protection to "used by N items across 2 catalogs"; **(c)** keep per-catalog storage but
+  give the Catalog tab one merged editor that writes both rows. Decide **before Phase 5's item
+  form** ships — the form binds a specific category, so changing it later is a client + data
+  migration rather than a doc edit.
 - **Lab-default expiry home** — existing lab config vs a small reagent-settings row (infra detail,
   resolve at build time). **Per-category** expiry tier: not v1 unless you want it.
 - **`reagent_type` weight** — how hard it drives attribute scoping / grouping.
@@ -667,7 +680,7 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
    in Phase 1), the lab-creation seeding hook + migration `029_backfill_reagent_attributes` (defaults
    for existing labs). (List filtering is client-side — Phase 7.)
 5. **Client core** — service, hooks, `ReagentsTab`, item row/info/form, lot UI, category tree reuse,
-   locations. Flip the tab on.
+   locations. Flip the tab on (and make `CatalogTab` expand the Reagents group on `/lab/reagents`).
 6. **Client stock + alerts** — transaction form/timeline/void, low-stock + expiry panels, reorder.
 7. **Client attributes** — dynamic form fields, list filter bar, admin definition/option/custom-unit CRUD.
 8. **Barcodes** — thin reagent wrappers over the Phase-0 shared core (not a clone).
