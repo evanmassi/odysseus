@@ -14,6 +14,9 @@ import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import { EquipmentItem } from '@domain/entities/EquipmentItem';
 import { Lab } from '@domain/entities/Lab';
 import { Person } from '@domain/entities/Person';
+import { ReagentCategory } from '@domain/entities/ReagentCategory';
+import { ReagentItem } from '@domain/entities/ReagentItem';
+import { ReagentLocation } from '@domain/entities/ReagentLocation';
 import { Researcher } from '@domain/entities/Researcher';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -24,11 +27,14 @@ import { DonorRepository } from '@infrastructure/repositories/DonorRepository';
 import {
   CategoryRepository,
   EQUIPMENT_CATEGORY_TABLES,
+  REAGENT_CATEGORY_TABLES,
   SUPPLY_CATEGORY_TABLES,
 } from '@infrastructure/repositories/CategoryRepository';
 import { EquipmentItemRepository } from '@infrastructure/repositories/EquipmentItemRepository';
 import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
+import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
+import { ReagentLocationRepository } from '@infrastructure/repositories/ReagentLocationRepository';
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
@@ -56,6 +62,11 @@ export function createSeed(context: PostgresContext) {
     SupplyCategory.fromData(data)
   );
   const supplyItems = new SupplyItemRepository(context);
+  const reagentCategories = new CategoryRepository(context, REAGENT_CATEGORY_TABLES, data =>
+    ReagentCategory.fromData(data)
+  );
+  const reagentItems = new ReagentItemRepository(context);
+  const reagentLocations = new ReagentLocationRepository(context);
   const tubes = new TubeRepository(context, new StorageRepository(context));
   const users = new UserRepository(context);
 
@@ -259,6 +270,47 @@ export function createSeed(context: PostgresContext) {
     return row;
   }
 
+  async function reagentCategory(overrides: {
+    labId: string;
+    name?: string;
+  }): Promise<ReagentCategory> {
+    const entity = ReagentCategory.create({
+      labId: overrides.labId,
+      name: overrides.name ?? `Cat-${generateId('rcat')}`,
+    });
+    await reagentCategories.save(entity);
+    return entity;
+  }
+
+  async function reagentLocation(overrides: {
+    labId: string;
+    name?: string;
+  }): Promise<ReagentLocation> {
+    const entity = ReagentLocation.create({
+      labId: overrides.labId,
+      name: overrides.name ?? `Loc-${generateId('rloc')}`,
+    });
+    await reagentLocations.save(entity);
+    return entity;
+  }
+
+  async function reagentItem(overrides: {
+    labId: string;
+    categoryId?: string;
+    name?: string;
+  }): Promise<ReagentItem> {
+    const categoryId =
+      overrides.categoryId ?? (await reagentCategory({ labId: overrides.labId })).id;
+    const entity = ReagentItem.create({
+      labId: overrides.labId,
+      categoryId,
+      name: overrides.name ?? 'Test Reagent',
+      stockUnit: 'µg',
+    });
+    await reagentItems.save(entity);
+    return entity;
+  }
+
   return {
     lab,
     user,
@@ -275,6 +327,9 @@ export function createSeed(context: PostgresContext) {
     supplyDocument,
     supplyBarcode,
     supplyPackagingLevel,
+    reagentCategory,
+    reagentLocation,
+    reagentItem,
   };
 }
 

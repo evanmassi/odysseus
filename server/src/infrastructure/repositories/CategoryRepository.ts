@@ -31,6 +31,11 @@ export const SUPPLY_CATEGORY_TABLES: CategoryTables = {
   items: 'supply_items',
 };
 
+export const REAGENT_CATEGORY_TABLES: CategoryTables = {
+  categories: 'reagent_categories',
+  items: 'reagent_items',
+};
+
 const COLUMNS = 'id, lab_id, name, parent_id, sort_order, created_at, updated_at';
 
 export class CategoryRepository<T extends Category> implements ICategoryRepository<T> {

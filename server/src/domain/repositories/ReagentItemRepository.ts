@@ -1,0 +1,167 @@
+/**
+ * Reagent Item Repository Interface
+ *
+ * Data access contract for reagent items, documents, barcodes, per-lot stock,
+ * transactions, and lookup value support. Stock lives in lots; a transaction
+ * references the lot it moved and FEFO issues span lots as one action.
+ */
+
+import type { ReagentDocument } from '@domain/entities/ReagentDocument';
+import type { ReagentItem } from '@domain/entities/ReagentItem';
+
+import type { DocumentType } from '@odysseus/shared-schemas';
+
+export interface ReagentLotRow {
+  id: string;
+  itemId: string;
+  locationId: string;
+  lotNumber?: string;
+  quantity: number;
+  expirationDate?: string;
+  openedDate?: string;
+  receivedDate?: string;
+  concentration?: number;
+  concentrationUnit?: string;
+  status: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ReagentBarcodeRow {
+  id: string;
+  itemId: string;
+  lotId?: string;
+  barcodeValue: string;
+  barcodeType: string;
+  isPrimary: boolean;
+  label?: string;
+}
+
+export interface ReagentTransactionRow {
+  id: string;
+  itemId: string;
+  lotId?: string;
+  locationId: string;
+  labId: string;
+  type: string;
+  quantityChange: number;
+  quantityAfter: number;
+  poNumber?: string;
+  cost?: number;
+  performedBy: string;
+  notes?: string;
+  createdAt: Date | string;
+  voidedAt?: string;
+  voidedBy?: string;
+  voidReason?: string;
+  relatedTransactionId?: string;
+}
+
+export interface ReagentPackagingLevelRow {
+  id: string;
+  itemId: string;
+  unitName: string;
+  quantity: number;
+  parentUnit: string | undefined;
+}
+
+export interface VoidTransactionData {
+  transactionId: string;
+  labId: string;
+  voidedBy: string;
+  voidReason: string;
+}
+
+export interface ItemWithStock {
+  item: ReagentItem;
+  totalStock: number;
+  locationNames: string[];
+  soonestExpiration?: string;
+}
+
+// Field usage by type: received uses quantity + lot metadata; issued/disposed use
+// quantity (+ optional lotId / includeExpired); count_adjustment uses actualCount + lotId.
+export interface RecordTransactionData {
+  itemId: string;
+  locationId: string;
+  labId: string;
+  type: 'received' | 'issued' | 'disposed' | 'count_adjustment';
+  performedBy: string;
+  quantity?: number;
+  actualCount?: number;
+  lotId?: string;
+  lotNumber?: string;
+  expirationDate?: string;
+  openedDate?: string;
+  receivedDate?: string;
+  concentration?: number;
+  concentrationUnit?: string;
+  includeExpired?: boolean;
+  poNumber?: string;
+  cost?: number;
+  notes?: string;
+}
+
+export interface ReagentItemRepository {
+  // Items
+
+  findById(id: string, labId: string): Promise<ReagentItem | null>;
+  findByLabIdWithStock(labId: string): Promise<ItemWithStock[]>;
+  save(item: ReagentItem): Promise<void>;
+  delete(id: string, labId: string): Promise<boolean>;
+  hasTransactions(id: string): Promise<boolean>;
+
+  // Documents
+
+  findDocumentsByItemId(itemId: string): Promise<ReagentDocument[]>;
+  saveDocument(document: ReagentDocument): Promise<void>;
+  updateDocument(
+    id: string,
+    itemId: string,
+    fields: { label?: string; url?: string; notes?: string | null; docType?: DocumentType | null }
+  ): Promise<ReagentDocument | null>;
+  deleteDocument(id: string, itemId: string): Promise<boolean>;
+
+  // Barcodes
+
+  findBarcodesByItemId(itemId: string): Promise<ReagentBarcodeRow[]>;
+  findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<ReagentBarcodeRow[]>;
+  findByBarcodeValue(barcodeValue: string): Promise<ReagentBarcodeRow | null>;
+  saveBarcode(barcode: ReagentBarcodeRow): Promise<void>;
+  updateBarcode(
+    id: string,
+    itemId: string,
+    fields: { label?: string | null; isPrimary?: boolean }
+  ): Promise<ReagentBarcodeRow | null>;
+  deleteBarcode(id: string, itemId: string): Promise<boolean>;
+
+  // Lots
+
+  findLotsByItemId(itemId: string): Promise<ReagentLotRow[]>;
+  findLotById(id: string): Promise<ReagentLotRow | null>;
+
+  // Transactions — recordTransaction is atomic and lot-aware: a FEFO issue draws
+  // across lots and returns one transaction row per lot moved.
+
+  findTransactionsByItemId(itemId: string, limit?: number): Promise<ReagentTransactionRow[]>;
+  findTransactionById(id: string, labId: string): Promise<ReagentTransactionRow | null>;
+  recordTransaction(data: RecordTransactionData): Promise<ReagentTransactionRow[]>;
+  voidTransaction(
+    data: VoidTransactionData
+  ): Promise<{ original: ReagentTransactionRow; reversal: ReagentTransactionRow }>;
+
+  // Lookup support — for reagent lookup category rename/delete cascading
+
+  countItemsUsingReagentType(value: string, labId: string): Promise<number>;
+  renameReagentType(oldValue: string, newValue: string, labId: string): Promise<number>;
+  countItemsUsingVendor(value: string, labId: string): Promise<number>;
+  renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
+  countItemsUsingManufacturer(value: string, labId: string): Promise<number>;
+  renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
+
+  // Packaging levels
+
+  findPackagingLevelsByItemId(itemId: string): Promise<ReagentPackagingLevelRow[]>;
+  savePackagingLevel(level: ReagentPackagingLevelRow): Promise<void>;
+  deletePackagingLevel(id: string): Promise<boolean>;
+}
