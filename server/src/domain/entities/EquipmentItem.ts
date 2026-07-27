@@ -16,6 +16,8 @@ interface ItemCreateData {
   name: string;
   serialNumber?: string;
   manufacturer?: string;
+  vendorName?: string;
+  vendorCatalogNumber?: string;
   model?: string;
   description?: string;
   location?: string;
@@ -35,6 +37,8 @@ interface ItemUpdateData {
   name?: string | null;
   serialNumber?: string | null;
   manufacturer?: string | null;
+  vendorName?: string | null;
+  vendorCatalogNumber?: string | null;
   model?: string | null;
   description?: string | null;
   location?: string | null;
@@ -56,6 +60,8 @@ export class EquipmentItem {
     private _name: string,
     private _serialNumber: string | undefined,
     private _manufacturer: string | undefined,
+    private _vendorName: string | undefined,
+    private _vendorCatalogNumber: string | undefined,
     private _model: string | undefined,
     private _description: string | undefined,
     private _location: string | undefined,
@@ -84,6 +90,8 @@ export class EquipmentItem {
       data.name,
       data.serialNumber,
       data.manufacturer,
+      data.vendorName,
+      data.vendorCatalogNumber,
       data.model,
       data.description,
       data.location,
@@ -110,6 +118,8 @@ export class EquipmentItem {
     name: string;
     serialNumber?: string;
     manufacturer?: string;
+    vendorName?: string;
+    vendorCatalogNumber?: string;
     model?: string;
     description?: string;
     location?: string;
@@ -134,6 +144,8 @@ export class EquipmentItem {
       data.name,
       data.serialNumber,
       data.manufacturer,
+      data.vendorName,
+      data.vendorCatalogNumber,
       data.model,
       data.description,
       data.location,
@@ -170,6 +182,9 @@ export class EquipmentItem {
     if (data.name !== undefined) this._name = data.name ?? this._name;
     if (data.serialNumber !== undefined) this._serialNumber = data.serialNumber ?? undefined;
     if (data.manufacturer !== undefined) this._manufacturer = data.manufacturer ?? undefined;
+    if (data.vendorName !== undefined) this._vendorName = data.vendorName ?? undefined;
+    if (data.vendorCatalogNumber !== undefined)
+      this._vendorCatalogNumber = data.vendorCatalogNumber ?? undefined;
     if (data.model !== undefined) this._model = data.model ?? undefined;
     if (data.description !== undefined) this._description = data.description ?? undefined;
     if (data.location !== undefined) this._location = data.location ?? undefined;
@@ -219,6 +234,12 @@ export class EquipmentItem {
   }
   get manufacturer(): string | undefined {
     return this._manufacturer;
+  }
+  get vendorName(): string | undefined {
+    return this._vendorName;
+  }
+  get vendorCatalogNumber(): string | undefined {
+    return this._vendorCatalogNumber;
   }
   get model(): string | undefined {
     return this._model;

@@ -4,6 +4,8 @@
  * React Hook Form for creating and editing equipment items with category tree dropdown.
  */
 
+import { useMemo } from 'react';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createEquipmentItemRequestSchema,
@@ -17,6 +19,7 @@ import {
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
+import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
   CompletenessMeter,
@@ -30,6 +33,7 @@ import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { lookupOptions } from '@shared/ui/primitives/select/selectOptions';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
@@ -56,6 +60,8 @@ const TRACKED_FIELDS = [
   'categoryId',
   'status',
   'manufacturer',
+  'vendorName',
+  'vendorCatalogNumber',
   'model',
   'serialNumber',
   'assetTag',
@@ -79,6 +85,11 @@ export function EquipmentEditForm({
   const createMutation = useCreateEquipmentItemMutation();
   const updateMutation = useUpdateEquipmentItemMutation();
 
+  const { data: manufacturers = [] } = useLookupValuesQuery('manufacturer');
+  const { data: vendors = [] } = useLookupValuesQuery('vendor');
+  const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
+  const vendorOptions = useMemo(() => lookupOptions(vendors), [vendors]);
+
   const {
     register,
     handleSubmit,
@@ -95,6 +106,8 @@ export function EquipmentEditForm({
           name: item.name,
           serialNumber: item.serialNumber ?? '',
           manufacturer: item.manufacturer ?? '',
+          vendorName: item.vendorName ?? '',
+          vendorCatalogNumber: item.vendorCatalogNumber ?? '',
           model: item.model ?? '',
           description: item.description ?? '',
           location: item.location ?? '',
@@ -203,13 +216,24 @@ export function EquipmentEditForm({
             <SectionHeader title="Details" size="sm" />
           </div>
           <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
-            <ValidatedInput
-              label="Manufacturer"
-              labelStyle="compact"
-              placeholder="e.g., Eppendorf"
-              error={!!errors.manufacturer}
-              helperText={errors.manufacturer?.message}
-              registration={register('manufacturer')}
+            <Controller
+              name="manufacturer"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="equipment-manufacturer-label" className={FIELD_LABEL_COMPACT}>
+                    Manufacturer
+                  </label>
+                  <Select
+                    aria-labelledby="equipment-manufacturer-label"
+                    options={manufacturerOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
+                </div>
+              )}
             />
             <ValidatedInput
               label="Model"
@@ -258,6 +282,33 @@ export function EquipmentEditForm({
             <SectionHeader title="Procurement & Warranty" size="sm" />
           </div>
           <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
+            <Controller
+              name="vendorName"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="equipment-vendor-label" className={FIELD_LABEL_COMPACT}>
+                    Vendor
+                  </label>
+                  <Select
+                    aria-labelledby="equipment-vendor-label"
+                    options={vendorOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
+                </div>
+              )}
+            />
+            <ValidatedInput
+              label="Vendor Catalog #"
+              labelStyle="compact"
+              placeholder="e.g., 14-955-240"
+              error={!!errors.vendorCatalogNumber}
+              helperText={errors.vendorCatalogNumber?.message}
+              registration={register('vendorCatalogNumber')}
+            />
             <Controller
               name="purchaseDate"
               control={control}

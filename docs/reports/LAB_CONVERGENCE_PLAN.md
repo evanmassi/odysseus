@@ -5,9 +5,8 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3 and 9 done. Reagents Phase 2 is complete and Phase 3 dissolved into the
-client-side alerting rule below. **Next: items 4 + 5 (locations, vendor/manufacturer) before reagents
-Phase 5.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 5 and 9 done. Reagents Phase 2 is complete and Phase 3 dissolved into the
+client-side alerting rule below. **Next: item 4 (locations) before reagents Phase 5.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
 **Migration policy while reagents are unreleased.** Dev has not applied 027; reagent schema changes
 **amend 027 in place** rather than stacking corrective migrations, so the tables are created correctly
@@ -103,7 +102,7 @@ two tables and a text field.
 
 **Blocks.** Reagent location UI (Phase 5). Touches supplies + equipment live data.
 
-### 5. Vendor / manufacturer merge — *before reagents Phase 5*
+### 5. Vendor / manufacturer merge — ✅ done
 
 **What.** Drop the domain prefixes: `supply_vendor` + `reagent_vendor` → `vendor`, same for
 `manufacturer`. Consumed by supplies, reagents and equipment. Equipment gains `vendor_name` +
@@ -119,8 +118,20 @@ one meaning is the problem we're fixing. `serial_number` / `asset_tag` are per-u
 **Scope.** Migration merging existing values (dedupe on collision), CHECK swap, the ~8 files reagents
 commit 2c touched, and a rename/count cascade fanning out to three item tables.
 
-**Blocks.** Reagent item form (Phase 5) binds a specific category. `reagent_vendor` is provably empty
-right now — this is the cheapest it will ever be.
+**Landed.** Migration 029 merges the categories (dedupe guarded by `UNIQUE(lab_id, category, value)`),
+backfills equipment's free-text manufacturers into the shared list so existing items resolve against
+their own dropdown, and adds `vendor_name` / `vendor_catalog_number` to `equipment_items`. Migration
+027 was amended to never create the reagent-scoped pair. `LookupValueApplicationService` now resolves
+a *list* of catalog fns per category — vendor and manufacturer sum counts across supplies, reagents
+and equipment, and a rename cascades to all three.
+
+**Rehearsed before shipping:** the data migration was replayed on a clone of the dev database — 3
+vendors and 4 manufacturers moved, *Eppendorf* backfilled from the one equipment item, *Thermo
+Scientific* correctly retained as both a vendor and a manufacturer.
+
+**Temporary:** the merged lists sit in a `Suppliers` group in `CatalogTab` purely because the
+accordion still exists. Item 7 dissolves all grouping into the rail, at which point they are two
+leaves and the group name goes away — not worth reopening the naming question for.
 
 ### 6. Supplies → unit registry — *before item 7*
 
@@ -207,7 +218,7 @@ Decided; don't reopen without a new reason.
 - [x] 2 — Attribute system → shared vocabulary
 - [x] 3 — Custom units → catalog-agnostic
 - [ ] 4 — Locations merge
-- [ ] 5 — Vendor / manufacturer merge
+- [x] 5 — Vendor / manufacturer merge
 - [ ] 6 — Supplies → unit registry
 - [ ] 7 — Catalog tab → nav rail
 - [ ] 8 — Lab-wide barcode resolve

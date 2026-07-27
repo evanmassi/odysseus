@@ -17,6 +17,8 @@ export interface EquipmentItemRow {
   name: string;
   serial_number: string | null;
   manufacturer: string | null;
+  vendor_name: string | null;
+  vendor_catalog_number: string | null;
   model: string | null;
   description: string | null;
   location: string | null;
@@ -44,6 +46,8 @@ export class EquipmentItemMapper {
       name: item.name,
       serial_number: item.serialNumber ?? null,
       manufacturer: item.manufacturer ?? null,
+      vendor_name: item.vendorName ?? null,
+      vendor_catalog_number: item.vendorCatalogNumber ?? null,
       model: item.model ?? null,
       description: item.description ?? null,
       location: item.location ?? null,
@@ -71,6 +75,8 @@ export class EquipmentItemMapper {
       name: row.name,
       serialNumber: row.serial_number ?? undefined,
       manufacturer: row.manufacturer ?? undefined,
+      vendorName: row.vendor_name ?? undefined,
+      vendorCatalogNumber: row.vendor_catalog_number ?? undefined,
       model: row.model ?? undefined,
       description: row.description ?? undefined,
       location: row.location ?? undefined,

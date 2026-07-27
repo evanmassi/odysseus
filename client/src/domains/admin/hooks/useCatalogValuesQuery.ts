@@ -24,11 +24,9 @@ const CATALOG_CATEGORIES: LookupCategory[] = [
   'equipment_maintenance_type',
   'supply_item_property',
   'supply_stock_unit',
-  'supply_vendor',
-  'supply_manufacturer',
   'reagent_type',
-  'reagent_vendor',
-  'reagent_manufacturer',
+  'vendor',
+  'manufacturer',
 ];
 
 export const EMPTY_CATALOG: CatalogValues = {
@@ -39,11 +37,9 @@ export const EMPTY_CATALOG: CatalogValues = {
   equipment_maintenance_type: [],
   supply_item_property: [],
   supply_stock_unit: [],
-  supply_vendor: [],
-  supply_manufacturer: [],
   reagent_type: [],
-  reagent_vendor: [],
-  reagent_manufacturer: [],
+  vendor: [],
+  manufacturer: [],
 };
 
 export function useCatalogValuesQuery() {

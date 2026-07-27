@@ -17,7 +17,7 @@ import type { Queryable } from '@infrastructure/database/Queryable';
 import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS =
-  'id, lab_id, category_id, name, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
+  'id, lab_id, category_id, name, serial_number, manufacturer, vendor_name, vendor_catalog_number, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
 const LOG_COLUMNS =
   'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
@@ -53,12 +53,14 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     await this.db.execute(
       `
       INSERT INTO equipment_items (${ITEM_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
         name = EXCLUDED.name,
         serial_number = EXCLUDED.serial_number,
         manufacturer = EXCLUDED.manufacturer,
+        vendor_name = EXCLUDED.vendor_name,
+        vendor_catalog_number = EXCLUDED.vendor_catalog_number,
         model = EXCLUDED.model,
         description = EXCLUDED.description,
         location = EXCLUDED.location,
@@ -82,6 +84,8 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
         row.name,
         row.serial_number,
         row.manufacturer,
+        row.vendor_name,
+        row.vendor_catalog_number,
         row.model,
         row.description,
         row.location,
@@ -228,6 +232,38 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
       FROM equipment_items i
       WHERE i.id = ml.item_id AND ml.maintenance_type = $1 AND i.lab_id = $3
     `,
+      [oldValue, newValue, labId]
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async countItemsUsingVendor(value: string, labId: string): Promise<number> {
+    const row = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM equipment_items WHERE vendor_name = $1 AND lab_id = $2',
+      [value, labId]
+    );
+    return parseInt(row?.count ?? '0', 10);
+  }
+
+  async renameVendor(oldValue: string, newValue: string, labId: string): Promise<number> {
+    const result = await this.db.execute(
+      'UPDATE equipment_items SET vendor_name = $2 WHERE vendor_name = $1 AND lab_id = $3',
+      [oldValue, newValue, labId]
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async countItemsUsingManufacturer(value: string, labId: string): Promise<number> {
+    const row = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM equipment_items WHERE manufacturer = $1 AND lab_id = $2',
+      [value, labId]
+    );
+    return parseInt(row?.count ?? '0', 10);
+  }
+
+  async renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number> {
+    const result = await this.db.execute(
+      'UPDATE equipment_items SET manufacturer = $2 WHERE manufacturer = $1 AND lab_id = $3',
       [oldValue, newValue, labId]
     );
     return result.rowCount ?? 0;

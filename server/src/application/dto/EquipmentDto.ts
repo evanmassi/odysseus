@@ -48,6 +48,8 @@ export class EquipmentDto {
       name: item.name,
       serialNumber: item.serialNumber,
       manufacturer: item.manufacturer,
+      vendorName: item.vendorName,
+      vendorCatalogNumber: item.vendorCatalogNumber,
       model: item.model,
       description: item.description,
       location: item.location,

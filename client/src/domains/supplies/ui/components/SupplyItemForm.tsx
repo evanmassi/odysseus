@@ -137,8 +137,8 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     isEditing ? (item?.reorderThresholdUnit ?? '') : ''
   );
 
-  const { data: manufacturers = [] } = useLookupValuesQuery('supply_manufacturer');
-  const { data: vendors = [] } = useLookupValuesQuery('supply_vendor');
+  const { data: manufacturers = [] } = useLookupValuesQuery('manufacturer');
+  const { data: vendors = [] } = useLookupValuesQuery('vendor');
   const { data: stockUnits = [] } = useLookupValuesQuery('supply_stock_unit');
   const { data: itemProperties = [] } = useLookupValuesQuery('supply_item_property');
 

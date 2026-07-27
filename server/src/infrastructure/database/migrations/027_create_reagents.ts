@@ -318,7 +318,7 @@ export const migration027: Migration = {
             CHECK (category IN (
               'species', 'source', 'media', 'specimen_type', 'equipment_maintenance_type',
               'supply_item_property', 'supply_stock_unit', 'supply_vendor', 'supply_manufacturer',
-              'reagent_type', 'reagent_vendor', 'reagent_manufacturer'
+              'reagent_type'
             ));
         END IF;
       END $$

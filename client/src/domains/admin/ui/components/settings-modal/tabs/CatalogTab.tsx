@@ -40,11 +40,9 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   equipment_maintenance_type: 'maintenance activity',
   supply_item_property: 'product property',
   supply_stock_unit: 'stock unit',
-  supply_vendor: 'vendor',
-  supply_manufacturer: 'manufacturer',
   reagent_type: 'reagent type',
-  reagent_vendor: 'vendor',
-  reagent_manufacturer: 'manufacturer',
+  vendor: 'vendor',
+  manufacturer: 'manufacturer',
 };
 
 const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
@@ -55,11 +53,9 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   equipment_maintenance_type: 'maintenance activities',
   supply_item_property: 'product properties',
   supply_stock_unit: 'stock units',
-  supply_vendor: 'vendors',
-  supply_manufacturer: 'manufacturers',
   reagent_type: 'reagent types',
-  reagent_vendor: 'vendors',
-  reagent_manufacturer: 'manufacturers',
+  vendor: 'vendors',
+  manufacturer: 'manufacturers',
 };
 
 const CATEGORY_USAGE_LABELS: Record<
@@ -77,11 +73,9 @@ const CATEGORY_USAGE_LABELS: Record<
   equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
   supply_item_property: { header: 'Items', singular: 'item', plural: 'items' },
   supply_stock_unit: { header: 'Items', singular: 'item', plural: 'items' },
-  supply_vendor: { header: 'Items', singular: 'item', plural: 'items' },
-  supply_manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
   reagent_type: { header: 'Items', singular: 'item', plural: 'items' },
-  reagent_vendor: { header: 'Items', singular: 'item', plural: 'items' },
-  reagent_manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
+  vendor: { header: 'Items', singular: 'item', plural: 'items' },
+  manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
 };
 
 interface CategorySectionProps {
@@ -388,6 +382,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isSuppliesRoute);
   const [suppliesExpanded, setSuppliesExpanded] = useState(isSuppliesRoute);
   const [reagentsExpanded, setReagentsExpanded] = useState(false);
+  const [suppliersExpanded, setSuppliersExpanded] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     id: string;
     value: string;
@@ -452,15 +447,9 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     catalog.media.length +
     catalog.specimen_type.length;
   const equipmentCount = catalog.equipment_maintenance_type.length;
-  const suppliesCount =
-    catalog.supply_item_property.length +
-    catalog.supply_stock_unit.length +
-    catalog.supply_vendor.length +
-    catalog.supply_manufacturer.length;
-  const reagentsCount =
-    catalog.reagent_type.length +
-    catalog.reagent_vendor.length +
-    catalog.reagent_manufacturer.length;
+  const suppliesCount = catalog.supply_item_property.length + catalog.supply_stock_unit.length;
+  const reagentsCount = catalog.reagent_type.length;
+  const suppliersCount = catalog.vendor.length + catalog.manufacturer.length;
 
   return (
     <div className="space-y-2">
@@ -582,30 +571,6 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             deletingId={deletingId}
             readOnly={readOnly}
           />
-          <CategorySection
-            category="supply_vendor"
-            index={3}
-            title="Vendors"
-            values={catalog.supply_vendor}
-            loading={isLoading}
-            onAdd={value => handleAdd('supply_vendor', value)}
-            onRename={(id, newValue) => handleRename('supply_vendor', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('supply_vendor', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-          <CategorySection
-            category="supply_manufacturer"
-            index={4}
-            title="Manufacturers"
-            values={catalog.supply_manufacturer}
-            loading={isLoading}
-            onAdd={value => handleAdd('supply_manufacturer', value)}
-            onRename={(id, newValue) => handleRename('supply_manufacturer', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('supply_manufacturer', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
         </CatalogGroup>
 
         <CatalogGroup
@@ -626,27 +591,34 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             deletingId={deletingId}
             readOnly={readOnly}
           />
+        </CatalogGroup>
+        <CatalogGroup
+          title="Suppliers"
+          count={suppliersCount}
+          expanded={suppliersExpanded}
+          onToggle={() => setSuppliersExpanded(!suppliersExpanded)}
+        >
           <CategorySection
-            category="reagent_vendor"
-            index={2}
+            category="vendor"
+            index={1}
             title="Vendors"
-            values={catalog.reagent_vendor}
+            values={catalog.vendor}
             loading={isLoading}
-            onAdd={value => handleAdd('reagent_vendor', value)}
-            onRename={(id, newValue) => handleRename('reagent_vendor', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('reagent_vendor', id, value)}
+            onAdd={value => handleAdd('vendor', value)}
+            onRename={(id, newValue) => handleRename('vendor', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('vendor', id, value)}
             deletingId={deletingId}
             readOnly={readOnly}
           />
           <CategorySection
-            category="reagent_manufacturer"
-            index={3}
+            category="manufacturer"
+            index={2}
             title="Manufacturers"
-            values={catalog.reagent_manufacturer}
+            values={catalog.manufacturer}
             loading={isLoading}
-            onAdd={value => handleAdd('reagent_manufacturer', value)}
-            onRename={(id, newValue) => handleRename('reagent_manufacturer', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('reagent_manufacturer', id, value)}
+            onAdd={value => handleAdd('manufacturer', value)}
+            onRename={(id, newValue) => handleRename('manufacturer', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('manufacturer', id, value)}
             deletingId={deletingId}
             readOnly={readOnly}
           />

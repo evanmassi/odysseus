@@ -121,7 +121,11 @@ export function EquipmentItemInfoPanel({
     Boolean
   );
   const hasProcurement =
-    item.purchaseCost != null || Boolean(item.purchaseDate) || Boolean(item.warrantyExpiration);
+    item.purchaseCost != null ||
+    Boolean(item.purchaseDate) ||
+    Boolean(item.warrantyExpiration) ||
+    Boolean(item.vendorName) ||
+    Boolean(item.vendorCatalogNumber);
 
   const handleDelete = () => {
     deleteItemMutation.mutate(itemId, {
@@ -221,6 +225,8 @@ export function EquipmentItemInfoPanel({
             <div>
               <SectionHeader title="Procurement & Warranty" size="sm" />
               <div>
+                <DetailRow label="Vendor" value={item.vendorName} />
+                <DetailRow label="Vendor Catalog #" value={item.vendorCatalogNumber} />
                 <DetailRow label="Purchase Date" value={formatDate(item.purchaseDate)} />
                 <DetailRow label="Purchase Cost" value={formatCurrency(item.purchaseCost)} />
                 <DetailRow

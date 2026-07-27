@@ -35,8 +35,12 @@ export interface EquipmentItemRepository {
   updateMaintenanceEntry(entry: EquipmentMaintenanceLog): Promise<void>;
   deleteMaintenanceEntry(id: string): Promise<boolean>;
 
-  // Lookup support — for maintenance type rename/delete cascading
+  // Lookup support — for maintenance type, vendor and manufacturer rename/delete cascading
 
   countMaintenanceEntriesUsingType(type: string, labId: string): Promise<number>;
   renameMaintenanceType(oldValue: string, newValue: string, labId: string): Promise<number>;
+  countItemsUsingVendor(value: string, labId: string): Promise<number>;
+  renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
+  countItemsUsingManufacturer(value: string, labId: string): Promise<number>;
+  renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
 }
