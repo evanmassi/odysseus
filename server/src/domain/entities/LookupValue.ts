@@ -16,7 +16,10 @@ export type LookupCategory =
   | 'supply_item_property'
   | 'supply_stock_unit'
   | 'supply_vendor'
-  | 'supply_manufacturer';
+  | 'supply_manufacturer'
+  | 'reagent_type'
+  | 'reagent_vendor'
+  | 'reagent_manufacturer';
 
 export class LookupValue {
   private constructor(
@@ -103,6 +106,9 @@ export class LookupValue {
         'supply_stock_unit',
         'supply_vendor',
         'supply_manufacturer',
+        'reagent_type',
+        'reagent_vendor',
+        'reagent_manufacturer',
       ].includes(this._category)
     ) {
       throw new ValidationError('Invalid lookup category');

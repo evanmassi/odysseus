@@ -12,6 +12,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 
@@ -21,7 +22,8 @@ export class LookupValueApplicationService {
     private equipmentItemRepository?: EquipmentItemRepository,
     private donorRepository?: DonorRepository,
     private supplyItemRepository?: SupplyItemRepository,
-    private storageRepository?: StorageRepository
+    private storageRepository?: StorageRepository,
+    private reagentItemRepository?: ReagentItemRepository
   ) {}
 
   /** Seeded demo labs lock the catalog to non-admins; system admins are exempt. */
@@ -88,15 +90,13 @@ export class LookupValueApplicationService {
       return counts;
     }
 
-    if (this.supplyItemRepository) {
-      const countFn = this.getSupplyCountFn(category);
-      if (countFn) {
-        const counts = new Map<string, number>();
-        for (const value of values) {
-          counts.set(value, await countFn(value, labId));
-        }
-        return counts;
+    const countFn = this.getSupplyCountFn(category) ?? this.getReagentCountFn(category);
+    if (countFn) {
+      const counts = new Map<string, number>();
+      for (const value of values) {
+        counts.set(value, await countFn(value, labId));
       }
+      return counts;
     }
 
     return this.lookupValueRepository.countTubesUsingValues(category, values, labId);
@@ -158,9 +158,11 @@ export class LookupValueApplicationService {
       await this.equipmentItemRepository.renameMaintenanceType(oldValue, entity.value, labId);
     } else if (entity.category === 'specimen_type' && this.donorRepository) {
       await this.donorRepository.renameSpecimenType(oldValue, entity.value, labId);
-    } else if (this.supplyItemRepository) {
-      const renamed = await this.renameSupplyValue(entity.category, oldValue, entity.value, labId);
-      if (!renamed) {
+    } else {
+      const cascaded =
+        (await this.renameSupplyValue(entity.category, oldValue, entity.value, labId)) ||
+        (await this.renameReagentValue(entity.category, oldValue, entity.value, labId));
+      if (!cascaded) {
         await this.lookupValueRepository.renameTubeValues(
           entity.category,
           oldValue,
@@ -168,13 +170,6 @@ export class LookupValueApplicationService {
           labId
         );
       }
-    } else {
-      await this.lookupValueRepository.renameTubeValues(
-        entity.category,
-        oldValue,
-        entity.value,
-        labId
-      );
     }
 
     return entity.toData();
@@ -199,6 +194,9 @@ export class LookupValueApplicationService {
         supply_stock_unit: ['item', 'items'],
         supply_vendor: ['item', 'items'],
         supply_manufacturer: ['item', 'items'],
+        reagent_type: ['item', 'items'],
+        reagent_vendor: ['item', 'items'],
+        reagent_manufacturer: ['item', 'items'],
       };
       const [singular, plural] = labelMap[entity.category] ?? ['tube', 'tubes'];
       const label = usageCount === 1 ? singular : plural;
@@ -230,6 +228,23 @@ export class LookupValueApplicationService {
     }
   }
 
+  private getReagentCountFn(
+    category: LookupCategory
+  ): ((value: string, labId: string) => Promise<number>) | undefined {
+    if (!this.reagentItemRepository) return undefined;
+    const repo = this.reagentItemRepository;
+    switch (category) {
+      case 'reagent_type':
+        return (v, l) => repo.countItemsUsingReagentType(v, l);
+      case 'reagent_vendor':
+        return (v, l) => repo.countItemsUsingVendor(v, l);
+      case 'reagent_manufacturer':
+        return (v, l) => repo.countItemsUsingManufacturer(v, l);
+      default:
+        return undefined;
+    }
+  }
+
   private async renameSupplyValue(
     category: LookupCategory,
     oldValue: string,
@@ -249,6 +264,29 @@ export class LookupValueApplicationService {
         await repo.renameVendor(oldValue, newValue, labId);
         return true;
       case 'supply_manufacturer':
+        await repo.renameManufacturer(oldValue, newValue, labId);
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private async renameReagentValue(
+    category: LookupCategory,
+    oldValue: string,
+    newValue: string,
+    labId: string
+  ): Promise<boolean> {
+    if (!this.reagentItemRepository) return false;
+    const repo = this.reagentItemRepository;
+    switch (category) {
+      case 'reagent_type':
+        await repo.renameReagentType(oldValue, newValue, labId);
+        return true;
+      case 'reagent_vendor':
+        await repo.renameVendor(oldValue, newValue, labId);
+        return true;
+      case 'reagent_manufacturer':
         await repo.renameManufacturer(oldValue, newValue, labId);
         return true;
       default:

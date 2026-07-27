@@ -1,7 +1,7 @@
 /**
  * Catalog Tab
  *
- * Admin interface for managing lookup values (species, source, media, specimen type dropdowns).
+ * Admin interface for managing the lab's dropdown lookup values, grouped by domain.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -42,6 +42,9 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   supply_stock_unit: 'stock unit',
   supply_vendor: 'vendor',
   supply_manufacturer: 'manufacturer',
+  reagent_type: 'reagent type',
+  reagent_vendor: 'vendor',
+  reagent_manufacturer: 'manufacturer',
 };
 
 const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
@@ -54,6 +57,9 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   supply_stock_unit: 'stock units',
   supply_vendor: 'vendors',
   supply_manufacturer: 'manufacturers',
+  reagent_type: 'reagent types',
+  reagent_vendor: 'vendors',
+  reagent_manufacturer: 'manufacturers',
 };
 
 const CATEGORY_USAGE_LABELS: Record<
@@ -73,6 +79,9 @@ const CATEGORY_USAGE_LABELS: Record<
   supply_stock_unit: { header: 'Items', singular: 'item', plural: 'items' },
   supply_vendor: { header: 'Items', singular: 'item', plural: 'items' },
   supply_manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
+  reagent_type: { header: 'Items', singular: 'item', plural: 'items' },
+  reagent_vendor: { header: 'Items', singular: 'item', plural: 'items' },
+  reagent_manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
 };
 
 interface CategorySectionProps {
@@ -378,6 +387,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [biobankExpanded, setBiobankExpanded] = useState(isBiobankRoute);
   const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isSuppliesRoute);
   const [suppliesExpanded, setSuppliesExpanded] = useState(isSuppliesRoute);
+  const [reagentsExpanded, setReagentsExpanded] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     id: string;
     value: string;
@@ -447,6 +457,10 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     catalog.supply_stock_unit.length +
     catalog.supply_vendor.length +
     catalog.supply_manufacturer.length;
+  const reagentsCount =
+    catalog.reagent_type.length +
+    catalog.reagent_vendor.length +
+    catalog.reagent_manufacturer.length;
 
   return (
     <div className="space-y-2">
@@ -589,6 +603,50 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             onAdd={value => handleAdd('supply_manufacturer', value)}
             onRename={(id, newValue) => handleRename('supply_manufacturer', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('supply_manufacturer', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+        </CatalogGroup>
+
+        <CatalogGroup
+          title="Reagents"
+          count={reagentsCount}
+          expanded={reagentsExpanded}
+          onToggle={() => setReagentsExpanded(!reagentsExpanded)}
+        >
+          <CategorySection
+            category="reagent_type"
+            index={1}
+            title="Reagent Types"
+            values={catalog.reagent_type}
+            loading={isLoading}
+            onAdd={value => handleAdd('reagent_type', value)}
+            onRename={(id, newValue) => handleRename('reagent_type', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('reagent_type', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="reagent_vendor"
+            index={2}
+            title="Vendors"
+            values={catalog.reagent_vendor}
+            loading={isLoading}
+            onAdd={value => handleAdd('reagent_vendor', value)}
+            onRename={(id, newValue) => handleRename('reagent_vendor', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('reagent_vendor', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="reagent_manufacturer"
+            index={3}
+            title="Manufacturers"
+            values={catalog.reagent_manufacturer}
+            loading={isLoading}
+            onAdd={value => handleAdd('reagent_manufacturer', value)}
+            onRename={(id, newValue) => handleRename('reagent_manufacturer', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('reagent_manufacturer', id, value)}
             deletingId={deletingId}
             readOnly={readOnly}
           />

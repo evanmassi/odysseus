@@ -117,6 +117,11 @@ export const queryKeys = {
     reorderList: (labId = '') => [...queryKeys.supplies.all(labId), 'reorder-list'] as const,
   },
 
+  // Reagents (lab-scoped)
+  reagents: {
+    all: (labId = '') => ['reagents', labId] as const,
+  },
+
   // Lookups (lab-scoped)
   lookups: {
     all: (labId = '') => ['lookups', labId] as const,

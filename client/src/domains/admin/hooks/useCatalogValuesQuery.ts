@@ -26,6 +26,9 @@ const CATALOG_CATEGORIES: LookupCategory[] = [
   'supply_stock_unit',
   'supply_vendor',
   'supply_manufacturer',
+  'reagent_type',
+  'reagent_vendor',
+  'reagent_manufacturer',
 ];
 
 export const EMPTY_CATALOG: CatalogValues = {
@@ -38,6 +41,9 @@ export const EMPTY_CATALOG: CatalogValues = {
   supply_stock_unit: [],
   supply_vendor: [],
   supply_manufacturer: [],
+  reagent_type: [],
+  reagent_vendor: [],
+  reagent_manufacturer: [],
 };
 
 export function useCatalogValuesQuery() {

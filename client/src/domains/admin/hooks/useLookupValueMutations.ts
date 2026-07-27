@@ -2,8 +2,9 @@
  * Admin Lookup Value Mutations
  *
  * Create, rename, and delete catalog lookup values. A rename rewrites a different domain table per
- * category (tubes, donor collections, equipment logs, or supplies), so the cache invalidation
- * cascades to that table — otherwise referencing records keep showing the old name until expiry.
+ * category (tubes, donor collections, equipment logs, supplies, or reagents), so the cache
+ * invalidation cascades to that table — otherwise referencing records keep showing the old name
+ * until expiry.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +31,10 @@ const renameCascadeKeys = (category: LookupCategory, labId: string | undefined) 
     case 'supply_vendor':
     case 'supply_manufacturer':
       return [queryKeys.supplies.all(labId)];
+    case 'reagent_type':
+    case 'reagent_vendor':
+    case 'reagent_manufacturer':
+      return [queryKeys.reagents.all(labId)];
   }
 };
 

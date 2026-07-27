@@ -17,6 +17,9 @@ export const LOOKUP_CATEGORIES = [
   'supply_stock_unit',
   'supply_vendor',
   'supply_manufacturer',
+  'reagent_type',
+  'reagent_vendor',
+  'reagent_manufacturer',
 ] as const;
 export type LookupCategory = (typeof LOOKUP_CATEGORIES)[number];
 
