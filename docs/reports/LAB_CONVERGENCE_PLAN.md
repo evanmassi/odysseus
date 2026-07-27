@@ -5,8 +5,8 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 5 and 9 done. Reagents Phase 2 is complete and Phase 3 dissolved into the
-client-side alerting rule below. **Next: item 4 (locations) before reagents Phase 5.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 4a, 5 and 9 done. Reagents Phase 2 is complete and Phase 3 dissolved into the
+client-side alerting rule below. **Next: item 6 (supplies → unit registry) or 4b (equipment locations); reagents Phase 4 is unblocked.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
 **Migration policy while reagents are unreleased.** Dev has not applied 027; reagent schema changes
 **amend 027 in place** rather than stacking corrective migrations, so the tables are created correctly
@@ -90,7 +90,7 @@ it needs the same escape hatch.
 
 **Landed** with item 2, in the same amendment to migration 027.
 
-### 4. Locations merge — *before reagents Phase 5*
+### 4. Locations merge — ✅ 4a done (equipment onboarding = 4b, outstanding)
 
 **What.** One `locations` table (prefix `loc`) replacing `supply_locations` + `reagent_locations`,
 **hierarchical via a `parent_id` self-FK**, with equipment's free-text `location` column migrated onto
@@ -107,13 +107,23 @@ subtree of height 1 from 2.
 
 **Naming.** Deliberately `locations`, not `lab_locations` — a store room isn't necessarily in the lab.
 
-**Client home.** `domains/lab-management/` — already the parent of the three consuming tabs. Not
-`domains/storage/` (positional tube subsystem, disjoint consumers — see *Parked* below) and not a new
-top-level domain, which would invite one per lab-wide vocabulary.
+**Client home.** `domains/locations/`. `lab-management` was the call until the import-cycle rule
+disproved it: its barrel exports `LabManagementPage`, which imports `SuppliesTab`, so a catalog
+importing locations *from the shell it is hosted by* closes a loop. The shell depends on the
+catalogs; the catalogs cannot depend on the shell. Not `domains/storage/` either — positional tube
+subsystem, disjoint consumers (see *Parked*).
 
-**Split.** 4a-i server + shared · 4a-ii client rewire · 4b equipment onboarding.
+**Landed (4a).** One `locations` table with `parent_id`, created in the amended 027; migration 030
+moves supply rows across, repoints the `supply_stock` and `supply_transactions` FKs and drops
+`supply_locations`. One `Location` entity/repo/mapper, `/api/locations`, and `domains/locations/` on
+the client. `validateCategoryDepth` generalised to `maxDepth` tiers; `CategoryHierarchySelect` now
+recurses so the third tier is selectable rather than schema-only.
 
-**Blocks.** Reagent location UI (Phase 5). Touches supplies + equipment live data.
+**Rehearsed** on a clone of dev through the whole 027→030 chain: both supply locations moved, the
+stock row and transaction still resolve, `supply_locations` dropped, dev itself untouched at 26.
+
+**Outstanding (4b).** Equipment's free-text `location` column still needs backfilling onto the tree —
+deferred because converting it to a constrained dropdown is a product call, not plumbing.
 
 ### 5. Vendor / manufacturer merge — ✅ done
 
@@ -245,7 +255,7 @@ Decided; don't reopen without a new reason.
 - [x] 1 — Shared alert panel *(roll-up deferred to after reagents Phase 3)*
 - [x] 2 — Attribute system → shared vocabulary
 - [x] 3 — Custom units → catalog-agnostic
-- [ ] 4 — Locations merge
+- [x] 4 — Locations merge *(4a; equipment onboarding 4b outstanding)*
 - [x] 5 — Vendor / manufacturer merge
 - [ ] 6 — Supplies → unit registry
 - [ ] 7 — Catalog tab → nav rail

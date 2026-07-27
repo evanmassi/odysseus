@@ -10,7 +10,6 @@ import {
   type SupplyItemWithStock,
   type SupplyItemDetail,
   type SupplyItem,
-  type SupplyLocation,
   type SupplyDocument,
   type SupplyBarcode,
   type SupplyTransaction,
@@ -18,8 +17,6 @@ import {
   type SupplyBulkResponse,
   type CreateSupplyCategoryRequest,
   type UpdateSupplyCategoryRequest,
-  type CreateSupplyLocationRequest,
-  type UpdateSupplyLocationRequest,
   type CreateSupplyItemRequest,
   type UpdateSupplyItemRequest,
   type CreateSupplyBarcodeRequest,
@@ -37,8 +34,6 @@ import {
   type CreateSupplyPackagingLevelRequest,
   supplyCategoryResponseSchema,
   supplyCategoryListResponseSchema,
-  supplyLocationResponseSchema,
-  supplyLocationListResponseSchema,
   supplyItemResponseSchema,
   supplyItemListResponseSchema,
   supplyItemDetailResponseSchema,
@@ -95,37 +90,6 @@ export class SupplyService {
 
   static async deleteCategory(id: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/categories/${id}`);
-  }
-
-  // Locations
-
-  static async listLocations(): Promise<SupplyLocation[]> {
-    const response = await httpClient.getData(
-      `${this.BASE_PATH}/locations`,
-      supplyLocationListResponseSchema
-    );
-    return response.locations;
-  }
-
-  static async createLocation(data: CreateSupplyLocationRequest): Promise<SupplyLocation> {
-    const response = await httpClient.postData(
-      `${this.BASE_PATH}/locations`,
-      data,
-      supplyLocationResponseSchema
-    );
-    return response.location;
-  }
-
-  static async updateLocation(
-    id: string,
-    data: UpdateSupplyLocationRequest
-  ): Promise<SupplyLocation> {
-    const response = await httpClient.putData(
-      `${this.BASE_PATH}/locations/${id}`,
-      data,
-      supplyLocationResponseSchema
-    );
-    return response.location;
   }
 
   // Items

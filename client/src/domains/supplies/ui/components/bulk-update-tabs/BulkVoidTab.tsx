@@ -8,7 +8,8 @@ import { useState, useMemo, useCallback } from 'react';
 
 import { PackagePlus, PackageMinus, ClipboardCheck, Trash2, Search } from 'lucide-react';
 
-import { useSupplyLocationsQuery, useSupplyTransactionHistoryQuery } from '@domains/supplies/hooks';
+import { useLocationsQuery } from '@domains/locations';
+import { useSupplyTransactionHistoryQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkVoidMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
 import { Autocomplete, Button, Checkbox, NubDivider } from '@shared/ui';
@@ -50,7 +51,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
   const [selectedTxnIds, setSelectedTxnIds] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState('');
   const [searchValue, setSearchValue] = useState('');
-  const { data: locations = [] } = useSupplyLocationsQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const { data: allTransactions = [] } = useSupplyTransactionHistoryQuery(selectedItemId);
   const bulkVoidMutation = useSupplyBulkVoidMutation();
 

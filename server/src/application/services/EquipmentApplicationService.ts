@@ -119,7 +119,7 @@ export class EquipmentApplicationService {
       await validateCategoryDepth(this.categoryRepository, {
         labId,
         parentId: data.parentId,
-        movingCategoryId: id,
+        movingNodeId: id,
       });
     }
 

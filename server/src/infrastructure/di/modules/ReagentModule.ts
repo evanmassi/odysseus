@@ -23,7 +23,6 @@ export class ReagentModule {
       this.reagentApplicationService = new ReagentApplicationService(
         this.repositoryFactory.getReagentCategoryRepository(),
         this.repositoryFactory.getReagentItemRepository(),
-        this.repositoryFactory.getReagentLocationRepository(),
         this.shared.accessControlService,
         this.shared.eventBus
       );

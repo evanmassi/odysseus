@@ -109,6 +109,19 @@ export {
   type UpdateAttributeOptionRequest,
 } from './attributes';
 
+// Locations
+export {
+  LOCATION_MAX_DEPTH,
+  locationSchema,
+  createLocationRequestSchema,
+  updateLocationRequestSchema,
+  locationResponseSchema,
+  locationListResponseSchema,
+  type Location,
+  type CreateLocationRequest,
+  type UpdateLocationRequest,
+} from './locations';
+
 // Documents
 export { DOCUMENT_TYPE_VALUES, documentTypeSchema, type DocumentType } from './documents';
 
@@ -489,11 +502,6 @@ export {
   updateSupplyCategoryRequestSchema,
   supplyCategoryResponseSchema,
   supplyCategoryListResponseSchema,
-  supplyLocationSchema,
-  createSupplyLocationRequestSchema,
-  updateSupplyLocationRequestSchema,
-  supplyLocationResponseSchema,
-  supplyLocationListResponseSchema,
   supplyItemSchema,
   supplyItemWithStockSchema,
   createSupplyItemRequestSchema,
@@ -535,7 +543,6 @@ export {
   type SupplyCategory,
   type SupplyItem,
   type SupplyItemWithStock,
-  type SupplyLocation,
   type SupplyBarcode,
   type SupplyTransaction,
   type SupplyVoidTransactionResponse,
@@ -543,8 +550,6 @@ export {
   type SupplyItemDetail,
   type CreateSupplyCategoryRequest,
   type UpdateSupplyCategoryRequest,
-  type CreateSupplyLocationRequest,
-  type UpdateSupplyLocationRequest,
   type CreateSupplyItemRequest,
   type UpdateSupplyItemRequest,
   type CreateSupplyBarcodeRequest,
@@ -578,11 +583,6 @@ export {
   updateReagentCategoryRequestSchema,
   reagentCategoryResponseSchema,
   reagentCategoryListResponseSchema,
-  reagentLocationSchema,
-  createReagentLocationRequestSchema,
-  updateReagentLocationRequestSchema,
-  reagentLocationResponseSchema,
-  reagentLocationListResponseSchema,
   reagentAttributeSummarySchema,
   reagentItemSchema,
   reagentItemWithStockSchema,
@@ -629,7 +629,6 @@ export {
   type ReagentBarcodeType,
   type ReagentLotStatus,
   type ReagentCategory,
-  type ReagentLocation,
   type ReagentItem,
   type ReagentItemWithStock,
   type ReagentLot,
@@ -643,8 +642,6 @@ export {
   type ReagentItemDetail,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
-  type CreateReagentLocationRequest,
-  type UpdateReagentLocationRequest,
   type CreateReagentItemRequest,
   type UpdateReagentItemRequest,
   type UpdateReagentLotRequest,

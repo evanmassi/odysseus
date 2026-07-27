@@ -111,9 +111,13 @@ export const queryKeys = {
     categories: (labId = '') => [...queryKeys.supplies.all(labId), 'categories'] as const,
     items: (labId = '') => [...queryKeys.supplies.all(labId), 'items'] as const,
     detail: (labId = '', id: string) => [...queryKeys.supplies.all(labId), 'detail', id] as const,
-    locations: (labId = '') => [...queryKeys.supplies.all(labId), 'locations'] as const,
     transactions: (labId = '', itemId: string) =>
       [...queryKeys.supplies.all(labId), 'transactions', itemId] as const,
+  },
+
+  // Locations (lab-scoped, shared by every catalog)
+  locations: {
+    all: (labId = '') => ['locations', labId] as const,
   },
 
   // Reagents (lab-scoped)

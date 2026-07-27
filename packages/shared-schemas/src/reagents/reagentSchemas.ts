@@ -69,38 +69,6 @@ export const reagentCategoryListResponseSchema = z.object({
   categories: z.array(reagentCategorySchema),
 });
 
-// Location schemas
-
-export const reagentLocationSchema = z.object({
-  id: z.string(),
-  labId: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-  sortOrder: z.number().int(),
-  createdAt: dateField,
-  updatedAt: dateField,
-});
-
-export const createReagentLocationRequestSchema = z.object({
-  name: z.string().min(1, 'Location name is required').max(200),
-  description: optionalText(500),
-  sortOrder: z.number().int().optional(),
-});
-
-export const updateReagentLocationRequestSchema = z.object({
-  name: z.string().min(1).max(200).nullish(),
-  description: patchText(500),
-  sortOrder: z.number().int().nullish(),
-});
-
-export const reagentLocationResponseSchema = z.object({
-  location: reagentLocationSchema,
-});
-
-export const reagentLocationListResponseSchema = z.object({
-  locations: z.array(reagentLocationSchema),
-});
-
 // Attribute value summary — compact per-item attribute values for list filtering.
 
 export const reagentAttributeSummarySchema = z.object({
@@ -497,7 +465,6 @@ export type ReagentTransactionType = z.infer<typeof reagentTransactionTypeSchema
 export type ReagentBarcodeType = z.infer<typeof reagentBarcodeTypeSchema>;
 export type ReagentLotStatus = z.infer<typeof reagentLotStatusSchema>;
 export type ReagentCategory = z.infer<typeof reagentCategorySchema>;
-export type ReagentLocation = z.infer<typeof reagentLocationSchema>;
 export type ReagentItem = z.infer<typeof reagentItemSchema>;
 export type ReagentItemWithStock = z.infer<typeof reagentItemWithStockSchema>;
 export type ReagentLot = z.infer<typeof reagentLotSchema>;
@@ -511,8 +478,6 @@ export type ReagentAttributeSummary = z.infer<typeof reagentAttributeSummarySche
 export type ReagentItemDetail = z.infer<typeof reagentItemDetailResponseSchema>;
 export type CreateReagentCategoryRequest = z.infer<typeof createReagentCategoryRequestSchema>;
 export type UpdateReagentCategoryRequest = z.infer<typeof updateReagentCategoryRequestSchema>;
-export type CreateReagentLocationRequest = z.infer<typeof createReagentLocationRequestSchema>;
-export type UpdateReagentLocationRequest = z.infer<typeof updateReagentLocationRequestSchema>;
 export type CreateReagentItemRequest = z.infer<typeof createReagentItemRequestSchema>;
 export type UpdateReagentItemRequest = z.infer<typeof updateReagentItemRequestSchema>;
 export type UpdateReagentLotRequest = z.infer<typeof updateReagentLotRequestSchema>;

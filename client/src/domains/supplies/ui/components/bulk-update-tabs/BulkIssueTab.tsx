@@ -8,7 +8,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 
 import { Search } from 'lucide-react';
 
-import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import { useLocationsQuery } from '@domains/locations';
 import { useSupplyBulkIssueMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
 import { Autocomplete, Button, NubDivider, withPlaceholder } from '@shared/ui';
@@ -41,7 +41,7 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
   const [searchValue, setSearchValue] = useState('');
   const [lastLocationId, setLastLocationId] = useState('');
   const nextRowId = useRef(0);
-  const { data: locations = [] } = useSupplyLocationsQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const bulkIssueMutation = useSupplyBulkIssueMutation();
 
   const locationOptions = useMemo(

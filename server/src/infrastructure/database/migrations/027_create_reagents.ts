@@ -42,14 +42,15 @@ export const migration027: Migration = {
       WHERE parent_id IS NOT NULL
     `);
 
-    // Locations — named storage zones
+    // Locations — the lab-wide place tree, shared by every catalog (supplies migrate onto it in 030)
 
     await pool.query(`
-      CREATE TABLE reagent_locations (
+      CREATE TABLE locations (
         id TEXT PRIMARY KEY,
         lab_id TEXT NOT NULL REFERENCES labs(id),
         name TEXT NOT NULL,
         description TEXT,
+        parent_id TEXT REFERENCES locations(id) ON DELETE RESTRICT,
         sort_order INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -57,7 +58,8 @@ export const migration027: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_reagent_locations_lab_id ON reagent_locations(lab_id)`);
+    await pool.query(`CREATE INDEX idx_locations_lab_id ON locations(lab_id)`);
+    await pool.query(`CREATE INDEX idx_locations_parent ON locations(parent_id)`);
 
     // Items — reagent definitions (SKU-level metadata + chemistry/safety columns)
 
@@ -101,7 +103,7 @@ export const migration027: Migration = {
       CREATE TABLE reagent_lots (
         id TEXT PRIMARY KEY,
         item_id TEXT NOT NULL REFERENCES reagent_items(id) ON DELETE CASCADE,
-        location_id TEXT NOT NULL REFERENCES reagent_locations(id) ON DELETE RESTRICT,
+        location_id TEXT NOT NULL REFERENCES locations(id) ON DELETE RESTRICT,
         lot_number TEXT,
         quantity NUMERIC NOT NULL DEFAULT 0,
         expiration_date DATE,
@@ -130,7 +132,7 @@ export const migration027: Migration = {
         id TEXT PRIMARY KEY,
         item_id TEXT NOT NULL REFERENCES reagent_items(id),
         lot_id TEXT REFERENCES reagent_lots(id) ON DELETE SET NULL,
-        location_id TEXT NOT NULL REFERENCES reagent_locations(id),
+        location_id TEXT NOT NULL REFERENCES locations(id),
         lab_id TEXT NOT NULL REFERENCES labs(id),
         type TEXT NOT NULL,
         quantity_change NUMERIC NOT NULL,

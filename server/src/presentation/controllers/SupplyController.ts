@@ -77,49 +77,6 @@ export class SupplyController extends BaseController {
     }
   }
 
-  // Locations
-
-  async listLocations(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const locations = await this.deps.supplyApplicationService.listLocations(labId);
-      res.json(ResponseBuilder.success({ locations }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to list supply locations', req.requestId);
-    }
-  }
-
-  async createLocation(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const user = this.getAuthenticatedUser(req);
-      const location = await this.deps.supplyApplicationService.createLocation(
-        labId,
-        req.body,
-        user
-      );
-      res.status(201).json(ResponseBuilder.success({ location }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to create supply location', req.requestId);
-    }
-  }
-
-  async updateLocation(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const user = this.getAuthenticatedUser(req);
-      const location = await this.deps.supplyApplicationService.updateLocation(
-        labId,
-        req.params.locationId,
-        req.body,
-        user
-      );
-      res.json(ResponseBuilder.success({ location }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to update supply location', req.requestId);
-    }
-  }
-
   // Items
 
   async listItems(req: Request, res: Response): Promise<void> {

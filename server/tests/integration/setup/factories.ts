@@ -17,7 +17,7 @@ import { Person } from '@domain/entities/Person';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import { ReagentItem } from '@domain/entities/ReagentItem';
-import { ReagentLocation } from '@domain/entities/ReagentLocation';
+import { Location } from '@domain/entities/Location';
 import { Researcher } from '@domain/entities/Researcher';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -35,7 +35,7 @@ import { EquipmentItemRepository } from '@infrastructure/repositories/EquipmentI
 import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
 import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
-import { ReagentLocationRepository } from '@infrastructure/repositories/ReagentLocationRepository';
+import { LocationRepository } from '@infrastructure/repositories/LocationRepository';
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
@@ -68,7 +68,7 @@ export function createSeed(context: PostgresContext) {
     ReagentCategory.fromData(data)
   );
   const reagentItems = new ReagentItemRepository(context);
-  const reagentLocations = new ReagentLocationRepository(context);
+  const locations = new LocationRepository(context);
   const tubes = new TubeRepository(context, new StorageRepository(context));
   const users = new UserRepository(context);
 
@@ -284,15 +284,15 @@ export function createSeed(context: PostgresContext) {
     return entity;
   }
 
-  async function reagentLocation(overrides: {
+  async function location(overrides: {
     labId: string;
     name?: string;
-  }): Promise<ReagentLocation> {
-    const entity = ReagentLocation.create({
+  }): Promise<Location> {
+    const entity = Location.create({
       labId: overrides.labId,
       name: overrides.name ?? `Loc-${generateId('rloc')}`,
     });
-    await reagentLocations.save(entity);
+    await locations.save(entity);
     return entity;
   }
 
@@ -363,7 +363,7 @@ export function createSeed(context: PostgresContext) {
     supplyBarcode,
     supplyPackagingLevel,
     reagentCategory,
-    reagentLocation,
+    location,
     reagentItem,
     reagentDocument,
     reagentBarcode,

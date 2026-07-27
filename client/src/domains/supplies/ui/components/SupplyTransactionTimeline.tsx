@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import { useLocationsQuery } from '@domains/locations';
 import { Button, Tooltip } from '@shared/ui';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -69,7 +69,7 @@ export function SupplyTransactionTimeline({
 }: SupplyTransactionTimelineProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
-  const { data: locations = [] } = useSupplyLocationsQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const [voidingTransaction, setVoidingTransaction] = useState<SupplyTransaction | null>(null);
 

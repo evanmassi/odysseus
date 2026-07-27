@@ -1,34 +1,39 @@
 /**
- * Supply Location Modal
+ * Location Modal
  *
- * Creates a named storage location where supplies are kept.
+ * Creates a lab location, optionally nested beneath an existing one.
  */
 
 import { useState, useEffect, useRef } from 'react';
 
 import { MapPin, Plus } from 'lucide-react';
 
-import { useCreateSupplyLocationMutation } from '@domains/supplies/hooks/useSupplyMutations';
+import { useCreateLocationMutation } from '@domains/locations/hooks/useLocationMutations';
+import { useLocationsQuery } from '@domains/locations/hooks/useLocationQueries';
 import { Button, Input } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
+import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
-interface SupplyLocationModalProps {
+interface LocationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function SupplyLocationModal({ isOpen, onClose }: SupplyLocationModalProps) {
+export function LocationModal({ isOpen, onClose }: LocationModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const createMutation = useCreateSupplyLocationMutation();
+  const [parentId, setParentId] = useState('');
+  const { data: locations = [] } = useLocationsQuery();
+  const createMutation = useCreateLocationMutation();
   const prevIsOpenRef = useRef(isOpen);
 
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
       setName('');
       setDescription('');
+      setParentId('');
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen]);
@@ -38,7 +43,11 @@ export function SupplyLocationModal({ isOpen, onClose }: SupplyLocationModalProp
     if (!trimmed) return;
 
     createMutation.mutate(
-      { name: trimmed, description: description.trim() || undefined },
+      {
+        name: trimmed,
+        description: description.trim() || undefined,
+        parentId: parentId || undefined,
+      },
       {
         onSuccess: () => {
           notifications.success(`Location "${trimmed}" created`);
@@ -94,6 +103,20 @@ export function SupplyLocationModal({ isOpen, onClose }: SupplyLocationModalProp
             fullWidth
           />
         </div>
+
+        <CategoryHierarchySelect
+          categories={locations.map(l => ({
+            id: l.id,
+            name: l.name,
+            parentId: l.parentId,
+            sortOrder: l.sortOrder,
+          }))}
+          value={parentId}
+          onChange={setParentId}
+          labelId="locationParent"
+          label="Inside (optional)"
+          placeholder="Top level"
+        />
 
         <div className="flex justify-end space-x-3 pt-2">
           <Button variant="secondary" onClick={onClose}>

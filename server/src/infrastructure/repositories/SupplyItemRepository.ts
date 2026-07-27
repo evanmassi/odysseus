@@ -51,7 +51,7 @@ const ITEM_WITH_STOCK_SELECT = `
          ) as location_names
   FROM supply_items p
   LEFT JOIN supply_stock s ON s.item_id = p.id
-  LEFT JOIN supply_locations l ON l.id = s.location_id`;
+  LEFT JOIN locations l ON l.id = s.location_id`;
 
 type ItemWithStockRow = SupplyItemRow & { total_stock: string; location_names: string[] };
 

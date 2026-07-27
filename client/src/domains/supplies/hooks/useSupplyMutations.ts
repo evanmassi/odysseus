@@ -15,7 +15,6 @@ import { SupplyService } from '../services/SupplyService';
 import type {
   CreateSupplyCategoryRequest,
   UpdateSupplyCategoryRequest,
-  CreateSupplyLocationRequest,
   CreateSupplyItemRequest,
   UpdateSupplyItemRequest,
   CreateSupplyBarcodeRequest,
@@ -58,17 +57,6 @@ export function useDeleteSupplyCategoryMutation() {
   return useMutation({
     mutationFn: (id: string) => SupplyService.deleteCategory(id),
     meta: { invalidates: [queryKeys.supplies.categories(labId)] },
-  });
-}
-
-// Locations
-
-export function useCreateSupplyLocationMutation() {
-  const labId = useLabId();
-
-  return useMutation({
-    mutationFn: (data: CreateSupplyLocationRequest) => SupplyService.createLocation(data),
-    meta: { invalidates: [queryKeys.supplies.locations(labId)] },
   });
 }
 

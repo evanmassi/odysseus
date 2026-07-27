@@ -49,18 +49,6 @@ export function useSupplyItemDetailQuery(id: string | undefined) {
   });
 }
 
-export function useSupplyLocationsQuery() {
-  const labId = useLabId();
-
-  return useQuery({
-    queryKey: queryKeys.supplies.locations(labId),
-    queryFn: () => SupplyService.listLocations(),
-    enabled: !!labId,
-    staleTime: CACHE_TIMES.STABLE.staleTime,
-    gcTime: CACHE_TIMES.STABLE.gcTime,
-  });
-}
-
 export function useSupplyTransactionHistoryQuery(itemId: string | undefined) {
   const labId = useLabId();
 

@@ -46,10 +46,10 @@ import {
   initializeStorageRequestSchema,
   bulkUnassignRequestSchema,
   bulkReassignRequestSchema,
+  createLocationRequestSchema,
+  updateLocationRequestSchema,
   createSupplyCategoryRequestSchema,
   updateSupplyCategoryRequestSchema,
-  createSupplyLocationRequestSchema,
-  updateSupplyLocationRequestSchema,
   createSupplyItemRequestSchema,
   updateSupplyItemRequestSchema,
   createSupplyBarcodeRequestSchema,
@@ -68,8 +68,6 @@ import {
   supplyBulkVoidRequestSchema,
   createReagentCategoryRequestSchema,
   updateReagentCategoryRequestSchema,
-  createReagentLocationRequestSchema,
-  updateReagentLocationRequestSchema,
   createReagentItemRequestSchema,
   updateReagentItemRequestSchema,
   createReagentBarcodeRequestSchema,
@@ -268,10 +266,15 @@ export const BulkUnassignHttpSchema = bulkUnassignRequestSchema;
 export const BulkReassignHttpSchema = bulkReassignRequestSchema;
 export const ResetStorageHttpSchema = z.object({ confirmationToken: z.string().min(1) });
 
+// Location schemas
+
+export const LocationIdParams = z.object({ locationId: z.string().min(1) });
+export const CreateLocationHttpSchema = createLocationRequestSchema;
+export const UpdateLocationHttpSchema = updateLocationRequestSchema;
+
 // Supply schemas
 
 export const SupplyCategoryIdParams = z.object({ categoryId: z.string().min(1) });
-export const SupplyLocationIdParams = z.object({ locationId: z.string().min(1) });
 export const SupplyDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
 export const SupplyBarcodeIdParams = z.object({
   id: z.string().min(1),
@@ -283,8 +286,6 @@ export const SupplyPackagingLevelIdParams = z.object({
 });
 export const CreateSupplyCategoryHttpSchema = createSupplyCategoryRequestSchema;
 export const UpdateSupplyCategoryHttpSchema = updateSupplyCategoryRequestSchema;
-export const CreateSupplyLocationHttpSchema = createSupplyLocationRequestSchema;
-export const UpdateSupplyLocationHttpSchema = updateSupplyLocationRequestSchema;
 export const CreateSupplyItemHttpSchema = createSupplyItemRequestSchema;
 export const UpdateSupplyItemHttpSchema = updateSupplyItemRequestSchema;
 export const CreateSupplyBarcodeHttpSchema = createSupplyBarcodeRequestSchema;
@@ -306,7 +307,6 @@ export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRe
 // Reagent schemas
 
 export const ReagentCategoryIdParams = z.object({ categoryId: z.string().min(1) });
-export const ReagentLocationIdParams = z.object({ locationId: z.string().min(1) });
 export const ReagentDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
 export const ReagentBarcodeIdParams = z.object({
   id: z.string().min(1),
@@ -318,8 +318,6 @@ export const ReagentPackagingLevelIdParams = z.object({
 });
 export const CreateReagentCategoryHttpSchema = createReagentCategoryRequestSchema;
 export const UpdateReagentCategoryHttpSchema = updateReagentCategoryRequestSchema;
-export const CreateReagentLocationHttpSchema = createReagentLocationRequestSchema;
-export const UpdateReagentLocationHttpSchema = updateReagentLocationRequestSchema;
 export const CreateReagentItemHttpSchema = createReagentItemRequestSchema;
 export const UpdateReagentItemHttpSchema = updateReagentItemRequestSchema;
 export const CreateReagentBarcodeHttpSchema = createReagentBarcodeRequestSchema;

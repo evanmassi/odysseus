@@ -15,15 +15,14 @@ import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { LocationRepository } from '@domain/repositories/LocationRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
-import type { ReagentLocationRepository } from '@domain/repositories/ReagentLocationRepository';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
-import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -45,10 +44,9 @@ export interface Repositories {
   equipmentItems: EquipmentItemRepository;
   supplyCategories: CategoryRepository<SupplyCategory>;
   supplyItems: SupplyItemRepository;
-  supplyLocations: SupplyLocationRepository;
+  locations: LocationRepository;
   reagentCategories: CategoryRepository<ReagentCategory>;
   reagentItems: ReagentItemRepository;
-  reagentLocations: ReagentLocationRepository;
 }
 
 export interface UnitOfWork {

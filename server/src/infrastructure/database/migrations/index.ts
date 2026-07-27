@@ -33,6 +33,7 @@ import { migration026 } from './026_drop_researcher_approval_status';
 import { migration027 } from './027_create_reagents';
 import { migration028 } from './028_add_document_type';
 import { migration029 } from './029_merge_vendor_manufacturer';
+import { migration030 } from './030_merge_supply_locations';
 
 import type { Migration } from './migrationRunner';
 
@@ -66,4 +67,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration027,
   migration028,
   migration029,
+  migration030,
 ];

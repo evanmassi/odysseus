@@ -7,7 +7,6 @@
 import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
-import type { ReagentLocation } from '@domain/entities/ReagentLocation';
 import type {
   ReagentLotRow,
   ReagentBarcodeRow,
@@ -23,7 +22,6 @@ import type {
   ReagentItem as ReagentItemData,
   ReagentItemWithStock,
   ReagentLot as ReagentLotData,
-  ReagentLocation as ReagentLocationData,
   ReagentDocument as ReagentDocumentData,
   ReagentBarcode,
   ReagentPackagingLevel,
@@ -39,7 +37,6 @@ export type ReagentItemWithStockResponse = ReagentItemWithStock;
 export type ReagentLotResponse = ReagentLotData;
 export type ReagentPackagingLevelResponse = ReagentPackagingLevel;
 export type ReagentItemDetailResponse = ReagentItemDetailData;
-export type ReagentLocationResponse = ReagentLocationData;
 export type ReagentDocumentResponse = ReagentDocumentData;
 export type ReagentBarcodeResponse = ReagentBarcode;
 export type ReagentTransactionResponse = ReagentTransactionData;
@@ -137,18 +134,6 @@ export class ReagentDto {
       recentTransactions: recentTransactions.map(t => this.transactionToResponse(t)),
       packagingLevels: packagingLevels.map(l => this.packagingLevelToResponse(l)),
       attributeValues,
-    };
-  }
-
-  static locationToResponse(location: ReagentLocation): ReagentLocationResponse {
-    return {
-      id: location.id,
-      labId: location.labId,
-      name: location.name,
-      description: location.description,
-      sortOrder: location.sortOrder,
-      createdAt: location.createdAt,
-      updatedAt: location.updatedAt,
     };
   }
 

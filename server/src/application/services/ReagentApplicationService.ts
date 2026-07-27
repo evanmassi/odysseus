@@ -15,7 +15,6 @@ import {
   type ReagentItemResponse,
   type ReagentItemWithStockResponse,
   type ReagentItemDetailResponse,
-  type ReagentLocationResponse,
   type ReagentDocumentResponse,
   type ReagentBarcodeResponse,
   type ReagentTransactionResponse,
@@ -26,7 +25,6 @@ import { validateCategoryDepth } from '@application/guards/CategoryGuards';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import { ReagentItem } from '@domain/entities/ReagentItem';
-import { ReagentLocation } from '@domain/entities/ReagentLocation';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -59,7 +57,6 @@ import type {
   ReagentBarcodeRow,
   ReagentTransactionRow,
 } from '@domain/repositories/ReagentItemRepository';
-import type { ReagentLocationRepository } from '@domain/repositories/ReagentLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -70,8 +67,6 @@ import { executeBulk } from './executeBulk';
 import type {
   CreateReagentCategoryRequest,
   UpdateReagentCategoryRequest,
-  CreateReagentLocationRequest,
-  UpdateReagentLocationRequest,
   CreateReagentItemRequest,
   UpdateReagentItemRequest,
   CreateReagentBarcodeRequest,
@@ -93,7 +88,6 @@ export class ReagentApplicationService {
   constructor(
     private categoryRepository: CategoryRepository<ReagentCategory>,
     private itemRepository: ReagentItemRepository,
-    private locationRepository: ReagentLocationRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -141,7 +135,7 @@ export class ReagentApplicationService {
       await validateCategoryDepth(this.categoryRepository, {
         labId,
         parentId: data.parentId,
-        movingCategoryId: id,
+        movingNodeId: id,
       });
     }
 
@@ -174,42 +168,6 @@ export class ReagentApplicationService {
 
     await this.categoryRepository.delete(id, labId);
     await this.eventBus.publish(new ReagentCategoryDeletedEvent(id, category.name, user.id, labId));
-  }
-
-  // Locations
-
-  async listLocations(labId: string): Promise<ReagentLocationResponse[]> {
-    const locations = await this.locationRepository.findByLabId(labId);
-    return locations.map(ReagentDto.locationToResponse);
-  }
-
-  async createLocation(
-    labId: string,
-    data: CreateReagentLocationRequest,
-    user: User
-  ): Promise<ReagentLocationResponse> {
-    await this.accessControlService.requireAdminAccess(user);
-    const location = ReagentLocation.create({
-      labId,
-      name: data.name,
-      description: data.description,
-      sortOrder: data.sortOrder,
-    });
-    await this.locationRepository.save(location);
-    return ReagentDto.locationToResponse(location);
-  }
-
-  async updateLocation(
-    labId: string,
-    id: string,
-    data: UpdateReagentLocationRequest,
-    user: User
-  ): Promise<ReagentLocationResponse> {
-    await this.accessControlService.requireAdminAccess(user);
-    const location = await this.getLocationOrThrow(id, labId);
-    location.update({ name: data.name, description: data.description, sortOrder: data.sortOrder });
-    await this.locationRepository.save(location);
-    return ReagentDto.locationToResponse(location);
   }
 
   // Items
@@ -849,11 +807,6 @@ export class ReagentApplicationService {
     return category;
   }
 
-  private async getLocationOrThrow(id: string, labId: string): Promise<ReagentLocation> {
-    const location = await this.locationRepository.findById(id, labId);
-    if (!location) throw new NotFoundError('This location could not be found.', { locationId: id });
-    return location;
-  }
 
   /** Auto-generates an item-level internal barcode on item creation. Retries on collision. */
   private async generateInternalBarcode(itemId: string): Promise<void> {

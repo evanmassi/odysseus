@@ -7,7 +7,6 @@
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
-import type { SupplyLocation } from '@domain/entities/SupplyLocation';
 import type {
   SupplyStockRow,
   SupplyBarcodeRow,
@@ -21,7 +20,6 @@ import type {
   SupplyCategory as SupplyCategoryData,
   SupplyItem as SupplyItemData,
   SupplyItemWithStock,
-  SupplyLocation as SupplyLocationData,
   SupplyDocument as SupplyDocumentData,
   SupplyBarcode,
   SupplyPackagingLevel,
@@ -39,7 +37,6 @@ export type SupplyPackagingLevelResponse = SupplyPackagingLevel;
 
 export type SupplyItemDetailResponse = SupplyItemDetailData;
 
-export type SupplyLocationResponse = SupplyLocationData;
 
 export type SupplyDocumentResponse = SupplyDocumentData;
 
@@ -123,18 +120,6 @@ export class SupplyDto {
       stock: stock.map(s => this.stockToResponse(s)),
       recentTransactions: recentTransactions.map(t => this.transactionToResponse(t)),
       packagingLevels: packagingLevels.map(l => this.packagingLevelToResponse(l)),
-    };
-  }
-
-  static locationToResponse(location: SupplyLocation): SupplyLocationResponse {
-    return {
-      id: location.id,
-      labId: location.labId,
-      name: location.name,
-      description: location.description,
-      sortOrder: location.sortOrder,
-      createdAt: location.createdAt,
-      updatedAt: location.updatedAt,
     };
   }
 

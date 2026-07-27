@@ -1,8 +1,7 @@
 /**
  * Category Hierarchy Select
  *
- * Category dropdown with a parent → subcategory hierarchy, shared by the
- * equipment and supplies item and bulk-reassign forms.
+ * Nested dropdown over any parent/child structure — catalog categories and the lab location tree.
  */
 
 import { useMemo } from 'react';
@@ -19,6 +18,7 @@ interface CategoryHierarchySelectProps {
   labelId: string;
   error?: string;
   placeholder?: string;
+  label?: string;
 }
 
 export function CategoryHierarchySelect({
@@ -28,17 +28,20 @@ export function CategoryHierarchySelect({
   labelId,
   error,
   placeholder = 'Select category...',
+  label = 'Category',
 }: CategoryHierarchySelectProps) {
   const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories.filter(c => !c.parentId).sort(compareByOrderThenName);
     const options: SelectOption[] = [{ value: '', label: placeholder }];
-    topLevel.forEach(parent => {
-      options.push({ value: parent.id, label: parent.name });
+    const pushTier = (parentId: string | null, parentName?: string) => {
       categories
-        .filter(c => c.parentId === parent.id)
+        .filter(c => (c.parentId ?? null) === parentId)
         .sort(compareByOrderThenName)
-        .forEach(sub => options.push({ value: sub.id, label: sub.name, description: parent.name }));
-    });
+        .forEach(node => {
+          options.push({ value: node.id, label: node.name, description: parentName });
+          pushTier(node.id, node.name);
+        });
+    };
+    pushTier(null);
     return options;
   }, [categories, placeholder]);
 
@@ -46,7 +49,7 @@ export function CategoryHierarchySelect({
     <div>
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
       <label id={labelId} className={FIELD_LABEL_COMPACT}>
-        Category
+        {label}
       </label>
       <Select
         aria-labelledby={labelId}

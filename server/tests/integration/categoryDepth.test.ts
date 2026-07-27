@@ -81,7 +81,6 @@ describe('category depth invariant', () => {
       supplies: new SupplyApplicationService(
         repos.supplyCategories,
         repos.supplyItems,
-        repos.supplyLocations,
         accessControl,
         eventBus
       ),
@@ -111,7 +110,7 @@ describe('category depth invariant', () => {
 
       await expect(
         service.createCategory(labId, { name: 'Too deep', parentId: child.id }, admin)
-      ).rejects.toThrow(/two levels deep/);
+      ).rejects.toThrow(/2 levels deep/);
     });
 
     it('rejects reparenting a category under a subcategory', async () => {
@@ -120,7 +119,7 @@ describe('category depth invariant', () => {
       // The hole: supplies allowed this, reaching a third level the create path forbids.
       await expect(
         service.updateCategory(labId, other.id, { parentId: child.id }, admin)
-      ).rejects.toThrow(/two levels deep/);
+      ).rejects.toThrow(/2 levels deep/);
     });
 
     it('rejects nesting a category that already has subcategories', async () => {
@@ -128,7 +127,7 @@ describe('category depth invariant', () => {
 
       await expect(
         service.updateCategory(labId, parent.id, { parentId: other.id }, admin)
-      ).rejects.toThrow(/two levels deep/);
+      ).rejects.toThrow(/2 levels deep/);
     });
 
     it('allows a legitimate reparent to a top-level category', async () => {
@@ -149,14 +148,27 @@ describe('category depth invariant', () => {
   });
 
   it('accepts a top-level placement without touching the repository', async () => {
-    const repository = {
-      findById: jest.fn(),
-      hasChildren: jest.fn(),
-    };
+    const repository = { findByLabId: jest.fn() };
 
     await validateCategoryDepth(repository, { labId: 'lab_1', parentId: undefined });
 
-    expect(repository.findById).not.toHaveBeenCalled();
-    expect(repository.hasChildren).not.toHaveBeenCalled();
+    expect(repository.findByLabId).not.toHaveBeenCalled();
+  });
+
+  it('allows a third tier when maxDepth is raised', async () => {
+    const repository = {
+      findByLabId: jest.fn().mockResolvedValue([
+        { id: 'a', parentId: undefined },
+        { id: 'b', parentId: 'a' },
+      ]),
+    };
+
+    await expect(
+      validateCategoryDepth(repository, { labId: 'lab_1', parentId: 'b', maxDepth: 3 })
+    ).resolves.toBeUndefined();
+
+    await expect(
+      validateCategoryDepth(repository, { labId: 'lab_1', parentId: 'b' })
+    ).rejects.toThrow('2 levels deep');
   });
 });

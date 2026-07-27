@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useSupplyItemDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import { useLocationsQuery } from '@domains/locations';
+import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useDeleteSupplyItemMutation,
   useArchiveSupplyItemMutation,
@@ -106,7 +107,7 @@ export function SupplyItemInfoPanel({
   }, [itemId]);
 
   const { data: detail } = useSupplyItemDetailQuery(itemId);
-  const { data: locations = [] } = useSupplyLocationsQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const deleteItemMutation = useDeleteSupplyItemMutation();
   const archiveItemMutation = useArchiveSupplyItemMutation();

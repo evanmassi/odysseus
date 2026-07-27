@@ -11,7 +11,8 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { useSupplyItemDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import { useLocationsQuery } from '@domains/locations';
+import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useRecordSupplyTransactionMutation,
   useRecordSupplyStockCountMutation,
@@ -78,7 +79,7 @@ export function SupplyTransactionForm({
   onCancel,
 }: SupplyTransactionFormProps) {
   const { data: detail } = useSupplyItemDetailQuery(itemId);
-  const { data: locations = [] } = useSupplyLocationsQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const recordTransactionMutation = useRecordSupplyTransactionMutation();
   const recordStockCountMutation = useRecordSupplyStockCountMutation();
 

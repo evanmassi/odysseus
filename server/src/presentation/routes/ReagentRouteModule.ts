@@ -1,7 +1,7 @@
 /**
  * Reagent Route Module
  *
- * Routes for reagent categories, locations, items, documents,
+ * Routes for reagent categories, items, documents,
  * barcodes, per-lot stock operations, and bulk actions.
  */
 
@@ -12,13 +12,10 @@ import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
   ReagentCategoryIdParams,
-  ReagentLocationIdParams,
   ReagentDocIdParams,
   ReagentBarcodeIdParams,
   CreateReagentCategoryHttpSchema,
   UpdateReagentCategoryHttpSchema,
-  CreateReagentLocationHttpSchema,
-  UpdateReagentLocationHttpSchema,
   CreateReagentItemHttpSchema,
   UpdateReagentItemHttpSchema,
   CreateReagentBarcodeHttpSchema,
@@ -77,23 +74,6 @@ export class ReagentRouteModule implements RouteModule {
       '/categories/:categoryId',
       validateParams(ReagentCategoryIdParams),
       this.reagentController.deleteCategory.bind(this.reagentController)
-    );
-
-    // Locations — registered before /:id
-
-    router.get('/locations', this.reagentController.listLocations.bind(this.reagentController));
-
-    router.post(
-      '/locations',
-      validateBody(CreateReagentLocationHttpSchema),
-      this.reagentController.createLocation.bind(this.reagentController)
-    );
-
-    router.put(
-      '/locations/:locationId',
-      validateParams(ReagentLocationIdParams),
-      validateBody(UpdateReagentLocationHttpSchema),
-      this.reagentController.updateLocation.bind(this.reagentController)
     );
 
     // Bulk operations — registered before /:id

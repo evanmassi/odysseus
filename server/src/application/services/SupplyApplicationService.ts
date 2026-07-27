@@ -14,7 +14,6 @@ import {
   type SupplyItemResponse,
   type SupplyItemWithStockResponse,
   type SupplyItemDetailResponse,
-  type SupplyLocationResponse,
   type SupplyDocumentResponse,
   type SupplyBarcodeResponse,
   type SupplyTransactionResponse,
@@ -24,7 +23,6 @@ import { validateCategoryDepth } from '@application/guards/CategoryGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { SupplyItem } from '@domain/entities/SupplyItem';
-import { SupplyLocation } from '@domain/entities/SupplyLocation';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -55,7 +53,6 @@ import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
 } from '@domain/repositories/SupplyItemRepository';
-import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -66,8 +63,6 @@ import { executeBulk } from './executeBulk';
 import type {
   CreateSupplyCategoryRequest,
   UpdateSupplyCategoryRequest,
-  CreateSupplyLocationRequest,
-  UpdateSupplyLocationRequest,
   CreateSupplyItemRequest,
   UpdateSupplyItemRequest,
   CreateSupplyBarcodeRequest,
@@ -89,7 +84,6 @@ export class SupplyApplicationService {
   constructor(
     private categoryRepository: CategoryRepository<SupplyCategory>,
     private itemRepository: SupplyItemRepository,
-    private locationRepository: SupplyLocationRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -137,7 +131,7 @@ export class SupplyApplicationService {
       await validateCategoryDepth(this.categoryRepository, {
         labId,
         parentId: data.parentId,
-        movingCategoryId: id,
+        movingNodeId: id,
       });
     }
 
@@ -170,42 +164,6 @@ export class SupplyApplicationService {
 
     await this.categoryRepository.delete(id, labId);
     await this.eventBus.publish(new SupplyCategoryDeletedEvent(id, category.name, user.id, labId));
-  }
-
-  // Locations
-
-  async listLocations(labId: string): Promise<SupplyLocationResponse[]> {
-    const locations = await this.locationRepository.findByLabId(labId);
-    return locations.map(SupplyDto.locationToResponse);
-  }
-
-  async createLocation(
-    labId: string,
-    data: CreateSupplyLocationRequest,
-    user: User
-  ): Promise<SupplyLocationResponse> {
-    await this.accessControlService.requireAdminAccess(user);
-    const location = SupplyLocation.create({
-      labId,
-      name: data.name,
-      description: data.description,
-      sortOrder: data.sortOrder,
-    });
-    await this.locationRepository.save(location);
-    return SupplyDto.locationToResponse(location);
-  }
-
-  async updateLocation(
-    labId: string,
-    id: string,
-    data: UpdateSupplyLocationRequest,
-    user: User
-  ): Promise<SupplyLocationResponse> {
-    await this.accessControlService.requireAdminAccess(user);
-    const location = await this.getLocationOrThrow(id, labId);
-    location.update({ name: data.name, description: data.description, sortOrder: data.sortOrder });
-    await this.locationRepository.save(location);
-    return SupplyDto.locationToResponse(location);
   }
 
   // Items
@@ -867,11 +825,6 @@ export class SupplyApplicationService {
     return category;
   }
 
-  private async getLocationOrThrow(id: string, labId: string): Promise<SupplyLocation> {
-    const location = await this.locationRepository.findById(id, labId);
-    if (!location) throw new NotFoundError('This location could not be found.', { locationId: id });
-    return location;
-  }
 
   /** Auto-generates an internal barcode on item creation. Retries on collision. */
   private async generateInternalBarcode(itemId: string): Promise<void> {

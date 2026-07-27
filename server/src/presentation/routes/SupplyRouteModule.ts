@@ -1,7 +1,7 @@
 /**
  * Supply Route Module
  *
- * Routes for supply categories, locations, items, documents,
+ * Routes for supply categories, items, documents,
  * barcodes, stock operations, and bulk actions.
  */
 
@@ -12,13 +12,10 @@ import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
   SupplyCategoryIdParams,
-  SupplyLocationIdParams,
   SupplyDocIdParams,
   SupplyBarcodeIdParams,
   CreateSupplyCategoryHttpSchema,
   UpdateSupplyCategoryHttpSchema,
-  CreateSupplyLocationHttpSchema,
-  UpdateSupplyLocationHttpSchema,
   CreateSupplyItemHttpSchema,
   UpdateSupplyItemHttpSchema,
   CreateSupplyBarcodeHttpSchema,
@@ -77,23 +74,6 @@ export class SupplyRouteModule implements RouteModule {
       '/categories/:categoryId',
       validateParams(SupplyCategoryIdParams),
       this.supplyController.deleteCategory.bind(this.supplyController)
-    );
-
-    // Locations — registered before /:id
-
-    router.get('/locations', this.supplyController.listLocations.bind(this.supplyController));
-
-    router.post(
-      '/locations',
-      validateBody(CreateSupplyLocationHttpSchema),
-      this.supplyController.createLocation.bind(this.supplyController)
-    );
-
-    router.put(
-      '/locations/:locationId',
-      validateParams(SupplyLocationIdParams),
-      validateBody(UpdateSupplyLocationHttpSchema),
-      this.supplyController.updateLocation.bind(this.supplyController)
     );
 
     // Bulk operations — registered before /:id

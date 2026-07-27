@@ -63,7 +63,7 @@ const ITEM_WITH_STOCK_SELECT = `
     ) as location_names
   FROM reagent_items p
   LEFT JOIN reagent_lots lt ON lt.item_id = p.id AND lt.status = 'active'
-  LEFT JOIN reagent_locations loc ON loc.id = lt.location_id`;
+  LEFT JOIN locations loc ON loc.id = lt.location_id`;
 
 type ItemWithStockRow = ReagentItemRow & {
   total_stock: string;

@@ -58,38 +58,6 @@ export const supplyCategoryListResponseSchema = z.object({
   categories: z.array(supplyCategorySchema),
 });
 
-// Location schemas
-
-export const supplyLocationSchema = z.object({
-  id: z.string(),
-  labId: z.string(),
-  name: z.string(),
-  description: z.string().optional(),
-  sortOrder: z.number().int(),
-  createdAt: dateField,
-  updatedAt: dateField,
-});
-
-export const createSupplyLocationRequestSchema = z.object({
-  name: z.string().min(1, 'Location name is required').max(200),
-  description: z.string().max(500).optional(),
-  sortOrder: z.number().int().optional(),
-});
-
-export const updateSupplyLocationRequestSchema = z.object({
-  name: z.string().min(1).max(200).nullish(),
-  description: z.string().max(500).nullish(),
-  sortOrder: z.number().int().nullish(),
-});
-
-export const supplyLocationResponseSchema = z.object({
-  location: supplyLocationSchema,
-});
-
-export const supplyLocationListResponseSchema = z.object({
-  locations: z.array(supplyLocationSchema),
-});
-
 // Item schemas
 
 export const supplyItemSchema = z.object({
@@ -410,7 +378,6 @@ export type SupplyBarcodeType = z.infer<typeof supplyBarcodeTypeSchema>;
 export type SupplyCategory = z.infer<typeof supplyCategorySchema>;
 export type SupplyItem = z.infer<typeof supplyItemSchema>;
 export type SupplyItemWithStock = z.infer<typeof supplyItemWithStockSchema>;
-export type SupplyLocation = z.infer<typeof supplyLocationSchema>;
 export type SupplyBarcode = z.infer<typeof supplyBarcodeSchema>;
 export type SupplyTransaction = z.infer<typeof supplyTransactionSchema>;
 export type SupplyVoidTransactionResponse = z.infer<typeof supplyVoidTransactionResponseSchema>;
@@ -418,8 +385,6 @@ export type SupplyDocument = z.infer<typeof supplyDocumentSchema>;
 export type SupplyItemDetail = z.infer<typeof supplyItemDetailResponseSchema>;
 export type CreateSupplyCategoryRequest = z.infer<typeof createSupplyCategoryRequestSchema>;
 export type UpdateSupplyCategoryRequest = z.infer<typeof updateSupplyCategoryRequestSchema>;
-export type CreateSupplyLocationRequest = z.infer<typeof createSupplyLocationRequestSchema>;
-export type UpdateSupplyLocationRequest = z.infer<typeof updateSupplyLocationRequestSchema>;
 export type CreateSupplyItemRequest = z.infer<typeof createSupplyItemRequestSchema>;
 export type UpdateSupplyItemRequest = z.infer<typeof updateSupplyItemRequestSchema>;
 export type CreateSupplyBarcodeRequest = z.infer<typeof createSupplyBarcodeRequestSchema>;

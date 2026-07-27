@@ -8,6 +8,5 @@ export {
   useSupplyCategoriesQuery,
   useSupplyItemsQuery,
   useSupplyItemDetailQuery,
-  useSupplyLocationsQuery,
   useSupplyTransactionHistoryQuery,
 } from './useSupplyQueries';

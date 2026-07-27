@@ -45,7 +45,7 @@ describe('reagent per-lot stock ledger', () => {
     const lab = await seed.lab();
     const user = await seed.user({ labId: lab.id });
     const item = await seed.reagentItem({ labId: lab.id });
-    const location = await seed.reagentLocation({ labId: lab.id });
+    const location = await seed.location({ labId: lab.id });
     const base = { itemId: item.id, locationId: location.id, labId: lab.id, performedBy: user.id };
     const record = (extra: Partial<RecordTransactionData> & { type: RecordTransactionData['type'] }) =>
       repo.recordTransaction({ ...base, ...extra });

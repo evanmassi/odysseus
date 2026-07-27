@@ -11,6 +11,7 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { Plus, Eye, EyeOff, Package, MapPin, Layers } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
+import { LocationModal } from '@domains/locations';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import {
   useCreateSupplyCategoryMutation,
@@ -43,7 +44,6 @@ import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
 import { SupplyItemRow } from './SupplyItemRow';
-import { SupplyLocationModal } from './SupplyLocationModal';
 import { SupplyLowStockAlertPanel } from './SupplyLowStockAlertPanel';
 import { SupplyQuickScanBar } from './SupplyQuickScanBar';
 import { SupplyTransactionForm } from './SupplyTransactionForm';
@@ -399,10 +399,7 @@ export function SuppliesTab() {
           onCancel={() => setDeleteConfirm({ isOpen: false })}
         />
 
-        <SupplyLocationModal
-          isOpen={isLocationModalOpen}
-          onClose={() => setIsLocationModalOpen(false)}
-        />
+        <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
       </div>
 
       <SupplyBulkUpdateModal

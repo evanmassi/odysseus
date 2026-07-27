@@ -20,6 +20,7 @@ import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
+import { LocationModule } from '@infrastructure/di/modules/LocationModule';
 import { ReagentModule } from '@infrastructure/di/modules/ReagentModule';
 import { StorageModule } from '@infrastructure/di/modules/StorageModule';
 import { SupplyModule } from '@infrastructure/di/modules/SupplyModule';
@@ -42,6 +43,7 @@ import type { EquipmentController } from '@presentation/controllers/EquipmentCon
 import type { ExportController } from '@presentation/controllers/ExportController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import type { LabController } from '@presentation/controllers/LabController';
+import type { LocationController } from '@presentation/controllers/LocationController';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { PersonController } from '@presentation/controllers/PersonController';
 import type { ReagentController } from '@presentation/controllers/ReagentController';
@@ -82,6 +84,7 @@ export class ServiceContainer {
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
+  private _locationModule?: LocationModule;
   private _supplyModule?: SupplyModule;
   private _reagentModule?: ReagentModule;
   private _equipmentModule?: EquipmentModule;
@@ -196,6 +199,13 @@ export class ServiceContainer {
       this._donorModule = new DonorModule(this.getShared(), this.repositoryFactory);
     }
     return this._donorModule;
+  }
+
+  private getLocationModule(): LocationModule {
+    if (!this._locationModule) {
+      this._locationModule = new LocationModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._locationModule;
   }
 
   private getSupplyModule(): SupplyModule {
@@ -347,6 +357,12 @@ export class ServiceContainer {
 
   getDonorController(): DonorController {
     return this.getDonorModule().getDonorController();
+  }
+
+  // Public API — LocationModule
+
+  getLocationController(): LocationController {
+    return this.getLocationModule().getLocationController();
   }
 
   // Public API — SupplyModule
