@@ -13,6 +13,14 @@ a fridge, a unit), it gets one home and every suite points at it. Where it's gen
 (an equipment category tree, a lot ledger), it stays split — see *Not merging* below, and don't
 relitigate it.
 
+**Standing pattern — alerts are derived, not fetched.** Low-stock, expiry and maintenance alerts are
+computed **client-side from the item list the tab already loads**. No alert endpoints, repo queries
+or response schemas. The list rows carry what's needed (`totalStock` + `reorderThreshold`;
+`soonestExpiration`; `nextMaintenanceDate`), so a dedicated endpoint answers the same question twice
+— two caches, two staleness clocks, the threshold rule written once in SQL and again on the client.
+Equipment already works this way; supplies' `GET /reorder-list` is the outlier (item 9). Revisit only
+if a lab outgrows loading its item list, which would break the category tree first.
+
 **Authoring standard.** Same as reagents: fresh to the Donor exemplars in `AGENTS.md`. Supplies and
 equipment are the *surface* reference only — never a code reference.
 
@@ -23,7 +31,7 @@ equipment are the *surface* reference only — never a code reference.
 Ordered by cost of delay. Each item states what blocks it, because several get materially more
 expensive one phase later.
 
-### 1. Shared alert panel — *before reagents Phase 3*
+### 1. Shared alert panel — ✅ done (`192eafa7`)
 
 **What.** Extract one alert panel component + one alert shape (severity, entity, message, action)
 to `shared/ui/components/`; rewire supplies and equipment onto it. Add a lab-wide roll-up (count
@@ -38,7 +46,12 @@ and look.
 digestible and sit where you'd act on them. The roll-up reports *that* something needs attention;
 the panels stay the place you deal with it.
 
-**Blocks.** Reagent alert panels (Phases 3, 6).
+**Landed.** `shared/ui/components/inventory/AlertPanel.tsx` + co-located test; supplies and equipment
+rewired; 184 lines removed from the two domains. The **roll-up is deferred** — revisit after reagents
+Phase 3, when there are three real alert sources to aggregate and the placement can be judged against
+the running app. Preferred placement if built: a strip across the lab-management tabs, where the data
+is already loaded, rather than the app header, which would need count endpoints the standing pattern
+above deliberately avoids.
 
 ### 2. Attribute system → shared vocabulary — *before reagents Phase 4*
 
@@ -135,6 +148,23 @@ is before scanning it to find out what it is.
 
 **Blocks.** Reagent barcode wrappers (Phase 8).
 
+### 9. Supplies low-stock → client-side — *executed inside reagents Phase 3*
+
+**What.** Derive supplies' low-stock from the item list the tab already loads; delete
+`GET /reorder-list` and its repo query, service method, client service method and query hook.
+
+**Why.** `SuppliesTab` already loads every item with `totalStock`, and `reorderThreshold` is on the
+item — so the endpoint re-answers a question the client can already answer, from a second cache. It's
+the one place violating the standing pattern above.
+
+**Verify before deleting.** The SQL filters `status = 'active'` and compares
+`SUM(stock.quantity) <= reorder_threshold`; confirm the list's `totalStock` uses the same sum and
+apply the same status filter client-side. A behavioural diff to check, not assume.
+
+**Why it rides with Phase 3.** Reagents builds its two panels on the same rule in that phase; doing
+both together means the pattern is established once, and reagents is written correctly the first time
+rather than cloning the outlier.
+
 ---
 
 ## Not merging
@@ -153,7 +183,7 @@ Decided; don't reopen without a new reason.
 
 ## Progress
 
-- [ ] 1 — Shared alert panel
+- [x] 1 — Shared alert panel *(roll-up deferred to after reagents Phase 3)*
 - [ ] 2 — Attribute system → shared vocabulary
 - [ ] 3 — Custom units → catalog-agnostic
 - [ ] 4 — Locations merge
@@ -161,3 +191,4 @@ Decided; don't reopen without a new reason.
 - [ ] 6 — Supplies → unit registry
 - [ ] 7 — Catalog tab → nav rail
 - [ ] 8 — Lab-wide barcode resolve
+- [ ] 9 — Supplies low-stock → client-side *(rides with reagents Phase 3)*

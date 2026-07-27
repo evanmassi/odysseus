@@ -20,9 +20,10 @@ we build.
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phase 2 ✅ complete (2a/2b/2c landed). **Phase 3 is held** — the lab-wide convergence work
-in `LAB_CONVERGENCE_PLAN.md` runs first; its item 1 (shared alert panel) is what Phase 3 builds on,
-and items 2–5 have deadlines inside Phases 4–5._
+_Current: Phase 2 ✅ complete (2a/2b/2c landed). **Phase 3 is next** — its blocker, the shared
+`AlertPanel` (convergence item 1), is done. Phase 3 now also converges supplies onto the client-side
+alerting rule (§7 *Alerting*). Convergence items 2–5 have deadlines inside Phases 4–5; see
+`LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository; lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
@@ -175,8 +176,8 @@ item type / repo / service / schemas. Share *behaviour/shape*, never *identity*.
   separate `reagent_stock` table — the lot *is* the stock row (supplies' `supply_stock` analogue).
 - **New item columns** — `reagent_type`, `cas_number`, `concentration(+unit)`, `expiry_warning_days`
   (hazard / form / grade / storage are seeded **attributes**, §5.4 — not columns).
-- **Expiry alerting** — new queries (`expiring-soon`, `expired`), a domain event, a client
-  `ReagentExpiryAlertPanel`, expiry sort/filter.
+- **Expiry alerting** — a client `ReagentExpiryAlertPanel` + expiry sort/filter, derived from the
+  list row's `soonestExpiration` (§7 *Alerting* — no server queries or events).
 - **Lab-configurable attribute system** — `reagent_attribute_definitions` +
   `reagent_attribute_options` + `reagent_attribute_values`; admin CRUD UI; dynamic form fields;
   attribute-based list filtering. (§5.4)
@@ -421,7 +422,10 @@ the root `src/index.ts` (flat, explicit re-exports — add a reagents block).
   and FEFO semantics; transaction-type enum (barcode-type comes from the shared enum, §4.4).
 - **Attribute surface:** `reagentAttributeDefinitionSchema`, `reagentAttributeOptionSchema`,
   `reagentAttributeValueSchema` + create/update requests; a `reagentAttributeValueType` enum.
-- **Alerts:** `reagentReorderListResponseSchema` (clone) + `reagentExpiryListResponseSchema` (new).
+- **Alerts:** none. Low-stock and expiry are **derived client-side** from the item list row
+  (`totalStock` + `reorderThreshold`; `soonestExpiration`) — see §7 *Alerting*. The
+  `reagentReorderListResponseSchema` / `reagentExpiringLotSchema` / `reagentExpiryListResponseSchema`
+  shipped in Phase 1 have no consumer under that rule and are deleted in Phase 3.
 - **Units — shared registry (standard) + lab custom supplement (the tail), dimension-tagged.** A
   canonical code registry (`packages/shared-schemas/src/units/unitRegistry.ts`): curated entries
   `{ id, label, kind }` + a `formatQuantity(value, unitId)` helper (canonical spelling — `µ` micro
@@ -459,8 +463,8 @@ lots, attributes, expiry.
   stock/transactions the same way). No `updateConcentration` (general `update()` covers it); no lot
   transition methods.
 - **Repository interface** `ReagentItemRepository` — items (with lot rollup), lots (find/save/adjust,
-  FEFO pick, expiring-soon query), documents, barcodes, transactions (atomic lot-aware record/void),
-  packaging, reorder + expiry queries, attribute defs/options/values CRUD, custom-unit CRUD, lookup
+  FEFO pick), documents, barcodes, transactions (atomic lot-aware record/void),
+  packaging, attribute defs/options/values CRUD, custom-unit CRUD, lookup
   rename/count cascades (only `reagent_type`/`vendor`/`manufacturer` — not stock-unit, now registry-backed).
   `ReagentLocationRepository`.
 - **Postgres impl** — the atomic `recordTransaction` writes a **lot** (not a stock row): received →
@@ -468,8 +472,8 @@ lots, attributes, expiry.
   reconcile a lot. Reuse generic `CategoryRepository` + `DocumentQueries`. No `ReagentCategoryMapper` /
   `ReagentDocumentMapper` files and no `ReagentCategoryRepository` file (map/build inline, per supplies).
 - **Application service** `ReagentApplicationService` — the supply use cases (categories, locations,
-  items, documents, barcodes, packaging, stock ops, reorder) + new: lot management, `getExpiringSoon` /
-  `getExpired`, attribute definition/option/value CRUD, FEFO issue, custom-unit CRUD.
+  items, documents, barcodes, packaging, stock ops) + new: lot management, attribute
+  definition/option/value CRUD, FEFO issue, custom-unit CRUD. **No alert use cases** — see *Alerting*.
   **Write access (decided):** **admin-only, mirroring supplies/equipment** — every write calls
   `requireAdminAccess`. A delegated non-admin "operator" tier is intentionally *not* built here; it's
   deferred to a separate cross-catalog permissions project (§11) so reagents/supplies/equipment stay
@@ -509,7 +513,19 @@ lots, attributes, expiry.
   (`028_add_document_type.ts`, one concern) ALTERs the existing `equipment_documents` /
   `supply_documents`. Each catalog's document schema gains the optional enum.
 
-New route groups beyond supplies: `GET /expiring-soon`, `GET /:id/lots` + lot ops,
+- **Alerting (decided — standing pattern for all catalogs).** Low-stock and expiry are **derived
+  client-side from the item list already loaded by the tab**; there are **no alert endpoints, repo
+  queries, service methods, or response schemas**. The list row carries everything needed:
+  `totalStock` + `reorderThreshold` for low-stock, and `soonestExpiration` for expiry —
+  `MIN(expiration_date) FILTER (WHERE quantity > 0)` over `status = 'active'` lots, so depleted and
+  disposed lots correctly never alert. A second endpoint would be a parallel system: the same
+  question answered twice, on two caches with two staleness clocks, with the threshold rule written
+  once in SQL and again on the client. Equipment already derives this way; supplies'
+  `GET /reorder-list` is the outlier and is deleted in Phase 3. Revisit only if a lab outgrows
+  loading its item list — which would break the category tree first — or if a lab-wide alert badge
+  ever needs counts without mounting a tab.
+
+New route groups beyond supplies: `GET /:id/lots` + lot ops,
 `/attribute-definitions` CRUD, `/attribute-definitions/:id/options` CRUD, `/custom-units` CRUD, and
 attribute-value writes on items. **No filter params on `GET /`** — the list is filtered client-side.
 
@@ -696,7 +712,12 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 2. **Server core CRUD** — entities (4), repos, app service, DTO, events + **audit wiring**, DI,
    controller, routes for catalog/categories/locations. Lots + transactions + FEFO ledger. Unit-test
    the FEFO/expiry logic; one lab-scoping integration test.
-3. **Alerts** — reorder + expiry queries/events + endpoints.
+3. **Alerts (client-side, both catalogs)** — `ReagentLowStockAlertPanel` + `ReagentExpiryAlertPanel`
+   on the shared `AlertPanel`, derived from the item list (§7 *Alerting*); a `reagentExpiry` util on
+   the shared `daysUntil` helper. Delete the three orphaned Phase-1 alert response schemas. Converge
+   supplies in the same pass: derive its low-stock client-side and delete `GET /reorder-list` with
+   its repo/service/client-service/hook chain — verifying first that the client's `totalStock` and
+   status filter match the SQL's `status = 'active'` + `SUM(quantity) <= reorder_threshold`.
 4. **Attribute system** — definitions/options/values + custom-unit **server CRUD** (their tables land
    in Phase 1), the lab-creation seeding hook + migration `029_backfill_reagent_attributes` (defaults
    for existing labs). (List filtering is client-side — Phase 7.)
