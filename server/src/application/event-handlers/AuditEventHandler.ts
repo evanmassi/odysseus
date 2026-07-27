@@ -37,6 +37,27 @@ import type {
   InviteCodeCreatedEvent,
 } from '@domain/events/LabEvents';
 import type {
+  ReagentItemCreatedEvent,
+  ReagentItemUpdatedEvent,
+  ReagentItemArchivedEvent,
+  ReagentItemDeletedEvent,
+  ReagentCategoryCreatedEvent,
+  ReagentCategoryUpdatedEvent,
+  ReagentCategoryDeletedEvent,
+  ReagentDocumentAddedEvent,
+  ReagentDocumentRemovedEvent,
+  ReagentStockReceivedEvent,
+  ReagentStockIssuedEvent,
+  ReagentStockCountAdjustedEvent,
+  ReagentStockDisposedEvent,
+  ReagentStockVoidedEvent,
+  ReagentBulkReceivedEvent,
+  ReagentBulkIssuedEvent,
+  ReagentBulkCategoryReassignedEvent,
+  ReagentBulkArchivedEvent,
+  ReagentBulkVoidedEvent,
+} from '@domain/events/ReagentEvents';
+import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
@@ -350,6 +371,31 @@ export class AuditEventHandler {
     );
     this.eventBus.subscribe('SupplyBulkArchived', e => this.handleSupplyBulkArchived(e));
     this.eventBus.subscribe('SupplyBulkVoided', e => this.handleSupplyBulkVoided(e));
+
+    // Reagent events
+    this.eventBus.subscribe('ReagentItemCreated', e => this.handleReagentItemCreated(e));
+    this.eventBus.subscribe('ReagentItemUpdated', e => this.handleReagentItemUpdated(e));
+    this.eventBus.subscribe('ReagentItemArchived', e => this.handleReagentItemArchived(e));
+    this.eventBus.subscribe('ReagentItemDeleted', e => this.handleReagentItemDeleted(e));
+    this.eventBus.subscribe('ReagentCategoryCreated', e => this.handleReagentCategoryCreated(e));
+    this.eventBus.subscribe('ReagentCategoryUpdated', e => this.handleReagentCategoryUpdated(e));
+    this.eventBus.subscribe('ReagentCategoryDeleted', e => this.handleReagentCategoryDeleted(e));
+    this.eventBus.subscribe('ReagentDocumentAdded', e => this.handleReagentDocumentAdded(e));
+    this.eventBus.subscribe('ReagentDocumentRemoved', e => this.handleReagentDocumentRemoved(e));
+    this.eventBus.subscribe('ReagentStockReceived', e => this.handleReagentStockReceived(e));
+    this.eventBus.subscribe('ReagentStockIssued', e => this.handleReagentStockIssued(e));
+    this.eventBus.subscribe('ReagentStockCountAdjusted', e =>
+      this.handleReagentStockCountAdjusted(e)
+    );
+    this.eventBus.subscribe('ReagentStockDisposed', e => this.handleReagentStockDisposed(e));
+    this.eventBus.subscribe('ReagentStockVoided', e => this.handleReagentStockVoided(e));
+    this.eventBus.subscribe('ReagentBulkReceived', e => this.handleReagentBulkReceived(e));
+    this.eventBus.subscribe('ReagentBulkIssued', e => this.handleReagentBulkIssued(e));
+    this.eventBus.subscribe('ReagentBulkCategoryReassigned', e =>
+      this.handleReagentBulkCategoryReassigned(e)
+    );
+    this.eventBus.subscribe('ReagentBulkArchived', e => this.handleReagentBulkArchived(e));
+    this.eventBus.subscribe('ReagentBulkVoided', e => this.handleReagentBulkVoided(e));
 
     // Lab events
     this.eventBus.subscribe('LabCreated', e => this.handleLabCreated(e));
@@ -2603,5 +2649,479 @@ export class AuditEventHandler {
 
       await this.auditService.logActions(entries);
     });
+  }
+
+  // REAGENT EVENT HANDLERS
+
+  private async handleReagentItemCreated(event: ReagentItemCreatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent item created',
+      context: { itemId: event.itemId },
+      actorId: event.createdBy,
+      action: 'reagent_item_created',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        categoryId: event.categoryId,
+        createdBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentItemUpdated(event: ReagentItemUpdatedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
+    await this.logAuditEvent({
+      eventName: 'reagent item updated',
+      context: { itemId: event.itemId },
+      actorId: event.updatedBy,
+      action: 'reagent_item_updated',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        changes: event.changes,
+        updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentItemArchived(event: ReagentItemArchivedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
+    await this.logAuditEvent({
+      eventName: 'reagent item archived',
+      context: { itemId: event.itemId },
+      actorId: event.archivedBy,
+      action: 'reagent_item_archived',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        archivedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentItemDeleted(event: ReagentItemDeletedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent item deleted',
+      context: { itemId: event.itemId },
+      actorId: event.deletedBy,
+      action: 'reagent_item_deleted',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        name: event.name,
+        deletedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentCategoryCreated(event: ReagentCategoryCreatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent category created',
+      context: { categoryId: event.categoryId },
+      actorId: event.createdBy,
+      action: 'reagent_category_created',
+      entityType: 'reagent_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        parentId: event.parentId,
+        createdBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentCategoryUpdated(event: ReagentCategoryUpdatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent category updated',
+      context: { categoryId: event.categoryId },
+      actorId: event.updatedBy,
+      action: 'reagent_category_updated',
+      entityType: 'reagent_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentCategoryDeleted(event: ReagentCategoryDeletedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent category deleted',
+      context: { categoryId: event.categoryId },
+      actorId: event.deletedBy,
+      action: 'reagent_category_deleted',
+      entityType: 'reagent_item',
+      entityId: event.categoryId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        categoryId: event.categoryId,
+        name: event.name,
+        deletedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentDocumentAdded(event: ReagentDocumentAddedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent document added',
+      context: { itemId: event.itemId },
+      actorId: event.addedBy,
+      action: 'reagent_document_added',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        label: event.label,
+        addedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentDocumentRemoved(event: ReagentDocumentRemovedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent document removed',
+      context: { itemId: event.itemId },
+      actorId: event.removedBy,
+      action: 'reagent_document_removed',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        removedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentStockReceived(event: ReagentStockReceivedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
+    await this.logAuditEvent({
+      eventName: 'reagent stock received',
+      context: { itemId: event.itemId },
+      actorId: event.receivedBy,
+      action: 'reagent_stock_received',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        quantity: event.quantity,
+        locationId: event.locationId,
+        receivedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentStockIssued(event: ReagentStockIssuedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
+    await this.logAuditEvent({
+      eventName: 'reagent stock issued',
+      context: { itemId: event.itemId },
+      actorId: event.issuedBy,
+      action: 'reagent_stock_issued',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        quantity: event.quantity,
+        locationId: event.locationId,
+        issuedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentStockCountAdjusted(
+    event: ReagentStockCountAdjustedEvent
+  ): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent stock count adjusted',
+      context: { itemId: event.itemId },
+      actorId: event.adjustedBy,
+      action: 'reagent_stock_count_adjusted',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        delta: event.delta,
+        locationId: event.locationId,
+        adjustedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentStockDisposed(event: ReagentStockDisposedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'reagent stock disposed',
+      context: { itemId: event.itemId },
+      actorId: event.disposedBy,
+      action: 'reagent_stock_disposed',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        quantity: event.quantity,
+        locationId: event.locationId,
+        disposedBy: username,
+      }),
+    });
+  }
+
+  private async handleReagentStockVoided(event: ReagentStockVoidedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
+    await this.logAuditEvent({
+      eventName: 'reagent stock voided',
+      context: { itemId: event.itemId },
+      actorId: event.voidedBy,
+      action: 'reagent_stock_voided',
+      entityType: 'reagent_item',
+      entityId: event.itemId,
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: username => ({
+        itemId: event.itemId,
+        originalTransactionId: event.originalTransactionId,
+        reversalTransactionId: event.reversalTransactionId,
+        quantityReversed: event.quantityReversed,
+        locationId: event.locationId,
+        voidReason: event.voidReason,
+        voidedBy: username,
+      }),
+    });
+  }
+
+  // Reagent bulk handlers
+
+  private async handleReagentBulkReceived(event: ReagentBulkReceivedEvent): Promise<void> {
+    await this.safeLogAudit(
+      'reagent bulk received',
+      { count: event.perItemData.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.receivedBy);
+        if (isDemo) return;
+
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.perItemData.map(item => ({
+          userId: event.receivedBy,
+          username,
+          action: 'reagent_stock_received',
+          entityType: 'reagent_item',
+          entityId: item.itemId,
+          labId: event.labId,
+          details: {
+            itemId: item.itemId,
+            quantity: item.quantity,
+            locationId: item.locationId,
+            receivedBy: username,
+            timestamp,
+          },
+        }));
+
+        entries.push({
+          userId: event.receivedBy,
+          username,
+          action: 'reagent_bulk_received',
+          entityType: 'reagent_item',
+          labId: event.labId,
+          details: { count: event.perItemData.length, receivedBy: username, timestamp },
+        });
+
+        await this.auditService.logActions(entries);
+      }
+    );
+  }
+
+  private async handleReagentBulkIssued(event: ReagentBulkIssuedEvent): Promise<void> {
+    await this.safeLogAudit(
+      'reagent bulk issued',
+      { count: event.perItemData.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.issuedBy);
+        if (isDemo) return;
+
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.perItemData.map(item => ({
+          userId: event.issuedBy,
+          username,
+          action: 'reagent_stock_issued',
+          entityType: 'reagent_item',
+          entityId: item.itemId,
+          labId: event.labId,
+          details: {
+            itemId: item.itemId,
+            quantity: item.quantity,
+            locationId: item.locationId,
+            issuedBy: username,
+            timestamp,
+          },
+        }));
+
+        entries.push({
+          userId: event.issuedBy,
+          username,
+          action: 'reagent_bulk_issued',
+          entityType: 'reagent_item',
+          labId: event.labId,
+          details: { count: event.perItemData.length, issuedBy: username, timestamp },
+        });
+
+        await this.auditService.logActions(entries);
+      }
+    );
+  }
+
+  private async handleReagentBulkCategoryReassigned(
+    event: ReagentBulkCategoryReassignedEvent
+  ): Promise<void> {
+    await this.safeLogAudit(
+      'reagent bulk category reassigned',
+      { count: event.itemIds.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.reassignedBy);
+        if (isDemo) return;
+
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+          userId: event.reassignedBy,
+          username,
+          action: 'reagent_item_updated',
+          entityType: 'reagent_item',
+          entityId: itemId,
+          labId: event.labId,
+          details: {
+            itemId,
+            changes: [{ field: 'categoryId', newValue: event.categoryId }],
+            updatedBy: username,
+            timestamp,
+          },
+        }));
+
+        entries.push({
+          userId: event.reassignedBy,
+          username,
+          action: 'reagent_bulk_category_reassigned',
+          entityType: 'reagent_item',
+          labId: event.labId,
+          details: {
+            count: event.itemIds.length,
+            categoryId: event.categoryId,
+            reassignedBy: username,
+            timestamp,
+          },
+        });
+
+        await this.auditService.logActions(entries);
+      }
+    );
+  }
+
+  private async handleReagentBulkArchived(event: ReagentBulkArchivedEvent): Promise<void> {
+    await this.safeLogAudit(
+      'reagent bulk archived',
+      { count: event.itemIds.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.archivedBy);
+        if (isDemo) return;
+
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+          userId: event.archivedBy,
+          username,
+          action: 'reagent_item_archived',
+          entityType: 'reagent_item',
+          entityId: itemId,
+          labId: event.labId,
+          details: { itemId, archivedBy: username, timestamp },
+        }));
+
+        entries.push({
+          userId: event.archivedBy,
+          username,
+          action: 'reagent_bulk_archived',
+          entityType: 'reagent_item',
+          labId: event.labId,
+          details: { count: event.itemIds.length, archivedBy: username, timestamp },
+        });
+
+        await this.auditService.logActions(entries);
+      }
+    );
+  }
+
+  private async handleReagentBulkVoided(event: ReagentBulkVoidedEvent): Promise<void> {
+    await this.safeLogAudit(
+      'reagent bulk voided',
+      { count: event.perItemData.length },
+      async () => {
+        const { username, isDemo } = await this.resolveUser(event.voidedBy);
+        if (isDemo) return;
+
+        const timestamp = event.occurredOn.toISOString();
+        const entries: LogActionParams[] = event.perItemData.map(item => ({
+          userId: event.voidedBy,
+          username,
+          action: 'reagent_stock_voided',
+          entityType: 'reagent_item',
+          entityId: item.itemId,
+          labId: event.labId,
+          details: {
+            itemId: item.itemId,
+            transactionId: item.transactionId,
+            quantityReversed: item.quantityReversed,
+            locationId: item.locationId,
+            voidReason: event.voidReason,
+            voidedBy: username,
+            timestamp,
+          },
+        }));
+
+        entries.push({
+          userId: event.voidedBy,
+          username,
+          action: 'reagent_bulk_voided',
+          entityType: 'reagent_item',
+          labId: event.labId,
+          details: {
+            count: event.perItemData.length,
+            voidReason: event.voidReason,
+            voidedBy: username,
+            timestamp,
+          },
+        });
+
+        await this.auditService.logActions(entries);
+      }
+    );
   }
 }

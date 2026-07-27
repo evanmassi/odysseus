@@ -20,6 +20,7 @@ import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
+import { ReagentModule } from '@infrastructure/di/modules/ReagentModule';
 import { StorageModule } from '@infrastructure/di/modules/StorageModule';
 import { SupplyModule } from '@infrastructure/di/modules/SupplyModule';
 import { TubeModule } from '@infrastructure/di/modules/TubeModule';
@@ -43,6 +44,7 @@ import type { InviteCodeController } from '@presentation/controllers/InviteCodeC
 import type { LabController } from '@presentation/controllers/LabController';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { PersonController } from '@presentation/controllers/PersonController';
+import type { ReagentController } from '@presentation/controllers/ReagentController';
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { SearchController } from '@presentation/controllers/SearchController';
 import type { StorageController } from '@presentation/controllers/StorageController';
@@ -81,6 +83,7 @@ export class ServiceContainer {
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
   private _supplyModule?: SupplyModule;
+  private _reagentModule?: ReagentModule;
   private _equipmentModule?: EquipmentModule;
 
   constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
@@ -200,6 +203,13 @@ export class ServiceContainer {
       this._supplyModule = new SupplyModule(this.getShared(), this.repositoryFactory);
     }
     return this._supplyModule;
+  }
+
+  private getReagentModule(): ReagentModule {
+    if (!this._reagentModule) {
+      this._reagentModule = new ReagentModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._reagentModule;
   }
 
   private getEquipmentModule(): EquipmentModule {
@@ -343,6 +353,12 @@ export class ServiceContainer {
 
   getSupplyController(): SupplyController {
     return this.getSupplyModule().getSupplyController();
+  }
+
+  // Public API — ReagentModule
+
+  getReagentController(): ReagentController {
+    return this.getReagentModule().getReagentController();
   }
 
   // Public API — EquipmentModule

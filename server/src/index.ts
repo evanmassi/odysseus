@@ -26,6 +26,7 @@ import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
 import { DonorRouteModule } from '@presentation/routes/DonorRouteModule';
 import { EquipmentRouteModule } from '@presentation/routes/EquipmentRouteModule';
 import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
+import { ReagentRouteModule } from '@presentation/routes/ReagentRouteModule';
 import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
 import { RouteRegistry } from '@presentation/routes/RouteRegistry';
 import { SearchRouteModule } from '@presentation/routes/SearchRouteModule';
@@ -158,6 +159,7 @@ class OdysseusServer {
     const inviteCodeController = this.serviceContainer.getInviteCodeController();
     const donorController = this.serviceContainer.getDonorController();
     const supplyController = this.serviceContainer.getSupplyController();
+    const reagentController = this.serviceContainer.getReagentController();
     const equipmentController = this.serviceContainer.getEquipmentController();
     const securityMonitoringController = this.serviceContainer.getSecurityMonitoringController();
     const storageAnalyticsController = this.serviceContainer.getStorageAnalyticsController();
@@ -214,6 +216,7 @@ class OdysseusServer {
     registry.registerModule(new StorageRouteModule(storageController, authMiddleware));
     registry.registerModule(new DonorRouteModule(donorController, authMiddleware));
     registry.registerModule(new SupplyRouteModule(supplyController, authMiddleware));
+    registry.registerModule(new ReagentRouteModule(reagentController, authMiddleware));
     registry.registerModule(new EquipmentRouteModule(equipmentController, authMiddleware));
     registry.registerModule(
       new SearchRouteModule(searchController, authMiddleware, storageRepository)

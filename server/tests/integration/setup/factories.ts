@@ -15,6 +15,7 @@ import { EquipmentItem } from '@domain/entities/EquipmentItem';
 import { Lab } from '@domain/entities/Lab';
 import { Person } from '@domain/entities/Person';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
+import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import { ReagentItem } from '@domain/entities/ReagentItem';
 import { ReagentLocation } from '@domain/entities/ReagentLocation';
 import { Researcher } from '@domain/entities/Researcher';
@@ -44,6 +45,7 @@ import { UserRepository } from '@infrastructure/repositories/UserRepository';
 import type { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { ReagentBarcodeRow } from '@domain/repositories/ReagentItemRepository';
 import type {
   SupplyBarcodeRow,
   SupplyPackagingLevelRow,
@@ -311,6 +313,39 @@ export function createSeed(context: PostgresContext) {
     return entity;
   }
 
+  async function reagentDocument(overrides: {
+    itemId: string;
+    label?: string;
+    url?: string;
+  }): Promise<ReagentDocument> {
+    const entity = ReagentDocument.create({
+      itemId: overrides.itemId,
+      label: overrides.label ?? 'SDS',
+      url: overrides.url ?? 'https://example.test/sds.pdf',
+    });
+    await reagentItems.saveDocument(entity);
+    return entity;
+  }
+
+  async function reagentBarcode(overrides: {
+    itemId: string;
+    barcodeValue?: string;
+    barcodeType?: ReagentBarcodeRow['barcodeType'];
+    isPrimary?: boolean;
+    label?: string;
+  }): Promise<ReagentBarcodeRow> {
+    const row: ReagentBarcodeRow = {
+      id: generateId('rbcd'),
+      itemId: overrides.itemId,
+      barcodeValue: overrides.barcodeValue ?? generateId('rbcdval'),
+      barcodeType: overrides.barcodeType ?? 'internal',
+      isPrimary: overrides.isPrimary ?? true,
+      label: overrides.label,
+    };
+    await reagentItems.saveBarcode(row);
+    return row;
+  }
+
   return {
     lab,
     user,
@@ -330,6 +365,8 @@ export function createSeed(context: PostgresContext) {
     reagentCategory,
     reagentLocation,
     reagentItem,
+    reagentDocument,
+    reagentBarcode,
   };
 }
 

@@ -40,6 +40,27 @@ import type {
   PasswordResetCompletedEvent,
 } from './PasswordResetEvents';
 import type {
+  ReagentItemCreatedEvent,
+  ReagentItemUpdatedEvent,
+  ReagentItemArchivedEvent,
+  ReagentItemDeletedEvent,
+  ReagentCategoryCreatedEvent,
+  ReagentCategoryUpdatedEvent,
+  ReagentCategoryDeletedEvent,
+  ReagentDocumentAddedEvent,
+  ReagentDocumentRemovedEvent,
+  ReagentStockReceivedEvent,
+  ReagentStockIssuedEvent,
+  ReagentStockCountAdjustedEvent,
+  ReagentStockDisposedEvent,
+  ReagentStockVoidedEvent,
+  ReagentBulkReceivedEvent,
+  ReagentBulkIssuedEvent,
+  ReagentBulkCategoryReassignedEvent,
+  ReagentBulkArchivedEvent,
+  ReagentBulkVoidedEvent,
+} from './ReagentEvents';
+import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
@@ -238,6 +259,27 @@ export interface DomainEventMap {
   SupplyBulkCategoryReassigned: SupplyBulkCategoryReassignedEvent;
   SupplyBulkArchived: SupplyBulkArchivedEvent;
   SupplyBulkVoided: SupplyBulkVoidedEvent;
+
+  // Reagent events
+  ReagentItemCreated: ReagentItemCreatedEvent;
+  ReagentItemUpdated: ReagentItemUpdatedEvent;
+  ReagentItemArchived: ReagentItemArchivedEvent;
+  ReagentItemDeleted: ReagentItemDeletedEvent;
+  ReagentCategoryCreated: ReagentCategoryCreatedEvent;
+  ReagentCategoryUpdated: ReagentCategoryUpdatedEvent;
+  ReagentCategoryDeleted: ReagentCategoryDeletedEvent;
+  ReagentDocumentAdded: ReagentDocumentAddedEvent;
+  ReagentDocumentRemoved: ReagentDocumentRemovedEvent;
+  ReagentStockReceived: ReagentStockReceivedEvent;
+  ReagentStockIssued: ReagentStockIssuedEvent;
+  ReagentStockCountAdjusted: ReagentStockCountAdjustedEvent;
+  ReagentStockDisposed: ReagentStockDisposedEvent;
+  ReagentStockVoided: ReagentStockVoidedEvent;
+  ReagentBulkReceived: ReagentBulkReceivedEvent;
+  ReagentBulkIssued: ReagentBulkIssuedEvent;
+  ReagentBulkCategoryReassigned: ReagentBulkCategoryReassignedEvent;
+  ReagentBulkArchived: ReagentBulkArchivedEvent;
+  ReagentBulkVoided: ReagentBulkVoidedEvent;
 
   // Lab events
   LabCreated: LabCreatedEvent;

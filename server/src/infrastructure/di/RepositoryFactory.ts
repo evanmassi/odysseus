@@ -6,6 +6,7 @@
 
 import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
+import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
@@ -15,6 +16,8 @@ import type { InviteCodeRepository } from '@domain/repositories/InviteCodeReposi
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
+import type { ReagentLocationRepository } from '@domain/repositories/ReagentLocationRepository';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -31,6 +34,7 @@ import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/reposito
 import {
   CategoryRepository as CategoryRepositoryImpl,
   EQUIPMENT_CATEGORY_TABLES,
+  REAGENT_CATEGORY_TABLES,
   SUPPLY_CATEGORY_TABLES,
 } from '@infrastructure/repositories/CategoryRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
@@ -39,6 +43,8 @@ import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructur
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
+import { ReagentItemRepository as ReagentItemRepositoryImpl } from '@infrastructure/repositories/ReagentItemRepository';
+import { ReagentLocationRepository as ReagentLocationRepositoryImpl } from '@infrastructure/repositories/ReagentLocationRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
@@ -67,6 +73,9 @@ export class RepositoryFactory implements UnitOfWork {
   private supplyCategoryRepository?: CategoryRepository<SupplyCategory>;
   private supplyItemRepository?: SupplyItemRepository;
   private supplyLocationRepository?: SupplyLocationRepository;
+  private reagentCategoryRepository?: CategoryRepository<ReagentCategory>;
+  private reagentItemRepository?: ReagentItemRepository;
+  private reagentLocationRepository?: ReagentLocationRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
     this.postgresContext = new PostgresContext(databaseConfig);
@@ -198,6 +207,27 @@ export class RepositoryFactory implements UnitOfWork {
     return this.supplyLocationRepository;
   }
 
+  getReagentCategoryRepository(): CategoryRepository<ReagentCategory> {
+    if (!this.reagentCategoryRepository) {
+      this.reagentCategoryRepository = this.buildReagentCategoryRepository(this.postgresContext);
+    }
+    return this.reagentCategoryRepository;
+  }
+
+  getReagentItemRepository(): ReagentItemRepository {
+    if (!this.reagentItemRepository) {
+      this.reagentItemRepository = new ReagentItemRepositoryImpl(this.postgresContext);
+    }
+    return this.reagentItemRepository;
+  }
+
+  getReagentLocationRepository(): ReagentLocationRepository {
+    if (!this.reagentLocationRepository) {
+      this.reagentLocationRepository = new ReagentLocationRepositoryImpl(this.postgresContext);
+    }
+    return this.reagentLocationRepository;
+  }
+
   getRepositories(): Repositories {
     return {
       tubes: this.getTubeRepository(),
@@ -217,6 +247,9 @@ export class RepositoryFactory implements UnitOfWork {
       supplyCategories: this.getSupplyCategoryRepository(),
       supplyItems: this.getSupplyItemRepository(),
       supplyLocations: this.getSupplyLocationRepository(),
+      reagentCategories: this.getReagentCategoryRepository(),
+      reagentItems: this.getReagentItemRepository(),
+      reagentLocations: this.getReagentLocationRepository(),
     };
   }
 
@@ -243,6 +276,12 @@ export class RepositoryFactory implements UnitOfWork {
     );
   }
 
+  private buildReagentCategoryRepository(db: Queryable): CategoryRepository<ReagentCategory> {
+    return new CategoryRepositoryImpl(db, REAGENT_CATEGORY_TABLES, data =>
+      ReagentCategory.fromData(data)
+    );
+  }
+
   private buildRepositories(db: Queryable): Repositories {
     const storage = new StorageRepositoryImpl(db);
 
@@ -264,6 +303,9 @@ export class RepositoryFactory implements UnitOfWork {
       supplyCategories: this.buildSupplyCategoryRepository(db),
       supplyItems: new SupplyItemRepositoryImpl(db),
       supplyLocations: new SupplyLocationRepositoryImpl(db),
+      reagentCategories: this.buildReagentCategoryRepository(db),
+      reagentItems: new ReagentItemRepositoryImpl(db),
+      reagentLocations: new ReagentLocationRepositoryImpl(db),
     };
   }
 

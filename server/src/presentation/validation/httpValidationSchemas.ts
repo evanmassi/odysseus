@@ -66,6 +66,26 @@ import {
   supplyBulkBarcodesRequestSchema,
   voidSupplyTransactionRequestSchema,
   supplyBulkVoidRequestSchema,
+  createReagentCategoryRequestSchema,
+  updateReagentCategoryRequestSchema,
+  createReagentLocationRequestSchema,
+  updateReagentLocationRequestSchema,
+  createReagentItemRequestSchema,
+  updateReagentItemRequestSchema,
+  createReagentBarcodeRequestSchema,
+  updateReagentBarcodeRequestSchema,
+  createReagentDocumentRequestSchema,
+  updateReagentDocumentRequestSchema,
+  createReagentPackagingLevelRequestSchema,
+  recordReagentTransactionRequestSchema,
+  recordReagentStockCountRequestSchema,
+  reagentBulkReceiveRequestSchema,
+  reagentBulkIssueRequestSchema,
+  reagentBulkReassignCategoryRequestSchema,
+  reagentBulkArchiveRequestSchema,
+  reagentBulkBarcodesRequestSchema,
+  voidReagentTransactionRequestSchema,
+  reagentBulkVoidRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -282,3 +302,38 @@ export const VoidSupplyTransactionHttpSchema = voidSupplyTransactionRequestSchem
 export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
 export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
 export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
+
+// Reagent schemas
+
+export const ReagentCategoryIdParams = z.object({ categoryId: z.string().min(1) });
+export const ReagentLocationIdParams = z.object({ locationId: z.string().min(1) });
+export const ReagentDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
+export const ReagentBarcodeIdParams = z.object({
+  id: z.string().min(1),
+  barcodeId: z.string().min(1),
+});
+export const ReagentPackagingLevelIdParams = z.object({
+  id: z.string().min(1),
+  levelId: z.string().min(1),
+});
+export const CreateReagentCategoryHttpSchema = createReagentCategoryRequestSchema;
+export const UpdateReagentCategoryHttpSchema = updateReagentCategoryRequestSchema;
+export const CreateReagentLocationHttpSchema = createReagentLocationRequestSchema;
+export const UpdateReagentLocationHttpSchema = updateReagentLocationRequestSchema;
+export const CreateReagentItemHttpSchema = createReagentItemRequestSchema;
+export const UpdateReagentItemHttpSchema = updateReagentItemRequestSchema;
+export const CreateReagentBarcodeHttpSchema = createReagentBarcodeRequestSchema;
+export const UpdateReagentBarcodeHttpSchema = updateReagentBarcodeRequestSchema;
+export const CreateReagentDocumentHttpSchema = createReagentDocumentRequestSchema;
+export const UpdateReagentDocumentHttpSchema = updateReagentDocumentRequestSchema;
+export const RecordReagentTransactionHttpSchema = recordReagentTransactionRequestSchema;
+export const RecordReagentStockCountHttpSchema = recordReagentStockCountRequestSchema;
+export const ReagentBulkReceiveHttpSchema = reagentBulkReceiveRequestSchema;
+export const ReagentBulkIssueHttpSchema = reagentBulkIssueRequestSchema;
+export const ReagentBulkReassignCategoryHttpSchema = reagentBulkReassignCategoryRequestSchema;
+export const ReagentBulkArchiveHttpSchema = reagentBulkArchiveRequestSchema;
+export const ReagentBulkBarcodesHttpSchema = reagentBulkBarcodesRequestSchema;
+export const VoidReagentTransactionHttpSchema = voidReagentTransactionRequestSchema;
+export const ReagentBulkVoidHttpSchema = reagentBulkVoidRequestSchema;
+export const ReagentTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
+export const CreateReagentPackagingLevelHttpSchema = createReagentPackagingLevelRequestSchema;
