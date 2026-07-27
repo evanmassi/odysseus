@@ -93,12 +93,25 @@ it needs the same escape hatch.
 ### 4. Locations merge — *before reagents Phase 5*
 
 **What.** One `locations` table (prefix `loc`) replacing `supply_locations` + `reagent_locations`,
-with equipment's free-text `location` column migrated onto it. All three catalogs FK to it.
+**hierarchical via a `parent_id` self-FK**, with equipment's free-text `location` column migrated onto
+it. All three catalogs FK to it.
 
 **Why.** "Freezer A" is one physical place holding supplies *and* reagents. Renaming it today means
-two tables and a text field.
+two tables and a text field. Hierarchy because a lab's places nest for real — *Room 204 → Cold Room →
+Shelf 2* — and flat lists force compound strings like "Room 204, Bench 3" that nothing can query.
+
+**Depth.** `validateCategoryDepth` generalises to a `maxDepth` option counting **tiers**: categories
+keep today's `2` as the default (behaviour identical), locations pass `3`. The guard switches to
+computing parent tier + subtree height from `findByLabId`, because `hasChildren` cannot distinguish a
+subtree of height 1 from 2.
 
 **Naming.** Deliberately `locations`, not `lab_locations` — a store room isn't necessarily in the lab.
+
+**Client home.** `domains/lab-management/` — already the parent of the three consuming tabs. Not
+`domains/storage/` (positional tube subsystem, disjoint consumers — see *Parked* below) and not a new
+top-level domain, which would invite one per lab-wide vocabulary.
+
+**Split.** 4a-i server + shared · 4a-ii client rewire · 4b equipment onboarding.
 
 **Blocks.** Reagent location UI (Phase 5). Touches supplies + equipment live data.
 
@@ -195,6 +208,21 @@ Phase-1 reagent alert schemas.
 **Known residual.** The threshold rule now exists client-side (display) and in SQL (CSV export). The
 admin export tab is an independent consumer, so the server path earns its place. No shared predicate
 helper yet — one caller; reagents becomes the second in Phase 6, extract then.
+
+---
+
+## Parked — decide when we get there
+
+**Locations ↔ biobank storage.** Once locations are a real tree (item 4), the lab has *two* models of
+physical place: `locations` (Room → Area → Shelf, named containment, no coordinates — used by
+supplies, reagents, equipment) and the biobank's `storage` (tank → rack → box **plus grid positions**,
+capacity and occupancy analytics — used by tubes). They are coherent as one thing: a cryo tank
+genuinely sits in Room 204, and a freezer could hold both reagent lots and tube boxes.
+
+Folding them together is a **project, not a merge** — storage carries positional addressing, capacity
+maths and its own navigator UI that locations have no concept of. The plausible shape is locations
+becoming the outer tree with tanks hanging off a room, storage keeping the coordinate system below
+that. Revisit deliberately once locations are in use; do **not** let it ride along with item 4.
 
 ---
 
