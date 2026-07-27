@@ -1,9 +1,10 @@
 /**
  * Inventory Components
  *
- * Domain-agnostic category UI shared by the equipment and supplies domains.
+ * Domain-agnostic category and alert UI shared by the inventory domains.
  */
 
+export { AlertPanel, type AlertCount, type AlertTone } from './AlertPanel';
 export {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
