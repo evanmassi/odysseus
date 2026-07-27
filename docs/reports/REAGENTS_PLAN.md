@@ -577,7 +577,9 @@ Two vocabulary mechanisms, one clear boundary:
   `LookupValueApplicationService` usage/rename/delete branch + `CatalogTab` `CATEGORY_USAGE_LABELS`)
   plus a new `CatalogGroup` in `CatalogTab.tsx`. Reagent lookup categories (parallel to supplies):
   `reagent_type`, `reagent_vendor`, `reagent_manufacturer` (amount/concentration units come from the
-  unit registry, §6 — not a lookup).
+  unit registry, §6 — not a lookup). **This is what 2c shipped; the vendor/manufacturer half is
+  superseded** — they collapse into shared lab-wide categories and the `CatalogGroup` accordion
+  becomes a nav rail (§9 *Decided — catalog surface*).
 - **Attributes** (lab-defined, runtime-added, type-scoped, filterable) — hazard / form / grade /
   storage (seeded, `is_system`) *and* Fluorophore / Host / Clone / etc. (lab-added). Managed in the
   **`CatalogTab` subtree** (same surface as the lookup groups, richer editor); adding one is no code
@@ -637,20 +639,38 @@ if it's per-item metadata the lab curates and filters by → attribute.
 - **Lab-deletion FK** → lab_id restrict, category RESTRICT, item-children CASCADE (§5).
 - **Lookup multi-place (~5 files)** → touch-points added to §12.
 
+### Decided — catalog surface (raised at 2c)
+
+Shipping 2c made the Catalog tab render "Vendors" and "Manufacturers" under both Supplies and
+Reagents, so an admin types *Thermo Fisher* once per catalog. Two decisions came out of that:
+
+- **Shared `vendor` / `manufacturer` lookup categories.** Drop the domain prefixes; one lab-wide
+  list each, consumed by supplies, reagents **and equipment** (which carries a free-text
+  `manufacturer` column today with no controlled vocabulary at all). The *identity* separation that
+  governs entities (AGENTS.md §Equipment↔Supplies) doesn't apply here: these categories resolve to a
+  bare `TEXT` column, so splitting them buys no type safety — it only partitions a vocabulary a lab
+  experiences as single. Work: a migration merging existing values (dedupe on collision), the CHECK
+  swap, the same ~8 files 2c touched, and a rename/count cascade fanning out to three item tables.
+  **Land before Phase 5** — the item form binds a specific category, and `reagent_vendor` is
+  provably empty right now, so this is the cheapest it will ever be.
+- **Catalog tab moves from accordion groups to a nav rail.** Left rail lists every editable
+  vocabulary (flat, alphabetical, filter box, entry count); the right pane shows the selected list —
+  the existing per-list table, unchanged. Shared vocabularies carry a *used by · Supplies · Reagents
+  · Equipment* line. Route context pre-selects a leaf (from `/lab/reagents` → Reagent Types).
+  Rationale: semantic grouping can't classify Phase 7's **lab-defined** attribute vocabularies, so a
+  taxonomy solves the fixed half of the surface and structurally cannot solve the growing half. The
+  rail also makes group names optional decoration rather than load-bearing containers, so that
+  naming call becomes cosmetic and reversible. Phase 7's attribute definitions and custom units
+  become leaves in the same rail (richer right-pane editor, same navigation). Reuses the existing
+  `nav-tree` CSS/`NavTreeLines` vocabulary already used in the sibling `SystemTab`. **Land before
+  Phase 7**, which roughly doubles this surface.
+
 ### Still parked
-- **Vendor / manufacturer duplication across catalogs** *(raised at 2c)* — `supply_vendor` and
-  `reagent_vendor` are separate lookup categories, so the Catalog tab now renders "Vendors" and
-  "Manufacturers" twice and an admin types *Thermo Fisher* once per catalog. (Equipment has no
-  vendor lookup at all today, so a third copy would follow if it ever gains one.) The *identity*
-  separation is deliberate — a supply vendor must not be assignable where a reagent vendor is
-  expected — but the *vocabulary* isn't obviously catalog-specific: a lab has one vendor list.
-  Option space to work through: **(a)** leave as-is; **(b)** collapse to shared `vendor` /
-  `manufacturer` categories consumed by every catalog — needs a migration merging existing values
-  (dedupe on collision) and a rename cascade that fans out across all item tables, and it widens
-  delete-protection to "used by N items across 2 catalogs"; **(c)** keep per-catalog storage but
-  give the Catalog tab one merged editor that writes both rows. Decide **before Phase 5's item
-  form** ships — the form binds a specific category, so changing it later is a client + data
-  migration rather than a doc edit.
+- **Stock units asymmetry** — supplies keeps a `supply_stock_unit` lookup while reagent units come
+  from the code registry (§6). Migrating supplies onto the registry and dropping the lookup would
+  remove the odd one out, but it's its own small project — decide when the rail lands.
+- **Equipment vendor field** — equipment has `manufacturer` but no vendor column; if it gains one it
+  joins the shared `vendor` category with no further design.
 - **Lab-default expiry home** — existing lab config vs a small reagent-settings row (infra detail,
   resolve at build time). **Per-category** expiry tier: not v1 unless you want it.
 - **`reagent_type` weight** — how hard it drives attribute scoping / grouping.
@@ -682,7 +702,8 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 5. **Client core** — service, hooks, `ReagentsTab`, item row/info/form, lot UI, category tree reuse,
    locations. Flip the tab on (and make `CatalogTab` expand the Reagents group on `/lab/reagents`).
 6. **Client stock + alerts** — transaction form/timeline/void, low-stock + expiry panels, reorder.
-7. **Client attributes** — dynamic form fields, list filter bar, admin definition/option/custom-unit CRUD.
+7. **Client attributes** — dynamic form fields, list filter bar, admin definition/option/custom-unit
+   CRUD, hosted on the catalog nav rail (§9 *Decided — catalog surface*; the rail lands before this).
 8. **Barcodes** — thin reagent wrappers over the Phase-0 shared core (not a clone).
 9. **Bulk ops + polish** — kept bulk ops, CSV export, catalog group, header quick-link.
 
