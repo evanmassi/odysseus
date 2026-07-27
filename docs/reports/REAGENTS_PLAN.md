@@ -20,7 +20,9 @@ we build.
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phase 2 ✅ complete (2a/2b/2c landed). Next: Phase 3 — alerts._
+_Current: Phase 2 ✅ complete (2a/2b/2c landed). **Phase 3 is held** — the lab-wide convergence work
+in `LAB_CONVERGENCE_PLAN.md` runs first; its item 1 (shared alert panel) is what Phase 3 builds on,
+and items 2–5 have deadlines inside Phases 4–5._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository; lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
@@ -641,6 +643,10 @@ if it's per-item metadata the lab curates and filters by → attribute.
 
 ### Decided — catalog surface (raised at 2c)
 
+> Both decisions below, plus the other cross-catalog merges they surfaced (locations, attributes,
+> custom units, alert panel, barcode resolve), are sequenced in **`LAB_CONVERGENCE_PLAN.md`** — that
+> doc is the work order; this section is the rationale.
+
 Shipping 2c made the Catalog tab render "Vendors" and "Manufacturers" under both Supplies and
 Reagents, so an admin types *Thermo Fisher* once per catalog. Two decisions came out of that:
 
@@ -666,11 +672,6 @@ Reagents, so an admin types *Thermo Fisher* once per catalog. Two decisions came
   Phase 7**, which roughly doubles this surface.
 
 ### Still parked
-- **Stock units asymmetry** — supplies keeps a `supply_stock_unit` lookup while reagent units come
-  from the code registry (§6). Migrating supplies onto the registry and dropping the lookup would
-  remove the odd one out, but it's its own small project — decide when the rail lands.
-- **Equipment vendor field** — equipment has `manufacturer` but no vendor column; if it gains one it
-  joins the shared `vendor` category with no further design.
 - **Lab-default expiry home** — existing lab config vs a small reagent-settings row (infra detail,
   resolve at build time). **Per-category** expiry tier: not v1 unless you want it.
 - **`reagent_type` weight** — how hard it drives attribute scoping / grouping.
