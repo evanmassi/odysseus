@@ -10,5 +10,4 @@ export {
   useSupplyItemDetailQuery,
   useSupplyLocationsQuery,
   useSupplyTransactionHistoryQuery,
-  useSupplyReorderListQuery,
 } from './useSupplyQueries';

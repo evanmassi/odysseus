@@ -50,7 +50,6 @@ import {
   supplyBulkResponseSchema,
   supplyBulkBarcodesResponseSchema,
   supplyVoidTransactionResponseSchema,
-  supplyReorderListResponseSchema,
   supplyPackagingLevelResponseSchema,
   messageResponseSchema,
 } from '@odysseus/shared-schemas';
@@ -365,15 +364,5 @@ export class SupplyService {
     }
 
     return { barcodes };
-  }
-
-  // Reorder list
-
-  static async getReorderList(): Promise<SupplyItemWithStock[]> {
-    const response = await httpClient.getData(
-      `${this.BASE_PATH}/reorder-list`,
-      supplyReorderListResponseSchema
-    );
-    return response.items;
   }
 }

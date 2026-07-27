@@ -853,15 +853,6 @@ export class SupplyApplicationService {
     return result;
   }
 
-  // Reorder
-
-  async getReorderList(labId: string): Promise<SupplyItemWithStockResponse[]> {
-    const itemsWithStock = await this.itemRepository.findItemsAtOrBelowThreshold(labId);
-    return itemsWithStock.map(({ item, totalStock, locationNames }) =>
-      SupplyDto.itemWithStockToResponse(item, totalStock, locationNames)
-    );
-  }
-
   // Helpers
 
   private async getItemOrThrow(id: string, labId: string): Promise<SupplyItem> {

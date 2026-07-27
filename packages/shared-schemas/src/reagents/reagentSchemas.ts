@@ -13,12 +13,7 @@ import {
   concentrationPreprocessorNullable,
   concentrationUnitRefinement,
 } from '../units';
-import {
-  dateField,
-  dateOnlyField,
-  optionalDateField,
-  optionalDateOnlyField,
-} from '../utils/dateFields';
+import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
 
 // Enums
@@ -562,27 +557,6 @@ export const reagentBulkBarcodesResponseSchema = z.object({
   ),
 });
 
-// Alert list responses
-
-export const reagentReorderListResponseSchema = z.object({
-  items: z.array(reagentItemWithStockSchema),
-});
-
-export const reagentExpiringLotSchema = z.object({
-  itemId: z.string(),
-  itemName: z.string(),
-  categoryId: z.string(),
-  lotId: z.string(),
-  lotNumber: z.string().optional(),
-  expirationDate: dateOnlyField,
-  quantity: z.number(),
-  locationName: z.string().optional(),
-});
-
-export const reagentExpiryListResponseSchema = z.object({
-  lots: z.array(reagentExpiringLotSchema),
-});
-
 // Type exports
 
 export type ReagentItemStatus = z.infer<typeof reagentItemStatusSchema>;
@@ -605,7 +579,6 @@ export type ReagentAttributeOption = z.infer<typeof reagentAttributeOptionSchema
 export type ReagentAttributeValue = z.infer<typeof reagentAttributeValueSchema>;
 export type ReagentAttributeSummary = z.infer<typeof reagentAttributeSummarySchema>;
 export type ReagentItemDetail = z.infer<typeof reagentItemDetailResponseSchema>;
-export type ReagentExpiringLot = z.infer<typeof reagentExpiringLotSchema>;
 export type CreateReagentCategoryRequest = z.infer<typeof createReagentCategoryRequestSchema>;
 export type UpdateReagentCategoryRequest = z.infer<typeof updateReagentCategoryRequestSchema>;
 export type CreateReagentLocationRequest = z.infer<typeof createReagentLocationRequestSchema>;

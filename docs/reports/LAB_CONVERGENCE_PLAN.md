@@ -148,7 +148,7 @@ is before scanning it to find out what it is.
 
 **Blocks.** Reagent barcode wrappers (Phase 8).
 
-### 9. Supplies low-stock → client-side — *executed inside reagents Phase 3*
+### 9. Supplies low-stock → client-side — ✅ done
 
 **What.** Derive supplies' low-stock from the item list the tab already loads; delete
 `GET /reorder-list` and its repo query, service method, client service method and query hook.
@@ -161,9 +161,17 @@ the one place violating the standing pattern above.
 `SUM(stock.quantity) <= reorder_threshold`; confirm the list's `totalStock` uses the same sum and
 apply the same status filter client-side. A behavioural diff to check, not assume.
 
-**Why it rides with Phase 3.** Reagents builds its two panels on the same rule in that phase; doing
-both together means the pattern is established once, and reagents is written correctly the first time
-rather than cloning the outlier.
+**Landed.** Predicate proven exact before deleting: `ITEM_WITH_STOCK_SELECT` is a shared prefix for
+both queries, so `total_stock` is computed identically; the reorder query is the list query plus
+`status = 'active'`, `reorder_threshold IS NOT NULL`, and the `HAVING` comparison — reproduced
+client-side verbatim. **The repo method survives** — `findItemsAtOrBelowThreshold` also backs the
+admin CSV export, which the reorder modal's Export CSV button calls via blob; only the client-query
+chain went. Also removed three stale `reorderList` invalidations and dropped the three orphaned
+Phase-1 reagent alert schemas.
+
+**Known residual.** The threshold rule now exists client-side (display) and in SQL (CSV export). The
+admin export tab is an independent consumer, so the server path earns its place. No shared predicate
+helper yet — one caller; reagents becomes the second in Phase 6, extract then.
 
 ---
 
@@ -191,4 +199,4 @@ Decided; don't reopen without a new reason.
 - [ ] 6 — Supplies → unit registry
 - [ ] 7 — Catalog tab → nav rail
 - [ ] 8 — Lab-wide barcode resolve
-- [ ] 9 — Supplies low-stock → client-side *(rides with reagents Phase 3)*
+- [x] 9 — Supplies low-stock → client-side

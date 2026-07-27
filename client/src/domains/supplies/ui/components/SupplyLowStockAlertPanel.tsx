@@ -6,7 +6,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { useSupplyReorderListQuery } from '@domains/supplies/hooks';
+import { useSupplyItemsQuery } from '@domains/supplies/hooks';
 import { Button } from '@shared/ui';
 import { AlertPanel, type AlertCount } from '@shared/ui/components/inventory';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
@@ -67,8 +67,19 @@ export function SupplyLowStockAlertPanel({
   selectedItemId,
   onSelectItem,
 }: SupplyLowStockAlertPanelProps) {
-  const { data: lowStockItems = [] } = useSupplyReorderListQuery();
+  const { data: items = [] } = useSupplyItemsQuery();
   const [showReorderList, setShowReorderList] = useState(false);
+
+  const lowStockItems = useMemo(
+    () =>
+      items.filter(
+        item =>
+          item.status === 'active' &&
+          item.reorderThreshold != null &&
+          item.totalStock <= item.reorderThreshold
+      ),
+    [items]
+  );
 
   const rows: LowStockRow[] = useMemo(
     () =>

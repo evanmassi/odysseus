@@ -141,10 +141,6 @@ export class SupplyRouteModule implements RouteModule {
       this.supplyController.resolveBarcode.bind(this.supplyController)
     );
 
-    // Reorder list — registered before /:id
-
-    router.get('/reorder-list', this.supplyController.getReorderList.bind(this.supplyController));
-
     // Stock operations (not scoped to an item)
 
     router.post(

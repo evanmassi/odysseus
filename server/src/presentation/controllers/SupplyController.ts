@@ -509,15 +509,4 @@ export class SupplyController extends BaseController {
     }
   }
 
-  // Reorder list
-
-  async getReorderList(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const items = await this.deps.supplyApplicationService.getReorderList(labId);
-      res.json(ResponseBuilder.success({ items }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get reorder list', req.requestId);
-    }
-  }
 }

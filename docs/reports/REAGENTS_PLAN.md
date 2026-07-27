@@ -12,7 +12,7 @@ we build.
 - [x] Phase 0 — shared extractions
 - [x] Phase 1 — schema + DB foundation
 - [x] Phase 2 — server core CRUD
-- [ ] Phase 3 — alerts
+- [x] Phase 3 — ~~alerts~~ dissolved (client-side derivation; panels moved to Phase 6)
 - [ ] Phase 4 — attribute system
 - [ ] Phase 5 — client core
 - [ ] Phase 6 — client stock + alerts
@@ -20,9 +20,10 @@ we build.
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phase 2 ✅ complete (2a/2b/2c landed). **Phase 3 is next** — its blocker, the shared
-`AlertPanel` (convergence item 1), is done. Phase 3 now also converges supplies onto the client-side
-alerting rule (§7 *Alerting*). Convergence items 2–5 have deadlines inside Phases 4–5; see
+_Current: Phase 2 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
+*Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next
+is Phase 4 — the attribute system**, gated on convergence items 2 + 3 (shared attribute vocabulary,
+`custom_units` de-scoping), both of which get more expensive once Phase 4 builds their CRUD. See
 `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository; lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
@@ -712,12 +713,10 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 2. **Server core CRUD** — entities (4), repos, app service, DTO, events + **audit wiring**, DI,
    controller, routes for catalog/categories/locations. Lots + transactions + FEFO ledger. Unit-test
    the FEFO/expiry logic; one lab-scoping integration test.
-3. **Alerts (client-side, both catalogs)** — `ReagentLowStockAlertPanel` + `ReagentExpiryAlertPanel`
-   on the shared `AlertPanel`, derived from the item list (§7 *Alerting*); a `reagentExpiry` util on
-   the shared `daysUntil` helper. Delete the three orphaned Phase-1 alert response schemas. Converge
-   supplies in the same pass: derive its low-stock client-side and delete `GET /reorder-list` with
-   its repo/service/client-service/hook chain — verifying first that the client's `totalStock` and
-   status filter match the SQL's `status = 'active'` + `SUM(quantity) <= reorder_threshold`.
+3. ~~**Alerts**~~ — **dissolved.** Client-side derivation (§7 *Alerting*) removed the server half
+   entirely, and the reagent panels need the client domain that Phase 5 builds — they live in Phase 6,
+   which already listed them. The cleanup that remained (supplies' `GET /reorder-list` chain deleted,
+   three orphaned Phase-1 alert schemas dropped) landed as convergence item 9.
 4. **Attribute system** — definitions/options/values + custom-unit **server CRUD** (their tables land
    in Phase 1), the lab-creation seeding hook + migration `029_backfill_reagent_attributes` (defaults
    for existing labs). (List filtering is client-side — Phase 7.)

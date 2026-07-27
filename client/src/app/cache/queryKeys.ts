@@ -114,7 +114,6 @@ export const queryKeys = {
     locations: (labId = '') => [...queryKeys.supplies.all(labId), 'locations'] as const,
     transactions: (labId = '', itemId: string) =>
       [...queryKeys.supplies.all(labId), 'transactions', itemId] as const,
-    reorderList: (labId = '') => [...queryKeys.supplies.all(labId), 'reorder-list'] as const,
   },
 
   // Reagents (lab-scoped)

@@ -72,16 +72,3 @@ export function useSupplyTransactionHistoryQuery(itemId: string | undefined) {
     gcTime: CACHE_TIMES.STABLE.gcTime,
   });
 }
-
-export function useSupplyReorderListQuery() {
-  const labId = useLabId();
-
-  return useQuery({
-    queryKey: queryKeys.supplies.reorderList(labId),
-    queryFn: () => SupplyService.getReorderList(),
-    enabled: !!labId,
-    staleTime: CACHE_TIMES.REAL_TIME.staleTime,
-    gcTime: CACHE_TIMES.REAL_TIME.gcTime,
-    refetchOnMount: 'always',
-  });
-}

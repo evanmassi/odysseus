@@ -402,12 +402,6 @@ export const supplyBulkBarcodesResponseSchema = z.object({
   ),
 });
 
-// Reorder list response
-
-export const supplyReorderListResponseSchema = z.object({
-  items: z.array(supplyItemWithStockSchema),
-});
-
 // Type exports
 
 export type SupplyItemStatus = z.infer<typeof supplyItemStatusSchema>;
