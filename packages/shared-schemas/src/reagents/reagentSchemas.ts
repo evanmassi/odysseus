@@ -37,14 +37,6 @@ export const reagentBarcodeTypeSchema = z.enum(reagentBarcodeTypeValues);
 export const reagentLotStatusValues = ['active', 'depleted', 'disposed'] as const;
 export const reagentLotStatusSchema = z.enum(reagentLotStatusValues);
 
-export const reagentAttributeValueTypeValues = [
-  'select',
-  'multi_select',
-  'text',
-  'number',
-] as const;
-export const reagentAttributeValueTypeSchema = z.enum(reagentAttributeValueTypeValues);
-
 // Category schemas
 
 export const reagentCategorySchema = z.object({
@@ -406,53 +398,7 @@ export const reagentPackagingLevelResponseSchema = z.object({
   packagingLevel: reagentPackagingLevelSchema,
 });
 
-// Attribute system schemas — lab-configurable, type-scoped metadata.
-
-export const reagentAttributeDefinitionSchema = z.object({
-  id: z.string(),
-  labId: z.string(),
-  name: z.string(),
-  valueType: reagentAttributeValueTypeSchema,
-  appliesToType: z.string().nullable(),
-  sortOrder: z.number().int(),
-  isSystem: z.boolean(),
-  systemKey: z.string().nullable(),
-  promptOnForm: z.boolean(),
-  createdAt: dateField,
-  updatedAt: dateField,
-});
-
-export const createReagentAttributeDefinitionRequestSchema = z.object({
-  name: z.string().min(1, 'Attribute name is required').max(200),
-  valueType: reagentAttributeValueTypeSchema,
-  appliesToType: optionalText(200),
-  sortOrder: z.number().int().optional(),
-  promptOnForm: z.boolean().optional(),
-});
-
-export const updateReagentAttributeDefinitionRequestSchema = z.object({
-  name: z.string().min(1).max(200).nullish(),
-  appliesToType: patchText(200),
-  sortOrder: z.number().int().nullish(),
-  promptOnForm: z.boolean().nullish(),
-});
-
-export const reagentAttributeOptionSchema = z.object({
-  id: z.string(),
-  definitionId: z.string(),
-  value: z.string(),
-  sortOrder: z.number().int(),
-});
-
-export const createReagentAttributeOptionRequestSchema = z.object({
-  value: z.string().min(1, 'Option value is required').max(200),
-  sortOrder: z.number().int().optional(),
-});
-
-export const updateReagentAttributeOptionRequestSchema = z.object({
-  value: z.string().min(1).max(200).nullish(),
-  sortOrder: z.number().int().nullish(),
-});
+// Attribute values — per-item, keyed to the lab-wide definitions in `../attributes`.
 
 export const reagentAttributeValueSchema = z.object({
   id: z.string(),
@@ -468,19 +414,6 @@ export const setReagentAttributeValueRequestSchema = z.object({
   valueOptionIds: z.array(z.string().min(1)).optional(),
   valueText: optionalText(2000),
   valueNumber: z.number().optional(),
-});
-
-export const reagentAttributeDefinitionResponseSchema = z.object({
-  definition: reagentAttributeDefinitionSchema,
-});
-
-export const reagentAttributeDefinitionListResponseSchema = z.object({
-  definitions: z.array(reagentAttributeDefinitionSchema),
-  options: z.array(reagentAttributeOptionSchema),
-});
-
-export const reagentAttributeOptionResponseSchema = z.object({
-  option: reagentAttributeOptionSchema,
 });
 
 // Composed detail response
@@ -563,7 +496,6 @@ export type ReagentItemStatus = z.infer<typeof reagentItemStatusSchema>;
 export type ReagentTransactionType = z.infer<typeof reagentTransactionTypeSchema>;
 export type ReagentBarcodeType = z.infer<typeof reagentBarcodeTypeSchema>;
 export type ReagentLotStatus = z.infer<typeof reagentLotStatusSchema>;
-export type ReagentAttributeValueType = z.infer<typeof reagentAttributeValueTypeSchema>;
 export type ReagentCategory = z.infer<typeof reagentCategorySchema>;
 export type ReagentLocation = z.infer<typeof reagentLocationSchema>;
 export type ReagentItem = z.infer<typeof reagentItemSchema>;
@@ -574,8 +506,6 @@ export type ReagentTransaction = z.infer<typeof reagentTransactionSchema>;
 export type ReagentVoidTransactionResponse = z.infer<typeof reagentVoidTransactionResponseSchema>;
 export type ReagentDocument = z.infer<typeof reagentDocumentSchema>;
 export type ReagentPackagingLevel = z.infer<typeof reagentPackagingLevelSchema>;
-export type ReagentAttributeDefinition = z.infer<typeof reagentAttributeDefinitionSchema>;
-export type ReagentAttributeOption = z.infer<typeof reagentAttributeOptionSchema>;
 export type ReagentAttributeValue = z.infer<typeof reagentAttributeValueSchema>;
 export type ReagentAttributeSummary = z.infer<typeof reagentAttributeSummarySchema>;
 export type ReagentItemDetail = z.infer<typeof reagentItemDetailResponseSchema>;
@@ -596,18 +526,6 @@ export type CreateReagentDocumentRequest = z.infer<typeof createReagentDocumentR
 export type UpdateReagentDocumentRequest = z.infer<typeof updateReagentDocumentRequestSchema>;
 export type CreateReagentPackagingLevelRequest = z.infer<
   typeof createReagentPackagingLevelRequestSchema
->;
-export type CreateReagentAttributeDefinitionRequest = z.infer<
-  typeof createReagentAttributeDefinitionRequestSchema
->;
-export type UpdateReagentAttributeDefinitionRequest = z.infer<
-  typeof updateReagentAttributeDefinitionRequestSchema
->;
-export type CreateReagentAttributeOptionRequest = z.infer<
-  typeof createReagentAttributeOptionRequestSchema
->;
-export type UpdateReagentAttributeOptionRequest = z.infer<
-  typeof updateReagentAttributeOptionRequestSchema
 >;
 export type SetReagentAttributeValueRequest = z.infer<typeof setReagentAttributeValueRequestSchema>;
 export type ReagentBulkReceiveRequest = z.infer<typeof reagentBulkReceiveRequestSchema>;

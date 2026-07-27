@@ -5,8 +5,15 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** none started. Reagents Phase 2 is complete; **Phase 3 is held until item 1 lands.**
-Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3 and 9 done. Reagents Phase 2 is complete and Phase 3 dissolved into the
+client-side alerting rule below. **Next: items 4 + 5 (locations, vendor/manufacturer) before reagents
+Phase 5.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+
+**Migration policy while reagents are unreleased.** Dev has not applied 027; reagent schema changes
+**amend 027 in place** rather than stacking corrective migrations, so the tables are created correctly
+on the single run. Only add a new migration when the change touches data already live in dev
+(supplies, equipment, lookups) — items 4, 5 and 6 all do. `odysseus_test` is disposable: drop it and
+the integration setup rebuilds it.
 
 **Governing rule.** One source of truth per concept. Where a concept is genuinely lab-wide (a vendor,
 a fridge, a unit), it gets one home and every suite points at it. Where it's genuinely suite-specific
@@ -53,7 +60,7 @@ the running app. Preferred placement if built: a strip across the lab-management
 is already loaded, rather than the app header, which would need count endpoints the standing pattern
 above deliberately avoids.
 
-### 2. Attribute system → shared vocabulary — *before reagents Phase 4*
+### 2. Attribute system → shared vocabulary — ✅ done
 
 **What.** `reagent_attribute_definitions` / `_options` become lab-wide `attribute_definitions` /
 `attribute_options`; the existing `applies_to_type` scope column generalises to catalog + type. Each
@@ -67,17 +74,22 @@ dropped `properties[]` for the real one. Shipping both is two mechanisms for one
 EAV *for* referential integrity; dropping the item FK partly undoes its own rationale. Sharing the
 vocabulary while keeping values local is the same call `AGENTS.md` already made for categories.
 
-**Blocks.** Reagent attribute CRUD (Phase 4). Cheap now — the tables exist but nothing reads them.
+**Landed.** `attribute_definitions` + `attribute_options` (lab-wide, `applies_to_catalog` CHECK of
+reagent/supply/equipment, null = all) with `reagent_attribute_values` keeping its name and its FK to
+`reagent_items`. Schemas moved to a new `shared-schemas/src/attributes/` module mirroring `units/`;
+reagents keeps only the per-item value schemas. **Amended migration 027 in place** rather than adding
+a rename migration — reagents are unreleased and dev had not applied 027, so the tables are created
+correctly the first time. `supply_item_property` migrates onto this system when supplies adopts it.
 
-### 3. Custom units → catalog-agnostic — *before reagents Phase 4*
+### 3. Custom units → catalog-agnostic — ✅ done
 
-**What.** Rename `reagent_custom_units` → `custom_units`; ID prefix `rcun` → `cuni`.
+**What.** `reagent_custom_units` → `custom_units`; the five schemas and three types in
+`shared-schemas/src/units/customUnitSchemas.ts` lost their `reagent` prefix.
 
 **Why.** A lab's custom unit isn't a reagent concept. Once supplies moves onto the registry (item 6)
 it needs the same escape hatch.
 
-**Blocks.** Phase 4 builds this table's CRUD. Today it's one `ALTER TABLE` on an unused table; after
-Phase 4 it's a migration plus repo/DTO/service churn.
+**Landed** with item 2, in the same amendment to migration 027.
 
 ### 4. Locations merge — *before reagents Phase 5*
 
@@ -192,8 +204,8 @@ Decided; don't reopen without a new reason.
 ## Progress
 
 - [x] 1 — Shared alert panel *(roll-up deferred to after reagents Phase 3)*
-- [ ] 2 — Attribute system → shared vocabulary
-- [ ] 3 — Custom units → catalog-agnostic
+- [x] 2 — Attribute system → shared vocabulary
+- [x] 3 — Custom units → catalog-agnostic
 - [ ] 4 — Locations merge
 - [ ] 5 — Vendor / manufacturer merge
 - [ ] 6 — Supplies → unit registry

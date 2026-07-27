@@ -20,13 +20,13 @@ export {
 
 export {
   unitKindSchema,
-  reagentCustomUnitSchema,
-  createReagentCustomUnitRequestSchema,
-  updateReagentCustomUnitRequestSchema,
-  reagentCustomUnitResponseSchema,
-  reagentCustomUnitListResponseSchema,
+  customUnitSchema,
+  createCustomUnitRequestSchema,
+  updateCustomUnitRequestSchema,
+  customUnitResponseSchema,
+  customUnitListResponseSchema,
   type UnitKindValue,
-  type ReagentCustomUnit,
-  type CreateReagentCustomUnitRequest,
-  type UpdateReagentCustomUnitRequest,
+  type CustomUnit,
+  type CreateCustomUnitRequest,
+  type UpdateCustomUnitRequest,
 } from './customUnitSchemas';

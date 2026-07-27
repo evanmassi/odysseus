@@ -333,6 +333,10 @@ The lab defines attributes and their allowed values; reagents carry values; the 
 Runtime-configurable (no migration to add "Fluorophore"), so it can't ride the CHECK-constrained
 `lookup_values` table — it gets its own three tables.
 
+> **Superseded in part:** the definition and option tables are now lab-wide `attribute_definitions` /
+> `attribute_options` with an `applies_to_catalog` scope (convergence items 2–3); only
+> `reagent_attribute_values` stays reagent-scoped. ID prefixes: `adef` / `aopt` / `ratv` / `cuni`.
+
 - **`reagent_attribute_definitions`** — id (`radf`), lab_id, name ("Fluorophore"), value_type
   (`select` / `multi_select` / `text` / `number`; `date` / `boolean` deferred until a real use case),
   applies_to_type (nullable

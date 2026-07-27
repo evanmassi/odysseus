@@ -210,15 +210,17 @@ export const migration027: Migration = {
       `CREATE INDEX idx_reagent_packaging_levels_item ON reagent_packaging_levels(item_id)`
     );
 
-    // Attribute system — lab-configurable, type-scoped metadata (definitions,
-    // curated option vocabularies, and per-item values)
+    // Attribute system — lab-wide definitions and curated option vocabularies, scoped to a catalog
+    // (and for reagents, optionally to a reagent_type). Values stay per-catalog so each keeps a real
+    // FK to its own items.
 
     await pool.query(`
-      CREATE TABLE reagent_attribute_definitions (
+      CREATE TABLE attribute_definitions (
         id TEXT PRIMARY KEY,
         lab_id TEXT NOT NULL REFERENCES labs(id),
         name TEXT NOT NULL,
         value_type TEXT NOT NULL,
+        applies_to_catalog TEXT,
         applies_to_type TEXT,
         sort_order INTEGER NOT NULL DEFAULT 0,
         is_system BOOLEAN NOT NULL DEFAULT false,
@@ -227,23 +229,22 @@ export const migration027: Migration = {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         UNIQUE(lab_id, name),
-        CHECK (value_type IN ('select', 'multi_select', 'text', 'number'))
+        CHECK (value_type IN ('select', 'multi_select', 'text', 'number')),
+        CHECK (applies_to_catalog IN ('reagent', 'supply', 'equipment'))
       )
     `);
 
-    await pool.query(
-      `CREATE INDEX idx_reagent_attribute_definitions_lab ON reagent_attribute_definitions(lab_id)`
-    );
+    await pool.query(`CREATE INDEX idx_attribute_definitions_lab ON attribute_definitions(lab_id)`);
     await pool.query(`
-      CREATE UNIQUE INDEX uq_reagent_attribute_definitions_system_key
-      ON reagent_attribute_definitions(lab_id, system_key)
+      CREATE UNIQUE INDEX uq_attribute_definitions_system_key
+      ON attribute_definitions(lab_id, system_key)
       WHERE system_key IS NOT NULL
     `);
 
     await pool.query(`
-      CREATE TABLE reagent_attribute_options (
+      CREATE TABLE attribute_options (
         id TEXT PRIMARY KEY,
-        definition_id TEXT NOT NULL REFERENCES reagent_attribute_definitions(id) ON DELETE CASCADE,
+        definition_id TEXT NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
         value TEXT NOT NULL,
         sort_order INTEGER NOT NULL DEFAULT 0,
         UNIQUE(definition_id, value)
@@ -251,15 +252,15 @@ export const migration027: Migration = {
     `);
 
     await pool.query(
-      `CREATE INDEX idx_reagent_attribute_options_definition ON reagent_attribute_options(definition_id)`
+      `CREATE INDEX idx_attribute_options_definition ON attribute_options(definition_id)`
     );
 
     await pool.query(`
       CREATE TABLE reagent_attribute_values (
         id TEXT PRIMARY KEY,
         item_id TEXT NOT NULL REFERENCES reagent_items(id) ON DELETE CASCADE,
-        definition_id TEXT NOT NULL REFERENCES reagent_attribute_definitions(id) ON DELETE CASCADE,
-        value_option_id TEXT REFERENCES reagent_attribute_options(id) ON DELETE CASCADE,
+        definition_id TEXT NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
+        value_option_id TEXT REFERENCES attribute_options(id) ON DELETE CASCADE,
         value_text TEXT,
         value_number NUMERIC
       )
@@ -278,7 +279,7 @@ export const migration027: Migration = {
     // Custom units — lab-scoped supplement to the fixed unit registry
 
     await pool.query(`
-      CREATE TABLE reagent_custom_units (
+      CREATE TABLE custom_units (
         id TEXT PRIMARY KEY,
         lab_id TEXT NOT NULL REFERENCES labs(id),
         label TEXT NOT NULL,
@@ -294,7 +295,7 @@ export const migration027: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_reagent_custom_units_lab ON reagent_custom_units(lab_id)`);
+    await pool.query(`CREATE INDEX idx_custom_units_lab ON custom_units(lab_id)`);
 
     // Extend lookup category constraint to include reagent categories
 
