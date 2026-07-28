@@ -12,6 +12,7 @@ import { ItemRowShell, type ItemRowStatusTone } from '@shared/ui/components/inve
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+import { resolveStockTone } from '@shared/utils/stockLevel';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 
@@ -21,23 +22,12 @@ interface SupplyItemRowProps {
   onSelect: (id: string) => void;
 }
 
-function getStockChipColor(
-  totalStock: number,
-  threshold: number | undefined
-): 'success' | 'warning' | 'danger' | 'default' {
-  if (threshold === undefined) return 'default';
-  if (totalStock <= 0) return 'danger';
-  if (totalStock <= threshold * 2) return 'warning';
-  return 'success';
-}
-
 export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps) {
   const isArchived = item.status === 'archived';
-  const stockColor = getStockChipColor(item.totalStock, item.reorderThreshold);
+  const stockColor = resolveStockTone(item.totalStock, item.reorderThreshold);
   const statusInfo = SUPPLY_STATUS_DISPLAY[item.status];
 
-  // The triangle warns early — from twice the reorder threshold down — so stock is flagged
-  // before it actually hits reorder; the tooltip distinguishes "running low" from "low stock".
+  // The tooltip distinguishes "running low" (the early warning band) from "low stock".
   const isUrgent = !isArchived && (stockColor === 'danger' || stockColor === 'warning');
   const statusTone: ItemRowStatusTone = isArchived
     ? 'muted'

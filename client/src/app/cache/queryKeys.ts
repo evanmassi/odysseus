@@ -123,6 +123,8 @@ export const queryKeys = {
   // Reagents (lab-scoped)
   reagents: {
     all: (labId = '') => ['reagents', labId] as const,
+    categories: (labId = '') => [...queryKeys.reagents.all(labId), 'categories'] as const,
+    items: (labId = '') => [...queryKeys.reagents.all(labId), 'items'] as const,
   },
 
   // Lookups (lab-scoped)

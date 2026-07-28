@@ -10,6 +10,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 
 import { AppHeader } from '@app/components/layout/AppHeader';
 import { EquipmentTab } from '@domains/equipment';
+import { ReagentsTab } from '@domains/reagents';
 import { useStorageData } from '@domains/storage';
 import { SuppliesTab } from '@domains/supplies';
 import { AccentTick, HeaderStrip, PanelHeader, Tab, Tabs } from '@shared/ui';
@@ -24,13 +25,12 @@ interface TabConfig {
   label: string;
   icon: LucideIcon;
   path: string;
-  enabled: boolean;
 }
 
 const TABS: TabConfig[] = [
-  { id: 'equipment', label: 'Equipment', icon: Microscope, path: '/lab/equipment', enabled: true },
-  { id: 'supplies', label: 'Supplies', icon: Package, path: '/lab/supplies', enabled: true },
-  { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
+  { id: 'equipment', label: 'Equipment', icon: Microscope, path: '/lab/equipment' },
+  { id: 'supplies', label: 'Supplies', icon: Package, path: '/lab/supplies' },
+  { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents' },
 ];
 
 export function LabManagementPage() {
@@ -39,7 +39,6 @@ export function LabManagementPage() {
   const navigate = useNavigate();
 
   const activeTab = TABS.find(tab => location.pathname.startsWith(tab.path))?.id ?? 'equipment';
-  const onlineCount = TABS.filter(tab => tab.enabled).length;
 
   const handleTabChange = (id: string) => {
     const tab = TABS.find(t => t.id === id);
@@ -69,29 +68,12 @@ export function LabManagementPage() {
                   {TABS.length} <span className="text-foreground/45">suites</span>
                 </span>
               </span>
-              <span className="flex-1" />
-              <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.06em] text-foreground/45">
-                {onlineCount} online
-              </span>
             </HeaderStrip>
 
             <nav className="py-2">
               <Tabs orientation="vertical" value={activeTab} onChange={handleTabChange}>
                 {TABS.map(tab => {
                   const Icon = tab.icon;
-
-                  if (!tab.enabled) {
-                    return (
-                      <div
-                        key={tab.id}
-                        className="relative z-10 flex w-full cursor-not-allowed items-center gap-2 px-4 py-2.5 text-left type-label text-label-lg font-medium text-muted-foreground/40"
-                      >
-                        <Icon size={18} />
-                        <span>{tab.label}</span>
-                        <span className="ml-auto text-label-2xs tracking-label">soon</span>
-                      </div>
-                    );
-                  }
 
                   return (
                     <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
@@ -109,6 +91,7 @@ export function LabManagementPage() {
             <Routes>
               <Route path="equipment" element={<EquipmentTab />} />
               <Route path="supplies" element={<SuppliesTab />} />
+              <Route path="reagents" element={<ReagentsTab />} />
               <Route path="*" element={<Navigate to="/lab/equipment" replace />} />
             </Routes>
           </div>
