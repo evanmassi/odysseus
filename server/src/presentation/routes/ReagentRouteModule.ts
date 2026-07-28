@@ -20,6 +20,7 @@ import {
   UpdateReagentItemHttpSchema,
   CreateReagentBarcodeHttpSchema,
   UpdateReagentBarcodeHttpSchema,
+  SetReagentAttributeValueHttpSchema,
   CreateReagentDocumentHttpSchema,
   UpdateReagentDocumentHttpSchema,
   RecordReagentTransactionHttpSchema,
@@ -172,6 +173,15 @@ export class ReagentRouteModule implements RouteModule {
       '/:id/archive',
       validateParams(IdParams),
       this.reagentController.archiveItem.bind(this.reagentController)
+    );
+
+    // Attribute values
+
+    router.put(
+      '/:id/attributes',
+      validateParams(IdParams),
+      validateBody(SetReagentAttributeValueHttpSchema),
+      this.reagentController.setAttributeValue.bind(this.reagentController)
     );
 
     // Documents

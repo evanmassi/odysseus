@@ -46,6 +46,7 @@ import {
   initializeStorageRequestSchema,
   bulkUnassignRequestSchema,
   bulkReassignRequestSchema,
+  setReagentAttributeValueRequestSchema,
   createAttributeDefinitionRequestSchema,
   updateAttributeDefinitionRequestSchema,
   createAttributeOptionRequestSchema,
@@ -271,6 +272,8 @@ export const BulkReassignHttpSchema = bulkReassignRequestSchema;
 export const ResetStorageHttpSchema = z.object({ confirmationToken: z.string().min(1) });
 
 // Attribute schemas
+
+export const SetReagentAttributeValueHttpSchema = setReagentAttributeValueRequestSchema;
 
 export const AttributeDefinitionIdParams = z.object({ definitionId: z.string().min(1) });
 export const AttributeOptionIdParams = z.object({ optionId: z.string().min(1) });

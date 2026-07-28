@@ -9,6 +9,7 @@ import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
 import type {
   ItemWithStock,
+  ReagentAttributeValueRow,
   ReagentLotRow,
   ReagentBarcodeRow,
   ReagentTransactionRow,
@@ -81,6 +82,26 @@ export class ReagentDto {
       status: item.status,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
+    };
+  }
+
+  static attributeValueToResponse(row: ReagentAttributeValueRow): ReagentAttributeValue {
+    return {
+      id: row.id,
+      itemId: row.itemId,
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
+    };
+  }
+
+  static attributeSummaryToResponse(row: ReagentAttributeValueRow): ReagentAttributeSummary {
+    return {
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
     };
   }
 

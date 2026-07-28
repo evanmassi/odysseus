@@ -51,11 +51,13 @@ import {
   ReagentBulkVoidedEvent,
   type BulkVoidItemDetail,
 } from '@domain/events/ReagentEvents';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type {
   ReagentItemRepository,
   ReagentBarcodeRow,
   ReagentTransactionRow,
+  ReagentAttributeValueRow,
 } from '@domain/repositories/ReagentItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -75,6 +77,8 @@ import type {
   UpdateReagentDocumentRequest,
   CreateReagentPackagingLevelRequest,
   RecordReagentTransactionRequest,
+  SetReagentAttributeValueRequest,
+  ReagentAttributeValue,
   RecordReagentStockCountRequest,
   ReagentBulkReceiveRequest,
   ReagentBulkIssueRequest,
@@ -88,6 +92,7 @@ export class ReagentApplicationService {
   constructor(
     private categoryRepository: CategoryRepository<ReagentCategory>,
     private itemRepository: ReagentItemRepository,
+    private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -174,19 +179,34 @@ export class ReagentApplicationService {
 
   async listItems(labId: string): Promise<ReagentItemWithStockResponse[]> {
     const itemsWithStock = await this.itemRepository.findByLabIdWithStock(labId);
-    return itemsWithStock.map(withStock => ReagentDto.itemWithStockToResponse(withStock, []));
+    // One query for the lab's values, grouped in memory — per-item fetches would be an N+1.
+    const values = await this.itemRepository.findAttributeValuesByLabId(labId);
+    const byItem = new Map<string, ReagentAttributeValueRow[]>();
+    for (const value of values) {
+      const bucket = byItem.get(value.itemId) ?? [];
+      bucket.push(value);
+      byItem.set(value.itemId, bucket);
+    }
+
+    return itemsWithStock.map(withStock =>
+      ReagentDto.itemWithStockToResponse(
+        withStock,
+        (byItem.get(withStock.item.id) ?? []).map(ReagentDto.attributeSummaryToResponse)
+      )
+    );
   }
 
   async getItem(labId: string, id: string): Promise<ReagentItemDetailResponse> {
     const item = await this.getItemOrThrow(id, labId);
-    const [lots, documents, barcodes, recentTransactions, packagingLevels] = await Promise.all([
-      this.itemRepository.findLotsByItemId(id),
-      this.itemRepository.findDocumentsByItemId(id),
-      this.itemRepository.findBarcodesByItemId(id),
-      this.itemRepository.findTransactionsByItemId(id, 50),
-      this.itemRepository.findPackagingLevelsByItemId(id),
-    ]);
-    // Attribute values are populated once the attribute system lands (Phase 4).
+    const [lots, documents, barcodes, recentTransactions, packagingLevels, attributeValues] =
+      await Promise.all([
+        this.itemRepository.findLotsByItemId(id),
+        this.itemRepository.findDocumentsByItemId(id),
+        this.itemRepository.findBarcodesByItemId(id),
+        this.itemRepository.findTransactionsByItemId(id, 50),
+        this.itemRepository.findPackagingLevelsByItemId(id),
+        this.itemRepository.findAttributeValuesByItemId(id),
+      ]);
     return ReagentDto.itemDetailToResponse(
       item,
       lots,
@@ -194,7 +214,7 @@ export class ReagentApplicationService {
       barcodes,
       recentTransactions,
       packagingLevels,
-      []
+      attributeValues.map(ReagentDto.attributeValueToResponse)
     );
   }
 
@@ -273,6 +293,62 @@ export class ReagentApplicationService {
     const item = await this.getItemOrThrow(id, labId);
     await this.itemRepository.delete(id, labId);
     await this.eventBus.publish(new ReagentItemDeletedEvent(id, item.name, user.id, labId));
+  }
+
+  // Attribute values
+
+  async setAttributeValue(
+    labId: string,
+    itemId: string,
+    data: SetReagentAttributeValueRequest,
+    user: User
+  ): Promise<ReagentAttributeValue[]> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getItemOrThrow(itemId, labId);
+
+    const definition = await this.attributeRepository.findDefinitionById(data.definitionId, labId);
+    if (!definition) {
+      throw new NotFoundError('This attribute could not be found.', {
+        definitionId: data.definitionId,
+      });
+    }
+
+    const rows = definition.usesOptions
+      ? (data.valueOptionIds ?? []).map(valueOptionId => ({
+          id: generateId('ratv'),
+          itemId,
+          definitionId: definition.id,
+          valueOptionId,
+        }))
+      : this.scalarAttributeRows(itemId, definition.id, data);
+
+    if (definition.valueType === 'select' && rows.length > 1) {
+      throw new ValidationError(`"${definition.name}" accepts a single value`);
+    }
+
+    await this.itemRepository.replaceAttributeValues(itemId, definition.id, rows);
+    const stored = await this.itemRepository.findAttributeValuesByItemId(itemId);
+    return stored
+      .filter(row => row.definitionId === definition.id)
+      .map(ReagentDto.attributeValueToResponse);
+  }
+
+  private scalarAttributeRows(
+    itemId: string,
+    definitionId: string,
+    data: SetReagentAttributeValueRequest
+  ): ReagentAttributeValueRow[] {
+    const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
+    if (isEmpty) return [];
+    return [
+      {
+        id: generateId('ratv'),
+        itemId,
+        definitionId,
+        valueText: data.valueText,
+        valueNumber: data.valueNumber,
+      },
+    ];
   }
 
   // Documents

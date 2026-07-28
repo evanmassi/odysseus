@@ -72,6 +72,15 @@ export interface VoidTransactionData {
   voidReason: string;
 }
 
+export interface ReagentAttributeValueRow {
+  id: string;
+  itemId: string;
+  definitionId: string;
+  valueOptionId?: string;
+  valueText?: string;
+  valueNumber?: number;
+}
+
 export interface ItemWithStock {
   item: ReagentItem;
   totalStock: number;
@@ -151,6 +160,16 @@ export interface ReagentItemRepository {
   voidTransaction(
     data: VoidTransactionData
   ): Promise<{ original: ReagentTransactionRow; reversal: ReagentTransactionRow }>;
+
+  // Attribute values
+
+  findAttributeValuesByItemId(itemId: string): Promise<ReagentAttributeValueRow[]>;
+  findAttributeValuesByLabId(labId: string): Promise<ReagentAttributeValueRow[]>;
+  replaceAttributeValues(
+    itemId: string,
+    definitionId: string,
+    values: ReagentAttributeValueRow[]
+  ): Promise<void>;
 
   // Lookup support — for reagent lookup category rename/delete cascading
 
