@@ -7,7 +7,7 @@
 import { LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';
 
 import { LocationDto, type LocationResponse } from '@application/dto/LocationDto';
-import { validateCategoryDepth } from '@application/guards/CategoryGuards';
+import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { Location } from '@domain/entities/Location';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -30,7 +30,7 @@ export class LocationApplicationService {
 
   async create(labId: string, data: CreateLocationRequest, user: User): Promise<LocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await validateCategoryDepth(this.locationRepository, {
+    await validateHierarchyDepth(this.locationRepository, {
       labId,
       parentId: data.parentId,
       maxDepth: LOCATION_MAX_DEPTH,
@@ -58,7 +58,7 @@ export class LocationApplicationService {
     const location = await this.getOrThrow(id, labId);
 
     if (data.parentId !== undefined && data.parentId !== location.parentId) {
-      await validateCategoryDepth(this.locationRepository, {
+      await validateHierarchyDepth(this.locationRepository, {
         labId,
         parentId: data.parentId,
         movingNodeId: id,

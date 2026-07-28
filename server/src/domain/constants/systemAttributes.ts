@@ -7,7 +7,7 @@
 
 import type { AttributeCatalog, AttributeValueType } from '@odysseus/shared-schemas';
 
-export interface SystemAttributeSeed {
+interface SystemAttributeSeed {
   systemKey: string;
   name: string;
   valueType: AttributeValueType;

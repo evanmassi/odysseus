@@ -21,7 +21,7 @@ import {
   type ReagentLotResponse,
   type ReagentPackagingLevelResponse,
 } from '@application/dto/ReagentDto';
-import { validateCategoryDepth } from '@application/guards/CategoryGuards';
+import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import { ReagentItem } from '@domain/entities/ReagentItem';
@@ -111,7 +111,7 @@ export class ReagentApplicationService {
   ): Promise<ReagentCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    await validateCategoryDepth(this.categoryRepository, { labId, parentId: data.parentId });
+    await validateHierarchyDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
     const category = ReagentCategory.create({
       labId,
@@ -137,7 +137,7 @@ export class ReagentApplicationService {
 
     // Only a change of parent can violate the depth rule.
     if (data.parentId !== undefined && data.parentId !== category.parentId) {
-      await validateCategoryDepth(this.categoryRepository, {
+      await validateHierarchyDepth(this.categoryRepository, {
         labId,
         parentId: data.parentId,
         movingNodeId: id,

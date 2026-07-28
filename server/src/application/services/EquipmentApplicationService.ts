@@ -14,7 +14,7 @@ import type {
   EquipmentDocumentResponse,
   EquipmentMaintenanceLogResponse,
 } from '@application/dto/EquipmentDto';
-import { validateCategoryDepth } from '@application/guards/CategoryGuards';
+import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import { EquipmentItem } from '@domain/entities/EquipmentItem';
@@ -83,7 +83,7 @@ export class EquipmentApplicationService {
   ): Promise<EquipmentCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    await validateCategoryDepth(this.categoryRepository, { labId, parentId: data.parentId });
+    await validateHierarchyDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
     const category = EquipmentCategory.create({
       labId,
@@ -116,7 +116,7 @@ export class EquipmentApplicationService {
 
     // Only a change of parent can violate the depth rule.
     if (data.parentId !== undefined && data.parentId !== category.parentId) {
-      await validateCategoryDepth(this.categoryRepository, {
+      await validateHierarchyDepth(this.categoryRepository, {
         labId,
         parentId: data.parentId,
         movingNodeId: id,

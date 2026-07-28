@@ -19,7 +19,7 @@ import {
   type SupplyTransactionResponse,
   type SupplyPackagingLevelResponse,
 } from '@application/dto/SupplyDto';
-import { validateCategoryDepth } from '@application/guards/CategoryGuards';
+import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { SupplyItem } from '@domain/entities/SupplyItem';
@@ -102,7 +102,7 @@ export class SupplyApplicationService {
   ): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    await validateCategoryDepth(this.categoryRepository, { labId, parentId: data.parentId });
+    await validateHierarchyDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
     const category = SupplyCategory.create({
       labId,
@@ -128,7 +128,7 @@ export class SupplyApplicationService {
 
     // Only a change of parent can violate the depth rule.
     if (data.parentId !== undefined && data.parentId !== category.parentId) {
-      await validateCategoryDepth(this.categoryRepository, {
+      await validateHierarchyDepth(this.categoryRepository, {
         labId,
         parentId: data.parentId,
         movingNodeId: id,

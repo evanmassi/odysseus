@@ -7,7 +7,7 @@
  * between them fails here.
  */
 
-import { validateCategoryDepth } from '@application/guards/CategoryGuards';
+import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { EquipmentApplicationService } from '@application/services/EquipmentApplicationService';
 import { SupplyApplicationService } from '@application/services/SupplyApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -150,7 +150,7 @@ describe('category depth invariant', () => {
   it('accepts a top-level placement without touching the repository', async () => {
     const repository = { findByLabId: jest.fn() };
 
-    await validateCategoryDepth(repository, { labId: 'lab_1', parentId: undefined });
+    await validateHierarchyDepth(repository, { labId: 'lab_1', parentId: undefined });
 
     expect(repository.findByLabId).not.toHaveBeenCalled();
   });
@@ -164,11 +164,11 @@ describe('category depth invariant', () => {
     };
 
     await expect(
-      validateCategoryDepth(repository, { labId: 'lab_1', parentId: 'b', maxDepth: 3 })
+      validateHierarchyDepth(repository, { labId: 'lab_1', parentId: 'b', maxDepth: 3 })
     ).resolves.toBeUndefined();
 
     await expect(
-      validateCategoryDepth(repository, { labId: 'lab_1', parentId: 'b' })
+      validateHierarchyDepth(repository, { labId: 'lab_1', parentId: 'b' })
     ).rejects.toThrow('2 levels deep');
   });
 });

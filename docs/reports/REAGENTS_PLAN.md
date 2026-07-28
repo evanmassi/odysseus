@@ -24,7 +24,7 @@ _Current: Phases 2 + 4 ✅ complete; **Phase 3 dissolved** into the client-side 
 *Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next is Phase 5 — client core.** Convergence items 4b, 6, 7 and 8 remain; 6 and 7 are due before
 Phase 7. Custom-unit CRUD was deferred out of Phase 4 to Phase 7, where its dropdown consumes it. See
 `LAB_CONVERGENCE_PLAN.md`._
-_- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository; lot-ledger integration test + reagent seed factories._
+_- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository (later folded into the shared `Location`); lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
 _Each session — read this plan, do the current sub-commit, gate green (server: typecheck + `npm test` unit + `npm run test:integration`), commit when told._
@@ -159,7 +159,7 @@ Per the non-negotiable two-catalog rule (AGENTS.md §Equipment↔Supplies): reag
 item type / repo / service / schemas. Share *behaviour/shape*, never *identity*.
 
 - **Server:** `ReagentItem` entity, `ReagentItemRepository` (interface + Postgres impl),
-  `ReagentLocation` entity + repo, `ReagentApplicationService`, `ReagentDto`, `ReagentEvents`,
+  `ReagentApplicationService`, `ReagentDto`, `ReagentEvents`,
   `ReagentModule` (DI), `ReagentController`, `ReagentRouteModule` (`/api/reagents`), item/location/
   lot/transaction/barcode/packaging mappers.
 - **DB:** `027_create_reagents.ts` migration.
@@ -178,8 +178,8 @@ item type / repo / service / schemas. Share *behaviour/shape*, never *identity*.
   (hazard / form / grade / storage are seeded **attributes**, §5.4 — not columns).
 - **Expiry alerting** — a client `ReagentExpiryAlertPanel` + expiry sort/filter, derived from the
   list row's `soonestExpiration` (§7 *Alerting* — no server queries or events).
-- **Lab-configurable attribute system** — `reagent_attribute_definitions` +
-  `reagent_attribute_options` + `reagent_attribute_values`; admin CRUD UI; dynamic form fields;
+- **Lab-configurable attribute system** — lab-wide `attribute_definitions` + `attribute_options`,
+  reagent-scoped `reagent_attribute_values`; admin CRUD UI; dynamic form fields;
   attribute-based list filtering. (§5.4)
 - **SDS document typing** — small additive `docType` on the shared Document (decided; §7).
 - **New lookup categories + Catalog group** (§8.4).
@@ -332,19 +332,19 @@ The lab defines attributes and their allowed values; reagents carry values; the 
 Runtime-configurable (no migration to add "Fluorophore"), so it can't ride the CHECK-constrained
 `lookup_values` table — it gets its own three tables.
 
-> **Superseded in part:** the definition and option tables are now lab-wide `attribute_definitions` /
-> `attribute_options` with an `applies_to_catalog` scope (convergence items 2–3); only
-> `reagent_attribute_values` stays reagent-scoped. ID prefixes: `adef` / `aopt` / `ratv` / `cuni`.
+> **Shipped shape:** definitions and options are **lab-wide** (convergence items 2–3); only
+> `reagent_attribute_values` is reagent-scoped, keeping a real FK to `reagent_items`. Deletes are
+> guarded rather than left to the cascade — see `AttributeApplicationService`.
 
-- **`reagent_attribute_definitions`** — id (`radf`), lab_id, name ("Fluorophore"), value_type
+- **`attribute_definitions`** (lab-wide) — id (`adef`), lab_id, name ("Fluorophore"), value_type
   (`select` / `multi_select` / `text` / `number`; `date` / `boolean` deferred until a real use case),
-  applies_to_type (nullable
+  applies_to_catalog (reagent/supply/equipment; null = all) + applies_to_type (nullable
   reagent_type scope — e.g. Fluorophore applies to antibodies; null = all), sort_order, timestamps,
   **`is_system`** (seeded defaults the lab may extend/reorder but not delete),
   **`system_key`** (stable slug for seeded defs — e.g. `hazard_class` — so code finds them without
   matching display names; null for user-created),
   **`prompt_on_form`** (render blank by default vs add-on-demand — see *Form behaviour* below).
-- **`reagent_attribute_options`** — id (`rato`), definition_id FK, value ("FITC"), sort_order — the
+- **`attribute_options`** (lab-wide) — id (`aopt`), definition_id FK, value ("FITC"), sort_order — the
   curated vocabulary for select/multi_select attributes (the "colors available to you").
 - **`reagent_attribute_values`** — id (`ratv`), item_id FK, definition_id FK, and a value column set
   (`value_option_id` FK for select/multi_select, `value_text`, `value_number`) — one
@@ -383,8 +383,8 @@ kit expiry = MIN(component expiries)). No v1 schema commitment beyond the `kit` 
 
 ### 5.6 ID prefixes
 
-`ritm` item · `rcat` category · `rdoc` document · `rloc` location · `rlot` lot · `rtxn` transaction ·
-`rbcd` barcode · `rpkg` packaging · `radf` attr-def · `rato` attr-option · `ratv` attr-value ·
+`ritm` item · `rcat` category · `rdoc` document · `loc` location (shared) · `rlot` lot · `rtxn` transaction ·
+`rbcd` barcode · `rpkg` packaging · `adef` attr-def · `aopt` attr-option · `ratv` attr-value ·
 `rcun` custom-unit.
 (Internal barcode value format mirrors supplies' `SITM-<nanoid>` → `RITM-<nanoid>`.)
 
@@ -475,8 +475,8 @@ attribute + expiry filtering runs client-side (in-memory) like supplies/equipmen
 Mirror the supplies *surface*, authored to the Donor exemplars (see Authoring standard). Splice in
 lots, attributes, expiry.
 
-- **Entities (4 only — mirror supplies):** `ReagentItem`, `ReagentCategory`, `ReagentDocument`,
-  `ReagentLocation`. Lots, transactions, barcodes, packaging levels, and attribute
+- **Entities (3 reagent-scoped):** `ReagentItem`, `ReagentCategory`, `ReagentDocument` — locations
+  became the shared `Location` (convergence item 4). Lots, transactions, barcodes, packaging levels, and attribute
   definitions/options/values are **DB rows + mappers + repo row-types**, not entities (supplies models
   stock/transactions the same way). No `updateConcentration` (general `update()` covers it); no lot
   transition methods.
@@ -484,7 +484,7 @@ lots, attributes, expiry.
   FEFO pick), documents, barcodes, transactions (atomic lot-aware record/void),
   packaging, attribute defs/options/values CRUD, custom-unit CRUD, lookup
   rename/count cascades (only `reagent_type`/`vendor`/`manufacturer` — not stock-unit, now registry-backed).
-  `ReagentLocationRepository`.
+  Locations come from the shared `LocationRepository`.
 - **Postgres impl** — the atomic `recordTransaction` writes a **lot** (not a stock row): received →
   find-or-create lot + increment; issued/disposed → FEFO decrement across lots; count_adjustment →
   reconcile a lot. Reuse generic `CategoryRepository` + `DocumentQueries`. No `ReagentCategoryMapper` /
@@ -735,8 +735,9 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
    which already listed them. The cleanup that remained (supplies' `GET /reorder-list` chain deleted,
    three orphaned Phase-1 alert schemas dropped) landed as convergence item 9.
 4. **Attribute system** — definitions/options/values + custom-unit **server CRUD** (their tables land
-   in Phase 1), the lab-creation seeding hook + migration `029_backfill_reagent_attributes` (defaults
-   for existing labs). (List filtering is client-side — Phase 7.)
+   in Phase 1), the lab-creation seeding hook + migration `031_backfill_system_attributes` (defaults
+   for existing labs). Definitions/options shipped **lab-wide**, values reagent-scoped; custom-unit
+   CRUD moved to Phase 7 with its dropdown. (List filtering is client-side — Phase 7.)
 5. **Client core** — service, hooks, `ReagentsTab`, item row/info/form, lot UI, category tree reuse,
    locations. Flip the tab on (and make `CatalogTab` expand the Reagents group on `/lab/reagents`).
 6. **Client stock + alerts** — transaction form/timeline/void, low-stock + expiry panels, reorder.
@@ -791,58 +792,86 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 
 ### Server — `server/src/`
 
+> **Reflects what shipped through Phase 4**, not the original sketch. Locations and the attribute
+> system became lab-wide during the convergence work, so several files planned as `Reagent*` were
+> built shared instead — see `LAB_CONVERGENCE_PLAN.md` items 2, 3 and 4.
+
 ```
 Domain
 + domain/entities/ReagentItem.ts
 + domain/entities/ReagentCategory.ts
 + domain/entities/ReagentDocument.ts
-+ domain/entities/ReagentLocation.ts
-+ domain/repositories/ReagentItemRepository.ts        interface + row-types (lot/txn/barcode/packaging/attr/custom-unit)
-+ domain/repositories/ReagentLocationRepository.ts
++ domain/entities/Location.ts                         shared — replaced Supply/ReagentLocation
++ domain/entities/AttributeDefinition.ts              shared (lab-wide)
++ domain/constants/systemAttributes.ts                seeded palette (hazard/form/grade/storage)
++ domain/repositories/ReagentItemRepository.ts        interface + row-types (lot/txn/barcode/packaging/attr-value)
++ domain/repositories/LocationRepository.ts           shared
++ domain/repositories/AttributeRepository.ts          shared
 + domain/events/ReagentEvents.ts
 ~ domain/events/DomainEventMap.ts                     register reagent events
 ~ domain/entities/Document.ts                         optional docType (shared)
-~ domain/entities/LookupValue.ts                      + reagent_type/vendor/manufacturer (LookupCategory type + validate array)
+~ domain/entities/LookupValue.ts                      + reagent_type; vendor/manufacturer merged lab-wide
 
 Infrastructure
 + infrastructure/repositories/ReagentItemRepository.ts
-+ infrastructure/repositories/ReagentLocationRepository.ts
++ infrastructure/repositories/LocationRepository.ts           shared
++ infrastructure/repositories/AttributeRepository.ts          shared
 + infrastructure/database/mappers/ReagentItemMapper.ts
 + infrastructure/database/mappers/ReagentLotMapper.ts
 + infrastructure/database/mappers/ReagentTransactionMapper.ts
 + infrastructure/database/mappers/ReagentBarcodeMapper.ts
 + infrastructure/database/mappers/ReagentPackagingLevelMapper.ts
-+ infrastructure/database/mappers/ReagentLocationMapper.ts
-+ infrastructure/database/mappers/ReagentAttributeMapper.ts   defs/options/values rows
-+ infrastructure/database/mappers/ReagentCustomUnitMapper.ts   custom-unit rows
-+ infrastructure/database/migrations/027_create_reagents.ts
++ infrastructure/database/mappers/LocationMapper.ts           shared
++ infrastructure/database/mappers/AttributeMapper.ts          shared (definition + option rows)
++ infrastructure/database/migrations/027_create_reagents.ts   also creates `locations`, `attribute_*`, `custom_units`
 + infrastructure/database/migrations/028_add_document_type.ts
-+ infrastructure/database/migrations/029_backfill_reagent_attributes.ts  seed defaults for existing labs
-~ infrastructure/database/migrations/index.ts                 register 027 + 028 + 029
++ infrastructure/database/migrations/029_merge_vendor_manufacturer.ts
++ infrastructure/database/migrations/030_merge_supply_locations.ts
++ infrastructure/database/migrations/031_backfill_system_attributes.ts
+~ infrastructure/database/migrations/index.ts                 register 027–031
 ~ infrastructure/repositories/DocumentQueries.ts             docType column (shared)
 ~ infrastructure/database/mappers/DocumentMapper.ts          docType (shared)
-~ infrastructure/di/RepositoryFactory.ts                     reagent getters + builder (both bundles)
+~ infrastructure/di/RepositoryFactory.ts                     reagent + location + attribute getters (both bundles)
 + infrastructure/di/modules/ReagentModule.ts
-~ infrastructure/di/ServiceContainer.ts                      field + getReagentModule + getReagentController
++ infrastructure/di/modules/LocationModule.ts
++ infrastructure/di/modules/AttributeModule.ts
+~ infrastructure/di/ServiceContainer.ts                      module fields + controller getters
 
 Application
 + application/services/ReagentApplicationService.ts
++ application/services/LocationApplicationService.ts          shared
++ application/services/AttributeApplicationService.ts         shared
 + application/dto/ReagentDto.ts
++ application/dto/LocationDto.ts
++ application/dto/AttributeDto.ts
+~ application/guards/HierarchyGuards.ts                      was CategoryGuards; maxDepth in tiers (categories 2, locations 3)
 ~ application/event-handlers/AuditEventHandler.ts            subscribe + handleReagent* per event
-~ application/services/LookupValueApplicationService.ts      reagent usage/rename/delete branches + inject ReagentItemRepository
-~ application/commands/LabCommands.ts                        seed default reagent attribute defs on lab creation (CreateLabCommandHandler)
+~ application/services/LookupValueApplicationService.ts      vendor/manufacturer fan across 3 catalogs
+~ application/commands/LabCommands.ts                        ensureSystemDefinitionsForLab on lab creation
+~ application/contracts/UnitOfWork.ts                        locations + attributes
 
 Presentation
 + presentation/controllers/ReagentController.ts
++ presentation/controllers/LocationController.ts              /api/locations
++ presentation/controllers/AttributeController.ts             /api/attributes
 + presentation/routes/ReagentRouteModule.ts
-~ presentation/validation/httpValidationSchemas.ts           reagent Http-alias block
-~ index.ts                                                   controller getter + route registration
++ presentation/routes/LocationRouteModule.ts
++ presentation/routes/AttributeRouteModule.ts
+~ presentation/validation/httpValidationSchemas.ts           reagent + location + attribute alias blocks
+~ index.ts                                                   controller getters + route registration
 
 Tests  (co-located unit tests under src/; integration tests under server/tests/, NOT src/)
-+ application/services/ReagentApplicationService.fefo.test.ts        (+ .expiry / .attrFilter as needed)
++ domain/services/reagentFefo.test.ts                        pure FEFO planner
 + server/tests/integration/reagentLabScoping.test.ts
-~ server/tests/integration/setup/factories.ts                       reagent seeds
++ server/tests/integration/reagentStockLedger.test.ts         lot ledger + rollup counts
++ server/tests/integration/reagentAttributeValues.test.ts     value replacement + batched list fill
++ server/tests/integration/attributeDeleteGuard.test.ts       cascade guards
+~ server/tests/integration/setup/factories.ts                reagent + location seeds
 ```
+
+> **Gotcha for anyone gating work here:** `tsc --noEmit` excludes `**/*.test.ts` (see
+> `server/tsconfig.json`), so a stale test compiles clean under `typecheck:server` and only fails
+> under Jest. Typecheck passing is not evidence the tests build.
 
 ### Client — `client/src/`
 
@@ -880,7 +909,7 @@ Reagents domain — domains/reagents/
 + ui/components/ReagentLowStockAlertPanel.tsx
 + ui/components/ReagentReorderList.tsx               reorder modal + CSV export (mirrors SupplyReorderList)
 + ui/components/ReagentExpiryAlertPanel.tsx
-+ ui/components/ReagentLocationModal.tsx
+~ (locations reuse `LocationModal` from `domains/lab-management`)
 + ui/components/ReagentAttributeFields.tsx           add-on-demand attribute inputs (mirrors EquipmentMaintenanceFields)
 + ui/components/ReagentAttributeFilterPanel.tsx      list filter by attribute
 + ui/components/ReagentBulkUpdateModal.tsx

@@ -46,7 +46,7 @@ function subtreeHeight(nodeId: string, byParent: Map<string, NestableNode[]>): n
 }
 
 /** @throws ValidationError when the placement would exceed `maxDepth` tiers. */
-export async function validateCategoryDepth(
+export async function validateHierarchyDepth(
   repository: NestableRepository,
   { labId, parentId, movingNodeId, maxDepth = 2, label = 'category' }: DepthOptions
 ): Promise<void> {

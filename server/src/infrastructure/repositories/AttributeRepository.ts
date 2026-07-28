@@ -4,8 +4,8 @@
  * PostgreSQL implementation for lab-wide attribute definitions and options.
  */
 
+import { SYSTEM_ATTRIBUTE_SEEDS } from '@domain/constants/systemAttributes';
 import { AttributeDefinition } from '@domain/entities/AttributeDefinition';
-import { SYSTEM_ATTRIBUTE_SEEDS } from '@domain/entities/systemAttributes';
 import type {
   AttributeRepository as IAttributeRepository,
   AttributeOptionRow,
