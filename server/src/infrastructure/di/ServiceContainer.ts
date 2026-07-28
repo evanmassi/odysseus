@@ -14,6 +14,7 @@ import { AccessControlService } from '@domain/services/AccessControlService';
 import type { EmailService } from '@domain/services/EmailService';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { ValidationService } from '@domain/services/ValidationService';
+import { AttributeModule } from '@infrastructure/di/modules/AttributeModule';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
@@ -35,6 +36,7 @@ import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailServic
 import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import type { AttributeController } from '@presentation/controllers/AttributeController';
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
@@ -84,6 +86,7 @@ export class ServiceContainer {
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
+  private _attributeModule?: AttributeModule;
   private _locationModule?: LocationModule;
   private _supplyModule?: SupplyModule;
   private _reagentModule?: ReagentModule;
@@ -199,6 +202,13 @@ export class ServiceContainer {
       this._donorModule = new DonorModule(this.getShared(), this.repositoryFactory);
     }
     return this._donorModule;
+  }
+
+  private getAttributeModule(): AttributeModule {
+    if (!this._attributeModule) {
+      this._attributeModule = new AttributeModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._attributeModule;
   }
 
   private getLocationModule(): LocationModule {
@@ -357,6 +367,12 @@ export class ServiceContainer {
 
   getDonorController(): DonorController {
     return this.getDonorModule().getDonorController();
+  }
+
+  // Public API — AttributeModule
+
+  getAttributeController(): AttributeController {
+    return this.getAttributeModule().getAttributeController();
   }
 
   // Public API — LocationModule

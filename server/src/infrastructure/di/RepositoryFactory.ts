@@ -8,6 +8,7 @@ import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
@@ -29,6 +30,7 @@ import type { DatabaseConnectionConfig } from '@infrastructure/database/Postgres
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 import { TransactionalContext } from '@infrastructure/database/TransactionalContext';
+import { AttributeRepository as AttributeRepositoryImpl } from '@infrastructure/repositories/AttributeRepository';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 import {
   CategoryRepository as CategoryRepositoryImpl,
@@ -70,6 +72,7 @@ export class RepositoryFactory implements UnitOfWork {
   private equipmentItemRepository?: EquipmentItemRepository;
   private supplyCategoryRepository?: CategoryRepository<SupplyCategory>;
   private supplyItemRepository?: SupplyItemRepository;
+  private attributeRepository?: AttributeRepository;
   private locationRepository?: LocationRepository;
   private reagentCategoryRepository?: CategoryRepository<ReagentCategory>;
   private reagentItemRepository?: ReagentItemRepository;
@@ -197,6 +200,13 @@ export class RepositoryFactory implements UnitOfWork {
     return this.supplyItemRepository;
   }
 
+  getAttributeRepository(): AttributeRepository {
+    if (!this.attributeRepository) {
+      this.attributeRepository = new AttributeRepositoryImpl(this.postgresContext);
+    }
+    return this.attributeRepository;
+  }
+
   getLocationRepository(): LocationRepository {
     if (!this.locationRepository) {
       this.locationRepository = new LocationRepositoryImpl(this.postgresContext);
@@ -236,6 +246,7 @@ export class RepositoryFactory implements UnitOfWork {
       equipmentItems: this.getEquipmentItemRepository(),
       supplyCategories: this.getSupplyCategoryRepository(),
       supplyItems: this.getSupplyItemRepository(),
+      attributes: this.getAttributeRepository(),
       locations: this.getLocationRepository(),
       reagentCategories: this.getReagentCategoryRepository(),
       reagentItems: this.getReagentItemRepository(),
@@ -291,6 +302,7 @@ export class RepositoryFactory implements UnitOfWork {
       equipmentItems: new EquipmentItemRepositoryImpl(db),
       supplyCategories: this.buildSupplyCategoryRepository(db),
       supplyItems: new SupplyItemRepositoryImpl(db),
+      attributes: new AttributeRepositoryImpl(db),
       locations: new LocationRepositoryImpl(db),
       reagentCategories: this.buildReagentCategoryRepository(db),
       reagentItems: new ReagentItemRepositoryImpl(db),

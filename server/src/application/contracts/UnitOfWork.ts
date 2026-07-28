@@ -9,6 +9,7 @@
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
@@ -44,6 +45,7 @@ export interface Repositories {
   equipmentItems: EquipmentItemRepository;
   supplyCategories: CategoryRepository<SupplyCategory>;
   supplyItems: SupplyItemRepository;
+  attributes: AttributeRepository;
   locations: LocationRepository;
   reagentCategories: CategoryRepository<ReagentCategory>;
   reagentItems: ReagentItemRepository;

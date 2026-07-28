@@ -46,6 +46,10 @@ import {
   initializeStorageRequestSchema,
   bulkUnassignRequestSchema,
   bulkReassignRequestSchema,
+  createAttributeDefinitionRequestSchema,
+  updateAttributeDefinitionRequestSchema,
+  createAttributeOptionRequestSchema,
+  updateAttributeOptionRequestSchema,
   createLocationRequestSchema,
   updateLocationRequestSchema,
   createSupplyCategoryRequestSchema,
@@ -265,6 +269,15 @@ export const InitializeStorageHttpSchema = initializeStorageRequestSchema;
 export const BulkUnassignHttpSchema = bulkUnassignRequestSchema;
 export const BulkReassignHttpSchema = bulkReassignRequestSchema;
 export const ResetStorageHttpSchema = z.object({ confirmationToken: z.string().min(1) });
+
+// Attribute schemas
+
+export const AttributeDefinitionIdParams = z.object({ definitionId: z.string().min(1) });
+export const AttributeOptionIdParams = z.object({ optionId: z.string().min(1) });
+export const CreateAttributeDefinitionHttpSchema = createAttributeDefinitionRequestSchema;
+export const UpdateAttributeDefinitionHttpSchema = updateAttributeDefinitionRequestSchema;
+export const CreateAttributeOptionHttpSchema = createAttributeOptionRequestSchema;
+export const UpdateAttributeOptionHttpSchema = updateAttributeOptionRequestSchema;
 
 // Location schemas
 
