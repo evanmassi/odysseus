@@ -14,19 +14,24 @@ we build.
 - [x] Phase 2 — server core CRUD
 - [x] Phase 3 — ~~alerts~~ dissolved (client-side derivation; panels moved to Phase 6)
 - [x] Phase 4 — attribute system
-- [ ] Phase 5 — client core
+- [x] Phase 5 — client core
 - [ ] Phase 6 — client stock + alerts
 - [ ] Phase 7 — client attributes
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phases 2 + 4 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
-*Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next is Phase 5 — client core.** Convergence items 4b, 6, 7 and 8 remain; 6 and 7 are due before
+_Current: Phases 2, 4 + 5 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
+*Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next is
+Phase 6 — client stock + alerts.** Convergence items 4b, 6, 7 and 8 remain; 6 and 7 are due before
 Phase 7. Custom-unit CRUD was deferred out of Phase 4 to Phase 7, where its dropdown consumes it. See
 `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository (later folded into the shared `Location`); lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
+_- 5a ✅ browse — `queryKeys.reagents` (categories/items), ReagentService + query/mutation hooks (category CRUD), `reagentStatus` / `reagentExpiry` (item badge off the lot rollup, 90-day default window overridable per item), `ReagentItemRow` (worst-of stock+expiry urgency; `formatQuantity` gives the row its first consumer), `ReagentsTab` (tree, search, sort, archived, locations), tab flipped on — and `LabManagementPage`'s `enabled` flag removed with it, since every suite is now live. `resolveStockTone` extracted to `shared/utils/stockLevel.ts` on its second caller; supplies rewired._
+_- 5b ✅ read — detail query, `ReagentLotPanel` (FEFO display order, spent lots dimmed, on-hand footer), `ReagentItemInfoPanel` (chemistry, lots, packaging, documents, reorder, archive/remove), `isLotDrawable`, and `docType` on the shared `DocumentLinkModal` as an opt-in `withDocType` picker (supplies/equipment untouched) with `documentTypeLabels`._
+_- 5c ✅ author — `ReagentItemForm` (identification / sourcing / chemistry / unit + packaging / reorder / notes), registry-backed unit dropdowns filtered by kind, packaging editor wrapping the outermost pack, item create/update + packaging mutations, Add Item + Edit wiring. Validates against the **update** schema when editing so blanking a field clears it — traced end to end (`patchText` → entity `?? undefined` → mapper `?? null` → full-row upsert); supplies validates with its create schema in both modes and **cannot** clear a text field on edit._
+_Phase 5 deferrals: no threshold-unit converter (reagent thresholds are entered in the stock unit, so `reorderThresholdUnit` stays unwritten — revisit if a bulk import ever writes it); pack-unit vocabulary is the registry's countable kind (`vial`/`tube`/`each`) until convergence item 6 widens it with box/case; `resolveExpiryBadge` has no unit test yet. The Phase-5 line below no longer includes route-driven expansion of the `CatalogTab` Reagents group — the nav rail (convergence item 7) supersedes it._
 _Each session — read this plan, do the current sub-commit, gate green (server: typecheck + `npm test` unit + `npm run test:integration`), commit when told._
 
 > **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
@@ -68,8 +73,8 @@ reagent asks "which *lot* of this antibody is this, when does *it* expire, when 
 So: **reagents = the supplies inventory model + a lot subsystem + chemistry/safety fields + a
 lab-configurable attribute system + expiry alerting.** Everything else is inherited.
 
-The suite is already stubbed: a disabled `reagents` tab in `LabManagementPage.tsx` (Biohazard icon,
-`/lab/reagents`). We flip it on at the end.
+The suite mounts as the `reagents` tab in `LabManagementPage.tsx` (Biohazard icon, `/lab/reagents`),
+live since Phase 5.
 
 ---
 
@@ -600,7 +605,7 @@ form + timeline + void modal; bulk modal + `bulk-update-tabs/*` (kept bulk ops o
 - `queryKeys.reagents` in `app/cache/queryKeys.ts` — `all(labId)` → `categories`, `items`, `detail`,
   `locations`, `transactions(labId,itemId)`, `reorderList`, **`lots`**, **`expiring`**,
   **`attributeDefinitions`**, **`customUnits`**.
-- `LabManagementPage.tsx` — flip `enabled: true`, add `<Route path="reagents" element={<ReagentsTab/>}/>`.
+- `LabManagementPage.tsx` (in `app/components/layout/`) — `<Route path="reagents" element={<ReagentsTab/>}/>`.
 - `AppHeader.tsx` — optional `/lab/reagents` quick-link.
 
 ### 8.4 Catalog / lookups integration
@@ -739,7 +744,7 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
    for existing labs). Definitions/options shipped **lab-wide**, values reagent-scoped; custom-unit
    CRUD moved to Phase 7 with its dropdown. (List filtering is client-side — Phase 7.)
 5. **Client core** — service, hooks, `ReagentsTab`, item row/info/form, lot UI, category tree reuse,
-   locations. Flip the tab on (and make `CatalogTab` expand the Reagents group on `/lab/reagents`).
+   locations, documents. Flip the tab on.
 6. **Client stock + alerts** — transaction form/timeline/void, low-stock + expiry panels, reorder.
 7. **Client attributes** — dynamic form fields, list filter bar, admin definition/option/custom-unit
    CRUD, hosted on the catalog nav rail (§9 *Decided — catalog surface*; the rail lands before this).
@@ -887,7 +892,7 @@ Shared extractions (Phase 0)
 + shared/ui/components/barcodes/BarcodeSheetModal.test.ts
 + shared/ui/components/barcodes/index.ts
 + shared/utils/packagingChain.ts                    moved from supplies
-+ shared/utils/dateExpiry.ts                         daysUntil / isExpiringSoon
++ shared/utils/dateExpiry.ts                         daysUntil (isExpiringSoon had no caller)
 ~ domains/supplies/… (~5 barcode + packagingChain import sites)   rewire to shared
 ~ shared/ui/components/inventory/SortControls.tsx    widen sort union (if tree-sorting by expiry/stock)
 ~ shared/ui/components/inventory/CategoryTreePanel.tsx  + sortField case
@@ -919,13 +924,19 @@ Reagents domain — domains/reagents/
 + ui/components/barcode/ReagentBarcodeScanInput.tsx
 + ui/components/barcode/ReagentQuickScanBar.tsx
 + utils/reagentStatus.ts
-+ utils/reagentExpiry.ts
++ utils/reagentExpiry.ts                             item badge + per-lot expiry, 90-day default window
++ utils/reagentLots.ts                               isLotDrawable — what counts as stock on hand
 + utils/reagentAutocompleteOptions.ts               transaction-form item autocomplete (mirrors supplies)
 + utils/reagentAttributeFilter.ts                   client-side attribute/expiry filter predicate (+ Vitest test)
 
+Shared, grown during the client phases
++ shared/utils/stockLevel.ts                                    resolveStockTone (supplies rewired onto it)
++ shared/ui/components/overlays/documentTypeLabels.ts
+~ shared/ui/components/overlays/DocumentLinkModal.tsx           opt-in `withDocType` picker
+
 Admin / nav (central edits)
 ~ domains/admin/…/settings-modal/tabs/CatalogTab.tsx            reagent CatalogGroup + attribute/custom-unit admin
-~ domains/lab-management/ui/components/LabManagementPage.tsx    enabled:true + <Route path="reagents">
+~ app/components/layout/LabManagementPage.tsx                   + <Route path="reagents">; enabled flag dropped
 ~ app/cache/queryKeys.ts                                        queryKeys.reagents block
 ~ app/components/layout/AppHeader.tsx                           optional /lab/reagents quick-link
 ```
