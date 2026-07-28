@@ -6,17 +6,20 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
+import { DOCUMENT_TYPE_VALUES, type DocumentType } from '@odysseus/shared-schemas';
 import { FileText, Plus, Save } from 'lucide-react';
 
-import { Button, Input } from '../../primitives';
+import { Button, Input, Select, withPlaceholder } from '../../primitives';
 import { FIELD_LABEL_COMPACT } from '../inputs/fieldLabelClass';
 
 import { BaseModal } from './BaseModal';
+import { DOCUMENT_TYPE_LABELS } from './documentTypeLabels';
 
 export interface DocumentLinkValues {
   label: string;
   url: string;
   notes?: string;
+  docType?: DocumentType;
 }
 
 interface DocumentLinkModalProps {
@@ -24,22 +27,31 @@ interface DocumentLinkModalProps {
   mode: 'add' | 'edit';
   initialValues?: DocumentLinkValues;
   isPending?: boolean;
+  /** Offers the classification picker. Catalogs that don't persist `docType` leave it off. */
+  withDocType?: boolean;
   /** Resolves on success (modal closes) or rejects to keep the modal open for a retry. */
   onSave: (values: DocumentLinkValues) => Promise<void>;
   onClose: () => void;
 }
+
+const DOC_TYPE_OPTIONS = withPlaceholder(
+  'Unclassified',
+  DOCUMENT_TYPE_VALUES.map(value => ({ value, label: DOCUMENT_TYPE_LABELS[value] }))
+);
 
 export function DocumentLinkModal({
   isOpen,
   mode,
   initialValues,
   isPending = false,
+  withDocType = false,
   onSave,
   onClose,
 }: DocumentLinkModalProps) {
   const [label, setLabel] = useState('');
   const [url, setUrl] = useState('');
   const [notes, setNotes] = useState('');
+  const [docType, setDocType] = useState<DocumentType | ''>('');
   const prevIsOpenRef = useRef(isOpen);
 
   useEffect(() => {
@@ -47,6 +59,7 @@ export function DocumentLinkModal({
       setLabel(initialValues?.label ?? '');
       setUrl(initialValues?.url ?? '');
       setNotes(initialValues?.notes ?? '');
+      setDocType(initialValues?.docType ?? '');
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen, initialValues]);
@@ -57,7 +70,12 @@ export function DocumentLinkModal({
   const handleSubmit = async () => {
     if (!canSubmit) return;
     try {
-      await onSave({ label: label.trim(), url: url.trim(), notes: notes.trim() || undefined });
+      await onSave({
+        label: label.trim(),
+        url: url.trim(),
+        notes: notes.trim() || undefined,
+        docType: docType === '' ? undefined : docType,
+      });
       onClose();
     } catch {
       // Parent surfaces the error toast; keep the modal open so the user can retry.
@@ -130,6 +148,22 @@ export function DocumentLinkModal({
             fullWidth
           />
         </div>
+        {withDocType && (
+          <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+            <label id="doc-type-label" className={FIELD_LABEL_COMPACT}>
+              Type
+            </label>
+            <Select
+              aria-labelledby="doc-type-label"
+              options={DOC_TYPE_OPTIONS}
+              value={docType}
+              onChange={value => setDocType((value as DocumentType | '') ?? '')}
+              size="sm"
+              fullWidth
+            />
+          </div>
+        )}
         <div>
           <label htmlFor="doc-notes" className={FIELD_LABEL_COMPACT}>
             Notes

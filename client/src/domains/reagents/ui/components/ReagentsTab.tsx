@@ -5,7 +5,7 @@
  * item detail column on the right.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import { Biohazard, Eye, EyeOff, MapPin } from 'lucide-react';
@@ -41,6 +41,7 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
 import { ReagentItemRow } from './ReagentItemRow';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
@@ -90,6 +91,15 @@ export function ReagentsTab() {
     category?: ReagentCategory;
   }>({ isOpen: false });
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  const categoryNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach(c => {
+      const parentName = c.parentId ? categories.find(p => p.id === c.parentId)?.name : undefined;
+      map.set(c.id, parentName ? `${parentName} > ${c.name}` : c.name);
+    });
+    return map;
+  }, [categories]);
 
   const handleAddCategory = useCallback(() => {
     setCategoryModal({ isOpen: true });
@@ -221,11 +231,21 @@ export function ReagentsTab() {
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          <InfoPanelEmpty
-            title="Reagent Information"
-            emptyIcon={Biohazard}
-            emptyMessage="Select an item to view details"
-          />
+          {selectedItemId ? (
+            <ReagentItemInfoPanel
+              itemId={selectedItemId}
+              onDeleted={() => setSelectedItemId(undefined)}
+              categoryName={categoryNameMap.get(
+                items.find(i => i.id === selectedItemId)?.categoryId ?? ''
+              )}
+            />
+          ) : (
+            <InfoPanelEmpty
+              title="Reagent Information"
+              emptyIcon={Biohazard}
+              emptyMessage="Select an item to view details"
+            />
+          )}
         </div>
 
         <CategoryModal

@@ -1,8 +1,8 @@
 /**
  * Reagent Expiry Status
  *
- * Derives the expiry warning for an item from its lot rollup: expired lots first,
- * then the soonest expiration inside the warning window.
+ * Expiry warnings for an item (from its lot rollup) and for a single lot (from its
+ * own date), both measured against the lab window or the item's override.
  */
 
 import { daysUntil } from '@shared/utils/dateExpiry';
@@ -47,4 +47,24 @@ export function resolveExpiryBadge(item: ReagentItemWithStock): ReagentExpiryBad
     label: days === 0 ? 'exp today' : `exp ${days}d`,
     detail: days === 0 ? 'Expires today' : `Expires in ${days} ${pluralizeUnit('day', days)}`,
   };
+}
+
+export interface ReagentLotExpiry {
+  tone: 'danger' | 'warning';
+  label: string;
+}
+
+/** Per-lot counterpart of the item badge, read from the lot's own expiration date. */
+export function resolveLotExpiry(
+  expirationDate: string | undefined,
+  warningDays: number | undefined
+): ReagentLotExpiry | undefined {
+  if (!expirationDate) return undefined;
+
+  const days = daysUntil(expirationDate);
+  if (days === undefined) return undefined;
+  if (days < 0) return { tone: 'danger', label: 'expired' };
+  if (days > (warningDays ?? DEFAULT_EXPIRY_WARNING_DAYS)) return undefined;
+
+  return { tone: 'warning', label: days === 0 ? 'today' : `${days}d` };
 }
