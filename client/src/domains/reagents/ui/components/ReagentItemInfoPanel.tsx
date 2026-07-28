@@ -16,6 +16,7 @@ import {
   MapPin,
   NotepadText,
   Plus,
+  SquarePen,
   Trash2,
 } from 'lucide-react';
 
@@ -63,12 +64,14 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface ReagentItemInfoPanelProps {
   itemId: string;
+  onEdit: () => void;
   onDeleted: () => void;
   categoryName?: string;
 }
 
 export function ReagentItemInfoPanel({
   itemId,
+  onEdit,
   onDeleted,
   categoryName,
 }: ReagentItemInfoPanelProps) {
@@ -409,6 +412,15 @@ export function ReagentItemInfoPanel({
               size="sm"
               aria-label="More item actions"
             />
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex-1"
+              leftIcon={<SquarePen className="h-4 w-4" />}
+              onClick={onEdit}
+            >
+              Edit
+            </Button>
           </div>
         </div>
       )}

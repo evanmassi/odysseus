@@ -14,8 +14,11 @@ import { ReagentService } from '../services/ReagentService';
 import type {
   CreateReagentCategoryRequest,
   UpdateReagentCategoryRequest,
+  CreateReagentItemRequest,
+  UpdateReagentItemRequest,
   CreateReagentDocumentRequest,
   UpdateReagentDocumentRequest,
+  CreateReagentPackagingLevelRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -49,6 +52,29 @@ export function useDeleteReagentCategoryMutation() {
 }
 
 // Items
+
+export function useCreateReagentItemMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: (data: CreateReagentItemRequest) => ReagentService.createItem(data),
+    meta: { invalidates: [queryKeys.reagents.items(labId)] },
+  });
+}
+
+export function useUpdateReagentItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateReagentItemRequest }) =>
+      ReagentService.updateItem(id, data),
+    onSuccess: (_, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, id) });
+    },
+  });
+}
 
 export function useArchiveReagentItemMutation() {
   const labId = useLabId();
@@ -110,6 +136,34 @@ export function useRemoveReagentDocumentMutation() {
   return useMutation({
     mutationFn: ({ itemId, docId }: { itemId: string; docId: string }) =>
       ReagentService.removeDocument(itemId, docId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+// Packaging levels
+
+export function useAddReagentPackagingLevelMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: CreateReagentPackagingLevelRequest }) =>
+      ReagentService.addPackagingLevel(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+export function useRemoveReagentPackagingLevelMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, levelId }: { itemId: string; levelId: string }) =>
+      ReagentService.removePackagingLevel(itemId, levelId),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
     },

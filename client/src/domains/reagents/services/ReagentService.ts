@@ -11,14 +11,21 @@ import {
   reagentDocumentResponseSchema,
   reagentItemDetailResponseSchema,
   reagentItemListResponseSchema,
+  reagentItemResponseSchema,
+  reagentPackagingLevelResponseSchema,
   type ReagentCategory,
   type ReagentDocument,
+  type ReagentItem,
   type ReagentItemDetail,
   type ReagentItemWithStock,
+  type ReagentPackagingLevel,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
+  type CreateReagentItemRequest,
+  type UpdateReagentItemRequest,
   type CreateReagentDocumentRequest,
   type UpdateReagentDocumentRequest,
+  type CreateReagentPackagingLevelRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -72,6 +79,20 @@ export class ReagentService {
     return await httpClient.getData(`${this.BASE_PATH}/${id}`, reagentItemDetailResponseSchema);
   }
 
+  static async createItem(data: CreateReagentItemRequest): Promise<ReagentItem> {
+    const response = await httpClient.postData(this.BASE_PATH, data, reagentItemResponseSchema);
+    return response.item;
+  }
+
+  static async updateItem(id: string, data: UpdateReagentItemRequest): Promise<ReagentItem> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${id}`,
+      data,
+      reagentItemResponseSchema
+    );
+    return response.item;
+  }
+
   static async archiveItem(id: string): Promise<void> {
     await httpClient.postData(`${this.BASE_PATH}/${id}/archive`, {}, messageResponseSchema);
   }
@@ -109,5 +130,23 @@ export class ReagentService {
 
   static async removeDocument(itemId: string, docId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/documents/${docId}`);
+  }
+
+  // Packaging levels
+
+  static async addPackagingLevel(
+    itemId: string,
+    data: CreateReagentPackagingLevelRequest
+  ): Promise<ReagentPackagingLevel> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/packaging-levels`,
+      data,
+      reagentPackagingLevelResponseSchema
+    );
+    return response.packagingLevel;
+  }
+
+  static async removePackagingLevel(itemId: string, levelId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`);
   }
 }

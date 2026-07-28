@@ -8,7 +8,7 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Biohazard, Eye, EyeOff, MapPin } from 'lucide-react';
+import { Biohazard, Eye, EyeOff, MapPin, Plus } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { LocationModal } from '@domains/lab-management';
@@ -41,6 +41,7 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
 import { ReagentItemRow } from './ReagentItemRow';
 
@@ -57,6 +58,10 @@ const getReagentSearchFields = (item: ReagentItemWithStock) => [
   item.reagentType,
   item.casNumber,
 ];
+
+type RightPanelView =
+  | { type: 'info'; itemId: string }
+  | { type: 'edit'; item?: ReagentItemWithStock };
 
 const TREE_LABELS: CategoryTreePanelLabels = {
   countNoun: ['item', 'items'],
@@ -76,6 +81,7 @@ export function ReagentsTab() {
   const deleteCategoryMutation = useDeleteReagentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
+  const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [sortField, setSortField] = useState<InventorySortField>('name');
@@ -100,6 +106,25 @@ export function ReagentsTab() {
     });
     return map;
   }, [categories]);
+
+  const handleSelectItem = useCallback((id: string) => {
+    setSelectedItemId(id);
+    setRightPanel({ type: 'info', itemId: id });
+  }, []);
+
+  const handleEditItem = useCallback(() => {
+    const selected = items.find(i => i.id === selectedItemId);
+    if (selected) setRightPanel({ type: 'edit', item: selected });
+  }, [items, selectedItemId]);
+
+  const handleFormComplete = useCallback(() => {
+    setRightPanel(selectedItemId ? { type: 'info', itemId: selectedItemId } : undefined);
+  }, [selectedItemId]);
+
+  const handleItemDeleted = useCallback(() => {
+    setSelectedItemId(undefined);
+    setRightPanel(undefined);
+  }, []);
 
   const handleAddCategory = useCallback(() => {
     setCategoryModal({ isOpen: true });
@@ -194,7 +219,19 @@ export function ReagentsTab() {
               {showArchived ? 'Hide' : 'Show'} Archived
             </Button>
             <span className="flex-1" />
-            {isAdmin && <OverflowMenu items={actionMenuItems} size="sm" aria-label="Actions" />}
+            {isAdmin && (
+              <>
+                <OverflowMenu items={actionMenuItems} size="sm" aria-label="Actions" />
+                <Button
+                  size="sm"
+                  onClick={() => setRightPanel({ type: 'edit' })}
+                  className="h-8"
+                  leftIcon={<Plus className="h-3.5 w-3.5" />}
+                >
+                  Add Item
+                </Button>
+              </>
+            )}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
@@ -213,7 +250,7 @@ export function ReagentsTab() {
                   <ReagentItemRow
                     item={item}
                     isSelected={item.id === selectedItemId}
-                    onSelect={setSelectedItemId}
+                    onSelect={handleSelectItem}
                   />
                 )}
                 treeId="reagents"
@@ -231,19 +268,31 @@ export function ReagentsTab() {
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {selectedItemId ? (
-            <ReagentItemInfoPanel
-              itemId={selectedItemId}
-              onDeleted={() => setSelectedItemId(undefined)}
-              categoryName={categoryNameMap.get(
-                items.find(i => i.id === selectedItemId)?.categoryId ?? ''
-              )}
-            />
-          ) : (
+          {!rightPanel && (
             <InfoPanelEmpty
               title="Reagent Information"
               emptyIcon={Biohazard}
               emptyMessage="Select an item to view details"
+            />
+          )}
+
+          {rightPanel?.type === 'info' && (
+            <ReagentItemInfoPanel
+              itemId={rightPanel.itemId}
+              onEdit={handleEditItem}
+              onDeleted={handleItemDeleted}
+              categoryName={categoryNameMap.get(
+                items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
+              )}
+            />
+          )}
+
+          {rightPanel?.type === 'edit' && (
+            <ReagentItemForm
+              item={rightPanel.item}
+              categories={categories}
+              onSubmit={handleFormComplete}
+              onCancel={handleFormComplete}
             />
           )}
         </div>

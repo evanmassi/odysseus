@@ -11,9 +11,13 @@ export {
   useCreateReagentCategoryMutation,
   useUpdateReagentCategoryMutation,
   useDeleteReagentCategoryMutation,
+  useCreateReagentItemMutation,
+  useUpdateReagentItemMutation,
   useArchiveReagentItemMutation,
   useDeleteReagentItemMutation,
   useAddReagentDocumentMutation,
   useUpdateReagentDocumentMutation,
   useRemoveReagentDocumentMutation,
+  useAddReagentPackagingLevelMutation,
+  useRemoveReagentPackagingLevelMutation,
 } from './useReagentMutations';
