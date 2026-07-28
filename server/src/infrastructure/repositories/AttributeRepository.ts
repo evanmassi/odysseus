@@ -4,11 +4,13 @@
  * PostgreSQL implementation for lab-wide attribute definitions and options.
  */
 
-import type { AttributeDefinition } from '@domain/entities/AttributeDefinition';
+import { AttributeDefinition } from '@domain/entities/AttributeDefinition';
+import { SYSTEM_ATTRIBUTE_SEEDS } from '@domain/entities/systemAttributes';
 import type {
   AttributeRepository as IAttributeRepository,
   AttributeOptionRow,
 } from '@domain/repositories/AttributeRepository';
+import { generateId } from '@domain/utils/generateId';
 import type {
   AttributeDefinitionDbRow,
   AttributeOptionDbRow,
@@ -138,6 +140,38 @@ export class AttributeRepository implements IAttributeRepository {
       [id, labId]
     );
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async ensureSystemDefinitionsForLab(labId: string): Promise<void> {
+    const existing = await this.db.queryMany<{ system_key: string }>(
+      'SELECT system_key FROM attribute_definitions WHERE lab_id = $1 AND system_key IS NOT NULL',
+      [labId]
+    );
+    const present = new Set(existing.map(row => row.system_key));
+
+    for (const seed of SYSTEM_ATTRIBUTE_SEEDS) {
+      if (present.has(seed.systemKey)) continue;
+
+      const definition = AttributeDefinition.create({
+        labId,
+        name: seed.name,
+        valueType: seed.valueType,
+        appliesToCatalog: seed.appliesToCatalog,
+        sortOrder: seed.sortOrder,
+        isSystem: true,
+        systemKey: seed.systemKey,
+      });
+      await this.saveDefinition(definition);
+
+      for (const [index, value] of seed.options.entries()) {
+        await this.saveOption({
+          id: generateId('aopt'),
+          definitionId: definition.id,
+          value,
+          sortOrder: index,
+        });
+      }
+    }
   }
 
   async countItemsUsingDefinition(definitionId: string): Promise<number> {

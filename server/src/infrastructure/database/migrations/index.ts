@@ -34,6 +34,7 @@ import { migration027 } from './027_create_reagents';
 import { migration028 } from './028_add_document_type';
 import { migration029 } from './029_merge_vendor_manufacturer';
 import { migration030 } from './030_merge_supply_locations';
+import { migration031 } from './031_backfill_system_attributes';
 
 import type { Migration } from './migrationRunner';
 
@@ -68,4 +69,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration028,
   migration029,
   migration030,
+  migration031,
 ];

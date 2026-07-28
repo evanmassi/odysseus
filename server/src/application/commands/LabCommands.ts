@@ -15,6 +15,7 @@ import {
   LabActivatedEvent,
   LabDeactivatedEvent,
 } from '@domain/events/LabEvents';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -47,6 +48,7 @@ export class CreateLabCommandHandler {
     private labRepository: LabRepository,
     private storageRepository: StorageRepository,
     private userRepository: UserRepository,
+    private attributeRepository: AttributeRepository,
     private eventBus: EventBus
   ) {}
 
@@ -68,6 +70,7 @@ export class CreateLabCommandHandler {
 
     await this.labRepository.save(lab);
     await this.storageRepository.ensureDefaultForLab(lab.id);
+    await this.attributeRepository.ensureSystemDefinitionsForLab(lab.id);
 
     await this.eventBus.publish(new LabCreatedEvent(lab.id, lab.name));
 

@@ -11,6 +11,7 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 
@@ -27,6 +28,10 @@ function makeCreateHandler(opts: { existingSlug?: unknown } = {}) {
   const labRepository = { save, findBySlug } as unknown as LabRepository;
   const ensureDefaultForLab = jest.fn();
   const storageRepository = { ensureDefaultForLab } as unknown as StorageRepository;
+  const ensureSystemDefinitionsForLab = jest.fn();
+  const attributeRepository = {
+    ensureSystemDefinitionsForLab,
+  } as unknown as AttributeRepository;
   const publish = jest.fn();
   const eventBus = { publish } as unknown as EventBus;
 
@@ -34,9 +39,10 @@ function makeCreateHandler(opts: { existingSlug?: unknown } = {}) {
     labRepository,
     storageRepository,
     userRepository,
+    attributeRepository,
     eventBus
   );
-  return { handler, save, ensureDefaultForLab, publish };
+  return { handler, save, ensureDefaultForLab, ensureSystemDefinitionsForLab, publish };
 }
 
 describe('CreateLabCommandHandler', () => {
@@ -56,12 +62,14 @@ describe('CreateLabCommandHandler', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  it('creates the lab, seeds default storage, publishes, and returns the lab', async () => {
-    const { handler, save, ensureDefaultForLab, publish } = makeCreateHandler();
+  it('creates the lab, seeds defaults, publishes, and returns the lab', async () => {
+    const { handler, save, ensureDefaultForLab, ensureSystemDefinitionsForLab, publish } =
+      makeCreateHandler();
     const lab = await handler.handle(command);
     expect(lab.name).toBe('New Lab');
     expect(save).toHaveBeenCalledWith(lab);
     expect(ensureDefaultForLab).toHaveBeenCalledWith(lab.id);
+    expect(ensureSystemDefinitionsForLab).toHaveBeenCalledWith(lab.id);
     expect(publish).toHaveBeenCalled();
   });
 });

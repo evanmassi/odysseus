@@ -53,6 +53,7 @@ export class LabModule {
         repositories.labs,
         repositories.storage,
         repositories.users,
+        repositories.attributes,
         this.shared.eventBus
       );
     }

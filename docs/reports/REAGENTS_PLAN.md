@@ -13,17 +13,16 @@ we build.
 - [x] Phase 1 — schema + DB foundation
 - [x] Phase 2 — server core CRUD
 - [x] Phase 3 — ~~alerts~~ dissolved (client-side derivation; panels moved to Phase 6)
-- [ ] Phase 4 — attribute system
+- [x] Phase 4 — attribute system
 - [ ] Phase 5 — client core
 - [ ] Phase 6 — client stock + alerts
 - [ ] Phase 7 — client attributes
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phase 2 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
-*Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next
-is Phase 4 — the attribute system**, gated on convergence items 2 + 3 (shared attribute vocabulary,
-`custom_units` de-scoping), both of which get more expensive once Phase 4 builds their CRUD. See
+_Current: Phases 2 + 4 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
+*Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next is Phase 5 — client core.** Convergence items 4b, 6, 7 and 8 remain; 6 and 7 are due before
+Phase 7. Custom-unit CRUD was deferred out of Phase 4 to Phase 7, where its dropdown consumes it. See
 `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository; lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._

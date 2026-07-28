@@ -25,6 +25,9 @@ export interface AttributeRepository {
   saveOption(option: AttributeOptionRow): Promise<void>;
   deleteOption(id: string, labId: string): Promise<boolean>;
 
+  /** Idempotent: adds any seeded system attribute the lab is missing, leaves existing ones alone. */
+  ensureSystemDefinitionsForLab(labId: string): Promise<void>;
+
   countItemsUsingDefinition(definitionId: string): Promise<number>;
   countItemsUsingOption(optionId: string): Promise<number>;
 }
