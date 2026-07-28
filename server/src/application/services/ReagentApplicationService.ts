@@ -174,9 +174,7 @@ export class ReagentApplicationService {
 
   async listItems(labId: string): Promise<ReagentItemWithStockResponse[]> {
     const itemsWithStock = await this.itemRepository.findByLabIdWithStock(labId);
-    return itemsWithStock.map(({ item, totalStock, locationNames, soonestExpiration }) =>
-      ReagentDto.itemWithStockToResponse(item, totalStock, locationNames, soonestExpiration, [])
-    );
+    return itemsWithStock.map(withStock => ReagentDto.itemWithStockToResponse(withStock, []));
   }
 
   async getItem(labId: string, id: string): Promise<ReagentItemDetailResponse> {

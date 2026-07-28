@@ -56,6 +56,8 @@ const TXN_COLUMNS = `id, item_id, lot_id, location_id, lab_id, type, quantity_ch
 const ITEM_WITH_STOCK_SELECT = `
   SELECT p.*,
     COALESCE(SUM(lt.quantity), 0) as total_stock,
+    COUNT(lt.id) FILTER (WHERE lt.quantity > 0) as lot_count,
+    COUNT(lt.id) FILTER (WHERE lt.quantity > 0 AND lt.expiration_date < CURRENT_DATE) as expired_lot_count,
     MIN(lt.expiration_date) FILTER (WHERE lt.quantity > 0) as soonest_expiration,
     COALESCE(
       array_agg(DISTINCT loc.name ORDER BY loc.name) FILTER (WHERE loc.name IS NOT NULL AND lt.quantity > 0),
@@ -67,6 +69,8 @@ const ITEM_WITH_STOCK_SELECT = `
 
 type ItemWithStockRow = ReagentItemRow & {
   total_stock: string;
+  lot_count: string;
+  expired_lot_count: string;
   soonest_expiration: string | null;
   location_names: string[];
 };
@@ -675,6 +679,8 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return {
       item: ReagentItemMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
+      lotCount: parseInt(row.lot_count, 10),
+      expiredLotCount: parseInt(row.expired_lot_count, 10),
       locationNames: row.location_names ?? [],
       soonestExpiration: row.soonest_expiration ?? undefined,
     };

@@ -75,6 +75,8 @@ export interface VoidTransactionData {
 export interface ItemWithStock {
   item: ReagentItem;
   totalStock: number;
+  lotCount: number;
+  expiredLotCount: number;
   locationNames: string[];
   soonestExpiration?: string;
 }

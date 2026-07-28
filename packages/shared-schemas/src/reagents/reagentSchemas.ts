@@ -109,6 +109,8 @@ export const reagentItemSchema = z.object({
 
 export const reagentItemWithStockSchema = reagentItemSchema.extend({
   totalStock: z.number(),
+  lotCount: z.number().int(),
+  expiredLotCount: z.number().int(),
   locationNames: z.array(z.string()),
   soonestExpiration: optionalDateOnlyField,
   attributeValues: z.array(reagentAttributeSummarySchema),

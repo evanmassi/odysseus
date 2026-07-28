@@ -60,6 +60,19 @@ describe('reagent per-lot stock ledger', () => {
     expect(withStock[0].item.id).toBe(item.id);
     expect(withStock[0].totalStock).toBe(60);
     expect(withStock[0].soonestExpiration).toBe(EARLY);
+    expect(withStock[0].lotCount).toBe(1);
+    expect(withStock[0].expiredLotCount).toBe(0);
+  });
+
+  it('counts lots and flags only the expired ones', async () => {
+    const { lab, record } = await scenario();
+    await record({ type: 'received', quantity: 10, lotNumber: 'A', expirationDate: '2020-01-01' });
+    await record({ type: 'received', quantity: 20, lotNumber: 'B', expirationDate: LATE });
+
+    const [withStock] = await repo.findByLabIdWithStock(lab.id);
+    expect(withStock.totalStock).toBe(30);
+    expect(withStock.lotCount).toBe(2);
+    expect(withStock.expiredLotCount).toBe(1);
   });
 
   it('issues FEFO across lots earliest-expiry first, one row per lot', async () => {

@@ -399,6 +399,20 @@ Two different axes, both optional, no conflict:
 - **Amount** — *how much you physically have* (500 g, 100 µg, 5 mL). Simply the **lot quantity** in a
   physical `stock_unit`; consuming decrements it. No separate field.
 
+**`stock_unit` is the unit you consume in** (decided). An antibody you pipette out of is `µL` — a
+`vial` cannot represent 495 µL left in a 500 µL vial. Something used whole (a kit, a plate) is `each`
+/ `vial`. Pack size is **not** encoded in the unit: the 100 µL and 500 µL versions of the same
+antibody are separate SKUs with separate catalog numbers, so they are separate `reagent_items`, and
+`reagent_packaging_levels` carries "1 vial = 500 µL" for display. The same lot number may appear under
+both — different products from one run — which `UNIQUE(item_id, location_id, lot_number)` allows.
+
+**List row display:** `<totalStock> <stock_unit> / <lotCount> lots`, so an aliquoted reagent reads
+`1.5 mL / 3 lots` and a countable one `6 vials / 3 lots`. `expiredLotCount` lets the badge say
+*1 expired* rather than implying the whole item is. Pack size is deliberately **not** on the list row
+— the catalog number already distinguishes the SKUs there, and "which am I using" is asked at the
+point of use, where the info panel already has packaging levels. Per-lot quantities, with derived pack
+equivalents, live in the lot panel.
+
 Example — "500 g bottle of 100 % EtOH": `stock_unit = g`, lot `quantity = 500`, `concentration = 100`,
 `concentration_unit = %`. Example — "100 µg antibody, concentration not stated": `stock_unit = µg`,
 lot `quantity = 100`, concentration null (set later if you titer/dilute).

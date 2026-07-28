@@ -8,6 +8,7 @@ import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
 import type {
+  ItemWithStock,
   ReagentLotRow,
   ReagentBarcodeRow,
   ReagentTransactionRow,
@@ -84,15 +85,16 @@ export class ReagentDto {
   }
 
   static itemWithStockToResponse(
-    item: ReagentItem,
-    totalStock: number,
-    locationNames: string[],
-    soonestExpiration: string | undefined,
+    withStock: ItemWithStock,
     attributeValues: ReagentAttributeSummary[]
   ): ReagentItemWithStockResponse {
+    const { item, totalStock, lotCount, expiredLotCount, locationNames, soonestExpiration } =
+      withStock;
     return {
       ...this.itemToResponse(item),
       totalStock,
+      lotCount,
+      expiredLotCount,
       locationNames,
       soonestExpiration,
       attributeValues,
