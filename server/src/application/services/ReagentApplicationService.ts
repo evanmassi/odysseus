@@ -76,6 +76,7 @@ import type {
   CreateReagentDocumentRequest,
   UpdateReagentDocumentRequest,
   CreateReagentPackagingLevelRequest,
+  UpdateReagentLotRequest,
   RecordReagentTransactionRequest,
   SetReagentAttributeValueRequest,
   ReagentAttributeValue,
@@ -576,6 +577,25 @@ export class ReagentApplicationService {
     }
 
     await this.itemRepository.deletePackagingLevel(levelId);
+  }
+
+  // Lots
+
+  async updateLot(
+    labId: string,
+    itemId: string,
+    lotId: string,
+    data: UpdateReagentLotRequest,
+    user: User
+  ): Promise<ReagentLotResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getItemOrThrow(itemId, labId);
+    const updated = await this.itemRepository.updateLot(lotId, itemId, {
+      openedDate: data.openedDate,
+      expirationDate: data.expirationDate,
+    });
+    if (!updated) throw new NotFoundError('This lot could not be found.');
+    return ReagentDto.lotToResponse(updated);
   }
 
   // Stock operations

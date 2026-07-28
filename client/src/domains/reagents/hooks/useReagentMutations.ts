@@ -19,6 +19,7 @@ import type {
   CreateReagentDocumentRequest,
   UpdateReagentDocumentRequest,
   CreateReagentPackagingLevelRequest,
+  UpdateReagentLotRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -138,6 +139,30 @@ export function useRemoveReagentDocumentMutation() {
       ReagentService.removeDocument(itemId, docId),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+// Lots
+
+export function useUpdateReagentLotMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      lotId,
+      data,
+    }: {
+      itemId: string;
+      lotId: string;
+      data: UpdateReagentLotRequest;
+    }) => ReagentService.updateLot(itemId, lotId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+      // An expiry correction moves the item's soonest-expiry and expired-lot rollup.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.items(labId) });
     },
   });
 }

@@ -12,12 +12,14 @@ import {
   reagentItemDetailResponseSchema,
   reagentItemListResponseSchema,
   reagentItemResponseSchema,
+  reagentLotResponseSchema,
   reagentPackagingLevelResponseSchema,
   type ReagentCategory,
   type ReagentDocument,
   type ReagentItem,
   type ReagentItemDetail,
   type ReagentItemWithStock,
+  type ReagentLot,
   type ReagentPackagingLevel,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
@@ -26,6 +28,7 @@ import {
   type CreateReagentDocumentRequest,
   type UpdateReagentDocumentRequest,
   type CreateReagentPackagingLevelRequest,
+  type UpdateReagentLotRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -130,6 +133,21 @@ export class ReagentService {
 
   static async removeDocument(itemId: string, docId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/documents/${docId}`);
+  }
+
+  // Lots
+
+  static async updateLot(
+    itemId: string,
+    lotId: string,
+    data: UpdateReagentLotRequest
+  ): Promise<ReagentLot> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/lots/${lotId}`,
+      data,
+      reagentLotResponseSchema
+    );
+    return response.lot;
   }
 
   // Packaging levels

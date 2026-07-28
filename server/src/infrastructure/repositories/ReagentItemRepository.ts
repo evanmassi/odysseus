@@ -342,6 +342,43 @@ export class ReagentItemRepository implements IReagentItemRepository {
 
   // Transactions — atomic and lot-aware; a FEFO issue returns one row per lot moved.
 
+  async updateLot(
+    id: string,
+    itemId: string,
+    fields: { openedDate?: string | null; expirationDate?: string | null }
+  ): Promise<ReagentLotRow | null> {
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+
+    if (fields.openedDate !== undefined) {
+      sets.push(`opened_date = $${idx++}`);
+      params.push(fields.openedDate);
+    }
+    if (fields.expirationDate !== undefined) {
+      sets.push(`expiration_date = $${idx++}`);
+      params.push(fields.expirationDate);
+    }
+
+    if (sets.length === 0) {
+      const existing = await this.db.queryOne<ReagentLotDbRow>(
+        `SELECT ${LOT_COLUMNS} FROM reagent_lots WHERE id = $1 AND item_id = $2`,
+        [id, itemId]
+      );
+      return existing ? ReagentLotMapper.fromRow(existing) : null;
+    }
+
+    sets.push(`updated_at = NOW()`);
+    params.push(id, itemId);
+    const row = await this.db.queryOne<ReagentLotDbRow>(
+      `UPDATE reagent_lots SET ${sets.join(', ')}
+       WHERE id = $${idx++} AND item_id = $${idx}
+       RETURNING ${LOT_COLUMNS}`,
+      params
+    );
+    return row ? ReagentLotMapper.fromRow(row) : null;
+  }
+
   async findTransactionsByItemId(itemId: string, limit?: number): Promise<ReagentTransactionRow[]> {
     if (limit != null) {
       const rows = await this.db.queryMany<ReagentTransactionDbRow>(

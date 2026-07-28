@@ -339,6 +339,25 @@ export class ReagentController extends BaseController {
     }
   }
 
+  // Lots
+
+  async updateLot(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const lot = await this.deps.reagentApplicationService.updateLot(
+        labId,
+        req.params.id,
+        req.params.lotId,
+        req.body,
+        user
+      );
+      res.json(ResponseBuilder.success({ lot }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to update lot', req.requestId);
+    }
+  }
+
   // Stock operations
 
   async recordTransaction(req: Request, res: Response): Promise<void> {

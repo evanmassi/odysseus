@@ -267,6 +267,7 @@ export function ReagentItemInfoPanel({
           <div>
             <SectionHeader title="Lots" size="sm" />
             <ReagentLotPanel
+              itemId={itemId}
               lots={lots}
               stockUnit={item.stockUnit}
               expiryWarningDays={item.expiryWarningDays}

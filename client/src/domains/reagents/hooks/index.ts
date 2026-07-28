@@ -18,6 +18,7 @@ export {
   useAddReagentDocumentMutation,
   useUpdateReagentDocumentMutation,
   useRemoveReagentDocumentMutation,
+  useUpdateReagentLotMutation,
   useAddReagentPackagingLevelMutation,
   useRemoveReagentPackagingLevelMutation,
 } from './useReagentMutations';

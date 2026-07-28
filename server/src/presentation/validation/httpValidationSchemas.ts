@@ -80,6 +80,7 @@ import {
   createReagentDocumentRequestSchema,
   updateReagentDocumentRequestSchema,
   createReagentPackagingLevelRequestSchema,
+  updateReagentLotRequestSchema,
   recordReagentTransactionRequestSchema,
   recordReagentStockCountRequestSchema,
   reagentBulkReceiveRequestSchema,
@@ -332,6 +333,8 @@ export const ReagentPackagingLevelIdParams = z.object({
   id: z.string().min(1),
   levelId: z.string().min(1),
 });
+export const ReagentLotIdParams = z.object({ id: z.string().min(1), lotId: z.string().min(1) });
+export const UpdateReagentLotHttpSchema = updateReagentLotRequestSchema;
 export const CreateReagentCategoryHttpSchema = createReagentCategoryRequestSchema;
 export const UpdateReagentCategoryHttpSchema = updateReagentCategoryRequestSchema;
 export const CreateReagentItemHttpSchema = createReagentItemRequestSchema;

@@ -35,6 +35,8 @@ import {
   ReagentTransactionVoidParams,
   ReagentPackagingLevelIdParams,
   CreateReagentPackagingLevelHttpSchema,
+  ReagentLotIdParams,
+  UpdateReagentLotHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -247,6 +249,15 @@ export class ReagentRouteModule implements RouteModule {
       '/:id/packaging-levels/:levelId',
       validateParams(ReagentPackagingLevelIdParams),
       this.reagentController.removePackagingLevel.bind(this.reagentController)
+    );
+
+    // Lots — date corrections only; stock leaves through a transaction
+
+    router.put(
+      '/:id/lots/:lotId',
+      validateParams(ReagentLotIdParams),
+      validateBody(UpdateReagentLotHttpSchema),
+      this.reagentController.updateLot.bind(this.reagentController)
     );
 
     // Transaction history

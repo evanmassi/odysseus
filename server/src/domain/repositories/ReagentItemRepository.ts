@@ -150,6 +150,11 @@ export interface ReagentItemRepository {
 
   findLotsByItemId(itemId: string): Promise<ReagentLotRow[]>;
   findLotById(id: string): Promise<ReagentLotRow | null>;
+  updateLot(
+    id: string,
+    itemId: string,
+    fields: { openedDate?: string | null; expirationDate?: string | null }
+  ): Promise<ReagentLotRow | null>;
 
   // Transactions — recordTransaction is atomic and lot-aware: a FEFO issue draws
   // across lots and returns one transaction row per lot moved.

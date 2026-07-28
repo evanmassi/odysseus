@@ -190,18 +190,15 @@ export const reagentLotSchema = z.object({
   updatedAt: dateField,
 });
 
+// Date corrections only: a lot leaves stock through a disposal transaction, so the
+// ledger records it — status is never patched directly.
 export const updateReagentLotRequestSchema = z.object({
   openedDate: patchText(),
   expirationDate: patchText(),
-  status: reagentLotStatusSchema.nullish(),
 });
 
 export const reagentLotResponseSchema = z.object({
   lot: reagentLotSchema,
-});
-
-export const reagentLotListResponseSchema = z.object({
-  lots: z.array(reagentLotSchema),
 });
 
 // Barcode schemas — item-level (product) or lot-level (physical bottle) via lotId.
@@ -303,10 +300,6 @@ export const reagentBulkVoidRequestSchema = z.object({
     .min(1, 'At least one transaction is required')
     .max(100),
   reason: z.string().min(1, 'Void reason is required').max(2000),
-});
-
-export const reagentTransactionResponseSchema = z.object({
-  transaction: reagentTransactionSchema,
 });
 
 export const reagentVoidTransactionResponseSchema = z.object({

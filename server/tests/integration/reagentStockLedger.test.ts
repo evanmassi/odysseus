@@ -121,6 +121,24 @@ describe('reagent per-lot stock ledger', () => {
     expect((await repo.findLotsByItemId(item.id))[0].quantity).toBe(42);
   });
 
+  it('corrects lot dates and refuses a lot belonging to another item', async () => {
+    const { lab, item, record } = await scenario();
+    await record({ type: 'received', quantity: 20, lotNumber: 'A', expirationDate: EARLY });
+    const lot = (await repo.findLotsByItemId(item.id))[0];
+
+    const updated = await repo.updateLot(lot.id, item.id, {
+      openedDate: FUTURE,
+      expirationDate: LATE,
+    });
+    expect(updated).toMatchObject({ openedDate: FUTURE, expirationDate: LATE });
+
+    const cleared = await repo.updateLot(lot.id, item.id, { openedDate: null });
+    expect(cleared?.openedDate).toBeUndefined();
+
+    const otherItem = await seed.reagentItem({ labId: lab.id });
+    expect(await repo.updateLot(lot.id, otherItem.id, { expirationDate: EARLY })).toBeNull();
+  });
+
   it('voids an issue transaction, restoring the lot quantity', async () => {
     const { lab, user, item, record } = await scenario();
     await record({ type: 'received', quantity: 40, lotNumber: 'A', expirationDate: FUTURE });

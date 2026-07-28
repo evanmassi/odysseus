@@ -5,21 +5,26 @@
  * usable lot first, expired next, spent and disposed lots last.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
-import { formatQuantity } from '@odysseus/shared-schemas';
-import { MapPin } from 'lucide-react';
+import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
+import { MapPin, SquarePen } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
 import { useLocationsQuery } from '@domains/lab-management';
 import { resolveLotExpiry } from '@domains/reagents/utils/reagentExpiry';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
+import { Button, Tooltip } from '@shared/ui';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
+import { ReagentLotModal } from './ReagentLotModal';
+
 import type { ReagentLot } from '@odysseus/shared-schemas';
 
 interface ReagentLotPanelProps {
+  itemId: string;
   lots: ReagentLot[];
   stockUnit?: string;
   expiryWarningDays?: number;
@@ -36,9 +41,17 @@ function compareForDisplay(a: ReagentLot, b: ReagentLot): number {
   return a.expirationDate < b.expirationDate ? -1 : 1;
 }
 
-export function ReagentLotPanel({ lots, stockUnit, expiryWarningDays }: ReagentLotPanelProps) {
+export function ReagentLotPanel({
+  itemId,
+  lots,
+  stockUnit,
+  expiryWarningDays,
+}: ReagentLotPanelProps) {
+  const { user } = useAuthStore();
+  const isAdmin = isAdminRole(user?.role);
   const { data: locations = [] } = useLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
+  const [editingLot, setEditingLot] = useState<ReagentLot | undefined>();
 
   const ordered = useMemo(() => [...lots].sort(compareForDisplay), [lots]);
 
@@ -97,6 +110,13 @@ export function ReagentLotPanel({ lots, stockUnit, expiryWarningDays }: ReagentL
                   {lot.status}
                 </Chip>
               )}
+              {isAdmin && (
+                <Tooltip content="Edit dates" side="bottom">
+                  <Button variant="ghost" size="xs" iconOnly onClick={() => setEditingLot(lot)}>
+                    <SquarePen className="h-3 w-3" />
+                  </Button>
+                </Tooltip>
+              )}
             </span>
           </div>
         );
@@ -113,6 +133,15 @@ export function ReagentLotPanel({ lots, stockUnit, expiryWarningDays }: ReagentL
           </span>
         </span>
       </div>
+
+      {editingLot && (
+        <ReagentLotModal
+          itemId={itemId}
+          lot={editingLot}
+          stockUnit={stockUnit}
+          onClose={() => setEditingLot(undefined)}
+        />
+      )}
     </div>
   );
 }
