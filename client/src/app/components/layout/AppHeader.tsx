@@ -287,7 +287,15 @@ export function AppHeader({
                       setShowLabSubmenu(false);
                     }}
                   />
-                  <MenuItem icon={Biohazard} label="Reagents" disabled />
+                  <MenuItem
+                    icon={Biohazard}
+                    label="Reagents"
+                    onClick={() => {
+                      void navigate('/lab/reagents');
+                      setShowSuiteDropdown(false);
+                      setShowLabSubmenu(false);
+                    }}
+                  />
                 </div>
               </DropdownMenu>
             </div>
