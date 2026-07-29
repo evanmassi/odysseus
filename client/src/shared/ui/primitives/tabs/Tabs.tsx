@@ -20,12 +20,16 @@ import { useIconPop } from '@shared/hooks';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
+/** `sm` is for dense rails — a long list of destinations rather than a few section tabs. */
+export type TabSize = 'md' | 'sm';
+
 interface TabsProps {
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
   /** Override automatic orientation detection */
   orientation?: TabOrientation;
+  size?: TabSize;
   className?: string;
 }
 
@@ -39,6 +43,7 @@ interface TabsContextValue {
   value: string;
   onChange: (value: string) => void;
   orientation: TabOrientation;
+  size: TabSize;
 }
 
 const TabsContext = createContext<TabsContextValue | null>(null);
@@ -52,8 +57,13 @@ function useTabsContext() {
 }
 
 const BASE =
-  'type-label text-label-lg font-medium relative z-10 ' +
+  'type-label font-medium relative z-10 ' +
   'transition-colors duration-150 focus:outline-none cursor-pointer';
+
+const SIZE_TEXT: Record<TabSize, string> = {
+  md: 'text-label-lg',
+  sm: 'text-label-sm',
+};
 
 const ACTIVE_STATE = 'text-foreground phosphor-text';
 
@@ -80,7 +90,7 @@ const INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
 
 export function Tab({ id, icon, children }: TabProps) {
-  const { value, onChange, orientation } = useTabsContext();
+  const { value, onChange, orientation, size } = useTabsContext();
   const isActive = value === id;
 
   // Icon-pop is a vertical-only hover micro-affordance.
@@ -91,12 +101,15 @@ export function Tab({ id, icon, children }: TabProps) {
 
   const handleClick = () => onChange(id);
 
+  const padding = size === 'sm' ? 'px-3 py-2' : 'px-4 py-2.5';
   const orientationClasses =
     orientation === 'vertical'
-      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left min-w-0'
-      : 'flex items-center gap-2 px-4 py-2.5 min-w-0';
+      ? `w-full flex items-center gap-2 ${padding} text-left min-w-0`
+      : `flex items-center gap-2 ${padding} min-w-0`;
 
-  const className = `${BASE} ${orientationClasses} ${isActive ? ACTIVE_STATE : INACTIVE_STATE}`;
+  const className = `${BASE} ${SIZE_TEXT[size]} ${orientationClasses} ${
+    isActive ? ACTIVE_STATE : INACTIVE_STATE
+  }`;
 
   return (
     <button
@@ -111,18 +124,25 @@ export function Tab({ id, icon, children }: TabProps) {
       {icon && (
         <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
       )}
-      <span className="min-w-0 break-words">{children}</span>
+      <span className="min-w-0 flex-1 break-words">{children}</span>
     </button>
   );
 }
 
-export function Tabs({ value, onChange, children, orientation, className = '' }: TabsProps) {
+export function Tabs({
+  value,
+  onChange,
+  children,
+  orientation,
+  size = 'md',
+  className = '',
+}: TabsProps) {
   const tabCount = Children.count(children);
   const resolvedOrientation = orientation ?? (tabCount <= 2 ? 'horizontal' : 'vertical');
 
   const contextValue = useMemo(
-    () => ({ value, onChange, orientation: resolvedOrientation }),
-    [value, onChange, resolvedOrientation]
+    () => ({ value, onChange, orientation: resolvedOrientation, size }),
+    [value, onChange, resolvedOrientation, size]
   );
 
   const listRef = useRef<HTMLDivElement>(null);

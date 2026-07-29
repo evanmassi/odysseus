@@ -91,7 +91,7 @@ export function SectionHeader({
         />
         <span
           aria-hidden
-          className={`absolute top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)] ${rightMeta ? 'right-20' : 'right-0'}`}
+          className="absolute right-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
         />
       </div>
       {rightMeta && (

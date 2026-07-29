@@ -125,6 +125,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       false);
   const [activeTab, setActiveTab] = useState<TabId>('system');
   const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
+  const [tabAction, setTabAction] = useState<React.ReactNode>(null);
 
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -147,6 +148,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   }, [isOpen, loadConfiguration]);
 
   const handleTabFooter = useCallback((footer: React.ReactNode) => setTabFooter(footer), []);
+  const handleTabAction = useCallback((action: React.ReactNode) => setTabAction(action), []);
 
   const tabs = (
     <Tabs
@@ -154,6 +156,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       onChange={v => {
         setActiveTab(v as TabId);
         setTabFooter(null);
+        setTabAction(null);
       }}
     >
       {(Object.entries(TAB_META) as [TabId, TabMeta][])
@@ -237,7 +240,12 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       className="h-[85vh]"
       onClose={onClose}
     >
-      <SectionHeader icon={TAB_META[activeTab].icon} title={TAB_META[activeTab].title} size="lg" />
+      <SectionHeader
+        icon={TAB_META[activeTab].icon}
+        title={TAB_META[activeTab].title}
+        rightMeta={tabAction}
+        size="lg"
+      />
 
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
@@ -277,7 +285,11 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'catalog' && !isSystemAdmin && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <CatalogTab onTabFooter={handleTabFooter} readOnly={demoSeeded} />
+          <CatalogTab
+            onTabFooter={handleTabFooter}
+            onTabAction={handleTabAction}
+            readOnly={demoSeeded}
+          />
         </Suspense>
       )}
 

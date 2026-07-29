@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-import { AlertBanner, Button, Chip, SubsectionHeader, Table, Tooltip } from '@shared/ui';
+import { AlertBanner, Button, Chip, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
@@ -122,6 +122,7 @@ function CategorySection({
   readOnly = false,
 }: CategorySectionProps) {
   const [newValue, setNewValue] = useState('');
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -140,6 +141,11 @@ function CategorySection({
     } finally {
       setAdding(false);
     }
+  };
+
+  const closeAdd = () => {
+    setIsAddOpen(false);
+    setNewValue('');
   };
 
   const handleRenameStart = (id: string, currentValue: string) => {
@@ -293,40 +299,57 @@ function CategorySection({
     <Table
       columns={columns}
       toolbar={{
-        left: (
-          <SubsectionHeader
-            title={title}
-            meta={`// ${values.length} ${values.length === 1 ? 'entry' : 'entries'}${
-              usedBy ? ` · used by ${usedBy.join(' · ')}` : ''
-            }`}
-            accent
-            className="phosphor-text"
-          />
-        ),
-        right: (
-          <>
-            <Input
-              type="text"
-              value={newValue}
-              onChange={e => setNewValue(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !readOnly) void handleAdd();
-              }}
-              placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category]}...`}
-              size="sm"
-              disabled={readOnly}
-            />
+        // While adding, the field takes the whole toolbar; otherwise the row carries only
+        // the used-by note, since the rail already names the list and counts it.
+        // `w-full` not `flex-1`: the toolbar already contains a flex-1 spacer, and two
+        // growing siblings would split the row in half.
+        left: isAddOpen ? (
+          <div className="flex w-full items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <Input
+                type="text"
+                value={newValue}
+                onValueChange={setNewValue}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') void handleAdd();
+                  if (e.key === 'Escape') closeAdd();
+                }}
+                placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category]}...`}
+                size="sm"
+                fullWidth
+                /* eslint-disable-next-line jsx-a11y/no-autofocus -- Revealed on click; focus is expected */
+                autoFocus
+              />
+            </div>
             <Button
               variant="primary"
               size="sm"
               onClick={() => void handleAdd()}
-              disabled={readOnly || !newValue.trim() || adding}
+              disabled={!newValue.trim() || adding}
               isLoading={adding}
               leftIcon={<Plus size={14} />}
             >
               Add
             </Button>
-          </>
+            <Button variant="ghost" size="sm" onClick={closeAdd} aria-label="Cancel">
+              <X size={14} />
+            </Button>
+          </div>
+        ) : usedBy ? (
+          <span className="type-label text-label-2xs tracking-label-wide text-foreground/40">
+            used by {usedBy.join(' · ')}
+          </span>
+        ) : undefined,
+        right: isAddOpen ? undefined : (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setIsAddOpen(true)}
+            disabled={readOnly}
+            leftIcon={<Plus size={14} />}
+          >
+            Add
+          </Button>
         ),
       }}
       data={sortedValues}
@@ -344,10 +367,12 @@ function CategorySection({
 
 interface CatalogTabProps {
   onTabFooter?: (footer: React.ReactNode) => void;
+  /** Lifts the refresh control into the tab header — it refetches every list, not the visible one. */
+  onTabAction?: (action: React.ReactNode) => void;
   readOnly?: boolean;
 }
 
-export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
+export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: CatalogTabProps) {
   const location = useLocation();
   const [selected, setSelected] = useState<LookupCategory>(() => leafForRoute(location.pathname));
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -370,6 +395,20 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       </AlertBanner>
     );
   }, [onTabFooter]);
+
+  useEffect(() => {
+    onTabAction?.(
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => refetch()}
+        isLoading={isFetching}
+        leftIcon={<RefreshCw size={14} />}
+      >
+        Refresh
+      </Button>
+    );
+  }, [onTabAction, isFetching, refetch]);
 
   // mutateAsync so the child form can await the result and keep the typed value on failure.
   const handleAdd = async (category: LookupCategory, value: string) => {
@@ -420,17 +459,6 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
 
   return (
     <div className="space-y-2">
-      <div className="mb-4 flex justify-end">
-        <Button
-          variant="secondary"
-          onClick={() => refetch()}
-          isLoading={isFetching}
-          leftIcon={<RefreshCw size={14} />}
-        >
-          Refresh
-        </Button>
-      </div>
-
       <div className="flex min-h-0 gap-4">
         <CatalogRail
           leaves={CATALOG_LEAVES}
