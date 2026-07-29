@@ -5,8 +5,9 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5 and 9 done. Reagents Phase 2 is complete and Phase 3 dissolved into the
-client-side alerting rule below. **Next: item 6 (supplies → unit registry) or 4b (equipment locations); reagents Phase 4 is unblocked.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 4a, 5, 6 and 9 done. Reagents is complete through Phase 6. **Next: item 7
+(catalog tab → nav rail), which reagents Phase 7 is waiting on.** Items 4b and 8 remain. Companion to
+`REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
 **Migration policy while reagents are unreleased.** Dev has not applied 027; reagent schema changes
 **amend 027 in place** rather than stacking corrective migrations, so the tables are created correctly
@@ -163,7 +164,7 @@ Scientific* correctly retained as both a vendor and a manufacturer.
 accordion still exists. Item 7 dissolves all grouping into the rail, at which point they are two
 leaves and the group name goes away — not worth reopening the naming question for.
 
-### 6. Supplies → unit registry — *before item 7*
+### 6. Supplies → unit registry — ✅ done
 
 **What.** Drop the `supply_stock_unit` lookup; map existing values to registry ids, unmappable ones
 become lab custom units. Widen the registry's `count` kind to cover packaging vocabulary (box, case,
@@ -174,7 +175,29 @@ supplies as the only catalog using a lookup. A free-text lookup can't do dimensi
 `mg/mL` but never `mL` on a concentration field) or canonical formatting — it gives you "ug", "µg"
 and "mcg" as three entries.
 
-**Blocks.** Nothing hard, but it removes a leaf from the catalog rail, so do it first.
+**Blocks.** Nothing hard, but it removes a leaf from the catalog rail, so it went first.
+
+**Landed.** Migration 032 rewrites the unit string across **all five columns that hold one** —
+`supply_items.stock_unit` / `reorder_unit` / `reorder_threshold_unit` and
+`supply_packaging_levels.unit_name` / `parent_unit` — because the packaging chain walks
+`parent_unit` → `unit_name` → `stock_unit` by string equality, and rewriting any subset detaches the
+conversions silently. The lab's three values (Box · Pack · Case) all map onto new registry entries,
+so the custom-unit fallback in the migration went unused; it stays for values a future environment
+might hold. The registry's `count` kind gained `box` / `pack` / `case`, which also hands reagents the
+pack vocabulary its packaging editor was missing.
+
+**Deleted rather than fixed:** `renameStockUnit` only ever rewrote `supply_items.stock_unit`, so
+renaming a unit already broke packaging chains and left `reorder_unit` dangling. Retiring the lookup
+retires the bug class. `countItemsUsingStockUnit` went with it.
+
+**Rehearsed** on a clone of dev through the full 027→032 chain: all five columns lowercased
+consistently, every `parent_unit` still resolves to a sibling `unit_name` per item, the
+`supply_stock_unit` rows and CHECK entry are gone, `custom_units` empty as predicted — and dev itself
+untouched at 26.
+
+**Note:** supplies' unit dropdowns are registry-only until custom-unit CRUD lands in reagents Phase 7,
+so there is no "add a unit" path in between. A no-op for this lab, whose three units all became
+registry entries.
 
 ### 7. Catalog tab → nav rail — *before reagents Phase 7*
 
@@ -264,7 +287,7 @@ Decided; don't reopen without a new reason.
 - [x] 3 — Custom units → catalog-agnostic
 - [x] 4 — Locations merge *(4a; equipment onboarding 4b outstanding)*
 - [x] 5 — Vendor / manufacturer merge
-- [ ] 6 — Supplies → unit registry
+- [x] 6 — Supplies → unit registry
 - [ ] 7 — Catalog tab → nav rail
 - [ ] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
