@@ -41,9 +41,11 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import { ReagentExpiryAlertPanel } from './ReagentExpiryAlertPanel';
 import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
 import { ReagentItemRow } from './ReagentItemRow';
+import { ReagentLowStockAlertPanel } from './ReagentLowStockAlertPanel';
 import { ReagentTransactionForm } from './ReagentTransactionForm';
 
 import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
@@ -255,6 +257,14 @@ export function ReagentsTab() {
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+            <ReagentExpiryAlertPanel
+              selectedItemId={selectedItemId}
+              onSelectItem={handleSelectItem}
+            />
+            <ReagentLowStockAlertPanel
+              selectedItemId={selectedItemId}
+              onSelectItem={handleSelectItem}
+            />
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}

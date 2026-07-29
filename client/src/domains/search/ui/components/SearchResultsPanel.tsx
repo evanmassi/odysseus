@@ -21,6 +21,7 @@ import { useUserSettings, useUserLookupQuery } from '@domains/users';
 import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { escapeCsvValue } from '@shared/utils/csv';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useSearch } from '../../hooks/useSearch';
@@ -207,13 +208,6 @@ export function SearchResultsPanel({
   };
 
   const handleExportResults = () => {
-    const escapeCsvValue = (value: string): string => {
-      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-        return `"${value.replace(/"/g, '""')}"`;
-      }
-      return value;
-    };
-
     const getLocationNames = (tankId: string, rackId: string, boxId: string) => {
       const tanks = getCurrentTanks();
       const tank = tanks.find(t => t.id === tankId);
