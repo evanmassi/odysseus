@@ -8,13 +8,14 @@
 import { z } from 'zod';
 import { documentTypeSchema } from '../documents';
 import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/dateFields';
+import { optionalText, patchText } from '../utils/stringFields';
 
 // Enums
 
 export const supplyItemStatusValues = ['active', 'discontinued', 'archived'] as const;
 export const supplyItemStatusSchema = z.enum(supplyItemStatusValues);
 
-export const supplyTransactionTypeValues = [
+const supplyTransactionTypeValues = [
   'received',
   'issued',
   'count_adjustment',
@@ -23,7 +24,7 @@ export const supplyTransactionTypeValues = [
 ] as const;
 export const supplyTransactionTypeSchema = z.enum(supplyTransactionTypeValues);
 
-export const supplyBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
+const supplyBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
 export const supplyBarcodeTypeSchema = z.enum(supplyBarcodeTypeValues);
 
 // Category schemas
@@ -93,39 +94,39 @@ export const supplyItemWithStockSchema = supplyItemSchema.extend({
 export const createSupplyItemRequestSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   name: z.string().min(1, 'Item name is required').max(200),
-  manufacturer: z.string().max(200).optional(),
-  catalogNumber: z.string().max(200).optional(),
-  vendorName: z.string().max(200).optional(),
-  vendorCatalogNumber: z.string().max(200).optional(),
-  stockUnit: z.string().max(100).optional(),
-  baseItemName: z.string().max(100).optional(),
+  manufacturer: optionalText(200),
+  catalogNumber: optionalText(200),
+  vendorName: optionalText(200),
+  vendorCatalogNumber: optionalText(200),
+  stockUnit: optionalText(100),
+  baseItemName: optionalText(100),
   reorderThreshold: z.number().min(0).optional(),
-  reorderThresholdUnit: z.string().max(100).optional(),
+  reorderThresholdUnit: optionalText(100),
   reorderQuantity: z.number().min(0).optional(),
-  reorderUnit: z.string().max(100).optional(),
+  reorderUnit: optionalText(100),
   unitPrice: z.number().min(0).optional(),
   properties: z.array(z.string().max(200)).optional(),
-  description: z.string().max(2000).optional(),
-  notes: z.string().max(5000).optional(),
+  description: optionalText(2000),
+  notes: optionalText(5000),
 });
 
 export const updateSupplyItemRequestSchema = z.object({
   categoryId: z.string().min(1).nullish(),
   name: z.string().min(1).max(200).nullish(),
-  manufacturer: z.string().max(200).nullish(),
-  catalogNumber: z.string().max(200).nullish(),
-  vendorName: z.string().max(200).nullish(),
-  vendorCatalogNumber: z.string().max(200).nullish(),
-  stockUnit: z.string().max(100).nullish(),
-  baseItemName: z.string().max(100).nullish(),
+  manufacturer: patchText(200),
+  catalogNumber: patchText(200),
+  vendorName: patchText(200),
+  vendorCatalogNumber: patchText(200),
+  stockUnit: patchText(100),
+  baseItemName: patchText(100),
   reorderThreshold: z.number().min(0).nullish(),
-  reorderThresholdUnit: z.string().max(100).nullish(),
+  reorderThresholdUnit: patchText(100),
   reorderQuantity: z.number().min(0).nullish(),
-  reorderUnit: z.string().max(100).nullish(),
+  reorderUnit: patchText(100),
   unitPrice: z.number().min(0).nullish(),
   properties: z.array(z.string().max(200)).nullish(),
-  description: z.string().max(2000).nullish(),
-  notes: z.string().max(5000).nullish(),
+  description: patchText(2000),
+  notes: patchText(5000),
 });
 
 export const supplyItemResponseSchema = z.object({

@@ -8,7 +8,10 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createSupplyItemRequestSchema } from '@odysseus/shared-schemas';
+import {
+  createSupplyItemRequestSchema,
+  updateSupplyItemRequestSchema,
+} from '@odysseus/shared-schemas';
 import { Plus, Save, SquarePen, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
@@ -46,6 +49,7 @@ import type {
   SupplyCategory,
   SupplyItemWithStock,
   CreateSupplyItemRequest,
+  UpdateSupplyItemRequest,
 } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -191,7 +195,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     setValue,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(createSupplyItemRequestSchema) as never,
+    resolver: zodResolver(
+      isEditing ? updateSupplyItemRequestSchema : createSupplyItemRequestSchema
+    ) as never,
     defaultValues: isEditing
       ? {
           categoryId: item.categoryId,
@@ -278,14 +284,20 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     [isEditing, item, removePackagingMutation]
   );
 
+  // Blank clears the field on edit (null) but stays absent on create (undefined).
+  const cleared = isEditing ? null : undefined;
+  const numberField = (value: string) => (value === '' ? cleared : Number(value));
+  // RHF types these off the create-shaped defaults, so the null clear sentinel needs a cast.
+  const setThresholdValue = (name: 'reorderThreshold' | 'reorderThresholdUnit', value: unknown) =>
+    setValue(name, value as never);
+
   const onFormSubmit = async (data: FieldValues) => {
-    const validated = data as CreateSupplyItemRequest;
     try {
       if (isEditing) {
-        await updateMutation.mutateAsync({ id: item.id, data: validated });
+        await updateMutation.mutateAsync({ id: item.id, data: data as UpdateSupplyItemRequest });
         notifications.success('Item updated');
       } else {
-        const created = await createMutation.mutateAsync(validated);
+        const created = await createMutation.mutateAsync(data as CreateSupplyItemRequest);
 
         // Save manufacturer barcode
         if (manufacturerBarcode.trim()) {
@@ -642,8 +654,14 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   const multiplier = thresholdUnit
                     ? computeThresholdMultiplier(thresholdUnit, currentStockUnit)
                     : 1;
-                  setValue('reorderThreshold', qty !== undefined ? qty * multiplier : undefined);
-                  setValue('reorderThresholdUnit', thresholdUnit || undefined);
+                  setThresholdValue(
+                    'reorderThreshold',
+                    qty !== undefined ? qty * multiplier : cleared
+                  );
+                  setThresholdValue(
+                    'reorderThresholdUnit',
+                    thresholdUnit === '' ? cleared : thresholdUnit
+                  );
                 }}
                 placeholder="e.g., 2"
                 size="sm"
@@ -667,8 +685,11 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                     const multiplier = unit
                       ? computeThresholdMultiplier(unit, currentStockUnit)
                       : 1;
-                    setValue('reorderThreshold', qty !== undefined ? qty * multiplier : undefined);
-                    setValue('reorderThresholdUnit', unit || undefined);
+                    setThresholdValue(
+                      'reorderThreshold',
+                      qty !== undefined ? qty * multiplier : cleared
+                    );
+                    setThresholdValue('reorderThresholdUnit', unit === '' ? cleared : unit);
                   }}
                   size="sm"
                   fullWidth
@@ -700,9 +721,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               labelStyle="compact"
               type="number"
               placeholder="e.g., 5"
-              registration={register('reorderQuantity', {
-                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-              })}
+              registration={register('reorderQuantity', { setValueAs: numberField })}
             />
             <Controller
               name="reorderUnit"
@@ -729,9 +748,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               type="number"
               step="0.01"
               placeholder="e.g., 45"
-              registration={register('unitPrice', {
-                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-              })}
+              registration={register('unitPrice', { setValueAs: numberField })}
             />
           </div>
 
