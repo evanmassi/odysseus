@@ -11,6 +11,27 @@ on the touched files; commit per-domain as `refactor(scope): … (C-NN)`, stagin
 
 ---
 
+## 0. Open from the reagents build (added 2026-07-29)
+
+Small decisions left after the reagents suite and the catalog rail. Not audit findings — deferred calls
+that need eyes on the running app rather than a code read.
+
+- **Catalog add-entry `✕`** — with the reveal field at full row width, the cancel `✕` next to `Add` may
+  be redundant with Escape. Decide by looking at it.
+- **Catalog usage column shows `—`, not `0`** — pre-existing and deliberate (`usageCount > 0 ? n : '—'`);
+  the dash is what gates the delete button. It reads as "unknown" rather than "unused". Change to `0`,
+  `Unused`, or leave.
+- **`HelpModal` search header** — its `rightMeta` nub moved ~80px right when `SectionHeader`'s
+  consumer-specific `right-20` offset was removed. Expected to read better; unverified.
+- **Reagent lot UI never rendered with data** — the lot panel, FEFO ordering, expiry chips and both alert
+  panels have only been exercised by tests. Fastest path to eyes-on: receive stock through the tab, or ask
+  for psql inserts seeding an item with lots at varying expiries.
+- **`resolveExpiryBadge` boundary** — covered by 11 unit tests, including the 90-vs-91-day edge. Its
+  helper builds dates from **local** parts; `toISOString()` shifts the calendar day on a UTC-behind
+  machine, which is the drift `dateExpiry` exists to avoid. Don't "simplify" it back.
+
+---
+
 ## A. Quick wins (small, bounded — good "clear a bunch of little things" batch)
 
 - **C-4(c)** — two trivial dedups in admin:

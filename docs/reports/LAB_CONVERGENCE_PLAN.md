@@ -9,11 +9,13 @@ what.
 is now unblocked**. Items 4b (equipment locations) and 8 (lab-wide barcode resolve, due before reagents
 Phase 8) remain. Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
-**Migration policy while reagents are unreleased.** Dev has not applied 027; reagent schema changes
-**amend 027 in place** rather than stacking corrective migrations, so the tables are created correctly
-on the single run. Only add a new migration when the change touches data already live in dev
-(supplies, equipment, lookups) — items 4, 5 and 6 all do. `odysseus_test` is disposable: drop it and
-the integration setup rebuilds it.
+**Migration policy — amend-in-place is over.** Dev has applied everything through **032**. While
+reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
+from here is a **new migration (033+)**, and anything touching live data gets rehearsed on a clone
+first (`CREATE DATABASE odysseus_mig_rehearsal TEMPLATE odysseus_dev`, run the runner, verify, drop) —
+the drill that caught a silent ID collision in 031 and verified the five-column unit rewrite in 032.
+There is no `down`: the runner interface is `{ id, name, up }`. `odysseus_test` is disposable — drop it
+and the integration setup rebuilds it.
 
 **Governing rule.** One source of truth per concept. Where a concept is genuinely lab-wide (a vendor,
 a fridge, a unit), it gets one home and every suite points at it. Where it's genuinely suite-specific
@@ -38,7 +40,14 @@ equipment are the *surface* reference only — never a code reference.
 Ordered by cost of delay. Each item states what blocks it, because several get materially more
 expensive one phase later.
 
-### 1. Shared alert panel — ✅ done (`192eafa7`)
+### 1. Shared alert panel — ✅ done (`192eafa7`); low-stock panel shared later
+
+**Follow-on landed (`66e9523b`).** `SupplyLowStockAlertPanel` and `ReagentLowStockAlertPanel` were 125
+and 123 lines differing in **30** — a clone. Collapsed into
+`shared/ui/components/inventory/LowStockAlertPanel.tsx` (+ co-located test, matching every sibling in
+that folder), with each domain keeping only its query, its unit formatting (`formatQuantity` vs
+`pluralizeUnit`) and which reorder modal opens. Both bindings are now ~53 lines.
+
 
 **What.** Extract one alert panel component + one alert shape (severity, entity, message, action)
 to `shared/ui/components/`; rewire supplies and equipment onto it. Add a lab-wide roll-up (count
@@ -227,8 +236,21 @@ a new `--rail` variant was folded into the existing selected-row selectors (thre
 widening, no duplicated declarations) because `--item`'s junction dot expects a spine that a flat list
 doesn't have.
 
-**Unverified:** the rail's proportions haven't been seen rendered. It's in the admin settings modal →
-Catalog, which needs no migrations to reach.
+**Reworked after first render** (the first pass was hand-rolled and didn't match the app): the rail now
+uses `Tabs orientation="vertical"` — the same primitive as the Lab Management sidebar — which brought
+the sliding phosphor indicator, active treatment and tab semantics for free. Three shared primitives
+were widened rather than worked around: `Tabs` gained a `size` prop (`sm` = 12px + tighter padding, for
+a dense rail rather than a few section tabs; all 11 other call sites default to the old `md`),
+`SectionHeader`'s terminator nub lost a `right-20` magic number tuned to its only prior consumer, and
+`AdminSettingsModal` gained an `onTabAction` slot mirroring its existing `onTabFooter` so Refresh could
+sit in the tab header, where its catalog-wide scope reads correctly (it refetches all nine lists).
+The `nav-tree` `--rail` CSS variant added by the first pass was reverted with it.
+
+**The pane no longer names itself.** With a rail, the lit leaf is the title and the count, so
+`CategorySection`'s toolbar dropped its `SubsectionHeader` and became actions-only — matching
+`InviteCodesTab`, the app's existing pattern. `+ Add` reveals a full-width field (Enter commits,
+Escape cancels, stays open for consecutive entries); `toolbar.left` now carries only the *used by* note,
+and only for the two shared vocabularies.
 
 ### 8. Lab-wide barcode resolve — *before reagents Phase 8*
 
@@ -264,6 +286,22 @@ Phase-1 reagent alert schemas.
 **Known residual.** The threshold rule now exists client-side (display) and in SQL (CSV export). The
 admin export tab is an independent consumer, so the server path earns its place. No shared predicate
 helper yet — one caller; reagents becomes the second in Phase 6, extract then.
+
+### 10. Catalog tab skeleton → shared shell — *not started*
+
+**What.** `EquipmentTab`, `SuppliesTab` and `ReagentsTab` hand-write the same chassis: the 60/40 split,
+`ConsolePanel`, `PanelHeader`, the locator `HeaderStrip` with item/category counts, and the
+search · sort · show-archived toolbar. Normalising the domain prefixes away, the reagents and supplies
+tabs differ in **120 lines** — nearly all of it the contents, not the frame.
+
+**Why.** Three catalogs now share one frame, and a fourth surface would copy it again. This is the
+largest duplication left after the low-stock panel; `shared/ui/components/inventory/` is the
+established home.
+
+**Cost.** Invasive: it touches all three tabs' layout at once, two of which are un-audited. Worth doing
+deliberately, not folded into another item. A `ReorderList` shell is a weaker second candidate — the
+table and CSV are common but the export mechanism genuinely differs (supplies fetches a server
+endpoint, reagents serialises client-side) and so do the columns.
 
 ---
 
@@ -307,3 +345,4 @@ Decided; don't reopen without a new reason.
 - [x] 7 — Catalog tab → nav rail
 - [ ] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
+- [ ] 10 — Catalog tab skeleton → shared shell

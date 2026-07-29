@@ -22,15 +22,17 @@ we build.
 
 _Current: Phases 2, 4, 5 + 6 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
 *Alerting*) — its reagent panels landed in Phase 6, its cleanup as convergence item 9. **Next is
-Phase 7 — client attributes**, which convergence items 6 and 7 are due before. Item 4b and 8 also
-remain. Custom-unit CRUD was deferred out of Phase 4 to Phase 7, where its dropdown consumes it. See
-`LAB_CONVERGENCE_PLAN.md`._
+Phase 7 — client attributes**, now unblocked: convergence items 6 and 7 both landed. Custom-unit CRUD
+was deferred out of Phase 4 to Phase 7, where its dropdown consumes it — the `custom_units` table
+already exists, so it needs routes + UI, no migration. **Dev has applied migrations through 032**, so
+amend-in-place is over: every schema change from here is a new migration (033+). Convergence items 4b, 8
+and 10 remain. See `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository (later folded into the shared `Location`); lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
 _- 5a ✅ browse — `queryKeys.reagents` (categories/items), ReagentService + query/mutation hooks (category CRUD), `reagentStatus` / `reagentExpiry` (item badge off the lot rollup, 90-day default window overridable per item), `ReagentItemRow` (worst-of stock+expiry urgency; `formatQuantity` gives the row its first consumer), `ReagentsTab` (tree, search, sort, archived, locations), tab flipped on — and `LabManagementPage`'s `enabled` flag removed with it, since every suite is now live. `resolveStockTone` extracted to `shared/utils/stockLevel.ts` on its second caller; supplies rewired._
 _- 5b ✅ read — detail query, `ReagentLotPanel` (FEFO display order, spent lots dimmed, on-hand footer), `ReagentItemInfoPanel` (chemistry, lots, packaging, documents, reorder, archive/remove), `isLotDrawable`, and `docType` on the shared `DocumentLinkModal` as an opt-in `withDocType` picker (supplies/equipment untouched) with `documentTypeLabels`._
-_- 5c ✅ author — `ReagentItemForm` (identification / sourcing / chemistry / unit + packaging / reorder / notes), registry-backed unit dropdowns filtered by kind, packaging editor wrapping the outermost pack, item create/update + packaging mutations, Add Item + Edit wiring. Validates against the **update** schema when editing so blanking a field clears it — traced end to end (`patchText` → entity `?? undefined` → mapper `?? null` → full-row upsert); supplies validates with its create schema in both modes and **cannot** clear a text field on edit._
+_- 5c ✅ author — `ReagentItemForm` (identification / sourcing / chemistry / unit + packaging / reorder / notes), registry-backed unit dropdowns filtered by kind, packaging editor wrapping the outermost pack, item create/update + packaging mutations, Add Item + Edit wiring. Validates against the **update** schema when editing so blanking a field clears it — traced end to end (`patchText` → entity `?? undefined` → mapper `?? null` → full-row upsert); supplies validated with its create schema in both modes and **could not** clear a text field on edit — since fixed (`39090ace`): its update schema moved onto `patchText`, its create schema onto `optionalText`, and the form swaps resolver by mode, so supplies now matches equipment and reagents on both paths._
 _Phase 5 deferrals: no threshold-unit converter (reagent thresholds are entered in the stock unit, so `reorderThresholdUnit` stays unwritten — revisit if a bulk import ever writes it); pack-unit vocabulary is the registry's countable kind (`vial`/`tube`/`each`) until convergence item 6 widens it with box/case; `resolveExpiryBadge` has no unit test yet. The Phase-5 line below no longer includes route-driven expansion of the `CatalogTab` Reagents group — the nav rail (convergence item 7) supersedes it._
 _- 6-prelude ✅ lot corrections — `PUT /reagents/:id/lots/:lotId` (the lot ops §7 always planned but Phase 2 never built), repo `updateLot`, `ReagentLotModal` + row actions, integration case. `updateReagentLotRequestSchema` narrowed to the two dates: status stays unpatchable so a write-off goes through a disposal transaction and lands in the ledger. `reagentLotListResponseSchema` + `reagentTransactionResponseSchema` deleted — no consumer in any remaining phase._
 _- 6a ✅ stock ops — `ReagentTransactionForm` (count/receive/issue/dispose; location-scoped lot targeting, FEFO default with the starting lot named, expired acknowledgment shown exactly when the server would refuse, packaging-aware quantities, per-lot concentration override), record + stock-count service/hooks, Record Transaction wiring, `utils/unitOptions.ts` extracted on its second consumer. Dropped `lotNumber`/`expirationDate` from the stock-count request — declared and plumbed but never read by `adjustCount`, which requires `lotId`. **No client FEFO simulator**: the form shows ordering, the server plans the draw._
@@ -940,12 +942,19 @@ Shared, grown during the client phases
 + shared/utils/csv.ts                                           escapeCsvValue (search rewired onto it)
 + shared/ui/components/overlays/documentTypeLabels.ts
 ~ shared/ui/components/overlays/DocumentLinkModal.tsx           opt-in `withDocType` picker
++ shared/ui/components/inventory/LowStockAlertPanel.tsx         shared on its second caller (+ test)
++ shared/utils/csv.ts                                           escapeCsvValue, out of the search panel
+~ shared/ui/primitives/tabs/Tabs.tsx                            `size` prop for dense vertical rails
+~ shared/ui/primitives/titles/SectionHeader.tsx                 nub terminator always right-0
 
 Admin / nav (central edits)
 ~ domains/admin/…/settings-modal/tabs/CatalogTab.tsx            reagent CatalogGroup + attribute/custom-unit admin
 ~ app/components/layout/LabManagementPage.tsx                   + <Route path="reagents">; enabled flag dropped
 ~ app/cache/queryKeys.ts                                        queryKeys.reagents block
-~ app/components/layout/AppHeader.tsx                           optional /lab/reagents quick-link
+~ app/components/layout/AppHeader.tsx                           suite dropdown: the Reagents item was
+                                                                `disabled` — a live gate, not the optional
+                                                                quick-link this line used to describe.
+                                                                Flipped with Phase 5's tab (found in-app)
 ```
 
 **Naming notes:** `Timeline` and `Fields` aren't in the canonical suffix list but match existing
