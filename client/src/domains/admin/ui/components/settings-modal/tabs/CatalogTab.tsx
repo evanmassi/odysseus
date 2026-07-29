@@ -1,23 +1,16 @@
 /**
  * Catalog Tab
  *
- * Admin interface for managing the lab's dropdown lookup values, grouped by domain.
+ * Admin interface for the lab's dropdown vocabularies: a rail of every editable list
+ * beside the entries of the one selected.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-import { Check, ChevronRight, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { Check, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-import {
-  AlertBanner,
-  Button,
-  Chip,
-  NubDivider,
-  SubsectionHeader,
-  Table,
-  Tooltip,
-} from '@shared/ui';
+import { AlertBanner, Button, Chip, SubsectionHeader, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
@@ -28,6 +21,8 @@ import {
   useDeleteLookupValueMutation,
   useRenameLookupValueMutation,
 } from '../../../../hooks/useLookupValueMutations';
+
+import { CatalogRail, type CatalogLeaf } from './CatalogRail';
 
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -75,10 +70,36 @@ const CATEGORY_USAGE_LABELS: Record<
   manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
 };
 
+// Alphabetical by title — the rail is flat because the lab-defined attribute vocabularies
+// Phase 7 adds can't be slotted into a fixed taxonomy.
+const CATALOG_LEAVES: CatalogLeaf[] = [
+  { category: 'equipment_maintenance_type', title: 'Maintenance Activities' },
+  {
+    category: 'manufacturer',
+    title: 'Manufacturers',
+    usedBy: ['Supplies', 'Reagents', 'Equipment'],
+  },
+  { category: 'media', title: 'Media Types' },
+  { category: 'supply_item_property', title: 'Product Properties' },
+  { category: 'reagent_type', title: 'Reagent Types' },
+  { category: 'source', title: 'Sources' },
+  { category: 'species', title: 'Species' },
+  { category: 'specimen_type', title: 'Specimens' },
+  { category: 'vendor', title: 'Vendors', usedBy: ['Supplies', 'Reagents', 'Equipment'] },
+];
+
+/** The list a route lands on, so opening the catalog from a suite starts where you are. */
+function leafForRoute(pathname: string): LookupCategory {
+  if (pathname.startsWith('/lab/reagents')) return 'reagent_type';
+  if (pathname.startsWith('/lab/supplies')) return 'supply_item_property';
+  if (pathname.startsWith('/lab/equipment')) return 'equipment_maintenance_type';
+  return 'species';
+}
+
 interface CategorySectionProps {
   category: LookupCategory;
-  index: number;
   title: string;
+  usedBy?: string[];
   values: LookupValueWithCount[];
   loading: boolean;
   onAdd: (value: string) => Promise<void>;
@@ -90,8 +111,8 @@ interface CategorySectionProps {
 
 function CategorySection({
   category,
-  index,
   title,
+  usedBy,
   values,
   loading,
   onAdd,
@@ -274,9 +295,10 @@ function CategorySection({
       toolbar={{
         left: (
           <SubsectionHeader
-            index={index}
             title={title}
-            meta={`// ${values.length} ${values.length === 1 ? 'entry' : 'entries'}`}
+            meta={`// ${values.length} ${values.length === 1 ? 'entry' : 'entries'}${
+              usedBy ? ` · used by ${usedBy.join(' · ')}` : ''
+            }`}
             accent
             className="phosphor-text"
           />
@@ -320,51 +342,6 @@ function CategorySection({
   );
 }
 
-interface CatalogGroupProps {
-  title: string;
-  count: number;
-  expanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGroupProps) {
-  return (
-    <div className="overflow-hidden border border-line-faint">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="relative flex w-full items-center gap-2 bg-[hsl(var(--primary)/0.07)] px-3 py-2 text-left transition-[background-color,filter] hover:brightness-[0.97] dark:bg-shade/35 dark:hover:bg-shade/45 dark:hover:brightness-100"
-      >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
-        <ChevronRight
-          size={11}
-          className={`flex-shrink-0 text-foreground/40 transition-transform ${expanded ? 'rotate-90' : ''}`}
-        />
-        <span
-          aria-hidden
-          className="h-[11px] w-0.5 flex-shrink-0 bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.6)]"
-        />
-        <span className="type-label text-label-md tracking-label-wide text-foreground">
-          {title}
-        </span>
-        <span aria-hidden className="font-mono text-data-sm text-foreground/30">
-          {'//'}
-        </span>
-        <span className="font-mono text-data-sm tracking-data text-foreground/55">
-          {count} {count === 1 ? 'entry' : 'entries'}
-        </span>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </button>
-      {expanded && <div className="space-y-3 p-3">{children}</div>}
-    </div>
-  );
-}
-
 interface CatalogTabProps {
   onTabFooter?: (footer: React.ReactNode) => void;
   readOnly?: boolean;
@@ -372,14 +349,7 @@ interface CatalogTabProps {
 
 export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const location = useLocation();
-  const isSuppliesRoute = location.pathname.startsWith('/lab/supplies');
-  const isLabRoute = location.pathname.startsWith('/lab');
-  const isBiobankRoute = !isLabRoute;
-  const [biobankExpanded, setBiobankExpanded] = useState(isBiobankRoute);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isSuppliesRoute);
-  const [suppliesExpanded, setSuppliesExpanded] = useState(isSuppliesRoute);
-  const [reagentsExpanded, setReagentsExpanded] = useState(false);
-  const [suppliersExpanded, setSuppliersExpanded] = useState(false);
+  const [selected, setSelected] = useState<LookupCategory>(() => leafForRoute(location.pathname));
   const [confirmDialog, setConfirmDialog] = useState<{
     id: string;
     value: string;
@@ -438,15 +408,15 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     );
   };
 
-  const biobankCount =
-    catalog.species.length +
-    catalog.source.length +
-    catalog.media.length +
-    catalog.specimen_type.length;
-  const equipmentCount = catalog.equipment_maintenance_type.length;
-  const suppliesCount = catalog.supply_item_property.length;
-  const reagentsCount = catalog.reagent_type.length;
-  const suppliersCount = catalog.vendor.length + catalog.manufacturer.length;
+  const counts = useMemo(
+    () =>
+      Object.fromEntries(
+        CATALOG_LEAVES.map(leaf => [leaf.category, catalog[leaf.category].length])
+      ) as Record<LookupCategory, number>,
+    [catalog]
+  );
+
+  const activeLeaf = CATALOG_LEAVES.find(leaf => leaf.category === selected) ?? CATALOG_LEAVES[0];
 
   return (
     <div className="space-y-2">
@@ -461,153 +431,29 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         </Button>
       </div>
 
-      <div className="space-y-3">
-        <CatalogGroup
-          title="Biobank"
-          count={biobankCount}
-          expanded={biobankExpanded}
-          onToggle={() => setBiobankExpanded(!biobankExpanded)}
-        >
-          <CategorySection
-            category="species"
-            index={1}
-            title="Species"
-            values={catalog.species}
-            loading={isLoading}
-            onAdd={value => handleAdd('species', value)}
-            onRename={(id, newValue) => handleRename('species', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('species', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-          <CategorySection
-            category="source"
-            index={2}
-            title="Sources"
-            values={catalog.source}
-            loading={isLoading}
-            onAdd={value => handleAdd('source', value)}
-            onRename={(id, newValue) => handleRename('source', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('source', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-          <CategorySection
-            category="media"
-            index={3}
-            title="Media Types"
-            values={catalog.media}
-            loading={isLoading}
-            onAdd={value => handleAdd('media', value)}
-            onRename={(id, newValue) => handleRename('media', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('media', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-          <CategorySection
-            category="specimen_type"
-            index={4}
-            title="Specimens"
-            values={catalog.specimen_type}
-            loading={isLoading}
-            onAdd={value => handleAdd('specimen_type', value)}
-            onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-        </CatalogGroup>
+      <div className="flex min-h-0 gap-4">
+        <CatalogRail
+          leaves={CATALOG_LEAVES}
+          counts={counts}
+          selected={activeLeaf.category}
+          onSelect={setSelected}
+        />
 
-        <CatalogGroup
-          title="Equipment"
-          count={equipmentCount}
-          expanded={equipmentExpanded}
-          onToggle={() => setEquipmentExpanded(!equipmentExpanded)}
-        >
+        <div className="min-w-0 flex-1">
           <CategorySection
-            category="equipment_maintenance_type"
-            index={1}
-            title="Maintenance Activities"
-            values={catalog.equipment_maintenance_type}
+            key={activeLeaf.category}
+            category={activeLeaf.category}
+            title={activeLeaf.title}
+            usedBy={activeLeaf.usedBy}
+            values={catalog[activeLeaf.category]}
             loading={isLoading}
-            onAdd={value => handleAdd('equipment_maintenance_type', value)}
-            onRename={(id, newValue) => handleRename('equipment_maintenance_type', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('equipment_maintenance_type', id, value)}
+            onAdd={value => handleAdd(activeLeaf.category, value)}
+            onRename={(id, newValue) => handleRename(activeLeaf.category, id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest(activeLeaf.category, id, value)}
             deletingId={deletingId}
             readOnly={readOnly}
           />
-        </CatalogGroup>
-
-        <CatalogGroup
-          title="Supplies"
-          count={suppliesCount}
-          expanded={suppliesExpanded}
-          onToggle={() => setSuppliesExpanded(!suppliesExpanded)}
-        >
-          <CategorySection
-            category="supply_item_property"
-            index={1}
-            title="Item Properties"
-            values={catalog.supply_item_property}
-            loading={isLoading}
-            onAdd={value => handleAdd('supply_item_property', value)}
-            onRename={(id, newValue) => handleRename('supply_item_property', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('supply_item_property', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-        </CatalogGroup>
-
-        <CatalogGroup
-          title="Reagents"
-          count={reagentsCount}
-          expanded={reagentsExpanded}
-          onToggle={() => setReagentsExpanded(!reagentsExpanded)}
-        >
-          <CategorySection
-            category="reagent_type"
-            index={1}
-            title="Reagent Types"
-            values={catalog.reagent_type}
-            loading={isLoading}
-            onAdd={value => handleAdd('reagent_type', value)}
-            onRename={(id, newValue) => handleRename('reagent_type', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('reagent_type', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-        </CatalogGroup>
-        <CatalogGroup
-          title="Suppliers"
-          count={suppliersCount}
-          expanded={suppliersExpanded}
-          onToggle={() => setSuppliersExpanded(!suppliersExpanded)}
-        >
-          <CategorySection
-            category="vendor"
-            index={1}
-            title="Vendors"
-            values={catalog.vendor}
-            loading={isLoading}
-            onAdd={value => handleAdd('vendor', value)}
-            onRename={(id, newValue) => handleRename('vendor', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('vendor', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-          <CategorySection
-            category="manufacturer"
-            index={2}
-            title="Manufacturers"
-            values={catalog.manufacturer}
-            loading={isLoading}
-            onAdd={value => handleAdd('manufacturer', value)}
-            onRename={(id, newValue) => handleRename('manufacturer', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('manufacturer', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-        </CatalogGroup>
+        </div>
       </div>
 
       {confirmDialog && (
