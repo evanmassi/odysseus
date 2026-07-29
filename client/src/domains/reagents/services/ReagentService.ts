@@ -15,7 +15,9 @@ import {
   reagentItemResponseSchema,
   reagentLotResponseSchema,
   reagentPackagingLevelResponseSchema,
+  reagentBulkResponseSchema,
   reagentTransactionListResponseSchema,
+  reagentVoidTransactionResponseSchema,
   type ReagentCategory,
   type ReagentDocument,
   type ReagentItem,
@@ -24,6 +26,8 @@ import {
   type ReagentLot,
   type ReagentPackagingLevel,
   type ReagentTransaction,
+  type ReagentVoidTransactionResponse,
+  type ReagentBulkResponse,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
   type CreateReagentItemRequest,
@@ -34,6 +38,8 @@ import {
   type UpdateReagentLotRequest,
   type RecordReagentTransactionRequest,
   type RecordReagentStockCountRequest,
+  type VoidReagentTransactionRequest,
+  type ReagentBulkVoidRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -177,6 +183,25 @@ export class ReagentService {
       reagentTransactionListResponseSchema
     );
     return response.transactions;
+  }
+
+  static async voidTransaction(
+    transactionId: string,
+    data: VoidReagentTransactionRequest
+  ): Promise<ReagentVoidTransactionResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/transactions/${transactionId}/void`,
+      data,
+      reagentVoidTransactionResponseSchema
+    );
+  }
+
+  static async bulkVoidTransactions(data: ReagentBulkVoidRequest): Promise<ReagentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/void`,
+      data,
+      reagentBulkResponseSchema
+    );
   }
 
   // Packaging levels

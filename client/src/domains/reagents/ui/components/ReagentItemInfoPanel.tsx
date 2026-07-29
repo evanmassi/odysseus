@@ -59,7 +59,9 @@ import { orderPackagingChain } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ReagentLotPanel } from './ReagentLotPanel';
+import { ReagentTransactionTimeline } from './ReagentTransactionTimeline';
 
+import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
 import type { ReagentDocument } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
@@ -67,6 +69,11 @@ interface ReagentItemInfoPanelProps {
   itemId: string;
   onEdit: () => void;
   onRecordTransaction: () => void;
+  onVoidAndReplace: (
+    itemId: string,
+    initialTab: TransactionMode,
+    prefill: TransactionPrefill
+  ) => void;
   onDeleted: () => void;
   categoryName?: string;
 }
@@ -75,6 +82,7 @@ export function ReagentItemInfoPanel({
   itemId,
   onEdit,
   onRecordTransaction,
+  onVoidAndReplace,
   onDeleted,
   categoryName,
 }: ReagentItemInfoPanelProps) {
@@ -115,7 +123,7 @@ export function ReagentItemInfoPanel({
     );
   }
 
-  const { item, documents, lots, packagingLevels } = detail;
+  const { item, documents, lots, packagingLevels, recentTransactions } = detail;
   const statusConfig = REAGENT_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
 
@@ -392,6 +400,16 @@ export function ReagentItemInfoPanel({
               <DetailRow label="Reorder Qty" value={reorderQuantity} />
               <DetailRow label="Price" value={formatCurrency(item.unitPrice)} />
             </div>
+          </div>
+
+          <div>
+            <SectionHeader title="Recent Transactions" size="sm" />
+            <ReagentTransactionTimeline
+              transactions={recentTransactions}
+              lots={lots}
+              stockUnit={item.stockUnit}
+              onVoidAndReplace={onVoidAndReplace}
+            />
           </div>
         </div>
       </ScrollArea>

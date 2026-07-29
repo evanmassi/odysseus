@@ -22,6 +22,8 @@ import type {
   UpdateReagentLotRequest,
   RecordReagentTransactionRequest,
   RecordReagentStockCountRequest,
+  VoidReagentTransactionRequest,
+  ReagentBulkVoidRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -196,6 +198,32 @@ export function useRecordReagentStockCountMutation() {
   return useMutation({
     mutationFn: (data: RecordReagentStockCountRequest) => ReagentService.recordStockCount(data),
     onSuccess: (_, data) => invalidateStock(data.itemId),
+  });
+}
+
+export function useVoidReagentTransactionMutation() {
+  const invalidateStock = useStockInvalidation();
+
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      data,
+    }: {
+      transactionId: string;
+      data: VoidReagentTransactionRequest;
+    }) => ReagentService.voidTransaction(transactionId, data),
+    onSuccess: result => invalidateStock(result.original.itemId),
+  });
+}
+
+export function useReagentBulkVoidMutation() {
+  const invalidateStock = useStockInvalidation();
+
+  return useMutation({
+    // itemId isn't sent — it scopes the cache invalidation below.
+    mutationFn: ({ data }: { itemId: string; data: ReagentBulkVoidRequest }) =>
+      ReagentService.bulkVoidTransactions(data),
+    onSuccess: (_, { itemId }) => invalidateStock(itemId),
   });
 }
 

@@ -46,6 +46,7 @@ import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
 import { ReagentItemRow } from './ReagentItemRow';
 import { ReagentTransactionForm } from './ReagentTransactionForm';
 
+import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
@@ -63,7 +64,12 @@ const getReagentSearchFields = (item: ReagentItemWithStock) => [
 type RightPanelView =
   | { type: 'info'; itemId: string }
   | { type: 'edit'; item?: ReagentItemWithStock }
-  | { type: 'transaction'; itemId: string };
+  | {
+      type: 'transaction';
+      itemId: string;
+      initialTab?: TransactionMode;
+      prefill?: TransactionPrefill;
+    };
 
 const TREE_LABELS: CategoryTreePanelLabels = {
   countNoun: ['item', 'items'],
@@ -122,6 +128,14 @@ export function ReagentsTab() {
   const handleRecordTransaction = useCallback(() => {
     if (selectedItemId) setRightPanel({ type: 'transaction', itemId: selectedItemId });
   }, [selectedItemId]);
+
+  const handleVoidAndReplace = useCallback(
+    (itemId: string, initialTab: TransactionMode, prefill: TransactionPrefill) => {
+      setSelectedItemId(itemId);
+      setRightPanel({ type: 'transaction', itemId, initialTab, prefill });
+    },
+    []
+  );
 
   const handleFormComplete = useCallback(() => {
     setRightPanel(selectedItemId ? { type: 'info', itemId: selectedItemId } : undefined);
@@ -287,6 +301,7 @@ export function ReagentsTab() {
               itemId={rightPanel.itemId}
               onEdit={handleEditItem}
               onRecordTransaction={handleRecordTransaction}
+              onVoidAndReplace={handleVoidAndReplace}
               onDeleted={handleItemDeleted}
               categoryName={categoryNameMap.get(
                 items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
@@ -308,10 +323,13 @@ export function ReagentsTab() {
               const txnItem = items.find(i => i.id === rightPanel.itemId);
               return (
                 <ReagentTransactionForm
+                  key={`${rightPanel.itemId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
                   itemId={rightPanel.itemId}
                   itemName={txnItem?.name ?? ''}
                   manufacturer={txnItem?.manufacturer}
                   catalogNumber={txnItem?.catalogNumber}
+                  initialTab={rightPanel.initialTab}
+                  prefill={rightPanel.prefill}
                   onSubmit={handleFormComplete}
                   onCancel={handleFormComplete}
                 />

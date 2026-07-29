@@ -70,11 +70,23 @@ const SUCCESS_LABELS: Record<TransactionMode, string> = {
 
 const AUTO_LOT = '__auto__';
 
+export interface TransactionPrefill {
+  locationId?: string;
+  quantity?: number;
+  lotNumber?: string;
+  expirationDate?: string;
+  poNumber?: string;
+  cost?: number;
+  notes?: string;
+}
+
 interface ReagentTransactionFormProps {
   itemId: string;
   itemName: string;
   manufacturer?: string;
   catalogNumber?: string;
+  initialTab?: TransactionMode;
+  prefill?: TransactionPrefill;
   onSubmit: () => void;
   onCancel: () => void;
 }
@@ -84,6 +96,8 @@ export function ReagentTransactionForm({
   itemName,
   manufacturer,
   catalogNumber,
+  initialTab,
+  prefill,
   onSubmit,
   onCancel,
 }: ReagentTransactionFormProps) {
@@ -123,19 +137,19 @@ export function ReagentTransactionForm({
     formState: { errors },
   } = useForm({
     defaultValues: {
-      type: 'received' as string,
-      locationId: '',
-      quantity: undefined as number | undefined,
-      lotId: AUTO_LOT,
-      lotNumber: '',
-      expirationDate: '',
+      type: (initialTab ?? 'received') as string,
+      locationId: prefill?.locationId ?? '',
+      quantity: prefill?.quantity,
+      lotId: initialTab === 'count' ? '' : AUTO_LOT,
+      lotNumber: prefill?.lotNumber ?? '',
+      expirationDate: prefill?.expirationDate ?? '',
       receivedDate: '',
       concentration: '',
       concentrationUnit: '',
-      poNumber: '',
-      cost: undefined as number | undefined,
+      poNumber: prefill?.poNumber ?? '',
+      cost: prefill?.cost,
       includeExpired: false,
-      notes: '',
+      notes: prefill?.notes ?? '',
     },
   });
 
