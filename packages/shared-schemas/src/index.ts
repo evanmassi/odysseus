@@ -86,9 +86,7 @@ export {
 
 // Attributes
 export {
-  attributeValueTypeValues,
   attributeValueTypeSchema,
-  attributeCatalogValues,
   attributeCatalogSchema,
   attributeDefinitionSchema,
   createAttributeDefinitionRequestSchema,
@@ -493,9 +491,7 @@ export {
 export {
   supplyItemStatusValues,
   supplyItemStatusSchema,
-  supplyTransactionTypeValues,
   supplyTransactionTypeSchema,
-  supplyBarcodeTypeValues,
   supplyBarcodeTypeSchema,
   supplyCategorySchema,
   createSupplyCategoryRequestSchema,
@@ -572,11 +568,8 @@ export {
 export {
   reagentItemStatusValues,
   reagentItemStatusSchema,
-  reagentTransactionTypeValues,
   reagentTransactionTypeSchema,
-  reagentBarcodeTypeValues,
   reagentBarcodeTypeSchema,
-  reagentLotStatusValues,
   reagentLotStatusSchema,
   reagentCategorySchema,
   createReagentCategoryRequestSchema,

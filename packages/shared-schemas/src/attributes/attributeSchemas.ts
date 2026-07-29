@@ -10,10 +10,10 @@ import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
 
-export const attributeValueTypeValues = ['select', 'multi_select', 'text', 'number'] as const;
+const attributeValueTypeValues = ['select', 'multi_select', 'text', 'number'] as const;
 export const attributeValueTypeSchema = z.enum(attributeValueTypeValues);
 
-export const attributeCatalogValues = ['reagent', 'supply', 'equipment'] as const;
+const attributeCatalogValues = ['reagent', 'supply', 'equipment'] as const;
 export const attributeCatalogSchema = z.enum(attributeCatalogValues);
 
 export const attributeDefinitionSchema = z.object({

@@ -3,9 +3,7 @@
  */
 
 export {
-  attributeValueTypeValues,
   attributeValueTypeSchema,
-  attributeCatalogValues,
   attributeCatalogSchema,
   attributeDefinitionSchema,
   createAttributeDefinitionRequestSchema,

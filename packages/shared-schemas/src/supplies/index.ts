@@ -5,9 +5,7 @@
 export {
   supplyItemStatusValues,
   supplyItemStatusSchema,
-  supplyTransactionTypeValues,
   supplyTransactionTypeSchema,
-  supplyBarcodeTypeValues,
   supplyBarcodeTypeSchema,
   supplyCategorySchema,
   createSupplyCategoryRequestSchema,

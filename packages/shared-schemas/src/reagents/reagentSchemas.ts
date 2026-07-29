@@ -21,7 +21,7 @@ import { optionalText, patchText } from '../utils/stringFields';
 export const reagentItemStatusValues = ['active', 'discontinued', 'archived'] as const;
 export const reagentItemStatusSchema = z.enum(reagentItemStatusValues);
 
-export const reagentTransactionTypeValues = [
+const reagentTransactionTypeValues = [
   'received',
   'issued',
   'count_adjustment',
@@ -30,11 +30,11 @@ export const reagentTransactionTypeValues = [
 ] as const;
 export const reagentTransactionTypeSchema = z.enum(reagentTransactionTypeValues);
 
-export const reagentBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
+const reagentBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
 export const reagentBarcodeTypeSchema = z.enum(reagentBarcodeTypeValues);
 
 // Stored lot status; `expired` is derived at read time from the expiration date.
-export const reagentLotStatusValues = ['active', 'depleted', 'disposed'] as const;
+const reagentLotStatusValues = ['active', 'depleted', 'disposed'] as const;
 export const reagentLotStatusSchema = z.enum(reagentLotStatusValues);
 
 // Category schemas

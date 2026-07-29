@@ -5,11 +5,8 @@
 export {
   reagentItemStatusValues,
   reagentItemStatusSchema,
-  reagentTransactionTypeValues,
   reagentTransactionTypeSchema,
-  reagentBarcodeTypeValues,
   reagentBarcodeTypeSchema,
-  reagentLotStatusValues,
   reagentLotStatusSchema,
   reagentCategorySchema,
   createReagentCategoryRequestSchema,
