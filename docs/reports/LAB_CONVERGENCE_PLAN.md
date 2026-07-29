@@ -5,9 +5,9 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5, 6 and 9 done. Reagents is complete through Phase 6. **Next: item 7
-(catalog tab → nav rail), which reagents Phase 7 is waiting on.** Items 4b and 8 remain. Companion to
-`REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 4a, 5, 6, 7 and 9 done. Reagents is complete through Phase 6 and **Phase 7
+is now unblocked**. Items 4b (equipment locations) and 8 (lab-wide barcode resolve, due before reagents
+Phase 8) remain. Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
 **Migration policy while reagents are unreleased.** Dev has not applied 027; reagent schema changes
 **amend 027 in place** rather than stacking corrective migrations, so the tables are created correctly
@@ -160,9 +160,8 @@ and equipment, and a rename cascades to all three.
 vendors and 4 manufacturers moved, *Eppendorf* backfilled from the one equipment item, *Thermo
 Scientific* correctly retained as both a vendor and a manufacturer.
 
-**Temporary:** the merged lists sit in a `Suppliers` group in `CatalogTab` purely because the
-accordion still exists. Item 7 dissolves all grouping into the rail, at which point they are two
-leaves and the group name goes away — not worth reopening the naming question for.
+**Resolved by item 7:** the merged lists were parked in a `Suppliers` accordion group; the rail
+dissolved all grouping, so they are now simply the *Vendors* and *Manufacturers* leaves.
 
 ### 6. Supplies → unit registry — ✅ done
 
@@ -199,7 +198,7 @@ untouched at 26.
 so there is no "add a unit" path in between. A no-op for this lab, whose three units all became
 registry entries.
 
-### 7. Catalog tab → nav rail — *before reagents Phase 7*
+### 7. Catalog tab → nav rail — ✅ done
 
 **What.** Replace the accordion groups with a left rail + detail pane. Rail lists every editable
 vocabulary (flat, alphabetical, filter box, entry counts); right pane shows the selected list — the
@@ -213,6 +212,23 @@ rail also makes group names optional decoration rather than load-bearing contain
 
 **Blocks.** Phase 7 roughly doubles this surface (attribute definitions + options + custom units all
 land here as leaves).
+
+**Landed.** `CatalogRail` (flat, alphabetical, filter box, entry counts) beside the selected list;
+`CatalogGroup` and its five `expanded` flags deleted. The nine hand-written `CategorySection` blocks
+became one `CATALOG_LEAVES` config plus a single render, so the tab lost ~210 lines while gaining the
+filter and the *used by* line — which rides in `SubsectionHeader`'s existing `meta` slot rather than
+new chrome. `CategorySection` itself is untouched: the per-list table, inline add/rename/delete,
+sorting and usage counts are exactly as they were. Route context pre-selects on mount only, so
+navigating with the modal open doesn't yank the selection.
+
+**Deviation from the sketch:** `NavTreeLines` was *not* used. It only emits connectors for expanded
+`l1` parents, so on a flat rail it renders an empty SVG. The `nav-tree` CSS is still the vocabulary —
+a new `--rail` variant was folded into the existing selected-row selectors (three lines of selector
+widening, no duplicated declarations) because `--item`'s junction dot expects a spine that a flat list
+doesn't have.
+
+**Unverified:** the rail's proportions haven't been seen rendered. It's in the admin settings modal →
+Catalog, which needs no migrations to reach.
 
 ### 8. Lab-wide barcode resolve — *before reagents Phase 8*
 
@@ -288,6 +304,6 @@ Decided; don't reopen without a new reason.
 - [x] 4 — Locations merge *(4a; equipment onboarding 4b outstanding)*
 - [x] 5 — Vendor / manufacturer merge
 - [x] 6 — Supplies → unit registry
-- [ ] 7 — Catalog tab → nav rail
+- [x] 7 — Catalog tab → nav rail
 - [ ] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
