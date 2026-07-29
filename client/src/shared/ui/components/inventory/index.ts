@@ -13,4 +13,5 @@ export { CategoryHierarchySelect } from './CategoryHierarchySelect';
 export { CategoryModal } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
+export { LowStockAlertPanel, type LowStockItem } from './LowStockAlertPanel';
 export { SortControls, INVENTORY_SORT_OPTIONS, type InventorySortField } from './SortControls';
