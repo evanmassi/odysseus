@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
 import {
   Archive,
+  ClipboardList,
   Edit,
   ExternalLink,
   FolderOpen,
@@ -65,6 +66,7 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 interface ReagentItemInfoPanelProps {
   itemId: string;
   onEdit: () => void;
+  onRecordTransaction: () => void;
   onDeleted: () => void;
   categoryName?: string;
 }
@@ -72,6 +74,7 @@ interface ReagentItemInfoPanelProps {
 export function ReagentItemInfoPanel({
   itemId,
   onEdit,
+  onRecordTransaction,
   onDeleted,
   categoryName,
 }: ReagentItemInfoPanelProps) {
@@ -413,6 +416,14 @@ export function ReagentItemInfoPanel({
               size="sm"
               aria-label="More item actions"
             />
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<ClipboardList className="h-4 w-4" />}
+              onClick={onRecordTransaction}
+            >
+              Record Transaction
+            </Button>
             <Button
               variant="primary"
               size="sm"

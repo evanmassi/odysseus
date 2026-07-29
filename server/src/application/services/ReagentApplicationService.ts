@@ -649,8 +649,6 @@ export class ReagentApplicationService {
       performedBy: user.id,
       actualCount: data.actualCount,
       lotId: data.lotId,
-      lotNumber: data.lotNumber,
-      expirationDate: data.expirationDate,
       notes: data.notes,
     });
 

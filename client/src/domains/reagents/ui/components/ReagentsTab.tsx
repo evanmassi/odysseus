@@ -44,6 +44,7 @@ import { notifications } from '@shared/utils/notifications';
 import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
 import { ReagentItemRow } from './ReagentItemRow';
+import { ReagentTransactionForm } from './ReagentTransactionForm';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
@@ -61,7 +62,8 @@ const getReagentSearchFields = (item: ReagentItemWithStock) => [
 
 type RightPanelView =
   | { type: 'info'; itemId: string }
-  | { type: 'edit'; item?: ReagentItemWithStock };
+  | { type: 'edit'; item?: ReagentItemWithStock }
+  | { type: 'transaction'; itemId: string };
 
 const TREE_LABELS: CategoryTreePanelLabels = {
   countNoun: ['item', 'items'],
@@ -116,6 +118,10 @@ export function ReagentsTab() {
     const selected = items.find(i => i.id === selectedItemId);
     if (selected) setRightPanel({ type: 'edit', item: selected });
   }, [items, selectedItemId]);
+
+  const handleRecordTransaction = useCallback(() => {
+    if (selectedItemId) setRightPanel({ type: 'transaction', itemId: selectedItemId });
+  }, [selectedItemId]);
 
   const handleFormComplete = useCallback(() => {
     setRightPanel(selectedItemId ? { type: 'info', itemId: selectedItemId } : undefined);
@@ -280,6 +286,7 @@ export function ReagentsTab() {
             <ReagentItemInfoPanel
               itemId={rightPanel.itemId}
               onEdit={handleEditItem}
+              onRecordTransaction={handleRecordTransaction}
               onDeleted={handleItemDeleted}
               categoryName={categoryNameMap.get(
                 items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
@@ -295,6 +302,21 @@ export function ReagentsTab() {
               onCancel={handleFormComplete}
             />
           )}
+
+          {rightPanel?.type === 'transaction' &&
+            (() => {
+              const txnItem = items.find(i => i.id === rightPanel.itemId);
+              return (
+                <ReagentTransactionForm
+                  itemId={rightPanel.itemId}
+                  itemName={txnItem?.name ?? ''}
+                  manufacturer={txnItem?.manufacturer}
+                  catalogNumber={txnItem?.catalogNumber}
+                  onSubmit={handleFormComplete}
+                  onCancel={handleFormComplete}
+                />
+              );
+            })()}
         </div>
 
         <CategoryModal

@@ -54,6 +54,13 @@ export interface ReagentLotExpiry {
   label: string;
 }
 
+/** Past its expiration date — the server refuses to draw from these without an acknowledgment. */
+export function isLotExpired(expirationDate: string | undefined): boolean {
+  if (!expirationDate) return false;
+  const days = daysUntil(expirationDate);
+  return days !== undefined && days < 0;
+}
+
 /** Per-lot counterpart of the item badge, read from the lot's own expiration date. */
 export function resolveLotExpiry(
   expirationDate: string | undefined,

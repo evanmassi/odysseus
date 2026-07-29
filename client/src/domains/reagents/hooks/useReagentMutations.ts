@@ -20,6 +20,8 @@ import type {
   UpdateReagentDocumentRequest,
   CreateReagentPackagingLevelRequest,
   UpdateReagentLotRequest,
+  RecordReagentTransactionRequest,
+  RecordReagentStockCountRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -164,6 +166,36 @@ export function useUpdateReagentLotMutation() {
       // An expiry correction moves the item's soonest-expiry and expired-lot rollup.
       void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.items(labId) });
     },
+  });
+}
+
+// Stock operations
+
+function useStockInvalidation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return (itemId: string) => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.items(labId) });
+  };
+}
+
+export function useRecordReagentTransactionMutation() {
+  const invalidateStock = useStockInvalidation();
+
+  return useMutation({
+    mutationFn: (data: RecordReagentTransactionRequest) => ReagentService.recordTransaction(data),
+    onSuccess: (_, data) => invalidateStock(data.itemId),
+  });
+}
+
+export function useRecordReagentStockCountMutation() {
+  const invalidateStock = useStockInvalidation();
+
+  return useMutation({
+    mutationFn: (data: RecordReagentStockCountRequest) => ReagentService.recordStockCount(data),
+    onSuccess: (_, data) => invalidateStock(data.itemId),
   });
 }
 

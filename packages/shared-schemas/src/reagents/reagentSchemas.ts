@@ -280,13 +280,13 @@ export const recordReagentTransactionRequestSchema = concentrationUnitRefinement
   })
 );
 
+// A count reconciles an existing lot, so `lotId` identifies it — new stock arrives
+// through a receive, not a count.
 export const recordReagentStockCountRequestSchema = z.object({
   itemId: z.string().min(1, 'Item is required'),
   locationId: z.string().min(1, 'Location is required'),
-  lotId: optionalText(50),
+  lotId: z.string().min(1, 'Lot is required'),
   actualCount: z.number().min(0, 'Count must be non-negative'),
-  lotNumber: optionalText(200),
-  expirationDate: z.string().optional(),
   notes: optionalText(2000),
 });
 

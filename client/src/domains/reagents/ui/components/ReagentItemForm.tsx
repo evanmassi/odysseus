@@ -11,12 +11,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createReagentItemRequestSchema,
   updateReagentItemRequestSchema,
-  UNIT_REGISTRY,
   type CreateReagentItemRequest,
   type UpdateReagentItemRequest,
   type ReagentCategory,
   type ReagentItemWithStock,
-  type UnitKind,
 } from '@odysseus/shared-schemas';
 import { Plus, Save, SquarePen, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
@@ -29,6 +27,11 @@ import {
   useUpdateReagentItemMutation,
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
+import {
+  AMOUNT_UNIT_OPTIONS,
+  CONCENTRATION_UNIT_OPTIONS,
+  PACK_UNITS,
+} from '@domains/reagents/utils/unitOptions';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
@@ -48,8 +51,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import type { SelectOption } from '@shared/ui/primitives/select/types';
-
 interface ReagentItemFormProps {
   item?: ReagentItemWithStock;
   categories: ReagentCategory[];
@@ -65,24 +66,6 @@ interface LocalPackagingLevel {
 
 /** Rendered rows come from local state while creating and from the server while editing. */
 type PackagingLevelRow = LocalPackagingLevel & { id?: string };
-
-const unitOptions = (kinds: UnitKind[], placeholder: string): SelectOption[] =>
-  withPlaceholder(
-    placeholder,
-    UNIT_REGISTRY.filter(unit => kinds.includes(unit.kind)).map(unit => ({
-      value: unit.id,
-      label: unit.label,
-    }))
-  );
-
-// Ratios for concentration, absolute measures for stock. Cell concentration is a tube
-// dimension and stays out of both.
-const CONCENTRATION_UNIT_OPTIONS = unitOptions(
-  ['molarity', 'mass-conc', 'count-conc', 'percent', 'activity-conc', 'fold'],
-  'Select unit...'
-);
-const AMOUNT_UNIT_OPTIONS = unitOptions(['mass', 'volume', 'activity', 'count'], 'Select unit...');
-const PACK_UNITS = UNIT_REGISTRY.filter(unit => unit.kind === 'count');
 
 const TRACKED_FIELDS = [
   'name',

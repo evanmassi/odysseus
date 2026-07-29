@@ -1,7 +1,8 @@
 /**
  * Reagent Data Service
  *
- * HTTP operations for the reagent catalog: categories and the item list.
+ * HTTP operations for reagent categories, items, documents, lots, stock
+ * transactions, and packaging levels.
  */
 
 import {
@@ -14,6 +15,7 @@ import {
   reagentItemResponseSchema,
   reagentLotResponseSchema,
   reagentPackagingLevelResponseSchema,
+  reagentTransactionListResponseSchema,
   type ReagentCategory,
   type ReagentDocument,
   type ReagentItem,
@@ -21,6 +23,7 @@ import {
   type ReagentItemWithStock,
   type ReagentLot,
   type ReagentPackagingLevel,
+  type ReagentTransaction,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
   type CreateReagentItemRequest,
@@ -29,6 +32,8 @@ import {
   type UpdateReagentDocumentRequest,
   type CreateReagentPackagingLevelRequest,
   type UpdateReagentLotRequest,
+  type RecordReagentTransactionRequest,
+  type RecordReagentStockCountRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -148,6 +153,30 @@ export class ReagentService {
       reagentLotResponseSchema
     );
     return response.lot;
+  }
+
+  // Stock operations
+
+  static async recordTransaction(
+    data: RecordReagentTransactionRequest
+  ): Promise<ReagentTransaction[]> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/transactions`,
+      data,
+      reagentTransactionListResponseSchema
+    );
+    return response.transactions;
+  }
+
+  static async recordStockCount(
+    data: RecordReagentStockCountRequest
+  ): Promise<ReagentTransaction[]> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/stock-counts`,
+      data,
+      reagentTransactionListResponseSchema
+    );
+    return response.transactions;
   }
 
   // Packaging levels
