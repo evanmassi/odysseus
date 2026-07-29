@@ -482,22 +482,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return result.rowCount ?? 0;
   }
 
-  async countItemsUsingStockUnit(value: string, labId: string): Promise<number> {
-    const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM supply_items WHERE stock_unit = $1 AND lab_id = $2',
-      [value, labId]
-    );
-    return parseInt(row?.count ?? '0', 10);
-  }
-
-  async renameStockUnit(oldValue: string, newValue: string, labId: string): Promise<number> {
-    const result = await this.db.execute(
-      'UPDATE supply_items SET stock_unit = $2 WHERE stock_unit = $1 AND lab_id = $3',
-      [oldValue, newValue, labId]
-    );
-    return result.rowCount ?? 0;
-  }
-
   // Packaging levels
 
   async findPackagingLevelsByItemId(itemId: string): Promise<SupplyPackagingLevelRow[]> {

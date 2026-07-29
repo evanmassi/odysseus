@@ -139,8 +139,6 @@ export interface SupplyItemRepository {
   renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingManufacturer(value: string, labId: string): Promise<number>;
   renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
-  countItemsUsingStockUnit(value: string, labId: string): Promise<number>;
-  renameStockUnit(oldValue: string, newValue: string, labId: string): Promise<number>;
 
   // Packaging levels
 

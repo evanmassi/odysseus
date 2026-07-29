@@ -14,7 +14,6 @@ export type LookupCategory =
   | 'specimen_type'
   | 'equipment_maintenance_type'
   | 'supply_item_property'
-  | 'supply_stock_unit'
   | 'reagent_type'
   | 'vendor'
   | 'manufacturer';
@@ -101,7 +100,6 @@ export class LookupValue {
         'specimen_type',
         'equipment_maintenance_type',
         'supply_item_property',
-        'supply_stock_unit',
         'reagent_type',
         'vendor',
         'manufacturer',

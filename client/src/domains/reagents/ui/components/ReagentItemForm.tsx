@@ -27,11 +27,6 @@ import {
   useUpdateReagentItemMutation,
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
-import {
-  AMOUNT_UNIT_OPTIONS,
-  CONCENTRATION_UNIT_OPTIONS,
-  PACK_UNITS,
-} from '@domains/reagents/utils/unitOptions';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
@@ -50,6 +45,11 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+import {
+  AMOUNT_UNIT_OPTIONS,
+  CONCENTRATION_UNIT_OPTIONS,
+  PACK_UNITS,
+} from '@shared/utils/unitOptions';
 
 interface ReagentItemFormProps {
   item?: ReagentItemWithStock;

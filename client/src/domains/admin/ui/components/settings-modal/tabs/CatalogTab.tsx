@@ -39,7 +39,6 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   specimen_type: 'specimen',
   equipment_maintenance_type: 'maintenance activity',
   supply_item_property: 'product property',
-  supply_stock_unit: 'stock unit',
   reagent_type: 'reagent type',
   vendor: 'vendor',
   manufacturer: 'manufacturer',
@@ -52,7 +51,6 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   specimen_type: 'specimens',
   equipment_maintenance_type: 'maintenance activities',
   supply_item_property: 'product properties',
-  supply_stock_unit: 'stock units',
   reagent_type: 'reagent types',
   vendor: 'vendors',
   manufacturer: 'manufacturers',
@@ -72,7 +70,6 @@ const CATEGORY_USAGE_LABELS: Record<
   },
   equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
   supply_item_property: { header: 'Items', singular: 'item', plural: 'items' },
-  supply_stock_unit: { header: 'Items', singular: 'item', plural: 'items' },
   reagent_type: { header: 'Items', singular: 'item', plural: 'items' },
   vendor: { header: 'Items', singular: 'item', plural: 'items' },
   manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
@@ -447,7 +444,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     catalog.media.length +
     catalog.specimen_type.length;
   const equipmentCount = catalog.equipment_maintenance_type.length;
-  const suppliesCount = catalog.supply_item_property.length + catalog.supply_stock_unit.length;
+  const suppliesCount = catalog.supply_item_property.length;
   const reagentsCount = catalog.reagent_type.length;
   const suppliersCount = catalog.vendor.length + catalog.manufacturer.length;
 
@@ -556,18 +553,6 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             onAdd={value => handleAdd('supply_item_property', value)}
             onRename={(id, newValue) => handleRename('supply_item_property', id, newValue)}
             onDelete={(id, value) => handleDeleteRequest('supply_item_property', id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-          />
-          <CategorySection
-            category="supply_stock_unit"
-            index={2}
-            title="Stock Units"
-            values={catalog.supply_stock_unit}
-            loading={isLoading}
-            onAdd={value => handleAdd('supply_stock_unit', value)}
-            onRename={(id, newValue) => handleRename('supply_stock_unit', id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest('supply_stock_unit', id, value)}
             deletingId={deletingId}
             readOnly={readOnly}
           />

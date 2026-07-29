@@ -198,7 +198,6 @@ export class LookupValueApplicationService {
         equipment_maintenance_type: ['maintenance log entry', 'maintenance log entries'],
         specimen_type: ['collection entry', 'collection entries'],
         supply_item_property: ['item', 'items'],
-        supply_stock_unit: ['item', 'items'],
         reagent_type: ['item', 'items'],
         vendor: ['item', 'items'],
         manufacturer: ['item', 'items'],
@@ -223,9 +222,6 @@ export class LookupValueApplicationService {
     switch (category) {
       case 'supply_item_property':
         if (supply) fns.push((v, l) => supply.countItemsUsingProperty(v, l));
-        break;
-      case 'supply_stock_unit':
-        if (supply) fns.push((v, l) => supply.countItemsUsingStockUnit(v, l));
         break;
       case 'reagent_type':
         if (reagent) fns.push((v, l) => reagent.countItemsUsingReagentType(v, l));
@@ -254,9 +250,6 @@ export class LookupValueApplicationService {
     switch (category) {
       case 'supply_item_property':
         if (supply) fns.push((o, n, l) => supply.renameProperty(o, n, l));
-        break;
-      case 'supply_stock_unit':
-        if (supply) fns.push((o, n, l) => supply.renameStockUnit(o, n, l));
         break;
       case 'reagent_type':
         if (reagent) fns.push((o, n, l) => reagent.renameReagentType(o, n, l));

@@ -1,9 +1,9 @@
 /**
- * Reagent Unit Options
+ * Unit Options
  *
- * Dropdown options drawn from the shared unit registry, filtered per field:
- * ratios for concentration, absolute measures for stock. Cell concentration is a
- * tube dimension and belongs to neither.
+ * Dropdown options drawn from the shared unit registry, filtered per field: ratios
+ * for concentration, absolute measures for stock, countables for packaging. Cell
+ * concentration is a tube dimension and belongs to none of them.
  */
 
 import { UNIT_REGISTRY, type UnitKind } from '@odysseus/shared-schemas';

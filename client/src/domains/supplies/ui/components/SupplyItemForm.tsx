@@ -44,6 +44,7 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { computePackagingMultiplier, thresholdInEntryUnit } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+import { AMOUNT_UNIT_OPTIONS, PACK_UNITS } from '@shared/utils/unitOptions';
 
 import type {
   SupplyCategory,
@@ -143,18 +144,22 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
   const { data: manufacturers = [] } = useLookupValuesQuery('manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('vendor');
-  const { data: stockUnits = [] } = useLookupValuesQuery('supply_stock_unit');
   const { data: itemProperties = [] } = useLookupValuesQuery('supply_item_property');
 
   const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
   const vendorOptions = useMemo(() => lookupOptions(vendors), [vendors]);
-  const stockUnitOptions = useMemo(() => lookupOptions(stockUnits), [stockUnits]);
 
   // Available units for the add-level "unit" dropdown (exclude already-used names)
   const availableUnitOptions = useMemo(() => {
-    const usedNames = packagingLevels.map(l => l.unitName);
-    return lookupOptions(stockUnits.filter(u => !usedNames.includes(u.value)));
-  }, [stockUnits, packagingLevels]);
+    const usedNames = new Set(packagingLevels.map(l => l.unitName));
+    return withPlaceholder(
+      'Select...',
+      PACK_UNITS.filter(unit => !usedNames.has(unit.id)).map(unit => ({
+        value: unit.id,
+        label: unit.label,
+      }))
+    );
+  }, [packagingLevels]);
 
   // Parent options for the add-level "per" dropdown
   const parentOptions: SelectOption[] = useMemo(
@@ -497,7 +502,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   </label>
                   <Select
                     aria-labelledby="supply-stock-unit-label"
-                    options={stockUnitOptions}
+                    options={AMOUNT_UNIT_OPTIONS}
                     value={value ?? ''}
                     onChange={v => onChange(v)}
                     fullWidth
@@ -734,7 +739,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   </label>
                   <Select
                     aria-labelledby="supply-reorder-unit-label"
-                    options={stockUnitOptions}
+                    options={AMOUNT_UNIT_OPTIONS}
                     value={value ?? ''}
                     onChange={v => onChange(v)}
                     fullWidth

@@ -65,11 +65,15 @@ export const UNIT_REGISTRY: readonly UnitRegistryEntry[] = [
   { id: 'mL', label: 'mL', kind: 'volume' },
   { id: 'µL', label: 'µL', kind: 'volume' },
   { id: 'nL', label: 'nL', kind: 'volume' },
-  // Amount — activity / count
+  // Amount — activity / count. The countable kind doubles as the packaging vocabulary,
+  // so a pack unit and a stock unit come from the same list.
   { id: 'U', label: 'U', kind: 'activity' },
   { id: 'vial', label: 'vial', kind: 'count' },
   { id: 'tube', label: 'tube', kind: 'count' },
   { id: 'each', label: 'each', kind: 'count' },
+  { id: 'box', label: 'box', kind: 'count' },
+  { id: 'pack', label: 'pack', kind: 'count' },
+  { id: 'case', label: 'case', kind: 'count' },
   // Tube cell concentration
   { id: 'c/v', label: 'c/v', kind: 'cell-conc' },
   { id: 'c/mL', label: 'c/mL', kind: 'cell-conc' },
