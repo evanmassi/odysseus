@@ -15,15 +15,15 @@ we build.
 - [x] Phase 3 — ~~alerts~~ dissolved (client-side derivation; panels moved to Phase 6)
 - [x] Phase 4 — attribute system
 - [x] Phase 5 — client core
-- [ ] Phase 6 — client stock + alerts
+- [x] Phase 6 — client stock + alerts
 - [ ] Phase 7 — client attributes
 - [ ] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phases 2, 4 + 5 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
-*Alerting*) — its reagent panels moved to Phase 6, its cleanup landed as convergence item 9. **Next is
-Phase 6 — client stock + alerts.** Convergence items 4b, 6, 7 and 8 remain; 6 and 7 are due before
-Phase 7. Custom-unit CRUD was deferred out of Phase 4 to Phase 7, where its dropdown consumes it. See
+_Current: Phases 2, 4, 5 + 6 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule (§7
+*Alerting*) — its reagent panels landed in Phase 6, its cleanup as convergence item 9. **Next is
+Phase 7 — client attributes**, which convergence items 6 and 7 are due before. Item 4b and 8 also
+remain. Custom-unit CRUD was deferred out of Phase 4 to Phase 7, where its dropdown consumes it. See
 `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository (later folded into the shared `Location`); lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
@@ -32,6 +32,10 @@ _- 5a ✅ browse — `queryKeys.reagents` (categories/items), ReagentService + q
 _- 5b ✅ read — detail query, `ReagentLotPanel` (FEFO display order, spent lots dimmed, on-hand footer), `ReagentItemInfoPanel` (chemistry, lots, packaging, documents, reorder, archive/remove), `isLotDrawable`, and `docType` on the shared `DocumentLinkModal` as an opt-in `withDocType` picker (supplies/equipment untouched) with `documentTypeLabels`._
 _- 5c ✅ author — `ReagentItemForm` (identification / sourcing / chemistry / unit + packaging / reorder / notes), registry-backed unit dropdowns filtered by kind, packaging editor wrapping the outermost pack, item create/update + packaging mutations, Add Item + Edit wiring. Validates against the **update** schema when editing so blanking a field clears it — traced end to end (`patchText` → entity `?? undefined` → mapper `?? null` → full-row upsert); supplies validates with its create schema in both modes and **cannot** clear a text field on edit._
 _Phase 5 deferrals: no threshold-unit converter (reagent thresholds are entered in the stock unit, so `reorderThresholdUnit` stays unwritten — revisit if a bulk import ever writes it); pack-unit vocabulary is the registry's countable kind (`vial`/`tube`/`each`) until convergence item 6 widens it with box/case; `resolveExpiryBadge` has no unit test yet. The Phase-5 line below no longer includes route-driven expansion of the `CatalogTab` Reagents group — the nav rail (convergence item 7) supersedes it._
+_- 6-prelude ✅ lot corrections — `PUT /reagents/:id/lots/:lotId` (the lot ops §7 always planned but Phase 2 never built), repo `updateLot`, `ReagentLotModal` + row actions, integration case. `updateReagentLotRequestSchema` narrowed to the two dates: status stays unpatchable so a write-off goes through a disposal transaction and lands in the ledger. `reagentLotListResponseSchema` + `reagentTransactionResponseSchema` deleted — no consumer in any remaining phase._
+_- 6a ✅ stock ops — `ReagentTransactionForm` (count/receive/issue/dispose; location-scoped lot targeting, FEFO default with the starting lot named, expired acknowledgment shown exactly when the server would refuse, packaging-aware quantities, per-lot concentration override), record + stock-count service/hooks, Record Transaction wiring, `utils/unitOptions.ts` extracted on its second consumer. Dropped `lotNumber`/`expirationDate` from the stock-count request — declared and plumbed but never read by `adjustCount`, which requires `lotId`. **No client FEFO simulator**: the form shows ordering, the server plans the draw._
+_- 6b ✅ history — `ReagentTransactionTimeline` groups a movement's per-lot rows into one entry (`created_at` is `NOW()` = transaction start, identical across a FEFO draw's rows) and reversals group by `relatedTransactionId`, since each void runs in its own transaction. `ReagentVoidTransactionModal` voids a movement whole — single endpoint for one row, `/bulk/void` for many — so an issue can't be half-undone; partial voids from a failed bulk are labelled, not hidden. Void-and-replace prefills from the group. **Known boundary:** the info panel reads the server's 50-row `recentTransactions` cap, so a movement straddling that cut shows a partial sum until the full-history query lands with the bulk-void tab (Phase 9)._
+_- 6c ✅ alerts — `ReagentLowStockAlertPanel` + `ReagentExpiryAlertPanel` on the shared `AlertPanel`, `ReagentReorderList` modal with **client-side** CSV (no reagent export endpoint, and no third copy of the threshold rule in SQL). `isBelowReorderThreshold` extracted to `shared/utils/stockLevel.ts` with supplies rewired — the extraction convergence item 9 deferred to this phase. `escapeCsvValue` extracted to `shared/utils/csv.ts` from the search panel on its second caller._
 _Each session — read this plan, do the current sub-commit, gate green (server: typecheck + `npm test` unit + `npm run test:integration`), commit when told._
 
 > **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
@@ -908,9 +912,10 @@ Reagents domain — domains/reagents/
 + ui/components/ReagentItemInfoPanel.tsx
 + ui/components/ReagentItemForm.tsx
 + ui/components/ReagentTransactionForm.tsx
-+ ui/components/ReagentTransactionTimeline.tsx       (mirrors SupplyTransactionTimeline)
++ ui/components/ReagentTransactionTimeline.tsx       groups a movement's per-lot rows into one entry
 + ui/components/ReagentVoidTransactionModal.tsx
 + ui/components/ReagentLotPanel.tsx                  lot list on the info panel
++ ui/components/ReagentLotModal.tsx                  opened / expiration corrections
 + ui/components/ReagentLowStockAlertPanel.tsx
 + ui/components/ReagentReorderList.tsx               reorder modal + CSV export (mirrors SupplyReorderList)
 + ui/components/ReagentExpiryAlertPanel.tsx
@@ -926,11 +931,13 @@ Reagents domain — domains/reagents/
 + utils/reagentStatus.ts
 + utils/reagentExpiry.ts                             item badge + per-lot expiry, 90-day default window
 + utils/reagentLots.ts                               isLotDrawable — what counts as stock on hand
++ utils/unitOptions.ts                               registry options filtered per field
 + utils/reagentAutocompleteOptions.ts               transaction-form item autocomplete (mirrors supplies)
 + utils/reagentAttributeFilter.ts                   client-side attribute/expiry filter predicate (+ Vitest test)
 
 Shared, grown during the client phases
-+ shared/utils/stockLevel.ts                                    resolveStockTone (supplies rewired onto it)
++ shared/utils/stockLevel.ts                                    resolveStockTone + isBelowReorderThreshold (supplies rewired)
++ shared/utils/csv.ts                                           escapeCsvValue (search rewired onto it)
 + shared/ui/components/overlays/documentTypeLabels.ts
 ~ shared/ui/components/overlays/DocumentLinkModal.tsx           opt-in `withDocType` picker
 
