@@ -30,6 +30,7 @@ import { AuthSysAdminSetupPage } from '@domains/authentication/ui/components/gat
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 
 import { CatalogSurfacePreview } from './CatalogSurfacePreview';
+import { ReagentAttributeFieldsPreview } from './ReagentAttributeFieldsPreview';
 import { SpinnerPreviewPage } from './SpinnerPreviewPage';
 
 import type { UseAppBootstrapResult } from '@app/bootstrap';
@@ -293,6 +294,13 @@ const SPECS: ModalSpec[] = [
     label: 'Catalog — rail, attributes, units',
     note: 'Grouped rail beside each pane kind; fixtures edit in place (no network)',
     render: close => <CatalogSurfacePreview onClose={close} />,
+  },
+  {
+    id: 'reagent-attribute-fields',
+    group: 'Admin',
+    label: 'Reagent form — attributes section',
+    note: 'All four value types, a prompted attribute, and a type-scoped palette',
+    render: close => <ReagentAttributeFieldsPreview onClose={close} />,
   },
   {
     id: 'reset-page-form',

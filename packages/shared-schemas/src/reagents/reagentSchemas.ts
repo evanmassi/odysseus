@@ -372,6 +372,12 @@ export const reagentAttributeValueSchema = z.object({
   valueNumber: z.number().nullable(),
 });
 
+// The write replaces a definition's values wholesale, so the response is that definition's
+// rows after the fact — the caller sends one request per attribute it changed.
+export const reagentAttributeValueListResponseSchema = z.object({
+  attributeValues: z.array(reagentAttributeValueSchema),
+});
+
 export const setReagentAttributeValueRequestSchema = z.object({
   definitionId: z.string().min(1, 'Attribute is required'),
   valueOptionIds: z.array(z.string().min(1)).optional(),

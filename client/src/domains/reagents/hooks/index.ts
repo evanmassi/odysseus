@@ -25,4 +25,5 @@ export {
   useReagentBulkVoidMutation,
   useAddReagentPackagingLevelMutation,
   useRemoveReagentPackagingLevelMutation,
+  useSetReagentAttributeValueMutation,
 } from './useReagentMutations';

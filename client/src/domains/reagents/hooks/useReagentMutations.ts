@@ -19,6 +19,7 @@ import type {
   CreateReagentDocumentRequest,
   UpdateReagentDocumentRequest,
   CreateReagentPackagingLevelRequest,
+  SetReagentAttributeValueRequest,
   UpdateReagentLotRequest,
   RecordReagentTransactionRequest,
   RecordReagentStockCountRequest,
@@ -251,6 +252,23 @@ export function useRemoveReagentPackagingLevelMutation() {
       ReagentService.removePackagingLevel(itemId, levelId),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+// Attribute values
+
+export function useSetReagentAttributeValueMutation() {
+  const queryClient = useQueryClient();
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: SetReagentAttributeValueRequest }) =>
+      ReagentService.setAttributeValue(itemId, data),
+    // The list row carries an attribute summary for filtering, so both caches go stale.
+    onSuccess: (_result, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.items(labId) });
     },
   });
 }

@@ -43,6 +43,7 @@ export {
   createReagentPackagingLevelRequestSchema,
   reagentPackagingLevelResponseSchema,
   reagentAttributeValueSchema,
+  reagentAttributeValueListResponseSchema,
   setReagentAttributeValueRequestSchema,
   reagentItemDetailResponseSchema,
   reagentBulkReceiveRequestSchema,

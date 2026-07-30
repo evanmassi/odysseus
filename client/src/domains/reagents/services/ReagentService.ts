@@ -2,7 +2,7 @@
  * Reagent Data Service
  *
  * HTTP operations for reagent categories, items, documents, lots, stock
- * transactions, and packaging levels.
+ * transactions, packaging levels, and attribute values.
  */
 
 import {
@@ -15,6 +15,7 @@ import {
   reagentItemResponseSchema,
   reagentLotResponseSchema,
   reagentPackagingLevelResponseSchema,
+  reagentAttributeValueListResponseSchema,
   reagentBulkResponseSchema,
   reagentTransactionListResponseSchema,
   reagentVoidTransactionResponseSchema,
@@ -25,6 +26,7 @@ import {
   type ReagentItemWithStock,
   type ReagentLot,
   type ReagentPackagingLevel,
+  type ReagentAttributeValue,
   type ReagentTransaction,
   type ReagentVoidTransactionResponse,
   type ReagentBulkResponse,
@@ -35,6 +37,7 @@ import {
   type CreateReagentDocumentRequest,
   type UpdateReagentDocumentRequest,
   type CreateReagentPackagingLevelRequest,
+  type SetReagentAttributeValueRequest,
   type UpdateReagentLotRequest,
   type RecordReagentTransactionRequest,
   type RecordReagentStockCountRequest,
@@ -220,5 +223,19 @@ export class ReagentService {
 
   static async removePackagingLevel(itemId: string, levelId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`);
+  }
+
+  // Attribute values
+
+  static async setAttributeValue(
+    itemId: string,
+    data: SetReagentAttributeValueRequest
+  ): Promise<ReagentAttributeValue[]> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/attributes`,
+      data,
+      reagentAttributeValueListResponseSchema
+    );
+    return response.attributeValues;
   }
 }

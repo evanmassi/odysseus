@@ -5,7 +5,7 @@
  * registry-backed unit dropdowns, and the packaging chain editor.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -19,14 +19,21 @@ import {
 import { Plus, Save, SquarePen, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
+import { useAttributesQuery } from '@domains/lab-management';
 import {
   useAddReagentPackagingLevelMutation,
   useCreateReagentItemMutation,
   useReagentItemDetailQuery,
   useRemoveReagentPackagingLevelMutation,
+  useSetReagentAttributeValueMutation,
   useUpdateReagentItemMutation,
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
+import {
+  changedAttributeRequests,
+  draftsFromValues,
+  type AttributeDrafts,
+} from '@domains/reagents/utils/reagentAttributeValues';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
@@ -46,6 +53,8 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+
+import { ReagentAttributeFields } from './ReagentAttributeFields';
 
 interface ReagentItemFormProps {
   item?: ReagentItemWithStock;
@@ -88,6 +97,29 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
   const addPackagingMutation = useAddReagentPackagingLevelMutation();
   const removePackagingMutation = useRemoveReagentPackagingLevelMutation();
   const { data: detail } = useReagentItemDetailQuery(isEditing ? item.id : undefined);
+  const { data: attributes } = useAttributesQuery();
+  const setAttributeValueMutation = useSetReagentAttributeValueMutation();
+
+  const attributeDefinitions = useMemo(
+    () =>
+      (attributes?.definitions ?? []).filter(
+        definition => !definition.appliesToCatalog || definition.appliesToCatalog === 'reagent'
+      ),
+    [attributes?.definitions]
+  );
+
+  const [attributeDrafts, setAttributeDrafts] = useState<AttributeDrafts>({});
+  const savedDraftsRef = useRef<AttributeDrafts>({});
+  const seededItemIdRef = useRef<string>();
+
+  // Detail arrives after mount, and the panel reuses this component across items.
+  useEffect(() => {
+    if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
+    const seeded = draftsFromValues(detail.attributeValues);
+    savedDraftsRef.current = seeded;
+    setAttributeDrafts(seeded);
+    seededItemIdRef.current = item.id;
+  }, [isEditing, detail?.attributeValues, item?.id]);
 
   const [localPackagingLevels, setLocalPackagingLevels] = useState<LocalPackagingLevel[]>([]);
   const packagingLevels = useMemo(
@@ -212,17 +244,42 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     [isEditing, item, removePackagingMutation]
   );
 
+  // Attribute values are their own endpoint, so they sequence off a saved item the way packaging
+  // levels do. Failures are reported by the global handler; the count comes back so the caller
+  // can say the item saved without claiming its attributes did.
+  const saveAttributeValues = async (itemId: string): Promise<number> => {
+    const requests = changedAttributeRequests(
+      savedDraftsRef.current,
+      attributeDrafts,
+      attributeDefinitions
+    );
+    if (requests.length === 0) return 0;
+
+    const results = await Promise.allSettled(
+      requests.map(data => setAttributeValueMutation.mutateAsync({ itemId, data }))
+    );
+    return results.filter(result => result.status === 'rejected').length;
+  };
+
+  const reportSaved = (verb: string, failed: number) => {
+    if (failed === 0) {
+      notifications.success(`Reagent ${verb}`);
+      return;
+    }
+    notifications.warning(
+      `Reagent ${verb}, but ${failed} ${failed === 1 ? 'attribute value' : 'attribute values'} could not be saved`
+    );
+  };
+
   const onFormSubmit = async (data: FieldValues) => {
     if (isEditing) {
-      updateMutation.mutate(
-        { id: item.id, data: data as UpdateReagentItemRequest },
-        {
-          onSuccess: () => {
-            notifications.success('Reagent updated');
-            onSubmit();
-          },
-        }
-      );
+      try {
+        await updateMutation.mutateAsync({ id: item.id, data: data as UpdateReagentItemRequest });
+        reportSaved('updated', await saveAttributeValues(item.id));
+        onSubmit();
+      } catch {
+        // The global handler toasts the update failure; the form stays open for a retry.
+      }
       return;
     }
 
@@ -239,7 +296,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
         }
       }
 
-      notifications.success('Reagent created');
+      reportSaved('created', await saveAttributeValues(created.id));
       onSubmit();
     } catch {
       // The global handler toasts the create failure; the form stays open for a retry.
@@ -403,6 +460,26 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
               )}
             />
           </div>
+
+          <div className="!mt-3.5">
+            <SectionHeader title="Attributes" size="sm" />
+          </div>
+          <ReagentAttributeFields
+            definitions={attributeDefinitions}
+            options={attributes?.options ?? []}
+            drafts={attributeDrafts}
+            reagentType={allValues['reagentType'] as string | undefined}
+            onChange={(definitionId, draft) =>
+              setAttributeDrafts(prev => ({ ...prev, [definitionId]: draft }))
+            }
+            onRemove={definitionId =>
+              setAttributeDrafts(prev => {
+                const next = { ...prev };
+                delete next[definitionId];
+                return next;
+              })
+            }
+          />
 
           <div className="!mt-3.5">
             <SectionHeader title="Unit & Packaging" size="sm" />
