@@ -39,6 +39,11 @@ interface TabProps {
   children: ReactNode;
 }
 
+interface TabGroupProps {
+  label: string;
+  children: ReactNode;
+}
+
 interface TabsContextValue {
   value: string;
   onChange: (value: string) => void;
@@ -126,6 +131,21 @@ export function Tab({ id, icon, children }: TabProps) {
       )}
       <span className="min-w-0 flex-1 break-words">{children}</span>
     </button>
+  );
+}
+
+/** Heading over a run of rail tabs. Decorative: a `tablist` may only own `tab` elements. */
+export function TabGroup({ label, children }: TabGroupProps) {
+  return (
+    <>
+      <div
+        aria-hidden
+        className="px-3 pb-0.5 pt-2 type-label text-label-2xs tracking-label-wide text-foreground/40 first:pt-1"
+      >
+        {label}
+      </div>
+      {children}
+    </>
   );
 }
 

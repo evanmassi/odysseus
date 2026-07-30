@@ -63,7 +63,7 @@ export { StatCell, STAT_STRIP } from './stat-cell/StatCell';
 export { Table } from './table/Table';
 export type { TableColumn, SortConfig } from './table/types';
 
-export { Tabs, Tab } from './tabs/Tabs';
+export { Tabs, Tab, TabGroup } from './tabs/Tabs';
 
 export { Textarea } from './textarea/Textarea';
 

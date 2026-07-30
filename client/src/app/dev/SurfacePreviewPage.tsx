@@ -29,6 +29,7 @@ import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/g
 import { AuthSysAdminSetupPage } from '@domains/authentication/ui/components/gateway/AuthSysAdminSetupPage';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 
+import { CatalogSurfacePreview } from './CatalogSurfacePreview';
 import { SpinnerPreviewPage } from './SpinnerPreviewPage';
 
 import type { UseAppBootstrapResult } from '@app/bootstrap';
@@ -285,6 +286,13 @@ const SPECS: ModalSpec[] = [
     label: 'Password Reset',
     note: 'Direct-set tab + generated-link success state (network stubbed)',
     render: close => <PasswordResetPreview onClose={close} />,
+  },
+  {
+    id: 'catalog-surface',
+    group: 'Admin',
+    label: 'Catalog — rail, attributes, units',
+    note: 'Grouped rail beside each pane kind; fixtures edit in place (no network)',
+    render: close => <CatalogSurfacePreview onClose={close} />,
   },
   {
     id: 'reset-page-form',

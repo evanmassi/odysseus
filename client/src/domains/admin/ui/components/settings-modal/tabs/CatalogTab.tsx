@@ -5,14 +5,13 @@
  * beside the entries of the one selected.
  */
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
-import { Check, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-import { AlertBanner, Button, Chip, Table, Tooltip } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
 
 import { EMPTY_CATALOG, useCatalogValuesQuery } from '../../../../hooks/useCatalogValuesQuery';
@@ -22,10 +21,10 @@ import {
   useRenameLookupValueMutation,
 } from '../../../../hooks/useLookupValueMutations';
 
+import { CatalogEntryTable } from './CatalogEntryTable';
 import { CatalogRail, type CatalogLeaf } from './CatalogRail';
 
-import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
-import type { TableColumn, SortConfig } from '@shared/ui';
+import type { LookupCategory } from '@odysseus/shared-schemas';
 
 const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   species: 'species',
@@ -70,9 +69,11 @@ const CATEGORY_USAGE_LABELS: Record<
   manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
 };
 
-// Alphabetical by title — the rail is flat because the lab-defined attribute vocabularies
-// Phase 7 adds can't be slotted into a fixed taxonomy.
-const CATALOG_LEAVES: CatalogLeaf[] = [
+const LOOKUP_GROUP = 'Dropdown Lists';
+
+// Alphabetical by title. Leaves group by the mechanism behind them, not by meaning — a
+// taxonomy of meaning can't place the lab-defined attribute vocabularies.
+const LOOKUP_LEAVES: Array<{ category: LookupCategory; title: string; usedBy?: string[] }> = [
   { category: 'equipment_maintenance_type', title: 'Maintenance Activities' },
   {
     category: 'manufacturer',
@@ -94,275 +95,6 @@ function leafForRoute(pathname: string): LookupCategory {
   if (pathname.startsWith('/lab/supplies')) return 'supply_item_property';
   if (pathname.startsWith('/lab/equipment')) return 'equipment_maintenance_type';
   return 'species';
-}
-
-interface CategorySectionProps {
-  category: LookupCategory;
-  title: string;
-  usedBy?: string[];
-  values: LookupValueWithCount[];
-  loading: boolean;
-  onAdd: (value: string) => Promise<void>;
-  onRename: (id: string, newValue: string) => void;
-  onDelete: (id: string, value: string) => void;
-  deletingId: string | null;
-  readOnly?: boolean;
-}
-
-function CategorySection({
-  category,
-  title,
-  usedBy,
-  values,
-  loading,
-  onAdd,
-  onRename,
-  onDelete,
-  deletingId,
-  readOnly = false,
-}: CategorySectionProps) {
-  const [newValue, setNewValue] = useState('');
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const editInputRef = useRef<HTMLInputElement>(null);
-  const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
-
-  const handleAdd = async () => {
-    const trimmed = newValue.trim();
-    if (!trimmed) return;
-    setAdding(true);
-    try {
-      await onAdd(trimmed);
-      setNewValue('');
-    } catch {
-      // Add failed — keep the typed value so the user can retry; the global handler toasts.
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const closeAdd = () => {
-    setIsAddOpen(false);
-    setNewValue('');
-  };
-
-  const handleRenameStart = (id: string, currentValue: string) => {
-    setEditingId(id);
-    setEditValue(currentValue);
-    requestAnimationFrame(() => editInputRef.current?.focus());
-  };
-
-  const handleRenameSave = () => {
-    if (!editingId) return;
-    const trimmed = editValue.trim();
-    if (!trimmed) {
-      setEditingId(null);
-      return;
-    }
-    const original = values.find(v => v.id === editingId);
-    if (original && trimmed === original.value) {
-      setEditingId(null);
-      return;
-    }
-    onRename(editingId, trimmed);
-    setEditingId(null);
-  };
-
-  const sortedValues = useMemo(() => {
-    if (!sortConfig) return values;
-    return [...values].sort((a, b) => {
-      const dir = sortConfig.direction === 'asc' ? 1 : -1;
-      switch (sortConfig.columnId) {
-        case 'value':
-          return a.value.localeCompare(b.value) * dir;
-        case 'usageCount':
-          return (a.usageCount - b.usageCount) * dir;
-        default:
-          return 0;
-      }
-    });
-  }, [values, sortConfig]);
-
-  const columns: TableColumn<LookupValueWithCount>[] = [
-    {
-      id: 'value',
-      header: 'Name',
-      sortable: true,
-      render: (_, item) => {
-        if (editingId === item.id) {
-          return (
-            <Input
-              ref={editInputRef}
-              type="text"
-              value={editValue}
-              onChange={e => setEditValue(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleRenameSave();
-                if (e.key === 'Escape') setEditingId(null);
-              }}
-              size="xs"
-              fullWidth
-            />
-          );
-        }
-        return <span className="font-display text-body-sm text-card-foreground">{item.value}</span>;
-      },
-    },
-    {
-      id: 'usageCount',
-      header: CATEGORY_USAGE_LABELS[category].header,
-      sortable: true,
-      width: 80,
-      render: (_, item) =>
-        item.usageCount > 0 ? (
-          <Chip size="sm" color="primary" className="border border-action" numeric>
-            {item.usageCount}
-          </Chip>
-        ) : (
-          <span className="font-mono text-data text-muted-foreground/40">—</span>
-        ),
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      width: 100,
-      render: (_, item) => {
-        const canDelete = item.usageCount === 0;
-        if (editingId === item.id) {
-          return (
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => handleRenameSave()}
-                aria-label="Save"
-                className="text-success-text hover:text-success-text-hover"
-              >
-                <Check size={14} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => setEditingId(null)}
-                aria-label="Cancel"
-              >
-                <X size={14} />
-              </Button>
-            </div>
-          );
-        }
-        return (
-          <div className="flex items-center gap-1">
-            <Tooltip content="Rename" side="bottom">
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => handleRenameStart(item.id, item.value)}
-                disabled={readOnly}
-                aria-label={`Rename ${item.value}`}
-              >
-                <SquarePen size={14} />
-              </Button>
-            </Tooltip>
-            <Tooltip
-              content={
-                canDelete
-                  ? 'Delete'
-                  : `${item.usageCount} ${item.usageCount === 1 ? CATEGORY_USAGE_LABELS[category].singular : CATEGORY_USAGE_LABELS[category].plural} reference this`
-              }
-              side="bottom"
-            >
-              <Button
-                variant="ghost-danger"
-                size="xs"
-                iconOnly
-                onClick={() => onDelete(item.id, item.value)}
-                disabled={readOnly || !canDelete}
-                isLoading={deletingId === item.id}
-                aria-label={`Delete ${item.value}`}
-              >
-                <Trash2 size={14} />
-              </Button>
-            </Tooltip>
-          </div>
-        );
-      },
-    },
-  ];
-
-  return (
-    <Table
-      columns={columns}
-      toolbar={{
-        // While adding, the field takes the whole toolbar; otherwise the row carries only
-        // the used-by note, since the rail already names the list and counts it.
-        // `w-full` not `flex-1`: the toolbar already contains a flex-1 spacer, and two
-        // growing siblings would split the row in half.
-        left: isAddOpen ? (
-          <div className="flex w-full items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <Input
-                type="text"
-                value={newValue}
-                onValueChange={setNewValue}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') void handleAdd();
-                  if (e.key === 'Escape') closeAdd();
-                }}
-                placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category]}...`}
-                size="sm"
-                fullWidth
-                /* eslint-disable-next-line jsx-a11y/no-autofocus -- Revealed on click; focus is expected */
-                autoFocus
-              />
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => void handleAdd()}
-              disabled={!newValue.trim() || adding}
-              isLoading={adding}
-              leftIcon={<Plus size={14} />}
-            >
-              Add
-            </Button>
-            <Button variant="ghost" size="sm" onClick={closeAdd} aria-label="Cancel">
-              <X size={14} />
-            </Button>
-          </div>
-        ) : usedBy ? (
-          <span className="type-label text-label-2xs tracking-label-wide text-foreground/40">
-            used by {usedBy.join(' · ')}
-          </span>
-        ) : undefined,
-        right: isAddOpen ? undefined : (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsAddOpen(true)}
-            disabled={readOnly}
-            leftIcon={<Plus size={14} />}
-          >
-            Add
-          </Button>
-        ),
-      }}
-      data={sortedValues}
-      hoverable
-      sortable
-      sortConfig={sortConfig}
-      onSort={setSortConfig}
-      loading={loading}
-      emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category]} yet`}
-      loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category]}...`}
-      aria-label={`${title} list`}
-    />
-  );
 }
 
 interface CatalogTabProps {
@@ -447,39 +179,49 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
     );
   };
 
-  const counts = useMemo(
+  const leaves = useMemo<CatalogLeaf[]>(
     () =>
-      Object.fromEntries(
-        CATALOG_LEAVES.map(leaf => [leaf.category, catalog[leaf.category].length])
-      ) as Record<LookupCategory, number>,
+      LOOKUP_LEAVES.map(leaf => ({
+        id: leaf.category,
+        title: leaf.title,
+        group: LOOKUP_GROUP,
+        count: catalog[leaf.category].length,
+        usedBy: leaf.usedBy,
+      })),
     [catalog]
   );
 
-  const activeLeaf = CATALOG_LEAVES.find(leaf => leaf.category === selected) ?? CATALOG_LEAVES[0];
+  const activeLeaf = LOOKUP_LEAVES.find(leaf => leaf.category === selected) ?? LOOKUP_LEAVES[0];
+  const activeCategory = activeLeaf.category;
 
   return (
     <div className="space-y-2">
       <div className="flex min-h-0 gap-4">
         <CatalogRail
-          leaves={CATALOG_LEAVES}
-          counts={counts}
-          selected={activeLeaf.category}
-          onSelect={setSelected}
+          leaves={leaves}
+          selected={activeCategory}
+          onSelect={id => setSelected(id as LookupCategory)}
         />
 
         <div className="min-w-0 flex-1">
-          <CategorySection
-            key={activeLeaf.category}
-            category={activeLeaf.category}
-            title={activeLeaf.title}
-            usedBy={activeLeaf.usedBy}
-            values={catalog[activeLeaf.category]}
+          <CatalogEntryTable
+            key={activeCategory}
+            entries={catalog[activeCategory]}
+            labels={{
+              singular: CATEGORY_SINGULAR_LABELS[activeCategory],
+              plural: CATEGORY_PLURAL_LABELS[activeCategory],
+              usageHeader: CATEGORY_USAGE_LABELS[activeCategory].header,
+              usageSingular: CATEGORY_USAGE_LABELS[activeCategory].singular,
+              usagePlural: CATEGORY_USAGE_LABELS[activeCategory].plural,
+            }}
+            ariaLabel={`${activeLeaf.title} list`}
             loading={isLoading}
-            onAdd={value => handleAdd(activeLeaf.category, value)}
-            onRename={(id, newValue) => handleRename(activeLeaf.category, id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest(activeLeaf.category, id, value)}
+            onAdd={value => handleAdd(activeCategory, value)}
+            onRename={(id, newValue) => handleRename(activeCategory, id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest(activeCategory, id, value)}
             deletingId={deletingId}
             readOnly={readOnly}
+            toolbarNote={activeLeaf.usedBy ? `used by ${activeLeaf.usedBy.join(' · ')}` : undefined}
           />
         </div>
       </div>

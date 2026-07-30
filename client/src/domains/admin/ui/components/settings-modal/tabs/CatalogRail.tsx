@@ -1,32 +1,33 @@
 /**
  * Catalog Rail
  *
- * Flat, alphabetical list of every editable lab vocabulary with its entry count.
- * Selecting a leaf swaps the pane beside it; a taxonomy was rejected because the
- * lab-defined attribute vocabularies can't be classified in advance.
+ * Every editable lab vocabulary with its entry count, grouped by the mechanism behind it.
+ * Grouping by mechanism rather than meaning is what survives lab-defined attributes: a new
+ * one classifies itself.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
-import { SearchInput, Tab, Tabs } from '@shared/ui';
-
-import type { LookupCategory } from '@odysseus/shared-schemas';
+import { SearchInput, Tab, TabGroup, Tabs } from '@shared/ui';
 
 export interface CatalogLeaf {
-  category: LookupCategory;
+  id: string;
   title: string;
+  group: string;
+  count: number;
   /** Catalogs a shared vocabulary feeds; a rename fans out to all of them. */
   usedBy?: string[];
 }
 
 interface CatalogRailProps {
   leaves: CatalogLeaf[];
-  counts: Record<LookupCategory, number>;
-  selected: LookupCategory;
-  onSelect: (category: LookupCategory) => void;
+  selected: string;
+  onSelect: (id: string) => void;
+  /** Actions below the rail — kept outside the tablist, which may only own tabs. */
+  footer?: ReactNode;
 }
 
-export function CatalogRail({ leaves, counts, selected, onSelect }: CatalogRailProps) {
+export function CatalogRail({ leaves, selected, onSelect, footer }: CatalogRailProps) {
   const [filter, setFilter] = useState('');
 
   // The selected leaf stays listed even when it doesn't match, so the pane beside the
@@ -34,10 +35,10 @@ export function CatalogRail({ leaves, counts, selected, onSelect }: CatalogRailP
   const visible = useMemo(() => {
     const query = filter.trim().toLowerCase();
     if (!query) return leaves;
-    return leaves.filter(
-      leaf => leaf.category === selected || leaf.title.toLowerCase().includes(query)
-    );
+    return leaves.filter(leaf => leaf.id === selected || leaf.title.toLowerCase().includes(query));
   }, [leaves, filter, selected]);
+
+  const groups = useMemo(() => Array.from(new Set(visible.map(leaf => leaf.group))), [visible]);
 
   return (
     <div className="flex w-60 flex-shrink-0 flex-col gap-2">
@@ -50,24 +51,27 @@ export function CatalogRail({ leaves, counts, selected, onSelect }: CatalogRailP
       />
 
       <div className="border border-line-faint py-1">
-        <Tabs
-          orientation="vertical"
-          size="sm"
-          value={selected}
-          onChange={value => onSelect(value as LookupCategory)}
-        >
-          {visible.map(leaf => (
-            <Tab key={leaf.category} id={leaf.category}>
-              <span className="flex items-center gap-2 leading-tight">
-                <span className="min-w-0">{leaf.title}</span>
-                <span className="ml-auto flex-shrink-0 font-mono text-data-sm tracking-data text-foreground/40">
-                  {counts[leaf.category]}
-                </span>
-              </span>
-            </Tab>
+        <Tabs orientation="vertical" size="sm" value={selected} onChange={onSelect}>
+          {groups.map(group => (
+            <TabGroup key={group} label={group}>
+              {visible
+                .filter(leaf => leaf.group === group)
+                .map(leaf => (
+                  <Tab key={leaf.id} id={leaf.id}>
+                    <span className="flex items-center gap-2 leading-tight">
+                      <span className="min-w-0">{leaf.title}</span>
+                      <span className="ml-auto flex-shrink-0 font-mono text-data-sm tracking-data text-foreground/40">
+                        {leaf.count}
+                      </span>
+                    </span>
+                  </Tab>
+                ))}
+            </TabGroup>
           ))}
         </Tabs>
       </div>
+
+      {footer}
     </div>
   );
 }
