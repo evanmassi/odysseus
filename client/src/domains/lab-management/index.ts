@@ -25,6 +25,6 @@ export {
 export { useCustomUnitsQuery } from './hooks/useCustomUnitQueries';
 export {
   useCreateCustomUnitMutation,
-  useRenameCustomUnitMutation,
+  useUpdateCustomUnitMutation,
   useDeleteCustomUnitMutation,
 } from './hooks/useCustomUnitMutations';

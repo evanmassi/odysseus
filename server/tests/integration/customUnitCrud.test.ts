@@ -110,7 +110,7 @@ describe('custom unit CRUD', () => {
     const created = await unit(lab.id);
     const { supplyItem, reagentItem } = await itemsUsing(lab.id, created.label);
 
-    await service.rename(lab.id, created.id, { label: 'beads/100 µL' }, admin);
+    await service.update(lab.id, created.id, { label: 'beads/100 µL' }, admin);
 
     const supply = await context.queryOne<{
       stock_unit: string;
@@ -166,13 +166,31 @@ describe('custom unit CRUD', () => {
     expect(listed.usageCount).toBe(10);
   });
 
+  it('changes what an unused unit measures, and refuses once something uses it', async () => {
+    const lab = await seed.lab();
+    const created = await unit(lab.id);
+
+    const rekinded = await service.update(lab.id, created.id, { kind: 'count' }, admin);
+    expect(rekinded.kind).toBe('count');
+
+    await itemsUsing(lab.id, created.label);
+    await expect(
+      service.update(lab.id, created.id, { kind: 'count-conc' }, admin)
+    ).rejects.toThrow(/Cannot change what/);
+
+    // A rename still works while in use — that is what the cascade is for.
+    const renamed = await service.update(lab.id, created.id, { label: 'beads/100 µL' }, admin);
+    expect(renamed.label).toBe('beads/100 µL');
+    expect(renamed.kind).toBe('count');
+  });
+
   it('leaves another lab holding the same label alone', async () => {
     const [lab, other] = [await seed.lab(), await seed.lab()];
     const created = await unit(lab.id);
     await unit(other.id);
     const untouched = await itemsUsing(other.id, created.label);
 
-    await service.rename(lab.id, created.id, { label: 'beads/100 µL' }, admin);
+    await service.update(lab.id, created.id, { label: 'beads/100 µL' }, admin);
 
     const supply = await context.queryOne<{ stock_unit: string }>(
       `SELECT stock_unit FROM supply_items WHERE id = $1`,
@@ -206,7 +224,7 @@ describe('custom unit CRUD', () => {
     const created = await unit(lab.id);
 
     await expect(
-      service.rename(other.id, created.id, { label: 'nope' }, admin)
+      service.update(other.id, created.id, { label: 'nope' }, admin)
     ).rejects.toThrow(/could not be found/);
     await expect(service.delete(other.id, created.id, admin)).rejects.toThrow(/could not be found/);
   });

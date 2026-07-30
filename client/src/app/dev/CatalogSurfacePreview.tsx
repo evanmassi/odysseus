@@ -252,6 +252,9 @@ export function CatalogSurfacePreview({ onClose }: { onClose: () => void }) {
               onRename={(id, value) =>
                 setUnits(prev => prev.map(unit => (unit.id === id ? { ...unit, value } : unit)))
               }
+              onKindChange={(id, kind) =>
+                setUnits(prev => prev.map(unit => (unit.id === id ? { ...unit, kind } : unit)))
+              }
               onDelete={id => setUnits(prev => prev.filter(unit => unit.id !== id))}
             />
           )}

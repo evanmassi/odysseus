@@ -20,7 +20,7 @@ import {
   useDeleteAttributeDefinitionMutation,
   useDeleteAttributeOptionMutation,
   useDeleteCustomUnitMutation,
-  useRenameCustomUnitMutation,
+  useUpdateCustomUnitMutation,
   useUpdateAttributeDefinitionMutation,
   useUpdateAttributeOptionMutation,
 } from '@domains/lab-management';
@@ -187,7 +187,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
   const updateOptionMutation = useUpdateAttributeOptionMutation();
   const deleteOptionMutation = useDeleteAttributeOptionMutation();
   const createUnitMutation = useCreateCustomUnitMutation();
-  const renameUnitMutation = useRenameCustomUnitMutation();
+  const updateUnitMutation = useUpdateCustomUnitMutation();
   const deleteUnitMutation = useDeleteCustomUnitMutation();
 
   const isDeleting =
@@ -282,7 +282,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
   };
 
   const handleRenameUnit = (id: string, label: string) => {
-    renameUnitMutation.mutate(
+    updateUnitMutation.mutate(
       { id, data: { label } },
       {
         onSuccess: () => {
@@ -290,6 +290,10 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
         },
       }
     );
+  };
+
+  const handleUnitKindChange = (id: string, kind: UnitKindValue) => {
+    updateUnitMutation.mutate({ id, data: { kind } });
   };
 
   const executeDelete = () => {
@@ -464,6 +468,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
               loading={isLoadingUnits}
               onAdd={handleAddUnit}
               onRename={handleRenameUnit}
+              onKindChange={handleUnitKindChange}
               onDelete={(id, label) => setPendingDelete({ kind: 'unit', id, label })}
               deletingId={deletingId}
               readOnly={readOnly}

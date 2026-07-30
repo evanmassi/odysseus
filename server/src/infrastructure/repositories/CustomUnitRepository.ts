@@ -20,6 +20,8 @@ import { CustomUnitMapper } from '@infrastructure/database/mappers/CustomUnitMap
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
+import type { UnitKindValue } from '@odysseus/shared-schemas';
+
 const COLUMNS = 'id, lab_id, label, kind, sort_order, created_at, updated_at';
 const COLUMNS_ALIASED =
   'c.id, c.lab_id, c.label, c.kind, c.sort_order, c.created_at, c.updated_at';
@@ -129,6 +131,17 @@ export class CustomUnitRepository implements ICustomUnitRepository {
       [labId, label]
     );
     return parseCount(row);
+  }
+
+  // No cascade: the dimension lives only here, and the service refuses the change while any
+  // item still holds the label.
+  async changeKind(unit: CustomUnitRow, kind: UnitKindValue): Promise<CustomUnitRow> {
+    const result = await this.db.query<CustomUnitDbRow>(
+      `UPDATE custom_units SET kind = $2, updated_at = NOW()
+       WHERE lab_id = $1 AND id = $3 RETURNING ${COLUMNS}`,
+      [unit.labId, kind, unit.id]
+    );
+    return CustomUnitMapper.fromRow(result.rows[0]);
   }
 
   async rename(unit: CustomUnitRow, label: string): Promise<CustomUnitRow> {

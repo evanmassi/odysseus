@@ -1,9 +1,10 @@
 /**
  * Custom Unit Management Service
  *
- * CRUD for the lab's supplement to the fixed unit registry. A rename cascades to every
- * item that holds the label; a delete is refused while any of them do, since the label
- * would survive in those rows with no dropdown offering it.
+ * CRUD for the lab's supplement to the fixed unit registry. A rename cascades to every item
+ * that holds the label, so it is always safe. A delete or a change of dimension is refused
+ * while any item holds it: the first would strand the label with no dropdown offering it, the
+ * second would move the unit to fields those items don't use.
  */
 
 import { UNIT_REGISTRY } from '@odysseus/shared-schemas';
@@ -23,7 +24,7 @@ import type {
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
 
-import type { CreateCustomUnitRequest, RenameCustomUnitRequest } from '@odysseus/shared-schemas';
+import type { CreateCustomUnitRequest, UpdateCustomUnitRequest } from '@odysseus/shared-schemas';
 
 export class CustomUnitApplicationService {
   constructor(
@@ -59,21 +60,32 @@ export class CustomUnitApplicationService {
     return CustomUnitDto.toResponse(unit);
   }
 
-  async rename(
+  async update(
     labId: string,
     id: string,
-    data: RenameCustomUnitRequest,
+    data: UpdateCustomUnitRequest,
     user: User
   ): Promise<CustomUnitResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    const unit = await this.getOrThrow(id, labId);
-    const label = data.label.trim();
+    let unit = await this.getOrThrow(id, labId);
 
-    if (label === unit.label) return CustomUnitDto.toResponse(unit);
-    await this.requireLabelAvailable(label, labId);
+    if (data.kind && data.kind !== unit.kind) {
+      const usageCount = await this.customUnitRepository.countUsage(unit.label, labId);
+      if (usageCount > 0) {
+        throw new ValidationError(
+          `Cannot change what "${unit.label}" measures — ${usageCount} ${usageCount === 1 ? 'item uses' : 'items use'} it, and the change would move it to different fields. Rename it and add a new unit instead.`
+        );
+      }
+      unit = await this.customUnitRepository.changeKind(unit, data.kind);
+    }
 
-    const renamed = await this.customUnitRepository.rename(unit, label);
-    return CustomUnitDto.toResponse(renamed);
+    const label = data.label?.trim();
+    if (label && label !== unit.label) {
+      await this.requireLabelAvailable(label, labId);
+      unit = await this.customUnitRepository.rename(unit, label);
+    }
+
+    return CustomUnitDto.toResponse(unit);
   }
 
   async delete(labId: string, id: string, user: User): Promise<void> {

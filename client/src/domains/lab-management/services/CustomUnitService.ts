@@ -10,7 +10,7 @@ import {
   type CreateCustomUnitRequest,
   type CustomUnit,
   type CustomUnitWithUsage,
-  type RenameCustomUnitRequest,
+  type UpdateCustomUnitRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -28,7 +28,7 @@ export class CustomUnitService {
     return response.customUnit;
   }
 
-  static async rename(id: string, data: RenameCustomUnitRequest): Promise<CustomUnit> {
+  static async update(id: string, data: UpdateCustomUnitRequest): Promise<CustomUnit> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${id}`,
       data,

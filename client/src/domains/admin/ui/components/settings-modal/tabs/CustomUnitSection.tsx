@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 
+import { Tooltip } from '@shared/ui';
 import { Select } from '@shared/ui/primitives';
 import { CUSTOM_UNIT_KIND_OPTIONS, unitKindLabel } from '@shared/utils/unitOptions';
 
@@ -24,6 +25,7 @@ interface CustomUnitSectionProps {
   loading?: boolean;
   onAdd: (label: string, kind: UnitKindValue) => Promise<void>;
   onRename: (id: string, label: string) => void;
+  onKindChange: (id: string, kind: UnitKindValue) => void;
   onDelete: (id: string, label: string) => void;
   deletingId?: string | null;
   readOnly?: boolean;
@@ -34,6 +36,7 @@ export function CustomUnitSection({
   loading = false,
   onAdd,
   onRename,
+  onKindChange,
   onDelete,
   deletingId,
   readOnly = false,
@@ -43,12 +46,26 @@ export function CustomUnitSection({
   const kindColumn: TableColumn<CustomUnitEntry> = {
     id: 'kind',
     header: 'Measures',
-    width: 180,
-    render: (_, item) => (
-      <span className="font-display text-body-sm text-muted-foreground">
-        {unitKindLabel(item.kind)}
-      </span>
-    ),
+    width: 210,
+    // Editable only while nothing uses the unit: changing the dimension moves it to different
+    // fields, which would strand the label on items whose field no longer offers it.
+    render: (_, item) =>
+      item.usageCount === 0 && !readOnly ? (
+        <Select
+          options={CUSTOM_UNIT_KIND_OPTIONS}
+          value={item.kind}
+          onChange={value => onKindChange(item.id, value as UnitKindValue)}
+          size="xs"
+          fullWidth
+          aria-label={`What ${item.value} measures`}
+        />
+      ) : (
+        <Tooltip content={`${item.usageCount} items use this unit`} side="bottom">
+          <span className="font-display text-body-sm text-muted-foreground">
+            {unitKindLabel(item.kind)}
+          </span>
+        </Tooltip>
+      ),
   };
 
   const handleAdd = async (label: string) => {

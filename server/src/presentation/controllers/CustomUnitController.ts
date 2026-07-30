@@ -41,11 +41,11 @@ export class CustomUnitController extends BaseController {
     }
   }
 
-  async renameCustomUnit(req: Request, res: Response): Promise<void> {
+  async updateCustomUnit(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const customUnit = await this.deps.customUnitService.rename(
+      const customUnit = await this.deps.customUnitService.update(
         labId,
         req.params.unitId,
         req.body,
@@ -53,7 +53,7 @@ export class CustomUnitController extends BaseController {
       );
       res.json(ResponseBuilder.success({ customUnit }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to rename custom unit', req.requestId);
+      handleControllerError(error, res, 'Failed to update custom unit', req.requestId);
     }
   }
 

@@ -11,7 +11,7 @@ import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   CustomUnitIdParams,
   CreateCustomUnitHttpSchema,
-  RenameCustomUnitHttpSchema,
+  UpdateCustomUnitHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -42,8 +42,8 @@ export class CustomUnitRouteModule implements RouteModule {
     router.put(
       '/:unitId',
       validateParams(CustomUnitIdParams),
-      validateBody(RenameCustomUnitHttpSchema),
-      this.customUnitController.renameCustomUnit.bind(this.customUnitController)
+      validateBody(UpdateCustomUnitHttpSchema),
+      this.customUnitController.updateCustomUnit.bind(this.customUnitController)
     );
 
     router.delete(

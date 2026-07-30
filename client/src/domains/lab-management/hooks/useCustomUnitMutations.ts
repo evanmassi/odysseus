@@ -1,8 +1,8 @@
 /**
  * Custom Unit Mutations
  *
- * Writes against the lab's custom units. A rename rewrites the unit string on every item
- * that holds it, so both catalogs are invalidated with the list.
+ * Writes against the lab's custom units. A rename rewrites the unit string on every item that
+ * holds it, so both catalogs are invalidated with the list.
  */
 
 import { useMutation } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { useLabId } from '@domains/authentication';
 
 import { CustomUnitService } from '../services/CustomUnitService';
 
-import type { CreateCustomUnitRequest, RenameCustomUnitRequest } from '@odysseus/shared-schemas';
+import type { CreateCustomUnitRequest, UpdateCustomUnitRequest } from '@odysseus/shared-schemas';
 
 function customUnitInvalidates(labId: string | undefined) {
   return [
@@ -31,12 +31,12 @@ export function useCreateCustomUnitMutation() {
   });
 }
 
-export function useRenameCustomUnitMutation() {
+export function useUpdateCustomUnitMutation() {
   const labId = useLabId();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: RenameCustomUnitRequest }) =>
-      CustomUnitService.rename(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateCustomUnitRequest }) =>
+      CustomUnitService.update(id, data),
     meta: { invalidates: customUnitInvalidates(labId) },
   });
 }

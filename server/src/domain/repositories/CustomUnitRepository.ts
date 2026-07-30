@@ -31,4 +31,5 @@ export interface CustomUnitRepository {
 
   /** Rewrites the label across every column that stores a unit, in one transaction. */
   rename(unit: CustomUnitRow, label: string): Promise<CustomUnitRow>;
+  changeKind(unit: CustomUnitRow, kind: UnitKindValue): Promise<CustomUnitRow>;
 }

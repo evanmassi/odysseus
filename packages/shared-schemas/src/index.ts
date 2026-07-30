@@ -74,7 +74,7 @@ export {
   customUnitSchema,
   customUnitWithUsageSchema,
   createCustomUnitRequestSchema,
-  renameCustomUnitRequestSchema,
+  updateCustomUnitRequestSchema,
   customUnitResponseSchema,
   customUnitListResponseSchema,
   type UnitKind,
@@ -83,7 +83,7 @@ export {
   type CustomUnit,
   type CustomUnitWithUsage,
   type CreateCustomUnitRequest,
-  type RenameCustomUnitRequest,
+  type UpdateCustomUnitRequest,
 } from './units';
 
 // Attributes

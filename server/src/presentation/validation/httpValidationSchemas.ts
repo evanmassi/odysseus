@@ -52,7 +52,7 @@ import {
   createAttributeOptionRequestSchema,
   updateAttributeOptionRequestSchema,
   createCustomUnitRequestSchema,
-  renameCustomUnitRequestSchema,
+  updateCustomUnitRequestSchema,
   createLocationRequestSchema,
   updateLocationRequestSchema,
   createSupplyCategoryRequestSchema,
@@ -289,7 +289,7 @@ export const UpdateAttributeOptionHttpSchema = updateAttributeOptionRequestSchem
 
 export const CustomUnitIdParams = z.object({ unitId: z.string().min(1) });
 export const CreateCustomUnitHttpSchema = createCustomUnitRequestSchema;
-export const RenameCustomUnitHttpSchema = renameCustomUnitRequestSchema;
+export const UpdateCustomUnitHttpSchema = updateCustomUnitRequestSchema;
 
 // Location schemas
 

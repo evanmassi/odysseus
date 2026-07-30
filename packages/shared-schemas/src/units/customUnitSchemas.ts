@@ -34,11 +34,17 @@ export const createCustomUnitRequestSchema = z.object({
   kind: unitKindSchema,
 });
 
-// The dimension is fixed at creation: changing it would re-point the unit at fields
-// holding incompatible quantities.
-export const renameCustomUnitRequestSchema = z.object({
-  label: z.string().min(1, 'Unit label is required').max(50),
-});
+// A rename cascades to every column holding the label, so it is safe at any time. Changing
+// the dimension is not: it re-points the unit at different fields, stranding the label on
+// items whose field would no longer offer it. The server allows that only while unused.
+export const updateCustomUnitRequestSchema = z
+  .object({
+    label: z.string().min(1, 'Unit label is required').max(50).optional(),
+    kind: unitKindSchema.optional(),
+  })
+  .refine(data => data.label !== undefined || data.kind !== undefined, {
+    message: 'Nothing to update',
+  });
 
 export const customUnitResponseSchema = z.object({
   customUnit: customUnitSchema,
@@ -52,4 +58,4 @@ export type UnitKindValue = z.infer<typeof unitKindSchema>;
 export type CustomUnit = z.infer<typeof customUnitSchema>;
 export type CustomUnitWithUsage = z.infer<typeof customUnitWithUsageSchema>;
 export type CreateCustomUnitRequest = z.infer<typeof createCustomUnitRequestSchema>;
-export type RenameCustomUnitRequest = z.infer<typeof renameCustomUnitRequestSchema>;
+export type UpdateCustomUnitRequest = z.infer<typeof updateCustomUnitRequestSchema>;
