@@ -17,6 +17,7 @@ import { ValidationService } from '@domain/services/ValidationService';
 import { AttributeModule } from '@infrastructure/di/modules/AttributeModule';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
+import { CustomUnitModule } from '@infrastructure/di/modules/CustomUnitModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
@@ -40,6 +41,7 @@ import type { AttributeController } from '@presentation/controllers/AttributeCon
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
+import type { CustomUnitController } from '@presentation/controllers/CustomUnitController';
 import type { DonorController } from '@presentation/controllers/DonorController';
 import type { EquipmentController } from '@presentation/controllers/EquipmentController';
 import type { ExportController } from '@presentation/controllers/ExportController';
@@ -87,6 +89,7 @@ export class ServiceContainer {
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
   private _attributeModule?: AttributeModule;
+  private _customUnitModule?: CustomUnitModule;
   private _locationModule?: LocationModule;
   private _supplyModule?: SupplyModule;
   private _reagentModule?: ReagentModule;
@@ -209,6 +212,13 @@ export class ServiceContainer {
       this._attributeModule = new AttributeModule(this.getShared(), this.repositoryFactory);
     }
     return this._attributeModule;
+  }
+
+  private getCustomUnitModule(): CustomUnitModule {
+    if (!this._customUnitModule) {
+      this._customUnitModule = new CustomUnitModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._customUnitModule;
   }
 
   private getLocationModule(): LocationModule {
@@ -373,6 +383,12 @@ export class ServiceContainer {
 
   getAttributeController(): AttributeController {
     return this.getAttributeModule().getAttributeController();
+  }
+
+  // Public API — CustomUnitModule
+
+  getCustomUnitController(): CustomUnitController {
+    return this.getCustomUnitModule().getCustomUnitController();
   }
 
   // Public API — LocationModule

@@ -21,12 +21,14 @@ export {
 export {
   unitKindSchema,
   customUnitSchema,
+  customUnitWithUsageSchema,
   createCustomUnitRequestSchema,
-  updateCustomUnitRequestSchema,
+  renameCustomUnitRequestSchema,
   customUnitResponseSchema,
   customUnitListResponseSchema,
   type UnitKindValue,
   type CustomUnit,
+  type CustomUnitWithUsage,
   type CreateCustomUnitRequest,
-  type UpdateCustomUnitRequest,
+  type RenameCustomUnitRequest,
 } from './customUnitSchemas';

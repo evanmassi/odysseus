@@ -72,16 +72,18 @@ export {
   formatScientific,
   unitKindSchema,
   customUnitSchema,
+  customUnitWithUsageSchema,
   createCustomUnitRequestSchema,
-  updateCustomUnitRequestSchema,
+  renameCustomUnitRequestSchema,
   customUnitResponseSchema,
   customUnitListResponseSchema,
   type UnitKind,
   type UnitRegistryEntry,
   type UnitKindValue,
   type CustomUnit,
+  type CustomUnitWithUsage,
   type CreateCustomUnitRequest,
-  type UpdateCustomUnitRequest,
+  type RenameCustomUnitRequest,
 } from './units';
 
 // Attributes

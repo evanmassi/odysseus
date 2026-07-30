@@ -23,15 +23,21 @@ export const customUnitSchema = z.object({
   updatedAt: dateField,
 });
 
+// A unit is referenced by label across every column that stores one, so the count gates
+// deletion: dropping a unit in use would leave a label no dropdown offers.
+export const customUnitWithUsageSchema = customUnitSchema.extend({
+  usageCount: z.number().int().min(0),
+});
+
 export const createCustomUnitRequestSchema = z.object({
   label: z.string().min(1, 'Unit label is required').max(50),
   kind: unitKindSchema,
-  sortOrder: z.number().int().optional(),
 });
 
-export const updateCustomUnitRequestSchema = z.object({
-  label: z.string().min(1).max(50).nullish(),
-  sortOrder: z.number().int().nullish(),
+// The dimension is fixed at creation: changing it would re-point the unit at fields
+// holding incompatible quantities.
+export const renameCustomUnitRequestSchema = z.object({
+  label: z.string().min(1, 'Unit label is required').max(50),
 });
 
 export const customUnitResponseSchema = z.object({
@@ -39,10 +45,11 @@ export const customUnitResponseSchema = z.object({
 });
 
 export const customUnitListResponseSchema = z.object({
-  customUnits: z.array(customUnitSchema),
+  customUnits: z.array(customUnitWithUsageSchema),
 });
 
 export type UnitKindValue = z.infer<typeof unitKindSchema>;
 export type CustomUnit = z.infer<typeof customUnitSchema>;
+export type CustomUnitWithUsage = z.infer<typeof customUnitWithUsageSchema>;
 export type CreateCustomUnitRequest = z.infer<typeof createCustomUnitRequestSchema>;
-export type UpdateCustomUnitRequest = z.infer<typeof updateCustomUnitRequestSchema>;
+export type RenameCustomUnitRequest = z.infer<typeof renameCustomUnitRequestSchema>;

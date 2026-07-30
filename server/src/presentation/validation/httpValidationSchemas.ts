@@ -51,6 +51,8 @@ import {
   updateAttributeDefinitionRequestSchema,
   createAttributeOptionRequestSchema,
   updateAttributeOptionRequestSchema,
+  createCustomUnitRequestSchema,
+  renameCustomUnitRequestSchema,
   createLocationRequestSchema,
   updateLocationRequestSchema,
   createSupplyCategoryRequestSchema,
@@ -282,6 +284,12 @@ export const CreateAttributeDefinitionHttpSchema = createAttributeDefinitionRequ
 export const UpdateAttributeDefinitionHttpSchema = updateAttributeDefinitionRequestSchema;
 export const CreateAttributeOptionHttpSchema = createAttributeOptionRequestSchema;
 export const UpdateAttributeOptionHttpSchema = updateAttributeOptionRequestSchema;
+
+// Custom unit schemas
+
+export const CustomUnitIdParams = z.object({ unitId: z.string().min(1) });
+export const CreateCustomUnitHttpSchema = createCustomUnitRequestSchema;
+export const RenameCustomUnitHttpSchema = renameCustomUnitRequestSchema;
 
 // Location schemas
 

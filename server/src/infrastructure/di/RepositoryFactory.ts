@@ -11,6 +11,7 @@ import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { CustomUnitRepository } from '@domain/repositories/CustomUnitRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
@@ -38,6 +39,7 @@ import {
   REAGENT_CATEGORY_TABLES,
   SUPPLY_CATEGORY_TABLES,
 } from '@infrastructure/repositories/CategoryRepository';
+import { CustomUnitRepository as CustomUnitRepositoryImpl } from '@infrastructure/repositories/CustomUnitRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
@@ -73,6 +75,7 @@ export class RepositoryFactory implements UnitOfWork {
   private supplyCategoryRepository?: CategoryRepository<SupplyCategory>;
   private supplyItemRepository?: SupplyItemRepository;
   private attributeRepository?: AttributeRepository;
+  private customUnitRepository?: CustomUnitRepository;
   private locationRepository?: LocationRepository;
   private reagentCategoryRepository?: CategoryRepository<ReagentCategory>;
   private reagentItemRepository?: ReagentItemRepository;
@@ -205,6 +208,13 @@ export class RepositoryFactory implements UnitOfWork {
       this.attributeRepository = new AttributeRepositoryImpl(this.postgresContext);
     }
     return this.attributeRepository;
+  }
+
+  getCustomUnitRepository(): CustomUnitRepository {
+    if (!this.customUnitRepository) {
+      this.customUnitRepository = new CustomUnitRepositoryImpl(this.postgresContext);
+    }
+    return this.customUnitRepository;
   }
 
   getLocationRepository(): LocationRepository {
