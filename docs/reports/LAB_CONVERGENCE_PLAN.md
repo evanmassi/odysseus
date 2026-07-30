@@ -5,10 +5,10 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5, 6, 7 and 9 done. Reagents is complete through Phase 6 and **Phase 7
-is in progress**. Items 4b (equipment locations), 8 (lab-wide barcode resolve, due before reagents
-Phase 8), 10 and 11 (attributes for the other two catalogs, after Phase 7) remain. Companion to
-`REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 4a, 5, 6, 7 and 9 done. Reagents is complete through **Phase 7**. Item 8
+(lab-wide barcode resolve) now blocks reagents Phase 8 and is the next one due; 4b (equipment
+locations), 10 and 11 (attributes for the other two catalogs, unblocked now that Phase 7 shipped the
+first caller) remain. Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
 **Migration policy — amend-in-place is over.** Dev has applied everything through **032**. While
 reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
@@ -204,9 +204,9 @@ consistently, every `parent_unit` still resolves to a sibling `unit_name` per it
 `supply_stock_unit` rows and CHECK entry are gone, `custom_units` empty as predicted — and dev itself
 untouched at 26.
 
-**Note:** supplies' unit dropdowns are registry-only until custom-unit CRUD lands in reagents Phase 7,
-so there is no "add a unit" path in between. A no-op for this lab, whose three units all became
-registry entries.
+**Note (resolved).** Supplies' unit dropdowns were registry-only until reagents Phase 7 shipped
+custom-unit CRUD; `useUnitOptions` now feeds both catalogs the registry plus the lab's own units,
+filtered by dimension.
 
 ### 7. Catalog tab → nav rail — ✅ done
 

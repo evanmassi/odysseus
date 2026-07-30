@@ -8,10 +8,10 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Biohazard, Eye, EyeOff, MapPin, Plus } from 'lucide-react';
+import { Biohazard, Eye, EyeOff, MapPin, Plus, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { LocationModal } from '@domains/lab-management';
+import { useAttributesQuery, LocationModal } from '@domains/lab-management';
 import {
   useCreateReagentCategoryMutation,
   useDeleteReagentCategoryMutation,
@@ -41,6 +41,14 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import {
+  countActiveFilters,
+  matchesReagentFilters,
+  EMPTY_REAGENT_FILTERS,
+  type ReagentFilters,
+} from '../../utils/reagentAttributeFilter';
+
+import { ReagentAttributeFilterPanel } from './ReagentAttributeFilterPanel';
 import { ReagentExpiryAlertPanel } from './ReagentExpiryAlertPanel';
 import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
@@ -86,6 +94,7 @@ export function ReagentsTab() {
 
   const { data: categories = [] } = useReagentCategoriesQuery();
   const { data: items = [] } = useReagentItemsQuery();
+  const { data: attributes } = useAttributesQuery();
   const createCategoryMutation = useCreateReagentCategoryMutation();
   const updateCategoryMutation = useUpdateReagentCategoryMutation();
   const deleteCategoryMutation = useDeleteReagentCategoryMutation();
@@ -95,6 +104,8 @@ export function ReagentsTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [sortField, setSortField] = useState<InventorySortField>('name');
+  const [filters, setFilters] = useState<ReagentFilters>(EMPTY_REAGENT_FILTERS);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
     isOpen: boolean;
@@ -185,7 +196,15 @@ export function ReagentsTab() {
     { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
   ];
 
-  const itemCount = showArchived ? items.length : items.filter(i => i.status !== 'archived').length;
+  const activeFilterCount = countActiveFilters(filters);
+  const visibleItems = useMemo(
+    () => (activeFilterCount === 0 ? items : items.filter(i => matchesReagentFilters(i, filters))),
+    [items, filters, activeFilterCount]
+  );
+
+  const itemCount = showArchived
+    ? visibleItems.length
+    : visibleItems.filter(i => i.status !== 'archived').length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
   return (
@@ -232,6 +251,20 @@ export function ReagentsTab() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setIsFilterOpen(open => !open)}
+              aria-pressed={isFilterOpen || activeFilterCount > 0}
+              className={`h-8 text-label-sm ${
+                isFilterOpen || activeFilterCount > 0
+                  ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                  : ''
+              }`}
+              leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+            >
+              Filter
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowArchived(!showArchived)}
               className="h-8 text-label-sm"
               leftIcon={
@@ -257,6 +290,16 @@ export function ReagentsTab() {
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+            {isFilterOpen && (
+              <ReagentAttributeFilterPanel
+                definitions={attributes?.definitions ?? []}
+                options={attributes?.options ?? []}
+                items={items}
+                matchCount={visibleItems.length}
+                filters={filters}
+                onChange={setFilters}
+              />
+            )}
             <ReagentExpiryAlertPanel
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
@@ -268,7 +311,7 @@ export function ReagentsTab() {
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
-                items={items}
+                items={visibleItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 sortField={sortField}
