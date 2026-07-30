@@ -32,6 +32,8 @@ import { ReagentService } from '@domains/reagents/services/ReagentService';
 import {
   changedAttributeRequests,
   draftsFromValues,
+  isDraftPopulated,
+  EMPTY_DRAFT,
   type AttributeDrafts,
 } from '@domains/reagents/utils/reagentAttributeValues';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
@@ -49,6 +51,7 @@ import {
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
@@ -112,6 +115,11 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
   const savedDraftsRef = useRef<AttributeDrafts>({});
   const seededItemIdRef = useRef<string>();
 
+  const [pendingTypeChange, setPendingTypeChange] = useState<{
+    nextType: string;
+    losing: string[];
+  } | null>(null);
+
   // Detail arrives after mount, and the panel reuses this component across items.
   useEffect(() => {
     if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
@@ -166,6 +174,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     // The concentration preprocessor accepts `unknown`, so the schema's input type doesn't meet
@@ -243,6 +252,45 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     },
     [isEditing, item, removePackagingMutation]
   );
+
+  // Attributes scoped to the outgoing type are cleared rather than left invisible on the item,
+  // so what the form shows and what the reagent holds stay the same thing.
+  const attributesLostByType = (nextType: string) =>
+    attributeDefinitions.filter(
+      definition =>
+        definition.appliesToType &&
+        definition.appliesToType !== nextType &&
+        isDraftPopulated(attributeDrafts[definition.id] ?? EMPTY_DRAFT)
+    );
+
+  const changeReagentType = (nextType: string) => {
+    const losing = attributesLostByType(nextType);
+    if (losing.length === 0) {
+      setValue('reagentType', nextType);
+      return;
+    }
+    setPendingTypeChange({ nextType, losing: losing.map(definition => definition.name) });
+  };
+
+  const typeChangeMessage = (() => {
+    if (!pendingTypeChange) return '';
+    const { losing, nextType } = pendingTypeChange;
+    const single = losing.length === 1;
+    const target = nextType === '' ? 'the new type' : nextType;
+    return `${losing.join(', ')} ${single ? 'does' : 'do'} not apply to ${target}. Changing the type clears ${single ? 'its value' : 'their values'} when you save.`;
+  })();
+
+  const confirmTypeChange = () => {
+    if (!pendingTypeChange) return;
+    const dropped = attributesLostByType(pendingTypeChange.nextType);
+    setAttributeDrafts(prev => {
+      const next = { ...prev };
+      dropped.forEach(definition => delete next[definition.id]);
+      return next;
+    });
+    setValue('reagentType', pendingTypeChange.nextType);
+    setPendingTypeChange(null);
+  };
 
   // Attribute values are their own endpoint, so they sequence off a saved item the way packaging
   // levels do. Failures are reported by the global handler; the count comes back so the caller
@@ -409,7 +457,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
             <Controller
               name="reagentType"
               control={control}
-              render={({ field: { value, onChange } }) => (
+              render={({ field: { value } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
                   <label id="reagent-type-label" className={FIELD_LABEL_COMPACT}>
@@ -419,7 +467,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
                     aria-labelledby="reagent-type-label"
                     options={reagentTypeOptions}
                     value={(value as string) ?? ''}
-                    onChange={v => onChange(v)}
+                    onChange={v => changeReagentType(String(v ?? ''))}
                     fullWidth
                   />
                 </div>
@@ -648,6 +696,16 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
           />
         </form>
       </ScrollArea>
+
+      <ConfirmDialog
+        isOpen={!!pendingTypeChange}
+        variant="warning"
+        title="Clear attributes that no longer apply?"
+        message={typeChangeMessage}
+        confirmText="Change type"
+        onConfirm={confirmTypeChange}
+        onCancel={() => setPendingTypeChange(null)}
+      />
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
