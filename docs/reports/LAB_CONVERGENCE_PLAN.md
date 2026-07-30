@@ -6,8 +6,9 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 what.
 
 **Status:** items 1, 2, 3, 4a, 5, 6, 7 and 9 done. Reagents is complete through Phase 6 and **Phase 7
-is now unblocked**. Items 4b (equipment locations) and 8 (lab-wide barcode resolve, due before reagents
-Phase 8) remain. Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+is in progress**. Items 4b (equipment locations), 8 (lab-wide barcode resolve, due before reagents
+Phase 8), 10 and 11 (attributes for the other two catalogs, after Phase 7) remain. Companion to
+`REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
 **Migration policy — amend-in-place is over.** Dev has applied everything through **032**. While
 reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
@@ -303,6 +304,39 @@ deliberately, not folded into another item. A `ReorderList` shell is a weaker se
 table and CSV are common but the export mechanism genuinely differs (supplies fetches a server
 endpoint, reagents serialises client-side) and so do the columns.
 
+### 11. Attributes → supplies + equipment — *not started*
+
+**What.** Give supplies and equipment their own `*_attribute_values` tables and point the reagent
+attribute UI at all three catalogs. Migrate `supply_item_property` onto the attribute system and drop
+that lookup category.
+
+**Why.** The vocabulary half is already built and already catalog-agnostic: item 2 shipped
+`attribute_definitions` / `attribute_options` lab-wide with an `applies_to_catalog` CHECK of
+reagent/supply/equipment (null = all), and named `supply_item_property` as the degenerate attribute
+system to retire. So two of the three catalogs can define attributes today and have nowhere to store
+a value. Equipment has no per-item metadata mechanism at all.
+
+**Blocks.** Nothing blocks it. Reagents Phase 7 lands first so the shared extraction has a real
+second caller instead of a guessed one — the order that produced `AlertPanel`, `LowStockAlertPanel`
+and the shared `Location`.
+
+**Scope.**
+- Migration: `supply_attribute_values` + `equipment_attribute_values` mirroring
+  `reagent_attribute_values` (item FK, definition FK, the three value columns, same three indexes).
+- Repos: value read + `replaceAttributeValues`, plus the batched fill on each item-list query —
+  `ReagentItemRepository` is the model.
+- Schemas: per-catalog value schemas, duplicated by design exactly as documents are.
+- Client: `ReagentAttributeFields` and `ReagentAttributeFilterPanel` move to
+  `shared/ui/components/inventory/`; each catalog keeps only its query/mutation binding.
+- Admin: the create modal gains the catalog picker Phase 7 deliberately left off (`REAGENTS_PLAN` §9
+  — a picker offering catalogs that can't store a value implies a capability that doesn't exist), and
+  each definition carries a *used by* line like the shared lookups.
+- Data: migrate existing `supply_item_property` values into a "Product Property" multi-select
+  definition, then drop the lookup category (CHECK swap plus the ~5 lookup touch-points).
+
+**Not doing:** a polymorphic `item_id` + `item_type` values table. Item 2 rejected it and nothing has
+changed — the item FK *is* the referential integrity the normalized EAV exists for.
+
 ---
 
 ## Parked — decide when we get there
@@ -346,3 +380,4 @@ Decided; don't reopen without a new reason.
 - [ ] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
 - [ ] 10 — Catalog tab skeleton → shared shell
+- [ ] 11 — Attributes → supplies + equipment

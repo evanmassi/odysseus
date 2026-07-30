@@ -26,6 +26,13 @@ that need eyes on the running app rather than a code read.
 - **Reagent lot UI never rendered with data** — the lot panel, FEFO ordering, expiry chips and both alert
   panels have only been exercised by tests. Fastest path to eyes-on: receive stock through the tab, or ask
   for psql inserts seeding an item with lots at varying expiries.
+- **Attribute scoping is one type or all types** — `applies_to_type` is a single TEXT column, so an
+  attribute relevant to two of five reagent types has to sit at "All reagent types" and appear in every
+  palette. Multi-scope needs a join table and a migration. Decide after living with it; add-on-demand
+  fields mean an over-broad attribute costs a longer palette, not a longer form.
+- **Attribute options don't share the tube `species` lookup** — an antibody's Host Species attribute
+  re-types mouse/rabbit/human, which the tube `species` lookup already holds. Sourcing an attribute's
+  options from a lookup category is real new plumbing; decide whether the overlap actually bites.
 - **`resolveExpiryBadge` boundary** — covered by 11 unit tests, including the 90-vs-91-day edge. Its
   helper builds dates from **local** parts; `toISOString()` shifts the calendar day on a UTC-behind
   machine, which is the drift `dateExpiry` exists to avoid. Don't "simplify" it back.
