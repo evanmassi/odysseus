@@ -16,7 +16,7 @@ export interface AttributeDefinitionDbRow {
   name: string;
   value_type: string;
   applies_to_catalog: string | null;
-  applies_to_type: string | null;
+  applies_to_types: string[];
   sort_order: number;
   is_system: boolean;
   system_key: string | null;
@@ -40,7 +40,7 @@ export class AttributeMapper {
       name: definition.name,
       value_type: definition.valueType,
       applies_to_catalog: definition.appliesToCatalog ?? null,
-      applies_to_type: definition.appliesToType ?? null,
+      applies_to_types: definition.appliesToTypes,
       sort_order: definition.sortOrder,
       is_system: definition.isSystem,
       system_key: definition.systemKey ?? null,
@@ -57,7 +57,7 @@ export class AttributeMapper {
       name: row.name,
       valueType: row.value_type as AttributeValueType,
       appliesToCatalog: (row.applies_to_catalog as AttributeCatalog | null) ?? undefined,
-      appliesToType: row.applies_to_type ?? undefined,
+      appliesToTypes: row.applies_to_types,
       sortOrder: row.sort_order,
       isSystem: row.is_system,
       systemKey: row.system_key ?? undefined,

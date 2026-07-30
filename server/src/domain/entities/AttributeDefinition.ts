@@ -1,8 +1,9 @@
 /**
  * Item Attribute Definition
  *
- * A lab-defined metadata field ("Fluorophore", "Hazard Class") scoped to a catalog and optionally to
- * a reagent type. System definitions are seeded per lab and may be extended but not deleted.
+ * A lab-defined metadata field ("Fluorophore", "Hazard Class") scoped to a catalog and to any number
+ * of reagent types — none meaning all of them. System definitions are seeded per lab and may be
+ * extended but not deleted.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -15,7 +16,7 @@ interface DefinitionCreateData {
   name: string;
   valueType: AttributeValueType;
   appliesToCatalog?: AttributeCatalog;
-  appliesToType?: string;
+  appliesToTypes?: string[];
   sortOrder?: number;
   promptOnForm?: boolean;
   isSystem?: boolean;
@@ -25,7 +26,7 @@ interface DefinitionCreateData {
 interface DefinitionUpdateData {
   name?: string | null;
   appliesToCatalog?: AttributeCatalog | null;
-  appliesToType?: string | null;
+  appliesToTypes?: string[] | null;
   sortOrder?: number | null;
   promptOnForm?: boolean | null;
 }
@@ -37,7 +38,7 @@ export class AttributeDefinition {
     private _name: string,
     private readonly _valueType: AttributeValueType,
     private _appliesToCatalog: AttributeCatalog | undefined,
-    private _appliesToType: string | undefined,
+    private _appliesToTypes: string[],
     private _sortOrder: number,
     private readonly _isSystem: boolean,
     private readonly _systemKey: string | undefined,
@@ -56,7 +57,7 @@ export class AttributeDefinition {
       data.name.trim(),
       data.valueType,
       data.appliesToCatalog,
-      data.appliesToType,
+      data.appliesToTypes ?? [],
       data.sortOrder ?? 0,
       data.isSystem ?? false,
       data.systemKey,
@@ -72,7 +73,7 @@ export class AttributeDefinition {
     name: string;
     valueType: AttributeValueType;
     appliesToCatalog?: AttributeCatalog;
-    appliesToType?: string;
+    appliesToTypes: string[];
     sortOrder: number;
     isSystem: boolean;
     systemKey?: string;
@@ -86,7 +87,7 @@ export class AttributeDefinition {
       data.name,
       data.valueType,
       data.appliesToCatalog,
-      data.appliesToType,
+      data.appliesToTypes,
       data.sortOrder,
       data.isSystem,
       data.systemKey,
@@ -106,7 +107,7 @@ export class AttributeDefinition {
     if (data.name !== undefined) this._name = data.name ?? this._name;
     if (data.appliesToCatalog !== undefined)
       this._appliesToCatalog = data.appliesToCatalog ?? undefined;
-    if (data.appliesToType !== undefined) this._appliesToType = data.appliesToType ?? undefined;
+    if (data.appliesToTypes !== undefined) this._appliesToTypes = data.appliesToTypes ?? [];
     if (data.sortOrder !== undefined) this._sortOrder = data.sortOrder ?? this._sortOrder;
     if (data.promptOnForm !== undefined) this._promptOnForm = data.promptOnForm ?? this._promptOnForm;
 
@@ -134,8 +135,8 @@ export class AttributeDefinition {
   get appliesToCatalog(): AttributeCatalog | undefined {
     return this._appliesToCatalog;
   }
-  get appliesToType(): string | undefined {
-    return this._appliesToType;
+  get appliesToTypes(): string[] {
+    return [...this._appliesToTypes];
   }
   get sortOrder(): number {
     return this._sortOrder;

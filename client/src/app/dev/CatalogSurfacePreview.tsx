@@ -61,7 +61,7 @@ function definition(
     name,
     valueType,
     appliesToCatalog: 'reagent',
-    appliesToType: null,
+    appliesToTypes: [],
     sortOrder: 0,
     isSystem: false,
     systemKey: null,
@@ -78,8 +78,8 @@ const DEFINITION_FIXTURES: AttributeDefinition[] = [
     systemKey: 'hazard_class',
     sortOrder: 1,
   }),
-  definition('adef-fluor', 'Fluorophore', 'select', { appliesToType: 'Antibody' }),
-  definition('adef-clone', 'Clone', 'text', { appliesToType: 'Antibody' }),
+  definition('adef-fluor', 'Fluorophore', 'select', { appliesToTypes: ['Antibody'] }),
+  definition('adef-clone', 'Clone', 'text', { appliesToTypes: ['Antibody'] }),
   definition('adef-form', 'Physical Form', 'select', {
     isSystem: true,
     systemKey: 'physical_form',
@@ -214,8 +214,8 @@ export function CatalogSurfacePreview({ onClose }: { onClose: () => void }) {
               options={options[activeDefinition.id] ?? []}
               reagentTypeOptions={REAGENT_TYPE_OPTIONS}
               itemsUsingCount={ITEMS_USING_FIXTURE[activeDefinition.id] ?? 0}
-              onScopeChange={appliesToType =>
-                patchDefinition(activeDefinition.id, { appliesToType })
+              onScopeChange={appliesToTypes =>
+                patchDefinition(activeDefinition.id, { appliesToTypes })
               }
               onPromptChange={promptOnForm =>
                 patchDefinition(activeDefinition.id, { promptOnForm })
@@ -294,7 +294,7 @@ export function CatalogSurfacePreview({ onClose }: { onClose: () => void }) {
           setDefinitions(prev => [
             ...prev,
             definition(id, data.name, data.valueType, {
-              appliesToType: data.appliesToType ?? null,
+              appliesToTypes: data.appliesToTypes ?? [],
               promptOnForm: data.promptOnForm ?? false,
             }),
           ]);

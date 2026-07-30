@@ -19,7 +19,7 @@ import { AttributeMapper } from '@infrastructure/database/mappers/AttributeMappe
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
-const DEFINITION_COLUMNS = `id, lab_id, name, value_type, applies_to_catalog, applies_to_type,
+const DEFINITION_COLUMNS = `id, lab_id, name, value_type, applies_to_catalog, applies_to_types,
   sort_order, is_system, system_key, prompt_on_form, created_at, updated_at`;
 const OPTION_COLUMNS = 'id, definition_id, value, sort_order';
 const OPTION_COLUMNS_ALIASED = 'o.id, o.definition_id, o.value, o.sort_order';
@@ -60,7 +60,7 @@ export class AttributeRepository implements IAttributeRepository {
       ON CONFLICT (id) DO UPDATE SET
         name = EXCLUDED.name,
         applies_to_catalog = EXCLUDED.applies_to_catalog,
-        applies_to_type = EXCLUDED.applies_to_type,
+        applies_to_types = EXCLUDED.applies_to_types,
         sort_order = EXCLUDED.sort_order,
         prompt_on_form = EXCLUDED.prompt_on_form,
         updated_at = EXCLUDED.updated_at
@@ -71,7 +71,7 @@ export class AttributeRepository implements IAttributeRepository {
         row.name,
         row.value_type,
         row.applies_to_catalog,
-        row.applies_to_type,
+        row.applies_to_types,
         row.sort_order,
         row.is_system,
         row.system_key,

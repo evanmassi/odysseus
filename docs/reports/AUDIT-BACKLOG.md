@@ -26,6 +26,14 @@ that need eyes on the running app rather than a code read.
 - **Reagent lot UI never rendered with data** — the lot panel, FEFO ordering, expiry chips and both alert
   panels have only been exercised by tests. Fastest path to eyes-on: receive stock through the tab, or ask
   for psql inserts seeding an item with lots at varying expiries.
+- **Persisted cache has no schema-version gate** — `queryClient` persists most query keys to
+  `localStorage` for a day, and `validateCacheVersion` only busts it on a *storage config* version
+  mismatch (a DB reset). Nothing busts it when a client data *shape* changes, so a user whose tab
+  cached the old shape rehydrates it and the new reader crashes before any refetch corrects it —
+  exactly what convergence item 12 did to attribute definitions. Mitigated there by excluding
+  `attributes`/`customUnits` from persistence, but tubes, storage, reagents and supplies are all
+  persisted and all one shape change away from the same thing. A cache-schema constant bumped
+  alongside breaking shape changes would close it.
 - **Attribute scoping is one type or all types** — `applies_to_type` is a single TEXT column, so an
   attribute relevant to two of five reagent types has to sit at "All reagent types" and appear in every
   palette. Multi-scope needs a join table and a migration. Decide after living with it; add-on-demand

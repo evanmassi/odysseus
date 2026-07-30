@@ -337,6 +337,38 @@ and the shared `Location`.
 **Not doing:** a polymorphic `item_id` + `item_type` values table. Item 2 rejected it and nothing has
 changed — the item FK *is* the referential integrity the normalized EAV exists for.
 
+### 12. Attribute scoping → many types — *not started*
+
+**What.** `attribute_definitions.applies_to_type TEXT` becomes `applies_to_types TEXT[]`, so one
+attribute can apply to several reagent types. Empty array = applies to all, which is what NULL means
+today.
+
+**Why.** Scoping is currently one type or all, and the middle is the common case: a Storage
+Temperature that belongs on antibodies *and* buffers but not on a kit has to sit at "all types" and
+clutter every palette. Reagents Phase 7 shipped the scope as a single column because one type was
+enough to prove the mechanism; using it made the gap obvious.
+
+**Cheaper than it looks:** no SQL reads `applies_to_type` — it appears only in the column list and
+the upsert, because every scoping decision is made client-side. So no query or index changes, just
+the column, the mapper, and the predicate.
+
+**Scope.**
+- Migration **033** — add the array, `ARRAY[applies_to_type]` for populated rows, drop the old column.
+  First migration since amend-in-place closed, so it gets the clone rehearsal. `supply_items.properties`
+  is the precedent for a text array here.
+- Server: `AttributeDefinition` entity, `AttributeMapper`, `DEFINITION_COLUMNS` + upsert, `AttributeDto`,
+  and the two service writes.
+- Schemas: `appliesToType` → `appliesToTypes` on the definition and both requests. `patchText` no longer
+  fits — a nullable array replaces it.
+- Client: the "Applies to" control becomes a chip multi-select in both `AttributeSection` and
+  `AttributeDefinitionModal` (chips are the app's multi-value vocabulary — no MultiSelect primitive
+  exists); the predicate behind `ReagentAttributeFields` and the form's prune guard becomes an
+  `includes` check, extracted since it now has two callers.
+
+**Empty, not null.** The array is `NOT NULL DEFAULT '{}'` so "applies to everything" has exactly one
+representation. A nullable array would allow both NULL and `{}` to mean the same thing, which is the
+kind of split the rest of this document exists to remove.
+
 ---
 
 ## Parked — decide when we get there
@@ -381,3 +413,4 @@ Decided; don't reopen without a new reason.
 - [x] 9 — Supplies low-stock → client-side
 - [ ] 10 — Catalog tab skeleton → shared shell
 - [ ] 11 — Attributes → supplies + equipment
+- [ ] 12 — Attribute scoping → many types

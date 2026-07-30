@@ -5,8 +5,10 @@
  * curated option list it offers. Free-text and number attributes have no option list.
  */
 
-import { Chip, ConsolePanel, SettingsRow, Subsection } from '@shared/ui';
-import { Button, Select, Toggle } from '@shared/ui/primitives';
+import { useState } from 'react';
+
+import { Chip, ConsolePanel, SettingsRow, Subsection, Tooltip } from '@shared/ui';
+import { Button, Toggle } from '@shared/ui/primitives';
 
 import { CatalogEntryTable, type CatalogEntry } from './CatalogEntryTable';
 
@@ -20,8 +22,6 @@ const VALUE_TYPE_LABELS: Record<AttributeValueType, string> = {
   number: 'Number',
 };
 
-const ALL_TYPES = '';
-
 interface AttributeSectionProps {
   definition: AttributeDefinition;
   options: CatalogEntry[];
@@ -29,7 +29,7 @@ interface AttributeSectionProps {
   reagentTypeOptions: SelectOption[];
   itemsUsingCount: number;
   loading?: boolean;
-  onScopeChange: (appliesToType: string | null) => void;
+  onScopeChange: (appliesToTypes: string[]) => void;
   onPromptChange: (promptOnForm: boolean) => void;
   onDeleteDefinition: () => void;
   onAddOption: (value: string) => Promise<void>;
@@ -54,7 +54,16 @@ export function AttributeSection({
   deletingOptionId,
   readOnly = false,
 }: AttributeSectionProps) {
+  const [isEditingScope, setIsEditingScope] = useState(false);
   const usesOptions = definition.valueType === 'select' || definition.valueType === 'multi_select';
+
+  // Empty means every type including ones the lab adds later, which is why the reveal offers
+  // "All types" as a clear rather than a select-all — those differ the moment a type is added.
+  const scopeSummary =
+    definition.appliesToTypes.length === 0
+      ? 'All reagent types'
+      : definition.appliesToTypes.slice(0, 3).join(' · ') +
+        (definition.appliesToTypes.length > 3 ? ` +${definition.appliesToTypes.length - 3}` : '');
 
   const deleteHint = definition.isSystem
     ? 'Built-in attributes stay available to every lab'
@@ -87,20 +96,83 @@ export function AttributeSection({
 
           <SettingsRow
             label="Applies to"
-            hint="Reagent types that offer this attribute"
+            hint={
+              definition.appliesToTypes.length === 0
+                ? 'Offered on every reagent type — pick some to narrow it'
+                : 'Reagent types that offer this attribute'
+            }
             className="col-span-2"
           >
-            <div className="w-48">
-              <Select
-                options={[{ value: ALL_TYPES, label: 'All reagent types' }, ...reagentTypeOptions]}
-                value={definition.appliesToType ?? ALL_TYPES}
-                onChange={value => onScopeChange(String(value ?? '') || null)}
-                disabled={readOnly}
-                size="sm"
-                fullWidth
-                aria-label="Applies to reagent type"
-              />
-            </div>
+            {isEditingScope ? (
+              <div className="flex flex-wrap items-center justify-end gap-1.5">
+                <div
+                  className="flex flex-wrap justify-end gap-1.5"
+                  role="group"
+                  aria-label="Applies to reagent types"
+                >
+                  <Chip
+                    size="xs"
+                    behavior="selectable"
+                    selected={definition.appliesToTypes.length === 0}
+                    disabled={readOnly}
+                    onSelect={() => onScopeChange([])}
+                  >
+                    All types
+                  </Chip>
+                  {reagentTypeOptions.map(option => {
+                    const value = String(option.value);
+                    const selected = definition.appliesToTypes.includes(value);
+                    return (
+                      <Chip
+                        key={value}
+                        size="xs"
+                        behavior="selectable"
+                        selected={selected}
+                        disabled={readOnly}
+                        onSelect={() =>
+                          onScopeChange(
+                            selected
+                              ? definition.appliesToTypes.filter(type => type !== value)
+                              : [...definition.appliesToTypes, value]
+                          )
+                        }
+                      >
+                        {option.label}
+                      </Chip>
+                    );
+                  })}
+                </div>
+                <Button variant="ghost" size="xs" onClick={() => setIsEditingScope(false)}>
+                  Done
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                {/* The summary truncates past three, so the full scope lives on hover. */}
+                <Tooltip
+                  content={
+                    definition.appliesToTypes.length > 0
+                      ? definition.appliesToTypes.join(', ')
+                      : 'Every reagent type, including ones added later'
+                  }
+                  side="bottom"
+                >
+                  <span className="font-display text-body-sm text-card-foreground">
+                    {reagentTypeOptions.length === 0
+                      ? 'No reagent types defined yet'
+                      : scopeSummary}
+                  </span>
+                </Tooltip>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => setIsEditingScope(true)}
+                  disabled={readOnly || reagentTypeOptions.length === 0}
+                >
+                  Edit
+                </Button>
+              </div>
+            )}
           </SettingsRow>
 
           <SettingsRow

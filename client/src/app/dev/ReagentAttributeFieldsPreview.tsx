@@ -38,7 +38,7 @@ function definition(
     name,
     valueType,
     appliesToCatalog: 'reagent',
-    appliesToType: null,
+    appliesToTypes: [],
     sortOrder: 0,
     isSystem: false,
     systemKey: null,
@@ -57,10 +57,10 @@ const DEFINITIONS: AttributeDefinition[] = [
     promptOnForm: true,
   }),
   definition('adef-storage', 'Storage Conditions', 'select', { isSystem: true, sortOrder: 4 }),
-  definition('adef-fluor', 'Fluorophore', 'select', { appliesToType: 'Antibody', sortOrder: 5 }),
-  definition('adef-clone', 'Clone', 'text', { appliesToType: 'Antibody', sortOrder: 6 }),
+  definition('adef-fluor', 'Fluorophore', 'select', { appliesToTypes: ['Antibody'], sortOrder: 5 }),
+  definition('adef-clone', 'Clone', 'text', { appliesToTypes: ['Antibody'], sortOrder: 6 }),
   definition('adef-dilution', 'Working Dilution', 'number', {
-    appliesToType: 'Antibody',
+    appliesToTypes: ['Antibody'],
     sortOrder: 7,
   }),
 ];

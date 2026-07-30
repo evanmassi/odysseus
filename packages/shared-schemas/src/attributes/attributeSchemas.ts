@@ -2,13 +2,14 @@
  * Item Attribute Schemas
  *
  * Lab-defined metadata attributes and their curated option vocabularies, scoped to a catalog and —
- * for reagents — optionally to a reagent type. Each catalog stores its own values.
+ * for reagents — to any number of reagent types. An empty scope means every type. Each catalog
+ * stores its own values.
  */
 
 import { z } from 'zod';
 
 import { dateField } from '../utils/dateFields';
-import { optionalText, patchText } from '../utils/stringFields';
+
 
 const attributeValueTypeValues = ['select', 'multi_select', 'text', 'number'] as const;
 export const attributeValueTypeSchema = z.enum(attributeValueTypeValues);
@@ -22,7 +23,7 @@ export const attributeDefinitionSchema = z.object({
   name: z.string(),
   valueType: attributeValueTypeSchema,
   appliesToCatalog: attributeCatalogSchema.nullable(),
-  appliesToType: z.string().nullable(),
+  appliesToTypes: z.array(z.string()),
   sortOrder: z.number().int(),
   isSystem: z.boolean(),
   systemKey: z.string().nullable(),
@@ -35,7 +36,7 @@ export const createAttributeDefinitionRequestSchema = z.object({
   name: z.string().min(1, 'Attribute name is required').max(200),
   valueType: attributeValueTypeSchema,
   appliesToCatalog: attributeCatalogSchema.optional(),
-  appliesToType: optionalText(200),
+  appliesToTypes: z.array(z.string().min(1).max(200)).optional(),
   sortOrder: z.number().int().optional(),
   promptOnForm: z.boolean().optional(),
 });
@@ -43,7 +44,7 @@ export const createAttributeDefinitionRequestSchema = z.object({
 export const updateAttributeDefinitionRequestSchema = z.object({
   name: z.string().min(1).max(200).nullish(),
   appliesToCatalog: attributeCatalogSchema.nullish(),
-  appliesToType: patchText(200),
+  appliesToTypes: z.array(z.string().min(1).max(200)).nullish(),
   sortOrder: z.number().int().nullish(),
   promptOnForm: z.boolean().nullish(),
 });

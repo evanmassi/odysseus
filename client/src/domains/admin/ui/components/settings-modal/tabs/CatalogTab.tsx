@@ -24,7 +24,7 @@ import {
   useUpdateAttributeDefinitionMutation,
   useUpdateAttributeOptionMutation,
 } from '@domains/lab-management';
-import { AlertBanner, Button } from '@shared/ui';
+import { AlertBanner, Button, ScrollArea } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -155,24 +155,16 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [isDefinitionModalOpen, setIsDefinitionModalOpen] = useState(false);
 
-  const {
-    data: catalog = EMPTY_CATALOG,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useCatalogValuesQuery();
+  const { data: catalog = EMPTY_CATALOG, isLoading, isError, refetch } = useCatalogValuesQuery();
   const {
     data: attributes = EMPTY_ATTRIBUTES,
     isLoading: isLoadingAttributes,
-    isFetching: isFetchingAttributes,
     isError: isAttributesError,
     refetch: refetchAttributes,
   } = useAttributesQuery();
   const {
     data: customUnits = [],
     isLoading: isLoadingUnits,
-    isFetching: isFetchingUnits,
     isError: isUnitsError,
     refetch: refetchUnits,
   } = useCustomUnitsQuery();
@@ -205,10 +197,11 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
     );
   }, [onTabFooter]);
 
-  const refreshAll = useCallback(() => {
-    void refetch();
-    void refetchAttributes();
-    void refetchUnits();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshAll = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetch(), refetchAttributes(), refetchUnits()]);
+    setIsRefreshing(false);
   }, [refetch, refetchAttributes, refetchUnits]);
 
   // Both actions are catalog-wide, and the header keeps "New attribute" in one place as the
@@ -228,15 +221,15 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
         <Button
           variant="secondary"
           size="sm"
-          onClick={refreshAll}
-          isLoading={isFetching || isFetchingAttributes || isFetchingUnits}
+          onClick={() => void refreshAll()}
+          isLoading={isRefreshing}
           leftIcon={<RefreshCw size={14} />}
         >
           Refresh
         </Button>
       </div>
     );
-  }, [onTabAction, isFetching, isFetchingAttributes, isFetchingUnits, refreshAll, readOnly]);
+  }, [onTabAction, isRefreshing, refreshAll, readOnly]);
 
   // mutateAsync so the child form can await the result and keep the typed value on failure.
   const handleAddLookup = async (category: LookupCategory, value: string) => {
@@ -389,7 +382,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
   );
 
   return (
-    <div className="space-y-2">
+    <div className="flex min-h-0 flex-1 flex-col space-y-2">
       {/* Without this, a failed fetch is indistinguishable from a lab that has nothing yet. */}
       {(isError || isAttributesError || isUnitsError) && (
         <AlertBanner variant="error" spacing="none" className="text-body-sm">
@@ -397,10 +390,10 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
         </AlertBanner>
       )}
 
-      <div className="flex min-h-0 gap-4">
+      <div className="flex min-h-0 flex-1 gap-4">
         <CatalogRail leaves={leaves} selected={activeLeafId} onSelect={setSelected} />
 
-        <div className="min-w-0 flex-1">
+        <ScrollArea className="min-h-0 min-w-0 flex-1">
           {activeLookup && (
             <CatalogEntryTable
               key={activeLeafId}
@@ -435,10 +428,10 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
               reagentTypeOptions={reagentTypeOptions}
               loading={isLoadingAttributes}
               itemsUsingCount={activeDefinition.usageCount}
-              onScopeChange={appliesToType =>
+              onScopeChange={appliesToTypes =>
                 updateDefinitionMutation.mutate({
                   id: activeDefinition.id,
-                  data: { appliesToType },
+                  data: { appliesToTypes },
                 })
               }
               onPromptChange={promptOnForm =>
@@ -474,7 +467,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
               readOnly={readOnly}
             />
           )}
-        </div>
+        </ScrollArea>
       </div>
 
       {pendingDelete && (

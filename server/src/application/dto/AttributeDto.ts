@@ -27,7 +27,7 @@ export class AttributeDto {
       name: definition.name,
       valueType: definition.valueType,
       appliesToCatalog: definition.appliesToCatalog ?? null,
-      appliesToType: definition.appliesToType ?? null,
+      appliesToTypes: definition.appliesToTypes,
       sortOrder: definition.sortOrder,
       isSystem: definition.isSystem,
       systemKey: definition.systemKey ?? null,

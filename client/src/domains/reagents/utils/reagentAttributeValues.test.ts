@@ -25,7 +25,7 @@ const definition = (
   name: id,
   valueType,
   appliesToCatalog: 'reagent',
-  appliesToType: null,
+  appliesToTypes: [],
   sortOrder: 0,
   isSystem: false,
   systemKey: null,

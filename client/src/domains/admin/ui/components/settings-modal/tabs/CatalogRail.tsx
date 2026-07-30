@@ -8,7 +8,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { SearchInput, Tab, TabGroup, Tabs } from '@shared/ui';
+import { ScrollArea, SearchInput, Tab, TabGroup, Tabs } from '@shared/ui';
 
 export interface CatalogLeaf {
   id: string;
@@ -40,7 +40,7 @@ export function CatalogRail({ leaves, selected, onSelect }: CatalogRailProps) {
   const groups = useMemo(() => Array.from(new Set(visible.map(leaf => leaf.group))), [visible]);
 
   return (
-    <div className="flex w-60 flex-shrink-0 flex-col gap-2">
+    <div className="flex h-full min-h-0 w-60 flex-shrink-0 flex-col gap-2">
       <SearchInput
         value={filter}
         onChange={setFilter}
@@ -49,8 +49,14 @@ export function CatalogRail({ leaves, selected, onSelect }: CatalogRailProps) {
         aria-label="Filter vocabularies"
       />
 
-      <div className="border border-line-faint py-1">
-        <Tabs orientation="vertical" size="sm" value={selected} onChange={onSelect}>
+      <ScrollArea className="min-h-0 flex-1 border border-line-faint">
+        <Tabs
+          orientation="vertical"
+          size="sm"
+          className="py-1"
+          value={selected}
+          onChange={onSelect}
+        >
           {groups.map(group => (
             <TabGroup key={group} label={group}>
               {visible
@@ -70,7 +76,7 @@ export function CatalogRail({ leaves, selected, onSelect }: CatalogRailProps) {
             </TabGroup>
           ))}
         </Tabs>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

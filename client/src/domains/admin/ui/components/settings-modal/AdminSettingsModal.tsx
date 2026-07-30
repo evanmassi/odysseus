@@ -238,6 +238,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabFooter={tabFooter}
       locator={locator}
       className="h-[85vh]"
+      contentClassName="flex h-full min-h-0 flex-col p-6"
       onClose={onClose}
     >
       <SectionHeader

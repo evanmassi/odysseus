@@ -234,7 +234,9 @@ export const DOMAIN_QUERY_OPTIONS = {
 } as const;
 
 // Admin-scoped data stays out of localStorage. 'labs' and 'storageAnalytics' are system-admin
-// surfaces spanning every lab, so they belong here alongside the rest.
+// surfaces spanning every lab, so they belong here alongside the rest. 'attributes' and
+// 'customUnits' are admin-managed vocabularies that are cheap to refetch and whose shape has
+// moved twice; rehydrating a stale shape crashes the reader before any refetch can correct it.
 const NON_PERSISTED_QUERY_KEYS: readonly string[] = [
   'users',
   'admin',
@@ -242,6 +244,8 @@ const NON_PERSISTED_QUERY_KEYS: readonly string[] = [
   'security',
   'labs',
   'storageAnalytics',
+  'attributes',
+  'customUnits',
 ];
 
 function shouldPersistQuery(queryKey: readonly unknown[]): boolean {

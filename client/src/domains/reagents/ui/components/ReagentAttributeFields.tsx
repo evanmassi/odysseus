@@ -14,6 +14,7 @@ import { Chip, Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { Input } from '@shared/ui/primitives';
 
+import { appliesToReagentType } from '../../utils/reagentAttributeScope';
 import {
   EMPTY_DRAFT,
   isDraftPopulated,
@@ -32,9 +33,6 @@ interface ReagentAttributeFieldsProps {
   onChange: (definitionId: string, draft: AttributeValueDraft) => void;
   onRemove: (definitionId: string) => void;
 }
-
-const appliesToType = (definition: AttributeDefinition, reagentType?: string) =>
-  !definition.appliesToType || definition.appliesToType === reagentType;
 
 export function ReagentAttributeFields({
   definitions,
@@ -64,7 +62,7 @@ export function ReagentAttributeFields({
     definition =>
       added.includes(definition.id) ||
       isDraftPopulated(drafts[definition.id] ?? EMPTY_DRAFT) ||
-      (definition.promptOnForm && appliesToType(definition, reagentType))
+      (definition.promptOnForm && appliesToReagentType(definition, reagentType))
   );
 
   const paletteOptions = useMemo(
@@ -74,7 +72,7 @@ export function ReagentAttributeFields({
         sorted
           .filter(
             definition =>
-              appliesToType(definition, reagentType) &&
+              appliesToReagentType(definition, reagentType) &&
               !shown.some(visible => visible.id === definition.id)
           )
           .map(definition => ({ value: definition.id, label: definition.name }))

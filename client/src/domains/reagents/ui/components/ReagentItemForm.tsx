@@ -29,6 +29,7 @@ import {
   useUpdateReagentItemMutation,
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
+import { scopedOutOfType } from '@domains/reagents/utils/reagentAttributeScope';
 import {
   changedAttributeRequests,
   draftsFromValues,
@@ -256,11 +257,8 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
   // Attributes scoped to the outgoing type are cleared rather than left invisible on the item,
   // so what the form shows and what the reagent holds stay the same thing.
   const attributesLostByType = (nextType: string) =>
-    attributeDefinitions.filter(
-      definition =>
-        definition.appliesToType &&
-        definition.appliesToType !== nextType &&
-        isDraftPopulated(attributeDrafts[definition.id] ?? EMPTY_DRAFT)
+    scopedOutOfType(attributeDefinitions, nextType).filter(definition =>
+      isDraftPopulated(attributeDrafts[definition.id] ?? EMPTY_DRAFT)
     );
 
   const changeReagentType = (nextType: string) => {

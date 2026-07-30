@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Plus, Tags } from 'lucide-react';
 
-import { Button, Input, Select, SettingsRow, Toggle } from '@shared/ui';
+import { Button, Chip, Input, Select, SettingsRow, Toggle } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
@@ -26,8 +26,6 @@ const VALUE_TYPE_OPTIONS: SelectOption[] = [
   { value: 'text', label: 'Free text', description: 'Typed in per reagent' },
   { value: 'number', label: 'Number', description: 'A numeric value per reagent' },
 ];
-
-const ALL_TYPES = '';
 
 interface AttributeDefinitionModalProps {
   isOpen: boolean;
@@ -46,7 +44,7 @@ export function AttributeDefinitionModal({
 }: AttributeDefinitionModalProps) {
   const [name, setName] = useState('');
   const [valueType, setValueType] = useState<AttributeValueType>('select');
-  const [appliesToType, setAppliesToType] = useState(ALL_TYPES);
+  const [appliesToTypes, setAppliesToTypes] = useState<string[]>([]);
   const [promptOnForm, setPromptOnForm] = useState(false);
   const prevIsOpenRef = useRef(isOpen);
 
@@ -54,7 +52,7 @@ export function AttributeDefinitionModal({
     if (isOpen && !prevIsOpenRef.current) {
       setName('');
       setValueType('select');
-      setAppliesToType(ALL_TYPES);
+      setAppliesToTypes([]);
       setPromptOnForm(false);
     }
     prevIsOpenRef.current = isOpen;
@@ -69,7 +67,7 @@ export function AttributeDefinitionModal({
         name: trimmed,
         valueType,
         appliesToCatalog: 'reagent',
-        appliesToType: appliesToType || undefined,
+        appliesToTypes,
         promptOnForm,
       });
       notifications.success(`Attribute "${trimmed}" created`);
@@ -124,17 +122,37 @@ export function AttributeDefinitionModal({
         </div>
 
         <div>
-          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-          <label id="attributeAppliesTo" className={FIELD_LABEL_STANDARD}>
-            Applies To
-          </label>
-          <Select
-            options={[{ value: ALL_TYPES, label: 'All reagent types' }, ...reagentTypeOptions]}
-            value={appliesToType}
-            onChange={value => setAppliesToType(String(value ?? ''))}
-            fullWidth
-            aria-labelledby="attributeAppliesTo"
-          />
+          <span className={FIELD_LABEL_STANDARD}>Applies To</span>
+          <div
+            className="flex flex-wrap gap-1.5"
+            role="group"
+            aria-label="Applies to reagent types"
+          >
+            {reagentTypeOptions.map(option => {
+              const value = String(option.value);
+              const selected = appliesToTypes.includes(value);
+              return (
+                <Chip
+                  key={value}
+                  size="xs"
+                  behavior="selectable"
+                  selected={selected}
+                  onSelect={() =>
+                    setAppliesToTypes(prev =>
+                      selected ? prev.filter(type => type !== value) : [...prev, value]
+                    )
+                  }
+                >
+                  {option.label}
+                </Chip>
+              );
+            })}
+          </div>
+          <p className="mt-1 text-caption text-muted-foreground">
+            {appliesToTypes.length === 0
+              ? 'Offered on every reagent type'
+              : `Offered on ${appliesToTypes.length} of ${reagentTypeOptions.length} types`}
+          </p>
         </div>
 
         <SettingsRow

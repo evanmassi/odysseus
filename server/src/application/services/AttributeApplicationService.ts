@@ -72,7 +72,7 @@ export class AttributeApplicationService {
       name: data.name,
       valueType: data.valueType,
       appliesToCatalog: data.appliesToCatalog,
-      appliesToType: data.appliesToType,
+      appliesToTypes: data.appliesToTypes,
       sortOrder: data.sortOrder,
       promptOnForm: data.promptOnForm,
     });
@@ -99,7 +99,7 @@ export class AttributeApplicationService {
     definition.update({
       name: data.name,
       appliesToCatalog: data.appliesToCatalog,
-      appliesToType: data.appliesToType,
+      appliesToTypes: data.appliesToTypes,
       sortOrder: data.sortOrder,
       promptOnForm: data.promptOnForm,
     });
