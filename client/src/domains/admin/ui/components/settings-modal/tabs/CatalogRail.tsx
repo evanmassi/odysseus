@@ -6,7 +6,7 @@
  * one classifies itself.
  */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 
 import { SearchInput, Tab, TabGroup, Tabs } from '@shared/ui';
 
@@ -14,7 +14,8 @@ export interface CatalogLeaf {
   id: string;
   title: string;
   group: string;
-  count: number;
+  /** Omitted where there is no vocabulary to count, as on a free-text attribute. */
+  count?: number;
   /** Catalogs a shared vocabulary feeds; a rename fans out to all of them. */
   usedBy?: string[];
 }
@@ -23,11 +24,9 @@ interface CatalogRailProps {
   leaves: CatalogLeaf[];
   selected: string;
   onSelect: (id: string) => void;
-  /** Actions below the rail — kept outside the tablist, which may only own tabs. */
-  footer?: ReactNode;
 }
 
-export function CatalogRail({ leaves, selected, onSelect, footer }: CatalogRailProps) {
+export function CatalogRail({ leaves, selected, onSelect }: CatalogRailProps) {
   const [filter, setFilter] = useState('');
 
   // The selected leaf stays listed even when it doesn't match, so the pane beside the
@@ -60,9 +59,11 @@ export function CatalogRail({ leaves, selected, onSelect, footer }: CatalogRailP
                   <Tab key={leaf.id} id={leaf.id}>
                     <span className="flex items-center gap-2 leading-tight">
                       <span className="min-w-0">{leaf.title}</span>
-                      <span className="ml-auto flex-shrink-0 font-mono text-data-sm tracking-data text-foreground/40">
-                        {leaf.count}
-                      </span>
+                      {leaf.count !== undefined && (
+                        <span className="ml-auto flex-shrink-0 font-mono text-data-sm tracking-data text-foreground/40">
+                          {leaf.count}
+                        </span>
+                      )}
                     </span>
                   </Tab>
                 ))}
@@ -70,8 +71,6 @@ export function CatalogRail({ leaves, selected, onSelect, footer }: CatalogRailP
           ))}
         </Tabs>
       </div>
-
-      {footer}
     </div>
   );
 }

@@ -158,7 +158,10 @@ export function CatalogSurfacePreview({ onClose }: { onClose: () => void }) {
           id: `attr:${def.id}`,
           title: def.name,
           group: ATTRIBUTE_GROUP,
-          count: options[def.id]?.length ?? 0,
+          count:
+            def.valueType === 'select' || def.valueType === 'multi_select'
+              ? (options[def.id]?.length ?? 0)
+              : undefined,
         })),
       { id: 'units', title: 'Custom Units', group: UNIT_GROUP, count: units.length },
     ],
@@ -185,24 +188,23 @@ export function CatalogSurfacePreview({ onClose }: { onClose: () => void }) {
       className="h-[85vh]"
       onClose={onClose}
     >
-      <SectionHeader title="Catalog" size="lg" />
+      <SectionHeader
+        title="Catalog"
+        size="lg"
+        rightMeta={
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<Plus size={14} />}
+            onClick={() => setIsDefinitionModalOpen(true)}
+          >
+            New attribute
+          </Button>
+        }
+      />
 
       <div className="flex min-h-0 gap-4">
-        <CatalogRail
-          leaves={leaves}
-          selected={selected}
-          onSelect={setSelected}
-          footer={
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<Plus size={14} />}
-              onClick={() => setIsDefinitionModalOpen(true)}
-            >
-              New attribute
-            </Button>
-          }
-        />
+        <CatalogRail leaves={leaves} selected={selected} onSelect={setSelected} />
 
         <div className="min-w-0 flex-1">
           {activeDefinition && (

@@ -20,6 +20,7 @@ import {
 } from '@domains/reagents/hooks';
 import { isLotExpired } from '@domains/reagents/utils/reagentExpiry';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
+import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
   AccentTick,
   Button,
@@ -41,7 +42,6 @@ import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFor
 import { notifications } from '@shared/utils/notifications';
 import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
-import { CONCENTRATION_UNIT_OPTIONS } from '@shared/utils/unitOptions';
 
 import type { ReagentLot } from '@odysseus/shared-schemas';
 
@@ -103,6 +103,7 @@ export function ReagentTransactionForm({
 }: ReagentTransactionFormProps) {
   const { data: detail } = useReagentItemDetailQuery(itemId);
   const { data: locations = [] } = useLocationsQuery();
+  const unitOptions = useUnitOptions();
   const recordTransactionMutation = useRecordReagentTransactionMutation();
   const recordStockCountMutation = useRecordReagentStockCountMutation();
 
@@ -648,7 +649,7 @@ export function ReagentTransactionForm({
                       </label>
                       <Select
                         aria-labelledby="reagent-txn-conc-unit-label"
-                        options={CONCENTRATION_UNIT_OPTIONS}
+                        options={unitOptions.concentration}
                         value={value ?? ''}
                         onChange={v => onChange(v)}
                         fullWidth

@@ -1,15 +1,29 @@
 /**
  * Catalog Tab
  *
- * Admin interface for the lab's dropdown vocabularies: a rail of every editable list
+ * Admin interface for every editable lab vocabulary: a rail of the lists, attributes and units
  * beside the entries of the one selected.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
+import {
+  EMPTY_ATTRIBUTES,
+  useAttributesQuery,
+  useCreateAttributeDefinitionMutation,
+  useCreateAttributeOptionMutation,
+  useCreateCustomUnitMutation,
+  useCustomUnitsQuery,
+  useDeleteAttributeDefinitionMutation,
+  useDeleteAttributeOptionMutation,
+  useDeleteCustomUnitMutation,
+  useRenameCustomUnitMutation,
+  useUpdateAttributeDefinitionMutation,
+  useUpdateAttributeOptionMutation,
+} from '@domains/lab-management';
 import { AlertBanner, Button } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -21,10 +35,19 @@ import {
   useRenameLookupValueMutation,
 } from '../../../../hooks/useLookupValueMutations';
 
+import { AttributeDefinitionModal } from './AttributeDefinitionModal';
+import { AttributeSection } from './AttributeSection';
 import { CatalogEntryTable } from './CatalogEntryTable';
 import { CatalogRail, type CatalogLeaf } from './CatalogRail';
+import { CustomUnitSection, type CustomUnitEntry } from './CustomUnitSection';
 
-import type { LookupCategory } from '@odysseus/shared-schemas';
+import type {
+  AttributeOptionWithUsage,
+  CreateAttributeDefinitionRequest,
+  LookupCategory,
+  UnitKindValue,
+} from '@odysseus/shared-schemas';
+import type { SelectOption } from '@shared/ui';
 
 const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   species: 'species',
@@ -70,6 +93,8 @@ const CATEGORY_USAGE_LABELS: Record<
 };
 
 const LOOKUP_GROUP = 'Dropdown Lists';
+const ATTRIBUTE_GROUP = 'Item Attributes';
+const UNIT_GROUP = 'Units';
 
 // Alphabetical by title. Leaves group by the mechanism behind them, not by meaning — a
 // taxonomy of meaning can't place the lab-defined attribute vocabularies.
@@ -89,13 +114,33 @@ const LOOKUP_LEAVES: Array<{ category: LookupCategory; title: string; usedBy?: s
   { category: 'vendor', title: 'Vendors', usedBy: ['Supplies', 'Reagents', 'Equipment'] },
 ];
 
+const UNITS_LEAF_ID = 'units';
+const lookupLeafId = (category: LookupCategory) => `lookup:${category}`;
+const attributeLeafId = (definitionId: string) => `attr:${definitionId}`;
+
 /** The list a route lands on, so opening the catalog from a suite starts where you are. */
-function leafForRoute(pathname: string): LookupCategory {
-  if (pathname.startsWith('/lab/reagents')) return 'reagent_type';
-  if (pathname.startsWith('/lab/supplies')) return 'supply_item_property';
-  if (pathname.startsWith('/lab/equipment')) return 'equipment_maintenance_type';
-  return 'species';
+function leafForRoute(pathname: string): string {
+  if (pathname.startsWith('/lab/reagents')) return lookupLeafId('reagent_type');
+  if (pathname.startsWith('/lab/supplies')) return lookupLeafId('supply_item_property');
+  if (pathname.startsWith('/lab/equipment')) return lookupLeafId('equipment_maintenance_type');
+  return lookupLeafId('species');
 }
+
+type PendingDelete =
+  | { kind: 'lookup'; id: string; label: string; category: LookupCategory }
+  | { kind: 'option'; id: string; label: string }
+  | { kind: 'definition'; id: string; label: string }
+  | { kind: 'unit'; id: string; label: string };
+
+const DELETE_COPY: Record<PendingDelete['kind'], { noun: string; consequence: string }> = {
+  lookup: { noun: 'entry', consequence: 'This action cannot be undone.' },
+  option: { noun: 'option', consequence: 'It will no longer be offered on reagent forms.' },
+  definition: {
+    noun: 'attribute',
+    consequence: 'Its options are removed with it. This action cannot be undone.',
+  },
+  unit: { noun: 'unit', consequence: 'It will no longer be offered on any unit field.' },
+};
 
 interface CatalogTabProps {
   onTabFooter?: (footer: React.ReactNode) => void;
@@ -106,19 +151,51 @@ interface CatalogTabProps {
 
 export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: CatalogTabProps) {
   const location = useLocation();
-  const [selected, setSelected] = useState<LookupCategory>(() => leafForRoute(location.pathname));
-  const [confirmDialog, setConfirmDialog] = useState<{
-    id: string;
-    value: string;
-    category: LookupCategory;
-  } | null>(null);
+  const [selected, setSelected] = useState(() => leafForRoute(location.pathname));
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [isDefinitionModalOpen, setIsDefinitionModalOpen] = useState(false);
 
-  const { data: catalog = EMPTY_CATALOG, isLoading, isFetching, refetch } = useCatalogValuesQuery();
+  const {
+    data: catalog = EMPTY_CATALOG,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useCatalogValuesQuery();
+  const {
+    data: attributes = EMPTY_ATTRIBUTES,
+    isLoading: isLoadingAttributes,
+    isFetching: isFetchingAttributes,
+    isError: isAttributesError,
+    refetch: refetchAttributes,
+  } = useAttributesQuery();
+  const {
+    data: customUnits = [],
+    isLoading: isLoadingUnits,
+    isFetching: isFetchingUnits,
+    isError: isUnitsError,
+    refetch: refetchUnits,
+  } = useCustomUnitsQuery();
+
   const createMutation = useCreateLookupValueMutation();
   const renameMutation = useRenameLookupValueMutation();
   const deleteMutation = useDeleteLookupValueMutation();
+  const createDefinitionMutation = useCreateAttributeDefinitionMutation();
+  const updateDefinitionMutation = useUpdateAttributeDefinitionMutation();
+  const deleteDefinitionMutation = useDeleteAttributeDefinitionMutation();
+  const createOptionMutation = useCreateAttributeOptionMutation();
+  const updateOptionMutation = useUpdateAttributeOptionMutation();
+  const deleteOptionMutation = useDeleteAttributeOptionMutation();
+  const createUnitMutation = useCreateCustomUnitMutation();
+  const renameUnitMutation = useRenameCustomUnitMutation();
+  const deleteUnitMutation = useDeleteCustomUnitMutation();
 
-  const deletingId = deleteMutation.isPending ? (confirmDialog?.id ?? null) : null;
+  const isDeleting =
+    deleteMutation.isPending ||
+    deleteOptionMutation.isPending ||
+    deleteDefinitionMutation.isPending ||
+    deleteUnitMutation.isPending;
+  const deletingId = isDeleting ? (pendingDelete?.id ?? null) : null;
 
   useEffect(() => {
     onTabFooter?.(
@@ -128,27 +205,46 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
     );
   }, [onTabFooter]);
 
+  const refreshAll = useCallback(() => {
+    void refetch();
+    void refetchAttributes();
+    void refetchUnits();
+  }, [refetch, refetchAttributes, refetchUnits]);
+
+  // Both actions are catalog-wide, and the header keeps "New attribute" in one place as the
+  // rail grows — anchored to the rail it would drift below the fold.
   useEffect(() => {
     onTabAction?.(
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => refetch()}
-        isLoading={isFetching}
-        leftIcon={<RefreshCw size={14} />}
-      >
-        Refresh
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setIsDefinitionModalOpen(true)}
+          disabled={readOnly}
+          leftIcon={<Plus size={14} />}
+        >
+          New attribute
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={refreshAll}
+          isLoading={isFetching || isFetchingAttributes || isFetchingUnits}
+          leftIcon={<RefreshCw size={14} />}
+        >
+          Refresh
+        </Button>
+      </div>
     );
-  }, [onTabAction, isFetching, refetch]);
+  }, [onTabAction, isFetching, isFetchingAttributes, isFetchingUnits, refreshAll, readOnly]);
 
   // mutateAsync so the child form can await the result and keep the typed value on failure.
-  const handleAdd = async (category: LookupCategory, value: string) => {
+  const handleAddLookup = async (category: LookupCategory, value: string) => {
     await createMutation.mutateAsync({ category, value });
     notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category]}`);
   };
 
-  const handleRename = (category: LookupCategory, id: string, newValue: string) => {
+  const handleRenameLookup = (category: LookupCategory, id: string, newValue: string) => {
     renameMutation.mutate(
       { category, id, value: newValue },
       {
@@ -159,85 +255,243 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
     );
   };
 
-  const handleDeleteRequest = (category: LookupCategory, id: string, value: string) => {
-    setConfirmDialog({ id, value, category });
+  const handleAddOption = async (definitionId: string, value: string) => {
+    await createOptionMutation.mutateAsync({ definitionId, data: { value } });
+    notifications.success(`Added "${value}"`);
   };
 
-  const executeDelete = () => {
-    const target = confirmDialog;
-    if (!target) return;
-    deleteMutation.mutate(
-      { category: target.category, id: target.id },
+  const handleRenameOption = (id: string, value: string) => {
+    updateOptionMutation.mutate(
+      { id, data: { value } },
       {
         onSuccess: () => {
-          notifications.success(`Deleted "${target.value}"`);
-        },
-        onSettled: () => {
-          setConfirmDialog(null);
+          notifications.success(`Renamed to "${value}"`);
         },
       }
     );
   };
 
-  const leaves = useMemo<CatalogLeaf[]>(
+  const handleCreateDefinition = (data: CreateAttributeDefinitionRequest) =>
+    createDefinitionMutation.mutateAsync(data, {
+      onSuccess: definition => setSelected(attributeLeafId(definition.id)),
+    });
+
+  const handleAddUnit = async (label: string, kind: UnitKindValue) => {
+    await createUnitMutation.mutateAsync({ label, kind });
+    notifications.success(`Added "${label}"`);
+  };
+
+  const handleRenameUnit = (id: string, label: string) => {
+    renameUnitMutation.mutate(
+      { id, data: { label } },
+      {
+        onSuccess: () => {
+          notifications.success(`Renamed to "${label}"`);
+        },
+      }
+    );
+  };
+
+  const executeDelete = () => {
+    const target = pendingDelete;
+    if (!target) return;
+
+    const onSuccess = () => notifications.success(`Deleted "${target.label}"`);
+    const onSettled = () => setPendingDelete(null);
+
+    switch (target.kind) {
+      case 'lookup':
+        deleteMutation.mutate(
+          { category: target.category, id: target.id },
+          { onSuccess, onSettled }
+        );
+        return;
+      case 'option':
+        deleteOptionMutation.mutate(target.id, { onSuccess, onSettled });
+        return;
+      case 'definition':
+        deleteDefinitionMutation.mutate(target.id, {
+          onSuccess: () => {
+            onSuccess();
+            // Stay among the attributes rather than falling back to the first list in the rail.
+            const next = attributes.definitions
+              .filter(definition => definition.id !== target.id)
+              .sort((a, b) => a.name.localeCompare(b.name))[0];
+            setSelected(next ? attributeLeafId(next.id) : UNITS_LEAF_ID);
+          },
+          onSettled,
+        });
+        return;
+      case 'unit':
+        deleteUnitMutation.mutate(target.id, { onSuccess, onSettled });
+    }
+  };
+
+  const reagentTypeOptions = useMemo<SelectOption[]>(
+    () => catalog.reagent_type.map(value => ({ value: value.value, label: value.value })),
+    [catalog.reagent_type]
+  );
+
+  const optionsByDefinition = useMemo(() => {
+    const map = new Map<string, AttributeOptionWithUsage[]>();
+    attributes.options.forEach(option => {
+      const list = map.get(option.definitionId) ?? [];
+      list.push(option);
+      map.set(option.definitionId, list);
+    });
+    return map;
+  }, [attributes.options]);
+
+  const unitEntries = useMemo<CustomUnitEntry[]>(
     () =>
-      LOOKUP_LEAVES.map(leaf => ({
-        id: leaf.category,
+      customUnits.map(unit => ({
+        id: unit.id,
+        value: unit.label,
+        kind: unit.kind,
+        usageCount: unit.usageCount,
+      })),
+    [customUnits]
+  );
+
+  const leaves = useMemo<CatalogLeaf[]>(
+    () => [
+      ...LOOKUP_LEAVES.map(leaf => ({
+        id: lookupLeafId(leaf.category),
         title: leaf.title,
         group: LOOKUP_GROUP,
         count: catalog[leaf.category].length,
         usedBy: leaf.usedBy,
       })),
-    [catalog]
+      ...[...attributes.definitions]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(definition => ({
+          id: attributeLeafId(definition.id),
+          title: definition.name,
+          group: ATTRIBUTE_GROUP,
+          count:
+            definition.valueType === 'select' || definition.valueType === 'multi_select'
+              ? (optionsByDefinition.get(definition.id)?.length ?? 0)
+              : undefined,
+        })),
+      { id: UNITS_LEAF_ID, title: 'Custom Units', group: UNIT_GROUP, count: customUnits.length },
+    ],
+    [catalog, attributes.definitions, optionsByDefinition, customUnits.length]
   );
 
-  const activeLeaf = LOOKUP_LEAVES.find(leaf => leaf.category === selected) ?? LOOKUP_LEAVES[0];
-  const activeCategory = activeLeaf.category;
+  const activeLeafId = leaves.some(leaf => leaf.id === selected) ? selected : leaves[0].id;
+  const activeLookup = LOOKUP_LEAVES.find(leaf => lookupLeafId(leaf.category) === activeLeafId);
+  const activeDefinition = attributes.definitions.find(
+    definition => attributeLeafId(definition.id) === activeLeafId
+  );
 
   return (
     <div className="space-y-2">
+      {/* Without this, a failed fetch is indistinguishable from a lab that has nothing yet. */}
+      {(isError || isAttributesError || isUnitsError) && (
+        <AlertBanner variant="error" spacing="none" className="text-body-sm">
+          Some vocabularies could not be loaded. Use Refresh to try again.
+        </AlertBanner>
+      )}
+
       <div className="flex min-h-0 gap-4">
-        <CatalogRail
-          leaves={leaves}
-          selected={activeCategory}
-          onSelect={id => setSelected(id as LookupCategory)}
-        />
+        <CatalogRail leaves={leaves} selected={activeLeafId} onSelect={setSelected} />
 
         <div className="min-w-0 flex-1">
-          <CatalogEntryTable
-            key={activeCategory}
-            entries={catalog[activeCategory]}
-            labels={{
-              singular: CATEGORY_SINGULAR_LABELS[activeCategory],
-              plural: CATEGORY_PLURAL_LABELS[activeCategory],
-              usageHeader: CATEGORY_USAGE_LABELS[activeCategory].header,
-              usageSingular: CATEGORY_USAGE_LABELS[activeCategory].singular,
-              usagePlural: CATEGORY_USAGE_LABELS[activeCategory].plural,
-            }}
-            ariaLabel={`${activeLeaf.title} list`}
-            loading={isLoading}
-            onAdd={value => handleAdd(activeCategory, value)}
-            onRename={(id, newValue) => handleRename(activeCategory, id, newValue)}
-            onDelete={(id, value) => handleDeleteRequest(activeCategory, id, value)}
-            deletingId={deletingId}
-            readOnly={readOnly}
-            toolbarNote={activeLeaf.usedBy ? `used by ${activeLeaf.usedBy.join(' · ')}` : undefined}
-          />
+          {activeLookup && (
+            <CatalogEntryTable
+              key={activeLeafId}
+              entries={catalog[activeLookup.category]}
+              labels={{
+                singular: CATEGORY_SINGULAR_LABELS[activeLookup.category],
+                plural: CATEGORY_PLURAL_LABELS[activeLookup.category],
+                usageHeader: CATEGORY_USAGE_LABELS[activeLookup.category].header,
+                usageSingular: CATEGORY_USAGE_LABELS[activeLookup.category].singular,
+                usagePlural: CATEGORY_USAGE_LABELS[activeLookup.category].plural,
+              }}
+              ariaLabel={`${activeLookup.title} list`}
+              loading={isLoading}
+              onAdd={value => handleAddLookup(activeLookup.category, value)}
+              onRename={(id, newValue) => handleRenameLookup(activeLookup.category, id, newValue)}
+              onDelete={(id, label) =>
+                setPendingDelete({ kind: 'lookup', id, label, category: activeLookup.category })
+              }
+              deletingId={deletingId}
+              readOnly={readOnly}
+              toolbarNote={
+                activeLookup.usedBy ? `used by ${activeLookup.usedBy.join(' · ')}` : undefined
+              }
+            />
+          )}
+
+          {activeDefinition && (
+            <AttributeSection
+              key={activeLeafId}
+              definition={activeDefinition}
+              options={optionsByDefinition.get(activeDefinition.id) ?? []}
+              reagentTypeOptions={reagentTypeOptions}
+              loading={isLoadingAttributes}
+              itemsUsingCount={activeDefinition.usageCount}
+              onScopeChange={appliesToType =>
+                updateDefinitionMutation.mutate({
+                  id: activeDefinition.id,
+                  data: { appliesToType },
+                })
+              }
+              onPromptChange={promptOnForm =>
+                updateDefinitionMutation.mutate({
+                  id: activeDefinition.id,
+                  data: { promptOnForm },
+                })
+              }
+              onDeleteDefinition={() =>
+                setPendingDelete({
+                  kind: 'definition',
+                  id: activeDefinition.id,
+                  label: activeDefinition.name,
+                })
+              }
+              onAddOption={value => handleAddOption(activeDefinition.id, value)}
+              onRenameOption={handleRenameOption}
+              onDeleteOption={(id, label) => setPendingDelete({ kind: 'option', id, label })}
+              deletingOptionId={deletingId}
+              readOnly={readOnly}
+            />
+          )}
+
+          {activeLeafId === UNITS_LEAF_ID && (
+            <CustomUnitSection
+              entries={unitEntries}
+              loading={isLoadingUnits}
+              onAdd={handleAddUnit}
+              onRename={handleRenameUnit}
+              onDelete={(id, label) => setPendingDelete({ kind: 'unit', id, label })}
+              deletingId={deletingId}
+              readOnly={readOnly}
+            />
+          )}
         </div>
       </div>
 
-      {confirmDialog && (
+      {pendingDelete && (
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title={`Delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`}
-          message={`Are you sure you want to delete "${confirmDialog.value}" from ${CATEGORY_PLURAL_LABELS[confirmDialog.category] ?? confirmDialog.category}? This action cannot be undone.`}
+          title={`Delete ${DELETE_COPY[pendingDelete.kind].noun}`}
+          message={`Are you sure you want to delete "${pendingDelete.label}"? ${DELETE_COPY[pendingDelete.kind].consequence}`}
           confirmText="Delete"
           onConfirm={executeDelete}
-          onCancel={() => setConfirmDialog(null)}
-          isLoading={deletingId === confirmDialog.id}
+          onCancel={() => setPendingDelete(null)}
+          isLoading={isDeleting}
         />
       )}
+
+      <AttributeDefinitionModal
+        isOpen={isDefinitionModalOpen}
+        reagentTypeOptions={reagentTypeOptions}
+        isPending={createDefinitionMutation.isPending}
+        onClose={() => setIsDefinitionModalOpen(false)}
+        onCreate={handleCreateDefinition}
+      />
     </div>
   );
 }

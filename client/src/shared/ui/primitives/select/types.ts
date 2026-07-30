@@ -15,6 +15,8 @@ export interface SelectOption {
   /** Shown below the label in the dropdown */
   description?: string;
   icon?: ReactNode;
+  /** Heading above this option's run. Options must arrive grouped — the list is not reordered. */
+  group?: string;
 }
 
 export interface SelectProps {

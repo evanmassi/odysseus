@@ -5,6 +5,7 @@
  */
 
 import React, {
+  Fragment,
   forwardRef,
   useState,
   useRef,
@@ -451,54 +452,67 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                       selected => selected.value === option.value
                     );
                     const isHighlighted = index === highlightedIndex;
+                    // Headings are decorative siblings, so option indices stay aligned with
+                    // `options` and keyboard navigation is untouched.
+                    const startsGroup =
+                      !!option.group && option.group !== options[index - 1]?.group;
 
                     return (
-                      <div
-                        key={option.value}
-                        className={optionVariants({
-                          isSelected,
-                          isHighlighted,
-                          isDisabled: option.disabled,
-                        })}
-                        onClick={() => handleOptionSelect(option)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleOptionSelect(option);
-                          }
-                        }}
-                        role="option"
-                        aria-selected={isSelected}
-                        aria-disabled={option.disabled}
-                        tabIndex={isOpen && isHighlighted ? 0 : -1}
-                      >
-                        {renderOption ? (
-                          renderOption(option, { isSelected, isHighlighted })
-                        ) : (
-                          <>
-                            {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
-
-                            <div className="flex-1 min-w-0">
-                              <div className="truncate">{option.label}</div>
-                              {option.description && (
-                                <div className="text-caption text-muted-foreground truncate">
-                                  {option.description}
-                                </div>
-                              )}
-                            </div>
-
-                            {isSelected && (
-                              <svg
-                                className="w-4 h-4 text-primary"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
-                              </svg>
-                            )}
-                          </>
+                      <Fragment key={option.value}>
+                        {startsGroup && (
+                          <div
+                            role="presentation"
+                            className="px-3 pb-0.5 pt-2 type-label text-label-2xs tracking-label-wide text-foreground/40 first:pt-1"
+                          >
+                            {option.group}
+                          </div>
                         )}
-                      </div>
+                        <div
+                          className={optionVariants({
+                            isSelected,
+                            isHighlighted,
+                            isDisabled: option.disabled,
+                          })}
+                          onClick={() => handleOptionSelect(option)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleOptionSelect(option);
+                            }
+                          }}
+                          role="option"
+                          aria-selected={isSelected}
+                          aria-disabled={option.disabled}
+                          tabIndex={isOpen && isHighlighted ? 0 : -1}
+                        >
+                          {renderOption ? (
+                            renderOption(option, { isSelected, isHighlighted })
+                          ) : (
+                            <>
+                              {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
+
+                              <div className="flex-1 min-w-0">
+                                <div className="truncate">{option.label}</div>
+                                {option.description && (
+                                  <div className="text-caption text-muted-foreground truncate">
+                                    {option.description}
+                                  </div>
+                                )}
+                              </div>
+
+                              {isSelected && (
+                                <svg
+                                  className="w-4 h-4 text-primary"
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                >
+                                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
+                                </svg>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </Fragment>
                     );
                   })
                 )}

@@ -7,7 +7,9 @@
 import {
   AttributeDto,
   type AttributeDefinitionResponse,
+  type AttributeDefinitionUsageResponse,
   type AttributeOptionResponse,
+  type AttributeOptionUsageResponse,
 } from '@application/dto/AttributeDto';
 import { AttributeDefinition } from '@domain/entities/AttributeDefinition';
 import type { User } from '@domain/entities/User';
@@ -34,16 +36,22 @@ export class AttributeApplicationService {
   ) {}
 
   async list(labId: string): Promise<{
-    definitions: AttributeDefinitionResponse[];
-    options: AttributeOptionResponse[];
+    definitions: AttributeDefinitionUsageResponse[];
+    options: AttributeOptionUsageResponse[];
   }> {
-    const [definitions, options] = await Promise.all([
+    const [definitions, options, definitionUsage, optionUsage] = await Promise.all([
       this.attributeRepository.findDefinitionsByLabId(labId),
       this.attributeRepository.findOptionsByLabId(labId),
+      this.attributeRepository.countItemsByDefinition(labId),
+      this.attributeRepository.countItemsByOption(labId),
     ]);
     return {
-      definitions: definitions.map(AttributeDto.definitionToResponse),
-      options: options.map(AttributeDto.optionToResponse),
+      definitions: definitions.map(definition =>
+        AttributeDto.definitionToUsageResponse(definition, definitionUsage.get(definition.id) ?? 0)
+      ),
+      options: options.map(option =>
+        AttributeDto.optionToUsageResponse(option, optionUsage.get(option.id) ?? 0)
+      ),
     };
   }
 

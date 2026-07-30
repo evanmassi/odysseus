@@ -120,6 +120,16 @@ export const queryKeys = {
     all: (labId = '') => ['locations', labId] as const,
   },
 
+  // Item attributes — definitions and their options, lab-wide
+  attributes: {
+    all: (labId = '') => ['attributes', labId] as const,
+  },
+
+  // Custom units (lab-scoped supplement to the unit registry)
+  customUnits: {
+    all: (labId = '') => ['customUnits', labId] as const,
+  },
+
   // Reagents (lab-scoped)
   reagents: {
     all: (labId = '') => ['reagents', labId] as const,

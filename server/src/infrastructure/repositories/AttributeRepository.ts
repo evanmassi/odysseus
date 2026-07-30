@@ -189,4 +189,32 @@ export class AttributeRepository implements IAttributeRepository {
     );
     return parseCount(row);
   }
+
+  async countItemsByDefinition(labId: string): Promise<Map<string, number>> {
+    const rows = await this.db.queryMany<{ key: string; count: number }>(
+      `
+      SELECT v.definition_id AS key, COUNT(DISTINCT v.item_id)::int AS count
+      FROM reagent_attribute_values v
+      JOIN attribute_definitions d ON d.id = v.definition_id
+      WHERE d.lab_id = $1
+      GROUP BY v.definition_id
+    `,
+      [labId]
+    );
+    return new Map(rows.map(row => [row.key, row.count]));
+  }
+
+  async countItemsByOption(labId: string): Promise<Map<string, number>> {
+    const rows = await this.db.queryMany<{ key: string; count: number }>(
+      `
+      SELECT v.value_option_id AS key, COUNT(DISTINCT v.item_id)::int AS count
+      FROM reagent_attribute_values v
+      JOIN attribute_definitions d ON d.id = v.definition_id
+      WHERE d.lab_id = $1 AND v.value_option_id IS NOT NULL
+      GROUP BY v.value_option_id
+    `,
+      [labId]
+    );
+    return new Map(rows.map(row => [row.key, row.count]));
+  }
 }

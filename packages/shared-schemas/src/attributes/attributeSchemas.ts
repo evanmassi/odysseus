@@ -65,13 +65,23 @@ export const updateAttributeOptionRequestSchema = z.object({
   sortOrder: z.number().int().nullish(),
 });
 
+// Item counts ride the list only: they gate the delete buttons, and a single write's
+// response has no count to report that its caller doesn't already know.
+export const attributeDefinitionWithUsageSchema = attributeDefinitionSchema.extend({
+  usageCount: z.number().int().min(0),
+});
+
+export const attributeOptionWithUsageSchema = attributeOptionSchema.extend({
+  usageCount: z.number().int().min(0),
+});
+
 export const attributeDefinitionResponseSchema = z.object({
   definition: attributeDefinitionSchema,
 });
 
 export const attributeDefinitionListResponseSchema = z.object({
-  definitions: z.array(attributeDefinitionSchema),
-  options: z.array(attributeOptionSchema),
+  definitions: z.array(attributeDefinitionWithUsageSchema),
+  options: z.array(attributeOptionWithUsageSchema),
 });
 
 export const attributeOptionResponseSchema = z.object({
@@ -81,7 +91,9 @@ export const attributeOptionResponseSchema = z.object({
 export type AttributeValueType = z.infer<typeof attributeValueTypeSchema>;
 export type AttributeCatalog = z.infer<typeof attributeCatalogSchema>;
 export type AttributeDefinition = z.infer<typeof attributeDefinitionSchema>;
+export type AttributeDefinitionWithUsage = z.infer<typeof attributeDefinitionWithUsageSchema>;
 export type AttributeOption = z.infer<typeof attributeOptionSchema>;
+export type AttributeOptionWithUsage = z.infer<typeof attributeOptionWithUsageSchema>;
 export type CreateAttributeDefinitionRequest = z.infer<
   typeof createAttributeDefinitionRequestSchema
 >;

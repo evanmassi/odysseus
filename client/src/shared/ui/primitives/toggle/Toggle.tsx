@@ -18,9 +18,11 @@ interface ToggleProps {
 
 const SIZES = {
   sm: {
-    track: 'w-[48px] h-[22px]',
+    // Wide enough for the knob and the three-letter OFF to clear each other: at 48px the
+    // label's left edge sat under the parked knob.
+    track: 'w-[54px] h-[22px]',
     knob: 'h-[16px] w-[16px]',
-    knobOnX: 'translate-x-[26px]',
+    knobOnX: 'translate-x-[32px]',
     label: 'text-label-2xs',
     onLabelInset: 'left-1.5',
     offLabelInset: 'right-1.5',

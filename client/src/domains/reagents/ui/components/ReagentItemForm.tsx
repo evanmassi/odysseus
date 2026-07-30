@@ -28,6 +28,7 @@ import {
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
+import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
   Button,
   CompletenessMeter,
@@ -45,11 +46,6 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
-import {
-  AMOUNT_UNIT_OPTIONS,
-  CONCENTRATION_UNIT_OPTIONS,
-  PACK_UNITS,
-} from '@shared/utils/unitOptions';
 
 interface ReagentItemFormProps {
   item?: ReagentItemWithStock;
@@ -114,6 +110,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
   const { data: manufacturers = [] } = useLookupValuesQuery('manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('vendor');
   const { data: reagentTypes = [] } = useLookupValuesQuery('reagent_type');
+  const unitOptions = useUnitOptions();
 
   const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
   const vendorOptions = useMemo(() => lookupOptions(vendors), [vendors]);
@@ -123,12 +120,14 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     const used = new Set(packagingLevels.map(level => level.unitName));
     return withPlaceholder(
       'pack unit',
-      PACK_UNITS.filter(unit => !used.has(unit.id)).map(unit => ({
-        value: unit.id,
-        label: unit.label,
-      }))
+      unitOptions.pack
+        .filter(unit => !used.has(unit.id))
+        .map(unit => ({
+          value: unit.id,
+          label: unit.label,
+        }))
     );
-  }, [packagingLevels]);
+  }, [packagingLevels, unitOptions.pack]);
 
   const {
     register,
@@ -394,7 +393,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
                   </label>
                   <Select
                     aria-labelledby="reagent-concentration-unit-label"
-                    options={CONCENTRATION_UNIT_OPTIONS}
+                    options={unitOptions.concentration}
                     value={(value as string) ?? ''}
                     onChange={v => onChange(v)}
                     error={error?.message}
@@ -419,7 +418,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
                 </label>
                 <Select
                   aria-labelledby="reagent-stock-unit-label"
-                  options={AMOUNT_UNIT_OPTIONS}
+                  options={unitOptions.amount}
                   value={(value as string) ?? ''}
                   onChange={v => onChange(v)}
                   fullWidth
@@ -526,7 +525,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
                   </label>
                   <Select
                     aria-labelledby="reagent-reorder-unit-label"
-                    options={AMOUNT_UNIT_OPTIONS}
+                    options={unitOptions.amount}
                     value={(value as string) ?? ''}
                     onChange={v => onChange(v)}
                     fullWidth

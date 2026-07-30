@@ -30,4 +30,8 @@ export interface AttributeRepository {
 
   countItemsUsingDefinition(definitionId: string): Promise<number>;
   countItemsUsingOption(optionId: string): Promise<number>;
+
+  /** Item counts for the whole lab, keyed by definition and by option — the delete guards' display half. */
+  countItemsByDefinition(labId: string): Promise<Map<string, number>>;
+  countItemsByOption(labId: string): Promise<Map<string, number>>;
 }

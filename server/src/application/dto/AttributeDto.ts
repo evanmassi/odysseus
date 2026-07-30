@@ -9,11 +9,15 @@ import type { AttributeOptionRow } from '@domain/repositories/AttributeRepositor
 
 import type {
   AttributeDefinition as AttributeDefinitionData,
+  AttributeDefinitionWithUsage,
   AttributeOption as AttributeOptionData,
+  AttributeOptionWithUsage,
 } from '@odysseus/shared-schemas';
 
 export type AttributeDefinitionResponse = AttributeDefinitionData;
 export type AttributeOptionResponse = AttributeOptionData;
+export type AttributeDefinitionUsageResponse = AttributeDefinitionWithUsage;
+export type AttributeOptionUsageResponse = AttributeOptionWithUsage;
 
 export class AttributeDto {
   static definitionToResponse(definition: AttributeDefinition): AttributeDefinitionResponse {
@@ -40,5 +44,19 @@ export class AttributeDto {
       value: option.value,
       sortOrder: option.sortOrder,
     };
+  }
+
+  static definitionToUsageResponse(
+    definition: AttributeDefinition,
+    usageCount: number
+  ): AttributeDefinitionUsageResponse {
+    return { ...AttributeDto.definitionToResponse(definition), usageCount };
+  }
+
+  static optionToUsageResponse(
+    option: AttributeOptionRow,
+    usageCount: number
+  ): AttributeOptionUsageResponse {
+    return { ...AttributeDto.optionToResponse(option), usageCount };
   }
 }

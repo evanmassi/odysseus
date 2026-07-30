@@ -75,13 +75,21 @@ export function AttributeSection({
             ) : undefined
           }
         >
-          <SettingsRow label="Value type" hint="Fixed when the attribute is created">
+          <SettingsRow
+            label="Value type"
+            hint="Fixed when the attribute is created"
+            className="col-span-2"
+          >
             <Chip size="sm" color="default">
               {VALUE_TYPE_LABELS[definition.valueType]}
             </Chip>
           </SettingsRow>
 
-          <SettingsRow label="Applies to" hint="Reagent types that offer this attribute">
+          <SettingsRow
+            label="Applies to"
+            hint="Reagent types that offer this attribute"
+            className="col-span-2"
+          >
             <div className="w-48">
               <Select
                 options={[{ value: ALL_TYPES, label: 'All reagent types' }, ...reagentTypeOptions]}
@@ -98,6 +106,7 @@ export function AttributeSection({
           <SettingsRow
             label="Prompt on new items"
             hint="Render the field blank instead of waiting to be added"
+            className="col-span-2"
           >
             <Toggle
               checked={definition.promptOnForm}
@@ -108,7 +117,7 @@ export function AttributeSection({
             />
           </SettingsRow>
 
-          <SettingsRow label="Delete attribute" hint={deleteHint}>
+          <SettingsRow label="Delete attribute" hint={deleteHint} className="col-span-2">
             <Button
               variant="ghost-danger"
               size="sm"
