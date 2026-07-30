@@ -19,7 +19,13 @@ import type {
   UpdateAttributeOptionRequest,
 } from '@odysseus/shared-schemas';
 
+// A reagent row stores attribute value ids; the labels come from the attributes query. So only a
+// delete touches reagent data — its value rows cascade — and the rest would just churn the catalog.
 function attributeInvalidates(labId: string | undefined) {
+  return [queryKeys.attributes.all(labId)];
+}
+
+function attributeDeleteInvalidates(labId: string | undefined) {
   return [queryKeys.attributes.all(labId), queryKeys.reagents.all(labId)];
 }
 
@@ -47,7 +53,7 @@ export function useDeleteAttributeDefinitionMutation() {
 
   return useMutation({
     mutationFn: (id: string) => AttributeService.deleteDefinition(id),
-    meta: { invalidates: attributeInvalidates(labId) },
+    meta: { invalidates: attributeDeleteInvalidates(labId) },
   });
 }
 
@@ -81,6 +87,6 @@ export function useDeleteAttributeOptionMutation() {
 
   return useMutation({
     mutationFn: (id: string) => AttributeService.deleteOption(id),
-    meta: { invalidates: attributeInvalidates(labId) },
+    meta: { invalidates: attributeDeleteInvalidates(labId) },
   });
 }
