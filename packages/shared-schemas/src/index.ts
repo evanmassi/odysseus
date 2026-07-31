@@ -130,7 +130,12 @@ export {
 export { DOCUMENT_TYPE_VALUES, documentTypeSchema, type DocumentType } from './documents';
 
 // Barcodes
-export { barcodeTypeSchema, type BarcodeType } from './barcodes';
+export {
+  barcodeTypeSchema,
+  barcodeResolveResponseSchema,
+  type BarcodeType,
+  type BarcodeMatch,
+} from './barcodes';
 
 // Lookups
 export {

@@ -21,6 +21,7 @@ import {
   type ReagentLotResponse,
   type ReagentPackagingLevelResponse,
 } from '@application/dto/ReagentDto';
+import { requireUnusedBarcodeValue } from '@application/guards/BarcodeGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
@@ -59,6 +60,7 @@ import type {
   ReagentTransactionRow,
   ReagentAttributeValueRow,
 } from '@domain/repositories/ReagentItemRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -93,6 +95,7 @@ export class ReagentApplicationService {
   constructor(
     private categoryRepository: CategoryRepository<ReagentCategory>,
     private itemRepository: ReagentItemRepository,
+    private supplyItemRepository: SupplyItemRepository,
     private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
@@ -412,9 +415,10 @@ export class ReagentApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
 
-    const existing = await this.itemRepository.findByBarcodeValue(data.barcodeValue);
-    if (existing)
-      throw new ValidationError(`Barcode "${data.barcodeValue}" is already linked to another item`);
+    await requireUnusedBarcodeValue(data.barcodeValue, [
+      this.itemRepository,
+      this.supplyItemRepository,
+    ]);
 
     const barcode: ReagentBarcodeRow = {
       id: generateId('rbcd'),

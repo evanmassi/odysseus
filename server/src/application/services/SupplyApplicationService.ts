@@ -19,6 +19,7 @@ import {
   type SupplyTransactionResponse,
   type SupplyPackagingLevelResponse,
 } from '@application/dto/SupplyDto';
+import { requireUnusedBarcodeValue } from '@application/guards/BarcodeGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -49,6 +50,7 @@ import {
   type BulkVoidItemDetail,
 } from '@domain/events/SupplyEvents';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
@@ -84,6 +86,7 @@ export class SupplyApplicationService {
   constructor(
     private categoryRepository: CategoryRepository<SupplyCategory>,
     private itemRepository: SupplyItemRepository,
+    private reagentItemRepository: ReagentItemRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -329,9 +332,10 @@ export class SupplyApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
 
-    const existing = await this.itemRepository.findByBarcodeValue(data.barcodeValue);
-    if (existing)
-      throw new ValidationError(`Barcode "${data.barcodeValue}" is already linked to another item`);
+    await requireUnusedBarcodeValue(data.barcodeValue, [
+      this.itemRepository,
+      this.reagentItemRepository,
+    ]);
 
     const barcode: SupplyBarcodeRow = {
       id: generateId('sbar'),

@@ -23,6 +23,7 @@ export class SupplyModule {
       this.supplyApplicationService = new SupplyApplicationService(
         this.repositoryFactory.getSupplyCategoryRepository(),
         this.repositoryFactory.getSupplyItemRepository(),
+        this.repositoryFactory.getReagentItemRepository(),
         this.shared.accessControlService,
         this.shared.eventBus
       );

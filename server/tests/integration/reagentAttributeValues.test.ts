@@ -23,6 +23,7 @@ import { createTestAdmin } from '../../src/domain/__tests__/helpers';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import type { AttributeValueType } from '@odysseus/shared-schemas';
 
@@ -43,6 +44,7 @@ describe('reagent attribute values', () => {
     service = new ReagentApplicationService(
       {} as CategoryRepository<ReagentCategory>,
       items,
+      {} as SupplyItemRepository,
       attributes,
       new AccessControlService(tubes),
       { publish: async () => undefined } as unknown as EventBus

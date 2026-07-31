@@ -9,6 +9,7 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
@@ -27,6 +28,7 @@ function makeService(repoOverrides: Partial<SupplyItemRepository> = {}) {
   const service = new SupplyApplicationService(
     {} as CategoryRepository<SupplyCategory>,
     repo,
+    {} as ReagentItemRepository,
     {} as AccessControlService,
     {} as EventBus
   );

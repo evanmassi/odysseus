@@ -81,6 +81,7 @@ describe('category depth invariant', () => {
       supplies: new SupplyApplicationService(
         repos.supplyCategories,
         repos.supplyItems,
+        repos.reagentItems,
         accessControl,
         eventBus
       ),

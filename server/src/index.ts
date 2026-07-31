@@ -24,6 +24,7 @@ import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth'
 import { AdminRouteModule } from '@presentation/routes/AdminRouteModule';
 import { AttributeRouteModule } from '@presentation/routes/AttributeRouteModule';
 import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
+import { BarcodeRouteModule } from '@presentation/routes/BarcodeRouteModule';
 import { CustomUnitRouteModule } from '@presentation/routes/CustomUnitRouteModule';
 import { DonorRouteModule } from '@presentation/routes/DonorRouteModule';
 import { EquipmentRouteModule } from '@presentation/routes/EquipmentRouteModule';
@@ -164,6 +165,7 @@ class OdysseusServer {
     const attributeController = this.serviceContainer.getAttributeController();
     const customUnitController = this.serviceContainer.getCustomUnitController();
     const locationController = this.serviceContainer.getLocationController();
+    const barcodeController = this.serviceContainer.getBarcodeController();
     const supplyController = this.serviceContainer.getSupplyController();
     const reagentController = this.serviceContainer.getReagentController();
     const equipmentController = this.serviceContainer.getEquipmentController();
@@ -224,6 +226,7 @@ class OdysseusServer {
     registry.registerModule(new AttributeRouteModule(attributeController, authMiddleware));
     registry.registerModule(new CustomUnitRouteModule(customUnitController, authMiddleware));
     registry.registerModule(new LocationRouteModule(locationController, authMiddleware));
+    registry.registerModule(new BarcodeRouteModule(barcodeController, authMiddleware));
     registry.registerModule(new SupplyRouteModule(supplyController, authMiddleware));
     registry.registerModule(new ReagentRouteModule(reagentController, authMiddleware));
     registry.registerModule(new EquipmentRouteModule(equipmentController, authMiddleware));

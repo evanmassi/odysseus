@@ -17,6 +17,7 @@ import { ValidationService } from '@domain/services/ValidationService';
 import { AttributeModule } from '@infrastructure/di/modules/AttributeModule';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
+import { BarcodeModule } from '@infrastructure/di/modules/BarcodeModule';
 import { CustomUnitModule } from '@infrastructure/di/modules/CustomUnitModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
@@ -41,6 +42,7 @@ import type { AttributeController } from '@presentation/controllers/AttributeCon
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
+import type { BarcodeController } from '@presentation/controllers/BarcodeController';
 import type { CustomUnitController } from '@presentation/controllers/CustomUnitController';
 import type { DonorController } from '@presentation/controllers/DonorController';
 import type { EquipmentController } from '@presentation/controllers/EquipmentController';
@@ -91,6 +93,7 @@ export class ServiceContainer {
   private _attributeModule?: AttributeModule;
   private _customUnitModule?: CustomUnitModule;
   private _locationModule?: LocationModule;
+  private _barcodeModule?: BarcodeModule;
   private _supplyModule?: SupplyModule;
   private _reagentModule?: ReagentModule;
   private _equipmentModule?: EquipmentModule;
@@ -226,6 +229,13 @@ export class ServiceContainer {
       this._locationModule = new LocationModule(this.getShared(), this.repositoryFactory);
     }
     return this._locationModule;
+  }
+
+  private getBarcodeModule(): BarcodeModule {
+    if (!this._barcodeModule) {
+      this._barcodeModule = new BarcodeModule(this.repositoryFactory);
+    }
+    return this._barcodeModule;
   }
 
   private getSupplyModule(): SupplyModule {
@@ -395,6 +405,12 @@ export class ServiceContainer {
 
   getLocationController(): LocationController {
     return this.getLocationModule().getLocationController();
+  }
+
+  // Public API — BarcodeModule
+
+  getBarcodeController(): BarcodeController {
+    return this.getBarcodeModule().getBarcodeController();
   }
 
   // Public API — SupplyModule

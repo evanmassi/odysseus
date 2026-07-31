@@ -2,4 +2,9 @@
  * Barcodes Barrel
  */
 
-export { barcodeTypeSchema, type BarcodeType } from './barcodeSchemas';
+export {
+  barcodeTypeSchema,
+  barcodeResolveResponseSchema,
+  type BarcodeType,
+  type BarcodeMatch,
+} from './barcodeSchemas';

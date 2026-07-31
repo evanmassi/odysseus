@@ -297,6 +297,10 @@ export const LocationIdParams = z.object({ locationId: z.string().min(1) });
 export const CreateLocationHttpSchema = createLocationRequestSchema;
 export const UpdateLocationHttpSchema = updateLocationRequestSchema;
 
+// Barcode schemas
+
+export const BarcodeResolveQuery = z.object({ value: z.string().min(1) });
+
 // Supply schemas
 
 export const SupplyCategoryIdParams = z.object({ categoryId: z.string().min(1) });
