@@ -1,15 +1,15 @@
 /**
  * Supply Barcode Scan Input
  *
- * Focused input field for barcode scanning. On Enter, resolves the barcode via API.
- * If found, calls onItemFound. If unknown, prompts to link to an existing item.
+ * Focused input field for barcode scanning. Resolution is lab-wide, so a scan that lands in
+ * another catalog is named rather than offered for linking to a supply.
  */
 
 import { useState, useCallback } from 'react';
 
 import { ScanBarcode } from 'lucide-react';
 
-import { SupplyService } from '@domains/supplies/services/SupplyService';
+import { useBarcodeResolver } from '@domains/lab-management';
 import { SearchInput } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 
@@ -29,30 +29,34 @@ export function SupplyBarcodeScanInput({
   placeholder = 'Scan barcode...',
 }: SupplyBarcodeScanInputProps) {
   const [scanValue, setScanValue] = useState('');
-  const [isResolving, setIsResolving] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
+  const { resolve, isResolving } = useBarcodeResolver();
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
     if (!value) return;
 
-    setIsResolving(true);
-    try {
-      const item = await SupplyService.resolveBarcode(value);
-      if (item) {
-        onItemFound(item.id);
-        setScanValue('');
-      } else {
-        setUnresolvedBarcode(value);
-        setShowLinkDialog(true);
-      }
-    } catch {
-      notifications.error('Failed to resolve barcode');
-    } finally {
-      setIsResolving(false);
+    const result = await resolve(value);
+    if (result.status === 'failed') return;
+
+    if (result.status === 'unknown') {
+      setUnresolvedBarcode(value);
+      setShowLinkDialog(true);
+      return;
     }
-  }, [scanValue, onItemFound]);
+
+    if (result.match.catalog !== 'supply') {
+      notifications.info(
+        `That barcode belongs to the ${result.match.catalog} ${result.match.itemName}.`
+      );
+      setScanValue('');
+      return;
+    }
+
+    onItemFound(result.match.itemId);
+    setScanValue('');
+  }, [scanValue, resolve, onItemFound]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {

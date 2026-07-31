@@ -114,13 +114,6 @@ export class SupplyRouteModule implements RouteModule {
       this.supplyController.bulkGetBarcodes.bind(this.supplyController)
     );
 
-    // Barcode resolution — query param, registered before /:id
-
-    router.get(
-      '/barcodes/resolve',
-      this.supplyController.resolveBarcode.bind(this.supplyController)
-    );
-
     // Stock operations (not scoped to an item)
 
     router.post(

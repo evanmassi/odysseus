@@ -5,14 +5,14 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5, 6, 7 and 9 done. Reagents is complete through **Phase 7**. Item 8
-(lab-wide barcode resolve) now blocks reagents Phase 8 and is the next one due; 4b (equipment
-locations), 10 and 11 (attributes for the other two catalogs, unblocked now that Phase 7 shipped the
-first caller) remain. Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 4a, 5, 6, 7, 8, 9 and 12 done. Reagents is complete through **Phase 7**,
+and item 8 unblocked **Phase 8 (barcodes)**, which is next. Remaining: 4b (equipment locations), 10,
+and 11 (attributes for the other two catalogs, unblocked now that Phase 7 shipped the first caller).
+Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
-**Migration policy — amend-in-place is over.** Dev has applied everything through **032**. While
+**Migration policy — amend-in-place is over.** Dev has applied everything through **033**. While
 reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
-from here is a **new migration (033+)**, and anything touching live data gets rehearsed on a clone
+from here is a **new migration (034+)**, and anything touching live data gets rehearsed on a clone
 first (`CREATE DATABASE odysseus_mig_rehearsal TEMPLATE odysseus_dev`, run the runner, verify, drop) —
 the drill that caught a silent ID collision in 031 and verified the five-column unit rewrite in 032.
 There is no `down`: the runner interface is `{ id, name, up }`. `odysseus_test` is disposable — drop it
@@ -253,7 +253,7 @@ The `nav-tree` `--rail` CSS variant added by the first pass was reverted with it
 Escape cancels, stays open for consecutive entries); `toolbar.left` now carries only the *used by* note,
 and only for the two shared vocabularies.
 
-### 8. Lab-wide barcode resolve — *before reagents Phase 8*
+### 8. Lab-wide barcode resolve — ✅ done
 
 **What.** One resolve endpoint that fans out across catalogs. Barcode tables stay per-catalog.
 
@@ -262,6 +262,32 @@ own. That means a scan only resolves if you're already in the right tab — you 
 is before scanning it to find out what it is.
 
 **Blocks.** Reagent barcode wrappers (Phase 8).
+
+**Landed.** `GET /api/barcodes/resolve` over a `BarcodeApplicationService` holding both item
+repositories; the two per-catalog resolve chains (route, controller, service method, response schema)
+are deleted, and reagents' was dead on arrival — Phase 2 built it, nothing ever called it. The match
+is compact — `{ catalog, itemId, itemName }` — because both scan callers only need an id, and the
+name is what makes a cross-catalog answer legible in a tab that holds no list for that catalog. Lot
+context waits for Phase 8's real consumer, so `findLotById` went with the reagent chain.
+
+**Uniqueness had to fan out with it.** Each barcode table's `UNIQUE(barcode_value)` still allowed one
+value to sit on a supply *and* a reagent, which a lab-wide resolve cannot answer. `addBarcode` in both
+services now calls `requireUnusedBarcodeValue` (`application/guards/BarcodeGuards.ts`, beside
+`HierarchyGuards`), each service taking the other catalog's repository — the fan-out shape
+`LookupValueApplicationService` already uses. Auto-generated internal barcodes can't collide across
+catalogs (`SITM-` / `RITM-` prefixes), so they skip the guard.
+
+**Also collapsed:** the supply and reagent barcode-type enums were byte-identical, as are both DB
+CHECKs. One `barcodes/` schema module now owns the vocabulary, mirroring `documents/` — the promotion
+`REAGENTS_PLAN` §4.4 called for and never got.
+
+**Client.** `useBarcodeResolver` (in `domains/lab-management`, beside the other lab-wide surfaces)
+owns the in-flight flag and the failure toast the two supply scan components each hand-rolled. It
+returns a three-arm result rather than a nullable match: a *failed* lookup must not open the
+link-to-item dialog the way an *unknown* value does. A scan landing in another catalog is named
+("That barcode belongs to the reagent Anti-CD3.") instead of offered for linking — which would have
+created exactly the cross-catalog duplicate the guard now refuses. Jumping to the other tab was
+considered and deferred to Phase 8, when reagents has its own scan bar.
 
 ### 9. Supplies low-stock → client-side — ✅ done
 
@@ -337,7 +363,7 @@ and the shared `Location`.
 **Not doing:** a polymorphic `item_id` + `item_type` values table. Item 2 rejected it and nothing has
 changed — the item FK *is* the referential integrity the normalized EAV exists for.
 
-### 12. Attribute scoping → many types — *not started*
+### 12. Attribute scoping → many types — ✅ done
 
 **What.** `attribute_definitions.applies_to_type TEXT` becomes `applies_to_types TEXT[]`, so one
 attribute can apply to several reagent types. Empty array = applies to all, which is what NULL means
@@ -409,8 +435,8 @@ Decided; don't reopen without a new reason.
 - [x] 5 — Vendor / manufacturer merge
 - [x] 6 — Supplies → unit registry
 - [x] 7 — Catalog tab → nav rail
-- [ ] 8 — Lab-wide barcode resolve
+- [x] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
 - [ ] 10 — Catalog tab skeleton → shared shell
 - [ ] 11 — Attributes → supplies + equipment
-- [ ] 12 — Attribute scoping → many types
+- [x] 12 — Attribute scoping → many types

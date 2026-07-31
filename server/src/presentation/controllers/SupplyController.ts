@@ -5,8 +5,6 @@
  * barcodes, stock operations, and bulk actions.
  */
 
-import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-
 import type { SupplyApplicationService } from '@application/services/SupplyApplicationService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -247,28 +245,6 @@ export class SupplyController extends BaseController {
       res.json(ResponseBuilder.success({ message: 'Barcode removed' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to remove supply barcode', req.requestId);
-    }
-  }
-
-  async resolveBarcode(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const value = req.query.value as string;
-      if (!value) {
-        res
-          .status(400)
-          .json(
-            ResponseBuilder.error(
-              API_ERROR_CODES.REQUIRED_FIELD_MISSING,
-              'Barcode value is required'
-            )
-          );
-        return;
-      }
-      const item = await this.deps.supplyApplicationService.resolveBarcode(labId, value);
-      res.json(ResponseBuilder.success({ item }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to resolve barcode', req.requestId);
     }
   }
 

@@ -457,23 +457,6 @@ export class ReagentApplicationService {
     if (!deleted) throw new NotFoundError('This barcode could not be found.');
   }
 
-  async resolveBarcode(
-    labId: string,
-    barcodeValue: string
-  ): Promise<{ item: ReagentItemResponse | null; lot: ReagentLotResponse | null }> {
-    const barcode = await this.itemRepository.findByBarcodeValue(barcodeValue);
-    if (!barcode) return { item: null, lot: null };
-    const item = await this.itemRepository.findById(barcode.itemId, labId);
-    if (!item) return { item: null, lot: null };
-
-    let lot: ReagentLotResponse | null = null;
-    if (barcode.lotId) {
-      const lotRow = await this.itemRepository.findLotById(barcode.lotId);
-      lot = lotRow ? ReagentDto.lotToResponse(lotRow) : null;
-    }
-    return { item: ReagentDto.itemToResponse(item), lot };
-  }
-
   async getBulkBarcodes(
     labId: string,
     itemIds: string[]

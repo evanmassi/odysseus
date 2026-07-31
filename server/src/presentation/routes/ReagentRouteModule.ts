@@ -117,10 +117,6 @@ export class ReagentRouteModule implements RouteModule {
       this.reagentController.bulkGetBarcodes.bind(this.reagentController)
     );
 
-    // Barcode resolution — query param, registered before /:id
-
-    router.get('/barcodes/resolve', this.reagentController.resolveBarcode.bind(this.reagentController));
-
     // Stock operations (not scoped to an item)
 
     router.post(

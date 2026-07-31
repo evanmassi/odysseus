@@ -5,8 +5,6 @@
  * barcodes, per-lot stock operations, and bulk actions.
  */
 
-import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-
 import type { ReagentApplicationService } from '@application/services/ReagentApplicationService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -265,28 +263,6 @@ export class ReagentController extends BaseController {
       res.json(ResponseBuilder.success({ message: 'Barcode removed' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to remove reagent barcode', req.requestId);
-    }
-  }
-
-  async resolveBarcode(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const value = req.query.value as string;
-      if (!value) {
-        res
-          .status(400)
-          .json(
-            ResponseBuilder.error(
-              API_ERROR_CODES.REQUIRED_FIELD_MISSING,
-              'Barcode value is required'
-            )
-          );
-        return;
-      }
-      const result = await this.deps.reagentApplicationService.resolveBarcode(labId, value);
-      res.json(ResponseBuilder.success(result));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to resolve barcode', req.requestId);
     }
   }
 

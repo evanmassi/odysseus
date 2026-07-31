@@ -332,14 +332,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return ReagentLotMapper.fromRows(rows);
   }
 
-  async findLotById(id: string): Promise<ReagentLotRow | null> {
-    const row = await this.db.queryOne<ReagentLotDbRow>(
-      `SELECT ${LOT_COLUMNS} FROM reagent_lots WHERE id = $1`,
-      [id]
-    );
-    return row ? ReagentLotMapper.fromRow(row) : null;
-  }
-
   // Transactions — atomic and lot-aware; a FEFO issue returns one row per lot moved.
 
   async updateLot(

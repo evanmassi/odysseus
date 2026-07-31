@@ -373,14 +373,6 @@ export class SupplyApplicationService {
     if (!deleted) throw new NotFoundError('This barcode could not be found.');
   }
 
-  async resolveBarcode(labId: string, barcodeValue: string): Promise<SupplyItemResponse | null> {
-    const barcode = await this.itemRepository.findByBarcodeValue(barcodeValue);
-    if (!barcode) return null;
-    const item = await this.itemRepository.findById(barcode.itemId, labId);
-    if (!item) return null;
-    return SupplyDto.itemToResponse(item);
-  }
-
   async getBulkBarcodes(
     labId: string,
     itemIds: string[]

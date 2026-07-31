@@ -22,11 +22,13 @@ we build.
 
 _Current: Phases 2, 4, 5, 6 + 7 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule
 (§7 *Alerting*) — its reagent panels landed in Phase 6, its cleanup as convergence item 9. **Next is
-Phase 8 — barcodes**, which is blocked on convergence item 8 (lab-wide barcode resolve). **Dev has
-applied migrations through 032**, so amend-in-place is over: every schema change from here is a new
-migration (033+) — Phase 7 needed none, since `custom_units` and the attribute tables shipped in 027.
-Convergence items 4b, 8, 10 and the new 11 (attributes for supplies + equipment) remain. See
-`LAB_CONVERGENCE_PLAN.md`._
+Phase 8 — barcodes**, now unblocked: convergence item 8 shipped `GET /api/barcodes/resolve`, so the
+reagent wrappers bind to the lab-wide resolver rather than a reagent-only one, and the reagent
+`resolveBarcode` chain Phase 2 built (never called) is gone — Phase 8 re-adds lot context there when
+its scan UI needs it. **Dev has applied migrations through 033**, so amend-in-place is over: every
+schema change from here is a new migration (034+) — Phases 7 and 8 needed none, since `custom_units`
+and the attribute tables shipped in 027. Convergence items 4b, 10 and 11 (attributes for supplies +
+equipment) remain. See `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository (later folded into the shared `Location`); lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._

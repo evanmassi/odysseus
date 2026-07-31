@@ -228,11 +228,6 @@ export const reagentBarcodeResponseSchema = z.object({
   barcode: reagentBarcodeSchema,
 });
 
-export const reagentResolveBarcodeResponseSchema = z.object({
-  item: reagentItemSchema.nullable(),
-  lot: reagentLotSchema.nullable(),
-});
-
 // Transaction schemas — append-only ledger; each row references the lot it moved.
 
 export const reagentTransactionSchema = z.object({

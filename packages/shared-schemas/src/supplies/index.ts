@@ -22,7 +22,6 @@ export {
   createSupplyBarcodeRequestSchema,
   updateSupplyBarcodeRequestSchema,
   supplyBarcodeResponseSchema,
-  supplyResolveBarcodeResponseSchema,
   supplyTransactionSchema,
   recordSupplyTransactionRequestSchema,
   recordSupplyStockCountRequestSchema,

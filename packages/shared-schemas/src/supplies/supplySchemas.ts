@@ -172,10 +172,6 @@ export const supplyBarcodeResponseSchema = z.object({
   barcode: supplyBarcodeSchema,
 });
 
-export const supplyResolveBarcodeResponseSchema = z.object({
-  item: supplyItemSchema.nullable(),
-});
-
 // Transaction schemas
 
 export const supplyTransactionSchema = z.object({

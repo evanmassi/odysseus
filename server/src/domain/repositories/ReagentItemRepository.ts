@@ -149,7 +149,6 @@ export interface ReagentItemRepository {
   // Lots
 
   findLotsByItemId(itemId: string): Promise<ReagentLotRow[]>;
-  findLotById(id: string): Promise<ReagentLotRow | null>;
   updateLot(
     id: string,
     itemId: string,

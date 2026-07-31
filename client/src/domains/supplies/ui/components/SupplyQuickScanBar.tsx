@@ -1,15 +1,16 @@
 /**
  * Supply Quick Scan Bar
  *
- * Barcode scan input in the toolbar that resolves a barcode and shows
- * a quick action dropdown for immediate item viewing or transaction recording.
+ * Barcode scan input in the toolbar that resolves a barcode and shows a quick action dropdown
+ * for immediate item viewing or transaction recording. Resolution is lab-wide, so a scan that
+ * lands in another catalog is named rather than offered for linking to a supply.
  */
 
 import { useState, useCallback, useRef } from 'react';
 
 import { ScanBarcode, Eye, PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
 
-import { SupplyService } from '@domains/supplies/services/SupplyService';
+import { useBarcodeResolver } from '@domains/lab-management';
 import { SearchInput } from '@shared/ui';
 import { DropdownMenu } from '@shared/ui/primitives/menus/DropdownMenu';
 import { MenuDivider } from '@shared/ui/primitives/menus/MenuDivider';
@@ -20,7 +21,7 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 import { SupplyBarcodeLinkDialog } from './SupplyBarcodeLinkDialog';
 
 import type { TransactionMode } from './SupplyTransactionForm';
-import type { SupplyItem, SupplyItemWithStock } from '@odysseus/shared-schemas';
+import type { BarcodeMatch, SupplyItemWithStock } from '@odysseus/shared-schemas';
 
 interface SupplyQuickScanBarProps {
   items: SupplyItemWithStock[];
@@ -34,51 +35,55 @@ export function SupplyQuickScanBar({
   onRecordTransaction,
 }: SupplyQuickScanBarProps) {
   const [scanValue, setScanValue] = useState('');
-  const [isResolving, setIsResolving] = useState(false);
-  const [resolvedItem, setResolvedItem] = useState<SupplyItem | null>(null);
+  const [resolvedMatch, setResolvedMatch] = useState<BarcodeMatch | null>(null);
   const [showActions, setShowActions] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const { resolve, isResolving } = useBarcodeResolver();
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
     if (!value) return;
 
-    setIsResolving(true);
-    try {
-      const item = await SupplyService.resolveBarcode(value);
-      if (item) {
-        setResolvedItem(item);
-        setShowActions(true);
-      } else {
-        setUnresolvedBarcode(value);
-        setShowLinkDialog(true);
-      }
-    } catch {
-      notifications.error('Failed to resolve barcode');
-    } finally {
-      setIsResolving(false);
+    const result = await resolve(value);
+    if (result.status === 'failed') return;
+
+    if (result.status === 'unknown') {
+      setUnresolvedBarcode(value);
+      setShowLinkDialog(true);
+      return;
     }
-  }, [scanValue]);
+
+    if (result.match.catalog !== 'supply') {
+      notifications.info(
+        `That barcode belongs to the ${result.match.catalog} ${result.match.itemName}.`
+      );
+      setScanValue('');
+      return;
+    }
+
+    setResolvedMatch(result.match);
+    setShowActions(true);
+  }, [scanValue, resolve]);
 
   const handleAction = useCallback(
     (action: 'view' | TransactionMode) => {
-      if (!resolvedItem) return;
+      if (!resolvedMatch) return;
       setShowActions(false);
       setScanValue('');
-      setResolvedItem(null);
+      setResolvedMatch(null);
 
       if (action === 'view') {
-        onViewItem(resolvedItem.id);
+        onViewItem(resolvedMatch.itemId);
       } else {
-        onRecordTransaction(resolvedItem.id, action);
+        onRecordTransaction(resolvedMatch.itemId, action);
       }
 
       inputRef.current?.focus();
     },
-    [resolvedItem, onViewItem, onRecordTransaction]
+    [resolvedMatch, onViewItem, onRecordTransaction]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -88,7 +93,7 @@ export function SupplyQuickScanBar({
     }
   };
 
-  const stockInfo = resolvedItem ? items.find(p => p.id === resolvedItem.id) : null;
+  const stockInfo = resolvedMatch ? items.find(p => p.id === resolvedMatch.itemId) : null;
 
   return (
     <>
@@ -110,17 +115,17 @@ export function SupplyQuickScanBar({
           onClose={() => {
             setShowActions(false);
             setScanValue('');
-            setResolvedItem(null);
+            setResolvedMatch(null);
           }}
           triggerRef={triggerRef as React.RefObject<HTMLElement>}
           align="start"
           className="w-48"
         >
-          {resolvedItem && (
+          {resolvedMatch && (
             <div className="py-1">
               <div className="px-3 py-2 border-b border-border">
                 <p className="text-body-sm font-semibold text-card-foreground">
-                  {resolvedItem.name}
+                  {resolvedMatch.itemName}
                 </p>
                 {stockInfo && (
                   <p className="text-caption text-muted-foreground">
@@ -151,7 +156,7 @@ export function SupplyQuickScanBar({
         onLinked={itemId => {
           const item = items.find(i => i.id === itemId);
           if (item) {
-            setResolvedItem(item);
+            setResolvedMatch({ catalog: 'supply', itemId: item.id, itemName: item.name });
             setShowActions(true);
           }
         }}

@@ -26,7 +26,6 @@ export {
   createReagentBarcodeRequestSchema,
   updateReagentBarcodeRequestSchema,
   reagentBarcodeResponseSchema,
-  reagentResolveBarcodeResponseSchema,
   reagentTransactionSchema,
   recordReagentTransactionRequestSchema,
   recordReagentStockCountRequestSchema,

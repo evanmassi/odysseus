@@ -39,7 +39,6 @@ import {
   supplyItemDetailResponseSchema,
   supplyDocumentResponseSchema,
   supplyBarcodeResponseSchema,
-  supplyResolveBarcodeResponseSchema,
   supplyTransactionResponseSchema,
   supplyTransactionListResponseSchema,
   supplyBulkResponseSchema,
@@ -194,15 +193,6 @@ export class SupplyService {
       supplyBarcodeResponseSchema
     );
     return response.barcode;
-  }
-
-  static async resolveBarcode(value: string): Promise<SupplyItem | null> {
-    const response = await httpClient.getData(
-      `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
-      supplyResolveBarcodeResponseSchema,
-      { 'Cache-Control': 'no-cache' }
-    );
-    return response.item;
   }
 
   // Packaging levels
