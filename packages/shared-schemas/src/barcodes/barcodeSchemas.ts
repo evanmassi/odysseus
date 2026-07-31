@@ -8,8 +8,8 @@
 
 import { z } from 'zod';
 
-const barcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
-export const barcodeTypeSchema = z.enum(barcodeTypeValues);
+export const BARCODE_TYPE_VALUES = ['internal', 'manufacturer_sku', 'upc'] as const;
+export const barcodeTypeSchema = z.enum(BARCODE_TYPE_VALUES);
 export type BarcodeType = z.infer<typeof barcodeTypeSchema>;
 
 // Equipment carries no barcodes, so a scan can only ever land in these two catalogs.

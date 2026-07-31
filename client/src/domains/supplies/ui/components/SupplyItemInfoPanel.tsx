@@ -14,9 +14,7 @@ import {
   Archive,
   ExternalLink,
   ClipboardList,
-  RefreshCw,
   MapPin,
-  Printer,
   FolderOpen,
   NotepadText,
   SquarePen,
@@ -32,6 +30,7 @@ import {
   useAddSupplyDocumentMutation,
   useRemoveSupplyDocumentMutation,
   useUpdateSupplyDocumentMutation,
+  useAddSupplyBarcodeMutation,
   useRemoveSupplyBarcodeMutation,
   useUpdateSupplyBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
@@ -42,7 +41,6 @@ import {
   Chip,
   DetailRow,
   HeaderStrip,
-  Input,
   NubDivider,
   OverflowMenu,
   PanelHeader,
@@ -50,7 +48,7 @@ import {
   StripLabel,
   Tooltip,
 } from '@shared/ui';
-import { BarcodePrint } from '@shared/ui/components/barcodes';
+import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -63,18 +61,11 @@ import { notifications } from '@shared/utils/notifications';
 import { orderPackagingChain, thresholdInEntryUnit } from '@shared/utils/packagingChain';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import { SupplyBarcodeForm } from './SupplyBarcodeForm';
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
-import type { SupplyBarcode, SupplyDocument } from '@odysseus/shared-schemas';
+import type { SupplyDocument } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
-
-const BARCODE_TYPE_LABELS: Record<string, string> = {
-  internal: 'Internal',
-  manufacturer_sku: 'Mfr SKU',
-  upc: 'UPC',
-};
 
 interface SupplyItemInfoPanelProps {
   itemId: string;
@@ -114,13 +105,11 @@ export function SupplyItemInfoPanel({
   const addDocumentMutation = useAddSupplyDocumentMutation();
   const removeDocumentMutation = useRemoveSupplyDocumentMutation();
   const updateDocumentMutation = useUpdateSupplyDocumentMutation();
+  const addBarcodeMutation = useAddSupplyBarcodeMutation();
   const removeBarcodeMutation = useRemoveSupplyBarcodeMutation();
   const updateBarcodeMutation = useUpdateSupplyBarcodeMutation();
   const regenerateBarcodeMutation = useRegenerateInternalBarcodeMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [editingBarcodeId, setEditingBarcodeId] = useState<string | null>(null);
-  const [editingLabel, setEditingLabel] = useState('');
-  const [printingBarcode, setPrintingBarcode] = useState<SupplyBarcode | null>(null);
   const [documentModal, setDocumentModal] = useState<{
     isOpen: boolean;
     mode: 'add' | 'edit';
@@ -222,28 +211,6 @@ export function SupplyItemInfoPanel({
       });
       notifications.success('Document added');
     }
-  };
-
-  const handleRemoveBarcode = (barcodeId: string) => {
-    removeBarcodeMutation.mutate(
-      { itemId, barcodeId },
-      {
-        onSuccess: () => {
-          notifications.success('Barcode removed');
-        },
-      }
-    );
-  };
-
-  const handleSaveBarcodeLabel = (barcodeId: string) => {
-    updateBarcodeMutation.mutate(
-      { itemId, barcodeId, data: { label: editingLabel.trim() || null } },
-      {
-        onSuccess: () => {
-          setEditingBarcodeId(null);
-        },
-      }
-    );
   };
 
   return (
@@ -414,114 +381,30 @@ export function SupplyItemInfoPanel({
 
           <div>
             <SectionHeader title="Barcodes" size="sm" />
-            {barcodes.length > 0 ? (
-              <div className="space-y-1.5">
-                {barcodes.map(bc => (
-                  <div key={bc.id}>
-                    {editingBarcodeId === bc.id ? (
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          type="text"
-                          value={editingLabel}
-                          onValueChange={setEditingLabel}
-                          placeholder="Label (e.g., Fisher Cat #)"
-                          size="sm"
-                          fullWidth
-                          /* eslint-disable-next-line jsx-a11y/no-autofocus -- Inline edit: user-initiated, focus is expected */
-                          autoFocus
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') void handleSaveBarcodeLabel(bc.id);
-                            if (e.key === 'Escape') setEditingBarcodeId(null);
-                          }}
-                        />
-                        <Button
-                          size="xs"
-                          onClick={() => void handleSaveBarcodeLabel(bc.id)}
-                          isLoading={updateBarcodeMutation.isPending}
-                        >
-                          Save
-                        </Button>
-                        <Button variant="ghost" size="xs" onClick={() => setEditingBarcodeId(null)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between text-body-sm">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-caption text-muted-foreground">
-                            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string should fallback to type label */}
-                            {bc.label || (BARCODE_TYPE_LABELS[bc.barcodeType] ?? bc.barcodeType)}:
-                          </span>
-                          <span className="font-mono text-data-sm text-card-foreground">
-                            {bc.barcodeValue}
-                          </span>
-                          {bc.isPrimary && (
-                            <Chip color="info" size="xs">
-                              Primary
-                            </Chip>
-                          )}
-                        </div>
-                        {isAdmin && (
-                          <div className="flex items-center gap-0.5">
-                            {bc.barcodeType === 'internal' && (
-                              <Tooltip content="Regenerate internal barcode" side="bottom">
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  iconOnly
-                                  onClick={() => regenerateBarcodeMutation.mutate(itemId)}
-                                  isLoading={regenerateBarcodeMutation.isPending}
-                                >
-                                  <RefreshCw className="h-3 w-3" />
-                                </Button>
-                              </Tooltip>
-                            )}
-                            <Tooltip content="Print barcode" side="bottom">
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                iconOnly
-                                onClick={() => setPrintingBarcode(bc)}
-                              >
-                                <Printer className="h-3 w-3" />
-                              </Button>
-                            </Tooltip>
-                            <Tooltip content="Edit label" side="bottom">
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                iconOnly
-                                onClick={() => {
-                                  setEditingBarcodeId(bc.id);
-                                  setEditingLabel(bc.label ?? '');
-                                }}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            </Tooltip>
-                            <Tooltip content="Remove" side="bottom">
-                              <Button
-                                variant="ghost-danger"
-                                size="xs"
-                                iconOnly
-                                onClick={() => void handleRemoveBarcode(bc.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </Tooltip>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-caption italic text-muted-foreground">No barcodes</p>
-            )}
+            <BarcodeList
+              barcodes={barcodes}
+              itemName={item.name}
+              manufacturer={item.manufacturer}
+              catalogNumber={item.catalogNumber}
+              isAdmin={isAdmin}
+              onUpdateLabel={(barcodeId, label, onSuccess) =>
+                updateBarcodeMutation.mutate({ itemId, barcodeId, data: { label } }, { onSuccess })
+              }
+              onRemove={(barcodeId, onSuccess) =>
+                removeBarcodeMutation.mutate({ itemId, barcodeId }, { onSuccess })
+              }
+              onRegenerate={() => regenerateBarcodeMutation.mutate(itemId)}
+              isSavingLabel={updateBarcodeMutation.isPending}
+              isRegenerating={regenerateBarcodeMutation.isPending}
+            />
             {isAdmin && (
               <div className="mt-2">
-                <SupplyBarcodeForm itemId={itemId} />
+                <BarcodeAddForm
+                  onAdd={(data, onSuccess) =>
+                    addBarcodeMutation.mutate({ itemId, data }, { onSuccess })
+                  }
+                  isPending={addBarcodeMutation.isPending}
+                />
               </div>
             )}
           </div>
@@ -680,17 +563,6 @@ export function SupplyItemInfoPanel({
         onConfirm={() => void handleDelete()}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-
-      {printingBarcode && (
-        <BarcodePrint
-          isOpen={true}
-          onClose={() => setPrintingBarcode(null)}
-          barcodeValue={printingBarcode.barcodeValue}
-          itemName={item.name}
-          manufacturer={item.manufacturer}
-          catalogNumber={item.catalogNumber}
-        />
-      )}
 
       <DocumentLinkModal
         isOpen={documentModal.isOpen}

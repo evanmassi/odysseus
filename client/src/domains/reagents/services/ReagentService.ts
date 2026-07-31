@@ -9,6 +9,7 @@ import {
   messageResponseSchema,
   reagentCategoryResponseSchema,
   reagentCategoryListResponseSchema,
+  reagentBarcodeResponseSchema,
   reagentDocumentResponseSchema,
   reagentItemDetailResponseSchema,
   reagentItemListResponseSchema,
@@ -20,6 +21,7 @@ import {
   reagentTransactionListResponseSchema,
   reagentVoidTransactionResponseSchema,
   type ReagentCategory,
+  type ReagentBarcode,
   type ReagentDocument,
   type ReagentItem,
   type ReagentItemDetail,
@@ -34,6 +36,8 @@ import {
   type UpdateReagentCategoryRequest,
   type CreateReagentItemRequest,
   type UpdateReagentItemRequest,
+  type CreateReagentBarcodeRequest,
+  type UpdateReagentBarcodeRequest,
   type CreateReagentDocumentRequest,
   type UpdateReagentDocumentRequest,
   type CreateReagentPackagingLevelRequest,
@@ -147,6 +151,46 @@ export class ReagentService {
 
   static async removeDocument(itemId: string, docId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/documents/${docId}`);
+  }
+
+  // Barcodes
+
+  static async addBarcode(
+    itemId: string,
+    data: CreateReagentBarcodeRequest
+  ): Promise<ReagentBarcode> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/barcodes`,
+      data,
+      reagentBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
+  static async updateBarcode(
+    itemId: string,
+    barcodeId: string,
+    data: UpdateReagentBarcodeRequest
+  ): Promise<ReagentBarcode> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`,
+      data,
+      reagentBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
+  static async removeBarcode(itemId: string, barcodeId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`);
+  }
+
+  static async regenerateInternalBarcode(itemId: string): Promise<ReagentBarcode> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/barcodes/regenerate-internal`,
+      {},
+      reagentBarcodeResponseSchema
+    );
+    return response.barcode;
   }
 
   // Lots

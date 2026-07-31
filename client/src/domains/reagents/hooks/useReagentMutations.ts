@@ -18,6 +18,8 @@ import type {
   UpdateReagentItemRequest,
   CreateReagentDocumentRequest,
   UpdateReagentDocumentRequest,
+  CreateReagentBarcodeRequest,
+  UpdateReagentBarcodeRequest,
   CreateReagentPackagingLevelRequest,
   SetReagentAttributeValueRequest,
   UpdateReagentLotRequest,
@@ -143,6 +145,66 @@ export function useRemoveReagentDocumentMutation() {
     mutationFn: ({ itemId, docId }: { itemId: string; docId: string }) =>
       ReagentService.removeDocument(itemId, docId),
     onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+// Barcodes
+
+export function useAddReagentBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: CreateReagentBarcodeRequest }) =>
+      ReagentService.addBarcode(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+export function useUpdateReagentBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      barcodeId,
+      data,
+    }: {
+      itemId: string;
+      barcodeId: string;
+      data: UpdateReagentBarcodeRequest;
+    }) => ReagentService.updateBarcode(itemId, barcodeId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+export function useRemoveReagentBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, barcodeId }: { itemId: string; barcodeId: string }) =>
+      ReagentService.removeBarcode(itemId, barcodeId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
+    },
+  });
+}
+
+export function useRegenerateReagentInternalBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (itemId: string) => ReagentService.regenerateInternalBarcode(itemId),
+    onSuccess: (_, itemId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
     },
   });

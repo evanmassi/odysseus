@@ -131,6 +131,7 @@ export { DOCUMENT_TYPE_VALUES, documentTypeSchema, type DocumentType } from './d
 
 // Barcodes
 export {
+  BARCODE_TYPE_VALUES,
   barcodeTypeSchema,
   barcodeResolveResponseSchema,
   type BarcodeType,

@@ -1,59 +1,60 @@
 /**
- * Supply Barcode Form
+ * Barcode Add Form
  *
- * Inline form for adding a barcode (manufacturer SKU, UPC, or internal) to a supply item.
+ * Inline form for attaching a barcode to a catalog item, revealed from a button so the
+ * fields only take space when in use.
  */
 
 import { useState } from 'react';
 
+import { BARCODE_TYPE_VALUES, type BarcodeType } from '@odysseus/shared-schemas';
 import { Plus } from 'lucide-react';
 
-import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Input, Select, Checkbox } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 
-import type { BarcodeType } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
+import { BARCODE_TYPE_LABELS } from './barcodeTypeLabels';
 
-const BARCODE_TYPE_OPTIONS: SelectOption[] = [
-  { value: 'internal', label: 'Internal' },
-  { value: 'manufacturer_sku', label: 'Manufacturer SKU' },
-  { value: 'upc', label: 'UPC' },
-];
+const TYPE_OPTIONS = BARCODE_TYPE_VALUES.map(value => ({
+  value,
+  label: BARCODE_TYPE_LABELS[value],
+}));
 
-interface SupplyBarcodeFormProps {
-  itemId: string;
+interface NewBarcode {
+  barcodeValue: string;
+  barcodeType: BarcodeType;
+  isPrimary?: boolean;
+  label?: string;
 }
 
-export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
+interface BarcodeAddFormProps {
+  onAdd: (data: NewBarcode, onSuccess: () => void) => void;
+  isPending: boolean;
+}
+
+export function BarcodeAddForm({ onAdd, isPending }: BarcodeAddFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState('');
   const [barcodeType, setBarcodeType] = useState<BarcodeType>('manufacturer_sku');
   const [isPrimary, setIsPrimary] = useState(false);
   const [label, setLabel] = useState('');
-  const addMutation = useAddSupplyBarcodeMutation();
 
   const handleSubmit = () => {
     if (!barcodeValue.trim()) return;
-    addMutation.mutate(
+    onAdd(
       {
-        itemId,
-        data: {
-          barcodeValue: barcodeValue.trim(),
-          barcodeType,
-          isPrimary: isPrimary || undefined,
-          label: label.trim() || undefined,
-        },
+        barcodeValue: barcodeValue.trim(),
+        barcodeType,
+        isPrimary: isPrimary || undefined,
+        label: label.trim() || undefined,
       },
-      {
-        onSuccess: () => {
-          notifications.success('Barcode added');
-          setBarcodeValue('');
-          setBarcodeType('manufacturer_sku');
-          setIsPrimary(false);
-          setLabel('');
-          setIsOpen(false);
-        },
+      () => {
+        notifications.success('Barcode added');
+        setBarcodeValue('');
+        setBarcodeType('manufacturer_sku');
+        setIsPrimary(false);
+        setLabel('');
+        setIsOpen(false);
       }
     );
   };
@@ -93,7 +94,7 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
       <div className="grid grid-cols-2 gap-2">
         <Select
           label="Type"
-          options={BARCODE_TYPE_OPTIONS}
+          options={TYPE_OPTIONS}
           value={barcodeType}
           onChange={v => setBarcodeType(v as BarcodeType)}
           size="xs"
@@ -130,7 +131,7 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
           size="sm"
           onClick={handleSubmit}
           disabled={!barcodeValue.trim()}
-          isLoading={addMutation.isPending}
+          isLoading={isPending}
         >
           Add
         </Button>

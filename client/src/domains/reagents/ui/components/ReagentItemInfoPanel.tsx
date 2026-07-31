@@ -24,11 +24,15 @@ import {
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
 import {
+  useAddReagentBarcodeMutation,
   useAddReagentDocumentMutation,
   useArchiveReagentItemMutation,
   useDeleteReagentItemMutation,
   useReagentItemDetailQuery,
+  useRegenerateReagentInternalBarcodeMutation,
+  useRemoveReagentBarcodeMutation,
   useRemoveReagentDocumentMutation,
+  useUpdateReagentBarcodeMutation,
   useUpdateReagentDocumentMutation,
 } from '@domains/reagents/hooks';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
@@ -45,6 +49,7 @@ import {
   StripLabel,
   Tooltip,
 } from '@shared/ui';
+import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -104,6 +109,10 @@ export function ReagentItemInfoPanel({
   const addDocumentMutation = useAddReagentDocumentMutation();
   const updateDocumentMutation = useUpdateReagentDocumentMutation();
   const removeDocumentMutation = useRemoveReagentDocumentMutation();
+  const addBarcodeMutation = useAddReagentBarcodeMutation();
+  const updateBarcodeMutation = useUpdateReagentBarcodeMutation();
+  const removeBarcodeMutation = useRemoveReagentBarcodeMutation();
+  const regenerateBarcodeMutation = useRegenerateReagentInternalBarcodeMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [documentModal, setDocumentModal] = useState<{
     isOpen: boolean;
@@ -124,7 +133,8 @@ export function ReagentItemInfoPanel({
     );
   }
 
-  const { item, documents, lots, packagingLevels, recentTransactions, attributeValues } = detail;
+  const { item, documents, barcodes, lots, packagingLevels, recentTransactions, attributeValues } =
+    detail;
   const statusConfig = REAGENT_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
 
@@ -337,6 +347,36 @@ export function ReagentItemInfoPanel({
               </div>
             </div>
           )}
+
+          <div>
+            <SectionHeader title="Barcodes" size="sm" />
+            <BarcodeList
+              barcodes={barcodes}
+              itemName={item.name}
+              manufacturer={item.manufacturer}
+              catalogNumber={item.catalogNumber}
+              isAdmin={isAdmin}
+              onUpdateLabel={(barcodeId, label, onSuccess) =>
+                updateBarcodeMutation.mutate({ itemId, barcodeId, data: { label } }, { onSuccess })
+              }
+              onRemove={(barcodeId, onSuccess) =>
+                removeBarcodeMutation.mutate({ itemId, barcodeId }, { onSuccess })
+              }
+              onRegenerate={() => regenerateBarcodeMutation.mutate(itemId)}
+              isSavingLabel={updateBarcodeMutation.isPending}
+              isRegenerating={regenerateBarcodeMutation.isPending}
+            />
+            {isAdmin && (
+              <div className="mt-2">
+                <BarcodeAddForm
+                  onAdd={(data, onSuccess) =>
+                    addBarcodeMutation.mutate({ itemId, data }, { onSuccess })
+                  }
+                  isPending={addBarcodeMutation.isPending}
+                />
+              </div>
+            )}
+          </div>
 
           <div>
             <SectionHeader title="Documents" size="sm" />

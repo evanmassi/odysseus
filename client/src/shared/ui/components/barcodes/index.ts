@@ -1,10 +1,12 @@
 /**
  * Barcode Components
  *
- * Domain-agnostic barcode label rendering and print flows shared across
+ * Domain-agnostic barcode display, label rendering and print flows shared across
  * inventory catalogs.
  */
 
+export { BarcodeList } from './BarcodeList';
+export { BarcodeAddForm } from './BarcodeAddForm';
 export { BarcodePrint } from './BarcodePrint';
 export { BarcodeSheetModal } from './BarcodeSheetModal';
 export { FORMAT_OPTIONS, type BarcodeFormat } from './BarcodeLabel';
