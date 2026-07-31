@@ -17,7 +17,7 @@ import type {
 } from '@domain/repositories/ReagentItemRepository';
 
 import type {
-  ReagentBarcodeType,
+  BarcodeType,
   ReagentTransactionType,
   ReagentLotStatus,
   ReagentCategory as ReagentCategoryData,
@@ -178,7 +178,7 @@ export class ReagentDto {
       itemId: barcode.itemId,
       lotId: barcode.lotId ?? null,
       barcodeValue: barcode.barcodeValue,
-      barcodeType: barcode.barcodeType as ReagentBarcodeType,
+      barcodeType: barcode.barcodeType as BarcodeType,
       isPrimary: barcode.isPrimary,
       label: barcode.label,
     };

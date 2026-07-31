@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 
+import { barcodeTypeSchema } from '../barcodes';
 import { documentTypeSchema } from '../documents';
 import {
   concentrationPreprocessor,
@@ -29,9 +30,6 @@ const reagentTransactionTypeValues = [
   'void_reversal',
 ] as const;
 export const reagentTransactionTypeSchema = z.enum(reagentTransactionTypeValues);
-
-const reagentBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
-export const reagentBarcodeTypeSchema = z.enum(reagentBarcodeTypeValues);
 
 // Stored lot status; `expired` is derived at read time from the expiration date.
 const reagentLotStatusValues = ['active', 'depleted', 'disposed'] as const;
@@ -208,14 +206,14 @@ export const reagentBarcodeSchema = z.object({
   itemId: z.string(),
   lotId: z.string().nullable(),
   barcodeValue: z.string(),
-  barcodeType: reagentBarcodeTypeSchema,
+  barcodeType: barcodeTypeSchema,
   isPrimary: z.boolean(),
   label: z.string().optional(),
 });
 
 export const createReagentBarcodeRequestSchema = z.object({
   barcodeValue: z.string().min(1, 'Barcode value is required').max(500),
-  barcodeType: reagentBarcodeTypeSchema,
+  barcodeType: barcodeTypeSchema,
   lotId: optionalText(50),
   isPrimary: z.boolean().optional(),
   label: optionalText(200),
@@ -463,7 +461,6 @@ export const reagentBulkBarcodesResponseSchema = z.object({
 
 export type ReagentItemStatus = z.infer<typeof reagentItemStatusSchema>;
 export type ReagentTransactionType = z.infer<typeof reagentTransactionTypeSchema>;
-export type ReagentBarcodeType = z.infer<typeof reagentBarcodeTypeSchema>;
 export type ReagentLotStatus = z.infer<typeof reagentLotStatusSchema>;
 export type ReagentCategory = z.infer<typeof reagentCategorySchema>;
 export type ReagentItem = z.infer<typeof reagentItemSchema>;

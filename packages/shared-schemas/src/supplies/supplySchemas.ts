@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { barcodeTypeSchema } from '../barcodes';
 import { documentTypeSchema } from '../documents';
 import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
@@ -23,9 +24,6 @@ const supplyTransactionTypeValues = [
   'void_reversal',
 ] as const;
 export const supplyTransactionTypeSchema = z.enum(supplyTransactionTypeValues);
-
-const supplyBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
-export const supplyBarcodeTypeSchema = z.enum(supplyBarcodeTypeValues);
 
 // Category schemas
 
@@ -153,14 +151,14 @@ export const supplyBarcodeSchema = z.object({
   id: z.string(),
   itemId: z.string(),
   barcodeValue: z.string(),
-  barcodeType: supplyBarcodeTypeSchema,
+  barcodeType: barcodeTypeSchema,
   isPrimary: z.boolean(),
   label: z.string().optional(),
 });
 
 export const createSupplyBarcodeRequestSchema = z.object({
   barcodeValue: z.string().min(1, 'Barcode value is required').max(500),
-  barcodeType: supplyBarcodeTypeSchema,
+  barcodeType: barcodeTypeSchema,
   isPrimary: z.boolean().optional(),
   label: z.string().max(200).optional(),
 });
@@ -375,7 +373,6 @@ export const supplyBulkBarcodesResponseSchema = z.object({
 
 export type SupplyItemStatus = z.infer<typeof supplyItemStatusSchema>;
 export type SupplyTransactionType = z.infer<typeof supplyTransactionTypeSchema>;
-export type SupplyBarcodeType = z.infer<typeof supplyBarcodeTypeSchema>;
 export type SupplyCategory = z.infer<typeof supplyCategorySchema>;
 export type SupplyItem = z.infer<typeof supplyItemSchema>;
 export type SupplyItemWithStock = z.infer<typeof supplyItemWithStockSchema>;

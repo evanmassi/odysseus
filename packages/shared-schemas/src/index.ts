@@ -129,6 +129,9 @@ export {
 // Documents
 export { DOCUMENT_TYPE_VALUES, documentTypeSchema, type DocumentType } from './documents';
 
+// Barcodes
+export { barcodeTypeSchema, type BarcodeType } from './barcodes';
+
 // Lookups
 export {
   LOOKUP_CATEGORIES,
@@ -498,7 +501,6 @@ export {
   supplyItemStatusValues,
   supplyItemStatusSchema,
   supplyTransactionTypeSchema,
-  supplyBarcodeTypeSchema,
   supplyCategorySchema,
   createSupplyCategoryRequestSchema,
   updateSupplyCategoryRequestSchema,
@@ -541,7 +543,6 @@ export {
   supplyPackagingLevelResponseSchema,
   type SupplyItemStatus,
   type SupplyTransactionType,
-  type SupplyBarcodeType,
   type SupplyCategory,
   type SupplyItem,
   type SupplyItemWithStock,
@@ -575,7 +576,6 @@ export {
   reagentItemStatusValues,
   reagentItemStatusSchema,
   reagentTransactionTypeSchema,
-  reagentBarcodeTypeSchema,
   reagentLotStatusSchema,
   reagentCategorySchema,
   createReagentCategoryRequestSchema,
@@ -624,7 +624,6 @@ export {
   reagentBulkBarcodesResponseSchema,
   type ReagentItemStatus,
   type ReagentTransactionType,
-  type ReagentBarcodeType,
   type ReagentLotStatus,
   type ReagentCategory,
   type ReagentItem,

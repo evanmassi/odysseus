@@ -12,7 +12,7 @@ import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMu
 import { Button, Input, Select, Checkbox } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SupplyBarcodeType } from '@odysseus/shared-schemas';
+import type { BarcodeType } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 const BARCODE_TYPE_OPTIONS: SelectOption[] = [
@@ -28,7 +28,7 @@ interface SupplyBarcodeFormProps {
 export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState('');
-  const [barcodeType, setBarcodeType] = useState<SupplyBarcodeType>('manufacturer_sku');
+  const [barcodeType, setBarcodeType] = useState<BarcodeType>('manufacturer_sku');
   const [isPrimary, setIsPrimary] = useState(false);
   const [label, setLabel] = useState('');
   const addMutation = useAddSupplyBarcodeMutation();
@@ -95,7 +95,7 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
           label="Type"
           options={BARCODE_TYPE_OPTIONS}
           value={barcodeType}
-          onChange={v => setBarcodeType(v as SupplyBarcodeType)}
+          onChange={v => setBarcodeType(v as BarcodeType)}
           size="xs"
           fullWidth
         />

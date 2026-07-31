@@ -15,7 +15,7 @@ import type {
 } from '@domain/repositories/SupplyItemRepository';
 
 import type {
-  SupplyBarcodeType,
+  BarcodeType,
   SupplyTransactionType,
   SupplyCategory as SupplyCategoryData,
   SupplyItem as SupplyItemData,
@@ -139,7 +139,7 @@ export class SupplyDto {
       id: barcode.id,
       itemId: barcode.itemId,
       barcodeValue: barcode.barcodeValue,
-      barcodeType: barcode.barcodeType as SupplyBarcodeType,
+      barcodeType: barcode.barcodeType as BarcodeType,
       isPrimary: barcode.isPrimary,
       label: barcode.label,
     };
