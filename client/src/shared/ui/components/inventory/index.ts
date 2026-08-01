@@ -10,10 +10,13 @@ export {
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
 export { BulkArchiveTab } from './BulkArchiveTab';
+export { BulkItemRow, type ItemPackaging } from './BulkItemRow';
 export { BulkOperationsModal } from './BulkOperationsModal';
+export { BulkStockMovementTab } from './BulkStockMovementTab';
 export { BulkReassignTab } from './BulkReassignTab';
 export { CategoryModal } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
+export { toItemAutocompleteOptions } from './itemAutocompleteOptions';
 export { LowStockAlertPanel, type LowStockItem } from './LowStockAlertPanel';
 export { SortControls, INVENTORY_SORT_OPTIONS, type InventorySortField } from './SortControls';

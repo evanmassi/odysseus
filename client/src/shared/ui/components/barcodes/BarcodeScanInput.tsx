@@ -1,8 +1,8 @@
 /**
- * Supply Barcode Scan Input
+ * Barcode Scan Input
  *
  * Focused input field for barcode scanning. Resolution is lab-wide, so a scan that lands in
- * another catalog is named rather than offered for linking to a supply.
+ * another catalog is named rather than offered for linking to this one.
  */
 
 import { useState, useCallback } from 'react';
@@ -10,29 +10,46 @@ import { useState, useCallback } from 'react';
 import { ScanBarcode } from 'lucide-react';
 
 import { useBarcodeResolver } from '@domains/lab-management';
-import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { SearchInput } from '@shared/ui';
-import { BarcodeLinkDialog } from '@shared/ui/components/barcodes';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
+import { BarcodeLinkDialog } from './BarcodeLinkDialog';
 
-interface SupplyBarcodeScanInputProps {
-  items: SupplyItemWithStock[];
+import type { BarcodeType } from '@odysseus/shared-schemas';
+
+interface LinkableItem {
+  id: string;
+  name: string;
+  catalogNumber?: string;
+  status: string;
+}
+
+interface BarcodeScanInputProps {
+  /** Which catalog this input belongs to; a match anywhere else is named, not linked. */
+  catalog: 'supply' | 'reagent';
+  items: LinkableItem[];
   onItemFound: (itemId: string) => void;
+  onLink: (
+    itemId: string,
+    data: { barcodeValue: string; barcodeType: BarcodeType },
+    onSuccess: () => void
+  ) => void;
+  isLinking: boolean;
   placeholder?: string;
 }
 
-export function SupplyBarcodeScanInput({
+export function BarcodeScanInput({
+  catalog,
   items,
   onItemFound,
+  onLink,
+  isLinking,
   placeholder = 'Scan barcode...',
-}: SupplyBarcodeScanInputProps) {
+}: BarcodeScanInputProps) {
   const [scanValue, setScanValue] = useState('');
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
   const { resolve, isResolving } = useBarcodeResolver();
-  const addBarcodeMutation = useAddSupplyBarcodeMutation();
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
@@ -47,7 +64,7 @@ export function SupplyBarcodeScanInput({
       return;
     }
 
-    if (result.match.catalog !== 'supply') {
+    if (result.match.catalog !== catalog) {
       notifications.info(
         `That barcode belongs to the ${result.match.catalog} ${result.match.itemName}.`
       );
@@ -57,7 +74,7 @@ export function SupplyBarcodeScanInput({
 
     onItemFound(result.match.itemId);
     setScanValue('');
-  }, [scanValue, resolve, onItemFound]);
+  }, [scanValue, resolve, catalog, onItemFound]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -83,18 +100,13 @@ export function SupplyBarcodeScanInput({
         isOpen={showLinkDialog}
         barcodeValue={unresolvedBarcode}
         items={items}
-        isPending={addBarcodeMutation.isPending}
+        isPending={isLinking}
         onLink={(itemId, data, onSuccess) =>
-          addBarcodeMutation.mutate(
-            { itemId, data },
-            {
-              onSuccess: () => {
-                onSuccess();
-                onItemFound(itemId);
-                setScanValue('');
-              },
-            }
-          )
+          onLink(itemId, data, () => {
+            onSuccess();
+            onItemFound(itemId);
+            setScanValue('');
+          })
         }
         onClose={() => setShowLinkDialog(false)}
       />

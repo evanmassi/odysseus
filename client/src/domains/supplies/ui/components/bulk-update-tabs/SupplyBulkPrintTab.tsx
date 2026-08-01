@@ -289,7 +289,7 @@ interface BulkPrintTabProps {
   state: PrintTabState;
 }
 
-export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
+export function SupplyBulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
   const {
     format,
     setFormat,

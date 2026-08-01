@@ -23,9 +23,9 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import { BulkMaintenanceTab } from './bulk-update-tabs/BulkMaintenanceTab';
-import { BulkRelocateTab } from './bulk-update-tabs/BulkRelocateTab';
-import { BulkStatusTab } from './bulk-update-tabs/BulkStatusTab';
+import { EquipmentBulkMaintenanceTab } from './bulk-update-tabs/EquipmentBulkMaintenanceTab';
+import { EquipmentBulkRelocateTab } from './bulk-update-tabs/EquipmentBulkRelocateTab';
+import { EquipmentBulkStatusTab } from './bulk-update-tabs/EquipmentBulkStatusTab';
 
 import type {
   EquipmentItem,
@@ -215,16 +215,19 @@ export function EquipmentBulkUpdateModal({
 
             <ScrollArea className="flex-1 min-h-0 p-4">
               {actionType === 'maintenance' && (
-                <BulkMaintenanceTab
+                <EquipmentBulkMaintenanceTab
                   onSubmit={handleMaintenanceSubmit}
                   onValidityChange={setIsFormValid}
                 />
               )}
               {actionType === 'status' && (
-                <BulkStatusTab onSubmit={handleStatusSubmit} onValidityChange={setIsFormValid} />
+                <EquipmentBulkStatusTab
+                  onSubmit={handleStatusSubmit}
+                  onValidityChange={setIsFormValid}
+                />
               )}
               {actionType === 'relocate' && (
-                <BulkRelocateTab
+                <EquipmentBulkRelocateTab
                   categories={categories}
                   onSubmit={handleRelocateSubmit}
                   onValidityChange={setIsFormValid}

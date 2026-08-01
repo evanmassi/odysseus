@@ -12,17 +12,17 @@ import { PackagePlus, PackageMinus, ClipboardCheck, Trash2, Search } from 'lucid
 import { useLocationsQuery } from '@domains/lab-management';
 import { useSupplyTransactionHistoryQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkVoidMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
 import { Autocomplete, Button, Checkbox, NubDivider } from '@shared/ui';
+import { BarcodeScanInput } from '@shared/ui/components/barcodes';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
+import { toItemAutocompleteOptions } from '@shared/ui/components/inventory';
+import { SEARCH_INPUT_CLASS } from '@shared/ui/components/inventory/bulkSearchInputStyle';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
-import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
-
-import { SEARCH_INPUT_CLASS } from './searchInputStyle';
+import { useSupplyBarcodeLinker } from './supplyBulkBindings';
 
 import type { SupplyItemWithStock, SupplyTransaction } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -46,7 +46,7 @@ interface BulkVoidTabProps {
   onComplete: () => void;
 }
 
-export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
+export function SupplyBulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
   const [selectedTxnIds, setSelectedTxnIds] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState('');
@@ -54,6 +54,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
   const { data: locations = [] } = useLocationsQuery();
   const { data: allTransactions = [] } = useSupplyTransactionHistoryQuery(selectedItemId);
   const bulkVoidMutation = useSupplyBulkVoidMutation();
+  const linker = useSupplyBarcodeLinker();
 
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
 
@@ -132,7 +133,13 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
             />
           </div>
           <div className="flex-1">
-            <SupplyBarcodeScanInput items={items} onItemFound={handleScanItem} />
+            <BarcodeScanInput
+              catalog="supply"
+              items={items}
+              onItemFound={handleScanItem}
+              onLink={linker.link}
+              isLinking={linker.isLinking}
+            />
           </div>
         </div>
         {selectedItem && (

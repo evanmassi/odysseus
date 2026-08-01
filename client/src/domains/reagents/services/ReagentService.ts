@@ -46,6 +46,8 @@ import {
   type RecordReagentTransactionRequest,
   type RecordReagentStockCountRequest,
   type VoidReagentTransactionRequest,
+  type ReagentBulkReceiveRequest,
+  type ReagentBulkIssueRequest,
   type ReagentBulkVoidRequest,
 } from '@odysseus/shared-schemas';
 
@@ -240,6 +242,22 @@ export class ReagentService {
       `${this.BASE_PATH}/transactions/${transactionId}/void`,
       data,
       reagentVoidTransactionResponseSchema
+    );
+  }
+
+  static async bulkReceive(data: ReagentBulkReceiveRequest): Promise<ReagentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/receive`,
+      data,
+      reagentBulkResponseSchema
+    );
+  }
+
+  static async bulkIssue(data: ReagentBulkIssueRequest): Promise<ReagentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/issue`,
+      data,
+      reagentBulkResponseSchema
     );
   }
 

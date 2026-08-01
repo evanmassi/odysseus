@@ -8,6 +8,7 @@
 export { BarcodeList } from './BarcodeList';
 export { BarcodeAddForm } from './BarcodeAddForm';
 export { BarcodeLinkDialog } from './BarcodeLinkDialog';
+export { BarcodeScanInput } from './BarcodeScanInput';
 export { BarcodePrint } from './BarcodePrint';
 export { BarcodeSheetModal } from './BarcodeSheetModal';
 export { FORMAT_OPTIONS, type BarcodeFormat } from './BarcodeLabel';

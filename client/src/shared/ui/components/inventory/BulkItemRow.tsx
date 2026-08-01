@@ -1,9 +1,9 @@
 /**
  * Bulk Item Row
  *
- * A single item row in a bulk receive/issue form with packaging-aware
- * quantity inputs. Fetches the item's packaging levels and shows multi-level
- * inputs when available, or a single quantity field otherwise.
+ * A single item row in a bulk stock movement form. Multi-level inputs when the item has a
+ * packaging chain, a single quantity field otherwise. The packaging lookup is injected, since
+ * each catalog reads it from its own detail query.
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
@@ -11,12 +11,16 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { X } from 'lucide-react';
 
-import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import { Input, Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
+
+export interface ItemPackaging {
+  packagingLevels: { unitName: string; quantity: number; parentUnit: string | null }[];
+  stockUnit: string;
+}
 
 interface BulkItemRowProps {
   rowId: string;
@@ -27,6 +31,7 @@ interface BulkItemRowProps {
   onLocationChange: (rowId: string, locationId: string) => void;
   onQuantityChange: (rowId: string, quantity: number) => void;
   onRemove: (rowId: string) => void;
+  useItemPackaging: (itemId: string) => ItemPackaging;
   children?: React.ReactNode;
 }
 
@@ -39,12 +44,11 @@ export function BulkItemRow({
   onLocationChange,
   onQuantityChange,
   onRemove,
+  useItemPackaging,
   children,
 }: BulkItemRowProps) {
-  const { data: detail } = useSupplyItemDetailQuery(itemId);
-  const packagingLevels = useMemo(() => detail?.packagingLevels ?? [], [detail?.packagingLevels]);
+  const { packagingLevels, stockUnit } = useItemPackaging(itemId);
   const hasPackaging = packagingLevels.length > 0;
-  const stockUnit = detail?.item.stockUnit ?? '';
   const stockUnitSingular = stockUnit || 'unit';
 
   const [qtyByLevel, setQtyByLevel] = useState<Record<string, number>>({});

@@ -26,6 +26,8 @@ import type {
   RecordReagentTransactionRequest,
   RecordReagentStockCountRequest,
   VoidReagentTransactionRequest,
+  ReagentBulkReceiveRequest,
+  ReagentBulkIssueRequest,
   ReagentBulkVoidRequest,
 } from '@odysseus/shared-schemas';
 
@@ -276,6 +278,24 @@ export function useVoidReagentTransactionMutation() {
       data: VoidReagentTransactionRequest;
     }) => ReagentService.voidTransaction(transactionId, data),
     onSuccess: result => invalidateStock(result.original.itemId),
+  });
+}
+
+export function useReagentBulkReceiveMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: (data: ReagentBulkReceiveRequest) => ReagentService.bulkReceive(data),
+    meta: { invalidates: [queryKeys.reagents.all(labId)] },
+  });
+}
+
+export function useReagentBulkIssueMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: (data: ReagentBulkIssueRequest) => ReagentService.bulkIssue(data),
+    meta: { invalidates: [queryKeys.reagents.all(labId)] },
   });
 }
 

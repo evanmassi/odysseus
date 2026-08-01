@@ -23,7 +23,7 @@ import type { SelectOption } from '@shared/ui';
 
 const bulkStatusFormSchema = equipmentBulkStatusRequestSchema.shape.data;
 
-export function BulkStatusTab({
+export function EquipmentBulkStatusTab({
   onSubmit,
   onValidityChange,
 }: {

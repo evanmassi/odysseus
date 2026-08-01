@@ -18,7 +18,7 @@ import type { FieldValues } from 'react-hook-form';
 
 const bulkRelocateFormSchema = equipmentBulkRelocateRequestSchema.shape.data;
 
-export function BulkRelocateTab({
+export function EquipmentBulkRelocateTab({
   categories,
   onSubmit,
   onValidityChange,

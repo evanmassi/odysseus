@@ -18,7 +18,7 @@ import { EquipmentMaintenanceFields } from '../EquipmentMaintenanceFields';
 import type { CreateEquipmentMaintenanceLogRequest } from '@odysseus/shared-schemas';
 import type { FieldValues } from 'react-hook-form';
 
-export function BulkMaintenanceTab({
+export function EquipmentBulkMaintenanceTab({
   onSubmit,
   onValidityChange,
 }: {

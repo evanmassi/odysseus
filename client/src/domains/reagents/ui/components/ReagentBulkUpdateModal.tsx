@@ -1,13 +1,13 @@
 /**
  * Reagent Bulk Update Modal
  *
- * Binds the reagent catalog to the shared bulk chassis. Receive, issue, void and print arrive in
- * later sub-commits and slot into the same tab list.
+ * Binds the reagent catalog to the shared bulk chassis. Void and print arrive in later
+ * sub-commits and slot into the same tab list.
  */
 
 import { useCallback, useState } from 'react';
 
-import { Archive, FolderInput } from 'lucide-react';
+import { Archive, FolderInput, PackageMinus, PackagePlus } from 'lucide-react';
 
 import { useReagentBulkUpdateMutation } from '@domains/reagents/hooks';
 import {
@@ -17,6 +17,9 @@ import {
   type BulkCategoryTreeSelectorLabels,
 } from '@shared/ui/components/inventory';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
+
+import { ReagentBulkIssueTab } from './bulk-update-tabs/ReagentBulkIssueTab';
+import { ReagentBulkReceiveTab } from './bulk-update-tabs/ReagentBulkReceiveTab';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 
@@ -28,6 +31,8 @@ interface ReagentBulkUpdateModalProps {
 }
 
 const TABS = [
+  { id: 'receive', label: 'Receive', icon: <PackagePlus size={12} />, layout: 'full' as const },
+  { id: 'issue', label: 'Issue', icon: <PackageMinus size={12} />, layout: 'full' as const },
   {
     id: 'reassign-category',
     label: 'Reassign',
@@ -92,33 +97,44 @@ export function ReagentBulkUpdateModal({
       selectorLabels={SELECTOR_LABELS}
       onReset={() => setTargetCategoryId('')}
       selectorAction={tabId =>
-        tabId === 'reassign-category'
+        tabId === 'archive'
           ? {
-              verb: 'Reassign',
-              title: 'Confirm Category Reassignment',
-              isReady: !!targetCategoryId,
-              run: itemIds =>
-                runBulk({ type: 'reassign-category', itemIds, categoryId: targetCategoryId }),
-            }
-          : {
               verb: 'Archive',
               title: 'Confirm Archive',
               isDanger: true,
               run: itemIds => runBulk({ type: 'archive', itemIds }),
             }
+          : tabId === 'reassign-category'
+            ? {
+                verb: 'Reassign',
+                title: 'Confirm Category Reassignment',
+                isReady: !!targetCategoryId,
+                run: itemIds =>
+                  runBulk({ type: 'reassign-category', itemIds, categoryId: targetCategoryId }),
+              }
+            : undefined
       }
-      renderTab={tabId =>
-        tabId === 'reassign-category' ? (
-          <BulkReassignTab
-            categories={categories}
-            selectedCount={selectedIds.size}
-            targetCategoryId={targetCategoryId}
-            onTargetChange={setTargetCategoryId}
-          />
-        ) : (
-          <BulkArchiveTab selectedCount={selectedIds.size} />
-        )
-      }
+      renderTab={tabId => {
+        switch (tabId) {
+          case 'receive':
+            return <ReagentBulkReceiveTab items={items} onComplete={handleClose} />;
+          case 'issue':
+            return <ReagentBulkIssueTab items={items} onComplete={handleClose} />;
+          case 'reassign-category':
+            return (
+              <BulkReassignTab
+                categories={categories}
+                selectedCount={selectedIds.size}
+                targetCategoryId={targetCategoryId}
+                onTargetChange={setTargetCategoryId}
+              />
+            );
+          case 'archive':
+            return <BulkArchiveTab selectedCount={selectedIds.size} />;
+          default:
+            return null;
+        }
+      }}
     />
   );
 }

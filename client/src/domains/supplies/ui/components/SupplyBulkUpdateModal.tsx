@@ -20,10 +20,10 @@ import {
 } from '@shared/ui/components/inventory';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import { BulkIssueTab } from './bulk-update-tabs/BulkIssueTab';
-import { BulkPrintTab, usePrintTabState } from './bulk-update-tabs/BulkPrintTab';
-import { BulkReceiveTab } from './bulk-update-tabs/BulkReceiveTab';
-import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
+import { SupplyBulkIssueTab } from './bulk-update-tabs/SupplyBulkIssueTab';
+import { SupplyBulkPrintTab, usePrintTabState } from './bulk-update-tabs/SupplyBulkPrintTab';
+import { SupplyBulkReceiveTab } from './bulk-update-tabs/SupplyBulkReceiveTab';
+import { SupplyBulkVoidTab } from './bulk-update-tabs/SupplyBulkVoidTab';
 
 import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 
@@ -144,11 +144,11 @@ export function SupplyBulkUpdateModal({
         renderTab={tabId => {
           switch (tabId) {
             case 'receive':
-              return <BulkReceiveTab items={items} onComplete={handleClose} />;
+              return <SupplyBulkReceiveTab items={items} onComplete={handleClose} />;
             case 'issue':
-              return <BulkIssueTab items={items} onComplete={handleClose} />;
+              return <SupplyBulkIssueTab items={items} onComplete={handleClose} />;
             case 'void':
-              return <BulkVoidTab items={items} onComplete={handleClose} />;
+              return <SupplyBulkVoidTab items={items} onComplete={handleClose} />;
             case 'reassign-category':
               return (
                 <BulkReassignTab
@@ -161,7 +161,7 @@ export function SupplyBulkUpdateModal({
             case 'archive':
               return <BulkArchiveTab selectedCount={selectedIds.size} />;
             case 'print':
-              return <BulkPrintTab selectedCount={selectedIds.size} state={printState} />;
+              return <SupplyBulkPrintTab selectedCount={selectedIds.size} state={printState} />;
             default:
               return null;
           }
