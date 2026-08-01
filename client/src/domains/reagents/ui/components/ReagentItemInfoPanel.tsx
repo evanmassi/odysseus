@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import {
   Archive,
+  Atom,
   ClipboardList,
   Edit,
   ExternalLink,
@@ -250,7 +251,7 @@ export function ReagentItemInfoPanel({
           {item.reagentType && (
             <>
               <StripLabel>Type</StripLabel>
-              <Chip size="sm" color="default">
+              <Chip size="sm" color="default" lit lead={<Atom />}>
                 {item.reagentType}
               </Chip>
             </>
