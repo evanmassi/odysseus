@@ -147,6 +147,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       placeholder = defaultSelectProps.placeholder,
       fullWidth = defaultSelectProps.fullWidth,
       label,
+      labelClassName,
       error,
       onChange,
       'aria-label': ariaLabel,
@@ -181,6 +182,9 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const labelId = `${id}-label`;
     const listboxId = `${id}-listbox`;
     const errorId = `${id}-error`;
+
+    // Top-level rows only stand out when there is something nested under them.
+    const isTiered = useMemo(() => options.some(option => option.depth), [options]);
 
     const selectedOptions = useMemo(() => {
       // Check for null/undefined specifically, not falsy - empty string '' is a valid value
@@ -371,9 +375,12 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         {label && (
           <label
             id={labelId}
-            className={`block font-medium text-secondary-foreground ${
-              size === 'xs' ? 'text-body-sm mb-0.5' : 'text-body-sm mb-1.5'
-            }`}
+            className={
+              labelClassName ??
+              `block font-medium text-secondary-foreground ${
+                size === 'xs' ? 'text-body-sm mb-0.5' : 'text-body-sm mb-1.5'
+              }`
+            }
           >
             {label}
           </label>
@@ -491,8 +498,19 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                             <>
                               {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
 
-                              <div className="flex-1 min-w-0">
-                                <div className="truncate">{option.label}</div>
+                              <div
+                                className="flex-1 min-w-0"
+                                style={
+                                  option.depth
+                                    ? { paddingLeft: `${option.depth * 0.875}rem` }
+                                    : undefined
+                                }
+                              >
+                                <div
+                                  className={`truncate ${isTiered && !option.depth ? 'font-semibold' : ''}`}
+                                >
+                                  {option.label}
+                                </div>
                                 {option.description && (
                                   <div className="text-caption text-muted-foreground truncate">
                                     {option.description}

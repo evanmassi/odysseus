@@ -10,7 +10,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { equipmentBulkRelocateRequestSchema } from '@odysseus/shared-schemas';
 import { useForm, Controller } from 'react-hook-form';
 
-import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
+import { buildHierarchyOptions, Select, withPlaceholder } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 
 import type { EquipmentCategory, EquipmentBulkRelocateRequest } from '@odysseus/shared-schemas';
 import type { FieldValues } from 'react-hook-form';
@@ -49,12 +50,15 @@ export function BulkRelocateTab({
         name="categoryId"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <CategoryHierarchySelect
-            categories={categories}
+          <Select
+            label="Category"
+            labelClassName={FIELD_LABEL_COMPACT}
+            options={withPlaceholder('Select category...', buildHierarchyOptions(categories))}
             value={(value as string) ?? ''}
-            onChange={onChange}
+            onChange={v => onChange(String(v ?? ''))}
+            state={error ? 'error' : 'default'}
             error={error?.message}
-            labelId="bulk-relocate-label"
+            fullWidth
           />
         )}
       />

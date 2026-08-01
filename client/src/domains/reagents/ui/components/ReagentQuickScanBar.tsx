@@ -1,9 +1,8 @@
 /**
  * Reagent Quick Scan Bar
  *
- * Toolbar scan box that resolves a barcode and offers the actions you'd take next. A lot
- * label resolves to the bottle it is stuck to, so the transaction opens against that lot
- * rather than letting FEFO pick.
+ * Toolbar scan box that resolves a barcode and offers the actions to take next. A lot label
+ * opens the transaction against that lot rather than letting FEFO pick.
  */
 
 import { useState, useCallback, useRef } from 'react';
@@ -103,7 +102,8 @@ export function ReagentQuickScanBar({
 
   return (
     <>
-      <div ref={triggerRef} className="w-48">
+      {/* The menu is absolutely positioned, so this has to be its containing block. */}
+      <div ref={triggerRef} className="relative w-48">
         <SearchInput
           ref={inputRef}
           value={scanValue}

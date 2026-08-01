@@ -1,8 +1,8 @@
 /**
  * Barcode List
  *
- * The barcodes attached to a catalog item, with inline label editing and the admin actions.
- * Owns the print dialog, since the label it prints is the item's, not the barcode's.
+ * The barcodes attached to a catalog item. Owns the print dialog, since the label it prints
+ * is the item's, not the barcode's.
  */
 
 import { useState } from 'react';

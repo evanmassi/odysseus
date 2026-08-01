@@ -11,7 +11,14 @@ import { Search } from 'lucide-react';
 import { useLocationsQuery } from '@domains/lab-management';
 import { useSupplyBulkReceiveMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
-import { Autocomplete, Button, Input, NubDivider, withPlaceholder } from '@shared/ui';
+import {
+  Autocomplete,
+  buildHierarchyOptions,
+  Button,
+  Input,
+  NubDivider,
+  withPlaceholder,
+} from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
@@ -49,11 +56,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
   const bulkReceiveMutation = useSupplyBulkReceiveMutation();
 
   const locationOptions = useMemo(
-    () =>
-      withPlaceholder(
-        'Select...',
-        locations.map(l => ({ value: l.id, label: l.name }))
-      ),
+    () => withPlaceholder('Select...', buildHierarchyOptions(locations)),
     [locations]
   );
 

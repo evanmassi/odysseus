@@ -41,6 +41,7 @@ import {
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
+  buildHierarchyOptions,
   Button,
   CompletenessMeter,
   Input,
@@ -52,7 +53,6 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
-import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -382,12 +382,15 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
             name="categoryId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <CategoryHierarchySelect
-                categories={categories}
+              <Select
+                label="Category"
+                labelClassName={FIELD_LABEL_COMPACT}
+                options={withPlaceholder('Select category...', buildHierarchyOptions(categories))}
                 value={(value as string) ?? ''}
-                onChange={onChange}
-                labelId="reagent-category-label"
+                onChange={v => onChange(String(v ?? ''))}
+                state={error ? 'error' : 'default'}
                 error={error?.message}
+                fullWidth
               />
             )}
           />

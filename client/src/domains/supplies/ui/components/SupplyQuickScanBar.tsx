@@ -98,7 +98,8 @@ export function SupplyQuickScanBar({
 
   return (
     <>
-      <div ref={triggerRef} className="w-48">
+      {/* The menu is absolutely positioned, so this has to be its containing block. */}
+      <div ref={triggerRef} className="relative w-48">
         <SearchInput
           ref={inputRef}
           value={scanValue}

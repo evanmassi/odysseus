@@ -23,6 +23,7 @@ import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
   AccentTick,
+  buildHierarchyOptions,
   Button,
   Checkbox,
   DatePicker,
@@ -112,15 +113,6 @@ export function ReagentTransactionForm({
   const packagingLevels = useMemo(() => detail?.packagingLevels ?? [], [detail?.packagingLevels]);
   const hasPackaging = packagingLevels.length > 0;
   const identityParts = [manufacturer, catalogNumber].filter(Boolean);
-
-  const locationOptions = useMemo(
-    () =>
-      withPlaceholder(
-        'Select location...',
-        locations.map(l => ({ value: l.id, label: l.name }))
-      ),
-    [locations]
-  );
 
   const [qtyByLevel, setQtyByLevel] = useState<Record<string, number>>({});
   const orderedLevels = useMemo(() => orderPackagingChain(packagingLevels), [packagingLevels]);
@@ -400,21 +392,16 @@ export function ReagentTransactionForm({
             control={control}
             rules={{ required: 'Location is required' }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="reagent-txn-location-label" className={FIELD_LABEL_COMPACT}>
-                  Location
-                </label>
-                <Select
-                  aria-labelledby="reagent-txn-location-label"
-                  options={locationOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  state={error ? 'error' : 'default'}
-                  error={error?.message}
-                  fullWidth
-                />
-              </div>
+              <Select
+                label="Location"
+                labelClassName={FIELD_LABEL_COMPACT}
+                options={withPlaceholder('Select location...', buildHierarchyOptions(locations))}
+                value={value ?? ''}
+                onChange={v => onChange(String(v ?? ''))}
+                state={error ? 'error' : 'default'}
+                error={error?.message}
+                fullWidth
+              />
             )}
           />
 

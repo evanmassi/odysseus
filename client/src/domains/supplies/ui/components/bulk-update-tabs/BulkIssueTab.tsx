@@ -11,7 +11,13 @@ import { Search } from 'lucide-react';
 import { useLocationsQuery } from '@domains/lab-management';
 import { useSupplyBulkIssueMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
-import { Autocomplete, Button, NubDivider, withPlaceholder } from '@shared/ui';
+import {
+  Autocomplete,
+  buildHierarchyOptions,
+  Button,
+  NubDivider,
+  withPlaceholder,
+} from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
@@ -45,11 +51,7 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
   const bulkIssueMutation = useSupplyBulkIssueMutation();
 
   const locationOptions = useMemo(
-    () =>
-      withPlaceholder(
-        'Select...',
-        locations.map(l => ({ value: l.id, label: l.name }))
-      ),
+    () => withPlaceholder('Select...', buildHierarchyOptions(locations)),
     [locations]
   );
 

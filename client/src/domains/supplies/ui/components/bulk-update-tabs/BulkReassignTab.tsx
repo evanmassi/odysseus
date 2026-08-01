@@ -4,7 +4,8 @@
  * Category selector for reassigning selected items to a different category.
  */
 
-import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
+import { buildHierarchyOptions, Select, withPlaceholder } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 
 import type { SupplyCategory } from '@odysseus/shared-schemas';
 
@@ -26,12 +27,13 @@ export function BulkReassignTab({
       <p className="text-body text-muted-foreground">
         Move {selectedCount} selected item{selectedCount !== 1 ? 's' : ''} to a different category.
       </p>
-      <CategoryHierarchySelect
-        categories={categories}
+      <Select
+        label="Category"
+        labelClassName={FIELD_LABEL_COMPACT}
+        options={withPlaceholder('Select target category...', buildHierarchyOptions(categories))}
         value={targetCategoryId}
-        onChange={onTargetChange}
-        labelId="bulk-reassign-category-label"
-        placeholder="Select target category..."
+        onChange={v => onTargetChange(String(v ?? ''))}
+        fullWidth
       />
     </div>
   );

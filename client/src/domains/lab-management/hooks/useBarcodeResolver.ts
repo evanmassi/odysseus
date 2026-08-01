@@ -1,9 +1,9 @@
 /**
  * Barcode Resolver
  *
- * Resolves a scanned value across catalogs for the scan inputs, owning the in-flight flag and
- * the failure toast so each caller only decides what to do with the outcome. A failed lookup is
- * distinct from an unknown value — the caller must not offer to link a barcode it never read.
+ * Resolves a scanned value across catalogs, owning the in-flight flag and the failure toast.
+ * A failed lookup stays distinct from an unknown one — the caller must not offer to link a
+ * barcode it never read.
  */
 
 import { useCallback, useState } from 'react';

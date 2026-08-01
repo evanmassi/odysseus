@@ -27,6 +27,7 @@ import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
+  buildHierarchyOptions,
   Button,
   Checkbox,
   CompletenessMeter,
@@ -39,7 +40,6 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
-import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -383,12 +383,15 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             name="categoryId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <CategoryHierarchySelect
-                categories={categories}
+              <Select
+                label="Category"
+                labelClassName={FIELD_LABEL_COMPACT}
+                options={withPlaceholder('Select category...', buildHierarchyOptions(categories))}
                 value={(value as string) ?? ''}
-                onChange={onChange}
-                labelId="supply-category-label"
+                onChange={v => onChange(String(v ?? ''))}
+                state={error ? 'error' : 'default'}
                 error={error?.message}
+                fullWidth
               />
             )}
           />

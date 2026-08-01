@@ -1,8 +1,7 @@
 /**
  * Barcode Link Dialog
  *
- * Offers to attach a scanned value that no catalog recognised to an item the user picks,
- * so an unlabelled bottle becomes scannable at the point someone first tries.
+ * Offers to attach a scanned value no catalog recognised to an item the user picks.
  */
 
 import { useMemo, useState } from 'react';

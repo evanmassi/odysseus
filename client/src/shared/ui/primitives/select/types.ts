@@ -14,6 +14,8 @@ export interface SelectOption {
   disabled?: boolean;
   /** Shown below the label in the dropdown */
   description?: string;
+  /** Tier in a parent/child list; the option indents by it. */
+  depth?: number;
   icon?: ReactNode;
   /** Heading above this option's run. Options must arrive grouped — the list is not reordered. */
   group?: string;
@@ -29,6 +31,8 @@ export interface SelectProps {
   placeholder?: string;
   fullWidth?: boolean;
   label?: string;
+  /** Overrides the label's styling, so a field can match the micro-labels around it. */
+  labelClassName?: string;
   /** Also sets error validation state */
   error?: string;
   onChange?: (value: string | number | null) => void;

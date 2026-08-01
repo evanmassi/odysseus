@@ -10,9 +10,8 @@ import { MapPin, Plus } from 'lucide-react';
 
 import { useCreateLocationMutation } from '@domains/lab-management/hooks/useLocationMutations';
 import { useLocationsQuery } from '@domains/lab-management/hooks/useLocationQueries';
-import { Button, Input } from '@shared/ui';
+import { buildHierarchyOptions, Button, Input, Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
-import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
@@ -104,18 +103,12 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
           />
         </div>
 
-        <CategoryHierarchySelect
-          categories={locations.map(l => ({
-            id: l.id,
-            name: l.name,
-            parentId: l.parentId,
-            sortOrder: l.sortOrder,
-          }))}
-          value={parentId}
-          onChange={setParentId}
-          labelId="locationParent"
+        <Select
           label="Inside (optional)"
-          placeholder="Top level"
+          options={withPlaceholder('Top level', buildHierarchyOptions(locations))}
+          value={parentId}
+          onChange={v => setParentId(String(v ?? ''))}
+          fullWidth
         />
 
         <div className="flex justify-end space-x-3 pt-2">

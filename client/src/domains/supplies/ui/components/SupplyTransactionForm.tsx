@@ -20,6 +20,7 @@ import {
 } from '@domains/supplies/hooks/useSupplyMutations';
 import {
   AccentTick,
+  buildHierarchyOptions,
   Button,
   DatePicker,
   HeaderStrip,
@@ -82,15 +83,6 @@ export function SupplyTransactionForm({
   const { data: locations = [] } = useLocationsQuery();
   const recordTransactionMutation = useRecordSupplyTransactionMutation();
   const recordStockCountMutation = useRecordSupplyStockCountMutation();
-
-  const locationOptions = useMemo(
-    () =>
-      withPlaceholder(
-        'Select location...',
-        locations.map(l => ({ value: l.id, label: l.name }))
-      ),
-    [locations]
-  );
 
   const packagingLevels = useMemo(() => detail?.packagingLevels ?? [], [detail?.packagingLevels]);
   const hasPackaging = packagingLevels.length > 0;
@@ -414,21 +406,16 @@ export function SupplyTransactionForm({
             control={control}
             rules={{ required: 'Location is required' }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="txn-location-label" className={FIELD_LABEL_COMPACT}>
-                  Location
-                </label>
-                <Select
-                  aria-labelledby="txn-location-label"
-                  options={locationOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  state={error ? 'error' : 'default'}
-                  error={error?.message}
-                  fullWidth
-                />
-              </div>
+              <Select
+                label="Location"
+                labelClassName={FIELD_LABEL_COMPACT}
+                options={withPlaceholder('Select location...', buildHierarchyOptions(locations))}
+                value={value ?? ''}
+                onChange={v => onChange(String(v ?? ''))}
+                state={error ? 'error' : 'default'}
+                error={error?.message}
+                fullWidth
+              />
             )}
           />
 

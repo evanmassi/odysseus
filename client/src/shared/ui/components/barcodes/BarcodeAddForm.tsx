@@ -1,8 +1,7 @@
 /**
  * Barcode Add Form
  *
- * Inline form for attaching a barcode to a catalog item, revealed from a button so the
- * fields only take space when in use.
+ * Inline form for attaching a barcode to a catalog item, revealed from a button.
  */
 
 import { useState } from 'react';

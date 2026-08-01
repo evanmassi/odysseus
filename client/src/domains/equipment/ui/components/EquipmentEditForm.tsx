@@ -21,16 +21,17 @@ import {
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
+  buildHierarchyOptions,
   Button,
   CompletenessMeter,
   DatePicker,
   NubDivider,
   SectionHeader,
   Select,
+  withPlaceholder,
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
-import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { lookupOptions } from '@shared/ui/primitives/select/selectOptions';
@@ -182,12 +183,15 @@ export function EquipmentEditForm({
               name="categoryId"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <CategoryHierarchySelect
-                  categories={categories}
+                <Select
+                  label="Category"
+                  labelClassName={FIELD_LABEL_COMPACT}
+                  options={withPlaceholder('Select category...', buildHierarchyOptions(categories))}
                   value={(value as string) ?? ''}
-                  onChange={onChange}
+                  onChange={v => onChange(String(v ?? ''))}
+                  state={error ? 'error' : 'default'}
                   error={error?.message}
-                  labelId="category-label"
+                  fullWidth
                 />
               )}
             />
