@@ -1,8 +1,8 @@
 /**
  * Reagent Queries
  *
- * Reads the reagent category tree, the item list with its lot rollup, and the
- * per-item detail aggregate.
+ * Reads the reagent category tree, the item list with its lot rollup, the
+ * per-item detail aggregate, and an item's full stock ledger.
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -44,6 +44,21 @@ export function useReagentItemDetailQuery(id: string | undefined) {
     queryKey: queryKeys.reagents.detail(labId, id ?? ''),
     queryFn: () => ReagentService.getById(id!),
     enabled: !!labId && !!id,
+    staleTime: CACHE_TIMES.STABLE.staleTime,
+    gcTime: CACHE_TIMES.STABLE.gcTime,
+    refetchOnMount: 'always',
+  });
+}
+
+// Unpaged: a FEFO movement's rows are grouped for display, and a cut through one
+// would show a partial sum.
+export function useReagentTransactionHistoryQuery(itemId: string | undefined) {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.reagents.transactions(labId, itemId ?? ''),
+    queryFn: () => ReagentService.getTransactionHistory(itemId!),
+    enabled: !!labId && !!itemId,
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
     refetchOnMount: 'always',

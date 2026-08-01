@@ -145,7 +145,6 @@ export class ReagentDto {
     lots: ReagentLotRow[],
     documents: ReagentDocument[],
     barcodes: ReagentBarcodeRow[],
-    recentTransactions: ReagentTransactionRow[],
     packagingLevels: ReagentPackagingLevelRow[],
     attributeValues: ReagentAttributeValue[]
   ): ReagentItemDetailResponse {
@@ -154,7 +153,6 @@ export class ReagentDto {
       lots: lots.map(l => this.lotToResponse(l)),
       documents: documents.map(d => this.documentToResponse(d)),
       barcodes: barcodes.map(b => this.barcodeToResponse(b)),
-      recentTransactions: recentTransactions.map(t => this.transactionToResponse(t)),
       packagingLevels: packagingLevels.map(l => this.packagingLevelToResponse(l)),
       attributeValues,
     };

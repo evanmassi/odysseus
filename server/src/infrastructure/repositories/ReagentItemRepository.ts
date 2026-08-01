@@ -372,14 +372,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return row ? ReagentLotMapper.fromRow(row) : null;
   }
 
-  async findTransactionsByItemId(itemId: string, limit?: number): Promise<ReagentTransactionRow[]> {
-    if (limit != null) {
-      const rows = await this.db.queryMany<ReagentTransactionDbRow>(
-        `SELECT ${TXN_COLUMNS} FROM reagent_transactions WHERE item_id = $1 ORDER BY created_at DESC LIMIT $2`,
-        [itemId, limit]
-      );
-      return ReagentTransactionMapper.fromRows(rows);
-    }
+  async findTransactionsByItemId(itemId: string): Promise<ReagentTransactionRow[]> {
     const rows = await this.db.queryMany<ReagentTransactionDbRow>(
       `SELECT ${TXN_COLUMNS} FROM reagent_transactions WHERE item_id = $1 ORDER BY created_at DESC`,
       [itemId]

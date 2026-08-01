@@ -14,6 +14,7 @@ export { BulkItemRow, type ItemPackaging } from './BulkItemRow';
 export { BulkOperationsModal } from './BulkOperationsModal';
 export { BulkStockMovementTab } from './BulkStockMovementTab';
 export { BulkReassignTab } from './BulkReassignTab';
+export { BulkVoidTab, type VoidableEntry } from './BulkVoidTab';
 export { CategoryModal } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';

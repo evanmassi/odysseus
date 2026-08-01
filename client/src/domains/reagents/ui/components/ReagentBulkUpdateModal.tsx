@@ -1,13 +1,13 @@
 /**
  * Reagent Bulk Update Modal
  *
- * Binds the reagent catalog to the shared bulk chassis. Void and print arrive in later
- * sub-commits and slot into the same tab list.
+ * Binds the reagent catalog to the shared bulk chassis. Print arrives in a later sub-commit
+ * and slots into the same tab list.
  */
 
 import { useCallback, useState } from 'react';
 
-import { Archive, FolderInput, PackageMinus, PackagePlus } from 'lucide-react';
+import { Archive, Ban, FolderInput, PackageMinus, PackagePlus } from 'lucide-react';
 
 import { useReagentBulkUpdateMutation } from '@domains/reagents/hooks';
 import {
@@ -20,6 +20,7 @@ import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
 import { ReagentBulkIssueTab } from './bulk-update-tabs/ReagentBulkIssueTab';
 import { ReagentBulkReceiveTab } from './bulk-update-tabs/ReagentBulkReceiveTab';
+import { ReagentBulkVoidTab } from './bulk-update-tabs/ReagentBulkVoidTab';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 
@@ -33,6 +34,7 @@ interface ReagentBulkUpdateModalProps {
 const TABS = [
   { id: 'receive', label: 'Receive', icon: <PackagePlus size={12} />, layout: 'full' as const },
   { id: 'issue', label: 'Issue', icon: <PackageMinus size={12} />, layout: 'full' as const },
+  { id: 'void', label: 'Void', icon: <Ban size={12} />, layout: 'full' as const },
   {
     id: 'reassign-category',
     label: 'Reassign',
@@ -120,6 +122,8 @@ export function ReagentBulkUpdateModal({
             return <ReagentBulkReceiveTab items={items} onComplete={handleClose} />;
           case 'issue':
             return <ReagentBulkIssueTab items={items} onComplete={handleClose} />;
+          case 'void':
+            return <ReagentBulkVoidTab items={items} onComplete={handleClose} />;
           case 'reassign-category':
             return (
               <BulkReassignTab

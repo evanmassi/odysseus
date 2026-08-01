@@ -212,6 +212,14 @@ export class ReagentService {
 
   // Stock operations
 
+  static async getTransactionHistory(itemId: string): Promise<ReagentTransaction[]> {
+    const response = await httpClient.getData(
+      `${this.BASE_PATH}/${itemId}/transactions`,
+      reagentTransactionListResponseSchema
+    );
+    return response.transactions;
+  }
+
   static async recordTransaction(
     data: RecordReagentTransactionRequest
   ): Promise<ReagentTransaction[]> {

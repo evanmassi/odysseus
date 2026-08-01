@@ -201,21 +201,18 @@ export class ReagentApplicationService {
 
   async getItem(labId: string, id: string): Promise<ReagentItemDetailResponse> {
     const item = await this.getItemOrThrow(id, labId);
-    const [lots, documents, barcodes, recentTransactions, packagingLevels, attributeValues] =
-      await Promise.all([
-        this.itemRepository.findLotsByItemId(id),
-        this.itemRepository.findDocumentsByItemId(id),
-        this.itemRepository.findBarcodesByItemId(id),
-        this.itemRepository.findTransactionsByItemId(id, 50),
-        this.itemRepository.findPackagingLevelsByItemId(id),
-        this.itemRepository.findAttributeValuesByItemId(id),
-      ]);
+    const [lots, documents, barcodes, packagingLevels, attributeValues] = await Promise.all([
+      this.itemRepository.findLotsByItemId(id),
+      this.itemRepository.findDocumentsByItemId(id),
+      this.itemRepository.findBarcodesByItemId(id),
+      this.itemRepository.findPackagingLevelsByItemId(id),
+      this.itemRepository.findAttributeValuesByItemId(id),
+    ]);
     return ReagentDto.itemDetailToResponse(
       item,
       lots,
       documents,
       barcodes,
-      recentTransactions,
       packagingLevels,
       attributeValues.map(ReagentDto.attributeValueToResponse)
     );
@@ -644,11 +641,10 @@ export class ReagentApplicationService {
 
   async getTransactionHistory(
     labId: string,
-    itemId: string,
-    limit?: number
+    itemId: string
   ): Promise<ReagentTransactionResponse[]> {
     await this.getItemOrThrow(itemId, labId);
-    const txns = await this.itemRepository.findTransactionsByItemId(itemId, limit);
+    const txns = await this.itemRepository.findTransactionsByItemId(itemId);
     return txns.map(ReagentDto.transactionToResponse);
   }
 

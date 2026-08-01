@@ -29,6 +29,7 @@ import {
   useArchiveReagentItemMutation,
   useDeleteReagentItemMutation,
   useReagentItemDetailQuery,
+  useReagentTransactionHistoryQuery,
   useRegenerateReagentInternalBarcodeMutation,
   useRemoveReagentBarcodeMutation,
   useRemoveReagentDocumentMutation,
@@ -100,6 +101,8 @@ export function ReagentItemInfoPanel({
   }, [itemId]);
 
   const { data: detail } = useReagentItemDetailQuery(itemId);
+  const { data: transactions = [], isPending: isLedgerPending } =
+    useReagentTransactionHistoryQuery(itemId);
   const { data: locations = [] } = useLocationsQuery();
   const { data: attributes } = useAttributesQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
@@ -132,8 +135,7 @@ export function ReagentItemInfoPanel({
     );
   }
 
-  const { item, documents, barcodes, lots, packagingLevels, recentTransactions, attributeValues } =
-    detail;
+  const { item, documents, barcodes, lots, packagingLevels, attributeValues } = detail;
   const statusConfig = REAGENT_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
 
@@ -479,13 +481,16 @@ export function ReagentItemInfoPanel({
           </div>
 
           <div>
-            <SectionHeader title="Recent Transactions" size="sm" />
-            <ReagentTransactionTimeline
-              transactions={recentTransactions}
-              lots={lots}
-              stockUnit={item.stockUnit}
-              onVoidAndReplace={onVoidAndReplace}
-            />
+            <SectionHeader title="Transaction History" size="sm" />
+            {/* The ledger loads separately from the detail, so waiting beats claiming it's empty. */}
+            {!isLedgerPending && (
+              <ReagentTransactionTimeline
+                transactions={transactions}
+                lots={lots}
+                stockUnit={item.stockUnit}
+                onVoidAndReplace={onVoidAndReplace}
+              />
+            )}
           </div>
         </div>
       </ScrollArea>

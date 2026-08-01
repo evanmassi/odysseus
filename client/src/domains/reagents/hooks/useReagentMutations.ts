@@ -245,6 +245,9 @@ function useStockInvalidation() {
   return (itemId: string) => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.detail(labId, itemId) });
     void queryClient.invalidateQueries({ queryKey: queryKeys.reagents.items(labId) });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.reagents.transactions(labId, itemId),
+    });
   };
 }
 

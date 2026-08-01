@@ -21,6 +21,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication';
 import { useLocationsQuery } from '@domains/lab-management';
+import { groupTransactions } from '@domains/reagents/utils/reagentTransactionGroups';
 import { Button, Tooltip } from '@shared/ui';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -29,6 +30,7 @@ import { formatCurrency } from '@shared/utils/formatCurrency';
 import { ReagentVoidTransactionModal } from './ReagentVoidTransactionModal';
 
 import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
+import type { TransactionGroup } from '@domains/reagents/utils/reagentTransactionGroups';
 import type { ReagentLot, ReagentTransaction } from '@odysseus/shared-schemas';
 
 const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string; label: string }> = {
@@ -39,16 +41,6 @@ const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string; lab
   void_reversal: { icon: Undo2, color: 'text-muted-foreground', label: 'Void reversal' },
 };
 
-export interface TransactionGroup {
-  id: string;
-  type: string;
-  createdAt: Date | string;
-  locationId: string;
-  quantityChange: number;
-  transactions: ReagentTransaction[];
-  voidedCount: number;
-}
-
 interface ReagentTransactionTimelineProps {
   transactions: ReagentTransaction[];
   lots: ReagentLot[];
@@ -58,48 +50,6 @@ interface ReagentTransactionTimelineProps {
     initialTab: TransactionMode,
     prefill: TransactionPrefill
   ) => void;
-}
-
-/** One row per lot drawn shares a timestamp, type and location — that tuple is the action. */
-function groupTransactions(transactions: ReagentTransaction[]): TransactionGroup[] {
-  const movementKey = (txn: ReagentTransaction) =>
-    `${txn.type}|${new Date(txn.createdAt).toISOString()}|${txn.locationId}`;
-
-  // Reversals are written one DB transaction each, so they never share a timestamp with
-  // their siblings. They group by the movement they undo, mirroring it row for row.
-  const keyByTransactionId = new Map<string, string>();
-  for (const txn of transactions) {
-    if (txn.type !== 'void_reversal') keyByTransactionId.set(txn.id, movementKey(txn));
-  }
-
-  const groups = new Map<string, TransactionGroup>();
-
-  for (const txn of transactions) {
-    const reversedKey = txn.relatedTransactionId
-      ? keyByTransactionId.get(txn.relatedTransactionId)
-      : undefined;
-    const key = reversedKey ? `void_reversal|${reversedKey}` : movementKey(txn);
-    const existing = groups.get(key);
-
-    if (existing) {
-      existing.transactions.push(txn);
-      existing.quantityChange += txn.quantityChange;
-      if (txn.voidedAt) existing.voidedCount += 1;
-      continue;
-    }
-
-    groups.set(key, {
-      id: txn.id,
-      type: txn.type,
-      createdAt: txn.createdAt,
-      locationId: txn.locationId,
-      quantityChange: txn.quantityChange,
-      transactions: [txn],
-      voidedCount: txn.voidedAt ? 1 : 0,
-    });
-  }
-
-  return [...groups.values()];
 }
 
 export function ReagentTransactionTimeline({

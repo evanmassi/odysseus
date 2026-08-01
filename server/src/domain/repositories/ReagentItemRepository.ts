@@ -158,7 +158,7 @@ export interface ReagentItemRepository {
   // Transactions — recordTransaction is atomic and lot-aware: a FEFO issue draws
   // across lots and returns one transaction row per lot moved.
 
-  findTransactionsByItemId(itemId: string, limit?: number): Promise<ReagentTransactionRow[]>;
+  findTransactionsByItemId(itemId: string): Promise<ReagentTransactionRow[]>;
   findTransactionById(id: string, labId: string): Promise<ReagentTransactionRow | null>;
   recordTransaction(data: RecordTransactionData): Promise<ReagentTransactionRow[]>;
   voidTransaction(

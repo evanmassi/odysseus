@@ -385,7 +385,6 @@ export const reagentItemDetailResponseSchema = z.object({
   lots: z.array(reagentLotSchema),
   documents: z.array(reagentDocumentSchema),
   barcodes: z.array(reagentBarcodeSchema),
-  recentTransactions: z.array(reagentTransactionSchema),
   packagingLevels: z.array(reagentPackagingLevelSchema),
   attributeValues: z.array(reagentAttributeValueSchema),
 });

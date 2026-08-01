@@ -22,7 +22,7 @@ import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFor
 import { notifications } from '@shared/utils/notifications';
 
 import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
-import type { TransactionGroup } from './ReagentTransactionTimeline';
+import type { TransactionGroup } from '@domains/reagents/utils/reagentTransactionGroups';
 import type { ReagentLot } from '@odysseus/shared-schemas';
 
 const TYPE_LABELS: Record<string, string> = {

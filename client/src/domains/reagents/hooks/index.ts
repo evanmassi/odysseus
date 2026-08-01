@@ -6,6 +6,7 @@ export {
   useReagentCategoriesQuery,
   useReagentItemsQuery,
   useReagentItemDetailQuery,
+  useReagentTransactionHistoryQuery,
 } from './useReagentQueries';
 export {
   useCreateReagentCategoryMutation,
