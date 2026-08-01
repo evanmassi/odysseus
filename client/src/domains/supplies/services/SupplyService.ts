@@ -49,9 +49,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
-
-const BULK_BARCODES_CHUNK_SIZE = 100;
-const BULK_BARCODES_MAX_CONCURRENCY = 5;
+import { fetchInChunks } from '@shared/utils/chunkedFetch';
 
 export class SupplyService {
   private static readonly BASE_PATH = '/supplies';
@@ -294,28 +292,14 @@ export class SupplyService {
   }
 
   static async bulkGetBarcodes(itemIds: string[]): Promise<SupplyBulkBarcodesResponse> {
-    if (itemIds.length === 0) return { barcodes: [] };
-
-    const uniqueIds = Array.from(new Set(itemIds));
-    const chunks: string[][] = [];
-    for (let i = 0; i < uniqueIds.length; i += BULK_BARCODES_CHUNK_SIZE) {
-      chunks.push(uniqueIds.slice(i, i + BULK_BARCODES_CHUNK_SIZE));
-    }
-
-    const barcodes: SupplyBulkBarcodesResponse['barcodes'] = [];
-    for (let i = 0; i < chunks.length; i += BULK_BARCODES_MAX_CONCURRENCY) {
-      const batch = chunks.slice(i, i + BULK_BARCODES_MAX_CONCURRENCY);
-      const responses = await Promise.all(
-        batch.map(chunk =>
-          httpClient.postData(
-            `${this.BASE_PATH}/bulk/barcodes`,
-            { itemIds: chunk },
-            supplyBulkBarcodesResponseSchema
-          )
-        )
+    const barcodes = await fetchInChunks(itemIds, async chunk => {
+      const response = await httpClient.postData(
+        `${this.BASE_PATH}/bulk/barcodes`,
+        { itemIds: chunk },
+        supplyBulkBarcodesResponseSchema
       );
-      for (const r of responses) barcodes.push(...r.barcodes);
-    }
+      return response.barcodes;
+    });
 
     return { barcodes };
   }

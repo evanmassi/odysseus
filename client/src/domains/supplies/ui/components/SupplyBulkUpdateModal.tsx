@@ -15,15 +15,17 @@ import { BarcodeSheetModal } from '@shared/ui/components/barcodes';
 import {
   BulkArchiveTab,
   BulkOperationsModal,
+  BulkPrintTab,
   BulkReassignTab,
+  usePrintTabState,
   type BulkCategoryTreeSelectorLabels,
 } from '@shared/ui/components/inventory';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
 import { SupplyBulkIssueTab } from './bulk-update-tabs/SupplyBulkIssueTab';
-import { SupplyBulkPrintTab, usePrintTabState } from './bulk-update-tabs/SupplyBulkPrintTab';
 import { SupplyBulkReceiveTab } from './bulk-update-tabs/SupplyBulkReceiveTab';
 import { SupplyBulkVoidTab } from './bulk-update-tabs/SupplyBulkVoidTab';
+import { fetchSupplyPrintLabels } from './bulk-update-tabs/supplyPrintLabels';
 
 import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 
@@ -69,7 +71,11 @@ export function SupplyBulkUpdateModal({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [targetCategoryId, setTargetCategoryId] = useState('');
   const bulkMutation = useSupplyBulkUpdateMutation();
-  const printState = usePrintTabState(items, selectedIds);
+  const fetchLabels = useCallback(
+    (itemIds: string[]) => fetchSupplyPrintLabels(items, itemIds),
+    [items]
+  );
+  const printState = usePrintTabState(selectedIds, fetchLabels);
 
   const handleClose = useCallback(() => {
     setSelectedIds(new Set());
@@ -161,7 +167,13 @@ export function SupplyBulkUpdateModal({
             case 'archive':
               return <BulkArchiveTab selectedCount={selectedIds.size} />;
             case 'print':
-              return <SupplyBulkPrintTab selectedCount={selectedIds.size} state={printState} />;
+              return (
+                <BulkPrintTab
+                  selectedCount={selectedIds.size}
+                  countNoun={['item', 'items']}
+                  state={printState}
+                />
+              );
             default:
               return null;
           }

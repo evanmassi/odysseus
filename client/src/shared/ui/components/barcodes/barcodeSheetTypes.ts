@@ -9,5 +9,8 @@ export interface PrintableLabel {
   itemName: string;
   manufacturer?: string;
   catalogNumber?: string;
+  /** Set when the label identifies one physical lot rather than the product. */
+  lotNumber?: string;
+  expirationDate?: string;
   barcodeValue: string;
 }

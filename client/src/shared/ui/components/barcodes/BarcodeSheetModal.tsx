@@ -260,13 +260,15 @@ export function BarcodeSheetModal({
                   }
 
                   return (
-                    <div key={label.itemId} style={wrapperStyle}>
+                    <div key={label.barcodeValue} style={wrapperStyle}>
                       <BarcodeLabel
                         format={format}
                         labelSize={labelSize}
                         itemName={label.itemName}
                         manufacturer={label.manufacturer}
                         catalogNumber={label.catalogNumber}
+                        lotNumber={label.lotNumber}
+                        expirationDate={label.expirationDate}
                         barcodeValue={label.barcodeValue}
                       />
                     </div>

@@ -1,19 +1,23 @@
 /**
  * Reagent Bulk Update Modal
  *
- * Binds the reagent catalog to the shared bulk chassis. Print arrives in a later sub-commit
- * and slots into the same tab list.
+ * Binds the reagent catalog to the shared bulk chassis: which tabs it offers, what each renders,
+ * and which mutation a selector tab runs.
  */
 
 import { useCallback, useState } from 'react';
 
-import { Archive, Ban, FolderInput, PackageMinus, PackagePlus } from 'lucide-react';
+import { Archive, Ban, FolderInput, PackageMinus, PackagePlus, Printer } from 'lucide-react';
 
 import { useReagentBulkUpdateMutation } from '@domains/reagents/hooks';
+import { Button } from '@shared/ui';
+import { BarcodeSheetModal } from '@shared/ui/components/barcodes';
 import {
   BulkArchiveTab,
   BulkOperationsModal,
+  BulkPrintTab,
   BulkReassignTab,
+  usePrintTabState,
   type BulkCategoryTreeSelectorLabels,
 } from '@shared/ui/components/inventory';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
@@ -21,6 +25,7 @@ import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { ReagentBulkIssueTab } from './bulk-update-tabs/ReagentBulkIssueTab';
 import { ReagentBulkReceiveTab } from './bulk-update-tabs/ReagentBulkReceiveTab';
 import { ReagentBulkVoidTab } from './bulk-update-tabs/ReagentBulkVoidTab';
+import { fetchReagentItemPrintLabels } from './bulk-update-tabs/reagentPrintLabels';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 
@@ -42,6 +47,7 @@ const TABS = [
     layout: 'selector' as const,
   },
   { id: 'archive', label: 'Archive', icon: <Archive size={12} />, layout: 'selector' as const },
+  { id: 'print', label: 'Print', icon: <Printer size={12} />, layout: 'selector' as const },
 ];
 
 const SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
@@ -65,12 +71,18 @@ export function ReagentBulkUpdateModal({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [targetCategoryId, setTargetCategoryId] = useState('');
   const bulkMutation = useReagentBulkUpdateMutation();
+  const fetchLabels = useCallback(
+    (itemIds: string[]) => fetchReagentItemPrintLabels(items, itemIds),
+    [items]
+  );
+  const printState = usePrintTabState(selectedIds, fetchLabels);
 
   const handleClose = useCallback(() => {
     setSelectedIds(new Set());
     setTargetCategoryId('');
+    printState.resetAll();
     onClose();
-  }, [onClose]);
+  }, [onClose, printState]);
 
   const runBulk = useCallback(
     (action: Parameters<typeof bulkMutation.mutate>[0]) => {
@@ -85,60 +97,97 @@ export function ReagentBulkUpdateModal({
   );
 
   return (
-    <BulkOperationsModal
-      isOpen={isOpen}
-      onClose={handleClose}
-      items={items}
-      categories={categories}
-      tabs={TABS}
-      selectedIds={selectedIds}
-      onSelectionChange={setSelectedIds}
-      isPending={bulkMutation.isPending}
-      isSelectable={isSelectable}
-      getSecondaryText={getSecondaryText}
-      selectorLabels={SELECTOR_LABELS}
-      onReset={() => setTargetCategoryId('')}
-      selectorAction={tabId =>
-        tabId === 'archive'
-          ? {
-              verb: 'Archive',
-              title: 'Confirm Archive',
-              isDanger: true,
-              run: itemIds => runBulk({ type: 'archive', itemIds }),
-            }
-          : tabId === 'reassign-category'
+    <>
+      <BulkOperationsModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        items={items}
+        categories={categories}
+        tabs={TABS}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        isPending={bulkMutation.isPending}
+        isSelectable={isSelectable}
+        getSecondaryText={getSecondaryText}
+        selectorLabels={SELECTOR_LABELS}
+        onReset={() => {
+          setTargetCategoryId('');
+          printState.resetAll();
+        }}
+        selectorAction={tabId =>
+          tabId === 'archive'
             ? {
-                verb: 'Reassign',
-                title: 'Confirm Category Reassignment',
-                isReady: !!targetCategoryId,
-                run: itemIds =>
-                  runBulk({ type: 'reassign-category', itemIds, categoryId: targetCategoryId }),
+                verb: 'Archive',
+                title: 'Confirm Archive',
+                isDanger: true,
+                run: itemIds => runBulk({ type: 'archive', itemIds }),
               }
-            : undefined
-      }
-      renderTab={tabId => {
-        switch (tabId) {
-          case 'receive':
-            return <ReagentBulkReceiveTab items={items} onComplete={handleClose} />;
-          case 'issue':
-            return <ReagentBulkIssueTab items={items} onComplete={handleClose} />;
-          case 'void':
-            return <ReagentBulkVoidTab items={items} onComplete={handleClose} />;
-          case 'reassign-category':
-            return (
-              <BulkReassignTab
-                categories={categories}
-                selectedCount={selectedIds.size}
-                targetCategoryId={targetCategoryId}
-                onTargetChange={setTargetCategoryId}
-              />
-            );
-          case 'archive':
-            return <BulkArchiveTab selectedCount={selectedIds.size} />;
-          default:
-            return null;
+            : tabId === 'reassign-category'
+              ? {
+                  verb: 'Reassign',
+                  title: 'Confirm Category Reassignment',
+                  isReady: !!targetCategoryId,
+                  run: itemIds =>
+                    runBulk({ type: 'reassign-category', itemIds, categoryId: targetCategoryId }),
+                }
+              : undefined
         }
-      }}
-    />
+        renderSelectorFooterAction={tabId =>
+          tabId === 'print' ? (
+            <Button
+              size="sm"
+              onClick={() => void printState.handlePreviewPrint()}
+              disabled={!printState.canPreview}
+              isLoading={printState.isLoading}
+              leftIcon={<Printer size={16} />}
+            >
+              Preview &amp; Print ({selectedIds.size})
+            </Button>
+          ) : undefined
+        }
+        renderTab={tabId => {
+          switch (tabId) {
+            case 'receive':
+              return <ReagentBulkReceiveTab items={items} onComplete={handleClose} />;
+            case 'issue':
+              return <ReagentBulkIssueTab items={items} onComplete={handleClose} />;
+            case 'void':
+              return <ReagentBulkVoidTab items={items} onComplete={handleClose} />;
+            case 'reassign-category':
+              return (
+                <BulkReassignTab
+                  categories={categories}
+                  selectedCount={selectedIds.size}
+                  targetCategoryId={targetCategoryId}
+                  onTargetChange={setTargetCategoryId}
+                />
+              );
+            case 'archive':
+              return <BulkArchiveTab selectedCount={selectedIds.size} />;
+            case 'print':
+              return (
+                <BulkPrintTab
+                  selectedCount={selectedIds.size}
+                  countNoun={['reagent', 'reagents']}
+                  state={printState}
+                />
+              );
+            default:
+              return null;
+          }
+        }}
+      />
+
+      {printState.isPreviewOpen && printState.printableLabels && (
+        <BarcodeSheetModal
+          isOpen={printState.isPreviewOpen}
+          onClose={printState.closePreview}
+          labels={printState.printableLabels}
+          template={printState.currentTemplate}
+          startingPosition={printState.startingPosition}
+          format={printState.format}
+        />
+      )}
+    </>
   );
 }

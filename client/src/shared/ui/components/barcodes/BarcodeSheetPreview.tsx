@@ -102,7 +102,8 @@ export function BarcodeSheetPreview({
                 background: 'transparent',
                 cursor: 'pointer' as const,
               };
-              const key = label ? label.itemId : globalSlot;
+              // Barcode values are globally unique; item ids repeat once one item prints several lots.
+              const key = label ? label.barcodeValue : globalSlot;
               const ariaLabel = label
                 ? `${label.itemName}, click to skip this slot`
                 : isSkipped
@@ -125,6 +126,8 @@ export function BarcodeSheetPreview({
                       itemName={label.itemName}
                       manufacturer={label.manufacturer}
                       catalogNumber={label.catalogNumber}
+                      lotNumber={label.lotNumber}
+                      expirationDate={label.expirationDate}
                       barcodeValue={label.barcodeValue}
                     />
                   ) : isSkipped ? (

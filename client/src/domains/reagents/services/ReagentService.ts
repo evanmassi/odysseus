@@ -17,6 +17,7 @@ import {
   reagentLotResponseSchema,
   reagentPackagingLevelResponseSchema,
   reagentAttributeValueListResponseSchema,
+  reagentBulkBarcodesResponseSchema,
   reagentBulkResponseSchema,
   reagentTransactionListResponseSchema,
   reagentVoidTransactionResponseSchema,
@@ -31,6 +32,7 @@ import {
   type ReagentAttributeValue,
   type ReagentTransaction,
   type ReagentVoidTransactionResponse,
+  type ReagentBulkBarcodesResponse,
   type ReagentBulkResponse,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
@@ -52,6 +54,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
+import { fetchInChunks } from '@shared/utils/chunkedFetch';
 
 export class ReagentService {
   private static readonly BASE_PATH = '/reagents';
@@ -294,6 +297,19 @@ export class ReagentService {
       data,
       reagentBulkResponseSchema
     );
+  }
+
+  static async bulkGetBarcodes(
+    itemIds: string[]
+  ): Promise<ReagentBulkBarcodesResponse['barcodes']> {
+    return await fetchInChunks(itemIds, async chunk => {
+      const response = await httpClient.postData(
+        `${this.BASE_PATH}/bulk/barcodes`,
+        { itemIds: chunk },
+        reagentBulkBarcodesResponseSchema
+      );
+      return response.barcodes;
+    });
   }
 
   // Packaging levels

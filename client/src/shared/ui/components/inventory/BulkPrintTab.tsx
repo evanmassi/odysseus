@@ -3,12 +3,11 @@
  *
  * Right-panel configuration for printing barcode labels onto standard label
  * sheets. State + action live in usePrintTabState; the parent owns the footer
- * buttons and the preview modal.
+ * buttons and the preview modal. Which labels get printed is the catalog's call.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
-import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { Select } from '@shared/ui';
 import {
   DEFAULT_TEMPLATE_ID,
@@ -23,7 +22,6 @@ import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClas
 import { NumberInput } from '@shared/ui/primitives/input/NumberInput';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 const FORMAT_CARD_BASE =
@@ -154,9 +152,13 @@ export interface PrintTabState {
   resetAll: () => void;
 }
 
+/**
+ * `fetchLabels` resolves the selected items to the labels to print — one per item for a plain
+ * catalog, one per chosen lot where the catalog has a lot layer.
+ */
 export function usePrintTabState(
-  items: SupplyItemWithStock[],
-  selectedIds: Set<string>
+  selectedIds: Set<string>,
+  fetchLabels: (itemIds: string[]) => Promise<PrintableLabel[]>
 ): PrintTabState {
   const [format, setFormat] = useState<BarcodeFormat>('1d');
   const [templateId, setTemplateId] = useState(DEFAULT_TEMPLATE_ID);
@@ -213,22 +215,7 @@ export function usePrintTabState(
   const handlePreviewPrint = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await SupplyService.bulkGetBarcodes(Array.from(selectedIds));
-      const itemMap = new Map(items.map(i => [i.id, i]));
-      const labels: PrintableLabel[] = [];
-      for (const b of response.barcodes) {
-        if (b.barcodeValue === null) continue;
-        // Filter orphans — item could have been deleted between selection and print click.
-        const item = itemMap.get(b.itemId);
-        if (!item) continue;
-        labels.push({
-          itemId: b.itemId,
-          itemName: item.name,
-          manufacturer: item.manufacturer,
-          catalogNumber: item.catalogNumber,
-          barcodeValue: b.barcodeValue,
-        });
-      }
+      const labels = await fetchLabels(Array.from(selectedIds));
       if (labels.length === 0) {
         notifications.warning('No primary barcodes found for the selected items');
         setIsLoading(false);
@@ -241,7 +228,7 @@ export function usePrintTabState(
       notifications.error('Failed to fetch barcodes');
       setIsLoading(false);
     }
-  }, [items, selectedIds]);
+  }, [fetchLabels, selectedIds]);
 
   const closePreview = useCallback(() => {
     setIsPreviewOpen(false);
@@ -286,10 +273,19 @@ export function usePrintTabState(
 
 interface BulkPrintTabProps {
   selectedCount: number;
+  /** Count noun for the selected rows, singular and plural. */
+  countNoun: [string, string];
   state: PrintTabState;
+  /** Catalog-specific controls — a lot picker, a label-source toggle — above the sheet options. */
+  renderExtraOptions?: ReactNode;
 }
 
-export function SupplyBulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
+export function BulkPrintTab({
+  selectedCount,
+  countNoun,
+  state,
+  renderExtraOptions,
+}: BulkPrintTabProps) {
   const {
     format,
     setFormat,
@@ -308,9 +304,11 @@ export function SupplyBulkPrintTab({ selectedCount, state }: BulkPrintTabProps) 
   return (
     <div className="space-y-4">
       <p className="text-body text-muted-foreground">
-        Print barcodes for {selectedCount} selected item{selectedCount === 1 ? '' : 's'} onto a
-        standard label sheet.
+        Print barcodes for {selectedCount} selected{' '}
+        {selectedCount === 1 ? countNoun[0] : countNoun[1]} onto a standard label sheet.
       </p>
+
+      {renderExtraOptions}
 
       <div>
         <h4 className={FIELD_LABEL_COMPACT}>Format</h4>
