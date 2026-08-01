@@ -451,6 +451,20 @@ export const reagentBulkBarcodesResponseSchema = z.object({
   ),
 });
 
+// One entry per lot still holding stock — a bottle label, not a product label.
+export const reagentBulkLotLabelsResponseSchema = z.object({
+  lotLabels: z.array(
+    z.object({
+      itemId: z.string(),
+      lotId: z.string(),
+      lotNumber: z.string().optional(),
+      expirationDate: optionalDateOnlyField,
+      locationId: z.string(),
+      barcodeValue: z.string(),
+    })
+  ),
+});
+
 // Type exports
 
 export type ReagentItemStatus = z.infer<typeof reagentItemStatusSchema>;
@@ -489,3 +503,4 @@ export type ReagentBulkReceiveRequest = z.infer<typeof reagentBulkReceiveRequest
 export type ReagentBulkIssueRequest = z.infer<typeof reagentBulkIssueRequestSchema>;
 export type ReagentBulkResponse = z.infer<typeof reagentBulkResponseSchema>;
 export type ReagentBulkBarcodesResponse = z.infer<typeof reagentBulkBarcodesResponseSchema>;
+export type ReagentBulkLotLabelsResponse = z.infer<typeof reagentBulkLotLabelsResponseSchema>;

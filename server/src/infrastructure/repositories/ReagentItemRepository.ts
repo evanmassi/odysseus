@@ -15,6 +15,7 @@ import type {
   ReagentItemRepository as IReagentItemRepository,
   ReagentLotRow,
   ReagentBarcodeRow,
+  ReagentLotLabelRow,
   ReagentTransactionRow,
   ReagentPackagingLevelRow,
   ReagentAttributeValueRow,
@@ -48,6 +49,15 @@ const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_numbe
 
 const ATTRIBUTE_VALUE_COLUMNS =
   'id, item_id, definition_id, value_option_id, value_text, value_number';
+
+interface ReagentLotLabelDbRow {
+  item_id: string;
+  lot_id: string;
+  lot_number: string | null;
+  expiration_date: string | null;
+  location_id: string;
+  barcode_value: string;
+}
 
 interface AttributeValueDbRow {
   id: string;
@@ -252,6 +262,29 @@ export class ReagentItemRepository implements IReagentItemRepository {
       [itemIds, labId]
     );
     return ReagentBarcodeMapper.fromRows(rows);
+  }
+
+  // Only lots still holding stock: a spent or disposed bottle needs no label.
+  async findLotLabelsByItemIds(itemIds: string[], labId: string): Promise<ReagentLotLabelRow[]> {
+    const rows = await this.db.queryMany<ReagentLotLabelDbRow>(
+      `SELECT b.item_id, b.barcode_value, l.id AS lot_id, l.lot_number, l.expiration_date,
+              l.location_id
+       FROM reagent_barcodes b
+       JOIN reagent_lots l ON l.id = b.lot_id
+       JOIN reagent_items i ON i.id = b.item_id
+       WHERE b.item_id = ANY($1) AND i.lab_id = $2 AND b.lot_id IS NOT NULL
+         AND l.status = 'active' AND l.quantity > 0
+       ORDER BY l.expiration_date NULLS LAST, l.lot_number`,
+      [itemIds, labId]
+    );
+    return rows.map(row => ({
+      itemId: row.item_id,
+      lotId: row.lot_id,
+      lotNumber: row.lot_number ?? undefined,
+      expirationDate: row.expiration_date ?? undefined,
+      locationId: row.location_id,
+      barcodeValue: row.barcode_value,
+    }));
   }
 
   async findByBarcodeValue(barcodeValue: string): Promise<ReagentBarcodeRow | null> {

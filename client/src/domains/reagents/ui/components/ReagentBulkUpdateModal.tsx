@@ -25,7 +25,8 @@ import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { ReagentBulkIssueTab } from './bulk-update-tabs/ReagentBulkIssueTab';
 import { ReagentBulkReceiveTab } from './bulk-update-tabs/ReagentBulkReceiveTab';
 import { ReagentBulkVoidTab } from './bulk-update-tabs/ReagentBulkVoidTab';
-import { fetchReagentItemPrintLabels } from './bulk-update-tabs/reagentPrintLabels';
+import { ReagentPrintOptionsPanel } from './bulk-update-tabs/ReagentPrintOptionsPanel';
+import { useReagentPrintLabels } from './bulk-update-tabs/useReagentPrintLabels';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 
@@ -71,18 +72,16 @@ export function ReagentBulkUpdateModal({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [targetCategoryId, setTargetCategoryId] = useState('');
   const bulkMutation = useReagentBulkUpdateMutation();
-  const fetchLabels = useCallback(
-    (itemIds: string[]) => fetchReagentItemPrintLabels(items, itemIds),
-    [items]
-  );
-  const printState = usePrintTabState(selectedIds, fetchLabels);
+  const labelState = useReagentPrintLabels(items, selectedIds);
+  const printState = usePrintTabState(selectedIds, labelState.fetchLabels);
 
   const handleClose = useCallback(() => {
     setSelectedIds(new Set());
     setTargetCategoryId('');
     printState.resetAll();
+    labelState.reset();
     onClose();
-  }, [onClose, printState]);
+  }, [onClose, printState, labelState]);
 
   const runBulk = useCallback(
     (action: Parameters<typeof bulkMutation.mutate>[0]) => {
@@ -113,6 +112,7 @@ export function ReagentBulkUpdateModal({
         onReset={() => {
           setTargetCategoryId('');
           printState.resetAll();
+          labelState.reset();
         }}
         selectorAction={tabId =>
           tabId === 'archive'
@@ -137,11 +137,11 @@ export function ReagentBulkUpdateModal({
             <Button
               size="sm"
               onClick={() => void printState.handlePreviewPrint()}
-              disabled={!printState.canPreview}
+              disabled={!printState.canPreview || labelState.labelCount === 0}
               isLoading={printState.isLoading}
               leftIcon={<Printer size={16} />}
             >
-              Preview &amp; Print ({selectedIds.size})
+              Preview &amp; Print ({labelState.labelCount})
             </Button>
           ) : undefined
         }
@@ -170,6 +170,13 @@ export function ReagentBulkUpdateModal({
                   selectedCount={selectedIds.size}
                   countNoun={['reagent', 'reagents']}
                   state={printState}
+                  renderExtraOptions={
+                    <ReagentPrintOptionsPanel
+                      items={items}
+                      selectedIds={selectedIds}
+                      state={labelState}
+                    />
+                  }
                 />
               );
             default:

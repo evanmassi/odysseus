@@ -22,18 +22,9 @@ import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClas
 import { NumberInput } from '@shared/ui/primitives/input/NumberInput';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SelectOption } from '@shared/ui/primitives/select/types';
+import { OPTION_CARD_BASE, OPTION_CARD_SELECTED, OPTION_CARD_UNSELECTED } from './optionCardStyle';
 
-const FORMAT_CARD_BASE =
-  'relative border px-3 py-2 transition-[background-color,border-color,box-shadow,color] duration-200 ' +
-  'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
-const FORMAT_CARD_SELECTED =
-  'border-primary/60 bg-[hsl(var(--primary)/0.10)] text-foreground ' +
-  'dark:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
-const FORMAT_CARD_UNSELECTED =
-  'border-line-mid text-secondary-foreground dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
-  'hover:border-primary/40 hover:text-foreground ' +
-  'dark:hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
+import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 const PAPER_ORDER: Record<SheetTemplate['paperSize'], number> = { letter: 0, a4: 1 };
 
@@ -320,8 +311,8 @@ export function BulkPrintTab({
                 key={value}
                 type="button"
                 onClick={() => setFormat(value)}
-                className={`flex items-center justify-center gap-2 ${FORMAT_CARD_BASE} ${
-                  isSelected ? FORMAT_CARD_SELECTED : FORMAT_CARD_UNSELECTED
+                className={`flex items-center justify-center gap-2 ${OPTION_CARD_BASE} ${
+                  isSelected ? OPTION_CARD_SELECTED : OPTION_CARD_UNSELECTED
                 }`}
               >
                 <Icon

@@ -50,6 +50,19 @@ export function useReagentItemDetailQuery(id: string | undefined) {
   });
 }
 
+/** Bottle labels for the given items. Pass a sorted list — it is part of the cache key. */
+export function useReagentLotLabelsQuery(itemIds: string[], enabled: boolean) {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.reagents.lotLabels(labId, itemIds),
+    queryFn: () => ReagentService.bulkGetLotLabels(itemIds),
+    enabled: enabled && !!labId && itemIds.length > 0,
+    staleTime: CACHE_TIMES.STABLE.staleTime,
+    gcTime: CACHE_TIMES.STABLE.gcTime,
+  });
+}
+
 // Unpaged: a FEFO movement's rows are grouped for display, and a cut through one
 // would show a partial sum.
 export function useReagentTransactionHistoryQuery(itemId: string | undefined) {

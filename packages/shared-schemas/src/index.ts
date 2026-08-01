@@ -627,6 +627,7 @@ export {
   reagentBulkResponseSchema,
   reagentBulkBarcodesRequestSchema,
   reagentBulkBarcodesResponseSchema,
+  reagentBulkLotLabelsResponseSchema,
   type ReagentItemStatus,
   type ReagentTransactionType,
   type ReagentLotStatus,
@@ -661,6 +662,7 @@ export {
   type ReagentBulkIssueRequest,
   type ReagentBulkResponse,
   type ReagentBulkBarcodesResponse,
+  type ReagentBulkLotLabelsResponse,
 } from './reagents';
 
 // Persons

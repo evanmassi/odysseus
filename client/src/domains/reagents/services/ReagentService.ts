@@ -18,6 +18,7 @@ import {
   reagentPackagingLevelResponseSchema,
   reagentAttributeValueListResponseSchema,
   reagentBulkBarcodesResponseSchema,
+  reagentBulkLotLabelsResponseSchema,
   reagentBulkResponseSchema,
   reagentTransactionListResponseSchema,
   reagentVoidTransactionResponseSchema,
@@ -33,6 +34,7 @@ import {
   type ReagentTransaction,
   type ReagentVoidTransactionResponse,
   type ReagentBulkBarcodesResponse,
+  type ReagentBulkLotLabelsResponse,
   type ReagentBulkResponse,
   type CreateReagentCategoryRequest,
   type UpdateReagentCategoryRequest,
@@ -309,6 +311,19 @@ export class ReagentService {
         reagentBulkBarcodesResponseSchema
       );
       return response.barcodes;
+    });
+  }
+
+  static async bulkGetLotLabels(
+    itemIds: string[]
+  ): Promise<ReagentBulkLotLabelsResponse['lotLabels']> {
+    return await fetchInChunks(itemIds, async chunk => {
+      const response = await httpClient.postData(
+        `${this.BASE_PATH}/bulk/lot-labels`,
+        { itemIds: chunk },
+        reagentBulkLotLabelsResponseSchema
+      );
+      return response.lotLabels;
     });
   }
 

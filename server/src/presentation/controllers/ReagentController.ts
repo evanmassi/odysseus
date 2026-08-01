@@ -478,4 +478,15 @@ export class ReagentController extends BaseController {
       handleControllerError(error, res, 'Failed to fetch reagent barcodes', req.requestId);
     }
   }
+
+  async bulkGetLotLabels(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const { itemIds } = req.body;
+      const lotLabels = await this.deps.reagentApplicationService.getBulkLotLabels(labId, itemIds);
+      res.json(ResponseBuilder.success({ lotLabels }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to fetch reagent lot labels', req.requestId);
+    }
+  }
 }

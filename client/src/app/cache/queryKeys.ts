@@ -138,6 +138,9 @@ export const queryKeys = {
     detail: (labId = '', id: string) => [...queryKeys.reagents.all(labId), 'detail', id] as const,
     transactions: (labId = '', itemId: string) =>
       [...queryKeys.reagents.all(labId), 'transactions', itemId] as const,
+    // Keyed by the selected items; callers pass a sorted list so the key is stable.
+    lotLabels: (labId = '', itemIds: string[]) =>
+      [...queryKeys.reagents.all(labId), 'lotLabels', itemIds] as const,
   },
 
   // Lookups (lab-scoped)

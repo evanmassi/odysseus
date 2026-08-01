@@ -13,6 +13,7 @@ export { BulkArchiveTab } from './BulkArchiveTab';
 export { BulkItemRow, type ItemPackaging } from './BulkItemRow';
 export { BulkOperationsModal } from './BulkOperationsModal';
 export { BulkPrintTab, usePrintTabState, type PrintTabState } from './BulkPrintTab';
+export { OPTION_CARD_BASE, OPTION_CARD_SELECTED, OPTION_CARD_UNSELECTED } from './optionCardStyle';
 export { BulkStockMovementTab } from './BulkStockMovementTab';
 export { BulkReassignTab } from './BulkReassignTab';
 export { BulkVoidTab, type VoidableEntry } from './BulkVoidTab';

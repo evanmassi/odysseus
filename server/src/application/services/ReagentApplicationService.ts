@@ -88,6 +88,7 @@ import type {
   ReagentBulkVoidRequest,
   ReagentBulkResponse,
   ReagentBulkBarcodesResponse,
+  ReagentBulkLotLabelsResponse,
 } from '@odysseus/shared-schemas';
 
 export class ReagentApplicationService {
@@ -478,6 +479,14 @@ export class ReagentApplicationService {
       itemId,
       barcodeValue: valueByItemId.get(itemId) ?? null,
     }));
+  }
+
+  async getBulkLotLabels(
+    labId: string,
+    itemIds: string[]
+  ): Promise<ReagentBulkLotLabelsResponse['lotLabels']> {
+    if (itemIds.length === 0) return [];
+    return this.itemRepository.findLotLabelsByItemIds([...new Set(itemIds)], labId);
   }
 
   async regenerateInternalBarcode(

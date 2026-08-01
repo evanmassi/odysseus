@@ -37,6 +37,16 @@ export interface ReagentBarcodeRow {
   label?: string;
 }
 
+/** A lot's internal barcode with the lot identity a bottle label prints. */
+export interface ReagentLotLabelRow {
+  itemId: string;
+  lotId: string;
+  lotNumber?: string;
+  expirationDate?: string;
+  locationId: string;
+  barcodeValue: string;
+}
+
 export interface ReagentTransactionRow {
   id: string;
   itemId: string;
@@ -137,6 +147,7 @@ export interface ReagentItemRepository {
 
   findBarcodesByItemId(itemId: string): Promise<ReagentBarcodeRow[]>;
   findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<ReagentBarcodeRow[]>;
+  findLotLabelsByItemIds(itemIds: string[], labId: string): Promise<ReagentLotLabelRow[]>;
   findByBarcodeValue(barcodeValue: string): Promise<ReagentBarcodeRow | null>;
   saveBarcode(barcode: ReagentBarcodeRow): Promise<void>;
   updateBarcode(

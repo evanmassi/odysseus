@@ -117,6 +117,12 @@ export class ReagentRouteModule implements RouteModule {
       this.reagentController.bulkGetBarcodes.bind(this.reagentController)
     );
 
+    router.post(
+      '/bulk/lot-labels',
+      validateBody(ReagentBulkBarcodesHttpSchema),
+      this.reagentController.bulkGetLotLabels.bind(this.reagentController)
+    );
+
     // Stock operations (not scoped to an item)
 
     router.post(
