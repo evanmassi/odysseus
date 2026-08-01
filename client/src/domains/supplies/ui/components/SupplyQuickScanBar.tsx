@@ -156,7 +156,12 @@ export function SupplyQuickScanBar({
         onLinked={itemId => {
           const item = items.find(i => i.id === itemId);
           if (item) {
-            setResolvedMatch({ catalog: 'supply', itemId: item.id, itemName: item.name });
+            setResolvedMatch({
+              catalog: 'supply',
+              itemId: item.id,
+              itemName: item.name,
+              lotId: null,
+            });
             setShowActions(true);
           }
         }}

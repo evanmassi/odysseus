@@ -6,8 +6,6 @@
  * management, and bulk operations.
  */
 
-import { nanoid } from 'nanoid';
-
 import type { EventBus } from '@application/contracts/EventBus';
 import {
   ReagentDto,
@@ -63,6 +61,7 @@ import type {
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+import { generateInternalBarcodeValue } from '@domain/utils/barcodeValue';
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -501,7 +500,7 @@ export class ReagentApplicationService {
     const barcode: ReagentBarcodeRow = {
       id: generateId('rbcd'),
       itemId,
-      barcodeValue: `RITM-${nanoid(8)}`,
+      barcodeValue: generateInternalBarcodeValue('reagentItem'),
       barcodeType: 'internal',
       isPrimary: true,
     };
@@ -894,7 +893,7 @@ export class ReagentApplicationService {
         const barcode: ReagentBarcodeRow = {
           id: generateId('rbcd'),
           itemId,
-          barcodeValue: `RITM-${nanoid(8)}`,
+          barcodeValue: generateInternalBarcodeValue('reagentItem'),
           barcodeType: 'internal',
           isPrimary: true,
         };

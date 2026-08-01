@@ -8,24 +8,27 @@
 import { useMemo, useState } from 'react';
 
 import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
-import { MapPin, SquarePen } from 'lucide-react';
+import { MapPin, Printer, SquarePen } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useLocationsQuery } from '@domains/lab-management';
 import { resolveLotExpiry } from '@domains/reagents/utils/reagentExpiry';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
 import { Button, Tooltip } from '@shared/ui';
+import { BarcodePrint } from '@shared/ui/components/barcodes';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ReagentLotModal } from './ReagentLotModal';
 
-import type { ReagentLot } from '@odysseus/shared-schemas';
+import type { ReagentBarcode, ReagentLot } from '@odysseus/shared-schemas';
 
 interface ReagentLotPanelProps {
   itemId: string;
+  itemName: string;
   lots: ReagentLot[];
+  lotBarcodes: ReagentBarcode[];
   stockUnit?: string;
   expiryWarningDays?: number;
 }
@@ -43,7 +46,9 @@ function compareForDisplay(a: ReagentLot, b: ReagentLot): number {
 
 export function ReagentLotPanel({
   itemId,
+  itemName,
   lots,
+  lotBarcodes,
   stockUnit,
   expiryWarningDays,
 }: ReagentLotPanelProps) {
@@ -51,9 +56,15 @@ export function ReagentLotPanel({
   const isAdmin = isAdminRole(user?.role);
   const { data: locations = [] } = useLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
+  const barcodeByLotId = useMemo(
+    () => new Map(lotBarcodes.map(bc => [bc.lotId, bc.barcodeValue])),
+    [lotBarcodes]
+  );
   const [editingLot, setEditingLot] = useState<ReagentLot | undefined>();
+  const [printingLot, setPrintingLot] = useState<ReagentLot | undefined>();
 
   const ordered = useMemo(() => [...lots].sort(compareForDisplay), [lots]);
+  const printingBarcodeValue = printingLot ? barcodeByLotId.get(printingLot.id) : undefined;
 
   if (ordered.length === 0) {
     return <p className="text-caption italic text-muted-foreground">No lots recorded</p>;
@@ -110,6 +121,13 @@ export function ReagentLotPanel({
                   {lot.status}
                 </Chip>
               )}
+              {barcodeByLotId.has(lot.id) && (
+                <Tooltip content="Print lot label" side="bottom">
+                  <Button variant="ghost" size="xs" iconOnly onClick={() => setPrintingLot(lot)}>
+                    <Printer className="h-3 w-3" />
+                  </Button>
+                </Tooltip>
+              )}
               {isAdmin && (
                 <Tooltip content="Edit dates" side="bottom">
                   <Button variant="ghost" size="xs" iconOnly onClick={() => setEditingLot(lot)}>
@@ -140,6 +158,17 @@ export function ReagentLotPanel({
           lot={editingLot}
           stockUnit={stockUnit}
           onClose={() => setEditingLot(undefined)}
+        />
+      )}
+
+      {printingLot && printingBarcodeValue && (
+        <BarcodePrint
+          isOpen={true}
+          onClose={() => setPrintingLot(undefined)}
+          barcodeValue={printingBarcodeValue}
+          itemName={itemName}
+          lotNumber={printingLot.lotNumber}
+          expirationDate={printingLot.expirationDate}
         />
       )}
     </div>

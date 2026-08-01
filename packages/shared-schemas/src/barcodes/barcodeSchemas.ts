@@ -19,6 +19,8 @@ const barcodeMatchSchema = z.object({
   catalog: z.enum(barcodeCatalogValues),
   itemId: z.string(),
   itemName: z.string(),
+  // Set when the label is on one physical reagent lot rather than on the product.
+  lotId: z.string().nullable(),
 });
 
 export const barcodeResolveResponseSchema = z.object({

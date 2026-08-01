@@ -63,6 +63,7 @@ describe('lab-wide barcode resolve', () => {
       catalog: 'supply',
       itemId: item.id,
       itemName: 'Nitrile Gloves',
+      lotId: null,
     });
   });
 
@@ -75,6 +76,7 @@ describe('lab-wide barcode resolve', () => {
       catalog: 'reagent',
       itemId: item.id,
       itemName: 'Anti-CD3',
+      lotId: null,
     });
   });
 

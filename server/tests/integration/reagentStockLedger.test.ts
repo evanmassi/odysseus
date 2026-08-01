@@ -2,8 +2,9 @@
  * Reagent Per-Lot Stock Ledger
  *
  * Exercises the atomic lot-aware recordTransaction against real Postgres:
- * receiving into lots, FEFO issues spanning lots (one row per lot), expired-lot
- * handling, insufficient-stock rejection, and void restoring a lot.
+ * receiving into lots, the label minted with each new lot, FEFO issues spanning lots
+ * (one row per lot), expired-lot handling, insufficient-stock rejection, and void
+ * restoring a lot.
  */
 
 import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
@@ -62,6 +63,31 @@ describe('reagent per-lot stock ledger', () => {
     expect(withStock[0].soonestExpiration).toBe(EARLY);
     expect(withStock[0].lotCount).toBe(1);
     expect(withStock[0].expiredLotCount).toBe(0);
+  });
+
+  it('mints one internal barcode per new lot, carrying the lot it labels', async () => {
+    const { item, record } = await scenario();
+    const [txn] = await record({ type: 'received', quantity: 10, lotNumber: 'A' });
+
+    const lotBarcodes = (await repo.findBarcodesByItemId(item.id)).filter(bc => bc.lotId);
+    expect(lotBarcodes).toHaveLength(1);
+    expect(lotBarcodes[0]).toMatchObject({
+      lotId: txn.lotId,
+      barcodeType: 'internal',
+      isPrimary: false,
+    });
+    expect(lotBarcodes[0].barcodeValue).toMatch(/^RLOT-/);
+  });
+
+  it('does not mint a second barcode when a receive tops up an existing lot', async () => {
+    const { item, record } = await scenario();
+    await record({ type: 'received', quantity: 10, lotNumber: 'A' });
+    await record({ type: 'received', quantity: 5, lotNumber: 'A' });
+    await record({ type: 'received', quantity: 7, lotNumber: 'B' });
+
+    const lotBarcodes = (await repo.findBarcodesByItemId(item.id)).filter(bc => bc.lotId);
+    expect(lotBarcodes).toHaveLength(2);
+    expect(new Set(lotBarcodes.map(bc => bc.barcodeValue)).size).toBe(2);
   });
 
   it('counts lots and flags only the expired ones', async () => {

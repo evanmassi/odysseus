@@ -21,13 +21,20 @@ export class BarcodeApplicationService {
     const supplyBarcode = await this.supplyItemRepository.findByBarcodeValue(barcodeValue);
     if (supplyBarcode) {
       const item = await this.supplyItemRepository.findById(supplyBarcode.itemId, labId);
-      if (item) return { catalog: 'supply', itemId: item.id, itemName: item.name };
+      if (item) return { catalog: 'supply', itemId: item.id, itemName: item.name, lotId: null };
     }
 
     const reagentBarcode = await this.reagentItemRepository.findByBarcodeValue(barcodeValue);
     if (reagentBarcode) {
       const item = await this.reagentItemRepository.findById(reagentBarcode.itemId, labId);
-      if (item) return { catalog: 'reagent', itemId: item.id, itemName: item.name };
+      if (item) {
+        return {
+          catalog: 'reagent',
+          itemId: item.id,
+          itemName: item.name,
+          lotId: reagentBarcode.lotId ?? null,
+        };
+      }
     }
 
     return null;

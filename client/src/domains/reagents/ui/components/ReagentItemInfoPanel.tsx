@@ -138,6 +138,10 @@ export function ReagentItemInfoPanel({
   const statusConfig = REAGENT_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
 
+  // A lot barcode labels one bottle, so it belongs on that lot's row, not in the item's list.
+  const itemBarcodes = barcodes.filter(bc => !bc.lotId);
+  const lotBarcodes = barcodes.filter(bc => bc.lotId);
+
   const locationChips = [...new Set(lots.filter(isLotDrawable).map(lot => lot.locationId))]
     .map(id => ({ id, name: locationNameMap.get(id) }))
     .filter((location): location is { id: string; name: string } => !!location.name);
@@ -320,7 +324,9 @@ export function ReagentItemInfoPanel({
             <SectionHeader title="Lots" size="sm" />
             <ReagentLotPanel
               itemId={itemId}
+              itemName={item.name}
               lots={lots}
+              lotBarcodes={lotBarcodes}
               stockUnit={item.stockUnit}
               expiryWarningDays={item.expiryWarningDays}
             />
@@ -351,7 +357,7 @@ export function ReagentItemInfoPanel({
           <div>
             <SectionHeader title="Barcodes" size="sm" />
             <BarcodeList
-              barcodes={barcodes}
+              barcodes={itemBarcodes}
               itemName={item.name}
               manufacturer={item.manufacturer}
               catalogNumber={item.catalogNumber}

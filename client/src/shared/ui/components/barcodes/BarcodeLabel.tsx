@@ -11,6 +11,8 @@ import JsBarcode from 'jsbarcode';
 import { Barcode, QrCode } from 'lucide-react';
 import { toCanvas as qrToCanvas } from 'qrcode';
 
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+
 export type BarcodeFormat = '1d' | '2d';
 
 export interface LabelSize {
@@ -36,6 +38,8 @@ interface BarcodeLabelProps {
   itemName: string;
   manufacturer?: string;
   catalogNumber?: string;
+  lotNumber?: string;
+  expirationDate?: string;
   barcodeValue: string;
 }
 
@@ -45,6 +49,8 @@ export function BarcodeLabel({
   itemName,
   manufacturer,
   catalogNumber,
+  lotNumber,
+  expirationDate,
   barcodeValue,
 }: BarcodeLabelProps) {
   const barcodeRef = useRef<SVGSVGElement>(null);
@@ -83,7 +89,10 @@ export function BarcodeLabel({
       .catch(() => {});
   }, [format, barcodeValue, qrSizeIn]);
 
-  const metaLine = [manufacturer, catalogNumber, barcodeValue]
+  const lotLine = lotNumber ? `Lot ${lotNumber}` : undefined;
+  const expiryLine = expirationDate ? `Exp ${formatDateForDisplay(expirationDate)}` : undefined;
+
+  const metaLine = [manufacturer, catalogNumber, lotLine, expiryLine, barcodeValue]
     .filter((p): p is string => !!p && p.length > 0)
     .join(' · ');
 
@@ -159,6 +168,8 @@ export function BarcodeLabel({
         <div style={nameFontStyle}>{itemName}</div>
         {manufacturer && <div style={{ ...metaFontStyle, ...truncate }}>{manufacturer}</div>}
         {catalogNumber && <div style={{ ...metaFontStyle, ...truncate }}>{catalogNumber}</div>}
+        {lotLine && <div style={{ ...metaFontStyle, ...truncate }}>{lotLine}</div>}
+        {expiryLine && <div style={{ ...metaFontStyle, ...truncate }}>{expiryLine}</div>}
         <div style={{ ...metaFontStyle, ...truncate, fontFamily: 'monospace' }}>{barcodeValue}</div>
       </div>
       <canvas

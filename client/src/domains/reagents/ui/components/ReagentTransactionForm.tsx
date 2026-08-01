@@ -360,18 +360,19 @@ export function ReagentTransactionForm({
           value={mode}
           onChange={handleModeChange}
           orientation="horizontal"
+          size="sm"
           className="!gap-0 !px-0 [&_button]:!px-2.5 [&_button]:flex-1 [&_button]:justify-center"
         >
-          <Tab id="count" icon={<ClipboardCheck size={14} />}>
+          <Tab id="count" icon={<ClipboardCheck size={12} />}>
             {MODE_LABELS.count}
           </Tab>
-          <Tab id="received" icon={<PackagePlus size={14} />}>
+          <Tab id="received" icon={<PackagePlus size={12} />}>
             {MODE_LABELS.received}
           </Tab>
-          <Tab id="issued" icon={<PackageMinus size={14} />}>
+          <Tab id="issued" icon={<PackageMinus size={12} />}>
             {MODE_LABELS.issued}
           </Tab>
-          <Tab id="disposed" icon={<Trash2 size={14} />}>
+          <Tab id="disposed" icon={<Trash2 size={12} />}>
             {MODE_LABELS.disposed}
           </Tab>
         </Tabs>

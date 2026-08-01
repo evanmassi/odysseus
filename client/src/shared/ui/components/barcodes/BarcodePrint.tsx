@@ -42,6 +42,8 @@ interface BarcodePrintProps {
   itemName: string;
   manufacturer?: string;
   catalogNumber?: string;
+  lotNumber?: string;
+  expirationDate?: string;
 }
 
 export function BarcodePrint({
@@ -51,6 +53,8 @@ export function BarcodePrint({
   itemName,
   manufacturer,
   catalogNumber,
+  lotNumber,
+  expirationDate,
 }: BarcodePrintProps) {
   const [format, setFormat] = useState<BarcodeFormat>('1d');
   const [labelSize, setLabelSize] = useState<LabelSize>(LABEL_SIZES[0]);
@@ -152,6 +156,8 @@ export function BarcodePrint({
               itemName={itemName}
               manufacturer={manufacturer}
               catalogNumber={catalogNumber}
+              lotNumber={lotNumber}
+              expirationDate={expirationDate}
               barcodeValue={barcodeValue}
             />
           </div>
@@ -165,6 +171,8 @@ export function BarcodePrint({
             itemName={itemName}
             manufacturer={manufacturer}
             catalogNumber={catalogNumber}
+            lotNumber={lotNumber}
+            expirationDate={expirationDate}
             barcodeValue={barcodeValue}
           />
         </div>,

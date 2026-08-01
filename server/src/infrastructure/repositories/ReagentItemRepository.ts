@@ -23,6 +23,7 @@ import type {
   VoidTransactionData,
 } from '@domain/repositories/ReagentItemRepository';
 import { planFefoDraw, type FefoPlan } from '@domain/services/reagentFefo';
+import { generateInternalBarcodeValue } from '@domain/utils/barcodeValue';
 import { generateId } from '@domain/utils/generateId';
 import type { ReagentBarcodeDbRow } from '@infrastructure/database/mappers/ReagentBarcodeMapper';
 import { ReagentBarcodeMapper } from '@infrastructure/database/mappers/ReagentBarcodeMapper';
@@ -547,7 +548,17 @@ export class ReagentItemRepository implements IReagentItemRepository {
         data.concentrationUnit ?? null,
       ]
     );
-    return inserted.rows[0];
+    const lot = inserted.rows[0];
+
+    // A lot is a physical bottle, so it gets its own label the moment it exists — printing it
+    // later is fine, minting it later would leave whatever was shelved unscannable.
+    await client.query(
+      `INSERT INTO reagent_barcodes (${BARCODE_COLUMNS})
+       VALUES ($1, $2, $3, $4, 'internal', false, NULL)`,
+      [generateId('rbcd'), data.itemId, lot.id, generateInternalBarcodeValue('reagentLot')]
+    );
+
+    return lot;
   }
 
   private async itemTotal(client: PoolClient, itemId: string): Promise<number> {
