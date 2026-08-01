@@ -15,7 +15,10 @@ import { useSupplyBulkVoidMutation } from '@domains/supplies/hooks/useSupplyMuta
 import { Autocomplete, Button, Checkbox, NubDivider } from '@shared/ui';
 import { BarcodeScanInput } from '@shared/ui/components/barcodes';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
-import { toItemAutocompleteOptions } from '@shared/ui/components/inventory';
+import {
+  filterItemAutocompleteOptions,
+  toItemAutocompleteOptions,
+} from '@shared/ui/components/inventory';
 import { SEARCH_INPUT_CLASS } from '@shared/ui/components/inventory/bulkSearchInputStyle';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
@@ -66,9 +69,15 @@ export function SupplyBulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
 
   const selectedItem = items.find(p => p.id === selectedItemId);
 
-  const itemOptions: AutocompleteOption[] = useMemo(
+  const allItemOptions: AutocompleteOption[] = useMemo(
     () => toItemAutocompleteOptions(items),
     [items]
+  );
+
+  // The Autocomplete renders whatever it is handed, so the narrowing happens here.
+  const itemOptions = useMemo(
+    () => filterItemAutocompleteOptions(allItemOptions, searchValue),
+    [allItemOptions, searchValue]
   );
 
   const toggleTransaction = useCallback((id: string) => {

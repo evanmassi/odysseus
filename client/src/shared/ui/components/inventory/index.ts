@@ -17,6 +17,9 @@ export { BulkReassignTab } from './BulkReassignTab';
 export { CategoryModal } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
-export { toItemAutocompleteOptions } from './itemAutocompleteOptions';
+export {
+  toItemAutocompleteOptions,
+  filterItemAutocompleteOptions,
+} from './itemAutocompleteOptions';
 export { LowStockAlertPanel, type LowStockItem } from './LowStockAlertPanel';
 export { SortControls, INVENTORY_SORT_OPTIONS, type InventorySortField } from './SortControls';

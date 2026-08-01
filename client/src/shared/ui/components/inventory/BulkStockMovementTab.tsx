@@ -15,6 +15,7 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { BulkItemRow, type ItemPackaging } from './BulkItemRow';
 import { SEARCH_INPUT_CLASS } from './bulkSearchInputStyle';
+import { filterItemAutocompleteOptions } from './itemAutocompleteOptions';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -129,6 +130,12 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
     setRows(prev => prev.filter(row => row.rowId !== rowId));
   }, []);
 
+  // The Autocomplete renders whatever it is handed, so the narrowing happens here.
+  const visibleOptions = useMemo(
+    () => filterItemAutocompleteOptions(itemOptions, searchValue),
+    [itemOptions, searchValue]
+  );
+
   const validRows = useMemo(() => rows.filter(row => row.quantity > 0 && row.locationId), [rows]);
 
   const handleSubmit = useCallback(() => {
@@ -150,7 +157,7 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
         <div className="flex-1 relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground z-10" />
           <Autocomplete
-            options={itemOptions}
+            options={visibleOptions}
             value={searchValue}
             onChange={setSearchValue}
             onSelect={handleAddItem}
