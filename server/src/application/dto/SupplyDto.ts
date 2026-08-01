@@ -12,6 +12,7 @@ import type {
   SupplyBarcodeRow,
   SupplyTransactionRow,
   SupplyPackagingLevelRow,
+  SupplyAttributeValueRow,
 } from '@domain/repositories/SupplyItemRepository';
 
 import type {
@@ -25,6 +26,8 @@ import type {
   SupplyPackagingLevel,
   SupplyTransaction as SupplyTransactionData,
   SupplyItemDetail as SupplyItemDetailData,
+  SupplyAttributeSummary,
+  SupplyAttributeValue,
 } from '@odysseus/shared-schemas';
 
 export type SupplyCategoryResponse = SupplyCategoryData;
@@ -93,15 +96,37 @@ export class SupplyDto {
     };
   }
 
+  static attributeValueToResponse(row: SupplyAttributeValueRow): SupplyAttributeValue {
+    return {
+      id: row.id,
+      itemId: row.itemId,
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
+    };
+  }
+
+  static attributeSummaryToResponse(row: SupplyAttributeValueRow): SupplyAttributeSummary {
+    return {
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
+    };
+  }
+
   static itemWithStockToResponse(
     item: SupplyItem,
     totalStock: number,
-    locationNames: string[]
+    locationNames: string[],
+    attributeValues: SupplyAttributeSummary[]
   ): SupplyItemWithStockResponse {
     return {
       ...this.itemToResponse(item),
       totalStock,
       locationNames,
+      attributeValues,
     };
   }
 
@@ -111,7 +136,8 @@ export class SupplyDto {
     barcodes: SupplyBarcodeRow[],
     stock: SupplyStockRow[],
     recentTransactions: SupplyTransactionRow[],
-    packagingLevels: SupplyPackagingLevelRow[]
+    packagingLevels: SupplyPackagingLevelRow[],
+    attributeValues: SupplyAttributeValue[]
   ): SupplyItemDetailResponse {
     return {
       item: this.itemToResponse(item),
@@ -120,6 +146,7 @@ export class SupplyDto {
       stock: stock.map(s => this.stockToResponse(s)),
       recentTransactions: recentTransactions.map(t => this.transactionToResponse(t)),
       packagingLevels: packagingLevels.map(l => this.packagingLevelToResponse(l)),
+      attributeValues,
     };
   }
 

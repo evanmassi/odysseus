@@ -27,6 +27,7 @@ import type {
   SupplyBulkIssueRequest,
   VoidSupplyTransactionRequest,
   SupplyBulkVoidRequest,
+  SetSupplyAttributeValueRequest,
   CreateSupplyPackagingLevelRequest,
 } from '@odysseus/shared-schemas';
 
@@ -365,5 +366,20 @@ export function useSupplyBulkVoidMutation() {
   return useMutation({
     mutationFn: (data: SupplyBulkVoidRequest) => SupplyService.bulkVoidTransactions(data),
     meta: { invalidates: [queryKeys.supplies.all(labId)] },
+  });
+}
+
+export function useSetSupplyAttributeValueMutation() {
+  const queryClient = useQueryClient();
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: SetSupplyAttributeValueRequest }) =>
+      SupplyService.setAttributeValue(itemId, data),
+    // The list row carries an attribute summary for filtering, so both caches go stale.
+    onSuccess: (_result, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.detail(labId, itemId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+    },
   });
 }

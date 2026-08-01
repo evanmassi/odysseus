@@ -442,4 +442,19 @@ export class SupplyController extends BaseController {
     }
   }
 
+  async setAttributeValue(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const attributeValues = await this.deps.supplyApplicationService.setAttributeValue(
+        labId,
+        req.params.id,
+        req.body,
+        user
+      );
+      res.json(ResponseBuilder.success({ attributeValues }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to set attribute value', req.requestId);
+    }
+  }
 }

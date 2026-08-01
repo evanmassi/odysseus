@@ -37,6 +37,7 @@ import { migration030 } from './030_merge_supply_locations';
 import { migration031 } from './031_backfill_system_attributes';
 import { migration032 } from './032_supplies_onto_unit_registry';
 import { migration033 } from './033_attribute_scope_to_many_types';
+import { migration034 } from './034_attribute_values_all_catalogs';
 
 import type { Migration } from './migrationRunner';
 
@@ -74,4 +75,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration031,
   migration032,
   migration033,
+  migration034,
 ];

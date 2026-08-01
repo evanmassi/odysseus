@@ -16,12 +16,14 @@ import {
 import { Plus, Save, SquarePen, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
+import { useAttributesQuery } from '@domains/lab-management';
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useCreateSupplyItemMutation,
   useUpdateSupplyItemMutation,
   useAddSupplyPackagingLevelMutation,
   useRemoveSupplyPackagingLevelMutation,
+  useSetSupplyAttributeValueMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
@@ -40,6 +42,12 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import {
+  AttributeFields,
+  changedAttributeRequests,
+  draftsFromValues,
+  type AttributeDrafts,
+} from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -92,6 +100,29 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const addPackagingMutation = useAddSupplyPackagingLevelMutation();
   const removePackagingMutation = useRemoveSupplyPackagingLevelMutation();
   const { data: detail } = useSupplyItemDetailQuery(isEditing ? item.id : undefined);
+  const { data: attributes } = useAttributesQuery();
+  const setAttributeValueMutation = useSetSupplyAttributeValueMutation();
+
+  const attributeDefinitions = useMemo(
+    () =>
+      (attributes?.definitions ?? []).filter(
+        definition => !definition.appliesToCatalog || definition.appliesToCatalog === 'supply'
+      ),
+    [attributes?.definitions]
+  );
+
+  const [attributeDrafts, setAttributeDrafts] = useState<AttributeDrafts>({});
+  const savedDraftsRef = useRef<AttributeDrafts>({});
+  const seededItemIdRef = useRef<string>();
+
+  // Detail arrives after mount, and the panel reuses this component across items.
+  useEffect(() => {
+    if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
+    const seeded = draftsFromValues(detail.attributeValues);
+    savedDraftsRef.current = seeded;
+    setAttributeDrafts(seeded);
+    seededItemIdRef.current = item.id;
+  }, [isEditing, detail?.attributeValues, item?.id]);
 
   // Packaging — local state for create, server data for edit
   const [localPackagingLevels, setLocalPackagingLevels] = useState<LocalPackagingLevel[]>([]);
@@ -299,11 +330,38 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const setThresholdValue = (name: 'reorderThreshold' | 'reorderThresholdUnit', value: unknown) =>
     setValue(name, value as never);
 
+  // Attribute values are their own endpoint, so they sequence off a saved item the way packaging
+  // levels do. Failures are reported by the global handler; the count comes back so the caller
+  // can say the item saved without claiming its attributes did.
+  const saveAttributeValues = async (itemId: string): Promise<number> => {
+    const requests = changedAttributeRequests(
+      savedDraftsRef.current,
+      attributeDrafts,
+      attributeDefinitions
+    );
+    if (requests.length === 0) return 0;
+
+    const results = await Promise.allSettled(
+      requests.map(data => setAttributeValueMutation.mutateAsync({ itemId, data }))
+    );
+    return results.filter(result => result.status === 'rejected').length;
+  };
+
+  const reportSaved = (verb: string, failed: number) => {
+    if (failed === 0) {
+      notifications.success(`Item ${verb}`);
+      return;
+    }
+    notifications.warning(
+      `Item ${verb}, but ${failed} ${failed === 1 ? 'attribute value' : 'attribute values'} could not be saved`
+    );
+  };
+
   const onFormSubmit = async (data: FieldValues) => {
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: item.id, data: data as UpdateSupplyItemRequest });
-        notifications.success('Item updated');
+        reportSaved('updated', await saveAttributeValues(item.id));
       } else {
         const created = await createMutation.mutateAsync(data as CreateSupplyItemRequest);
 
@@ -335,7 +393,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
           }
         }
 
-        notifications.success('Item created');
+        reportSaved('created', await saveAttributeValues(created.id));
       }
       onSubmit();
     } catch {
@@ -645,6 +703,25 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               />
             </>
           )}
+
+          <div className="!mt-3.5">
+            <SectionHeader title="Attributes" size="sm" />
+          </div>
+          <AttributeFields
+            definitions={attributeDefinitions}
+            options={attributes?.options ?? []}
+            drafts={attributeDrafts}
+            onChange={(definitionId, draft) =>
+              setAttributeDrafts(prev => ({ ...prev, [definitionId]: draft }))
+            }
+            onRemove={definitionId =>
+              setAttributeDrafts(prev => {
+                const next = { ...prev };
+                delete next[definitionId];
+                return next;
+              })
+            }
+          />
 
           <div className="!mt-3.5">
             <SectionHeader title="Reorder Settings" size="sm" />

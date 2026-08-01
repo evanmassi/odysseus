@@ -82,6 +82,7 @@ describe('category depth invariant', () => {
         repos.supplyCategories,
         repos.supplyItems,
         repos.reagentItems,
+        repos.attributes,
         accessControl,
         eventBus
       ),

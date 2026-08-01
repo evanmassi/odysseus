@@ -9,6 +9,26 @@ export {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
+export { AttributeFields } from './AttributeFields';
+export { AttributeFilterPanel, FacetGroup } from './AttributeFilterPanel';
+export {
+  EMPTY_ATTRIBUTE_FILTERS,
+  countAttributeFilters,
+  matchesAttributeFilters,
+  toggleFilterOption,
+  type AttributeFilters,
+} from './attributeFilters';
+export {
+  EMPTY_DRAFT,
+  changedAttributeRequests,
+  draftsFromValues,
+  isDraftPopulated,
+  type AttributeDrafts,
+  type AttributeValueDraft,
+  type AttributeValueRow,
+} from './attributeDrafts';
+export { toAttributeDisplayRows } from './attributeDisplayRows';
+export { appliesToType, scopedOutOfType } from './attributeScope';
 export { BulkArchiveTab } from './BulkArchiveTab';
 export { type ItemPackaging } from './BulkItemRow';
 export { BulkOperationsModal } from './BulkOperationsModal';

@@ -73,6 +73,15 @@ export interface RecordTransactionData {
   notes?: string;
 }
 
+export interface SupplyAttributeValueRow {
+  id: string;
+  itemId: string;
+  definitionId: string;
+  valueOptionId?: string;
+  valueText?: string;
+  valueNumber?: number;
+}
+
 export interface SupplyPackagingLevelRow {
   id: string;
   itemId: string;
@@ -139,6 +148,16 @@ export interface SupplyItemRepository {
   renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingManufacturer(value: string, labId: string): Promise<number>;
   renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
+
+  // Attribute values
+
+  findAttributeValuesByItemId(itemId: string): Promise<SupplyAttributeValueRow[]>;
+  findAttributeValuesByLabId(labId: string): Promise<SupplyAttributeValueRow[]>;
+  replaceAttributeValues(
+    itemId: string,
+    definitionId: string,
+    values: SupplyAttributeValueRow[]
+  ): Promise<void>;
 
   // Packaging levels
 

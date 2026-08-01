@@ -10,14 +10,14 @@ import { useState } from 'react';
 import { Biohazard } from 'lucide-react';
 
 // Dev-only preview: reaches domain internals directly, bypassing the public barrels.
-import { ReagentAttributeFields } from '@domains/reagents/ui/components/ReagentAttributeFields';
 import { SectionHeader, Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
+import { AttributeFields } from '@shared/ui/components/inventory';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
-import type { AttributeDrafts } from '@domains/reagents/utils/reagentAttributeValues';
 import type { AttributeDefinition, AttributeOption } from '@odysseus/shared-schemas';
+import type { AttributeDrafts } from '@shared/ui/components/inventory';
 
 const FIXTURE_DATE = new Date('2026-07-01T00:00:00.000Z');
 
@@ -123,11 +123,11 @@ export function ReagentAttributeFieldsPreview({ onClose }: { onClose: () => void
         <div className="!mt-3.5">
           <SectionHeader title="Attributes" size="sm" />
         </div>
-        <ReagentAttributeFields
+        <AttributeFields
           definitions={DEFINITIONS}
           options={OPTIONS}
           drafts={drafts}
-          reagentType={reagentType}
+          itemType={reagentType}
           onChange={(definitionId, draft) =>
             setDrafts(prev => ({ ...prev, [definitionId]: draft }))
           }

@@ -8,10 +8,10 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Plus, Eye, EyeOff, Package, MapPin, Layers } from 'lucide-react';
+import { Eye, EyeOff, Layers, MapPin, Package, Plus, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { LocationModal } from '@domains/lab-management';
+import { LocationModal, useAttributesQuery } from '@domains/lab-management';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import {
   useCreateSupplyCategoryMutation,
@@ -29,6 +29,11 @@ import {
 } from '@shared/ui';
 import {
   CategoryModal,
+  AttributeFilterPanel,
+  countAttributeFilters,
+  matchesAttributeFilters,
+  EMPTY_ATTRIBUTE_FILTERS,
+  type AttributeFilters,
   CategoryTreePanel,
   type CategoryTreePanelLabels,
   INVENTORY_SORT_OPTIONS,
@@ -84,6 +89,7 @@ export function SuppliesTab() {
 
   const { data: categories = [] } = useSupplyCategoriesQuery();
   const { data: items = [] } = useSupplyItemsQuery();
+  const { data: attributes } = useAttributesQuery();
   const createCategoryMutation = useCreateSupplyCategoryMutation();
   const updateCategoryMutation = useUpdateSupplyCategoryMutation();
   const deleteCategoryMutation = useDeleteSupplyCategoryMutation();
@@ -92,6 +98,8 @@ export function SuppliesTab() {
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const [filters, setFilters] = useState<AttributeFilters>(EMPTY_ATTRIBUTE_FILTERS);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
@@ -208,7 +216,18 @@ export function SuppliesTab() {
     { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
   ];
 
-  const itemCount = showArchived ? items.length : items.filter(p => p.status !== 'archived').length;
+  const activeFilterCount = countAttributeFilters(filters);
+  const visibleItems = useMemo(
+    () =>
+      activeFilterCount === 0
+        ? items
+        : items.filter(item => matchesAttributeFilters(item.attributeValues, filters)),
+    [items, filters, activeFilterCount]
+  );
+
+  const itemCount = showArchived
+    ? visibleItems.length
+    : visibleItems.filter(p => p.status !== 'archived').length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
   return (
@@ -263,6 +282,20 @@ export function SuppliesTab() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setIsFilterOpen(open => !open)}
+              aria-pressed={isFilterOpen || activeFilterCount > 0}
+              className={`h-8 text-label-sm ${
+                isFilterOpen || activeFilterCount > 0
+                  ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                  : ''
+              }`}
+              leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+            >
+              Filter
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowArchived(!showArchived)}
               className="h-8 text-label-sm"
               leftIcon={
@@ -289,6 +322,19 @@ export function SuppliesTab() {
 
           {/* Body: pinned low-stock alerts + scrolling category tree */}
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+            {isFilterOpen && (
+              <AttributeFilterPanel
+                definitions={attributes?.definitions ?? []}
+                options={attributes?.options ?? []}
+                items={items}
+                matchCount={visibleItems.length}
+                filters={filters}
+                activeCount={activeFilterCount}
+                onChange={setFilters}
+                onClearAll={() => setFilters(EMPTY_ATTRIBUTE_FILTERS)}
+                emptyMessage="No item carries an attribute value yet — set some on an item and its facets appear here."
+              />
+            )}
             <SupplyLowStockAlertPanel
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
@@ -296,7 +342,7 @@ export function SuppliesTab() {
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
-                items={items}
+                items={visibleItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 sortField={sortField}

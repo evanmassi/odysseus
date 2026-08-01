@@ -1,10 +1,16 @@
 /**
  * Reagent List Filters
  *
- * Facet matching for the reagent list: OR within one attribute, AND across attributes, which is
- * what makes "any FITC or PE antibody that is also a primary" mean what it reads like. Runs
- * client-side off the list row's attribute summary — the same rule the alert panels follow.
+ * The shared attribute facets plus the one axis only reagents have: how close a lot is to
+ * expiring. Both are ANDed, so narrowing by fluorophore and by "expiring soon" means what it
+ * reads like.
  */
+
+import {
+  countAttributeFilters,
+  matchesAttributeFilters,
+  type AttributeFilters,
+} from '@shared/ui/components/inventory';
 
 import { resolveExpiryBadge } from './reagentExpiry';
 
@@ -12,9 +18,7 @@ import type { ReagentItemWithStock } from '@odysseus/shared-schemas';
 
 export type ReagentExpiryBucket = 'expired' | 'expiring' | 'in-date';
 
-export interface ReagentFilters {
-  /** Selected option ids per attribute definition. */
-  optionIds: Record<string, string[]>;
+export interface ReagentFilters extends AttributeFilters {
   expiry: ReagentExpiryBucket[];
 }
 
@@ -27,42 +31,15 @@ export function expiryBucket(item: ReagentItemWithStock): ReagentExpiryBucket {
 }
 
 export function countActiveFilters(filters: ReagentFilters): number {
-  const options = Object.values(filters.optionIds).reduce((total, ids) => total + ids.length, 0);
-  return options + filters.expiry.length;
+  return countAttributeFilters(filters) + filters.expiry.length;
 }
 
 export function matchesReagentFilters(
   item: ReagentItemWithStock,
   filters: ReagentFilters
 ): boolean {
-  const attributesMatch = Object.entries(filters.optionIds).every(
-    ([definitionId, ids]) =>
-      ids.length === 0 ||
-      item.attributeValues.some(
-        value =>
-          value.definitionId === definitionId &&
-          !!value.valueOptionId &&
-          ids.includes(value.valueOptionId)
-      )
-  );
-  if (!attributesMatch) return false;
-
+  if (!matchesAttributeFilters(item.attributeValues, filters)) return false;
   return filters.expiry.length === 0 || filters.expiry.includes(expiryBucket(item));
-}
-
-export function toggleFilterOption(
-  filters: ReagentFilters,
-  definitionId: string,
-  optionId: string
-): ReagentFilters {
-  const current = filters.optionIds[definitionId] ?? [];
-  const next = current.includes(optionId)
-    ? current.filter(id => id !== optionId)
-    : [...current, optionId];
-
-  const optionIds = { ...filters.optionIds, [definitionId]: next };
-  if (next.length === 0) delete optionIds[definitionId];
-  return { ...filters, optionIds };
 }
 
 export function toggleExpiryBucket(

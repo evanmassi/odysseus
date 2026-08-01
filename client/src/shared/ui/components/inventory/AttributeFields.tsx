@@ -1,9 +1,10 @@
 /**
- * Reagent Attribute Fields
+ * Attribute Fields
  *
- * The lab's attributes on the reagent form: add-on-demand from a palette scoped to the
- * chosen reagent type, plus any the lab promoted to always-prompt. A value already set stays
- * rendered even if the type no longer scopes it, so changing the type never drops data.
+ * The lab's attributes on an item form: add-on-demand from a palette scoped to the chosen item
+ * type, plus any the lab promoted to always-prompt. A value already set stays rendered even if
+ * the type no longer scopes it, so changing the type never drops data. A catalog with no type
+ * discriminator passes none, and sees the attributes scoped to every type.
  */
 
 import { useMemo, useState } from 'react';
@@ -14,34 +15,34 @@ import { Chip, Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { Input } from '@shared/ui/primitives';
 
-import { appliesToReagentType } from '../../utils/reagentAttributeScope';
 import {
   EMPTY_DRAFT,
   isDraftPopulated,
   type AttributeDrafts,
   type AttributeValueDraft,
-} from '../../utils/reagentAttributeValues';
+} from './attributeDrafts';
+import { appliesToType } from './attributeScope';
 
 import type { AttributeDefinition, AttributeOption } from '@odysseus/shared-schemas';
 
-interface ReagentAttributeFieldsProps {
+interface AttributeFieldsProps {
   definitions: AttributeDefinition[];
   options: AttributeOption[];
   drafts: AttributeDrafts;
-  /** The form's current reagent type; scopes which attributes the palette offers. */
-  reagentType?: string;
+  /** The form's current item type; scopes which attributes the palette offers. */
+  itemType?: string;
   onChange: (definitionId: string, draft: AttributeValueDraft) => void;
   onRemove: (definitionId: string) => void;
 }
 
-export function ReagentAttributeFields({
+export function AttributeFields({
   definitions,
   options,
   drafts,
-  reagentType,
+  itemType,
   onChange,
   onRemove,
-}: ReagentAttributeFieldsProps) {
+}: AttributeFieldsProps) {
   const [added, setAdded] = useState<string[]>([]);
 
   const optionsByDefinition = useMemo(() => {
@@ -62,7 +63,7 @@ export function ReagentAttributeFields({
     definition =>
       added.includes(definition.id) ||
       isDraftPopulated(drafts[definition.id] ?? EMPTY_DRAFT) ||
-      (definition.promptOnForm && appliesToReagentType(definition, reagentType))
+      (definition.promptOnForm && appliesToType(definition, itemType))
   );
 
   const paletteOptions = useMemo(
@@ -72,12 +73,12 @@ export function ReagentAttributeFields({
         sorted
           .filter(
             definition =>
-              appliesToReagentType(definition, reagentType) &&
+              appliesToType(definition, itemType) &&
               !shown.some(visible => visible.id === definition.id)
           )
           .map(definition => ({ value: definition.id, label: definition.name }))
       ),
-    [sorted, reagentType, shown]
+    [sorted, itemType, shown]
   );
 
   const renderControl = (definition: AttributeDefinition) => {
@@ -207,7 +208,7 @@ export function ReagentAttributeFields({
       ) : (
         shown.length === 0 && (
           <p className="text-caption text-muted-foreground">
-            No attributes apply to this reagent type yet — the lab defines them in Admin › Catalog.
+            No attributes apply here yet — the lab defines them in Admin › Catalog.
           </p>
         )
       )}

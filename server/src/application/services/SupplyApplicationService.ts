@@ -47,11 +47,13 @@ import {
   SupplyBulkVoidedEvent,
   type BulkVoidItemDetail,
 } from '@domain/events/SupplyEvents';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
+  SupplyAttributeValueRow,
 } from '@domain/repositories/SupplyItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -79,6 +81,8 @@ import type {
   SupplyBulkVoidRequest,
   SupplyBulkResponse,
   SupplyBulkBarcodesResponse,
+  SupplyAttributeValue,
+  SetSupplyAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 export class SupplyApplicationService {
@@ -86,6 +90,7 @@ export class SupplyApplicationService {
     private categoryRepository: CategoryRepository<SupplyCategory>,
     private itemRepository: SupplyItemRepository,
     private reagentItemRepository: ReagentItemRepository,
+    private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -172,27 +177,44 @@ export class SupplyApplicationService {
 
   async listItems(labId: string): Promise<SupplyItemWithStockResponse[]> {
     const itemsWithStock = await this.itemRepository.findByLabIdWithStock(labId);
+    // One query for the lab's values, grouped in memory — per-item fetches would be an N+1.
+    const values = await this.itemRepository.findAttributeValuesByLabId(labId);
+    const byItem = new Map<string, SupplyAttributeValueRow[]>();
+    for (const value of values) {
+      const bucket = byItem.get(value.itemId) ?? [];
+      bucket.push(value);
+      byItem.set(value.itemId, bucket);
+    }
+
     return itemsWithStock.map(({ item, totalStock, locationNames }) =>
-      SupplyDto.itemWithStockToResponse(item, totalStock, locationNames)
+      SupplyDto.itemWithStockToResponse(
+        item,
+        totalStock,
+        locationNames,
+        (byItem.get(item.id) ?? []).map(SupplyDto.attributeSummaryToResponse)
+      )
     );
   }
 
   async getItem(labId: string, id: string): Promise<SupplyItemDetailResponse> {
     const item = await this.getItemOrThrow(id, labId);
-    const [documents, barcodes, stock, recentTransactions, packagingLevels] = await Promise.all([
-      this.itemRepository.findDocumentsByItemId(id),
-      this.itemRepository.findBarcodesByItemId(id),
-      this.itemRepository.findStockByItemId(id),
-      this.itemRepository.findTransactionsByItemId(id, 50),
-      this.itemRepository.findPackagingLevelsByItemId(id),
-    ]);
+    const [documents, barcodes, stock, recentTransactions, packagingLevels, attributeValues] =
+      await Promise.all([
+        this.itemRepository.findDocumentsByItemId(id),
+        this.itemRepository.findBarcodesByItemId(id),
+        this.itemRepository.findStockByItemId(id),
+        this.itemRepository.findTransactionsByItemId(id, 50),
+        this.itemRepository.findPackagingLevelsByItemId(id),
+        this.itemRepository.findAttributeValuesByItemId(id),
+      ]);
     return SupplyDto.itemDetailToResponse(
       item,
       documents,
       barcodes,
       stock,
       recentTransactions,
-      packagingLevels
+      packagingLevels,
+      attributeValues.map(SupplyDto.attributeValueToResponse)
     );
   }
 
@@ -271,6 +293,62 @@ export class SupplyApplicationService {
     const item = await this.getItemOrThrow(id, labId);
     await this.itemRepository.delete(id, labId);
     await this.eventBus.publish(new SupplyItemDeletedEvent(id, item.name, user.id, labId));
+  }
+
+  // Attribute values
+
+  async setAttributeValue(
+    labId: string,
+    itemId: string,
+    data: SetSupplyAttributeValueRequest,
+    user: User
+  ): Promise<SupplyAttributeValue[]> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getItemOrThrow(itemId, labId);
+
+    const definition = await this.attributeRepository.findDefinitionById(data.definitionId, labId);
+    if (!definition) {
+      throw new NotFoundError('This attribute could not be found.', {
+        definitionId: data.definitionId,
+      });
+    }
+
+    const rows = definition.usesOptions
+      ? (data.valueOptionIds ?? []).map(valueOptionId => ({
+          id: generateId('satv'),
+          itemId,
+          definitionId: definition.id,
+          valueOptionId,
+        }))
+      : this.scalarAttributeRows(itemId, definition.id, data);
+
+    if (definition.valueType === 'select' && rows.length > 1) {
+      throw new ValidationError(`"${definition.name}" accepts a single value`);
+    }
+
+    await this.itemRepository.replaceAttributeValues(itemId, definition.id, rows);
+    const stored = await this.itemRepository.findAttributeValuesByItemId(itemId);
+    return stored
+      .filter(row => row.definitionId === definition.id)
+      .map(SupplyDto.attributeValueToResponse);
+  }
+
+  private scalarAttributeRows(
+    itemId: string,
+    definitionId: string,
+    data: SetSupplyAttributeValueRequest
+  ): SupplyAttributeValueRow[] {
+    const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
+    if (isEmpty) return [];
+    return [
+      {
+        id: generateId('satv'),
+        itemId,
+        definitionId,
+        valueText: data.valueText,
+        valueNumber: data.valueNumber,
+      },
+    ];
   }
 
   // Documents

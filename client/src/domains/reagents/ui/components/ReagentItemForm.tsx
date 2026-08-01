@@ -30,14 +30,6 @@ import {
   useUpdateReagentItemMutation,
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
-import { scopedOutOfType } from '@domains/reagents/utils/reagentAttributeScope';
-import {
-  changedAttributeRequests,
-  draftsFromValues,
-  isDraftPopulated,
-  EMPTY_DRAFT,
-  type AttributeDrafts,
-} from '@domains/reagents/utils/reagentAttributeValues';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
@@ -53,12 +45,19 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import {
+  AttributeFields,
+  changedAttributeRequests,
+  draftsFromValues,
+  isDraftPopulated,
+  scopedOutOfType,
+  EMPTY_DRAFT,
+  type AttributeDrafts,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
-
-import { ReagentAttributeFields } from './ReagentAttributeFields';
 
 interface ReagentItemFormProps {
   item?: ReagentItemWithStock;
@@ -513,11 +512,11 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
           <div className="!mt-3.5">
             <SectionHeader title="Attributes" size="sm" />
           </div>
-          <ReagentAttributeFields
+          <AttributeFields
             definitions={attributeDefinitions}
             options={attributes?.options ?? []}
             drafts={attributeDrafts}
-            reagentType={allValues['reagentType'] as string | undefined}
+            itemType={allValues['reagentType'] as string | undefined}
             onChange={(definitionId, draft) =>
               setAttributeDrafts(prev => ({ ...prev, [definitionId]: draft }))
             }

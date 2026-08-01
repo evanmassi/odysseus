@@ -9,6 +9,7 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type {
   SupplyItemRepository,
@@ -29,6 +30,7 @@ function makeService(repoOverrides: Partial<SupplyItemRepository> = {}) {
     {} as CategoryRepository<SupplyCategory>,
     repo,
     {} as ReagentItemRepository,
+    {} as AttributeRepository,
     {} as AccessControlService,
     {} as EventBus
   );

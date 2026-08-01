@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useLocationsQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useDeleteSupplyItemMutation,
@@ -49,6 +49,7 @@ import {
   Tooltip,
 } from '@shared/ui';
 import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
+import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -98,6 +99,7 @@ export function SupplyItemInfoPanel({
 
   const { data: detail } = useSupplyItemDetailQuery(itemId);
   const { data: locations = [] } = useLocationsQuery();
+  const { data: attributes } = useAttributesQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const deleteItemMutation = useDeleteSupplyItemMutation();
   const archiveItemMutation = useArchiveSupplyItemMutation();
@@ -128,7 +130,12 @@ export function SupplyItemInfoPanel({
     );
   }
 
-  const { item, documents, barcodes, stock } = detail;
+  const { item, documents, barcodes, stock, attributeValues } = detail;
+  const attributeRows = toAttributeDisplayRows(
+    attributes?.definitions ?? [],
+    attributes?.options ?? [],
+    attributeValues
+  );
   const statusConfig = SUPPLY_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
@@ -475,6 +482,17 @@ export function SupplyItemInfoPanel({
             <div>
               <SectionHeader title="Notes" size="sm" />
               <p className="whitespace-pre-wrap text-body text-card-foreground">{item.notes}</p>
+            </div>
+          )}
+
+          {attributeRows.length > 0 && (
+            <div>
+              <SectionHeader title="Attributes" size="sm" />
+              <div>
+                {attributeRows.map(row => (
+                  <DetailRow key={row.id} label={row.name} value={row.display} />
+                ))}
+              </div>
             </div>
           )}
 

@@ -30,6 +30,8 @@ import {
   type VoidSupplyTransactionRequest,
   type SupplyBulkVoidRequest,
   type SupplyBulkBarcodesResponse,
+  type SupplyAttributeValue,
+  type SetSupplyAttributeValueRequest,
   type SupplyPackagingLevel,
   type CreateSupplyPackagingLevelRequest,
   supplyCategoryResponseSchema,
@@ -43,6 +45,7 @@ import {
   supplyTransactionListResponseSchema,
   supplyBulkResponseSchema,
   supplyBulkBarcodesResponseSchema,
+  supplyAttributeValueListResponseSchema,
   supplyVoidTransactionResponseSchema,
   supplyPackagingLevelResponseSchema,
   messageResponseSchema,
@@ -302,5 +305,16 @@ export class SupplyService {
     });
 
     return { barcodes };
+  }
+  static async setAttributeValue(
+    itemId: string,
+    data: SetSupplyAttributeValueRequest
+  ): Promise<SupplyAttributeValue[]> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/attributes`,
+      data,
+      supplyAttributeValueListResponseSchema
+    );
+    return response.attributeValues;
   }
 }

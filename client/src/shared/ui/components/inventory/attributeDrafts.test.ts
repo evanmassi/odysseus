@@ -1,5 +1,5 @@
 /**
- * Reagent Attribute Value Drafts
+ * Attribute Value Drafts
  *
  * The diff decides what gets written, so the cases that matter are the ones that must produce a
  * request when nothing looks changed: a multi-select whose options were swapped, and a value
@@ -8,13 +8,10 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  changedAttributeRequests,
-  draftsFromValues,
-  isDraftPopulated,
-} from './reagentAttributeValues';
+import { changedAttributeRequests, draftsFromValues, isDraftPopulated } from './attributeDrafts';
 
-import type { AttributeDefinition, ReagentAttributeValue } from '@odysseus/shared-schemas';
+import type { AttributeValueRow } from './attributeDrafts';
+import type { AttributeDefinition } from '@odysseus/shared-schemas';
 
 const definition = (
   id: string,
@@ -43,10 +40,8 @@ const DEFINITIONS = [
 
 const value = (
   definitionId: string,
-  fields: Partial<ReagentAttributeValue> = {}
-): ReagentAttributeValue => ({
-  id: `ratv-${definitionId}-${fields.valueOptionId ?? fields.valueText ?? fields.valueNumber}`,
-  itemId: 'ritm',
+  fields: Partial<AttributeValueRow> = {}
+): AttributeValueRow => ({
   definitionId,
   valueOptionId: null,
   valueText: null,

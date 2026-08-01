@@ -52,6 +52,7 @@ import {
   Tooltip,
 } from '@shared/ui';
 import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
+import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -153,24 +154,11 @@ export function ReagentItemInfoPanel({
       ? formatQuantity(item.concentration, item.concentrationUnit)
       : undefined;
 
-  // One row per attribute that carries a value; multi-select values join into one line.
-  const attributeRows = (attributes?.definitions ?? [])
-    .map(definition => {
-      const values = attributeValues.filter(value => value.definitionId === definition.id);
-      const optionLabels = values
-        .map(
-          value =>
-            attributes?.options.find(option => option.id === value.valueOptionId)?.value ?? ''
-        )
-        .filter(Boolean);
-      const scalar = values.find(value => value.valueText !== null || value.valueNumber !== null);
-      const display =
-        optionLabels.length > 0
-          ? optionLabels.join(', ')
-          : (scalar?.valueText ?? scalar?.valueNumber?.toString());
-      return { id: definition.id, name: definition.name, display };
-    })
-    .filter((row): row is { id: string; name: string; display: string } => !!row.display);
+  const attributeRows = toAttributeDisplayRows(
+    attributes?.definitions ?? [],
+    attributes?.options ?? [],
+    attributeValues
+  );
 
   const reorderQuantity =
     item.reorderQuantity !== undefined

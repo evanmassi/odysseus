@@ -59,6 +59,15 @@ export const supplyCategoryListResponseSchema = z.object({
 
 // Item schemas
 
+// Attribute value summary — compact per-item attribute values for list filtering.
+
+export const supplyAttributeSummarySchema = z.object({
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
 export const supplyItemSchema = z.object({
   id: z.string(),
   labId: z.string(),
@@ -87,6 +96,7 @@ export const supplyItemSchema = z.object({
 export const supplyItemWithStockSchema = supplyItemSchema.extend({
   totalStock: z.number(),
   locationNames: z.array(z.string()),
+  attributeValues: z.array(supplyAttributeSummarySchema),
 });
 
 export const createSupplyItemRequestSchema = z.object({
@@ -292,6 +302,30 @@ export const supplyPackagingLevelResponseSchema = z.object({
   packagingLevel: supplyPackagingLevelSchema,
 });
 
+// Attribute values — per-item, keyed to the lab-wide definitions in `../attributes`.
+
+export const supplyAttributeValueSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
+// The write replaces a definition's values wholesale, so the response is that definition's
+// rows after the fact — the caller sends one request per attribute it changed.
+export const supplyAttributeValueListResponseSchema = z.object({
+  attributeValues: z.array(supplyAttributeValueSchema),
+});
+
+export const setSupplyAttributeValueRequestSchema = z.object({
+  definitionId: z.string().min(1, 'Attribute is required'),
+  valueOptionIds: z.array(z.string().min(1)).optional(),
+  valueText: optionalText(2000),
+  valueNumber: z.number().optional(),
+});
+
 // Composed detail response
 
 export const supplyItemDetailResponseSchema = z.object({
@@ -301,6 +335,7 @@ export const supplyItemDetailResponseSchema = z.object({
   stock: z.array(supplyStockSchema),
   recentTransactions: z.array(supplyTransactionSchema),
   packagingLevels: z.array(supplyPackagingLevelSchema),
+  attributeValues: z.array(supplyAttributeValueSchema),
 });
 
 // Bulk operation schemas
@@ -377,6 +412,9 @@ export type SupplyTransaction = z.infer<typeof supplyTransactionSchema>;
 export type SupplyVoidTransactionResponse = z.infer<typeof supplyVoidTransactionResponseSchema>;
 export type SupplyDocument = z.infer<typeof supplyDocumentSchema>;
 export type SupplyItemDetail = z.infer<typeof supplyItemDetailResponseSchema>;
+export type SupplyAttributeSummary = z.infer<typeof supplyAttributeSummarySchema>;
+export type SupplyAttributeValue = z.infer<typeof supplyAttributeValueSchema>;
+export type SetSupplyAttributeValueRequest = z.infer<typeof setSupplyAttributeValueRequestSchema>;
 export type CreateSupplyCategoryRequest = z.infer<typeof createSupplyCategoryRequestSchema>;
 export type UpdateSupplyCategoryRequest = z.infer<typeof updateSupplyCategoryRequestSchema>;
 export type CreateSupplyItemRequest = z.infer<typeof createSupplyItemRequestSchema>;

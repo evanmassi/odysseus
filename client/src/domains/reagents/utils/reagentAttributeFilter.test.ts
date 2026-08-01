@@ -7,12 +7,13 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { toggleFilterOption } from '@shared/ui/components/inventory';
+
 import {
   EMPTY_REAGENT_FILTERS,
   countActiveFilters,
   expiryBucket,
   matchesReagentFilters,
-  toggleFilterOption,
 } from './reagentAttributeFilter';
 
 import type { ReagentItemWithStock } from '@odysseus/shared-schemas';
