@@ -1,14 +1,15 @@
 /**
  * Reagent Lot Panel
  *
- * Per-lot stock for an item, listed in the order the server draws it: soonest-expiring
- * usable lot first, expired next, spent and disposed lots last.
+ * Per-lot stock for an item, listed in the order the server draws it: soonest-expiring usable
+ * lot first, expired next. Depleted and disposed lots are history rather than stock, so they
+ * sit behind a toggle instead of padding the list you read to find a bottle.
  */
 
 import { useMemo, useState } from 'react';
 
 import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
-import { MapPin, Printer, SquarePen } from 'lucide-react';
+import { Eye, EyeOff, MapPin, Printer, SquarePen } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useLocationsQuery } from '@domains/lab-management';
@@ -78,6 +79,7 @@ export function ReagentLotPanel({
   );
   const [editingLot, setEditingLot] = useState<ReagentLot | undefined>();
   const [printingLot, setPrintingLot] = useState<ReagentLot | undefined>();
+  const [showInactive, setShowInactive] = useState(false);
 
   const ordered = useMemo(() => [...lots].sort(compareForDisplay), [lots]);
   const printingBarcodeValue = printingLot ? barcodeByLotId.get(printingLot.id) : undefined;
@@ -87,12 +89,18 @@ export function ReagentLotPanel({
   }
 
   const onHand = ordered.filter(isLotDrawable);
+  const inactiveCount = ordered.length - onHand.length;
+  const visible = showInactive ? ordered : onHand;
   const total = onHand.reduce((sum, lot) => sum + lot.quantity, 0);
   const amount = (value: number) => (stockUnit ? formatQuantity(value, stockUnit) : String(value));
 
   return (
     <div className="border border-line-soft">
-      {ordered.map((lot, index) => {
+      {visible.length === 0 && (
+        <p className="px-3 py-2 text-caption italic text-muted-foreground">No lots in stock</p>
+      )}
+
+      {visible.map((lot, index) => {
         const expiry = resolveLotExpiry(lot.expirationDate, expiryWarningDays);
         const locationName = locationNameMap.get(lot.locationId);
         const dates = [
@@ -105,7 +113,7 @@ export function ReagentLotPanel({
           <div
             key={lot.id}
             className={`px-3 py-2 ${
-              index < ordered.length - 1 ? 'border-b border-line-faint' : ''
+              index < visible.length - 1 ? 'border-b border-line-faint' : ''
             } ${isLotDrawable(lot) ? '' : 'opacity-50'}`}
           >
             <div className="flex items-baseline gap-3">
@@ -157,10 +165,22 @@ export function ReagentLotPanel({
         );
       })}
 
-      <div className="flex items-baseline justify-between border-t border-line-soft bg-primary/[0.06] px-3 py-2">
-        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
-          On hand
-        </span>
+      <div className="flex items-center justify-between border-t border-line-soft bg-primary/[0.06] px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
+            On hand
+          </span>
+          {inactiveCount > 0 && (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => setShowInactive(!showInactive)}
+              leftIcon={showInactive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            >
+              {showInactive ? 'Hide' : 'Show'} {inactiveCount} inactive
+            </Button>
+          )}
+        </div>
         <span className="font-mono text-data-sm text-card-foreground">
           {amount(total)}
           <span className="ml-1.5 text-foreground/40">
