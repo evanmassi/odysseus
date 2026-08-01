@@ -23,9 +23,11 @@ that need eyes on the running app rather than a code read.
   `Unused`, or leave.
 - **`HelpModal` search header** — its `rightMeta` nub moved ~80px right when `SectionHeader`'s
   consumer-specific `right-20` offset was removed. Expected to read better; unverified.
-- **Reagent lot UI never rendered with data** — the lot panel, FEFO ordering, expiry chips and both alert
-  panels have only been exercised by tests. Fastest path to eyes-on: receive stock through the tab, or ask
-  for psql inserts seeding an item with lots at varying expiries.
+- ~~**Reagent lot UI never rendered with data**~~ — **closed.** Phase 9 drove real lots through the app:
+  bulk receive minted them, bulk void reversed a multi-lot FEFO draw whole, and lot labels printed from
+  the sheet flow. Two defects only visible with data came out of it — label text truncating worse on
+  larger sheet templates, and the lot panel listing depleted lots inline — both fixed. Still unexercised:
+  the expiry alert panel against lots that actually cross the 90-day window.
 - **Persisted cache has no schema-version gate** — `queryClient` persists most query keys to
   `localStorage` for a day, and `validateCacheVersion` only busts it on a *storage config* version
   mismatch (a DB reset). Nothing busts it when a client data *shape* changes, so a user whose tab

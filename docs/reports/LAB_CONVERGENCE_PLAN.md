@@ -5,10 +5,12 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5, 6, 7, 8, 9 and 12 done. Reagents is complete through **Phase 7**,
-and item 8 unblocked **Phase 8 (barcodes)**, which is next. Remaining: 4b (equipment locations), 10,
-and 11 (attributes for the other two catalogs, unblocked now that Phase 7 shipped the first caller).
-Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
+**Status:** items 1, 2, 3, 4a, 5, 6, 7, 8, 9 and 12 done. **Reagents is complete — all nine phases**,
+so every extraction these items were sequenced around now has its second caller in hand. Remaining:
+4b (equipment locations), 10, and 11 (attributes for the other two catalogs). Item 10 gets a nudge
+from Phase 9: `shared/ui/components/inventory/` now holds the whole bulk surface, so the tab chassis
+is the last hand-written duplication of its size. Companion to `REAGENTS_PLAN.md` (which owns the
+reagent subsystem design).
 
 **Migration policy — amend-in-place is over.** Dev has applied everything through **033**. While
 reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
