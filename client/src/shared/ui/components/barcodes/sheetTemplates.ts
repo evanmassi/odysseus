@@ -148,7 +148,26 @@ export function getTemplateById(id: string): SheetTemplate | undefined {
 // Minimum font sizes (inches) keep the smallest templates readable —
 // Avery 5167 is only 0.5" tall, which would otherwise compute to ~3pt.
 const MIN_NAME_FONT_IN = 0.07;
-const MIN_META_FONT_IN = 0.055;
+export const MIN_META_FONT_IN = 0.055;
+
+/** Arial's average glyph runs about half its font size — enough to size a line to its width. */
+const AVG_GLYPH_WIDTH_EM = 0.5;
+
+/**
+ * Shrinks a one-line font until the text fits `availableWidth`, never above `preferredFont`.
+ * Font sizes derive from label *height*, so a tall label on the same width would otherwise
+ * set a bigger font for a line that has no more room to run.
+ */
+export function fitFontToWidth(
+  text: string,
+  availableWidthIn: number,
+  preferredFontIn: number,
+  minFontIn: number
+): number {
+  if (text.length === 0) return preferredFontIn;
+  const fitted = availableWidthIn / (text.length * AVG_GLYPH_WIDTH_EM);
+  return Math.max(minFontIn, Math.min(preferredFontIn, fitted));
+}
 
 export function deriveLabelSize(template: SheetTemplate): LabelSize {
   return {

@@ -13,6 +13,8 @@ import { toCanvas as qrToCanvas } from 'qrcode';
 
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
+import { fitFontToWidth, MIN_META_FONT_IN } from './sheetTemplates';
+
 export type BarcodeFormat = '1d' | '2d';
 
 export interface LabelSize {
@@ -92,9 +94,11 @@ export function BarcodeLabel({
   const lotLine = lotNumber ? `Lot ${lotNumber}` : undefined;
   const expiryLine = expirationDate ? `Exp ${formatDateForDisplay(expirationDate)}` : undefined;
 
-  const metaLine = [manufacturer, catalogNumber, lotLine, expiryLine, barcodeValue]
-    .filter((p): p is string => !!p && p.length > 0)
-    .join(' · ');
+  const metaParts = [manufacturer, catalogNumber, lotLine, expiryLine, barcodeValue].filter(
+    (p): p is string => !!p && p.length > 0
+  );
+  const metaLine = metaParts.join(' · ');
+  const longestMetaPart = metaParts.reduce((a, b) => (b.length > a.length ? b : a), '');
 
   const nameFontStyle = {
     fontSize: `${labelSize.nameFont}in`,
@@ -102,8 +106,15 @@ export function BarcodeLabel({
     lineHeight: 1.15,
     wordBreak: 'break-word' as const,
   };
-  const metaFontStyle = {
-    fontSize: `${labelSize.metaFont}in`,
+  // The 1D layout joins every field into one line; the 2D layout stacks them beside the QR.
+  // Either way the text sets its own size, since the font derives from height and the room
+  // it needs is width.
+  const joinedMetaFontStyle = {
+    fontSize: `${fitFontToWidth(metaLine, labelSize.width - padIn * 2, labelSize.metaFont, MIN_META_FONT_IN)}in`,
+    lineHeight: 1.15,
+  };
+  const stackedMetaFontStyle = {
+    fontSize: `${fitFontToWidth(longestMetaPart, labelSize.width - padIn * 3 - qrSizeIn, labelSize.metaFont, MIN_META_FONT_IN)}in`,
     lineHeight: 1.15,
   };
   const truncate = {
@@ -131,7 +142,7 @@ export function BarcodeLabel({
         <div style={{ ...nameFontStyle, textAlign: 'center' }}>{itemName}</div>
         <div
           style={{
-            ...metaFontStyle,
+            ...joinedMetaFontStyle,
             ...truncate,
             textAlign: 'center',
             marginTop: `${padIn * 0.3}in`,
@@ -166,11 +177,15 @@ export function BarcodeLabel({
     >
       <div style={{ minWidth: 0, overflow: 'hidden' }}>
         <div style={nameFontStyle}>{itemName}</div>
-        {manufacturer && <div style={{ ...metaFontStyle, ...truncate }}>{manufacturer}</div>}
-        {catalogNumber && <div style={{ ...metaFontStyle, ...truncate }}>{catalogNumber}</div>}
-        {lotLine && <div style={{ ...metaFontStyle, ...truncate }}>{lotLine}</div>}
-        {expiryLine && <div style={{ ...metaFontStyle, ...truncate }}>{expiryLine}</div>}
-        <div style={{ ...metaFontStyle, ...truncate, fontFamily: 'monospace' }}>{barcodeValue}</div>
+        {manufacturer && <div style={{ ...stackedMetaFontStyle, ...truncate }}>{manufacturer}</div>}
+        {catalogNumber && (
+          <div style={{ ...stackedMetaFontStyle, ...truncate }}>{catalogNumber}</div>
+        )}
+        {lotLine && <div style={{ ...stackedMetaFontStyle, ...truncate }}>{lotLine}</div>}
+        {expiryLine && <div style={{ ...stackedMetaFontStyle, ...truncate }}>{expiryLine}</div>}
+        <div style={{ ...stackedMetaFontStyle, ...truncate, fontFamily: 'monospace' }}>
+          {barcodeValue}
+        </div>
       </div>
       <canvas
         ref={qrRef}
