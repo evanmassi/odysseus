@@ -6,9 +6,9 @@
  * reconciles one lot. Packaging levels let quantities be entered by the pack.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { formatQuantity } from '@odysseus/shared-schemas';
+import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
 import { ClipboardCheck, ClipboardList, PackageMinus, PackagePlus, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
@@ -41,7 +41,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ReagentLot } from '@odysseus/shared-schemas';
 
@@ -73,6 +72,7 @@ const AUTO_LOT = '__auto__';
 export interface TransactionPrefill {
   locationId?: string;
   quantity?: number;
+  lotId?: string;
   lotNumber?: string;
   expirationDate?: string;
   poNumber?: string;
@@ -141,7 +141,7 @@ export function ReagentTransactionForm({
       type: (initialTab ?? 'received') as string,
       locationId: prefill?.locationId ?? '',
       quantity: prefill?.quantity,
-      lotId: initialTab === 'count' ? '' : AUTO_LOT,
+      lotId: prefill?.lotId ?? (initialTab === 'count' ? '' : AUTO_LOT),
       lotNumber: prefill?.lotNumber ?? '',
       expirationDate: prefill?.expirationDate ?? '',
       receivedDate: '',
@@ -153,6 +153,15 @@ export function ReagentTransactionForm({
       notes: prefill?.notes ?? '',
     },
   });
+
+  // A scanned lot label names the bottle but not where it sits, and the lot picker only
+  // offers lots at the chosen location — so the lot supplies its own.
+  const scannedLotId = prefill?.lotId;
+  useEffect(() => {
+    if (!scannedLotId) return;
+    const lot = detail?.lots.find(l => l.id === scannedLotId);
+    if (lot) setValue('locationId', lot.locationId);
+  }, [scannedLotId, detail?.lots, setValue]);
 
   const mode = watch('type') as TransactionMode;
   const locationId = watch('locationId');

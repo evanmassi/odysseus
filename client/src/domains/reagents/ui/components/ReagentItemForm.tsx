@@ -10,11 +10,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createReagentItemRequestSchema,
+  pluralizeUnit,
   updateReagentItemRequestSchema,
   type CreateReagentItemRequest,
-  type UpdateReagentItemRequest,
   type ReagentCategory,
   type ReagentItemWithStock,
+  type UpdateReagentItemRequest,
 } from '@odysseus/shared-schemas';
 import { Plus, Save, SquarePen, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
@@ -56,7 +57,6 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ReagentAttributeFields } from './ReagentAttributeFields';
 

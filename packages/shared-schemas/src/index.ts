@@ -70,6 +70,7 @@ export {
   UNIT_REGISTRY,
   formatQuantity,
   formatScientific,
+  pluralizeUnit,
   unitKindSchema,
   customUnitSchema,
   customUnitWithUsageSchema,

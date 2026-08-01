@@ -12,6 +12,8 @@ export {
   type UnitRegistryEntry,
 } from './unitRegistry';
 
+export { pluralizeUnit } from './pluralizeUnit';
+
 export {
   concentrationPreprocessor,
   concentrationPreprocessorNullable,

@@ -6,9 +6,10 @@
 
 import { useState, useMemo } from 'react';
 
+import { pluralizeUnit } from '@odysseus/shared-schemas';
+
 import { useSupplyItemsQuery } from '@domains/supplies/hooks';
 import { LowStockAlertPanel } from '@shared/ui/components/inventory';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 import { isBelowReorderThreshold } from '@shared/utils/stockLevel';
 
 import { SupplyReorderList } from './SupplyReorderList';

@@ -54,6 +54,7 @@ import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
 import { ReagentItemRow } from './ReagentItemRow';
 import { ReagentLowStockAlertPanel } from './ReagentLowStockAlertPanel';
+import { ReagentQuickScanBar } from './ReagentQuickScanBar';
 import { ReagentTransactionForm } from './ReagentTransactionForm';
 
 import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
@@ -150,6 +151,19 @@ export function ReagentsTab() {
     []
   );
 
+  const handleScannedItem = useCallback((itemId: string) => {
+    setSelectedItemId(itemId);
+    setRightPanel({ type: 'info', itemId });
+  }, []);
+
+  const handleScannedTransaction = useCallback(
+    (itemId: string, initialTab: TransactionMode, prefill?: TransactionPrefill) => {
+      setSelectedItemId(itemId);
+      setRightPanel({ type: 'transaction', itemId, initialTab, prefill });
+    },
+    []
+  );
+
   const handleFormComplete = useCallback(() => {
     setRightPanel(selectedItemId ? { type: 'info', itemId: selectedItemId } : undefined);
   }, [selectedItemId]);
@@ -240,6 +254,11 @@ export function ReagentsTab() {
               size="sm"
               className="w-64"
               aria-label="Search reagents"
+            />
+            <ReagentQuickScanBar
+              items={items}
+              onViewItem={handleScannedItem}
+              onRecordTransaction={handleScannedTransaction}
             />
             <SortControls
               value={sortField}

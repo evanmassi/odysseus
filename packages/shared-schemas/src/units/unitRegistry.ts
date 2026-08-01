@@ -7,6 +7,8 @@
  * dimension: cell counts render in scientific notation, everything else plain.
  */
 
+import { pluralizeUnit } from './pluralizeUnit';
+
 export const UNIT_KINDS = [
   'mass',
   'volume',
@@ -100,12 +102,13 @@ function formatDecimal(value: number): string {
 }
 
 /**
- * A quantity with its unit label: `1.5 mM`, `500 g`. Cell-concentration units
- * render in scientific notation; every other dimension renders as a plain decimal.
+ * A quantity with its unit label: `1.5 mM`, `500 g`, `5 vials`. Cell-concentration units
+ * render in scientific notation; every other dimension renders as a plain decimal. Only
+ * countable units pluralize — a dimension is a measure, so `5 mL` never becomes `5 mLs`.
  */
 export function formatQuantity(value: number, unitId: string): string {
   const unit = UNIT_BY_ID.get(unitId);
   const label = unit?.label ?? unitId;
   const formatted = unit?.kind === 'cell-conc' ? formatScientific(value) : formatDecimal(value);
-  return `${formatted} ${label}`;
+  return `${formatted} ${unit?.kind === 'count' ? pluralizeUnit(label, value) : label}`;
 }

@@ -1,48 +1,59 @@
 /**
- * Supply Barcode Link Dialog
+ * Barcode Link Dialog
  *
- * Prompts the user to link an unrecognized scanned barcode to an existing
- * supply item. Shared by the scan input and the quick-scan bar.
+ * Offers to attach a scanned value that no catalog recognised to an item the user picks,
+ * so an unlabelled bottle becomes scannable at the point someone first tries.
  */
 
 import { useMemo, useState } from 'react';
 
 import { Link } from 'lucide-react';
 
-import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Select, withPlaceholder } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
+import type { BarcodeType } from '@odysseus/shared-schemas';
 
-interface SupplyBarcodeLinkDialogProps {
-  isOpen: boolean;
-  barcodeValue: string;
-  items: SupplyItemWithStock[];
-  onClose: () => void;
-  onLinked?: (itemId: string) => void;
+interface LinkableItem {
+  id: string;
+  name: string;
+  catalogNumber?: string;
+  status: string;
 }
 
-export function SupplyBarcodeLinkDialog({
+interface BarcodeLinkDialogProps {
+  isOpen: boolean;
+  barcodeValue: string;
+  items: LinkableItem[];
+  isPending: boolean;
+  onLink: (
+    itemId: string,
+    data: { barcodeValue: string; barcodeType: BarcodeType },
+    onSuccess: () => void
+  ) => void;
+  onClose: () => void;
+}
+
+export function BarcodeLinkDialog({
   isOpen,
   barcodeValue,
   items,
+  isPending,
+  onLink,
   onClose,
-  onLinked,
-}: SupplyBarcodeLinkDialogProps) {
+}: BarcodeLinkDialogProps) {
   const [linkItemId, setLinkItemId] = useState('');
-  const addBarcodeMutation = useAddSupplyBarcodeMutation();
 
   const itemOptions = useMemo(
     () =>
       withPlaceholder(
         'Select item...',
         items
-          .filter(p => p.status === 'active')
-          .map(p => ({
-            value: p.id,
-            label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}`,
+          .filter(item => item.status === 'active')
+          .map(item => ({
+            value: item.id,
+            label: `${item.name}${item.catalogNumber ? ` (${item.catalogNumber})` : ''}`,
           }))
       ),
     [items]
@@ -50,17 +61,12 @@ export function SupplyBarcodeLinkDialog({
 
   const handleLink = () => {
     if (!linkItemId || !barcodeValue) return;
-    addBarcodeMutation.mutate(
-      { itemId: linkItemId, data: { barcodeValue, barcodeType: 'manufacturer_sku' } },
-      {
-        onSuccess: () => {
-          notifications.success('Barcode linked');
-          onLinked?.(linkItemId);
-          setLinkItemId('');
-          onClose();
-        },
-      }
-    );
+    // A value someone scanned off a product is the manufacturer's, not one we minted.
+    onLink(linkItemId, { barcodeValue, barcodeType: 'manufacturer_sku' }, () => {
+      notifications.success('Barcode linked');
+      setLinkItemId('');
+      onClose();
+    });
   };
 
   return (
@@ -90,11 +96,7 @@ export function SupplyBarcodeLinkDialog({
           <Button variant="secondary" onClick={onClose}>
             Skip
           </Button>
-          <Button
-            onClick={() => void handleLink()}
-            disabled={!linkItemId}
-            isLoading={addBarcodeMutation.isPending}
-          >
+          <Button onClick={handleLink} disabled={!linkItemId} isLoading={isPending}>
             Link Barcode
           </Button>
         </div>

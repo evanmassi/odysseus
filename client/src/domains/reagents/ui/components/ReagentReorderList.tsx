@@ -7,7 +7,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { formatQuantity } from '@odysseus/shared-schemas';
+import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
 import { Download, ShoppingCart } from 'lucide-react';
 
 import { AccentTick, Button, Table } from '@shared/ui';
@@ -15,7 +15,6 @@ import { BaseModal } from '@shared/ui/components/overlays';
 import { escapeCsvValue } from '@shared/utils/csv';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { formatCurrency } from '@shared/utils/formatCurrency';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ReagentItemWithStock } from '@odysseus/shared-schemas';
 import type { SortConfig, TableColumn } from '@shared/ui/primitives/table/types';

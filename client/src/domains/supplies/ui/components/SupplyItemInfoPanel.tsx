@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 
-import { isAdminRole } from '@odysseus/shared-schemas';
+import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import {
   Edit,
   Trash2,
@@ -59,7 +59,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 import { orderPackagingChain, thresholdInEntryUnit } from '@shared/utils/packagingChain';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 

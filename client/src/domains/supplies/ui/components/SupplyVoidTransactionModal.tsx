@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 
+import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { Ban } from 'lucide-react';
 
 import { useLocationsQuery } from '@domains/lab-management';
@@ -17,7 +18,6 @@ import { BaseModal } from '@shared/ui/components/overlays';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyTransaction } from '@odysseus/shared-schemas';

@@ -8,6 +8,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
 
+import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
@@ -36,7 +37,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 export type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
 

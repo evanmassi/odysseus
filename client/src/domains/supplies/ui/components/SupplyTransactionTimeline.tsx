@@ -7,7 +7,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { isAdminRole } from '@odysseus/shared-schemas';
+import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import {
   ChevronRight,
   PackagePlus,
@@ -24,7 +24,6 @@ import { Button, Tooltip } from '@shared/ui';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyVoidTransactionModal } from './SupplyVoidTransactionModal';
 

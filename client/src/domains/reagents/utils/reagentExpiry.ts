@@ -5,8 +5,9 @@
  * own date), both measured against the lab window or the item's override.
  */
 
+import { pluralizeUnit } from '@odysseus/shared-schemas';
+
 import { daysUntil } from '@shared/utils/dateExpiry';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ReagentItemWithStock } from '@odysseus/shared-schemas';
 

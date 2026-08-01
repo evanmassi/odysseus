@@ -6,7 +6,7 @@
  * row takes the worse of the two.
  */
 
-import { formatQuantity } from '@odysseus/shared-schemas';
+import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
 import { AlertTriangle, CalendarClock, MapPin } from 'lucide-react';
 
 import { resolveExpiryBadge } from '@domains/reagents/utils/reagentExpiry';
@@ -14,7 +14,6 @@ import { REAGENT_STATUS_DISPLAY } from '@domains/reagents/utils/reagentStatus';
 import { ItemRowShell, type ItemRowStatusTone } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 import { resolveStockTone } from '@shared/utils/stockLevel';
 
 import type { ReagentItemWithStock } from '@odysseus/shared-schemas';

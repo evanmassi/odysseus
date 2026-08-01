@@ -1,18 +1,18 @@
 /**
- * Supply Quick Scan Bar
+ * Reagent Quick Scan Bar
  *
- * Barcode scan input in the toolbar that resolves a barcode and shows a quick action dropdown
- * for immediate item viewing or transaction recording. Resolution is lab-wide, so a scan that
- * lands in another catalog is named rather than offered for linking to a supply.
+ * Toolbar scan box that resolves a barcode and offers the actions you'd take next. A lot
+ * label resolves to the bottle it is stuck to, so the transaction opens against that lot
+ * rather than letting FEFO pick.
  */
 
 import { useState, useCallback, useRef } from 'react';
 
-import { pluralizeUnit } from '@odysseus/shared-schemas';
+import { formatQuantity } from '@odysseus/shared-schemas';
 import { ScanBarcode, Eye, PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
 
 import { useBarcodeResolver } from '@domains/lab-management';
-import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
+import { useAddReagentBarcodeMutation } from '@domains/reagents/hooks';
 import { SearchInput } from '@shared/ui';
 import { BarcodeLinkDialog } from '@shared/ui/components/barcodes';
 import { DropdownMenu } from '@shared/ui/primitives/menus/DropdownMenu';
@@ -20,20 +20,24 @@ import { MenuDivider } from '@shared/ui/primitives/menus/MenuDivider';
 import { MenuItem } from '@shared/ui/primitives/menus/MenuItem';
 import { notifications } from '@shared/utils/notifications';
 
-import type { TransactionMode } from './SupplyTransactionForm';
-import type { BarcodeMatch, SupplyItemWithStock } from '@odysseus/shared-schemas';
+import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
+import type { BarcodeMatch, ReagentItemWithStock } from '@odysseus/shared-schemas';
 
-interface SupplyQuickScanBarProps {
-  items: SupplyItemWithStock[];
+interface ReagentQuickScanBarProps {
+  items: ReagentItemWithStock[];
   onViewItem: (itemId: string) => void;
-  onRecordTransaction: (itemId: string, initialTab: TransactionMode) => void;
+  onRecordTransaction: (
+    itemId: string,
+    initialTab: TransactionMode,
+    prefill?: TransactionPrefill
+  ) => void;
 }
 
-export function SupplyQuickScanBar({
+export function ReagentQuickScanBar({
   items,
   onViewItem,
   onRecordTransaction,
-}: SupplyQuickScanBarProps) {
+}: ReagentQuickScanBarProps) {
   const [scanValue, setScanValue] = useState('');
   const [resolvedMatch, setResolvedMatch] = useState<BarcodeMatch | null>(null);
   const [showActions, setShowActions] = useState(false);
@@ -42,7 +46,7 @@ export function SupplyQuickScanBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const { resolve, isResolving } = useBarcodeResolver();
-  const addBarcodeMutation = useAddSupplyBarcodeMutation();
+  const addBarcodeMutation = useAddReagentBarcodeMutation();
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
@@ -57,7 +61,7 @@ export function SupplyQuickScanBar({
       return;
     }
 
-    if (result.match.catalog !== 'supply') {
+    if (result.match.catalog !== 'reagent') {
       notifications.info(
         `That barcode belongs to the ${result.match.catalog} ${result.match.itemName}.`
       );
@@ -72,14 +76,15 @@ export function SupplyQuickScanBar({
   const handleAction = useCallback(
     (action: 'view' | TransactionMode) => {
       if (!resolvedMatch) return;
+      const { itemId, lotId } = resolvedMatch;
       setShowActions(false);
       setScanValue('');
       setResolvedMatch(null);
 
       if (action === 'view') {
-        onViewItem(resolvedMatch.itemId);
+        onViewItem(itemId);
       } else {
-        onRecordTransaction(resolvedMatch.itemId, action);
+        onRecordTransaction(itemId, action, lotId ? { lotId } : undefined);
       }
 
       inputRef.current?.focus();
@@ -94,7 +99,7 @@ export function SupplyQuickScanBar({
     }
   };
 
-  const stockInfo = resolvedMatch ? items.find(p => p.id === resolvedMatch.itemId) : null;
+  const stockInfo = resolvedMatch ? items.find(i => i.id === resolvedMatch.itemId) : null;
 
   return (
     <>
@@ -120,7 +125,7 @@ export function SupplyQuickScanBar({
           }}
           triggerRef={triggerRef as React.RefObject<HTMLElement>}
           align="start"
-          className="w-48"
+          className="w-52"
         >
           {resolvedMatch && (
             <div className="py-1">
@@ -130,8 +135,12 @@ export function SupplyQuickScanBar({
                 </p>
                 {stockInfo && (
                   <p className="text-caption text-muted-foreground">
-                    {stockInfo.totalStock}{' '}
-                    {pluralizeUnit(stockInfo.stockUnit ?? 'unit', stockInfo.totalStock)} in stock
+                    {formatQuantity(stockInfo.totalStock, stockInfo.stockUnit ?? '')} in stock
+                  </p>
+                )}
+                {resolvedMatch.lotId && (
+                  <p className="text-caption text-muted-foreground">
+                    Lot label — actions target that lot.
                   </p>
                 )}
               </div>
@@ -164,7 +173,7 @@ export function SupplyQuickScanBar({
                 const item = items.find(i => i.id === itemId);
                 if (item) {
                   setResolvedMatch({
-                    catalog: 'supply',
+                    catalog: 'reagent',
                     itemId: item.id,
                     itemName: item.name,
                     lotId: null,

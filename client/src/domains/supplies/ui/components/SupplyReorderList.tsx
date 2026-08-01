@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { isAdminRole } from '@odysseus/shared-schemas';
+import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import { Download, ShoppingCart } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -16,7 +16,6 @@ import { BaseModal } from '@shared/ui/components/overlays';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';

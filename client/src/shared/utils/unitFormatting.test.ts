@@ -1,11 +1,12 @@
 /**
- * Pluralize Unit Tests
+ * Unit Formatting Tests
  *
- * Covers count handling, uncountable/irregular units, already-plural inputs, and the suffix rules.
+ * The pluralizer's count handling, uncountable/irregular units, already-plural inputs and suffix
+ * rules, plus the registry rule that decides when a quantity's unit pluralizes at all. Both live
+ * in shared-schemas; the tests stay here because that package has no test runner.
  */
+import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
 import { describe, it, expect } from 'vitest';
-
-import { pluralizeUnit } from './pluralizeUnit';
 
 describe('pluralizeUnit', () => {
   it('returns the singular for a count of 1', () => {
@@ -53,5 +54,24 @@ describe('pluralizeUnit', () => {
   it('returns blank or whitespace input unchanged', () => {
     expect(pluralizeUnit('', 2)).toBe('');
     expect(pluralizeUnit('   ', 2)).toBe('   ');
+  });
+});
+
+describe('formatQuantity', () => {
+  it('pluralizes countable units', () => {
+    expect(formatQuantity(5, 'vial')).toBe('5 vials');
+    expect(formatQuantity(2, 'box')).toBe('2 boxes');
+    expect(formatQuantity(1, 'vial')).toBe('1 vial');
+    expect(formatQuantity(0, 'tube')).toBe('0 tubes');
+  });
+
+  it('leaves dimensional units alone — a measure is not a count', () => {
+    expect(formatQuantity(5, 'mL')).toBe('5 mL');
+    expect(formatQuantity(500, 'g')).toBe('500 g');
+    expect(formatQuantity(1.5, 'mM')).toBe('1.5 mM');
+  });
+
+  it('leaves an unknown unit unchanged, since its dimension is unknown', () => {
+    expect(formatQuantity(5, 'beads/50 µL')).toBe('5 beads/50 µL');
   });
 });

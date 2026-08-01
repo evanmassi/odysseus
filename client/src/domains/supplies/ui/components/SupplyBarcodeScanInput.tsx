@@ -10,10 +10,10 @@ import { useState, useCallback } from 'react';
 import { ScanBarcode } from 'lucide-react';
 
 import { useBarcodeResolver } from '@domains/lab-management';
+import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { SearchInput } from '@shared/ui';
+import { BarcodeLinkDialog } from '@shared/ui/components/barcodes';
 import { notifications } from '@shared/utils/notifications';
-
-import { SupplyBarcodeLinkDialog } from './SupplyBarcodeLinkDialog';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 
@@ -32,6 +32,7 @@ export function SupplyBarcodeScanInput({
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
   const { resolve, isResolving } = useBarcodeResolver();
+  const addBarcodeMutation = useAddSupplyBarcodeMutation();
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
@@ -78,15 +79,24 @@ export function SupplyBarcodeScanInput({
         aria-label="Scan barcode"
       />
 
-      <SupplyBarcodeLinkDialog
+      <BarcodeLinkDialog
         isOpen={showLinkDialog}
         barcodeValue={unresolvedBarcode}
         items={items}
+        isPending={addBarcodeMutation.isPending}
+        onLink={(itemId, data, onSuccess) =>
+          addBarcodeMutation.mutate(
+            { itemId, data },
+            {
+              onSuccess: () => {
+                onSuccess();
+                onItemFound(itemId);
+                setScanValue('');
+              },
+            }
+          )
+        }
         onClose={() => setShowLinkDialog(false)}
-        onLinked={id => {
-          onItemFound(id);
-          setScanValue('');
-        }}
       />
     </>
   );

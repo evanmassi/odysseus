@@ -5,13 +5,13 @@
  * icon, a two-line identity, and location/stock chips.
  */
 
+import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { AlertTriangle, MapPin } from 'lucide-react';
 
 import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
 import { ItemRowShell, type ItemRowStatusTone } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 import { resolveStockTone } from '@shared/utils/stockLevel';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';

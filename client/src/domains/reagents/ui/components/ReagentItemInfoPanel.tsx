@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
+import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import {
   Archive,
   ClipboardList,
@@ -61,7 +61,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 import { orderPackagingChain } from '@shared/utils/packagingChain';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ReagentLotPanel } from './ReagentLotPanel';
 import { ReagentTransactionTimeline } from './ReagentTransactionTimeline';

@@ -10,6 +10,7 @@ import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createSupplyItemRequestSchema,
+  pluralizeUnit,
   updateSupplyItemRequestSchema,
 } from '@odysseus/shared-schemas';
 import { Plus, Save, SquarePen, X } from 'lucide-react';
@@ -44,7 +45,6 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { computePackagingMultiplier, thresholdInEntryUnit } from '@shared/utils/packagingChain';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type {
   SupplyCategory,

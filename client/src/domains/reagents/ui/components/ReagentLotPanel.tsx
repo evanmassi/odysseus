@@ -7,7 +7,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
+import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import { MapPin, Printer, SquarePen } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -18,7 +18,6 @@ import { Button, Tooltip } from '@shared/ui';
 import { BarcodePrint } from '@shared/ui/components/barcodes';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
-import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ReagentLotModal } from './ReagentLotModal';
 
@@ -56,6 +55,23 @@ export function ReagentLotPanel({
   const isAdmin = isAdminRole(user?.role);
   const { data: locations = [] } = useLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
+
+  // The chip names the container you reach for; the rooms above it are context, so they ride in
+  // the tooltip rather than widening every row.
+  const locationPathMap = useMemo(() => {
+    const byId = new Map(locations.map(l => [l.id, l]));
+    return new Map(
+      locations.map(location => {
+        const path = [location.name];
+        let current = location.parentId ? byId.get(location.parentId) : undefined;
+        while (current) {
+          path.unshift(current.name);
+          current = current.parentId ? byId.get(current.parentId) : undefined;
+        }
+        return [location.id, path.join(' › ')];
+      })
+    );
+  }, [locations]);
   const barcodeByLotId = useMemo(
     () => new Map(lotBarcodes.map(bc => [bc.lotId, bc.barcodeValue])),
     [lotBarcodes]
@@ -79,38 +95,39 @@ export function ReagentLotPanel({
       {ordered.map((lot, index) => {
         const expiry = resolveLotExpiry(lot.expirationDate, expiryWarningDays);
         const locationName = locationNameMap.get(lot.locationId);
-        // Opened date wins when both are set — shelf life after opening is what you act on.
-        const timing = lot.openedDate
-          ? `opened ${formatDateForDisplay(lot.openedDate)}`
-          : lot.receivedDate
-            ? `received ${formatDateForDisplay(lot.receivedDate)}`
-            : '';
+        const dates = [
+          lot.receivedDate && `Rec ${formatDateForDisplay(lot.receivedDate)}`,
+          lot.openedDate && `Opened ${formatDateForDisplay(lot.openedDate)}`,
+          lot.expirationDate && `Exp ${formatDateForDisplay(lot.expirationDate)}`,
+        ].filter(Boolean);
 
         return (
           <div
             key={lot.id}
-            className={`grid grid-cols-[1fr_auto] gap-x-4 px-3 py-2 ${
+            className={`px-3 py-2 ${
               index < ordered.length - 1 ? 'border-b border-line-faint' : ''
             } ${isLotDrawable(lot) ? '' : 'opacity-50'}`}
           >
-            <span className="truncate font-mono text-data-sm text-card-foreground">
-              {lot.lotNumber ?? 'No lot #'}
-            </span>
-            <span className="text-right font-mono text-data-sm text-card-foreground">
-              {amount(lot.quantity)}
-            </span>
-
-            <span className="flex min-w-0 items-center gap-1.5 text-caption text-muted-foreground">
+            <div className="flex items-baseline gap-3">
+              <span className="min-w-0 flex-1 truncate font-mono text-data-sm text-card-foreground">
+                {lot.lotNumber ?? 'No lot #'}
+              </span>
               {locationName && (
-                <Chip color="info" size="xs" lead={<MapPin />}>
-                  {locationName}
-                </Chip>
+                <Tooltip content={locationPathMap.get(lot.locationId) ?? locationName} side="top">
+                  <Chip color="info" size="xs" lead={<MapPin />}>
+                    {locationName}
+                  </Chip>
+                </Tooltip>
               )}
-              <span className="truncate">{timing}</span>
-            </span>
+            </div>
 
-            <span className="flex items-center justify-end gap-1.5 text-caption text-muted-foreground">
-              {lot.expirationDate && <span>{formatDateForDisplay(lot.expirationDate)}</span>}
+            <div className="mt-1 flex items-center gap-1.5 text-caption text-muted-foreground">
+              <span className="min-w-0 flex-1 truncate">
+                <span className="font-mono text-data-sm text-card-foreground">
+                  {amount(lot.quantity)}
+                </span>
+                {dates.length > 0 && <span className="ml-1.5">· {dates.join(' · ')}</span>}
+              </span>
               {expiry && (
                 <Chip color={expiry.tone} size="xs">
                   {expiry.label}
@@ -135,7 +152,7 @@ export function ReagentLotPanel({
                   </Button>
                 </Tooltip>
               )}
-            </span>
+            </div>
           </div>
         );
       })}
