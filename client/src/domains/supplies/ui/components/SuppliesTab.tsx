@@ -203,9 +203,9 @@ export function SuppliesTab() {
     });
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
-  const bulkMenuItems: OverflowMenuItem[] = [
-    { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
+  const actionMenuItems: OverflowMenuItem[] = [
     { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
+    { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
   ];
 
   const itemCount = showArchived ? items.length : items.filter(p => p.status !== 'archived').length;
@@ -274,7 +274,7 @@ export function SuppliesTab() {
             <span className="flex-1" />
             {isAdmin && (
               <>
-                <OverflowMenu items={bulkMenuItems} size="sm" aria-label="Actions" />
+                <OverflowMenu items={actionMenuItems} size="sm" aria-label="Actions" />
                 <Button
                   size="sm"
                   onClick={handleAddItem}

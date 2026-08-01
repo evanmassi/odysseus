@@ -8,7 +8,7 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Biohazard, Eye, EyeOff, MapPin, Plus, SlidersHorizontal } from 'lucide-react';
+import { Biohazard, Eye, EyeOff, Layers, MapPin, Plus, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery, LocationModal } from '@domains/lab-management';
@@ -49,6 +49,7 @@ import {
 } from '../../utils/reagentAttributeFilter';
 
 import { ReagentAttributeFilterPanel } from './ReagentAttributeFilterPanel';
+import { ReagentBulkUpdateModal } from './ReagentBulkUpdateModal';
 import { ReagentExpiryAlertPanel } from './ReagentExpiryAlertPanel';
 import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
@@ -119,6 +120,7 @@ export function ReagentsTab() {
     category?: ReagentCategory;
   }>({ isOpen: false });
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isBulkUpdateOpen, setIsBulkUpdateOpen] = useState(false);
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -207,6 +209,7 @@ export function ReagentsTab() {
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const actionMenuItems: OverflowMenuItem[] = [
+    { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
     { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
   ];
 
@@ -433,6 +436,13 @@ export function ReagentsTab() {
         />
 
         <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
+
+        <ReagentBulkUpdateModal
+          isOpen={isBulkUpdateOpen}
+          onClose={() => setIsBulkUpdateOpen(false)}
+          items={items}
+          categories={categories}
+        />
       </div>
     </div>
   );

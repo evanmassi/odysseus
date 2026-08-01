@@ -279,6 +279,26 @@ export function useVoidReagentTransactionMutation() {
   });
 }
 
+type ReagentBulkAction =
+  | { type: 'reassign-category'; itemIds: string[]; categoryId: string }
+  | { type: 'archive'; itemIds: string[] };
+
+export function useReagentBulkUpdateMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: (action: ReagentBulkAction) => {
+      switch (action.type) {
+        case 'reassign-category':
+          return ReagentService.bulkReassignCategory(action.itemIds, action.categoryId);
+        case 'archive':
+          return ReagentService.bulkArchive(action.itemIds);
+      }
+    },
+    meta: { invalidates: [queryKeys.reagents.all(labId)] },
+  });
+}
+
 export function useReagentBulkVoidMutation() {
   const invalidateStock = useStockInvalidation();
 

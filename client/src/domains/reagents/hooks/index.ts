@@ -26,6 +26,7 @@ export {
   useRecordReagentTransactionMutation,
   useRecordReagentStockCountMutation,
   useVoidReagentTransactionMutation,
+  useReagentBulkUpdateMutation,
   useReagentBulkVoidMutation,
   useAddReagentPackagingLevelMutation,
   useRemoveReagentPackagingLevelMutation,

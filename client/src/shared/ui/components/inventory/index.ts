@@ -9,6 +9,9 @@ export {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
+export { BulkArchiveTab } from './BulkArchiveTab';
+export { BulkOperationsModal } from './BulkOperationsModal';
+export { BulkReassignTab } from './BulkReassignTab';
 export { CategoryModal } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';

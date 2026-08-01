@@ -243,6 +243,25 @@ export class ReagentService {
     );
   }
 
+  static async bulkReassignCategory(
+    itemIds: string[],
+    categoryId: string
+  ): Promise<ReagentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/reassign-category`,
+      { itemIds, categoryId },
+      reagentBulkResponseSchema
+    );
+  }
+
+  static async bulkArchive(itemIds: string[]): Promise<ReagentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/archive`,
+      { itemIds },
+      reagentBulkResponseSchema
+    );
+  }
+
   static async bulkVoidTransactions(data: ReagentBulkVoidRequest): Promise<ReagentBulkResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk/void`,

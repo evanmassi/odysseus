@@ -7,10 +7,8 @@
 import { buildHierarchyOptions, Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 
-import type { SupplyCategory } from '@odysseus/shared-schemas';
-
 interface BulkReassignTabProps {
-  categories: SupplyCategory[];
+  categories: Array<{ id: string; name: string; parentId: string | null; sortOrder: number }>;
   selectedCount: number;
   targetCategoryId: string;
   onTargetChange: (categoryId: string) => void;

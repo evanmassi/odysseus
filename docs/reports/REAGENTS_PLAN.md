@@ -17,18 +17,15 @@ we build.
 - [x] Phase 5 — client core
 - [x] Phase 6 — client stock + alerts
 - [x] Phase 7 — client attributes
-- [ ] Phase 8 — barcodes
+- [x] Phase 8 — barcodes
 - [ ] Phase 9 — bulk ops + polish
 
-_Current: Phases 2, 4, 5, 6 + 7 ✅ complete; **Phase 3 dissolved** into the client-side alerting rule
-(§7 *Alerting*) — its reagent panels landed in Phase 6, its cleanup as convergence item 9. **Next is
-Phase 8 — barcodes**, now unblocked: convergence item 8 shipped `GET /api/barcodes/resolve`, so the
-reagent wrappers bind to the lab-wide resolver rather than a reagent-only one, and the reagent
-`resolveBarcode` chain Phase 2 built (never called) is gone — Phase 8 re-adds lot context there when
-its scan UI needs it. **Dev has applied migrations through 033**, so amend-in-place is over: every
-schema change from here is a new migration (034+) — Phases 7 and 8 needed none, since `custom_units`
-and the attribute tables shipped in 027. Convergence items 4b, 10 and 11 (attributes for supplies +
-equipment) remain. See `LAB_CONVERGENCE_PLAN.md`._
+_Current: Phases 2, 4, 5, 6, 7 + 8 ✅ complete; **Phase 3 dissolved** into the client-side alerting
+rule (§7 *Alerting*) — its reagent panels landed in Phase 6, its cleanup as convergence item 9.
+**Next is Phase 9 — bulk ops + polish**, the last one. **Dev has applied migrations through 033**, so
+amend-in-place is over: every schema change from here is a new migration (034+) — Phases 7 and 8
+needed none, since `custom_units` and the attribute tables shipped in 027. Convergence items 4b, 10
+and 11 (attributes for supplies + equipment) remain. See `LAB_CONVERGENCE_PLAN.md`._
 _- 2a ✅ domain + persistence — entities, repo interfaces + row types, 6 mappers, REAGENT_CATEGORY_TABLES, Postgres ReagentItemRepository with the atomic lot-aware recordTransaction (receive find-or-create; **FEFO issue = one txn row per lot drawn**; count reconcile) + voidTransaction; pure `reagentFefo` planner (+ unit test); ReagentLocationRepository (later folded into the shared `Location`); lot-ledger integration test + reagent seed factories._
 _- 2b ✅ application/API — ReagentApplicationService (one stock event per action; recordTransaction/recordStockCount return `{ transactions }` array), ReagentDto, ReagentEvents (19); DI (RepositoryFactory/ReagentModule/ServiceContainer/UnitOfWork); ReagentController + ReagentRouteModule (`/api/reagents`) + httpValidationSchemas + index registration; audit wiring (DomainEventMap + AuditEventHandler, 19 handlers); reagent lab-scoping integration test._
 _- 2c ✅ reagent lookup app-chain — `LOOKUP_CATEGORIES` + `LookupValue` (union + `validate()` array) widened with reagent_type/reagent_vendor/reagent_manufacturer; `LookupValueApplicationService` took a 6th ctor dep (`reagentItems`, injected in `StorageModule`) plus `getReagentCountFn` / `renameReagentValue` / delete-labelMap entries, collapsing the duplicated tube-rename tail into one shared fallback; client `CATALOG_CATEGORIES` + `EMPTY_CATALOG`, 3 `CatalogTab` label Records + a Reagents `CatalogGroup`, `renameCascadeKeys` reagent case, and a minimal `queryKeys.reagents.all`. Route-driven expansion of the Reagents catalog group is deferred to Phase 5, when `/lab/reagents` becomes reachable._
@@ -45,6 +42,11 @@ _- 7b ✅ server custom units — repo/mapper/service/DTO/controller/routes/DI o
 _- 7c ✅ wiring — `AttributeService`/`CustomUnitService` + hooks in `domains/lab-management`, live leaves on the rail, and `useUnitOptions` (registry ∪ lab customs, per dimension) rewiring the reagent and supply dropdowns — closing the gap convergence item 6 opened. Attribute list responses gained `usageCount` per definition and option (`COUNT(DISTINCT item_id)`, matching the delete guards) so the delete buttons reflect reality. `Select` options gained a `group`, since Count and Count concentration one word apart in a single alphabetical run sent a unit to the wrong fields — caught in-app. `Toggle` `sm` widened 48→54px for a pre-existing OFF/knob collision. **The dimension became changeable while unused** (follow-on commit): rename always cascades, delete and dimension-change are refused in use._
 _- 7d ✅ form + panel — `ReagentAttributeFields` (add-on-demand, palette scoped by reagent type, chips for multi-select) and a read-only block on the info panel. Writes sequence off the saved item like packaging levels; the global handler owns failure text, so only the partial-success case is reported locally. `reagentAttributeValues` carries the diff and is unit tested: multi-select aggregation, reorder-is-not-a-change, and clearing as an empty-list write._
 _- 7e ✅ filter bar — `ReagentAttributeFilterPanel` facets the list off the row's attribute summary (OR within an attribute, AND across), with expiry buckets reusing `resolveExpiryBadge` rather than new day math. Groups render only for attributes some reagent carries, and each chip counts its reagents. No endpoint: the standing derive-client-side rule._
+_- 8a ✅ item barcodes — reagent barcode service methods + 4 mutation hooks, and a Barcodes section on the info panel, which had been dropping the `barcodes` the detail response already carried. Supplies' list and add form moved to `shared/ui/components/barcodes/` (`BarcodeList` owns the print dialog, since the label prints the *item's* identity) with both catalogs binding their own mutations; `BARCODE_TYPE_VALUES` + `barcodeTypeLabels` now feed the type picker the way `DocumentLinkModal` reads `DOCUMENT_TYPE_VALUES`. Supplies' row label reads *Manufacturer SKU* rather than *Mfr SKU* — one map serves both the row and the picker._
+_- 8b ✅ lot barcodes — a receive that creates a lot mints that lot's `RLOT-` internal barcode in the same transaction (a top-up mints nothing), because a bottle shelved without a label is unscannable later. Print-only on the lot row — regenerating would orphan a label already stuck to a bottle — so lot barcodes stay out of the item's list, and `BarcodeLabel`/`BarcodePrint` gained optional lot number + expiry. `generateInternalBarcodeValue` collapsed the `SITM-`/`RITM-` literal from four sites. No collision retry: a duplicate nanoid would abort the receive rather than retry inside the transaction, at ~10⁻⁹ per insert._
+_- 8c ✅ scan — `ReagentQuickScanBar` in the toolbar; `SupplyBarcodeLinkDialog` became the shared `BarcodeLinkDialog`. A scanned `RLOT-` label carries `lotId`, so the action opens the transaction against that bottle instead of letting FEFO choose — which needed the location too, since the lot picker is scoped to one, so the form takes it from the scanned lot. **No `ReagentBarcodeScanInput`**: its only consumers are the bulk tabs, in Phase 9. The two quick-scan bars stay separate — reagents' carries lot targeting supplies has no concept of — while the link dialog, being identical but for the mutation, is shared._
+_Phase 8 deferrals: bulk barcode sheets (the `/bulk/barcodes` endpoint has no caller yet) ride with the bulk modal in Phase 9; `PrintableLabel` gains lot fields then, if the sheet flow needs them._
+
 _Phase 7 deferrals: attribute scoping stays single-type-or-all (multi-type needs a join table — `AUDIT-BACKLOG` §0); an attribute's options can't draw from a lookup list, so a Host Species attribute re-types the tube species vocabulary._
 
 _Each session — read this plan, do the current sub-commit, gate green (server: typecheck + `npm test` unit + `npm run test:integration`), commit when told._
@@ -764,7 +766,27 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 7. **Client attributes** — dynamic form fields, list filter bar, admin definition/option/custom-unit
    CRUD, hosted on the catalog nav rail (§9 *Decided — catalog surface*; the rail lands before this).
 8. **Barcodes** — thin reagent wrappers over the Phase-0 shared core (not a clone).
-9. **Bulk ops + polish** — kept bulk ops, CSV export, catalog group, header quick-link.
+9. **Bulk ops** — the six bulk endpoints Phase 2 shipped, given a client: modal, receive/issue/
+   reassign/archive/void/print tabs, and the full-history query the void tab needs (which also
+   closes the 50-row cap the info-panel timeline reads — see 6b). The other three items this line
+   used to carry are **done or superseded**: the reorder CSV shipped client-side in 6c and is the
+   only export reagents was ever specified to have (there is no admin *item* export for supplies
+   either, so this is parity, not a gap); the catalog group became the nav rail in convergence 7;
+   the header quick-link flipped on with Phase 5's tab.
+
+   **Built by extraction, not cloning.** Supplies' bulk surface is 1,259 lines carrying ~24
+   domain-bound ones — `BulkPrintTab` alone is 497 lines with 4. Each tab moves to
+   `shared/ui/components/inventory/` as reagents becomes its second caller, with the service call,
+   mutation and item type injected. Receive and Issue are the exception: they need real
+   parameterization rather than a straight lift, which is `AUDIT-BACKLOG` **C-8(b)**'s
+   `BulkStockMovementTab` with an `extraColumns` render-prop — reagents' receive adds lot number,
+   expiry and received date; its issue adds lot targeting and the expired acknowledgment. Four
+   callers make that shape real instead of guessed. **Cost:** this rewrites un-audited supplies UI,
+   so supplies gets re-verified in the app at every extraction, not just reagents.
+
+   **Bulk receive is the onboarding path** for a lab entering stock it already owns (§9 *Still
+   parked* raised it): lot number, expiry and a back-dated received date per row, so opening
+   balances land as real lots with real labels rather than being typed one modal at a time.
 
 ---
 
