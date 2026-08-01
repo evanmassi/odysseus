@@ -7,7 +7,7 @@
 
 import { useState, useMemo, useCallback, type ReactNode } from 'react';
 
-import { PackagePlus, PackageMinus, ClipboardCheck, Trash2, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 import { useLocationsQuery } from '@domains/lab-management';
 import { Autocomplete, Button, Checkbox, NubDivider, type AutocompleteOption } from '@shared/ui';
@@ -18,20 +18,7 @@ import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { SEARCH_INPUT_CLASS } from './bulkSearchInputStyle';
 import { filterItemAutocompleteOptions } from './itemAutocompleteOptions';
-
-const TYPE_ICONS: Record<string, typeof PackagePlus> = {
-  received: PackagePlus,
-  issued: PackageMinus,
-  count_adjustment: ClipboardCheck,
-  disposed: Trash2,
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  received: 'Received',
-  issued: 'Issued',
-  count_adjustment: 'Count Adj.',
-  disposed: 'Disposed',
-};
+import { transactionTypeDisplay } from './transactionTypeDisplay';
 
 export interface VoidableEntry {
   /** Row key and unit of selection. */
@@ -151,7 +138,7 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
       <ScrollArea className="flex-1 min-h-0">
         <div className="px-4 space-y-1">
           {entries.map(entry => {
-            const Icon = TYPE_ICONS[entry.type] ?? PackagePlus;
+            const { icon: Icon, label } = transactionTypeDisplay(entry.type);
 
             return (
               <label
@@ -170,8 +157,7 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
                   {entry.quantityLabel}
                 </span>
                 <span className="text-caption text-muted-foreground truncate">
-                  {TYPE_LABELS[entry.type] ?? entry.type} ·{' '}
-                  {locationNameMap.get(entry.locationId) ?? entry.locationId}
+                  {label} · {locationNameMap.get(entry.locationId) ?? entry.locationId}
                   {entry.note ? ` · ${entry.note}` : ''}
                 </span>
               </label>

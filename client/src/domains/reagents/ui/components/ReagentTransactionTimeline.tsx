@@ -9,20 +9,13 @@
 import { useMemo, useState } from 'react';
 
 import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
-import {
-  Ban,
-  ChevronRight,
-  ClipboardCheck,
-  PackageMinus,
-  PackagePlus,
-  Trash2,
-  Undo2,
-} from 'lucide-react';
+import { Ban, ChevronRight } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useLocationsQuery } from '@domains/lab-management';
 import { groupTransactions } from '@domains/reagents/utils/reagentTransactionGroups';
 import { Button, Tooltip } from '@shared/ui';
+import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
@@ -32,14 +25,6 @@ import { ReagentVoidTransactionModal } from './ReagentVoidTransactionModal';
 import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
 import type { TransactionGroup } from '@domains/reagents/utils/reagentTransactionGroups';
 import type { ReagentLot, ReagentTransaction } from '@odysseus/shared-schemas';
-
-const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string; label: string }> = {
-  received: { icon: PackagePlus, color: 'text-success-text', label: 'Received' },
-  issued: { icon: PackageMinus, color: 'text-warning-text', label: 'Issued' },
-  count_adjustment: { icon: ClipboardCheck, color: 'text-primary', label: 'Count adjustment' },
-  disposed: { icon: Trash2, color: 'text-danger-text', label: 'Disposed' },
-  void_reversal: { icon: Undo2, color: 'text-muted-foreground', label: 'Void reversal' },
-};
 
 interface ReagentTransactionTimelineProps {
   transactions: ReagentTransaction[];
@@ -123,7 +108,7 @@ function TransactionEntry({
   const isReversal = group.type === 'void_reversal';
   const canVoid = isAdmin && !isFullyVoided && !isReversal;
 
-  const config = TYPE_CONFIG[group.type] ?? TYPE_CONFIG['received'];
+  const config = transactionTypeDisplay(group.type);
   const Icon = config.icon;
   const amount = stockUnit
     ? formatQuantity(Math.abs(group.quantityChange), stockUnit)

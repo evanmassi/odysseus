@@ -8,19 +8,12 @@
 import { useState, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
-import {
-  ChevronRight,
-  PackagePlus,
-  PackageMinus,
-  ClipboardCheck,
-  Trash2,
-  Undo2,
-  Ban,
-} from 'lucide-react';
+import { ChevronRight, Ban } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useLocationsQuery } from '@domains/lab-management';
 import { Button, Tooltip } from '@shared/ui';
+import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
@@ -29,14 +22,6 @@ import { SupplyVoidTransactionModal } from './SupplyVoidTransactionModal';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyTransaction } from '@odysseus/shared-schemas';
-
-const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string }> = {
-  received: { icon: PackagePlus, color: 'text-success-text' },
-  issued: { icon: PackageMinus, color: 'text-warning-text' },
-  count_adjustment: { icon: ClipboardCheck, color: 'text-primary' },
-  disposed: { icon: Trash2, color: 'text-danger-text' },
-  void_reversal: { icon: Undo2, color: 'text-muted-foreground' },
-};
 
 interface SupplyTransactionTimelineProps {
   transactions: SupplyTransaction[];
@@ -120,7 +105,7 @@ function TransactionEntry({
   const isReversal = transaction.type === 'void_reversal';
   const canVoid = isAdmin && !isVoided && !isReversal;
 
-  const config = TYPE_CONFIG[transaction.type] ?? TYPE_CONFIG['received'];
+  const config = transactionTypeDisplay(transaction.type);
   const Icon = config.icon;
   const unit = pluralizeUnit(stockUnit ?? 'unit', Math.abs(transaction.quantityChange));
   const quantityDisplay =

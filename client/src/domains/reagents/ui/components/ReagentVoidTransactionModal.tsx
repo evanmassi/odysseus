@@ -16,6 +16,7 @@ import {
 } from '@domains/reagents/hooks';
 import { Button } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
+import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
@@ -24,13 +25,6 @@ import { notifications } from '@shared/utils/notifications';
 import type { TransactionMode, TransactionPrefill } from './ReagentTransactionForm';
 import type { TransactionGroup } from '@domains/reagents/utils/reagentTransactionGroups';
 import type { ReagentLot } from '@odysseus/shared-schemas';
-
-const TYPE_LABELS: Record<string, string> = {
-  received: 'Receipt',
-  issued: 'Issue',
-  count_adjustment: 'Count Adjustment',
-  disposed: 'Disposal',
-};
 
 interface ReagentVoidTransactionModalProps {
   group: TransactionGroup;
@@ -126,7 +120,7 @@ export function ReagentVoidTransactionModal({
         <div className="space-y-1 rounded-md bg-muted p-3 text-body-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Type</span>
-            <span className="font-medium">{TYPE_LABELS[group.type] ?? group.type}</span>
+            <span className="font-medium">{transactionTypeDisplay(group.type).label}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Quantity</span>

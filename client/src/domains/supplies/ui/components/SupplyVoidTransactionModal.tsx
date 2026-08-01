@@ -14,6 +14,7 @@ import { useLocationsQuery } from '@domains/lab-management';
 import { useVoidSupplyTransactionMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
+import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
@@ -21,13 +22,6 @@ import { notifications } from '@shared/utils/notifications';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyTransaction } from '@odysseus/shared-schemas';
-
-const TYPE_LABELS: Record<string, string> = {
-  received: 'Receive',
-  issued: 'Consumption',
-  count_adjustment: 'Count Adjustment',
-  disposed: 'Disposal',
-};
 
 interface SupplyVoidTransactionModalProps {
   isOpen: boolean;
@@ -103,9 +97,7 @@ export function SupplyVoidTransactionModal({
           <div className="bg-muted rounded-md p-3 space-y-1 text-body-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Type</span>
-              <span className="font-medium">
-                {TYPE_LABELS[transaction.type] ?? transaction.type}
-              </span>
+              <span className="font-medium">{transactionTypeDisplay(transaction.type).label}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Quantity</span>

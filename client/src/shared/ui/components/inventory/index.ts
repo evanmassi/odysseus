@@ -10,9 +10,9 @@ export {
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
 export { BulkArchiveTab } from './BulkArchiveTab';
-export { BulkItemRow, type ItemPackaging } from './BulkItemRow';
+export { type ItemPackaging } from './BulkItemRow';
 export { BulkOperationsModal } from './BulkOperationsModal';
-export { BulkPrintTab, usePrintTabState, type PrintTabState } from './BulkPrintTab';
+export { BulkPrintTab, usePrintTabState } from './BulkPrintTab';
 export { OPTION_CARD_BASE, OPTION_CARD_SELECTED, OPTION_CARD_UNSELECTED } from './optionCardStyle';
 export { BulkStockMovementTab } from './BulkStockMovementTab';
 export { BulkReassignTab } from './BulkReassignTab';
@@ -24,5 +24,7 @@ export {
   toItemAutocompleteOptions,
   filterItemAutocompleteOptions,
 } from './itemAutocompleteOptions';
-export { LowStockAlertPanel, type LowStockItem } from './LowStockAlertPanel';
+export { toItemPrintableLabels } from './itemPrintLabels';
+export { LowStockAlertPanel } from './LowStockAlertPanel';
 export { SortControls, INVENTORY_SORT_OPTIONS, type InventorySortField } from './SortControls';
+export { transactionTypeDisplay } from './transactionTypeDisplay';
