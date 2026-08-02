@@ -62,7 +62,7 @@ export class AttributeController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       await this.deps.attributeService.deleteDefinition(labId, req.params.definitionId, user);
-      res.status(204).send();
+      res.json(ResponseBuilder.success({ message: 'Attribute deleted' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete attribute', req.requestId);
     }
@@ -105,7 +105,7 @@ export class AttributeController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       await this.deps.attributeService.deleteOption(labId, req.params.optionId, user);
-      res.status(204).send();
+      res.json(ResponseBuilder.success({ message: 'Attribute option deleted' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete attribute option', req.requestId);
     }

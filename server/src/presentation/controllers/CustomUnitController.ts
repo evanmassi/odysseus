@@ -62,7 +62,7 @@ export class CustomUnitController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       await this.deps.customUnitService.delete(labId, req.params.unitId, user);
-      res.status(204).send();
+      res.json(ResponseBuilder.success({ message: 'Custom unit deleted' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete custom unit', req.requestId);
     }

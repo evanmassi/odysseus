@@ -361,7 +361,8 @@ export const ReagentBulkReceiveHttpSchema = reagentBulkReceiveRequestSchema;
 export const ReagentBulkIssueHttpSchema = reagentBulkIssueRequestSchema;
 export const ReagentBulkReassignCategoryHttpSchema = reagentBulkReassignCategoryRequestSchema;
 export const ReagentBulkArchiveHttpSchema = reagentBulkArchiveRequestSchema;
-export const ReagentBulkBarcodesHttpSchema = reagentBulkBarcodesRequestSchema;
+/** Shared by the barcode and lot-label endpoints — both take the same list of item ids. */
+export const ReagentBulkItemIdsHttpSchema = reagentBulkBarcodesRequestSchema;
 export const VoidReagentTransactionHttpSchema = voidReagentTransactionRequestSchema;
 export const ReagentBulkVoidHttpSchema = reagentBulkVoidRequestSchema;
 export const ReagentTransactionVoidParams = z.object({ transactionId: z.string().min(1) });

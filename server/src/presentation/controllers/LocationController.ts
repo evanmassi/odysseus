@@ -62,7 +62,7 @@ export class LocationController extends BaseController {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
       await this.deps.locationService.delete(labId, req.params.locationId, user);
-      res.status(204).send();
+      res.json(ResponseBuilder.success({ message: 'Location deleted' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete location', req.requestId);
     }

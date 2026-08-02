@@ -29,7 +29,7 @@ import {
   ReagentBulkIssueHttpSchema,
   ReagentBulkReassignCategoryHttpSchema,
   ReagentBulkArchiveHttpSchema,
-  ReagentBulkBarcodesHttpSchema,
+  ReagentBulkItemIdsHttpSchema,
   VoidReagentTransactionHttpSchema,
   ReagentBulkVoidHttpSchema,
   ReagentTransactionVoidParams,
@@ -113,13 +113,13 @@ export class ReagentRouteModule implements RouteModule {
 
     router.post(
       '/bulk/barcodes',
-      validateBody(ReagentBulkBarcodesHttpSchema),
+      validateBody(ReagentBulkItemIdsHttpSchema),
       this.reagentController.bulkGetBarcodes.bind(this.reagentController)
     );
 
     router.post(
       '/bulk/lot-labels',
-      validateBody(ReagentBulkBarcodesHttpSchema),
+      validateBody(ReagentBulkItemIdsHttpSchema),
       this.reagentController.bulkGetLotLabels.bind(this.reagentController)
     );
 
