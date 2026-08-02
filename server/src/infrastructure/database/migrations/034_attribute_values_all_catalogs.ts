@@ -1,10 +1,8 @@
 /**
  * Migration 034 — Attribute Values for Supplies and Equipment
  *
- * The definition and option vocabulary has been lab-wide since 027, with a catalog scope that
- * already admits all three suites — but only reagents had somewhere to store a value. These two
- * tables mirror `reagent_attribute_values` exactly, each keeping a real FK to its own items,
- * which is the referential integrity the normalized model exists for.
+ * The definition vocabulary has been lab-wide since 027, but only reagents could store a value.
+ * These mirror `reagent_attribute_values`, each keeping a real FK to its own items.
  */
 
 import type { Migration } from './migrationRunner';

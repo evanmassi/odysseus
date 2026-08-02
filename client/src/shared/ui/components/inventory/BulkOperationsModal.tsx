@@ -116,13 +116,14 @@ export function BulkOperationsModal<
     onClose();
   }, [onClose, onReset, onSelectionChange, tabs]);
 
+  // Only tab-local state resets; the checked set survives, since choosing between operations on
+  // one selection is the point of the tab strip.
   const handleTabChange = useCallback(
     (tab: string) => {
       setActiveTab(tab);
-      onSelectionChange(new Set());
       onReset?.();
     },
-    [onReset, onSelectionChange]
+    [onReset]
   );
 
   const locator = (

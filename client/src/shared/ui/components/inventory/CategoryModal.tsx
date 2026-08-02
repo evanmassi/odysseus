@@ -1,9 +1,8 @@
 /**
  * Category Modal
  *
- * Creates or renames an inventory category or subcategory via a compact dialog, plus the state
- * machine a catalog tab drives it with. Persistence is injected, so the same dialog and the same
- * add/rename/delete flow back equipment, supplies and reagents.
+ * Creates or renames an inventory category via a compact dialog, plus the add/rename/delete
+ * state a catalog tab drives it with. Persistence is injected, so all three catalogs share it.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';

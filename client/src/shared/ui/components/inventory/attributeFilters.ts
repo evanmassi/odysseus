@@ -1,12 +1,8 @@
 /**
  * Attribute Filters
  *
- * Facet matching for an item list: OR within one attribute, AND across attributes, which is what
- * makes "any FITC or PE antibody that is also a primary" mean what it reads like. Runs
- * client-side off the list row's attribute summary — the same rule the alert panels follow.
- *
- * A catalog with more to filter on extends this shape rather than replacing it; the helpers are
- * generic over the extension so its own facets survive a round trip.
+ * Facet matching for an item list: OR within one attribute, AND across attributes. The helpers
+ * are generic over the filter shape, so a catalog that adds facets keeps them through a toggle.
  */
 
 export interface AttributeFilters {

@@ -2,9 +2,8 @@
  * Attribute Fields
  *
  * The lab's attributes on an item form: add-on-demand from a palette scoped to the chosen item
- * type, plus any the lab promoted to always-prompt. A value already set stays rendered even if
- * the type no longer scopes it, so changing the type never drops data. A catalog with no type
- * discriminator passes none, and sees the attributes scoped to every type.
+ * type. A value already set stays rendered even if the type no longer scopes it, so changing the
+ * type never drops data.
  */
 
 import { useMemo, useState } from 'react';

@@ -1,15 +1,9 @@
 /**
  * Migration 036 — Equipment Locations Join the Shared Tree
  *
- * Equipment carried its place as free text while supplies and reagents referenced the lab-wide
- * `locations` table, so renaming a room reached two of three catalogs. The column becomes a
- * nullable FK — a unit still needs no location, but when it has one it is the same place the
- * other catalogs point at.
- *
- * Free text drifts into compound strings ("Main lab, Hood X0F") because a flat field is the only
- * way to say where something really is, so the backfill splits on commas and builds the chain the
- * tree was made to hold. Names are unique per lab, so an existing node is reused wherever it sits
- * rather than duplicated under a new parent.
+ * Equipment's free-text `location` becomes a nullable FK to the lab-wide `locations` table, so a
+ * rename reaches all three catalogs. Free text drifts into compound strings ("Main lab, Hood
+ * X0F"), so the backfill splits on commas and reuses existing nodes by name — unique per lab.
  */
 
 import { LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';

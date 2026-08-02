@@ -1,10 +1,8 @@
 /**
  * Attribute Filter Panel
  *
- * Facet chips for an item list, on the same chassis as the search and audit filter panels:
- * header strip, persistent Clear All, chip groups. Only attributes some item actually carries
- * get a group — a lab's full palette would be mostly dead rows — and each chip counts its items.
- * A catalog with facets of its own passes them as `extraFacets`.
+ * Facet chips for an item list. Only attributes some item actually carries get a group, since a
+ * lab's full palette would be mostly dead rows.
  */
 
 import { useMemo, type ReactNode } from 'react';

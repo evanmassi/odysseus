@@ -4,9 +4,6 @@
  * Turns the stored value rows into one draft per attribute and back again. A multi-select
  * attribute stores a row per chosen option, so drafts aggregate by definition, and the
  * server replaces a definition's values wholesale — an empty draft is how a value clears.
- *
- * Typed structurally: each catalog's value and request schemas are duplicated by design, and
- * this reads the fields they share rather than picking one catalog's names.
  */
 
 import type { AttributeDefinition } from '@odysseus/shared-schemas';

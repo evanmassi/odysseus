@@ -1,10 +1,8 @@
 /**
  * Transaction Type Display
  *
- * One icon, tone and name per stock-ledger type, so a movement reads the same wherever it is
- * shown — the timeline, the void dialog, the bulk void list. Held apart from the transaction
- * form's wording, which names the action you are about to take ("Receive") rather than the
- * record you are looking at ("Received").
+ * One icon, tone and name per stock-ledger type. Separate from the transaction form's wording,
+ * which names the action ("Receive") rather than the record ("Received").
  */
 
 import { ClipboardCheck, PackageMinus, PackagePlus, Trash2, Undo2 } from 'lucide-react';

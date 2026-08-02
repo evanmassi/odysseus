@@ -1,13 +1,9 @@
 /**
  * Migration 035 — Supply Item Property onto Attributes
  *
- * `supply_item_property` was a degenerate attribute system: a flat lookup list written into a
- * `text[]` on the item, with no types, no scoping and no referential integrity. Now that supplies
- * carry real attribute values (034), its vocabulary becomes a multi-select definition and both
- * the lookup category and the column retire — keeping them would ship two mechanisms for one
- * concept.
- *
- * Each lab's values move to its own definition, because the lookup rows were already lab-scoped.
+ * `supply_item_property` was a degenerate attribute system — a flat lookup written into a
+ * `text[]`. Now that supplies carry real attribute values (034), each lab's vocabulary becomes a
+ * multi-select definition and both the lookup category and the column retire.
  */
 
 import { generateId } from '@domain/utils/generateId';
