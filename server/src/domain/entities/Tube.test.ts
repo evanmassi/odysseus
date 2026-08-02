@@ -5,7 +5,7 @@
  */
 
 import { Tube } from './Tube';
-import { Location } from '@domain/value-objects/Location';
+import { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { createTestTube } from '@domain/__tests__/helpers';
 
 describe('Tube', () => {
@@ -64,7 +64,7 @@ describe('Tube', () => {
   describe('moveTo', () => {
     it('should update location', () => {
       const tube = createTestTube();
-      const newLoc = Location.create({ tankId: 'T2', rackId: 'R2', boxId: 'B', position: 3 });
+      const newLoc = TubeLocation.create({ tankId: 'T2', rackId: 'R2', boxId: 'B', position: 3 });
       tube.moveTo(newLoc);
       expect(tube.location.tankId).toBe('T2');
       expect(tube.location.position).toBe(3);
@@ -73,7 +73,7 @@ describe('Tube', () => {
     it('should no-op when location is the same', () => {
       const tube = createTestTube();
       const before = tube.updatedAt;
-      const sameLoc = Location.create({ tankId: 'T1', rackId: 'R1', boxId: 'A', position: 1 });
+      const sameLoc = TubeLocation.create({ tankId: 'T1', rackId: 'R1', boxId: 'A', position: 1 });
       tube.moveTo(sameLoc);
       // updatedAt shouldn't change for no-op
       expect(tube.location.position).toBe(1);

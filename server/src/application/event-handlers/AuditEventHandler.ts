@@ -141,7 +141,7 @@ import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { logger } from '@infrastructure/logging/logger';
 
 /** Above this batch size, bulk operations record only the summary row — per-item entries
@@ -407,7 +407,7 @@ export class AuditEventHandler {
 
   // TUBE EVENT HANDLERS
 
-  private async getDisplayLocation(location: Location, labId: string): Promise<string> {
+  private async getDisplayLocation(location: TubeLocation, labId: string): Promise<string> {
     try {
       const storage = await this.storageRepository.getForLab(labId);
       return this.resolveDisplayLocation(storage, location, location.toString());

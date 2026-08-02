@@ -5,7 +5,7 @@
  */
 
 import type { Storage } from '@domain/entities/Storage';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
@@ -49,7 +49,7 @@ export interface StorageRepository {
     changedBy: string
   ): Promise<{ tankName: string; rackName: string; boxName: string }>;
 
-  isLocationValid(labId: string, location: Location): Promise<boolean>;
+  isLocationValid(labId: string, location: TubeLocation): Promise<boolean>;
   tankExists(labId: string, tankId: string): Promise<boolean>;
   rackExists(labId: string, tankId: string, rackId: string): Promise<boolean>;
   boxExists(labId: string, tankId: string, rackId: string, boxId: string): Promise<boolean>;

@@ -10,7 +10,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { isPositionConstraintError } from '@infrastructure/database/DatabaseErrors';
 import { escapeLikePattern } from '@infrastructure/database/likePattern';
 import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
@@ -272,7 +272,7 @@ export class TubeRepository implements ITubeRepository {
 
   // LOCATION-BASED QUERIES
 
-  async findByLocation(location: Location, labId: string): Promise<Tube | null> {
+  async findByLocation(location: TubeLocation, labId: string): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
       `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND position = $4 AND lab_id = $5`,
       [location.tankId, location.rackId, location.boxId, location.position, labId]

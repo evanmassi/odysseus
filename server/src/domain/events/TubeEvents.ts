@@ -4,37 +4,37 @@
 
 import { DomainEvent } from '@domain/events/DomainEvent';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
-import type { Location } from '@domain/value-objects/Location';
 import type { SampleData } from '@domain/value-objects/SampleData';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 export interface BulkTubeCreatedDetail {
   tubeId: string;
-  location: ReturnType<Location['toData']>;
+  location: ReturnType<TubeLocation['toData']>;
   sampleData: ReturnType<SampleData['toData']>;
 }
 
 export interface BulkTubeUpdatedDetail {
   tubeId: string;
   changes: FieldChange[];
-  location: ReturnType<Location['toData']>;
+  location: ReturnType<TubeLocation['toData']>;
 }
 
 export interface BulkTubeDeletedDetail {
   tubeId: string;
-  location: ReturnType<Location['toData']>;
+  location: ReturnType<TubeLocation['toData']>;
   sampleData: ReturnType<SampleData['toData']>;
 }
 
 export interface BulkTubeMovedDetail {
   tubeId: string;
-  oldLocation: ReturnType<Location['toData']>;
-  newLocation: ReturnType<Location['toData']>;
+  oldLocation: ReturnType<TubeLocation['toData']>;
+  newLocation: ReturnType<TubeLocation['toData']>;
 }
 
 export class TubeCreatedEvent extends DomainEvent {
   constructor(
     public readonly tubeId: string,
-    public readonly location: Location,
+    public readonly location: TubeLocation,
     public readonly sampleData: SampleData,
     public readonly createdBy: string,
     labId: string
@@ -54,8 +54,8 @@ export class TubeCreatedEvent extends DomainEvent {
 export class TubeUpdatedEvent extends DomainEvent {
   constructor(
     public readonly tubeId: string,
-    public readonly oldLocation: Location,
-    public readonly newLocation: Location,
+    public readonly oldLocation: TubeLocation,
+    public readonly newLocation: TubeLocation,
     public readonly oldSampleData: SampleData,
     public readonly newSampleData: SampleData,
     public readonly updatedBy: string,
@@ -76,8 +76,8 @@ export class TubeUpdatedEvent extends DomainEvent {
 export class TubeLocationChangedEvent extends DomainEvent {
   constructor(
     public readonly tubeId: string,
-    public readonly oldLocation: Location,
-    public readonly newLocation: Location,
+    public readonly oldLocation: TubeLocation,
+    public readonly newLocation: TubeLocation,
     public readonly movedBy: string,
     labId: string
   ) {
@@ -96,7 +96,7 @@ export class TubeLocationChangedEvent extends DomainEvent {
 export class TubeDeletedEvent extends DomainEvent {
   constructor(
     public readonly tubeId: string,
-    public readonly location: Location,
+    public readonly location: TubeLocation,
     public readonly deletedBy: string,
     public readonly sampleData: SampleData,
     labId: string

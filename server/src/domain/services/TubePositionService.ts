@@ -13,7 +13,7 @@ import type {
   PositionValidationWithWarnings,
   PositionValidationResult,
 } from '@domain/types/services';
-import { Location } from '@domain/value-objects/Location';
+import { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 export class TubePositionService {
   constructor(
@@ -24,7 +24,7 @@ export class TubePositionService {
   // POSITION VALIDATION
 
   async canPlaceTubeAt(
-    location: Location,
+    location: TubeLocation,
     labId: string,
     excludeTubeId?: string
   ): Promise<PositionValidationResult> {
@@ -62,7 +62,7 @@ export class TubePositionService {
   }
 
   async validateEquipmentConfiguration(
-    location: Location,
+    location: TubeLocation,
     labId: string
   ): Promise<PositionValidation> {
     const result: PositionValidation = { isValid: true, errors: [] };
@@ -125,7 +125,7 @@ export class TubePositionService {
   }
 
   async checkPositionConflicts(
-    location: Location,
+    location: TubeLocation,
     labId: string,
     excludeTubeId?: string
   ): Promise<ConflictCheckResult> {
@@ -152,7 +152,7 @@ export class TubePositionService {
   }
 
   async applyPositionBusinessRules(
-    location: Location,
+    location: TubeLocation,
     labId: string
   ): Promise<PositionValidationWithWarnings> {
     const result: PositionValidationWithWarnings = { isValid: true, errors: [], warnings: [] };
@@ -197,7 +197,7 @@ export class TubePositionService {
 
   // POSITION ANALYSIS
 
-  private async getNearbyTubes(location: Location, labId: string): Promise<Tube[]> {
+  private async getNearbyTubes(location: TubeLocation, labId: string): Promise<Tube[]> {
     try {
       const allTubesInBox = await this.tubeRepository.findByRackAndBox(
         location.rackId,
@@ -295,7 +295,7 @@ export class TubePositionService {
     excludeTubeId: string | undefined,
     labId: string
   ): Promise<{ isValid: boolean; reason?: string }> {
-    const location = Location.create(tankId, rackId, boxId, position);
+    const location = TubeLocation.create(tankId, rackId, boxId, position);
     const result = await this.canPlaceTubeAt(location, labId, excludeTubeId);
 
     if (result.isValid) {

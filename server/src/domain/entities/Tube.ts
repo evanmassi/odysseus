@@ -8,8 +8,8 @@ import { type ConcentrationUnit } from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-import { Location } from '@domain/value-objects/Location';
 import { SampleData } from '@domain/value-objects/SampleData';
+import { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 interface TubeLocationData {
   tankId: string;
@@ -60,7 +60,7 @@ interface TubeSampleUpdate {
 export class Tube {
   private constructor(
     private readonly _id: string,
-    private _location: Location,
+    private _location: TubeLocation,
     private _sample: SampleData,
     private _researcherId: string | undefined,
     private readonly _createdAt: Date,
@@ -79,7 +79,7 @@ export class Tube {
 
   static create(data: {
     id?: string;
-    location: TubeLocationData | Location;
+    location: TubeLocationData | TubeLocation;
     sample: TubeSampleData | SampleData;
     researcherId?: string;
     createdByName?: string;
@@ -88,7 +88,7 @@ export class Tube {
     const id = data.id ?? generateId('tube');
 
     const location =
-      data.location instanceof Location ? data.location : Location.create(data.location);
+      data.location instanceof TubeLocation ? data.location : TubeLocation.create(data.location);
 
     const sample = data.sample instanceof SampleData ? data.sample : SampleData.create(data.sample);
 
@@ -130,7 +130,7 @@ export class Tube {
     sharedWithUserIds?: string[];
     labId?: string;
   }): Tube {
-    const location = Location.create(data.location);
+    const location = TubeLocation.create(data.location);
     const sample = SampleData.create(data.sample);
 
     return new Tube(
@@ -165,7 +165,7 @@ export class Tube {
     }
   }
 
-  moveTo(newLocation: Location): void {
+  moveTo(newLocation: TubeLocation): void {
     if (this._location.equals(newLocation)) {
       return; // No change needed
     }
@@ -374,7 +374,7 @@ export class Tube {
     return this._labId;
   }
 
-  get location(): Location {
+  get location(): TubeLocation {
     return this._location;
   }
 

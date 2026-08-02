@@ -9,7 +9,7 @@ import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 /** Minimal ownership shape for containers (racks/boxes): only assignedUserId is consulted. */
 export interface ResourceWithOwnership {
@@ -102,7 +102,7 @@ export class AccessControlService {
     return this.createAllowedResult();
   }
 
-  async canMoveTube(user: User, tube: Tube, _newLocation?: Location): Promise<AccessResult> {
+  async canMoveTube(user: User, tube: Tube, _newLocation?: TubeLocation): Promise<AccessResult> {
     const editCheck = await this.canEditTube(user, tube);
     if (!editCheck.allowed) {
       return editCheck;
@@ -251,7 +251,7 @@ export class AccessControlService {
             accessResult = await this.canDeleteTube(user, tube);
             break;
           case 'move':
-            accessResult = await this.canMoveTube(user, tube, undefined); // Location checked separately
+            accessResult = await this.canMoveTube(user, tube, undefined); // TubeLocation checked separately
             break;
           default:
             accessResult = this.createDeniedResult('Unknown operation');

@@ -3,7 +3,7 @@
  */
 
 import { TubePositionService } from './TubePositionService';
-import { Location } from '@domain/value-objects/Location';
+import { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { Storage } from '@domain/entities/Storage';
 import { createTestTube } from '@domain/__tests__/helpers';
 
@@ -31,7 +31,7 @@ beforeEach(() => {
 
 describe('TubePositionService', () => {
   describe('canPlaceTubeAt', () => {
-    const location = Location.create('T1', 'R1', 'A', 1);
+    const location = TubeLocation.create('T1', 'R1', 'A', 1);
 
     it('should allow placement at valid empty position', async () => {
       mockStorageRepository.isLocationValid.mockResolvedValue(true);
@@ -83,7 +83,7 @@ describe('TubePositionService', () => {
   describe('validateEquipmentConfiguration', () => {
     it('should pass for valid location', async () => {
       mockStorageRepository.isLocationValid.mockResolvedValue(true);
-      const location = Location.create('T1', 'R1', 'A', 1);
+      const location = TubeLocation.create('T1', 'R1', 'A', 1);
 
       const result = await createService().validateEquipmentConfiguration(location, 'lab_1');
       expect(result.isValid).toBe(true);
@@ -92,7 +92,7 @@ describe('TubePositionService', () => {
     it('should identify missing tank', async () => {
       mockStorageRepository.isLocationValid.mockResolvedValue(false);
       mockStorageRepository.tankExists.mockResolvedValue(false);
-      const location = Location.create('T99', 'R1', 'A', 1);
+      const location = TubeLocation.create('T99', 'R1', 'A', 1);
 
       const result = await createService().validateEquipmentConfiguration(location, 'lab_1');
       expect(result.isValid).toBe(false);
@@ -103,7 +103,7 @@ describe('TubePositionService', () => {
       mockStorageRepository.isLocationValid.mockResolvedValue(false);
       mockStorageRepository.tankExists.mockResolvedValue(true);
       mockStorageRepository.rackExists.mockResolvedValue(false);
-      const location = Location.create('T1', 'R99', 'A', 1);
+      const location = TubeLocation.create('T1', 'R99', 'A', 1);
 
       const result = await createService().validateEquipmentConfiguration(location, 'lab_1');
       expect(result.isValid).toBe(false);
@@ -115,7 +115,7 @@ describe('TubePositionService', () => {
       mockStorageRepository.tankExists.mockResolvedValue(true);
       mockStorageRepository.rackExists.mockResolvedValue(true);
       mockStorageRepository.boxExists.mockResolvedValue(false);
-      const location = Location.create('T1', 'R1', 'Z', 1);
+      const location = TubeLocation.create('T1', 'R1', 'Z', 1);
 
       const result = await createService().validateEquipmentConfiguration(location, 'lab_1');
       expect(result.isValid).toBe(false);
@@ -128,7 +128,7 @@ describe('TubePositionService', () => {
       mockStorageRepository.rackExists.mockResolvedValue(true);
       mockStorageRepository.boxExists.mockResolvedValue(true);
       mockStorageRepository.getMaxPosition.mockResolvedValue(20);
-      const location = Location.create('T1', 'R1', 'A', 50);
+      const location = TubeLocation.create('T1', 'R1', 'A', 50);
 
       const result = await createService().validateEquipmentConfiguration(location, 'lab_1');
       expect(result.isValid).toBe(false);
@@ -137,7 +137,7 @@ describe('TubePositionService', () => {
   });
 
   describe('applyPositionBusinessRules', () => {
-    const location = Location.create('T1', 'R1', 'A', 5);
+    const location = TubeLocation.create('T1', 'R1', 'A', 5);
 
     it('should warn when box is over 90% full', async () => {
       mockTubeRepository.getOccupiedPositions.mockResolvedValue(

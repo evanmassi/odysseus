@@ -15,7 +15,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageImportData } from '@domain/types/storageTypes';
 import { generateId } from '@domain/utils/generateId';
 import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/value-objects/Equipment';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 export class Storage {
   private constructor(
@@ -639,7 +639,7 @@ export class Storage {
     return { box: box.toData(), rack: rack.toData(), tank: tank.toData() };
   }
 
-  isLocationValid(location: Location): boolean {
+  isLocationValid(location: TubeLocation): boolean {
     return this._equipment.isLocationValid(
       location.tankId,
       location.rackId,

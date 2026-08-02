@@ -9,7 +9,7 @@ import type {
   TubeSearchCriteria,
   TubeSearchResult,
 } from '@domain/types/repository/searchCriteriaTypes';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
 
@@ -23,7 +23,7 @@ export interface TubeRepository {
 
   // LOCATION-BASED QUERIES
 
-  findByLocation(location: Location, labId: string): Promise<Tube | null>;
+  findByLocation(location: TubeLocation, labId: string): Promise<Tube | null>;
   findByCompleteLocation(
     tankId: string,
     rackId: string,

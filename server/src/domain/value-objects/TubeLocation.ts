@@ -7,7 +7,7 @@
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
-export class Location {
+export class TubeLocation {
   private constructor(
     private readonly _tankId: string,
     private readonly _rackId: string,
@@ -22,16 +22,16 @@ export class Location {
     rackId?: string,
     boxId?: string,
     position?: number
-  ): Location {
+  ): TubeLocation {
     if (typeof tankIdOrData === 'object') {
-      return new Location(
+      return new TubeLocation(
         tankIdOrData.tankId,
         tankIdOrData.rackId,
         tankIdOrData.boxId,
         tankIdOrData.position
       );
     }
-    return new Location(tankIdOrData, rackId!, boxId!, position!);
+    return new TubeLocation(tankIdOrData, rackId!, boxId!, position!);
   }
 
   private validate(): void {
@@ -83,7 +83,7 @@ export class Location {
     }
   }
 
-  equals(other: Location): boolean {
+  equals(other: TubeLocation): boolean {
     if (!other) return false;
 
     return (
@@ -120,7 +120,7 @@ export class Location {
     return this._position;
   }
 
-  isInSameRack(other: Location): boolean {
+  isInSameRack(other: TubeLocation): boolean {
     return this._tankId === other._tankId && this._rackId === other._rackId;
   }
 
@@ -129,8 +129,8 @@ export class Location {
     rackId?: string;
     boxId?: string;
     position?: number;
-  }): Location {
-    return Location.create({
+  }): TubeLocation {
+    return TubeLocation.create({
       tankId: updates.tankId ?? this._tankId,
       rackId: updates.rackId ?? this._rackId,
       boxId: updates.boxId ?? this._boxId,

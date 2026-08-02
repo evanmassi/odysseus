@@ -49,7 +49,7 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { TubePositionService } from '@domain/services/TubePositionService';
 import type { TubeSearchCriteria } from '@domain/types/repository';
-import { Location } from '@domain/value-objects/Location';
+import { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { logger } from '@infrastructure/logging/logger';
 
 import { executeBulk } from './executeBulk';
@@ -955,7 +955,7 @@ export class TubeApplicationService {
         }
 
         const oldLocation = tube.location;
-        const newLocation = Location.create(move.destination);
+        const newLocation = TubeLocation.create(move.destination);
         tube.moveTo(newLocation);
 
         await this.tubeRepository.saveWithOptimisticLock(tube, move.version);

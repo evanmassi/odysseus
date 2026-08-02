@@ -15,7 +15,7 @@ import type {
   StorageHistory,
 } from '@domain/repositories/StorageRepository';
 import type { Box } from '@domain/value-objects/Equipment';
-import type { Location } from '@domain/value-objects/Location';
+import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 import { logger } from '@infrastructure/logging/logger';
@@ -221,7 +221,7 @@ export class StorageRepository implements IStorageRepository {
     }
   }
 
-  async isLocationValid(labId: string, location: Location): Promise<boolean> {
+  async isLocationValid(labId: string, location: TubeLocation): Promise<boolean> {
     const config = await this.getForLab(labId);
     if (!config) return false;
     return config.isLocationValid(location);
