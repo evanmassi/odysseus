@@ -58,7 +58,8 @@ that need eyes on the running app rather than a code read.
   - ⚠ **Do NOT** extract the "demo banner ×2" — AdminSettingsModal vs MonitoringTab share only
     `AlertBanner` + `variant="demo"` with **different text**. Over-reach.
 
-- **C-26** — `searchInputStyle.ts` (`SEARCH_INPUT_CLASS`, in `supplies/.../bulk-update-tabs/`) is an
+- **C-26** — `bulkSearchInputStyle.ts` (`SEARCH_INPUT_CLASS`; moved to
+  `shared/ui/components/inventory/` in Phase 9b, now used by two shared bulk tabs) is an
   acknowledged copy of `SearchInput`'s styling. Extract the shared token soup
   (`bg-[hsl(var(--input-well))] border-line-faint hover:border-foreground/30 focus:*`) into one constant
   that `SearchInput`, `SEARCH_INPUT_CLASS`, and `Autocomplete`'s default all compose from.
@@ -94,12 +95,11 @@ that need eyes on the running app rather than a code read.
 
 ## B. Larger refactors (real work — take individually, verify in-app)
 
-- **C-8(b)** — Bulk Receive vs Issue tabs are ~85% identical
-  (`supplies/.../bulk-update-tabs/BulkReceiveTab.tsx`, `BulkIssueTab.tsx`). Extract
-  `<BulkStockMovementTab>` parameterized by `{ mutationHook, actionVerb, labels, extraColumns? }`, where
-  `extraColumns` is a render-prop (empty for Issue; the lot/PO/cost grid for Receive) and the row type is
-  generic over the extra fields. **No "direction sign"** — both send positive quantities to different
-  endpoints. MEDIUM-LARGE, runtime-critical → exercise `/verify` if done.
+- ~~**C-8(b)**~~ — **closed** by reagents Phase 9b. `BulkStockMovementTab` lives in
+  `shared/ui/components/inventory/`, collapsing supplies' receive (253→129) and issue (189→80) and
+  giving reagents both for 163+80 rather than ~450 cloned. Landed with four callers rather than the
+  two this entry assumed, so the parameterisation was proven rather than guessed — and the extra
+  fields ride an injected render slot, as predicted, with no direction sign.
 
 - **C-22(a)** — ~90-line profile block shared between `AuthRegistrationModal` and `AuthSysAdminSetupPage`
   (`domains/authentication/ui/components/gateway/`). Extract `<AuthProfileFields>` (5 inputs + username
