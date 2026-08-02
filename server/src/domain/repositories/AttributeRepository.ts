@@ -13,6 +13,16 @@ export interface AttributeOptionRow {
   sortOrder: number;
 }
 
+/** One item's value for one definition. A multi-select stores a row per chosen option. */
+export interface AttributeValueRow {
+  id: string;
+  itemId: string;
+  definitionId: string;
+  valueOptionId?: string;
+  valueText?: string;
+  valueNumber?: number;
+}
+
 export interface AttributeRepository {
   findDefinitionById(id: string, labId: string): Promise<AttributeDefinition | null>;
   findDefinitionsByLabId(labId: string): Promise<AttributeDefinition[]>;

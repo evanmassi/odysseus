@@ -8,6 +8,7 @@
 import type { DocumentPatch } from '@domain/entities/Document';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
+import type { AttributeValueRow } from '@domain/repositories/AttributeRepository';
 
 export interface SupplyStockRow {
   id: string;
@@ -74,15 +75,6 @@ export interface RecordTransactionData {
   notes?: string;
 }
 
-export interface SupplyAttributeValueRow {
-  id: string;
-  itemId: string;
-  definitionId: string;
-  valueOptionId?: string;
-  valueText?: string;
-  valueNumber?: number;
-}
-
 export interface SupplyPackagingLevelRow {
   id: string;
   itemId: string;
@@ -146,12 +138,12 @@ export interface SupplyItemRepository {
 
   // Attribute values
 
-  findAttributeValuesByItemId(itemId: string): Promise<SupplyAttributeValueRow[]>;
-  findAttributeValuesByLabId(labId: string): Promise<SupplyAttributeValueRow[]>;
+  findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]>;
+  findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]>;
   replaceAttributeValues(
     itemId: string,
     definitionId: string,
-    values: SupplyAttributeValueRow[]
+    values: AttributeValueRow[]
   ): Promise<void>;
 
   // Packaging levels

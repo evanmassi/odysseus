@@ -365,13 +365,10 @@ const name = tube.researcher; // This field doesn't exist!
 
 ### Common Mistakes to Avoid
 
-**Adding a new lookup category** requires updates in FOUR places:
-1. `packages/shared-schemas/src/lookups/lookupSchemas.ts` — add to `LOOKUP_CATEGORIES` array
-2. `server/src/domain/entities/LookupValue.ts` — add to the `LookupCategory` type AND the runtime validation array in `validate()`
-3. `server/src/infrastructure/database/migrations/` — update the `lookup_values_category_check` constraint
-4. `server/src/application/services/LookupValueApplicationService.ts` — if the new category references a table other than `tubes`, add a branch in `getUsageCounts()`, `rename()`, and `delete()` to query the correct table. Also update `CATEGORY_USAGE_LABELS` in the client's `CatalogTab.tsx`.
-
-The runtime validation array in `LookupValue.validate()` is separate from the TypeScript type and will silently reject new categories at runtime even if the type compiles.
+**Adding a new lookup category** requires updates in THREE places:
+1. `packages/shared-schemas/src/lookups/lookupSchemas.ts` — add to `LOOKUP_CATEGORIES`. This is the single source: the `LookupCategory` type derives from it, and `LookupValue.validate()` checks against it.
+2. `server/src/infrastructure/database/migrations/` — update the `lookup_values_category_check` constraint
+3. `server/src/application/services/LookupValueApplicationService.ts` — if the new category references a table other than `tubes`, add a branch in `getUsageCounts()`, `rename()`, and `delete()` to query the correct table. Also update `CATEGORY_USAGE_LABELS` in the client's `CatalogTab.tsx`.
 
 Lookup categories are NOT all tube-related. Each category maps to a different table for usage counts, rename cascades, and delete protection:
 - `species`, `source`, `media` → `tubes` table

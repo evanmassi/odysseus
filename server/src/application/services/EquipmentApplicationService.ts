@@ -6,6 +6,7 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
+import { AttributeDto } from '@application/dto/AttributeDto';
 import { EquipmentDto } from '@application/dto/EquipmentDto';
 import type {
   EquipmentCategoryResponse,
@@ -40,12 +41,12 @@ import {
   EquipmentBulkStatusChangedEvent,
   EquipmentBulkRelocatedEvent,
 } from '@domain/events/EquipmentEvents';
-import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
-import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type {
-  EquipmentItemRepository,
-  EquipmentAttributeValueRow,
-} from '@domain/repositories/EquipmentItemRepository';
+  AttributeRepository,
+  AttributeValueRow,
+} from '@domain/repositories/AttributeRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -185,7 +186,7 @@ export class EquipmentApplicationService {
     const items = await this.itemRepository.findByLabId(labId);
     // One query for the lab's values, grouped in memory — per-item fetches would be an N+1.
     const values = await this.itemRepository.findAttributeValuesByLabId(labId);
-    const byItem = new Map<string, EquipmentAttributeValueRow[]>();
+    const byItem = new Map<string, AttributeValueRow[]>();
     for (const value of values) {
       const bucket = byItem.get(value.itemId) ?? [];
       bucket.push(value);
@@ -195,7 +196,7 @@ export class EquipmentApplicationService {
     return items.map(item =>
       EquipmentDto.itemWithAttributesToResponse(
         item,
-        (byItem.get(item.id) ?? []).map(EquipmentDto.attributeSummaryToResponse)
+        (byItem.get(item.id) ?? []).map(AttributeDto.summaryToResponse)
       )
     );
   }
@@ -211,7 +212,7 @@ export class EquipmentApplicationService {
       item,
       documents,
       maintenanceLog,
-      attributeValues.map(EquipmentDto.attributeValueToResponse)
+      attributeValues.map(AttributeDto.valueToResponse)
     );
   }
 
@@ -650,14 +651,14 @@ export class EquipmentApplicationService {
     const stored = await this.itemRepository.findAttributeValuesByItemId(itemId);
     return stored
       .filter(row => row.definitionId === definition.id)
-      .map(EquipmentDto.attributeValueToResponse);
+      .map(AttributeDto.valueToResponse);
   }
 
   private scalarAttributeRows(
     itemId: string,
     definitionId: string,
     data: SetAttributeValueRequest
-  ): EquipmentAttributeValueRow[] {
+  ): AttributeValueRow[] {
     const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
     if (isEmpty) return [];
     return [

@@ -5,7 +5,6 @@
  */
 
 import { LookupValue } from '@domain/entities/LookupValue';
-import type { LookupCategory } from '@domain/entities/LookupValue';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -15,6 +14,8 @@ import type { LookupValueRepository } from '@domain/repositories/LookupValueRepo
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
+
+import type { LookupCategory } from '@odysseus/shared-schemas';
 
 type CatalogCountFn = (value: string, labId: string) => Promise<number>;
 type CatalogRenameFn = (oldValue: string, newValue: string, labId: string) => Promise<unknown>;

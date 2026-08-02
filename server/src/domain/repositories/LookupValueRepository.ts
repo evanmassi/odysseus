@@ -4,7 +4,10 @@
  * Data access contract for admin-managed dropdown values.
  */
 
-import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
+import type { LookupValue } from '@domain/entities/LookupValue';
+
+import type { LookupCategory } from '@odysseus/shared-schemas';
+
 
 export interface LookupValueRepository {
   findById(id: string, labId: string): Promise<LookupValue | null>;

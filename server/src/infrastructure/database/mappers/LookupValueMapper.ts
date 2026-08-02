@@ -4,8 +4,9 @@
  * Converts between domain entity and database row for lookup_values table.
  */
 
-import type { LookupCategory } from '@domain/entities/LookupValue';
 import { LookupValue } from '@domain/entities/LookupValue';
+
+import type { LookupCategory } from '@odysseus/shared-schemas';
 
 export interface LookupValueRow {
   id: string;

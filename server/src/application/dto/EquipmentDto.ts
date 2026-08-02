@@ -8,7 +8,6 @@ import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
-import type { EquipmentAttributeValueRow } from '@domain/repositories/EquipmentItemRepository';
 
 import type {
   EquipmentCategory as EquipmentCategoryData,
@@ -71,26 +70,6 @@ export class EquipmentDto {
       notes: item.notes,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
-    };
-  }
-
-  static attributeValueToResponse(row: EquipmentAttributeValueRow): AttributeValue {
-    return {
-      id: row.id,
-      itemId: row.itemId,
-      definitionId: row.definitionId,
-      valueOptionId: row.valueOptionId ?? null,
-      valueText: row.valueText ?? null,
-      valueNumber: row.valueNumber ?? null,
-    };
-  }
-
-  static attributeSummaryToResponse(row: EquipmentAttributeValueRow): AttributeSummary {
-    return {
-      definitionId: row.definitionId,
-      valueOptionId: row.valueOptionId ?? null,
-      valueText: row.valueText ?? null,
-      valueNumber: row.valueNumber ?? null,
     };
   }
 

@@ -4,18 +4,11 @@
  * Represents a selectable value for a lab-managed metadata field (tube species, supply vendor, maintenance type, etc.).
  */
 
+import { LOOKUP_CATEGORIES, type LookupCategory } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-
-export type LookupCategory =
-  | 'species'
-  | 'source'
-  | 'media'
-  | 'specimen_type'
-  | 'equipment_maintenance_type'
-  | 'reagent_type'
-  | 'vendor'
-  | 'manufacturer';
+import { toDomainDate } from '@domain/utils/toDomainDate';
 
 export class LookupValue {
   private constructor(
@@ -66,8 +59,8 @@ export class LookupValue {
       data.value,
       data.sortOrder,
       data.isActive,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
-      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt,
+      toDomainDate(data.createdAt),
+      toDomainDate(data.updatedAt),
       data.labId
     );
   }
@@ -91,18 +84,7 @@ export class LookupValue {
     if (this._value.length > 200) {
       throw new ValidationError('Lookup value cannot exceed 200 characters');
     }
-    if (
-      ![
-        'species',
-        'source',
-        'media',
-        'specimen_type',
-        'equipment_maintenance_type',
-        'reagent_type',
-        'vendor',
-        'manufacturer',
-      ].includes(this._category)
-    ) {
+    if (!LOOKUP_CATEGORIES.includes(this._category)) {
       throw new ValidationError('Invalid lookup category');
     }
   }

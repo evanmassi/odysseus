@@ -12,6 +12,7 @@ import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { AttributeValueRow } from '@domain/repositories/AttributeRepository';
 import type {
   ReagentItemRepository as IReagentItemRepository,
   ReagentLotRow,
@@ -19,7 +20,6 @@ import type {
   ReagentLotLabelRow,
   ReagentTransactionRow,
   ReagentPackagingLevelRow,
-  ReagentAttributeValueRow,
   ItemWithStock,
   RecordTransactionData,
   VoidTransactionData,
@@ -38,6 +38,7 @@ import { ReagentPackagingLevelMapper } from '@infrastructure/database/mappers/Re
 import type { ReagentTransactionDbRow } from '@infrastructure/database/mappers/ReagentTransactionMapper';
 import { ReagentTransactionMapper } from '@infrastructure/database/mappers/ReagentTransactionMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
+import { AttributeValueQueries } from '@infrastructure/repositories/AttributeValueQueries';
 import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
 
 import type { PoolClient } from 'pg';
@@ -48,9 +49,6 @@ const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_numbe
   reorder_threshold, reorder_threshold_unit, reorder_quantity, reorder_unit, unit_price,
   description, notes, status, created_at, updated_at`;
 
-const ATTRIBUTE_VALUE_COLUMNS =
-  'id, item_id, definition_id, value_option_id, value_text, value_number';
-
 interface ReagentLotLabelDbRow {
   item_id: string;
   lot_id: string;
@@ -58,26 +56,6 @@ interface ReagentLotLabelDbRow {
   expiration_date: string | null;
   location_id: string;
   barcode_value: string;
-}
-
-interface AttributeValueDbRow {
-  id: string;
-  item_id: string;
-  definition_id: string;
-  value_option_id: string | null;
-  value_text: string | null;
-  value_number: string | null;
-}
-
-function toAttributeValueRow(row: AttributeValueDbRow): ReagentAttributeValueRow {
-  return {
-    id: row.id,
-    itemId: row.item_id,
-    definitionId: row.definition_id,
-    valueOptionId: row.value_option_id ?? undefined,
-    valueText: row.value_text ?? undefined,
-    valueNumber: row.value_number === null ? undefined : parseFloat(row.value_number),
-  };
 }
 
 const LOT_COLUMNS = `id, item_id, location_id, lot_number, quantity, expiration_date,
@@ -117,10 +95,16 @@ function todayIso(): string {
 
 export class ReagentItemRepository implements IReagentItemRepository {
   private readonly documents: DocumentQueries<ReagentDocument>;
+  private readonly attributeValues: AttributeValueQueries;
 
   constructor(private db: Queryable) {
     this.documents = new DocumentQueries(db, 'reagent_documents', data =>
       ReagentDocument.fromData(data)
+    );
+    this.attributeValues = new AttributeValueQueries(
+      db,
+      'reagent_attribute_values',
+      'reagent_items'
     );
   }
 
@@ -746,53 +730,20 @@ export class ReagentItemRepository implements IReagentItemRepository {
 
   // Attribute values
 
-  async findAttributeValuesByItemId(itemId: string): Promise<ReagentAttributeValueRow[]> {
-    const rows = await this.db.queryMany<AttributeValueDbRow>(
-      `SELECT ${ATTRIBUTE_VALUE_COLUMNS} FROM reagent_attribute_values WHERE item_id = $1`,
-      [itemId]
-    );
-    return rows.map(toAttributeValueRow);
+  async findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]> {
+    return this.attributeValues.findByItemId(itemId);
   }
 
-  async findAttributeValuesByLabId(labId: string): Promise<ReagentAttributeValueRow[]> {
-    const rows = await this.db.queryMany<AttributeValueDbRow>(
-      `
-      SELECT v.id, v.item_id, v.definition_id, v.value_option_id, v.value_text, v.value_number
-      FROM reagent_attribute_values v
-      JOIN reagent_items i ON i.id = v.item_id
-      WHERE i.lab_id = $1
-    `,
-      [labId]
-    );
-    return rows.map(toAttributeValueRow);
+  async findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]> {
+    return this.attributeValues.findByLabId(labId);
   }
 
-  // A multi_select writes one row per option, so the definition's rows are replaced wholesale.
   async replaceAttributeValues(
     itemId: string,
     definitionId: string,
-    values: ReagentAttributeValueRow[]
+    values: AttributeValueRow[]
   ): Promise<void> {
-    await this.db.transaction(async client => {
-      await client.query(
-        'DELETE FROM reagent_attribute_values WHERE item_id = $1 AND definition_id = $2',
-        [itemId, definitionId]
-      );
-      for (const value of values) {
-        await client.query(
-          `INSERT INTO reagent_attribute_values (${ATTRIBUTE_VALUE_COLUMNS})
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            value.id,
-            value.itemId,
-            value.definitionId,
-            value.valueOptionId ?? null,
-            value.valueText ?? null,
-            value.valueNumber ?? null,
-          ]
-        );
-      }
-    });
+    await this.attributeValues.replace(itemId, definitionId, values);
   }
 
   // Packaging levels

@@ -9,6 +9,7 @@ import { supplyItemStatusValues, type SupplyItemStatus } from '@odysseus/shared-
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
+import { toDomainDate } from '@domain/utils/toDomainDate';
 
 interface ItemCreateData {
   labId: string;
@@ -145,8 +146,8 @@ export class SupplyItem {
       data.description,
       data.notes,
       data.status,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
-      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt
+      toDomainDate(data.createdAt),
+      toDomainDate(data.updatedAt)
     );
   }
 

@@ -7,6 +7,7 @@
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
+import { toDomainDate } from '@domain/utils/toDomainDate';
 
 interface LabLocationCreateData {
   labId: string;
@@ -67,8 +68,8 @@ export class LabLocation {
       data.description,
       data.parentId,
       data.sortOrder,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
-      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt
+      toDomainDate(data.createdAt),
+      toDomainDate(data.updatedAt)
     );
   }
 

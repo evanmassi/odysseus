@@ -9,13 +9,7 @@ import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
 // Per-item data interfaces for enriched bulk events
 
-export interface BulkReceiveItemDetail {
-  itemId: string;
-  quantity: number;
-  locationId: string;
-}
-
-export interface BulkIssueItemDetail {
+export interface BulkStockItemDetail {
   itemId: string;
   quantity: number;
   locationId: string;
@@ -301,7 +295,7 @@ export class SupplyStockVoidedEvent extends DomainEvent {
 
 export class SupplyBulkReceivedEvent extends DomainEvent {
   constructor(
-    public readonly perItemData: BulkReceiveItemDetail[],
+    public readonly perItemData: BulkStockItemDetail[],
     public readonly receivedBy: string,
     labId: string
   ) {
@@ -318,7 +312,7 @@ export class SupplyBulkReceivedEvent extends DomainEvent {
 
 export class SupplyBulkIssuedEvent extends DomainEvent {
   constructor(
-    public readonly perItemData: BulkIssueItemDetail[],
+    public readonly perItemData: BulkStockItemDetail[],
     public readonly issuedBy: string,
     labId: string
   ) {

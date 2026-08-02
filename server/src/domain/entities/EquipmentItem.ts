@@ -9,6 +9,7 @@ import { equipmentStatusValues, type EquipmentStatus } from '@odysseus/shared-sc
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
+import { toDomainDate } from '@domain/utils/toDomainDate';
 
 interface ItemCreateData {
   labId: string;
@@ -160,8 +161,8 @@ export class EquipmentItem {
       data.decommissionReason,
       data.disposalMethod,
       data.notes,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
-      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt
+      toDomainDate(data.createdAt),
+      toDomainDate(data.updatedAt)
     );
   }
 

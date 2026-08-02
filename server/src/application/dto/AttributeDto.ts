@@ -1,17 +1,20 @@
 /**
  * Attribute DTO
  *
- * Maps attribute definitions and options to API response shapes.
+ * Maps attribute definitions, options and per-item values to API response shapes. The value
+ * mappers serve all three catalogs — the rows differ only in which table they came from.
  */
 
 import type { AttributeDefinition } from '@domain/entities/AttributeDefinition';
-import type { AttributeOptionRow } from '@domain/repositories/AttributeRepository';
+import type { AttributeOptionRow, AttributeValueRow } from '@domain/repositories/AttributeRepository';
 
 import type {
   AttributeDefinition as AttributeDefinitionData,
   AttributeDefinitionWithUsage,
   AttributeOption as AttributeOptionData,
   AttributeOptionWithUsage,
+  AttributeSummary,
+  AttributeValue,
 } from '@odysseus/shared-schemas';
 
 export type AttributeDefinitionResponse = AttributeDefinitionData;
@@ -58,5 +61,22 @@ export class AttributeDto {
     usageCount: number
   ): AttributeOptionUsageResponse {
     return { ...AttributeDto.optionToResponse(option), usageCount };
+  }
+
+  static valueToResponse(row: AttributeValueRow): AttributeValue {
+    return {
+      id: row.id,
+      itemId: row.itemId,
+      ...AttributeDto.summaryToResponse(row),
+    };
+  }
+
+  static summaryToResponse(row: AttributeValueRow): AttributeSummary {
+    return {
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
+    };
   }
 }

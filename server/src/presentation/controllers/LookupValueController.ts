@@ -5,11 +5,11 @@
  */
 
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
-import type { LookupCategory } from '@domain/entities/LookupValue';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
+import type { LookupCategory } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
 
 export interface LookupValueControllerDeps {

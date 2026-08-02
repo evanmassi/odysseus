@@ -6,6 +6,7 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
+import { AttributeDto } from '@application/dto/AttributeDto';
 import {
   SupplyDto,
   type SupplyCategoryResponse,
@@ -47,13 +48,15 @@ import {
   SupplyBulkVoidedEvent,
   type BulkVoidItemDetail,
 } from '@domain/events/SupplyEvents';
-import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
+import type {
+  AttributeRepository,
+  AttributeValueRow,
+} from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
-  SupplyAttributeValueRow,
 } from '@domain/repositories/SupplyItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -179,7 +182,7 @@ export class SupplyApplicationService {
     const itemsWithStock = await this.itemRepository.findByLabIdWithStock(labId);
     // One query for the lab's values, grouped in memory — per-item fetches would be an N+1.
     const values = await this.itemRepository.findAttributeValuesByLabId(labId);
-    const byItem = new Map<string, SupplyAttributeValueRow[]>();
+    const byItem = new Map<string, AttributeValueRow[]>();
     for (const value of values) {
       const bucket = byItem.get(value.itemId) ?? [];
       bucket.push(value);
@@ -191,7 +194,7 @@ export class SupplyApplicationService {
         item,
         totalStock,
         locationNames,
-        (byItem.get(item.id) ?? []).map(SupplyDto.attributeSummaryToResponse)
+        (byItem.get(item.id) ?? []).map(AttributeDto.summaryToResponse)
       )
     );
   }
@@ -214,7 +217,7 @@ export class SupplyApplicationService {
       stock,
       recentTransactions,
       packagingLevels,
-      attributeValues.map(SupplyDto.attributeValueToResponse)
+      attributeValues.map(AttributeDto.valueToResponse)
     );
   }
 
@@ -330,14 +333,14 @@ export class SupplyApplicationService {
     const stored = await this.itemRepository.findAttributeValuesByItemId(itemId);
     return stored
       .filter(row => row.definitionId === definition.id)
-      .map(SupplyDto.attributeValueToResponse);
+      .map(AttributeDto.valueToResponse);
   }
 
   private scalarAttributeRows(
     itemId: string,
     definitionId: string,
     data: SetAttributeValueRequest
-  ): SupplyAttributeValueRow[] {
+  ): AttributeValueRow[] {
     const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
     if (isEmpty) return [];
     return [

@@ -1,9 +1,8 @@
 /**
  * Reagent FEFO Consumption
  *
- * First-expired-first-out draw planning over a reagent's lots, plus read-time
- * expiry derivation. Pure: the repository supplies the locked lot rows and
- * applies the returned plan inside its transaction.
+ * First-expired-first-out draw planning over a reagent's lots. Pure: the repository
+ * supplies the locked lot rows and applies the returned plan inside its transaction.
  */
 
 // Quantities are decimals (µg, mL); tolerate float drift so an exact draw

@@ -8,15 +8,7 @@ import type { DocumentPatch } from '@domain/entities/Document';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
-
-export interface EquipmentAttributeValueRow {
-  id: string;
-  itemId: string;
-  definitionId: string;
-  valueOptionId?: string;
-  valueText?: string;
-  valueNumber?: number;
-}
+import type { AttributeValueRow } from '@domain/repositories/AttributeRepository';
 
 export interface EquipmentItemRepository {
   // Items
@@ -56,11 +48,11 @@ export interface EquipmentItemRepository {
 
   // Attribute values
 
-  findAttributeValuesByItemId(itemId: string): Promise<EquipmentAttributeValueRow[]>;
-  findAttributeValuesByLabId(labId: string): Promise<EquipmentAttributeValueRow[]>;
+  findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]>;
+  findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]>;
   replaceAttributeValues(
     itemId: string,
     definitionId: string,
-    values: EquipmentAttributeValueRow[]
+    values: AttributeValueRow[]
   ): Promise<void>;
 }

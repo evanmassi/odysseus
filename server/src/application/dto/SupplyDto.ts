@@ -12,7 +12,6 @@ import type {
   SupplyBarcodeRow,
   SupplyTransactionRow,
   SupplyPackagingLevelRow,
-  SupplyAttributeValueRow,
 } from '@domain/repositories/SupplyItemRepository';
 
 import type {
@@ -92,26 +91,6 @@ export class SupplyDto {
       status: item.status,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
-    };
-  }
-
-  static attributeValueToResponse(row: SupplyAttributeValueRow): AttributeValue {
-    return {
-      id: row.id,
-      itemId: row.itemId,
-      definitionId: row.definitionId,
-      valueOptionId: row.valueOptionId ?? null,
-      valueText: row.valueText ?? null,
-      valueNumber: row.valueNumber ?? null,
-    };
-  }
-
-  static attributeSummaryToResponse(row: SupplyAttributeValueRow): AttributeSummary {
-    return {
-      definitionId: row.definitionId,
-      valueOptionId: row.valueOptionId ?? null,
-      valueText: row.valueText ?? null,
-      valueNumber: row.valueNumber ?? null,
     };
   }
 

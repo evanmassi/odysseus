@@ -7,6 +7,7 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
+import { AttributeDto } from '@application/dto/AttributeDto';
 import {
   ReagentDto,
   type ReagentCategoryResponse,
@@ -50,13 +51,15 @@ import {
   ReagentBulkVoidedEvent,
   type BulkVoidItemDetail,
 } from '@domain/events/ReagentEvents';
-import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
+import type {
+  AttributeRepository,
+  AttributeValueRow,
+} from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type {
   ReagentItemRepository,
   ReagentBarcodeRow,
   ReagentTransactionRow,
-  ReagentAttributeValueRow,
 } from '@domain/repositories/ReagentItemRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
@@ -185,7 +188,7 @@ export class ReagentApplicationService {
     const itemsWithStock = await this.itemRepository.findByLabIdWithStock(labId);
     // One query for the lab's values, grouped in memory — per-item fetches would be an N+1.
     const values = await this.itemRepository.findAttributeValuesByLabId(labId);
-    const byItem = new Map<string, ReagentAttributeValueRow[]>();
+    const byItem = new Map<string, AttributeValueRow[]>();
     for (const value of values) {
       const bucket = byItem.get(value.itemId) ?? [];
       bucket.push(value);
@@ -195,7 +198,7 @@ export class ReagentApplicationService {
     return itemsWithStock.map(withStock =>
       ReagentDto.itemWithStockToResponse(
         withStock,
-        (byItem.get(withStock.item.id) ?? []).map(ReagentDto.attributeSummaryToResponse)
+        (byItem.get(withStock.item.id) ?? []).map(AttributeDto.summaryToResponse)
       )
     );
   }
@@ -215,7 +218,7 @@ export class ReagentApplicationService {
       documents,
       barcodes,
       packagingLevels,
-      attributeValues.map(ReagentDto.attributeValueToResponse)
+      attributeValues.map(AttributeDto.valueToResponse)
     );
   }
 
@@ -331,14 +334,14 @@ export class ReagentApplicationService {
     const stored = await this.itemRepository.findAttributeValuesByItemId(itemId);
     return stored
       .filter(row => row.definitionId === definition.id)
-      .map(ReagentDto.attributeValueToResponse);
+      .map(AttributeDto.valueToResponse);
   }
 
   private scalarAttributeRows(
     itemId: string,
     definitionId: string,
     data: SetAttributeValueRequest
-  ): ReagentAttributeValueRow[] {
+  ): AttributeValueRow[] {
     const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
     if (isEmpty) return [];
     return [

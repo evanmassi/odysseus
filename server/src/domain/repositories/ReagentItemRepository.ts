@@ -9,6 +9,7 @@
 import type { DocumentPatch } from '@domain/entities/Document';
 import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
+import type { AttributeValueRow } from '@domain/repositories/AttributeRepository';
 
 export interface ReagentLotRow {
   id: string;
@@ -79,15 +80,6 @@ export interface VoidTransactionData {
   labId: string;
   voidedBy: string;
   voidReason: string;
-}
-
-export interface ReagentAttributeValueRow {
-  id: string;
-  itemId: string;
-  definitionId: string;
-  valueOptionId?: string;
-  valueText?: string;
-  valueNumber?: number;
 }
 
 export interface ItemWithStock {
@@ -177,12 +169,12 @@ export interface ReagentItemRepository {
 
   // Attribute values
 
-  findAttributeValuesByItemId(itemId: string): Promise<ReagentAttributeValueRow[]>;
-  findAttributeValuesByLabId(labId: string): Promise<ReagentAttributeValueRow[]>;
+  findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]>;
+  findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]>;
   replaceAttributeValues(
     itemId: string,
     definitionId: string,
-    values: ReagentAttributeValueRow[]
+    values: AttributeValueRow[]
   ): Promise<void>;
 
   // Lookup support — for reagent lookup category rename/delete cascading

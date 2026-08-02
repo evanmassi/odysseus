@@ -8,9 +8,9 @@ import type { DocumentPatch } from '@domain/entities/Document';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
+import type { AttributeValueRow } from '@domain/repositories/AttributeRepository';
 import type {
   EquipmentItemRepository as IEquipmentItemRepository,
-  EquipmentAttributeValueRow,
 } from '@domain/repositories/EquipmentItemRepository';
 import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
@@ -18,6 +18,7 @@ import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mapper
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
+import { AttributeValueQueries } from '@infrastructure/repositories/AttributeValueQueries';
 import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS =
@@ -25,35 +26,18 @@ const ITEM_COLUMNS =
 const LOG_COLUMNS =
   'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
-const ATTRIBUTE_VALUE_COLUMNS =
-  'id, item_id, definition_id, value_option_id, value_text, value_number';
-
-interface AttributeValueDbRow {
-  id: string;
-  item_id: string;
-  definition_id: string;
-  value_option_id: string | null;
-  value_text: string | null;
-  value_number: string | null;
-}
-
-function toAttributeValueRow(row: AttributeValueDbRow): EquipmentAttributeValueRow {
-  return {
-    id: row.id,
-    itemId: row.item_id,
-    definitionId: row.definition_id,
-    valueOptionId: row.value_option_id ?? undefined,
-    valueText: row.value_text ?? undefined,
-    valueNumber: row.value_number != null ? parseFloat(row.value_number) : undefined,
-  };
-}
-
 export class EquipmentItemRepository implements IEquipmentItemRepository {
   private readonly documents: DocumentQueries<EquipmentDocument>;
+  private readonly attributeValues: AttributeValueQueries;
 
   constructor(private db: Queryable) {
     this.documents = new DocumentQueries(db, 'equipment_documents', data =>
       EquipmentDocument.fromData(data)
+    );
+    this.attributeValues = new AttributeValueQueries(
+      db,
+      'equipment_attribute_values',
+      'equipment_items'
     );
   }
 
@@ -297,52 +281,19 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
   }
   // Attribute values
 
-  async findAttributeValuesByItemId(itemId: string): Promise<EquipmentAttributeValueRow[]> {
-    const rows = await this.db.queryMany<AttributeValueDbRow>(
-      `SELECT ${ATTRIBUTE_VALUE_COLUMNS} FROM equipment_attribute_values WHERE item_id = $1`,
-      [itemId]
-    );
-    return rows.map(toAttributeValueRow);
+  async findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]> {
+    return this.attributeValues.findByItemId(itemId);
   }
 
-  async findAttributeValuesByLabId(labId: string): Promise<EquipmentAttributeValueRow[]> {
-    const rows = await this.db.queryMany<AttributeValueDbRow>(
-      `
-      SELECT v.id, v.item_id, v.definition_id, v.value_option_id, v.value_text, v.value_number
-      FROM equipment_attribute_values v
-      JOIN equipment_items i ON i.id = v.item_id
-      WHERE i.lab_id = $1
-    `,
-      [labId]
-    );
-    return rows.map(toAttributeValueRow);
+  async findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]> {
+    return this.attributeValues.findByLabId(labId);
   }
 
-  // A multi_select writes one row per option, so the definition's rows are replaced wholesale.
   async replaceAttributeValues(
     itemId: string,
     definitionId: string,
-    values: EquipmentAttributeValueRow[]
+    values: AttributeValueRow[]
   ): Promise<void> {
-    await this.db.transaction(async client => {
-      await client.query(
-        'DELETE FROM equipment_attribute_values WHERE item_id = $1 AND definition_id = $2',
-        [itemId, definitionId]
-      );
-      for (const value of values) {
-        await client.query(
-          `INSERT INTO equipment_attribute_values (${ATTRIBUTE_VALUE_COLUMNS})
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            value.id,
-            value.itemId,
-            value.definitionId,
-            value.valueOptionId ?? null,
-            value.valueText ?? null,
-            value.valueNumber ?? null,
-          ]
-        );
-      }
-    });
+    await this.attributeValues.replace(itemId, definitionId, values);
   }
 }

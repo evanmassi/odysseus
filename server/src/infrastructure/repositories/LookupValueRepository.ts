@@ -4,12 +4,15 @@
  * PostgreSQL implementation for admin-managed dropdown values.
  */
 
-import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
+
+import type { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupValueRepository as ILookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';
 import { LookupValueMapper } from '@infrastructure/database/mappers/LookupValueMapper';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
+
+import type { LookupCategory } from '@odysseus/shared-schemas';
 
 const LOOKUP_VALUE_COLUMNS =
   'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
