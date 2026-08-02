@@ -154,7 +154,7 @@ interface CategoryDeleteMutation {
 }
 
 export interface CatalogCategoryState<TCategory extends CategoryShape> {
-  /** `parent > child` per category id, for the rows and panels that name one. */
+  /** `parent › child` per category id, for the rows and panels that name one. */
   categoryNameMap: Map<string, string>;
   onAddCategory: () => void;
   onAddSubcategory: (parentId: string) => void;
@@ -206,7 +206,7 @@ export function useCatalogCategories<TCategory extends CategoryShape>({
     const map = new Map<string, string>();
     categories.forEach(c => {
       const parentName = c.parentId ? categories.find(p => p.id === c.parentId)?.name : undefined;
-      map.set(c.id, parentName ? `${parentName} > ${c.name}` : c.name);
+      map.set(c.id, parentName ? `${parentName} › ${c.name}` : c.name);
     });
     return map;
   }, [categories]);

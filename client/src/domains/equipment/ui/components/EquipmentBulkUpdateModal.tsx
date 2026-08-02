@@ -195,19 +195,21 @@ export function EquipmentBulkUpdateModal({
           </div>
 
           <div className="w-3/5 flex flex-col min-h-0">
-            <div className="flex-shrink-0 border-b border-border">
+            <div className="flex-shrink-0 border-b border-border px-4">
               <Tabs
                 value={actionType}
                 onChange={v => setActionType(v as BulkActionType)}
                 orientation="horizontal"
+                size="sm"
+                className="!gap-0 !px-0 [&_button]:!px-2.5 [&_button]:flex-1 [&_button]:justify-center"
               >
-                <Tab id="maintenance" icon={<Wrench className="w-3.5 h-3.5" />}>
+                <Tab id="maintenance" icon={<Wrench size={12} />}>
                   Maintenance
                 </Tab>
-                <Tab id="status" icon={<RefreshCw className="w-3.5 h-3.5" />}>
+                <Tab id="status" icon={<RefreshCw size={12} />}>
                   Status
                 </Tab>
-                <Tab id="relocate" icon={<FolderInput className="w-3.5 h-3.5" />}>
+                <Tab id="relocate" icon={<FolderInput size={12} />}>
                   Relocate
                 </Tab>
               </Tabs>
