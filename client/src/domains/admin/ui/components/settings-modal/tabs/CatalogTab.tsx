@@ -469,7 +469,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
 
           {activeLeafId === LOCATIONS_LEAF_ID && (
             <LocationCatalogPanel
-              count={locations.length}
+              locations={locations}
               readOnly={readOnly}
               onManage={() => setIsLocationModalOpen(true)}
             />

@@ -1,46 +1,106 @@
 /**
  * Location Catalog Panel
  *
- * The locations leaf of the catalog rail. A location tree needs room to show what sits inside
- * what, so editing happens in its own modal and this pane only counts the tree and opens it.
+ * The locations leaf of the catalog rail: the tree read-only, edited in its own modal.
  */
+
+import { useMemo } from 'react';
 
 import { MapPin } from 'lucide-react';
 
-import { Button, Chip, ConsolePanel, HeaderStrip, StripLabel } from '@shared/ui';
+import { buildHierarchyOptions, Button, Table } from '@shared/ui';
+
+import type { LabLocation } from '@odysseus/shared-schemas';
+import type { TableColumn } from '@shared/ui';
+
+interface LocationRow {
+  id: string;
+  name: string;
+  depth: number;
+  inside: string;
+  description: string;
+}
+
+const COLUMNS: TableColumn<LocationRow>[] = [
+  {
+    id: 'name',
+    header: 'Location',
+    render: (_value, row) => (
+      <span className="block truncate" style={{ paddingLeft: `${row.depth * 14}px` }}>
+        {row.name}
+      </span>
+    ),
+  },
+  {
+    id: 'inside',
+    header: 'Inside',
+    width: 180,
+    render: (_value, row) => <span className="text-muted-foreground">{row.inside}</span>,
+  },
+  {
+    id: 'description',
+    header: 'Description',
+    render: (_value, row) => <span className="text-muted-foreground">{row.description}</span>,
+  },
+];
 
 interface LocationCatalogPanelProps {
-  count: number;
+  locations: LabLocation[];
+  loading?: boolean;
   readOnly: boolean;
   onManage: () => void;
 }
 
-export function LocationCatalogPanel({ count, readOnly, onManage }: LocationCatalogPanelProps) {
-  return (
-    <ConsolePanel intensity="soft">
-      <HeaderStrip className="px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <StripLabel>Locations</StripLabel>
-          <Chip size="sm" color="info">
-            {count}
-          </Chip>
-          <span className="text-caption text-muted-foreground">
-            shared by equipment · supplies · reagents
-          </span>
-        </div>
-      </HeaderStrip>
+export function LocationCatalogPanel({
+  locations,
+  loading = false,
+  readOnly,
+  onManage,
+}: LocationCatalogPanelProps) {
+  const rows = useMemo<LocationRow[]>(() => {
+    const byId = new Map(locations.map(location => [location.id, location]));
 
-      <div className="flex items-center justify-end px-4 py-3">
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onManage}
-          disabled={readOnly}
-          leftIcon={<MapPin size={16} />}
-        >
-          Manage Locations
-        </Button>
-      </div>
-    </ConsolePanel>
+    return buildHierarchyOptions(locations).map(option => {
+      const location = byId.get(String(option.value));
+      const parent = location?.parentId ? byId.get(location.parentId) : undefined;
+
+      return {
+        id: String(option.value),
+        name: option.label,
+        depth: option.depth ?? 0,
+        inside: parent?.name ?? '—',
+        description: location?.description ?? '—',
+      };
+    });
+  }, [locations]);
+
+  return (
+    <Table
+      columns={COLUMNS}
+      toolbar={{
+        left: (
+          <span className="type-label text-label-2xs tracking-label-wide text-foreground/40">
+            used by equipment · supplies · reagents
+          </span>
+        ),
+        right: (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onManage}
+            disabled={readOnly}
+            leftIcon={<MapPin size={14} />}
+          >
+            Manage Locations
+          </Button>
+        ),
+      }}
+      data={rows}
+      hoverable
+      loading={loading}
+      emptyMessage="No locations yet"
+      loadingMessage="Loading locations..."
+      aria-label="Locations list"
+    />
   );
 }

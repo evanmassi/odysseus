@@ -1,9 +1,7 @@
 /**
  * Lab Location Modal
  *
- * Manages the lab's location tree on the bulk-operations chassis: the tree on the left, the editor
- * for the selected place on the right. Deletion is refused server-side while stock or a nested
- * location depends on it, so the confirm dialog is the only guard this side.
+ * Manages the lab's location tree: the places on the left, the editor for the selected one on the right.
  */
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -44,7 +42,6 @@ interface LabLocationModalProps {
 
 const TIER_LEVELS = ['l1', 'l2', 'l3'] as const;
 
-/** The node and everything under it — none of which can become its own ancestor. */
 function subtreeIds(locations: LabLocation[], rootId: string): Set<string> {
   const ids = new Set([rootId]);
   let added = true;

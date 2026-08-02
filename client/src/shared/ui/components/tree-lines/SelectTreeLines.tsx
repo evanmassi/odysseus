@@ -1,9 +1,7 @@
 /**
  * Select Tree Lines
  *
- * Draws the SVG connectors for a `.nav-tree-select` tree whose tiers are always expanded, so
- * every depth (l1/l2/l3) draws. Callers mark their container `data-tree-id={treeId}` and every
- * row `.select-tree-row`, which is also what carries the boxed, left-accented row styling.
+ * Draws the SVG connectors for a `.nav-tree-select` tree.
  */
 
 import { useCallback } from 'react';

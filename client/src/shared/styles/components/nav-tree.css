@@ -165,7 +165,6 @@
   color: var(--nav-tree-text-muted);
 }
 
-/* ── Always-expanded select trees (bulk operations, lab locations) ─────────── */
 .nav-tree-select .tree-line {
   stroke: hsl(var(--primary) / 0.4);
   opacity: 1;
