@@ -4,7 +4,7 @@
  * React Hook Form for creating and editing equipment items with category tree dropdown.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -16,9 +16,12 @@ import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import {
   useCreateEquipmentItemMutation,
+  useSetEquipmentAttributeValueMutation,
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
+import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
+import { useAttributesQuery } from '@domains/lab-management';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   buildHierarchyOptions,
@@ -32,6 +35,12 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import {
+  AttributeFields,
+  changedAttributeRequests,
+  draftsFromValues,
+  type AttributeDrafts,
+} from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { lookupOptions } from '@shared/ui/primitives/select/selectOptions';
@@ -85,6 +94,30 @@ export function EquipmentEditForm({
   const isEditing = !!item;
   const createMutation = useCreateEquipmentItemMutation();
   const updateMutation = useUpdateEquipmentItemMutation();
+  const setAttributeValueMutation = useSetEquipmentAttributeValueMutation();
+  const { data: detail } = useEquipmentItemDetailQuery(isEditing ? item.id : undefined);
+  const { data: attributes } = useAttributesQuery();
+
+  const attributeDefinitions = useMemo(
+    () =>
+      (attributes?.definitions ?? []).filter(
+        definition => !definition.appliesToCatalog || definition.appliesToCatalog === 'equipment'
+      ),
+    [attributes?.definitions]
+  );
+
+  const [attributeDrafts, setAttributeDrafts] = useState<AttributeDrafts>({});
+  const savedDraftsRef = useRef<AttributeDrafts>({});
+  const seededItemIdRef = useRef<string>();
+
+  // Detail arrives after mount, and the panel reuses this component across items.
+  useEffect(() => {
+    if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
+    const seeded = draftsFromValues(detail.attributeValues);
+    savedDraftsRef.current = seeded;
+    setAttributeDrafts(seeded);
+    seededItemIdRef.current = item.id;
+  }, [isEditing, detail?.attributeValues, item?.id]);
 
   const { data: manufacturers = [] } = useLookupValuesQuery('manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('vendor');
@@ -132,24 +165,46 @@ export function EquipmentEditForm({
     return v != null && String(v).trim() !== '';
   }).length;
 
-  const onFormSubmit = (data: FieldValues) => {
-    if (isEditing) {
-      updateMutation.mutate(
-        { id: item.id, data: data as UpdateEquipmentItemRequest },
-        {
-          onSuccess: () => {
-            notifications.success('Equipment updated');
-            onSubmit();
-          },
-        }
-      );
-    } else {
-      createMutation.mutate(data as CreateEquipmentItemRequest, {
-        onSuccess: () => {
-          notifications.success('Equipment created');
-          onSubmit();
-        },
-      });
+  // Attribute values are their own endpoint, so they sequence off a saved item. Failures are
+  // reported by the global handler; the count comes back so the caller can say the item saved
+  // without claiming its attributes did.
+  const saveAttributeValues = async (itemId: string): Promise<number> => {
+    const requests = changedAttributeRequests(
+      savedDraftsRef.current,
+      attributeDrafts,
+      attributeDefinitions
+    );
+    if (requests.length === 0) return 0;
+
+    const results = await Promise.allSettled(
+      requests.map(data => setAttributeValueMutation.mutateAsync({ itemId, data }))
+    );
+    return results.filter(result => result.status === 'rejected').length;
+  };
+
+  const reportSaved = (verb: string, failed: number) => {
+    if (failed === 0) {
+      notifications.success(`Equipment ${verb}`);
+      return;
+    }
+    notifications.warning(
+      `Equipment ${verb}, but ${failed} ${failed === 1 ? 'attribute value' : 'attribute values'} could not be saved`
+    );
+  };
+
+  const onFormSubmit = async (data: FieldValues) => {
+    try {
+      if (isEditing) {
+        await updateMutation.mutateAsync({ id: item.id, data: data as UpdateEquipmentItemRequest });
+        reportSaved('updated', await saveAttributeValues(item.id));
+      } else {
+        const created = await createMutation.mutateAsync(data as CreateEquipmentItemRequest);
+        reportSaved('created', await saveAttributeValues(created.id));
+      }
+      onSubmit();
+    } catch {
+      // Kept as mutateAsync: the attribute writes sequence off the saved item id. The global
+      // handler still toasts the create/update failure.
     }
   };
 
@@ -390,6 +445,25 @@ export function EquipmentEditForm({
               registration={register('conditionNotes')}
             />
           </div>
+
+          <div className="!mt-3.5">
+            <SectionHeader title="Attributes" size="sm" />
+          </div>
+          <AttributeFields
+            definitions={attributeDefinitions}
+            options={attributes?.options ?? []}
+            drafts={attributeDrafts}
+            onChange={(definitionId, draft) =>
+              setAttributeDrafts(prev => ({ ...prev, [definitionId]: draft }))
+            }
+            onRemove={definitionId =>
+              setAttributeDrafts(prev => {
+                const next = { ...prev };
+                delete next[definitionId];
+                return next;
+              })
+            }
+          />
 
           <div className="!mt-3.5">
             <SectionHeader title="Notes" size="sm" />

@@ -75,6 +75,7 @@ describe('category depth invariant', () => {
       equipment: new EquipmentApplicationService(
         repos.equipmentCategories,
         repos.equipmentItems,
+        repos.attributes,
         accessControl,
         eventBus
       ),

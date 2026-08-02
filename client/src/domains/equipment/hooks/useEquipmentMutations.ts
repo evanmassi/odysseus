@@ -23,6 +23,7 @@ import type {
   UpdateEquipmentMaintenanceLogRequest,
   EquipmentBulkStatusRequest,
   EquipmentBulkRelocateRequest,
+  SetEquipmentAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -231,6 +232,21 @@ export function useDeleteEquipmentMaintenanceEntryMutation() {
     mutationFn: ({ itemId, entryId }: { itemId: string; entryId: string }) =>
       EquipmentService.deleteMaintenanceEntry(itemId, entryId),
     onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
+
+export function useSetEquipmentAttributeValueMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: SetEquipmentAttributeValueRequest }) =>
+      EquipmentService.setAttributeValue(itemId, data),
+    // The list row carries an attribute summary for filtering, so both caches go stale.
+    onSuccess: (_result, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
     },

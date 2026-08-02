@@ -23,6 +23,7 @@ export class EquipmentModule {
       this.equipmentApplicationService = new EquipmentApplicationService(
         this.repositoryFactory.getEquipmentCategoryRepository(),
         this.repositoryFactory.getEquipmentItemRepository(),
+        this.repositoryFactory.getAttributeRepository(),
         this.shared.accessControlService,
         this.shared.eventBus
       );

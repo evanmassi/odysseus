@@ -55,6 +55,15 @@ export const equipmentCategoryListResponseSchema = z.object({
 
 // Item schemas
 
+// Attribute value summary — compact per-item attribute values for list filtering.
+
+export const equipmentAttributeSummarySchema = z.object({
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
 export const equipmentItemSchema = z.object({
   id: z.string(),
   labId: z.string(),
@@ -132,8 +141,14 @@ export const equipmentItemResponseSchema = z.object({
   item: equipmentItemSchema,
 });
 
+// Only the list row carries attributes: a create/update response has none loaded, and the
+// detail aggregate carries the full value rows instead.
+export const equipmentItemWithAttributesSchema = equipmentItemSchema.extend({
+  attributeValues: z.array(equipmentAttributeSummarySchema),
+});
+
 export const equipmentItemListResponseSchema = z.object({
-  items: z.array(equipmentItemSchema),
+  items: z.array(equipmentItemWithAttributesSchema),
 });
 
 // Document schemas
@@ -211,10 +226,35 @@ export const equipmentMaintenanceLogEntryResponseSchema = z.object({
 
 // Composed detail response — item with its documents and maintenance log
 
+// Attribute values — per-item, keyed to the lab-wide definitions in `../attributes`.
+
+export const equipmentAttributeValueSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
+// The write replaces a definition's values wholesale, so the response is that definition's
+// rows after the fact — the caller sends one request per attribute it changed.
+export const equipmentAttributeValueListResponseSchema = z.object({
+  attributeValues: z.array(equipmentAttributeValueSchema),
+});
+
+export const setEquipmentAttributeValueRequestSchema = z.object({
+  definitionId: z.string().min(1, 'Attribute is required'),
+  valueOptionIds: z.array(z.string().min(1)).optional(),
+  valueText: optionalText(2000),
+  valueNumber: z.number().optional(),
+});
+
 export const equipmentItemDetailResponseSchema = z.object({
   item: equipmentItemSchema,
   documents: z.array(equipmentDocumentSchema),
   maintenanceLog: z.array(equipmentMaintenanceLogSchema),
+  attributeValues: z.array(equipmentAttributeValueSchema),
 });
 
 // Bulk operation schemas
@@ -254,6 +294,12 @@ export const equipmentBulkResponseSchema = z.object({
 export type EquipmentStatus = z.infer<typeof equipmentStatusSchema>;
 export type EquipmentCategory = z.infer<typeof equipmentCategorySchema>;
 export type EquipmentItem = z.infer<typeof equipmentItemSchema>;
+export type EquipmentItemWithAttributes = z.infer<typeof equipmentItemWithAttributesSchema>;
+export type EquipmentAttributeSummary = z.infer<typeof equipmentAttributeSummarySchema>;
+export type EquipmentAttributeValue = z.infer<typeof equipmentAttributeValueSchema>;
+export type SetEquipmentAttributeValueRequest = z.infer<
+  typeof setEquipmentAttributeValueRequestSchema
+>;
 export type EquipmentDocument = z.infer<typeof equipmentDocumentSchema>;
 export type EquipmentMaintenanceLog = z.infer<typeof equipmentMaintenanceLogSchema>;
 export type EquipmentItemDetail = z.infer<typeof equipmentItemDetailResponseSchema>;

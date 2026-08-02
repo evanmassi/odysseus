@@ -31,6 +31,7 @@ import {
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
+import { useAttributesQuery } from '@domains/lab-management';
 import {
   Button,
   Chip,
@@ -41,6 +42,7 @@ import {
   SectionHeader,
   StripLabel,
 } from '@shared/ui';
+import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -88,6 +90,7 @@ export function EquipmentItemInfoPanel({
     if (el) el.scrollTop = 0;
   }, [itemId]);
   const { data: detail } = useEquipmentItemDetailQuery(itemId);
+  const { data: attributes } = useAttributesQuery();
   const deleteItemMutation = useDeleteEquipmentItemMutation();
   const addDocumentMutation = useAddEquipmentDocumentMutation();
   const updateDocumentMutation = useUpdateEquipmentDocumentMutation();
@@ -112,7 +115,12 @@ export function EquipmentItemInfoPanel({
     );
   }
 
-  const { item, documents, maintenanceLog } = detail;
+  const { item, documents, maintenanceLog, attributeValues } = detail;
+  const attributeRows = toAttributeDisplayRows(
+    attributes?.definitions ?? [],
+    attributes?.options ?? [],
+    attributeValues
+  );
   const statusColor = EQUIPMENT_STATUS_DISPLAY[item.status].color;
   const statusLabel = EQUIPMENT_STATUS_DISPLAY[item.status].label;
   const isDecommissioned = item.status === 'decommissioned';
@@ -252,6 +260,17 @@ export function EquipmentItemInfoPanel({
               onAddEntry={onAddMaintenance}
             />
           </div>
+
+          {attributeRows.length > 0 && (
+            <div>
+              <SectionHeader title="Attributes" size="sm" />
+              <div>
+                {attributeRows.map(row => (
+                  <DetailRow key={row.id} label={row.name} value={row.display} />
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <SectionHeader title="Documents" size="sm" />

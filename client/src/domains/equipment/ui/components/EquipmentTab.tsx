@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Layers, Plus, Eye, EyeOff, Microscope } from 'lucide-react';
+import { Eye, EyeOff, Layers, Microscope, Plus, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import {
@@ -20,6 +20,7 @@ import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
+import { useAttributesQuery } from '@domains/lab-management';
 import {
   AccentTick,
   Button,
@@ -30,6 +31,11 @@ import {
 } from '@shared/ui';
 import {
   CategoryModal,
+  AttributeFilterPanel,
+  countAttributeFilters,
+  matchesAttributeFilters,
+  EMPTY_ATTRIBUTE_FILTERS,
+  type AttributeFilters,
   CategoryTreePanel,
   type CategoryTreePanelLabels,
   INVENTORY_SORT_OPTIONS,
@@ -85,6 +91,7 @@ export function EquipmentTab() {
 
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
+  const { data: attributes } = useAttributesQuery();
   const createCategoryMutation = useCreateEquipmentCategoryMutation();
   const updateCategoryMutation = useUpdateEquipmentCategoryMutation();
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
@@ -94,6 +101,8 @@ export function EquipmentTab() {
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
+  const [filters, setFilters] = useState<AttributeFilters>(EMPTY_ATTRIBUTE_FILTERS);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
@@ -199,9 +208,18 @@ export function EquipmentTab() {
     });
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
+  const activeFilterCount = countAttributeFilters(filters);
+  const visibleItems = useMemo(
+    () =>
+      activeFilterCount === 0
+        ? items
+        : items.filter(item => matchesAttributeFilters(item.attributeValues, filters)),
+    [items, filters, activeFilterCount]
+  );
+
   const unitCount = showDecommissioned
-    ? items.length
-    : items.filter(i => i.status !== 'decommissioned').length;
+    ? visibleItems.length
+    : visibleItems.filter(i => i.status !== 'decommissioned').length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
   return (
@@ -248,6 +266,20 @@ export function EquipmentTab() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setIsFilterOpen(open => !open)}
+              aria-pressed={isFilterOpen || activeFilterCount > 0}
+              className={`h-8 text-label-sm ${
+                isFilterOpen || activeFilterCount > 0
+                  ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                  : ''
+              }`}
+              leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+            >
+              Filter
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowDecommissioned(!showDecommissioned)}
               className="h-8 text-label-sm"
               leftIcon={
@@ -285,6 +317,19 @@ export function EquipmentTab() {
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+            {isFilterOpen && (
+              <AttributeFilterPanel
+                definitions={attributes?.definitions ?? []}
+                options={attributes?.options ?? []}
+                items={items}
+                matchCount={visibleItems.length}
+                filters={filters}
+                activeCount={activeFilterCount}
+                onChange={setFilters}
+                onClearAll={() => setFilters(EMPTY_ATTRIBUTE_FILTERS)}
+                emptyMessage="No equipment carries an attribute value yet — set some on a unit and its facets appear here."
+              />
+            )}
             <EquipmentMaintenanceAlertPanel
               items={items}
               categoryNameMap={categoryNameMap}
@@ -294,7 +339,7 @@ export function EquipmentTab() {
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
-                items={items}
+                items={visibleItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 sortField={sortField}

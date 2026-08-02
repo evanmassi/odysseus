@@ -8,6 +8,7 @@ import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
+import type { EquipmentAttributeValueRow } from '@domain/repositories/EquipmentItemRepository';
 
 import type {
   EquipmentCategory as EquipmentCategoryData,
@@ -15,11 +16,15 @@ import type {
   EquipmentItem as EquipmentItemData,
   EquipmentMaintenanceLog as EquipmentMaintenanceLogData,
   EquipmentItemDetail as EquipmentItemDetailData,
+  EquipmentItemWithAttributes,
+  EquipmentAttributeSummary,
+  EquipmentAttributeValue,
 } from '@odysseus/shared-schemas';
 
 export type EquipmentCategoryResponse = EquipmentCategoryData;
 
 export type EquipmentItemResponse = EquipmentItemData;
+export type EquipmentItemWithAttributesResponse = EquipmentItemWithAttributes;
 
 export type EquipmentDocumentResponse = EquipmentDocumentData;
 
@@ -69,15 +74,44 @@ export class EquipmentDto {
     };
   }
 
+  static attributeValueToResponse(row: EquipmentAttributeValueRow): EquipmentAttributeValue {
+    return {
+      id: row.id,
+      itemId: row.itemId,
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
+    };
+  }
+
+  static attributeSummaryToResponse(row: EquipmentAttributeValueRow): EquipmentAttributeSummary {
+    return {
+      definitionId: row.definitionId,
+      valueOptionId: row.valueOptionId ?? null,
+      valueText: row.valueText ?? null,
+      valueNumber: row.valueNumber ?? null,
+    };
+  }
+
+  static itemWithAttributesToResponse(
+    item: EquipmentItem,
+    attributeValues: EquipmentAttributeSummary[]
+  ): EquipmentItemWithAttributesResponse {
+    return { ...this.itemToResponse(item), attributeValues };
+  }
+
   static itemDetailToResponse(
     item: EquipmentItem,
     documents: EquipmentDocument[],
-    maintenanceLog: EquipmentMaintenanceLog[]
+    maintenanceLog: EquipmentMaintenanceLog[],
+    attributeValues: EquipmentAttributeValue[]
   ): EquipmentItemDetailResponse {
     return {
       item: this.itemToResponse(item),
       documents: documents.map(d => this.documentToResponse(d)),
       maintenanceLog: maintenanceLog.map(e => this.maintenanceEntryToResponse(e)),
+      attributeValues,
     };
   }
 

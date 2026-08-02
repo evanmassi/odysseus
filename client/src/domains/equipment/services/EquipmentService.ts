@@ -19,6 +19,7 @@ import {
   type UpdateEquipmentDocumentRequest,
   type CreateEquipmentMaintenanceLogRequest,
   type UpdateEquipmentMaintenanceLogRequest,
+  type EquipmentItemWithAttributes,
   type EquipmentBulkResponse,
   type EquipmentBulkStatusRequest,
   type EquipmentBulkRelocateRequest,
@@ -30,6 +31,9 @@ import {
   equipmentDocumentResponseSchema,
   equipmentMaintenanceLogEntryResponseSchema,
   equipmentBulkResponseSchema,
+  equipmentAttributeValueListResponseSchema,
+  type EquipmentAttributeValue,
+  type SetEquipmentAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -74,7 +78,7 @@ export class EquipmentService {
 
   // Items
 
-  static async list(): Promise<EquipmentItem[]> {
+  static async list(): Promise<EquipmentItemWithAttributes[]> {
     const response = await httpClient.getData(this.BASE_PATH, equipmentItemListResponseSchema);
     return response.items;
   }
@@ -208,5 +212,16 @@ export class EquipmentService {
       { itemIds, data },
       equipmentBulkResponseSchema
     );
+  }
+  static async setAttributeValue(
+    itemId: string,
+    data: SetEquipmentAttributeValueRequest
+  ): Promise<EquipmentAttributeValue[]> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/attributes`,
+      data,
+      equipmentAttributeValueListResponseSchema
+    );
+    return response.attributeValues;
   }
 }

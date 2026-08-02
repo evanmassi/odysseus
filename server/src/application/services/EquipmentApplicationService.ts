@@ -10,6 +10,7 @@ import { EquipmentDto } from '@application/dto/EquipmentDto';
 import type {
   EquipmentCategoryResponse,
   EquipmentItemResponse,
+  EquipmentItemWithAttributesResponse,
   EquipmentItemDetailResponse,
   EquipmentDocumentResponse,
   EquipmentMaintenanceLogResponse,
@@ -39,10 +40,15 @@ import {
   EquipmentBulkStatusChangedEvent,
   EquipmentBulkRelocatedEvent,
 } from '@domain/events/EquipmentEvents';
+import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
-import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
+import type {
+  EquipmentItemRepository,
+  EquipmentAttributeValueRow,
+} from '@domain/repositories/EquipmentItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+import { generateId } from '@domain/utils/generateId';
 
 import { executeBulk } from './executeBulk';
 
@@ -59,12 +65,15 @@ import type {
   EquipmentBulkStatusRequest,
   EquipmentBulkRelocateRequest,
   EquipmentBulkResponse,
+  EquipmentAttributeValue,
+  SetEquipmentAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 export class EquipmentApplicationService {
   constructor(
     private categoryRepository: CategoryRepository<EquipmentCategory>,
     private itemRepository: EquipmentItemRepository,
+    private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -172,16 +181,38 @@ export class EquipmentApplicationService {
 
   // Items
 
-  async listItems(labId: string): Promise<EquipmentItemResponse[]> {
+  async listItems(labId: string): Promise<EquipmentItemWithAttributesResponse[]> {
     const items = await this.itemRepository.findByLabId(labId);
-    return items.map(EquipmentDto.itemToResponse);
+    // One query for the lab's values, grouped in memory — per-item fetches would be an N+1.
+    const values = await this.itemRepository.findAttributeValuesByLabId(labId);
+    const byItem = new Map<string, EquipmentAttributeValueRow[]>();
+    for (const value of values) {
+      const bucket = byItem.get(value.itemId) ?? [];
+      bucket.push(value);
+      byItem.set(value.itemId, bucket);
+    }
+
+    return items.map(item =>
+      EquipmentDto.itemWithAttributesToResponse(
+        item,
+        (byItem.get(item.id) ?? []).map(EquipmentDto.attributeSummaryToResponse)
+      )
+    );
   }
 
   async getItem(labId: string, id: string): Promise<EquipmentItemDetailResponse> {
     const item = await this.getItemOrThrow(id, labId);
-    const documents = await this.itemRepository.findDocumentsByItemId(id);
-    const maintenanceLog = await this.itemRepository.findMaintenanceLogByItemId(id);
-    return EquipmentDto.itemDetailToResponse(item, documents, maintenanceLog);
+    const [documents, maintenanceLog, attributeValues] = await Promise.all([
+      this.itemRepository.findDocumentsByItemId(id),
+      this.itemRepository.findMaintenanceLogByItemId(id),
+      this.itemRepository.findAttributeValuesByItemId(id),
+    ]);
+    return EquipmentDto.itemDetailToResponse(
+      item,
+      documents,
+      maintenanceLog,
+      attributeValues.map(EquipmentDto.attributeValueToResponse)
+    );
   }
 
   async createItem(
@@ -581,6 +612,62 @@ export class EquipmentApplicationService {
   }
 
   // Helpers
+
+  // Attribute values
+
+  async setAttributeValue(
+    labId: string,
+    itemId: string,
+    data: SetEquipmentAttributeValueRequest,
+    user: User
+  ): Promise<EquipmentAttributeValue[]> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getItemOrThrow(itemId, labId);
+
+    const definition = await this.attributeRepository.findDefinitionById(data.definitionId, labId);
+    if (!definition) {
+      throw new NotFoundError('This attribute could not be found.', {
+        definitionId: data.definitionId,
+      });
+    }
+
+    const rows = definition.usesOptions
+      ? (data.valueOptionIds ?? []).map(valueOptionId => ({
+          id: generateId('eatv'),
+          itemId,
+          definitionId: definition.id,
+          valueOptionId,
+        }))
+      : this.scalarAttributeRows(itemId, definition.id, data);
+
+    if (definition.valueType === 'select' && rows.length > 1) {
+      throw new ValidationError(`"${definition.name}" accepts a single value`);
+    }
+
+    await this.itemRepository.replaceAttributeValues(itemId, definition.id, rows);
+    const stored = await this.itemRepository.findAttributeValuesByItemId(itemId);
+    return stored
+      .filter(row => row.definitionId === definition.id)
+      .map(EquipmentDto.attributeValueToResponse);
+  }
+
+  private scalarAttributeRows(
+    itemId: string,
+    definitionId: string,
+    data: SetEquipmentAttributeValueRequest
+  ): EquipmentAttributeValueRow[] {
+    const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
+    if (isEmpty) return [];
+    return [
+      {
+        id: generateId('eatv'),
+        itemId,
+        definitionId,
+        valueText: data.valueText,
+        valueNumber: data.valueNumber,
+      },
+    ];
+  }
 
   private async getItemOrThrow(id: string, labId: string): Promise<EquipmentItem> {
     const item = await this.itemRepository.findById(id, labId);
