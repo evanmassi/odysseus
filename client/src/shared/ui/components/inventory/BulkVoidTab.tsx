@@ -9,7 +9,7 @@ import { useState, useMemo, useCallback, type ReactNode } from 'react';
 
 import { Search } from 'lucide-react';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { Autocomplete, Button, Checkbox, NubDivider, type AutocompleteOption } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -60,7 +60,7 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
   const [selectedEntryIds, setSelectedEntryIds] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState('');
   const [searchValue, setSearchValue] = useState('');
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
 
   const selectedItem = items.find(item => item.id === selectedItemId);
   const entries = useVoidableEntries(selectedItem);

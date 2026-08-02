@@ -31,7 +31,7 @@ import {
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
-import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
 import {
   Button,
   Chip,
@@ -91,7 +91,7 @@ export function EquipmentItemInfoPanel({
   }, [itemId]);
   const { data: detail } = useEquipmentItemDetailQuery(itemId);
   const { data: attributes } = useAttributesQuery();
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const deleteItemMutation = useDeleteEquipmentItemMutation();
   const addDocumentMutation = useAddEquipmentDocumentMutation();
   const updateDocumentMutation = useUpdateEquipmentDocumentMutation();

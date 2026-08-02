@@ -1,22 +1,22 @@
 /**
- * Location Controller
+ * Lab Location Controller
  *
  * HTTP handlers for the lab-wide location tree.
  */
 
-import type { LocationApplicationService } from '@application/services/LocationApplicationService';
+import type { LabLocationApplicationService } from '@application/services/LabLocationApplicationService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
 import type { Request, Response } from 'express';
 
-export interface LocationControllerDeps {
-  locationService: LocationApplicationService;
+export interface LabLocationControllerDeps {
+  locationService: LabLocationApplicationService;
 }
 
-export class LocationController extends BaseController {
-  constructor(private deps: LocationControllerDeps) {
+export class LabLocationController extends BaseController {
+  constructor(private deps: LabLocationControllerDeps) {
     super();
   }
 

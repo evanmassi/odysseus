@@ -1,39 +1,39 @@
 /**
- * Location Management Service
+ * Lab Location Management Service
  *
  * CRUD for the lab-wide location tree shared by every catalog.
  */
 
-import { LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';
+import { LAB_LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';
 
-import { LocationDto, type LocationResponse } from '@application/dto/LocationDto';
+import { LabLocationDto, type LabLocationResponse } from '@application/dto/LabLocationDto';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { LabLocation } from '@domain/entities/LabLocation';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { LocationRepository } from '@domain/repositories/LocationRepository';
+import type { LabLocationRepository } from '@domain/repositories/LabLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 
-import type { CreateLocationRequest, UpdateLocationRequest } from '@odysseus/shared-schemas';
+import type { CreateLabLocationRequest, UpdateLabLocationRequest } from '@odysseus/shared-schemas';
 
-export class LocationApplicationService {
+export class LabLocationApplicationService {
   constructor(
-    private locationRepository: LocationRepository,
+    private locationRepository: LabLocationRepository,
     private accessControlService: AccessControlService
   ) {}
 
-  async list(labId: string): Promise<LocationResponse[]> {
+  async list(labId: string): Promise<LabLocationResponse[]> {
     const locations = await this.locationRepository.findByLabId(labId);
-    return locations.map(LocationDto.toResponse);
+    return locations.map(LabLocationDto.toResponse);
   }
 
-  async create(labId: string, data: CreateLocationRequest, user: User): Promise<LocationResponse> {
+  async create(labId: string, data: CreateLabLocationRequest, user: User): Promise<LabLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await validateHierarchyDepth(this.locationRepository, {
       labId,
       parentId: data.parentId,
-      maxDepth: LOCATION_MAX_DEPTH,
+      maxDepth: LAB_LOCATION_MAX_DEPTH,
       label: 'location',
     });
 
@@ -45,15 +45,15 @@ export class LocationApplicationService {
       sortOrder: data.sortOrder,
     });
     await this.locationRepository.save(location);
-    return LocationDto.toResponse(location);
+    return LabLocationDto.toResponse(location);
   }
 
   async update(
     labId: string,
     id: string,
-    data: UpdateLocationRequest,
+    data: UpdateLabLocationRequest,
     user: User
-  ): Promise<LocationResponse> {
+  ): Promise<LabLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
     const location = await this.getOrThrow(id, labId);
 
@@ -62,7 +62,7 @@ export class LocationApplicationService {
         labId,
         parentId: data.parentId,
         movingNodeId: id,
-        maxDepth: LOCATION_MAX_DEPTH,
+        maxDepth: LAB_LOCATION_MAX_DEPTH,
         label: 'location',
       });
     }
@@ -74,7 +74,7 @@ export class LocationApplicationService {
       sortOrder: data.sortOrder,
     });
     await this.locationRepository.save(location);
-    return LocationDto.toResponse(location);
+    return LabLocationDto.toResponse(location);
   }
 
   async delete(labId: string, id: string, user: User): Promise<void> {

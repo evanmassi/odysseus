@@ -1,5 +1,5 @@
 /**
- * Location Mapper
+ * Lab Location Mapper
  *
  * Converts between location domain entities and PostgreSQL rows.
  */
@@ -7,7 +7,7 @@
 import { LabLocation } from '@domain/entities/LabLocation';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-export interface LocationRow {
+export interface LabLocationRow {
   id: string;
   lab_id: string;
   name: string;
@@ -18,8 +18,8 @@ export interface LocationRow {
   updated_at: Date | string;
 }
 
-export class LocationMapper {
-  static toRow(location: LabLocation): LocationRow {
+export class LabLocationMapper {
+  static toRow(location: LabLocation): LabLocationRow {
     return {
       id: location.id,
       lab_id: location.labId,
@@ -32,7 +32,7 @@ export class LocationMapper {
     };
   }
 
-  static fromRow(row: LocationRow): LabLocation {
+  static fromRow(row: LabLocationRow): LabLocation {
     return LabLocation.fromData({
       id: row.id,
       labId: row.lab_id,
@@ -45,7 +45,7 @@ export class LocationMapper {
     });
   }
 
-  static fromRows(rows: LocationRow[]): LabLocation[] {
+  static fromRows(rows: LabLocationRow[]): LabLocation[] {
     return rows.map(row => this.fromRow(row));
   }
 }

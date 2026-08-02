@@ -1,38 +1,38 @@
 /**
- * Location Repository
+ * Lab Location Repository
  *
  * PostgreSQL implementation for the lab-wide location tree.
  */
 
 import type { LabLocation } from '@domain/entities/LabLocation';
-import type { LocationRepository as ILocationRepository } from '@domain/repositories/LocationRepository';
-import type { LocationRow } from '@infrastructure/database/mappers/LocationMapper';
-import { LocationMapper } from '@infrastructure/database/mappers/LocationMapper';
+import type { LabLocationRepository as ILabLocationRepository } from '@domain/repositories/LabLocationRepository';
+import type { LabLocationRow } from '@infrastructure/database/mappers/LabLocationMapper';
+import { LabLocationMapper } from '@infrastructure/database/mappers/LabLocationMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
 const COLUMNS = 'id, lab_id, name, description, parent_id, sort_order, created_at, updated_at';
 
-export class LocationRepository implements ILocationRepository {
+export class LabLocationRepository implements ILabLocationRepository {
   constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<LabLocation | null> {
-    const row = await this.db.queryOne<LocationRow>(
+    const row = await this.db.queryOne<LabLocationRow>(
       `SELECT ${COLUMNS} FROM locations WHERE id = $1 AND lab_id = $2`,
       [id, labId]
     );
-    return row ? LocationMapper.fromRow(row) : null;
+    return row ? LabLocationMapper.fromRow(row) : null;
   }
 
   async findByLabId(labId: string): Promise<LabLocation[]> {
-    const rows = await this.db.queryMany<LocationRow>(
+    const rows = await this.db.queryMany<LabLocationRow>(
       `SELECT ${COLUMNS} FROM locations WHERE lab_id = $1 ORDER BY sort_order, name`,
       [labId]
     );
-    return LocationMapper.fromRows(rows);
+    return LabLocationMapper.fromRows(rows);
   }
 
   async save(location: LabLocation): Promise<void> {
-    const row = LocationMapper.toRow(location);
+    const row = LabLocationMapper.toRow(location);
     await this.db.execute(
       `
       INSERT INTO locations (${COLUMNS})

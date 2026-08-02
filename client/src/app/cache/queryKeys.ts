@@ -115,9 +115,9 @@ export const queryKeys = {
       [...queryKeys.supplies.all(labId), 'transactions', itemId] as const,
   },
 
-  // Locations (lab-scoped, shared by every catalog)
-  locations: {
-    all: (labId = '') => ['locations', labId] as const,
+  // Lab locations (lab-scoped, shared by every catalog)
+  labLocations: {
+    all: (labId = '') => ['labLocations', labId] as const,
   },
 
   // Item attributes — definitions and their options, lab-wide

@@ -11,7 +11,7 @@ import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import { ChevronRight, Ban } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { Button, Tooltip } from '@shared/ui';
 import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -53,7 +53,7 @@ export function SupplyTransactionTimeline({
 }: SupplyTransactionTimelineProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const [voidingTransaction, setVoidingTransaction] = useState<SupplyTransaction | null>(null);
 

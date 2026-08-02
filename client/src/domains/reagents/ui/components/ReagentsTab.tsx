@@ -11,7 +11,7 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { Biohazard, Eye, EyeOff, Layers, MapPin, Plus, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useAttributesQuery, LocationModal } from '@domains/lab-management';
+import { useAttributesQuery, LabLocationModal } from '@domains/lab-management';
 import {
   useCreateReagentCategoryMutation,
   useDeleteReagentCategoryMutation,
@@ -108,7 +108,7 @@ export function ReagentsTab() {
   const [filters, setFilters] = useState<ReagentFilters>(EMPTY_REAGENT_FILTERS);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isLabLocationModalOpen, setIsLabLocationModalOpen] = useState(false);
   const [isBulkUpdateOpen, setIsBulkUpdateOpen] = useState(false);
 
   const categoryState = useCatalogCategories({
@@ -165,7 +165,7 @@ export function ReagentsTab() {
 
   const actionMenuItems: OverflowMenuItem[] = [
     { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
-    { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
+    { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLabLocationModalOpen(true) },
   ];
 
   const activeFilterCount = countActiveFilters(filters);
@@ -373,7 +373,10 @@ export function ReagentsTab() {
           subcategoryPlaceholder="e.g., Primary"
         />
 
-        <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
+        <LabLocationModal
+          isOpen={isLabLocationModalOpen}
+          onClose={() => setIsLabLocationModalOpen(false)}
+        />
 
         <ReagentBulkOperationsModal
           isOpen={isBulkUpdateOpen}

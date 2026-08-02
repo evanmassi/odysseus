@@ -21,7 +21,7 @@ import {
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
-import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   buildHierarchyOptions,
@@ -97,7 +97,7 @@ export function EquipmentEditForm({
   const setAttributeValueMutation = useSetEquipmentAttributeValueMutation();
   const { data: detail } = useEquipmentItemDetailQuery(isEditing ? item.id : undefined);
   const { data: attributes } = useAttributesQuery();
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
 
   const locationOptions = useMemo(
     () => withPlaceholder('No location', buildHierarchyOptions(locations)),

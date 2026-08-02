@@ -1,24 +1,24 @@
 /**
- * Location Route Module
+ * Lab Location Route Module
  *
  * Routes for the lab-wide location tree.
  */
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import type { LocationController } from '@presentation/controllers/LocationController';
+import type { LabLocationController } from '@presentation/controllers/LabLocationController';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
-  LocationIdParams,
-  CreateLocationHttpSchema,
-  UpdateLocationHttpSchema,
+  LabLocationIdParams,
+  CreateLabLocationHttpSchema,
+  UpdateLabLocationHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
 
-export class LocationRouteModule implements RouteModule {
+export class LabLocationRouteModule implements RouteModule {
   constructor(
-    private locationController: LocationController,
+    private locationController: LabLocationController,
     private authMiddleware: AuthMiddleware
   ) {}
 
@@ -35,20 +35,20 @@ export class LocationRouteModule implements RouteModule {
 
     router.post(
       '/',
-      validateBody(CreateLocationHttpSchema),
+      validateBody(CreateLabLocationHttpSchema),
       this.locationController.createLocation.bind(this.locationController)
     );
 
     router.put(
       '/:locationId',
-      validateParams(LocationIdParams),
-      validateBody(UpdateLocationHttpSchema),
+      validateParams(LabLocationIdParams),
+      validateBody(UpdateLabLocationHttpSchema),
       this.locationController.updateLocation.bind(this.locationController)
     );
 
     router.delete(
       '/:locationId',
-      validateParams(LocationIdParams),
+      validateParams(LabLocationIdParams),
       this.locationController.deleteLocation.bind(this.locationController)
     );
   }

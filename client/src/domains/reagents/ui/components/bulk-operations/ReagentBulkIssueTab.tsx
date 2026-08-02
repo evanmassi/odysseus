@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { useReagentBulkIssueMutation } from '@domains/reagents/hooks';
 import { buildHierarchyOptions, withPlaceholder } from '@shared/ui';
 import { BarcodeScanInput } from '@shared/ui/components/barcodes';
@@ -24,7 +24,7 @@ interface BulkReagentIssueTabProps {
 }
 
 export function ReagentBulkIssueTab({ items, onComplete }: BulkReagentIssueTabProps) {
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const bulkIssueMutation = useReagentBulkIssueMutation();
   const linker = useReagentBarcodeLinker();
 

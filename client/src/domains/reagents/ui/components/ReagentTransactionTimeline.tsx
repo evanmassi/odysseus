@@ -12,7 +12,7 @@ import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
 import { Ban, ChevronRight } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { groupTransactions } from '@domains/reagents/utils/reagentTransactionGroups';
 import { Button, Tooltip } from '@shared/ui';
 import { transactionTypeDisplay } from '@shared/ui/components/inventory';
@@ -45,7 +45,7 @@ export function ReagentTransactionTimeline({
 }: ReagentTransactionTimelineProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const lotMap = useMemo(() => new Map(lots.map(lot => [lot.id, lot])), [lots]);
   const [voidingGroup, setVoidingGroup] = useState<TransactionGroup | undefined>();

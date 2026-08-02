@@ -53,8 +53,8 @@ import {
   updateAttributeOptionRequestSchema,
   createCustomUnitRequestSchema,
   updateCustomUnitRequestSchema,
-  createLocationRequestSchema,
-  updateLocationRequestSchema,
+  createLabLocationRequestSchema,
+  updateLabLocationRequestSchema,
   createSupplyCategoryRequestSchema,
   updateSupplyCategoryRequestSchema,
   createSupplyItemRequestSchema,
@@ -293,9 +293,9 @@ export const UpdateCustomUnitHttpSchema = updateCustomUnitRequestSchema;
 
 // Location schemas
 
-export const LocationIdParams = z.object({ locationId: z.string().min(1) });
-export const CreateLocationHttpSchema = createLocationRequestSchema;
-export const UpdateLocationHttpSchema = updateLocationRequestSchema;
+export const LabLocationIdParams = z.object({ locationId: z.string().min(1) });
+export const CreateLabLocationHttpSchema = createLabLocationRequestSchema;
+export const UpdateLabLocationHttpSchema = updateLabLocationRequestSchema;
 
 // Barcode schemas
 

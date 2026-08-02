@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
 import {
   useAddReagentBarcodeMutation,
   useAddReagentDocumentMutation,
@@ -105,7 +105,7 @@ export function ReagentItemInfoPanel({
   const { data: detail } = useReagentItemDetailQuery(itemId);
   const { data: transactions = [], isPending: isLedgerPending } =
     useReagentTransactionHistoryQuery(itemId);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const { data: attributes } = useAttributesQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const archiveItemMutation = useArchiveReagentItemMutation();

@@ -22,8 +22,8 @@ import { CustomUnitModule } from '@infrastructure/di/modules/CustomUnitModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
+import { LabLocationModule } from '@infrastructure/di/modules/LabLocationModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
-import { LocationModule } from '@infrastructure/di/modules/LocationModule';
 import { ReagentModule } from '@infrastructure/di/modules/ReagentModule';
 import { StorageModule } from '@infrastructure/di/modules/StorageModule';
 import { SupplyModule } from '@infrastructure/di/modules/SupplyModule';
@@ -49,7 +49,7 @@ import type { EquipmentController } from '@presentation/controllers/EquipmentCon
 import type { ExportController } from '@presentation/controllers/ExportController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import type { LabController } from '@presentation/controllers/LabController';
-import type { LocationController } from '@presentation/controllers/LocationController';
+import type { LabLocationController } from '@presentation/controllers/LabLocationController';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { PersonController } from '@presentation/controllers/PersonController';
 import type { ReagentController } from '@presentation/controllers/ReagentController';
@@ -92,7 +92,7 @@ export class ServiceContainer {
   private _donorModule?: DonorModule;
   private _attributeModule?: AttributeModule;
   private _customUnitModule?: CustomUnitModule;
-  private _locationModule?: LocationModule;
+  private _locationModule?: LabLocationModule;
   private _barcodeModule?: BarcodeModule;
   private _supplyModule?: SupplyModule;
   private _reagentModule?: ReagentModule;
@@ -224,9 +224,9 @@ export class ServiceContainer {
     return this._customUnitModule;
   }
 
-  private getLocationModule(): LocationModule {
+  private getLabLocationModule(): LabLocationModule {
     if (!this._locationModule) {
-      this._locationModule = new LocationModule(this.getShared(), this.repositoryFactory);
+      this._locationModule = new LabLocationModule(this.getShared(), this.repositoryFactory);
     }
     return this._locationModule;
   }
@@ -401,10 +401,10 @@ export class ServiceContainer {
     return this.getCustomUnitModule().getCustomUnitController();
   }
 
-  // Public API — LocationModule
+  // Public API — LabLocationModule
 
-  getLocationController(): LocationController {
-    return this.getLocationModule().getLocationController();
+  getLabLocationController(): LabLocationController {
+    return this.getLabLocationModule().getLabLocationController();
   }
 
   // Public API — BarcodeModule

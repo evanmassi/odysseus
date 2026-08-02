@@ -1,5 +1,5 @@
 /**
- * Location Queries
+ * Lab Location Queries
  *
  * Reads the lab-wide location tree.
  */
@@ -10,14 +10,14 @@ import { CACHE_TIMES } from '@app/cache/queryClient';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 
-import { LocationService } from '../services/LocationService';
+import { LabLocationService } from '../services/LabLocationService';
 
-export function useLocationsQuery() {
+export function useLabLocationsQuery() {
   const labId = useLabId();
 
   return useQuery({
-    queryKey: queryKeys.locations.all(labId),
-    queryFn: () => LocationService.list(),
+    queryKey: queryKeys.labLocations.all(labId),
+    queryFn: () => LabLocationService.list(),
     enabled: !!labId,
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,

@@ -1,5 +1,5 @@
 /**
- * Location DTO
+ * Lab Location DTO
  *
  * Maps location entities to API response shapes.
  */
@@ -8,10 +8,10 @@ import type { LabLocation } from '@domain/entities/LabLocation';
 
 import type { LabLocation as LabLocationData } from '@odysseus/shared-schemas';
 
-export type LocationResponse = LabLocationData;
+export type LabLocationResponse = LabLocationData;
 
-export class LocationDto {
-  static toResponse(location: LabLocation): LocationResponse {
+export class LabLocationDto {
+  static toResponse(location: LabLocation): LabLocationResponse {
     return {
       id: location.id,
       labId: location.labId,

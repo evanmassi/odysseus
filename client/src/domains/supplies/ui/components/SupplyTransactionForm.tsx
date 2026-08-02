@@ -12,7 +12,7 @@ import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useRecordSupplyTransactionMutation,
@@ -80,7 +80,7 @@ export function SupplyTransactionForm({
   onCancel,
 }: SupplyTransactionFormProps) {
   const { data: detail } = useSupplyItemDetailQuery(itemId);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const recordTransactionMutation = useRecordSupplyTransactionMutation();
   const recordStockCountMutation = useRecordSupplyStockCountMutation();
 

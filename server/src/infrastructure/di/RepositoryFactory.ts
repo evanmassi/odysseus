@@ -15,8 +15,8 @@ import type { CustomUnitRepository } from '@domain/repositories/CustomUnitReposi
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabLocationRepository } from '@domain/repositories/LabLocationRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
-import type { LocationRepository } from '@domain/repositories/LocationRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
@@ -43,8 +43,8 @@ import { CustomUnitRepository as CustomUnitRepositoryImpl } from '@infrastructur
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
+import { LabLocationRepository as LabLocationRepositoryImpl } from '@infrastructure/repositories/LabLocationRepository';
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
-import { LocationRepository as LocationRepositoryImpl } from '@infrastructure/repositories/LocationRepository';
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
 import { ReagentItemRepository as ReagentItemRepositoryImpl } from '@infrastructure/repositories/ReagentItemRepository';
@@ -76,7 +76,7 @@ export class RepositoryFactory implements UnitOfWork {
   private supplyItemRepository?: SupplyItemRepository;
   private attributeRepository?: AttributeRepository;
   private customUnitRepository?: CustomUnitRepository;
-  private locationRepository?: LocationRepository;
+  private locationRepository?: LabLocationRepository;
   private reagentCategoryRepository?: CategoryRepository<ReagentCategory>;
   private reagentItemRepository?: ReagentItemRepository;
 
@@ -217,9 +217,9 @@ export class RepositoryFactory implements UnitOfWork {
     return this.customUnitRepository;
   }
 
-  getLocationRepository(): LocationRepository {
+  getLabLocationRepository(): LabLocationRepository {
     if (!this.locationRepository) {
-      this.locationRepository = new LocationRepositoryImpl(this.postgresContext);
+      this.locationRepository = new LabLocationRepositoryImpl(this.postgresContext);
     }
     return this.locationRepository;
   }
@@ -256,7 +256,7 @@ export class RepositoryFactory implements UnitOfWork {
       supplyCategories: this.getSupplyCategoryRepository(),
       supplyItems: this.getSupplyItemRepository(),
       attributes: this.getAttributeRepository(),
-      locations: this.getLocationRepository(),
+      labLocations: this.getLabLocationRepository(),
       reagentItems: this.getReagentItemRepository(),
     };
   }
@@ -310,7 +310,7 @@ export class RepositoryFactory implements UnitOfWork {
       supplyCategories: this.buildSupplyCategoryRepository(db),
       supplyItems: new SupplyItemRepositoryImpl(db),
       attributes: new AttributeRepositoryImpl(db),
-      locations: new LocationRepositoryImpl(db),
+      labLocations: new LabLocationRepositoryImpl(db),
       reagentItems: new ReagentItemRepositoryImpl(db),
     };
   }

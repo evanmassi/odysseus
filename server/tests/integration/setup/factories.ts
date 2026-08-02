@@ -35,7 +35,7 @@ import { EquipmentItemRepository } from '@infrastructure/repositories/EquipmentI
 import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
 import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
-import { LocationRepository } from '@infrastructure/repositories/LocationRepository';
+import { LabLocationRepository } from '@infrastructure/repositories/LabLocationRepository';
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
@@ -68,7 +68,7 @@ export function createSeed(context: PostgresContext) {
     ReagentCategory.fromData(data)
   );
   const reagentItems = new ReagentItemRepository(context);
-  const locations = new LocationRepository(context);
+  const locations = new LabLocationRepository(context);
   const tubes = new TubeRepository(context, new StorageRepository(context));
   const users = new UserRepository(context);
 

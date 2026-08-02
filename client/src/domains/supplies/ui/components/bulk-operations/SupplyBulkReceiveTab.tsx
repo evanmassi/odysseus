@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { useSupplyBulkReceiveMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { buildHierarchyOptions, Input, withPlaceholder } from '@shared/ui';
 import { BarcodeScanInput } from '@shared/ui/components/barcodes';
@@ -33,7 +33,7 @@ interface BulkReceiveTabProps {
 }
 
 export function SupplyBulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const bulkReceiveMutation = useSupplyBulkReceiveMutation();
   const linker = useSupplyBarcodeLinker();
 

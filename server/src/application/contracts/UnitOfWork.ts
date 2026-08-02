@@ -13,8 +13,8 @@ import type { CategoryRepository } from '@domain/repositories/CategoryRepository
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabLocationRepository } from '@domain/repositories/LabLocationRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
-import type { LocationRepository } from '@domain/repositories/LocationRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
@@ -43,7 +43,7 @@ export interface Repositories {
   supplyCategories: CategoryRepository<SupplyCategory>;
   supplyItems: SupplyItemRepository;
   attributes: AttributeRepository;
-  locations: LocationRepository;
+  labLocations: LabLocationRepository;
   reagentItems: ReagentItemRepository;
 }
 

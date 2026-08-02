@@ -1,37 +1,37 @@
 /**
- * Location Service
+ * Lab Location Service
  *
  * HTTP client for the lab-wide location tree.
  */
 
 import {
-  locationResponseSchema,
-  locationListResponseSchema,
+  labLocationResponseSchema,
+  labLocationListResponseSchema,
   type LabLocation,
-  type CreateLocationRequest,
-  type UpdateLocationRequest,
+  type CreateLabLocationRequest,
+  type UpdateLabLocationRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 
-export class LocationService {
+export class LabLocationService {
   private static readonly BASE_PATH = '/locations';
 
   static async list(): Promise<LabLocation[]> {
-    const response = await httpClient.getData(this.BASE_PATH, locationListResponseSchema);
+    const response = await httpClient.getData(this.BASE_PATH, labLocationListResponseSchema);
     return response.locations;
   }
 
-  static async create(data: CreateLocationRequest): Promise<LabLocation> {
-    const response = await httpClient.postData(this.BASE_PATH, data, locationResponseSchema);
+  static async create(data: CreateLabLocationRequest): Promise<LabLocation> {
+    const response = await httpClient.postData(this.BASE_PATH, data, labLocationResponseSchema);
     return response.location;
   }
 
-  static async update(id: string, data: UpdateLocationRequest): Promise<LabLocation> {
+  static async update(id: string, data: UpdateLabLocationRequest): Promise<LabLocation> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${id}`,
       data,
-      locationResponseSchema
+      labLocationResponseSchema
     );
     return response.location;
   }

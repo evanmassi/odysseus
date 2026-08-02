@@ -7,13 +7,13 @@
 
 export { useBarcodeResolver } from './hooks/useBarcodeResolver';
 
-export { useLocationsQuery } from './hooks/useLocationQueries';
+export { useLabLocationsQuery } from './hooks/useLabLocationQueries';
 export {
-  useCreateLocationMutation,
-  useUpdateLocationMutation,
-  useDeleteLocationMutation,
-} from './hooks/useLocationMutations';
-export { LocationModal } from './ui/components/LocationModal';
+  useCreateLabLocationMutation,
+  useUpdateLabLocationMutation,
+  useDeleteLabLocationMutation,
+} from './hooks/useLabLocationMutations';
+export { LabLocationModal } from './ui/components/LabLocationModal';
 
 export { EMPTY_ATTRIBUTES, useAttributesQuery } from './hooks/useAttributeQueries';
 export {

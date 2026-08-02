@@ -12,7 +12,7 @@ import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-sch
 import { Eye, EyeOff, MapPin, Printer, SquarePen } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { resolveLotExpiry } from '@domains/reagents/utils/reagentExpiry';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
 import { Button, Tooltip } from '@shared/ui';
@@ -54,7 +54,7 @@ export function ReagentLotPanel({
 }: ReagentLotPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
 
   // The chip names the container you reach for; the rooms above it are context, so they ride in

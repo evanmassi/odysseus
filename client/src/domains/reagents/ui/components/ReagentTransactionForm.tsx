@@ -12,7 +12,7 @@ import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
 import { ClipboardCheck, ClipboardList, PackageMinus, PackagePlus, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import {
   useReagentItemDetailQuery,
   useRecordReagentStockCountMutation,
@@ -103,7 +103,7 @@ export function ReagentTransactionForm({
   onCancel,
 }: ReagentTransactionFormProps) {
   const { data: detail } = useReagentItemDetailQuery(itemId);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const unitOptions = useUnitOptions();
   const recordTransactionMutation = useRecordReagentTransactionMutation();
   const recordStockCountMutation = useRecordReagentStockCountMutation();

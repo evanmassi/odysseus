@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { useReagentBulkReceiveMutation } from '@domains/reagents/hooks';
 import { buildHierarchyOptions, DatePicker, Input, withPlaceholder } from '@shared/ui';
 import { BarcodeScanInput } from '@shared/ui/components/barcodes';
@@ -43,7 +43,7 @@ interface BulkReagentReceiveTabProps {
 }
 
 export function ReagentBulkReceiveTab({ items, onComplete }: BulkReagentReceiveTabProps) {
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const bulkReceiveMutation = useReagentBulkReceiveMutation();
   const linker = useReagentBarcodeLinker();
 

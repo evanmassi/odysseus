@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
   useDeleteSupplyItemMutation,
@@ -98,7 +98,7 @@ export function SupplyItemInfoPanel({
   }, [itemId]);
 
   const { data: detail } = useSupplyItemDetailQuery(itemId);
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const { data: attributes } = useAttributesQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const deleteItemMutation = useDeleteSupplyItemMutation();

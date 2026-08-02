@@ -101,7 +101,7 @@ export class AuditModule {
         repositories.equipmentItems,
         repositories.equipmentCategories,
         repositories.supplyItems,
-        repositories.locations
+        repositories.labLocations
       );
     }
     return this.exportService;

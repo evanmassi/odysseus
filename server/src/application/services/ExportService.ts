@@ -8,7 +8,7 @@ import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { Person } from '@domain/entities/Person';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
-import type { LocationRepository } from '@domain/repositories/LocationRepository';
+import type { LabLocationRepository } from '@domain/repositories/LabLocationRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -155,7 +155,7 @@ export class ExportService {
     private equipmentItemRepository: EquipmentItemRepository,
     private equipmentCategoryRepository: CategoryRepository<EquipmentCategory>,
     private supplyItemRepository: SupplyItemRepository,
-    private locationRepository: LocationRepository
+    private locationRepository: LabLocationRepository
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;

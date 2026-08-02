@@ -1,5 +1,5 @@
 /**
- * Location Modal
+ * Lab Location Modal
  *
  * Manages the lab's location tree: the existing places, and a form that adds a new one or renames
  * the one being edited. Deletion is refused server-side while stock or a nested location depends
@@ -11,11 +11,11 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapPin, Plus, Save, SquarePen, Trash2, X } from 'lucide-react';
 
 import {
-  useCreateLocationMutation,
-  useDeleteLocationMutation,
-  useUpdateLocationMutation,
-} from '@domains/lab-management/hooks/useLocationMutations';
-import { useLocationsQuery } from '@domains/lab-management/hooks/useLocationQueries';
+  useCreateLabLocationMutation,
+  useDeleteLabLocationMutation,
+  useUpdateLabLocationMutation,
+} from '@domains/lab-management/hooks/useLabLocationMutations';
+import { useLabLocationsQuery } from '@domains/lab-management/hooks/useLabLocationQueries';
 import { buildHierarchyOptions, Button, Input, Select, Tooltip, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
@@ -24,7 +24,7 @@ import { notifications } from '@shared/utils/notifications';
 
 import type { LabLocation } from '@odysseus/shared-schemas';
 
-interface LocationModalProps {
+interface LabLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
@@ -45,17 +45,17 @@ function subtreeIds(locations: LabLocation[], rootId: string): Set<string> {
   return ids;
 }
 
-export function LocationModal({ isOpen, onClose }: LocationModalProps) {
+export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
   const [editingId, setEditingId] = useState<string | undefined>();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [parentId, setParentId] = useState('');
   const [pendingDelete, setPendingDelete] = useState<LabLocation | undefined>();
 
-  const { data: locations = [] } = useLocationsQuery();
-  const createMutation = useCreateLocationMutation();
-  const updateMutation = useUpdateLocationMutation();
-  const deleteMutation = useDeleteLocationMutation();
+  const { data: locations = [] } = useLabLocationsQuery();
+  const createMutation = useCreateLabLocationMutation();
+  const updateMutation = useUpdateLabLocationMutation();
+  const deleteMutation = useDeleteLabLocationMutation();
   const prevIsOpenRef = useRef(isOpen);
 
   const clearForm = () => {

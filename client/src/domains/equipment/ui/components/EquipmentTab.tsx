@@ -20,7 +20,7 @@ import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
-import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
 import {
   AccentTick,
   Button,
@@ -88,7 +88,7 @@ export function EquipmentTab() {
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
   const { data: attributes } = useAttributesQuery();
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
   const createCategoryMutation = useCreateEquipmentCategoryMutation();
   const updateCategoryMutation = useUpdateEquipmentCategoryMutation();
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();

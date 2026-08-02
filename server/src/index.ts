@@ -28,7 +28,7 @@ import { BarcodeRouteModule } from '@presentation/routes/BarcodeRouteModule';
 import { CustomUnitRouteModule } from '@presentation/routes/CustomUnitRouteModule';
 import { DonorRouteModule } from '@presentation/routes/DonorRouteModule';
 import { EquipmentRouteModule } from '@presentation/routes/EquipmentRouteModule';
-import { LocationRouteModule } from '@presentation/routes/LocationRouteModule';
+import { LabLocationRouteModule } from '@presentation/routes/LabLocationRouteModule';
 import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
 import { ReagentRouteModule } from '@presentation/routes/ReagentRouteModule';
 import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
@@ -164,7 +164,7 @@ class OdysseusServer {
     const donorController = this.serviceContainer.getDonorController();
     const attributeController = this.serviceContainer.getAttributeController();
     const customUnitController = this.serviceContainer.getCustomUnitController();
-    const locationController = this.serviceContainer.getLocationController();
+    const locationController = this.serviceContainer.getLabLocationController();
     const barcodeController = this.serviceContainer.getBarcodeController();
     const supplyController = this.serviceContainer.getSupplyController();
     const reagentController = this.serviceContainer.getReagentController();
@@ -225,7 +225,7 @@ class OdysseusServer {
     registry.registerModule(new DonorRouteModule(donorController, authMiddleware));
     registry.registerModule(new AttributeRouteModule(attributeController, authMiddleware));
     registry.registerModule(new CustomUnitRouteModule(customUnitController, authMiddleware));
-    registry.registerModule(new LocationRouteModule(locationController, authMiddleware));
+    registry.registerModule(new LabLocationRouteModule(locationController, authMiddleware));
     registry.registerModule(new BarcodeRouteModule(barcodeController, authMiddleware));
     registry.registerModule(new SupplyRouteModule(supplyController, authMiddleware));
     registry.registerModule(new ReagentRouteModule(reagentController, authMiddleware));

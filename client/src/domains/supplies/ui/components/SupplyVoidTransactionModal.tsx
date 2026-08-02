@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { Ban } from 'lucide-react';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { useVoidSupplyTransactionMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
@@ -44,7 +44,7 @@ export function SupplyVoidTransactionModal({
 }: SupplyVoidTransactionModalProps) {
   const [reason, setReason] = useState('');
   const voidMutation = useVoidSupplyTransactionMutation();
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
 
   useEffect(() => {
     if (transaction) setReason('');

@@ -3,13 +3,13 @@
  */
 
 export {
-  LOCATION_MAX_DEPTH,
+  LAB_LOCATION_MAX_DEPTH,
   labLocationSchema,
-  createLocationRequestSchema,
-  updateLocationRequestSchema,
-  locationResponseSchema,
-  locationListResponseSchema,
+  createLabLocationRequestSchema,
+  updateLabLocationRequestSchema,
+  labLocationResponseSchema,
+  labLocationListResponseSchema,
   type LabLocation,
-  type CreateLocationRequest,
-  type UpdateLocationRequest,
-} from './locationSchemas';
+  type CreateLabLocationRequest,
+  type UpdateLabLocationRequest,
+} from './labLocationSchemas';

@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 
 import { Boxes, FlaskConical } from 'lucide-react';
 
-import { useLocationsQuery } from '@domains/lab-management';
+import { useLabLocationsQuery } from '@domains/lab-management';
 import { Button, Checkbox } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import {
@@ -42,7 +42,7 @@ export function ReagentPrintOptionsPanel({
 }: ReagentPrintOptionsPanelProps) {
   const { source, setSource, lotLabels, isLoadingLots, checkedLotIds, toggleLot, setAllChecked } =
     state;
-  const { data: locations = [] } = useLocationsQuery();
+  const { data: locations = [] } = useLabLocationsQuery();
 
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
 
