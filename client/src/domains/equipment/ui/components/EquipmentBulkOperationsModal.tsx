@@ -1,5 +1,5 @@
 /**
- * Equipment Bulk Update Modal
+ * Equipment Bulk Operations Modal
  *
  * Binds the equipment catalog to the shared bulk chassis: which tabs it offers, what each
  * renders, and which mutation the confirmed action runs.
@@ -36,7 +36,7 @@ import type {
 
 type BulkActionType = 'maintenance' | 'status' | 'relocate';
 
-interface EquipmentBulkUpdateModalProps {
+interface EquipmentBulkOperationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: EquipmentItem[];
@@ -72,12 +72,12 @@ const BULK_SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
   noMatch: 'No equipment matching',
 };
 
-export function EquipmentBulkUpdateModal({
+export function EquipmentBulkOperationsModal({
   isOpen,
   onClose,
   items,
   categories,
-}: EquipmentBulkUpdateModalProps) {
+}: EquipmentBulkOperationsModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [actionType, setActionType] = useState<BulkActionType>('maintenance');
   const [isFormValid, setIsFormValid] = useState(false);
@@ -204,7 +204,7 @@ export function EquipmentBulkUpdateModal({
         <ConfirmDialog
           isOpen={true}
           variant="warning"
-          title="Confirm Bulk Update"
+          title="Confirm Bulk Operation"
           message={`${actionLabels[pendingAction.type]} for ${pendingAction.itemIds.length} ${pendingAction.itemIds.length === 1 ? 'item' : 'items'}?`}
           confirmText="Apply"
           onConfirm={confirmAction}

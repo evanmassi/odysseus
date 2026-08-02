@@ -1,5 +1,5 @@
 /**
- * Reagent Bulk Update Modal
+ * Reagent Bulk Operations Modal
  *
  * Binds the reagent catalog to the shared bulk chassis: which tabs it offers, what each renders,
  * and which mutation a selector tab runs.
@@ -30,7 +30,7 @@ import { useReagentPrintLabels } from './bulk-update-tabs/useReagentPrintLabels'
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 
-interface ReagentBulkUpdateModalProps {
+interface ReagentBulkOperationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: ReagentItemWithStock[];
@@ -63,12 +63,12 @@ const SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
 const isSelectable = (item: ReagentItemWithStock) => item.status === 'active';
 const getSecondaryText = (item: ReagentItemWithStock) => [item.manufacturer, item.catalogNumber];
 
-export function ReagentBulkUpdateModal({
+export function ReagentBulkOperationsModal({
   isOpen,
   onClose,
   items,
   categories,
-}: ReagentBulkUpdateModalProps) {
+}: ReagentBulkOperationsModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [targetCategoryId, setTargetCategoryId] = useState('');
   const bulkMutation = useReagentBulkUpdateMutation();

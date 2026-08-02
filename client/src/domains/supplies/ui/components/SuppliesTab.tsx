@@ -44,7 +44,7 @@ import {
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
-import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
+import { SupplyBulkOperationsModal } from './SupplyBulkOperationsModal';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
 import { SupplyItemRow } from './SupplyItemRow';
@@ -386,7 +386,7 @@ export function SuppliesTab() {
         <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
       </div>
 
-      <SupplyBulkUpdateModal
+      <SupplyBulkOperationsModal
         isOpen={isBulkUpdateOpen}
         onClose={() => setIsBulkUpdateOpen(false)}
         items={items}

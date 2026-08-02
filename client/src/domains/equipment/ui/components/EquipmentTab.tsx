@@ -46,7 +46,7 @@ import {
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
-import { EquipmentBulkUpdateModal } from './EquipmentBulkUpdateModal';
+import { EquipmentBulkOperationsModal } from './EquipmentBulkOperationsModal';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
@@ -257,7 +257,7 @@ export function EquipmentTab() {
                   className="h-8"
                   leftIcon={<Layers className="h-3.5 w-3.5" />}
                 >
-                  Bulk Update
+                  Bulk Operations
                 </Button>
                 <Button
                   size="sm"
@@ -389,7 +389,7 @@ export function EquipmentTab() {
         />
       </div>
 
-      <EquipmentBulkUpdateModal
+      <EquipmentBulkOperationsModal
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
         items={items}

@@ -1,5 +1,5 @@
 /**
- * Supply Bulk Update Modal
+ * Supply Bulk Operations Modal
  *
  * Binds the supply catalog to the shared bulk chassis: which tabs it offers, what each renders,
  * and which mutation a selector tab runs.
@@ -29,7 +29,7 @@ import { fetchSupplyPrintLabels } from './bulk-update-tabs/supplyPrintLabels';
 
 import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 
-interface SupplyBulkUpdateModalProps {
+interface SupplyBulkOperationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: SupplyItemWithStock[];
@@ -62,12 +62,12 @@ const SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
 const isSelectable = (item: SupplyItemWithStock) => item.status === 'active';
 const getSecondaryText = (item: SupplyItemWithStock) => [item.manufacturer, item.catalogNumber];
 
-export function SupplyBulkUpdateModal({
+export function SupplyBulkOperationsModal({
   isOpen,
   onClose,
   items,
   categories,
-}: SupplyBulkUpdateModalProps) {
+}: SupplyBulkOperationsModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [targetCategoryId, setTargetCategoryId] = useState('');
   const bulkMutation = useSupplyBulkUpdateMutation();

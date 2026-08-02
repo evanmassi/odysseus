@@ -48,7 +48,7 @@ import {
 } from '../../utils/reagentAttributeFilter';
 
 import { ReagentAttributeFilterPanel } from './ReagentAttributeFilterPanel';
-import { ReagentBulkUpdateModal } from './ReagentBulkUpdateModal';
+import { ReagentBulkOperationsModal } from './ReagentBulkOperationsModal';
 import { ReagentExpiryAlertPanel } from './ReagentExpiryAlertPanel';
 import { ReagentItemForm } from './ReagentItemForm';
 import { ReagentItemInfoPanel } from './ReagentItemInfoPanel';
@@ -375,7 +375,7 @@ export function ReagentsTab() {
 
         <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
 
-        <ReagentBulkUpdateModal
+        <ReagentBulkOperationsModal
           isOpen={isBulkUpdateOpen}
           onClose={() => setIsBulkUpdateOpen(false)}
           items={items}
