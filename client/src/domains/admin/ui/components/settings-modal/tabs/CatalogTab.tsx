@@ -1,8 +1,8 @@
 /**
  * Catalog Tab
  *
- * Admin interface for every editable lab vocabulary: a rail of the lists, attributes and units
- * beside the entries of the one selected.
+ * Admin interface for every editable lab vocabulary: a rail of the lists, attributes, units and
+ * locations beside the entries of the one selected.
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -20,6 +20,8 @@ import {
   useDeleteAttributeDefinitionMutation,
   useDeleteAttributeOptionMutation,
   useDeleteCustomUnitMutation,
+  useLabLocationsQuery,
+  LabLocationModal,
   useUpdateCustomUnitMutation,
   useUpdateAttributeDefinitionMutation,
   useUpdateAttributeOptionMutation,
@@ -40,6 +42,7 @@ import { AttributeSection } from './AttributeSection';
 import { CatalogEntryTable } from './CatalogEntryTable';
 import { CatalogRail, type CatalogLeaf } from './CatalogRail';
 import { CustomUnitSection, type CustomUnitEntry } from './CustomUnitSection';
+import { LocationCatalogPanel } from './LocationCatalogPanel';
 
 import type {
   AttributeOptionWithUsage,
@@ -92,6 +95,7 @@ const CATEGORY_USAGE_LABELS: Record<
 const LOOKUP_GROUP = 'Dropdown Lists';
 const ATTRIBUTE_GROUP = 'Item Attributes';
 const UNIT_GROUP = 'Units';
+const LOCATION_GROUP = 'Places';
 
 // Alphabetical by title. Leaves group by the mechanism behind them, not by meaning — a
 // taxonomy of meaning can't place the lab-defined attribute vocabularies.
@@ -111,6 +115,7 @@ const LOOKUP_LEAVES: Array<{ category: LookupCategory; title: string; usedBy?: s
 ];
 
 const UNITS_LEAF_ID = 'units';
+const LOCATIONS_LEAF_ID = 'locations';
 const lookupLeafId = (category: LookupCategory) => `lookup:${category}`;
 const attributeLeafId = (definitionId: string) => `attr:${definitionId}`;
 
@@ -151,6 +156,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
   const [selected, setSelected] = useState(() => leafForRoute(location.pathname));
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [isDefinitionModalOpen, setIsDefinitionModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const { data: catalog = EMPTY_CATALOG, isLoading, isError, refetch } = useCatalogValuesQuery();
   const {
@@ -165,6 +171,8 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
     isError: isUnitsError,
     refetch: refetchUnits,
   } = useCustomUnitsQuery();
+
+  const { data: locations = [] } = useLabLocationsQuery();
 
   const createMutation = useCreateLookupValueMutation();
   const renameMutation = useRenameLookupValueMutation();
@@ -368,8 +376,15 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
               : undefined,
         })),
       { id: UNITS_LEAF_ID, title: 'Custom Units', group: UNIT_GROUP, count: customUnits.length },
+      {
+        id: LOCATIONS_LEAF_ID,
+        title: 'Locations',
+        group: LOCATION_GROUP,
+        count: locations.length,
+        usedBy: ['equipment', 'supplies', 'reagents'],
+      },
     ],
-    [catalog, attributes.definitions, optionsByDefinition, customUnits.length]
+    [catalog, attributes.definitions, optionsByDefinition, customUnits.length, locations.length]
   );
 
   const activeLeafId = leaves.some(leaf => leaf.id === selected) ? selected : leaves[0].id;
@@ -452,6 +467,14 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
             />
           )}
 
+          {activeLeafId === LOCATIONS_LEAF_ID && (
+            <LocationCatalogPanel
+              count={locations.length}
+              readOnly={readOnly}
+              onManage={() => setIsLocationModalOpen(true)}
+            />
+          )}
+
           {activeLeafId === UNITS_LEAF_ID && (
             <CustomUnitSection
               entries={unitEntries}
@@ -486,6 +509,11 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
         isPending={createDefinitionMutation.isPending}
         onClose={() => setIsDefinitionModalOpen(false)}
         onCreate={handleCreateDefinition}
+      />
+
+      <LabLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
       />
     </div>
   );

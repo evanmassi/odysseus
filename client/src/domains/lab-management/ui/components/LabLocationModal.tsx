@@ -1,9 +1,9 @@
 /**
  * Lab Location Modal
  *
- * Manages the lab's location tree: the existing places, and a form that adds a new one or renames
- * the one being edited. Deletion is refused server-side while stock or a nested location depends
- * on it, so the confirm dialog is the only guard this side.
+ * Manages the lab's location tree: the places on the left, the editor for the selected one on the
+ * right. Deletion is refused server-side while stock or a nested location depends on it, so the
+ * confirm dialog is the only guard this side.
  */
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -16,10 +16,20 @@ import {
   useUpdateLabLocationMutation,
 } from '@domains/lab-management/hooks/useLabLocationMutations';
 import { useLabLocationsQuery } from '@domains/lab-management/hooks/useLabLocationQueries';
-import { buildHierarchyOptions, Button, Input, Select, Tooltip, withPlaceholder } from '@shared/ui';
+import {
+  buildHierarchyOptions,
+  Button,
+  Input,
+  ScrollArea,
+  Select,
+  Tooltip,
+  withPlaceholder,
+} from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { LabLocationTreeLines } from '@shared/ui/components/tree-lines';
+import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 import { notifications } from '@shared/utils/notifications';
 
 import type { LabLocation } from '@odysseus/shared-schemas';
@@ -28,6 +38,8 @@ interface LabLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const TIER_LEVELS = ['l1', 'l2', 'l3'] as const;
 
 /** The node and everything under it — none of which can become its own ancestor. */
 function subtreeIds(locations: LabLocation[], rootId: string): Set<string> {
@@ -73,13 +85,15 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
     prevIsOpenRef.current = isOpen;
   }, [isOpen]);
 
-  const locationById = useMemo(
-    () => new Map(locations.map(location => [location.id, location])),
-    [locations]
-  );
-
-  // Tree order with the tier each row indents by — the same traversal the parent picker uses.
-  const rows = useMemo(() => buildHierarchyOptions(locations), [locations]);
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string | null, LabLocation[]>();
+    for (const location of locations) {
+      const key = location.parentId ?? null;
+      map.set(key, [...(map.get(key) ?? []), location]);
+    }
+    for (const siblings of map.values()) siblings.sort(compareByOrderThenName);
+    return map;
+  }, [locations]);
 
   const parentOptions = useMemo(() => {
     const excluded = editingId ? subtreeIds(locations, editingId) : new Set<string>();
@@ -156,6 +170,49 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
     }
   };
 
+  const renderTier = (parent: string | null, depth: number) => {
+    const tier = childrenByParent.get(parent) ?? [];
+    if (tier.length === 0) return null;
+
+    return tier.map(location => (
+      <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
+        <div
+          className={`lab-location-row group flex items-center gap-2 py-1 pl-3 pr-1 ${
+            editingId === location.id ? 'bg-foreground/[0.06]' : 'hover:bg-foreground/[0.04]'
+          }`}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-body-sm text-secondary-foreground">{location.name}</p>
+            {location.description && (
+              <p className="truncate text-caption text-muted-foreground">{location.description}</p>
+            )}
+          </div>
+          <div className="flex flex-shrink-0 gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+            <Tooltip content="Rename" side="bottom">
+              <Button variant="ghost" size="xs" iconOnly onClick={() => startEdit(location)}>
+                <SquarePen className="h-3 w-3" />
+              </Button>
+            </Tooltip>
+            <Tooltip content="Remove" side="bottom">
+              <Button
+                variant="ghost-danger"
+                size="xs"
+                iconOnly
+                onClick={() => setPendingDelete(location)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
+
+        {depth < TIER_LEVELS.length - 1 && (
+          <div className="ml-3">{renderTier(location.id, depth + 1)}</div>
+        )}
+      </div>
+    ));
+  };
+
   return (
     <>
       <BaseModal
@@ -163,60 +220,25 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
         title="Manage Locations"
         icon={<MapPin size={24} />}
         onClose={onClose}
-        size="sm"
+        size="lg"
       >
-        <div className="space-y-4">
-          {rows.length > 0 && (
-            <div className="max-h-56 space-y-0.5 overflow-y-auto">
-              {rows.map(row => {
-                const location = locationById.get(String(row.value));
-                if (!location) return null;
+        <div className="flex min-h-0 gap-4">
+          <div className="flex min-h-0 w-1/2 flex-col">
+            <ScrollArea className="min-h-[18rem] flex-1 border border-line-faint">
+              {locations.length === 0 ? (
+                <p className="px-3 py-6 text-center text-body-sm text-muted-foreground">
+                  No locations yet. Add the first one on the right.
+                </p>
+              ) : (
+                <div data-tree-id="lab-location" className="nav-tree-select relative py-1 pr-2">
+                  <LabLocationTreeLines />
+                  {renderTier(null, 0)}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
 
-                return (
-                  <div
-                    key={location.id}
-                    className={`group flex items-center justify-between gap-2 rounded px-2 py-1 hover:bg-foreground/[0.04] ${
-                      editingId === location.id ? 'bg-foreground/[0.06]' : ''
-                    }`}
-                    style={{ paddingLeft: `${(row.depth ?? 0) * 16 + 8}px` }}
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-body">{location.name}</p>
-                      {location.description && (
-                        <p className="truncate text-caption text-muted-foreground">
-                          {location.description}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                      <Tooltip content="Rename" side="bottom">
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          iconOnly
-                          onClick={() => startEdit(location)}
-                        >
-                          <SquarePen className="h-3 w-3" />
-                        </Button>
-                      </Tooltip>
-                      <Tooltip content="Remove" side="bottom">
-                        <Button
-                          variant="ghost-danger"
-                          size="xs"
-                          iconOnly
-                          onClick={() => setPendingDelete(location)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </Tooltip>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="space-y-4 border-t border-line-faint pt-4">
+          <div className="flex min-w-0 flex-1 flex-col space-y-4">
             <div>
               <label htmlFor="locationName" className={FIELD_LABEL_STANDARD}>
                 Location Name

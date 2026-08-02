@@ -8,10 +8,10 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Eye, EyeOff, Layers, MapPin, Package, Plus, SlidersHorizontal } from 'lucide-react';
+import { Eye, EyeOff, Layers, Package, Plus, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { LabLocationModal, useAttributesQuery } from '@domains/lab-management';
+import { useAttributesQuery } from '@domains/lab-management';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import {
   useCreateSupplyCategoryMutation,
@@ -101,7 +101,6 @@ export function SuppliesTab() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [isLabLocationModalOpen, setIsLabLocationModalOpen] = useState(false);
   const [isBulkUpdateOpen, setIsBulkUpdateOpen] = useState(false);
 
   const categoryState = useCatalogCategories({
@@ -168,7 +167,6 @@ export function SuppliesTab() {
 
   const actionMenuItems: OverflowMenuItem[] = [
     { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
-    { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLabLocationModalOpen(true) },
   ];
 
   const activeFilterCount = countAttributeFilters(filters);
@@ -381,11 +379,6 @@ export function SuppliesTab() {
           state={categoryState}
           categoryPlaceholder="e.g., Pipette Tips"
           subcategoryPlaceholder="e.g., 15mL Conicals"
-        />
-
-        <LabLocationModal
-          isOpen={isLabLocationModalOpen}
-          onClose={() => setIsLabLocationModalOpen(false)}
         />
       </div>
 
