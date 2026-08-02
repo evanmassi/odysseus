@@ -28,7 +28,8 @@ import {
   SearchInput,
 } from '@shared/ui';
 import {
-  CategoryModal,
+  CategoryManager,
+  useCatalogCategories,
   AttributeFilterPanel,
   countAttributeFilters,
   matchesAttributeFilters,
@@ -40,10 +41,8 @@ import {
   SortControls,
   type InventorySortField,
 } from '@shared/ui/components/inventory';
-import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
 import { SupplyItemForm } from './SupplyItemForm';
@@ -54,7 +53,7 @@ import { SupplyQuickScanBar } from './SupplyQuickScanBar';
 import { SupplyTransactionForm } from './SupplyTransactionForm';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
-import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
 const isSupplyHidden = (item: SupplyItemWithStock) => item.status === 'archived';
@@ -102,27 +101,16 @@ export function SuppliesTab() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [categoryModal, setCategoryModal] = useState<{
-    isOpen: boolean;
-    parentId?: string;
-    parentName?: string;
-    category?: SupplyCategory;
-  }>({ isOpen: false });
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    isOpen: boolean;
-    category?: SupplyCategory;
-  }>({ isOpen: false });
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isBulkUpdateOpen, setIsBulkUpdateOpen] = useState(false);
 
-  const categoryNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    categories.forEach(c => {
-      const parentName = c.parentId ? categories.find(p => p.id === c.parentId)?.name : undefined;
-      map.set(c.id, parentName ? `${parentName} > ${c.name}` : c.name);
-    });
-    return map;
-  }, [categories]);
+  const categoryState = useCatalogCategories({
+    categories,
+    createMutation: createCategoryMutation,
+    updateMutation: updateCategoryMutation,
+    deleteMutation: deleteCategoryMutation,
+  });
+  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -177,39 +165,6 @@ export function SuppliesTab() {
     setSelectedItemId(undefined);
     setRightPanel(undefined);
   }, []);
-
-  const handleAddCategory = useCallback(() => {
-    setCategoryModal({ isOpen: true });
-  }, []);
-
-  const handleAddSubcategory = useCallback(
-    (parentId: string) => {
-      const parent = categories.find(c => c.id === parentId);
-      setCategoryModal({ isOpen: true, parentId, parentName: parent?.name });
-    },
-    [categories]
-  );
-
-  const handleRenameCategory = useCallback((category: SupplyCategory) => {
-    setCategoryModal({ isOpen: true, parentId: category.parentId ?? undefined, category });
-  }, []);
-
-  const handleDeleteCategory = useCallback((category: SupplyCategory) => {
-    setDeleteConfirm({ isOpen: true, category });
-  }, []);
-
-  const executeDeleteCategory = useCallback(() => {
-    const category = deleteConfirm.category;
-    if (!category) return;
-    deleteCategoryMutation.mutate(category.id, {
-      onSuccess: () => {
-        notifications.success(`"${category.name}" removed`);
-      },
-      onSettled: () => {
-        setDeleteConfirm({ isOpen: false });
-      },
-    });
-  }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const actionMenuItems: OverflowMenuItem[] = [
     { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
@@ -359,10 +314,10 @@ export function SuppliesTab() {
                 )}
                 treeId="supplies"
                 labels={TREE_LABELS}
-                onAddCategory={handleAddCategory}
-                onAddSubcategory={handleAddSubcategory}
-                onRenameCategory={handleRenameCategory}
-                onDeleteCategory={handleDeleteCategory}
+                onAddCategory={categoryState.onAddCategory}
+                onAddSubcategory={categoryState.onAddSubcategory}
+                onRenameCategory={categoryState.onRenameCategory}
+                onDeleteCategory={categoryState.onDeleteCategory}
               />
             </ScrollArea>
           </div>
@@ -422,27 +377,10 @@ export function SuppliesTab() {
             })()}
         </div>
 
-        <CategoryModal
-          isOpen={categoryModal.isOpen}
-          parentId={categoryModal.parentId}
-          parentName={categoryModal.parentName}
-          category={categoryModal.category}
-          onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
-          onCreate={(name, parentId) => createCategoryMutation.mutateAsync({ name, parentId })}
-          onRename={(id, name) => updateCategoryMutation.mutateAsync({ id, data: { name } })}
-          isPending={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+        <CategoryManager
+          state={categoryState}
           categoryPlaceholder="e.g., Pipette Tips"
           subcategoryPlaceholder="e.g., 15mL Conicals"
-        />
-
-        <ConfirmDialog
-          isOpen={deleteConfirm.isOpen}
-          variant="danger"
-          title="Remove Category"
-          message={`Are you sure you want to remove "${deleteConfirm.category?.name ?? ''}"? This action cannot be undone.`}
-          confirmText="Remove"
-          onConfirm={() => void executeDeleteCategory()}
-          onCancel={() => setDeleteConfirm({ isOpen: false })}
         />
 
         <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />

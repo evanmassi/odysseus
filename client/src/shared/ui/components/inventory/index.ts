@@ -37,7 +37,7 @@ export { OPTION_CARD_BASE, OPTION_CARD_SELECTED, OPTION_CARD_UNSELECTED } from '
 export { BulkStockMovementTab } from './BulkStockMovementTab';
 export { BulkReassignTab } from './BulkReassignTab';
 export { BulkVoidTab, type VoidableEntry } from './BulkVoidTab';
-export { CategoryModal } from './CategoryModal';
+export { CategoryModal, CategoryManager, useCatalogCategories } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
 export {
