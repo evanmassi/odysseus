@@ -1,8 +1,8 @@
 /**
  * Attribute Definition Modal
  *
- * Creates a lab-defined reagent attribute. The value type is chosen here and fixed
- * afterwards, since existing values are stored per type.
+ * Creates a lab-defined attribute for one catalog, or for all three. The value type is chosen
+ * here and fixed afterwards, since existing values are stored per type.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
 import type {
+  AttributeCatalog,
   AttributeValueType,
   CreateAttributeDefinitionRequest,
 } from '@odysseus/shared-schemas';
@@ -23,8 +24,18 @@ import type { SelectOption } from '@shared/ui';
 const VALUE_TYPE_OPTIONS: SelectOption[] = [
   { value: 'select', label: 'Single choice', description: 'One value from a list you curate' },
   { value: 'multi_select', label: 'Multiple choice', description: 'Any number of listed values' },
-  { value: 'text', label: 'Free text', description: 'Typed in per reagent' },
-  { value: 'number', label: 'Number', description: 'A numeric value per reagent' },
+  { value: 'text', label: 'Free text', description: 'Typed in per item' },
+  { value: 'number', label: 'Number', description: 'A numeric value per item' },
+];
+
+/** `appliesToCatalog` is nullable for "all"; the Select needs a concrete value to bind to. */
+const ALL_CATALOGS = '__all__';
+
+const CATALOG_OPTIONS: SelectOption[] = [
+  { value: ALL_CATALOGS, label: 'All catalogs', description: 'Reagents, supplies and equipment' },
+  { value: 'reagent', label: 'Reagents' },
+  { value: 'supply', label: 'Supplies' },
+  { value: 'equipment', label: 'Equipment' },
 ];
 
 interface AttributeDefinitionModalProps {
@@ -44,6 +55,7 @@ export function AttributeDefinitionModal({
 }: AttributeDefinitionModalProps) {
   const [name, setName] = useState('');
   const [valueType, setValueType] = useState<AttributeValueType>('select');
+  const [catalog, setCatalog] = useState<string>(ALL_CATALOGS);
   const [appliesToTypes, setAppliesToTypes] = useState<string[]>([]);
   const [promptOnForm, setPromptOnForm] = useState(false);
   const prevIsOpenRef = useRef(isOpen);
@@ -52,6 +64,7 @@ export function AttributeDefinitionModal({
     if (isOpen && !prevIsOpenRef.current) {
       setName('');
       setValueType('select');
+      setCatalog(ALL_CATALOGS);
       setAppliesToTypes([]);
       setPromptOnForm(false);
     }
@@ -66,8 +79,8 @@ export function AttributeDefinitionModal({
       await onCreate({
         name: trimmed,
         valueType,
-        appliesToCatalog: 'reagent',
-        appliesToTypes,
+        appliesToCatalog: catalog === ALL_CATALOGS ? undefined : (catalog as AttributeCatalog),
+        appliesToTypes: catalog === 'reagent' ? appliesToTypes : [],
         promptOnForm,
       });
       notifications.success(`Attribute "${trimmed}" created`);
@@ -109,6 +122,20 @@ export function AttributeDefinitionModal({
 
         <div>
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+          <label id="attributeCatalog" className={FIELD_LABEL_STANDARD}>
+            Catalog
+          </label>
+          <Select
+            options={CATALOG_OPTIONS}
+            value={catalog}
+            onChange={value => setCatalog(String(value ?? ALL_CATALOGS))}
+            fullWidth
+            aria-labelledby="attributeCatalog"
+          />
+        </div>
+
+        <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
           <label id="attributeValueType" className={FIELD_LABEL_STANDARD}>
             Value Type
           </label>
@@ -121,39 +148,41 @@ export function AttributeDefinitionModal({
           />
         </div>
 
-        <div>
-          <span className={FIELD_LABEL_STANDARD}>Applies To</span>
-          <div
-            className="flex flex-wrap gap-1.5"
-            role="group"
-            aria-label="Applies to reagent types"
-          >
-            {reagentTypeOptions.map(option => {
-              const value = String(option.value);
-              const selected = appliesToTypes.includes(value);
-              return (
-                <Chip
-                  key={value}
-                  size="xs"
-                  behavior="selectable"
-                  selected={selected}
-                  onSelect={() =>
-                    setAppliesToTypes(prev =>
-                      selected ? prev.filter(type => type !== value) : [...prev, value]
-                    )
-                  }
-                >
-                  {option.label}
-                </Chip>
-              );
-            })}
+        {catalog === 'reagent' && (
+          <div>
+            <span className={FIELD_LABEL_STANDARD}>Applies To</span>
+            <div
+              className="flex flex-wrap gap-1.5"
+              role="group"
+              aria-label="Applies to reagent types"
+            >
+              {reagentTypeOptions.map(option => {
+                const value = String(option.value);
+                const selected = appliesToTypes.includes(value);
+                return (
+                  <Chip
+                    key={value}
+                    size="xs"
+                    behavior="selectable"
+                    selected={selected}
+                    onSelect={() =>
+                      setAppliesToTypes(prev =>
+                        selected ? prev.filter(type => type !== value) : [...prev, value]
+                      )
+                    }
+                  >
+                    {option.label}
+                  </Chip>
+                );
+              })}
+            </div>
+            <p className="mt-1 text-caption text-muted-foreground">
+              {appliesToTypes.length === 0
+                ? 'Offered on every reagent type'
+                : `Offered on ${appliesToTypes.length} of ${reagentTypeOptions.length} types`}
+            </p>
           </div>
-          <p className="mt-1 text-caption text-muted-foreground">
-            {appliesToTypes.length === 0
-              ? 'Offered on every reagent type'
-              : `Offered on ${appliesToTypes.length} of ${reagentTypeOptions.length} types`}
-          </p>
-        </div>
+        )}
 
         <SettingsRow
           label="Prompt on new items"

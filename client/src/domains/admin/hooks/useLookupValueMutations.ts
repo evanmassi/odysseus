@@ -25,8 +25,6 @@ const renameCascadeKeys = (category: LookupCategory, labId: string | undefined) 
       return [queryKeys.donors.all(labId)];
     case 'equipment_maintenance_type':
       return [queryKeys.equipment.all(labId)];
-    case 'supply_item_property':
-      return [queryKeys.supplies.all(labId)];
     case 'reagent_type':
       return [queryKeys.reagents.all(labId)];
     case 'vendor':

@@ -34,7 +34,7 @@ import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositorie
 
 const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
   vendor_name, vendor_catalog_number, stock_unit, base_item_name,
-  reorder_threshold, reorder_threshold_unit, reorder_quantity, reorder_unit, unit_price, properties,
+  reorder_threshold, reorder_threshold_unit, reorder_quantity, reorder_unit, unit_price,
   current_lot_number, description, notes, status, created_at, updated_at`;
 
 const BARCODE_COLUMNS = 'id, item_id, barcode_value, barcode_type, is_primary, label';
@@ -114,7 +114,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     await this.db.execute(
       `
       INSERT INTO supply_items (${ITEM_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
         name = EXCLUDED.name,
@@ -129,7 +129,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
         reorder_quantity = EXCLUDED.reorder_quantity,
         reorder_unit = EXCLUDED.reorder_unit,
         unit_price = EXCLUDED.unit_price,
-        properties = EXCLUDED.properties,
         current_lot_number = EXCLUDED.current_lot_number,
         description = EXCLUDED.description,
         notes = EXCLUDED.notes,
@@ -152,7 +151,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
         row.reorder_quantity,
         row.reorder_unit,
         row.unit_price,
-        row.properties,
         row.current_lot_number,
         row.description,
         row.notes,
@@ -457,22 +455,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   }
 
   // Lookup support
-
-  async countItemsUsingProperty(value: string, labId: string): Promise<number> {
-    const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM supply_items WHERE $1 = ANY(properties) AND lab_id = $2',
-      [value, labId]
-    );
-    return parseInt(row?.count ?? '0', 10);
-  }
-
-  async renameProperty(oldValue: string, newValue: string, labId: string): Promise<number> {
-    const result = await this.db.execute(
-      'UPDATE supply_items SET properties = array_replace(properties, $1, $2) WHERE $1 = ANY(properties) AND lab_id = $3',
-      [oldValue, newValue, labId]
-    );
-    return result.rowCount ?? 0;
-  }
 
   async countItemsUsingVendor(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(

@@ -123,7 +123,6 @@ const LOOKUP_LEAVES: Array<{ id: string; title: string; count: number; usedBy?: 
     usedBy: ['Supplies', 'Reagents', 'Equipment'],
   },
   { id: 'lookup:media', title: 'Media Types', count: 2 },
-  { id: 'lookup:supply_item_property', title: 'Product Properties', count: 2 },
   { id: 'lookup:reagent_type', title: 'Reagent Types', count: 4 },
   { id: 'lookup:source', title: 'Sources', count: 2 },
   { id: 'lookup:species', title: 'Species', count: 2 },

@@ -197,7 +197,6 @@ export class LookupValueApplicationService {
       const labelMap: Partial<Record<LookupCategory, [string, string]>> = {
         equipment_maintenance_type: ['maintenance log entry', 'maintenance log entries'],
         specimen_type: ['collection entry', 'collection entries'],
-        supply_item_property: ['item', 'items'],
         reagent_type: ['item', 'items'],
         vendor: ['item', 'items'],
         manufacturer: ['item', 'items'],
@@ -220,9 +219,6 @@ export class LookupValueApplicationService {
     const fns: CatalogCountFn[] = [];
 
     switch (category) {
-      case 'supply_item_property':
-        if (supply) fns.push((v, l) => supply.countItemsUsingProperty(v, l));
-        break;
       case 'reagent_type':
         if (reagent) fns.push((v, l) => reagent.countItemsUsingReagentType(v, l));
         break;
@@ -248,9 +244,6 @@ export class LookupValueApplicationService {
     const fns: CatalogRenameFn[] = [];
 
     switch (category) {
-      case 'supply_item_property':
-        if (supply) fns.push((o, n, l) => supply.renameProperty(o, n, l));
-        break;
       case 'reagent_type':
         if (reagent) fns.push((o, n, l) => reagent.renameReagentType(o, n, l));
         break;

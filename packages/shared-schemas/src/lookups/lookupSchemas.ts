@@ -13,7 +13,6 @@ export const LOOKUP_CATEGORIES = [
   'media',
   'specimen_type',
   'equipment_maintenance_type',
-  'supply_item_property',
   'reagent_type',
   'vendor',
   'manufacturer',

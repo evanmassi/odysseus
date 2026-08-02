@@ -86,7 +86,6 @@ export class SupplyDto {
       reorderQuantity: item.reorderQuantity,
       reorderUnit: item.reorderUnit,
       unitPrice: item.unitPrice,
-      properties: item.properties,
       currentLotNumber: item.currentLotNumber,
       description: item.description,
       notes: item.notes,

@@ -2,7 +2,7 @@
  * Supply Item
  *
  * A type of lab supply tracked by quantity (e.g., "200μL filter tips, Corning #4806").
- * Supports manufacturer/vendor info, stock configuration, and flexible lab-defined properties.
+ * Supports manufacturer/vendor info and stock configuration.
  */
 
 import { supplyItemStatusValues, type SupplyItemStatus } from '@odysseus/shared-schemas';
@@ -25,7 +25,6 @@ interface ItemCreateData {
   reorderQuantity?: number;
   reorderUnit?: string;
   unitPrice?: number;
-  properties?: string[];
   description?: string;
   notes?: string;
 }
@@ -45,7 +44,6 @@ interface ItemUpdateData {
   reorderQuantity?: number | null;
   reorderUnit?: string | null;
   unitPrice?: number | null;
-  properties?: string[] | null;
   currentLotNumber?: string | null;
   description?: string | null;
   notes?: string | null;
@@ -68,7 +66,6 @@ export class SupplyItem {
     private _reorderQuantity: number | undefined,
     private _reorderUnit: string | undefined,
     private _unitPrice: number | undefined,
-    private _properties: string[],
     private _currentLotNumber: string | undefined,
     private _description: string | undefined,
     private _notes: string | undefined,
@@ -96,7 +93,6 @@ export class SupplyItem {
       data.reorderQuantity,
       data.reorderUnit,
       data.unitPrice,
-      SupplyItem.deduplicateProperties(data.properties ?? []),
       undefined,
       data.description,
       data.notes,
@@ -122,7 +118,6 @@ export class SupplyItem {
     reorderQuantity?: number;
     reorderUnit?: string;
     unitPrice?: number;
-    properties: string[];
     currentLotNumber?: string;
     description?: string;
     notes?: string;
@@ -146,7 +141,6 @@ export class SupplyItem {
       data.reorderQuantity,
       data.reorderUnit,
       data.unitPrice,
-      data.properties,
       data.currentLotNumber,
       data.description,
       data.notes,
@@ -168,10 +162,6 @@ export class SupplyItem {
     }
   }
 
-  private static deduplicateProperties(properties: string[]): string[] {
-    return [...new Set(properties)];
-  }
-
   update(data: ItemUpdateData): void {
     if (data.categoryId !== undefined) this._categoryId = data.categoryId ?? this._categoryId;
     if (data.name !== undefined) this._name = data.name ?? this._name;
@@ -190,8 +180,6 @@ export class SupplyItem {
       this._reorderQuantity = data.reorderQuantity ?? undefined;
     if (data.reorderUnit !== undefined) this._reorderUnit = data.reorderUnit ?? undefined;
     if (data.unitPrice !== undefined) this._unitPrice = data.unitPrice ?? undefined;
-    if (data.properties !== undefined)
-      this._properties = SupplyItem.deduplicateProperties(data.properties ?? []);
     if (data.currentLotNumber !== undefined)
       this._currentLotNumber = data.currentLotNumber ?? undefined;
     if (data.description !== undefined) this._description = data.description ?? undefined;
@@ -255,9 +243,6 @@ export class SupplyItem {
   }
   get unitPrice(): number | undefined {
     return this._unitPrice;
-  }
-  get properties(): string[] {
-    return [...this._properties];
   }
   get currentLotNumber(): string | undefined {
     return this._currentLotNumber;

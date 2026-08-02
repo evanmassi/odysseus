@@ -55,7 +55,6 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   media: 'media type',
   specimen_type: 'specimen',
   equipment_maintenance_type: 'maintenance activity',
-  supply_item_property: 'product property',
   reagent_type: 'reagent type',
   vendor: 'vendor',
   manufacturer: 'manufacturer',
@@ -67,7 +66,6 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   media: 'media types',
   specimen_type: 'specimens',
   equipment_maintenance_type: 'maintenance activities',
-  supply_item_property: 'product properties',
   reagent_type: 'reagent types',
   vendor: 'vendors',
   manufacturer: 'manufacturers',
@@ -86,7 +84,6 @@ const CATEGORY_USAGE_LABELS: Record<
     plural: 'collection entries',
   },
   equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
-  supply_item_property: { header: 'Items', singular: 'item', plural: 'items' },
   reagent_type: { header: 'Items', singular: 'item', plural: 'items' },
   vendor: { header: 'Items', singular: 'item', plural: 'items' },
   manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
@@ -106,7 +103,6 @@ const LOOKUP_LEAVES: Array<{ category: LookupCategory; title: string; usedBy?: s
     usedBy: ['Supplies', 'Reagents', 'Equipment'],
   },
   { category: 'media', title: 'Media Types' },
-  { category: 'supply_item_property', title: 'Product Properties' },
   { category: 'reagent_type', title: 'Reagent Types' },
   { category: 'source', title: 'Sources' },
   { category: 'species', title: 'Species' },
@@ -121,7 +117,8 @@ const attributeLeafId = (definitionId: string) => `attr:${definitionId}`;
 /** The list a route lands on, so opening the catalog from a suite starts where you are. */
 function leafForRoute(pathname: string): string {
   if (pathname.startsWith('/lab/reagents')) return lookupLeafId('reagent_type');
-  if (pathname.startsWith('/lab/supplies')) return lookupLeafId('supply_item_property');
+  // Supplies has no lookup of its own left — vendor is the list it actually curates.
+  if (pathname.startsWith('/lab/supplies')) return lookupLeafId('vendor');
   if (pathname.startsWith('/lab/equipment')) return lookupLeafId('equipment_maintenance_type');
   return lookupLeafId('species');
 }

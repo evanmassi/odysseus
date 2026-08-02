@@ -2,7 +2,7 @@
  * Supply Item Mapper
  *
  * Converts between SupplyItem domain entities and PostgreSQL rows.
- * Handles NUMERIC → number conversion for monetary/quantity fields and TEXT[] for properties.
+ * Handles NUMERIC → number conversion for monetary/quantity fields.
  */
 
 import { SupplyItem } from '@domain/entities/SupplyItem';
@@ -26,7 +26,6 @@ export interface SupplyItemRow {
   reorder_quantity: string | null;
   reorder_unit: string | null;
   unit_price: string | null;
-  properties: string[];
   current_lot_number: string | null;
   description: string | null;
   notes: string | null;
@@ -53,7 +52,6 @@ export class SupplyItemMapper {
       reorder_quantity: item.reorderQuantity != null ? String(item.reorderQuantity) : null,
       reorder_unit: item.reorderUnit ?? null,
       unit_price: item.unitPrice != null ? String(item.unitPrice) : null,
-      properties: item.properties,
       current_lot_number: item.currentLotNumber ?? null,
       description: item.description ?? null,
       notes: item.notes ?? null,
@@ -81,7 +79,6 @@ export class SupplyItemMapper {
       reorderQuantity: row.reorder_quantity != null ? parseFloat(row.reorder_quantity) : undefined,
       reorderUnit: row.reorder_unit ?? undefined,
       unitPrice: row.unit_price != null ? parseFloat(row.unit_price) : undefined,
-      properties: row.properties ?? [],
       currentLotNumber: row.current_lot_number ?? undefined,
       description: row.description ?? undefined,
       notes: row.notes ?? undefined,

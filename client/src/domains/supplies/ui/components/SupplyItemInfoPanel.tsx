@@ -263,15 +263,6 @@ export function SupplyItemInfoPanel({
                 {item.description}
               </p>
             )}
-            {item.properties.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {item.properties.map(prop => (
-                  <Chip key={prop} color="default" size="sm">
-                    {prop}
-                  </Chip>
-                ))}
-              </div>
-            )}
           </div>
 
           <div>

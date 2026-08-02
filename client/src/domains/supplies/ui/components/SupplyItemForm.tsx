@@ -31,7 +31,6 @@ import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
   buildHierarchyOptions,
   Button,
-  Checkbox,
   CompletenessMeter,
   Input,
   lookupOptions,
@@ -48,7 +47,6 @@ import {
   draftsFromValues,
   type AttributeDrafts,
 } from '@shared/ui/components/inventory';
-import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
@@ -175,7 +173,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
   const { data: manufacturers = [] } = useLookupValuesQuery('manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('vendor');
-  const { data: itemProperties = [] } = useLookupValuesQuery('supply_item_property');
   const unitOptions = useUnitOptions();
 
   const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
@@ -252,14 +249,12 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
           reorderQuantity: item.reorderQuantity,
           reorderUnit: item.reorderUnit ?? '',
           unitPrice: item.unitPrice,
-          properties: item.properties,
           description: item.description ?? '',
           notes: item.notes ?? '',
         }
       : {
           categoryId: '',
           name: '',
-          properties: [] as string[],
         },
   });
 
@@ -653,56 +648,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               </Button>
             </div>
           </div>
-
-          {itemProperties.length > 0 && (
-            <>
-              <div className="!mt-3.5">
-                <SectionHeader title="Properties" size="sm" />
-              </div>
-              <Controller
-                name="properties"
-                control={control}
-                render={({ field: { value = [], onChange } }) => (
-                  <div className="space-y-1.5">
-                    {(value as string[]).length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {(value as string[]).map((prop: string) => (
-                          <Chip
-                            key={prop}
-                            color="default"
-                            size="sm"
-                            onRemove={() =>
-                              onChange((value as string[]).filter((p: string) => p !== prop))
-                            }
-                          >
-                            {prop}
-                          </Chip>
-                        ))}
-                      </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-1">
-                      {itemProperties.map((pp: { id: string; value: string }) => (
-                        <label
-                          key={pp.id}
-                          className="flex cursor-pointer items-center gap-1.5 text-body-sm"
-                        >
-                          <Checkbox
-                            checked={(value as string[]).includes(pp.value)}
-                            onChange={checked => {
-                              if (checked) onChange([...(value as string[]), pp.value]);
-                              else
-                                onChange((value as string[]).filter((p: string) => p !== pp.value));
-                            }}
-                          />
-                          {pp.value}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              />
-            </>
-          )}
 
           <div className="!mt-3.5">
             <SectionHeader title="Attributes" size="sm" />

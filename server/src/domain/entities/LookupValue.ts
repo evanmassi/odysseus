@@ -13,7 +13,6 @@ export type LookupCategory =
   | 'media'
   | 'specimen_type'
   | 'equipment_maintenance_type'
-  | 'supply_item_property'
   | 'reagent_type'
   | 'vendor'
   | 'manufacturer';
@@ -99,7 +98,6 @@ export class LookupValue {
         'media',
         'specimen_type',
         'equipment_maintenance_type',
-        'supply_item_property',
         'reagent_type',
         'vendor',
         'manufacturer',

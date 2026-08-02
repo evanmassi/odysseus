@@ -1006,18 +1006,6 @@ export class SupplyApplicationService {
       }
     }
 
-    if (data.properties !== undefined) {
-      const oldProps = JSON.stringify(item.properties);
-      const newProps = JSON.stringify(data.properties ?? []);
-      if (oldProps !== newProps) {
-        changes.push({
-          field: 'properties',
-          oldValue: item.properties,
-          newValue: data.properties ?? [],
-        });
-      }
-    }
-
     return changes;
   }
 }

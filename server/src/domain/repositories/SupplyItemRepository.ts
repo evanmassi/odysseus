@@ -142,8 +142,6 @@ export interface SupplyItemRepository {
 
   // Lookup support — for supply lookup category rename/delete cascading
 
-  countItemsUsingProperty(value: string, labId: string): Promise<number>;
-  renameProperty(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingVendor(value: string, labId: string): Promise<number>;
   renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingManufacturer(value: string, labId: string): Promise<number>;

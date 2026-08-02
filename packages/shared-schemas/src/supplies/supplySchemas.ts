@@ -84,7 +84,6 @@ export const supplyItemSchema = z.object({
   reorderQuantity: z.number().optional(),
   reorderUnit: z.string().optional(),
   unitPrice: z.number().optional(),
-  properties: z.array(z.string()),
   currentLotNumber: z.string().optional(),
   description: z.string().optional(),
   notes: z.string().optional(),
@@ -113,7 +112,6 @@ export const createSupplyItemRequestSchema = z.object({
   reorderQuantity: z.number().min(0).optional(),
   reorderUnit: optionalText(100),
   unitPrice: z.number().min(0).optional(),
-  properties: z.array(z.string().max(200)).optional(),
   description: optionalText(2000),
   notes: optionalText(5000),
 });
@@ -132,7 +130,6 @@ export const updateSupplyItemRequestSchema = z.object({
   reorderQuantity: z.number().min(0).nullish(),
   reorderUnit: patchText(100),
   unitPrice: z.number().min(0).nullish(),
-  properties: z.array(z.string().max(200)).nullish(),
   description: patchText(2000),
   notes: patchText(5000),
 });
