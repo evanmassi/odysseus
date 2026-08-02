@@ -1,9 +1,9 @@
 /**
  * Attribute Delete Guard
  *
- * reagent_attribute_values cascades from both the definition and the option, so an unguarded delete
- * would silently strip a field from every item that recorded a value. These are the guards that stop
- * it, plus the rule that seeded system attributes are undeletable.
+ * Every catalog's value table cascades from both the definition and the option, so an unguarded
+ * delete would silently strip a field from every item that recorded a value. These are the guards
+ * that stop it, plus the rule that seeded system attributes are undeletable.
  */
 
 import { AttributeApplicationService } from '@application/services/AttributeApplicationService';
@@ -102,6 +102,31 @@ describe('attribute delete guard', () => {
 
     expect(await repo.findDefinitionById(definition.id, lab.id)).toBeNull();
     expect(await repo.findOptionById(option.id, lab.id)).toBeNull();
+  });
+
+  // Definitions are lab-wide but each catalog stores its values in its own table, so a count that
+  // only looked at reagents would clear the guard and let the cascade wipe the other two.
+  it.each([
+    ['a supply', 'supply', 'supply_attribute_values'],
+    ['an equipment', 'equipment', 'equipment_attribute_values'],
+  ])('refuses to delete a definition %s item records a value for', async (_label, catalog, table) => {
+    const { lab, definition, option } = await scenario();
+    const item =
+      catalog === 'supply'
+        ? await seed.supplyItem({ labId: lab.id })
+        : await seed.equipmentItem({ labId: lab.id });
+
+    await context.execute(
+      `INSERT INTO ${table} (id, item_id, definition_id, value_option_id) VALUES ($1, $2, $3, $4)`,
+      [generateId('atv'), item.id, definition.id, option.id]
+    );
+
+    await expect(service.deleteDefinition(lab.id, definition.id, admin)).rejects.toThrow(
+      /1 item still records a value/
+    );
+    await expect(service.deleteOption(lab.id, option.id, admin)).rejects.toThrow(
+      /1 item still uses it/
+    );
   });
 
   it("does not surface another lab's definitions", async () => {

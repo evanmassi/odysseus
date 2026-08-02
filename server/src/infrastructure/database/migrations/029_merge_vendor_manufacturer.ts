@@ -9,9 +9,10 @@
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 
-const MERGES: { from: string[]; to: string }[] = [
-  { from: ['supply_vendor', 'reagent_vendor'], to: 'vendor' },
-  { from: ['supply_manufacturer', 'reagent_manufacturer'], to: 'manufacturer' },
+// Reagents never had their own vendor vocabulary — 027's category CHECK admits only `reagent_type`.
+const MERGES: { from: string; to: string }[] = [
+  { from: 'supply_vendor', to: 'vendor' },
+  { from: 'supply_manufacturer', to: 'manufacturer' },
 ];
 
 export const migration029: Migration = {
@@ -22,19 +23,17 @@ export const migration029: Migration = {
     await pool.query(`ALTER TABLE lookup_values DROP CONSTRAINT IF EXISTS lookup_values_category_check`);
 
     for (const { from, to } of MERGES) {
-      for (const source of from) {
-        // UNIQUE(lab_id, category, value) — drop rows the target already has, then move the rest.
-        await pool.query(
-          `DELETE FROM lookup_values a
-           WHERE a.category = $1
-             AND EXISTS (
-               SELECT 1 FROM lookup_values b
-               WHERE b.category = $2 AND b.lab_id = a.lab_id AND b.value = a.value
-             )`,
-          [source, to]
-        );
-        await pool.query(`UPDATE lookup_values SET category = $2 WHERE category = $1`, [source, to]);
-      }
+      // UNIQUE(lab_id, category, value) — drop rows the target already has, then move the rest.
+      await pool.query(
+        `DELETE FROM lookup_values a
+         WHERE a.category = $1
+           AND EXISTS (
+             SELECT 1 FROM lookup_values b
+             WHERE b.category = $2 AND b.lab_id = a.lab_id AND b.value = a.value
+           )`,
+        [from, to]
+      );
+      await pool.query(`UPDATE lookup_values SET category = $2 WHERE category = $1`, [from, to]);
     }
 
     // Equipment's manufacturer was free text with no vocabulary behind it; seed the merged list with

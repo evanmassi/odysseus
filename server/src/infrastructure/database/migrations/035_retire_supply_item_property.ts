@@ -2,8 +2,9 @@
  * Migration 035 — Supply Item Property onto Attributes
  *
  * `supply_item_property` was a degenerate attribute system — a flat lookup written into a
- * `text[]`. Now that supplies carry real attribute values (034), each lab's vocabulary becomes a
- * multi-select definition and both the lookup category and the column retire.
+ * `text[]`. Now that supplies carry real attribute values, each lab's vocabulary becomes a
+ * multi-select definition, each item's entries become value rows against it, and both the lookup
+ * category and the column retire.
  */
 
 import { generateId } from '@domain/utils/generateId';
@@ -45,6 +46,18 @@ export const migration035: Migration = {
           [generateId('aopt'), definitionId, value, sortOrder]
         );
       }
+
+      // One row per item per property it held. A property an item carries that never made it into
+      // the lookup has no option to point at and is dropped — it had no dropdown entry either.
+      await pool.query(
+        `INSERT INTO supply_attribute_values (id, item_id, definition_id, value_option_id)
+         SELECT 'satv_' || substr(md5(i.id || ':' || o.id), 1, 21), i.id, $1, o.id
+         FROM supply_items i
+         JOIN LATERAL unnest(i.properties) AS prop(value) ON TRUE
+         JOIN attribute_options o ON o.definition_id = $1 AND o.value = prop.value
+         WHERE i.lab_id = $2`,
+        [definitionId, labId]
+      );
     }
 
     await pool.query(`DELETE FROM lookup_values WHERE category = 'supply_item_property'`);

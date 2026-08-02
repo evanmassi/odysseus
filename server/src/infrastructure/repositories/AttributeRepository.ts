@@ -24,6 +24,18 @@ const DEFINITION_COLUMNS = `id, lab_id, name, value_type, applies_to_catalog, ap
 const OPTION_COLUMNS = 'id, definition_id, value, sort_order';
 const OPTION_COLUMNS_ALIASED = 'o.id, o.definition_id, o.value, o.sort_order';
 
+/**
+ * Every catalog's value rows as one relation. Definitions are lab-wide, so a usage count that
+ * missed a catalog would clear a delete guard whose cascade then wipes that catalog's values.
+ */
+const ALL_ATTRIBUTE_VALUES = `(
+  SELECT item_id, definition_id, value_option_id FROM reagent_attribute_values
+  UNION ALL
+  SELECT item_id, definition_id, value_option_id FROM supply_attribute_values
+  UNION ALL
+  SELECT item_id, definition_id, value_option_id FROM equipment_attribute_values
+)`;
+
 export class AttributeRepository implements IAttributeRepository {
   constructor(private db: Queryable) {}
 
@@ -176,7 +188,7 @@ export class AttributeRepository implements IAttributeRepository {
 
   async countItemsUsingDefinition(definitionId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(DISTINCT item_id) as count FROM reagent_attribute_values WHERE definition_id = $1',
+      `SELECT COUNT(DISTINCT item_id) as count FROM ${ALL_ATTRIBUTE_VALUES} v WHERE definition_id = $1`,
       [definitionId]
     );
     return parseCount(row);
@@ -184,7 +196,7 @@ export class AttributeRepository implements IAttributeRepository {
 
   async countItemsUsingOption(optionId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(DISTINCT item_id) as count FROM reagent_attribute_values WHERE value_option_id = $1',
+      `SELECT COUNT(DISTINCT item_id) as count FROM ${ALL_ATTRIBUTE_VALUES} v WHERE value_option_id = $1`,
       [optionId]
     );
     return parseCount(row);
@@ -194,7 +206,7 @@ export class AttributeRepository implements IAttributeRepository {
     const rows = await this.db.queryMany<{ key: string; count: number }>(
       `
       SELECT v.definition_id AS key, COUNT(DISTINCT v.item_id)::int AS count
-      FROM reagent_attribute_values v
+      FROM ${ALL_ATTRIBUTE_VALUES} v
       JOIN attribute_definitions d ON d.id = v.definition_id
       WHERE d.lab_id = $1
       GROUP BY v.definition_id
@@ -208,7 +220,7 @@ export class AttributeRepository implements IAttributeRepository {
     const rows = await this.db.queryMany<{ key: string; count: number }>(
       `
       SELECT v.value_option_id AS key, COUNT(DISTINCT v.item_id)::int AS count
-      FROM reagent_attribute_values v
+      FROM ${ALL_ATTRIBUTE_VALUES} v
       JOIN attribute_definitions d ON d.id = v.definition_id
       WHERE d.lab_id = $1 AND v.value_option_id IS NOT NULL
       GROUP BY v.value_option_id

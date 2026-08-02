@@ -10,7 +10,6 @@ import { LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';
 
 import { generateId } from '@domain/utils/generateId';
 
-
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
 

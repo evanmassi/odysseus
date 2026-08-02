@@ -2,8 +2,8 @@
  * Migration 031 — Seed System Attributes for Existing Labs
  *
  * New labs get these from CreateLabCommandHandler; labs that already exist get them here. The seed
- * list is duplicated from domain/entities/systemAttributes.ts on purpose — a migration is a snapshot
- * of intent at a point in time and must not shift when that list is later edited.
+ * list is duplicated from domain/constants/systemAttributes.ts on purpose — a migration is a
+ * snapshot of intent at a point in time and must not shift when that list is later edited.
  */
 
 import type { Migration } from './migrationRunner';

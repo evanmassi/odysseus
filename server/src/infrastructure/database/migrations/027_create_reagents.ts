@@ -4,11 +4,18 @@
  * Adds the reagent catalog: categories, locations, items, per-lot stock,
  * transactions, documents, barcodes, packaging levels, the lab-configurable
  * attribute system, and lab custom units. Extends the lookup category
- * constraint to include the three reagent lookup categories.
+ * constraint to include `reagent_type`.
  */
 
 import type { Migration } from './migrationRunner';
 import type { Pool } from 'pg';
+
+/** Definitions are lab-wide; values are per-catalog so each keeps a real FK to its own items. */
+const ATTRIBUTE_VALUE_CATALOGS = [
+  { prefix: 'reagent', items: 'reagent_items' },
+  { prefix: 'supply', items: 'supply_items' },
+  { prefix: 'equipment', items: 'equipment_items' },
+];
 
 export const migration027: Migration = {
   id: 27,
@@ -213,8 +220,8 @@ export const migration027: Migration = {
     );
 
     // Attribute system — lab-wide definitions and curated option vocabularies, scoped to a catalog
-    // (and for reagents, optionally to a reagent_type). Values stay per-catalog so each keeps a real
-    // FK to its own items.
+    // and, for reagents, to any number of reagent types (empty meaning all of them). Values stay
+    // per-catalog so each keeps a real FK to its own items.
 
     await pool.query(`
       CREATE TABLE attribute_definitions (
@@ -223,7 +230,7 @@ export const migration027: Migration = {
         name TEXT NOT NULL,
         value_type TEXT NOT NULL,
         applies_to_catalog TEXT,
-        applies_to_type TEXT,
+        applies_to_types TEXT[] NOT NULL DEFAULT '{}',
         sort_order INTEGER NOT NULL DEFAULT 0,
         is_system BOOLEAN NOT NULL DEFAULT false,
         system_key TEXT,
@@ -257,26 +264,28 @@ export const migration027: Migration = {
       `CREATE INDEX idx_attribute_options_definition ON attribute_options(definition_id)`
     );
 
-    await pool.query(`
-      CREATE TABLE reagent_attribute_values (
-        id TEXT PRIMARY KEY,
-        item_id TEXT NOT NULL REFERENCES reagent_items(id) ON DELETE CASCADE,
-        definition_id TEXT NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
-        value_option_id TEXT REFERENCES attribute_options(id) ON DELETE CASCADE,
-        value_text TEXT,
-        value_number NUMERIC
-      )
-    `);
+    for (const { prefix, items } of ATTRIBUTE_VALUE_CATALOGS) {
+      const table = `${prefix}_attribute_values`;
 
-    await pool.query(
-      `CREATE INDEX idx_reagent_attribute_values_item ON reagent_attribute_values(item_id)`
-    );
-    await pool.query(
-      `CREATE INDEX idx_reagent_attribute_values_definition ON reagent_attribute_values(definition_id)`
-    );
-    await pool.query(
-      `CREATE INDEX idx_reagent_attribute_values_option ON reagent_attribute_values(value_option_id) WHERE value_option_id IS NOT NULL`
-    );
+      await pool.query(`
+        CREATE TABLE ${table} (
+          id TEXT PRIMARY KEY,
+          item_id TEXT NOT NULL REFERENCES ${items}(id) ON DELETE CASCADE,
+          definition_id TEXT NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
+          value_option_id TEXT REFERENCES attribute_options(id) ON DELETE CASCADE,
+          value_text TEXT,
+          value_number NUMERIC
+        )
+      `);
+
+      await pool.query(`CREATE INDEX idx_${prefix}_attribute_values_item ON ${table}(item_id)`);
+      await pool.query(
+        `CREATE INDEX idx_${prefix}_attribute_values_definition ON ${table}(definition_id)`
+      );
+      await pool.query(
+        `CREATE INDEX idx_${prefix}_attribute_values_option ON ${table}(value_option_id) WHERE value_option_id IS NOT NULL`
+      );
+    }
 
     // Custom units — lab-scoped supplement to the fixed unit registry
 

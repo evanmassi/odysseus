@@ -42,14 +42,14 @@ export const migration032: Migration = {
     for (const { table, columns } of UNIT_COLUMNS) {
       const labJoin =
         table === 'supply_items'
-          ? `SELECT DISTINCT lab_id, ${columns.map(c => c).join(', ')} FROM supply_items`
+          ? `SELECT DISTINCT lab_id, ${columns.join(', ')} FROM supply_items`
           : `SELECT DISTINCT i.lab_id, ${columns.map(c => `p.${c}`).join(', ')}
              FROM supply_packaging_levels p JOIN supply_items i ON i.id = p.item_id`;
 
       for (const column of columns) {
         await pool.query(
           `INSERT INTO custom_units (id, lab_id, label, kind, sort_order, created_at, updated_at)
-           SELECT 'cun' || substr(md5(random()::text), 1, 18), src.lab_id, src.${column}, 'count', 0, NOW(), NOW()
+           SELECT 'cunit_' || substr(md5(random()::text), 1, 21), src.lab_id, src.${column}, 'count', 0, NOW(), NOW()
            FROM (${labJoin}) src
            WHERE src.${column} IS NOT NULL
              AND src.${column} <> ''
