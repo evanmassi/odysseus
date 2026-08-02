@@ -81,8 +81,8 @@ import type {
   SupplyBulkVoidRequest,
   SupplyBulkResponse,
   SupplyBulkBarcodesResponse,
-  SupplyAttributeValue,
-  SetSupplyAttributeValueRequest,
+  AttributeValue,
+  SetAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 export class SupplyApplicationService {
@@ -300,9 +300,9 @@ export class SupplyApplicationService {
   async setAttributeValue(
     labId: string,
     itemId: string,
-    data: SetSupplyAttributeValueRequest,
+    data: SetAttributeValueRequest,
     user: User
-  ): Promise<SupplyAttributeValue[]> {
+  ): Promise<AttributeValue[]> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
 
@@ -336,7 +336,7 @@ export class SupplyApplicationService {
   private scalarAttributeRows(
     itemId: string,
     definitionId: string,
-    data: SetSupplyAttributeValueRequest
+    data: SetAttributeValueRequest
   ): SupplyAttributeValueRow[] {
     const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
     if (isEmpty) return [];
@@ -366,6 +366,7 @@ export class SupplyApplicationService {
       label: data.label,
       url: data.url,
       notes: data.notes,
+      docType: data.docType,
     });
     await this.itemRepository.saveDocument(document);
     await this.eventBus.publish(new SupplyDocumentAddedEvent(itemId, data.label, user.id, labId));
@@ -385,6 +386,7 @@ export class SupplyApplicationService {
       label: data.label,
       url: data.url,
       notes: data.notes,
+      docType: data.docType,
     });
     if (!updated) throw new NotFoundError('This document could not be found.');
     return SupplyDto.documentToResponse(updated);

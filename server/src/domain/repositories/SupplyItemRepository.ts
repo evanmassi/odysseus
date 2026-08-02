@@ -5,6 +5,7 @@
  * stock levels, transactions, and lookup value support.
  */
 
+import type { DocumentPatch } from '@domain/entities/Document';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
 
@@ -103,11 +104,7 @@ export interface SupplyItemRepository {
 
   findDocumentsByItemId(itemId: string): Promise<SupplyDocument[]>;
   saveDocument(document: SupplyDocument): Promise<void>;
-  updateDocument(
-    id: string,
-    itemId: string,
-    fields: { label?: string; url?: string; notes?: string | null }
-  ): Promise<SupplyDocument | null>;
+  updateDocument(id: string, itemId: string, fields: DocumentPatch): Promise<SupplyDocument | null>;
   deleteDocument(id: string, itemId: string): Promise<boolean>;
 
   // Barcodes

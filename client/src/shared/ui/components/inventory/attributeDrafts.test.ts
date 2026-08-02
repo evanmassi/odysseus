@@ -10,8 +10,7 @@ import { describe, expect, it } from 'vitest';
 
 import { changedAttributeRequests, draftsFromValues, isDraftPopulated } from './attributeDrafts';
 
-import type { AttributeValueRow } from './attributeDrafts';
-import type { AttributeDefinition } from '@odysseus/shared-schemas';
+import type { AttributeDefinition, AttributeSummary } from '@odysseus/shared-schemas';
 
 const definition = (
   id: string,
@@ -38,10 +37,7 @@ const DEFINITIONS = [
   definition('dilution', 'number'),
 ];
 
-const value = (
-  definitionId: string,
-  fields: Partial<AttributeValueRow> = {}
-): AttributeValueRow => ({
+const value = (definitionId: string, fields: Partial<AttributeSummary> = {}): AttributeSummary => ({
   definitionId,
   valueOptionId: null,
   valueText: null,

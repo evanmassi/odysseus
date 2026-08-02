@@ -31,9 +31,9 @@ import {
   equipmentDocumentResponseSchema,
   equipmentMaintenanceLogEntryResponseSchema,
   equipmentBulkResponseSchema,
-  equipmentAttributeValueListResponseSchema,
-  type EquipmentAttributeValue,
-  type SetEquipmentAttributeValueRequest,
+  attributeValueListResponseSchema,
+  type AttributeValue,
+  type SetAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -215,12 +215,12 @@ export class EquipmentService {
   }
   static async setAttributeValue(
     itemId: string,
-    data: SetEquipmentAttributeValueRequest
-  ): Promise<EquipmentAttributeValue[]> {
+    data: SetAttributeValueRequest
+  ): Promise<AttributeValue[]> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${itemId}/attributes`,
       data,
-      equipmentAttributeValueListResponseSchema
+      attributeValueListResponseSchema
     );
     return response.attributeValues;
   }

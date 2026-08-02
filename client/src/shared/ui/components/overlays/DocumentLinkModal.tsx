@@ -27,8 +27,6 @@ interface DocumentLinkModalProps {
   mode: 'add' | 'edit';
   initialValues?: DocumentLinkValues;
   isPending?: boolean;
-  /** Offers the classification picker. Catalogs that don't persist `docType` leave it off. */
-  withDocType?: boolean;
   /** Resolves on success (modal closes) or rejects to keep the modal open for a retry. */
   onSave: (values: DocumentLinkValues) => Promise<void>;
   onClose: () => void;
@@ -44,7 +42,6 @@ export function DocumentLinkModal({
   mode,
   initialValues,
   isPending = false,
-  withDocType = false,
   onSave,
   onClose,
 }: DocumentLinkModalProps) {
@@ -148,22 +145,20 @@ export function DocumentLinkModal({
             fullWidth
           />
         </div>
-        {withDocType && (
-          <div>
-            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-            <label id="doc-type-label" className={FIELD_LABEL_COMPACT}>
-              Type
-            </label>
-            <Select
-              aria-labelledby="doc-type-label"
-              options={DOC_TYPE_OPTIONS}
-              value={docType}
-              onChange={value => setDocType((value as DocumentType | '') ?? '')}
-              size="sm"
-              fullWidth
-            />
-          </div>
-        )}
+        <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+          <label id="doc-type-label" className={FIELD_LABEL_COMPACT}>
+            Type
+          </label>
+          <Select
+            aria-labelledby="doc-type-label"
+            options={DOC_TYPE_OPTIONS}
+            value={docType}
+            onChange={value => setDocType((value as DocumentType | '') ?? '')}
+            size="sm"
+            fullWidth
+          />
+        </div>
         <div>
           <label htmlFor="doc-notes" className={FIELD_LABEL_COMPACT}>
             Notes

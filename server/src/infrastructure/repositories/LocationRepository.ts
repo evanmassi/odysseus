@@ -4,7 +4,7 @@
  * PostgreSQL implementation for the lab-wide location tree.
  */
 
-import type { Location } from '@domain/entities/Location';
+import type { LabLocation } from '@domain/entities/LabLocation';
 import type { LocationRepository as ILocationRepository } from '@domain/repositories/LocationRepository';
 import type { LocationRow } from '@infrastructure/database/mappers/LocationMapper';
 import { LocationMapper } from '@infrastructure/database/mappers/LocationMapper';
@@ -15,7 +15,7 @@ const COLUMNS = 'id, lab_id, name, description, parent_id, sort_order, created_a
 export class LocationRepository implements ILocationRepository {
   constructor(private db: Queryable) {}
 
-  async findById(id: string, labId: string): Promise<Location | null> {
+  async findById(id: string, labId: string): Promise<LabLocation | null> {
     const row = await this.db.queryOne<LocationRow>(
       `SELECT ${COLUMNS} FROM locations WHERE id = $1 AND lab_id = $2`,
       [id, labId]
@@ -23,7 +23,7 @@ export class LocationRepository implements ILocationRepository {
     return row ? LocationMapper.fromRow(row) : null;
   }
 
-  async findByLabId(labId: string): Promise<Location[]> {
+  async findByLabId(labId: string): Promise<LabLocation[]> {
     const rows = await this.db.queryMany<LocationRow>(
       `SELECT ${COLUMNS} FROM locations WHERE lab_id = $1 ORDER BY sort_order, name`,
       [labId]
@@ -31,7 +31,7 @@ export class LocationRepository implements ILocationRepository {
     return LocationMapper.fromRows(rows);
   }
 
-  async save(location: Location): Promise<void> {
+  async save(location: LabLocation): Promise<void> {
     const row = LocationMapper.toRow(location);
     await this.db.execute(
       `

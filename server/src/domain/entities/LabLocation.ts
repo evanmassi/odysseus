@@ -1,5 +1,5 @@
 /**
- * Storage Location
+ * Lab Location
  *
  * A named place in the lab, nestable up to three tiers (e.g. "Room 204" › "Cold Room" › "Shelf 2").
  * Shared by every catalog — a freezer holds supplies and reagents alike.
@@ -8,7 +8,7 @@
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-interface LocationCreateData {
+interface LabLocationCreateData {
   labId: string;
   name: string;
   description?: string;
@@ -16,14 +16,14 @@ interface LocationCreateData {
   sortOrder?: number;
 }
 
-interface LocationUpdateData {
+interface LabLocationUpdateData {
   name?: string | null;
   description?: string | null;
   parentId?: string | null;
   sortOrder?: number | null;
 }
 
-export class Location {
+export class LabLocation {
   private constructor(
     private readonly _id: string,
     private readonly _labId: string,
@@ -37,8 +37,8 @@ export class Location {
     this.validate();
   }
 
-  static create(data: LocationCreateData): Location {
-    return new Location(
+  static create(data: LabLocationCreateData): LabLocation {
+    return new LabLocation(
       generateId('loc'),
       data.labId,
       data.name,
@@ -59,8 +59,8 @@ export class Location {
     sortOrder: number;
     createdAt: string | Date;
     updatedAt: string | Date;
-  }): Location {
-    return new Location(
+  }): LabLocation {
+    return new LabLocation(
       data.id,
       data.labId,
       data.name,
@@ -81,7 +81,7 @@ export class Location {
     }
   }
 
-  update(data: LocationUpdateData): void {
+  update(data: LabLocationUpdateData): void {
     if (data.name !== undefined) this._name = data.name ?? this._name;
     if (data.description !== undefined) this._description = data.description ?? undefined;
     if (data.parentId !== undefined) this._parentId = data.parentId ?? undefined;

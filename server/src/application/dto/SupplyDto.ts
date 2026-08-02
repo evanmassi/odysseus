@@ -26,8 +26,8 @@ import type {
   SupplyPackagingLevel,
   SupplyTransaction as SupplyTransactionData,
   SupplyItemDetail as SupplyItemDetailData,
-  SupplyAttributeSummary,
-  SupplyAttributeValue,
+  AttributeSummary,
+  AttributeValue,
 } from '@odysseus/shared-schemas';
 
 export type SupplyCategoryResponse = SupplyCategoryData;
@@ -95,7 +95,7 @@ export class SupplyDto {
     };
   }
 
-  static attributeValueToResponse(row: SupplyAttributeValueRow): SupplyAttributeValue {
+  static attributeValueToResponse(row: SupplyAttributeValueRow): AttributeValue {
     return {
       id: row.id,
       itemId: row.itemId,
@@ -106,7 +106,7 @@ export class SupplyDto {
     };
   }
 
-  static attributeSummaryToResponse(row: SupplyAttributeValueRow): SupplyAttributeSummary {
+  static attributeSummaryToResponse(row: SupplyAttributeValueRow): AttributeSummary {
     return {
       definitionId: row.definitionId,
       valueOptionId: row.valueOptionId ?? null,
@@ -119,7 +119,7 @@ export class SupplyDto {
     item: SupplyItem,
     totalStock: number,
     locationNames: string[],
-    attributeValues: SupplyAttributeSummary[]
+    attributeValues: AttributeSummary[]
   ): SupplyItemWithStockResponse {
     return {
       ...this.itemToResponse(item),
@@ -136,7 +136,7 @@ export class SupplyDto {
     stock: SupplyStockRow[],
     recentTransactions: SupplyTransactionRow[],
     packagingLevels: SupplyPackagingLevelRow[],
-    attributeValues: SupplyAttributeValue[]
+    attributeValues: AttributeValue[]
   ): SupplyItemDetailResponse {
     return {
       item: this.itemToResponse(item),
@@ -156,6 +156,7 @@ export class SupplyDto {
       label: document.label,
       url: document.url,
       notes: document.notes,
+      docType: document.docType,
       createdAt: document.createdAt,
     };
   }

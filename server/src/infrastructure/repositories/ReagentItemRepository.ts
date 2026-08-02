@@ -7,6 +7,7 @@
  * count reconciles a single lot — all inside one transaction.
  */
 
+import type { DocumentPatch } from '@domain/entities/Document';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -37,7 +38,7 @@ import { ReagentPackagingLevelMapper } from '@infrastructure/database/mappers/Re
 import type { ReagentTransactionDbRow } from '@infrastructure/database/mappers/ReagentTransactionMapper';
 import { ReagentTransactionMapper } from '@infrastructure/database/mappers/ReagentTransactionMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
-import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
+import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
 
 import type { PoolClient } from 'pg';
 

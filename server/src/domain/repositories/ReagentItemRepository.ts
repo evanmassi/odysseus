@@ -6,10 +6,9 @@
  * references the lot it moved and FEFO issues span lots as one action.
  */
 
+import type { DocumentPatch } from '@domain/entities/Document';
 import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
-
-import type { DocumentType } from '@odysseus/shared-schemas';
 
 export interface ReagentLotRow {
   id: string;
@@ -139,7 +138,7 @@ export interface ReagentItemRepository {
   updateDocument(
     id: string,
     itemId: string,
-    fields: { label?: string; url?: string; notes?: string | null; docType?: DocumentType | null }
+    fields: DocumentPatch
   ): Promise<ReagentDocument | null>;
   deleteDocument(id: string, itemId: string): Promise<boolean>;
 

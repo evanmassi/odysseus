@@ -21,7 +21,7 @@ import type {
   CreateReagentBarcodeRequest,
   UpdateReagentBarcodeRequest,
   CreateReagentPackagingLevelRequest,
-  SetReagentAttributeValueRequest,
+  SetAttributeValueRequest,
   UpdateReagentLotRequest,
   RecordReagentTransactionRequest,
   RecordReagentStockCountRequest,
@@ -368,7 +368,7 @@ export function useSetReagentAttributeValueMutation() {
   const labId = useLabId();
 
   return useMutation({
-    mutationFn: ({ itemId, data }: { itemId: string; data: SetReagentAttributeValueRequest }) =>
+    mutationFn: ({ itemId, data }: { itemId: string; data: SetAttributeValueRequest }) =>
       ReagentService.setAttributeValue(itemId, data),
     // The list row carries an attribute summary for filtering, so both caches go stale.
     onSuccess: (_result, { itemId }) => {

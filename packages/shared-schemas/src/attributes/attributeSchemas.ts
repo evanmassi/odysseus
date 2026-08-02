@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 import { dateField } from '../utils/dateFields';
-
+import { optionalText } from '../utils/stringFields';
 
 const attributeValueTypeValues = ['select', 'multi_select', 'text', 'number'] as const;
 export const attributeValueTypeSchema = z.enum(attributeValueTypeValues);
@@ -66,6 +66,35 @@ export const updateAttributeOptionRequestSchema = z.object({
   sortOrder: z.number().int().nullish(),
 });
 
+// Per-item values. A multi-select attribute stores one row per chosen option; each catalog
+// keeps its own rows against its own items, all keyed to the same lab-wide definitions.
+
+export const attributeValueSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  definitionId: z.string(),
+  valueOptionId: z.string().nullable(),
+  valueText: z.string().nullable(),
+  valueNumber: z.number().nullable(),
+});
+
+// Compact form carried on list rows, where the identity columns buy nothing and facet
+// filtering only reads the value.
+export const attributeSummarySchema = attributeValueSchema.omit({ id: true, itemId: true });
+
+export const setAttributeValueRequestSchema = z.object({
+  definitionId: z.string().min(1, 'Attribute is required'),
+  valueOptionIds: z.array(z.string().min(1)).optional(),
+  valueText: optionalText(2000),
+  valueNumber: z.number().optional(),
+});
+
+// The write replaces a definition's values wholesale, so the response is that definition's
+// rows after the fact — the caller sends one request per attribute it changed.
+export const attributeValueListResponseSchema = z.object({
+  attributeValues: z.array(attributeValueSchema),
+});
+
 // Item counts ride the list only: they gate the delete buttons, and a single write's
 // response has no count to report that its caller doesn't already know.
 export const attributeDefinitionWithUsageSchema = attributeDefinitionSchema.extend({
@@ -95,6 +124,9 @@ export type AttributeDefinition = z.infer<typeof attributeDefinitionSchema>;
 export type AttributeDefinitionWithUsage = z.infer<typeof attributeDefinitionWithUsageSchema>;
 export type AttributeOption = z.infer<typeof attributeOptionSchema>;
 export type AttributeOptionWithUsage = z.infer<typeof attributeOptionWithUsageSchema>;
+export type AttributeValue = z.infer<typeof attributeValueSchema>;
+export type AttributeSummary = z.infer<typeof attributeSummarySchema>;
+export type SetAttributeValueRequest = z.infer<typeof setAttributeValueRequestSchema>;
 export type CreateAttributeDefinitionRequest = z.infer<
   typeof createAttributeDefinitionRequestSchema
 >;

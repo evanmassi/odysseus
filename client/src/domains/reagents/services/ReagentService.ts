@@ -16,7 +16,7 @@ import {
   reagentItemResponseSchema,
   reagentLotResponseSchema,
   reagentPackagingLevelResponseSchema,
-  reagentAttributeValueListResponseSchema,
+  attributeValueListResponseSchema,
   reagentBulkBarcodesResponseSchema,
   reagentBulkLotLabelsResponseSchema,
   reagentBulkResponseSchema,
@@ -30,7 +30,7 @@ import {
   type ReagentItemWithStock,
   type ReagentLot,
   type ReagentPackagingLevel,
-  type ReagentAttributeValue,
+  type AttributeValue,
   type ReagentTransaction,
   type ReagentVoidTransactionResponse,
   type ReagentBulkBarcodesResponse,
@@ -45,7 +45,7 @@ import {
   type CreateReagentDocumentRequest,
   type UpdateReagentDocumentRequest,
   type CreateReagentPackagingLevelRequest,
-  type SetReagentAttributeValueRequest,
+  type SetAttributeValueRequest,
   type UpdateReagentLotRequest,
   type RecordReagentTransactionRequest,
   type RecordReagentStockCountRequest,
@@ -349,12 +349,12 @@ export class ReagentService {
 
   static async setAttributeValue(
     itemId: string,
-    data: SetReagentAttributeValueRequest
-  ): Promise<ReagentAttributeValue[]> {
+    data: SetAttributeValueRequest
+  ): Promise<AttributeValue[]> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${itemId}/attributes`,
       data,
-      reagentAttributeValueListResponseSchema
+      attributeValueListResponseSchema
     );
     return response.attributeValues;
   }

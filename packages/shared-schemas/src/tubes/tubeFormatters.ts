@@ -23,7 +23,7 @@ export function formatConcentrationDisplay(
   value: number | undefined,
   unit?: ConcentrationUnit
 ): string {
+  if (!value) return formatScientific(value);
   const scientific = formatScientific(value);
-  if (scientific === '' || scientific === '0') return scientific;
   return unit ? `${scientific} ${unit}` : scientific;
 }

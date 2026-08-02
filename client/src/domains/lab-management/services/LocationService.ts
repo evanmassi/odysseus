@@ -7,7 +7,7 @@
 import {
   locationResponseSchema,
   locationListResponseSchema,
-  type Location,
+  type LabLocation,
   type CreateLocationRequest,
   type UpdateLocationRequest,
 } from '@odysseus/shared-schemas';
@@ -17,17 +17,17 @@ import { httpClient } from '@infra/api';
 export class LocationService {
   private static readonly BASE_PATH = '/locations';
 
-  static async list(): Promise<Location[]> {
+  static async list(): Promise<LabLocation[]> {
     const response = await httpClient.getData(this.BASE_PATH, locationListResponseSchema);
     return response.locations;
   }
 
-  static async create(data: CreateLocationRequest): Promise<Location> {
+  static async create(data: CreateLocationRequest): Promise<LabLocation> {
     const response = await httpClient.postData(this.BASE_PATH, data, locationResponseSchema);
     return response.location;
   }
 
-  static async update(id: string, data: UpdateLocationRequest): Promise<Location> {
+  static async update(id: string, data: UpdateLocationRequest): Promise<LabLocation> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${id}`,
       data,

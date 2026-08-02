@@ -5,15 +5,11 @@
  * are generic over the filter shape, so a catalog that adds facets keeps them through a toggle.
  */
 
+import type { AttributeSummary } from '@odysseus/shared-schemas';
+
 export interface AttributeFilters {
   /** Selected option ids per attribute definition. */
   optionIds: Record<string, string[]>;
-}
-
-/** The list-row summary each catalog carries for its items. */
-export interface AttributeSummaryValue {
-  definitionId: string;
-  valueOptionId: string | null;
 }
 
 export const EMPTY_ATTRIBUTE_FILTERS: AttributeFilters = { optionIds: {} };
@@ -23,7 +19,7 @@ export function countAttributeFilters(filters: AttributeFilters): number {
 }
 
 export function matchesAttributeFilters(
-  attributeValues: AttributeSummaryValue[],
+  attributeValues: AttributeSummary[],
   filters: AttributeFilters
 ): boolean {
   return Object.entries(filters.optionIds).every(

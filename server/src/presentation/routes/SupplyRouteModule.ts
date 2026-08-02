@@ -33,7 +33,7 @@ import {
   SupplyBulkVoidHttpSchema,
   SupplyTransactionVoidParams,
   SupplyPackagingLevelIdParams,
-  SetSupplyAttributeValueHttpSchema,
+  SetAttributeValueHttpSchema,
   CreateSupplyPackagingLevelHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
@@ -226,7 +226,7 @@ export class SupplyRouteModule implements RouteModule {
     router.put(
       '/:id/attributes',
       validateParams(IdParams),
-      validateBody(SetSupplyAttributeValueHttpSchema),
+      validateBody(SetAttributeValueHttpSchema),
       this.supplyController.setAttributeValue.bind(this.supplyController)
     );
 

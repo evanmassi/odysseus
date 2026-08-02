@@ -6,23 +6,11 @@
  * server replaces a definition's values wholesale — an empty draft is how a value clears.
  */
 
-import type { AttributeDefinition } from '@odysseus/shared-schemas';
-
-/** The stored shape, as every catalog's `*AttributeValue` schema spells it. */
-export interface AttributeValueRow {
-  definitionId: string;
-  valueOptionId: string | null;
-  valueText: string | null;
-  valueNumber: number | null;
-}
-
-/** The write shape, as every catalog's `setXAttributeValue` request spells it. */
-export interface AttributeValueRequest {
-  definitionId: string;
-  valueOptionIds?: string[];
-  valueText?: string;
-  valueNumber?: number;
-}
+import type {
+  AttributeDefinition,
+  AttributeSummary,
+  SetAttributeValueRequest,
+} from '@odysseus/shared-schemas';
 
 export interface AttributeValueDraft {
   optionIds: string[];
@@ -34,7 +22,7 @@ export type AttributeDrafts = Record<string, AttributeValueDraft>;
 
 export const EMPTY_DRAFT: AttributeValueDraft = { optionIds: [] };
 
-export function draftsFromValues(values: AttributeValueRow[]): AttributeDrafts {
+export function draftsFromValues(values: AttributeSummary[]): AttributeDrafts {
   return values.reduce<AttributeDrafts>((drafts, value) => {
     const draft = drafts[value.definitionId] ?? { optionIds: [] };
     if (value.valueOptionId) draft.optionIds = [...draft.optionIds, value.valueOptionId];
@@ -64,7 +52,7 @@ function toRequest(
   definitionId: string,
   draft: AttributeValueDraft,
   valueType: AttributeDefinition['valueType']
-): AttributeValueRequest {
+): SetAttributeValueRequest {
   if (valueType === 'select' || valueType === 'multi_select') {
     return { definitionId, valueOptionIds: draft.optionIds };
   }
@@ -79,7 +67,7 @@ export function changedAttributeRequests(
   original: AttributeDrafts,
   current: AttributeDrafts,
   definitions: AttributeDefinition[]
-): AttributeValueRequest[] {
+): SetAttributeValueRequest[] {
   const definitionById = new Map(definitions.map(definition => [definition.id, definition]));
 
   return [...new Set([...Object.keys(original), ...Object.keys(current)])]

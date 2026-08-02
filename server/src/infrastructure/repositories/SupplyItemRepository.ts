@@ -5,6 +5,7 @@
  * stock levels, transactions, and lookup value support.
  */
 
+import type { DocumentPatch } from '@domain/entities/Document';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
 import type {
@@ -30,7 +31,7 @@ import { SupplyStockMapper } from '@infrastructure/database/mappers/SupplyStockM
 import type { SupplyTransactionDbRow } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import { SupplyTransactionMapper } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
-import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
+import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
   vendor_name, vendor_catalog_number, stock_unit, base_item_name,

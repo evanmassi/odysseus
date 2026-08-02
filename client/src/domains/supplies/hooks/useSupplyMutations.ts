@@ -27,7 +27,7 @@ import type {
   SupplyBulkIssueRequest,
   VoidSupplyTransactionRequest,
   SupplyBulkVoidRequest,
-  SetSupplyAttributeValueRequest,
+  SetAttributeValueRequest,
   CreateSupplyPackagingLevelRequest,
 } from '@odysseus/shared-schemas';
 
@@ -374,7 +374,7 @@ export function useSetSupplyAttributeValueMutation() {
   const labId = useLabId();
 
   return useMutation({
-    mutationFn: ({ itemId, data }: { itemId: string; data: SetSupplyAttributeValueRequest }) =>
+    mutationFn: ({ itemId, data }: { itemId: string; data: SetAttributeValueRequest }) =>
       SupplyService.setAttributeValue(itemId, data),
     // The list row carries an attribute summary for filtering, so both caches go stale.
     onSuccess: (_result, { itemId }) => {

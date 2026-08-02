@@ -180,13 +180,23 @@ export function EquipmentItemInfoPanel({
       await updateDocumentMutation.mutateAsync({
         itemId,
         docId: documentModal.doc.id,
-        data: { label: values.label, url: values.url, notes: values.notes ?? null },
+        data: {
+          label: values.label,
+          url: values.url,
+          notes: values.notes ?? null,
+          docType: values.docType ?? null,
+        },
       });
       notifications.success('Document updated');
     } else {
       await addDocumentMutation.mutateAsync({
         itemId,
-        data: { label: values.label, url: values.url, notes: values.notes },
+        data: {
+          label: values.label,
+          url: values.url,
+          notes: values.notes,
+          docType: values.docType,
+        },
       });
       notifications.success('Document added');
     }
@@ -429,6 +439,7 @@ export function EquipmentItemInfoPanel({
                 label: documentModal.doc.label,
                 url: documentModal.doc.url,
                 notes: documentModal.doc.notes,
+                docType: documentModal.doc.docType,
               }
             : undefined
         }

@@ -29,8 +29,8 @@ import type {
   ReagentPackagingLevel,
   ReagentTransaction as ReagentTransactionData,
   ReagentItemDetail as ReagentItemDetailData,
-  ReagentAttributeValue,
-  ReagentAttributeSummary,
+  AttributeValue,
+  AttributeSummary,
 } from '@odysseus/shared-schemas';
 
 export type ReagentCategoryResponse = ReagentCategoryData;
@@ -85,7 +85,7 @@ export class ReagentDto {
     };
   }
 
-  static attributeValueToResponse(row: ReagentAttributeValueRow): ReagentAttributeValue {
+  static attributeValueToResponse(row: ReagentAttributeValueRow): AttributeValue {
     return {
       id: row.id,
       itemId: row.itemId,
@@ -96,7 +96,7 @@ export class ReagentDto {
     };
   }
 
-  static attributeSummaryToResponse(row: ReagentAttributeValueRow): ReagentAttributeSummary {
+  static attributeSummaryToResponse(row: ReagentAttributeValueRow): AttributeSummary {
     return {
       definitionId: row.definitionId,
       valueOptionId: row.valueOptionId ?? null,
@@ -107,7 +107,7 @@ export class ReagentDto {
 
   static itemWithStockToResponse(
     withStock: ItemWithStock,
-    attributeValues: ReagentAttributeSummary[]
+    attributeValues: AttributeSummary[]
   ): ReagentItemWithStockResponse {
     const { item, totalStock, lotCount, expiredLotCount, locationNames, soonestExpiration } =
       withStock;
@@ -146,7 +146,7 @@ export class ReagentDto {
     documents: ReagentDocument[],
     barcodes: ReagentBarcodeRow[],
     packagingLevels: ReagentPackagingLevelRow[],
-    attributeValues: ReagentAttributeValue[]
+    attributeValues: AttributeValue[]
   ): ReagentItemDetailResponse {
     return {
       item: this.itemToResponse(item),

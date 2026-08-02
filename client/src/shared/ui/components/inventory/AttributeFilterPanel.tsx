@@ -14,16 +14,16 @@ import {
   HEADER_TOP_EDGE,
 } from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 
-import {
-  toggleFilterOption,
-  type AttributeFilters,
-  type AttributeSummaryValue,
-} from './attributeFilters';
+import { toggleFilterOption, type AttributeFilters } from './attributeFilters';
 
-import type { AttributeDefinition, AttributeOption } from '@odysseus/shared-schemas';
+import type {
+  AttributeDefinition,
+  AttributeOption,
+  AttributeSummary,
+} from '@odysseus/shared-schemas';
 
 interface FilterableItem {
-  attributeValues: AttributeSummaryValue[];
+  attributeValues: AttributeSummary[];
 }
 
 interface AttributeFilterPanelProps<

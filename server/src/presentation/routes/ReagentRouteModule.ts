@@ -20,7 +20,7 @@ import {
   UpdateReagentItemHttpSchema,
   CreateReagentBarcodeHttpSchema,
   UpdateReagentBarcodeHttpSchema,
-  SetReagentAttributeValueHttpSchema,
+  SetAttributeValueHttpSchema,
   CreateReagentDocumentHttpSchema,
   UpdateReagentDocumentHttpSchema,
   RecordReagentTransactionHttpSchema,
@@ -184,7 +184,7 @@ export class ReagentRouteModule implements RouteModule {
     router.put(
       '/:id/attributes',
       validateParams(IdParams),
-      validateBody(SetReagentAttributeValueHttpSchema),
+      validateBody(SetAttributeValueHttpSchema),
       this.reagentController.setAttributeValue.bind(this.reagentController)
     );
 

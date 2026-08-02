@@ -30,8 +30,8 @@ import {
   type VoidSupplyTransactionRequest,
   type SupplyBulkVoidRequest,
   type SupplyBulkBarcodesResponse,
-  type SupplyAttributeValue,
-  type SetSupplyAttributeValueRequest,
+  type AttributeValue,
+  type SetAttributeValueRequest,
   type SupplyPackagingLevel,
   type CreateSupplyPackagingLevelRequest,
   supplyCategoryResponseSchema,
@@ -45,7 +45,7 @@ import {
   supplyTransactionListResponseSchema,
   supplyBulkResponseSchema,
   supplyBulkBarcodesResponseSchema,
-  supplyAttributeValueListResponseSchema,
+  attributeValueListResponseSchema,
   supplyVoidTransactionResponseSchema,
   supplyPackagingLevelResponseSchema,
   messageResponseSchema,
@@ -308,12 +308,12 @@ export class SupplyService {
   }
   static async setAttributeValue(
     itemId: string,
-    data: SetSupplyAttributeValueRequest
-  ): Promise<SupplyAttributeValue[]> {
+    data: SetAttributeValueRequest
+  ): Promise<AttributeValue[]> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${itemId}/attributes`,
       data,
-      supplyAttributeValueListResponseSchema
+      attributeValueListResponseSchema
     );
     return response.attributeValues;
   }

@@ -17,8 +17,8 @@ import type {
   EquipmentMaintenanceLog as EquipmentMaintenanceLogData,
   EquipmentItemDetail as EquipmentItemDetailData,
   EquipmentItemWithAttributes,
-  EquipmentAttributeSummary,
-  EquipmentAttributeValue,
+  AttributeSummary,
+  AttributeValue,
 } from '@odysseus/shared-schemas';
 
 export type EquipmentCategoryResponse = EquipmentCategoryData;
@@ -74,7 +74,7 @@ export class EquipmentDto {
     };
   }
 
-  static attributeValueToResponse(row: EquipmentAttributeValueRow): EquipmentAttributeValue {
+  static attributeValueToResponse(row: EquipmentAttributeValueRow): AttributeValue {
     return {
       id: row.id,
       itemId: row.itemId,
@@ -85,7 +85,7 @@ export class EquipmentDto {
     };
   }
 
-  static attributeSummaryToResponse(row: EquipmentAttributeValueRow): EquipmentAttributeSummary {
+  static attributeSummaryToResponse(row: EquipmentAttributeValueRow): AttributeSummary {
     return {
       definitionId: row.definitionId,
       valueOptionId: row.valueOptionId ?? null,
@@ -96,7 +96,7 @@ export class EquipmentDto {
 
   static itemWithAttributesToResponse(
     item: EquipmentItem,
-    attributeValues: EquipmentAttributeSummary[]
+    attributeValues: AttributeSummary[]
   ): EquipmentItemWithAttributesResponse {
     return { ...this.itemToResponse(item), attributeValues };
   }
@@ -105,7 +105,7 @@ export class EquipmentDto {
     item: EquipmentItem,
     documents: EquipmentDocument[],
     maintenanceLog: EquipmentMaintenanceLog[],
-    attributeValues: EquipmentAttributeValue[]
+    attributeValues: AttributeValue[]
   ): EquipmentItemDetailResponse {
     return {
       item: this.itemToResponse(item),
@@ -122,6 +122,7 @@ export class EquipmentDto {
       label: document.label,
       url: document.url,
       notes: document.notes,
+      docType: document.docType,
       createdAt: document.createdAt,
     };
   }

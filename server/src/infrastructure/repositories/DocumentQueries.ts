@@ -1,25 +1,16 @@
 /**
  * Document Queries
  *
- * The documents table behind an inventory item, composed by the equipment and supply item
- * repositories. They expose it through their own contracts; only the SQL is shared.
+ * The documents table behind an inventory item, composed by the equipment, supply, and reagent
+ * item repositories. They expose it through their own contracts; only the SQL is shared.
  */
 
-import type { Document, DocumentFactory } from '@domain/entities/Document';
+import type { Document, DocumentFactory, DocumentPatch } from '@domain/entities/Document';
 import type { DocumentRow } from '@infrastructure/database/mappers/DocumentMapper';
 import { DocumentMapper } from '@infrastructure/database/mappers/DocumentMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
-import type { DocumentType } from '@odysseus/shared-schemas';
-
 const COLUMNS = 'id, item_id, label, url, notes, doc_type, created_at';
-
-export interface DocumentPatch {
-  label?: string;
-  url?: string;
-  notes?: string | null;
-  docType?: DocumentType | null;
-}
 
 export class DocumentQueries<T extends Document> {
   /**

@@ -1,10 +1,10 @@
 /**
  * Location DTO
  *
- * Maps Location entities to API response shapes.
+ * Maps location entities to API response shapes.
  */
 
-import type { Location } from '@domain/entities/Location';
+import type { LabLocation } from '@domain/entities/LabLocation';
 
 export interface LocationResponse {
   id: string;
@@ -18,7 +18,7 @@ export interface LocationResponse {
 }
 
 export class LocationDto {
-  static toResponse(location: Location): LocationResponse {
+  static toResponse(location: LabLocation): LocationResponse {
     return {
       id: location.id,
       labId: location.labId,

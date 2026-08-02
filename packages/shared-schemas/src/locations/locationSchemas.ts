@@ -12,7 +12,7 @@ import { optionalText, patchText } from '../utils/stringFields';
 
 export const LOCATION_MAX_DEPTH = 3;
 
-export const locationSchema = z.object({
+export const labLocationSchema = z.object({
   id: z.string(),
   labId: z.string(),
   name: z.string(),
@@ -38,13 +38,13 @@ export const updateLocationRequestSchema = z.object({
 });
 
 export const locationResponseSchema = z.object({
-  location: locationSchema,
+  location: labLocationSchema,
 });
 
 export const locationListResponseSchema = z.object({
-  locations: z.array(locationSchema),
+  locations: z.array(labLocationSchema),
 });
 
-export type Location = z.infer<typeof locationSchema>;
+export type LabLocation = z.infer<typeof labLocationSchema>;
 export type CreateLocationRequest = z.infer<typeof createLocationRequestSchema>;
 export type UpdateLocationRequest = z.infer<typeof updateLocationRequestSchema>;

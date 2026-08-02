@@ -4,6 +4,7 @@
  * PostgreSQL implementation for equipment items, documents, and maintenance logs.
  */
 
+import type { DocumentPatch } from '@domain/entities/Document';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
@@ -17,7 +18,7 @@ import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mapper
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
-import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
+import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS =
   'id, lab_id, category_id, name, serial_number, manufacturer, vendor_name, vendor_catalog_number, model, description, location_id, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';

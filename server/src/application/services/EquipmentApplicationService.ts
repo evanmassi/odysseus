@@ -65,8 +65,8 @@ import type {
   EquipmentBulkStatusRequest,
   EquipmentBulkRelocateRequest,
   EquipmentBulkResponse,
-  EquipmentAttributeValue,
-  SetEquipmentAttributeValueRequest,
+  AttributeValue,
+  SetAttributeValueRequest,
 } from '@odysseus/shared-schemas';
 
 export class EquipmentApplicationService {
@@ -354,6 +354,7 @@ export class EquipmentApplicationService {
       label: data.label,
       url: data.url,
       notes: data.notes,
+      docType: data.docType,
     });
 
     await this.itemRepository.saveDocument(document);
@@ -378,6 +379,7 @@ export class EquipmentApplicationService {
       label: data.label,
       url: data.url,
       notes: data.notes,
+      docType: data.docType,
     });
     if (!updated)
       throw new NotFoundError('This document could not be found. It may have been deleted.');
@@ -618,9 +620,9 @@ export class EquipmentApplicationService {
   async setAttributeValue(
     labId: string,
     itemId: string,
-    data: SetEquipmentAttributeValueRequest,
+    data: SetAttributeValueRequest,
     user: User
-  ): Promise<EquipmentAttributeValue[]> {
+  ): Promise<AttributeValue[]> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
 
@@ -654,7 +656,7 @@ export class EquipmentApplicationService {
   private scalarAttributeRows(
     itemId: string,
     definitionId: string,
-    data: SetEquipmentAttributeValueRequest
+    data: SetAttributeValueRequest
   ): EquipmentAttributeValueRow[] {
     const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
     if (isEmpty) return [];

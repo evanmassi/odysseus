@@ -538,7 +538,6 @@ export function ReagentItemInfoPanel({
       <DocumentLinkModal
         isOpen={documentModal.isOpen}
         mode={documentModal.mode}
-        withDocType
         initialValues={
           documentModal.doc
             ? {

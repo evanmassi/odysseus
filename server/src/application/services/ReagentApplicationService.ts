@@ -79,8 +79,8 @@ import type {
   CreateReagentPackagingLevelRequest,
   UpdateReagentLotRequest,
   RecordReagentTransactionRequest,
-  SetReagentAttributeValueRequest,
-  ReagentAttributeValue,
+  SetAttributeValueRequest,
+  AttributeValue,
   RecordReagentStockCountRequest,
   ReagentBulkReceiveRequest,
   ReagentBulkIssueRequest,
@@ -301,9 +301,9 @@ export class ReagentApplicationService {
   async setAttributeValue(
     labId: string,
     itemId: string,
-    data: SetReagentAttributeValueRequest,
+    data: SetAttributeValueRequest,
     user: User
-  ): Promise<ReagentAttributeValue[]> {
+  ): Promise<AttributeValue[]> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
 
@@ -337,7 +337,7 @@ export class ReagentApplicationService {
   private scalarAttributeRows(
     itemId: string,
     definitionId: string,
-    data: SetReagentAttributeValueRequest
+    data: SetAttributeValueRequest
   ): ReagentAttributeValueRow[] {
     const isEmpty = data.valueText === undefined && data.valueNumber === undefined;
     if (isEmpty) return [];

@@ -77,8 +77,7 @@ export const UNIT_REGISTRY: readonly UnitRegistryEntry[] = [
   { id: 'pack', label: 'pack', kind: 'count' },
   { id: 'case', label: 'case', kind: 'count' },
   // Tube cell concentration
-  { id: 'c/v', label: 'c/v', kind: 'cell-conc' },
-  { id: 'c/mL', label: 'c/mL', kind: 'cell-conc' },
+  ...CELL_CONCENTRATION_UNITS.map(id => ({ id, label: id, kind: 'cell-conc' as const })),
 ];
 
 const UNIT_BY_ID = new Map(UNIT_REGISTRY.map(unit => [unit.id, unit]));

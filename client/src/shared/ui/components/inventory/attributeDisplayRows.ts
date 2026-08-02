@@ -6,8 +6,11 @@
  * rather than shown blank.
  */
 
-import type { AttributeValueRow } from './attributeDrafts';
-import type { AttributeDefinition, AttributeOption } from '@odysseus/shared-schemas';
+import type {
+  AttributeDefinition,
+  AttributeOption,
+  AttributeSummary,
+} from '@odysseus/shared-schemas';
 
 export interface AttributeDisplayRow {
   id: string;
@@ -18,7 +21,7 @@ export interface AttributeDisplayRow {
 export function toAttributeDisplayRows(
   definitions: AttributeDefinition[],
   options: AttributeOption[],
-  values: AttributeValueRow[]
+  values: AttributeSummary[]
 ): AttributeDisplayRow[] {
   return definitions
     .map(definition => {

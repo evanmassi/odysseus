@@ -1,9 +1,9 @@
 /**
  * Document
  *
- * Link to an external document held against an inventory item, shared by the equipment and supply
- * catalogs. Subclasses hold no behaviour — they exist so the two catalogs' documents stay distinct
- * types and cannot be written to each other's tables.
+ * Link to an external document held against an inventory item, shared by the equipment, supply, and
+ * reagent catalogs. Subclasses hold no behaviour — they exist so each catalog's documents stay a
+ * distinct type and cannot be written to another's table.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -26,6 +26,14 @@ export interface DocumentData {
   notes?: string;
   docType?: DocumentType;
   createdAt: string | Date;
+}
+
+/** Patch fields for an existing document; null clears, absent leaves unchanged. */
+export interface DocumentPatch {
+  label?: string;
+  url?: string;
+  notes?: string | null;
+  docType?: DocumentType | null;
 }
 
 /** Rehydrates a persisted row into a concrete document. */

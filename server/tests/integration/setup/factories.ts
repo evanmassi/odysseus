@@ -17,7 +17,7 @@ import { Person } from '@domain/entities/Person';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import { ReagentItem } from '@domain/entities/ReagentItem';
-import { Location } from '@domain/entities/Location';
+import { LabLocation } from '@domain/entities/LabLocation';
 import { Researcher } from '@domain/entities/Researcher';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -284,11 +284,8 @@ export function createSeed(context: PostgresContext) {
     return entity;
   }
 
-  async function location(overrides: {
-    labId: string;
-    name?: string;
-  }): Promise<Location> {
-    const entity = Location.create({
+  async function location(overrides: { labId: string; name?: string }): Promise<LabLocation> {
+    const entity = LabLocation.create({
       labId: overrides.labId,
       name: overrides.name ?? `Loc-${generateId('rloc')}`,
     });

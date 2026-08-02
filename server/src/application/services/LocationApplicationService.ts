@@ -8,7 +8,7 @@ import { LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';
 
 import { LocationDto, type LocationResponse } from '@application/dto/LocationDto';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
-import { Location } from '@domain/entities/Location';
+import { LabLocation } from '@domain/entities/LabLocation';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -37,7 +37,7 @@ export class LocationApplicationService {
       label: 'location',
     });
 
-    const location = Location.create({
+    const location = LabLocation.create({
       labId,
       name: data.name,
       description: data.description,
@@ -95,7 +95,7 @@ export class LocationApplicationService {
     await this.locationRepository.delete(id, labId);
   }
 
-  private async getOrThrow(id: string, labId: string): Promise<Location> {
+  private async getOrThrow(id: string, labId: string): Promise<LabLocation> {
     const location = await this.locationRepository.findById(id, labId);
     if (!location) throw new NotFoundError('This location could not be found.', { locationId: id });
     return location;

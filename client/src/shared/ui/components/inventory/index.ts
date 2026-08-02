@@ -25,7 +25,6 @@ export {
   isDraftPopulated,
   type AttributeDrafts,
   type AttributeValueDraft,
-  type AttributeValueRow,
 } from './attributeDrafts';
 export { toAttributeDisplayRows } from './attributeDisplayRows';
 export { appliesToType, scopedOutOfType } from './attributeScope';

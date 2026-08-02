@@ -13,7 +13,7 @@ import {
   EquipmentCategoryIdParams,
   EquipmentDocIdParams,
   EquipmentMaintenanceEntryIdParams,
-  SetEquipmentAttributeValueHttpSchema,
+  SetAttributeValueHttpSchema,
   CreateEquipmentCategoryHttpSchema,
   UpdateEquipmentCategoryHttpSchema,
   CreateEquipmentItemHttpSchema,
@@ -132,7 +132,7 @@ export class EquipmentRouteModule implements RouteModule {
     router.put(
       '/:id/attributes',
       validateParams(IdParams),
-      validateBody(SetEquipmentAttributeValueHttpSchema),
+      validateBody(SetAttributeValueHttpSchema),
       this.equipmentController.setAttributeValue.bind(this.equipmentController)
     );
 
