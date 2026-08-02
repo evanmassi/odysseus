@@ -66,9 +66,11 @@ import type { AccessControlService } from '@domain/services/AccessControlService
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateInternalBarcodeValue } from '@domain/utils/barcodeValue';
 import { generateId } from '@domain/utils/generateId';
+import { isUniqueConstraintError } from '@infrastructure/database/DatabaseErrors';
 import { logger } from '@infrastructure/logging/logger';
 
 import { executeBulk } from './executeBulk';
+import { trackFieldChanges } from './trackFieldChanges';
 
 import type {
   CreateReagentCategoryRequest,
@@ -93,6 +95,9 @@ import type {
   ReagentBulkBarcodesResponse,
   ReagentBulkLotLabelsResponse,
 } from '@odysseus/shared-schemas';
+
+/** The ledger types that carry a stock delta; a void publishes its own event instead. */
+type StockEventType = 'received' | 'issued' | 'count_adjustment' | 'disposed';
 
 export class ReagentApplicationService {
   constructor(
@@ -463,15 +468,7 @@ export class ReagentApplicationService {
   ): Promise<ReagentBulkBarcodesResponse['barcodes']> {
     if (itemIds.length === 0) return [];
 
-    const uniqueIds: string[] = [];
-    const seen = new Set<string>();
-    for (const id of itemIds) {
-      if (!seen.has(id)) {
-        seen.add(id);
-        uniqueIds.push(id);
-      }
-    }
-
+    const uniqueIds = [...new Set(itemIds)];
     const rows = await this.itemRepository.findPrimaryBarcodesByItemIds(uniqueIds, labId);
     const valueByItemId = new Map<string, string>();
     for (const row of rows) {
@@ -894,7 +891,10 @@ export class ReagentApplicationService {
   }
 
 
-  /** Auto-generates an item-level internal barcode on item creation. Retries on collision. */
+  /**
+   * Auto-generates an item-level internal barcode on item creation. Only a value collision is
+   * retried — any other failure propagates rather than leaving the item silently unlabelled.
+   */
   private async generateInternalBarcode(itemId: string): Promise<void> {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
@@ -908,6 +908,7 @@ export class ReagentApplicationService {
         await this.itemRepository.saveBarcode(barcode);
         return;
       } catch (error) {
+        if (!isUniqueConstraintError(error)) throw error;
         if (attempt === 2) {
           logger.warn('Failed to auto-generate internal barcode after 3 attempts', {
             itemId,
@@ -920,7 +921,7 @@ export class ReagentApplicationService {
 
   private async publishStockEvent(
     txns: ReagentTransactionRow[],
-    type: string,
+    type: StockEventType,
     itemId: string,
     locationId: string,
     userId: string,
@@ -934,7 +935,7 @@ export class ReagentApplicationService {
   }
 
   private createStockEvent(
-    type: string,
+    type: StockEventType,
     itemId: string,
     quantity: number,
     locationId: string,
@@ -950,14 +951,11 @@ export class ReagentApplicationService {
         return new ReagentStockCountAdjustedEvent(itemId, quantity, locationId, userId, labId);
       case 'disposed':
         return new ReagentStockDisposedEvent(itemId, quantity, locationId, userId, labId);
-      default:
-        return new ReagentStockReceivedEvent(itemId, quantity, locationId, userId, labId);
     }
   }
 
   private trackItemChanges(item: ReagentItem, data: UpdateReagentItemRequest): FieldChange[] {
-    const changes: FieldChange[] = [];
-    const fields: Array<{ key: keyof UpdateReagentItemRequest; getter: () => unknown }> = [
+    return trackFieldChanges(data, [
       { key: 'categoryId', getter: () => item.categoryId },
       { key: 'name', getter: () => item.name },
       { key: 'manufacturer', getter: () => item.manufacturer },
@@ -977,19 +975,6 @@ export class ReagentApplicationService {
       { key: 'unitPrice', getter: () => item.unitPrice },
       { key: 'description', getter: () => item.description },
       { key: 'notes', getter: () => item.notes },
-    ];
-
-    for (const { key, getter } of fields) {
-      const newValue = data[key];
-      if (newValue !== undefined) {
-        const oldValue = getter();
-        const normalizedNew = newValue ?? undefined;
-        if (oldValue !== normalizedNew) {
-          changes.push({ field: key, oldValue, newValue: normalizedNew });
-        }
-      }
-    }
-
-    return changes;
+    ]);
   }
 }

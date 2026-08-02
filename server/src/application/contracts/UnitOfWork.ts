@@ -7,10 +7,8 @@
  */
 
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
-import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
-import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -36,7 +34,6 @@ export interface Repositories {
   storage: StorageRepository;
   refreshTokens: RefreshTokenRepository;
   userSessions: UserSessionRepository;
-  audit: AuditRepository;
   lookupValues: LookupValueRepository;
   labs: LabRepository;
   inviteCodes: InviteCodeRepository;
@@ -47,7 +44,6 @@ export interface Repositories {
   supplyItems: SupplyItemRepository;
   attributes: AttributeRepository;
   locations: LocationRepository;
-  reagentCategories: CategoryRepository<ReagentCategory>;
   reagentItems: ReagentItemRepository;
 }
 

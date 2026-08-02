@@ -62,9 +62,11 @@ import type { AccessControlService } from '@domain/services/AccessControlService
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateInternalBarcodeValue } from '@domain/utils/barcodeValue';
 import { generateId } from '@domain/utils/generateId';
+import { isUniqueConstraintError } from '@infrastructure/database/DatabaseErrors';
 import { logger } from '@infrastructure/logging/logger';
 
 import { executeBulk } from './executeBulk';
+import { trackFieldChanges } from './trackFieldChanges';
 
 import type {
   CreateSupplyCategoryRequest,
@@ -87,6 +89,9 @@ import type {
   AttributeValue,
   SetAttributeValueRequest,
 } from '@odysseus/shared-schemas';
+
+/** The ledger types that carry a stock delta; a void publishes its own event instead. */
+type StockEventType = 'received' | 'issued' | 'count_adjustment' | 'disposed';
 
 export class SupplyApplicationService {
   constructor(
@@ -461,15 +466,7 @@ export class SupplyApplicationService {
   ): Promise<SupplyBulkBarcodesResponse['barcodes']> {
     if (itemIds.length === 0) return [];
 
-    const uniqueIds: string[] = [];
-    const seen = new Set<string>();
-    for (const id of itemIds) {
-      if (!seen.has(id)) {
-        seen.add(id);
-        uniqueIds.push(id);
-      }
-    }
-
+    const uniqueIds = [...new Set(itemIds)];
     const rows = await this.itemRepository.findPrimaryBarcodesByItemIds(uniqueIds, labId);
     const valueByItemId = new Map<string, string>();
     for (const row of rows) {
@@ -903,8 +900,10 @@ export class SupplyApplicationService {
     return category;
   }
 
-
-  /** Auto-generates an internal barcode on item creation. Retries on collision. */
+  /**
+   * Auto-generates an internal barcode on item creation. Only a value collision is retried —
+   * any other failure propagates rather than leaving the item silently unlabelled.
+   */
   private async generateInternalBarcode(itemId: string): Promise<void> {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
@@ -918,6 +917,7 @@ export class SupplyApplicationService {
         await this.itemRepository.saveBarcode(barcode);
         return;
       } catch (error) {
+        if (!isUniqueConstraintError(error)) throw error;
         if (attempt === 2) {
           logger.warn('Failed to auto-generate internal barcode after 3 attempts', {
             itemId,
@@ -929,7 +929,7 @@ export class SupplyApplicationService {
   }
 
   private createStockEvent(
-    type: string,
+    type: StockEventType,
     itemId: string,
     quantity: number,
     locationId: string,
@@ -945,8 +945,6 @@ export class SupplyApplicationService {
         return new SupplyStockCountAdjustedEvent(itemId, quantity, locationId, userId, labId);
       case 'disposed':
         return new SupplyStockDisposedEvent(itemId, quantity, locationId, userId, labId);
-      default:
-        return new SupplyStockReceivedEvent(itemId, quantity, locationId, userId, labId);
     }
   }
 
@@ -982,8 +980,7 @@ export class SupplyApplicationService {
   }
 
   private trackItemChanges(item: SupplyItem, data: UpdateSupplyItemRequest): FieldChange[] {
-    const changes: FieldChange[] = [];
-    const fields: Array<{ key: keyof UpdateSupplyItemRequest; getter: () => unknown }> = [
+    return trackFieldChanges(data, [
       { key: 'categoryId', getter: () => item.categoryId },
       { key: 'name', getter: () => item.name },
       { key: 'manufacturer', getter: () => item.manufacturer },
@@ -998,19 +995,6 @@ export class SupplyApplicationService {
       { key: 'unitPrice', getter: () => item.unitPrice },
       { key: 'description', getter: () => item.description },
       { key: 'notes', getter: () => item.notes },
-    ];
-
-    for (const { key, getter } of fields) {
-      const newValue = data[key];
-      if (newValue !== undefined) {
-        const oldValue = getter();
-        const normalizedNew = newValue ?? undefined;
-        if (oldValue !== normalizedNew) {
-          changes.push({ field: key, oldValue, newValue: normalizedNew });
-        }
-      }
-    }
-
-    return changes;
+    ]);
   }
 }

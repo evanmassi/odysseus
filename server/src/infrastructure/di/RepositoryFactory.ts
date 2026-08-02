@@ -247,7 +247,6 @@ export class RepositoryFactory implements UnitOfWork {
       storage: this.getStorageRepository(),
       refreshTokens: this.getRefreshTokenRepository(),
       userSessions: this.getUserSessionRepository(),
-      audit: this.getAuditRepository(),
       lookupValues: this.getLookupValueRepository(),
       labs: this.getLabRepository(),
       inviteCodes: this.getInviteCodeRepository(),
@@ -258,15 +257,14 @@ export class RepositoryFactory implements UnitOfWork {
       supplyItems: this.getSupplyItemRepository(),
       attributes: this.getAttributeRepository(),
       locations: this.getLocationRepository(),
-      reagentCategories: this.getReagentCategoryRepository(),
       reagentItems: this.getReagentItemRepository(),
     };
   }
 
   /**
    * Runs `work` inside one transaction. The repositories passed to it are freshly bound to that
-   * transaction's client — distinct from the pool-backed singletons above, which is what keeps
-   * event-handler writes (audit) out of the caller's transaction and safe from its rollback.
+   * transaction's client — distinct from the pool-backed singletons the getters hand out, which is
+   * what keeps event-handler writes out of the caller's transaction and safe from its rollback.
    */
   async withTransaction<T>(work: (repos: Repositories) => Promise<T>): Promise<T> {
     return this.postgresContext.transaction(async client => {
@@ -303,7 +301,6 @@ export class RepositoryFactory implements UnitOfWork {
       storage,
       refreshTokens: new RefreshTokenRepositoryImpl(db),
       userSessions: new UserSessionRepositoryImpl(db),
-      audit: new AuditRepositoryImpl(db),
       lookupValues: new LookupValueRepositoryImpl(db),
       labs: new LabRepositoryImpl(db),
       inviteCodes: new InviteCodeRepositoryImpl(db),
@@ -314,7 +311,6 @@ export class RepositoryFactory implements UnitOfWork {
       supplyItems: new SupplyItemRepositoryImpl(db),
       attributes: new AttributeRepositoryImpl(db),
       locations: new LocationRepositoryImpl(db),
-      reagentCategories: this.buildReagentCategoryRepository(db),
       reagentItems: new ReagentItemRepositoryImpl(db),
     };
   }

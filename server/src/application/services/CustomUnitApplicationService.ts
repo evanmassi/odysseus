@@ -24,6 +24,8 @@ import type {
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
 
+import { countPhrase } from './countPhrase';
+
 import type { CreateCustomUnitRequest, UpdateCustomUnitRequest } from '@odysseus/shared-schemas';
 
 export class CustomUnitApplicationService {
@@ -48,7 +50,7 @@ export class CustomUnitApplicationService {
 
     const now = new Date();
     const unit: CustomUnitRow = {
-      id: generateId('rcun'),
+      id: generateId('cunit'),
       labId,
       label,
       kind: data.kind,
@@ -72,8 +74,9 @@ export class CustomUnitApplicationService {
     if (data.kind && data.kind !== unit.kind) {
       const usageCount = await this.customUnitRepository.countUsage(unit.label, labId);
       if (usageCount > 0) {
+        const verb = usageCount === 1 ? 'uses' : 'use';
         throw new ValidationError(
-          `Cannot change what "${unit.label}" measures — ${usageCount} ${usageCount === 1 ? 'item uses' : 'items use'} it, and the change would move it to different fields. Rename it and add a new unit instead.`
+          `Cannot change what "${unit.label}" measures — ${countPhrase(usageCount, 'item', 'items')} ${verb} it, and the change would move it to different fields. Rename it and add a new unit instead.`
         );
       }
       unit = await this.customUnitRepository.changeKind(unit, data.kind);
@@ -94,10 +97,9 @@ export class CustomUnitApplicationService {
 
     const usageCount = await this.customUnitRepository.countUsage(unit.label, labId);
     if (usageCount > 0) {
+      const verb = usageCount === 1 ? 'uses' : 'use';
       throw new ValidationError(
-        usageCount === 1
-          ? `Cannot delete "${unit.label}" — 1 item still uses it. Rename it instead.`
-          : `Cannot delete "${unit.label}" — ${usageCount} items still use it. Rename it instead.`
+        `Cannot delete "${unit.label}" — ${countPhrase(usageCount, 'item', 'items')} still ${verb} it. Rename it instead.`
       );
     }
 

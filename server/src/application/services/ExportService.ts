@@ -121,6 +121,29 @@ interface SystemBackup {
   securityConfig: unknown;
 }
 
+/**
+ * Full "Room 204 > Cold Room > Shelf 2" path per node id. Walks to the root rather than
+ * naming one parent, so a location three tiers deep exports its whole path; the loop
+ * bound is a cycle backstop.
+ */
+function buildPathMap<T extends { id: string; name: string; parentId?: string }>(
+  nodes: T[]
+): Map<string, string> {
+  const byId = new Map(nodes.map(node => [node.id, node]));
+
+  return new Map(
+    nodes.map(node => {
+      const segments: string[] = [];
+      let current: T | undefined = node;
+      while (current && segments.length <= byId.size) {
+        segments.unshift(current.name);
+        current = current.parentId ? byId.get(current.parentId) : undefined;
+      }
+      return [node.id, segments.join(' > ')];
+    })
+  );
+}
+
 export class ExportService {
   constructor(
     private tubeRepository: TubeRepository,
@@ -337,17 +360,8 @@ export class ExportService {
     const categories = await this.equipmentCategoryRepository.findByLabId(labId);
     const locations = await this.locationRepository.findByLabId(labId);
 
-    const categoryMap = new Map<string, string>();
-    categories.forEach(c => {
-      const parent = c.parentId ? categories.find(p => p.id === c.parentId) : undefined;
-      categoryMap.set(c.id, parent ? `${parent.name} > ${c.name}` : c.name);
-    });
-
-    const locationMap = new Map<string, string>();
-    locations.forEach(l => {
-      const parent = l.parentId ? locations.find(p => p.id === l.parentId) : undefined;
-      locationMap.set(l.id, parent ? `${parent.name} > ${l.name}` : l.name);
-    });
+    const categoryMap = buildPathMap(categories);
+    const locationMap = buildPathMap(locations);
 
     const rows: EquipmentExportRow[] = items.map(item => ({
       id: item.id,

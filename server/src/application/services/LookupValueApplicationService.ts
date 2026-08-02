@@ -15,6 +15,8 @@ import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepo
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 
+import { countPhrase } from './countPhrase';
+
 import type { LookupCategory } from '@odysseus/shared-schemas';
 
 type CatalogCountFn = (value: string, labId: string) => Promise<number>;
@@ -203,10 +205,9 @@ export class LookupValueApplicationService {
         manufacturer: ['item', 'items'],
       };
       const [singular, plural] = labelMap[entity.category] ?? ['tube', 'tubes'];
-      const label = usageCount === 1 ? singular : plural;
       const verb = usageCount === 1 ? 'references' : 'reference';
       throw new ValidationError(
-        `Cannot delete "${entity.value}" — ${usageCount} ${label} still ${verb} it`
+        `Cannot delete "${entity.value}" — ${countPhrase(usageCount, singular, plural)} still ${verb} it`
       );
     }
 

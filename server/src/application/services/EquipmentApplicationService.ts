@@ -52,6 +52,7 @@ import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
 
 import { executeBulk } from './executeBulk';
+import { trackFieldChanges } from './trackFieldChanges';
 
 import type {
   CreateEquipmentCategoryRequest,
@@ -681,12 +682,13 @@ export class EquipmentApplicationService {
   }
 
   private trackItemChanges(item: EquipmentItem, data: UpdateEquipmentItemRequest): FieldChange[] {
-    const changes: FieldChange[] = [];
-    const fields: Array<{ key: keyof UpdateEquipmentItemRequest; getter: () => unknown }> = [
+    return trackFieldChanges(data, [
       { key: 'categoryId', getter: () => item.categoryId },
       { key: 'name', getter: () => item.name },
       { key: 'serialNumber', getter: () => item.serialNumber },
       { key: 'manufacturer', getter: () => item.manufacturer },
+      { key: 'vendorName', getter: () => item.vendorName },
+      { key: 'vendorCatalogNumber', getter: () => item.vendorCatalogNumber },
       { key: 'model', getter: () => item.model },
       { key: 'description', getter: () => item.description },
       { key: 'locationId', getter: () => item.locationId },
@@ -698,19 +700,6 @@ export class EquipmentApplicationService {
       { key: 'assetTag', getter: () => item.assetTag },
       { key: 'nextMaintenanceDate', getter: () => item.nextMaintenanceDate },
       { key: 'notes', getter: () => item.notes },
-    ];
-
-    for (const { key, getter } of fields) {
-      const newValue = data[key];
-      if (newValue !== undefined) {
-        const oldValue = getter();
-        const normalizedNew = newValue ?? undefined;
-        if (oldValue !== normalizedNew) {
-          changes.push({ field: key, oldValue, newValue: normalizedNew });
-        }
-      }
-    }
-
-    return changes;
+    ]);
   }
 }

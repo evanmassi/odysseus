@@ -6,16 +6,9 @@
 
 import type { LabLocation } from '@domain/entities/LabLocation';
 
-export interface LocationResponse {
-  id: string;
-  labId: string;
-  name: string;
-  description?: string;
-  parentId: string | null;
-  sortOrder: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { LabLocation as LabLocationData } from '@odysseus/shared-schemas';
+
+export type LocationResponse = LabLocationData;
 
 export class LocationDto {
   static toResponse(location: LabLocation): LocationResponse {

@@ -51,7 +51,7 @@ function isDatabaseConstraintError(error: unknown): boolean {
   return false;
 }
 
-function isUniqueConstraintError(error: unknown): boolean {
+export function isUniqueConstraintError(error: unknown): boolean {
   return hasCode(error) && error.code === '23505';
 }
 

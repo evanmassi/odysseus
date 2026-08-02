@@ -9,21 +9,10 @@ import type {
   CustomUnitUsageRow,
 } from '@domain/repositories/CustomUnitRepository';
 
-import type { UnitKindValue } from '@odysseus/shared-schemas';
+import type { CustomUnit, CustomUnitWithUsage } from '@odysseus/shared-schemas';
 
-export interface CustomUnitResponse {
-  id: string;
-  labId: string;
-  label: string;
-  kind: UnitKindValue;
-  sortOrder: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CustomUnitWithUsageResponse extends CustomUnitResponse {
-  usageCount: number;
-}
+export type CustomUnitResponse = CustomUnit;
+export type CustomUnitWithUsageResponse = CustomUnitWithUsage;
 
 export class CustomUnitDto {
   static toResponse(unit: CustomUnitRow): CustomUnitResponse {

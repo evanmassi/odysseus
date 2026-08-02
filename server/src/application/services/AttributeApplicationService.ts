@@ -22,6 +22,8 @@ import type {
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
 
+import { countPhrase } from './countPhrase';
+
 import type {
   CreateAttributeDefinitionRequest,
   UpdateAttributeDefinitionRequest,
@@ -120,10 +122,9 @@ export class AttributeApplicationService {
     // The value rows cascade, so an unguarded delete would silently strip this field from every item.
     const usageCount = await this.attributeRepository.countItemsUsingDefinition(id);
     if (usageCount > 0) {
+      const verb = usageCount === 1 ? 'records' : 'record';
       throw new ValidationError(
-        usageCount === 1
-          ? `Cannot delete "${definition.name}" — 1 item still records a value for it`
-          : `Cannot delete "${definition.name}" — ${usageCount} items still record a value for it`
+        `Cannot delete "${definition.name}" — ${countPhrase(usageCount, 'item', 'items')} still ${verb} a value for it`
       );
     }
 
@@ -179,10 +180,9 @@ export class AttributeApplicationService {
 
     const usageCount = await this.attributeRepository.countItemsUsingOption(id);
     if (usageCount > 0) {
+      const verb = usageCount === 1 ? 'uses' : 'use';
       throw new ValidationError(
-        usageCount === 1
-          ? `Cannot delete "${option.value}" — 1 item still uses it`
-          : `Cannot delete "${option.value}" — ${usageCount} items still use it`
+        `Cannot delete "${option.value}" — ${countPhrase(usageCount, 'item', 'items')} still ${verb} it`
       );
     }
 
