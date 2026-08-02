@@ -1,7 +1,7 @@
 /**
  * BulkCategoryTreeSelector tests
  *
- * Guards the parametrization shared by the equipment and supplies bulk modals:
+ * Guards the parametrization shared by all three catalogs' bulk modals:
  * the injected selectability predicate, secondary text, count-noun labels, and
  * the controlled search — plus the selection-set math (item / category / all).
  *

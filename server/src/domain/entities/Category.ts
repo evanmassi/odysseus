@@ -1,9 +1,9 @@
 /**
  * Category
  *
- * Lab-managed grouping shared by the equipment and supply catalogs: top-level categories with
- * optional subcategories, never deeper. Subclasses hold no behaviour — they exist so the two
- * catalogs' categories stay distinct types and cannot be handed to each other's repositories.
+ * Lab-managed grouping shared by every catalog: top-level categories with optional subcategories,
+ * never deeper. Subclasses hold no behaviour — they exist so each catalog's categories stay a
+ * distinct type and cannot be handed to another's repository.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';

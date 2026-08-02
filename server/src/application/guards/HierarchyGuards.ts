@@ -1,8 +1,8 @@
 /**
  * Hierarchy Depth Guards
  *
- * Enforces the tier limit on nestable lab structures — the two-level category hierarchy shared by
- * the equipment and supply catalogs, and the three-tier location tree.
+ * Enforces the tier limit on nestable lab structures — the two-level category hierarchy every
+ * catalog shares, and the three-tier location tree.
  */
 
 import { NotFoundError } from '@domain/errors/NotFoundError';

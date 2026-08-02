@@ -2,7 +2,7 @@
  * Category Tree Panel
  *
  * Collapsible category sections with nested subcategories and item cards, shared
- * by the equipment and supplies inventories. Item rendering, the hidden-status
+ * by all three inventory catalogs. Item rendering, the hidden-status
  * predicate, the searchable fields, and the labels are injected per domain.
  */
 

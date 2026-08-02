@@ -2,7 +2,7 @@
  * Bulk Category Tree Selector
  *
  * Multi-select tree of category → subcategory → item checkboxes for bulk
- * operations, shared by the equipment and supplies bulk-update modals.
+ * operations, shared by the equipment, supply, and reagent bulk-operations modals.
  * Selectability, each item's secondary text, and the labels are injected per
  * domain; search is controlled by the caller.
  */

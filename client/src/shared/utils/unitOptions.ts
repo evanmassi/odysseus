@@ -75,7 +75,7 @@ export const CUSTOM_UNIT_KIND_OPTIONS: SelectOption[] = [
 }));
 
 /** A lab unit is stored as its label, exactly as registry ids are, so both render verbatim. */
-export const customUnitEntries = (
+const customUnitEntries = (
   customUnits: ReadonlyArray<{ label: string; kind: UnitKind }>
 ): UnitRegistryEntry[] =>
   customUnits.map(unit => ({ id: unit.label, label: unit.label, kind: unit.kind }));

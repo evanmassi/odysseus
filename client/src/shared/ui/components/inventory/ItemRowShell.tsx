@@ -1,7 +1,7 @@
 /**
  * Item Row Shell
  *
- * Inset row chrome shared by the equipment and supplies item rows: the status
+ * Inset row chrome shared by all three catalogs' item rows: the status
  * stripe, a keyboard-selectable wrapper, a two-line identity, and the
  * status-tinted hover/selected glow. The urgency icon, name badge, and trailing
  * chips are injected per domain.
@@ -46,8 +46,9 @@ export function ItemRowShell({
   const dimmed = statusTone === 'muted';
   const parts = identityParts.filter(Boolean);
 
-  // Due-soon/overdue (equipment) and low/out (supplies) rows tint their hover +
-  // selected glow to match the alert tables; healthy and dimmed rows stay primary.
+  // Rows a catalog considers urgent — due-soon/overdue equipment, low/out supplies, expiring or
+  // low reagents — tint their hover + selected glow to match the alert tables; healthy and dimmed
+  // rows stay primary.
   const rowStyle: CSSProperties | undefined =
     statusTone === 'danger'
       ? ({ '--row-tone': 'var(--color-danger-bg)' } as CSSProperties)

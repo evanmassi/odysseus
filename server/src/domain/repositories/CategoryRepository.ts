@@ -2,7 +2,7 @@
  * Category Repository Interface
  *
  * Data access contract for a lab-managed category hierarchy. Generic over the concrete category so
- * the equipment and supply catalogs share the contract without sharing a type.
+ * every catalog shares the contract without sharing a type.
  */
 
 import type { Category } from '@domain/entities/Category';

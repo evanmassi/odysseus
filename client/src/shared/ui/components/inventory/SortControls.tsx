@@ -1,8 +1,7 @@
 /**
  * Sort Controls
  *
- * Sort-field dropdown + ascending/descending toggle, shared by the equipment
- * and supplies list toolbars.
+ * Sort-field dropdown + ascending/descending toggle, shared by the inventory list toolbars.
  */
 
 import { ArrowDown, ArrowUp } from 'lucide-react';
