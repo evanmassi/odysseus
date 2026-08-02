@@ -5,18 +5,19 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5, 6, 7, 8, 9 and 12 done. **Reagents is complete — all nine phases**,
-so every extraction these items were sequenced around now has its second caller in hand. Remaining:
-4b (equipment locations), 10, and 11 (attributes for the other two catalogs). Item 10 gets a nudge
-from Phase 9: `shared/ui/components/inventory/` now holds the whole bulk surface, so the tab chassis
-is the last hand-written duplication of its size. Companion to `REAGENTS_PLAN.md` (which owns the
+**Status:** items 1, 2, 3, 4a, 5, 6, 7, 8, 9, 11 and 12 done. **Reagents is complete — all nine
+phases.** Remaining: **10** (tab chassis → shared shell) and **4b** (equipment locations), which is a
+product call rather than plumbing. Item 10 is now the last hand-written duplication of its size:
+`shared/ui/components/inventory/` holds the whole bulk surface plus the attribute surface, so the tab
+frame is what's left. **Dev has applied through 035.** Companion to `REAGENTS_PLAN.md` (which owns the
 reagent subsystem design).
 
-**Migration policy — amend-in-place is over.** Dev has applied everything through **033**. While
+**Migration policy — amend-in-place is over.** Dev has applied everything through **035**. While
 reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
-from here is a **new migration (034+)**, and anything touching live data gets rehearsed on a clone
+from here is a **new migration (036+)**, and anything touching live data gets rehearsed on a clone
 first (`CREATE DATABASE odysseus_mig_rehearsal TEMPLATE odysseus_dev`, run the runner, verify, drop) —
-the drill that caught a silent ID collision in 031 and verified the five-column unit rewrite in 032.
+the drill that caught a silent ID collision in 031, verified the five-column unit rewrite in 032,
+and confirmed 035 dropped a column without disturbing the items on it.
 There is no `down`: the runner interface is `{ id, name, up }`. `odysseus_test` is disposable — drop it
 and the integration setup rebuilds it.
 
@@ -91,7 +92,8 @@ reagent/supply/equipment, null = all) with `reagent_attribute_values` keeping it
 `reagent_items`. Schemas moved to a new `shared-schemas/src/attributes/` module mirroring `units/`;
 reagents keeps only the per-item value schemas. **Amended migration 027 in place** rather than adding
 a rename migration — reagents are unreleased and dev had not applied 027, so the tables are created
-correctly the first time. `supply_item_property` migrates onto this system when supplies adopts it.
+correctly the first time. `supply_item_property` migrated onto this system with item 11, which retired the lookup and the
+`properties` column outright.
 
 ### 3. Custom units → catalog-agnostic — ✅ done
 
@@ -332,7 +334,7 @@ deliberately, not folded into another item. A `ReorderList` shell is a weaker se
 table and CSV are common but the export mechanism genuinely differs (supplies fetches a server
 endpoint, reagents serialises client-side) and so do the columns.
 
-### 11. Attributes → supplies + equipment — *not started*
+### 11. Attributes → supplies + equipment — ✅ done
 
 **What.** Give supplies and equipment their own `*_attribute_values` tables and point the reagent
 attribute UI at all three catalogs. Migrate `supply_item_property` onto the attribute system and drop
@@ -364,6 +366,47 @@ and the shared `Location`.
 
 **Not doing:** a polymorphic `item_id` + `item_type` values table. Item 2 rejected it and nothing has
 changed — the item FK *is* the referential integrity the normalized EAV exists for.
+
+**Landed.** Migration **034** creates `supply_attribute_values` and `equipment_attribute_values` in one
+step, mirroring the reagent table exactly — six columns, three indexes, an item FK per catalog. Both
+catalogs got the full server chain (three repo methods, the batched lab-wide fill on the list query,
+the detail fill, `setAttributeValue`, DTO mappers, `PUT /:id/attributes`) and all three UI surfaces:
+fields on the form, a read-only block on the info panel, a facet filter on the tab.
+
+**Supplies is the extraction's second caller, equipment its third.** Six files moved to
+`shared/ui/components/inventory/`: `AttributeFields` (`reagentType` → `itemType`), `attributeScope`,
+`attributeDrafts` (+test), and the new `attributeFilters` / `AttributeFilterPanel` /
+`attributeDisplayRows`. Supplies and equipment use the panel **directly** — only reagents needs a
+binding, because only reagents has a second facet. `attributeDrafts` is typed structurally rather
+than against one catalog's schema, matching what the folder already does.
+
+**The filter split was the one real design call.** `ReagentFilters` mixed attribute options with
+expiry buckets; shared now owns `{ optionIds }` and the panel takes an `extraFacets` slot where
+reagents keeps its Expiry group — the same shape `BulkStockMovementTab` and `BulkPrintTab` use.
+`toggleFilterOption` is generic over the extension, so a chip click can't silently drop reagents'
+expiry selection.
+
+**The data half was free, and turned into a deletion.** `supply_item_property` held two values and
+**no supply item used `properties` at all** — checked against dev before planning. So migration **035**
+seeds those two values as a supply-scoped *Product Property* multi-select, drops the lookup category,
+and drops `supply_items.properties` — keeping the column would have shipped two metadata mechanisms
+for one concept, which is what this item exists to prevent. Two repo methods
+(`countItemsUsingProperty`, `renameProperty`) went with it; they would otherwise have queried a
+dropped column. `/lab/supplies` now pre-selects *Vendors* in the catalog rail, the only list supplies
+still curates directly.
+
+**Rehearsed** on a clone of dev through 034→035: both tables created, *Product Property* seeded with
+Sterile and Non-Pyrogenic, zero property lookups left, column gone, all four supply items intact —
+and dev untouched at 33 until applied deliberately.
+
+**Also landed:** the create modal's catalog picker (`AttributeDefinitionModal` hardcoded
+`appliesToCatalog: 'reagent'`), with the reagent-type scope chips hidden when another catalog is
+picked, since only reagents has a type discriminator.
+
+**Deferred:** the *used by* line per definition. The shared lookups carry one because a rename fans
+across three item tables; an attribute definition already names its catalog in the picker, so the
+line would restate what the row says.
+
 
 ### 12. Attribute scoping → many types — ✅ done
 
@@ -440,5 +483,5 @@ Decided; don't reopen without a new reason.
 - [x] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
 - [ ] 10 — Catalog tab skeleton → shared shell
-- [ ] 11 — Attributes → supplies + equipment
+- [x] 11 — Attributes → supplies + equipment
 - [x] 12 — Attribute scoping → many types

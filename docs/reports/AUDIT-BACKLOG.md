@@ -36,10 +36,10 @@ that need eyes on the running app rather than a code read.
   `attributes`/`customUnits` from persistence, but tubes, storage, reagents and supplies are all
   persisted and all one shape change away from the same thing. A cache-schema constant bumped
   alongside breaking shape changes would close it.
-- **Attribute scoping is one type or all types** — `applies_to_type` is a single TEXT column, so an
-  attribute relevant to two of five reagent types has to sit at "All reagent types" and appear in every
-  palette. Multi-scope needs a join table and a migration. Decide after living with it; add-on-demand
-  fields mean an over-broad attribute costs a longer palette, not a longer form.
+- ~~**Attribute scoping is one type or all types**~~ — **closed** by convergence item 12: migration 033
+  replaced `applies_to_type` with an `applies_to_types TEXT[]`, so an attribute can name several reagent
+  types. It needed no join table — nothing queried the column, since every scoping decision is made
+  client-side.
 - **Attribute options don't share the tube `species` lookup** — an antibody's Host Species attribute
   re-types mouse/rabbit/human, which the tube `species` lookup already holds. Sourcing an attribute's
   options from a lookup category is real new plumbing; decide whether the overlap actually bites.
