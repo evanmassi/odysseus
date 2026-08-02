@@ -15,7 +15,7 @@ import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategor
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Checkbox, NubDivider, ScrollArea, SearchInput } from '../../primitives';
-import { BulkSelectTreeLines } from '../tree-lines';
+import { SelectTreeLines } from '../tree-lines';
 
 interface BulkTreeCategory {
   id: string;
@@ -232,7 +232,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
       </div>
       <ScrollArea className="flex-1 min-h-0">
         <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
-          <BulkSelectTreeLines />
+          <SelectTreeLines treeId="bulk-select" />
           {groups.length === 0 && searchQuery && (
             <p className="text-body-sm text-muted-foreground text-center py-4">
               {labels.noMatch} &ldquo;{searchQuery}&rdquo;

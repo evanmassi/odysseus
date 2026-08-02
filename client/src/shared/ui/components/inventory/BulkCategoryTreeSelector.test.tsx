@@ -5,7 +5,7 @@
  * the injected selectability predicate, secondary text, count-noun labels, and
  * the controlled search — plus the selection-set math (item / category / all).
  *
- * BulkSelectTreeLines (SVG geometry) is stubbed to null; Checkbox and SearchInput
+ * SelectTreeLines (SVG geometry) is stubbed to null; Checkbox and SearchInput
  * become plain inputs so clicks and the selection set are assertable.
  */
 
@@ -17,7 +17,7 @@ import {
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
 
-vi.mock('../tree-lines', () => ({ BulkSelectTreeLines: () => null }));
+vi.mock('../tree-lines', () => ({ SelectTreeLines: () => null }));
 
 vi.mock('../../primitives', async importActual => {
   const actual = (await importActual()) as Record<string, unknown>;

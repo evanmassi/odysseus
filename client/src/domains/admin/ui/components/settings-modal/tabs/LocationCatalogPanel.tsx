@@ -1,14 +1,13 @@
 /**
  * Location Catalog Panel
  *
- * The locations leaf of the catalog rail. Unlike the flat vocabularies beside it, a location
- * tree needs room to show what sits inside what, so editing happens in its own modal and this
- * pane only says what the tree is for and opens it.
+ * The locations leaf of the catalog rail. A location tree needs room to show what sits inside
+ * what, so editing happens in its own modal and this pane only counts the tree and opens it.
  */
 
 import { MapPin } from 'lucide-react';
 
-import { Button, SectionHeader } from '@shared/ui';
+import { Button, Chip, ConsolePanel, HeaderStrip, StripLabel } from '@shared/ui';
 
 interface LocationCatalogPanelProps {
   count: number;
@@ -18,28 +17,30 @@ interface LocationCatalogPanelProps {
 
 export function LocationCatalogPanel({ count, readOnly, onManage }: LocationCatalogPanelProps) {
   return (
-    <div className="space-y-4">
-      <SectionHeader title="Locations" size="sm" />
+    <ConsolePanel intensity="soft">
+      <HeaderStrip className="px-4 py-2.5">
+        <div className="flex items-center gap-3">
+          <StripLabel>Locations</StripLabel>
+          <Chip size="sm" color="info">
+            {count}
+          </Chip>
+          <span className="text-caption text-muted-foreground">
+            shared by equipment · supplies · reagents
+          </span>
+        </div>
+      </HeaderStrip>
 
-      <p className="text-body-sm text-muted-foreground">
-        The places stock can sit — rooms, cold rooms, freezers, shelves — nestable three levels deep
-        and shared by equipment, supplies and reagents. Renaming one updates every item stored
-        there.
-      </p>
-
-      <p className="text-body-sm text-secondary-foreground">
-        {count === 1 ? '1 location' : `${count} locations`} defined.
-      </p>
-
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={onManage}
-        disabled={readOnly}
-        leftIcon={<MapPin size={16} />}
-      >
-        Manage Locations
-      </Button>
-    </div>
+      <div className="flex items-center justify-end px-4 py-3">
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onManage}
+          disabled={readOnly}
+          leftIcon={<MapPin size={16} />}
+        >
+          Manage Locations
+        </Button>
+      </div>
+    </ConsolePanel>
   );
 }

@@ -19,16 +19,19 @@ import { useLabLocationsQuery } from '@domains/lab-management/hooks/useLabLocati
 import {
   buildHierarchyOptions,
   Button,
+  Chip,
+  HeaderStrip,
   Input,
   ScrollArea,
   Select,
+  StripLabel,
   Tooltip,
   withPlaceholder,
 } from '@shared/ui';
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { LabLocationTreeLines } from '@shared/ui/components/tree-lines';
+import { SelectTreeLines } from '@shared/ui/components/tree-lines';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 import { notifications } from '@shared/utils/notifications';
 
@@ -94,6 +97,14 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
     for (const siblings of map.values()) siblings.sort(compareByOrderThenName);
     return map;
   }, [locations]);
+
+  const tierCounts = useMemo(
+    () => ({
+      top: locations.filter(location => !location.parentId).length,
+      nested: locations.filter(location => location.parentId).length,
+    }),
+    [locations]
+  );
 
   const parentOptions = useMemo(() => {
     const excluded = editingId ? subtreeIds(locations, editingId) : new Set<string>();
@@ -222,6 +233,20 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
         onClose={onClose}
         size="lg"
       >
+        <HeaderStrip className="mb-4 px-4 py-2.5">
+          <div className="flex items-center gap-3">
+            <StripLabel>Locations</StripLabel>
+            <Chip size="sm" color="info">
+              {locations.length}
+            </Chip>
+            {tierCounts.nested > 0 && (
+              <span className="text-caption text-muted-foreground">
+                {tierCounts.top} top level · {tierCounts.nested} nested
+              </span>
+            )}
+          </div>
+        </HeaderStrip>
+
         <div className="flex min-h-0 gap-4">
           <div className="flex min-h-0 w-1/2 flex-col">
             <ScrollArea className="min-h-[18rem] flex-1 border border-line-faint">
@@ -231,7 +256,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
                 </p>
               ) : (
                 <div data-tree-id="lab-location" className="nav-tree-select relative py-1 pr-2">
-                  <LabLocationTreeLines />
+                  <SelectTreeLines treeId="lab-location" />
                   {renderTier(null, 0)}
                 </div>
               )}

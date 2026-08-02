@@ -9,5 +9,4 @@ export { calculateTreeLines } from './calculateTreeLines';
 export { TreeLinesDisplay } from './TreeLinesDisplay';
 export { useTreeLines } from './useTreeLines';
 export { NavTreeLines } from './NavTreeLines';
-export { BulkSelectTreeLines } from './BulkSelectTreeLines';
-export { LabLocationTreeLines } from './LabLocationTreeLines';
+export { SelectTreeLines } from './SelectTreeLines';
