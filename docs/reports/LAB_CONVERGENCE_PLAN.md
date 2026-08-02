@@ -5,19 +5,17 @@ mechanism or a vocabulary a lab experiences as single but the schema splits per 
 **sequencing document**, not a design document — the decisions are made; what matters is what blocks
 what.
 
-**Status:** items 1, 2, 3, 4a, 5, 6, 7, 8, 9, 11 and 12 done. **Reagents is complete — all nine
-phases.** Remaining: **10** (tab chassis → shared shell) and **4b** (equipment locations), which is a
-product call rather than plumbing. Item 10 is now the last hand-written duplication of its size:
-`shared/ui/components/inventory/` holds the whole bulk surface plus the attribute surface, so the tab
-frame is what's left. **Dev has applied through 035.** Companion to `REAGENTS_PLAN.md` (which owns the
-reagent subsystem design).
+**Status:** items 1–9, 11 and 12 done, including **4b**. **Reagents is complete — all nine phases.**
+Only **item 10** is open, and only its second half: the category block is extracted, the locator strip
+and toolbar are deliberately deferred behind a stated trigger (see that item). **Dev has applied
+through 036.** Companion to `REAGENTS_PLAN.md` (which owns the reagent subsystem design).
 
-**Migration policy — amend-in-place is over.** Dev has applied everything through **035**. While
+**Migration policy — amend-in-place is over.** Dev has applied everything through **036**. While
 reagents were unreleased, schema corrections amended 027 in place; that window is closed. Every change
-from here is a **new migration (036+)**, and anything touching live data gets rehearsed on a clone
+from here is a **new migration (037+)**, and anything touching live data gets rehearsed on a clone
 first (`CREATE DATABASE odysseus_mig_rehearsal TEMPLATE odysseus_dev`, run the runner, verify, drop) —
 the drill that caught a silent ID collision in 031, verified the five-column unit rewrite in 032,
-and confirmed 035 dropped a column without disturbing the items on it.
+and confirmed 035 and 036 each dropped a column without disturbing the rows on it.
 There is no `down`: the runner interface is `{ id, name, up }`. `odysseus_test` is disposable — drop it
 and the integration setup rebuilds it.
 
@@ -105,7 +103,7 @@ it needs the same escape hatch.
 
 **Landed** with item 2, in the same amendment to migration 027.
 
-### 4. Locations merge — ✅ 4a done (equipment onboarding = 4b, outstanding)
+### 4. Locations merge — ✅ done (4a supplies, 4b equipment)
 
 **What.** One `locations` table (prefix `loc`) replacing `supply_locations` + `reagent_locations`,
 **hierarchical via a `parent_id` self-FK**, with equipment's free-text `location` column migrated onto
@@ -144,8 +142,27 @@ stock row and transaction still resolve, `supply_locations` dropped, dev itself 
 homes. Item 7's rail is the moment to reconcile that, since the rail *is* one surface for every lab
 vocabulary.
 
-**Outstanding (4b).** Equipment's free-text `location` column still needs backfilling onto the tree —
-deferred because converting it to a constrained dropdown is a product call, not plumbing.
+**Landed (4b).** The product call went to a **constrained dropdown**: `equipment_items.location_id` is
+a nullable FK to `locations` and the free-text column is gone. Nullable because a unit needs no place —
+three of four had none — so nothing is forced into the tree; only a unit that *has* a location needs the
+node to exist, which was already true for supplies and reagents.
+
+The FK sits on the **item**, not on stock, and that asymmetry is correct: supplies and reagents hang
+location off `supply_stock` / `reagent_lots` because one item can have stock in several places, while a
+centrifuge is in exactly one.
+
+**The backfill is the interesting half.** Dev held a single value — `"Main lab, Hood X0F"` — which is
+exactly the compound string this document predicted a flat field produces. Migration 036 splits on
+commas and walks the chain, creating *Main lab* and *Hood X0F* as two real nodes, capped at
+`LOCATION_MAX_DEPTH`; anything deeper keeps its text as one node rather than getting a hierarchy the
+depth guard would refuse. Nodes are matched by name **lab-wide**, not per parent, because
+`locations` is `UNIQUE(lab_id, name)` — matching per parent would have violated the constraint on any
+lab that already had the name.
+
+**Two consumers the plan missed.** `ExportService` emitted equipment's location in its CSV and would
+have started printing raw ids; it now resolves the path through a new `locationRepository` dep,
+mirroring the category map already beside it. And `getEquipmentSearchFields` searched the raw string,
+so the tab now resolves the name before searching — the one failure here that would have been silent.
 
 ### 5. Vendor / manufacturer merge — ✅ done
 
@@ -318,7 +335,7 @@ Phase-1 reagent alert schemas.
 admin export tab is an independent consumer, so the server path earns its place. No shared predicate
 helper yet — one caller; reagents becomes the second in Phase 6, extract then.
 
-### 10. Catalog tab skeleton → shared shell — *not started*
+### 10. Catalog tab skeleton → shared shell — ◐ partly done
 
 **What.** `EquipmentTab`, `SuppliesTab` and `ReagentsTab` hand-write the same chassis: the 60/40 split,
 `ConsolePanel`, `PanelHeader`, the locator `HeaderStrip` with item/category counts, and the
@@ -333,6 +350,32 @@ established home.
 deliberately, not folded into another item. A `ReorderList` shell is a weaker second candidate — the
 table and CSV are common but the export mechanism genuinely differs (supplies fetches a server
 endpoint, reagents serialises client-side) and so do the columns.
+
+**Landed: the category half only.** `useCatalogCategories` + `CategoryManager`, folded into the
+existing `CategoryModal.tsx` since it already owned the concern. Each tab dropped ~94 lines — two
+dialog states, `categoryNameMap`, five handlers, `executeDeleteCategory`, and both dialogs' JSX —
+taking them from 459/449/454 to 397/387/392. No layout moved, so the verification was just add /
+rename / delete a category on each tab.
+
+**Deliberately not taken: the locator strip and the toolbar.** A single `CatalogTabShell` was costed
+at **~22 props with 5 render-prop slots** (scan input, toolbar actions, filter panel, alert panels,
+right panel) — and those slots *are* the variation, so the shell would mostly forward props. That
+also cuts against what has actually worked here: `AlertPanel`, `LowStockAlertPanel`,
+`BulkStockMovementTab`, `BulkVoidTab` and `AttributeFields` each do one job with a couple of injected
+callbacks. None is a chassis.
+
+The category block was a fact — byte-identical, zero variation points, no layout. The toolbar has
+three variation points (equipment has no scan bar, says *unit* not *item*, *Decommissioned* not
+*Archived*, and a Button where the others have an OverflowMenu) and carries layout risk on two
+un-audited tabs.
+
+**Trigger for the rest:** the next time a toolbar change has to be made in all three tabs by hand.
+That happened once — the attribute Filter button in item 11 — which is one data point, not a second
+signal. When it happens again the extraction has earned itself.
+
+**Note for whoever takes it:** the three tabs are not as uniformly ordered as a diff suggests.
+Equipment puts its filter derivation between the category handlers and `actionMenuItems` where the
+other two do not; a naive cut between those anchors silently removes it.
 
 ### 11. Attributes → supplies + equipment — ✅ done
 
@@ -476,12 +519,12 @@ Decided; don't reopen without a new reason.
 - [x] 1 — Shared alert panel *(roll-up deferred to after reagents Phase 3)*
 - [x] 2 — Attribute system → shared vocabulary
 - [x] 3 — Custom units → catalog-agnostic
-- [x] 4 — Locations merge *(4a; equipment onboarding 4b outstanding)*
+- [x] 4 — Locations merge *(4a supplies, 4b equipment)*
 - [x] 5 — Vendor / manufacturer merge
 - [x] 6 — Supplies → unit registry
 - [x] 7 — Catalog tab → nav rail
 - [x] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
-- [ ] 10 — Catalog tab skeleton → shared shell
+- [◐] 10 — Catalog tab skeleton → shared shell *(category half done; toolbar deferred with a trigger)*
 - [x] 11 — Attributes → supplies + equipment
 - [x] 12 — Attribute scoping → many types
