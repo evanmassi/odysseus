@@ -1,30 +1,23 @@
 /**
  * Lab Location Modal
  *
- * Manages the lab's location tree: the places on the left, the editor for the selected one on the
- * right. Deletion is refused server-side while stock or a nested location depends on it, so the
- * confirm dialog is the only guard this side.
+ * Manages the lab's location tree on the bulk-operations chassis: the tree on the left, the editor
+ * for the selected place on the right. Deletion is refused server-side while stock or a nested
+ * location depends on it, so the confirm dialog is the only guard this side.
  */
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 
-import { MapPin, Plus, Save, SquarePen, Trash2, X } from 'lucide-react';
+import { CornerDownRight, FolderOpen, MapPin, Save, SquarePen, Trash2 } from 'lucide-react';
 
 import {
-  useCreateLabLocationMutation,
-  useDeleteLabLocationMutation,
-  useUpdateLabLocationMutation,
-} from '@domains/lab-management/hooks/useLabLocationMutations';
-import { useLabLocationsQuery } from '@domains/lab-management/hooks/useLabLocationQueries';
-import {
+  AccentTick,
   buildHierarchyOptions,
   Button,
-  Chip,
-  HeaderStrip,
   Input,
+  NubDivider,
   ScrollArea,
   Select,
-  StripLabel,
   Tooltip,
   withPlaceholder,
 } from '@shared/ui';
@@ -34,6 +27,13 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { SelectTreeLines } from '@shared/ui/components/tree-lines';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 import { notifications } from '@shared/utils/notifications';
+
+import {
+  useCreateLabLocationMutation,
+  useDeleteLabLocationMutation,
+  useUpdateLabLocationMutation,
+} from '../../hooks/useLabLocationMutations';
+import { useLabLocationsQuery } from '../../hooks/useLabLocationQueries';
 
 import type { LabLocation } from '@odysseus/shared-schemas';
 
@@ -185,44 +185,91 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
     const tier = childrenByParent.get(parent) ?? [];
     if (tier.length === 0) return null;
 
-    return tier.map(location => (
-      <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
-        <div
-          className={`lab-location-row group flex items-center gap-2 py-1 pl-3 pr-1 ${
-            editingId === location.id ? 'bg-foreground/[0.06]' : 'hover:bg-foreground/[0.04]'
-          }`}
-        >
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-body-sm text-secondary-foreground">{location.name}</p>
-            {location.description && (
-              <p className="truncate text-caption text-muted-foreground">{location.description}</p>
-            )}
-          </div>
-          <div className="flex flex-shrink-0 gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-            <Tooltip content="Rename" side="bottom">
-              <Button variant="ghost" size="xs" iconOnly onClick={() => startEdit(location)}>
-                <SquarePen className="h-3 w-3" />
-              </Button>
-            </Tooltip>
-            <Tooltip content="Remove" side="bottom">
-              <Button
-                variant="ghost-danger"
-                size="xs"
-                iconOnly
-                onClick={() => setPendingDelete(location)}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </Tooltip>
-          </div>
-        </div>
+    return tier.map(location => {
+      const hasChildren = (childrenByParent.get(location.id) ?? []).length > 0;
 
-        {depth < TIER_LEVELS.length - 1 && (
-          <div className="ml-3">{renderTier(location.id, depth + 1)}</div>
-        )}
-      </div>
-    ));
+      return (
+        <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
+          <div
+            className={`select-tree-row group flex items-center gap-2 py-1 pl-3 pr-1 ${
+              editingId === location.id ? 'bg-foreground/[0.06]' : ''
+            }`}
+          >
+            {depth === 0 ? (
+              <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
+            ) : (
+              <CornerDownRight size={13} className="flex-shrink-0 text-muted-foreground" />
+            )}
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-body-sm font-medium text-card-foreground">
+                {location.name}
+              </span>
+              {location.description && (
+                <span className="block truncate text-caption text-muted-foreground">
+                  {location.description}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-shrink-0 gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+              <Tooltip content="Rename" side="bottom">
+                <Button variant="ghost" size="xs" iconOnly onClick={() => startEdit(location)}>
+                  <SquarePen className="h-3 w-3" />
+                </Button>
+              </Tooltip>
+              <Tooltip content="Remove" side="bottom">
+                <Button
+                  variant="ghost-danger"
+                  size="xs"
+                  iconOnly
+                  onClick={() => setPendingDelete(location)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
+
+          {hasChildren && depth < TIER_LEVELS.length - 1 && (
+            <div className="ml-3">{renderTier(location.id, depth + 1)}</div>
+          )}
+        </div>
+      );
+    });
   };
+
+  const locator = (
+    <div className="flex items-center gap-3">
+      <span className="flex items-center gap-1.5">
+        <AccentTick />
+        <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
+          {locations.length} <span className="text-foreground/45">locations</span>
+        </span>
+      </span>
+      <span className="flex-1" />
+      <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
+        {tierCounts.top} top level · {tierCounts.nested} nested
+      </span>
+    </div>
+  );
+
+  const footer = (
+    <div className="flex items-center justify-end gap-2">
+      <Button variant="secondary" size="sm" onClick={editingId ? clearForm : onClose}>
+        {editingId ? 'Cancel Edit' : 'Close'}
+      </Button>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={handleSave}
+        disabled={!name.trim()}
+        isLoading={isPending}
+        loadingText={editingId ? 'Saving...' : 'Adding...'}
+        leftIcon={editingId ? <Save size={16} /> : undefined}
+      >
+        {editingId ? 'Save Changes' : 'Add Location'}
+      </Button>
+    </div>
+  );
 
   return (
     <>
@@ -232,95 +279,84 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
         icon={<MapPin size={24} />}
         onClose={onClose}
         size="lg"
+        fixedHeight
+        locator={locator}
+        footer={footer}
+        contentClassName="p-0 h-full"
       >
-        <HeaderStrip className="mb-4 px-4 py-2.5">
-          <div className="flex items-center gap-3">
-            <StripLabel>Locations</StripLabel>
-            <Chip size="sm" color="info">
-              {locations.length}
-            </Chip>
-            {tierCounts.nested > 0 && (
-              <span className="text-caption text-muted-foreground">
-                {tierCounts.top} top level · {tierCounts.nested} nested
-              </span>
-            )}
-          </div>
-        </HeaderStrip>
-
-        <div className="flex min-h-0 gap-4">
-          <div className="flex min-h-0 w-1/2 flex-col">
-            <ScrollArea className="min-h-[18rem] flex-1 border border-line-faint">
-              {locations.length === 0 ? (
-                <p className="px-3 py-6 text-center text-body-sm text-muted-foreground">
-                  No locations yet. Add the first one on the right.
-                </p>
-              ) : (
-                <div data-tree-id="lab-location" className="nav-tree-select relative py-1 pr-2">
-                  <SelectTreeLines treeId="lab-location" />
-                  {renderTier(null, 0)}
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="flex min-h-0 flex-1">
+            <div className="flex min-h-0 w-2/5 flex-col overflow-auto border-r border-border bg-muted/30 p-4">
+              <div className="mb-3 flex-shrink-0">
+                <div className="flex items-center gap-2 pb-2">
+                  <span className="flex-1 text-body-sm font-medium text-card-foreground">
+                    All Locations
+                  </span>
+                  <span className="text-caption text-muted-foreground">
+                    {locations.length} {locations.length === 1 ? 'place' : 'places'}
+                  </span>
                 </div>
-              )}
-            </ScrollArea>
-          </div>
+                <NubDivider tone="neutral" className="relative" />
+              </div>
 
-          <div className="flex min-w-0 flex-1 flex-col space-y-4">
-            <div>
-              <label htmlFor="locationName" className={FIELD_LABEL_STANDARD}>
-                Location Name
-              </label>
-              <Input
-                id="locationName"
-                type="text"
-                value={name}
-                onValueChange={setName}
-                onKeyDown={handleKeyDown}
-                placeholder="e.g., Back Supply Room"
-                maxLength={200}
-                fullWidth
-              />
+              <ScrollArea className="min-h-0 flex-1">
+                {locations.length === 0 ? (
+                  <p className="py-4 text-center text-body-sm text-muted-foreground">
+                    No locations yet. Add the first one on the right.
+                  </p>
+                ) : (
+                  <div
+                    data-tree-id="lab-location"
+                    className="nav-tree-select relative space-y-2 pr-2"
+                  >
+                    <SelectTreeLines treeId="lab-location" />
+                    {renderTier(null, 0)}
+                  </div>
+                )}
+              </ScrollArea>
             </div>
 
-            <div>
-              <label htmlFor="locationDescription" className={FIELD_LABEL_STANDARD}>
-                Description
-              </label>
-              <Input
-                id="locationDescription"
-                type="text"
-                value={description}
-                onValueChange={setDescription}
-                placeholder="Optional details about this location"
-                maxLength={500}
-                fullWidth
-              />
-            </div>
+            <div className="flex min-h-0 w-3/5 flex-col overflow-auto">
+              <div className="flex-1 space-y-4 px-4 pt-4">
+                <div>
+                  <label htmlFor="locationName" className={FIELD_LABEL_STANDARD}>
+                    Location Name
+                  </label>
+                  <Input
+                    id="locationName"
+                    type="text"
+                    value={name}
+                    onValueChange={setName}
+                    onKeyDown={handleKeyDown}
+                    placeholder="e.g., Back Supply Room"
+                    maxLength={200}
+                    fullWidth
+                  />
+                </div>
 
-            <Select
-              label="Inside (optional)"
-              options={parentOptions}
-              value={parentId}
-              onChange={v => setParentId(String(v ?? ''))}
-              fullWidth
-            />
+                <div>
+                  <label htmlFor="locationDescription" className={FIELD_LABEL_STANDARD}>
+                    Description
+                  </label>
+                  <Input
+                    id="locationDescription"
+                    type="text"
+                    value={description}
+                    onValueChange={setDescription}
+                    placeholder="Optional details about this location"
+                    maxLength={500}
+                    fullWidth
+                  />
+                </div>
 
-            <div className="flex justify-end space-x-3 pt-2">
-              <Button
-                variant="secondary"
-                onClick={editingId ? clearForm : onClose}
-                leftIcon={editingId ? <X size={16} /> : undefined}
-              >
-                {editingId ? 'Cancel Edit' : 'Close'}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSave}
-                disabled={!name.trim()}
-                isLoading={isPending}
-                loadingText={editingId ? 'Saving...' : 'Adding...'}
-                leftIcon={editingId ? <Save size={16} /> : <Plus size={16} />}
-              >
-                {editingId ? 'Save Changes' : 'Add'}
-              </Button>
+                <Select
+                  label="Inside (optional)"
+                  options={parentOptions}
+                  value={parentId}
+                  onChange={v => setParentId(String(v ?? ''))}
+                  fullWidth
+                />
+              </div>
             </div>
           </div>
         </div>
