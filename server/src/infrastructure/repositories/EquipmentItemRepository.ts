@@ -20,7 +20,7 @@ import type { Queryable } from '@infrastructure/database/Queryable';
 import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS =
-  'id, lab_id, category_id, name, serial_number, manufacturer, vendor_name, vendor_catalog_number, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
+  'id, lab_id, category_id, name, serial_number, manufacturer, vendor_name, vendor_catalog_number, model, description, location_id, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
 const LOG_COLUMNS =
   'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
@@ -89,7 +89,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
         vendor_catalog_number = EXCLUDED.vendor_catalog_number,
         model = EXCLUDED.model,
         description = EXCLUDED.description,
-        location = EXCLUDED.location,
+        location_id = EXCLUDED.location_id,
         status = EXCLUDED.status,
         condition_notes = EXCLUDED.condition_notes,
         purchase_date = EXCLUDED.purchase_date,
@@ -114,7 +114,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
         row.vendor_catalog_number,
         row.model,
         row.description,
-        row.location,
+        row.location_id,
         row.status,
         row.condition_notes,
         row.purchase_date,

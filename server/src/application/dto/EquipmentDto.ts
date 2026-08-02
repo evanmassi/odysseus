@@ -57,7 +57,7 @@ export class EquipmentDto {
       vendorCatalogNumber: item.vendorCatalogNumber,
       model: item.model,
       description: item.description,
-      location: item.location,
+      locationId: item.locationId,
       status: item.status,
       conditionNotes: item.conditionNotes,
       purchaseDate: item.purchaseDate,

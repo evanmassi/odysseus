@@ -39,6 +39,7 @@ import { migration032 } from './032_supplies_onto_unit_registry';
 import { migration033 } from './033_attribute_scope_to_many_types';
 import { migration034 } from './034_attribute_values_all_catalogs';
 import { migration035 } from './035_retire_supply_item_property';
+import { migration036 } from './036_equipment_location_to_tree';
 
 import type { Migration } from './migrationRunner';
 
@@ -78,4 +79,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration033,
   migration034,
   migration035,
+  migration036,
 ];

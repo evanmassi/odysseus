@@ -21,7 +21,7 @@ import {
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
-import { useAttributesQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   buildHierarchyOptions,
@@ -76,7 +76,7 @@ const TRACKED_FIELDS = [
   'serialNumber',
   'assetTag',
   'description',
-  'location',
+  'locationId',
   'purchaseDate',
   'purchaseCost',
   'warrantyExpiration',
@@ -97,6 +97,12 @@ export function EquipmentEditForm({
   const setAttributeValueMutation = useSetEquipmentAttributeValueMutation();
   const { data: detail } = useEquipmentItemDetailQuery(isEditing ? item.id : undefined);
   const { data: attributes } = useAttributesQuery();
+  const { data: locations = [] } = useLocationsQuery();
+
+  const locationOptions = useMemo(
+    () => withPlaceholder('No location', buildHierarchyOptions(locations)),
+    [locations]
+  );
 
   const attributeDefinitions = useMemo(
     () =>
@@ -144,7 +150,7 @@ export function EquipmentEditForm({
           vendorCatalogNumber: item.vendorCatalogNumber ?? '',
           model: item.model ?? '',
           description: item.description ?? '',
-          location: item.location ?? '',
+          locationId: item.locationId ?? '',
           status: item.status,
           conditionNotes: item.conditionNotes ?? '',
           purchaseDate: normalizeDateString(item.purchaseDate),
@@ -318,15 +324,25 @@ export function EquipmentEditForm({
               helperText={errors.assetTag?.message}
               registration={register('assetTag')}
             />
-            <ValidatedInput
-              label="Location"
-              labelStyle="compact"
-              className="col-span-2"
-              placeholder="e.g., Room 204, Bench 3"
-              error={!!errors.location}
-              helperText={errors.location?.message}
-              registration={register('location')}
-            />
+            <div className="col-span-2">
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+              <label id="equipmentLocation" className={FIELD_LABEL_COMPACT}>
+                Location
+              </label>
+              <Controller
+                name="locationId"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    options={locationOptions}
+                    value={(value as string) ?? ''}
+                    onChange={v => onChange(String(v ?? '') || null)}
+                    fullWidth
+                    aria-labelledby="equipmentLocation"
+                  />
+                )}
+              />
+            </div>
             <ValidatedInput
               label="Description"
               labelStyle="compact"

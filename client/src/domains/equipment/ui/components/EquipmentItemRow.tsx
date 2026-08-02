@@ -19,6 +19,8 @@ interface EquipmentItemRowProps {
   item: EquipmentItem;
   isSelected: boolean;
   onSelect: (id: string) => void;
+  /** Resolved by the tab, which already holds the lab's location tree. */
+  locationName?: string;
 }
 
 function getMaintenanceIndicator(
@@ -48,7 +50,12 @@ function getMaintenanceIndicator(
   };
 }
 
-export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRowProps) {
+export function EquipmentItemRow({
+  item,
+  isSelected,
+  onSelect,
+  locationName,
+}: EquipmentItemRowProps) {
   const isDecommissioned = item.status === 'decommissioned';
   const maint = item.nextMaintenanceDate
     ? getMaintenanceIndicator(item.nextMaintenanceDate)
@@ -93,9 +100,9 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
       }
       trailing={
         <>
-          {item.location && (
+          {locationName && (
             <Chip color="info" size="sm" lead={<MapPin />}>
-              {item.location}
+              {locationName}
             </Chip>
           )}
           {item.assetTag && (

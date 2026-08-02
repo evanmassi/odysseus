@@ -20,7 +20,7 @@ interface ItemCreateData {
   vendorCatalogNumber?: string;
   model?: string;
   description?: string;
-  location?: string;
+  locationId?: string;
   status?: EquipmentStatus;
   conditionNotes?: string;
   purchaseDate?: string;
@@ -41,7 +41,7 @@ interface ItemUpdateData {
   vendorCatalogNumber?: string | null;
   model?: string | null;
   description?: string | null;
-  location?: string | null;
+  locationId?: string | null;
   status?: EquipmentStatus | null;
   conditionNotes?: string | null;
   purchaseDate?: string | null;
@@ -64,7 +64,7 @@ export class EquipmentItem {
     private _vendorCatalogNumber: string | undefined,
     private _model: string | undefined,
     private _description: string | undefined,
-    private _location: string | undefined,
+    private _locationId: string | undefined,
     private _status: EquipmentStatus,
     private _conditionNotes: string | undefined,
     private _purchaseDate: string | undefined,
@@ -94,7 +94,7 @@ export class EquipmentItem {
       data.vendorCatalogNumber,
       data.model,
       data.description,
-      data.location,
+      data.locationId,
       data.status ?? 'active',
       data.conditionNotes,
       data.purchaseDate,
@@ -122,7 +122,7 @@ export class EquipmentItem {
     vendorCatalogNumber?: string;
     model?: string;
     description?: string;
-    location?: string;
+    locationId?: string;
     status: EquipmentStatus;
     conditionNotes?: string;
     purchaseDate?: string;
@@ -148,7 +148,7 @@ export class EquipmentItem {
       data.vendorCatalogNumber,
       data.model,
       data.description,
-      data.location,
+      data.locationId,
       data.status,
       data.conditionNotes,
       data.purchaseDate,
@@ -187,7 +187,7 @@ export class EquipmentItem {
       this._vendorCatalogNumber = data.vendorCatalogNumber ?? undefined;
     if (data.model !== undefined) this._model = data.model ?? undefined;
     if (data.description !== undefined) this._description = data.description ?? undefined;
-    if (data.location !== undefined) this._location = data.location ?? undefined;
+    if (data.locationId !== undefined) this._locationId = data.locationId ?? undefined;
     if (data.status !== undefined) this._status = data.status ?? this._status;
     if (data.conditionNotes !== undefined) this._conditionNotes = data.conditionNotes ?? undefined;
     if (data.purchaseDate !== undefined) this._purchaseDate = data.purchaseDate ?? undefined;
@@ -247,8 +247,8 @@ export class EquipmentItem {
   get description(): string | undefined {
     return this._description;
   }
-  get location(): string | undefined {
-    return this._location;
+  get locationId(): string | undefined {
+    return this._locationId;
   }
   get status(): EquipmentStatus {
     return this._status;

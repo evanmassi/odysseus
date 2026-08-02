@@ -20,7 +20,7 @@ import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
-import { useAttributesQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
 import {
   AccentTick,
   Button,
@@ -58,13 +58,14 @@ import type { EquipmentItem, EquipmentMaintenanceLog } from '@odysseus/shared-sc
 
 const isEquipmentHidden = (item: EquipmentItem) => item.status === 'decommissioned';
 
-const getEquipmentSearchFields = (item: EquipmentItem) => [
+/** Location is searchable by name, as it was when the column held the text itself. */
+const equipmentSearchFields = (item: EquipmentItem, locationName?: string) => [
   item.name,
   item.manufacturer,
   item.model,
   item.serialNumber,
   item.assetTag,
-  item.location,
+  locationName,
 ];
 
 const TREE_LABELS: CategoryTreePanelLabels = {
@@ -87,6 +88,7 @@ export function EquipmentTab() {
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
   const { data: attributes } = useAttributesQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const createCategoryMutation = useCreateEquipmentCategoryMutation();
   const updateCategoryMutation = useUpdateEquipmentCategoryMutation();
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
@@ -101,6 +103,8 @@ export function EquipmentTab() {
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
+  // The chip names the place; the path is what the free-text column used to spell out.
+  const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const categoryState = useCatalogCategories({
     categories,
     createMutation: createCategoryMutation,
@@ -297,12 +301,20 @@ export function EquipmentTab() {
                 sortDirection={sortDirection}
                 showHidden={showDecommissioned}
                 isHidden={isEquipmentHidden}
-                getSearchFields={getEquipmentSearchFields}
+                getSearchFields={item =>
+                  equipmentSearchFields(
+                    item,
+                    item.locationId ? locationNameMap.get(item.locationId) : undefined
+                  )
+                }
                 renderItem={item => (
                   <EquipmentItemRow
                     item={item}
                     isSelected={item.id === selectedItemId}
                     onSelect={handleSelectItem}
+                    locationName={
+                      item.locationId ? locationNameMap.get(item.locationId) : undefined
+                    }
                   />
                 )}
                 treeId="equipment"

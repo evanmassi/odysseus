@@ -21,7 +21,7 @@ export interface EquipmentItemRow {
   vendor_catalog_number: string | null;
   model: string | null;
   description: string | null;
-  location: string | null;
+  location_id: string | null;
   status: string;
   condition_notes: string | null;
   purchase_date: string | null;
@@ -50,7 +50,7 @@ export class EquipmentItemMapper {
       vendor_catalog_number: item.vendorCatalogNumber ?? null,
       model: item.model ?? null,
       description: item.description ?? null,
-      location: item.location ?? null,
+      location_id: item.locationId ?? null,
       status: item.status,
       condition_notes: item.conditionNotes ?? null,
       purchase_date: item.purchaseDate ?? null,
@@ -79,7 +79,7 @@ export class EquipmentItemMapper {
       vendorCatalogNumber: row.vendor_catalog_number ?? undefined,
       model: row.model ?? undefined,
       description: row.description ?? undefined,
-      location: row.location ?? undefined,
+      locationId: row.location_id ?? undefined,
       status: row.status as EquipmentStatus,
       conditionNotes: row.condition_notes ?? undefined,
       purchaseDate: row.purchase_date ?? undefined,

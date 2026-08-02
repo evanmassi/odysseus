@@ -5,7 +5,7 @@
  * maintenance log timeline, and admin action buttons.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
@@ -31,7 +31,7 @@ import {
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
-import { useAttributesQuery } from '@domains/lab-management';
+import { useAttributesQuery, useLocationsQuery } from '@domains/lab-management';
 import {
   Button,
   Chip,
@@ -91,6 +91,7 @@ export function EquipmentItemInfoPanel({
   }, [itemId]);
   const { data: detail } = useEquipmentItemDetailQuery(itemId);
   const { data: attributes } = useAttributesQuery();
+  const { data: locations = [] } = useLocationsQuery();
   const deleteItemMutation = useDeleteEquipmentItemMutation();
   const addDocumentMutation = useAddEquipmentDocumentMutation();
   const updateDocumentMutation = useUpdateEquipmentDocumentMutation();
@@ -101,6 +102,21 @@ export function EquipmentItemInfoPanel({
     mode: 'add' | 'edit';
     doc?: EquipmentDocument;
   }>({ isOpen: false, mode: 'add' });
+
+  // The full path is what the free-text column used to spell out, so the chip keeps saying it.
+  const locationPath = useMemo(() => {
+    const locationId = detail?.item.locationId;
+    if (!locationId) return undefined;
+    const byId = new Map(locations.map(l => [l.id, l]));
+    let current = byId.get(locationId);
+    if (!current) return undefined;
+    const path: string[] = [];
+    while (current) {
+      path.unshift(current.name);
+      current = current.parentId ? byId.get(current.parentId) : undefined;
+    }
+    return path.join(' › ');
+  }, [detail?.item.locationId, locations]);
 
   if (!detail) {
     return (
@@ -116,6 +132,7 @@ export function EquipmentItemInfoPanel({
   }
 
   const { item, documents, maintenanceLog, attributeValues } = detail;
+
   const attributeRows = toAttributeDisplayRows(
     attributes?.definitions ?? [],
     attributes?.options ?? [],
@@ -195,11 +212,11 @@ export function EquipmentItemInfoPanel({
               </Chip>
             </>
           )}
-          {item.location && (
+          {locationPath && (
             <>
               <StripLabel>Location</StripLabel>
               <Chip size="sm" color="info" lead={<MapPin />}>
-                {item.location}
+                {locationPath}
               </Chip>
             </>
           )}

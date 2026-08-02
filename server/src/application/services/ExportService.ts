@@ -8,6 +8,7 @@ import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { Person } from '@domain/entities/Person';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
+import type { LocationRepository } from '@domain/repositories/LocationRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -130,7 +131,8 @@ export class ExportService {
     private appVersion: string,
     private equipmentItemRepository: EquipmentItemRepository,
     private equipmentCategoryRepository: CategoryRepository<EquipmentCategory>,
-    private supplyItemRepository: SupplyItemRepository
+    private supplyItemRepository: SupplyItemRepository,
+    private locationRepository: LocationRepository
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -333,11 +335,18 @@ export class ExportService {
 
     const items = await this.equipmentItemRepository.findByLabId(labId);
     const categories = await this.equipmentCategoryRepository.findByLabId(labId);
+    const locations = await this.locationRepository.findByLabId(labId);
 
     const categoryMap = new Map<string, string>();
     categories.forEach(c => {
       const parent = c.parentId ? categories.find(p => p.id === c.parentId) : undefined;
       categoryMap.set(c.id, parent ? `${parent.name} > ${c.name}` : c.name);
+    });
+
+    const locationMap = new Map<string, string>();
+    locations.forEach(l => {
+      const parent = l.parentId ? locations.find(p => p.id === l.parentId) : undefined;
+      locationMap.set(l.id, parent ? `${parent.name} > ${l.name}` : l.name);
     });
 
     const rows: EquipmentExportRow[] = items.map(item => ({
@@ -348,7 +357,7 @@ export class ExportService {
       manufacturer: item.manufacturer ?? '',
       model: item.model ?? '',
       status: item.status,
-      location: item.location ?? '',
+      location: item.locationId ? (locationMap.get(item.locationId) ?? '') : '',
       assetTag: item.assetTag ?? '',
       description: item.description ?? '',
       conditionNotes: item.conditionNotes ?? '',
