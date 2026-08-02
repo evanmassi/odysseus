@@ -22,11 +22,11 @@ import {
 } from '@shared/ui/components/inventory';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import { ReagentBulkIssueTab } from './bulk-update-tabs/ReagentBulkIssueTab';
-import { ReagentBulkReceiveTab } from './bulk-update-tabs/ReagentBulkReceiveTab';
-import { ReagentBulkVoidTab } from './bulk-update-tabs/ReagentBulkVoidTab';
-import { ReagentPrintOptionsPanel } from './bulk-update-tabs/ReagentPrintOptionsPanel';
-import { useReagentPrintLabels } from './bulk-update-tabs/useReagentPrintLabels';
+import { ReagentBulkIssueTab } from './bulk-operations/ReagentBulkIssueTab';
+import { ReagentBulkReceiveTab } from './bulk-operations/ReagentBulkReceiveTab';
+import { ReagentBulkVoidTab } from './bulk-operations/ReagentBulkVoidTab';
+import { ReagentPrintOptionsPanel } from './bulk-operations/ReagentPrintOptionsPanel';
+import { useReagentPrintLabels } from './bulk-operations/useReagentPrintLabels';
 
 import type { ReagentCategory, ReagentItemWithStock } from '@odysseus/shared-schemas';
 

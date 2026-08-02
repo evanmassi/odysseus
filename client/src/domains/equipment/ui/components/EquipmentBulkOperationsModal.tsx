@@ -21,9 +21,9 @@ import {
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import { EquipmentBulkMaintenanceTab } from './bulk-update-tabs/EquipmentBulkMaintenanceTab';
-import { EquipmentBulkRelocateTab } from './bulk-update-tabs/EquipmentBulkRelocateTab';
-import { EquipmentBulkStatusTab } from './bulk-update-tabs/EquipmentBulkStatusTab';
+import { EquipmentBulkMaintenanceTab } from './bulk-operations/EquipmentBulkMaintenanceTab';
+import { EquipmentBulkRelocateTab } from './bulk-operations/EquipmentBulkRelocateTab';
+import { EquipmentBulkStatusTab } from './bulk-operations/EquipmentBulkStatusTab';
 
 import type {
   EquipmentItem,

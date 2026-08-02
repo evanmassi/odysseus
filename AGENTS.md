@@ -281,8 +281,15 @@ Pattern: **Domain prefix → entity → specifics → suffix**.
 
 Examples: `TubeLockNoteModal`, `AuthPasswordResetPage`, `ResearcherStatsPanel`.
 
-**Established suffixes** (use only these — don't invent new ones):
-`Modal`, `Tab`, `Panel`, `Page`, `Form`, `Row`, `Button`, `Settings`, `Dashboard`, `Indicator`, `Field`.
+**Established suffixes.** Reach for one of these before coining a new one:
+
+| Common | `Modal`, `Panel`, `Tab`, `Page`, `Form`, `Row`, `Field`, `Button` |
+|--------|---|
+| Also in use | `Dialog`, `Section`, `List`, `Bar`, `Timeline`, `Table`, `Preview`, `Settings`, `Dashboard`, `Indicator`, `Controls`, `Selector`, `Shell` |
+
+A suffix outside both rows needs a reason — `Rail` earned its place by naming a UI pattern none of
+the above describes. Prefer the first row when either fits: a `Section` that opens over the page is
+a `Modal`, and a `Table` that owns its own empty and loading states is usually a `Panel`.
 
 ### `ui/components/` Subdirectories
 

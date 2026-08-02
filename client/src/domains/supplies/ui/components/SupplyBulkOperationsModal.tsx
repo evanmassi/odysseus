@@ -22,10 +22,10 @@ import {
 } from '@shared/ui/components/inventory';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import { SupplyBulkIssueTab } from './bulk-update-tabs/SupplyBulkIssueTab';
-import { SupplyBulkReceiveTab } from './bulk-update-tabs/SupplyBulkReceiveTab';
-import { SupplyBulkVoidTab } from './bulk-update-tabs/SupplyBulkVoidTab';
-import { fetchSupplyPrintLabels } from './bulk-update-tabs/supplyPrintLabels';
+import { SupplyBulkIssueTab } from './bulk-operations/SupplyBulkIssueTab';
+import { SupplyBulkReceiveTab } from './bulk-operations/SupplyBulkReceiveTab';
+import { SupplyBulkVoidTab } from './bulk-operations/SupplyBulkVoidTab';
+import { fetchSupplyPrintLabels } from './bulk-operations/supplyPrintLabels';
 
 import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 
