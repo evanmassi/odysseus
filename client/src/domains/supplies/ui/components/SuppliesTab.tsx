@@ -23,9 +23,9 @@ import {
   Button,
   HeaderStrip,
   InfoPanelEmpty,
-  OverflowMenu,
   PanelHeader,
   SearchInput,
+  Tooltip,
 } from '@shared/ui';
 import {
   CategoryManager,
@@ -54,7 +54,6 @@ import { SupplyTransactionForm } from './SupplyTransactionForm';
 
 import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
-import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
 const isSupplyHidden = (item: SupplyItemWithStock) => item.status === 'archived';
 
@@ -165,10 +164,6 @@ export function SuppliesTab() {
     setRightPanel(undefined);
   }, []);
 
-  const actionMenuItems: OverflowMenuItem[] = [
-    { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
-  ];
-
   const activeFilterCount = countAttributeFilters(filters);
   const visibleItems = useMemo(
     () =>
@@ -211,13 +206,13 @@ export function SuppliesTab() {
           </HeaderStrip>
 
           {/* Toolbar: search · scan · sort · archived · actions — the table's own header */}
-          <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
+          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search supplies…"
               size="sm"
-              className="w-64"
+              className="w-64 min-w-[9rem]"
               aria-label="Search supplies"
             />
             <SupplyQuickScanBar
@@ -237,7 +232,7 @@ export function SuppliesTab() {
               size="sm"
               onClick={() => setIsFilterOpen(open => !open)}
               aria-pressed={isFilterOpen || activeFilterCount > 0}
-              className={`h-8 text-label-sm ${
+              className={`h-8 flex-shrink-0 text-label-sm ${
                 isFilterOpen || activeFilterCount > 0
                   ? 'border border-primary/55 bg-primary/[0.10] text-primary'
                   : ''
@@ -250,7 +245,7 @@ export function SuppliesTab() {
               variant="ghost"
               size="sm"
               onClick={() => setShowArchived(!showArchived)}
-              className="h-8 text-label-sm"
+              className="h-8 flex-shrink-0 text-label-sm"
               leftIcon={
                 showArchived ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />
               }
@@ -260,11 +255,22 @@ export function SuppliesTab() {
             <span className="flex-1" />
             {isAdmin && (
               <>
-                <OverflowMenu items={actionMenuItems} size="sm" aria-label="Actions" />
+                <Tooltip content="Bulk Operations" side="bottom">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    iconOnly
+                    onClick={() => setIsBulkUpdateOpen(true)}
+                    className="h-8 flex-shrink-0"
+                    aria-label="Bulk Operations"
+                  >
+                    <Layers className="h-3.5 w-3.5" />
+                  </Button>
+                </Tooltip>
                 <Button
                   size="sm"
                   onClick={handleAddItem}
-                  className="h-8"
+                  className="h-8 flex-shrink-0"
                   leftIcon={<Plus className="h-3.5 w-3.5" />}
                 >
                   Add Item

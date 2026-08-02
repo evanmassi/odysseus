@@ -14,6 +14,7 @@ export {
   useDeleteLabLocationMutation,
 } from './hooks/useLabLocationMutations';
 export { LabLocationModal } from './ui/components/LabLocationModal';
+export { LabLocationTree } from './ui/components/LabLocationTree';
 
 export { EMPTY_ATTRIBUTES, useAttributesQuery } from './hooks/useAttributeQueries';
 export {

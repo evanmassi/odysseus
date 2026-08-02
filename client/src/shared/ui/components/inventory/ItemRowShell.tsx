@@ -73,7 +73,7 @@ export function ItemRowShell({
 
       {leadingIcon}
 
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex min-w-[9rem] flex-1 flex-col gap-0.5">
         <div className="flex min-w-0 items-center gap-2">
           <span className="truncate font-display text-body font-medium leading-tight text-card-foreground">
             {name}
@@ -92,7 +92,8 @@ export function ItemRowShell({
         )}
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-1.5">{trailing}</div>
+      {/* Shrinks before the name does — an unnamed row is useless, a clipped chip is not. */}
+      <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">{trailing}</div>
     </div>
   );
 }

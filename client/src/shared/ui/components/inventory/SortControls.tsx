@@ -42,7 +42,7 @@ export function SortControls<T extends string>({
         onChange={v => onChange(v as T)}
         size="xs"
         aria-label="Sort field"
-        className="w-32"
+        className="w-32 flex-shrink-0"
       />
       <Tooltip content={direction === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
         <button

@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 
-import { CornerDownRight, FolderOpen, MapPin, Save, SquarePen, Trash2 } from 'lucide-react';
+import { MapPin, Save, SquarePen, Trash2 } from 'lucide-react';
 
 import {
   AccentTick,
@@ -22,8 +22,6 @@ import {
 import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { SelectTreeLines } from '@shared/ui/components/tree-lines';
-import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 import { notifications } from '@shared/utils/notifications';
 
 import {
@@ -33,14 +31,14 @@ import {
 } from '../../hooks/useLabLocationMutations';
 import { useLabLocationsQuery } from '../../hooks/useLabLocationQueries';
 
+import { LabLocationTree } from './LabLocationTree';
+
 import type { LabLocation } from '@odysseus/shared-schemas';
 
 interface LabLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const TIER_LEVELS = ['l1', 'l2', 'l3'] as const;
 
 function subtreeIds(locations: LabLocation[], rootId: string): Set<string> {
   const ids = new Set([rootId]);
@@ -84,16 +82,6 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen]);
-
-  const childrenByParent = useMemo(() => {
-    const map = new Map<string | null, LabLocation[]>();
-    for (const location of locations) {
-      const key = location.parentId ?? null;
-      map.set(key, [...(map.get(key) ?? []), location]);
-    }
-    for (const siblings of map.values()) siblings.sort(compareByOrderThenName);
-    return map;
-  }, [locations]);
 
   const tierCounts = useMemo(
     () => ({
@@ -178,61 +166,25 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
     }
   };
 
-  const renderTier = (parent: string | null, depth: number) => {
-    const tier = childrenByParent.get(parent) ?? [];
-    if (tier.length === 0) return null;
-
-    return tier.map(location => {
-      const hasChildren = (childrenByParent.get(location.id) ?? []).length > 0;
-
-      return (
-        <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
-          <div
-            className={`select-tree-row group flex items-center gap-2 py-1 pl-3 pr-1 ${
-              editingId === location.id ? 'bg-foreground/[0.06]' : ''
-            }`}
-          >
-            {depth === 0 ? (
-              <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
-            ) : (
-              <CornerDownRight size={13} className="flex-shrink-0 text-muted-foreground" />
-            )}
-            <div className="min-w-0 flex-1">
-              <span className="block truncate text-body-sm font-medium text-card-foreground">
-                {location.name}
-              </span>
-              {location.description && (
-                <span className="block truncate text-caption text-muted-foreground">
-                  {location.description}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-shrink-0 gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-              <Tooltip content="Rename" side="bottom">
-                <Button variant="ghost" size="xs" iconOnly onClick={() => startEdit(location)}>
-                  <SquarePen className="h-3 w-3" />
-                </Button>
-              </Tooltip>
-              <Tooltip content="Remove" side="bottom">
-                <Button
-                  variant="ghost-danger"
-                  size="xs"
-                  iconOnly
-                  onClick={() => setPendingDelete(location)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </Tooltip>
-            </div>
-          </div>
-
-          {hasChildren && depth < TIER_LEVELS.length - 1 && (
-            <div className="ml-3">{renderTier(location.id, depth + 1)}</div>
-          )}
-        </div>
-      );
-    });
-  };
+  const rowActions = (location: LabLocation) => (
+    <>
+      <Tooltip content="Rename" side="bottom">
+        <Button variant="ghost" size="xs" iconOnly onClick={() => startEdit(location)}>
+          <SquarePen className="h-3 w-3" />
+        </Button>
+      </Tooltip>
+      <Tooltip content="Remove" side="bottom">
+        <Button
+          variant="ghost-danger"
+          size="xs"
+          iconOnly
+          onClick={() => setPendingDelete(location)}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </Tooltip>
+    </>
+  );
 
   const locator = (
     <div className="flex items-center gap-3">
@@ -297,19 +249,13 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
               </div>
 
               <ScrollArea className="min-h-0 flex-1">
-                {locations.length === 0 ? (
-                  <p className="py-4 text-center text-body-sm text-muted-foreground">
-                    No locations yet. Add the first one on the right.
-                  </p>
-                ) : (
-                  <div
-                    data-tree-id="lab-location"
-                    className="nav-tree-select relative space-y-2 pr-2"
-                  >
-                    <SelectTreeLines treeId="lab-location" />
-                    {renderTier(null, 0)}
-                  </div>
-                )}
+                <LabLocationTree
+                  locations={locations}
+                  treeId="lab-location"
+                  emptyMessage="No locations yet. Add the first one on the right."
+                  highlightId={editingId}
+                  renderActions={rowActions}
+                />
               </ScrollArea>
             </div>
 

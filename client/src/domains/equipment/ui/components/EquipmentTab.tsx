@@ -28,6 +28,7 @@ import {
   InfoPanelEmpty,
   PanelHeader,
   SearchInput,
+  Tooltip,
 } from '@shared/ui';
 import {
   CategoryManager,
@@ -202,13 +203,13 @@ export function EquipmentTab() {
             </span>
           </HeaderStrip>
 
-          <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
+          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search equipment…"
               size="sm"
-              className="w-64"
+              className="w-64 min-w-[9rem]"
               aria-label="Search equipment"
             />
             <SortControls
@@ -223,7 +224,7 @@ export function EquipmentTab() {
               size="sm"
               onClick={() => setIsFilterOpen(open => !open)}
               aria-pressed={isFilterOpen || activeFilterCount > 0}
-              className={`h-8 text-label-sm ${
+              className={`h-8 flex-shrink-0 text-label-sm ${
                 isFilterOpen || activeFilterCount > 0
                   ? 'border border-primary/55 bg-primary/[0.10] text-primary'
                   : ''
@@ -236,7 +237,7 @@ export function EquipmentTab() {
               variant="ghost"
               size="sm"
               onClick={() => setShowDecommissioned(!showDecommissioned)}
-              className="h-8 text-label-sm"
+              className="h-8 flex-shrink-0 text-label-sm"
               leftIcon={
                 showDecommissioned ? (
                   <EyeOff className="h-3.5 w-3.5" />
@@ -250,19 +251,22 @@ export function EquipmentTab() {
             <span className="flex-1" />
             {isAdmin && (
               <>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setIsBulkModalOpen(true)}
-                  className="h-8"
-                  leftIcon={<Layers className="h-3.5 w-3.5" />}
-                >
-                  Bulk Operations
-                </Button>
+                <Tooltip content="Bulk Operations" side="bottom">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    iconOnly
+                    onClick={() => setIsBulkModalOpen(true)}
+                    className="h-8 flex-shrink-0"
+                    aria-label="Bulk Operations"
+                  >
+                    <Layers className="h-3.5 w-3.5" />
+                  </Button>
+                </Tooltip>
                 <Button
                   size="sm"
                   onClick={handleAddEquipment}
-                  className="h-8"
+                  className="h-8 flex-shrink-0"
                   leftIcon={<Plus className="h-3.5 w-3.5" />}
                 >
                   Add Equipment
