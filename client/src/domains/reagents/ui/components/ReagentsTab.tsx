@@ -377,7 +377,7 @@ export function ReagentsTab() {
               const txnItem = items.find(i => i.id === rightPanel.itemId);
               return (
                 <ReagentTransactionForm
-                  key={`${rightPanel.itemId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
+                  key={`${rightPanel.itemId}-${rightPanel.initialTab ?? 'received'}-${JSON.stringify(rightPanel.prefill ?? '')}`}
                   itemId={rightPanel.itemId}
                   itemName={txnItem?.name ?? ''}
                   manufacturer={txnItem?.manufacturer}

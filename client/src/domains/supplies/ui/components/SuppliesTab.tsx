@@ -384,7 +384,7 @@ export function SuppliesTab() {
               const txnItem = items.find(p => p.id === rightPanel.itemId);
               return (
                 <SupplyTransactionForm
-                  key={`${rightPanel.itemId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
+                  key={`${rightPanel.itemId}-${rightPanel.initialTab ?? 'received'}-${JSON.stringify(rightPanel.prefill ?? '')}`}
                   itemId={rightPanel.itemId}
                   itemName={txnItem?.name ?? ''}
                   manufacturer={txnItem?.manufacturer}
