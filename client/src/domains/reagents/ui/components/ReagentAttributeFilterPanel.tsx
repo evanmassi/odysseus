@@ -34,7 +34,7 @@ const EXPIRY_BUCKETS: Array<{ id: ReagentExpiryBucket; label: string }> = [
 interface ReagentAttributeFilterPanelProps {
   definitions: AttributeDefinition[];
   options: AttributeOption[];
-  /** Every reagent, not the filtered set, so a group never vanishes as you narrow. */
+  /** Every reagent in the current view scope, not the filtered set, so a group never vanishes as you narrow. */
   items: ReagentItemWithStock[];
   matchCount: number;
   filters: ReagentFilters;

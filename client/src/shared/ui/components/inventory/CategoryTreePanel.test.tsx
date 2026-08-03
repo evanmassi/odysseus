@@ -1,11 +1,11 @@
 /**
  * CategoryTreePanel tests
  *
- * Guards the parametrization that lets one panel back both equipment and
- * supplies: the injected hidden-status predicate, searchable fields, count-noun
- * labels (including in subcategories), the tree id, item rendering, and — the
- * subtle one — the Remove-disable parity between a category (counts subcategory
- * items) and a subcategory (counts only its own items).
+ * Guards the parametrization that lets one panel back all three catalogs: the
+ * count-noun labels (including in subcategories), the tree id, item rendering,
+ * the search-driven expansion, and — the subtle one — the Remove-disable parity
+ * between a category (counts subcategory items) and a subcategory (counts only
+ * its own items).
  *
  * NavTreeLines (document-scoped SVG geometry) and OverflowMenu (a portalled
  * widget) are stubbed; OverflowMenu becomes plain buttons so disabled state is
@@ -47,7 +47,6 @@ interface TestItem {
   categoryId: string;
   manufacturer?: string;
   createdAt: string;
-  status: string;
 }
 
 const category = (id: string, name: string, parentId: string | null, sortOrder: number) => ({
@@ -66,38 +65,9 @@ const categories = [
 ];
 
 const items: TestItem[] = [
-  {
-    id: 'i1',
-    name: 'P200',
-    categoryId: 'c1s',
-    manufacturer: 'Eppendorf',
-    createdAt: '2020-01-01',
-    status: 'active',
-  },
-  {
-    id: 'i2',
-    name: 'Old P',
-    categoryId: 'c1s',
-    manufacturer: 'Gilson',
-    createdAt: '2020-01-01',
-    status: 'decommissioned',
-  },
-  {
-    id: 'i3',
-    name: 'Buffer',
-    categoryId: 'c2',
-    manufacturer: 'Sigma',
-    createdAt: '2020-01-01',
-    status: 'active',
-  },
-  {
-    id: 'i4',
-    name: 'Agar',
-    categoryId: 'c2',
-    manufacturer: 'BD',
-    createdAt: '2020-01-01',
-    status: 'active',
-  },
+  { id: 'i1', name: 'P200', categoryId: 'c1s', manufacturer: 'Eppendorf', createdAt: '2020-01-01' },
+  { id: 'i3', name: 'Buffer', categoryId: 'c2', manufacturer: 'Sigma', createdAt: '2020-01-01' },
+  { id: 'i4', name: 'Agar', categoryId: 'c2', manufacturer: 'BD', createdAt: '2020-01-01' },
 ];
 
 const labels: CategoryTreePanelLabels = {
@@ -114,9 +84,6 @@ const baseProps = {
   isAdmin: true,
   sortField: 'name' as const,
   sortDirection: 'asc' as const,
-  showHidden: false,
-  isHidden: (item: TestItem) => item.status === 'decommissioned',
-  getSearchFields: (item: TestItem) => [item.name, item.manufacturer],
   renderItem: (item: TestItem) => <div data-testid={`item-${item.id}`}>{item.name}</div>,
   treeId: 'equipment',
   labels,
@@ -144,24 +111,16 @@ describe('CategoryTreePanel', () => {
     expect(screen.getByTestId('item-i4')).toBeInTheDocument();
   });
 
-  it('hides items matched by isHidden unless showHidden is set', () => {
-    const { rerender } = render(<CategoryTreePanel {...baseProps} />);
-    fireEvent.click(screen.getByText('Pipettes')); // expand c1 → subcategory sections auto-open
+  it('force-expands categories holding results while a search is active', () => {
+    // The caller narrows the list; the panel opens whatever survived without a click.
+    render(<CategoryTreePanel {...baseProps} items={[items[0]]} searchQuery="eppendorf" />);
 
-    expect(screen.getByTestId('item-i1')).toBeInTheDocument(); // active
-    expect(screen.queryByTestId('item-i2')).not.toBeInTheDocument(); // decommissioned, hidden
-
-    rerender(<CategoryTreePanel {...baseProps} showHidden />);
-    expect(screen.getByTestId('item-i2')).toBeInTheDocument();
+    expect(screen.getByTestId('item-i1')).toBeInTheDocument();
+    expect(screen.queryByText('Reagents')).not.toBeInTheDocument(); // no results, so no row
   });
 
-  it('searches the injected fields and reports no match', () => {
-    const { rerender } = render(<CategoryTreePanel {...baseProps} searchQuery="eppendorf" />);
-    // Matches i1 by manufacturer (an injected field); c2's items do not match.
-    expect(screen.getByTestId('item-i1')).toBeInTheDocument();
-    expect(screen.queryByTestId('item-i3')).not.toBeInTheDocument();
-
-    rerender(<CategoryTreePanel {...baseProps} searchQuery="zzznomatch" />);
+  it('reports no match when a search narrows the list to nothing', () => {
+    render(<CategoryTreePanel {...baseProps} items={[]} searchQuery="zzznomatch" />);
     expect(screen.getByText(/No equipment matching/)).toBeInTheDocument();
   });
 

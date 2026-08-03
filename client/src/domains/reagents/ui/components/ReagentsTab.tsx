@@ -33,6 +33,7 @@ import {
   useCatalogCategories,
   CategoryTreePanel,
   INVENTORY_SORT_OPTIONS,
+  searchCatalogItems,
   SortControls,
   type CategoryTreePanelLabels,
   type InventorySortField,
@@ -162,14 +163,29 @@ export function ReagentsTab() {
   }, []);
 
   const activeFilterCount = countActiveFilters(filters);
+  const catalogItems = useMemo(
+    () => (showArchived ? items : items.filter(i => !isReagentHidden(i))),
+    [items, showArchived]
+  );
   const visibleItems = useMemo(
-    () => (activeFilterCount === 0 ? items : items.filter(i => matchesReagentFilters(i, filters))),
-    [items, filters, activeFilterCount]
+    () =>
+      activeFilterCount === 0
+        ? catalogItems
+        : catalogItems.filter(i => matchesReagentFilters(i, filters)),
+    [catalogItems, filters, activeFilterCount]
+  );
+  const treeItems = useMemo(
+    () =>
+      searchCatalogItems({
+        items: visibleItems,
+        categories,
+        searchQuery,
+        getSearchFields: getReagentSearchFields,
+      }),
+    [visibleItems, categories, searchQuery]
   );
 
-  const itemCount = showArchived
-    ? visibleItems.length
-    : visibleItems.filter(i => i.status !== 'archived').length;
+  const itemCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
   return (
@@ -282,8 +298,8 @@ export function ReagentsTab() {
               <ReagentAttributeFilterPanel
                 definitions={attributes?.definitions ?? []}
                 options={attributes?.options ?? []}
-                items={items}
-                matchCount={visibleItems.length}
+                items={catalogItems}
+                matchCount={treeItems.length}
                 filters={filters}
                 onChange={setFilters}
               />
@@ -299,14 +315,11 @@ export function ReagentsTab() {
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
-                items={visibleItems}
+                items={treeItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 sortField={sortField}
                 sortDirection={sortDirection}
-                showHidden={showArchived}
-                isHidden={isReagentHidden}
-                getSearchFields={getReagentSearchFields}
                 renderItem={item => (
                   <ReagentItemRow
                     item={item}

@@ -2,8 +2,8 @@
  * Category Tree Panel
  *
  * Collapsible category sections with nested subcategories and item cards, shared
- * by all three inventory catalogs. Item rendering, the hidden-status
- * predicate, the searchable fields, and the labels are injected per domain.
+ * by all three inventory catalogs. Callers pass the already-narrowed item list;
+ * item rendering and the labels are injected per domain.
  */
 
 import { useState, useMemo, useCallback, type ReactNode } from 'react';
@@ -18,7 +18,6 @@ import {
   Trash2,
 } from 'lucide-react';
 
-import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategoryIds';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Button, OverflowMenu, type OverflowMenuItem } from '../../primitives';
@@ -50,14 +49,13 @@ export interface CategoryTreePanelLabels {
 
 interface CategoryTreePanelProps<T extends TreeItem, C extends TreeCategory> {
   categories: C[];
+  /** Already narrowed by the caller; drives the rows and the header count alike. */
   items: T[];
+  /** Not applied here — it force-opens matching categories and names the empty state. */
   searchQuery: string;
   isAdmin: boolean;
   sortField: 'name' | 'manufacturer' | 'dateAdded';
   sortDirection: 'asc' | 'desc';
-  showHidden: boolean;
-  isHidden: (item: T) => boolean;
-  getSearchFields: (item: T) => Array<string | undefined>;
   renderItem: (item: T) => ReactNode;
   treeId: string;
   labels: CategoryTreePanelLabels;
@@ -92,9 +90,6 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   isAdmin,
   sortField,
   sortDirection,
-  showHidden,
-  isHidden,
-  getSearchFields,
   renderItem,
   treeId,
   labels,
@@ -125,30 +120,6 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
 
   const isSearching = searchQuery.trim().length > 0;
 
-  const matchingCategoryIds = useMemo(() => {
-    if (!isSearching) return new Set<string>();
-    return collectMatchingCategoryIds(categories, searchQuery);
-  }, [categories, searchQuery, isSearching]);
-
-  const filteredItems = useMemo(() => {
-    let result = items;
-
-    if (!showHidden) {
-      result = result.filter(item => !isHidden(item));
-    }
-
-    if (isSearching) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        item =>
-          getSearchFields(item).some(field => field?.toLowerCase().includes(query)) ||
-          matchingCategoryIds.has(item.categoryId)
-      );
-    }
-
-    return result;
-  }, [items, showHidden, isHidden, getSearchFields, searchQuery, isSearching, matchingCategoryIds]);
-
   const sortItems = useCallback(
     (a: T, b: T): number => {
       const dir = sortDirection === 'asc' ? 1 : -1;
@@ -177,7 +148,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
 
   const itemsByCategoryId = useMemo(() => {
     const map = new Map<string, T[]>();
-    filteredItems.forEach(item => {
+    items.forEach(item => {
       const list = map.get(item.categoryId) ?? [];
       list.push(item);
       map.set(item.categoryId, list);
@@ -186,7 +157,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
       map.set(key, list.sort(sortItems));
     }
     return map;
-  }, [filteredItems, sortItems]);
+  }, [items, sortItems]);
 
   const toggleCategory = (id: string) => {
     setExpandedCategories(prev => {
@@ -262,7 +233,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
         </div>
       )}
 
-      {filteredItems.length === 0 && isSearching && (
+      {items.length === 0 && isSearching && (
         <p className="text-body-sm text-muted-foreground text-center py-6">
           {labels.noSearchMatch} &ldquo;{searchQuery}&rdquo;
         </p>

@@ -32,8 +32,9 @@ interface AttributeFilterPanelProps<
 > {
   definitions: AttributeDefinition[];
   options: AttributeOption[];
-  /** Every item, not the filtered set, so a group never vanishes as you narrow. */
+  /** Every item in the current view scope, not the filtered set, so a group never vanishes as you narrow. */
   items: TItem[];
+  /** How many are actually on screen — search included, so the panel never contradicts the tree. */
   matchCount: number;
   filters: TFilters;
   /** Includes any facets the caller added, so Clear All lights up for those too. */
@@ -109,7 +110,7 @@ export function AttributeFilterPanel<
             Filters
           </span>
           <span className="font-mono text-data-sm tracking-data text-foreground/45">
-            {activeCount > 0 ? `${matchCount} of ${items.length}` : `${items.length}`}
+            {matchCount === items.length ? `${items.length}` : `${matchCount} of ${items.length}`}
             <span className="text-foreground/30"> {items.length === 1 ? 'item' : 'items'}</span>
           </span>
         </div>

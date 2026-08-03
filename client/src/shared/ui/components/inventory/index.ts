@@ -45,5 +45,6 @@ export {
 } from './itemAutocompleteOptions';
 export { toItemPrintableLabels } from './itemPrintLabels';
 export { LowStockAlertPanel } from './LowStockAlertPanel';
+export { searchCatalogItems } from './searchCatalogItems';
 export { SortControls, INVENTORY_SORT_OPTIONS, type InventorySortField } from './SortControls';
 export { transactionTypeDisplay } from './transactionTypeDisplay';

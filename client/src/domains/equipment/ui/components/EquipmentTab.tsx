@@ -41,6 +41,7 @@ import {
   CategoryTreePanel,
   type CategoryTreePanelLabels,
   INVENTORY_SORT_OPTIONS,
+  searchCatalogItems,
   SortControls,
   type InventorySortField,
 } from '@shared/ui/components/inventory';
@@ -165,17 +166,33 @@ export function EquipmentTab() {
   }, []);
 
   const activeFilterCount = countAttributeFilters(filters);
+  const catalogItems = useMemo(
+    () => (showDecommissioned ? items : items.filter(i => !isEquipmentHidden(i))),
+    [items, showDecommissioned]
+  );
   const visibleItems = useMemo(
     () =>
       activeFilterCount === 0
-        ? items
-        : items.filter(item => matchesAttributeFilters(item.attributeValues, filters)),
-    [items, filters, activeFilterCount]
+        ? catalogItems
+        : catalogItems.filter(item => matchesAttributeFilters(item.attributeValues, filters)),
+    [catalogItems, filters, activeFilterCount]
+  );
+  const treeItems = useMemo(
+    () =>
+      searchCatalogItems({
+        items: visibleItems,
+        categories,
+        searchQuery,
+        getSearchFields: item =>
+          equipmentSearchFields(
+            item,
+            item.locationId ? locationNameMap.get(item.locationId) : undefined
+          ),
+      }),
+    [visibleItems, categories, searchQuery, locationNameMap]
   );
 
-  const unitCount = showDecommissioned
-    ? visibleItems.length
-    : visibleItems.filter(i => i.status !== 'decommissioned').length;
+  const unitCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
   return (
@@ -281,8 +298,8 @@ export function EquipmentTab() {
               <AttributeFilterPanel
                 definitions={attributes?.definitions ?? []}
                 options={attributes?.options ?? []}
-                items={items}
-                matchCount={visibleItems.length}
+                items={catalogItems}
+                matchCount={treeItems.length}
                 filters={filters}
                 activeCount={activeFilterCount}
                 onChange={setFilters}
@@ -299,19 +316,11 @@ export function EquipmentTab() {
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
-                items={visibleItems}
+                items={treeItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 sortField={sortField}
                 sortDirection={sortDirection}
-                showHidden={showDecommissioned}
-                isHidden={isEquipmentHidden}
-                getSearchFields={item =>
-                  equipmentSearchFields(
-                    item,
-                    item.locationId ? locationNameMap.get(item.locationId) : undefined
-                  )
-                }
                 renderItem={item => (
                   <EquipmentItemRow
                     item={item}

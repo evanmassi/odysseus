@@ -38,6 +38,7 @@ import {
   CategoryTreePanel,
   type CategoryTreePanelLabels,
   INVENTORY_SORT_OPTIONS,
+  searchCatalogItems,
   SortControls,
   type InventorySortField,
 } from '@shared/ui/components/inventory';
@@ -165,17 +166,29 @@ export function SuppliesTab() {
   }, []);
 
   const activeFilterCount = countAttributeFilters(filters);
+  const catalogItems = useMemo(
+    () => (showArchived ? items : items.filter(i => !isSupplyHidden(i))),
+    [items, showArchived]
+  );
   const visibleItems = useMemo(
     () =>
       activeFilterCount === 0
-        ? items
-        : items.filter(item => matchesAttributeFilters(item.attributeValues, filters)),
-    [items, filters, activeFilterCount]
+        ? catalogItems
+        : catalogItems.filter(item => matchesAttributeFilters(item.attributeValues, filters)),
+    [catalogItems, filters, activeFilterCount]
+  );
+  const treeItems = useMemo(
+    () =>
+      searchCatalogItems({
+        items: visibleItems,
+        categories,
+        searchQuery,
+        getSearchFields: getSupplySearchFields,
+      }),
+    [visibleItems, categories, searchQuery]
   );
 
-  const itemCount = showArchived
-    ? visibleItems.length
-    : visibleItems.filter(p => p.status !== 'archived').length;
+  const itemCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
   return (
@@ -292,8 +305,8 @@ export function SuppliesTab() {
               <AttributeFilterPanel
                 definitions={attributes?.definitions ?? []}
                 options={attributes?.options ?? []}
-                items={items}
-                matchCount={visibleItems.length}
+                items={catalogItems}
+                matchCount={treeItems.length}
                 filters={filters}
                 activeCount={activeFilterCount}
                 onChange={setFilters}
@@ -308,14 +321,11 @@ export function SuppliesTab() {
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
-                items={visibleItems}
+                items={treeItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 sortField={sortField}
                 sortDirection={sortDirection}
-                showHidden={showArchived}
-                isHidden={isSupplyHidden}
-                getSearchFields={getSupplySearchFields}
                 renderItem={item => (
                   <SupplyItemRow
                     item={item}
