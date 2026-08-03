@@ -212,7 +212,7 @@ export function EquipmentTab() {
               className="w-64 min-w-[9rem]"
               aria-label="Search equipment"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <SortControls
                 value={sortField}
                 onChange={setSortField}
