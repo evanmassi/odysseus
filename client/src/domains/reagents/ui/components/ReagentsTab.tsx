@@ -241,7 +241,7 @@ export function ReagentsTab() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsFilterOpen(open => !open)}
-                aria-pressed={isFilterOpen || activeFilterCount > 0}
+                aria-expanded={isFilterOpen}
                 className={`h-8 flex-shrink-0 text-label-sm ${
                   isFilterOpen || activeFilterCount > 0
                     ? 'border border-primary/55 bg-primary/[0.10] text-primary'
