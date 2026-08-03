@@ -212,45 +212,46 @@ export function EquipmentTab() {
               className="w-64 min-w-[9rem]"
               aria-label="Search equipment"
             />
-            <SortControls
-              value={sortField}
-              onChange={setSortField}
-              direction={sortDirection}
-              onToggleDirection={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
-              options={INVENTORY_SORT_OPTIONS}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFilterOpen(open => !open)}
-              aria-pressed={isFilterOpen || activeFilterCount > 0}
-              className={`h-8 flex-shrink-0 text-label-sm ${
-                isFilterOpen || activeFilterCount > 0
-                  ? 'border border-primary/55 bg-primary/[0.10] text-primary'
-                  : ''
-              }`}
-              leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
-            >
-              Filter
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDecommissioned(!showDecommissioned)}
-              className="h-8 flex-shrink-0 text-label-sm"
-              leftIcon={
-                showDecommissioned ? (
-                  <EyeOff className="h-3.5 w-3.5" />
-                ) : (
-                  <Eye className="h-3.5 w-3.5" />
-                )
-              }
-            >
-              {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
-            </Button>
-            <span className="flex-1" />
+            <div className="flex items-center gap-2">
+              <SortControls
+                value={sortField}
+                onChange={setSortField}
+                direction={sortDirection}
+                onToggleDirection={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+                options={INVENTORY_SORT_OPTIONS}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFilterOpen(open => !open)}
+                aria-pressed={isFilterOpen || activeFilterCount > 0}
+                className={`h-8 flex-shrink-0 text-label-sm ${
+                  isFilterOpen || activeFilterCount > 0
+                    ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                    : ''
+                }`}
+                leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+              >
+                Filter
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDecommissioned(!showDecommissioned)}
+                className="h-8 flex-shrink-0 text-label-sm"
+                leftIcon={
+                  showDecommissioned ? (
+                    <EyeOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <Eye className="h-3.5 w-3.5" />
+                  )
+                }
+              >
+                {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
+              </Button>
+            </div>
             {isAdmin && (
-              <>
+              <div className="ml-auto flex items-center gap-2">
                 <Tooltip content="Bulk Operations" side="bottom">
                   <Button
                     variant="secondary"
@@ -271,7 +272,7 @@ export function EquipmentTab() {
                 >
                   Add Equipment
                 </Button>
-              </>
+              </div>
             )}
           </div>
 
