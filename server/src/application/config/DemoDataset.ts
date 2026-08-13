@@ -1,0 +1,716 @@
+/**
+ * Demo Lab Dataset
+ *
+ * The contents of the public demo lab, authored as a T-cell / CAR-T immunology group so the
+ * records read like a working lab rather than placeholder rows.
+ *
+ * Three rules govern everything here, because the reset re-applies this file nightly against an
+ * environment whose storage and users it does not control:
+ *
+ * 1. **Every id is stable and deterministic.** The reset upserts by id, so fresh ids each night
+ *    would grow the lab without bound instead of restoring it.
+ * 2. **Nothing references a per-environment id.** No tank, rack, user, or attribute-definition
+ *    ids appear below — those differ between dev and production. Storage is addressed by
+ *    capacity (the reset fills whatever boxes exist), actors are resolved to the demo user, and
+ *    attributes are referenced by their stable `system_key`.
+ * 3. **Data only.** Expansion, placement, and id resolution belong to the reset, not this file.
+ */
+
+/** A tube batch expands to `count` tubes sharing a sample profile, ids `tube_<batch>_01`… */
+export interface DemoTubeBatch {
+  batch: string;
+  donorRef: string;
+  researcherRef: string;
+  cellType: string;
+  species: string;
+  source?: string;
+  mediaType?: string;
+  cultureCondition?: string;
+  count: number;
+  firstPassage: number;
+  concentration?: number;
+  concentrationUnit?: string;
+  lotNumber?: string;
+  notes?: string;
+}
+
+export interface DemoLocation {
+  id: string;
+  name: string;
+  children?: DemoLocation[];
+}
+
+export interface DemoCategory {
+  id: string;
+  name: string;
+  children?: DemoCategory[];
+}
+
+export interface DemoPerson {
+  ref: string;
+  personId: string;
+  researcherId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  position: string;
+  department: string;
+}
+
+export interface DemoDonor {
+  id: string;
+  donorSourceId?: string;
+  donorInternalId?: string;
+  species: string;
+  age?: string;
+  sex?: string;
+  ethnicity?: string;
+  clinicalStatus?: string;
+  diagnosis?: string;
+  diseaseStage?: string;
+  notes?: string;
+  collections: Array<{ id: string; daysAgo: number; specimenType: string; source: string }>;
+}
+
+/** Referenced by `system_key`, the one attribute handle that is identical in every environment. */
+export interface DemoAttributeValue {
+  systemKey: 'hazard_class' | 'physical_form' | 'grade' | 'storage_conditions';
+  values: string[];
+}
+
+export interface DemoReagent {
+  id: string;
+  categoryId: string;
+  name: string;
+  manufacturer?: string;
+  catalogNumber?: string;
+  vendorName?: string;
+  reagentType?: string;
+  casNumber?: string;
+  concentration?: number;
+  concentrationUnit?: string;
+  stockUnit: string;
+  reorderThreshold?: number;
+  unitPrice?: number;
+  expiryWarningDays?: number;
+  description?: string;
+  attributes?: DemoAttributeValue[];
+  lots: Array<{
+    id: string;
+    lotNumber: string;
+    locationRef: string;
+    quantity: number;
+    expiresInDays: number;
+    receivedDaysAgo: number;
+  }>;
+}
+
+export interface DemoSupply {
+  id: string;
+  categoryId: string;
+  name: string;
+  manufacturer?: string;
+  catalogNumber?: string;
+  vendorName?: string;
+  stockUnit: string;
+  reorderThreshold?: number;
+  unitPrice?: number;
+  stock: Array<{ locationRef: string; quantity: number }>;
+}
+
+export interface DemoEquipment {
+  id: string;
+  categoryId: string;
+  name: string;
+  manufacturer?: string;
+  model?: string;
+  serialNumber?: string;
+  assetTag?: string;
+  locationRef?: string;
+  status: 'active' | 'maintenance' | 'out_of_service' | 'decommissioned';
+  purchaseDaysAgo?: number;
+  purchaseCost?: number;
+  warrantyExpiresInDays?: number;
+  maintenance: Array<{
+    id: string;
+    daysAgo: number;
+    type: string;
+    technician?: string;
+    description: string;
+    nextInDays?: number;
+    cost?: number;
+  }>;
+}
+
+// The dropdown vocabularies every record below points at. Authored first because a tube with a
+// species no dropdown offers reads as broken data the moment anyone opens the edit form.
+const LOOKUP_VALUES: Record<string, string[]> = {
+  species: ['Human', 'Mouse'],
+  source: ['ATCC', 'Stanford Blood Center', 'Leukopak Vendor', 'In-house Derivation'],
+  media: ['RPMI-1640', 'DMEM', 'X-VIVO 15', 'AIM-V', 'IMDM'],
+  specimen_type: ['Blood', 'Leukopak', 'Bone Marrow', 'Buffy Coat'],
+  equipment_maintenance_type: ['Preventative Maintenance', 'Repair', 'Calibration', 'Certification'],
+  reagent_type: ['Antibody', 'Buffer', 'Enzyme', 'Chemical', 'Acid', 'Cytokine', 'Media'],
+  vendor: ['Fisher Scientific', 'Thermo Scientific', 'VWR', 'STEMCELL Technologies', 'Miltenyi Biotec'],
+  manufacturer: [
+    'BioLegend',
+    'Thermo Scientific',
+    'Corning',
+    'Eppendorf',
+    'Ansell',
+    'STEMCELL Technologies',
+    'Miltenyi Biotec',
+    'Sigma-Aldrich',
+  ],
+};
+
+const CUSTOM_UNITS = [
+  { id: 'cunit_demo01', label: 'vial', kind: 'count' },
+  { id: 'cunit_demo02', label: 'plate', kind: 'count' },
+  { id: 'cunit_demo03', label: 'cassette', kind: 'count' },
+];
+
+// Two levels deep — the tree's maximum, and enough to show nesting without inventing bureaucracy.
+const LOCATIONS: DemoLocation[] = [
+  {
+    id: 'loc_demo_mainlab',
+    name: 'Main Lab',
+    children: [
+      { id: 'loc_demo_hood', name: 'Hood X0F' },
+      { id: 'loc_demo_fridge4c', name: '4 °C Fridge' },
+      { id: 'loc_demo_freezer20', name: '−20 °C Freezer' },
+      { id: 'loc_demo_freezer80', name: '−80 °C Freezer' },
+    ],
+  },
+  {
+    id: 'loc_demo_tissue',
+    name: 'Tissue Culture Room',
+    children: [
+      { id: 'loc_demo_incubator', name: 'Incubator 1' },
+      { id: 'loc_demo_bsc', name: 'BSC 2' },
+    ],
+  },
+  {
+    id: 'loc_demo_supply',
+    name: 'Main Supply Room',
+    children: [{ id: 'loc_demo_supply_backup', name: 'Backup Supply Room' }],
+  },
+];
+
+const REAGENT_CATEGORIES: DemoCategory[] = [
+  {
+    id: 'rcat_demo_ab',
+    name: 'Antibodies',
+    children: [
+      { id: 'rcat_demo_ab_flow', name: 'Flow Cytometry' },
+      { id: 'rcat_demo_ab_func', name: 'Functional Grade' },
+    ],
+  },
+  {
+    id: 'rcat_demo_media',
+    name: 'Media & Supplements',
+    children: [
+      { id: 'rcat_demo_media_base', name: 'Base Media' },
+      { id: 'rcat_demo_media_cyto', name: 'Cytokines' },
+    ],
+  },
+  { id: 'rcat_demo_buffer', name: 'Buffers & Solutions' },
+  { id: 'rcat_demo_enzyme', name: 'Enzymes' },
+];
+
+const SUPPLY_CATEGORIES: DemoCategory[] = [
+  {
+    id: 'scat_demo_plastic',
+    name: 'Plasticware',
+    children: [
+      { id: 'scat_demo_plastic_tubes', name: 'Tubes & Conicals' },
+      { id: 'scat_demo_plastic_plates', name: 'Plates & Flasks' },
+    ],
+  },
+  { id: 'scat_demo_ppe', name: 'PPE' },
+  { id: 'scat_demo_pipette', name: 'Pipetting' },
+  { id: 'scat_demo_cryo', name: 'Cryogenic' },
+];
+
+const EQUIPMENT_CATEGORIES: DemoCategory[] = [
+  {
+    id: 'ecat_demo_cold',
+    name: 'Cold Storage',
+    children: [
+      { id: 'ecat_demo_cold_ln2', name: 'LN2 Tanks' },
+      { id: 'ecat_demo_cold_freezer', name: 'Freezers' },
+    ],
+  },
+  { id: 'ecat_demo_analytical', name: 'Analytical' },
+  { id: 'ecat_demo_culture', name: 'Cell Culture' },
+  { id: 'ecat_demo_small', name: 'Small Equipment' },
+];
+
+// Researchers own tubes and appear throughout the audit trail, so the roster carries a realistic
+// mix of seniority rather than fifteen interchangeable scientists.
+const PEOPLE: DemoPerson[] = [
+  { ref: 'r01', personId: 'person_demo01', researcherId: 'researcher_demo01', firstName: 'Elena', lastName: 'Vasquez', email: 'e.vasquez@ithacalabs.demo', position: 'Principal Investigator', department: 'Immunotherapy' },
+  { ref: 'r02', personId: 'person_demo02', researcherId: 'researcher_demo02', firstName: 'Marcus', lastName: 'Chen', email: 'm.chen@ithacalabs.demo', position: 'Senior Scientist', department: 'Immunotherapy' },
+  { ref: 'r03', personId: 'person_demo03', researcherId: 'researcher_demo03', firstName: 'Priya', lastName: 'Raghavan', email: 'p.raghavan@ithacalabs.demo', position: 'Senior Scientist', department: 'Cell Engineering' },
+  { ref: 'r04', personId: 'person_demo04', researcherId: 'researcher_demo04', firstName: 'Tomas', lastName: 'Lindqvist', email: 't.lindqvist@ithacalabs.demo', position: 'Scientist II', department: 'Cell Engineering' },
+  { ref: 'r05', personId: 'person_demo05', researcherId: 'researcher_demo05', firstName: 'Aisha', lastName: 'Okonkwo', email: 'a.okonkwo@ithacalabs.demo', position: 'Scientist II', department: 'Process Development' },
+  { ref: 'r06', personId: 'person_demo06', researcherId: 'researcher_demo06', firstName: 'Daniel', lastName: 'Moreau', email: 'd.moreau@ithacalabs.demo', position: 'Scientist I', department: 'Immunotherapy' },
+  { ref: 'r07', personId: 'person_demo07', researcherId: 'researcher_demo07', firstName: 'Sofia', lastName: 'Marchetti', email: 's.marchetti@ithacalabs.demo', position: 'Scientist I', department: 'Analytical' },
+  { ref: 'r08', personId: 'person_demo08', researcherId: 'researcher_demo08', firstName: 'James', lastName: 'Whitfield', email: 'j.whitfield@ithacalabs.demo', position: 'Research Associate II', department: 'Cell Engineering' },
+  { ref: 'r09', personId: 'person_demo09', researcherId: 'researcher_demo09', firstName: 'Hana', lastName: 'Sato', email: 'h.sato@ithacalabs.demo', position: 'Research Associate II', department: 'Process Development' },
+  { ref: 'r10', personId: 'person_demo10', researcherId: 'researcher_demo10', firstName: 'Omar', lastName: 'Haddad', email: 'o.haddad@ithacalabs.demo', position: 'Research Associate I', department: 'Immunotherapy' },
+  { ref: 'r11', personId: 'person_demo11', researcherId: 'researcher_demo11', firstName: 'Grace', lastName: 'Nakamura', email: 'g.nakamura@ithacalabs.demo', position: 'Research Associate I', department: 'Analytical' },
+  { ref: 'r12', personId: 'person_demo12', researcherId: 'researcher_demo12', firstName: 'Liam', lastName: "O'Donnell", email: 'l.odonnell@ithacalabs.demo', position: 'Lab Manager', department: 'Operations' },
+  { ref: 'r13', personId: 'person_demo13', researcherId: 'researcher_demo13', firstName: 'Yuki', lastName: 'Tanaka', email: 'y.tanaka@ithacalabs.demo', position: 'Postdoctoral Fellow', department: 'Immunotherapy' },
+  { ref: 'r14', personId: 'person_demo14', researcherId: 'researcher_demo14', firstName: 'Rosa', lastName: 'Delgado', email: 'r.delgado@ithacalabs.demo', position: 'Postdoctoral Fellow', department: 'Cell Engineering' },
+  { ref: 'r15', personId: 'person_demo15', researcherId: 'researcher_demo15', firstName: 'Nathan', lastName: 'Brooks', email: 'n.brooks@ithacalabs.demo', position: 'Graduate Student', department: 'Immunotherapy' },
+];
+
+const DONORS: DemoDonor[] = [
+  {
+    id: 'donor_demo01', donorSourceId: 'SBC-2024-0117', donorInternalId: 'LP-0042', species: 'Human',
+    age: '34', sex: 'F', ethnicity: 'Hispanic or Latino', clinicalStatus: 'Healthy',
+    notes: 'Baseline leukopak. High CD3 yield, used for the CD19 CAR-T comparison arm.',
+    collections: [{ id: 'dch_demo01a', daysAgo: 210, specimenType: 'Leukopak', source: 'Stanford Blood Center' }],
+  },
+  {
+    id: 'donor_demo02', donorSourceId: 'SBC-2024-0163', donorInternalId: 'LP-0043', species: 'Human',
+    age: '29', sex: 'M', ethnicity: 'Asian', clinicalStatus: 'Healthy',
+    notes: 'Second baseline donor. Paired with LP-0042 for donor-to-donor variability work.',
+    collections: [{ id: 'dch_demo02a', daysAgo: 205, specimenType: 'Leukopak', source: 'Stanford Blood Center' }],
+  },
+  {
+    id: 'donor_demo03', donorSourceId: 'SBC-2024-0208', donorInternalId: 'LP-0051', species: 'Human',
+    age: '47', sex: 'F', ethnicity: 'White', clinicalStatus: 'Patient',
+    diagnosis: 'Diffuse large B-cell lymphoma', diseaseStage: 'Stage III',
+    notes: 'Apheresis pre-lymphodepletion. Low starting T-cell count — see expansion notes.',
+    collections: [
+      { id: 'dch_demo03a', daysAgo: 180, specimenType: 'Leukopak', source: 'Stanford Blood Center' },
+      { id: 'dch_demo03b', daysAgo: 96, specimenType: 'Blood', source: 'Stanford Blood Center' },
+    ],
+  },
+  {
+    id: 'donor_demo04', donorSourceId: 'SBC-2024-0244', donorInternalId: 'LP-0057', species: 'Human',
+    age: '52', sex: 'M', ethnicity: 'Black or African American', clinicalStatus: 'Patient',
+    diagnosis: 'Multiple myeloma', diseaseStage: 'Stage II',
+    collections: [{ id: 'dch_demo04a', daysAgo: 165, specimenType: 'Bone Marrow', source: 'Stanford Blood Center' }],
+  },
+  {
+    id: 'donor_demo05', donorSourceId: 'ATCC-CRL-2266', donorInternalId: 'CL-0009', species: 'Human',
+    clinicalStatus: 'Cell Line', notes: 'Jurkat E6-1 working bank. Not a primary donor.',
+    collections: [{ id: 'dch_demo05a', daysAgo: 400, specimenType: 'Blood', source: 'ATCC' }],
+  },
+  {
+    id: 'donor_demo06', donorSourceId: 'SBC-2025-0031', donorInternalId: 'LP-0064', species: 'Human',
+    age: '38', sex: 'F', ethnicity: 'White', clinicalStatus: 'Healthy',
+    collections: [{ id: 'dch_demo06a', daysAgo: 120, specimenType: 'Leukopak', source: 'Stanford Blood Center' }],
+  },
+  {
+    id: 'donor_demo07', donorSourceId: 'SBC-2025-0077', donorInternalId: 'LP-0068', species: 'Human',
+    age: '61', sex: 'M', ethnicity: 'White', clinicalStatus: 'Patient',
+    diagnosis: 'Prostate adenocarcinoma', diseaseStage: 'Stage IV',
+    notes: 'STEAP1 target-positive. Primary donor for the bispecific arm.',
+    collections: [
+      { id: 'dch_demo07a', daysAgo: 88, specimenType: 'Leukopak', source: 'Stanford Blood Center' },
+      { id: 'dch_demo07b', daysAgo: 40, specimenType: 'Blood', source: 'Stanford Blood Center' },
+    ],
+  },
+  {
+    id: 'donor_demo08', donorInternalId: 'MS-0012', species: 'Mouse',
+    clinicalStatus: 'Healthy', notes: 'C57BL/6 splenocytes for the murine cross-reactivity panel.',
+    collections: [{ id: 'dch_demo08a', daysAgo: 75, specimenType: 'Buffy Coat', source: 'In-house Derivation' }],
+  },
+  {
+    id: 'donor_demo09', donorSourceId: 'SBC-2025-0119', donorInternalId: 'LP-0072', species: 'Human',
+    age: '44', sex: 'F', ethnicity: 'Asian', clinicalStatus: 'Healthy',
+    collections: [{ id: 'dch_demo09a', daysAgo: 52, specimenType: 'Leukopak', source: 'Stanford Blood Center' }],
+  },
+  {
+    id: 'donor_demo10', donorSourceId: 'SBC-2025-0140', donorInternalId: 'LP-0075', species: 'Human',
+    age: '27', sex: 'M', ethnicity: 'Hispanic or Latino', clinicalStatus: 'Healthy',
+    notes: 'Most recent draw. Expansion still in progress at the time of the last inventory.',
+    collections: [{ id: 'dch_demo10a', daysAgo: 21, specimenType: 'Leukopak', source: 'Stanford Blood Center' }],
+  },
+];
+
+const REAGENTS: DemoReagent[] = [
+  {
+    id: 'ritm_demo01', categoryId: 'rcat_demo_ab_func', name: 'anti-CD3 (OKT3), Functional Grade',
+    manufacturer: 'BioLegend', catalogNumber: '317326', vendorName: 'Fisher Scientific',
+    reagentType: 'Antibody', concentration: 1, concentrationUnit: 'mg/mL', stockUnit: 'vial',
+    reorderThreshold: 4, unitPrice: 289, expiryWarningDays: 60,
+    description: 'T-cell activation, used with anti-CD28 for expansion.',
+    attributes: [
+      { systemKey: 'physical_form', values: ['Solution'] },
+      { systemKey: 'storage_conditions', values: ['4 °C'] },
+      { systemKey: 'grade', values: ['Cell Culture'] },
+    ],
+    lots: [
+      { id: 'rlot_demo01a', lotNumber: 'B341829', locationRef: 'loc_demo_fridge4c', quantity: 6, expiresInDays: 210, receivedDaysAgo: 95 },
+      { id: 'rlot_demo01b', lotNumber: 'B352004', locationRef: 'loc_demo_fridge4c', quantity: 12, expiresInDays: 400, receivedDaysAgo: 20 },
+    ],
+  },
+  {
+    id: 'ritm_demo02', categoryId: 'rcat_demo_ab_func', name: 'anti-CD28 (CD28.2), Functional Grade',
+    manufacturer: 'BioLegend', catalogNumber: '302934', vendorName: 'Fisher Scientific',
+    reagentType: 'Antibody', concentration: 1, concentrationUnit: 'mg/mL', stockUnit: 'vial',
+    reorderThreshold: 4, unitPrice: 275, expiryWarningDays: 60,
+    attributes: [
+      { systemKey: 'physical_form', values: ['Solution'] },
+      { systemKey: 'storage_conditions', values: ['4 °C'] },
+    ],
+    lots: [{ id: 'rlot_demo02a', lotNumber: 'B349117', locationRef: 'loc_demo_fridge4c', quantity: 5, expiresInDays: 300, receivedDaysAgo: 60 }],
+  },
+  {
+    id: 'ritm_demo03', categoryId: 'rcat_demo_ab_flow', name: 'PE anti-human CD4 (RPA-T4)',
+    manufacturer: 'BioLegend', catalogNumber: '300508', vendorName: 'Fisher Scientific',
+    reagentType: 'Antibody', stockUnit: 'vial', reorderThreshold: 2, unitPrice: 168, expiryWarningDays: 45,
+    attributes: [
+      { systemKey: 'storage_conditions', values: ['4 °C', 'Protect from Light'] },
+      { systemKey: 'physical_form', values: ['Solution'] },
+    ],
+    lots: [{ id: 'rlot_demo03a', lotNumber: 'B347742', locationRef: 'loc_demo_fridge4c', quantity: 3, expiresInDays: 150, receivedDaysAgo: 110 }],
+  },
+  {
+    id: 'ritm_demo04', categoryId: 'rcat_demo_ab_flow', name: 'APC anti-human CD8a (SK1)',
+    manufacturer: 'BioLegend', catalogNumber: '344722', vendorName: 'Fisher Scientific',
+    reagentType: 'Antibody', stockUnit: 'vial', reorderThreshold: 2, unitPrice: 182, expiryWarningDays: 45,
+    attributes: [{ systemKey: 'storage_conditions', values: ['4 °C', 'Protect from Light'] }],
+    lots: [{ id: 'rlot_demo04a', lotNumber: 'B351066', locationRef: 'loc_demo_fridge4c', quantity: 4, expiresInDays: 240, receivedDaysAgo: 45 }],
+  },
+  {
+    id: 'ritm_demo05', categoryId: 'rcat_demo_ab_flow', name: 'FITC anti-human CD3 (UCHT1)',
+    manufacturer: 'BioLegend', catalogNumber: '300406', vendorName: 'Fisher Scientific',
+    reagentType: 'Antibody', stockUnit: 'vial', reorderThreshold: 2, unitPrice: 159, expiryWarningDays: 45,
+    attributes: [{ systemKey: 'storage_conditions', values: ['4 °C', 'Protect from Light'] }],
+    // Deliberately near expiry so the expiry alert panel has something to show.
+    lots: [{ id: 'rlot_demo05a', lotNumber: 'B338215', locationRef: 'loc_demo_fridge4c', quantity: 2, expiresInDays: 18, receivedDaysAgo: 300 }],
+  },
+  {
+    id: 'ritm_demo06', categoryId: 'rcat_demo_ab_flow', name: 'BV421 anti-human CD19 (HIB19)',
+    manufacturer: 'BioLegend', catalogNumber: '302234', vendorName: 'Fisher Scientific',
+    reagentType: 'Antibody', stockUnit: 'vial', reorderThreshold: 2, unitPrice: 216, expiryWarningDays: 45,
+    lots: [{ id: 'rlot_demo06a', lotNumber: 'B350881', locationRef: 'loc_demo_fridge4c', quantity: 3, expiresInDays: 265, receivedDaysAgo: 38 }],
+  },
+  {
+    id: 'ritm_demo07', categoryId: 'rcat_demo_media_base', name: 'RPMI-1640, with L-glutamine',
+    manufacturer: 'Corning', catalogNumber: '10-040-CV', vendorName: 'VWR',
+    reagentType: 'Media', stockUnit: 'bottle', reorderThreshold: 6, unitPrice: 21, expiryWarningDays: 90,
+    attributes: [{ systemKey: 'physical_form', values: ['Liquid'] }, { systemKey: 'storage_conditions', values: ['4 °C'] }],
+    lots: [{ id: 'rlot_demo07a', lotNumber: '21024007', locationRef: 'loc_demo_fridge4c', quantity: 14, expiresInDays: 320, receivedDaysAgo: 30 }],
+  },
+  {
+    id: 'ritm_demo08', categoryId: 'rcat_demo_media_base', name: 'X-VIVO 15 Serum-free Medium',
+    manufacturer: 'Sigma-Aldrich', catalogNumber: 'BE02-060F', vendorName: 'VWR',
+    reagentType: 'Media', stockUnit: 'bottle', reorderThreshold: 4, unitPrice: 96, expiryWarningDays: 90,
+    description: 'Primary expansion medium for CAR-T runs.',
+    lots: [{ id: 'rlot_demo08a', lotNumber: 'X5512298', locationRef: 'loc_demo_fridge4c', quantity: 9, expiresInDays: 280, receivedDaysAgo: 42 }],
+  },
+  {
+    id: 'ritm_demo09', categoryId: 'rcat_demo_media_base', name: 'DMEM, high glucose',
+    manufacturer: 'Corning', catalogNumber: '10-013-CV', vendorName: 'VWR',
+    reagentType: 'Media', stockUnit: 'bottle', reorderThreshold: 4, unitPrice: 19,
+    lots: [{ id: 'rlot_demo09a', lotNumber: '19023114', locationRef: 'loc_demo_fridge4c', quantity: 7, expiresInDays: 350, receivedDaysAgo: 25 }],
+  },
+  {
+    id: 'ritm_demo10', categoryId: 'rcat_demo_media_cyto', name: 'Recombinant Human IL-2',
+    manufacturer: 'STEMCELL Technologies', catalogNumber: '78036', vendorName: 'STEMCELL Technologies',
+    reagentType: 'Cytokine', concentration: 100, concentrationUnit: 'µg/mL', stockUnit: 'vial',
+    reorderThreshold: 5, unitPrice: 340, expiryWarningDays: 60,
+    attributes: [{ systemKey: 'physical_form', values: ['Lyophilized'] }, { systemKey: 'storage_conditions', values: ['−20 °C'] }],
+    lots: [
+      { id: 'rlot_demo10a', lotNumber: 'IL2-22841', locationRef: 'loc_demo_freezer20', quantity: 8, expiresInDays: 190, receivedDaysAgo: 70 },
+      { id: 'rlot_demo10b', lotNumber: 'IL2-23907', locationRef: 'loc_demo_freezer20', quantity: 10, expiresInDays: 420, receivedDaysAgo: 12 },
+    ],
+  },
+  {
+    id: 'ritm_demo11', categoryId: 'rcat_demo_media_cyto', name: 'Recombinant Human IL-7',
+    manufacturer: 'STEMCELL Technologies', catalogNumber: '78053', vendorName: 'STEMCELL Technologies',
+    reagentType: 'Cytokine', stockUnit: 'vial', reorderThreshold: 3, unitPrice: 385, expiryWarningDays: 60,
+    attributes: [{ systemKey: 'storage_conditions', values: ['−20 °C'] }],
+    lots: [{ id: 'rlot_demo11a', lotNumber: 'IL7-11902', locationRef: 'loc_demo_freezer20', quantity: 4, expiresInDays: 260, receivedDaysAgo: 55 }],
+  },
+  {
+    id: 'ritm_demo12', categoryId: 'rcat_demo_media_cyto', name: 'Recombinant Human IL-15',
+    manufacturer: 'STEMCELL Technologies', catalogNumber: '78031', vendorName: 'STEMCELL Technologies',
+    reagentType: 'Cytokine', stockUnit: 'vial', reorderThreshold: 3, unitPrice: 402, expiryWarningDays: 60,
+    // Below threshold on purpose so the low-stock panel is populated.
+    lots: [{ id: 'rlot_demo12a', lotNumber: 'IL15-09338', locationRef: 'loc_demo_freezer20', quantity: 1, expiresInDays: 140, receivedDaysAgo: 130 }],
+  },
+  {
+    id: 'ritm_demo13', categoryId: 'rcat_demo_buffer', name: 'DPBS, no calcium, no magnesium',
+    manufacturer: 'Corning', catalogNumber: '21-031-CV', vendorName: 'VWR',
+    reagentType: 'Buffer', stockUnit: 'bottle', reorderThreshold: 8, unitPrice: 14,
+    attributes: [{ systemKey: 'physical_form', values: ['Liquid'] }, { systemKey: 'storage_conditions', values: ['Room Temperature'] }],
+    lots: [{ id: 'rlot_demo13a', lotNumber: '18024551', locationRef: 'loc_demo_mainlab', quantity: 22, expiresInDays: 500, receivedDaysAgo: 18 }],
+  },
+  {
+    id: 'ritm_demo14', categoryId: 'rcat_demo_buffer', name: 'FACS Buffer (PBS + 2% FBS)',
+    manufacturer: 'Thermo Scientific', vendorName: 'Thermo Scientific',
+    reagentType: 'Buffer', stockUnit: 'bottle', reorderThreshold: 4, unitPrice: 32,
+    description: 'Prepared in-house weekly; log the prep date on the bottle.',
+    lots: [{ id: 'rlot_demo14a', lotNumber: 'INH-0425', locationRef: 'loc_demo_fridge4c', quantity: 6, expiresInDays: 25, receivedDaysAgo: 5 }],
+  },
+  {
+    id: 'ritm_demo15', categoryId: 'rcat_demo_buffer', name: 'ACK Lysing Buffer',
+    manufacturer: 'Thermo Scientific', catalogNumber: 'A1049201', vendorName: 'Thermo Scientific',
+    reagentType: 'Buffer', stockUnit: 'bottle', reorderThreshold: 3, unitPrice: 28,
+    lots: [{ id: 'rlot_demo15a', lotNumber: '2604112', locationRef: 'loc_demo_fridge4c', quantity: 5, expiresInDays: 310, receivedDaysAgo: 48 }],
+  },
+  {
+    id: 'ritm_demo16', categoryId: 'rcat_demo_buffer', name: 'MACS Separation Buffer',
+    manufacturer: 'Miltenyi Biotec', catalogNumber: '130-091-221', vendorName: 'Miltenyi Biotec',
+    reagentType: 'Buffer', stockUnit: 'bottle', reorderThreshold: 3, unitPrice: 44,
+    lots: [{ id: 'rlot_demo16a', lotNumber: '5250815', locationRef: 'loc_demo_fridge4c', quantity: 4, expiresInDays: 380, receivedDaysAgo: 33 }],
+  },
+  {
+    id: 'ritm_demo17', categoryId: 'rcat_demo_enzyme', name: 'TrypLE Express Enzyme',
+    manufacturer: 'Thermo Scientific', catalogNumber: '12604013', vendorName: 'Thermo Scientific',
+    reagentType: 'Enzyme', stockUnit: 'bottle', reorderThreshold: 4, unitPrice: 38,
+    attributes: [{ systemKey: 'physical_form', values: ['Solution'] }, { systemKey: 'storage_conditions', values: ['4 °C'] }],
+    lots: [{ id: 'rlot_demo17a', lotNumber: '2591004', locationRef: 'loc_demo_fridge4c', quantity: 7, expiresInDays: 290, receivedDaysAgo: 40 }],
+  },
+  {
+    id: 'ritm_demo18', categoryId: 'rcat_demo_enzyme', name: 'DNase I, grade II',
+    manufacturer: 'Sigma-Aldrich', catalogNumber: '10104159001', vendorName: 'Fisher Scientific',
+    reagentType: 'Enzyme', stockUnit: 'vial', reorderThreshold: 2, unitPrice: 122,
+    attributes: [{ systemKey: 'physical_form', values: ['Lyophilized'] }, { systemKey: 'storage_conditions', values: ['−20 °C'] }],
+    lots: [{ id: 'rlot_demo18a', lotNumber: '31702620', locationRef: 'loc_demo_freezer20', quantity: 3, expiresInDays: 420, receivedDaysAgo: 60 }],
+  },
+  {
+    id: 'ritm_demo19', categoryId: 'rcat_demo_enzyme', name: 'Collagenase Type IV',
+    manufacturer: 'Sigma-Aldrich', catalogNumber: 'C5138', vendorName: 'Fisher Scientific',
+    reagentType: 'Enzyme', stockUnit: 'vial', reorderThreshold: 2, unitPrice: 148,
+    attributes: [{ systemKey: 'physical_form', values: ['Powder'] }, { systemKey: 'storage_conditions', values: ['−20 °C', 'Desiccated'] }],
+    lots: [{ id: 'rlot_demo19a', lotNumber: 'SLCK8842', locationRef: 'loc_demo_freezer20', quantity: 2, expiresInDays: 500, receivedDaysAgo: 90 }],
+  },
+  {
+    id: 'ritm_demo20', categoryId: 'rcat_demo_buffer', name: 'DMSO, cell culture grade',
+    manufacturer: 'Sigma-Aldrich', catalogNumber: 'D2650', vendorName: 'Fisher Scientific',
+    reagentType: 'Chemical', casNumber: '67-68-5', stockUnit: 'bottle', reorderThreshold: 3, unitPrice: 58,
+    attributes: [
+      { systemKey: 'hazard_class', values: ['Irritant', 'Health Hazard'] },
+      { systemKey: 'physical_form', values: ['Liquid'] },
+      { systemKey: 'grade', values: ['Cell Culture'] },
+    ],
+    lots: [{ id: 'rlot_demo20a', lotNumber: 'RNBK4471', locationRef: 'loc_demo_mainlab', quantity: 4, expiresInDays: 600, receivedDaysAgo: 75 }],
+  },
+  {
+    id: 'ritm_demo21', categoryId: 'rcat_demo_buffer', name: 'Fetal Bovine Serum, heat inactivated',
+    manufacturer: 'Thermo Scientific', catalogNumber: '16140071', vendorName: 'Thermo Scientific',
+    reagentType: 'Media', stockUnit: 'bottle', reorderThreshold: 6, unitPrice: 615, expiryWarningDays: 90,
+    description: 'Lot-reserved for the CAR-T program — do not substitute mid-run.',
+    attributes: [{ systemKey: 'storage_conditions', values: ['−20 °C'] }],
+    lots: [{ id: 'rlot_demo21a', lotNumber: '2521873RP', locationRef: 'loc_demo_freezer20', quantity: 11, expiresInDays: 330, receivedDaysAgo: 50 }],
+  },
+  {
+    id: 'ritm_demo22', categoryId: 'rcat_demo_buffer', name: 'Hydrochloric Acid, 1 N',
+    manufacturer: 'Thermo Scientific', catalogNumber: 'S25856', vendorName: 'Fisher Scientific',
+    reagentType: 'Acid', casNumber: '7647-01-0', stockUnit: 'bottle', reorderThreshold: 1, unitPrice: 42,
+    attributes: [
+      { systemKey: 'hazard_class', values: ['Corrosive'] },
+      { systemKey: 'physical_form', values: ['Liquid'] },
+      { systemKey: 'storage_conditions', values: ['Room Temperature'] },
+    ],
+    lots: [{ id: 'rlot_demo22a', lotNumber: '215338', locationRef: 'loc_demo_mainlab', quantity: 2, expiresInDays: 700, receivedDaysAgo: 200 }],
+  },
+  {
+    id: 'ritm_demo23', categoryId: 'rcat_demo_ab_func', name: 'CD3/CD28 Dynabeads',
+    manufacturer: 'Thermo Scientific', catalogNumber: '11132D', vendorName: 'Thermo Scientific',
+    reagentType: 'Antibody', stockUnit: 'vial', reorderThreshold: 3, unitPrice: 720, expiryWarningDays: 60,
+    attributes: [{ systemKey: 'physical_form', values: ['Suspension'] }, { systemKey: 'storage_conditions', values: ['4 °C'] }],
+    lots: [{ id: 'rlot_demo23a', lotNumber: '00992281', locationRef: 'loc_demo_fridge4c', quantity: 6, expiresInDays: 220, receivedDaysAgo: 65 }],
+  },
+  {
+    id: 'ritm_demo24', categoryId: 'rcat_demo_media_cyto', name: 'Human AB Serum',
+    manufacturer: 'Sigma-Aldrich', catalogNumber: 'H4522', vendorName: 'VWR',
+    reagentType: 'Media', stockUnit: 'bottle', reorderThreshold: 2, unitPrice: 430,
+    attributes: [{ systemKey: 'storage_conditions', values: ['−20 °C'] }],
+    lots: [{ id: 'rlot_demo24a', lotNumber: 'SLCJ2201', locationRef: 'loc_demo_freezer20', quantity: 3, expiresInDays: 240, receivedDaysAgo: 100 }],
+  },
+  {
+    id: 'ritm_demo25', categoryId: 'rcat_demo_media_base', name: 'IMDM, with L-glutamine',
+    manufacturer: 'Corning', catalogNumber: '10-016-CV', vendorName: 'VWR',
+    reagentType: 'Media', stockUnit: 'bottle', reorderThreshold: 3, unitPrice: 23,
+    lots: [{ id: 'rlot_demo25a', lotNumber: '17023908', locationRef: 'loc_demo_fridge4c', quantity: 5, expiresInDays: 300, receivedDaysAgo: 28 }],
+  },
+];
+
+const SUPPLIES: DemoSupply[] = [
+  { id: 'sitm_demo01', categoryId: 'scat_demo_plastic_tubes', name: '15 mL Conical Centrifuge Tubes', manufacturer: 'Corning', catalogNumber: '430791', vendorName: 'VWR', stockUnit: 'pack', reorderThreshold: 6, unitPrice: 48, stock: [{ locationRef: 'loc_demo_supply', quantity: 14 }] },
+  { id: 'sitm_demo02', categoryId: 'scat_demo_plastic_tubes', name: '50 mL Conical Centrifuge Tubes', manufacturer: 'Corning', catalogNumber: '430829', vendorName: 'VWR', stockUnit: 'pack', reorderThreshold: 6, unitPrice: 62, stock: [{ locationRef: 'loc_demo_supply', quantity: 11 }, { locationRef: 'loc_demo_supply_backup', quantity: 4 }] },
+  { id: 'sitm_demo03', categoryId: 'scat_demo_plastic_tubes', name: '1.5 mL Microcentrifuge Tubes', manufacturer: 'Eppendorf', catalogNumber: '022363204', vendorName: 'Fisher Scientific', stockUnit: 'pack', reorderThreshold: 4, unitPrice: 39, stock: [{ locationRef: 'loc_demo_supply', quantity: 9 }] },
+  { id: 'sitm_demo04', categoryId: 'scat_demo_plastic_tubes', name: '5 mL Round-Bottom FACS Tubes', manufacturer: 'Corning', catalogNumber: '352058', vendorName: 'VWR', stockUnit: 'pack', reorderThreshold: 5, unitPrice: 71, stock: [{ locationRef: 'loc_demo_supply', quantity: 7 }] },
+  { id: 'sitm_demo05', categoryId: 'scat_demo_plastic_plates', name: 'T-75 Cell Culture Flasks', manufacturer: 'Corning', catalogNumber: '430641U', vendorName: 'VWR', stockUnit: 'case', reorderThreshold: 3, unitPrice: 196, stock: [{ locationRef: 'loc_demo_supply', quantity: 5 }] },
+  { id: 'sitm_demo06', categoryId: 'scat_demo_plastic_plates', name: 'T-25 Cell Culture Flasks', manufacturer: 'Corning', catalogNumber: '430639', vendorName: 'VWR', stockUnit: 'case', reorderThreshold: 2, unitPrice: 142, stock: [{ locationRef: 'loc_demo_supply', quantity: 3 }] },
+  { id: 'sitm_demo07', categoryId: 'scat_demo_plastic_plates', name: '96-Well Round-Bottom Plates', manufacturer: 'Corning', catalogNumber: '3799', vendorName: 'VWR', stockUnit: 'case', reorderThreshold: 2, unitPrice: 168, stock: [{ locationRef: 'loc_demo_supply', quantity: 4 }] },
+  { id: 'sitm_demo08', categoryId: 'scat_demo_plastic_plates', name: '24-Well Flat-Bottom Plates', manufacturer: 'Corning', catalogNumber: '3526', vendorName: 'VWR', stockUnit: 'case', reorderThreshold: 2, unitPrice: 154, stock: [{ locationRef: 'loc_demo_supply', quantity: 2 }] },
+  { id: 'sitm_demo09', categoryId: 'scat_demo_plastic_plates', name: 'G-Rex 24-Well Plate', manufacturer: 'Thermo Scientific', catalogNumber: '80192M', vendorName: 'Thermo Scientific', stockUnit: 'plate', reorderThreshold: 4, unitPrice: 84, stock: [{ locationRef: 'loc_demo_supply', quantity: 6 }] },
+  { id: 'sitm_demo10', categoryId: 'scat_demo_ppe', name: 'MICROFLEX MidKnight Nitrile Gloves (Medium)', manufacturer: 'Ansell', catalogNumber: 'MK-296-M', vendorName: 'Fisher Scientific', stockUnit: 'box', reorderThreshold: 10, unitPrice: 18, stock: [{ locationRef: 'loc_demo_supply', quantity: 24 }, { locationRef: 'loc_demo_supply_backup', quantity: 12 }] },
+  { id: 'sitm_demo11', categoryId: 'scat_demo_ppe', name: 'MICROFLEX MidKnight Nitrile Gloves (Large)', manufacturer: 'Ansell', catalogNumber: 'MK-296-L', vendorName: 'Fisher Scientific', stockUnit: 'box', reorderThreshold: 10, unitPrice: 18, stock: [{ locationRef: 'loc_demo_supply', quantity: 8 }] },
+  { id: 'sitm_demo12', categoryId: 'scat_demo_ppe', name: 'Disposable Lab Coats', manufacturer: 'Thermo Scientific', vendorName: 'Fisher Scientific', stockUnit: 'case', reorderThreshold: 2, unitPrice: 128, stock: [{ locationRef: 'loc_demo_supply_backup', quantity: 3 }] },
+  { id: 'sitm_demo13', categoryId: 'scat_demo_ppe', name: 'Safety Goggles', manufacturer: 'Thermo Scientific', vendorName: 'VWR', stockUnit: 'each', reorderThreshold: 4, unitPrice: 12, stock: [{ locationRef: 'loc_demo_supply', quantity: 10 }] },
+  { id: 'sitm_demo14', categoryId: 'scat_demo_pipette', name: 'Filtered Pipette Tips, 1000 µL', manufacturer: 'Eppendorf', catalogNumber: '0030077571', vendorName: 'Fisher Scientific', stockUnit: 'rack', reorderThreshold: 12, unitPrice: 26, stock: [{ locationRef: 'loc_demo_supply', quantity: 30 }] },
+  { id: 'sitm_demo15', categoryId: 'scat_demo_pipette', name: 'Filtered Pipette Tips, 200 µL', manufacturer: 'Eppendorf', catalogNumber: '0030077547', vendorName: 'Fisher Scientific', stockUnit: 'rack', reorderThreshold: 12, unitPrice: 24, stock: [{ locationRef: 'loc_demo_supply', quantity: 26 }] },
+  { id: 'sitm_demo16', categoryId: 'scat_demo_pipette', name: 'Filtered Pipette Tips, 20 µL', manufacturer: 'Eppendorf', catalogNumber: '0030077504', vendorName: 'Fisher Scientific', stockUnit: 'rack', reorderThreshold: 12, unitPrice: 22, stock: [{ locationRef: 'loc_demo_supply', quantity: 9 }] },
+  { id: 'sitm_demo17', categoryId: 'scat_demo_pipette', name: 'Serological Pipettes, 10 mL', manufacturer: 'Corning', catalogNumber: '4488', vendorName: 'VWR', stockUnit: 'case', reorderThreshold: 3, unitPrice: 88, stock: [{ locationRef: 'loc_demo_supply', quantity: 6 }] },
+  { id: 'sitm_demo18', categoryId: 'scat_demo_pipette', name: 'Serological Pipettes, 25 mL', manufacturer: 'Corning', catalogNumber: '4489', vendorName: 'VWR', stockUnit: 'case', reorderThreshold: 3, unitPrice: 94, stock: [{ locationRef: 'loc_demo_supply', quantity: 4 }] },
+  { id: 'sitm_demo19', categoryId: 'scat_demo_cryo', name: 'Cryogenic Vials, 2 mL', manufacturer: 'Thermo Scientific', catalogNumber: '5000-0020', vendorName: 'Thermo Scientific', stockUnit: 'pack', reorderThreshold: 8, unitPrice: 112, stock: [{ locationRef: 'loc_demo_supply', quantity: 18 }] },
+  { id: 'sitm_demo20', categoryId: 'scat_demo_cryo', name: 'Cryogenic Vials, 1.2 mL', manufacturer: 'Thermo Scientific', catalogNumber: '5000-0012', vendorName: 'Thermo Scientific', stockUnit: 'pack', reorderThreshold: 8, unitPrice: 104, stock: [{ locationRef: 'loc_demo_supply', quantity: 5 }] },
+  { id: 'sitm_demo21', categoryId: 'scat_demo_cryo', name: 'Cryo Storage Boxes, 81-place', manufacturer: 'Thermo Scientific', vendorName: 'Fisher Scientific', stockUnit: 'each', reorderThreshold: 6, unitPrice: 9, stock: [{ locationRef: 'loc_demo_supply', quantity: 22 }] },
+  { id: 'sitm_demo22', categoryId: 'scat_demo_cryo', name: 'Mr. Frosty Freezing Container', manufacturer: 'Thermo Scientific', catalogNumber: '5100-0001', vendorName: 'Thermo Scientific', stockUnit: 'each', reorderThreshold: 2, unitPrice: 68, stock: [{ locationRef: 'loc_demo_mainlab', quantity: 3 }] },
+  { id: 'sitm_demo23', categoryId: 'scat_demo_cryo', name: 'Cryo Labels, cryogenic-safe', vendorName: 'VWR', stockUnit: 'roll', reorderThreshold: 4, unitPrice: 34, stock: [{ locationRef: 'loc_demo_supply', quantity: 7 }] },
+  { id: 'sitm_demo24', categoryId: 'scat_demo_plastic_tubes', name: '0.2 µm Syringe Filters', manufacturer: 'Corning', catalogNumber: '431219', vendorName: 'VWR', stockUnit: 'pack', reorderThreshold: 3, unitPrice: 96, stock: [{ locationRef: 'loc_demo_supply', quantity: 2 }] },
+  { id: 'sitm_demo25', categoryId: 'scat_demo_plastic_plates', name: 'Cell Strainers, 70 µm', manufacturer: 'Corning', catalogNumber: '431751', vendorName: 'VWR', stockUnit: 'pack', reorderThreshold: 3, unitPrice: 78, stock: [{ locationRef: 'loc_demo_supply', quantity: 5 }] },
+];
+
+const EQUIPMENT: DemoEquipment[] = [
+  {
+    id: 'eqitem_demo01', categoryId: 'ecat_demo_cold_ln2', name: 'LN2 Cryostorage Tank — Aegean', manufacturer: 'Thermo Scientific', model: 'CryoExtra 94', serialNumber: 'CE94-2201847', assetTag: 'ITH-0001',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 900, purchaseCost: 18400, warrantyExpiresInDays: 190,
+    maintenance: [
+      { id: 'eqlog_demo01a', daysAgo: 30, type: 'Preventative Maintenance', technician: 'CryoServe Field Tech', description: 'Quarterly PM — vacuum check, level sensor calibration, alarm test.', nextInDays: 60, cost: 480 },
+      { id: 'eqlog_demo01b', daysAgo: 120, type: 'Preventative Maintenance', technician: 'CryoServe Field Tech', description: 'Quarterly PM — no findings.', cost: 480 },
+    ],
+  },
+  {
+    id: 'eqitem_demo02', categoryId: 'ecat_demo_cold_ln2', name: 'LN2 Cryostorage Tank — Olympus', manufacturer: 'Thermo Scientific', model: 'CryoExtra 94', serialNumber: 'CE94-2201852', assetTag: 'ITH-0002',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 900, purchaseCost: 18400, warrantyExpiresInDays: 190,
+    maintenance: [{ id: 'eqlog_demo02a', daysAgo: 30, type: 'Preventative Maintenance', technician: 'CryoServe Field Tech', description: 'Quarterly PM — replaced one level sensor gasket.', nextInDays: 60, cost: 540 }],
+  },
+  {
+    id: 'eqitem_demo03', categoryId: 'ecat_demo_cold_freezer', name: '−80 °C Upright Freezer', manufacturer: 'Thermo Scientific', model: 'TSX70086A', serialNumber: 'TSX-1194422', assetTag: 'ITH-0003',
+    locationRef: 'loc_demo_freezer80', status: 'active', purchaseDaysAgo: 640, purchaseCost: 14200, warrantyExpiresInDays: 420,
+    maintenance: [{ id: 'eqlog_demo03a', daysAgo: 45, type: 'Preventative Maintenance', technician: 'In-house', description: 'Condenser filter cleaned, door gasket inspected.', nextInDays: 135 }],
+  },
+  {
+    id: 'eqitem_demo04', categoryId: 'ecat_demo_cold_freezer', name: '−20 °C Laboratory Freezer', manufacturer: 'Thermo Scientific', model: 'TSX2320FA', serialNumber: 'TSX-1078213', assetTag: 'ITH-0004',
+    locationRef: 'loc_demo_freezer20', status: 'active', purchaseDaysAgo: 720, purchaseCost: 6800,
+    maintenance: [{ id: 'eqlog_demo04a', daysAgo: 200, type: 'Repair', technician: 'Cold Chain Services', description: 'Replaced failed door heater; temperature excursion logged and closed.', cost: 890 }],
+  },
+  {
+    id: 'eqitem_demo05', categoryId: 'ecat_demo_cold_freezer', name: '4 °C Laboratory Refrigerator', manufacturer: 'Thermo Scientific', model: 'TSX1205SA', serialNumber: 'TSX-1055901', assetTag: 'ITH-0005',
+    locationRef: 'loc_demo_fridge4c', status: 'active', purchaseDaysAgo: 720, purchaseCost: 5400,
+    maintenance: [{ id: 'eqlog_demo05a', daysAgo: 60, type: 'Calibration', technician: 'In-house', description: 'Probe verified against NIST-traceable thermometer, +0.3 °C offset recorded.', nextInDays: 120 }],
+  },
+  {
+    id: 'eqitem_demo06', categoryId: 'ecat_demo_analytical', name: 'Spectral Flow Cytometer', manufacturer: 'Thermo Scientific', model: 'Bigfoot', serialNumber: 'BF-330218', assetTag: 'ITH-0010',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 480, purchaseCost: 412000, warrantyExpiresInDays: 250,
+    maintenance: [
+      { id: 'eqlog_demo06a', daysAgo: 14, type: 'Certification', technician: 'Vendor FSE', description: 'Annual performance qualification — all detectors within spec.', nextInDays: 351, cost: 6200 },
+      { id: 'eqlog_demo06b', daysAgo: 190, type: 'Repair', technician: 'Vendor FSE', description: 'Replaced sheath filter and cleaned flow cell after clog.', cost: 1450 },
+    ],
+  },
+  {
+    id: 'eqitem_demo07', categoryId: 'ecat_demo_analytical', name: 'Automated Cell Counter', manufacturer: 'Thermo Scientific', model: 'Countess 3 FL', serialNumber: 'CT3-889201', assetTag: 'ITH-0011',
+    locationRef: 'loc_demo_bsc', status: 'active', purchaseDaysAgo: 300, purchaseCost: 9800,
+    maintenance: [{ id: 'eqlog_demo07a', daysAgo: 75, type: 'Calibration', technician: 'In-house', description: 'Bead standard verification, within tolerance.', nextInDays: 105 }],
+  },
+  {
+    id: 'eqitem_demo08', categoryId: 'ecat_demo_analytical', name: 'Microplate Reader', manufacturer: 'Thermo Scientific', model: 'Varioskan LUX', serialNumber: 'VSL-442017', assetTag: 'ITH-0012',
+    locationRef: 'loc_demo_mainlab', status: 'maintenance', purchaseDaysAgo: 560, purchaseCost: 32000,
+    maintenance: [{ id: 'eqlog_demo08a', daysAgo: 3, type: 'Repair', technician: 'Vendor FSE', description: 'Luminescence channel drifting; awaiting replacement PMT.', }],
+  },
+  {
+    id: 'eqitem_demo09', categoryId: 'ecat_demo_culture', name: 'CO2 Incubator 1', manufacturer: 'Thermo Scientific', model: 'Heracell VIOS 160i', serialNumber: 'HV160-772104', assetTag: 'ITH-0020',
+    locationRef: 'loc_demo_incubator', status: 'active', purchaseDaysAgo: 610, purchaseCost: 11800, warrantyExpiresInDays: 300,
+    maintenance: [{ id: 'eqlog_demo09a', daysAgo: 40, type: 'Preventative Maintenance', technician: 'In-house', description: 'CO2 sensor calibrated, water pan sanitised, HEPA inspected.', nextInDays: 140 }],
+  },
+  {
+    id: 'eqitem_demo10', categoryId: 'ecat_demo_culture', name: 'CO2 Incubator 2', manufacturer: 'Thermo Scientific', model: 'Heracell VIOS 160i', serialNumber: 'HV160-772119', assetTag: 'ITH-0021',
+    locationRef: 'loc_demo_incubator', status: 'active', purchaseDaysAgo: 610, purchaseCost: 11800, warrantyExpiresInDays: 300,
+    maintenance: [{ id: 'eqlog_demo10a', daysAgo: 40, type: 'Preventative Maintenance', technician: 'In-house', description: 'Routine PM, no findings.', nextInDays: 140 }],
+  },
+  {
+    id: 'eqitem_demo11', categoryId: 'ecat_demo_culture', name: 'Biosafety Cabinet — Hood X0F', manufacturer: 'Thermo Scientific', model: 'Herasafe 2030i', serialNumber: 'HS2030-551093', assetTag: 'ITH-0022',
+    locationRef: 'loc_demo_hood', status: 'active', purchaseDaysAgo: 830, purchaseCost: 15600,
+    maintenance: [{ id: 'eqlog_demo11a', daysAgo: 95, type: 'Certification', technician: 'NSF Certifier', description: 'Annual NSF/ANSI 49 certification passed.', nextInDays: 270, cost: 720 }],
+  },
+  {
+    id: 'eqitem_demo12', categoryId: 'ecat_demo_culture', name: 'Biosafety Cabinet — BSC 2', manufacturer: 'Thermo Scientific', model: 'Herasafe 2030i', serialNumber: 'HS2030-551110', assetTag: 'ITH-0023',
+    locationRef: 'loc_demo_bsc', status: 'active', purchaseDaysAgo: 830, purchaseCost: 15600,
+    maintenance: [{ id: 'eqlog_demo12a', daysAgo: 95, type: 'Certification', technician: 'NSF Certifier', description: 'Annual certification passed; airflow re-balanced.', nextInDays: 270, cost: 860 }],
+  },
+  {
+    id: 'eqitem_demo13', categoryId: 'ecat_demo_culture', name: 'Refrigerated Benchtop Centrifuge', manufacturer: 'Eppendorf', model: '5810 R', serialNumber: 'EP5810-330442', assetTag: 'ITH-0030',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 900, purchaseCost: 12400,
+    maintenance: [{ id: 'eqlog_demo13a', daysAgo: 150, type: 'Preventative Maintenance', technician: 'Vendor FSE', description: 'Rotor inspection and speed verification.', nextInDays: 215, cost: 620 }],
+  },
+  {
+    id: 'eqitem_demo14', categoryId: 'ecat_demo_culture', name: 'Microcentrifuge', manufacturer: 'Eppendorf', model: '5424 R', serialNumber: 'EP5424-118330', assetTag: 'ITH-0031',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 640, purchaseCost: 4900, maintenance: [],
+  },
+  {
+    id: 'eqitem_demo15', categoryId: 'ecat_demo_culture', name: 'Cell Separation System', manufacturer: 'Miltenyi Biotec', model: 'autoMACS Pro', serialNumber: 'AMP-220114', assetTag: 'ITH-0032',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 700, purchaseCost: 48000,
+    maintenance: [{ id: 'eqlog_demo15a', daysAgo: 55, type: 'Preventative Maintenance', technician: 'Vendor FSE', description: 'Fluidics flush and column seal replacement.', nextInDays: 125, cost: 1250 }],
+  },
+  {
+    id: 'eqitem_demo16', categoryId: 'ecat_demo_small', name: 'P1000 Pipette', manufacturer: 'Eppendorf', model: 'Research plus', serialNumber: 'EP-P1000-88213', assetTag: 'ITH-0040',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 400, purchaseCost: 420,
+    maintenance: [{ id: 'eqlog_demo16a', daysAgo: 88, type: 'Calibration', technician: 'Calibration Services Inc.', description: 'Gravimetric calibration, within ISO 8655 tolerance.', nextInDays: 277, cost: 95 }],
+  },
+  {
+    id: 'eqitem_demo17', categoryId: 'ecat_demo_small', name: 'P200 Pipette', manufacturer: 'Eppendorf', model: 'Research plus', serialNumber: 'EP-P200-88240', assetTag: 'ITH-0041',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 400, purchaseCost: 420,
+    maintenance: [{ id: 'eqlog_demo17a', daysAgo: 88, type: 'Calibration', technician: 'Calibration Services Inc.', description: 'Gravimetric calibration passed.', nextInDays: 277, cost: 95 }],
+  },
+  {
+    id: 'eqitem_demo18', categoryId: 'ecat_demo_small', name: 'P20 Pipette', manufacturer: 'Eppendorf', model: 'Research plus', serialNumber: 'EP-P20-88267', assetTag: 'ITH-0042',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 400, purchaseCost: 420,
+    maintenance: [{ id: 'eqlog_demo18a', daysAgo: 88, type: 'Calibration', technician: 'Calibration Services Inc.', description: 'Gravimetric calibration — adjusted, now within tolerance.', nextInDays: 277, cost: 130 }],
+  },
+  {
+    id: 'eqitem_demo19', categoryId: 'ecat_demo_small', name: 'Water Bath, 37 °C', manufacturer: 'Thermo Scientific', model: 'Precision GP 05', serialNumber: 'PGP-441028', assetTag: 'ITH-0043',
+    locationRef: 'loc_demo_mainlab', status: 'active', purchaseDaysAgo: 1100, purchaseCost: 1250, maintenance: [],
+  },
+  {
+    id: 'eqitem_demo20', categoryId: 'ecat_demo_small', name: 'Inverted Phase Contrast Microscope', manufacturer: 'Thermo Scientific', model: 'EVOS M5000', serialNumber: 'EVOS-660417', assetTag: 'ITH-0044',
+    locationRef: 'loc_demo_tissue', status: 'active', purchaseDaysAgo: 520, purchaseCost: 27500,
+    maintenance: [{ id: 'eqlog_demo20a', daysAgo: 210, type: 'Preventative Maintenance', technician: 'Vendor FSE', description: 'Objective cleaning and LED alignment.', cost: 380 }],
+  },
+  {
+    id: 'eqitem_demo21', categoryId: 'ecat_demo_small', name: 'Vortex Mixer', manufacturer: 'Thermo Scientific', model: 'MaxiMix II', serialNumber: 'MM2-220913', assetTag: 'ITH-0045',
+    locationRef: 'loc_demo_mainlab', status: 'out_of_service', purchaseDaysAgo: 1400, purchaseCost: 610,
+    maintenance: [{ id: 'eqlog_demo21a', daysAgo: 12, type: 'Repair', technician: 'In-house', description: 'Motor bearing failure — tagged out, replacement quoted.' }],
+  },
+];
+
+/**
+ * ~200 tubes as batches, because two hundred near-identical literals would be unreviewable.
+ * Ordered by donor so that expansion fills adjacent positions and a donor's material stays
+ * together in the grid, the way a real freezer is organised.
+ */
+const TUBE_BATCHES: DemoTubeBatch[] = [
+  { batch: 'b01', donorRef: 'donor_demo01', researcherRef: 'r02', cellType: 'T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D0', count: 18, firstPassage: 0, concentration: 10, concentrationUnit: 'cells/mL', lotNumber: 'LP0042-D0', notes: 'Pre-transduction bank.' },
+  { batch: 'b02', donorRef: 'donor_demo01', researcherRef: 'r02', cellType: 'CD19 CAR-T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D10', count: 24, firstPassage: 2, concentration: 20, concentrationUnit: 'cells/mL', lotNumber: 'LP0042-CAR19' },
+  { batch: 'b03', donorRef: 'donor_demo02', researcherRef: 'r03', cellType: 'T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D0', count: 14, firstPassage: 0, concentration: 10, concentrationUnit: 'cells/mL', lotNumber: 'LP0043-D0' },
+  { batch: 'b04', donorRef: 'donor_demo02', researcherRef: 'r03', cellType: 'CD19 CAR-T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D10', count: 20, firstPassage: 2, concentration: 18, concentrationUnit: 'cells/mL', lotNumber: 'LP0043-CAR19' },
+  { batch: 'b05', donorRef: 'donor_demo03', researcherRef: 'r04', cellType: 'T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'AIM-V', cultureCondition: 'Expansion D0', count: 10, firstPassage: 0, concentration: 6, concentrationUnit: 'cells/mL', lotNumber: 'LP0051-D0', notes: 'Low starting count — see donor notes.' },
+  { batch: 'b06', donorRef: 'donor_demo03', researcherRef: 'r04', cellType: 'CD19 CAR-T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'AIM-V', cultureCondition: 'Expansion D12', count: 12, firstPassage: 3, concentration: 12, concentrationUnit: 'cells/mL', lotNumber: 'LP0051-CAR19' },
+  { batch: 'b07', donorRef: 'donor_demo04', researcherRef: 'r05', cellType: 'T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'RPMI-1640', cultureCondition: 'Expansion D0', count: 12, firstPassage: 0, concentration: 8, concentrationUnit: 'cells/mL', lotNumber: 'LP0057-D0' },
+  { batch: 'b08', donorRef: 'donor_demo05', researcherRef: 'r06', cellType: 'Jurkat', species: 'Human', source: 'ATCC', mediaType: 'RPMI-1640', cultureCondition: 'Maintenance', count: 20, firstPassage: 12, concentration: 15, concentrationUnit: 'cells/mL', lotNumber: 'JRK-WB-03', notes: 'Working bank, thaw one vial per assay run.' },
+  { batch: 'b09', donorRef: 'donor_demo06', researcherRef: 'r08', cellType: 'T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D0', count: 14, firstPassage: 0, concentration: 11, concentrationUnit: 'cells/mL', lotNumber: 'LP0064-D0' },
+  { batch: 'b10', donorRef: 'donor_demo07', researcherRef: 'r13', cellType: 'STEAP1 CAR-T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D10', count: 18, firstPassage: 2, concentration: 16, concentrationUnit: 'cells/mL', lotNumber: 'LP0068-STEAP1' },
+  { batch: 'b11', donorRef: 'donor_demo07', researcherRef: 'r13', cellType: 'STEAP1/CD3 Bispecific CAR-T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D14', count: 16, firstPassage: 3, concentration: 14, concentrationUnit: 'cells/mL', lotNumber: 'LP0068-BISPEC' },
+  { batch: 'b12', donorRef: 'donor_demo08', researcherRef: 'r14', cellType: 'Splenocytes', species: 'Mouse', source: 'In-house Derivation', mediaType: 'RPMI-1640', cultureCondition: 'Cryopreserved', count: 12, firstPassage: 0, concentration: 20, concentrationUnit: 'cells/mL', lotNumber: 'MS0012-SPL' },
+  { batch: 'b13', donorRef: 'donor_demo09', researcherRef: 'r09', cellType: 'Monocytes', species: 'Human', source: 'Stanford Blood Center', mediaType: 'IMDM', cultureCondition: 'Cryopreserved', count: 10, firstPassage: 0, concentration: 9, concentrationUnit: 'cells/mL', lotNumber: 'LP0072-MONO' },
+  { batch: 'b14', donorRef: 'donor_demo09', researcherRef: 'r09', cellType: 'Macrophages', species: 'Human', source: 'Stanford Blood Center', mediaType: 'IMDM', cultureCondition: 'Differentiated D7', count: 8, firstPassage: 1, concentration: 5, concentrationUnit: 'cells/mL', lotNumber: 'LP0072-MAC' },
+  { batch: 'b15', donorRef: 'donor_demo10', researcherRef: 'r10', cellType: 'T cells', species: 'Human', source: 'Stanford Blood Center', mediaType: 'X-VIVO 15', cultureCondition: 'Expansion D0', count: 16, firstPassage: 0, concentration: 12, concentrationUnit: 'cells/mL', lotNumber: 'LP0075-D0', notes: 'Expansion in progress at last inventory.' },
+  { batch: 'b16', donorRef: 'donor_demo05', researcherRef: 'r15', cellType: 'Fibroblasts', species: 'Human', source: 'ATCC', mediaType: 'DMEM', cultureCondition: 'Maintenance', count: 10, firstPassage: 8, concentration: 4, concentrationUnit: 'cells/mL', lotNumber: 'FB-WB-02' },
+];
+
+export const DEMO_DATASET = {
+  lookupValues: LOOKUP_VALUES,
+  customUnits: CUSTOM_UNITS,
+  locations: LOCATIONS,
+  reagentCategories: REAGENT_CATEGORIES,
+  supplyCategories: SUPPLY_CATEGORIES,
+  equipmentCategories: EQUIPMENT_CATEGORIES,
+  people: PEOPLE,
+  donors: DONORS,
+  reagents: REAGENTS,
+  supplies: SUPPLIES,
+  equipment: EQUIPMENT,
+  tubeBatches: TUBE_BATCHES,
+} as const;
