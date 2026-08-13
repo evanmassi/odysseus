@@ -45,5 +45,7 @@ export interface DonorRepository {
   countCollectionEntriesUsingSpecimenType(value: string, labId: string): Promise<number>;
   /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
   countNonSeededByLabId(labId: string): Promise<number>;
+  /** Bulk delete for the demo reset. Returns the row count removed. */
+  deleteAllForLab(labId: string): Promise<number>;
   renameSpecimenType(oldValue: string, newValue: string, labId: string): Promise<number>;
 }

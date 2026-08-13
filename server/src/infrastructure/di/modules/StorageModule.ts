@@ -16,6 +16,7 @@ import {
   BulkReassignResourcesCommandHandler,
 } from '@application/commands/BulkAssignmentCommands';
 import {
+  ResetDemoDataCommandHandler,
   SeedDemoCommandHandler,
   UnseedDemoCommandHandler,
 } from '@application/commands/DemoSeedCommands';
@@ -36,7 +37,6 @@ import {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
   DeleteTankCommandHandler,
-  ResetDemoDataCommandHandler,
 } from '@application/commands/TankCommands';
 import {
   GetCurrentStorageQueryHandler,
@@ -196,12 +196,9 @@ export class StorageModule {
 
   getResetDemoDataHandler(): ResetDemoDataCommandHandler {
     if (!this.resetDemoDataHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
       this.resetDemoDataHandler = new ResetDemoDataCommandHandler(
-        repositories.storage,
-        repositories.tubes,
-        repositories.users,
-        repositories.donors
+        this.repositoryFactory,
+        this.repositoryFactory.getUserRepository()
       );
     }
     return this.resetDemoDataHandler;

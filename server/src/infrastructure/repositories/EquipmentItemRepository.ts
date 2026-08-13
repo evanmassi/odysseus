@@ -307,4 +307,10 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     return parseCount(row);
   }
 
+
+  async deleteAllForLab(labId: string): Promise<number> {
+    // Maintenance log, documents, and attribute values cascade.
+    const result = await this.db.execute('DELETE FROM equipment_items WHERE lab_id = $1', [labId]);
+    return result.rowCount ?? 0;
+  }
 }

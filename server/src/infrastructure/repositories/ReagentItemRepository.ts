@@ -791,4 +791,12 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return parseCount(row);
   }
 
+
+  async deleteAllForLab(labId: string): Promise<number> {
+    // reagent_transactions.item_id is NO ACTION, so the ledger this repository owns must go first;
+    // lots, barcodes, documents, packaging levels, and attribute values all cascade from the item.
+    await this.db.execute('DELETE FROM reagent_transactions WHERE lab_id = $1', [labId]);
+    const result = await this.db.execute('DELETE FROM reagent_items WHERE lab_id = $1', [labId]);
+    return result.rowCount ?? 0;
+  }
 }

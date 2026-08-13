@@ -11,10 +11,8 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { TankAddedEvent, TankUpdatedEvent, TankDeletedEvent } from '@domain/events/StorageEvents';
-import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -40,11 +38,6 @@ export interface DeleteTankCommand {
   userId: string;
   labId: string;
   tankId: string;
-}
-
-export interface ResetDemoDataCommand {
-  userId: string;
-  labId: string;
 }
 
 // COMMAND HANDLERS
@@ -194,57 +187,5 @@ export class DeleteTankCommandHandler {
 
     const event = new TankDeletedEvent(command.userId, command.tankId, tankName, command.labId);
     await this.eventBus.publish(event);
-  }
-}
-
-/** Deletes all tubes and donors in the lab (used for demo lab reset). */
-export class ResetDemoDataCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private tubeRepository: TubeRepository,
-    private userRepository: UserRepository,
-    private donorRepository?: DonorRepository
-  ) {}
-
-  async handle(command: ResetDemoDataCommand): Promise<{ deletedTubes: number }> {
-    const user = await requireUser(this.userRepository, command.userId);
-    if (!user.isAdmin()) {
-      throw PermissionError.configurationManagement('reset demo data', command.userId);
-    }
-
-    const currentConfig = await this.storageRepository.getForLab(command.labId);
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found.');
-    }
-
-    const allTankIds = currentConfig.tanks.map(t => t.id);
-
-    if (allTankIds.length === 0) {
-      return { deletedTubes: 0 };
-    }
-
-    const deletedTubes = await this.tubeRepository.deleteByTankIds(allTankIds, command.labId);
-
-    // Clean up donor records so the registry resets cleanly
-    if (this.donorRepository) {
-      const donors = await this.donorRepository.findByLabId(command.labId);
-      for (const donor of donors) {
-        await this.donorRepository.delete(donor.id, command.labId);
-      }
-    }
-
-    if (currentConfig.hasAnySeededResources()) {
-      const expectedVersion = currentConfig.version;
-      currentConfig.removeNonSeededEquipment();
-      await this.storageRepository.saveWithOptimisticLock(
-        command.labId,
-        currentConfig,
-        expectedVersion,
-        'Removed non-seeded equipment during demo reset',
-        command.userId
-      );
-    }
-
-    return { deletedTubes };
   }
 }

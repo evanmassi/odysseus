@@ -7,9 +7,11 @@
  */
 
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
+import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { CustomUnitRepository } from '@domain/repositories/CustomUnitRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
@@ -45,6 +47,8 @@ export interface Repositories {
   attributes: AttributeRepository;
   labLocations: LabLocationRepository;
   reagentItems: ReagentItemRepository;
+  reagentCategories: CategoryRepository<ReagentCategory>;
+  customUnits: CustomUnitRepository;
 }
 
 export interface UnitOfWork {

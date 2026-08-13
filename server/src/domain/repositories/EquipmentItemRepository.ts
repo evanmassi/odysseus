@@ -19,6 +19,8 @@ export interface EquipmentItemRepository {
   delete(id: string, labId: string): Promise<boolean>;
   /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
   countNonSeededByLabId(labId: string): Promise<number>;
+  /** Bulk delete for the demo reset. Returns the row count removed. */
+  deleteAllForLab(labId: string): Promise<number>;
 
   // Documents
 

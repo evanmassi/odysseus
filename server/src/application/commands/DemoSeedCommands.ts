@@ -7,6 +7,7 @@
 
 import { randomUUID } from 'crypto';
 
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { requireSystemAdmin } from '@application/guards/UserGuards';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -26,6 +27,11 @@ export interface SeedDemoCommand {
 }
 
 export interface UnseedDemoCommand {
+  userId: string;
+  labId: string;
+}
+
+export interface ResetDemoDataCommand {
   userId: string;
   labId: string;
 }
@@ -309,6 +315,68 @@ export class SeedDemoCommandHandler {
     }));
 
     await this.auditRepository!.saveMany(auditEntries);
+  }
+}
+
+/** What a reset removed, per table, so the caller can report it. */
+export interface ResetDemoDataResult {
+  deletedTubes: number;
+  deletedDonors: number;
+  deletedReagents: number;
+  deletedSupplies: number;
+  deletedEquipment: number;
+}
+
+/**
+ * Wipes everything a demo visitor can create, leaving the lab ready to be repopulated.
+ *
+ * One transaction: a reset that failed part-way would leave the demo lab in a state no visitor
+ * should see. Deletion order is dictated by foreign keys, not preference — see the sequence below.
+ *
+ * Never touches `users`: the demo account is what the whole feature depends on, and nothing
+ * recreates it.
+ */
+export class ResetDemoDataCommandHandler {
+  constructor(
+    private unitOfWork: UnitOfWork,
+    private userRepository: UserRepository
+  ) {}
+
+  async handle(command: ResetDemoDataCommand): Promise<ResetDemoDataResult> {
+    await requireSystemAdmin(this.userRepository, command.userId);
+
+    return this.unitOfWork.withTransaction(async repos => {
+      const config = await repos.storage.getForLab(command.labId);
+      if (!config) {
+        throw new ValidationError('No configuration found.');
+      }
+
+      // Both catalogs clear their own ledger first — those foreign keys are NO ACTION, so an item
+      // cannot go while a transaction still points at it. Everything else cascades from the item.
+      const deletedReagents = await repos.reagentItems.deleteAllForLab(command.labId);
+      const deletedSupplies = await repos.supplyItems.deleteAllForLab(command.labId);
+      const deletedEquipment = await repos.equipmentItems.deleteAllForLab(command.labId);
+
+      const tankIds = config.tanks.map(t => t.id);
+      const deletedTubes =
+        tankIds.length > 0 ? await repos.tubes.deleteByTankIds(tankIds, command.labId) : 0;
+
+      const deletedDonors = await repos.donors.deleteAllForLab(command.labId);
+
+      if (config.hasAnySeededResources()) {
+        const expectedVersion = config.version;
+        config.removeNonSeededEquipment();
+        await repos.storage.saveWithOptimisticLock(
+          command.labId,
+          config,
+          expectedVersion,
+          'Removed non-seeded equipment during demo reset',
+          command.userId
+        );
+      }
+
+      return { deletedTubes, deletedDonors, deletedReagents, deletedSupplies, deletedEquipment };
+    });
   }
 }
 

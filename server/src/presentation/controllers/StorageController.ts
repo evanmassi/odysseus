@@ -17,6 +17,7 @@ import type {
   BulkReassignResourcesCommandHandler,
 } from '@application/commands/BulkAssignmentCommands';
 import type {
+  ResetDemoDataCommandHandler,
   SeedDemoCommandHandler,
   UnseedDemoCommandHandler,
 } from '@application/commands/DemoSeedCommands';
@@ -37,7 +38,6 @@ import type {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
   DeleteTankCommandHandler,
-  ResetDemoDataCommandHandler,
 } from '@application/commands/TankCommands';
 import { StorageDto } from '@application/dto/StorageDto';
 import type {
