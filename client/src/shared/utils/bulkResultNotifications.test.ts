@@ -53,4 +53,29 @@ describe('notifyBulkResult', () => {
     expect(notifications.success).not.toHaveBeenCalled();
     expect(notifications.error).not.toHaveBeenCalled();
   });
+
+  it('carries the server reason so a block says why, not just how many', () => {
+    notifyBulkResult(
+      { succeeded: ['a'], failed: [{ error: 'This tube belongs to the demo dataset.' }] },
+      { entityLabel: 'tubes', actionVerb: 'Removed' }
+    );
+
+    expect(notifications.warning).toHaveBeenCalledWith(
+      '1 succeeded, 1 failed — This tube belongs to the demo dataset.'
+    );
+  });
+
+  it('states a shared reason once however many rows carry it', () => {
+    notifyBulkResult(
+      {
+        succeeded: [],
+        failed: [{ error: 'Protected.' }, { error: 'Protected.' }, { error: 'Locked by Ada.' }],
+      },
+      { entityLabel: 'tubes', actionVerb: 'Removed' }
+    );
+
+    expect(notifications.error).toHaveBeenCalledWith(
+      'All 3 tubes failed — Protected. Locked by Ada.'
+    );
+  });
 });
