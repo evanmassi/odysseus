@@ -14,6 +14,7 @@ import type {
   BulkUpdateRequest,
   TubeSearchResponse,
 } from '@application/dto/TubeDto';
+import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
@@ -670,6 +671,7 @@ export class TubeApplicationService {
     options?: { config?: Storage | null; preloadedTube?: Tube }
   ): Promise<void> {
     const tube = await this.loadModifiableTube(id, authenticatedUser, options);
+    rejectSeededItemDeletion(authenticatedUser, tube, 'tube');
 
     await this.tubeRepository.delete(id, authenticatedUser.labId!);
 
@@ -764,6 +766,8 @@ export class TubeApplicationService {
       }
 
       try {
+        rejectSeededItemDeletion(authenticatedUser, tube, 'tube');
+
         const containerInfo = await this.getContainerInfo(
           authenticatedUser.labId!,
           tube.location.tankId,

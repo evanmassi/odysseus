@@ -19,6 +19,7 @@ import {
   type SupplyPackagingLevelResponse,
 } from '@application/dto/SupplyDto';
 import { requireUnusedBarcodeValue } from '@application/guards/BarcodeGuards';
+import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -283,6 +284,7 @@ export class SupplyApplicationService {
   ): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     const item = await this.getItemOrThrow(id, labId);
+    rejectSeededItemDeletion(user, item, 'supply');
 
     const hasTransactions = await this.itemRepository.hasTransactions(id);
     if (hasTransactions) {
@@ -299,6 +301,7 @@ export class SupplyApplicationService {
   async deleteItem(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     const item = await this.getItemOrThrow(id, labId);
+    rejectSeededItemDeletion(user, item, 'supply');
     await this.itemRepository.delete(id, labId);
     await this.eventBus.publish(new SupplyItemDeletedEvent(id, item.name, user.id, labId));
   }
@@ -402,7 +405,8 @@ export class SupplyApplicationService {
 
   async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(itemId, labId);
+    const item = await this.getItemOrThrow(itemId, labId);
+    rejectSeededItemDeletion(user, item, 'document');
     const deleted = await this.itemRepository.deleteDocument(docId, itemId);
     if (!deleted) throw new NotFoundError('This document could not be found.');
     await this.eventBus.publish(new SupplyDocumentRemovedEvent(itemId, user.id, labId));
@@ -455,7 +459,8 @@ export class SupplyApplicationService {
 
   async removeBarcode(labId: string, itemId: string, barcodeId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(itemId, labId);
+    const item = await this.getItemOrThrow(itemId, labId);
+    rejectSeededItemDeletion(user, item, 'barcode');
     const deleted = await this.itemRepository.deleteBarcode(barcodeId, itemId);
     if (!deleted) throw new NotFoundError('This barcode could not be found.');
   }
@@ -545,7 +550,8 @@ export class SupplyApplicationService {
     user: User
   ): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(itemId, labId);
+    const item = await this.getItemOrThrow(itemId, labId);
+    rejectSeededItemDeletion(user, item, 'packaging level');
 
     const levels = await this.itemRepository.findPackagingLevelsByItemId(itemId);
     const level = levels.find(l => l.id === levelId);
@@ -686,6 +692,7 @@ export class SupplyApplicationService {
     if (existing.type === 'void_reversal') {
       throw new ValidationError('Cannot void a void reversal transaction');
     }
+    rejectSeededItemDeletion(user, existing, 'transaction');
 
     const { original, reversal } = await this.itemRepository.voidTransaction({
       transactionId,

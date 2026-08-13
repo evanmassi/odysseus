@@ -82,6 +82,26 @@ export function enforceAddBoxesLimit(
   }
 }
 
+/**
+ * Blocks destruction of records the demo dataset owns, leaving visitor-created ones alone.
+ *
+ * Structural parameter so one guard serves tubes, donors, all three catalogs, and their
+ * transactions without merging those identities. `seededRecord` carries the flag and `label`
+ * names what is being deleted — for child records (documents, barcodes, packaging levels) pass
+ * the **parent item** as the flag source, since hollowing out a seeded item is the same loss.
+ */
+export function rejectSeededItemDeletion(
+  user: User,
+  seededRecord: { isSeeded?: boolean },
+  label: string
+): void {
+  if (!user.isDemo) return;
+  if (!seededRecord.isSeeded) return;
+  throw new PermissionError(
+    `This ${label} belongs to the demo dataset and can't be deleted. Create your own to try this out.`
+  );
+}
+
 export function rejectDemoConfigOperation(user: User, operation: string): void {
   if (!user.isDemo) return;
   throw new PermissionError(`${operation} is not allowed in the demo environment`);

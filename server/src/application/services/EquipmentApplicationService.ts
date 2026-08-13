@@ -16,6 +16,7 @@ import type {
   EquipmentDocumentResponse,
   EquipmentMaintenanceLogResponse,
 } from '@application/dto/EquipmentDto';
+import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
@@ -335,6 +336,7 @@ export class EquipmentApplicationService {
     await this.accessControlService.requireAdminAccess(user);
 
     const item = await this.getItemOrThrow(id, labId);
+    rejectSeededItemDeletion(user, item, 'equipment item');
     await this.itemRepository.delete(id, labId);
 
     await this.eventBus.publish(new EquipmentItemDeletedEvent(item.id, item.name, user.id, labId));
@@ -390,7 +392,8 @@ export class EquipmentApplicationService {
 
   async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(itemId, labId);
+    const item = await this.getItemOrThrow(itemId, labId);
+    rejectSeededItemDeletion(user, item, 'document');
     const deleted = await this.itemRepository.deleteDocument(docId, itemId);
     if (!deleted) {
       throw new NotFoundError('Document not found');
@@ -492,6 +495,7 @@ export class EquipmentApplicationService {
   ): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     const item = await this.getItemOrThrow(itemId, labId);
+    rejectSeededItemDeletion(user, item, 'maintenance entry');
 
     const entry = await this.itemRepository.findMaintenanceEntryById(entryId);
     if (!entry || entry.itemId !== itemId) {

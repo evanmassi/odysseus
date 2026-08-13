@@ -11,6 +11,7 @@ import type {
   DonorWithTubeCountResponse,
   DonorCollectionHistoryResponse,
 } from '@application/dto/DonorDto';
+import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import { Donor } from '@domain/entities/Donor';
 import { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import type { User } from '@domain/entities/User';
@@ -148,6 +149,7 @@ export class DonorApplicationService {
     await this.accessControlService.requireAdminAccess(user);
 
     const donor = await this.getDonorOrThrow(id, labId);
+    rejectSeededItemDeletion(user, donor, 'donor');
     await this.donorRepository.delete(id, labId);
 
     await this.eventBus.publish(
@@ -209,6 +211,17 @@ export class DonorApplicationService {
 
   async deleteCollectionHistory(labId: string, historyId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+
+    // Alone among the destructive methods this one is addressed by entry id, with no donor in
+    // hand, so the parent lookup is scoped to the case that needs it rather than paid by every lab.
+    if (user.isDemo) {
+      const entry = await this.donorRepository.findCollectionHistoryById(historyId, labId);
+      if (entry) {
+        const donor = await this.getDonorOrThrow(entry.donorId, labId);
+        rejectSeededItemDeletion(user, donor, 'collection history entry');
+      }
+    }
+
     const deleted = await this.donorRepository.deleteCollectionHistory(historyId, labId);
     if (!deleted) {
       throw new NotFoundError('This collection history entry could not be found.');
