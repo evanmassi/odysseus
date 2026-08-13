@@ -6,9 +6,11 @@
 
 import { BookUser, SquarePen, Trash2 } from 'lucide-react';
 
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import {
   Button,
   Chip,
+  DemoLockIndicator,
   DetailRow,
   HeaderStrip,
   NubDivider,
@@ -39,6 +41,7 @@ export function DonorInfoPanel({
   onDelete,
   isAdmin,
 }: DonorInfoPanelProps) {
+  const isLocked = useDemoItemLock()(donor);
   const collectionCount = collectionHistory.length;
   const lastCollectionDate = collectionHistory
     .map(e => e.collectionDate)
@@ -119,6 +122,7 @@ export function DonorInfoPanel({
               history={collectionHistory}
               donorId={donor.id}
               isAdmin={isAdmin}
+              isDeleteLocked={isLocked}
             />
           </div>
 
@@ -140,15 +144,19 @@ export function DonorInfoPanel({
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
-          <div className="flex gap-2">
-            <Button
-              variant="danger"
-              size="sm"
-              leftIcon={<Trash2 className="h-4 w-4" />}
-              onClick={onDelete}
-            >
-              Remove
-            </Button>
+          <div className="flex items-center gap-2">
+            {isLocked ? (
+              <DemoLockIndicator />
+            ) : (
+              <Button
+                variant="danger"
+                size="sm"
+                leftIcon={<Trash2 className="h-4 w-4" />}
+                onClick={onDelete}
+              >
+                Remove
+              </Button>
+            )}
             <Button
               variant="primary"
               size="sm"

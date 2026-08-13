@@ -31,6 +31,8 @@ interface BarcodeListProps {
   manufacturer?: string;
   catalogNumber?: string;
   isAdmin: boolean;
+  /** Suppresses removal only; labels and printing stay available on protected items. */
+  isRemoveLocked?: boolean;
   onUpdateLabel: (barcodeId: string, label: string | null, onSuccess: () => void) => void;
   onRemove: (barcodeId: string, onSuccess: () => void) => void;
   onRegenerate: () => void;
@@ -44,6 +46,7 @@ export function BarcodeList({
   manufacturer,
   catalogNumber,
   isAdmin,
+  isRemoveLocked = false,
   onUpdateLabel,
   onRemove,
   onRegenerate,
@@ -139,18 +142,20 @@ export function BarcodeList({
                         <Edit className="h-3 w-3" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Remove" side="bottom">
-                      <Button
-                        variant="ghost-danger"
-                        size="xs"
-                        iconOnly
-                        onClick={() =>
-                          onRemove(bc.id, () => notifications.success('Barcode removed'))
-                        }
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </Tooltip>
+                    {!isRemoveLocked && (
+                      <Tooltip content="Remove" side="bottom">
+                        <Button
+                          variant="ghost-danger"
+                          size="xs"
+                          iconOnly
+                          onClick={() =>
+                            onRemove(bc.id, () => notifications.success('Barcode removed'))
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                 )}
               </div>

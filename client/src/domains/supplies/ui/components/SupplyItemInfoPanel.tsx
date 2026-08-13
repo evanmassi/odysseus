@@ -36,9 +36,11 @@ import {
   useRegenerateInternalBarcodeMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import {
   Button,
   Chip,
+  DemoLockIndicator,
   DetailRow,
   HeaderStrip,
   NubDivider,
@@ -90,6 +92,7 @@ export function SupplyItemInfoPanel({
 }: SupplyItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isDemoLockedItem = useDemoItemLock();
   const scrollRef = useRef<OverlayScrollbarsComponentRef>(null);
 
   useEffect(() => {
@@ -138,6 +141,7 @@ export function SupplyItemInfoPanel({
   );
   const statusConfig = SUPPLY_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
+  const isLocked = isDemoLockedItem(item);
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
 
   const locationChips = stock
@@ -394,6 +398,7 @@ export function SupplyItemInfoPanel({
               manufacturer={item.manufacturer}
               catalogNumber={item.catalogNumber}
               isAdmin={isAdmin}
+              isRemoveLocked={isLocked}
               onUpdateLabel={(barcodeId, label, onSuccess) =>
                 updateBarcodeMutation.mutate({ itemId, barcodeId, data: { label } }, { onSuccess })
               }
@@ -444,16 +449,18 @@ export function SupplyItemInfoPanel({
                               <Edit className="h-3 w-3" />
                             </Button>
                           </Tooltip>
-                          <Tooltip content="Remove" side="bottom">
-                            <Button
-                              variant="ghost-danger"
-                              size="xs"
-                              iconOnly
-                              onClick={() => void handleRemoveDocument(doc.id)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </Tooltip>
+                          {!isLocked && (
+                            <Tooltip content="Remove" side="bottom">
+                              <Button
+                                variant="ghost-danger"
+                                size="xs"
+                                iconOnly
+                                onClick={() => void handleRemoveDocument(doc.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </Tooltip>
+                          )}
                         </div>
                       )}
                     </div>
@@ -528,29 +535,33 @@ export function SupplyItemInfoPanel({
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
-            <OverflowMenu
-              items={[
-                ...(!isArchived
-                  ? [
-                      {
-                        icon: Archive,
-                        label: 'Archive',
-                        onClick: () => void handleArchive(),
-                        warning: true,
-                      },
-                    ]
-                  : []),
-                {
-                  icon: Trash2,
-                  label: 'Remove',
-                  onClick: () => setShowDeleteConfirm(true),
-                  danger: true,
-                },
-              ]}
-              dividerBefore={['Remove']}
-              size="sm"
-              aria-label="More item actions"
-            />
+            {isLocked ? (
+              <DemoLockIndicator />
+            ) : (
+              <OverflowMenu
+                items={[
+                  ...(!isArchived
+                    ? [
+                        {
+                          icon: Archive,
+                          label: 'Archive',
+                          onClick: () => void handleArchive(),
+                          warning: true,
+                        },
+                      ]
+                    : []),
+                  {
+                    icon: Trash2,
+                    label: 'Remove',
+                    onClick: () => setShowDeleteConfirm(true),
+                    danger: true,
+                  },
+                ]}
+                dividerBefore={['Remove']}
+                size="sm"
+                aria-label="More item actions"
+              />
+            )}
             <Button
               variant="secondary"
               size="sm"

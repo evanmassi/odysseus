@@ -26,6 +26,7 @@ import {
   useSetSupplyAttributeValueMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
@@ -93,6 +94,8 @@ const TRACKED_FIELDS = [
 
 export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyItemFormProps) {
   const isEditing = !!item;
+  const isDemoLockedItem = useDemoItemLock();
+  const isLocked = !!item && isDemoLockedItem(item);
   const createMutation = useCreateSupplyItemMutation();
   const updateMutation = useUpdateSupplyItemMutation();
   const addPackagingMutation = useAddSupplyPackagingLevelMutation();
@@ -590,15 +593,17 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                       className="flex items-center justify-between border border-line-faint bg-shade/20 px-2.5 py-1.5 text-body-sm"
                     >
                       <span>{formatLevelDisplay(levelData)}</span>
-                      <button
-                        type="button"
-                        className={`p-0.5 ${hasChildren ? 'cursor-not-allowed text-muted-foreground' : 'text-danger-text hover:text-danger-text/80'}`}
-                        disabled={hasChildren}
-                        title={hasChildren ? 'Remove child levels first' : 'Remove'}
-                        onClick={() => handleRemoveLevel(index, levelId)}
-                      >
-                        <X size={12} />
-                      </button>
+                      {!isLocked && (
+                        <button
+                          type="button"
+                          className={`p-0.5 ${hasChildren ? 'cursor-not-allowed text-muted-foreground' : 'text-danger-text hover:text-danger-text/80'}`}
+                          disabled={hasChildren}
+                          title={hasChildren ? 'Remove child levels first' : 'Remove'}
+                          onClick={() => handleRemoveLevel(index, levelId)}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
                     </div>
                   );
                 })}

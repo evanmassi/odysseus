@@ -10,11 +10,11 @@ import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save } from 'l
 import { useIsDemo } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { AuthInput, Button, ConsolePanel, LoadingSpinner, Subsection } from '@shared/ui';
+import { DemoModeBanner } from '@shared/ui/components/info-display/DemoModeBanner';
 import { notifications } from '@shared/utils';
 import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
 import { useUserProfile, useUserProfileActions } from '../../../../hooks/useUserProfile';
-import { DemoModeBanner } from '../DemoModeBanner';
 
 import type { UpdateMyProfileRequest } from '@odysseus/shared-schemas';
 

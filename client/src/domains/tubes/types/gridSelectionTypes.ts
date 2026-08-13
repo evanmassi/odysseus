@@ -117,6 +117,8 @@ export interface GridControllerReturn {
   selection: {
     hasFilledSelection: boolean;
     isMixed: boolean;
+    /** Every selected tube is seeded demo content, so a bulk delete would remove nothing. */
+    isDeleteLocked: boolean;
     lockableCount?: number;
     unlockableCount?: number;
     sharableCount?: number;

@@ -34,7 +34,15 @@ import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConf
 import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { AccentTick, AlertBanner, Button, Checkbox, LoadingSpinner } from '@shared/ui';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
+import {
+  AccentTick,
+  AlertBanner,
+  Button,
+  Checkbox,
+  DemoLockIndicator,
+  LoadingSpinner,
+} from '@shared/ui';
 import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
@@ -156,6 +164,7 @@ function EditModeForm({
 }: EditModeFormProps) {
   const modalService = useModalStore();
   const modalRef = useRef<BaseModalHandle>(null);
+  const isLocked = useDemoItemLock()(tube);
   // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = useMemo(
     () => ({
@@ -301,7 +310,7 @@ function EditModeForm({
           ) : (
             <span />
           )}
-          <div className="flex justify-end space-x-4">
+          <div className="flex items-center justify-end space-x-4">
             <Button
               variant="secondary"
               onClick={() => modalRef.current?.requestClose()}
@@ -309,19 +318,23 @@ function EditModeForm({
             >
               Cancel
             </Button>
-            <Button
-              variant="danger"
-              disabled={isSubmitting}
-              leftIcon={<Trash2 className="w-4 h-4" />}
-              onClick={() => {
-                modalService.showDeleteConfirm({
-                  ...buildRemoveTubeConfirmation(1),
-                  onConfirm: handleDelete,
-                });
-              }}
-            >
-              Remove Tube
-            </Button>
+            {isLocked ? (
+              <DemoLockIndicator />
+            ) : (
+              <Button
+                variant="danger"
+                disabled={isSubmitting}
+                leftIcon={<Trash2 className="w-4 h-4" />}
+                onClick={() => {
+                  modalService.showDeleteConfirm({
+                    ...buildRemoveTubeConfirmation(1),
+                    onConfirm: handleDelete,
+                  });
+                }}
+              >
+                Remove Tube
+              </Button>
+            )}
             <Button
               type="submit"
               form="tube-edit-form"

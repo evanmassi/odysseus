@@ -342,6 +342,7 @@ export function TubeGrid({
         selectedCount={selectedPositions.size}
         hasFilledSelection={gridController.selection.hasFilledSelection}
         isMixedSelection={gridController.selection.isMixed}
+        isDeleteLocked={gridController.selection.isDeleteLocked}
         onClose={gridController.contextMenu.hide}
         onOpen={gridController.openModal}
         onDelete={gridController.actions.delete}

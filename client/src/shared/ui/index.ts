@@ -19,6 +19,7 @@ export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 export {
   AccentTick,
   CompletenessMeter,
+  DemoLockIndicator,
   DetailRow,
   InfoPanelEmpty,
   OccupancyBar,

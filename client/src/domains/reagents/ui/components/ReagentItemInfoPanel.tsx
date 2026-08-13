@@ -39,9 +39,11 @@ import {
 } from '@domains/reagents/hooks';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
 import { REAGENT_STATUS_DISPLAY } from '@domains/reagents/utils/reagentStatus';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import {
   Button,
   Chip,
+  DemoLockIndicator,
   DetailRow,
   HeaderStrip,
   NubDivider,
@@ -95,6 +97,7 @@ export function ReagentItemInfoPanel({
 }: ReagentItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isDemoLockedItem = useDemoItemLock();
   const scrollRef = useRef<OverlayScrollbarsComponentRef>(null);
 
   useEffect(() => {
@@ -140,6 +143,7 @@ export function ReagentItemInfoPanel({
   const { item, documents, barcodes, lots, packagingLevels, attributeValues } = detail;
   const statusConfig = REAGENT_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
+  const isLocked = isDemoLockedItem(item);
 
   // A lot barcode labels one bottle, so it belongs on that lot's row, not in the item's list.
   const itemBarcodes = barcodes.filter(bc => !bc.lotId);
@@ -352,6 +356,7 @@ export function ReagentItemInfoPanel({
               manufacturer={item.manufacturer}
               catalogNumber={item.catalogNumber}
               isAdmin={isAdmin}
+              isRemoveLocked={isLocked}
               onUpdateLabel={(barcodeId, label, onSuccess) =>
                 updateBarcodeMutation.mutate({ itemId, barcodeId, data: { label } }, { onSuccess })
               }
@@ -409,16 +414,18 @@ export function ReagentItemInfoPanel({
                               <Edit className="h-3 w-3" />
                             </Button>
                           </Tooltip>
-                          <Tooltip content="Remove" side="bottom">
-                            <Button
-                              variant="ghost-danger"
-                              size="xs"
-                              iconOnly
-                              onClick={() => handleRemoveDocument(doc.id)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </Tooltip>
+                          {!isLocked && (
+                            <Tooltip content="Remove" side="bottom">
+                              <Button
+                                variant="ghost-danger"
+                                size="xs"
+                                iconOnly
+                                onClick={() => handleRemoveDocument(doc.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </Tooltip>
+                          )}
                         </div>
                       )}
                     </div>
@@ -488,22 +495,26 @@ export function ReagentItemInfoPanel({
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
-            <OverflowMenu
-              items={[
-                ...(!isArchived
-                  ? [{ icon: Archive, label: 'Archive', onClick: handleArchive, warning: true }]
-                  : []),
-                {
-                  icon: Trash2,
-                  label: 'Remove',
-                  onClick: () => setShowDeleteConfirm(true),
-                  danger: true,
-                },
-              ]}
-              dividerBefore={['Remove']}
-              size="sm"
-              aria-label="More item actions"
-            />
+            {isLocked ? (
+              <DemoLockIndicator />
+            ) : (
+              <OverflowMenu
+                items={[
+                  ...(!isArchived
+                    ? [{ icon: Archive, label: 'Archive', onClick: handleArchive, warning: true }]
+                    : []),
+                  {
+                    icon: Trash2,
+                    label: 'Remove',
+                    onClick: () => setShowDeleteConfirm(true),
+                    danger: true,
+                  },
+                ]}
+                dividerBefore={['Remove']}
+                size="sm"
+                aria-label="More item actions"
+              />
+            )}
             <Button
               variant="secondary"
               size="sm"

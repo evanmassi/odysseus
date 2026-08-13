@@ -15,11 +15,11 @@ import {
 } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
+import { DemoModeBanner } from '@shared/ui/components/info-display/DemoModeBanner';
 import { notifications } from '@shared/utils';
 import { getValidationState } from '@shared/utils/fieldValidation';
 
 import { usePasswordChange } from '../../../../hooks/usePasswordChange';
-import { DemoModeBanner } from '../DemoModeBanner';
 import { SessionListPanel } from '../SessionListPanel';
 
 export function SecurityTab() {

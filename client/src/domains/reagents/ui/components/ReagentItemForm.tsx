@@ -30,6 +30,7 @@ import {
   useUpdateReagentItemMutation,
 } from '@domains/reagents/hooks';
 import { ReagentService } from '@domains/reagents/services/ReagentService';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { useUnitOptions } from '@shared/hooks/useUnitOptions';
 import {
@@ -95,6 +96,8 @@ const TRACKED_FIELDS = [
 
 export function ReagentItemForm({ item, categories, onSubmit, onCancel }: ReagentItemFormProps) {
   const isEditing = !!item;
+  const isDemoLockedItem = useDemoItemLock();
+  const isLocked = !!item && isDemoLockedItem(item);
   const createMutation = useCreateReagentItemMutation();
   const updateMutation = useUpdateReagentItemMutation();
   const addPackagingMutation = useAddReagentPackagingLevelMutation();
@@ -570,15 +573,17 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
                         1 {level.unitName} = {level.quantity}{' '}
                         {pluralizeUnit(contained, level.quantity)}
                       </span>
-                      <button
-                        type="button"
-                        className={`p-0.5 ${hasChildren ? 'cursor-not-allowed text-muted-foreground' : 'text-danger-text hover:text-danger-text/80'}`}
-                        disabled={hasChildren}
-                        title={hasChildren ? 'Remove the outer pack first' : 'Remove'}
-                        onClick={() => handleRemoveLevel(index, level.id)}
-                      >
-                        <X size={12} />
-                      </button>
+                      {!isLocked && (
+                        <button
+                          type="button"
+                          className={`p-0.5 ${hasChildren ? 'cursor-not-allowed text-muted-foreground' : 'text-danger-text hover:text-danger-text/80'}`}
+                          disabled={hasChildren}
+                          title={hasChildren ? 'Remove the outer pack first' : 'Remove'}
+                          onClick={() => handleRemoveLevel(index, level.id)}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
                     </div>
                   );
                 })}

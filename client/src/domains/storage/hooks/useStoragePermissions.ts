@@ -7,6 +7,8 @@ import { useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 
+import { isDemoLocked } from '@shared/utils/isDemoLocked';
+
 import type {
   BoxConfiguration,
   RackConfiguration,
@@ -29,7 +31,7 @@ export function useStoragePermissions(
   const isResourceLocked = useMemo(
     () =>
       (resource: TankConfiguration | RackConfiguration | BoxConfiguration): boolean =>
-        isDemo && resource.isSeeded === true,
+        isDemoLocked(isDemo, resource),
     [isDemo]
   );
 
@@ -38,7 +40,7 @@ export function useStoragePermissions(
       (resource: RackConfiguration | BoxConfiguration, parentRack?: RackConfiguration): boolean => {
         if (!currentUser) return false;
 
-        if (isDemo && resource.isSeeded) return false;
+        if (isDemoLocked(isDemo, resource)) return false;
 
         if (isAdminRole(currentUser.role)) return true;
 

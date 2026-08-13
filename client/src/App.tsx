@@ -20,13 +20,18 @@ import { useErrorStore } from '@app/stores/errorStore';
 import {
   AuthGateway,
   useAuthStore,
+  useIsDemo,
   AuthEmailVerificationPage,
   AuthSessionTimeoutModal,
   AuthPasswordResetPage,
 } from '@domains/authentication';
+import { DemoModeBanner } from '@shared/ui/components/info-display/DemoModeBanner';
 
 // Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
 const SPLASH_FLOOR_MS = 1000;
+
+const DEMO_BANNER_MESSAGE =
+  "You're exploring a demo lab. Preloaded records can't be deleted. The lab resets nightly.";
 
 // Dev-only surface preview harness; the dynamic import is dead-code-eliminated from
 // production builds, so neither the route nor its component ships.
@@ -44,6 +49,7 @@ function AppContent() {
 
   const { errors, clearErrors } = useErrorStore();
   const { isAuthenticated } = useAuthStore();
+  const isDemo = useIsDemo();
 
   useAuthSocketSync();
   useServerThemeSync();
@@ -83,6 +89,13 @@ function AppContent() {
         </Routes>
 
         <AppErrorBanner errors={errors} onClear={clearErrors} />
+        {/* The app shell is exactly one viewport tall, so the banner has to float rather than
+            sit in the flow. bg-card backs the banner's translucent tint over live content. */}
+        {isDemo && (
+          <div className="pointer-events-none fixed inset-x-4 bottom-4 z-40 mx-auto max-w-2xl bg-card shadow-lg">
+            <DemoModeBanner message={DEMO_BANNER_MESSAGE} spacing="none" />
+          </div>
+        )}
         {isAuthenticated && <AuthSessionTimeoutModal />}
       </AppErrorBoundary>
     </BootstrapProvider>

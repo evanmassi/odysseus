@@ -26,12 +26,15 @@ interface CollectionHistoryTimelineProps {
   history: DonorCollectionHistory[];
   donorId: string;
   isAdmin: boolean;
+  /** Entries inherit protection from the donor, which owns them. */
+  isDeleteLocked: boolean;
 }
 
 export function CollectionHistoryTimeline({
   history,
   donorId,
   isAdmin,
+  isDeleteLocked,
 }: CollectionHistoryTimelineProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -206,17 +209,19 @@ export function CollectionHistoryTimeline({
                         <SquarePen className="w-3 h-3" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Remove entry" side="left">
-                      <Button
-                        variant="ghost-danger"
-                        size="xs"
-                        iconOnly
-                        onClick={() => handleDelete(entry.id)}
-                        aria-label="Remove entry"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </Tooltip>
+                    {!isDeleteLocked && (
+                      <Tooltip content="Remove entry" side="left">
+                        <Button
+                          variant="ghost-danger"
+                          size="xs"
+                          iconOnly
+                          onClick={() => handleDelete(entry.id)}
+                          aria-label="Remove entry"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                 )}
               </div>

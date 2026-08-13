@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 import { useGridSelectionAnalysis } from '@domains/tubes';
-import { Button, Chip, Tooltip } from '@shared/ui';
+import { Button, Chip, DemoLockIndicator, Tooltip } from '@shared/ui';
 
 import type { PositionKey } from '@domains/tubes';
 import type { TubeData } from '@odysseus/shared-schemas';
@@ -37,6 +37,7 @@ export interface GridController {
   selection: {
     hasFilledSelection: boolean;
     isMixed: boolean;
+    isDeleteLocked: boolean;
     lockableCount?: number;
     unlockableCount?: number;
     sharableCount?: number;
@@ -191,13 +192,17 @@ export function TubeSelectionToolbar({
           {selectionAnalysis.hasFilled && (
             <>
               <ToolbarDivider />
-              <ToolbarButton
-                tooltip="Remove selected tube(s)"
-                icon={<Trash2 className="w-3 h-3" />}
-                label="Remove"
-                onClick={gridController.delete}
-                variant="ghost-danger"
-              />
+              {selection.isDeleteLocked ? (
+                <DemoLockIndicator side="bottom" />
+              ) : (
+                <ToolbarButton
+                  tooltip="Remove selected tube(s)"
+                  icon={<Trash2 className="w-3 h-3" />}
+                  label="Remove"
+                  onClick={gridController.delete}
+                  variant="ghost-danger"
+                />
+              )}
             </>
           )}
         </>

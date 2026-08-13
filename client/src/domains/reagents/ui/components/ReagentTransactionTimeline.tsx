@@ -14,6 +14,7 @@ import { Ban, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@domains/authentication';
 import { useLabLocationsQuery } from '@domains/lab-management';
 import { groupTransactions } from '@domains/reagents/utils/reagentTransactionGroups';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import { Button, Tooltip } from '@shared/ui';
 import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -45,6 +46,7 @@ export function ReagentTransactionTimeline({
 }: ReagentTransactionTimelineProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isDemoLockedTransaction = useDemoItemLock();
   const { data: locations = [] } = useLabLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const lotMap = useMemo(() => new Map(lots.map(lot => [lot.id, lot])), [lots]);
@@ -67,6 +69,7 @@ export function ReagentTransactionTimeline({
             lotMap={lotMap}
             stockUnit={stockUnit}
             isAdmin={isAdmin}
+            isVoidLocked={group.transactions.some(isDemoLockedTransaction)}
             onVoid={setVoidingGroup}
           />
         ))}
@@ -92,6 +95,7 @@ function TransactionEntry({
   lotMap,
   stockUnit,
   isAdmin,
+  isVoidLocked,
   onVoid,
 }: {
   group: TransactionGroup;
@@ -99,6 +103,7 @@ function TransactionEntry({
   lotMap: Map<string, ReagentLot>;
   stockUnit?: string;
   isAdmin: boolean;
+  isVoidLocked: boolean;
   onVoid: (group: TransactionGroup) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -106,7 +111,7 @@ function TransactionEntry({
   const isFullyVoided = group.voidedCount === group.transactions.length;
   const isPartiallyVoided = group.voidedCount > 0 && !isFullyVoided;
   const isReversal = group.type === 'void_reversal';
-  const canVoid = isAdmin && !isFullyVoided && !isReversal;
+  const canVoid = isAdmin && !isFullyVoided && !isReversal && !isVoidLocked;
 
   const config = transactionTypeDisplay(group.type);
   const Icon = config.icon;

@@ -32,9 +32,11 @@ import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipme
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
 import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import {
   Button,
   Chip,
+  DemoLockIndicator,
   DetailRow,
   HeaderStrip,
   NubDivider,
@@ -83,6 +85,7 @@ export function EquipmentItemInfoPanel({
 }: EquipmentItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isDemoLockedItem = useDemoItemLock();
   const scrollRef = useRef<OverlayScrollbarsComponentRef>(null);
 
   useEffect(() => {
@@ -141,6 +144,7 @@ export function EquipmentItemInfoPanel({
   const statusColor = EQUIPMENT_STATUS_DISPLAY[item.status].color;
   const statusLabel = EQUIPMENT_STATUS_DISPLAY[item.status].label;
   const isDecommissioned = item.status === 'decommissioned';
+  const isLocked = isDemoLockedItem(item);
 
   const hasIdentification = [item.manufacturer, item.model, item.serialNumber, item.assetTag].some(
     Boolean
@@ -283,6 +287,7 @@ export function EquipmentItemInfoPanel({
               maintenanceLog={maintenanceLog}
               itemId={itemId}
               isAdmin={isAdmin}
+              isDeleteLocked={isLocked}
               onEditEntry={onEditMaintenance}
               onAddEntry={onAddMaintenance}
             />
@@ -331,15 +336,17 @@ export function EquipmentItemInfoPanel({
                           >
                             <Edit size={12} />
                           </Button>
-                          <Button
-                            variant="ghost-danger"
-                            size="xs"
-                            iconOnly
-                            onClick={() => void handleRemoveDocument(doc.id)}
-                            aria-label="Remove document"
-                          >
-                            <X size={12} />
-                          </Button>
+                          {!isLocked && (
+                            <Button
+                              variant="ghost-danger"
+                              size="xs"
+                              iconOnly
+                              onClick={() => void handleRemoveDocument(doc.id)}
+                              aria-label="Remove document"
+                            >
+                              <X size={12} />
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -388,15 +395,19 @@ export function EquipmentItemInfoPanel({
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
-          <div className="flex gap-2">
-            <Button
-              variant="danger"
-              size="sm"
-              leftIcon={<Trash2 className="h-4 w-4" />}
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              Remove
-            </Button>
+          <div className="flex items-center gap-2">
+            {isLocked ? (
+              <DemoLockIndicator />
+            ) : (
+              <Button
+                variant="danger"
+                size="sm"
+                leftIcon={<Trash2 className="h-4 w-4" />}
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Remove
+              </Button>
+            )}
             {!isDecommissioned && (
               <Button
                 variant="warning"

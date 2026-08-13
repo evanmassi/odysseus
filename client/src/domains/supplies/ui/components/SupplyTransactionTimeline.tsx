@@ -12,6 +12,7 @@ import { ChevronRight, Ban } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useLabLocationsQuery } from '@domains/lab-management';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import { Button, Tooltip } from '@shared/ui';
 import { transactionTypeDisplay } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -53,6 +54,7 @@ export function SupplyTransactionTimeline({
 }: SupplyTransactionTimelineProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isDemoLockedTransaction = useDemoItemLock();
   const { data: locations = [] } = useLabLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const [voidingTransaction, setVoidingTransaction] = useState<SupplyTransaction | null>(null);
@@ -71,6 +73,7 @@ export function SupplyTransactionTimeline({
             locationName={locationNameMap.get(txn.locationId) ?? txn.locationId}
             stockUnit={stockUnit}
             isAdmin={isAdmin}
+            isVoidLocked={isDemoLockedTransaction(txn)}
             onVoid={setVoidingTransaction}
           />
         ))}
@@ -92,18 +95,20 @@ function TransactionEntry({
   locationName,
   stockUnit,
   isAdmin,
+  isVoidLocked,
   onVoid,
 }: {
   transaction: SupplyTransaction;
   locationName: string;
   stockUnit?: string;
   isAdmin: boolean;
+  isVoidLocked: boolean;
   onVoid: (txn: SupplyTransaction) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isVoided = !!transaction.voidedAt;
   const isReversal = transaction.type === 'void_reversal';
-  const canVoid = isAdmin && !isVoided && !isReversal;
+  const canVoid = isAdmin && !isVoided && !isReversal && !isVoidLocked;
 
   const config = transactionTypeDisplay(transaction.type);
   const Icon = config.icon;

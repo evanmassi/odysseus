@@ -15,6 +15,7 @@ import {
   canModifyAllTubes,
   getBlockedModificationMessage,
 } from '@domains/tubes/utils/tubeAccessControl';
+import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import { notifications } from '@shared/utils/notifications';
 
 import { useGridClipboard } from './useGridClipboard';
@@ -47,6 +48,7 @@ export const useGridController = ({
   hasResearcherProfile = true,
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
+  const isDemoLockedTube = useDemoItemLock();
 
   const { data: tubes = [] } = useTubesByLocation(tankId, rackId, boxId);
 
@@ -132,6 +134,13 @@ export const useGridController = ({
       })
       .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
   }, [selectedPositionsInThisBox, resolveTube, tubes]);
+
+  // Bulk delete is partial-success on the server, so a mixed selection still removes the
+  // visitor's own tubes; only an all-seeded selection would do nothing at all.
+  const isDeleteLocked = useMemo(() => {
+    const selectedTubes = getSelectedTubes();
+    return selectedTubes.length > 0 && selectedTubes.every(tube => isDemoLockedTube(tube));
+  }, [getSelectedTubes, isDemoLockedTube]);
 
   const getFilteredTubeIds = useCallback(
     (predicate: (tube: TubeData) => boolean): string[] =>
@@ -258,6 +267,12 @@ export const useGridController = ({
   const deleteSelectedTubes = useCallback(async () => {
     if (guardModifyOperation()) return;
 
+    // The Del key has no control to hide, so the all-seeded case is refused here too.
+    if (isDeleteLocked) {
+      notifications.warning("Preloaded tubes can't be removed. Create your own to try this out.");
+      return;
+    }
+
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -282,6 +297,7 @@ export const useGridController = ({
     });
   }, [
     guardModifyOperation,
+    isDeleteLocked,
     selectedPositionsInThisBox,
     resolveTube,
     onDeleteTubes,
@@ -421,6 +437,7 @@ export const useGridController = ({
     selection: {
       hasFilledSelection: selectionAnalysis.hasFilledSelection,
       isMixed: selectionAnalysis.isMixed,
+      isDeleteLocked,
       lockableCount: selectionAnalysis.lockableCount,
       unlockableCount: selectionAnalysis.unlockableCount,
       sharableCount: selectionAnalysis.sharableCount,

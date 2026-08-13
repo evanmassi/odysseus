@@ -25,6 +25,7 @@ interface TubeGridContextMenuProps {
   selectedCount: number;
   hasFilledSelection: boolean;
   isMixedSelection: boolean;
+  isDeleteLocked: boolean;
   onClose: () => void;
   onOpen: () => void;
   onDelete: () => void;
@@ -51,6 +52,7 @@ export function TubeGridContextMenu({
   selectedCount,
   hasFilledSelection,
   isMixedSelection,
+  isDeleteLocked,
   onClose,
   onOpen,
   onDelete,
@@ -222,11 +224,11 @@ export function TubeGridContextMenu({
                 />
               )}
             </div>
-            {hasFilledSelection && <MenuDivider subtle />}
+            {hasFilledSelection && !isDeleteLocked && <MenuDivider subtle />}
           </>
         )}
 
-        {hasFilledSelection && (
+        {hasFilledSelection && !isDeleteLocked && (
           <div>
             <MenuItem
               icon={Trash2}

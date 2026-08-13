@@ -22,6 +22,8 @@ interface EquipmentMaintenanceTimelineProps {
   maintenanceLog: EquipmentMaintenanceLog[];
   itemId: string;
   isAdmin: boolean;
+  /** Entries inherit protection from the equipment item, which owns them. */
+  isDeleteLocked: boolean;
   onEditEntry: (entry: EquipmentMaintenanceLog) => void;
   onAddEntry: () => void;
   className?: string;
@@ -44,6 +46,7 @@ export function EquipmentMaintenanceTimeline({
   maintenanceLog,
   itemId,
   isAdmin,
+  isDeleteLocked,
   onEditEntry,
   onAddEntry,
   className,
@@ -131,17 +134,19 @@ export function EquipmentMaintenanceTimeline({
                         <SquarePen className="h-3 w-3" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Remove entry" side="left">
-                      <Button
-                        variant="ghost-danger"
-                        size="xs"
-                        iconOnly
-                        onClick={() => setPendingDeleteId(entry.id)}
-                        aria-label="Remove entry"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </Tooltip>
+                    {!isDeleteLocked && (
+                      <Tooltip content="Remove entry" side="left">
+                        <Button
+                          variant="ghost-danger"
+                          size="xs"
+                          iconOnly
+                          onClick={() => setPendingDeleteId(entry.id)}
+                          aria-label="Remove entry"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                 )}
               </div>
