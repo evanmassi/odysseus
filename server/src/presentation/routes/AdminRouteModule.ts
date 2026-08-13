@@ -20,7 +20,7 @@ import type { InviteCodeController } from '@presentation/controllers/InviteCodeC
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
-import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
+import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import {
   validateBody,
   validateParams,
@@ -40,7 +40,9 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class AdminRouteModule implements RouteModule {
-  private readonly strictLimiter = createStrictRateLimiter();
+  // Exports are read-only and a lab admin legitimately runs several in a row; the bound exists to
+  // stop a script scanning tables in a loop, not to ration ordinary reporting.
+  private readonly exportLimiter = createModerateRateLimiter();
 
   constructor(
     private readonly adminUserController: AdminUserController,
@@ -192,37 +194,37 @@ export class AdminRouteModule implements RouteModule {
 
     router.get(
       '/export/tubes',
-      this.strictLimiter,
+      this.exportLimiter,
       this.exportController.exportTubes.bind(this.exportController)
     );
 
     router.get(
       '/export/users',
-      this.strictLimiter,
+      this.exportLimiter,
       this.exportController.exportUsers.bind(this.exportController)
     );
 
     router.get(
       '/export/researchers',
-      this.strictLimiter,
+      this.exportLimiter,
       this.exportController.exportResearchers.bind(this.exportController)
     );
 
     router.get(
       '/export/equipment',
-      this.strictLimiter,
+      this.exportLimiter,
       this.exportController.exportEquipment.bind(this.exportController)
     );
 
     router.get(
       '/export/supply-reorder-list',
-      this.strictLimiter,
+      this.exportLimiter,
       this.exportController.exportSupplyReorderList.bind(this.exportController)
     );
 
     router.get(
       '/export/system-backup',
-      this.strictLimiter,
+      this.exportLimiter,
       this.exportController.exportSystemBackup.bind(this.exportController)
     );
 

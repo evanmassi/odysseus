@@ -22,7 +22,10 @@ import type { StorageController } from '@presentation/controllers/StorageControl
 import type { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
-import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
+import {
+  createModerateRateLimiter,
+  createStrictRateLimiter,
+} from '@presentation/middleware/apiRateLimiter';
 import {
   validateBody,
   validateParams,
@@ -41,7 +44,11 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class SystemAdminRouteModule implements RouteModule {
-  private readonly strictLimiter = createStrictRateLimiter();
+  // One limiter instance means one shared budget, so demo management gets its own rather than
+  // competing with session purges. Both sit behind requireSystemAdmin already; the throttle is
+  // the second line of defence against a stolen token, not the first.
+  private readonly securityLimiter = createStrictRateLimiter();
+  private readonly demoLimiter = createModerateRateLimiter();
 
   constructor(
     private readonly labController: LabController,
@@ -127,21 +134,21 @@ export class SystemAdminRouteModule implements RouteModule {
     router.post(
       '/labs/:labId/demo/reset',
       validateParams(LabIdParams),
-      this.strictLimiter,
+      this.demoLimiter,
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)
     );
 
     router.post(
       '/labs/:labId/demo/seed',
       validateParams(LabIdParams),
-      this.strictLimiter,
+      this.demoLimiter,
       this.configurationController.seedDemoLab.bind(this.configurationController)
     );
 
     router.post(
       '/labs/:labId/demo/unseed',
       validateParams(LabIdParams),
-      this.strictLimiter,
+      this.demoLimiter,
       this.configurationController.unseedDemoLab.bind(this.configurationController)
     );
 
@@ -212,7 +219,7 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.post(
       '/security/purge-expired',
-      this.strictLimiter,
+      this.securityLimiter,
       this.securityMonitoringController.purgeExpiredSessions.bind(this.securityMonitoringController)
     );
 
@@ -230,7 +237,7 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.post(
       '/security/sessions/bulk-revoke',
-      this.strictLimiter,
+      this.securityLimiter,
       validateBody(bulkRevokeSessionsRequestSchema),
       this.securityMonitoringController.bulkRevokeSessions.bind(this.securityMonitoringController)
     );
