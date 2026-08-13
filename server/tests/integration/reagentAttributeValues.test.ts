@@ -12,6 +12,7 @@ import { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
 import { AttributeRepository } from '@infrastructure/repositories/AttributeRepository';
 import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
+import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { TubeRepository } from '@infrastructure/repositories/TubeRepository';
 
@@ -48,7 +49,8 @@ describe('reagent attribute values', () => {
       attributes,
       new AccessControlService(tubes),
       { publish: async () => undefined } as unknown as EventBus,
-      new StorageRepository(context)
+      new StorageRepository(context),
+      new LabRepository(context)
     );
   });
 

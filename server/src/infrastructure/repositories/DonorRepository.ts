@@ -310,4 +310,13 @@ export class DonorRepository implements IDonorRepository {
     );
     return result.rowCount ?? 0;
   }
+
+  async countNonSeededByLabId(labId: string): Promise<number> {
+    const row = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM donors WHERE lab_id = $1 AND is_seeded = FALSE',
+      [labId]
+    );
+    return parseCount(row);
+  }
+
 }

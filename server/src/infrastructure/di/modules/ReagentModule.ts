@@ -27,7 +27,8 @@ export class ReagentModule {
         this.repositoryFactory.getAttributeRepository(),
         this.shared.accessControlService,
         this.shared.eventBus,
-        this.repositoryFactory.getStorageRepository()
+        this.repositoryFactory.getStorageRepository(),
+        this.repositoryFactory.getLabRepository()
       );
     }
     return this.reagentApplicationService;

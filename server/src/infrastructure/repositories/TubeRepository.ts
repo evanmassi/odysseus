@@ -1022,4 +1022,13 @@ export class TubeRepository implements ITubeRepository {
       return false;
     }
   }
+
+  async countNonSeededByLabId(labId: string): Promise<number> {
+    const row = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1 AND is_seeded = FALSE',
+      [labId]
+    );
+    return parseCount(row);
+  }
+
 }

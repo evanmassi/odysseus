@@ -15,7 +15,7 @@ than assumed. Where something is deliberately left open it says so explicitly.
 - [x] Phase 0 — migration `037` + `is_seeded` threading (§2a)
 - [ ] Phase 1 — containment guards + `DemoGuards.test.ts`, taxonomy lock, creation caps (§2b–2d).
       Split three ways on build: **1a** seeded-record protection ✅, **1b** taxonomy lock ✅,
-      **1c** creation caps ⬜
+      **1c** creation caps ✅
 - [ ] Phase 2 — demo login endpoint + login-screen CTA (§1)
 - [ ] Phase 3 — dataset + nightly reset (§3)
 - [ ] Phase 4 — client lock affordance + demo banner (§4)
@@ -252,12 +252,19 @@ repository-bearing — the same trap §2b avoids — **the caller queries the co
 enforceAddItemsLimit(user, lab, currentCount: number, adding: number)
 ```
 
-**Count sources — reuse first.** `TubeRepository.countByLabId(labId)` already exists (line 46), so
-`maxTubes` needs nothing new. `DonorRepository` and the three item repositories have only
-usage-specific counts (`countItemsUsingVendor` and friends), so each needs a plain
-`countByLabId(labId)` added — four new methods, one `SELECT COUNT(*) WHERE lab_id = $1` each.
-Counting via the existing `listItems(labId)` and taking `.length` would work but pulls every row to
-count it.
+**Count sources — as built, five new methods, not four.** The caps count **only what a visitor
+added** (`WHERE lab_id = $1 AND is_seeded = FALSE`), matching how the storage limits already count
+non-seeded tanks. Otherwise the seeded dataset would eat the visitor's budget and the numbers would
+have to be set above the dataset size to mean anything. That makes the existing
+`TubeRepository.countByLabId` unsuitable, so tubes get `countNonSeededByLabId` too — five methods
+across tubes, donors, and the three item repositories.
+
+**Shaped like §2b's guard, for the same reason.** `enforceDemoCreationLimit(user, labRepository,
+labId, limit, countVisitorCreated, adding)` settles the demo question from the user and returns
+before touching the database. The originally planned `(user, lab, currentCount, adding)` required the
+caller to load the lab *and* run a `COUNT(*)` first — on every tube creation in every lab, the
+busiest write path in the app. Bulk tube creation counts once for the batch and its per-tube calls
+opt out via the existing `bulkOperation` flag.
 
 **The entity needs no change** — `Lab.updateDemoLimits` (line 98) merges by spread, so new fields
 flow through untouched.

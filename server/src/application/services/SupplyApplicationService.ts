@@ -19,7 +19,11 @@ import {
   type SupplyPackagingLevelResponse,
 } from '@application/dto/SupplyDto';
 import { requireUnusedBarcodeValue } from '@application/guards/BarcodeGuards';
-import { rejectIfTaxonomyLocked, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import {
+  enforceDemoCreationLimit,
+  rejectIfTaxonomyLocked,
+  rejectSeededItemDeletion,
+} from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -54,6 +58,7 @@ import type {
   AttributeValueRow,
 } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type {
@@ -103,7 +108,8 @@ export class SupplyApplicationService {
     private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private labRepository: LabRepository
   ) {}
 
   // Categories
@@ -238,6 +244,8 @@ export class SupplyApplicationService {
     user: User
   ): Promise<SupplyItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxItemsPerCatalog', () =>
+      this.itemRepository.countNonSeededByLabId(labId), 1);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) throw new NotFoundError('Category not found');

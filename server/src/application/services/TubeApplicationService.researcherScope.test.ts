@@ -13,6 +13,7 @@ import type { ResearcherRepository } from '@domain/repositories/ResearcherReposi
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { TubePositionService } from '@domain/services/TubePositionService';
 import { createTestTube, createTestUser } from '@domain/__tests__/helpers';
@@ -51,7 +52,8 @@ function makeService(overrides: { researcher?: Researcher | null } = {}) {
     storageRepository,
     {} as TubePositionService,
     accessControlService,
-    eventBus
+    eventBus,
+    {} as LabRepository
   );
 
   return { service, findResearcher, save, saveWithOptimisticLock };

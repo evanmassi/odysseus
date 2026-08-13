@@ -11,7 +11,10 @@ import type {
   DonorWithTubeCountResponse,
   DonorCollectionHistoryResponse,
 } from '@application/dto/DonorDto';
-import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import {
+  enforceDemoCreationLimit,
+  rejectSeededItemDeletion,
+} from '@application/guards/DemoGuards';
 import { Donor } from '@domain/entities/Donor';
 import { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import type { User } from '@domain/entities/User';
@@ -23,6 +26,7 @@ import {
   DonorDeletedEvent,
 } from '@domain/events/DonorEvents';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
@@ -37,7 +41,8 @@ export class DonorApplicationService {
   constructor(
     private donorRepository: DonorRepository,
     private accessControlService: AccessControlService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private labRepository: LabRepository
   ) {}
 
   async listDonors(labId: string): Promise<DonorWithTubeCountResponse[]> {
@@ -66,6 +71,8 @@ export class DonorApplicationService {
     user: User
   ): Promise<DonorWithTubeCountResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxDonors', () =>
+      this.donorRepository.countNonSeededByLabId(labId), 1);
 
     const existing = await this.donorRepository.findByDonorIds(
       labId,

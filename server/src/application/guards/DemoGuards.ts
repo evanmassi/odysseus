@@ -12,6 +12,7 @@ import type { Storage } from '@domain/entities/Storage';
 import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 
 export function rejectIfSeeded(
@@ -126,6 +127,43 @@ export async function rejectIfTaxonomyLocked(
   if (config?.hasAnySeededResources()) {
     throw new PermissionError(
       `${surface} are fixed in the demo so the sample records stay coherent.`
+    );
+  }
+}
+
+export type DemoCreationLimit = 'maxTubes' | 'maxDonors' | 'maxItemsPerCatalog';
+
+const DEMO_CREATION_LABELS: Record<DemoCreationLimit, string> = {
+  maxTubes: 'tubes',
+  maxDonors: 'donors',
+  maxItemsPerCatalog: 'items per catalog',
+};
+
+/**
+ * Caps how much a visitor can create, so an unattended script can't run the lab — or the hosting
+ * bill — up overnight. Counts only what visitors added: seeded records never consume the budget,
+ * matching how the storage limits already count non-seeded tanks.
+ *
+ * `countVisitorCreated` is a thunk and the lab is fetched here rather than by the caller, because
+ * creation is the busiest write path in the app and neither query should run for a real lab.
+ */
+export async function enforceDemoCreationLimit(
+  user: User,
+  labRepository: LabRepository,
+  labId: string,
+  limit: DemoCreationLimit,
+  countVisitorCreated: () => Promise<number>,
+  adding: number
+): Promise<void> {
+  if (!user.isDemo) return;
+
+  const lab = await labRepository.findById(labId);
+  const max = (lab?.demoLimits ?? DEMO_LIMITS_DEFAULTS)[limit];
+  const current = await countVisitorCreated();
+
+  if (current + adding > max) {
+    throw new ValidationError(
+      `Demo limit reached: the demo allows ${max} ${DEMO_CREATION_LABELS[limit]}. Delete some of yours to make room.`
     );
   }
 }

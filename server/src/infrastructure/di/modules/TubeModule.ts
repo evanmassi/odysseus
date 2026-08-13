@@ -45,6 +45,7 @@ export class TubeModule {
         this.shared.tubePositionService,
         this.shared.accessControlService,
         this.shared.eventBus,
+        repositories.labs,
         ensureDonorExists
       );
     }

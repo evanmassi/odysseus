@@ -6,12 +6,16 @@
  * start blocking paying customers rather than merely letting a visitor delete a fake tube.
  */
 
+import { DEMO_LIMITS_DEFAULTS, type DemoLimits } from '@odysseus/shared-schemas';
+
 import { ReagentItem } from '@domain/entities/ReagentItem';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 
-import { rejectSeededItemDeletion } from './DemoGuards';
+import { enforceDemoCreationLimit, rejectSeededItemDeletion } from './DemoGuards';
 
 const demoUser = { isDemo: true } as unknown as User;
 const realUser = { isDemo: false } as unknown as User;
@@ -45,6 +49,54 @@ describe('rejectSeededItemDeletion', () => {
 
   it('never blocks a real lab, even on a seeded record', () => {
     expect(() => rejectSeededItemDeletion(realUser, { isSeeded: true }, 'tube')).not.toThrow();
+  });
+});
+
+describe('enforceDemoCreationLimit', () => {
+  const labRepository = (limits?: Partial<DemoLimits>) =>
+    ({
+      findById: jest.fn().mockResolvedValue({ demoLimits: limits }),
+    }) as unknown as LabRepository;
+
+  it('allows a create that lands exactly on the limit', async () => {
+    await expect(
+      enforceDemoCreationLimit(demoUser, labRepository({ maxDonors: 3 }), 'lab_1', 'maxDonors', () =>
+        Promise.resolve(2)
+      , 1)
+    ).resolves.toBeUndefined();
+  });
+
+  it('refuses the create that would exceed it', async () => {
+    await expect(
+      enforceDemoCreationLimit(demoUser, labRepository({ maxDonors: 3 }), 'lab_1', 'maxDonors', () =>
+        Promise.resolve(3)
+      , 1)
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('measures the whole batch, not one row at a time', async () => {
+    await expect(
+      enforceDemoCreationLimit(demoUser, labRepository({ maxTubes: 10 }), 'lab_1', 'maxTubes', () =>
+        Promise.resolve(8)
+      , 5)
+    ).rejects.toThrow(/Demo limit reached/);
+  });
+
+  it('falls back to the shared defaults when the lab sets no limits', async () => {
+    await expect(
+      enforceDemoCreationLimit(demoUser, labRepository(undefined), 'lab_1', 'maxTubes', () =>
+        Promise.resolve(DEMO_LIMITS_DEFAULTS.maxTubes)
+      , 1)
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  // Creation is the busiest write path in the app; a real lab must not pay for a demo feature.
+  it('runs no query at all for a real lab', async () => {
+    const labs = labRepository({ maxTubes: 0 });
+    const count = jest.fn();
+    await enforceDemoCreationLimit(realUser, labs, 'lab_1', 'maxTubes', count, 500);
+    expect(labs.findById).not.toHaveBeenCalled();
+    expect(count).not.toHaveBeenCalled();
   });
 });
 

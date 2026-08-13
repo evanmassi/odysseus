@@ -37,6 +37,7 @@ import type { ReagentPackagingLevelDbRow } from '@infrastructure/database/mapper
 import { ReagentPackagingLevelMapper } from '@infrastructure/database/mappers/ReagentPackagingLevelMapper';
 import type { ReagentTransactionDbRow } from '@infrastructure/database/mappers/ReagentTransactionMapper';
 import { ReagentTransactionMapper } from '@infrastructure/database/mappers/ReagentTransactionMapper';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 import { AttributeValueQueries } from '@infrastructure/repositories/AttributeValueQueries';
 import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
@@ -781,4 +782,13 @@ export class ReagentItemRepository implements IReagentItemRepository {
       soonestExpiration: row.soonest_expiration ?? undefined,
     };
   }
+
+  async countNonSeededByLabId(labId: string): Promise<number> {
+    const row = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM reagent_items WHERE lab_id = $1 AND is_seeded = FALSE',
+      [labId]
+    );
+    return parseCount(row);
+  }
+
 }

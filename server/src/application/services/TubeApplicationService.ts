@@ -14,7 +14,10 @@ import type {
   BulkUpdateRequest,
   TubeSearchResponse,
 } from '@application/dto/TubeDto';
-import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import {
+  enforceDemoCreationLimit,
+  rejectSeededItemDeletion,
+} from '@application/guards/DemoGuards';
 import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
@@ -42,6 +45,7 @@ import {
   TubeAccessSharedEvent,
   TubeAccessRevokedEvent,
 } from '@domain/events/TubeLockEvents';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -82,6 +86,7 @@ export class TubeApplicationService {
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService,
     private eventBus: EventBus,
+    private labRepository: LabRepository,
     private ensureDonorExists?: (
       labId: string,
       sourceId?: string,
@@ -181,6 +186,18 @@ export class TubeApplicationService {
     return { tubeMap, allowedTankSet };
   }
 
+  /** Bulk creation counts once for the whole batch, so per-tube calls opt out via bulkOperation. */
+  private async enforceTubeLimit(user: User, adding: number): Promise<void> {
+    await enforceDemoCreationLimit(
+      user,
+      this.labRepository,
+      user.labId!,
+      'maxTubes',
+      () => this.tubeRepository.countNonSeededByLabId(user.labId!),
+      adding
+    );
+  }
+
   async createTube(
     request: CreateTubeRequest,
     authenticatedUser: User,
@@ -192,6 +209,9 @@ export class TubeApplicationService {
     }
   ): Promise<TubeResponse> {
     await this.accessControlService.requireCanCreateTube(authenticatedUser);
+    if (!options?.bulkOperation) {
+      await this.enforceTubeLimit(authenticatedUser, 1);
+    }
 
     const tubeData = TubeDto.fromCreateRequest(request);
 
@@ -299,6 +319,8 @@ export class TubeApplicationService {
     created: TubeResponse[];
     failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
   }> {
+    await this.enforceTubeLimit(authenticatedUser, requests.length);
+
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     const researcherNameCache = new Map<string, string>();

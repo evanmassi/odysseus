@@ -30,6 +30,7 @@ import type { SupplyStockDbRow } from '@infrastructure/database/mappers/SupplySt
 import { SupplyStockMapper } from '@infrastructure/database/mappers/SupplyStockMapper';
 import type { SupplyTransactionDbRow } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import { SupplyTransactionMapper } from '@infrastructure/database/mappers/SupplyTransactionMapper';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 import { AttributeValueQueries } from '@infrastructure/repositories/AttributeValueQueries';
 import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
@@ -511,4 +512,13 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     const result = await this.db.execute('DELETE FROM supply_packaging_levels WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
+
+  async countNonSeededByLabId(labId: string): Promise<number> {
+    const row = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM supply_items WHERE lab_id = $1 AND is_seeded = FALSE',
+      [labId]
+    );
+    return parseCount(row);
+  }
+
 }

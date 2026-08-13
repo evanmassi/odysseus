@@ -8,6 +8,7 @@
 import { DonorApplicationService } from '@application/services/DonorApplicationService';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { DonorRepository } from '@infrastructure/repositories/DonorRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 
 import { createSeed, type TestSeed } from './setup/factories';
 import { setupTestDatabase, truncateAll } from './setup/testDb';
@@ -28,7 +29,8 @@ describe('donor lab-scoping', () => {
     service = new DonorApplicationService(
       new DonorRepository(context),
       {} as unknown as AccessControlService,
-      {} as unknown as EventBus
+      {} as unknown as EventBus,
+      {} as unknown as LabRepository
     );
   });
 

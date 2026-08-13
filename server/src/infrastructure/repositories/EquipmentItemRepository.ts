@@ -298,4 +298,13 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
   ): Promise<void> {
     await this.attributeValues.replace(itemId, definitionId, values);
   }
+
+  async countNonSeededByLabId(labId: string): Promise<number> {
+    const row = await this.db.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM equipment_items WHERE lab_id = $1 AND is_seeded = FALSE',
+      [labId]
+    );
+    return parseCount(row);
+  }
+
 }

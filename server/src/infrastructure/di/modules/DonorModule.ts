@@ -23,7 +23,8 @@ export class DonorModule {
       this.donorApplicationService = new DonorApplicationService(
         this.repositoryFactory.getDonorRepository(),
         this.shared.accessControlService,
-        this.shared.eventBus
+        this.shared.eventBus,
+        this.repositoryFactory.getLabRepository()
       );
     }
     return this.donorApplicationService;

@@ -17,6 +17,8 @@ export interface EquipmentItemRepository {
   findByLabId(labId: string): Promise<EquipmentItem[]>;
   save(item: EquipmentItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
+  /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
+  countNonSeededByLabId(labId: string): Promise<number>;
 
   // Documents
 

@@ -92,6 +92,8 @@ export interface SupplyItemRepository {
   save(item: SupplyItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
   hasTransactions(id: string): Promise<boolean>;
+  /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
+  countNonSeededByLabId(labId: string): Promise<number>;
 
   // Documents
 

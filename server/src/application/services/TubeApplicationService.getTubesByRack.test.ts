@@ -13,6 +13,7 @@ import type { ResearcherRepository } from '@domain/repositories/ResearcherReposi
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { TubePositionService } from '@domain/services/TubePositionService';
 import { createTestUser } from '@domain/__tests__/helpers';
@@ -41,7 +42,8 @@ function makeService(options: { allowedTankIds?: string[]; tubes?: Tube[] } = {}
     storageRepository,
     {} as TubePositionService,
     accessControlService,
-    {} as EventBus
+    {} as EventBus,
+    {} as LabRepository
   );
 
   return { service, requireCanViewTubes, findByRack };

@@ -21,7 +21,11 @@ import {
   type ReagentPackagingLevelResponse,
 } from '@application/dto/ReagentDto';
 import { requireUnusedBarcodeValue } from '@application/guards/BarcodeGuards';
-import { rejectIfTaxonomyLocked, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import {
+  enforceDemoCreationLimit,
+  rejectIfTaxonomyLocked,
+  rejectSeededItemDeletion,
+} from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
@@ -57,6 +61,7 @@ import type {
   AttributeValueRow,
 } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type {
   ReagentItemRepository,
   ReagentBarcodeRow,
@@ -109,7 +114,8 @@ export class ReagentApplicationService {
     private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private labRepository: LabRepository
   ) {}
 
   // Categories
@@ -239,6 +245,8 @@ export class ReagentApplicationService {
     user: User
   ): Promise<ReagentItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxItemsPerCatalog', () =>
+      this.itemRepository.countNonSeededByLabId(labId), 1);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) throw new NotFoundError('Category not found');

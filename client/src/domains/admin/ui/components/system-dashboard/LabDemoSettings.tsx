@@ -31,6 +31,55 @@ import { useDemoLimitsQuery } from '../../../hooks/useLabQueries';
 
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
+// Every limit counts only what was added beyond the seeded dataset, which never spends the budget.
+interface LimitRow {
+  key: keyof DemoLimits;
+  label: string;
+  hint: string;
+  max: number;
+}
+
+const STORAGE_LIMITS: LimitRow[] = [
+  { key: 'maxTanks', label: 'Additional Tanks', hint: 'Max tanks beyond seeded baseline', max: 50 },
+  {
+    key: 'maxRacksPerTank',
+    label: 'Additional Racks per Tank',
+    hint: 'Max racks beyond seeded baseline',
+    max: 50,
+  },
+  {
+    key: 'maxBoxesPerRack',
+    label: 'Additional Boxes per Rack',
+    hint: 'Max boxes beyond seeded baseline',
+    max: 26,
+  },
+];
+
+const CONTENT_LIMITS: LimitRow[] = [
+  {
+    key: 'maxDonors',
+    label: 'Additional Donors',
+    hint: 'Max donors beyond seeded baseline',
+    max: 500,
+  },
+  {
+    key: 'maxTubes',
+    label: 'Additional Tubes',
+    hint: 'Max tubes beyond seeded baseline',
+    max: 5000,
+  },
+  {
+    key: 'maxItemsPerCatalog',
+    label: 'Additional Items per Catalog',
+    hint: 'Reagents, supplies, and equipment counted separately',
+    max: 500,
+  },
+];
+
+// Subsection lays its children out in a two-column grid filled row-first, so interleaving the two
+// lists is what makes storage read down the left and content down the right.
+const LIMIT_ROWS: LimitRow[] = STORAGE_LIMITS.flatMap((storage, i) => [storage, CONTENT_LIMITS[i]]);
+
 interface LabDemoSettingsProps {
   labId: string;
   isSeeded: boolean;
@@ -89,18 +138,12 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
     );
   };
 
-  const baselineTanks = demoLimits?.maxTanks ?? DEMO_LIMITS_DEFAULTS.maxTanks;
-  const baselineRacksPerTank = demoLimits?.maxRacksPerTank ?? DEMO_LIMITS_DEFAULTS.maxRacksPerTank;
-  const baselineBoxesPerRack = demoLimits?.maxBoxesPerRack ?? DEMO_LIMITS_DEFAULTS.maxBoxesPerRack;
+  const rows = LIMIT_ROWS.map(row => {
+    const baseline = demoLimits?.[row.key] ?? DEMO_LIMITS_DEFAULTS[row.key];
+    return { ...row, baseline, value: editedLimits?.[row.key] ?? baseline };
+  });
 
-  const maxTanks = editedLimits?.maxTanks ?? baselineTanks;
-  const maxRacksPerTank = editedLimits?.maxRacksPerTank ?? baselineRacksPerTank;
-  const maxBoxesPerRack = editedLimits?.maxBoxesPerRack ?? baselineBoxesPerRack;
-
-  const changedCount =
-    (maxTanks !== baselineTanks ? 1 : 0) +
-    (maxRacksPerTank !== baselineRacksPerTank ? 1 : 0) +
-    (maxBoxesPerRack !== baselineBoxesPerRack ? 1 : 0);
+  const changedCount = rows.filter(row => row.value !== row.baseline).length;
 
   return (
     <>
@@ -125,42 +168,18 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
         {isExpanded && (
           <>
             <Subsection title="Resource Limits" index={1}>
-              <SettingsRow label="Additional Tanks" hint="Max tanks beyond seeded baseline">
-                <NumberInput
-                  value={maxTanks}
-                  onChange={v => setEditedLimits(prev => ({ ...prev, maxTanks: v }))}
-                  min={0}
-                  max={50}
-                  size="sm"
-                  aria-label="Additional Tanks"
-                />
-              </SettingsRow>
-              <SettingsRow
-                label="Additional Racks per Tank"
-                hint="Max racks beyond seeded baseline"
-              >
-                <NumberInput
-                  value={maxRacksPerTank}
-                  onChange={v => setEditedLimits(prev => ({ ...prev, maxRacksPerTank: v }))}
-                  min={0}
-                  max={50}
-                  size="sm"
-                  aria-label="Additional Racks per Tank"
-                />
-              </SettingsRow>
-              <SettingsRow
-                label="Additional Boxes per Rack"
-                hint="Max boxes beyond seeded baseline"
-              >
-                <NumberInput
-                  value={maxBoxesPerRack}
-                  onChange={v => setEditedLimits(prev => ({ ...prev, maxBoxesPerRack: v }))}
-                  min={0}
-                  max={26}
-                  size="sm"
-                  aria-label="Additional Boxes per Rack"
-                />
-              </SettingsRow>
+              {rows.map(row => (
+                <SettingsRow key={row.key} label={row.label} hint={row.hint}>
+                  <NumberInput
+                    value={row.value}
+                    onChange={v => setEditedLimits(prev => ({ ...prev, [row.key]: v }))}
+                    min={0}
+                    max={row.max}
+                    size="sm"
+                    aria-label={row.label}
+                  />
+                </SettingsRow>
+              ))}
             </Subsection>
             <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
               <UnsavedChangesIndicator count={changedCount} />

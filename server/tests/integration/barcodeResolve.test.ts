@@ -11,6 +11,7 @@ import { SupplyApplicationService } from '@application/services/SupplyApplicatio
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { AttributeRepository } from '@infrastructure/repositories/AttributeRepository';
 import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
+import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
 import { TubeRepository } from '@infrastructure/repositories/TubeRepository';
@@ -45,7 +46,8 @@ describe('lab-wide barcode resolve', () => {
       new AttributeRepository(context),
       new AccessControlService(new TubeRepository(context, new StorageRepository(context))),
       { publish: async () => undefined } as unknown as EventBus,
-      new StorageRepository(context)
+      new StorageRepository(context),
+      new LabRepository(context)
     );
   });
 

@@ -16,7 +16,11 @@ import type {
   EquipmentDocumentResponse,
   EquipmentMaintenanceLogResponse,
 } from '@application/dto/EquipmentDto';
-import { rejectIfTaxonomyLocked, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import {
+  enforceDemoCreationLimit,
+  rejectIfTaxonomyLocked,
+  rejectSeededItemDeletion,
+} from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
@@ -48,6 +52,7 @@ import type {
 } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -80,7 +85,8 @@ export class EquipmentApplicationService {
     private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private labRepository: LabRepository
   ) {}
 
   // Categories
@@ -229,6 +235,8 @@ export class EquipmentApplicationService {
     user: User
   ): Promise<EquipmentItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxItemsPerCatalog', () =>
+      this.itemRepository.countNonSeededByLabId(labId), 1);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) {

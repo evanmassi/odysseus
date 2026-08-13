@@ -44,6 +44,8 @@ export interface TubeRepository {
   findLockedByUser(userId: string, labId: string): Promise<Tube[]>;
 
   countByLabId(labId: string): Promise<number>;
+  /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
+  countNonSeededByLabId(labId: string): Promise<number>;
   countByLabIds(labIds: string[]): Promise<Map<string, number>>;
   countByTank(tankId: string, labId: string): Promise<number>;
   countByRack(tankId: string, rackId: string, labId: string): Promise<number>;
