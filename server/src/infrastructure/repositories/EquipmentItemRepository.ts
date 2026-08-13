@@ -173,6 +173,16 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
       `
       INSERT INTO equipment_maintenance_log (${LOG_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      ON CONFLICT (id) DO UPDATE SET
+        date_performed = EXCLUDED.date_performed,
+        maintenance_type = EXCLUDED.maintenance_type,
+        performed_by = EXCLUDED.performed_by,
+        technician = EXCLUDED.technician,
+        description = EXCLUDED.description,
+        next_scheduled_date = EXCLUDED.next_scheduled_date,
+        cost = EXCLUDED.cost,
+        notes = EXCLUDED.notes,
+        updated_at = EXCLUDED.updated_at
     `,
       [
         row.id,

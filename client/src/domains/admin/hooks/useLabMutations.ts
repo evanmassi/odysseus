@@ -106,6 +106,9 @@ export function useResetDemoDataMutation() {
     mutationFn: (labId: string) => labService.resetDemoData(labId),
     onSuccess: (_data, labId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      // A reset rewrites every content surface, not just the lab's summary counts. The system
+      // admin runs this while looking at another lab's data, so invalidate rather than target.
+      void queryClient.invalidateQueries();
     },
   });
 }

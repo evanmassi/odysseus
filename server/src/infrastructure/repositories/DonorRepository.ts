@@ -271,6 +271,10 @@ export class DonorRepository implements IDonorRepository {
       `
       INSERT INTO donor_collection_history (${HISTORY_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (id) DO UPDATE SET
+        collection_date = EXCLUDED.collection_date,
+        specimen_type = EXCLUDED.specimen_type,
+        source = EXCLUDED.source
     `,
       [row.id, row.donor_id, row.collection_date, row.specimen_type, row.source, row.created_at]
     );

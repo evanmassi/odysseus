@@ -7,7 +7,11 @@
 
 import { randomUUID } from 'crypto';
 
-import type { UnitOfWork } from '@application/contracts/UnitOfWork';
+import {
+  applyDemoDataset,
+  type ApplyDemoDatasetResult,
+} from '@application/commands/applyDemoDataset';
+import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
 import { requireSystemAdmin } from '@application/guards/UserGuards';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -16,6 +20,7 @@ import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
+import { logger } from '@infrastructure/logging/logger';
 
 import type { DemoLimits, SeedDemoResponse, UnseedDemoResponse } from '@odysseus/shared-schemas';
 
@@ -318,13 +323,9 @@ export class SeedDemoCommandHandler {
   }
 }
 
-/** What a reset removed, per table, so the caller can report it. */
+/** What a reset put back, so the caller can report the restore rather than the wipe. */
 export interface ResetDemoDataResult {
-  deletedTubes: number;
-  deletedDonors: number;
-  deletedReagents: number;
-  deletedSupplies: number;
-  deletedEquipment: number;
+  restored: ApplyDemoDatasetResult;
 }
 
 /**
@@ -361,8 +362,18 @@ export class ResetDemoDataCommandHandler {
       const deletedTubes =
         tankIds.length > 0 ? await repos.tubes.deleteByTankIds(tankIds, command.labId) : 0;
 
-      const deletedDonors = await repos.donors.deleteAllForLab(command.labId);
+      await repos.donors.deleteAllForLab(command.labId);
 
+      logger.info('Demo reset cleared existing content', {
+        labId: command.labId,
+        deletedTubes,
+        deletedReagents,
+        deletedSupplies,
+        deletedEquipment,
+      });
+
+      // Visitor-added storage goes; seeded storage stays. Skipped entirely when nothing is
+      // seeded, so an unseeded lab's tanks are never silently thrown away.
       if (config.hasAnySeededResources()) {
         const expectedVersion = config.version;
         config.removeNonSeededEquipment();
@@ -375,8 +386,23 @@ export class ResetDemoDataCommandHandler {
         );
       }
 
-      return { deletedTubes, deletedDonors, deletedReagents, deletedSupplies, deletedEquipment };
+      const demoUser = await this.resolveDemoUser(repos, command.labId);
+      const restored = await applyDemoDataset(repos, command.labId, demoUser.id, config);
+
+      return { restored };
     });
+  }
+
+  /** Seeded transactions need an actor, and `performed_by` is a NOT NULL foreign key. */
+  private async resolveDemoUser(repos: Repositories, labId: string): Promise<User> {
+    const users = await repos.users.findByLabId(labId);
+    const user = users[0];
+    if (!user) {
+      throw new ValidationError(
+        'The demo lab has no user to attribute seeded history to. Create the demo account first.'
+      );
+    }
+    return user;
   }
 }
 

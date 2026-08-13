@@ -620,7 +620,7 @@ export class StorageController extends BaseController {
       res.json(
         ResponseBuilder.success({
           message: 'Demo data reset successfully',
-          deletedTubes: result.deletedTubes,
+          restored: result.restored,
         })
       );
     } catch (error) {
