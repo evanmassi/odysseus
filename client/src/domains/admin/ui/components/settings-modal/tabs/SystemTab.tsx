@@ -143,8 +143,12 @@ export function SystemTab({ stats }: SystemTabProps) {
       <ConsolePanel intensity="soft">
         {hasLab && (
           <Subsection title="Laboratory" index={1} accent>
-            <SettingsRow label="Lab Name" hint="Display name shown across the app">
-              <div className="flex w-48 items-center justify-end gap-2">
+            <SettingsRow
+              label="Lab Name"
+              hint="Display name shown across the app"
+              className="col-span-2"
+            >
+              <div className="flex w-72 items-center justify-end gap-2">
                 {isEditingLabName ? (
                   <Input
                     type="text"
