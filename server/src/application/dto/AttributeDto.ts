@@ -6,7 +6,10 @@
  */
 
 import type { AttributeDefinition } from '@domain/entities/AttributeDefinition';
-import type { AttributeOptionRow, AttributeValueRow } from '@domain/repositories/AttributeRepository';
+import type {
+  AttributeOptionRow,
+  AttributeValueRow,
+} from '@domain/repositories/AttributeRepository';
 
 import type {
   AttributeDefinition as AttributeDefinitionData,

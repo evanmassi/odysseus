@@ -8,7 +8,6 @@ import type { LookupValue } from '@domain/entities/LookupValue';
 
 import type { LookupCategory } from '@odysseus/shared-schemas';
 
-
 export interface LookupValueRepository {
   findById(id: string, labId: string): Promise<LookupValue | null>;
   findByCategory(category: LookupCategory, labId: string): Promise<LookupValue[]>;

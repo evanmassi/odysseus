@@ -214,14 +214,18 @@ export class PublicAuthController {
     try {
       const username = this.deps.configurationService.get('demo').username;
       if (!username) {
-        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Not found'));
+        res
+          .status(404)
+          .json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Not found'));
         return;
       }
 
       const user = await this.deps.userApplicationService.getUserByUsername(username);
       if (!user || !user.isLabAdmin() || !user.isDemo) {
         logger.error('Demo login is misconfigured — refusing to issue a session', { username });
-        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Not found'));
+        res
+          .status(404)
+          .json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Not found'));
         return;
       }
 

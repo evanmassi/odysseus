@@ -60,7 +60,12 @@ describe('attribute delete guard', () => {
     });
     await repo.saveDefinition(definition);
 
-    const option = { id: generateId('aopt'), definitionId: definition.id, value: 'FITC', sortOrder: 0 };
+    const option = {
+      id: generateId('aopt'),
+      definitionId: definition.id,
+      value: 'FITC',
+      sortOrder: 0,
+    };
     await repo.saveOption(option);
 
     const recordValue = () =>
@@ -87,7 +92,9 @@ describe('attribute delete guard', () => {
     const { lab, option, recordValue } = await scenario();
     await recordValue();
 
-    await expect(service.deleteOption(lab.id, option.id, admin)).rejects.toThrow(/1 item still uses it/);
+    await expect(service.deleteOption(lab.id, option.id, admin)).rejects.toThrow(
+      /1 item still uses it/
+    );
     expect(await repo.findOptionById(option.id, lab.id)).not.toBeNull();
   });
 
@@ -113,25 +120,28 @@ describe('attribute delete guard', () => {
   it.each([
     ['a supply', 'supply', 'supply_attribute_values'],
     ['an equipment', 'equipment', 'equipment_attribute_values'],
-  ])('refuses to delete a definition %s item records a value for', async (_label, catalog, table) => {
-    const { lab, definition, option } = await scenario();
-    const item =
-      catalog === 'supply'
-        ? await seed.supplyItem({ labId: lab.id })
-        : await seed.equipmentItem({ labId: lab.id });
+  ])(
+    'refuses to delete a definition %s item records a value for',
+    async (_label, catalog, table) => {
+      const { lab, definition, option } = await scenario();
+      const item =
+        catalog === 'supply'
+          ? await seed.supplyItem({ labId: lab.id })
+          : await seed.equipmentItem({ labId: lab.id });
 
-    await context.execute(
-      `INSERT INTO ${table} (id, item_id, definition_id, value_option_id) VALUES ($1, $2, $3, $4)`,
-      [generateId('atv'), item.id, definition.id, option.id]
-    );
+      await context.execute(
+        `INSERT INTO ${table} (id, item_id, definition_id, value_option_id) VALUES ($1, $2, $3, $4)`,
+        [generateId('atv'), item.id, definition.id, option.id]
+      );
 
-    await expect(service.deleteDefinition(lab.id, definition.id, admin)).rejects.toThrow(
-      /1 item still records a value/
-    );
-    await expect(service.deleteOption(lab.id, option.id, admin)).rejects.toThrow(
-      /1 item still uses it/
-    );
-  });
+      await expect(service.deleteDefinition(lab.id, definition.id, admin)).rejects.toThrow(
+        /1 item still records a value/
+      );
+      await expect(service.deleteOption(lab.id, option.id, admin)).rejects.toThrow(
+        /1 item still uses it/
+      );
+    }
+  );
 
   it("does not surface another lab's definitions", async () => {
     const { definition } = await scenario();

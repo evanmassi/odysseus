@@ -73,7 +73,9 @@ describe('TubeLocation', () => {
     });
 
     it('should reject non-integer position', () => {
-      expect(() => TubeLocation.create('T1', 'R1', 'A', 1.5)).toThrow('Position must be an integer');
+      expect(() => TubeLocation.create('T1', 'R1', 'A', 1.5)).toThrow(
+        'Position must be an integer'
+      );
     });
   });
 

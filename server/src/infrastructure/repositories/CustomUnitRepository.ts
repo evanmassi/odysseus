@@ -23,8 +23,7 @@ import type { Queryable } from '@infrastructure/database/Queryable';
 import type { UnitKindValue } from '@odysseus/shared-schemas';
 
 const COLUMNS = 'id, lab_id, label, kind, sort_order, created_at, updated_at';
-const COLUMNS_ALIASED =
-  'c.id, c.lab_id, c.label, c.kind, c.sort_order, c.created_at, c.updated_at';
+const COLUMNS_ALIASED = 'c.id, c.lab_id, c.label, c.kind, c.sort_order, c.created_at, c.updated_at';
 
 interface UnitColumnSource {
   table: string;

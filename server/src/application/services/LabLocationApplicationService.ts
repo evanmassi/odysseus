@@ -31,7 +31,11 @@ export class LabLocationApplicationService {
     return locations.map(LabLocationDto.toResponse);
   }
 
-  async create(labId: string, data: CreateLabLocationRequest, user: User): Promise<LabLocationResponse> {
+  async create(
+    labId: string,
+    data: CreateLabLocationRequest,
+    user: User
+  ): Promise<LabLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Locations');
     await validateHierarchyDepth(this.locationRepository, {

@@ -39,7 +39,6 @@ export type SupplyPackagingLevelResponse = SupplyPackagingLevel;
 
 export type SupplyItemDetailResponse = SupplyItemDetailData;
 
-
 export type SupplyDocumentResponse = SupplyDocumentData;
 
 export type SupplyBarcodeResponse = SupplyBarcode;

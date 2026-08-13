@@ -4,10 +4,7 @@
  * Maps custom-unit rows to API response shapes.
  */
 
-import type {
-  CustomUnitRow,
-  CustomUnitUsageRow,
-} from '@domain/repositories/CustomUnitRepository';
+import type { CustomUnitRow, CustomUnitUsageRow } from '@domain/repositories/CustomUnitRepository';
 
 import type { CustomUnit, CustomUnitWithUsage } from '@odysseus/shared-schemas';
 

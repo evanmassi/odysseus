@@ -120,10 +120,9 @@ describe('custom unit CRUD', () => {
       stock_unit: string;
       reorder_unit: string;
       reorder_threshold_unit: string;
-    }>(
-      `SELECT stock_unit, reorder_unit, reorder_threshold_unit FROM supply_items WHERE id = $1`,
-      [supplyItem.id]
-    );
+    }>(`SELECT stock_unit, reorder_unit, reorder_threshold_unit FROM supply_items WHERE id = $1`, [
+      supplyItem.id,
+    ]);
     expect(supply).toEqual({
       stock_unit: 'beads/100 µL',
       reorder_unit: 'beads/100 µL',
@@ -178,9 +177,9 @@ describe('custom unit CRUD', () => {
     expect(rekinded.kind).toBe('count');
 
     await itemsUsing(lab.id, created.label);
-    await expect(
-      service.update(lab.id, created.id, { kind: 'count-conc' }, admin)
-    ).rejects.toThrow(/Cannot change what/);
+    await expect(service.update(lab.id, created.id, { kind: 'count-conc' }, admin)).rejects.toThrow(
+      /Cannot change what/
+    );
 
     // A rename still works while in use — that is what the cascade is for.
     const renamed = await service.update(lab.id, created.id, { label: 'beads/100 µL' }, admin);
@@ -227,9 +226,9 @@ describe('custom unit CRUD', () => {
     const [lab, other] = [await seed.lab(), await seed.lab()];
     const created = await unit(lab.id);
 
-    await expect(
-      service.update(other.id, created.id, { label: 'nope' }, admin)
-    ).rejects.toThrow(/could not be found/);
+    await expect(service.update(other.id, created.id, { label: 'nope' }, admin)).rejects.toThrow(
+      /could not be found/
+    );
     await expect(service.delete(other.id, created.id, admin)).rejects.toThrow(/could not be found/);
   });
 });

@@ -3047,36 +3047,32 @@ export class AuditEventHandler {
   }
 
   private async handleReagentBulkArchived(event: ReagentBulkArchivedEvent): Promise<void> {
-    await this.safeLogAudit(
-      'reagent bulk archived',
-      { count: event.itemIds.length },
-      async () => {
-        const { username, isDemo } = await this.resolveUser(event.archivedBy);
-        if (isDemo) return;
+    await this.safeLogAudit('reagent bulk archived', { count: event.itemIds.length }, async () => {
+      const { username, isDemo } = await this.resolveUser(event.archivedBy);
+      if (isDemo) return;
 
-        const timestamp = event.occurredOn.toISOString();
-        const entries: LogActionParams[] = event.itemIds.map(itemId => ({
-          userId: event.archivedBy,
-          username,
-          action: 'reagent_item_archived',
-          entityType: 'reagent_item',
-          entityId: itemId,
-          labId: event.labId,
-          details: { itemId, archivedBy: username, timestamp },
-        }));
+      const timestamp = event.occurredOn.toISOString();
+      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+        userId: event.archivedBy,
+        username,
+        action: 'reagent_item_archived',
+        entityType: 'reagent_item',
+        entityId: itemId,
+        labId: event.labId,
+        details: { itemId, archivedBy: username, timestamp },
+      }));
 
-        entries.push({
-          userId: event.archivedBy,
-          username,
-          action: 'reagent_bulk_archived',
-          entityType: 'reagent_item',
-          labId: event.labId,
-          details: { count: event.itemIds.length, archivedBy: username, timestamp },
-        });
+      entries.push({
+        userId: event.archivedBy,
+        username,
+        action: 'reagent_bulk_archived',
+        entityType: 'reagent_item',
+        labId: event.labId,
+        details: { count: event.itemIds.length, archivedBy: username, timestamp },
+      });
 
-        await this.auditService.logActions(entries);
-      }
-    );
+      await this.auditService.logActions(entries);
+    });
   }
 
   private async handleReagentBulkVoided(event: ReagentBulkVoidedEvent): Promise<void> {

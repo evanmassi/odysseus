@@ -110,7 +110,8 @@ export class AttributeDefinition {
       this._appliesToCatalog = data.appliesToCatalog ?? undefined;
     if (data.appliesToTypes !== undefined) this._appliesToTypes = data.appliesToTypes ?? [];
     if (data.sortOrder !== undefined) this._sortOrder = data.sortOrder ?? this._sortOrder;
-    if (data.promptOnForm !== undefined) this._promptOnForm = data.promptOnForm ?? this._promptOnForm;
+    if (data.promptOnForm !== undefined)
+      this._promptOnForm = data.promptOnForm ?? this._promptOnForm;
 
     this.validate();
     this._updatedAt = new Date();

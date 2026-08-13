@@ -48,8 +48,9 @@ describe('reagent per-lot stock ledger', () => {
     const item = await seed.reagentItem({ labId: lab.id });
     const location = await seed.location({ labId: lab.id });
     const base = { itemId: item.id, locationId: location.id, labId: lab.id, performedBy: user.id };
-    const record = (extra: Partial<RecordTransactionData> & { type: RecordTransactionData['type'] }) =>
-      repo.recordTransaction({ ...base, ...extra });
+    const record = (
+      extra: Partial<RecordTransactionData> & { type: RecordTransactionData['type'] }
+    ) => repo.recordTransaction({ ...base, ...extra });
     return { lab, user, item, location, base, record };
   }
 
@@ -114,8 +115,14 @@ describe('reagent per-lot stock ledger', () => {
     expect(txns[1].quantityAfter).toBe(40);
 
     const lots = await repo.findLotsByItemId(item.id);
-    expect(lots.find(l => l.lotNumber === 'early')).toMatchObject({ quantity: 0, status: 'depleted' });
-    expect(lots.find(l => l.lotNumber === 'late')).toMatchObject({ quantity: 40, status: 'active' });
+    expect(lots.find(l => l.lotNumber === 'early')).toMatchObject({
+      quantity: 0,
+      status: 'depleted',
+    });
+    expect(lots.find(l => l.lotNumber === 'late')).toMatchObject({
+      quantity: 40,
+      status: 'active',
+    });
   });
 
   it('rejects an issue that exceeds on-hand', async () => {

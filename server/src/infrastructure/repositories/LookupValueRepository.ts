@@ -4,7 +4,6 @@
  * PostgreSQL implementation for admin-managed dropdown values.
  */
 
-
 import type { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupValueRepository as ILookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';

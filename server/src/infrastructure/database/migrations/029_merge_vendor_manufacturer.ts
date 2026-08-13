@@ -20,7 +20,9 @@ export const migration029: Migration = {
   name: 'merge_vendor_manufacturer',
   async up(pool: Pool): Promise<void> {
     // The CHECK has to accept both old and new names while rows are being moved.
-    await pool.query(`ALTER TABLE lookup_values DROP CONSTRAINT IF EXISTS lookup_values_category_check`);
+    await pool.query(
+      `ALTER TABLE lookup_values DROP CONSTRAINT IF EXISTS lookup_values_category_check`
+    );
 
     for (const { from, to } of MERGES) {
       // UNIQUE(lab_id, category, value) — drop rows the target already has, then move the rest.

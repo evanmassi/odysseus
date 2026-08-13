@@ -21,7 +21,8 @@ async function resolveLocationId(pool: Pool, labId: string, rawValue: string): P
 
   // Deeper than the tree can hold, or nothing usable after trimming: keep the text as one node
   // rather than inventing a hierarchy the guard would refuse.
-  const chain = parts.length > 0 && parts.length <= LAB_LOCATION_MAX_DEPTH ? parts : [rawValue.trim()];
+  const chain =
+    parts.length > 0 && parts.length <= LAB_LOCATION_MAX_DEPTH ? parts : [rawValue.trim()];
 
   let parentId: string | null = null;
   let nodeId = '';
