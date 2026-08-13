@@ -34,7 +34,11 @@ describe('custom unit CRUD', () => {
     seed = createSeed(context);
     repo = new CustomUnitRepository(context);
     const tubes = new TubeRepository(context, new StorageRepository(context));
-    service = new CustomUnitApplicationService(repo, new AccessControlService(tubes));
+    service = new CustomUnitApplicationService(
+      repo,
+      new AccessControlService(tubes),
+      new StorageRepository(context)
+    );
   });
 
   afterEach(async () => {

@@ -22,7 +22,8 @@ export class LabLocationModule {
     if (!this.locationApplicationService) {
       this.locationApplicationService = new LabLocationApplicationService(
         this.repositoryFactory.getLabLocationRepository(),
-        this.shared.accessControlService
+        this.shared.accessControlService,
+        this.repositoryFactory.getStorageRepository()
       );
     }
     return this.locationApplicationService;

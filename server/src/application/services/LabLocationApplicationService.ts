@@ -7,12 +7,14 @@
 import { LAB_LOCATION_MAX_DEPTH } from '@odysseus/shared-schemas';
 
 import { LabLocationDto, type LabLocationResponse } from '@application/dto/LabLocationDto';
+import { rejectIfTaxonomyLocked } from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { LabLocation } from '@domain/entities/LabLocation';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { LabLocationRepository } from '@domain/repositories/LabLocationRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 
 import type { CreateLabLocationRequest, UpdateLabLocationRequest } from '@odysseus/shared-schemas';
@@ -20,7 +22,8 @@ import type { CreateLabLocationRequest, UpdateLabLocationRequest } from '@odysse
 export class LabLocationApplicationService {
   constructor(
     private locationRepository: LabLocationRepository,
-    private accessControlService: AccessControlService
+    private accessControlService: AccessControlService,
+    private storageRepository: StorageRepository
   ) {}
 
   async list(labId: string): Promise<LabLocationResponse[]> {
@@ -30,6 +33,7 @@ export class LabLocationApplicationService {
 
   async create(labId: string, data: CreateLabLocationRequest, user: User): Promise<LabLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Locations');
     await validateHierarchyDepth(this.locationRepository, {
       labId,
       parentId: data.parentId,
@@ -55,6 +59,7 @@ export class LabLocationApplicationService {
     user: User
   ): Promise<LabLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Locations');
     const location = await this.getOrThrow(id, labId);
 
     if (data.parentId !== undefined && data.parentId !== location.parentId) {
@@ -79,6 +84,7 @@ export class LabLocationApplicationService {
 
   async delete(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Locations');
     await this.getOrThrow(id, labId);
 
     if (await this.locationRepository.isInUseIncludingChildren(id, labId)) {

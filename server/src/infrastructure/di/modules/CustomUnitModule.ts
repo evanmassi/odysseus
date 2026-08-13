@@ -22,7 +22,8 @@ export class CustomUnitModule {
     if (!this.customUnitApplicationService) {
       this.customUnitApplicationService = new CustomUnitApplicationService(
         this.repositoryFactory.getCustomUnitRepository(),
-        this.shared.accessControlService
+        this.shared.accessControlService,
+        this.repositoryFactory.getStorageRepository()
       );
     }
     return this.customUnitApplicationService;

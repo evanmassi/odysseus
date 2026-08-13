@@ -13,7 +13,9 @@ than assumed. Where something is deliberately left open it says so explicitly.
 ### Progress ledger — check off as each phase lands
 
 - [x] Phase 0 — migration `037` + `is_seeded` threading (§2a)
-- [ ] Phase 1 — containment guards + `DemoGuards.test.ts`, taxonomy lock, creation caps (§2b–2d)
+- [ ] Phase 1 — containment guards + `DemoGuards.test.ts`, taxonomy lock, creation caps (§2b–2d).
+      Split three ways on build: **1a** seeded-record protection ✅, **1b** taxonomy lock ✅,
+      **1c** creation caps ⬜
 - [ ] Phase 2 — demo login endpoint + login-screen CTA (§1)
 - [ ] Phase 3 — dataset + nightly reset (§3)
 - [ ] Phase 4 — client lock affordance + demo banner (§4)
@@ -199,17 +201,33 @@ the surface for non-system-admins. Promote it into `DemoGuards.ts` so there is o
 apply to the three catalogs' category methods plus `AttributeApplicationService`,
 `CustomUnitApplicationService`, and `LabLocationApplicationService`.
 
-**Promote it with a changed signature.** The existing private version is `async` and reads the
-storage config itself. Every function in `DemoGuards.ts` today is synchronous and takes
-already-loaded objects (`rejectIfSeeded(user, config, …)`). Moving an async, repository-reading
-function in there would make the whole guard module async and dependency-bearing — a different kind
-of file than it is now. The promoted guard takes the loaded config instead:
+**Promoted as-is, not reshaped — decided against the sync variant this section first proposed.**
+The original idea was `rejectIfTaxonomyLocked(user, config: Storage, surface)` with callers loading
+the config, to keep `DemoGuards.ts` synchronous and dependency-free. That shape costs a storage-config
+read on **every** category, unit, attribute, location, and lookup mutation in **every** lab — real
+customer labs included — purely to answer a demo question, and it puts two or three lines at each of
+24 call sites. The existing private guard already avoids exactly that by settling the question from
+the user before touching the database. So it moves across unchanged in behaviour:
 
 ```
-rejectIfTaxonomyLocked(user, config: Storage, surface: string)
+await rejectIfTaxonomyLocked(user, storageRepository, labId, surface)
 ```
 
-Callers load the config, exactly as `TankCommands`/`BoxCommands` already do.
+One line per call site, and non-demo labs pay nothing. The trade is that this single function is
+`async` and takes a repository interface while the rest of the module stays sync — a deliberate
+exception, documented in its JSDoc, not a drift in the file's character. `DemoGuards.test.ts` and
+`LookupValueApplicationService.seededDemo.test.ts` both assert the no-query path for real labs so
+the property can't silently regress.
+
+**The error type changed with it:** `ValidationError` (400) → `PermissionError` (403), matching every
+other demo guard. Verified safe: no client code branches on 403, so the message still surfaces
+verbatim through `getErrorMessage`.
+
+**Prerequisite worth knowing: the lock keys on *storage* seeding.** `hasAnySeededResources()`
+inspects only tanks, racks, and boxes — so the vocabularies stay editable until someone presses
+**Seed Demo** for storage, no matter how much seeded content the lab holds. Inherited from the
+guard's original form and left as-is, but it means provisioning the demo lab includes seeding
+storage, or §2b silently protects nothing.
 
 **This requires DI work not otherwise implied — on six services, not three.** Verified by grep:
 `AttributeApplicationService`, `CustomUnitApplicationService`, `LabLocationApplicationService`,

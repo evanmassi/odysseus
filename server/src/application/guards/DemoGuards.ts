@@ -12,6 +12,7 @@ import type { Storage } from '@domain/entities/Storage';
 import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 
 export function rejectIfSeeded(
   user: User,
@@ -100,6 +101,33 @@ export function rejectSeededItemDeletion(
   throw new PermissionError(
     `This ${label} belongs to the demo dataset and can't be deleted. Create your own to try this out.`
   );
+}
+
+/**
+ * Locks a seeded demo lab's shared vocabulary — categories, units, attributes, locations, lookup
+ * values — for everyone but system admins. The records point at these, so letting a visitor rename
+ * or delete one leaves the dataset incoherent; keeping them fixed is also what lets the nightly
+ * reset upsert them rather than rebuild them.
+ *
+ * The only guard here that reaches a repository, and deliberately so: it settles the demo question
+ * from the user alone and returns before any query, so real labs pay nothing for a demo feature.
+ * Note the trigger is *storage* seeding — a demo lab whose tanks were never seeded stays unlocked.
+ */
+export async function rejectIfTaxonomyLocked(
+  user: User,
+  storageRepository: StorageRepository,
+  labId: string,
+  surface: string
+): Promise<void> {
+  if (user.isSystemAdmin()) return;
+  if (!user.isDemo) return;
+
+  const config = await storageRepository.getForLab(labId);
+  if (config?.hasAnySeededResources()) {
+    throw new PermissionError(
+      `${surface} are fixed in the demo so the sample records stay coherent.`
+    );
+  }
 }
 
 export function rejectDemoConfigOperation(user: User, operation: string): void {

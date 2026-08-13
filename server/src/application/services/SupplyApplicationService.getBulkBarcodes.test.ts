@@ -15,6 +15,7 @@ import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
 } from '@domain/repositories/SupplyItemRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 
 import { SupplyApplicationService } from './SupplyApplicationService';
@@ -32,7 +33,8 @@ function makeService(repoOverrides: Partial<SupplyItemRepository> = {}) {
     {} as ReagentItemRepository,
     {} as AttributeRepository,
     {} as AccessControlService,
-    {} as EventBus
+    {} as EventBus,
+    {} as StorageRepository
   );
   return { service, repo };
 }

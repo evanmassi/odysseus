@@ -47,7 +47,8 @@ describe('reagent attribute values', () => {
       {} as SupplyItemRepository,
       attributes,
       new AccessControlService(tubes),
-      { publish: async () => undefined } as unknown as EventBus
+      { publish: async () => undefined } as unknown as EventBus,
+      new StorageRepository(context)
     );
   });
 

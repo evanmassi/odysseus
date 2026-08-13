@@ -11,6 +11,7 @@ import {
   type AttributeOptionResponse,
   type AttributeOptionUsageResponse,
 } from '@application/dto/AttributeDto';
+import { rejectIfTaxonomyLocked } from '@application/guards/DemoGuards';
 import { AttributeDefinition } from '@domain/entities/AttributeDefinition';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -19,6 +20,7 @@ import type {
   AttributeRepository,
   AttributeOptionRow,
 } from '@domain/repositories/AttributeRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
 
@@ -34,7 +36,8 @@ import type {
 export class AttributeApplicationService {
   constructor(
     private attributeRepository: AttributeRepository,
-    private accessControlService: AccessControlService
+    private accessControlService: AccessControlService,
+    private storageRepository: StorageRepository
   ) {}
 
   async list(labId: string): Promise<{
@@ -63,6 +66,7 @@ export class AttributeApplicationService {
     user: User
   ): Promise<AttributeDefinitionResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Attributes');
 
     const existing = await this.attributeRepository.findDefinitionByName(data.name.trim(), labId);
     if (existing) {
@@ -89,6 +93,7 @@ export class AttributeApplicationService {
     user: User
   ): Promise<AttributeDefinitionResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Attributes');
     const definition = await this.getDefinitionOrThrow(id, labId);
 
     if (data.name && data.name.trim() !== definition.name) {
@@ -111,6 +116,7 @@ export class AttributeApplicationService {
 
   async deleteDefinition(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Attributes');
     const definition = await this.getDefinitionOrThrow(id, labId);
 
     if (definition.isSystem) {
@@ -138,6 +144,7 @@ export class AttributeApplicationService {
     user: User
   ): Promise<AttributeOptionResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Attributes');
     const definition = await this.getDefinitionOrThrow(definitionId, labId);
 
     if (!definition.usesOptions) {
@@ -163,6 +170,7 @@ export class AttributeApplicationService {
     user: User
   ): Promise<AttributeOptionResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Attributes');
     const option = await this.getOptionOrThrow(id, labId);
 
     const updated: AttributeOptionRow = {
@@ -176,6 +184,7 @@ export class AttributeApplicationService {
 
   async deleteOption(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Attributes');
     const option = await this.getOptionOrThrow(id, labId);
 
     const usageCount = await this.attributeRepository.countItemsUsingOption(id);

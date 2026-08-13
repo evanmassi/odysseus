@@ -16,7 +16,7 @@ import type {
   EquipmentDocumentResponse,
   EquipmentMaintenanceLogResponse,
 } from '@application/dto/EquipmentDto';
-import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import { rejectIfTaxonomyLocked, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
@@ -48,6 +48,7 @@ import type {
 } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -78,7 +79,8 @@ export class EquipmentApplicationService {
     private itemRepository: EquipmentItemRepository,
     private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private storageRepository: StorageRepository
   ) {}
 
   // Categories
@@ -94,6 +96,7 @@ export class EquipmentApplicationService {
     user: User
   ): Promise<EquipmentCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Categories');
 
     await validateHierarchyDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
@@ -120,6 +123,7 @@ export class EquipmentApplicationService {
     user: User
   ): Promise<EquipmentCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Categories');
 
     const category = await this.categoryRepository.findById(id, labId);
     if (!category) {
@@ -152,6 +156,7 @@ export class EquipmentApplicationService {
 
   async deleteCategory(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Categories');
 
     const category = await this.categoryRepository.findById(id, labId);
     if (!category) {

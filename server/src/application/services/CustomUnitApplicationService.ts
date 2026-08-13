@@ -14,6 +14,7 @@ import {
   type CustomUnitResponse,
   type CustomUnitWithUsageResponse,
 } from '@application/dto/CustomUnitDto';
+import { rejectIfTaxonomyLocked } from '@application/guards/DemoGuards';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -21,6 +22,7 @@ import type {
   CustomUnitRepository,
   CustomUnitRow,
 } from '@domain/repositories/CustomUnitRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
 
@@ -31,7 +33,8 @@ import type { CreateCustomUnitRequest, UpdateCustomUnitRequest } from '@odysseus
 export class CustomUnitApplicationService {
   constructor(
     private customUnitRepository: CustomUnitRepository,
-    private accessControlService: AccessControlService
+    private accessControlService: AccessControlService,
+    private storageRepository: StorageRepository
   ) {}
 
   async list(labId: string): Promise<CustomUnitWithUsageResponse[]> {
@@ -45,6 +48,7 @@ export class CustomUnitApplicationService {
     user: User
   ): Promise<CustomUnitResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Units');
     const label = data.label.trim();
     await this.requireLabelAvailable(label, labId);
 
@@ -69,6 +73,7 @@ export class CustomUnitApplicationService {
     user: User
   ): Promise<CustomUnitResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Units');
     let unit = await this.getOrThrow(id, labId);
 
     if (data.kind && data.kind !== unit.kind) {
@@ -93,6 +98,7 @@ export class CustomUnitApplicationService {
 
   async delete(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Units');
     const unit = await this.getOrThrow(id, labId);
 
     const usageCount = await this.customUnitRepository.countUsage(unit.label, labId);

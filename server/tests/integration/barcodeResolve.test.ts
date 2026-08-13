@@ -44,7 +44,8 @@ describe('lab-wide barcode resolve', () => {
       reagents,
       new AttributeRepository(context),
       new AccessControlService(new TubeRepository(context, new StorageRepository(context))),
-      { publish: async () => undefined } as unknown as EventBus
+      { publish: async () => undefined } as unknown as EventBus,
+      new StorageRepository(context)
     );
   });
 

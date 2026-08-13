@@ -22,7 +22,8 @@ export class AttributeModule {
     if (!this.attributeApplicationService) {
       this.attributeApplicationService = new AttributeApplicationService(
         this.repositoryFactory.getAttributeRepository(),
-        this.shared.accessControlService
+        this.shared.accessControlService,
+        this.repositoryFactory.getStorageRepository()
       );
     }
     return this.attributeApplicationService;

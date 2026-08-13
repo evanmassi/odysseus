@@ -77,7 +77,8 @@ describe('category depth invariant', () => {
         repos.equipmentItems,
         repos.attributes,
         accessControl,
-        eventBus
+        eventBus,
+        repos.storage
       ),
       supplies: new SupplyApplicationService(
         repos.supplyCategories,
@@ -85,7 +86,8 @@ describe('category depth invariant', () => {
         repos.reagentItems,
         repos.attributes,
         accessControl,
-        eventBus
+        eventBus,
+        repos.storage
       ),
     };
   };

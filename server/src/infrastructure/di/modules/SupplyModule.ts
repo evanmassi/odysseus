@@ -26,7 +26,8 @@ export class SupplyModule {
         this.repositoryFactory.getReagentItemRepository(),
         this.repositoryFactory.getAttributeRepository(),
         this.shared.accessControlService,
-        this.shared.eventBus
+        this.shared.eventBus,
+        this.repositoryFactory.getStorageRepository()
       );
     }
     return this.supplyApplicationService;

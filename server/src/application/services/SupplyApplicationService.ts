@@ -19,7 +19,7 @@ import {
   type SupplyPackagingLevelResponse,
 } from '@application/dto/SupplyDto';
 import { requireUnusedBarcodeValue } from '@application/guards/BarcodeGuards';
-import { rejectSeededItemDeletion } from '@application/guards/DemoGuards';
+import { rejectIfTaxonomyLocked, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import { validateHierarchyDepth } from '@application/guards/HierarchyGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -55,6 +55,7 @@ import type {
 } from '@domain/repositories/AttributeRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { ReagentItemRepository } from '@domain/repositories/ReagentItemRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type {
   SupplyItemRepository,
   SupplyBarcodeRow,
@@ -101,7 +102,8 @@ export class SupplyApplicationService {
     private reagentItemRepository: ReagentItemRepository,
     private attributeRepository: AttributeRepository,
     private accessControlService: AccessControlService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private storageRepository: StorageRepository
   ) {}
 
   // Categories
@@ -117,6 +119,7 @@ export class SupplyApplicationService {
     user: User
   ): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Categories');
 
     await validateHierarchyDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
@@ -140,6 +143,7 @@ export class SupplyApplicationService {
     user: User
   ): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Categories');
     const category = await this.getCategoryOrThrow(id, labId);
 
     // Only a change of parent can violate the depth rule.
@@ -161,6 +165,7 @@ export class SupplyApplicationService {
 
   async deleteCategory(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Categories');
     const category = await this.getCategoryOrThrow(id, labId);
 
     const hasItems = await this.categoryRepository.hasItemsIncludingChildren(id, labId);

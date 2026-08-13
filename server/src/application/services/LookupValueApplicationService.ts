@@ -4,6 +4,7 @@
  * Orchestrates CRUD for admin-managed dropdown catalog values.
  */
 
+import { rejectIfTaxonomyLocked } from '@application/guards/DemoGuards';
 import { LookupValue } from '@domain/entities/LookupValue';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -25,23 +26,12 @@ type CatalogRenameFn = (oldValue: string, newValue: string, labId: string) => Pr
 export class LookupValueApplicationService {
   constructor(
     private lookupValueRepository: LookupValueRepository,
+    private storageRepository: StorageRepository,
     private equipmentItemRepository?: EquipmentItemRepository,
     private donorRepository?: DonorRepository,
     private supplyItemRepository?: SupplyItemRepository,
-    private storageRepository?: StorageRepository,
     private reagentItemRepository?: ReagentItemRepository
   ) {}
-
-  /** Seeded demo labs lock the catalog to non-admins; system admins are exempt. */
-  private async rejectIfSeededDemo(labId: string, user: User): Promise<void> {
-    if (user.isSystemAdmin()) return;
-    if (!user.isDemo) return;
-
-    const config = await this.storageRepository?.getForLab(labId);
-    if (config?.hasAnySeededResources()) {
-      throw new ValidationError('Catalog is locked in seeded demo mode');
-    }
-  }
 
   async getActiveByCategory(
     labId: string,
@@ -118,7 +108,7 @@ export class LookupValueApplicationService {
     value: string,
     user: User
   ): Promise<ReturnType<LookupValue['toData']>> {
-    await this.rejectIfSeededDemo(labId, user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Catalog values');
 
     const existing = await this.lookupValueRepository.findByCategoryAndValue(
       category,
@@ -140,7 +130,7 @@ export class LookupValueApplicationService {
     newValue: string,
     user: User
   ): Promise<ReturnType<LookupValue['toData']>> {
-    await this.rejectIfSeededDemo(labId, user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Catalog values');
 
     const entity = await this.lookupValueRepository.findById(id, labId);
     if (!entity) {
@@ -186,7 +176,7 @@ export class LookupValueApplicationService {
   }
 
   async delete(labId: string, id: string, user: User): Promise<void> {
-    await this.rejectIfSeededDemo(labId, user);
+    await rejectIfTaxonomyLocked(user, this.storageRepository, labId, 'Catalog values');
 
     const entity = await this.lookupValueRepository.findById(id, labId);
     if (!entity) {

@@ -33,7 +33,11 @@ describe('attribute delete guard', () => {
     seed = createSeed(context);
     repo = new AttributeRepository(context);
     const tubes = new TubeRepository(context, new StorageRepository(context));
-    service = new AttributeApplicationService(repo, new AccessControlService(tubes));
+    service = new AttributeApplicationService(
+      repo,
+      new AccessControlService(tubes),
+      new StorageRepository(context)
+    );
   });
 
   afterEach(async () => {
