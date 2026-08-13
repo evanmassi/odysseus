@@ -235,6 +235,7 @@ export class AuthModule {
         securityConfigService: this.crossModuleDeps.getSecurityConfigApplicationService(),
         personApplicationService: this.crossModuleDeps.getPersonApplicationService(),
         eventBus: this.shared.eventBus,
+        configurationService: this.shared.configurationService,
       });
     }
     return this.publicAuthController;

@@ -9,6 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
 import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
+import { useFirstTimeSetupQuery } from '@domains/authentication/hooks/useFirstTimeSetupQuery';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
@@ -31,12 +32,15 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [errorPulse, setErrorPulse] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const { data: firstTimeSetup } = useFirstTimeSetupQuery();
   const {
     login,
+    demoLogin,
     forceChangePassword,
     clearPasswordChangeRequired,
     logoutReason,
@@ -92,6 +96,22 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
       flagLoginError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true);
+
+    try {
+      const result = await demoLogin();
+      if (result.success === true) {
+        setLoginError(null);
+        notifications.success('Welcome to the demo');
+      } else if (result.success === false) {
+        flagLoginError(result.error || 'The demo is unavailable right now. Please try again.');
+      }
+    } finally {
+      setIsDemoLoading(false);
     }
   };
 
@@ -277,11 +297,34 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           ceremonial
           fullWidth
           isLoading={isLoading}
+          disabled={isDemoLoading}
           loadingText="Authenticating..."
         >
           Sign In
         </Button>
       </form>
+
+      {firstTimeSetup?.demoAvailable && (
+        <>
+          <div className="my-4 flex items-center gap-3" aria-hidden>
+            <span className="h-px flex-1 bg-[rgb(var(--auth-text-mute))]/25" />
+            <span className="font-mono text-data-sm text-[rgb(var(--auth-text-mute))]">or</span>
+            <span className="h-px flex-1 bg-[rgb(var(--auth-text-mute))]/25" />
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            onClick={handleDemoLogin}
+            isLoading={isDemoLoading}
+            disabled={isLoading}
+            loadingText="Starting demo..."
+          >
+            Explore the live demo
+          </Button>
+        </>
+      )}
 
       {onSwitchToRegister && (
         <div className="mt-4 text-center">

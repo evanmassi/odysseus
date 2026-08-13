@@ -40,6 +40,10 @@ const ConfigurationSchema = z.object({
   security: z.object({
     systemAdminSetupKey: z.string().optional(),
   }),
+  demo: z.object({
+    username: z.string().optional(),
+    resetKey: z.string().optional(),
+  }),
   app: z.object({
     version: z.string(),
   }),
@@ -105,6 +109,12 @@ export class EnvironmentConfigurationService implements ConfigurationService {
       security: {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must normalize to undefined
         systemAdminSetupKey: process.env.SYSTEM_ADMIN_SETUP_KEY || undefined,
+      },
+      demo: {
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must normalize to undefined */
+        username: process.env.DEMO_USERNAME || undefined,
+        resetKey: process.env.DEMO_RESET_KEY || undefined,
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       },
       app: {
         version: this.readPackageVersion(),

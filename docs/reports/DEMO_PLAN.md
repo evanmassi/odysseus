@@ -13,10 +13,11 @@ than assumed. Where something is deliberately left open it says so explicitly.
 ### Progress ledger — check off as each phase lands
 
 - [x] Phase 0 — migration `037` + `is_seeded` threading (§2a)
-- [ ] Phase 1 — containment guards + `DemoGuards.test.ts`, taxonomy lock, creation caps (§2b–2d).
+- [x] Phase 1 — containment guards + `DemoGuards.test.ts`, taxonomy lock, creation caps (§2b–2d).
       Split three ways on build: **1a** seeded-record protection ✅, **1b** taxonomy lock ✅,
       **1c** creation caps ✅
-- [ ] Phase 2 — demo login endpoint + login-screen CTA (§1)
+- [x] Phase 2 — demo login endpoint + login-screen CTA (§1). Endpoint verified 404 when
+      unconfigured; the signed-in path waits on the Phase 3 demo account being provisioned
 - [ ] Phase 3 — dataset + nightly reset (§3)
 - [ ] Phase 4 — client lock affordance + demo banner (§4)
 - [ ] Phase 5 — rate limiters on exports + catalog bulk routes (§5)

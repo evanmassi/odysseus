@@ -84,6 +84,13 @@ export class PublicRouteModule implements RouteModule {
       this.publicAuthController.login.bind(this.publicAuthController)
     );
 
+    // No validateBody: the request has no body — the account comes from server config.
+    router.post(
+      '/auth/demo-login',
+      this.authLimiter,
+      this.publicAuthController.demoLogin.bind(this.publicAuthController)
+    );
+
     router.post(
       '/auth/register-with-profile',
       this.authLimiter,

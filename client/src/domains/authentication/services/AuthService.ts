@@ -55,6 +55,11 @@ class AuthService {
     return await httpClient.postData('/public/auth/login', request, loginResponseSchema);
   }
 
+  /** Password-free sign-in to the shared demo account. 404s when no demo is configured. */
+  async demoLogin(): Promise<AuthResponse> {
+    return await httpClient.postData('/public/auth/demo-login', {}, authResponseSchema);
+  }
+
   /** Called when login returns requirePasswordChange=true. */
   async forceChangePassword(tempToken: string, newPassword: string): Promise<AuthResponse> {
     return await httpClient.postData(
@@ -64,16 +69,22 @@ class AuthService {
     );
   }
 
-  async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
+  async checkFirstTime(): Promise<{
+    isFirstTime: boolean;
+    needsSystemAdmin: boolean;
+    demoAvailable: boolean;
+  }> {
     try {
       const data = await httpClient.getData('/public/auth/first-time', firstTimeResponseSchema);
       return {
         isFirstTime: data.isFirstTime,
         needsSystemAdmin: data.needsSystemAdmin ?? false,
+        demoAvailable: data.demoAvailable ?? false,
       };
     } catch (error) {
+      // A failed probe must not strand the gateway, and must not advertise a demo that may not exist.
       logger.error('Failed to check first-time setup', { error });
-      return { isFirstTime: false, needsSystemAdmin: false };
+      return { isFirstTime: false, needsSystemAdmin: false, demoAvailable: false };
     }
   }
 

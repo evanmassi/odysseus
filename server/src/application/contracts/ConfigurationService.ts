@@ -30,6 +30,11 @@ export interface Configuration {
   security: {
     systemAdminSetupKey?: string;
   };
+  /** Absent on dev and self-hosted deployments, which 404s both demo endpoints. */
+  demo: {
+    username?: string;
+    resetKey?: string;
+  };
   app: {
     version: string;
   };

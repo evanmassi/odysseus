@@ -35,6 +35,7 @@ import type {
   LoginCommand,
   LoginCommandHandler,
 } from '@application/commands/UserCommands';
+import type { ConfigurationService } from '@application/contracts/ConfigurationService';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
@@ -69,6 +70,7 @@ export interface PublicAuthControllerDeps {
   sessionService: SessionService;
   userApplicationService: UserApplicationService;
   securityConfigService: SecurityConfigApplicationService;
+  configurationService: ConfigurationService;
   personApplicationService: PersonApplicationService;
   eventBus: EventBus;
 }
@@ -85,6 +87,7 @@ export class PublicAuthController {
       const payload: FirstTimeResponse = {
         isFirstTime: result.isFirstTime,
         needsSystemAdmin: result.needsSystemAdmin,
+        demoAvailable: !!this.deps.configurationService.get('demo').username,
       };
 
       res.status(200).json(ResponseBuilder.success(payload));
@@ -154,32 +157,7 @@ export class PublicAuthController {
       const command: LoginCommand = { username, password };
       const result = await this.deps.loginHandler.handle(command);
 
-      if (result.user.isDeactivated()) {
-        this.denyLogin(
-          req,
-          result.user.username,
-          'Account has been deactivated. Contact your lab administrator',
-          result.user.id
-        );
-      }
-
-      if (result.user.isSuspended()) {
-        this.denyLogin(
-          req,
-          result.user.username,
-          'Account has been suspended. Contact your system administrator',
-          result.user.id
-        );
-      }
-
-      if (!result.user.isApproved()) {
-        this.denyLogin(
-          req,
-          result.user.username,
-          'Account is not approved for access',
-          result.user.id
-        );
-      }
+      this.assertUserCanLogIn(req, result.user);
 
       recordSuccessfulLogin(req);
 
@@ -225,6 +203,42 @@ export class PublicAuthController {
     }
   }
 
+  /**
+   * Signs a visitor into the shared demo account without a password.
+   *
+   * 404s when no demo username is configured, so dev and self-hosted deployments never expose it.
+   * The lab_admin + is_demo check is what stops a mistyped env var from minting a session for a
+   * real account — every containment guard keys off the lab's demo flag.
+   */
+  async demoLogin(req: Request, res: Response): Promise<void> {
+    try {
+      const username = this.deps.configurationService.get('demo').username;
+      if (!username) {
+        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Not found'));
+        return;
+      }
+
+      const user = await this.deps.userApplicationService.getUserByUsername(username);
+      if (!user || !user.isLabAdmin() || !user.isDemo) {
+        logger.error('Demo login is misconfigured — refusing to issue a session', { username });
+        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Not found'));
+        return;
+      }
+
+      this.assertUserCanLogIn(req, user);
+
+      // Deliberately no UserLoggedIn event: password login publishes one and the audit handler
+      // writes a row per login. On an anonymous public endpoint that grows audit_log without
+      // bound, and nothing purges it — the nightly reset reclaims sessions and tokens, not audit.
+      const payload: AuthResponse = await this.issueTokens(req, user);
+      logger.info('Demo session issued', { userId: user.id });
+
+      res.status(200).json(ResponseBuilder.success(payload));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to start demo session');
+    }
+  }
+
   private publishLoginFailed(
     req: Request,
     username: string,
@@ -233,6 +247,31 @@ export class PublicAuthController {
   ): void {
     const ipAddress = req.ip ?? req.socket.remoteAddress;
     void this.deps.eventBus.publish(new UserLoginFailedEvent(username, ipAddress, reason, userId));
+  }
+
+  /** Status gate shared by password login and demo login, so the two cannot drift apart. */
+  private assertUserCanLogIn(req: Request, user: User): void {
+    if (user.isDeactivated()) {
+      this.denyLogin(
+        req,
+        user.username,
+        'Account has been deactivated. Contact your lab administrator',
+        user.id
+      );
+    }
+
+    if (user.isSuspended()) {
+      this.denyLogin(
+        req,
+        user.username,
+        'Account has been suspended. Contact your system administrator',
+        user.id
+      );
+    }
+
+    if (!user.isApproved()) {
+      this.denyLogin(req, user.username, 'Account is not approved for access', user.id);
+    }
   }
 
   private denyLogin(req: Request, username: string, reason: string, userId: string): never {

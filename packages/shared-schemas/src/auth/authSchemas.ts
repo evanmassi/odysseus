@@ -159,6 +159,12 @@ export type PasswordRequirementsResponse = z.infer<typeof passwordRequirementsRe
 export const firstTimeResponseSchema = z.object({
   isFirstTime: z.boolean(),
   needsSystemAdmin: z.boolean().optional(),
+  /**
+   * Whether a demo account is configured, so the login screen knows to offer the demo.
+   * Optional like `needsSystemAdmin`: client and server deploy separately, and a required field
+   * would make a briefly-stale server unparseable and take the whole login screen down with it.
+   */
+  demoAvailable: z.boolean().optional(),
 });
 
 export type FirstTimeResponse = z.infer<typeof firstTimeResponseSchema>;

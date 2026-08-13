@@ -14,6 +14,7 @@ import type { TokenPair } from '@shared/types/sessionTypes';
 // Hoisted mocks must be declared before vi.mock calls
 const mockAuthService = vi.hoisted(() => ({
   login: vi.fn(),
+  demoLogin: vi.fn(),
   logout: vi.fn(),
   registerWithProfile: vi.fn(),
   forceChangePassword: vi.fn(),
@@ -207,6 +208,44 @@ describe('Enhanced AuthStore', () => {
         resolveLogin!(mockLoginResponse);
       });
 
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe('Demo Login Flow', () => {
+    it('should authenticate without a password', async () => {
+      mockAuthService.demoLogin.mockResolvedValue(mockLoginResponse);
+
+      const { result } = renderHook(() => useAuthStore());
+
+      await act(async () => {
+        expect(await result.current.demoLogin()).toEqual({ success: true });
+      });
+
+      expect(result.current.user?.id).toBe(mockUser.id);
+      expect(result.current.tokens).toEqual(mockTokens);
+      expect(result.current.sessionStatus).toBe('authenticated');
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(mockSessionService.setTokens).toHaveBeenCalledWith(mockTokens);
+    });
+
+    // The endpoint 404s wherever no demo is configured, so the failure path is the common one.
+    it('should surface a failure without authenticating', async () => {
+      mockAuthService.demoLogin.mockRejectedValue(new Error('Not found'));
+
+      const { result } = renderHook(() => useAuthStore());
+
+      await act(async () => {
+        expect(await result.current.demoLogin()).toEqual({
+          success: false,
+          error: 'Not found',
+        });
+      });
+
+      expect(result.current.sessionStatus).toBe('unauthenticated');
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.error).toBe('Not found');
       expect(result.current.isLoading).toBe(false);
     });
   });

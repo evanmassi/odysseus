@@ -59,6 +59,7 @@ interface AuthState {
 interface AuthActions {
   // Primary authentication methods
   login: (username: string, password: string) => Promise<LoginResult>;
+  demoLogin: () => Promise<LoginResult>;
   forceChangePassword: (newPassword: string) => Promise<boolean>;
   clearPasswordChangeRequired: () => void;
   registerWithProfile: (
@@ -107,6 +108,25 @@ const sessionManager = new SessionService(
 
 httpClient.setTokenProvider(sessionManager);
 
+/** The post-auth commit shared by password login and demo login. */
+function commitAuthenticated(
+  set: (partial: Partial<AuthStore>) => void,
+  result: { user: PublicUserData; tokens: TokenPair }
+): void {
+  sessionManager.setTokens(result.tokens);
+
+  set({
+    user: { ...result.user, lastActivity: new Date() },
+    tokens: result.tokens,
+    sessionStatus: 'authenticated',
+    isAuthenticated: true,
+    isLoading: false,
+    error: null,
+    logoutReason: null,
+    passwordChangeRequired: null,
+  });
+}
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -148,25 +168,7 @@ export const useAuthStore = create<AuthStore>()(
             return { success: 'password_change_required' };
           }
 
-          const userWithActivity = {
-            ...result.user,
-            lastActivity: new Date(),
-          };
-
-          // Set tokens in session manager (handles HTTP client + storage)
-          sessionManager.setTokens(result.tokens);
-
-          set({
-            user: userWithActivity,
-            tokens: result.tokens,
-            sessionStatus: 'authenticated',
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-            logoutReason: null,
-            passwordChangeRequired: null,
-          });
-
+          commitAuthenticated(set, result);
           return { success: true };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login error';
@@ -176,6 +178,27 @@ export const useAuthStore = create<AuthStore>()(
             error: errorMessage,
             isLoading: false,
           });
+          return { success: false, error: errorMessage };
+        }
+      },
+
+      /**
+       * Password-free sign-in to the shared demo account.
+       *
+       * No password-change branch: the demo account never requires one, and there is no password
+       * to change it to.
+       */
+      demoLogin: async (): Promise<LoginResult> => {
+        set({ isLoading: true, error: null, logoutReason: null, passwordChangeRequired: null });
+
+        try {
+          commitAuthenticated(set, await authService.demoLogin());
+          return { success: true };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Demo sign-in error';
+          logger.error('Auth store demo login exception', { error });
+
+          set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }
       },
