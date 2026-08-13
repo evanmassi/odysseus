@@ -5,7 +5,7 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
-import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
+import { rejectDemoConfigOperation, rejectIfSeeded } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
 import { Storage } from '@domain/entities/Storage';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -77,6 +77,9 @@ export class UpdateSystemStorageCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
+    // The only setting here is the lab's display name, and this route is reachable by any
+    // lab_admin — which every demo visitor is. Renaming the lab would outlast their visit.
+    rejectDemoConfigOperation(user, 'Renaming the lab');
 
     const updatedConfig = currentConfig.updateSystemSettings(command.systemSettings);
 
@@ -257,6 +260,9 @@ export class UpdateResourceLabelCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
+    // Relabelling a seeded tank outlasts the visit and the nightly reset, which restores content
+    // but not storage names. Their own tanks stay theirs to label.
+    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     let resource: (ResourceWithOwnership & { customLabel?: string }) | null = null;
     let parentRack: ResourceWithOwnership | undefined = undefined;

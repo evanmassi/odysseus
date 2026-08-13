@@ -15,7 +15,11 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 
-import { enforceDemoCreationLimit, rejectSeededItemDeletion } from './DemoGuards';
+import {
+  enforceDemoCreationLimit,
+  rejectDemoConfigOperation,
+  rejectSeededItemDeletion,
+} from './DemoGuards';
 
 const demoUser = { isDemo: true } as unknown as User;
 const realUser = { isDemo: false } as unknown as User;
@@ -49,6 +53,18 @@ describe('rejectSeededItemDeletion', () => {
 
   it('never blocks a real lab, even on a seeded record', () => {
     expect(() => rejectSeededItemDeletion(realUser, { isSeeded: true }, 'tube')).not.toThrow();
+  });
+});
+
+describe('rejectDemoConfigOperation', () => {
+  it('blocks a demo user and names the operation', () => {
+    expect(() => rejectDemoConfigOperation(demoUser, 'Renaming the lab')).toThrow(
+      /Renaming the lab.*demo/
+    );
+  });
+
+  it('leaves real labs alone', () => {
+    expect(() => rejectDemoConfigOperation(realUser, 'Renaming the lab')).not.toThrow();
   });
 });
 
