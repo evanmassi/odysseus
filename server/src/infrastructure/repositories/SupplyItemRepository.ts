@@ -521,10 +521,8 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return parseCount(row);
   }
 
-
   async deleteAllForLab(labId: string): Promise<number> {
-    // supply_transactions.item_id is NO ACTION, so the ledger this repository owns must go first;
-    // stock, barcodes, documents, packaging levels, and attribute values all cascade from the item.
+    // The ledger is NO ACTION so it goes first; everything else cascades from the item.
     await this.db.execute('DELETE FROM supply_transactions WHERE lab_id = $1', [labId]);
     const result = await this.db.execute('DELETE FROM supply_items WHERE lab_id = $1', [labId]);
     return result.rowCount ?? 0;

@@ -1,9 +1,7 @@
 /**
  * Demo Guard Tests
  *
- * These guards are the only thing between an anonymous visitor and the demo lab's data, so the
- * no-op path for real labs matters as much as the rejection path — a regression there would
- * start blocking paying customers rather than merely letting a visitor delete a fake tube.
+ * The no-op path for real labs matters as much as rejection — a regression there blocks customers.
  */
 
 import { DEMO_LIMITS_DEFAULTS, type DemoLimits } from '@odysseus/shared-schemas';
@@ -76,33 +74,53 @@ describe('enforceDemoCreationLimit', () => {
 
   it('allows a create that lands exactly on the limit', async () => {
     await expect(
-      enforceDemoCreationLimit(demoUser, labRepository({ maxDonors: 3 }), 'lab_1', 'maxDonors', () =>
-        Promise.resolve(2)
-      , 1)
+      enforceDemoCreationLimit(
+        demoUser,
+        labRepository({ maxDonors: 3 }),
+        'lab_1',
+        'maxDonors',
+        () => Promise.resolve(2),
+        1
+      )
     ).resolves.toBeUndefined();
   });
 
   it('refuses the create that would exceed it', async () => {
     await expect(
-      enforceDemoCreationLimit(demoUser, labRepository({ maxDonors: 3 }), 'lab_1', 'maxDonors', () =>
-        Promise.resolve(3)
-      , 1)
+      enforceDemoCreationLimit(
+        demoUser,
+        labRepository({ maxDonors: 3 }),
+        'lab_1',
+        'maxDonors',
+        () => Promise.resolve(3),
+        1
+      )
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
   it('measures the whole batch, not one row at a time', async () => {
     await expect(
-      enforceDemoCreationLimit(demoUser, labRepository({ maxTubes: 10 }), 'lab_1', 'maxTubes', () =>
-        Promise.resolve(8)
-      , 5)
+      enforceDemoCreationLimit(
+        demoUser,
+        labRepository({ maxTubes: 10 }),
+        'lab_1',
+        'maxTubes',
+        () => Promise.resolve(8),
+        5
+      )
     ).rejects.toThrow(/Demo limit reached/);
   });
 
   it('falls back to the shared defaults when the lab sets no limits', async () => {
     await expect(
-      enforceDemoCreationLimit(demoUser, labRepository(undefined), 'lab_1', 'maxTubes', () =>
-        Promise.resolve(DEMO_LIMITS_DEFAULTS.maxTubes)
-      , 1)
+      enforceDemoCreationLimit(
+        demoUser,
+        labRepository(undefined),
+        'lab_1',
+        'maxTubes',
+        () => Promise.resolve(DEMO_LIMITS_DEFAULTS.maxTubes),
+        1
+      )
     ).rejects.toBeInstanceOf(ValidationError);
   });
 

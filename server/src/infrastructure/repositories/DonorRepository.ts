@@ -323,7 +323,6 @@ export class DonorRepository implements IDonorRepository {
     return parseCount(row);
   }
 
-
   async deleteAllForLab(labId: string): Promise<number> {
     // donor_collection_history cascades.
     const result = await this.db.execute('DELETE FROM donors WHERE lab_id = $1', [labId]);

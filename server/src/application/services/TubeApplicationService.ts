@@ -14,10 +14,7 @@ import type {
   BulkUpdateRequest,
   TubeSearchResponse,
 } from '@application/dto/TubeDto';
-import {
-  enforceDemoCreationLimit,
-  rejectSeededItemDeletion,
-} from '@application/guards/DemoGuards';
+import { enforceDemoCreationLimit, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';

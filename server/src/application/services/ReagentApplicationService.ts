@@ -245,8 +245,14 @@ export class ReagentApplicationService {
     user: User
   ): Promise<ReagentItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxItemsPerCatalog', () =>
-      this.itemRepository.countNonSeededByLabId(labId), 1);
+    await enforceDemoCreationLimit(
+      user,
+      this.labRepository,
+      labId,
+      'maxItemsPerCatalog',
+      () => this.itemRepository.countNonSeededByLabId(labId),
+      1
+    );
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) throw new NotFoundError('Category not found');
@@ -640,7 +646,15 @@ export class ReagentApplicationService {
       notes: data.notes,
     });
 
-    await this.publishStockEvent(txns, data.type, data.itemId, data.locationId, user.id, labId, options);
+    await this.publishStockEvent(
+      txns,
+      data.type,
+      data.itemId,
+      data.locationId,
+      user.id,
+      labId,
+      options
+    );
     return txns.map(ReagentDto.transactionToResponse);
   }
 
@@ -663,7 +677,14 @@ export class ReagentApplicationService {
       notes: data.notes,
     });
 
-    await this.publishStockEvent(txns, 'count_adjustment', data.itemId, data.locationId, user.id, labId);
+    await this.publishStockEvent(
+      txns,
+      'count_adjustment',
+      data.itemId,
+      data.locationId,
+      user.id,
+      labId
+    );
     return txns.map(ReagentDto.transactionToResponse);
   }
 
@@ -909,7 +930,6 @@ export class ReagentApplicationService {
     if (!category) throw new NotFoundError('This category could not be found.', { categoryId: id });
     return category;
   }
-
 
   /**
    * Auto-generates an item-level internal barcode on item creation. Only a value collision is

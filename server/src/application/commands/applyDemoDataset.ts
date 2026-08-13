@@ -1,17 +1,7 @@
 /**
  * Demo Dataset Application
  *
- * Turns `DEMO_DATASET` into rows in the demo lab. Runs inside the reset's transaction, after the
- * wipe, so it always writes into an empty content surface.
- *
- * Two things it resolves that the dataset deliberately does not know:
- * - **Where tubes go.** Tank and rack ids are minted per environment, and boxes have no id at all,
- *   so placement walks whatever storage the lab actually has and fills it in order.
- * - **Which attribute definitions to use.** Those rows are backfilled per lab with local ids; the
- *   stable handle is `system_key`.
- *
- * Everything is written with `fromData` and the dataset's own ids, never `create()`, so re-running
- * updates the same rows instead of minting a second copy of the lab.
+ * Writes DEMO_DATASET into the demo lab, resolving what the fixture cannot know per environment.
  */
 
 import { DEMO_DATASET } from '@application/config/DemoDataset';
@@ -43,11 +33,7 @@ const daysAgo = (n: number): Date => new Date(Date.now() - n * DAY_MS);
 const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
 const inDays = (n: number): string => dateOnly(new Date(Date.now() + n * DAY_MS));
 
-/**
- * The seats tubes may occupy, in fill order — contiguous from the front of each box, the way a
- * box is actually loaded. Boxes stop short of capacity so the empty seats sit at the end of the
- * run rather than being sprinkled through it. See `DEMO_DATASET.placement` to tune.
- */
+/** Seats in fill order. Boxes stop short of capacity so free seats sit at the end of the run. */
 function placementSeats(config: Storage): TubeLocation[] {
   const { openingBoxTubes, fullBoxOrdinal, laterBoxTubes } = DEMO_DATASET.placement;
   const slots: TubeLocation[] = [];
@@ -142,7 +128,6 @@ export async function applyDemoDataset(
 ): Promise<ApplyDemoDatasetResult> {
   const dataset = DEMO_DATASET;
 
-  // 1. Vocabularies — the dropdowns every record below points at.
   let lookupOrder = 0;
   for (const [category, values] of Object.entries(dataset.lookupValues)) {
     for (const value of values) {
@@ -196,7 +181,7 @@ export async function applyDemoDataset(
     );
   }
 
-  // 2. People — researchers.person_id is NOT NULL, so persons land first.
+  // researchers.person_id is NOT NULL, so persons land first.
   for (const person of dataset.people) {
     await repos.persons.save(
       Person.fromData({
@@ -222,7 +207,6 @@ export async function applyDemoDataset(
     );
   }
 
-  // 3. Donors and their collection history.
   for (const donor of dataset.donors) {
     await repos.donors.save(
       Donor.fromData({
@@ -259,8 +243,8 @@ export async function applyDemoDataset(
     }
   }
 
-  // 4. Catalogs. Attribute definitions already exist per lab, keyed by system_key — the one
-  // handle that is identical across environments — so values resolve against whatever is there.
+  // Attribute definitions already exist per lab; system_key is the one handle identical across
+  // environments, so values resolve against whatever rows this environment happens to have.
   const definitions = await repos.attributes.findDefinitionsByLabId(labId);
   const options = await repos.attributes.findOptionsByLabId(labId);
   const definitionByKey = new Map(
@@ -403,7 +387,6 @@ export async function applyDemoDataset(
     }
   }
 
-  // 5. Tubes, placed into whatever storage this environment actually has.
   const slots = placementSeats(config);
   const donorsById = new Map(dataset.donors.map(d => [d.id, d]));
   const researcherByRef = new Map(dataset.people.map(p => [p.ref, p]));

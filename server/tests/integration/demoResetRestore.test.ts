@@ -1,9 +1,8 @@
 /**
  * Demo Dataset Application
  *
- * Applies the real dataset to a real database. The properties that matter are the ones a unit
- * test cannot reach: that the foreign-key order holds, that tubes land in whatever storage the
- * lab happens to have, and that running it twice restores rather than duplicates.
+ * Applies the real dataset to a real database, covering what a unit test cannot: foreign-key
+ * order, tube placement into whatever storage exists, and re-running without duplicating.
  */
 
 import { applyDemoDataset } from '@application/commands/applyDemoDataset';
@@ -163,10 +162,13 @@ describe('demo dataset application', () => {
     const full = await storage.ensureDefaultForLab(lab.id);
 
     // One box of 81 positions cannot hold the dataset; the run must refuse, not truncate.
-    const tanks = full.toData().tanks.slice(0, 1).map(tank => ({
-      ...tank,
-      racks: tank.racks.slice(0, 1).map(rack => ({ ...rack, boxes: rack.boxes.slice(0, 1) })),
-    }));
+    const tanks = full
+      .toData()
+      .tanks.slice(0, 1)
+      .map(tank => ({
+        ...tank,
+        racks: tank.racks.slice(0, 1).map(rack => ({ ...rack, boxes: rack.boxes.slice(0, 1) })),
+      }));
     const tiny = Storage.fromData({ ...full.toData(), tanks });
 
     await expect(apply(lab.id, user.id, tiny)).rejects.toThrow(/positions/);

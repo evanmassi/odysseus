@@ -9,9 +9,7 @@ import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 import type { AttributeValueRow } from '@domain/repositories/AttributeRepository';
-import type {
-  EquipmentItemRepository as IEquipmentItemRepository,
-} from '@domain/repositories/EquipmentItemRepository';
+import type { EquipmentItemRepository as IEquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
@@ -316,7 +314,6 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     );
     return parseCount(row);
   }
-
 
   async deleteAllForLab(labId: string): Promise<number> {
     // Maintenance log, documents, and attribute values cascade.

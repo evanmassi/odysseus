@@ -85,12 +85,8 @@ export function enforceAddBoxesLimit(
 }
 
 /**
- * Blocks destruction of records the demo dataset owns, leaving visitor-created ones alone.
- *
- * Structural parameter so one guard serves tubes, donors, all three catalogs, and their
- * transactions without merging those identities. `seededRecord` carries the flag and `label`
- * names what is being deleted — for child records (documents, barcodes, packaging levels) pass
- * the **parent item** as the flag source, since hollowing out a seeded item is the same loss.
+ * Blocks destruction of seeded records, leaving visitor-created ones alone. For child records pass
+ * the parent item as `seededRecord` — hollowing out a seeded item is the same loss.
  */
 export function rejectSeededItemDeletion(
   user: User,
@@ -105,14 +101,9 @@ export function rejectSeededItemDeletion(
 }
 
 /**
- * Locks a seeded demo lab's shared vocabulary — categories, units, attributes, locations, lookup
- * values — for everyone but system admins. The records point at these, so letting a visitor rename
- * or delete one leaves the dataset incoherent; keeping them fixed is also what lets the nightly
- * reset upsert them rather than rebuild them.
- *
- * The only guard here that reaches a repository, and deliberately so: it settles the demo question
- * from the user alone and returns before any query, so real labs pay nothing for a demo feature.
- * Note the trigger is *storage* seeding — a demo lab whose tanks were never seeded stays unlocked.
+ * Freezes a seeded demo lab's shared vocabulary, which every record points at. Reaches a repository
+ * but settles the demo question first, so real labs never pay for the query. Keyed on *storage*
+ * seeding — a demo lab whose tanks were never seeded stays unlocked.
  */
 export async function rejectIfTaxonomyLocked(
   user: User,
@@ -140,12 +131,9 @@ const DEMO_CREATION_LABELS: Record<DemoCreationLimit, string> = {
 };
 
 /**
- * Caps how much a visitor can create, so an unattended script can't run the lab — or the hosting
- * bill — up overnight. Counts only what visitors added: seeded records never consume the budget,
- * matching how the storage limits already count non-seeded tanks.
- *
- * `countVisitorCreated` is a thunk and the lab is fetched here rather than by the caller, because
- * creation is the busiest write path in the app and neither query should run for a real lab.
+ * Caps what a visitor can create, counting only their own rows so seeded records never spend the
+ * budget. Takes a thunk and fetches the lab itself so neither query runs for a real lab — creation
+ * is the busiest write path in the app.
  */
 export async function enforceDemoCreationLimit(
   user: User,

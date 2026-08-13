@@ -1,9 +1,7 @@
 /**
  * Migration 037 — Per-Row Seed Flag on Visitor-Writable Content
  *
- * The public demo needs seeded records a visitor can edit but not delete, so every table a visitor
- * writes to carries its own flag. Child records (lots, maintenance entries) aren't lab-scoped and
- * take their protection from the parent item.
+ * Lets the demo protect seeded records while leaving visitor-created ones deletable.
  */
 
 import type { Migration } from './migrationRunner';

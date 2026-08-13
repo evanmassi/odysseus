@@ -1,10 +1,8 @@
 /**
  * Demo Reset Bulk Purge
  *
- * `deleteAllForLab` is what the demo reset wipes with, and its ordering is not a preference:
- * `reagent_transactions.item_id` and `supply_transactions.item_id` are NO ACTION, so an item
- * cannot be deleted while its ledger still points at it. A lab with no stock movement would
- * pass either ordering, so every case here records a transaction first.
+ * Proves the delete order against real foreign keys — every case records a transaction first,
+ * because a lab with no stock movement would pass either ordering.
  */
 
 import { EquipmentItemRepository } from '@infrastructure/repositories/EquipmentItemRepository';

@@ -235,8 +235,14 @@ export class EquipmentApplicationService {
     user: User
   ): Promise<EquipmentItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxItemsPerCatalog', () =>
-      this.itemRepository.countNonSeededByLabId(labId), 1);
+    await enforceDemoCreationLimit(
+      user,
+      this.labRepository,
+      labId,
+      'maxItemsPerCatalog',
+      () => this.itemRepository.countNonSeededByLabId(labId),
+      1
+    );
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) {

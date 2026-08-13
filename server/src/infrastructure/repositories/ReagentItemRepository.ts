@@ -490,10 +490,15 @@ export class ReagentItemRepository implements IReagentItemRepository {
     if (data.lotId) {
       const target = fefoLots.find(lot => lot.id === data.lotId);
       if (!target) {
-        throw new NotFoundError('That lot could not be found, or it has no stock at this location.');
+        throw new NotFoundError(
+          'That lot could not be found, or it has no stock at this location.'
+        );
       }
       const amount = Math.min(target.quantity, quantity);
-      plan = { draws: amount > 0 ? [{ lotId: target.id, amount }] : [], shortfall: quantity - amount };
+      plan = {
+        draws: amount > 0 ? [{ lotId: target.id, amount }] : [],
+        shortfall: quantity - amount,
+      };
     } else {
       plan = planFefoDraw(fefoLots, quantity, {
         includeExpired: data.includeExpired ?? false,
@@ -768,7 +773,9 @@ export class ReagentItemRepository implements IReagentItemRepository {
   }
 
   async deletePackagingLevel(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM reagent_packaging_levels WHERE id = $1', [id]);
+    const result = await this.db.execute('DELETE FROM reagent_packaging_levels WHERE id = $1', [
+      id,
+    ]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -791,10 +798,8 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return parseCount(row);
   }
 
-
   async deleteAllForLab(labId: string): Promise<number> {
-    // reagent_transactions.item_id is NO ACTION, so the ledger this repository owns must go first;
-    // lots, barcodes, documents, packaging levels, and attribute values all cascade from the item.
+    // The ledger is NO ACTION so it goes first; everything else cascades from the item.
     await this.db.execute('DELETE FROM reagent_transactions WHERE lab_id = $1', [labId]);
     const result = await this.db.execute('DELETE FROM reagent_items WHERE lab_id = $1', [labId]);
     return result.rowCount ?? 0;

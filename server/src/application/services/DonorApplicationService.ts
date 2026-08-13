@@ -11,10 +11,7 @@ import type {
   DonorWithTubeCountResponse,
   DonorCollectionHistoryResponse,
 } from '@application/dto/DonorDto';
-import {
-  enforceDemoCreationLimit,
-  rejectSeededItemDeletion,
-} from '@application/guards/DemoGuards';
+import { enforceDemoCreationLimit, rejectSeededItemDeletion } from '@application/guards/DemoGuards';
 import { Donor } from '@domain/entities/Donor';
 import { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import type { User } from '@domain/entities/User';
@@ -71,8 +68,14 @@ export class DonorApplicationService {
     user: User
   ): Promise<DonorWithTubeCountResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxDonors', () =>
-      this.donorRepository.countNonSeededByLabId(labId), 1);
+    await enforceDemoCreationLimit(
+      user,
+      this.labRepository,
+      labId,
+      'maxDonors',
+      () => this.donorRepository.countNonSeededByLabId(labId),
+      1
+    );
 
     const existing = await this.donorRepository.findByDonorIds(
       labId,
@@ -219,8 +222,8 @@ export class DonorApplicationService {
   async deleteCollectionHistory(labId: string, historyId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
 
-    // Alone among the destructive methods this one is addressed by entry id, with no donor in
-    // hand, so the parent lookup is scoped to the case that needs it rather than paid by every lab.
+    // Addressed by entry id with no donor in hand, so the parent lookup is scoped to demo users
+    // rather than paid by every lab.
     if (user.isDemo) {
       const entry = await this.donorRepository.findCollectionHistoryById(historyId, labId);
       if (entry) {

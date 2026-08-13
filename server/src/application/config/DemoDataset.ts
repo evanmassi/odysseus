@@ -1,19 +1,7 @@
 /**
  * Demo Lab Dataset
  *
- * The contents of the public demo lab, authored as a T-cell / CAR-T immunology group so the
- * records read like a working lab rather than placeholder rows.
- *
- * Three rules govern everything here, because the reset re-applies this file nightly against an
- * environment whose storage and users it does not control:
- *
- * 1. **Every id is stable and deterministic.** The reset upserts by id, so fresh ids each night
- *    would grow the lab without bound instead of restoring it.
- * 2. **Nothing references a per-environment id.** No tank, rack, user, or attribute-definition
- *    ids appear below — those differ between dev and production. Storage is addressed by
- *    capacity (the reset fills whatever boxes exist), actors are resolved to the demo user, and
- *    attributes are referenced by their stable `system_key`.
- * 3. **Data only.** Expansion, placement, and id resolution belong to the reset, not this file.
+ * Contents of the public demo lab — data only, with stable ids and nothing environment-specific.
  */
 
 import type { ConcentrationUnit, EquipmentStatus, UnitKindValue } from '@odysseus/shared-schemas';
@@ -144,8 +132,7 @@ export interface DemoEquipment {
   }>;
 }
 
-// The dropdown vocabularies every record below points at. Authored first because a tube with a
-// species no dropdown offers reads as broken data the moment anyone opens the edit form.
+// Authored first: a tube whose species no dropdown offers reads as broken data in the edit form.
 const LOOKUP_VALUES: Record<string, string[]> = {
   species: ['Human', 'Mouse'],
   source: ['ATCC', 'Stanford Blood Center', 'Leukopak Vendor', 'In-house Derivation'],
@@ -183,7 +170,7 @@ const CUSTOM_UNITS: Array<{ id: string; label: string; kind: UnitKindValue }> = 
   { id: 'cunit_demo03', label: 'cassette', kind: 'count' },
 ];
 
-// Two levels deep — the tree's maximum, and enough to show nesting without inventing bureaucracy.
+// Two levels deep — the tree's maximum.
 const LOCATIONS: DemoLocation[] = [
   {
     id: 'loc_demo_mainlab',
@@ -259,9 +246,8 @@ const EQUIPMENT_CATEGORIES: DemoCategory[] = [
   { id: 'ecat_demo_small', name: 'Small Equipment' },
 ];
 
-// Named from the Odyssey rather than invented realistically: this dataset is public, and a
-// plausible-looking name risks colliding with a real person. Nobody mistakes Calypso for a
-// colleague. Penelope runs the lab, which is the joke — Odysseus is away.
+// Named from the Odyssey: this dataset is public, and a realistic name risks colliding with a
+// real person.
 const PEOPLE: DemoPerson[] = [
   {
     ref: 'r01',
@@ -2033,11 +2019,8 @@ const EQUIPMENT: DemoEquipment[] = [
 ];
 
 /**
- * How many tubes go in each box, filled front to back the way a box is actually loaded — runs of
- * one donor's material, then the next, then empty seats at the end.
- *
- * The opening box stops well short of full because that is where a visitor's first instinct is to
- * add a tube; one box further in is filled edge to edge so the full-grid state is visible at all.
+ * Tubes per box, filled front to back. The opening box stops short because that is where a visitor
+ * first tries to add one; a later box is filled edge to edge so the full state is visible at all.
  */
 const PLACEMENT = {
   /** Two donors' worth, then open seats — a box mid-use rather than a finished one. */

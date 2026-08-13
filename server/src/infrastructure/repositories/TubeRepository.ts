@@ -1030,5 +1030,4 @@ export class TubeRepository implements ITubeRepository {
     );
     return parseCount(row);
   }
-
 }

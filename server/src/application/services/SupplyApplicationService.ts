@@ -244,8 +244,14 @@ export class SupplyApplicationService {
     user: User
   ): Promise<SupplyItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await enforceDemoCreationLimit(user, this.labRepository, labId, 'maxItemsPerCatalog', () =>
-      this.itemRepository.countNonSeededByLabId(labId), 1);
+    await enforceDemoCreationLimit(
+      user,
+      this.labRepository,
+      labId,
+      'maxItemsPerCatalog',
+      () => this.itemRepository.countNonSeededByLabId(labId),
+      1
+    );
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) throw new NotFoundError('Category not found');
