@@ -44,6 +44,7 @@ import type { AuthController } from '@presentation/controllers/auth/AuthControll
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { BarcodeController } from '@presentation/controllers/BarcodeController';
 import type { CustomUnitController } from '@presentation/controllers/CustomUnitController';
+import { DemoController } from '@presentation/controllers/DemoController';
 import type { DonorController } from '@presentation/controllers/DonorController';
 import type { EquipmentController } from '@presentation/controllers/EquipmentController';
 import type { ExportController } from '@presentation/controllers/ExportController';
@@ -84,6 +85,7 @@ export class ServiceContainer {
   // Modules
   private _eventModule?: EventModule;
   private _auditModule?: AuditModule;
+  private _demoController?: DemoController;
   private _tubeModule?: TubeModule;
   private _labModule?: LabModule;
   private _userModule?: UserModule;
@@ -447,6 +449,20 @@ export class ServiceContainer {
 
   getStorageAnalyticsController(): StorageAnalyticsController {
     return this.getStorageModule().getStorageAnalyticsController();
+  }
+
+  // Composed here rather than in a module: it is the only consumer that spans storage's reset
+  // handler and the user module's services.
+  getDemoController(): DemoController {
+    if (!this._demoController) {
+      this._demoController = new DemoController({
+        resetDemoDataHandler: this.getStorageModule().getResetDemoDataHandler(),
+        userApplicationService: this.getUserModule().getUserApplicationService(),
+        securityMonitoring: this.getUserModule().getSecurityMonitoringApplicationService(),
+        configurationService: this.configurationService,
+      });
+    }
+    return this._demoController;
   }
 
   // Public API — AuthModule

@@ -14,8 +14,12 @@ import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoginFailedEvent } from '@domain/events/UserEvents';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
+import type { DemoController } from '@presentation/controllers/DemoController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { createAuthRateLimiter } from '@presentation/middleware/apiRateLimiter';
+import {
+  createAuthRateLimiter,
+  createStrictRateLimiter,
+} from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
@@ -36,10 +40,12 @@ const LOGIN_PATH = '/auth/login';
 export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
   private readonly authLimiter = createAuthRateLimiter();
+  private readonly resetLimiter = createStrictRateLimiter();
 
   constructor(
     private readonly publicAuthController: PublicAuthController,
     private readonly inviteCodeController: InviteCodeController,
+    private readonly demoController: DemoController,
     storageRepository: StorageRepository,
     private readonly appVersion: string,
     private readonly environment: string,
@@ -89,6 +95,14 @@ export class PublicRouteModule implements RouteModule {
       '/auth/demo-login',
       this.authLimiter,
       this.publicAuthController.demoLogin.bind(this.publicAuthController)
+    );
+
+    // The strict limiter is what makes the reset key impractical to guess: this is the one
+    // destructive endpoint with no session behind it.
+    router.post(
+      '/demo/reset',
+      this.resetLimiter,
+      this.demoController.reset.bind(this.demoController)
     );
 
     router.post(

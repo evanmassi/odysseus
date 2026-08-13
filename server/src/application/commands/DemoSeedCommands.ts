@@ -343,29 +343,42 @@ export class ResetDemoDataCommandHandler {
     private userRepository: UserRepository
   ) {}
 
+  /** Triggered from the admin UI by a signed-in system admin. */
   async handle(command: ResetDemoDataCommand): Promise<ResetDemoDataResult> {
     await requireSystemAdmin(this.userRepository, command.userId);
+    return this.runReset(command.labId, command.userId);
+  }
 
-    return this.unitOfWork.withTransaction(async repos => {
-      const config = await repos.storage.getForLab(command.labId);
+  /**
+   * Triggered by the nightly job, which has no session — the caller proves its authority with the
+   * reset key and by confirming the lab is a demo before calling. Authorization deliberately lives
+   * with each entry point rather than here, so neither path can inherit the other's assumptions.
+   */
+  async handleUnattended(labId: string, actorId: string): Promise<ResetDemoDataResult> {
+    return this.runReset(labId, actorId);
+  }
+
+  private async runReset(labId: string, actorId: string): Promise<ResetDemoDataResult> {
+    const result = await this.unitOfWork.withTransaction(async repos => {
+      const config = await repos.storage.getForLab(labId);
       if (!config) {
         throw new ValidationError('No configuration found.');
       }
 
       // Both catalogs clear their own ledger first — those foreign keys are NO ACTION, so an item
       // cannot go while a transaction still points at it. Everything else cascades from the item.
-      const deletedReagents = await repos.reagentItems.deleteAllForLab(command.labId);
-      const deletedSupplies = await repos.supplyItems.deleteAllForLab(command.labId);
-      const deletedEquipment = await repos.equipmentItems.deleteAllForLab(command.labId);
+      const deletedReagents = await repos.reagentItems.deleteAllForLab(labId);
+      const deletedSupplies = await repos.supplyItems.deleteAllForLab(labId);
+      const deletedEquipment = await repos.equipmentItems.deleteAllForLab(labId);
 
       const tankIds = config.tanks.map(t => t.id);
       const deletedTubes =
-        tankIds.length > 0 ? await repos.tubes.deleteByTankIds(tankIds, command.labId) : 0;
+        tankIds.length > 0 ? await repos.tubes.deleteByTankIds(tankIds, labId) : 0;
 
-      await repos.donors.deleteAllForLab(command.labId);
+      await repos.donors.deleteAllForLab(labId);
 
       logger.info('Demo reset cleared existing content', {
-        labId: command.labId,
+        labId: labId,
         deletedTubes,
         deletedReagents,
         deletedSupplies,
@@ -378,19 +391,21 @@ export class ResetDemoDataCommandHandler {
         const expectedVersion = config.version;
         config.removeNonSeededEquipment();
         await repos.storage.saveWithOptimisticLock(
-          command.labId,
+          labId,
           config,
           expectedVersion,
           'Removed non-seeded equipment during demo reset',
-          command.userId
+          actorId
         );
       }
 
-      const demoUser = await this.resolveDemoUser(repos, command.labId);
-      const restored = await applyDemoDataset(repos, command.labId, demoUser.id, config);
+      const demoUser = await this.resolveDemoUser(repos, labId);
+      const restored = await applyDemoDataset(repos, labId, demoUser.id, config);
 
       return { restored };
     });
+
+    return result;
   }
 
   /** Seeded transactions need an actor, and `performed_by` is a NOT NULL foreign key. */

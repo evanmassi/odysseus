@@ -178,6 +178,7 @@ class OdysseusServer {
       new PublicRouteModule(
         publicAuthController,
         inviteCodeController,
+        this.serviceContainer.getDemoController(),
         storageRepository,
         this.configurationService.get('app').version,
         this.configurationService.get('server').environment,
