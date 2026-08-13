@@ -22,6 +22,7 @@ const txn = (fields: Partial<ReagentTransaction> & { id: string }): ReagentTrans
   quantityAfter: 0,
   performedBy: 'user-1',
   createdAt: new Date('2026-07-30T10:00:00.000Z'),
+  isSeeded: false,
   ...fields,
 });
 

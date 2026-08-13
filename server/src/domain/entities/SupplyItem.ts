@@ -71,6 +71,7 @@ export class SupplyItem {
     private _description: string | undefined,
     private _notes: string | undefined,
     private _status: SupplyItemStatus,
+    private readonly _isSeeded: boolean,
     private readonly _createdAt: Date,
     private _updatedAt: Date
   ) {
@@ -98,6 +99,7 @@ export class SupplyItem {
       data.description,
       data.notes,
       'active',
+      false,
       new Date(),
       new Date()
     );
@@ -123,6 +125,7 @@ export class SupplyItem {
     description?: string;
     notes?: string;
     status: SupplyItemStatus;
+    isSeeded?: boolean;
     createdAt: string | Date;
     updatedAt: string | Date;
   }): SupplyItem {
@@ -146,6 +149,7 @@ export class SupplyItem {
       data.description,
       data.notes,
       data.status,
+      data.isSeeded ?? false,
       toDomainDate(data.createdAt),
       toDomainDate(data.updatedAt)
     );
@@ -256,6 +260,9 @@ export class SupplyItem {
   }
   get status(): SupplyItemStatus {
     return this._status;
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
   }
   get createdAt(): Date {
     return new Date(this._createdAt);

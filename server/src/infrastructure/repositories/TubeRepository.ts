@@ -73,8 +73,9 @@ export class TubeRepository implements ITubeRepository {
           media_type, media_supplements, media_selection, culture_condition, lot_number,
           species, source, catalog_number, passage_number,
           notes, created_at, updated_at, version,
-          is_locked, locked_by, lock_note, locked_at, shared_with_user_ids, lab_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
+          is_locked, locked_by, lock_note, locked_at, shared_with_user_ids, lab_id, is_seeded
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)
+        -- is_seeded is insert-only, like created_at: an edit must never clear a seeded record's protection.
         ON CONFLICT (id) DO UPDATE SET
           tank_id = EXCLUDED.tank_id,
           rack_id = EXCLUDED.rack_id,
@@ -140,6 +141,7 @@ export class TubeRepository implements ITubeRepository {
           row.locked_at,
           row.shared_with_user_ids,
           row.lab_id,
+          row.is_seeded,
         ]
       );
     } catch (error) {
@@ -475,7 +477,8 @@ export class TubeRepository implements ITubeRepository {
     tubes.lock_note,
     tubes.locked_at,
     tubes.shared_with_user_ids,
-    tubes.lab_id
+    tubes.lab_id,
+    tubes.is_seeded
   `.trim();
 
   private addLocationFilters(

@@ -81,6 +81,7 @@ export class ReagentItem {
     private _description: string | undefined,
     private _notes: string | undefined,
     private _status: ReagentItemStatus,
+    private readonly _isSeeded: boolean,
     private readonly _createdAt: Date,
     private _updatedAt: Date
   ) {
@@ -111,6 +112,7 @@ export class ReagentItem {
       data.description,
       data.notes,
       'active',
+      false,
       new Date(),
       new Date()
     );
@@ -139,6 +141,7 @@ export class ReagentItem {
     description?: string;
     notes?: string;
     status: ReagentItemStatus;
+    isSeeded?: boolean;
     createdAt: string | Date;
     updatedAt: string | Date;
   }): ReagentItem {
@@ -165,6 +168,7 @@ export class ReagentItem {
       data.description,
       data.notes,
       data.status,
+      data.isSeeded ?? false,
       toDomainDate(data.createdAt),
       toDomainDate(data.updatedAt)
     );
@@ -283,6 +287,9 @@ export class ReagentItem {
   }
   get status(): ReagentItemStatus {
     return this._status;
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
   }
   get createdAt(): Date {
     return new Date(this._createdAt);

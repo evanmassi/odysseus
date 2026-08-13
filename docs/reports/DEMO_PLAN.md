@@ -12,7 +12,7 @@ than assumed. Where something is deliberately left open it says so explicitly.
 
 ### Progress ledger — check off as each phase lands
 
-- [ ] Phase 0 — migration `037` + `is_seeded` threading (§2a)
+- [x] Phase 0 — migration `037` + `is_seeded` threading (§2a)
 - [ ] Phase 1 — containment guards + `DemoGuards.test.ts`, taxonomy lock, creation caps (§2b–2d)
 - [ ] Phase 2 — demo login endpoint + login-screen CTA (§1)
 - [ ] Phase 3 — dataset + nightly reset (§3)
@@ -176,10 +176,19 @@ Leave `updateItem`, `recordTransaction`, tube moves, and maintenance logging alo
 demo.
 
 **`isSeeded` must round-trip through edits.** Visitors *can* edit seeded items, and `updateItem`
-loads → mutates → `save()`s the entity. If the flag doesn't survive that round trip — entity
-constructor, mapper `toRow`, and the `ON CONFLICT DO UPDATE SET` column list — then the first edit
-to a seeded record silently clears its protection and makes it deletable. Thread it through all
-three, and cover it in `DemoGuards.test.ts`.
+loads → mutates → `save()`s the entity. If the flag doesn't survive that round trip, the first edit
+to a seeded record silently clears its protection and makes it deletable.
+
+**As built, the flag is insert-only.** It appears in each `save()`'s INSERT column list but is
+deliberately **absent from `ON CONFLICT DO UPDATE SET`**, exactly like `created_at`. An edit
+therefore cannot rewrite it no matter what the entity carries, which makes the failure above
+structurally impossible rather than merely avoided. Each of the five `save()` methods carries a
+one-line comment saying so, because adding it to the update list "for completeness" is the obvious
+well-meaning change that would break demo protection silently. The reset purges before it upserts,
+so seeded rows always take the INSERT path and the flag still lands as `true`.
+
+The flag is still threaded through the entity constructor and mapper `toRow`/`fromRow` — reads need
+it for the guard and the client affordance. Cover the round trip in `DemoGuards.test.ts`.
 
 ### 2b. Lab-level lock for taxonomy
 
@@ -654,6 +663,15 @@ while sessions may be open, so a visitor browsing at that moment gets 404s on re
 and a stale cache until they refresh. Running at ~3am makes it unlikely rather than impossible.
 Accepted — the alternative is a maintenance-mode flag, which is a lot of machinery for a portfolio
 demo. Worth knowing before it's mistaken for a bug.
+
+**A stale browser cache can briefly show an unlocked control on a seeded record.** The client
+persists tubes to `localStorage` and rehydrates without re-validating against the schema, so a
+visitor whose cache predates the §2a deploy holds tubes with no `isSeeded`. The §4 affordance then
+reads it as absent and leaves the delete control enabled until the query refetches. The server guard
+still refuses the delete, so this is a cosmetic race, not a containment hole, and it clears on the
+next refetch. `clearStaleCaches` (`cacheVersionValidation.ts`) is the existing lever if it ever needs
+forcing, though it keys on the storage-config version rather than on a response-shape change. Worth
+knowing before it is mistaken for a broken guard.
 
 **Idle timeout logs visitors out mid-demo.** Demo sessions obey the same idle timeout as real ones,
 so someone who leaves the tab open and comes back gets bounced to the login screen. Correct

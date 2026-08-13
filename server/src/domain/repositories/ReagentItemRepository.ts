@@ -65,6 +65,7 @@ export interface ReagentTransactionRow {
   voidedBy?: string;
   voidReason?: string;
   relatedTransactionId?: string;
+  isSeeded: boolean;
 }
 
 export interface ReagentPackagingLevelRow {

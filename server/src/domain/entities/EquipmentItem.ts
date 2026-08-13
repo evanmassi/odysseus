@@ -77,6 +77,7 @@ export class EquipmentItem {
     private _decommissionReason: string | undefined,
     private _disposalMethod: string | undefined,
     private _notes: string | undefined,
+    private readonly _isSeeded: boolean,
     private readonly _createdAt: Date,
     private _updatedAt: Date
   ) {
@@ -107,6 +108,7 @@ export class EquipmentItem {
       undefined,
       undefined,
       data.notes,
+      false,
       new Date(),
       new Date()
     );
@@ -135,6 +137,7 @@ export class EquipmentItem {
     decommissionReason?: string;
     disposalMethod?: string;
     notes?: string;
+    isSeeded?: boolean;
     createdAt: string | Date;
     updatedAt: string | Date;
   }): EquipmentItem {
@@ -161,6 +164,7 @@ export class EquipmentItem {
       data.decommissionReason,
       data.disposalMethod,
       data.notes,
+      data.isSeeded ?? false,
       toDomainDate(data.createdAt),
       toDomainDate(data.updatedAt)
     );
@@ -283,6 +287,9 @@ export class EquipmentItem {
   }
   get notes(): string | undefined {
     return this._notes;
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
   }
   get createdAt(): Date {
     return new Date(this._createdAt);

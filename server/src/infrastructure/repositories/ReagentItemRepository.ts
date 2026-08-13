@@ -47,7 +47,7 @@ const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_numbe
   vendor_name, vendor_catalog_number, stock_unit, reagent_type, cas_number,
   concentration, concentration_unit, expiry_warning_days,
   reorder_threshold, reorder_threshold_unit, reorder_quantity, reorder_unit, unit_price,
-  description, notes, status, created_at, updated_at`;
+  description, notes, status, is_seeded, created_at, updated_at`;
 
 interface ReagentLotLabelDbRow {
   item_id: string;
@@ -64,7 +64,8 @@ const LOT_COLUMNS = `id, item_id, location_id, lot_number, quantity, expiration_
 const BARCODE_COLUMNS = 'id, item_id, lot_id, barcode_value, barcode_type, is_primary, label';
 
 const TXN_COLUMNS = `id, item_id, lot_id, location_id, lab_id, type, quantity_change, quantity_after,
-  po_number, cost, performed_by, notes, created_at, voided_at, voided_by, void_reason, related_transaction_id`;
+  po_number, cost, performed_by, notes, created_at, voided_at, voided_by, void_reason, related_transaction_id,
+  is_seeded`;
 
 // Shared prefix for the item-with-stock query; on-hand and soonest expiry roll up from active lots.
 const ITEM_WITH_STOCK_SELECT = `
@@ -134,7 +135,8 @@ export class ReagentItemRepository implements IReagentItemRepository {
     await this.db.execute(
       `
       INSERT INTO reagent_items (${ITEM_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+      -- is_seeded is insert-only, like created_at: an edit must never clear a seeded record's protection.
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
         name = EXCLUDED.name,
@@ -181,6 +183,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
         row.description,
         row.notes,
         row.status,
+        row.is_seeded,
         row.created_at,
         row.updated_at,
       ]
@@ -599,7 +602,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
   ): Promise<ReagentTransactionRow> {
     const res = await client.query<ReagentTransactionDbRow>(
       `INSERT INTO reagent_transactions (${TXN_COLUMNS})
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NULL, NULL, NULL, $13)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NULL, NULL, NULL, $13, FALSE)
        RETURNING ${TXN_COLUMNS}`,
       [
         generateId('rtxn'),

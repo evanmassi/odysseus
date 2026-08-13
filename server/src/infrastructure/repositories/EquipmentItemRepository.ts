@@ -22,7 +22,7 @@ import { AttributeValueQueries } from '@infrastructure/repositories/AttributeVal
 import { DocumentQueries } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS =
-  'id, lab_id, category_id, name, serial_number, manufacturer, vendor_name, vendor_catalog_number, model, description, location_id, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
+  'id, lab_id, category_id, name, serial_number, manufacturer, vendor_name, vendor_catalog_number, model, description, location_id, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, is_seeded, created_at, updated_at';
 const LOG_COLUMNS =
   'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
@@ -64,7 +64,8 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     await this.db.execute(
       `
       INSERT INTO equipment_items (${ITEM_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+      -- is_seeded is insert-only, like created_at: an edit must never clear a seeded record's protection.
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
         name = EXCLUDED.name,
@@ -111,6 +112,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
         row.decommission_reason,
         row.disposal_method,
         row.notes,
+        row.is_seeded,
         row.created_at,
         row.updated_at,
       ]

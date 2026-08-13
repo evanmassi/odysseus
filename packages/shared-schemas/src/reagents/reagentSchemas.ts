@@ -93,6 +93,7 @@ export const reagentItemSchema = z.object({
   description: z.string().optional(),
   notes: z.string().optional(),
   status: reagentItemStatusSchema,
+  isSeeded: z.boolean(),
   createdAt: dateField,
   updatedAt: dateField,
 });
@@ -240,6 +241,7 @@ export const reagentTransactionSchema = z.object({
   voidedBy: z.string().optional(),
   voidReason: z.string().optional(),
   relatedTransactionId: z.string().optional(),
+  isSeeded: z.boolean(),
 });
 
 export const recordReagentTransactionRequestSchema = concentrationUnitRefinement(

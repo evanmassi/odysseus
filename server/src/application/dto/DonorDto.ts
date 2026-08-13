@@ -35,6 +35,7 @@ export class DonorDto {
       diseaseStage: donor.diseaseStage,
       notes: donor.notes,
       isCurated: donor.isCurated,
+      isSeeded: donor.isSeeded,
       createdAt: donor.createdAt,
       updatedAt: donor.updatedAt,
     };

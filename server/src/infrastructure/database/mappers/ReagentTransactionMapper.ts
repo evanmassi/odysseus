@@ -26,6 +26,7 @@ export interface ReagentTransactionDbRow {
   voided_by: string | null;
   void_reason: string | null;
   related_transaction_id: string | null;
+  is_seeded: boolean;
 }
 
 export class ReagentTransactionMapper {
@@ -48,6 +49,7 @@ export class ReagentTransactionMapper {
       voidedBy: row.voided_by ?? undefined,
       voidReason: row.void_reason ?? undefined,
       relatedTransactionId: row.related_transaction_id ?? undefined,
+      isSeeded: row.is_seeded,
     };
   }
 

@@ -46,6 +46,7 @@ export interface SupplyTransactionRow {
   voidedBy?: string;
   voidReason?: string;
   relatedTransactionId?: string;
+  isSeeded: boolean;
 }
 
 export interface VoidTransactionData {

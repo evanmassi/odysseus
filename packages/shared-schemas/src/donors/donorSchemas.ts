@@ -23,6 +23,7 @@ export const donorSchema = z.object({
   diseaseStage: z.string().optional(),
   notes: z.string().optional(),
   isCurated: z.boolean(),
+  isSeeded: z.boolean(),
   createdAt: dateField,
   updatedAt: dateField,
 });

@@ -33,6 +33,7 @@ export interface EquipmentItemRow {
   decommission_reason: string | null;
   disposal_method: string | null;
   notes: string | null;
+  is_seeded: boolean;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -62,6 +63,7 @@ export class EquipmentItemMapper {
       decommission_reason: item.decommissionReason ?? null,
       disposal_method: item.disposalMethod ?? null,
       notes: item.notes ?? null,
+      is_seeded: item.isSeeded,
       created_at: item.createdAt,
       updated_at: item.updatedAt,
     };
@@ -91,6 +93,7 @@ export class EquipmentItemMapper {
       decommissionReason: row.decommission_reason ?? undefined,
       disposalMethod: row.disposal_method ?? undefined,
       notes: row.notes ?? undefined,
+      isSeeded: row.is_seeded,
       createdAt: toISOString(row.created_at),
       updatedAt: toISOString(row.updated_at),
     });

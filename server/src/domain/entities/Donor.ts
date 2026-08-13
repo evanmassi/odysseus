@@ -50,6 +50,7 @@ export class Donor {
     private _diseaseStage: string | undefined,
     private _notes: string | undefined,
     private _isCurated: boolean,
+    private readonly _isSeeded: boolean,
     private readonly _createdAt: Date,
     private _updatedAt: Date
   ) {
@@ -71,6 +72,7 @@ export class Donor {
       data.diseaseStage,
       data.notes,
       data.isCurated ?? false,
+      false,
       new Date(),
       new Date()
     );
@@ -90,6 +92,7 @@ export class Donor {
     diseaseStage?: string;
     notes?: string;
     isCurated: boolean;
+    isSeeded?: boolean;
     createdAt: string | Date;
     updatedAt: string | Date;
   }): Donor {
@@ -107,6 +110,7 @@ export class Donor {
       data.diseaseStage,
       data.notes,
       data.isCurated,
+      data.isSeeded ?? false,
       typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
       typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt
     );
@@ -174,6 +178,9 @@ export class Donor {
   }
   get isCurated(): boolean {
     return this._isCurated;
+  }
+  get isSeeded(): boolean {
+    return this._isSeeded;
   }
   get createdAt(): Date {
     return new Date(this._createdAt);

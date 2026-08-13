@@ -22,6 +22,7 @@ export interface DonorRow {
   disease_stage: string | null;
   notes: string | null;
   is_curated: boolean;
+  is_seeded: boolean;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -51,6 +52,7 @@ export class DonorMapper {
       disease_stage: donor.diseaseStage ?? null,
       notes: donor.notes ?? null,
       is_curated: donor.isCurated,
+      is_seeded: donor.isSeeded,
       created_at: donor.createdAt,
       updated_at: donor.updatedAt,
     };
@@ -71,6 +73,7 @@ export class DonorMapper {
       diseaseStage: row.disease_stage ?? undefined,
       notes: row.notes ?? undefined,
       isCurated: row.is_curated,
+      isSeeded: row.is_seeded,
       createdAt: toISOString(row.created_at),
       updatedAt: toISOString(row.updated_at),
     });

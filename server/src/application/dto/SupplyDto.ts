@@ -89,6 +89,7 @@ export class SupplyDto {
       description: item.description,
       notes: item.notes,
       status: item.status,
+      isSeeded: item.isSeeded,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };
@@ -181,6 +182,7 @@ export class SupplyDto {
       voidedBy: txn.voidedBy,
       voidReason: txn.voidReason,
       relatedTransactionId: txn.relatedTransactionId,
+      isSeeded: txn.isSeeded,
     };
   }
 

@@ -89,6 +89,7 @@ export const tubeDataSchema = z.object({
   lockedAt: z.string().datetime().optional(),
   sharedWithUserIds: z.array(z.string()).optional(),
   labId: z.string().optional(),
+  isSeeded: z.boolean(),
 });
 
 /**

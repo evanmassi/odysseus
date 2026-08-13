@@ -30,6 +30,7 @@ export interface SupplyItemRow {
   description: string | null;
   notes: string | null;
   status: string;
+  is_seeded: boolean;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -56,6 +57,7 @@ export class SupplyItemMapper {
       description: item.description ?? null,
       notes: item.notes ?? null,
       status: item.status,
+      is_seeded: item.isSeeded,
       created_at: item.createdAt,
       updated_at: item.updatedAt,
     };
@@ -83,6 +85,7 @@ export class SupplyItemMapper {
       description: row.description ?? undefined,
       notes: row.notes ?? undefined,
       status: row.status as SupplyItemStatus,
+      isSeeded: row.is_seeded,
       createdAt: toISOString(row.created_at),
       updatedAt: toISOString(row.updated_at),
     });

@@ -17,7 +17,7 @@ import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
 const DONOR_COLUMNS =
-  'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
+  'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, is_seeded, created_at, updated_at';
 const HISTORY_COLUMNS = 'id, donor_id, collection_date, specimen_type, source, created_at';
 // Read collection_date as text — a parsed DATE column becomes a timezone-shifting Date object.
 const HISTORY_SELECT_COLUMNS =
@@ -97,7 +97,8 @@ export class DonorRepository implements IDonorRepository {
     await this.db.execute(
       `
       INSERT INTO donors (${DONOR_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      -- is_seeded is insert-only, like created_at: an edit must never clear a seeded record's protection.
       ON CONFLICT (id) DO UPDATE SET
         donor_source_id = EXCLUDED.donor_source_id,
         donor_internal_id = EXCLUDED.donor_internal_id,
@@ -126,6 +127,7 @@ export class DonorRepository implements IDonorRepository {
         row.disease_stage,
         row.notes,
         row.is_curated,
+        row.is_seeded,
         row.created_at,
         row.updated_at,
       ]
@@ -160,7 +162,7 @@ export class DonorRepository implements IDonorRepository {
     const result = await this.db.execute(
       `
       INSERT INTO donors (${DONOR_COLUMNS})
-      SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
       WHERE NOT EXISTS (
         SELECT 1 FROM donors WHERE ${conditions.join(' AND ')}
       )
@@ -179,6 +181,7 @@ export class DonorRepository implements IDonorRepository {
         row.disease_stage,
         row.notes,
         row.is_curated,
+        row.is_seeded,
         row.created_at,
         row.updated_at,
       ]

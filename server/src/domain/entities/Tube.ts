@@ -72,7 +72,8 @@ export class Tube {
     private _lockNote?: string,
     private _lockedAt?: Date,
     private _sharedWithUserIds: string[] = [],
-    private readonly _labId?: string
+    private readonly _labId?: string,
+    private readonly _isSeeded: boolean = false
   ) {
     this.validate();
   }
@@ -129,6 +130,7 @@ export class Tube {
     lockedAt?: string;
     sharedWithUserIds?: string[];
     labId?: string;
+    isSeeded?: boolean;
   }): Tube {
     const location = TubeLocation.create(data.location);
     const sample = SampleData.create(data.sample);
@@ -151,7 +153,8 @@ export class Tube {
       data.lockNote,
       data.lockedAt ? new Date(data.lockedAt) : undefined,
       data.sharedWithUserIds ?? [],
-      data.labId
+      data.labId,
+      data.isSeeded ?? false
     );
   }
 
@@ -193,7 +196,8 @@ export class Tube {
       note, // lockNote
       new Date(), // lockedAt
       [], // sharedWithUserIds - starts empty
-      this._labId
+      this._labId,
+      this._isSeeded
     );
   }
 
@@ -216,7 +220,8 @@ export class Tube {
       undefined, // lockNote - cleared
       undefined, // lockedAt - cleared
       [], // sharedWithUserIds - cleared on unlock
-      this._labId
+      this._labId,
+      this._isSeeded
     );
   }
 
@@ -239,7 +244,8 @@ export class Tube {
       note, // Updated lock note
       this._lockedAt,
       this._sharedWithUserIds,
-      this._labId
+      this._labId,
+      this._isSeeded
     );
   }
 
@@ -260,7 +266,8 @@ export class Tube {
       this._lockNote,
       this._lockedAt,
       newSharedIds,
-      this._labId
+      this._labId,
+      this._isSeeded
     );
   }
 
@@ -281,7 +288,8 @@ export class Tube {
       this._lockNote,
       this._lockedAt,
       newSharedIds,
-      this._labId
+      this._labId,
+      this._isSeeded
     );
   }
 
@@ -318,7 +326,8 @@ export class Tube {
       this._lockNote,
       this._lockedAt,
       this._sharedWithUserIds,
-      this._labId
+      this._labId,
+      this._isSeeded
     );
   }
 
@@ -343,6 +352,7 @@ export class Tube {
     lockedAt?: string;
     sharedWithUserIds?: string[];
     labId?: string;
+    isSeeded: boolean;
   } {
     return {
       id: this._id,
@@ -361,6 +371,7 @@ export class Tube {
       lockedAt: this._lockedAt?.toISOString(),
       sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined,
       labId: this._labId,
+      isSeeded: this._isSeeded,
     };
   }
 
@@ -400,6 +411,10 @@ export class Tube {
 
   get version(): number {
     return this._version;
+  }
+
+  get isSeeded(): boolean {
+    return this._isSeeded;
   }
 
   // LOCK GETTERS

@@ -79,6 +79,7 @@ export class ReagentDto {
       description: item.description,
       notes: item.notes,
       status: item.status,
+      isSeeded: item.isSeeded,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };
@@ -180,6 +181,7 @@ export class ReagentDto {
       voidedBy: txn.voidedBy,
       voidReason: txn.voidReason,
       relatedTransactionId: txn.relatedTransactionId,
+      isSeeded: txn.isSeeded,
     };
   }
 

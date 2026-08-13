@@ -46,6 +46,7 @@ export interface TubeRow {
   locked_at?: Date | string;
   shared_with_user_ids?: string; // JSON array string
   lab_id?: string;
+  is_seeded: boolean;
 }
 
 export class TubeMapper {
@@ -91,6 +92,7 @@ export class TubeMapper {
       locked_at: tube.lockedAt,
       shared_with_user_ids: sharedJson,
       lab_id: tube.labId,
+      is_seeded: tube.isSeeded,
     };
   }
 
@@ -148,6 +150,7 @@ export class TubeMapper {
       lockedAt,
       sharedWithUserIds,
       labId: row.lab_id,
+      isSeeded: row.is_seeded,
     });
   }
 

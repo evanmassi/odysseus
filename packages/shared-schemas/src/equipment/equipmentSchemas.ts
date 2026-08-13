@@ -79,6 +79,7 @@ export const equipmentItemSchema = z.object({
   decommissionReason: z.string().optional(),
   disposalMethod: z.string().optional(),
   notes: z.string().optional(),
+  isSeeded: z.boolean(),
   createdAt: dateField,
   updatedAt: dateField,
 });

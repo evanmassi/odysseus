@@ -68,6 +68,7 @@ export class EquipmentDto {
       decommissionReason: item.decommissionReason,
       disposalMethod: item.disposalMethod,
       notes: item.notes,
+      isSeeded: item.isSeeded,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };

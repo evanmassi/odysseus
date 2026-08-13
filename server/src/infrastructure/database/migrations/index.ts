@@ -38,6 +38,7 @@ import { migration031 } from './031_backfill_system_attributes';
 import { migration032 } from './032_supplies_onto_unit_registry';
 import { migration035 } from './035_retire_supply_item_property';
 import { migration036 } from './036_equipment_location_to_tree';
+import { migration037 } from './037_add_is_seeded_to_content';
 
 import type { Migration } from './migrationRunner';
 
@@ -76,4 +77,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration032,
   migration035,
   migration036,
+  migration037,
 ];
