@@ -25,6 +25,8 @@ module.exports = {
       jsx: true,
     },
     project: ['./tsconfig.json'],
+    // Resolve relative to this file, so linting works from the repo root as well as in-package.
+    tsconfigRootDir: __dirname,
   },
   plugins: [
     'react',
@@ -41,7 +43,7 @@ module.exports = {
     'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
-        project: './tsconfig.json',
+        project: `${__dirname}/tsconfig.json`,
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
       },
       node: {

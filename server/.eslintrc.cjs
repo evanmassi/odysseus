@@ -17,13 +17,15 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     project: ['./tsconfig.json'],
+    // Resolve relative to this file, so linting works from the repo root as well as in-package.
+    tsconfigRootDir: __dirname,
   },
   plugins: ['@typescript-eslint', 'import'],
   settings: {
     'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
-        project: './tsconfig.json',
+        project: `${__dirname}/tsconfig.json`,
         extensions: ['.ts', '.js'],
       },
       node: {

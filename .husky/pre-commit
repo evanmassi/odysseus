@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-cd client && npm run pre-commit
+npm run pre-commit

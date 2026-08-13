@@ -32,7 +32,8 @@
     "typecheck:client": "cd client && npm run typecheck",
     "typecheck:server": "cd server && npm run typecheck",
     "clean": "rimraf server/dist client/dist",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pre-commit": "lint-staged"
   },
   "workspaces": [
     "packages/*",
@@ -49,5 +50,17 @@
     "rimraf": "^6.1.0"
   },
   "author": "Evan Massi",
-  "license": "MIT"
+  "license": "MIT",
+  "lint-staged": {
+    "{client,server}/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "packages/**/*.ts": [
+      "prettier --write"
+    ],
+    "*.{js,json,md,css}": [
+      "prettier --write"
+    ]
+  }
 }
