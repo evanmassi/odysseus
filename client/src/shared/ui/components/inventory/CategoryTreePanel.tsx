@@ -21,6 +21,7 @@ import {
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Button, OverflowMenu, type OverflowMenuItem } from '../../primitives';
+import { DemoLockIndicator } from '../info-display/DemoLockIndicator';
 import { NavTreeLines } from '../tree-lines';
 
 interface TreeCategory {
@@ -54,6 +55,8 @@ interface CategoryTreePanelProps<T extends TreeItem, C extends TreeCategory> {
   /** Not applied here — it force-opens matching categories and names the empty state. */
   searchQuery: string;
   isAdmin: boolean;
+  /** A seeded demo lab freezes its vocabulary, so management is withdrawn rather than left to fail. */
+  isTaxonomyLocked: boolean;
   sortField: 'name' | 'manufacturer' | 'dateAdded';
   sortDirection: 'asc' | 'desc';
   renderItem: (item: T) => ReactNode;
@@ -88,6 +91,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   items,
   searchQuery,
   isAdmin,
+  isTaxonomyLocked,
   sortField,
   sortDirection,
   renderItem,
@@ -99,6 +103,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   onDeleteCategory,
 }: CategoryTreePanelProps<T, C>) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const canManageCategories = isAdmin && !isTaxonomyLocked;
 
   const topLevelCategories = useMemo(
     () => categories.filter(c => !c.parentId).sort(compareByOrderThenName),
@@ -203,7 +208,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
         <p className="text-body-sm">{labels.emptyCategories}</p>
-        {isAdmin && (
+        {canManageCategories && (
           <Button
             variant="secondary"
             size="sm"
@@ -222,14 +227,18 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     <div className="pt-1">
       {isAdmin && (
         <div className="mb-2 flex justify-end px-1">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onAddCategory}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
-          >
-            Add Category
-          </Button>
+          {isTaxonomyLocked ? (
+            <DemoLockIndicator side="left" />
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onAddCategory}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
+              Add Category
+            </Button>
+          )}
         </div>
       )}
 
@@ -265,7 +274,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                   size={11}
                   className={`nav-tree-row__chevron ${isExpanded ? 'rotate-90' : ''}`}
                 />
-                {isAdmin && (
+                {canManageCategories && (
                   <div
                     className="flex flex-shrink-0 items-center"
                     role="presentation"
@@ -310,7 +319,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                   </span>
                 </span>
                 <span className="flex-1" />
-                {isAdmin && (
+                {canManageCategories && (
                   <div
                     className="flex flex-shrink-0 items-center"
                     role="presentation"
@@ -340,7 +349,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                         key={sub.id}
                         subcategory={sub}
                         items={subItems}
-                        isAdmin={isAdmin}
+                        canManage={canManageCategories}
                         onRename={onRenameCategory}
                         onDelete={onDeleteCategory}
                         renderItem={renderItem}
@@ -379,7 +388,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
 interface SubcategorySectionProps<T extends TreeItem, C extends TreeCategory> {
   subcategory: C;
   items: T[];
-  isAdmin: boolean;
+  canManage: boolean;
   onRename: (category: C) => void;
   onDelete: (category: C) => void;
   renderItem: (item: T) => ReactNode;
@@ -390,7 +399,7 @@ interface SubcategorySectionProps<T extends TreeItem, C extends TreeCategory> {
 function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
   subcategory,
   items,
-  isAdmin,
+  canManage,
   onRename,
   onDelete,
   renderItem,
@@ -417,7 +426,7 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
           size={11}
           className={`nav-tree-row__chevron ${effectiveExpanded ? 'rotate-90' : ''}`}
         />
-        {isAdmin && (
+        {canManage && (
           <div
             className="flex flex-shrink-0 items-center"
             role="presentation"

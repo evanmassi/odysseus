@@ -16,6 +16,7 @@ import { AccentTick, AlertBanner, Button, OccupancyBar, Tabs, Tab } from '@share
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
+import { useHasSeededStorage } from '../../../hooks/useSeededStorage';
 import { useStorageData } from '../../../hooks/useStorageData';
 import { useStorageOwnership } from '../../../hooks/useStorageOwnership';
 import { useStoragePermissions } from '../../../hooks/useStoragePermissions';
@@ -85,10 +86,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     isDemo
   );
   const demoLimits = currentLab?.demoLimits;
-  const hasSeededResources =
-    currentLab?.equipment.tanks.some(
-      t => t.isSeeded ?? t.racks.some(r => r.isSeeded ?? r.boxes.some(b => b.isSeeded))
-    ) ?? false;
+  const hasSeededResources = useHasSeededStorage();
   const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
   const nonSeededTankCount = currentLab?.equipment.tanks.filter(t => !t.isSeeded).length ?? 0;
   const tankLimitReached = demoLimitsActive && nonSeededTankCount >= demoLimits.maxTanks;

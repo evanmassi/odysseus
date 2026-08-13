@@ -38,6 +38,7 @@ import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
 import { AccentTick, ErrorBoundary, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { notifications } from '@shared/utils/notifications';
 
 import { AppHeader } from './AppHeader';
@@ -281,7 +282,9 @@ function BiobankWorkspace() {
     selectedPositions,
     onSelectionChange: setSelection,
     onDeleteTubes: async (tubeIds: string[], silent = false) => {
-      await bulkDeleteTubesMutation.mutateAsync({
+      // Bulk delete is partial-success — protected or inaccessible tubes come back as
+      // failures rather than throwing, so the result decides the message.
+      const result = await bulkDeleteTubesMutation.mutateAsync({
         tubeIds,
         location:
           currentTank && currentRack && currentBox
@@ -290,8 +293,12 @@ function BiobankWorkspace() {
       });
 
       if (!silent) {
-        notifications.success(
-          `Successfully removed ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}`
+        notifyBulkResult(
+          {
+            succeeded: result.results.filter(r => r.success),
+            failed: result.results.filter(r => !r.success),
+          },
+          { entityLabel: 'tubes', actionVerb: 'Removed' }
         );
       }
     },

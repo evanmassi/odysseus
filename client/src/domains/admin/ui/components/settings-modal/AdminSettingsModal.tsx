@@ -20,7 +20,7 @@ import {
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId, useAuthStore } from '@domains/authentication';
-import { useStorageData } from '@domains/storage';
+import { useDemoTaxonomyLock, useStorageData } from '@domains/storage';
 import {
   AccentTick,
   AlertBanner,
@@ -117,12 +117,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const isDemo = user?.isDemo ?? false;
   const { currentLab } = useStorageData();
   const { data: utilization } = useLabStorageAnalyticsQuery();
-  const demoSeeded =
-    isDemo &&
-    (currentLab?.equipment.tanks.some(
-      t => t.isSeeded ?? t.racks.some(r => r.isSeeded ?? r.boxes.some(b => b.isSeeded))
-    ) ??
-      false);
+  const demoSeeded = useDemoTaxonomyLock();
   const [activeTab, setActiveTab] = useState<TabId>('system');
   const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
   const [tabAction, setTabAction] = useState<React.ReactNode>(null);

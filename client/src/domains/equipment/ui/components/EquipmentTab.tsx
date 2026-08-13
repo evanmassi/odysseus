@@ -21,6 +21,7 @@ import {
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
 import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
+import { useDemoTaxonomyLock } from '@domains/storage';
 import {
   AccentTick,
   Button,
@@ -86,6 +87,7 @@ type RightPanelView =
 export function EquipmentTab() {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isTaxonomyLocked = useDemoTaxonomyLock();
 
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
@@ -319,6 +321,7 @@ export function EquipmentTab() {
                 items={treeItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                isTaxonomyLocked={isTaxonomyLocked}
                 sortField={sortField}
                 sortDirection={sortDirection}
                 renderItem={item => (

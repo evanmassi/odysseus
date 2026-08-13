@@ -8,10 +8,12 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { MapPin, Save, SquarePen, Trash2 } from 'lucide-react';
 
+import { useDemoTaxonomyLock } from '@domains/storage';
 import {
   AccentTick,
   buildHierarchyOptions,
   Button,
+  DemoLockIndicator,
   Input,
   NubDivider,
   ScrollArea,
@@ -63,6 +65,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
   const [pendingDelete, setPendingDelete] = useState<LabLocation | undefined>();
 
   const { data: locations = [] } = useLabLocationsQuery();
+  const isTaxonomyLocked = useDemoTaxonomyLock();
   const createMutation = useCreateLabLocationMutation();
   const updateMutation = useUpdateLabLocationMutation();
   const deleteMutation = useDeleteLabLocationMutation();
@@ -198,6 +201,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
       <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
         {tierCounts.top} top level · {tierCounts.nested} nested
       </span>
+      {isTaxonomyLocked && <DemoLockIndicator side="left" />}
     </div>
   );
 
@@ -206,17 +210,19 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
       <Button variant="secondary" size="sm" onClick={editingId ? clearForm : onClose}>
         {editingId ? 'Cancel Edit' : 'Close'}
       </Button>
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={handleSave}
-        disabled={!name.trim()}
-        isLoading={isPending}
-        loadingText={editingId ? 'Saving...' : 'Adding...'}
-        leftIcon={editingId ? <Save size={16} /> : undefined}
-      >
-        {editingId ? 'Save Changes' : 'Add Location'}
-      </Button>
+      {!isTaxonomyLocked && (
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleSave}
+          disabled={!name.trim()}
+          isLoading={isPending}
+          loadingText={editingId ? 'Saving...' : 'Adding...'}
+          leftIcon={editingId ? <Save size={16} /> : undefined}
+        >
+          {editingId ? 'Save Changes' : 'Add Location'}
+        </Button>
+      )}
     </div>
   );
 
@@ -254,7 +260,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
                   treeId="lab-location"
                   emptyMessage="No locations yet. Add the first one on the right."
                   highlightId={editingId}
-                  renderActions={rowActions}
+                  renderActions={isTaxonomyLocked ? undefined : rowActions}
                 />
               </ScrollArea>
             </div>

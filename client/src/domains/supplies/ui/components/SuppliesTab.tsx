@@ -12,6 +12,7 @@ import { Eye, EyeOff, Layers, Package, Plus, SlidersHorizontal } from 'lucide-re
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery } from '@domains/lab-management';
+import { useDemoTaxonomyLock } from '@domains/storage';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import {
   useCreateSupplyCategoryMutation,
@@ -85,6 +86,7 @@ type RightPanelView =
 export function SuppliesTab() {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isTaxonomyLocked = useDemoTaxonomyLock();
 
   const { data: categories = [] } = useSupplyCategoriesQuery();
   const { data: items = [] } = useSupplyItemsQuery();
@@ -324,6 +326,7 @@ export function SuppliesTab() {
                 items={treeItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                isTaxonomyLocked={isTaxonomyLocked}
                 sortField={sortField}
                 sortDirection={sortDirection}
                 renderItem={item => (

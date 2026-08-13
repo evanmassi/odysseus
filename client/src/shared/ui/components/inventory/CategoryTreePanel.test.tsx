@@ -12,6 +12,7 @@
  * assertable.
  */
 
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
@@ -82,6 +83,7 @@ const baseProps = {
   items,
   searchQuery: '',
   isAdmin: true,
+  isTaxonomyLocked: false,
   sortField: 'name' as const,
   sortDirection: 'asc' as const,
   renderItem: (item: TestItem) => <div data-testid={`item-${item.id}`}>{item.name}</div>,
@@ -175,5 +177,17 @@ describe('CategoryTreePanel', () => {
   it('shows the empty-categories state when there are none', () => {
     render(<CategoryTreePanel {...baseProps} categories={[]} />);
     expect(screen.getByText('No equipment categories yet.')).toBeInTheDocument();
+  });
+
+  it('withdraws category management from an admin when the demo taxonomy is locked', () => {
+    // The lock swaps in a padlock, whose tooltip needs the provider the app root supplies.
+    render(
+      <TooltipPrimitive.Provider>
+        <CategoryTreePanel {...baseProps} isTaxonomyLocked />
+      </TooltipPrimitive.Provider>
+    );
+
+    expect(screen.queryByRole('button', { name: 'Add Category' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Actions for Pipettes' })).not.toBeInTheDocument();
   });
 });

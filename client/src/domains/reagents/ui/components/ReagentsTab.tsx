@@ -19,6 +19,7 @@ import {
   useReagentItemsQuery,
   useUpdateReagentCategoryMutation,
 } from '@domains/reagents/hooks';
+import { useDemoTaxonomyLock } from '@domains/storage';
 import {
   AccentTick,
   Button,
@@ -92,6 +93,7 @@ const TREE_LABELS: CategoryTreePanelLabels = {
 export function ReagentsTab() {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const isTaxonomyLocked = useDemoTaxonomyLock();
 
   const { data: categories = [] } = useReagentCategoriesQuery();
   const { data: items = [] } = useReagentItemsQuery();
@@ -318,6 +320,7 @@ export function ReagentsTab() {
                 items={treeItems}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                isTaxonomyLocked={isTaxonomyLocked}
                 sortField={sortField}
                 sortDirection={sortDirection}
                 renderItem={item => (
