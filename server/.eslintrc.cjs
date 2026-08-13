@@ -11,7 +11,16 @@ module.exports = {
     'plugin:import/typescript',
     'prettier',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', '**/*.test.ts', '**/*.spec.ts', '**/__tests__/**'],
+  // tests/ is outside tsconfig's include, so type-aware rules cannot parse it. Its test files were
+  // already ignored; this covers their helpers rather than failing the lint run on them.
+  ignorePatterns: [
+    'dist',
+    '.eslintrc.cjs',
+    '**/*.test.ts',
+    '**/*.spec.ts',
+    '**/__tests__/**',
+    'tests/**',
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
