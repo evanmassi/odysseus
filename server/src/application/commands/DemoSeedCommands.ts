@@ -399,8 +399,8 @@ export class ResetDemoDataCommandHandler {
         );
       }
 
-      const demoUser = await this.resolveDemoUser(repos, labId);
-      const restored = await applyDemoDataset(repos, labId, demoUser.id, config);
+      const seedActor = await this.resolveSeedActor(repos, labId);
+      const restored = await applyDemoDataset(repos, labId, seedActor.id, config);
 
       return { restored };
     });
@@ -409,15 +409,22 @@ export class ResetDemoDataCommandHandler {
   }
 
   /** Seeded transactions need an actor, and `performed_by` is a NOT NULL foreign key. */
-  private async resolveDemoUser(repos: Repositories, labId: string): Promise<User> {
+  /**
+   * Who seeded transactions and maintenance entries are attributed to. Picks the lab's admin
+   * account rather than whichever user comes back first, so adding people to the demo lab cannot
+   * silently reassign its history; sorted by id to stay stable across runs.
+   */
+  private async resolveSeedActor(repos: Repositories, labId: string): Promise<User> {
     const users = await repos.users.findByLabId(labId);
-    const user = users[0];
-    if (!user) {
+    const ordered = [...users].sort((a, b) => a.id.localeCompare(b.id));
+    const actor = ordered.find(u => u.isLabAdmin()) ?? ordered[0];
+
+    if (!actor) {
       throw new ValidationError(
         'The demo lab has no user to attribute seeded history to. Create the demo account first.'
       );
     }
-    return user;
+    return actor;
   }
 }
 

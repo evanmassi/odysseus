@@ -9,6 +9,7 @@ import { applyDemoDataset } from '@application/commands/applyDemoDataset';
 import { DEMO_DATASET } from '@application/config/DemoDataset';
 import type { Repositories } from '@application/contracts/UnitOfWork';
 import { Storage } from '@domain/entities/Storage';
+import { UserRole } from '@domain/value-objects/UserRole';
 import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 
@@ -140,6 +141,25 @@ describe('demo dataset application', () => {
 
     const fullBoxName = boxes[DEMO_DATASET.placement.fullBoxOrdinal].name;
     expect(occupancy(fullBoxName)).toBe(capacity);
+  });
+
+  // A demo lab may hold more people than the demo account; its history must not follow whichever
+  // user the database returns first.
+  it('attributes seeded history to the lab admin, not whichever user comes back first', async () => {
+    const lab = await seed.lab();
+    const admin = await seed.user({ labId: lab.id, role: UserRole.labAdmin() });
+    await seed.user({ labId: lab.id });
+    const config = await storage.ensureDefaultForLab(lab.id);
+
+    await apply(lab.id, admin.id, config);
+
+    const items = await factory.getReagentItemRepository().findByLabIdWithStock(lab.id);
+    const transactions = await factory
+      .getReagentItemRepository()
+      .findTransactionsByItemId(items[0].item.id);
+
+    expect(transactions.length).toBeGreaterThan(0);
+    expect(transactions.every(t => t.performedBy === admin.id)).toBe(true);
   });
 
   it('restores rather than duplicates when applied twice', async () => {

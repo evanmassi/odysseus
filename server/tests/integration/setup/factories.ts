@@ -23,6 +23,7 @@ import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { SupplyItem } from '@domain/entities/SupplyItem';
 import { generateId } from '@domain/utils/generateId';
+import { UserRole } from '@domain/value-objects/UserRole';
 
 import { DonorRepository } from '@infrastructure/repositories/DonorRepository';
 import {
@@ -78,10 +79,13 @@ export function createSeed(context: PostgresContext) {
     return entity;
   }
 
-  async function user(overrides: { labId?: string; username?: string } = {}): Promise<User> {
+  async function user(
+    overrides: { labId?: string; username?: string; role?: UserRole } = {}
+  ): Promise<User> {
     const entity = createTestUser({
       username: overrides.username ?? `user-${generateId('u')}`,
       labId: overrides.labId,
+      role: overrides.role,
     });
     await users.save(entity);
     return entity;
