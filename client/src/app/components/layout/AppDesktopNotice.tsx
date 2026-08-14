@@ -27,7 +27,6 @@ export function AppDesktopNotice() {
           ringDuration={60}
           flakeDuration={45}
           className="text-[rgb(var(--auth-text))]"
-          aria-label=""
         />
       </span>
 

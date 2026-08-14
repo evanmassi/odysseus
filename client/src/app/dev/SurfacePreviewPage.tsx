@@ -380,7 +380,7 @@ const SPECS: ModalSpec[] = [
     id: 'desktop-notice',
     group: 'App shell',
     label: 'Desktop Notice',
-    note: 'Narrow-viewport notice — branded auth field, logo, no escape. Resize the window to judge it',
+    note: 'Narrow-viewport notice — branded auth field, logo, watermark. Narrowing the real window replaces this harness with it, so tune it here',
     render: () => <AppDesktopNotice />,
   },
 ];

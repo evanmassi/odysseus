@@ -24,9 +24,14 @@ import {
 import { useGridSelectionAnalysis } from '@domains/tubes';
 import { Button, Chip, DemoLockIndicator, Tooltip } from '@shared/ui';
 
-import type { PositionKey } from '@domains/tubes';
+import type { GridControllerReturn, PositionKey } from '@domains/tubes';
 import type { TubeData } from '@odysseus/shared-schemas';
 
+/**
+ * The toolbar takes a flattened view of the grid controller — actions and clipboard state
+ * hoisted to the top level — so it isn't coupled to how the controller groups them. Selection
+ * state is aliased rather than restated, since both sides must describe the same thing.
+ */
 export interface GridController {
   openModal: () => void;
   copy: () => void;
@@ -34,15 +39,7 @@ export interface GridController {
   paste: () => void;
   delete: () => void;
   canPaste: boolean;
-  selection: {
-    hasFilledSelection: boolean;
-    isMixed: boolean;
-    isDeleteLocked: boolean;
-    lockableCount?: number;
-    unlockableCount?: number;
-    sharableCount?: number;
-    isUnlocking?: boolean;
-  };
+  selection: GridControllerReturn['selection'];
   lock?: () => void;
   unlock?: () => Promise<void>;
   shareAccess?: () => void;

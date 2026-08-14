@@ -18,6 +18,6 @@ export { navigateToLocation } from './utils/gridNavigation';
 export { cellLineCategories } from './utils/tubeColorCoding';
 
 export { toPositionKey } from './types/gridSelectionTypes';
-export type { PositionKey } from './types/gridSelectionTypes';
+export type { PositionKey, GridControllerReturn } from './types/gridSelectionTypes';
 
 export * from './hooks';

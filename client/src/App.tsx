@@ -102,8 +102,10 @@ function AppContent() {
         </Routes>
 
         <AppErrorBanner errors={errors} onClear={clearErrors} />
-        {/* The app shell is exactly one viewport tall, so the banner has to float rather than
-            sit in the flow. bg-card backs the banner's translucent tint over live content. */}
+        {/* The app shell is exactly one viewport tall, so the banner has to float rather than sit
+            in the flow, and bg-card backs its translucent tint over live content. The isDemo gate
+            is load-bearing despite the banner's own check: without it that opaque card renders
+            empty for everyone else. */}
         {isDemo && (
           <div className="pointer-events-none fixed inset-x-4 bottom-4 z-40 mx-auto max-w-2xl bg-card shadow-lg">
             <DemoModeBanner message={DEMO_BANNER_MESSAGE} spacing="none" />

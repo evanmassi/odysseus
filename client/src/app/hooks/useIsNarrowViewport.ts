@@ -13,9 +13,13 @@ const MIN_WORKSPACE_WIDTH_PX = 900;
 const QUERY = `(max-width: ${MIN_WORKSPACE_WIDTH_PX - 1}px)`;
 
 export function useIsNarrowViewport(): boolean {
-  const [isNarrow, setIsNarrow] = useState(() => window.matchMedia(QUERY).matches);
+  const [isNarrow, setIsNarrow] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(QUERY).matches
+  );
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
     const mediaQuery = window.matchMedia(QUERY);
     const update = (event: MediaQueryListEvent) => setIsNarrow(event.matches);
 
