@@ -163,7 +163,8 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && name.trim() && !isPending) {
+    // Enter is a second route to the hidden Save button, so it has to answer the lock too.
+    if (e.key === 'Enter' && name.trim() && !isPending && !isTaxonomyLocked) {
       e.preventDefault();
       handleSave();
     }
@@ -280,6 +281,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
                     placeholder="e.g., Back Supply Room"
                     maxLength={200}
                     fullWidth
+                    disabled={isTaxonomyLocked}
                   />
                 </div>
 
@@ -295,6 +297,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
                     placeholder="Optional details about this location"
                     maxLength={500}
                     fullWidth
+                    disabled={isTaxonomyLocked}
                   />
                 </div>
 
@@ -304,6 +307,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
                   value={parentId}
                   onChange={v => setParentId(String(v ?? ''))}
                   fullWidth
+                  disabled={isTaxonomyLocked}
                 />
               </div>
             </div>

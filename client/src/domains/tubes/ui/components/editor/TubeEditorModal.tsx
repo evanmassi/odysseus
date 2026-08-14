@@ -164,7 +164,8 @@ function EditModeForm({
 }: EditModeFormProps) {
   const modalService = useModalStore();
   const modalRef = useRef<BaseModalHandle>(null);
-  const isLocked = useDemoItemLock()(tube);
+  const isDemoLockedTube = useDemoItemLock();
+  const isLocked = isDemoLockedTube(tube);
   // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = useMemo(
     () => ({

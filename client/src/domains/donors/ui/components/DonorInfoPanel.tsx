@@ -41,7 +41,8 @@ export function DonorInfoPanel({
   onDelete,
   isAdmin,
 }: DonorInfoPanelProps) {
-  const isLocked = useDemoItemLock()(donor);
+  const isDemoLockedDonor = useDemoItemLock();
+  const isLocked = isDemoLockedDonor(donor);
   const collectionCount = collectionHistory.length;
   const lastCollectionDate = collectionHistory
     .map(e => e.collectionDate)
