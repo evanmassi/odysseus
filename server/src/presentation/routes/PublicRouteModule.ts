@@ -18,6 +18,7 @@ import type { DemoController } from '@presentation/controllers/DemoController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import {
   createAuthRateLimiter,
+  createModerateRateLimiter,
   createStrictRateLimiter,
 } from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
@@ -41,6 +42,9 @@ export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
   private readonly authLimiter = createAuthRateLimiter();
   private readonly resetLimiter = createStrictRateLimiter();
+  // Its own bucket: visitors behind one carrier NAT share an egress IP, and throttling them
+  // out of the demo is a different question from slowing a password guesser.
+  private readonly demoLoginLimiter = createModerateRateLimiter();
 
   constructor(
     private readonly publicAuthController: PublicAuthController,
@@ -93,7 +97,7 @@ export class PublicRouteModule implements RouteModule {
     // No validateBody: the request has no body — the account comes from server config.
     router.post(
       '/auth/demo-login',
-      this.authLimiter,
+      this.demoLoginLimiter,
       this.publicAuthController.demoLogin.bind(this.publicAuthController)
     );
 
