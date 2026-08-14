@@ -1,7 +1,7 @@
 /**
  * Demo Item Lock Hook
  *
- * Predicate for catalog records, mirroring storage's isResourceLocked without a caller-supplied flag.
+ * Predicate for any seedable record, mirroring storage's isResourceLocked without a caller-supplied flag.
  */
 
 import { useCallback } from 'react';

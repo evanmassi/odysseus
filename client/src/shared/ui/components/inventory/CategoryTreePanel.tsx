@@ -208,16 +208,21 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
         <p className="text-body-sm">{labels.emptyCategories}</p>
-        {canManageCategories && (
-          <Button
-            variant="secondary"
-            size="sm"
-            className="mt-3"
-            onClick={onAddCategory}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
-          >
-            Add Category
-          </Button>
+        {isAdmin && (
+          <div className="mt-3">
+            {isTaxonomyLocked ? (
+              <DemoLockIndicator />
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onAddCategory}
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+              >
+                Add Category
+              </Button>
+            )}
+          </div>
         )}
       </div>
     );

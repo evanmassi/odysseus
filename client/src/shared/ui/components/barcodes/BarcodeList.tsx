@@ -31,7 +31,7 @@ interface BarcodeListProps {
   manufacturer?: string;
   catalogNumber?: string;
   isAdmin: boolean;
-  /** Suppresses removal only; labels and printing stay available on protected items. */
+  /** Suppresses removal only; labels and printing stay available. */
   isRemoveLocked?: boolean;
   onUpdateLabel: (barcodeId: string, label: string | null, onSuccess: () => void) => void;
   onRemove: (barcodeId: string, onSuccess: () => void) => void;

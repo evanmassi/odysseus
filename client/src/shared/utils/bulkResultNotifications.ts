@@ -11,8 +11,8 @@ interface BulkResult {
   failed: unknown[];
 }
 
-// Ten response shapes reach this helper and only some carry a per-row reason, so the
-// message is read defensively rather than by widening every caller's type.
+// Every bulk surface reaches this helper with its own response shape, and only some carry a
+// per-row reason, so the message is read defensively rather than by widening each caller's type.
 function errorOf(failure: unknown): string | undefined {
   if (typeof failure !== 'object' || failure === null) return undefined;
   const { error } = failure as { error?: unknown };
