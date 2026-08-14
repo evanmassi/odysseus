@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { useIsDemo } from '@domains/authentication';
 import { useDonorRegistryStore } from '@domains/donors';
 import { useResearchersQuery } from '@domains/researchers';
 import {
@@ -118,6 +119,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const { currentTank, currentRack, currentBox, selectedPositions } = useTubeStore();
   const { currentLab } = useStorageData();
+  const isDemo = useIsDemo();
 
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
 
@@ -313,14 +315,24 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           )
         : '';
 
-    const positionText =
-      positionCount > 0
-        ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
-        : 'Select a tube to view details';
+    const hasEmptySelection = positionCount > 0;
+    const positionText = hasEmptySelection
+      ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
+      : 'Select a tube to view details';
+
+    // Demo visitors read this panel before anything else, so it orients rather than reports.
+    const demoMessage = hasEmptySelection ? positionText : 'Click any tube to inspect it';
+    const demoDescription = hasEmptySelection
+      ? 'Double-click to add one here'
+      : 'Double-click an empty slot to add your own';
 
     return renderPanel(
       { word: positionCount > 1 ? 'Positions' : 'Position', value: formattedPositions },
-      <PanelEmptyState icon={TestTubeDiagonal} message={positionText} />,
+      <PanelEmptyState
+        icon={TestTubeDiagonal}
+        message={isDemo ? demoMessage : positionText}
+        description={isDemo ? demoDescription : undefined}
+      />,
       undefined,
       false
     );
