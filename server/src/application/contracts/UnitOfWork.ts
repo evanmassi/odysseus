@@ -10,6 +10,7 @@ import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AttributeRepository } from '@domain/repositories/AttributeRepository';
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { CustomUnitRepository } from '@domain/repositories/CustomUnitRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
@@ -49,6 +50,7 @@ export interface Repositories {
   reagentItems: ReagentItemRepository;
   reagentCategories: CategoryRepository<ReagentCategory>;
   customUnits: CustomUnitRepository;
+  audit: AuditRepository;
 }
 
 export interface UnitOfWork {

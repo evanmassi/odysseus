@@ -2369,6 +2369,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         quantity: event.quantity,
         locationId: event.locationId,
         receivedBy: username,
@@ -2389,6 +2390,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         quantity: event.quantity,
         locationId: event.locationId,
         issuedBy: username,
@@ -2410,6 +2412,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         delta: event.delta,
         locationId: event.locationId,
         adjustedBy: username,
@@ -2429,6 +2432,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         quantity: event.quantity,
         locationId: event.locationId,
         disposedBy: username,
@@ -2449,6 +2453,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         originalTransactionId: event.originalTransactionId,
         reversalTransactionId: event.reversalTransactionId,
         quantityReversed: event.quantityReversed,
@@ -2831,6 +2836,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         quantity: event.quantity,
         locationId: event.locationId,
         receivedBy: username,
@@ -2851,6 +2857,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         quantity: event.quantity,
         locationId: event.locationId,
         issuedBy: username,
@@ -2872,6 +2879,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         delta: event.delta,
         locationId: event.locationId,
         adjustedBy: username,
@@ -2891,6 +2899,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         quantity: event.quantity,
         locationId: event.locationId,
         disposedBy: username,
@@ -2911,6 +2920,7 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: username => ({
         itemId: event.itemId,
+        name: event.itemName,
         originalTransactionId: event.originalTransactionId,
         reversalTransactionId: event.reversalTransactionId,
         quantityReversed: event.quantityReversed,

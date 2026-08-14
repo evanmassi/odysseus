@@ -22,6 +22,7 @@ import {
   Microscope,
   Package,
   Droplet,
+  Biohazard,
 } from 'lucide-react';
 
 import { Button, Table, Tooltip } from '@shared/ui';
@@ -49,6 +50,13 @@ const ACTION_LABEL_OVERRIDES: Record<string, string> = {
   user_rejected: 'Rejected',
   invite_code_created: 'Created',
   invite_code_used: 'Used',
+  equipment_item_decommissioned: 'Retired',
+  equipment_bulk_status_changed: 'Bulk Status',
+  equipment_bulk_maintenance_logged: 'Bulk Logged',
+  reagent_stock_count_adjusted: 'Counted',
+  supply_stock_count_adjusted: 'Counted',
+  reagent_bulk_category_reassigned: 'Bulk Moved',
+  supply_bulk_category_reassigned: 'Bulk Moved',
   researcher_approved: 'Approved',
   lab_created: 'Created',
 };
@@ -69,14 +77,27 @@ const SUFFIX_BADGE_MAP: Record<string, string> = {
   approved: 'badge-audit-action-created',
   reactivated: 'badge-audit-action-created',
   unlocked: 'badge-audit-action-created',
+  added: 'badge-audit-action-created',
+  received: 'badge-audit-action-created',
+  logged: 'badge-audit-action-created',
   updated: 'badge-audit-action-updated',
+  adjusted: 'badge-audit-action-updated',
+  changed: 'badge-audit-action-updated',
   moved: 'badge-audit-action-moved',
   reassigned: 'badge-audit-action-moved',
   locked: 'badge-audit-action-moved',
+  relocated: 'badge-audit-action-moved',
+  issued: 'badge-audit-action-moved',
   deleted: 'badge-audit-action-deleted',
   deactivated: 'badge-audit-action-deleted',
   suspended: 'badge-audit-action-deleted',
   rejected: 'badge-audit-action-deleted',
+  removed: 'badge-audit-action-deleted',
+  voided: 'badge-audit-action-deleted',
+  disposed: 'badge-audit-action-deleted',
+  decommissioned: 'badge-audit-action-deleted',
+  archived: 'badge-audit-action-deleted',
+  failed: 'badge-audit-action-deleted',
   assigned: 'badge-audit-action-linked',
   shared: 'badge-audit-action-linked',
   linked: 'badge-audit-action-linked',
@@ -88,6 +109,7 @@ const SUFFIX_BADGE_MAP: Record<string, string> = {
 const ENTITY_TYPE_LABELS: Record<string, string> = {
   equipment_item: 'Equipment',
   supply_item: 'Supply',
+  reagent_item: 'Reagent',
 };
 
 const ENTITY_BADGE_CLASSES: Record<string, string> = {
@@ -101,6 +123,7 @@ const ENTITY_BADGE_CLASSES: Record<string, string> = {
   configuration: 'badge-audit-entity-configuration',
   equipment_item: 'badge-audit-entity-equipment',
   supply_item: 'badge-audit-entity-supply',
+  reagent_item: 'badge-audit-entity-reagent',
   donor: 'badge-audit-entity-donor',
 };
 
@@ -232,6 +255,8 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
         return Microscope;
       case 'supply_item':
         return Package;
+      case 'reagent_item':
+        return Biohazard;
       case 'donor':
         return Droplet;
       default:
@@ -276,7 +301,7 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
     {
       id: 'action',
       header: 'Action',
-      width: '6rem',
+      width: '8.5rem',
       render: (_, entry) => {
         return (
           <span className={`badge-audit ${getActionBadgeClass(entry.action)}`}>
@@ -288,7 +313,7 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
     {
       id: 'entityType',
       header: 'Item',
-      width: '7rem',
+      width: '9rem',
       render: (_, entry) => {
         if (!entry.entityType) {
           return <span className="text-muted-foreground text-data">-</span>;

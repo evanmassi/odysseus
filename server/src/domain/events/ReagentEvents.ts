@@ -196,6 +196,7 @@ export class ReagentDocumentRemovedEvent extends DomainEvent {
 export class ReagentStockReceivedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly receivedBy: string,
@@ -215,6 +216,7 @@ export class ReagentStockReceivedEvent extends DomainEvent {
 export class ReagentStockIssuedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly issuedBy: string,
@@ -234,6 +236,7 @@ export class ReagentStockIssuedEvent extends DomainEvent {
 export class ReagentStockCountAdjustedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly delta: number,
     public readonly locationId: string,
     public readonly adjustedBy: string,
@@ -253,6 +256,7 @@ export class ReagentStockCountAdjustedEvent extends DomainEvent {
 export class ReagentStockDisposedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly disposedBy: string,
@@ -272,6 +276,7 @@ export class ReagentStockDisposedEvent extends DomainEvent {
 export class ReagentStockVoidedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly originalTransactionId: string,
     public readonly reversalTransactionId: string,
     public readonly quantityReversed: number,

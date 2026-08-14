@@ -146,7 +146,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const handleTabAction = useCallback((action: React.ReactNode) => setTabAction(action), []);
 
   const tabs = (
+    // Stated rather than inferred: a system admin sees only two tabs, and the automatic choice
+    // would lay them out side by side inside the modal's vertical rail.
     <Tabs
+      orientation="vertical"
       value={activeTab}
       onChange={v => {
         setActiveTab(v as TabId);
@@ -226,7 +229,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       icon={<ShieldUser size={24} />}
       title="Admin Settings"
       subtitle="Security & System Configuration"
-      size="xl"
+      size="xl-wide"
       tabs={tabs}
       tabOrientation="vertical"
       footer={footer}

@@ -597,7 +597,7 @@ export class SupplyApplicationService {
     options?: { bulkOperation?: boolean }
   ): Promise<SupplyTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(data.itemId, labId);
+    const stockItem = await this.getItemOrThrow(data.itemId, labId);
 
     let effectiveQuantity = data.quantity;
     if (data.type === 'received' && data.receivingUnit) {
@@ -645,6 +645,7 @@ export class SupplyApplicationService {
     const event = this.createStockEvent(
       data.type,
       data.itemId,
+      stockItem.name,
       quantityChange,
       data.locationId,
       user.id,
@@ -720,8 +721,10 @@ export class SupplyApplicationService {
       voidReason: data.reason,
     });
 
+    const voidedItem = await this.getItemOrThrow(original.itemId, labId);
     const event = new SupplyStockVoidedEvent(
       original.itemId,
+      voidedItem.name,
       original.id,
       reversal.id,
       reversal.quantityChange,
@@ -957,6 +960,7 @@ export class SupplyApplicationService {
   private createStockEvent(
     type: StockEventType,
     itemId: string,
+    itemName: string,
     quantity: number,
     locationId: string,
     userId: string,
@@ -964,13 +968,20 @@ export class SupplyApplicationService {
   ) {
     switch (type) {
       case 'received':
-        return new SupplyStockReceivedEvent(itemId, quantity, locationId, userId, labId);
+        return new SupplyStockReceivedEvent(itemId, itemName, quantity, locationId, userId, labId);
       case 'issued':
-        return new SupplyStockIssuedEvent(itemId, quantity, locationId, userId, labId);
+        return new SupplyStockIssuedEvent(itemId, itemName, quantity, locationId, userId, labId);
       case 'count_adjustment':
-        return new SupplyStockCountAdjustedEvent(itemId, quantity, locationId, userId, labId);
+        return new SupplyStockCountAdjustedEvent(
+          itemId,
+          itemName,
+          quantity,
+          locationId,
+          userId,
+          labId
+        );
       case 'disposed':
-        return new SupplyStockDisposedEvent(itemId, quantity, locationId, userId, labId);
+        return new SupplyStockDisposedEvent(itemId, itemName, quantity, locationId, userId, labId);
     }
   }
 

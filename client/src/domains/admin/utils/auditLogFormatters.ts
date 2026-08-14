@@ -190,6 +190,13 @@ function formatUserList(users: unknown[]): { text: string; full?: string } {
   };
 }
 
+/** Older rows predate the item name being recorded, so the quantity still has to stand alone. */
+function stockMovement(action: string, details: Record<string, unknown>, name: string): string {
+  const quantity = getNumberProperty(details, 'quantity');
+  const movement = `${STOCK_MOVEMENT_VERBS[action]} ${Math.abs(quantity)}`;
+  return name ? `${movement} — ${name}` : movement;
+}
+
 interface AuditDetailFormatted {
   text: string;
   /** Only set when content was truncated */
@@ -202,6 +209,16 @@ const STOCK_MOVEMENT_VERBS: Record<string, string> = {
   supply_stock_received: 'Received',
   supply_stock_issued: 'Issued',
   supply_stock_disposed: 'Disposed',
+  reagent_stock_received: 'Received',
+  reagent_stock_issued: 'Issued',
+  reagent_stock_disposed: 'Disposed',
+};
+
+const BULK_REAGENT_VERBS: Record<string, string> = {
+  reagent_bulk_received: 'Received',
+  reagent_bulk_issued: 'Issued',
+  reagent_bulk_archived: 'Archived',
+  reagent_bulk_category_reassigned: 'Recategorized',
 };
 
 const BULK_SUPPLY_VERBS: Record<string, string> = {
@@ -896,8 +913,7 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
 
       if (STOCK_MOVEMENT_VERBS[action]) {
-        const quantity = getNumberProperty(details, 'quantity');
-        return plain(`${STOCK_MOVEMENT_VERBS[action]} ${quantity}`);
+        return plain(stockMovement(action, details, name));
       }
 
       if (action === 'supply_stock_count_adjusted') {
@@ -908,6 +924,86 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       if (BULK_SUPPLY_VERBS[action]) {
         const count = getNumberProperty(details, 'count');
         return plain(`${BULK_SUPPLY_VERBS[action]} ${count} item${count !== 1 ? 's' : ''}`);
+      }
+
+      return plain(name ? name : '-');
+    }
+
+    // ── REAGENT EVENTS ──
+
+    if (entityType === 'reagent_item') {
+      const name = getStringProperty(details, 'name');
+
+      if (action === 'reagent_item_created') {
+        return plain(name ? `${name} added` : 'Reagent added');
+      }
+
+      if (action === 'reagent_item_updated') {
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          const label = name ? `${name} — ` : '';
+          return {
+            text: `${label}${fields.text} changed`,
+            fullText: fields.full ? `${label}${fields.full} changed` : undefined,
+          };
+        }
+        return plain(name ? `${name} updated` : 'Reagent updated');
+      }
+
+      if (action === 'reagent_item_archived') {
+        return plain(name ? `${name} archived` : 'Reagent archived');
+      }
+
+      if (action === 'reagent_item_deleted') {
+        return plain(name ? `${name} removed` : 'Reagent removed');
+      }
+
+      if (action === 'reagent_stock_voided') {
+        const voidReason = getStringProperty(details, 'voidReason');
+        const label = name || 'Reagent';
+        return plain(voidReason ? `${label} — voided: ${voidReason}` : `${label} — voided`);
+      }
+
+      if (action === 'reagent_bulk_voided') {
+        const count = getNumberProperty(details, 'count');
+        const voidReason = getStringProperty(details, 'voidReason');
+        return plain(
+          `${count} transaction${count !== 1 ? 's' : ''} voided${voidReason ? ` — ${voidReason}` : ''}`
+        );
+      }
+
+      if (STOCK_MOVEMENT_VERBS[action]) {
+        return plain(stockMovement(action, details, name));
+      }
+
+      if (action === 'reagent_stock_count_adjusted') {
+        const delta = getNumberProperty(details, 'delta');
+        const label = name ? `${name} — ` : '';
+        return plain(`${label}count adjusted by ${delta > 0 ? '+' : ''}${delta}`);
+      }
+
+      if (BULK_REAGENT_VERBS[action]) {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${BULK_REAGENT_VERBS[action]} ${count} item${count !== 1 ? 's' : ''}`);
+      }
+
+      if (action === 'reagent_category_created') {
+        return plain(name ? `${name} category added` : 'Category added');
+      }
+      if (action === 'reagent_category_updated') {
+        return plain(name ? `${name} category updated` : 'Category updated');
+      }
+      if (action === 'reagent_category_deleted') {
+        return plain(name ? `${name} category removed` : 'Category removed');
+      }
+
+      if (action === 'reagent_document_added') {
+        const label = getStringProperty(details, 'label');
+        return plain(label ? `${label} attached` : 'Document attached');
+      }
+      if (action === 'reagent_document_removed') {
+        return plain('Document removed');
       }
 
       return plain(name ? name : '-');

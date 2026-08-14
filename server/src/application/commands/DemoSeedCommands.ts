@@ -5,8 +5,7 @@
  * and managing demo resource limits.
  */
 
-import { randomUUID } from 'crypto';
-
+import { applyDemoAuditLog } from '@application/commands/applyDemoAuditLog';
 import {
   applyDemoDataset,
   type ApplyDemoDatasetResult,
@@ -95,231 +94,14 @@ export class SeedDemoCommandHandler {
     );
 
     if (this.auditRepository) {
-      await this.auditRepository.deleteByLabId(command.labId);
       const labUsers = await this.userRepository.findByLabId(command.labId);
-      await this.seedAuditLogEntries(labUsers, command.labId);
+      await applyDemoAuditLog(this.auditRepository, labUsers, command.labId);
     }
 
     return {
       message: `Seeded ${tanks} tanks, ${racks} racks, ${boxes} boxes`,
       seededCount: { tanks, racks, boxes },
     };
-  }
-
-  private async seedAuditLogEntries(labUsers: User[], labId: string): Promise<void> {
-    if (labUsers.length === 0) return;
-
-    const users = labUsers.map(u => ({ id: u.id, username: u.username }));
-    const pick = (index: number) => users[index % users.length];
-
-    const now = new Date();
-    const entries = [
-      {
-        actor: pick(0),
-        action: 'user_created',
-        entityType: 'user',
-        details: { username: pick(1).username, role: 'user' },
-        hoursAgo: 168,
-      },
-      {
-        actor: pick(0),
-        action: 'user_approved',
-        entityType: 'user',
-        details: { username: pick(1).username, approvedBy: pick(0).username },
-        hoursAgo: 167,
-      },
-      {
-        actor: pick(1),
-        action: 'user_logged_in',
-        entityType: 'user',
-        details: { username: pick(1).username },
-        hoursAgo: 166,
-      },
-      {
-        actor: pick(0),
-        action: 'user_role_changed',
-        entityType: 'user',
-        details: {
-          username: pick(1).username,
-          oldRole: 'user',
-          newRole: 'lab_admin',
-          changedBy: pick(0).username,
-        },
-        hoursAgo: 144,
-      },
-      {
-        actor: pick(0),
-        action: 'researcher_created',
-        entityType: 'researcher',
-        details: { researcherName: 'Dr. Jane Smith', email: 'jane.smith@lab.org' },
-        hoursAgo: 120,
-      },
-      {
-        actor: pick(0),
-        action: 'user_linked_to_researcher',
-        entityType: 'user',
-        details: {
-          username: pick(1).username,
-          researcherName: 'Dr. Jane Smith',
-          linkedBy: pick(0).username,
-        },
-        hoursAgo: 119,
-      },
-      {
-        actor: pick(1),
-        action: 'tube_created',
-        entityType: 'tube',
-        details: {
-          displayLocation: 'Tank 1 · Rack 1 · Box A · A1',
-          cellType: 'HEK293',
-          donorInternalId: 'D-001',
-        },
-        hoursAgo: 96,
-      },
-      {
-        actor: pick(1),
-        action: 'tube_created',
-        entityType: 'tube',
-        details: {
-          displayLocation: 'Tank 1 · Rack 1 · Box A · A2',
-          cellType: 'iPSC',
-          donorInternalId: 'D-002',
-        },
-        hoursAgo: 95,
-      },
-      {
-        actor: pick(0),
-        action: 'rack_assigned',
-        entityType: 'rack',
-        details: {
-          tankName: 'Tank 1',
-          rackName: 'Rack 1',
-          newOwner: { userId: pick(1).id, username: pick(1).username },
-          assignedBy: pick(0).username,
-        },
-        hoursAgo: 72,
-      },
-      {
-        actor: pick(1),
-        action: 'tube_updated',
-        entityType: 'tube',
-        details: {
-          displayLocation: 'Tank 1 · Rack 1 · Box A · A1',
-          changes: [{ field: 'concentration', oldValue: '1.0', newValue: '2.5' }],
-        },
-        hoursAgo: 60,
-      },
-      {
-        actor: pick(1),
-        action: 'tube_moved',
-        entityType: 'tube',
-        details: {
-          oldDisplayLocation: 'Tank 1 · Rack 1 · Box A · A2',
-          displayLocation: 'Tank 1 · Rack 2 · Box B · B3',
-        },
-        hoursAgo: 48,
-      },
-      {
-        actor: pick(0),
-        action: 'tubes_locked',
-        entityType: 'tube',
-        details: {
-          tubeCount: 3,
-          tubeIds: [],
-          lockNote: 'QC review pending',
-          lockedBy: pick(0).username,
-        },
-        hoursAgo: 36,
-      },
-      {
-        actor: pick(0),
-        action: 'tubes_unlocked',
-        entityType: 'tube',
-        details: { tubeCount: 3, tubeIds: [], unlockedBy: pick(0).username },
-        hoursAgo: 30,
-      },
-      {
-        actor: pick(0),
-        action: 'box_unassigned',
-        entityType: 'box',
-        details: {
-          tankName: 'Tank 1',
-          rackName: 'Rack 2',
-          boxName: 'Box C',
-          previousOwner: { userId: pick(1).id, username: pick(1).username },
-          newOwner: null,
-          unassignedBy: pick(0).username,
-        },
-        hoursAgo: 24,
-      },
-      {
-        actor: pick(1),
-        action: 'tube_deleted',
-        entityType: 'tube',
-        details: {
-          displayLocation: 'Tank 1 · Rack 2 · Box B · B3',
-          cellType: 'iPSC',
-          donorInternalId: 'D-002',
-          donorSourceId: '',
-        },
-        hoursAgo: 18,
-      },
-      {
-        actor: pick(0),
-        action: 'user_password_changed',
-        entityType: 'user',
-        details: { username: pick(1).username, changedBy: pick(0).username },
-        hoursAgo: 12,
-      },
-      {
-        actor: pick(0),
-        action: 'researcher_deactivated',
-        entityType: 'researcher',
-        details: {
-          researcherName: 'Dr. Jane Smith',
-          tubeCount: 2,
-          deactivatedBy: pick(0).username,
-        },
-        hoursAgo: 8,
-      },
-      {
-        actor: pick(0),
-        action: 'user_unlinked_from_researcher',
-        entityType: 'user',
-        details: {
-          username: pick(1).username,
-          researcherName: 'Dr. Jane Smith',
-          unlinkedBy: pick(0).username,
-        },
-        hoursAgo: 6,
-      },
-      {
-        actor: pick(0),
-        action: 'tank_updated',
-        entityType: 'tank',
-        details: {
-          tankName: 'Tank 1',
-          changes: [{ field: 'name', oldValue: 'Storage Tank', newValue: 'Tank 1' }],
-        },
-        hoursAgo: 2,
-      },
-    ];
-
-    const auditEntries = entries.map(e => ({
-      id: randomUUID(),
-      userId: e.actor.id,
-      username: e.actor.username,
-      action: e.action,
-      entityType: e.entityType,
-      entityId: randomUUID(),
-      details: JSON.stringify(e.details),
-      timestamp: new Date(now.getTime() - e.hoursAgo * 60 * 60 * 1000),
-      ipAddress: undefined,
-      userAgent: undefined,
-      labId,
-    }));
-
-    await this.auditRepository!.saveMany(auditEntries);
   }
 }
 
@@ -401,6 +183,9 @@ export class ResetDemoDataCommandHandler {
 
       const seedActor = await this.resolveSeedActor(repos, labId);
       const restored = await applyDemoDataset(repos, labId, seedActor.id, config);
+
+      // Rebuilt with the data so the history stays as recent as the lab it describes.
+      await applyDemoAuditLog(repos.audit, await repos.users.findByLabId(labId), labId);
 
       return { restored };
     });

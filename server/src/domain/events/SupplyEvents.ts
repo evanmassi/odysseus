@@ -196,6 +196,7 @@ export class SupplyDocumentRemovedEvent extends DomainEvent {
 export class SupplyStockReceivedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly receivedBy: string,
@@ -215,6 +216,7 @@ export class SupplyStockReceivedEvent extends DomainEvent {
 export class SupplyStockIssuedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly issuedBy: string,
@@ -234,6 +236,7 @@ export class SupplyStockIssuedEvent extends DomainEvent {
 export class SupplyStockCountAdjustedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly delta: number,
     public readonly locationId: string,
     public readonly adjustedBy: string,
@@ -253,6 +256,7 @@ export class SupplyStockCountAdjustedEvent extends DomainEvent {
 export class SupplyStockDisposedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly disposedBy: string,
@@ -272,6 +276,7 @@ export class SupplyStockDisposedEvent extends DomainEvent {
 export class SupplyStockVoidedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
+    public readonly itemName: string,
     public readonly originalTransactionId: string,
     public readonly reversalTransactionId: string,
     public readonly quantityReversed: number,

@@ -260,6 +260,7 @@ export class RepositoryFactory implements UnitOfWork {
       reagentItems: this.getReagentItemRepository(),
       reagentCategories: this.getReagentCategoryRepository(),
       customUnits: this.getCustomUnitRepository(),
+      audit: this.getAuditRepository(),
     };
   }
 
@@ -316,6 +317,7 @@ export class RepositoryFactory implements UnitOfWork {
       reagentItems: new ReagentItemRepositoryImpl(db),
       reagentCategories: this.buildReagentCategoryRepository(db),
       customUnits: new CustomUnitRepositoryImpl(db),
+      audit: new AuditRepositoryImpl(db),
     };
   }
 

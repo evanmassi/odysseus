@@ -8,13 +8,17 @@
   /* Audit badge base — chamfered top-right to match the Chip. Per-category tone via
      --audit-tone, set by the variants below. */
   .badge-audit {
-    @apply inline-flex items-center gap-1 whitespace-nowrap px-1.5;
+    @apply inline-flex max-w-full items-center gap-1 overflow-hidden whitespace-nowrap px-1.5;
     @apply font-mono uppercase text-label-2xs tracking-label-wide;
     height: 18px;
     clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
     color: hsl(var(--audit-tone));
     border: 1px solid hsl(var(--audit-tone) / 0.45);
     background-color: hsl(var(--audit-tone) / 0.1);
+  }
+  /* Without this the icon is the flex item that gives way, so a long label eats the glyph. */
+  .badge-audit > svg {
+    flex-shrink: 0;
   }
 
   /* Audit Log Entity Badges */
@@ -38,6 +42,9 @@
   }
   .badge-audit-entity-supply {
     --audit-tone: var(--color-audit-entity-supply);
+  }
+  .badge-audit-entity-reagent {
+    --audit-tone: var(--color-audit-entity-reagent);
   }
   .badge-audit-entity-donor {
     --audit-tone: var(--color-audit-entity-person);

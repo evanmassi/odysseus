@@ -624,7 +624,7 @@ export class ReagentApplicationService {
     options?: { bulkOperation?: boolean }
   ): Promise<ReagentTransactionResponse[]> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(data.itemId, labId);
+    const item = await this.getItemOrThrow(data.itemId, labId);
 
     const txns = await this.itemRepository.recordTransaction({
       itemId: data.itemId,
@@ -650,6 +650,7 @@ export class ReagentApplicationService {
       txns,
       data.type,
       data.itemId,
+      item.name,
       data.locationId,
       user.id,
       labId,
@@ -664,7 +665,7 @@ export class ReagentApplicationService {
     user: User
   ): Promise<ReagentTransactionResponse[]> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(data.itemId, labId);
+    const item = await this.getItemOrThrow(data.itemId, labId);
 
     const txns = await this.itemRepository.recordTransaction({
       itemId: data.itemId,
@@ -681,6 +682,7 @@ export class ReagentApplicationService {
       txns,
       'count_adjustment',
       data.itemId,
+      item.name,
       data.locationId,
       user.id,
       labId
@@ -725,8 +727,10 @@ export class ReagentApplicationService {
       voidReason: data.reason,
     });
 
+    const voidedItem = await this.getItemOrThrow(original.itemId, labId);
     const event = new ReagentStockVoidedEvent(
       original.itemId,
+      voidedItem.name,
       original.id,
       reversal.id,
       reversal.quantityChange,
@@ -963,13 +967,22 @@ export class ReagentApplicationService {
     txns: ReagentTransactionRow[],
     type: StockEventType,
     itemId: string,
+    itemName: string,
     locationId: string,
     userId: string,
     labId: string,
     options?: { bulkOperation?: boolean }
   ): Promise<void> {
     const netChange = txns.reduce((sum, txn) => sum + txn.quantityChange, 0);
-    const event = this.createStockEvent(type, itemId, netChange, locationId, userId, labId);
+    const event = this.createStockEvent(
+      type,
+      itemId,
+      itemName,
+      netChange,
+      locationId,
+      userId,
+      labId
+    );
     if (options?.bulkOperation) event.partOfBulkOperation = true;
     await this.eventBus.publish(event);
   }
@@ -977,6 +990,7 @@ export class ReagentApplicationService {
   private createStockEvent(
     type: StockEventType,
     itemId: string,
+    itemName: string,
     quantity: number,
     locationId: string,
     userId: string,
@@ -984,13 +998,20 @@ export class ReagentApplicationService {
   ): DomainEvent {
     switch (type) {
       case 'received':
-        return new ReagentStockReceivedEvent(itemId, quantity, locationId, userId, labId);
+        return new ReagentStockReceivedEvent(itemId, itemName, quantity, locationId, userId, labId);
       case 'issued':
-        return new ReagentStockIssuedEvent(itemId, quantity, locationId, userId, labId);
+        return new ReagentStockIssuedEvent(itemId, itemName, quantity, locationId, userId, labId);
       case 'count_adjustment':
-        return new ReagentStockCountAdjustedEvent(itemId, quantity, locationId, userId, labId);
+        return new ReagentStockCountAdjustedEvent(
+          itemId,
+          itemName,
+          quantity,
+          locationId,
+          userId,
+          labId
+        );
       case 'disposed':
-        return new ReagentStockDisposedEvent(itemId, quantity, locationId, userId, labId);
+        return new ReagentStockDisposedEvent(itemId, itemName, quantity, locationId, userId, labId);
     }
   }
 

@@ -17,7 +17,7 @@ import { ModalPortal } from './ModalPortal';
 
 import type { TabOrientation } from '@shared/ui/primitives/tabs/Tabs';
 
-type ModalSize = 'xs' | 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
+type ModalSize = 'xs' | 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'xl-wide' | 'full';
 type ModalChassis = 'default' | 'lit';
 
 interface BaseModalProps {
@@ -59,6 +59,7 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   'md-lg': 'max-w-[736px]',
   lg: 'max-w-4xl',
   xl: 'max-w-5xl',
+  'xl-wide': 'max-w-7xl',
   full: 'max-w-[90vw]',
 };
 
@@ -130,7 +131,8 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
   const hasVerticalTabs = tabs && tabOrientation === 'vertical';
   const pointerEventsClass = isClosing ? 'pointer-events-none' : 'pointer-events-auto';
   const isLit = chassis === 'lit';
-  const chassisIntensity = size === 'lg' || size === 'xl' || size === 'full' ? 'medium' : 'lit';
+  const chassisIntensity =
+    size === 'lg' || size === 'xl' || size === 'xl-wide' || size === 'full' ? 'medium' : 'lit';
 
   const borderClass = isLit ? 'border-line-faint' : 'border-border';
   // Lit chrome (footer/tab-footer) gets a dark wash in dark so it sits on top of the
