@@ -33,24 +33,49 @@ const daysAgo = (n: number): Date => new Date(Date.now() - n * DAY_MS);
 const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
 const inDays = (n: number): string => dateOnly(new Date(Date.now() + n * DAY_MS));
 
-/** Seats in fill order. Boxes stop short of capacity so free seats sit at the end of the run. */
-function placementSeats(config: Storage): TubeLocation[] {
-  const { openingBoxTubes, fullBoxOrdinal, laterBoxTubes } = DEMO_DATASET.placement;
-  const slots: TubeLocation[] = [];
-  let boxOrdinal = 0;
+interface SeatRun {
+  groupIndex: number;
+  seats: TubeLocation[];
+}
+
+interface BoxPlan {
+  ordinal: number;
+  runs: SeatRun[];
+}
+
+/**
+ * Scatters the skipped seats. The layout has to be identical on every reset, so this stands in
+ * for randomness — a fixed stride would draw visible diagonals across a grid.
+ */
+function seatHash(boxOrdinal: number, position: number): number {
+  let h = (boxOrdinal * 374761393 + position * 668265263) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 1274126177) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+/**
+ * One plan per box, in walk order. Each box is filled to a share of its OWN capacity, so the
+ * dataset spreads across whatever storage the lab has rather than pouring into the first rack —
+ * and a lab with differently sized boxes shows that difference at a glance.
+ */
+function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
+  const { fillPattern, groupsPerBox, gapPercent } = DEMO_DATASET.placement;
+  const plans: BoxPlan[] = [];
+  let ordinal = 0;
+  let nextGroup = 0;
 
   for (const tank of config.tanks) {
     for (const rack of tank.racks) {
       for (const box of rack.boxes) {
-        const target =
-          boxOrdinal === 0
-            ? openingBoxTubes
-            : boxOrdinal === fullBoxOrdinal
-              ? box.maxPositions
-              : laterBoxTubes;
+        const fill = fillPattern[ordinal % fillPattern.length];
+        const target = Math.round(box.maxPositions * fill);
+        const seats: TubeLocation[] = [];
 
-        for (let position = 1; position <= Math.min(target, box.maxPositions); position++) {
-          slots.push(
+        for (let position = 1; position <= box.maxPositions && seats.length < target; position++) {
+          // Holes read as tubes pulled for use; a box filled to capacity has none by definition.
+          if (fill < 1 && seatHash(ordinal, position) % 100 < gapPercent) continue;
+          seats.push(
             TubeLocation.create({
               tankId: tank.id,
               rackId: rack.id,
@@ -59,12 +84,29 @@ function placementSeats(config: Storage): TubeLocation[] {
             })
           );
         }
-        boxOrdinal++;
+
+        // Groups take contiguous runs, so a shared box reads as blocks of colour rather than
+        // interleaved noise.
+        const wanted = seats.length === 0 ? 0 : groupsPerBox[ordinal % groupsPerBox.length];
+        const runs: SeatRun[] = [];
+        let cursor = 0;
+        for (let i = 0; i < wanted && cursor < seats.length; i++) {
+          const size = Math.ceil((seats.length - cursor) / (wanted - i));
+          runs.push({
+            groupIndex: nextGroup % groupTotal,
+            seats: seats.slice(cursor, cursor + size),
+          });
+          cursor += size;
+          nextGroup++;
+        }
+
+        plans.push({ ordinal, runs });
+        ordinal++;
       }
     }
   }
 
-  return slots;
+  return plans;
 }
 
 async function upsertLocations(
@@ -387,50 +429,60 @@ export async function applyDemoDataset(
     }
   }
 
-  const slots = placementSeats(config);
+  const plans = planBoxes(config, dataset.tubeBatches.length);
   const donorsById = new Map(dataset.donors.map(d => [d.id, d]));
   const researcherByRef = new Map(dataset.people.map(p => [p.ref, p]));
-  const totalTubes = dataset.tubeBatches.reduce((sum, batch) => sum + batch.count, 0);
 
-  if (slots.length < totalTubes) {
+  if (plans.length === 0) {
     throw new ValidationError(
-      `The demo dataset needs ${totalTubes} tube positions but this lab's storage offers ${slots.length} ` +
-        'once the deliberate gaps are reserved. Add a rack or reduce the dataset — a half-populated ' +
-        'demo is worse than one that refuses to load.'
+      "This lab has no boxes to place tubes in. Seed the lab's storage before loading the demo " +
+        'dataset — an empty demo is worse than one that refuses to load.'
     );
   }
 
-  let slotIndex = 0;
-  for (const batch of dataset.tubeBatches) {
-    const donor = donorsById.get(batch.donorRef);
-    const researcher = researcherByRef.get(batch.researcherRef);
+  // Most boxes hold one group so they can be named for their contents; some hold two or three so
+  // the grid shows how a box splits. Groups advance in order, keeping a rack's boxes related.
+  let totalTubes = 0;
+  for (const plan of plans) {
+    const boxTag = String(plan.ordinal).padStart(3, '0');
+    let seatNumber = 0;
 
-    for (let n = 0; n < batch.count; n++) {
-      await repos.tubes.save(
-        Tube.fromData({
-          id: `tube_${batch.batch}_${String(n + 1).padStart(2, '0')}`,
-          location: slots[slotIndex++].toData(),
-          sample: {
-            cellType: batch.cellType,
-            species: batch.species,
-            source: batch.source,
-            mediaType: batch.mediaType,
-            cultureCondition: batch.cultureCondition,
-            donorInternalId: donor?.donorInternalId,
-            donorSourceId: donor?.donorSourceId,
-            lotNumber: batch.lotNumber,
-            passageNumber: batch.firstPassage,
-            concentration: batch.concentration,
-            concentrationUnit: batch.concentrationUnit,
-            notes: batch.notes,
-          },
-          researcherId: researcher?.researcherId,
-          createdByName: researcher ? `${researcher.firstName} ${researcher.lastName}` : undefined,
-          timestamps: { createdAt: daysAgo(200), updatedAt: daysAgo(200) },
-          labId,
-          isSeeded: true,
-        })
-      );
+    for (const run of plan.runs) {
+      const group = dataset.tubeBatches[run.groupIndex];
+      const donor = donorsById.get(group.donorRef);
+      const researcher = researcherByRef.get(group.researcherRef);
+
+      for (const seat of run.seats) {
+        seatNumber++;
+        await repos.tubes.save(
+          Tube.fromData({
+            id: `tube_${group.batch}_${boxTag}_${String(seatNumber).padStart(3, '0')}`,
+            location: seat.toData(),
+            sample: {
+              cellType: group.cellType,
+              species: group.species,
+              source: group.source,
+              mediaType: group.mediaType,
+              cultureCondition: group.cultureCondition,
+              donorInternalId: donor?.donorInternalId,
+              donorSourceId: donor?.donorSourceId,
+              lotNumber: group.lotNumber,
+              passageNumber: group.firstPassage,
+              concentration: group.concentration,
+              concentrationUnit: group.concentrationUnit,
+              notes: group.notes,
+            },
+            researcherId: researcher?.researcherId,
+            createdByName: researcher
+              ? `${researcher.firstName} ${researcher.lastName}`
+              : undefined,
+            timestamps: { createdAt: daysAgo(200), updatedAt: daysAgo(200) },
+            labId,
+            isSeeded: true,
+          })
+        );
+        totalTubes++;
+      }
     }
   }
 
