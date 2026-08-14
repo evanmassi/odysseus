@@ -6,6 +6,7 @@
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { EquipmentController } from '@presentation/controllers/EquipmentController';
+import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
@@ -31,6 +32,8 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class EquipmentRouteModule implements RouteModule {
+  private readonly moderateLimiter = createModerateRateLimiter();
+
   constructor(
     private equipmentController: EquipmentController,
     private authMiddleware: AuthMiddleware
@@ -75,18 +78,21 @@ export class EquipmentRouteModule implements RouteModule {
 
     router.post(
       '/bulk/maintenance',
+      this.moderateLimiter,
       validateBody(EquipmentBulkMaintenanceHttpSchema),
       this.equipmentController.bulkLogMaintenance.bind(this.equipmentController)
     );
 
     router.post(
       '/bulk/status',
+      this.moderateLimiter,
       validateBody(EquipmentBulkStatusHttpSchema),
       this.equipmentController.bulkChangeStatus.bind(this.equipmentController)
     );
 
     router.post(
       '/bulk/relocate',
+      this.moderateLimiter,
       validateBody(EquipmentBulkRelocateHttpSchema),
       this.equipmentController.bulkRelocate.bind(this.equipmentController)
     );

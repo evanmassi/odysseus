@@ -18,9 +18,12 @@ than assumed. Where something is deliberately left open it says so explicitly.
       **1c** creation caps ✅
 - [x] Phase 2 — demo login endpoint + login-screen CTA (§1). Endpoint verified 404 when
       unconfigured; the signed-in path waits on the Phase 3 demo account being provisioned
-- [ ] Phase 3 — dataset + nightly reset (§3)
-- [ ] Phase 4 — client lock affordance + demo banner (§4)
-- [ ] Phase 5 — rate limiters on exports + catalog bulk routes (§5)
+- [x] Phase 3 — dataset + nightly reset (§3)
+- [x] Phase 4 — client lock affordance + demo banner (§4). Locks are withdrawn controls plus a
+      padlock, not disabled buttons — the Button primitive drops pointer events when disabled, so
+      a tooltip on one never opens
+- [x] Phase 5 — rate limiters on exports + catalog bulk routes (§5). Export limiters were already
+      in place; the bulk label-fetch routes stay unthrottled per §5's own cost finding
 
 ---
 
@@ -40,7 +43,7 @@ Three findings shape the work:
    `InviteCodeCommands.ts:76` deliberately blocks minting codes for a seeded demo lab.
 3. **Nothing restores the lab.** Two things sound like they might and neither does: `unseedAll()`
    only flips `isSeeded` flags on storage config (`Storage.ts:701`), and the existing
-   `ResetDemoDataCommandHandler` (`TankCommands.ts:201`) is a *wipe* — it deletes tubes and donors
+   `ResetDemoDataCommandHandler` (`TankCommands.ts:201`) is a _wipe_ — it deletes tubes and donors
    and strips visitor-added storage, but puts nothing back and never touches the three catalogs.
    Restoring is the capability that has to be built, on top of that handler (§3).
 
@@ -95,7 +98,7 @@ the request has no body, and adding a schema with nothing to validate would be s
 **The CTA needs a visibility condition, and the plumbing already exists.** With `DEMO_USERNAME`
 unset — every local dev environment, and any self-hosted deployment — the endpoint 404s, so a
 permanently-rendered button would be a broken control shipped to every developer. The client has to
-know whether the demo is configured *before* login.
+know whether the demo is configured _before_ login.
 
 No new endpoint and no extra round trip: `/api/public/auth/first-time` is already prefetched during
 bootstrap (`AppBootstrapService.ts:136`) and already consumed by `AuthGateway.tsx:42` — the exact
@@ -149,15 +152,15 @@ rejectSeededItemDeletion(user, item: { isSeeded?: boolean }, label: string)
 Structural parameter type, not a union of five entity classes — the same call AGENTS.md records for
 `shared/ui/components/inventory/`: generic over a shape, never over a merged identity.
 
-Wire into **destructive methods only**. Enumerated per service, because the three catalogs do *not*
+Wire into **destructive methods only**. Enumerated per service, because the three catalogs do _not_
 share a destructive surface — AGENTS.md says the item surfaces only look alike, and they don't:
 
-| Service | Methods |
-|---|---|
+| Service         | Methods                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Reagent, Supply | `deleteItem`, `archiveItem`, `voidTransaction`, `bulkArchive`, `bulkVoidTransactions`, `removeDocument`, `removeBarcode`, `removePackagingLevel` |
-| Equipment | `deleteItem`, `deleteMaintenanceEntry`, `removeDocument` |
-| Tube | `deleteTube`, `bulkDeleteTubes` |
-| Donor | `deleteDonor`, `deleteCollectionHistory` |
+| Equipment       | `deleteItem`, `deleteMaintenanceEntry`, `removeDocument`                                                                                         |
+| Tube            | `deleteTube`, `bulkDeleteTubes`                                                                                                                  |
+| Donor           | `deleteDonor`, `deleteCollectionHistory`                                                                                                         |
 
 Equipment has no `archiveItem`, no transactions, and no `bulkArchive`/`bulkVoidTransactions` — its
 bulk operations are `bulkLogMaintenance`, `bulkChangeStatus`, and `bulkRelocate`, all
@@ -178,7 +181,7 @@ really is one line after an existing load — no extra queries, no restructuring
 Leave `updateItem`, `recordTransaction`, tube moves, and maintenance logging alone — those are the
 demo.
 
-**`isSeeded` must round-trip through edits.** Visitors *can* edit seeded items, and `updateItem`
+**`isSeeded` must round-trip through edits.** Visitors _can_ edit seeded items, and `updateItem`
 loads → mutates → `save()`s the entity. If the flag doesn't survive that round trip, the first edit
 to a seeded record silently clears its protection and makes it deletable.
 
@@ -224,7 +227,7 @@ the property can't silently regress.
 other demo guard. Verified safe: no client code branches on 403, so the message still surfaces
 verbatim through `getErrorMessage`.
 
-**Prerequisite worth knowing: the lock keys on *storage* seeding.** `hasAnySeededResources()`
+**Prerequisite worth knowing: the lock keys on _storage_ seeding.** `hasAnySeededResources()`
 inspects only tanks, racks, and boxes — so the vocabularies stay editable until someone presses
 **Seed Demo** for storage, no matter how much seeded content the lab holds. Inherited from the
 guard's original form and left as-is, but it means provisioning the demo lab includes seeding
@@ -263,7 +266,7 @@ across tubes, donors, and the three item repositories.
 **Shaped like §2b's guard, for the same reason.** `enforceDemoCreationLimit(user, labRepository,
 labId, limit, countVisitorCreated, adding)` settles the demo question from the user and returns
 before touching the database. The originally planned `(user, lab, currentCount, adding)` required the
-caller to load the lab *and* run a `COUNT(*)` first — on every tube creation in every lab, the
+caller to load the lab _and_ run a `COUNT(*)` first — on every tube creation in every lab, the
 busiest write path in the app. Bulk tube creation counts once for the batch and its per-tube calls
 opt out via the existing `bulkOperation` flag.
 
@@ -333,7 +336,7 @@ than silently skipping tubes — a demo lab that half-populates is worse than on
 **Transaction actors must be resolved at runtime too — same trap as tank IDs.**
 `reagent_transactions.performed_by` and its supply equivalent are `NOT NULL` foreign keys to `users`,
 and the demo user is provisioned by hand per environment, so its ID is unknowable at authoring time.
-The dataset therefore records *that* a transaction was performed, not *by whom*, and the reset fills
+The dataset therefore records _that_ a transaction was performed, not _by whom_, and the reset fills
 in the demo user resolved from the lab. The existing `seedAuditLogEntries` already does exactly this
 — it calls `userRepository.findByLabId(labId)` and picks actors from the result
 (`DemoSeedCommands.ts:88,101-102`). Follow it.
@@ -397,7 +400,7 @@ those two. Caller-first is satisfied: the reset is a real consumer landing in th
 
 **There are no transaction repositories, and none are needed.** `reagent_transactions` and
 `supply_transactions` are owned by `ReagentItemRepository` and `SupplyItemRepository` — verified,
-the transaction SQL lives there. So the transaction purge is a method on the *item* repositories,
+the transaction SQL lives there. So the transaction purge is a method on the _item_ repositories,
 and the bag already carries both. (`RepositoryFactory` is the `UnitOfWork` implementation —
 `implements UnitOfWork` at line 59.)
 
@@ -423,16 +426,15 @@ Then:
 
    **Exact upsert order.** Derived from a full enumeration of the foreign keys on every table the
    dataset writes (30 of them), not from intuition. Each line depends only on lines above it:
-
    1. `persons` → 2. `researchers` (`person_id` NOT NULL)
-   3. `lookup_values`, `custom_units` — no dependencies beyond `labs`
-   4. `locations` — **parents before children**, `parent_id` self-references
-   5. `*_categories` — **parents before children**, `parent_id` self-references; two-level rule
+   2. `lookup_values`, `custom_units` — no dependencies beyond `labs`
+   3. `locations` — **parents before children**, `parent_id` self-references
+   4. `*_categories` — **parents before children**, `parent_id` self-references; two-level rule
       applies
-   6. `attribute_definitions`, then `attribute_options`
-   7. Items (`category_id` NOT NULL on all three catalogs), then their attribute values, barcodes,
+   5. `attribute_definitions`, then `attribute_options`
+   6. Items (`category_id` NOT NULL on all three catalogs), then their attribute values, barcodes,
       packaging levels, lots, and stock
-   8. Tubes (`tank_id`, `rack_id`, `box_id`, `position` all NOT NULL), donors, then collection
+   7. Tubes (`tank_id`, `rack_id`, `box_id`, `position` all NOT NULL), donors, then collection
       history and transactions
 
    **`attribute_options` is a dependency the plan had never named.** Every
@@ -454,6 +456,7 @@ Then:
    already `INSERT … ON CONFLICT (id) DO UPDATE` — verified in `DonorRepository` (line 101),
    `ReagentItemRepository` (138), `EquipmentItemRepository` (68), and `TubeRepository` (78). Given
    stable IDs from `fromData()`, plain `save()` is the upsert.
+
 6. Re-apply `DEMO_DATASET` volatile records through the normal repositories.
 7. **Keep the existing `removeNonSeededEquipment()` call** (`TankCommands.ts:236-246`) — it drops
    the tanks, racks, and boxes a visitor added, which is exactly right. Do **not** add a
@@ -539,13 +542,13 @@ Disabling beats discovering the restriction through an error toast.
 are `*ItemRow` (inline actions), `*InfoPanel` (detail-pane actions), `*Tab` (toolbar actions),
 `*BulkOperationsModal` (bulk archive/void), and the two timelines that own child-record deletes:
 
-| Domain | Components |
-|---|---|
-| Tubes | `editor/TubeEditorModal`, `grid/TubeGrid`, `grid/TubeGridContextMenu` |
-| Donors | `DonorInfoPanel`, `DonorRegistryModal`, `CollectionHistoryTimeline` |
-| Reagents | `ReagentItemRow`, `ReagentItemInfoPanel`, `ReagentsTab`, `ReagentBulkOperationsModal`, `ReagentExpiryAlertPanel` |
-| Supplies | `SupplyItemRow`, `SupplyItemInfoPanel`, `SuppliesTab`, `SupplyBulkOperationsModal` |
-| Equipment | `EquipmentItemInfoPanel`, `EquipmentTab`, `EquipmentMaintenanceTimeline` |
+| Domain    | Components                                                                                                       |
+| --------- | ---------------------------------------------------------------------------------------------------------------- |
+| Tubes     | `editor/TubeEditorModal`, `grid/TubeGrid`, `grid/TubeGridContextMenu`                                            |
+| Donors    | `DonorInfoPanel`, `DonorRegistryModal`, `CollectionHistoryTimeline`                                              |
+| Reagents  | `ReagentItemRow`, `ReagentItemInfoPanel`, `ReagentsTab`, `ReagentBulkOperationsModal`, `ReagentExpiryAlertPanel` |
+| Supplies  | `SupplyItemRow`, `SupplyItemInfoPanel`, `SuppliesTab`, `SupplyBulkOperationsModal`                               |
+| Equipment | `EquipmentItemInfoPanel`, `EquipmentTab`, `EquipmentMaintenanceTimeline`                                         |
 
 `TubeGridContextMenu` is easy to miss — the grid's right-click menu is a second delete path onto the
 same records.
@@ -606,15 +609,15 @@ not a security argument.
 
 **Verified guarded — no work needed:**
 
-| Surface | Why it holds |
-|---|---|
-| User management | Every mutation routes through the private `requireUserManagementAllowed`, which calls `rejectDemoManagementOperation`. `deactivateUser` and `suspendUser` reach it indirectly by delegating to `disableUser` (`UserApplicationService.ts:301`) — easy to miss, and load-bearing. `disableUser` also refuses self-targeting, and every visitor *is* the demo user. |
-| Researcher management | `rejectDemoManagementOperation` at four call sites. |
-| Lookup catalog | `rejectIfSeededDemo`, becoming §2b's `rejectIfTaxonomyLocked`. |
-| Invite codes | Creation blocked for seeded demo labs (`InviteCodeCommands.ts:76`), so no visitor can mint real access. |
-| Cross-lab reads | `findByIdForRequester` widens only for `system_admin`; the demo user is not one. |
-| Real-time events | `emitToLabRooms` scopes to the demo lab's room. |
-| Storage config | `rejectDemoConfigOperation` on reset-to-default and import. |
+| Surface               | Why it holds                                                                                                                                                                                                                                                                                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User management       | Every mutation routes through the private `requireUserManagementAllowed`, which calls `rejectDemoManagementOperation`. `deactivateUser` and `suspendUser` reach it indirectly by delegating to `disableUser` (`UserApplicationService.ts:301`) — easy to miss, and load-bearing. `disableUser` also refuses self-targeting, and every visitor _is_ the demo user. |
+| Researcher management | `rejectDemoManagementOperation` at four call sites.                                                                                                                                                                                                                                                                                                               |
+| Lookup catalog        | `rejectIfSeededDemo`, becoming §2b's `rejectIfTaxonomyLocked`.                                                                                                                                                                                                                                                                                                    |
+| Invite codes          | Creation blocked for seeded demo labs (`InviteCodeCommands.ts:76`), so no visitor can mint real access.                                                                                                                                                                                                                                                           |
+| Cross-lab reads       | `findByIdForRequester` widens only for `system_admin`; the demo user is not one.                                                                                                                                                                                                                                                                                  |
+| Real-time events      | `emitToLabRooms` scopes to the demo lab's room.                                                                                                                                                                                                                                                                                                                   |
+| Storage config        | `rejectDemoConfigOperation` on reset-to-default and import.                                                                                                                                                                                                                                                                                                       |
 
 **The one gap: six unguarded export endpoints.** `/admin/export/{tubes,users,researchers,equipment,supply-reorder-list,system-backup}`
 carry `authenticate + requireAdmin` and nothing else — no demo guard, no rate limiter beyond the
@@ -639,7 +642,7 @@ limits advanced search, `StorageRouteModule` puts the strict limiter on config c
 `UserRouteModule` have **zero** limiters.
 
 That matters most for `bulk/receive` and `bulk/issue`, which write stock transactions 100 items at a
-time. The §2c caps bound tubes, donors, and catalog *items* — they do not bound **transactions**, so
+time. The §2c caps bound tubes, donors, and catalog _items_ — they do not bound **transactions**, so
 the highest-throughput write path in the app is also the only uncapped one. At the global 300/min
 that is tens of thousands of transaction rows a minute.
 
@@ -649,7 +652,7 @@ recording stock movement, which is the most interesting thing in the catalog to 
 bulk operations already do, so this closes an inconsistency rather than inventing a rule.
 
 **Verified cheap, no action:** bulk barcode and lot-label retrieval only run one indexed query and
-return barcode *strings* (`ReagentApplicationService.ts:465-482`) — rendering happens client-side,
+return barcode _strings_ (`ReagentApplicationService.ts:465-482`) — rendering happens client-side,
 so there is no server-side image or PDF generation to abuse.
 
 These two limiter changes are the only security work §5 asks for.
@@ -704,7 +707,7 @@ so someone who leaves the tab open and comes back gets bounced to the login scre
 behaviour, mildly awkward first impression; the demo button makes getting back in one click.
 
 **`/invite-codes/validate` has no auth limiter.** Public routes carry the global 300/min plus
-`rateLimitMiddleware`, but that middleware is a *login-failure lockout* keyed on IP
+`rateLimitMiddleware`, but that middleware is a _login-failure lockout_ keyed on IP
 (`RateLimitingService.isBlocked`), not a general throttle — so it doesn't slow code-guessing.
 Pre-existing and low-severity, but publicising the app moves it from theoretical to worth a line.
 Adding `this.authLimiter` to that route is a one-line fix if you want it swept in.
@@ -912,10 +915,10 @@ labs), seeded-item rejection, the taxonomy lock, and each creation cap at and ov
 
 **Existing tests that change:**
 
-| Test | Why |
-|---|---|
+| Test                                               | Why                                                                                                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `LookupValueApplicationService.seededDemo.test.ts` | Four tests drive the taxonomy guard through the service. §2b changes it to take a loaded `Storage` instead of reading the repo, so their setup changes. |
-| `authStore.test.ts` | Gains coverage for the new `demoLogin` action, mirroring the existing `login` tests. |
+| `authStore.test.ts`                                | Gains coverage for the new `demoLogin` action, mirroring the existing `login` tests.                                                                    |
 
 **Checked and resilient — no change needed:** `Lab.test.ts` asserts
 `expect(lab.demoLimits).toEqual(DEMO_LIMITS_DEFAULTS)` against the constant rather than a literal,
@@ -932,7 +935,7 @@ only on storage config, which this work doesn't alter.
    defaults to `false` on all seven tables and existing rows are unaffected.
 3. Reset locally against `Ithaca Labs`, then confirm via psql that counts match `DEMO_DATASET` and
    `is_seeded = true` throughout.
-4. **Idempotence, explicitly:** run the reset twice and diff row counts across *every* lab-scoped
+4. **Idempotence, explicitly:** run the reset twice and diff row counts across _every_ lab-scoped
    table. Researchers, categories, attributes, units, and locations must not double. Confirm the
    demo login still works afterward — proof the `users` table survived.
 5. **Dirty-state reset:** create tubes and items as the demo user, delete some seeded ones via psql,
@@ -953,9 +956,9 @@ only on storage config, which this work doesn't alter.
     `is_seeded` is still `true` and that deleting it is still refused. This is the silent-protection-
     leak case from §2a.
 12. **In-app checklist handed over** rather than driving the UI: demo CTA reads professional and
-   secondary; a seeded tube edits and moves but won't delete, with the demo-specific message; a
-   visitor-created tube deletes fine; caps surface a clear message at the limit; audit log shows
-   seeded history.
+    secondary; a seeded tube edits and moves but won't delete, with the demo-specific message; a
+    visitor-created tube deletes fine; caps surface a clear message at the limit; audit log shows
+    seeded history.
 
 ## Out of scope
 

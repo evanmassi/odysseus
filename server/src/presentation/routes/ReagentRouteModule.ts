@@ -7,6 +7,7 @@
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { ReagentController } from '@presentation/controllers/ReagentController';
+import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
@@ -42,6 +43,10 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class ReagentRouteModule implements RouteModule {
+  // Bulk stock writes are the highest-throughput path in the catalog; label fetches are
+  // left unthrottled so a legitimate bulk print run isn't capped.
+  private readonly moderateLimiter = createModerateRateLimiter();
+
   constructor(
     private reagentController: ReagentController,
     private authMiddleware: AuthMiddleware
@@ -83,30 +88,35 @@ export class ReagentRouteModule implements RouteModule {
 
     router.post(
       '/bulk/receive',
+      this.moderateLimiter,
       validateBody(ReagentBulkReceiveHttpSchema),
       this.reagentController.bulkReceive.bind(this.reagentController)
     );
 
     router.post(
       '/bulk/issue',
+      this.moderateLimiter,
       validateBody(ReagentBulkIssueHttpSchema),
       this.reagentController.bulkIssue.bind(this.reagentController)
     );
 
     router.post(
       '/bulk/reassign-category',
+      this.moderateLimiter,
       validateBody(ReagentBulkReassignCategoryHttpSchema),
       this.reagentController.bulkReassignCategory.bind(this.reagentController)
     );
 
     router.post(
       '/bulk/archive',
+      this.moderateLimiter,
       validateBody(ReagentBulkArchiveHttpSchema),
       this.reagentController.bulkArchive.bind(this.reagentController)
     );
 
     router.post(
       '/bulk/void',
+      this.moderateLimiter,
       validateBody(ReagentBulkVoidHttpSchema),
       this.reagentController.bulkVoidTransactions.bind(this.reagentController)
     );

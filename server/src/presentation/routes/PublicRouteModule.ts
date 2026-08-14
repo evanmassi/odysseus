@@ -157,6 +157,7 @@ export class PublicRouteModule implements RouteModule {
 
     router.post(
       '/invite-codes/validate',
+      this.authLimiter,
       validateBody(ValidateInviteCodeBodySchema),
       this.inviteCodeController.validate.bind(this.inviteCodeController)
     );

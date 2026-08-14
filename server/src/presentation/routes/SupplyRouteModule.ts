@@ -7,6 +7,7 @@
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { SupplyController } from '@presentation/controllers/SupplyController';
+import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
@@ -40,6 +41,10 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class SupplyRouteModule implements RouteModule {
+  // Bulk stock writes are the highest-throughput path in the catalog; label fetches are
+  // left unthrottled so a legitimate bulk print run isn't capped.
+  private readonly moderateLimiter = createModerateRateLimiter();
+
   constructor(
     private supplyController: SupplyController,
     private authMiddleware: AuthMiddleware
@@ -81,30 +86,35 @@ export class SupplyRouteModule implements RouteModule {
 
     router.post(
       '/bulk/receive',
+      this.moderateLimiter,
       validateBody(SupplyBulkReceiveHttpSchema),
       this.supplyController.bulkReceive.bind(this.supplyController)
     );
 
     router.post(
       '/bulk/issue',
+      this.moderateLimiter,
       validateBody(SupplyBulkIssueHttpSchema),
       this.supplyController.bulkIssue.bind(this.supplyController)
     );
 
     router.post(
       '/bulk/reassign-category',
+      this.moderateLimiter,
       validateBody(SupplyBulkReassignCategoryHttpSchema),
       this.supplyController.bulkReassignCategory.bind(this.supplyController)
     );
 
     router.post(
       '/bulk/archive',
+      this.moderateLimiter,
       validateBody(SupplyBulkArchiveHttpSchema),
       this.supplyController.bulkArchive.bind(this.supplyController)
     );
 
     router.post(
       '/bulk/void',
+      this.moderateLimiter,
       validateBody(SupplyBulkVoidHttpSchema),
       this.supplyController.bulkVoidTransactions.bind(this.supplyController)
     );
