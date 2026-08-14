@@ -17,7 +17,7 @@ export function AppDesktopNotice() {
       aria-label="Desktop recommended"
       className="auth-field fixed inset-0 z-50 flex items-center justify-center text-[rgb(var(--auth-text))]"
     >
-      {/* Slowed well below the loader's cadence so it reads as a watermark, not a wait. */}
+      {/* Durations far above the loader's defaults, so this isn't mistaken for a loading state. */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.04]"

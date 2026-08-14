@@ -43,6 +43,7 @@ import {
   PanelHeader,
   SectionHeader,
   StripLabel,
+  Tooltip,
 } from '@shared/ui';
 import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -50,6 +51,7 @@ import {
   DocumentLinkModal,
   type DocumentLinkValues,
 } from '@shared/ui/components/overlays/DocumentLinkModal';
+import { DOCUMENT_TYPE_LABELS } from '@shared/ui/components/overlays/documentTypeLabels';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -316,36 +318,47 @@ export function EquipmentItemInfoPanel({
                     className="-mx-4 border-b border-line-faint px-4 py-2 last:border-b-0"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex min-w-0 items-center gap-1.5 text-body-sm text-primary hover:underline"
-                      >
-                        <ExternalLink size={12} className="flex-shrink-0" />
-                        <span className="truncate">{doc.label}</span>
-                      </a>
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex min-w-0 items-center gap-1.5 text-body-sm text-primary hover:underline"
+                        >
+                          <ExternalLink size={12} className="flex-shrink-0" />
+                          <span className="truncate">{doc.label}</span>
+                        </a>
+                        {doc.docType && (
+                          <Chip color="default" size="xs" className="flex-shrink-0">
+                            {DOCUMENT_TYPE_LABELS[doc.docType]}
+                          </Chip>
+                        )}
+                      </div>
                       {isAdmin && (
                         <div className="flex flex-shrink-0 items-center gap-0.5">
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            iconOnly
-                            onClick={() => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
-                            aria-label="Edit document"
-                          >
-                            <Edit size={12} />
-                          </Button>
-                          {!isLocked && (
+                          <Tooltip content="Edit" side="bottom">
                             <Button
-                              variant="ghost-danger"
+                              variant="ghost"
                               size="xs"
                               iconOnly
-                              onClick={() => void handleRemoveDocument(doc.id)}
-                              aria-label="Remove document"
+                              onClick={() => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
+                              aria-label="Edit document"
                             >
-                              <X size={12} />
+                              <Edit size={12} />
                             </Button>
+                          </Tooltip>
+                          {!isLocked && (
+                            <Tooltip content="Remove" side="bottom">
+                              <Button
+                                variant="ghost-danger"
+                                size="xs"
+                                iconOnly
+                                onClick={() => void handleRemoveDocument(doc.id)}
+                                aria-label="Remove document"
+                              >
+                                <X size={12} />
+                              </Button>
+                            </Tooltip>
                           )}
                         </div>
                       )}

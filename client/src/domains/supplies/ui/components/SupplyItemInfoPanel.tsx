@@ -9,10 +9,8 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import {
-  Edit,
   Trash2,
   Archive,
-  ExternalLink,
   ClipboardList,
   MapPin,
   FolderOpen,
@@ -48,10 +46,9 @@ import {
   PanelHeader,
   SectionHeader,
   StripLabel,
-  Tooltip,
 } from '@shared/ui';
 import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
-import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
+import { DocumentList, toAttributeDisplayRows } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -423,56 +420,13 @@ export function SupplyItemInfoPanel({
 
           <div>
             <SectionHeader title="Documents" size="sm" />
-            {documents.length > 0 ? (
-              <div className="space-y-1.5">
-                {documents.map(doc => (
-                  <div key={doc.id}>
-                    <div className="flex items-center justify-between text-body-sm">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        {doc.label}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                      {isAdmin && (
-                        <div className="flex items-center gap-0.5">
-                          <Tooltip content="Edit" side="bottom">
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              iconOnly
-                              onClick={() => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          </Tooltip>
-                          {!isLocked && (
-                            <Tooltip content="Remove" side="bottom">
-                              <Button
-                                variant="ghost-danger"
-                                size="xs"
-                                iconOnly
-                                onClick={() => void handleRemoveDocument(doc.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </Tooltip>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    {doc.notes && (
-                      <p className="mt-0.5 text-caption text-muted-foreground">{doc.notes}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-caption italic text-muted-foreground">No documents</p>
-            )}
+            <DocumentList
+              documents={documents}
+              isAdmin={isAdmin}
+              isRemoveLocked={isLocked}
+              onEdit={doc => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
+              onRemove={docId => void handleRemoveDocument(docId)}
+            />
             {isAdmin && (
               <Button
                 variant="ghost"

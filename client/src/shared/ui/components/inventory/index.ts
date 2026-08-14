@@ -38,6 +38,7 @@ export { BulkReassignTab } from './BulkReassignTab';
 export { BulkVoidTab, type VoidableEntry } from './BulkVoidTab';
 export { CategoryModal, CategoryManager, useCatalogCategories } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
+export { DocumentList } from './DocumentList';
 export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
 export {
   toItemAutocompleteOptions,
