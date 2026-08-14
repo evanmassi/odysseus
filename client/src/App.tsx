@@ -10,11 +10,17 @@ import { Routes, Route } from 'react-router-dom';
 
 import { useAppBootstrap } from '@app/bootstrap';
 import { AppDashboard } from '@app/components/layout/AppDashboard';
+import { AppDesktopNotice } from '@app/components/layout/AppDesktopNotice';
 import { AppErrorBanner } from '@app/components/layout/AppErrorBanner';
 import { AppErrorBoundary } from '@app/components/layout/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
-import { useAuthSocketSync, useServerThemeSync, useSplashFloor } from '@app/hooks';
+import {
+  useAuthSocketSync,
+  useIsNarrowViewport,
+  useServerThemeSync,
+  useSplashFloor,
+} from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores/errorStore';
 import {
@@ -50,9 +56,16 @@ function AppContent() {
   const { errors, clearErrors } = useErrorStore();
   const { isAuthenticated } = useAuthStore();
   const isDemo = useIsDemo();
+  const isNarrowViewport = useIsNarrowViewport();
 
   useAuthSocketSync();
   useServerThemeSync();
+
+  // Ahead of the boot splash: a phone visitor should meet the notice, not watch the app
+  // initialize into a layout it can't render.
+  if (isNarrowViewport) {
+    return <AppDesktopNotice />;
+  }
 
   if (isLoading || isError || !revealApp) {
     return (

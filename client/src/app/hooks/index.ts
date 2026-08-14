@@ -5,5 +5,6 @@
  */
 
 export { useAuthSocketSync } from './useAuthSocketSync';
+export { useIsNarrowViewport } from './useIsNarrowViewport';
 export { useServerThemeSync } from './useServerThemeSync';
 export { useSplashFloor } from './useSplashFloor';

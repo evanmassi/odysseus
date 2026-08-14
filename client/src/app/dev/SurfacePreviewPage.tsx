@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 
+import { AppDesktopNotice } from '@app/components/layout/AppDesktopNotice';
 import { AppErrorBanner } from '@app/components/layout/AppErrorBanner';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { modalStore } from '@app/stores/modalStore';
@@ -374,6 +375,13 @@ const SPECS: ModalSpec[] = [
         onClear={close}
       />
     ),
+  },
+  {
+    id: 'desktop-notice',
+    group: 'App shell',
+    label: 'Desktop Notice',
+    note: 'Narrow-viewport notice — branded auth field, logo, no escape. Resize the window to judge it',
+    render: () => <AppDesktopNotice />,
   },
 ];
 
