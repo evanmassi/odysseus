@@ -46,12 +46,9 @@ export function AppDesktopNotice() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <p className="text-body-sm leading-relaxed text-[rgb(var(--auth-text-dim))]">
-            Odysseus is built for a laptop or PC. Open it on one to see the whole lab.
-          </p>
-          <p className="phosphor-text text-body-sm text-[rgb(var(--auth-text))]">Enjoy!</p>
-        </div>
+        <p className="text-body-sm leading-relaxed text-[rgb(var(--auth-text-dim))]">
+          Open this on a laptop to explore the lab.
+        </p>
       </div>
     </div>
   );
