@@ -40,6 +40,10 @@ const TubesTab = lazy(() => import('./tabs/TubesTab').then(m => ({ default: m.Tu
 
 const StorageTab = lazy(() => import('./tabs/StorageTab').then(m => ({ default: m.StorageTab })));
 
+const LabManagementTab = lazy(() =>
+  import('./tabs/LabManagementTab').then(m => ({ default: m.LabManagementTab }))
+);
+
 const DonorsTab = lazy(() => import('./tabs/DonorsTab').then(m => ({ default: m.DonorsTab })));
 
 const ResearchersTab = lazy(() =>
@@ -58,6 +62,7 @@ const TAB_COMPONENTS: Record<HelpTabId, ComponentType> = {
   'getting-started': GettingStartedTab,
   tubes: TubesTab,
   storage: StorageTab,
+  'lab-management': LabManagementTab,
   donors: DonorsTab,
   researchers: ResearchersTab,
   shortcuts: ShortcutsTab,

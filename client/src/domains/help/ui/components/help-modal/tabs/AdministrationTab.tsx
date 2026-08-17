@@ -98,12 +98,34 @@ export function AdministrationTab() {
       </HelpSection>
 
       <HelpSection id="admin-catalog">
+        <p className="text-body-sm text-muted-foreground mb-3">
+          Every list the rest of the app offers you is edited here, grouped in the rail on the left:
+        </p>
+        <ul className="text-body-sm text-muted-foreground space-y-1 list-disc list-inside mb-3">
+          <li>
+            <span className="text-card-foreground font-medium">Dropdown lists</span> — species,
+            sources, and media types for tubes; specimens for donor collections; maintenance
+            activities for equipment; reagent types; and the vendors and manufacturers shared by all
+            three lab suites.
+          </li>
+          <li>
+            <span className="text-card-foreground font-medium">Item attributes</span> — properties
+            you define yourself, such as storage temperature or physical form, and the options each
+            one offers. An attribute can apply to every item or only to certain reagent types.
+          </li>
+          <li>
+            <span className="text-card-foreground font-medium">Custom units</span> — units beyond
+            the built-in ones, like vial, plate, or cassette.
+          </li>
+          <li>
+            <span className="text-card-foreground font-medium">Locations</span> — the places
+            equipment sits and stock is held, nested up to three levels deep.
+          </li>
+        </ul>
         <p className="text-body-sm text-muted-foreground">
-          Customize the options available across tube, donor, equipment, and supply forms — species,
-          source types, media types, specimen types, equipment maintenance types, and supply
-          vendors, manufacturers, stock units, and properties. You can add new options, rename
-          existing ones, and remove options that are no longer relevant. Before removing an option,
-          the system shows how many records currently use it.
+          Add entries, rename them, or remove ones you no longer need. Each entry shows how many
+          records use it; anything in use cannot be deleted, and renaming updates every record that
+          references it.
         </p>
       </HelpSection>
 

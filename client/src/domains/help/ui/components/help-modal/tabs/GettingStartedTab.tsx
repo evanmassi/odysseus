@@ -19,6 +19,7 @@ import type { HelpTabId } from '../../../../content/helpContent';
 const TAB_BLURBS: Partial<Record<HelpTabId, string>> = {
   tubes: 'What every element on a tube cell means — lock states and color coding.',
   storage: 'How tanks, racks, and boxes nest, plus ownership and permissions.',
+  'lab-management': 'Track equipment, supplies, and reagents — stock, maintenance, and expiry.',
   donors: 'Browse donor profiles and collection history, and link donors to tubes.',
   researchers: 'How users and researchers differ, and how tubes connect to them.',
   shortcuts: 'Keyboard shortcuts for the grid, the navigator, and the app.',
