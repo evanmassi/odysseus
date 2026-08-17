@@ -18,9 +18,6 @@
 }
 
 .nav-tree .nav-tree-row {
-  /* Hover/selected glow tone — defaults to primary; rows (e.g. low-stock supply
-     items) override it to warning/danger to tint their glow without new rules. */
-  --row-tone: var(--primary);
   display: flex;
   align-items: center;
   position: relative;
@@ -172,7 +169,6 @@
 }
 
 .nav-tree-select .select-tree-row {
-  --row-tone: var(--primary);
   position: relative;
   z-index: 10;
   margin-bottom: 0.25rem;

@@ -25,7 +25,6 @@
 }
 
 .storage-nav-button {
-  --row-tone: var(--primary);
   display: flex;
   align-items: center;
   width: 100%;
@@ -136,10 +135,6 @@
 /* Box minimaps (navigator box level) — same light/dark split as the nav buttons:
    light is a flat tint + soft leading stripe, dark restores the lit glow. Full
    boxes retint via --row-tone (primary → warning) so one rule set covers both. */
-.storage-nav-minimap {
-  --row-tone: var(--primary);
-}
-
 .storage-nav-minimap[data-full] {
   --row-tone: var(--color-warning-bg);
 }

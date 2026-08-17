@@ -121,7 +121,7 @@ export function RackRow({
             onKeyDown={e => {
               if (e.key === 'Enter') onToggleCollapse();
             }}
-            className={`storage-nav-button storage-nav-button--rack ${!collapsed ? 'selected' : ''}`}
+            className={`storage-nav-button row-glow storage-nav-button--rack ${!collapsed ? 'selected' : ''}`}
             role="button"
             tabIndex={0}
             aria-expanded={!collapsed}

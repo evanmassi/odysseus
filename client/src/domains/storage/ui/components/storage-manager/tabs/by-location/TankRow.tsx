@@ -90,7 +90,7 @@ export function TankRow({
             onKeyDown={e => {
               if (e.key === 'Enter') onToggleCollapse();
             }}
-            className={`storage-nav-button storage-nav-button--tank ${!collapsed ? 'selected' : ''}`}
+            className={`storage-nav-button row-glow storage-nav-button--tank ${!collapsed ? 'selected' : ''}`}
             role="button"
             tabIndex={0}
             aria-expanded={!collapsed}

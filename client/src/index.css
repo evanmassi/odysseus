@@ -22,6 +22,7 @@
 @import './shared/styles/components/auth-console.css';
 @import './shared/styles/components/session-timer.css';
 @import './shared/styles/components/scrollbars.css';
+@import './shared/styles/components/row-glow.css';
 @import './shared/styles/components/nav-tree.css';
 
 /* Utilities */

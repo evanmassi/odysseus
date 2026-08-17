@@ -49,7 +49,7 @@ export function StorageBoxMinimap({
         aria-selected={isSelected}
         data-full={isFull || undefined}
         aria-label={`Box ${box.name}, ${filled} of ${capacity} filled`}
-        className={`storage-nav-minimap relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[box-shadow,border-color] duration-150 ${
+        className={`storage-nav-minimap row-glow relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[box-shadow,border-color] duration-150 ${
           isSelected
             ? isFull
               ? 'border-warning-border text-foreground'

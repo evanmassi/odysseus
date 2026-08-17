@@ -57,7 +57,7 @@ export function StorageNavigatorNode({
           onClick={onSelect}
           onFocus={onFocus}
           tabIndex={tabIndex}
-          className={`storage-nav-button storage-nav-button--${level} ${isSelected ? 'selected' : ''}`}
+          className={`storage-nav-button row-glow storage-nav-button--${level} ${isSelected ? 'selected' : ''}`}
           role="treeitem"
           aria-level={ariaLevel}
           aria-posinset={ariaPosinset}

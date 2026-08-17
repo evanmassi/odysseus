@@ -52,7 +52,7 @@ export function LabLocationTree({
       return (
         <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
           <div
-            className={`select-tree-row group flex items-center gap-2 py-1 pl-3 pr-1 ${
+            className={`select-tree-row row-glow group flex items-center gap-2 py-1 pl-3 pr-1 ${
               highlightId === location.id ? 'bg-foreground/[0.06]' : ''
             }`}
           >

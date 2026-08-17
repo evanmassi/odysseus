@@ -266,7 +266,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
           return (
             <div key={category.id} data-level="l1" data-id={category.id}>
               <div
-                className={`nav-tree-row nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
+                className={`nav-tree-row row-glow nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
                 onClick={() => toggleCategory(category.id)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') toggleCategory(category.id);
@@ -418,7 +418,7 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
   return (
     <div data-level="l2" data-id={subcategory.id}>
       <div
-        className={`nav-tree-row nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
+        className={`nav-tree-row row-glow nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter') setIsExpanded(!isExpanded);

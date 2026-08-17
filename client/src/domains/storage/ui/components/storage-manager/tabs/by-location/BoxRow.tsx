@@ -110,7 +110,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
   return (
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
-        <div className="storage-nav-button storage-nav-button--box">
+        <div className="storage-nav-button row-glow storage-nav-button--box">
           <TreeNub full={isFull} />
           <BoxOccupancyMatrix gridConfig={box.gridConfig} tubes={tubes} size={46} />
           <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">

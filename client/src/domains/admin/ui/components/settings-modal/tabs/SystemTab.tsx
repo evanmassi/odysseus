@@ -242,7 +242,7 @@ function StorageUtilizationSection() {
                     role="button"
                     tabIndex={0}
                     aria-expanded={isTankOpen}
-                    className={`nav-tree-row nav-tree-row--category ${isTankOpen ? 'is-open' : ''}`}
+                    className={`nav-tree-row row-glow nav-tree-row--category ${isTankOpen ? 'is-open' : ''}`}
                     onClick={() => toggleTank(tank.tankId)}
                     onKeyDown={e => {
                       if (e.key === 'Enter') toggleTank(tank.tankId);
@@ -277,7 +277,7 @@ function StorageUtilizationSection() {
                               role="button"
                               tabIndex={0}
                               aria-expanded={isRackOpen}
-                              className={`nav-tree-row nav-tree-row--subcategory ${isRackOpen ? 'is-open' : ''}`}
+                              className={`nav-tree-row row-glow nav-tree-row--subcategory ${isRackOpen ? 'is-open' : ''}`}
                               onClick={() => toggleRack(rack.rackId)}
                               onKeyDown={e => {
                                 if (e.key === 'Enter') toggleRack(rack.rackId);
@@ -302,7 +302,7 @@ function StorageUtilizationSection() {
                               <div className="nav-tree-children">
                                 {rack.boxes.map(box => (
                                   <div key={box.boxName} data-level="l3" data-id={box.boxName}>
-                                    <div className="nav-tree-row nav-tree-row--subcategory nav-tree-row--static">
+                                    <div className="nav-tree-row row-glow nav-tree-row--subcategory nav-tree-row--static">
                                       <span className="nav-tree-row__chevron" aria-hidden />
                                       <BoxIcon
                                         size={12}

@@ -295,9 +295,9 @@
     --alpha-hover-bloom-far: 0;
     --alpha-stripe-muted: 0.3;
 
-    /* Row-glow recipe layers — shared by table rows (rowHoverGlow.ts), nav trees
-       (nav-tree.css), and the storage navigator (storage-navigator.css). Tone-keyed
-       via --row-tone, which each consumer sets; alphas swap per theme above. */
+    /* Tone-independent glow layer — safe at :root because it reads only :root tokens.
+       The tone-keyed recipes that pair with it live on `.row-glow` (row-glow.css);
+       see the invariant documented there before moving anything back up here. */
     --scanline-layer: repeating-linear-gradient(
       to bottom,
       hsl(var(--scanline)) 0,
@@ -305,40 +305,6 @@
       transparent 1px,
       transparent 3px
     );
-    --glow-hover-wash: linear-gradient(
-      90deg,
-      hsl(var(--row-tone) / var(--alpha-hover-wash-1)) 0%,
-      hsl(var(--row-tone) / var(--alpha-hover-wash-2)) 18%,
-      hsl(var(--row-tone) / var(--alpha-hover-wash-3)) 48%,
-      hsl(var(--row-tone) / var(--alpha-hover-wash-4)) 78%,
-      hsl(var(--row-tone) / 0) 100%
-    );
-    --glow-hover-shadow:
-      inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-hover-edge)),
-      inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
-      inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
-      0 0 22px -4px hsl(var(--row-tone) / var(--alpha-hover-bloom)),
-      0 0 50px 4px hsl(var(--row-tone) / var(--alpha-hover-bloom-far));
-    --glow-selected-tint: linear-gradient(
-      180deg,
-      hsl(var(--row-tone) / var(--alpha-glow-tint)),
-      hsl(var(--row-tone) / var(--alpha-glow-tint))
-    );
-    --glow-selected-wash: linear-gradient(
-      90deg,
-      hsl(var(--row-tone) / var(--alpha-glow-wash-1)) 0%,
-      hsl(var(--row-tone) / var(--alpha-glow-wash-2)) 18%,
-      hsl(var(--row-tone) / var(--alpha-glow-wash-3)) 48%,
-      hsl(var(--row-tone) / var(--alpha-glow-wash-4)) 78%,
-      hsl(var(--row-tone) / 0) 100%
-    );
-    --glow-selected-shadow:
-      inset 3px 0 0 0 hsl(var(--row-tone)),
-      inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-glow-edge-inner)),
-      inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
-      inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
-      0 0 32px -4px hsl(var(--row-tone) / var(--alpha-glow-outer-near)),
-      0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
 
     /* Always-dark components */
 

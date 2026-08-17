@@ -58,7 +58,7 @@ export function ItemRowShell({
 
   return (
     <div
-      className={`nav-tree-row nav-tree-row--item ${isSelected ? 'is-selected' : ''} ${
+      className={`nav-tree-row row-glow nav-tree-row--item ${isSelected ? 'is-selected' : ''} ${
         dimmed ? 'opacity-50 hover:opacity-65' : ''
       }`}
       style={rowStyle}

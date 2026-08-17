@@ -143,7 +143,7 @@ export function ByUserTab({
                     onKeyDown={e => {
                       if (e.key === 'Enter') toggleUser(userAssignment.userId);
                     }}
-                    className={`storage-nav-button storage-nav-button--tank ${isExpanded ? 'selected' : ''}`}
+                    className={`storage-nav-button row-glow storage-nav-button--tank ${isExpanded ? 'selected' : ''}`}
                     role="button"
                     tabIndex={0}
                     aria-expanded={isExpanded}
@@ -223,7 +223,7 @@ export function ByUserTab({
                           data-id={`${rackGroup.tankId}-${rackGroup.rackId}`}
                         >
                           <div className="storage-nav-item--modal storage-nav-item--rack">
-                            <div className="storage-nav-button storage-nav-button--rack">
+                            <div className="storage-nav-button row-glow storage-nav-button--rack">
                               <TreeNub />
                               <UserBadge
                                 type={badgeType}
@@ -267,7 +267,7 @@ export function ByUserTab({
                                   data-id={box.boxId}
                                 >
                                   <div className="storage-nav-item--modal storage-nav-item--box">
-                                    <div className="storage-nav-button storage-nav-button--box">
+                                    <div className="storage-nav-button row-glow storage-nav-button--box">
                                       <TreeNub />
                                       <UserBadge
                                         type={badgeType}

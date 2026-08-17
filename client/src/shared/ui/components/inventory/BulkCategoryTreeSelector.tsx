@@ -107,7 +107,7 @@ function BulkSelectItem<T extends BulkTreeItem>({
 
   return (
     <div data-level={level} data-id={item.id}>
-      <div className="select-tree-row flex items-center gap-2 py-1 pl-3 pr-1">
+      <div className="select-tree-row row-glow flex items-center gap-2 py-1 pl-3 pr-1">
         <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
         <div className="min-w-0 flex-1">
           <span className="block truncate text-body-sm font-medium text-card-foreground">
@@ -247,7 +247,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
 
             return (
               <div key={group.category.id} data-level="l1" data-id={group.category.id}>
-                <div className="select-tree-row flex items-center gap-2 py-1 pl-3 pr-1">
+                <div className="select-tree-row row-glow flex items-center gap-2 py-1 pl-3 pr-1">
                   <Checkbox
                     checked={groupAllChecked}
                     indeterminate={groupSomeChecked && !groupAllChecked}
@@ -284,7 +284,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
 
                       return (
                         <div key={sub.category.id} data-level="l2" data-id={sub.category.id}>
-                          <div className="select-tree-row flex items-center gap-2 py-1 pl-3 pr-1">
+                          <div className="select-tree-row row-glow flex items-center gap-2 py-1 pl-3 pr-1">
                             <Checkbox
                               checked={subAllChecked}
                               indeterminate={subSomeChecked && !subAllChecked}
