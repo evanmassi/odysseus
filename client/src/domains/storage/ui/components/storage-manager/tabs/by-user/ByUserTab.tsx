@@ -35,7 +35,7 @@ interface ByUserTabProps {
   /** Called when admin wants to unassign all resources from a user */
   onBulkUnassign?: (userId: string) => void;
   /** Called when admin wants to reassign all resources from one user to another */
-  onBulkReassign?: (fromUserId: string, toUserId: string) => void;
+  onBulkReassign?: (fromUserId: string | undefined, toUserId: string) => void;
 }
 
 export function ByUserTab({
@@ -49,7 +49,7 @@ export function ByUserTab({
 }: ByUserTabProps) {
   const [expandedUsers, setExpandedUsers] = useState<Set<string | null>>(() => new Set());
 
-  const [reassigningUserId, setReassigningUserId] = useState<string | null>(null);
+  const [reassigningUserId, setReassigningUserId] = useState<string | null | undefined>(undefined);
 
   const toggleUser = (userId: string | null) => {
     setExpandedUsers(prev => {
@@ -69,14 +69,16 @@ export function ByUserTab({
   );
 
   const buildOverflowMenuItems = useCallback(
-    (userId: string): OverflowMenuItem[] => {
+    (userId: string | null): OverflowMenuItem[] => {
       const items: OverflowMenuItem[] = [
         {
           icon: UserRoundPen,
           label: 'Reassign All',
           onClick: () => setReassigningUserId(userId),
         },
-        {
+      ];
+      if (userId !== null) {
+        items.push({
           icon: UserRoundX,
           label: 'Unassign All',
           onClick: () => {
@@ -85,8 +87,8 @@ export function ByUserTab({
             }
           },
           danger: true,
-        },
-      ];
+        });
+      }
       return items;
     },
     [onBulkUnassign]
@@ -118,8 +120,7 @@ export function ByUserTab({
               ? 'currentUser'
               : 'otherUser';
           const isReassigning = reassigningUserId === userAssignment.userId;
-          const showOverflowMenu =
-            canManageStorage && !isUnassigned && userAssignment.userId && !isReassigning;
+          const showOverflowMenu = canManageStorage && !isReassigning;
           const metaParts = [
             userAssignment.rackCount > 0
               ? `${userAssignment.rackCount} ${userAssignment.rackCount === 1 ? 'rack' : 'racks'}`
@@ -161,7 +162,7 @@ export function ByUserTab({
                           onKeyDown={e => e.stopPropagation()}
                         >
                           <OverflowMenu
-                            items={buildOverflowMenuItems(userAssignment.userId!)}
+                            items={buildOverflowMenuItems(userAssignment.userId)}
                             dividerBefore={['Unassign All']}
                             size="sm"
                             aria-label={`Actions for ${userAssignment.displayName}`}
@@ -193,16 +194,16 @@ export function ByUserTab({
                         users={users.filter(u => u.id !== userAssignment.userId)}
                         onChange={toUserId => {
                           if (toUserId && onBulkReassign) {
-                            onBulkReassign(userAssignment.userId!, toUserId);
+                            onBulkReassign(userAssignment.userId ?? undefined, toUserId);
                           }
-                          setReassigningUserId(null);
+                          setReassigningUserId(undefined);
                         }}
                         currentUserId={currentUserId}
                       />
                       <Tooltip content="Cancel" side="bottom">
                         <button
                           type="button"
-                          onClick={() => setReassigningUserId(null)}
+                          onClick={() => setReassigningUserId(undefined)}
                           className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-shade/10 transition-colors"
                         >
                           ×

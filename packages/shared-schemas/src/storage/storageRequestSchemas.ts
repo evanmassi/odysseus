@@ -85,6 +85,6 @@ export const bulkUnassignRequestSchema = z.object({
 });
 
 export const bulkReassignRequestSchema = z.object({
-  fromUserId: z.string().min(1, 'fromUserId is required'),
+  fromUserId: z.string().min(1).optional(),
   toUserId: z.string().min(1, 'toUserId is required'),
 });

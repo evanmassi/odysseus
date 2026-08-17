@@ -167,4 +167,5 @@ export const addBoxesResponseSchema = z.object({
 export const bulkOperationResponseSchema = z.object({
   racksAffected: z.number(),
   boxesAffected: z.number(),
+  protectedSkipped: z.number(),
 });

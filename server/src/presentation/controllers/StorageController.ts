@@ -549,6 +549,7 @@ export class StorageController extends BaseController {
         ResponseBuilder.success({
           racksAffected: result.racksAffected,
           boxesAffected: result.boxesAffected,
+          protectedSkipped: result.protectedSkipped,
         })
       );
     } catch (error) {
@@ -573,6 +574,7 @@ export class StorageController extends BaseController {
         ResponseBuilder.success({
           racksAffected: result.racksAffected,
           boxesAffected: result.boxesAffected,
+          protectedSkipped: result.protectedSkipped,
         })
       );
     } catch (error) {

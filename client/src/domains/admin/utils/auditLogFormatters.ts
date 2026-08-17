@@ -735,7 +735,7 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
       if (action === 'resources_bulk_reassigned') {
         return plain(
-          `${resourceSummary} — ${fromUser?.username ?? 'user'} → ${toUser?.username ?? 'user'}`
+          `${resourceSummary} — ${fromUser?.username ?? 'Unassigned/Common'} → ${toUser?.username ?? 'user'}`
         );
       }
       return plain(resourceSummary);

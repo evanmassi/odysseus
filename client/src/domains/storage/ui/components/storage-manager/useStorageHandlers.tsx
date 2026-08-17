@@ -26,19 +26,17 @@ import type { LabConfiguration, TankConfiguration } from '@odysseus/shared-schem
 
 function countAssignedResources(
   tanks: TankConfiguration[],
-  userId: string
+  userId: string | undefined
 ): { rackCount: number; boxCount: number } {
   let rackCount = 0;
   let boxCount = 0;
   for (const tank of tanks) {
     for (const rack of tank.racks) {
-      if (rack.assignedUserId === userId) rackCount++;
+      const rackOwner = rack.assignedUserId;
+      if (rackOwner === userId) rackCount++;
       for (const box of rack.boxes) {
-        if (box.assignedUserId === userId) {
-          boxCount++;
-        } else if (box.assignedUserId === undefined && rack.assignedUserId === userId) {
-          boxCount++;
-        }
+        const boxOwner = box.assignedUserId === undefined ? rackOwner : box.assignedUserId;
+        if ((boxOwner ?? undefined) === userId) boxCount++;
       }
     }
   }
@@ -250,14 +248,14 @@ export function useStorageHandlers({
     });
   };
 
-  const handleBulkReassign = (fromUserId: string, toUserId: string) => {
+  const handleBulkReassign = (fromUserId: string | undefined, toUserId: string) => {
     if (!currentLab) return;
 
     const { rackCount, boxCount } = countAssignedResources(currentLab.equipment.tanks, fromUserId);
-    const fromUserInfo = getUserInfo(fromUserId);
-    const toUserInfo = getUserInfo(toUserId);
-    const fromUsername = fromUserInfo?.username ?? 'this user';
-    const toUsername = toUserInfo?.username ?? 'the selected user';
+    const fromUsername = fromUserId
+      ? (getUserInfo(fromUserId)?.username ?? 'this user')
+      : undefined;
+    const toUsername = getUserInfo(toUserId)?.username ?? 'the selected user';
 
     modalService.showOverwriteConfirm({
       title: 'Reassign All Resources',
@@ -272,7 +270,14 @@ export function useStorageHandlers({
           <strong>
             {boxCount} box{boxCount !== 1 ? 'es' : ''}
           </strong>{' '}
-          from <strong>{fromUsername}</strong> to <strong>{toUsername}</strong>?
+          {fromUsername ? (
+            <>
+              from <strong>{fromUsername}</strong>
+            </>
+          ) : (
+            <>that nobody owns</>
+          )}{' '}
+          to <strong>{toUsername}</strong>?
         </>
       ),
       onConfirm: () => {

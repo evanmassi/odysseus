@@ -132,7 +132,7 @@ export class StorageService {
   /** Unassign all resources from a user. Used when deactivating users. */
   static async bulkUnassignResources(
     fromUserId: string
-  ): Promise<{ racksAffected: number; boxesAffected: number }> {
+  ): Promise<{ racksAffected: number; boxesAffected: number; protectedSkipped: number }> {
     return httpClient.postData(
       '/storage/bulk-unassign',
       { fromUserId },
@@ -141,12 +141,12 @@ export class StorageService {
   }
 
   static async bulkReassignResources(
-    fromUserId: string,
+    fromUserId: string | undefined,
     toUserId: string
-  ): Promise<{ racksAffected: number; boxesAffected: number }> {
+  ): Promise<{ racksAffected: number; boxesAffected: number; protectedSkipped: number }> {
     return httpClient.postData(
       '/storage/bulk-reassign',
-      { fromUserId, toUserId },
+      fromUserId ? { fromUserId, toUserId } : { toUserId },
       bulkOperationResponseSchema
     );
   }

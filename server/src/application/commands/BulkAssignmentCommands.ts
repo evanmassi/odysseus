@@ -29,43 +29,66 @@ export interface BulkUnassignResourcesCommand {
 export interface BulkReassignResourcesCommand {
   userId: string;
   labId: string;
-  fromUserId: string;
+  fromUserId?: string;
   toUserId: string;
+}
+
+export interface BulkAssignmentResult {
+  racksAffected: number;
+  boxesAffected: number;
+  protectedSkipped: number;
 }
 
 // COMMAND HANDLERS
 
-/** Applies `apply` to every rack and box currently assigned to `fromUserId` (skipping seeded
-    resources for demo users) and persists the config when anything changed. Returns counts. */
+function ownsRack(rack: { assignedUserId?: string }, fromUserId: string | undefined): boolean {
+  return rack.assignedUserId === fromUserId;
+}
+
+function ownsBox(box: { assignedUserId?: string | null }, fromUserId: string | undefined): boolean {
+  if (fromUserId === undefined) return box.assignedUserId === null;
+  return box.assignedUserId === fromUserId;
+}
+
 async function applyBulkAssignment(
   storageRepository: StorageRepository,
   currentConfig: Storage,
   user: User,
-  command: { userId: string; labId: string; fromUserId: string },
+  command: { userId: string; labId: string; fromUserId?: string },
   saveMessage: string,
   apply: (holder: { assignedUserId?: string | null }) => void
-): Promise<{ racksAffected: number; boxesAffected: number }> {
+): Promise<BulkAssignmentResult> {
   const configData = currentConfig.toData();
+  const isProtected = (holder: { isSeeded?: boolean }): boolean => user.isDemo && !!holder.isSeeded;
   let racksAffected = 0;
   let boxesAffected = 0;
+  let protectedSkipped = 0;
 
   for (const tank of configData.tanks) {
     for (const rack of tank.racks) {
-      if (rack.assignedUserId === command.fromUserId && !(user.isDemo && rack.isSeeded)) {
-        apply(rack);
-        racksAffected++;
+      if (ownsRack(rack, command.fromUserId)) {
+        if (isProtected(rack)) {
+          protectedSkipped++;
+        } else {
+          apply(rack);
+          racksAffected++;
+        }
       }
       for (const box of rack.boxes) {
-        if (box.assignedUserId === command.fromUserId && !(user.isDemo && box.isSeeded)) {
-          apply(box);
-          boxesAffected++;
+        if (ownsBox(box, command.fromUserId)) {
+          if (isProtected(box)) {
+            protectedSkipped++;
+          } else {
+            apply(box);
+            boxesAffected++;
+          }
         }
       }
     }
   }
 
   if (racksAffected === 0 && boxesAffected === 0) {
-    return { racksAffected: 0, boxesAffected: 0 };
+    return { racksAffected: 0, boxesAffected: 0, protectedSkipped };
   }
 
   const expectedVersion = currentConfig.version;
@@ -82,7 +105,7 @@ async function applyBulkAssignment(
   );
   currentConfig.applyPersistedVersion(newVersion);
 
-  return { racksAffected, boxesAffected };
+  return { racksAffected, boxesAffected, protectedSkipped };
 }
 
 /** Unassigns all resources (racks and boxes) from a user. */
@@ -93,9 +116,7 @@ export class BulkUnassignResourcesCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(
-    command: BulkUnassignResourcesCommand
-  ): Promise<{ racksAffected: number; boxesAffected: number }> {
+  async handle(command: BulkUnassignResourcesCommand): Promise<BulkAssignmentResult> {
     const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
@@ -111,7 +132,7 @@ export class BulkUnassignResourcesCommandHandler {
       throw new NotFoundError('The user you are reassigning from could not be found.');
     }
 
-    const { racksAffected, boxesAffected } = await applyBulkAssignment(
+    const { racksAffected, boxesAffected, protectedSkipped } = await applyBulkAssignment(
       this.storageRepository,
       currentConfig,
       user,
@@ -123,7 +144,7 @@ export class BulkUnassignResourcesCommandHandler {
     );
 
     if (racksAffected === 0 && boxesAffected === 0) {
-      return { racksAffected: 0, boxesAffected: 0 };
+      return { racksAffected: 0, boxesAffected: 0, protectedSkipped };
     }
 
     const event = new BulkResourcesUnassignedEvent(
@@ -136,11 +157,10 @@ export class BulkUnassignResourcesCommandHandler {
     );
     await this.eventBus.publish(event);
 
-    return { racksAffected, boxesAffected };
+    return { racksAffected, boxesAffected, protectedSkipped };
   }
 }
 
-/** Reassigns all resources (racks and boxes) from one user to another. */
 export class BulkReassignResourcesCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -148,9 +168,7 @@ export class BulkReassignResourcesCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(
-    command: BulkReassignResourcesCommand
-  ): Promise<{ racksAffected: number; boxesAffected: number }> {
+  async handle(command: BulkReassignResourcesCommand): Promise<BulkAssignmentResult> {
     if (command.fromUserId === command.toUserId) {
       throw new ValidationError('Cannot reassign resources to the same user');
     }
@@ -165,8 +183,10 @@ export class BulkReassignResourcesCommandHandler {
       throw PermissionError.configurationManagement('bulk reassign resources', command.userId);
     }
 
-    const fromUser = await this.userRepository.findById(command.fromUserId, command.labId);
-    if (!fromUser) {
+    const fromUser = command.fromUserId
+      ? await this.userRepository.findById(command.fromUserId, command.labId)
+      : undefined;
+    if (command.fromUserId && !fromUser) {
       throw new NotFoundError('The user you are reassigning from could not be found.');
     }
 
@@ -175,25 +195,26 @@ export class BulkReassignResourcesCommandHandler {
       throw new NotFoundError('The user you are reassigning to could not be found.');
     }
 
-    const { racksAffected, boxesAffected } = await applyBulkAssignment(
+    const source = fromUser ? `'${fromUser.username}'` : 'the unassigned pool';
+    const { racksAffected, boxesAffected, protectedSkipped } = await applyBulkAssignment(
       this.storageRepository,
       currentConfig,
       user,
       command,
-      `Bulk reassigned resources from '${fromUser.username}' to '${toUser.username}'`,
+      `Bulk reassigned resources from ${source} to '${toUser.username}'`,
       holder => {
         holder.assignedUserId = command.toUserId;
       }
     );
 
     if (racksAffected === 0 && boxesAffected === 0) {
-      return { racksAffected: 0, boxesAffected: 0 };
+      return { racksAffected: 0, boxesAffected: 0, protectedSkipped };
     }
 
     const event = new BulkResourcesReassignedEvent(
       command.userId,
       command.fromUserId,
-      fromUser.username,
+      fromUser?.username,
       command.toUserId,
       toUser.username,
       racksAffected,
@@ -202,6 +223,6 @@ export class BulkReassignResourcesCommandHandler {
     );
     await this.eventBus.publish(event);
 
-    return { racksAffected, boxesAffected };
+    return { racksAffected, boxesAffected, protectedSkipped };
   }
 }

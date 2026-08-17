@@ -448,8 +448,8 @@ export class BulkResourcesUnassignedEvent extends DomainEvent {
 export class BulkResourcesReassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
-    public readonly fromUserId: string,
-    public readonly fromUsername: string,
+    public readonly fromUserId: string | undefined,
+    public readonly fromUsername: string | undefined,
     public readonly toUserId: string,
     public readonly toUsername: string,
     public readonly racksAffected: number,

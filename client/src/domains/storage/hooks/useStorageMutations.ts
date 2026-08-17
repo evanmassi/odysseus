@@ -28,6 +28,33 @@ function invalidateOnConflict(
   };
 }
 
+function notifyBulkAssignmentResult(
+  result: { racksAffected: number; boxesAffected: number; protectedSkipped: number },
+  summary: string,
+  nothingMatched: string
+) {
+  const { racksAffected, boxesAffected, protectedSkipped } = result;
+  const protectedNote =
+    protectedSkipped === 1
+      ? '1 demo record was protected and left in place'
+      : `${protectedSkipped} demo records were protected and left in place`;
+
+  if (racksAffected + boxesAffected === 0) {
+    if (protectedSkipped > 0) {
+      notifications.warning(`Nothing changed — ${protectedNote}`);
+    } else {
+      notifications.info(nothingMatched);
+    }
+    return;
+  }
+
+  if (protectedSkipped > 0) {
+    notifications.warning(`${summary}. ${protectedNote}`);
+  } else {
+    notifications.success(summary);
+  }
+}
+
 export const useAddTankMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -288,14 +315,11 @@ export const useBulkUnassignMutation = () => {
 
     onSuccess: data => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
-      const total = data.racksAffected + data.boxesAffected;
-      if (total > 0) {
-        notifications.success(
-          `Unassigned ${data.racksAffected} rack(s) and ${data.boxesAffected} box(es)`
-        );
-      } else {
-        notifications.info('No resources were assigned to this user');
-      }
+      notifyBulkAssignmentResult(
+        data,
+        `Unassigned ${data.racksAffected} rack(s) and ${data.boxesAffected} box(es)`,
+        'No resources were assigned to this user'
+      );
     },
 
     onError: invalidateOnConflict(queryClient, labId),
@@ -308,19 +332,16 @@ export const useBulkReassignMutation = () => {
 
   return useMutation({
     mutationKey: ['storage', 'bulkReassign'],
-    mutationFn: ({ fromUserId, toUserId }: { fromUserId: string; toUserId: string }) =>
+    mutationFn: ({ fromUserId, toUserId }: { fromUserId?: string; toUserId: string }) =>
       StorageService.bulkReassignResources(fromUserId, toUserId),
 
     onSuccess: data => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
-      const total = data.racksAffected + data.boxesAffected;
-      if (total > 0) {
-        notifications.success(
-          `Reassigned ${data.racksAffected} rack(s) and ${data.boxesAffected} box(es)`
-        );
-      } else {
-        notifications.info('No resources were assigned to the source user');
-      }
+      notifyBulkAssignmentResult(
+        data,
+        `Reassigned ${data.racksAffected} rack(s) and ${data.boxesAffected} box(es)`,
+        'There was nothing to reassign'
+      );
     },
 
     onError: invalidateOnConflict(queryClient, labId),
