@@ -43,7 +43,7 @@ import {
   DemoLockIndicator,
   LoadingSpinner,
 } from '@shared/ui';
-import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
+import { BaseModal } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
@@ -93,9 +93,15 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
 
   const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
 
+  const lastTubeRef = useRef(tube);
+  if (tube) {
+    lastTubeRef.current = tube;
+  }
+  const displayTube = tube ?? lastTubeRef.current;
+
   useTubeModalFocusReturn();
 
-  if (isError) {
+  if (isOpen && isError) {
     return (
       <InfoDialog
         isOpen={isOpen}
@@ -108,7 +114,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
     );
   }
 
-  if (isFetchingTube || !tube) {
+  if (isFetchingTube || !displayTube) {
     return (
       <BaseModal
         isOpen={isOpen}
@@ -130,7 +136,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   return (
     <EditModeForm
       isOpen={isOpen}
-      tube={tube}
+      tube={displayTube}
       tubeId={tubeId}
       researchers={researchers}
       speciesOptions={speciesOptions}
@@ -163,7 +169,6 @@ function EditModeForm({
   onClose,
 }: EditModeFormProps) {
   const modalService = useModalStore();
-  const modalRef = useRef<BaseModalHandle>(null);
   const isDemoLockedTube = useDemoItemLock();
   const isLocked = isDemoLockedTube(tube);
   // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
@@ -251,7 +256,7 @@ function EditModeForm({
 
       if (result.success) {
         notifications.success('Tube updated successfully');
-        modalRef.current?.requestClose();
+        onClose();
       } else {
         setIsSavingLocal(false);
       }
@@ -282,7 +287,6 @@ function EditModeForm({
 
   return (
     <BaseModal
-      ref={modalRef}
       isOpen={isOpen}
       title="Edit Tube"
       icon={<Edit className="w-5 h-5" />}
@@ -312,11 +316,7 @@ function EditModeForm({
             <span />
           )}
           <div className="flex items-center justify-end space-x-4">
-            <Button
-              variant="secondary"
-              onClick={() => modalRef.current?.requestClose()}
-              disabled={isSubmitting}
-            >
+            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
             {isLocked ? (
@@ -430,8 +430,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
   const [allowOverwrite, setAllowOverwrite] = useState(false);
 
-  const modalRef = useRef<BaseModalHandle>(null);
-
   useTubeModalFocusReturn();
 
   const parsedPositions = useMemo(() => {
@@ -541,7 +539,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     onSuccess: isSingleTube
       ? data => {
           notifications.success(`Successfully created tube at position ${data.location.position}`);
-          modalRef.current?.requestClose();
+          onClose();
         }
       : undefined, // Bulk mode: notification handled after all tubes are created
   });
@@ -567,7 +565,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         const result = await submitTube(formData, parsedPositions[0].location);
 
         if (result.success) {
-          modalRef.current?.requestClose();
+          onClose();
         }
         return;
       }
@@ -666,7 +664,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
               : `Successfully updated tube at position ${positionRange}`;
           notifications.success(message);
         }
-        modalRef.current?.requestClose();
+        onClose();
       } else if (successCount > 0) {
         notifications.warning(
           `Processed ${successCount} of ${attemptedCount} positions. ${errorCount} failed.`
@@ -713,7 +711,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
   return (
     <BaseModal
-      ref={modalRef}
       isOpen={isOpen}
       title={`Add ${parsedPositions.length > 1 ? parsedPositions.length : ''} Tube${parsedPositions.length > 1 ? 's' : ''}`}
       icon={<Plus className="w-5 h-5" />}

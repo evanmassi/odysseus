@@ -31,7 +31,7 @@ import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConf
 import { useUserSettings } from '@domains/users';
 import { logger } from '@infra/logger';
 import { AccentTick, AlertBanner, Button } from '@shared/ui';
-import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
+import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
@@ -132,11 +132,15 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
 
   // Fetch specific tubes by ID - ensures fresh data regardless of cache state
-  const { data: tubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
+  const { data: fetchedTubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
+
+  const lastTubesRef = useRef(fetchedTubes);
+  if (fetchedTubes.length > 0) {
+    lastTubesRef.current = fetchedTubes;
+  }
+  const tubes = fetchedTubes.length > 0 ? fetchedTubes : lastTubesRef.current;
 
   useTubeModalFocusReturn();
-
-  const modalRef = useRef<BaseModalHandle>(null);
 
   const conflictAnalysis = useMemo(() => {
     const analysis = {
@@ -338,7 +342,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       if (bulkResult.success) {
         notifications.success(`Updated ${tubeIds.length} tubes successfully`);
         setShowProgress(false);
-        modalRef.current?.requestClose();
+        onClose();
       } else {
         notifications.error('Some tubes failed to update');
       }
@@ -395,7 +399,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       if (retryResult.success) {
         notifications.success(`Retry successful: Updated ${retryResult.successCount} tubes`);
         setShowProgress(false);
-        modalRef.current?.requestClose();
+        onClose();
       } else {
         notifications.warning(
           `Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`
@@ -517,7 +521,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   );
 
   // Handle case where all selected tubes were deleted/moved (only after loading completes)
-  if (!isTubesLoading && tubes.length === 0) {
+  if (isOpen && !isTubesLoading && fetchedTubes.length === 0) {
     return (
       <InfoDialog
         isOpen={isOpen}
@@ -536,7 +540,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   return (
     <>
       <BaseModal
-        ref={modalRef}
         isOpen={isOpen}
         title={`Edit ${tubes.length} Tubes`}
         icon={<Edit className="w-5 h-5" />}
@@ -565,11 +568,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
               <span />
             )}
             <div className="flex justify-end space-x-4">
-              <Button
-                variant="secondary"
-                onClick={() => modalRef.current?.requestClose()}
-                disabled={isSubmitting}
-              >
+              <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button

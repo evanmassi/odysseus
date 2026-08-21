@@ -14,7 +14,9 @@ import {
   TubeLockModal,
   TubeShareAccessModal,
 } from '@domains/tubes';
+import { useDelayedUnmount } from '@shared/hooks';
 import { LazyModalBoundary } from '@shared/ui';
+import { MODAL_EXIT_DURATION_MS } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConfirmDialog';
 
@@ -37,34 +39,39 @@ export function BiobankModals({ currentUserId, tubes }: BiobankModalsProps) {
     modalService.hideTubeEditorModal();
   };
 
+  const isTubeEditorMounted = useDelayedUnmount(
+    modalService.tubeEditorModal.isOpen,
+    MODAL_EXIT_DURATION_MS
+  );
+
   return (
     <>
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add' && (
+      {isTubeEditorMounted && modalService.tubeEditorModal.mode === 'add' && (
         <LazyModalBoundary name="TubeEditorModal-Add">
           <TubeEditorModal
-            isOpen
+            isOpen={modalService.tubeEditorModal.isOpen}
             onClose={handleCloseModal}
             selectedPositions={modalPositionsSet}
           />
         </LazyModalBoundary>
       )}
 
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit' && (
+      {isTubeEditorMounted && modalService.tubeEditorModal.mode === 'edit' && (
         <LazyModalBoundary name="TubeEditorModal-Edit">
           <TubeEditorModal
-            isOpen
+            isOpen={modalService.tubeEditorModal.isOpen}
             tubeId={modalService.tubeEditorModal.tubeId}
             onClose={handleCloseModal}
           />
         </LazyModalBoundary>
       )}
 
-      {modalService.tubeEditorModal.isOpen &&
+      {isTubeEditorMounted &&
         modalService.tubeEditorModal.mode === 'bulk' &&
         (modalService.tubeEditorModal.tubeIds ?? []).length > 0 && (
           <LazyModalBoundary name="TubeBulkEditorModal">
             <TubeBulkEditorModal
-              isOpen
+              isOpen={modalService.tubeEditorModal.isOpen}
               tubeIds={modalService.tubeEditorModal.tubeIds ?? []}
               onClose={handleCloseModal}
             />
