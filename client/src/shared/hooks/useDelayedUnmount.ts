@@ -1,3 +1,10 @@
+/**
+ * Delayed Unmount Hook
+ *
+ * Keeps a subtree mounted for the length of its exit animation after isOpen
+ * goes false, so a parent's conditional render doesn't cut the animation short.
+ */
+
 import { useState, useEffect, useRef } from 'react';
 
 export function useDelayedUnmount(isOpen: boolean, exitDuration: number): boolean {
