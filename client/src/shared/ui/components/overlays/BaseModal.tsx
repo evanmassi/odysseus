@@ -63,7 +63,7 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   full: 'max-w-[90vw]',
 };
 
-const EXIT_DURATION_MS = 300;
+export const MODAL_EXIT_DURATION_MS = 300;
 
 export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function BaseModal(
   {
@@ -94,7 +94,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
     onClose,
-    exitDuration: EXIT_DURATION_MS,
+    exitDuration: MODAL_EXIT_DURATION_MS,
   });
 
   useImperativeHandle(ref, () => ({ requestClose: triggerClose }), [triggerClose]);

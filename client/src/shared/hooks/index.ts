@@ -6,6 +6,7 @@
 
 export { useAnimatedClose } from './useAnimatedClose';
 export { useDebounce } from './useDebounce';
+export { useDelayedUnmount } from './useDelayedUnmount';
 export { useEditModalForm } from './useEditModalForm';
 export { useFocusTrap } from './useFocusTrap';
 export { useIconPop } from './useIconPop';
