@@ -5,11 +5,12 @@
  */
 
 import {
-  adminResearcherSchema,
   adminResearchersListSchema,
+  researcherSchema,
   type AdminResearcher,
   type AdminResearchersList,
   type CreateResearcherProfile,
+  type Researcher,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -49,8 +50,8 @@ class AdminResearcherService {
     });
   }
 
-  async createResearcher(data: CreateResearcherProfile): Promise<AdminResearcher> {
-    return await httpClient.postData('/researchers', data, adminResearcherSchema);
+  async createResearcher(data: CreateResearcherProfile): Promise<Researcher> {
+    return await httpClient.postData('/researchers', data, researcherSchema);
   }
 }
 
