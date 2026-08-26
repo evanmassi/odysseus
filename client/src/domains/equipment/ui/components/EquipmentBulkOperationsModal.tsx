@@ -63,6 +63,12 @@ const TABS = [
   },
 ];
 
+const ACTION_LABELS: Record<BulkActionType, string> = {
+  maintenance: 'Log Maintenance',
+  status: 'Change Status',
+  relocate: 'Relocate',
+};
+
 const BULK_SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
   countNoun: ['unit', 'units'],
   filterPlaceholder: 'Filter equipment…',
@@ -79,7 +85,6 @@ export function EquipmentBulkOperationsModal({
   categories,
 }: EquipmentBulkOperationsModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [actionType, setActionType] = useState<BulkActionType>('maintenance');
   const [isFormValid, setIsFormValid] = useState(false);
   const [pendingAction, setPendingAction] = useState<EquipmentBulkAction | null>(null);
   const bulkMutation = useEquipmentBulkUpdateMutation();
@@ -129,19 +134,10 @@ export function EquipmentBulkOperationsModal({
 
   const handleClose = useCallback(() => {
     setSelectedIds(new Set());
-    setActionType('maintenance');
     setIsFormValid(false);
     setPendingAction(null);
     onClose();
   }, [onClose]);
-
-  const actionLabels: Record<BulkActionType, string> = {
-    maintenance: 'Log Maintenance',
-    status: 'Change Status',
-    relocate: 'Relocate',
-  };
-
-  const itemLabel = selectedIds.size === 1 ? 'item' : 'items';
 
   return (
     <>
@@ -159,7 +155,7 @@ export function EquipmentBulkOperationsModal({
         selectorLabels={BULK_SELECTOR_LABELS}
         onReset={() => setIsFormValid(false)}
         selectorAction={() => undefined}
-        renderSelectorFooterAction={() => (
+        renderSelectorFooterAction={tabId => (
           <Button
             type="submit"
             form="bulk-action-form"
@@ -167,7 +163,7 @@ export function EquipmentBulkOperationsModal({
             disabled={selectedIds.size === 0 || !isFormValid}
             isLoading={bulkMutation.isPending}
           >
-            {actionLabels[actionType]} for {selectedIds.size} {itemLabel}
+            {ACTION_LABELS[tabId as BulkActionType]} ({selectedIds.size})
           </Button>
         )}
         renderTab={tabId => {
@@ -205,8 +201,8 @@ export function EquipmentBulkOperationsModal({
           isOpen={true}
           variant="warning"
           title="Confirm Bulk Operation"
-          message={`${actionLabels[pendingAction.type]} for ${pendingAction.itemIds.length} ${pendingAction.itemIds.length === 1 ? 'item' : 'items'}?`}
-          confirmText="Apply"
+          message={`${ACTION_LABELS[pendingAction.type]} for ${pendingAction.itemIds.length} ${pendingAction.itemIds.length === 1 ? 'unit' : 'units'}?`}
+          confirmText={ACTION_LABELS[pendingAction.type]}
           onConfirm={confirmAction}
           onCancel={() => setPendingAction(null)}
           isLoading={bulkMutation.isPending}
