@@ -364,8 +364,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                     );
                   })}
 
-                  {/* Direct items (categories without subcategories) sit at the mid tier */}
-                  {subs.length === 0 && directItems.length > 0 && (
+                  {directItems.length > 0 && (
                     <div className="nav-tree-well">
                       {directItems.map(item => (
                         <div key={item.id} data-level="l2" data-id={item.id}>
