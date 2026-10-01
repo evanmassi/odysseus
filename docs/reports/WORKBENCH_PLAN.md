@@ -1,0 +1,681 @@
+# Workbench: Implementation Plan
+
+Living plan for the scientist-facing side of Odysseus. Everything built so far is the lab's
+**system of record** (what we have, where it is). The workbench is where a scientist **plans work**:
+flow cytometry panels first, general protocols and calculators after. This doc is the shared source
+of truth; we iterate on it until it is right, then build.
+
+**Status:** draft 8. Nothing is built. Branch `feature/workbench`, not yet created.
+
+### Progress ledger (details in §13)
+
+- [ ] Design: static studies for the five screens, approved
+- [ ] Phase 0: unit conversions
+- [ ] Phase 1: workbench foundation (protocols, versions, shell)
+- [ ] Phase 2: protocol editor
+- [ ] Phase 3: calculator + runs
+- [ ] Phase 3b: run checklist, hints, help
+- [ ] Phase 4a: shared grid extraction
+- [ ] Phase 4b: samples + layout
+- [ ] Phase 5: export
+- [ ] Phase 6: lab sharing
+- [ ] Phase 7: inventory link
+- [ ] Phase 8: individuals (role + safety fixes)
+- [ ] Phase 9: individuals (invites + sys admin tab)
+
+> **Authoring standard.** Every file is authored to the **Donor exemplars** in AGENTS.md. Gate before
+> writing code, one phase at a time, tick the ledger and commit per phase when told. **Every screen is
+> mocked up and approved before it is built.**
+
+---
+
+## Table of Contents
+
+1. [The higher view](#1-the-higher-view)
+2. [v1 feature set](#2-v1-feature-set)
+3. [Locked decisions](#3-locked-decisions)
+4. [Concepts](#4-concepts)
+5. [The workflow](#5-the-workflow)
+6. [Samples and layout](#6-samples-and-layout)
+7. [The calculator](#7-the-calculator)
+8. [Ownership and sharing](#8-ownership-and-sharing)
+9. [Individuals](#9-individuals)
+10. [Data model](#10-data-model)
+11. [What already exists](#11-what-already-exists)
+12. [Screens](#12-screens)
+13. [Build phasing](#13-build-phasing)
+14. [Open questions](#14-open-questions)
+15. [Later passes](#15-later-passes)
+
+---
+
+## 1. The higher view
+
+Two ideas carry the whole design.
+
+**The protocol is the base document: an ordered workflow of steps.** Some steps add reagents (Fc
+block, surface stain), some do not (wash, spin, incubate). A flow panel is what a protocol looks like
+when its reagent steps hold antibodies. If the panel builder were built as its own thing, protocol
+reuse, amendment and export would have to be bolted on later. Built this way, a staining protocol and
+a 96 h cytotoxicity assay are the same kind of document.
+
+**The recipe is separate from the day you use it.** A _protocol_ holds what never changes run to run:
+reagents, amount per test, steps. A _run_ holds today's numbers: sample count, cell number, lots,
+notes. Every volume is calculated from those inputs, so "edit an old document and change all the
+numbers around" becomes "change two inputs."
+
+---
+
+## 2. v1 feature set
+
+- **Protocols.** Create, edit, duplicate, archive. Each save is a new version with an optional note.
+- **Workflow.** An ordered list of steps built from presets (§5): reagent steps, washes, spins,
+  incubations, resuspension, notes.
+- **Panel view.** Every reagent row across the workflow in one table, plus controls.
+- **Variants.** A skeleton protocol with specific variants under it.
+- **Runs.** "Use this protocol" makes a dated working copy. Lay out today's samples, get master mix
+  volumes. Record lot numbers and notes. Completing a run freezes it.
+- **Samples and layout.** A plate or tube map where each well is described by scientist-defined
+  fields (§6), built for bulk editing. The counts the calculator needs come from it.
+- **Save back.** A tweak made in a run can be saved back to the protocol, or saved as a new protocol.
+- **Export.** A tidy print view of a protocol or a run, saved to PDF from the browser.
+- **Lab sharing.** A protocol is private or shared with the owner's lab.
+- **Inventory link (lab members only).** A reagent row can point at a reagent item to show stock and
+  expiry. Typing a reagent by hand always works.
+- **Individuals.** Invite-only solo accounts that see the workbench and nothing else.
+
+---
+
+## 3. Locked decisions
+
+| #   | Decision                        | Choice                                                                                                                                                                                                                                   |
+| --- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| W1  | Where it lives                  | Inside Odysseus as a new top-level suite. Not a separate app.                                                                                                                                                                            |
+| W2  | Base document                   | The **protocol**: an ordered workflow of steps. The flow panel is a view of its reagent steps.                                                                                                                                           |
+| W3  | Reuse model                     | **Protocol + run.** A completed run is a frozen snapshot.                                                                                                                                                                                |
+| W4  | Ownership                       | Workbench documents belong to the **person**. Inventory stays with the lab.                                                                                                                                                              |
+| W5  | Visibility                      | Private, or shared with the owner's lab.                                                                                                                                                                                                 |
+| W6  | Leaving a lab                   | The lab **keeps a copy** of every protocol the person had shared.                                                                                                                                                                        |
+| W7  | Antibody amount                 | Per row, any of: µL per test, dilution (1:N), target concentration.                                                                                                                                                                      |
+| W8  | Individuals                     | A user with **no lab** and a new **`individual` role**. Workbench only, no inventory.                                                                                                                                                    |
+| W9  | Individual signup               | Invite code only, and only the system admin mints them.                                                                                                                                                                                  |
+| W10 | Multi-lab membership            | Not needed. One person, at most one lab.                                                                                                                                                                                                 |
+| W11 | Instruments, spectral conflicts | Later passes (§15).                                                                                                                                                                                                                      |
+| W12 | Email                           | Resend, later, for self-serve password reset and emailed invites. Not part of this plan.                                                                                                                                                 |
+| W13 | Edit rights                     | A shared protocol is edited by its owner and the lab's admins. Any member can duplicate it into their own. **Nobody is locked into the lab's version.**                                                                                  |
+| W14 | Runs                            | Shareable with the lab, same rule as protocols.                                                                                                                                                                                          |
+| W15 | Build order                     | Workbench first, individuals second.                                                                                                                                                                                                     |
+| W16 | Removed from a lab              | The system admin chooses: delete the user, or convert them to an individual.                                                                                                                                                             |
+| W17 | Joining a lab                   | The system admin's "move into lab" only, in v1.                                                                                                                                                                                          |
+| W18 | Final resuspension volume       | The volume samples are resuspended in before acquisition. Lives on the final _Resuspend_ step.                                                                                                                                           |
+| W19 | Demo site                       | The demo lab ships a sample panel, after Phase 3.                                                                                                                                                                                        |
+| W20 | Variants                        | The parent is a **skeleton**: the basic recommended workflow. A variant is a full, independent copy made from it for a specific experiment. Nothing is inherited. Two levels only for now: no variants of variants.                      |
+| W21 | Scaling with cells              | No automatic scaling. The row stores the amount actually used; a run can override any row.                                                                                                                                               |
+| W22 | Workflow steps                  | The user builds the step list from presets and uses only the steps the experiment needs.                                                                                                                                                 |
+| W23 | Lab shutdown                    | Never permanent. Members of a switched-off lab can still sign in, to the workbench only. Switching the lab back on restores everything.                                                                                                  |
+| W24 | Timing                          | Steps carry durations. No live timers or clock times on a run.                                                                                                                                                                           |
+| W25 | Label amount                    | Entered once as it reads on the vial. "Amount used" starts as a copy of it and is changed only when the user titrates down.                                                                                                              |
+| W26 | Plate / tube map                | Part of v1, and a valid place to **start** a run: lay out the samples first and the counts follow.                                                                                                                                       |
+| W27 | Well identity                   | Wells hold one value per **field**. Fields are whatever the scientist defines; none are fixed except Stain. Any one field can be changed across many wells without touching the others.                                                  |
+| W28 | Plate sizes                     | Tubes, and 6 to 384-well plates. Optional per protocol; 96 is the default.                                                                                                                                                               |
+| W29 | Replicates                      | Separate wells with the same values.                                                                                                                                                                                                     |
+| W30 | Step list                       | The §5 list stands for now and is refined in use.                                                                                                                                                                                        |
+| W31 | Plates per run                  | One or more. Fields and values are shared across a run's plates.                                                                                                                                                                         |
+| W32 | Serial dilutions                | In v1. A field can hold numbers with a unit and be filled as a dilution series.                                                                                                                                                          |
+| W33 | Reusing fields                  | Carried by the protocol's default layout for now.                                                                                                                                                                                        |
+| W34 | Mockups                         | Every screen is mocked up and approved before it is built.                                                                                                                                                                               |
+| W35 | Run sheet                       | One document, laid out like a supplier's protocol sheet but interactive: reagents, plate map and mix volumes together, steps below with the day's numbers filled in. Used on a laptop at the bench **or** printed and annotated by hand. |
+| W36 | Checklist                       | A run's steps are ticked off as they are done, so the current step is always visible. Steps can carry hints and links.                                                                                                                   |
+| W40 | Tube grid                       | Its selection logic is shared with the plate map, not copied, under the safeguards in §12.4.                                                                                                                                             |
+| W41 | Branch                          | All work happens on `feature/workbench`, verified in dev before anything reaches production.                                                                                                                                             |
+| W42 | Dilution prep                   | A run works out how to make each dilution series: transfer volume, diluent volume, stock needed for the top point. Same calculator module.                                                                                               |
+| W38 | Reordering steps                | Move-up / move-down buttons. No drag-and-drop library.                                                                                                                                                                                   |
+| W39 | First mockup                    | The run sheet.                                                                                                                                                                                                                           |
+| W37 | Reuse                           | Built from the existing primitives, chassis and tokens. A new shared piece is added only for a real gap, in the shared layer, to the same standard as the rest.                                                                          |
+
+---
+
+## 4. Concepts
+
+| Term            | Meaning                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| **Protocol**    | The recipe: settings, an ordered workflow, controls. Versioned. Owned by a person.       |
+| **Step**        | One entry in the workflow. Has a type (§5) and that type's parameters.                   |
+| **Reagent row** | One reagent inside a reagent step: an antibody, a dye, a block, a buffer additive.       |
+| **Field**       | Something a well is identified by, named by the scientist: Donor, Condition, Timepoint.  |
+| **Version**     | An append-only save of a protocol's content. Old versions are never rewritten.           |
+| **Run**         | A dated working copy of one protocol version, plus that day's inputs, lots and notes.    |
+| **Skeleton**    | A parent protocol: the basic workflow. _Cytotoxicity assay_.                             |
+| **Variant**     | A protocol made from a skeleton and listed under it. _96-well format_; _extended, 96 h_. |
+
+A variant is a complete copy, free to diverge. Two levels only: a variant has no variants of its own.
+Runs can start from a skeleton or a variant.
+
+A run moves through two states: **draft** (editable, recalculates live) and **completed** (frozen,
+stores the calculated volumes so a later formula change cannot rewrite the record).
+
+---
+
+## 5. The workflow
+
+### Step types
+
+A protocol is an ordered list of steps. Add, remove, reorder, rename. Times are durations (W24). See
+Q11 for whether this list is complete.
+
+| Type             | Parameters                                                                        | Presets                                                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Add reagents** | Reagent rows, volume per sample, buffer, incubation time, temperature, light/dark | Fc block, viability stain, surface stain, primary stain, secondary stain, tetramer stain, fixation, permeabilization, intracellular stain |
+| **Wash**         | Buffer, volume, number of washes, spin settings                                   |                                                                                                                                           |
+| **Centrifuge**   | Speed (× g), time, temperature                                                    |                                                                                                                                           |
+| **Incubate**     | Time, temperature, light/dark                                                     |                                                                                                                                           |
+| **Resuspend**    | Buffer, volume                                                                    | Final resuspension before acquisition                                                                                                     |
+| **Note**         | Free text                                                                         | Acquire, count cells, anything else                                                                                                       |
+
+Each _Add reagents_ step is its own mix with its own volume and buffer. A T-cell-only panel has no Fc
+block step; a surface-only panel has no fix/perm or intracellular steps. Nothing is required.
+
+### Reagent rows
+
+| Field               | Notes                                                                                                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Marker / target     | CD4, CD8, Live/Dead. Blank for a non-antibody reagent                                                                                  |
+| Fluorochrome        | BV421, PE-Cy7. Blank when unconjugated                                                                                                 |
+| Clone               | Optional                                                                                                                               |
+| Kind                | Antibody, viability dye, Fc block, other (Brilliant Stain Buffer, fix buffer)                                                          |
+| Label amount        | Optional. Type + value as printed on the vial (5 µL/test)                                                                              |
+| Amount used         | Type + value, per W7. What the calculator reads. Starts as a copy of the label amount; change it when you titrate (1:200, for example) |
+| Stock concentration | Required only when the amount is a target concentration                                                                                |
+| Vendor / catalog #  | Optional                                                                                                                               |
+| Linked reagent item | Optional, lab members only (§8, Phase 7)                                                                                               |
+| Notes               | Free text                                                                                                                              |
+
+The lot number is recorded on the **run**, not the protocol.
+
+### Panel view
+
+One table of every reagent row that has a fluorochrome, across all steps: marker, fluorochrome,
+clone, step, amount. This is the "panel" a flow scientist expects to see, and it is where later
+instrument and spectral checks attach.
+
+### Controls
+
+One general idea covers every control: **a control is a named subset of the panel's rows.**
+
+| Control                     | Rows included                 |
+| --------------------------- | ----------------------------- |
+| Unstained                   | None                          |
+| Single stain (compensation) | One row. Flag: cells or beads |
+| FMO                         | All rows minus one            |
+| FM-x                        | All rows minus a chosen set   |
+
+Buttons generate the common ones (unstained, single stains for every fluorochrome, FMO for ticked
+markers). Each control gets its own small mix in the calculator.
+
+### Protocol-level settings
+
+- **Format:** tubes or plate (and plate size). Sets default volumes and the shape of the map (§6).
+- **Cells per sample.** A default a run can override.
+
+---
+
+## 6. Samples and layout
+
+Planning often starts here: which samples, stained how, sitting where. So the map is not decoration
+on top of a typed sample count. It is where the counts come from.
+
+### Fields, not typed labels
+
+The tedium to avoid: a well labelled `1:5-D3-IL2-72h` as one string, where changing the donor across
+a plate means retyping every well. So a well never holds typed text. It holds **one value per field**.
+
+- **Field:** anything the scientist wants to identify a well by. They name it: Sample, Donor,
+  Condition, Timepoint, E:T ratio, Drug dose. As many or as few as the experiment needs. No fixed
+  list.
+- **Value:** one entry in a field. Donor has D1, D2, D3.
+- **Field type:** text, or a number with a unit (Drug dose in µM). Numeric fields are what make a
+  dilution series fillable.
+- **Well:** one value from each field, or blank.
+
+A well's label is assembled from its values, in an order the scientist chooses. Because wells point
+at values instead of copying text, **renaming a value once changes every well that uses it**, and
+changing one field across a plate is a single action that leaves the other fields alone.
+
+**Stain** is the one built-in field. Its values are the full stain and the controls from §5. It is
+what tells the calculator which mix a well receives.
+
+### Editing in bulk
+
+| Action               | What it does                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Select               | Drag, click a row or column header, or add wells one at a time                                                                       |
+| Assign               | Set one field's value on the whole selection                                                                                         |
+| Fill series          | Spread a field's values across the selection in order: donors down the rows, ratios across the columns                               |
+| Fill dilution series | On a numeric field: starting value, dilution factor (1:3), number of points, direction. Fills 10, 3.33, 1.11 µM across the selection |
+| Rename a value       | Updates every well using it                                                                                                          |
+| Copy / paste a block | Repeats a layout elsewhere on the plate or on another plate                                                                          |
+| Colour by field      | Shade the plate by one field at a time to check the pattern                                                                          |
+
+### Two ways in, same result
+
+- **Map first.** Open the plate, select wells, assign values. Counts follow.
+- **Count first.** Type "12 samples", tick the controls. The map auto-fills in order and can be
+  rearranged.
+
+### The rest
+
+- **Replicates.** A triplicate is three separate wells with the same values, numbered automatically.
+  Pooling them before reading is a note on the protocol.
+- **What the calculator takes.** The number of wells receiving each mix: 12 full stain, 1 unstained,
+  3 FMO. No separately typed count to drift out of step.
+- **Formats.** Tubes (a numbered list) and plates of 6, 12, 24, 48, 96 and 384 wells. Chosen per
+  protocol, changeable on the run. 96 is the default.
+- **Several plates.** A run holds one or more plates or racks. They share the run's fields and
+  values, so a donor renamed once is renamed on every plate.
+- **Skeletons and variants.** A protocol can carry a default layout with its fields and placeholder
+  values (the _96-well format_ variant's standard plate). A run starts from that and fills in real
+  names.
+- **Export** prints the map with the run.
+
+This is the same model for a flow plate and a cytotoxicity plate. Only the fields differ.
+
+---
+
+## 7. The calculator
+
+One pure calculation module, used by the editor for live numbers and by the server when a run is
+completed. Every later protocol type reuses it.
+
+**Run inputs:** the layout (§6), cells per sample, overage % (default 10).
+
+**Per-sample volume of each reagent:**
+
+| Amount type          | Volume per sample                          |
+| -------------------- | ------------------------------------------ |
+| µL per test          | The value as entered                       |
+| Dilution 1:N         | Step volume ÷ N                            |
+| Target concentration | Target × step volume ÷ stock concentration |
+
+**Per mix (one per _Add reagents_ step, plus one per control):**
+
+- Reagent volume = per-sample volume × positions receiving the mix × (1 + overage)
+- Buffer volume = step volume × positions × (1 + overage) − sum of reagent volumes
+- Warning when reagents alone exceed the step volume
+
+**Buffer totals.** Wash and resuspend steps know their buffer and volume, so the run also totals how
+much of each buffer to prepare.
+
+The label amount is only a starting point: a bright fluorochrome on a common marker often works at a
+fraction of it. So the calculator reads "amount used", which starts as the label amount and is
+changed when the user titrates (W25). A run can override any row's amount for that day. Nothing
+scales with cell number automatically (W21).
+
+**Unit conversions.** Target concentration needs µg/mL ↔ mg/mL and similar. The shared unit registry
+today holds only names and dimensions, no conversion factors. Phase 0 adds a factor to each
+convertible unit.
+
+---
+
+## 8. Ownership and sharing
+
+**Who can see a protocol or run:** its owner, or any member of the lab it is shared with.
+
+| Action              | Private | Shared with lab     |
+| ------------------- | ------- | ------------------- |
+| View, export        | Owner   | Owner + lab members |
+| Edit, archive       | Owner   | Owner + lab admins  |
+| Duplicate as my own | Owner   | Owner + lab members |
+| Start a run from it | Owner   | Owner + lab members |
+
+Runs follow the same rule: private by default, shareable with the lab (W14).
+
+**Leaving a lab (W6, W16).** Each protocol and run the person had shared stays with the lab,
+attributed to them as a former member, editable by lab admins. Then one of two things:
+
+- **Converted to an individual:** they keep their private documents and get a private copy of
+  everything they had shared.
+- **Deleted:** their private documents go with them.
+
+**A lab shutting down (W23).** Today, switching a lab off logs its members out and keeps them out.
+New rule: members of a switched-off lab can still sign in, to a workbench-only view. Inventory stays
+locked. Their private documents and the lab's shared ones remain available. Switching the lab back on
+restores everything, so nothing is converted and nothing is permanent. A member who is leaving for
+good is converted to an individual, as above.
+
+**Inventory link.** A lab member can attach a reagent row to a reagent item. The row then shows
+on-hand quantity and nearest expiry, and the run offers that item's lots to pick from. v1 does **not**
+deduct stock when a run completes. The link is a soft reference: the row keeps its own typed text,
+so a deleted item or a move out of the lab never breaks a protocol.
+
+---
+
+## 9. Individuals
+
+A solo scientist with no lab. Workbench only.
+
+### The role
+
+`individual` joins `system_admin`, `lab_admin`, `user`. The database enforces the pairing:
+
+| Role                         | Lab            |
+| ---------------------------- | -------------- |
+| `system_admin`, `individual` | Must have none |
+| `lab_admin`, `user`          | Must have one  |
+
+The migration has to check existing users against this rule first. One known oddity: the very first
+registrant on an empty database becomes a `lab_admin` with no lab.
+
+### Safety fixes that must land with the role
+
+Today the server treats "no lab" as "system admin" in three places. An individual would inherit all
+three, so they are closed in the same phase the role is added, before any individual can exist.
+
+| Where                                         | What an individual would get today                            |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| `AuditController`                             | Every lab's audit log                                         |
+| `UserController` + `UserRepository.findByIds` | User lookups across all labs                                  |
+| `SocketEventHandler`                          | A seat in the system admins' live channel and global presence |
+
+Each must decide by **role**. Lab-scoped routes need no change: `extractLabId` already rejects a
+user with no lab, which is what keeps individuals out of inventory.
+
+### Client
+
+The same inference exists on the client and moves to role checks:
+
+- `AppDashboard`: "no lab" currently renders the system admin dashboard. New rule: `system_admin` →
+  system dashboard, `individual` → workbench, everyone else → as today.
+- `AppHeader`: the suite switcher, search, Storage Manager and Donor Registry are hidden without a
+  lab. Correct for individuals already; they need a workbench-only header.
+- `SocketQueryBridge`, `SocketService`, `useStorageSync`, `SystemTab`: same inference, same fix.
+
+The many `enabled: !!labId` query guards are already right. They switch inventory queries off.
+
+### Invites
+
+Invite codes today require a lab and allow only `lab_admin` or `user`. Changes:
+
+- `invite_codes.lab_id` becomes optional; role gains `individual`; same pairing rule as users.
+- A system-admin-only endpoint mints individual invites.
+- Registration with an individual code creates a user with no lab and no researcher profile.
+
+### System admin UI
+
+Every system admin screen today hangs off a lab, so lab-less users would be invisible. A new
+**Individuals** tab on the system dashboard, patterned on `LabsPanel` and `LabUsersPanel`:
+
+- List: name, email, created, last login, protocol count
+- New individual invite
+- Suspend, deactivate, delete
+- Move into lab (sets the lab, changes the role to `user`; documents stay theirs and stay private)
+
+And on a lab's user list: **Convert to individual**, beside the existing delete.
+
+---
+
+## 10. Data model
+
+Draft. Three tables, all new.
+
+**`protocols`**: id (`prot`), owner_user_id, visibility (`private` / `lab`), lab_id (set only while
+shared), title, parent_protocol_id, current_version, archived,
+timestamps.
+
+**`protocol_versions`**: protocol_id, version, content (JSON), change_note, changed_by, created_at.
+Append-only. Saves use the same guard the storage configuration uses: the save names the version it
+was based on and is refused if someone saved in between.
+
+**`protocol_runs`**: id (`prun`), protocol_id, protocol_version, owner_user_id, visibility, lab_id,
+title, run_date, inputs (JSON: fields, plates, cells per sample, overage), content (JSON: the snapshot plus any tweaks), results (JSON: the
+calculated volumes, written on completion), notes, status (`draft` / `completed`), timestamps.
+
+**Why JSON for content.** A protocol is an ordered list of mixed step types, and a run is a frozen
+snapshot of one. Both are documents, read and written whole. The shape is still strict: one Zod
+schema in `@odysseus/shared-schemas` (new `workbench` module) validates content on every write, and
+the client and server share it. Reagents chose normalized tables because options needed real foreign
+keys; nothing here does, since the inventory link is deliberately soft.
+
+**Access is scoped in SQL**, per the lab-scoping rule in AGENTS.md, but by person:
+`owner_user_id = requester OR (visibility = 'lab' AND lab_id = requester's lab)`.
+
+**No audit-log entries in v1.** The audit log is the lab's record; private documents are not the
+lab's business, and version history already answers "who changed what."
+
+---
+
+## 11. What already exists
+
+| Need                                   | Already there                                                                                                                                                                    |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plate / tube map                       | The tube box grid (`domains/tubes/ui/components/grid/`): cell grid, drag selection, keyboard navigation, clipboard. The pattern to follow, and a candidate for shared extraction |
+| Units and formatting                   | `shared-schemas/units` registry (names and dimensions; factors added in Phase 0)                                                                                                 |
+| Versioned document with conflict guard | `storage_versions` / `storage_current` pattern                                                                                                                                   |
+| Print output                           | `window.print` with print styles, as the barcode sheets do. No PDF library needed                                                                                                |
+| File download                          | `shared/utils/downloadBlob.ts`                                                                                                                                                   |
+| Reagent stock, lots, expiry            | Reagents suite queries, reused read-only for the inventory link                                                                                                                  |
+| Structured fluorochrome/clone data     | The attribute system's `system_key` mechanism, for later auto-fill                                                                                                               |
+| System admin list + detail panels      | `LabsPanel`, `LabDashboard`, `LabUsersPanel`                                                                                                                                     |
+| Invite codes                           | Entity, repository, commands, registration path                                                                                                                                  |
+| Per-user controller access             | `BaseController.extractUserId`                                                                                                                                                   |
+
+**Mounting.** Navigation is hardcoded, not a registry. The workbench adds a `/workbench/*` route
+beside `/lab/*`, an entry in the header's suite switcher, a `client/src/domains/workbench/` domain,
+and a `/api/workbench` route module.
+
+---
+
+## 12. Screens
+
+Five screens. Each is listed with the existing pieces it is built from and the gaps it exposes. The
+layouts below are starting points for the mockups, not final.
+
+**Mounting.** A new top-level page at `/workbench/*`, a sibling of `LabManagementPage`, with an entry
+in the header's suite switcher.
+
+### 12.1 Library
+
+Your protocols and recent runs. Patterned on `ReagentsTab`.
+
+| Part                    | Built from                                                                                                        |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Left panel frame        | `ConsolePanel`, `PanelHeader`, `HeaderStrip` (protocol, variant, run counts)                                      |
+| Toolbar                 | `SearchInput`, `SortControls`, `Button` (New protocol)                                                            |
+| Skeleton → variant tree | `nav-tree.css` rows and `NavTreeLines`, in a new workbench tree component                                         |
+| Right panel             | `InfoPanelEmpty`, `DetailRow`, `Chip` (private / shared), actions: open, new variant, start run, duplicate, share |
+| Recent runs             | `Table`, compact density                                                                                          |
+
+**Gap:** no general two-level tree. `CategoryTreePanel` is tied to categories. The workbench tree
+reuses the shared tree styling and lines but is its own component.
+
+### 12.2 Protocol editor
+
+One scrolling document inside a `ConsolePanel`.
+
+| Part           | Built from                                                                        |
+| -------------- | --------------------------------------------------------------------------------- |
+| Header         | Title, format, cells per sample, version; `UnsavedChangesIndicator`               |
+| Panel view     | `Table`, read-only, fed by the reagent rows below                                 |
+| Default layout | The plate map (12.4)                                                              |
+| Step cards     | `Subsection` with `SubsectionHeader index` (renders "01 /", "02 /")               |
+| Step fields    | `Input`, `NumberInput`, `Select`, `Textarea`, unit dropdowns via `useUnitOptions` |
+| Reagent rows   | An editable row list: one line per reagent, typed into directly                   |
+| Add step       | `DropdownMenu` of presets                                                         |
+| Controls       | `Chip` per control, generated by `Button`s                                        |
+
+**Gaps:**
+
+- **Editable row list.** `Table` cells are read-only and nothing in the app edits a list of rows
+  through the form library yet. Reagent rows are composed from the existing field primitives; no new
+  table primitive.
+- **Reordering steps.** No drag-and-drop exists and no library for it is installed. Move-up /
+  move-down buttons instead (W38).
+
+### 12.3 Run sheet
+
+The supplier-style sheet (W35).
+
+| Part                   | Built from                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Header                 | Protocol name and version, date; `StatCell` strip: samples, plates, cells per sample, overage                    |
+| Top band, side by side | Reagents with lot entry (`Table`), plate map (12.4), mix volumes per mix (`Table`), buffer totals, dilution prep |
+| Steps                  | Checklist: tick, numbered header, parameters with that day's volumes filled in, a notes field                    |
+| Progress               | `CompletenessMeter` (steps done)                                                                                 |
+| Current step           | The existing row glow                                                                                            |
+| Hints                  | `Tooltip` on an info icon; link to the matching help section; optional reference link on a step                  |
+| Complete run           | `ConfirmDialog`, then the sheet locks                                                                            |
+
+On a narrow window the top band stacks. Steps always run full width below.
+
+**Gaps:**
+
+- **Checklist row.** `Checkbox` has no label slot. It gains one, as a primitive change.
+- **Hint icon.** `Tooltip` exists; a small info-icon wrapper around it does not.
+- **Help deep link.** The help window opens only from the header and cannot be opened at a section
+  from elsewhere. Needs a small extension, plus workbench help content.
+
+### 12.4 Plate map
+
+Used in the editor (default layout) and the run (real layout).
+
+| Part                                          | Built from                                                                        |
+| --------------------------------------------- | --------------------------------------------------------------------------------- |
+| Grid, rulers, selection, keyboard, copy/paste | The tube box grid, **extracted into shared pieces** that both use                 |
+| Fields panel                                  | Field list; each field's values as `Chip`s. Select wells, click a value to assign |
+| Colour by field                               | `Select` to pick the field; legend of `Chip`s; palette from `labColorSpace.ts`    |
+| Plate tabs                                    | `Tabs`, one per plate in the run                                                  |
+| Fill series, dilution series                  | `BaseModal` form                                                                  |
+
+**Extraction.** The grid's selection, drag, keyboard and clipboard logic is general but wired to tube
+state. It moves to the shared layer with tube state passed in, and the tube grid is rewired onto it.
+The tube cell, tooltip, locks and box navigation stay with tubes.
+
+**Safeguards (W40).** The tube grid is the most-used screen and must come out of this unchanged.
+
+1. Only the coordinate math has tests today. Tests that pin the grid's current behaviour are written
+   first and pass against the untouched code.
+2. The extraction lands on its own, with no behaviour change and no plate work mixed in.
+3. The same tests pass afterwards.
+4. An in-app checklist is run on the tube grid in dev: select, drag, ctrl-click, shift-click, arrow
+   keys, copy, cut, paste, context menu, locked tubes.
+5. Nothing reaches production until that checklist passes.
+
+**Net-new:** clickable row and column headers, rectangular shift-select, plate formats (the current
+grid schema caps at 20 per side and forces square cells; plates get their own format definition), the
+well cell, and a dense layout for 384 wells (no gaps or glow, colour only, labels on hover).
+
+### 12.5 Print view
+
+The run sheet on paper: light, ink-saving, real tick boxes, space for handwritten notes, plate map
+with labels and legend.
+
+| Part            | Built from                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------- |
+| Print mechanism | The barcode sheets' approach, generalised into one shared print wrapper that barcodes also move onto |
+| Layout          | The run sheet's own components in a print style                                                      |
+
+**Gap:** no shared print wrapper and no global print stylesheet.
+
+### New shared pieces, in one place
+
+| Piece                                        | Home                         | Other user              |
+| -------------------------------------------- | ---------------------------- | ----------------------- |
+| Grid selection, drag, keyboard, sizing hooks | `shared/hooks/`              | Tube grid               |
+| Grid frame and styles                        | `shared/ui/components/grid/` | Tube grid               |
+| Block clipboard and coordinate helpers       | `shared/utils/`              | Tube grid               |
+| Print wrapper                                | `shared/ui/components/`      | Barcode sheets          |
+| `Checkbox` label slot                        | Existing primitive           | Any labelled checkbox   |
+| Hint icon                                    | `shared/ui/primitives/`      | Settings and form hints |
+| Help deep link                               | `domains/help`               | Any screen              |
+
+Everything else is workbench-local until a second user appears.
+
+### How mockups are done
+
+Both mechanisms already exist in the repo.
+
+1. **Static study** per screen in `refs/redesign/`, the same format as the earlier studies, using the
+   real tokens. Approved before any component is written.
+2. **Live preview** at `/__dev/modals`: the real components against fixtures, in light and dark,
+   before any wiring to data.
+
+---
+
+## 13. Build phasing
+
+Workbench first, individuals second (W15). The workbench is person-scoped from day one, so
+individuals can be added afterwards without rework, and the part with daily value ships first.
+
+| Phase  | Delivers                                                                                                                                                                         |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Design | Static studies for the five screens (§12), approved                                                                                                                              |
+| 0      | Conversion factors on the unit registry, with tests                                                                                                                              |
+| 1      | Schemas, tables, protocol CRUD + versions, access rule, `/workbench` shell, protocol list                                                                                        |
+| 2      | Protocol editor: steps, reagent rows, panel view, controls, variants; save, duplicate, amend                                                                                     |
+| 3      | Calculator module; runs: create, typed counts, mixes, lots, notes, complete, save back, save as new. Then a sample panel in the demo lab                                         |
+| 3b     | Run checklist, hints, help deep link and workbench help content                                                                                                                  |
+| 4a     | Tests pinning the tube grid's behaviour, then the shared grid extraction, tubes rewired                                                                                          |
+| 4b     | Plate and tube map, several plates per run, text and numeric fields, bulk editing, dilution-series fill and prep, map-first and count-first entry, counts feeding the calculator |
+| 5      | Shared print wrapper (barcodes moved onto it); print view for protocols and runs, map included                                                                                   |
+| 6      | Share with lab; lab admin edit rights; lab-keeps-copy on removal; workbench access while a lab is switched off                                                                   |
+| 7      | Inventory link for lab members                                                                                                                                                   |
+| 8      | `individual` role, pairing rule, the three server safety fixes, client role checks                                                                                               |
+| 9      | Individual invites, registration path, system admin Individuals tab, convert to individual                                                                                       |
+
+---
+
+## 14. Open questions
+
+### Still open
+
+None. New questions from the mockups are added here.
+
+### Resolved
+
+- **Q17** A run can hold several plates (W31).
+- **Q18** Numeric fields and dilution-series fill are in v1 (W32).
+- **Q19** A protocol's default layout carries reusable fields for now (W33).
+- **Q11** The step list stands for now, refined in use (W30).
+- **Q13** Tubes and 6 to 384-well plates, 96 the default (W28).
+- **Q14, Q16** Wells are described by scientist-defined fields, which covers sample identity and
+  per-well conditions alike (W27).
+- **Q15** Replicates are separate wells (W29).
+- **Q7** A switched-off lab's members keep workbench-only access until it is switched back on (W23).
+- **Q12** Durations only; no live timers (W24).
+
+- **Q1** The parent is a skeleton; variants are independent copies under it; nothing is inherited
+  (W20).
+- **Q2** Staining happens in separate steps, each its own mix, alongside washes and spins. The user
+  builds the list from presets (W22).
+- **Q3** Final dilution volume is the final resuspension volume before acquisition (W18).
+- **Q4** No automatic scaling with cell number (W21).
+- **Q5** Owner and lab admins edit a shared protocol; members duplicate freely and are never locked
+  into the lab's version (W13).
+- **Q6** Runs are shareable with the lab (W14).
+- **Q8** Workbench first (W15).
+- **Q9** Joining a lab is the system admin's "move into lab" in v1. Joining by invite code from
+  Settings is a later pass (W17, §15).
+- **Q20** A run works out how to make each dilution series: transfer volume, diluent volume, stock
+  for the top point (W42).
+- **Q21** Screens are specified in §12 (W35, W36, W37).
+- **Q22** Steps are reordered with move-up / move-down buttons. Reordering is rare: most protocols
+  are established and only fine-tuned (W38).
+- **Q23** The run sheet is mocked up first (W39).
+- **Q24** The grid logic is shared, with tests first and an in-app check of the tube grid (W40).
+- **Q10** The demo lab gets a sample panel after Phase 3 (W19).
+
+---
+
+## 15. Later passes
+
+- **Variants of variants**, if two levels prove too few.
+- **A personal library of fields and values**, reusable across protocols.
+- **Instrument configurations.** Lasers, detectors, filters. Per lab, since the same model differs
+  between labs. Individuals define their own.
+- **Spectral conflict checking.** Needs fluorochrome spectra data and an instrument configuration.
+- **Auto-fill from inventory.** Seed system attributes (target, fluorochrome, clone) so a linked
+  reagent item fills the row.
+- **Stock deduction** when a run completes.
+- **More step types.** Reagent prep, dilution series, molarity calculators.
+- **Live timers** on a run, with end times for long incubations.
+- **Join a lab by invite code** from Settings, without the system admin.
+- **Email.** Self-serve password reset, emailed invites (W12).
