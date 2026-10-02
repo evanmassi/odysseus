@@ -1,17 +1,8 @@
-/**
- * Storage Box Minimap
- *
- * Renders one box as an occupancy thumbnail — its grid matrix painted in each
- * tube's real smart color — so a rack's boxes are picked by seeing the fill
- * rather than reading a list.
- */
-
 import { useTextTruncation } from '@shared/hooks';
 import { OccupancyBar, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import { BoxOccupancyMatrix } from './BoxOccupancyMatrix';
-import { TreeNub } from './TreeNub';
 
 import type { StorageBoxMinimapProps } from './storageNavigatorTypes';
 
@@ -49,18 +40,8 @@ export function StorageBoxMinimap({
         aria-selected={isSelected}
         data-full={isFull || undefined}
         aria-label={`Box ${box.name}, ${filled} of ${capacity} filled`}
-        className={`storage-nav-minimap row-glow relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[box-shadow,border-color] duration-150 ${
-          isSelected
-            ? isFull
-              ? 'border-warning-border text-foreground'
-              : 'border-primary text-foreground'
-            : isFull
-              ? 'border-warning-border/60 text-foreground/70'
-              : 'border-line-faint text-foreground/70'
-        }`}
+        className="storage-nav-minimap row-glow relative flex w-full items-center gap-2.5 p-1.5 text-left text-foreground transition-[box-shadow,background] duration-150"
       >
-        <TreeNub full={isFull} />
-
         <BoxOccupancyMatrix gridConfig={box.gridConfig} tubes={tubes} size={48} />
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -68,8 +49,8 @@ export function StorageBoxMinimap({
             <Tooltip content={box.name} disabled={!isTruncated} side="top" delayDuration={400}>
               <span
                 ref={nameRef}
-                className={`min-w-0 truncate font-mono text-data-sm tracking-[0.04em] ${
-                  isSelected ? 'font-medium' : ''
+                className={`min-w-0 truncate font-display text-body-sm ${
+                  isSelected ? 'font-semibold' : ''
                 }`}
               >
                 {box.name}
@@ -80,10 +61,14 @@ export function StorageBoxMinimap({
             )}
           </span>
           <span className="flex items-center gap-1.5">
-            <OccupancyBar filled={filled} capacity={capacity} full={isFull} className="flex-1" />
+            <OccupancyBar filled={filled} capacity={capacity} className="flex-1" />
             <span
               className={`w-20 flex-none text-right font-mono text-data-sm tabular-nums tracking-[0.08em] ${
-                isFull ? 'text-warning-text' : isSelected ? 'text-primary' : 'text-foreground/40'
+                isFull
+                  ? 'text-danger-text'
+                  : isSelected
+                    ? 'font-semibold text-foreground'
+                    : 'text-muted-foreground'
               }`}
             >
               {isFull ? 'FULL' : `${filled}/${capacity}`}

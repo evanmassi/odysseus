@@ -1,9 +1,3 @@
-/**
- * Storage Hierarchy Example
- *
- * Static, annotated mock of the Storage Navigator for the help modal — shows how
- * tanks, racks, and boxes nest and what the occupancy and ownership cues mean.
- */
 import { type ReactNode } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
@@ -18,7 +12,6 @@ import type { GridConfiguration, RackTube } from '@odysseus/shared-schemas';
 const EXAMPLE_GRID: GridConfiguration = { ...DEFAULT_GRID_CONFIG, rows: 5, cols: 5 };
 const EXAMPLE_CAPACITY = EXAMPLE_GRID.rows * EXAMPLE_GRID.cols;
 
-// Distinct cell types so the minimap paints a realistic spread of smart colors.
 const CELL_TYPES = ['HeLa', 'CHO-K1', 'HEK293', 'Jurkat', 'A549'];
 
 function mockTubes(boxId: string, count: number): RackTube[] {
@@ -131,8 +124,8 @@ export function StorageHierarchyExample() {
                 Box B
               </span>
               <span className="flex items-center gap-1.5">
-                <OccupancyBar filled={1} capacity={1} full className="w-10" />
-                <span className="type-label text-label-2xs tracking-meta text-warning-text">
+                <OccupancyBar filled={1} capacity={1} className="w-10" />
+                <span className="type-label text-label-2xs tracking-meta text-danger-text">
                   FULL
                 </span>
               </span>
@@ -170,7 +163,6 @@ export function StorageHierarchyExample() {
   );
 }
 
-/** Tiny filled-grid glyph so the Box definition reads with the same visual as the minimap. */
 function BoxMatrixGlyph() {
   return (
     <span

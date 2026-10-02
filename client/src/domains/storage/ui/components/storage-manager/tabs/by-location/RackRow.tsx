@@ -1,9 +1,3 @@
-/**
- * Rack Row
- *
- * Collapsible rack node in the By Location tab with box management and assignment controls.
- */
-
 import { useMemo, useState } from 'react';
 
 import { EQUIPMENT_DEFAULTS, formatStorageDisplayName } from '@odysseus/shared-schemas';
@@ -13,7 +7,6 @@ import { ChevronDown, Lock, Plus, SquarePen, Tag, Trash2 } from 'lucide-react';
 import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
-import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 import { AssignmentBadge } from '../by-user/AssignmentBadge';
 import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
@@ -66,7 +59,6 @@ export function RackRow({
   const extraBoxCount = Math.max(0, nonSeededBoxCount - boxBaseline);
   const boxLimitReached = demoLimitsActive && extraBoxCount >= demoLimits.maxBoxesPerRack;
 
-  // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
 
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
@@ -128,7 +120,6 @@ export function RackRow({
             aria-controls={`rack-content-${rackKey}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
           >
-            <TreeNub />
             <ChevronDown
               size={12}
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}

@@ -1,10 +1,3 @@
-/**
- * Storage Navigator Node
- *
- * A tank or rack row in the navigator, with an inline occupancy bar; boxes are
- * rendered separately as minimaps.
- */
-
 import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronRight, Icon, Rows3 } from 'lucide-react';
@@ -12,8 +5,6 @@ import { ChevronRight, Icon, Rows3 } from 'lucide-react';
 import { useTextTruncation } from '@shared/hooks';
 import { OccupancyBar, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
-
-import { TreeNub } from './TreeNub';
 
 import type { StorageNavigatorNodeProps } from './storageNavigatorTypes';
 
@@ -66,7 +57,6 @@ export function StorageNavigatorNode({
           aria-selected={isSelected}
           aria-label={`${level} ${name}`}
         >
-          {level === 'rack' && <TreeNub />}
           {hasChildren ? (
             <ChevronRight
               size={11}
@@ -79,7 +69,7 @@ export function StorageNavigatorNode({
             <LevelIcon level={level} />
           </div>
           <Tooltip content={name} disabled={!isTruncated} side="right" delayDuration={400}>
-            <span ref={textRef} className="storage-nav-button__text font-mono tracking-[0.02em]">
+            <span ref={textRef} className="storage-nav-button__text font-display">
               {name}
             </span>
           </Tooltip>
@@ -90,14 +80,18 @@ export function StorageNavigatorNode({
                 capacity={occupancyCapacity ?? 0}
                 className="w-8"
               />
-              <span className="font-mono text-data-sm tabular-nums tracking-[0.04em] text-foreground/45">
+              <span className="w-20 text-right font-mono text-data-sm font-medium tabular-nums tracking-[0.04em] text-muted-foreground">
                 {occupancyFilled ?? 0}
-                <span className="text-foreground/25">/{occupancyCapacity}</span>
+                <span className="text-muted-foreground/60">/{occupancyCapacity}</span>
               </span>
             </span>
           )}
-          {ownershipType && (
-            <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
+          {level === 'rack' && (
+            <span className="flex w-8 flex-none justify-end">
+              {ownershipType && (
+                <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
+              )}
+            </span>
           )}
         </button>
 

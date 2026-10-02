@@ -1,10 +1,3 @@
-/**
- * Box Row
- *
- * Leaf node in the By Location tab — an occupancy minimap with assignment and
- * edit controls.
- */
-
 import { useMemo } from 'react';
 
 import { formatStorageDisplayName } from '@odysseus/shared-schemas';
@@ -14,7 +7,6 @@ import { OccupancyBar, OverflowMenu, Tooltip, type OverflowMenuItem } from '@sha
 
 import { getEffectiveOwnerId } from '../../../../../utils/effectiveOwner';
 import { BoxOccupancyMatrix, boxOccupancyKey } from '../../../storage-navigator';
-import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 import { AssignmentBadge } from '../by-user/AssignmentBadge';
 import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
@@ -57,7 +49,6 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
   const capacity = boxOcc?.capacity ?? 0;
   const isFull = capacity > 0 && filled >= capacity;
 
-  // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
 
   const canDeleteBox = rack.boxes.length > 1;
@@ -110,8 +101,10 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
   return (
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
-        <div className="storage-nav-button row-glow storage-nav-button--box">
-          <TreeNub full={isFull} />
+        <div
+          className="storage-nav-button row-glow storage-nav-button--box"
+          data-full={isFull || undefined}
+        >
           <BoxOccupancyMatrix gridConfig={box.gridConfig} tubes={tubes} size={46} />
           <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
             <div className="flex items-center gap-2">
@@ -159,10 +152,10 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
               )}
             </div>
             <div className="flex items-center gap-1.5">
-              <OccupancyBar filled={filled} capacity={capacity} full={isFull} className="flex-1" />
+              <OccupancyBar filled={filled} capacity={capacity} className="flex-1" />
               <span
                 className={`flex-none font-mono text-data-sm tracking-[0.08em] ${
-                  isFull ? 'text-warning-text' : 'text-foreground/40'
+                  isFull ? 'text-danger-text' : 'text-muted-foreground'
                 }`}
               >
                 {isFull ? 'FULL' : `${filled}/${capacity}`}

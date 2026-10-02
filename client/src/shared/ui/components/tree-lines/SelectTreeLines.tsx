@@ -1,9 +1,3 @@
-/**
- * Select Tree Lines
- *
- * Draws the SVG connectors for a `.nav-tree-select` tree.
- */
-
 import { useCallback } from 'react';
 
 import { calculateTreeLines } from './calculateTreeLines';
@@ -26,13 +20,11 @@ export function SelectTreeLines({ treeId }: SelectTreeLinesProps) {
         leafLevelAttr: 'l3',
         rowSelector: ROW_SELECTOR,
         leafRowSelector: ROW_SELECTOR,
-        lineOffset: 2,
         isTopExpanded: () => true,
       }),
     [treeId]
   );
 
-  // Wait out the modal entrance animation before measuring, else lines land mid-transform.
   const lines = useTreeLines(calculate, { initialDelay: 450 });
 
   return <TreeLinesDisplay lines={lines} />;

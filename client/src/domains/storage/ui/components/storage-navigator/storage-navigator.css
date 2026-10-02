@@ -1,9 +1,3 @@
-/**
- * Storage Navigator Styles
- *
- * BEM-style classes for the tree-based storage location picker.
- */
-
 :root {
   --storage-nav-text: hsl(var(--muted-foreground));
   --storage-nav-text-muted: hsl(var(--muted-foreground) / 0.65);
@@ -32,7 +26,7 @@
   z-index: 10;
   color: var(--storage-nav-text);
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   text-align: left;
   background-color: transparent;
   border-radius: 0.375rem;
@@ -56,124 +50,127 @@
   background-color: var(--storage-nav-selected-hover-bg);
 }
 
-/* Framed, square-cornered console rows with a stripe-on-open treatment — shared by
-   the dashboard navigator and the StorageManager modal (both tree-ids). */
 [data-tree-id='navigator'] .storage-nav-button,
 [data-tree-id^='modal'] .storage-nav-button {
-  border: 1px solid hsl(var(--line-faint));
   border-radius: 0;
-}
-
-/* Hover/open/selected — light: flat primary tint + soft accent stripe (no scanline,
-   no gradient wash, no bloom). Dark restores the lit recipe further below. */
-[data-tree-id='navigator'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
-[data-tree-id^='modal'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
-  background: hsl(var(--primary) / 0.06);
-  box-shadow: inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe));
 }
 
 [data-tree-id='navigator'] .storage-nav-button[aria-expanded='true']:not(.selected),
 [data-tree-id^='modal'] .storage-nav-button[aria-expanded='true']:not(.selected) {
-  border-color: hsl(var(--primary) / 0.4);
-  background: hsl(var(--primary) / 0.07);
-  box-shadow: inset 2px 0 0 hsl(var(--primary));
+  color: var(--storage-nav-hover-text);
 }
 
-[data-tree-id='navigator'] .storage-nav-button.selected,
-[data-tree-id^='modal'] .storage-nav-button.selected {
-  border-color: hsl(var(--primary) / 0.5);
-  background: hsl(var(--primary) / 0.1);
-  box-shadow: inset 3px 0 0 0 hsl(var(--primary));
+[data-tree-id='navigator'] .storage-nav-button:not(.selected):hover,
+[data-tree-id^='modal'] .storage-nav-button:not(.selected):hover {
+  background: hsl(var(--primary) / 0.04);
+  box-shadow: inset 2px 0 0 0 hsl(var(--primary) / 0.35);
 }
 
-/* Light: hovering an already-selected row lifts the tint so it still reacts. */
-[data-tree-id='navigator'] .storage-nav-button.selected:hover,
-[data-tree-id^='modal'] .storage-nav-button.selected:hover {
-  background: hsl(var(--primary) / 0.15);
+[data-tree-id='navigator'] .storage-nav-button--tank.selected,
+[data-tree-id^='modal'] .storage-nav-button--tank.selected {
+  background: hsl(var(--primary) / 0.05);
+  box-shadow: inset 3px 0 0 0 hsl(var(--primary) / 0.6);
 }
 
-/* Dark theme: restore the lit recipe (scanline + directional wash + bloom). */
-[data-theme='dark']
-  [data-tree-id='navigator']
-  .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
-[data-theme='dark']
-  [data-tree-id^='modal']
-  .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
-  background: var(--scanline-layer), var(--glow-hover-wash);
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
-    var(--glow-hover-shadow);
+[data-tree-id='navigator'] .storage-nav-button--rack.selected,
+[data-tree-id^='modal'] .storage-nav-button--rack.selected,
+[data-tree-id^='modal'] .storage-nav-button--box.selected {
+  background: hsl(var(--primary) / 0.08);
+  box-shadow: inset 3px 0 0 0 hsl(var(--primary) / 0.85);
 }
 
-[data-theme='dark']
-  [data-tree-id='navigator']
-  .storage-nav-button[aria-expanded='true']:not(.selected),
-[data-theme='dark']
-  [data-tree-id^='modal']
-  .storage-nav-button[aria-expanded='true']:not(.selected) {
-  border-color: hsl(var(--primary) / 0.5);
+[data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button:not(.selected):hover,
+[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button:not(.selected):hover {
   background:
-    var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
-  box-shadow:
-    inset 2px 0 0 hsl(var(--primary)),
-    0 0 12px -6px hsl(var(--primary) / 0.55);
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / 0.03) 0%,
+      hsl(var(--primary) / 0.01) 55%,
+      transparent 100%
+    );
 }
 
-[data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button.selected,
-[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button.selected {
-  border-color: hsl(var(--primary) / 0.6);
-  background: var(--scanline-layer), var(--glow-selected-tint), var(--glow-selected-wash);
-  box-shadow: var(--glow-selected-shadow);
+[data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button--tank.selected,
+[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button--tank.selected {
+  background:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / 0.06) 0%,
+      hsl(var(--primary) / 0.02) 55%,
+      transparent 100%
+    );
 }
 
-/* Dark: hovering an already-selected row intensifies the lit glow. */
+[data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button--rack.selected,
+[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button--rack.selected,
+[data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button--box.selected {
+  background:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / 0.1) 0%,
+      hsl(var(--primary) / 0.035) 55%,
+      transparent 100%
+    );
+}
+
 [data-theme='dark'] [data-tree-id='navigator'] .storage-nav-button.selected:hover,
 [data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button.selected:hover {
   filter: brightness(1.2);
 }
 
-/* Box minimaps (navigator box level) — same light/dark split as the nav buttons:
-   light is a flat tint + soft leading stripe, dark restores the lit glow. Full
-   boxes retint via --row-tone (primary → warning) so one rule set covers both. */
 .storage-nav-minimap[data-full] {
-  --row-tone: var(--color-warning-bg);
+  --row-tone: var(--color-danger-bg);
 }
 
 .storage-nav-minimap:not([aria-selected='true']):hover {
-  background: hsl(var(--row-tone) / 0.06);
-  box-shadow: inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe));
+  background: hsl(var(--row-tone) / 0.04);
+  box-shadow: inset 2px 0 0 0 hsl(var(--row-tone) / 0.35);
 }
 
 .storage-nav-minimap[aria-selected='true'] {
-  background: hsl(var(--row-tone) / 0.1);
-  box-shadow: inset 3px 0 0 0 hsl(var(--row-tone));
+  background: hsl(var(--row-tone) / 0.12);
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone)),
+    inset 0 0 0 1px hsl(var(--row-tone) / 0.28);
 }
 
-/* Light: hovering an already-selected box lifts the tint so it still reacts. */
 .storage-nav-minimap[aria-selected='true']:hover {
-  background: hsl(var(--row-tone) / 0.15);
+  background: hsl(var(--row-tone) / 0.16);
 }
 
 [data-theme='dark'] .storage-nav-minimap:not([aria-selected='true']):hover {
-  background: var(--scanline-layer), var(--glow-hover-wash);
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
-    var(--glow-hover-shadow);
+  background:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.03) 0%,
+      hsl(var(--row-tone) / 0.01) 55%,
+      transparent 100%
+    );
 }
 
 [data-theme='dark'] .storage-nav-minimap[aria-selected='true'] {
-  background: var(--scanline-layer), var(--glow-selected-tint), var(--glow-selected-wash);
-  box-shadow: var(--glow-selected-shadow);
+  background:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.17) 0%,
+      hsl(var(--row-tone) / 0.07) 55%,
+      transparent 100%
+    );
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone)),
+    inset 14px 0 30px -12px hsl(var(--row-tone) / 0.22),
+    inset 0 0 0 1px hsl(var(--row-tone) / 0.28);
 }
 
-/* Dark: hovering an already-selected box intensifies the lit glow. */
 [data-theme='dark'] .storage-nav-minimap[aria-selected='true']:hover {
   filter: brightness(1.2);
 }
 
-/* Glowing-blue connectors for both the dashboard navigator and the StorageManager
-   modal. The inline opacity is an SVG presentation attribute, so these rules
-   override it without !important. */
 [data-tree-id='navigator'] .tree-line,
 [data-tree-id^='modal'] .tree-line {
   stroke: hsl(var(--primary) / 0.55);
@@ -181,12 +178,18 @@
   filter: drop-shadow(0 0 3px hsl(var(--primary) / calc(0.5 * var(--lit))));
 }
 
+[data-tree-id='navigator'] > div + div {
+  margin-top: 0.625rem;
+}
+
 .storage-nav-button--tank {
-  min-height: 2rem;
-  padding: 0.375rem 0.5rem;
+  min-height: 2.375rem;
+  padding: 0.5rem;
   gap: 0.5rem;
   width: 100%;
   margin-left: 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .storage-nav-button--rack {
@@ -247,8 +250,6 @@
   color: var(--storage-nav-text-muted);
 }
 
-/* Navigator only: leading caret sits left of the icon and tucks toward it. The
-   StorageManager modal shares this class but keeps its trailing chevron. */
 [data-tree-id='navigator'] .storage-nav-button__chevron,
 [data-tree-id='navigator'] .storage-nav-button__chevron-spacer {
   flex-shrink: 0;
@@ -264,7 +265,6 @@
   color: var(--storage-nav-selected-text);
 }
 
-/* Modal variant — enables flex layout with admin controls alongside buttons */
 .storage-nav-item--modal {
   display: flex;
   align-items: center;
@@ -291,7 +291,6 @@
   width: calc(100% - 2rem);
 }
 
-/* Modal buttons fill their wrapper — indentation handled by the wrapper */
 .storage-nav-item--modal .storage-nav-button--tank,
 .storage-nav-item--modal .storage-nav-button--rack,
 .storage-nav-item--modal .storage-nav-button--box {

@@ -1,9 +1,3 @@
-/**
- * By User Tab
- *
- * Displays storage assignments grouped by user with bulk reassign/unassign controls.
- */
-
 import { useMemo, useState, useCallback } from 'react';
 
 import { formatStorageDisplayName } from '@odysseus/shared-schemas';
@@ -14,7 +8,6 @@ import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
-import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { RowMeta } from '../by-location/RowMeta';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -28,13 +21,9 @@ interface ByUserTabProps {
   lab: LabConfiguration;
   getUserInfo: (userId: string) => UserInfo | null;
   currentUserId?: string;
-  /** Whether current user can manage storage (admin) */
   canManageStorage?: boolean;
-  /** List of users for reassignment dropdown */
   users?: UserDisplayInfo[];
-  /** Called when admin wants to unassign all resources from a user */
   onBulkUnassign?: (userId: string) => void;
-  /** Called when admin wants to reassign all resources from one user to another */
   onBulkReassign?: (fromUserId: string | undefined, toUserId: string) => void;
 }
 
@@ -224,7 +213,6 @@ export function ByUserTab({
                         >
                           <div className="storage-nav-item--modal storage-nav-item--rack">
                             <div className="storage-nav-button row-glow storage-nav-button--rack">
-                              <TreeNub />
                               <UserBadge
                                 type={badgeType}
                                 initials={userAssignment.initials}
@@ -268,7 +256,6 @@ export function ByUserTab({
                                 >
                                   <div className="storage-nav-item--modal storage-nav-item--box">
                                     <div className="storage-nav-button row-glow storage-nav-button--box">
-                                      <TreeNub />
                                       <UserBadge
                                         type={badgeType}
                                         initials={userAssignment.initials}

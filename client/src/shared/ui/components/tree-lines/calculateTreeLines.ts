@@ -1,19 +1,10 @@
-/**
- * Tree Line Calculator
- *
- * Generic DOM-walking algorithm for computing SVG connecting lines in a
- * three-tier tree. Level attribute names and row selectors are configurable so
- * any domain (storage, equipment, …) can drive it.
- */
-
-import { LINE_OFFSET, type TreeLine } from './useTreeLines';
+import type { TreeLine } from './useTreeLines';
 
 interface TreeLineCalcConfig {
   containerSelector: string;
   topLevelAttr: string;
   isTopExpanded: (id: string) => boolean;
   isRackExpanded?: (topId: string, rackId: string) => boolean;
-  lineOffset?: number;
   midLevelAttr?: string;
   leafLevelAttr?: string;
   rowSelector?: string;
@@ -21,6 +12,9 @@ interface TreeLineCalcConfig {
 }
 
 const STROKE_WIDTH = 1.5;
+const LINE_OFFSET = 1;
+
+const snapToPixelCenter = (value: number) => Math.floor(value) + 0.5;
 
 export function calculateTreeLines(config: TreeLineCalcConfig): {
   container: Element | null;
@@ -30,13 +24,17 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
   if (!container) return { container: null, lines: [] };
 
   const containerRect = container.getBoundingClientRect();
-  const offset = config.lineOffset ?? LINE_OFFSET;
   const midAttr = config.midLevelAttr ?? 'rack';
   const leafAttr = config.leafLevelAttr ?? 'box';
   const rowSelector = config.rowSelector ?? '.storage-nav-button';
   const leafRowSelector =
     config.leafRowSelector ?? '.storage-nav-button, [role="listitem"], [role="treeitem"]';
   const allLines: TreeLine[] = [];
+
+  const junctionX = (rect: DOMRect) =>
+    snapToPixelCenter(rect.left - containerRect.left + LINE_OFFSET);
+  const centerY = (rect: DOMRect) =>
+    snapToPixelCenter(rect.top - containerRect.top + rect.height / 2);
 
   const topItems = container.querySelectorAll(`[data-level="${config.topLevelAttr}"]`);
 
@@ -48,11 +46,11 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
     if (!topButton) return;
 
     const topRect = topButton.getBoundingClientRect();
-    const topX = topRect.left - containerRect.left + offset;
-    const topBottomY = topRect.bottom - containerRect.top - 2;
+    const topX = junctionX(topRect);
+    const topY = centerY(topRect);
 
     const rackItems = topItem.querySelectorAll(`[data-level="${midAttr}"]`);
-    let lastRackY = topBottomY;
+    let lastRackY = topY;
 
     rackItems.forEach(rackItem => {
       const rackId = (rackItem as HTMLElement).dataset['id'];
@@ -62,8 +60,8 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
       if (!rackButton) return;
 
       const rackRect = rackButton.getBoundingClientRect();
-      const rackX = rackRect.left - containerRect.left + offset;
-      const rackY = rackRect.top - containerRect.top + rackRect.height / 2;
+      const rackX = junctionX(rackRect);
+      const rackY = centerY(rackRect);
 
       lastRackY = rackY;
 
@@ -74,21 +72,22 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
         x2: rackX,
         y2: rackY,
         strokeWidth: STROKE_WIDTH,
+        endNode: 'default',
       });
 
       const shouldShowBoxes = config.isRackExpanded ? config.isRackExpanded(topId, rackId) : true;
 
       if (shouldShowBoxes) {
         const boxItems = rackItem.querySelectorAll(`[data-level="${leafAttr}"]`);
-        let lastBoxY = rackRect.bottom - containerRect.top;
+        let lastBoxY = rackY;
 
         boxItems.forEach(boxItem => {
           const boxButton = boxItem.querySelector(leafRowSelector);
           if (!boxButton) return;
 
           const boxRect = boxButton.getBoundingClientRect();
-          const boxX = boxRect.left - containerRect.left + offset;
-          const boxY = boxRect.top - containerRect.top + boxRect.height / 2;
+          const boxX = junctionX(boxRect);
+          const boxY = centerY(boxRect);
 
           lastBoxY = boxY;
 
@@ -99,6 +98,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
             x2: boxX,
             y2: boxY,
             strokeWidth: STROKE_WIDTH,
+            endNode: boxButton.hasAttribute('data-full') ? 'full' : 'default',
           });
         });
 
@@ -106,7 +106,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
           allLines.push({
             id: `rack-vertical-${topId}-${rackId}`,
             x1: rackX,
-            y1: rackRect.bottom - containerRect.top - 2,
+            y1: rackY,
             x2: rackX,
             y2: lastBoxY,
             strokeWidth: STROKE_WIDTH,
@@ -119,10 +119,11 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
       allLines.push({
         id: `top-vertical-${topId}`,
         x1: topX,
-        y1: topBottomY,
+        y1: topY,
         x2: topX,
         y2: lastRackY,
         strokeWidth: STROKE_WIDTH,
+        startNode: 'default',
       });
     }
   });
