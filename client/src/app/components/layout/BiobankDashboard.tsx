@@ -1,9 +1,3 @@
-/**
- * Biobank Dashboard
- *
- * Main lab workspace: storage navigator, tube grid, and info panel.
- */
-
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { isAdminRole, getPersonDisplayName } from '@odysseus/shared-schemas';
@@ -156,7 +150,6 @@ function BiobankWorkspace() {
 
   const isViewOnlySpace = useMemo(() => {
     if (!user) return true;
-    // Box owner wins; undefined means "inherit from rack", null means "explicitly unassigned".
     const effectiveOwnerId =
       currentBoxObj?.assignedUserId !== undefined
         ? currentBoxObj.assignedUserId
@@ -282,8 +275,6 @@ function BiobankWorkspace() {
     selectedPositions,
     onSelectionChange: setSelection,
     onDeleteTubes: async (tubeIds: string[], silent = false) => {
-      // Bulk delete is partial-success — protected or inaccessible tubes come back as
-      // failures rather than throwing, so the result decides the message.
       const result = await bulkDeleteTubesMutation.mutateAsync({
         tubeIds,
         location:
@@ -359,7 +350,7 @@ function BiobankWorkspace() {
 
         <div className="grid-section">
           <ConsolePanel intensity="medium" className="flex flex-col">
-            <div className="flex-shrink-0 border-b border-line-faint pr-4">
+            <div className="flex-shrink-0">
               <PanelHeader
                 icon={<FlaskConical className="h-4 w-4" />}
                 title={currentLab?.name ?? 'Biobank'}

@@ -1,9 +1,3 @@
-/**
- * Storage Panel
- *
- * Cross-lab storage capacity and utilization analytics for system admins.
- */
-
 import { useMemo, useState } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
@@ -182,7 +176,7 @@ export function StoragePanel() {
   return (
     <div className="space-y-4">
       <ConsolePanel intensity="soft">
-        <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <div className="flex-shrink-0">
           <PanelHeader title="Storage" icon={<HardDrive size={14} />} />
         </div>
 

@@ -1,9 +1,3 @@
-/**
- * Labs Panel
- *
- * Lab management panel — lab cards, creation, and drill-down into individual labs.
- */
-
 import { useMemo, useState } from 'react';
 
 import {
@@ -43,7 +37,6 @@ import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueri
 import { LabIdentityPanel } from './LabIdentityPanel';
 import { LabPowerToggle } from './LabPowerToggle';
 
-// 48-hour window gives lab admins time to register without codes lingering
 const LAB_ADMIN_CODE_EXPIRY_MS = 48 * MS_PER_HOUR;
 
 interface LabsPanelProps {
@@ -143,7 +136,6 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   const renderLabCard = (lab: (typeof labs)[number]) => {
     const stats = getLabStats(lab.id);
     const latestCode = labInviteCodes[lab.id];
-    // Keep the unique segments unbreakable; only the fixed ODYSS- prefix may wrap.
     const codeSplitAt = latestCode ? latestCode.indexOf('-') + 1 : 0;
 
     return (
@@ -262,7 +254,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   return (
     <div className="space-y-4">
       <ConsolePanel intensity="soft">
-        <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <div className="flex-shrink-0">
           <PanelHeader title="Labs" icon={<FlaskConical size={14} />} />
         </div>
 

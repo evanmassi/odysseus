@@ -1,10 +1,3 @@
-/**
- * Equipment Item Info Panel
- *
- * Read-only detail display for a selected equipment item with documents,
- * maintenance log timeline, and admin action buttons.
- */
-
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
@@ -108,7 +101,6 @@ export function EquipmentItemInfoPanel({
     doc?: EquipmentDocument;
   }>({ isOpen: false, mode: 'add' });
 
-  // The full path is what the free-text column used to spell out, so the chip keeps saying it.
   const locationPath = useMemo(() => {
     const locationId = detail?.item.locationId;
     if (!locationId) return undefined;
@@ -210,7 +202,7 @@ export function EquipmentItemInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 

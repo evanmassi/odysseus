@@ -1,10 +1,3 @@
-/**
- * Lab Management Page
- *
- * Route-based page shell with sidebar tab navigation for equipment,
- * supplies, and reagents management.
- */
-
 import { Microscope, Package, Biohazard, FlaskConical } from 'lucide-react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
@@ -54,7 +47,7 @@ export function LabManagementPage() {
       <div className="lab-management-layout">
         <aside className="lab-management-sidebar pt-2 pb-4">
           <ConsolePanel intensity="soft" className="flex max-h-full min-h-0 flex-col">
-            <div className="flex-shrink-0 border-b border-line-faint pr-4">
+            <div className="flex-shrink-0">
               <PanelHeader
                 icon={<FlaskConical className="h-4 w-4" />}
                 title={currentLab?.name ?? 'Lab'}

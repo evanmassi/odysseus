@@ -1,10 +1,3 @@
-/**
- * Supply Item Info Panel
- *
- * Read-only detail display for a selected supply item with stock levels,
- * barcodes, documents, and admin action buttons.
- */
-
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
@@ -232,7 +225,7 @@ export function SupplyItemInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Supply Information" />
       </div>
 
@@ -292,8 +285,6 @@ export function SupplyItemInfoPanel({
             <div>
               <SectionHeader title="Packaging" size="sm" />
               {(() => {
-                // Accumulate the running base-unit total over the base-up chain so
-                // each tier can show the multiplicative scale the flat text hid.
                 const bottomUp = orderPackagingChain(detail.packagingLevels);
                 const baseName = item.baseItemName ?? item.stockUnit ?? 'unit';
                 let running = 1;
@@ -307,7 +298,6 @@ export function SupplyItemInfoPanel({
                     roll: running,
                   };
                 });
-                // Largest unit on top; base unit as the final rung.
                 const rows = [
                   ...tiers.slice().reverse(),
                   { id: '__base__', name: baseName, contains: 'base unit', roll: 1 },

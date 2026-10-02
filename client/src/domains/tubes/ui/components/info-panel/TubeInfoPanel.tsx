@@ -1,9 +1,3 @@
-/**
- * Selected Tube Details
- *
- * Read-only detail panel for one or more selected tubes with conflict indicators.
- */
-
 import { useMemo, useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import {
@@ -58,7 +52,6 @@ import { TubeLocationDisplay } from './TubeLocationDisplay';
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';
 
-// Cell-type heading auto-fits the swatch-height box: largest size whose wrapped text doesn't clip.
 const CELL_TYPE_MAX_PX = 36;
 const CELL_TYPE_MIN_PX = 12;
 
@@ -209,15 +202,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     };
   }, [ownedLockedTubes]);
 
-  // Prevents auto-opening when selecting new locked tubes after previous selection was cleared
   useEffect(() => {
     if (showEditLockNoteModal && ownedLockedTubes.length === 0) {
       setShowEditLockNoteModal(false);
     }
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
-  // Shrink the cell-type heading from its max until the wrapped text fits the fixed-height box.
-  // Box height is stable, so the observer only refires on width changes (no feedback loop).
   useLayoutEffect(() => {
     const box = cellTypeBoxRef.current;
     const text = cellTypeTextRef.current;
@@ -246,7 +236,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return () => observer.disconnect();
   }, [fieldAnalysis]);
 
-  // Lit chassis mirroring the tube editor modal.
   const renderPanel = (
     position: { word: string; value: string },
     body: ReactNode,
@@ -254,7 +243,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     scrollable = true
   ) => (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 
@@ -269,7 +258,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           {position.value && (
             <div className="flex items-baseline gap-2">
               <StripLabel tone="warning">{position.word}</StripLabel>
-              {/* Non-breaking hyphen so position ranges (A1-A9) don't wrap mid-range. */}
               <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
                 {position.value.replace(/-/g, '‑')}
               </span>
@@ -320,7 +308,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
       : 'Select a tube to view details';
 
-    // Demo visitors read this panel before anything else, so it orients rather than reports.
     const demoMessage = hasEmptySelection ? positionText : 'Click any tube to inspect it';
     const demoDescription = hasEmptySelection
       ? 'Double-click to add one here'
@@ -396,7 +383,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       : undefined;
   const formattedDate = date ? formatDateForDisplay(date as string | Date) : undefined;
 
-  // Fall back to historical createdByName if researcher was deleted
   const researcherDisplay = (() => {
     if (researcherId && researcherMap.has(researcherId as string)) {
       return formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!);
@@ -404,7 +390,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return createdByName as string | undefined;
   })();
 
-  // createdByName is a historical fallback, not a tube field — exclude from conflict detection
   const conflictPaths = FIELD_PATHS.filter(p => p !== 'createdByName');
   const hasConflicts = hasAnyConflicts(selectedTubes, [...conflictPaths]);
 

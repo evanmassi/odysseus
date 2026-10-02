@@ -1,9 +1,3 @@
-/**
- * Donor Info Panel
- *
- * Read-only display of selected donor profile and collection history.
- */
-
 import { BookUser, SquarePen, Trash2 } from 'lucide-react';
 
 import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
@@ -54,7 +48,7 @@ export function DonorInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<BookUser className="h-4 w-4" />} title="Donor Information" />
       </div>
 

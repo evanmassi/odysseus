@@ -1,10 +1,3 @@
-/**
- * Reagent Item Info Panel
- *
- * Read-only detail for the selected reagent: chemistry, per-lot stock, packaging,
- * safety documents, and the admin archive/remove actions.
- */
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
@@ -141,7 +134,6 @@ export function ReagentItemInfoPanel({
   const isArchived = item.status === 'archived';
   const isLocked = isDemoLockedItem(item);
 
-  // A lot barcode labels one bottle, so it belongs on that lot's row, not in the item's list.
   const itemBarcodes = barcodes.filter(bc => !bc.lotId);
   const lotBarcodes = barcodes.filter(bc => bc.lotId);
 
@@ -226,7 +218,7 @@ export function ReagentItemInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Reagent Information" />
       </div>
 
@@ -424,7 +416,6 @@ export function ReagentItemInfoPanel({
 
           <div>
             <SectionHeader title="Transaction History" size="sm" />
-            {/* The ledger loads separately from the detail, so waiting beats claiming it's empty. */}
             {!isLedgerPending && (
               <ReagentTransactionTimeline
                 transactions={transactions}

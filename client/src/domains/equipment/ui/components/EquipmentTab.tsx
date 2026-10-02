@@ -1,10 +1,3 @@
-/**
- * Equipment Tab
- *
- * Main composition for the equipment management page with category browser,
- * detail panel, and form overlays in a 60/40 split layout.
- */
-
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
@@ -61,7 +54,6 @@ import type { EquipmentItem, EquipmentMaintenanceLog } from '@odysseus/shared-sc
 
 const isEquipmentHidden = (item: EquipmentItem) => item.status === 'decommissioned';
 
-/** Location is searchable by name, as it was when the column held the text itself. */
 const equipmentSearchFields = (item: EquipmentItem, locationName?: string) => [
   item.name,
   item.manufacturer,
@@ -107,7 +99,6 @@ export function EquipmentTab() {
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // The chip names the place; the path is what the free-text column used to spell out.
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const categoryState = useCatalogCategories({
     categories,
@@ -204,7 +195,7 @@ export function EquipmentTab() {
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
         >
-          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <div className="flex-shrink-0">
             <PanelHeader icon={<Microscope className="h-4 w-4" />} title="Equipment" />
           </div>
 

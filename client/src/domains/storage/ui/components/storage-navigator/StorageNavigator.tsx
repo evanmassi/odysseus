@@ -1,15 +1,7 @@
-/**
- * Storage Navigator
- *
- * Self-chromed tank → rack → box picker: rack rows open to box minimaps that
- * show each box's real occupancy, so locations are browsed by sight.
- */
-
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
 import { Compass } from 'lucide-react';
 
-// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { useLocationCounts } from '@domains/tubes/hooks/useTubeQueries';
 import { AccentTick, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -163,7 +155,6 @@ export function StorageNavigator({
     return map;
   }, [visibleNodes]);
 
-  // Stable across tree changes — uses node key instead of index
   const [focusedKey, setFocusedKey] = useState<string | null>(() => {
     const selectedNode = visibleNodes.find(node => node.isSelected);
     return selectedNode?.nodeKey ?? visibleNodes[0]?.nodeKey ?? null;
@@ -171,7 +162,6 @@ export function StorageNavigator({
 
   const focusedIndex = focusedKey ? (nodeKeyToIndex.get(focusedKey) ?? 0) : 0;
 
-  // When tree changes, ensure focusedKey still exists; if not, find closest valid node
   useEffect(() => {
     if (!focusedKey || !nodeKeyToIndex.has(focusedKey)) {
       const firstKey = visibleNodes[0]?.nodeKey ?? null;
@@ -235,7 +225,7 @@ export function StorageNavigator({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<Compass className="h-4 w-4" />} title="Navigator" />
       </div>
 
@@ -413,7 +403,6 @@ interface RackBoxMinimapsProps {
   renderBox: (box: Box, tubes: RackTube[]) => React.ReactNode;
 }
 
-/** Feeds each box its own tubes from the open rack's grouped fetch. */
 function RackBoxMinimaps({ tankId, rackId, boxes, renderBox }: RackBoxMinimapsProps) {
   const tubesByBox = useRackTubesByBox(tankId, rackId);
 

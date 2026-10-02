@@ -1,9 +1,3 @@
-/**
- * Security Panel
- *
- * System-wide session and token monitoring for system admins.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -75,7 +69,6 @@ function formatDateStacked(value: Date) {
   return { date, time };
 }
 
-/** Stacked date / time / relative-time cell; `own` tints it as the viewer's own session. */
 function renderTimeCell(value: Date, own = false) {
   const { date, time } = formatDateStacked(value);
   return (
@@ -459,7 +452,7 @@ export function SecurityPanel() {
   return (
     <div className="space-y-4">
       <ConsolePanel intensity="soft">
-        <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <div className="flex-shrink-0">
           <PanelHeader title="Security" icon={<Shield size={14} />} />
         </div>
 

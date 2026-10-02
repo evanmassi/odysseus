@@ -1,10 +1,3 @@
-/**
- * Supplies Tab
- *
- * Main composition for the supplies management page with category browser,
- * detail panel, and form overlays in a 60/40 split layout.
- */
-
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
@@ -196,16 +189,14 @@ export function SuppliesTab() {
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
-        {/* Left Panel: Supplies list chassis */}
         <ConsolePanel
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
         >
-          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <div className="flex-shrink-0">
             <PanelHeader icon={<Package className="h-4 w-4" />} title="Supplies" />
           </div>
 
-          {/* Locator strip: inventory counts */}
           <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
               <AccentTick />
@@ -220,7 +211,6 @@ export function SuppliesTab() {
             </span>
           </HeaderStrip>
 
-          {/* Toolbar: search · scan · sort · archived · actions — the table's own header */}
           <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
             <SearchInput
               value={searchQuery}
@@ -301,7 +291,6 @@ export function SuppliesTab() {
             )}
           </div>
 
-          {/* Body: pinned low-stock alerts + scrolling category tree */}
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
             {isFilterOpen && (
               <AttributeFilterPanel
@@ -347,7 +336,6 @@ export function SuppliesTab() {
           </div>
         </ConsolePanel>
 
-        {/* Right Panel: Detail / Edit / Transaction */}
         <div
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}

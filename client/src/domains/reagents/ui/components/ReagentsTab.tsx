@@ -1,10 +1,3 @@
-/**
- * Reagents Tab
- *
- * Main composition for the reagent catalog: category browser on the left,
- * item detail column on the right.
- */
-
 import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
@@ -197,7 +190,7 @@ export function ReagentsTab() {
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
         >
-          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <div className="flex-shrink-0">
             <PanelHeader icon={<Biohazard className="h-4 w-4" />} title="Reagents" />
           </div>
 
