@@ -1,18 +1,9 @@
-/**
- * Menu Item
- *
- * Shared item component for dropdown menus, overflow menus, and context menus.
- */
-
 import { useIconPop, useResolvedTheme } from '@shared/hooks';
 
 import type { MenuItemProps } from './types';
 
 type MenuTone = 'danger' | 'warning' | 'default';
 
-// Hover: light is a flat tone tint; dark restores the scanline + directional wash.
-// Keyed off the global theme (not Tailwind `dark:`) so it stays correct when the menu
-// renders inside the forced-dark header island.
 const TONE_HOVER: Record<MenuTone, { base: string; darkBg: string; lightBg: string }> = {
   danger: {
     base: 'text-danger-text hover:shadow-[inset_2px_0_0_hsl(var(--color-danger-bg)/0.65)]',
@@ -29,7 +20,7 @@ const TONE_HOVER: Record<MenuTone, { base: string; darkBg: string; lightBg: stri
       'hover:bg-[linear-gradient(0deg,hsl(var(--color-warning-bg)/0.1),hsl(var(--color-warning-bg)/0.1))]',
   },
   default: {
-    base: 'text-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)]',
+    base: 'text-secondary-foreground hover:text-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)]',
     darkBg:
       'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]',
     lightBg: 'hover:bg-[linear-gradient(0deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.08))]',
@@ -65,9 +56,6 @@ export function MenuItem({
       role="menuitem"
       tabIndex={0}
       onClick={onClick}
-      // Keep focus on the menu so its blur-to-close doesn't fire before onClick.
-      // Firefox/Safari don't focus a button on mousedown, so without this the menu's
-      // focusout lands outside the menu and closes it before the click registers.
       onMouseDown={e => e.preventDefault()}
       onMouseEnter={trigger}
       disabled={disabled}

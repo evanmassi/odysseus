@@ -1,10 +1,4 @@
-/**
- * App Header
- *
- * Top navigation bar with contextual tube action toolbar, search, and hamburger menu.
- */
-
-import { useState, lazy, useRef, useCallback } from 'react';
+import { useState, lazy, useRef } from 'react';
 
 import { isAdminRole, getPersonDisplayName, getPersonInitials } from '@odysseus/shared-schemas';
 import {
@@ -39,7 +33,6 @@ import { TubeSelectionToolbar, type GridController } from './TubeSelectionToolba
 
 import type { PositionKey } from '@domains/tubes';
 import type { TubeData } from '@odysseus/shared-schemas';
-import type { LucideIcon } from 'lucide-react';
 
 const AdminSettingsModal = lazy(() =>
   import('@domains/admin').then(m => ({ default: m.AdminSettingsModal }))
@@ -61,9 +54,6 @@ const DonorRegistryModal = lazy(() =>
   }))
 );
 
-type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
-
-const ICON_POP_DURATION_MS = 350;
 const SUBMENU_CLOSE_DELAY_MS = 150;
 
 const ROLE_LABELS: Record<string, string> = {
@@ -71,43 +61,6 @@ const ROLE_LABELS: Record<string, string> = {
   lab_admin: 'Lab Admin',
   user: 'User',
 };
-
-interface HamburgerMenuItemProps {
-  icon: IconComponent;
-  label: string;
-  onClick: () => void;
-}
-
-function HamburgerMenuItem({ icon: Icon, label, onClick }: HamburgerMenuItemProps) {
-  const isDark = useResolvedTheme() === 'dark';
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), ICON_POP_DURATION_MS);
-  }, []);
-
-  return (
-    <button
-      role="menuitem"
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      className={`group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-data tracking-data text-secondary-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors ${
-        isDark
-          ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]'
-          : 'hover:bg-[linear-gradient(0deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.08))]'
-      }`}
-    >
-      <span className={isAnimating ? 'animate-icon-pop' : ''}>
-        <Icon
-          size={16}
-          className="text-muted-foreground transition-colors group-hover:text-foreground"
-        />
-      </span>
-      <span>{label}</span>
-    </button>
-  );
-}
 
 interface AppHeaderProps {
   selectedPositions?: Set<PositionKey>;
@@ -164,7 +117,6 @@ export function AppHeader({
   const closeMenu = () => setShowHamburgerMenu(false);
 
   const handleLogout = () => {
-    // Socket cleanup is handled centrally by AppBootstrapService
     void logout();
   };
 
@@ -378,7 +330,7 @@ export function AppHeader({
           )}
 
           <div>
-            <HamburgerMenuItem
+            <MenuItem
               icon={CircleHelp}
               label="Help"
               onClick={() => {
@@ -387,7 +339,7 @@ export function AppHeader({
               }}
             />
 
-            <HamburgerMenuItem
+            <MenuItem
               icon={Settings}
               label={isAdminRole(user?.role) ? 'User Settings' : 'Settings'}
               onClick={() => {
@@ -397,7 +349,7 @@ export function AppHeader({
             />
 
             {hasLab && isBiobankRoute && (
-              <HamburgerMenuItem
+              <MenuItem
                 icon={TankIcon}
                 label="Storage Manager"
                 onClick={() => {
@@ -408,7 +360,7 @@ export function AppHeader({
             )}
 
             {hasLab && isBiobankRoute && (
-              <HamburgerMenuItem
+              <MenuItem
                 icon={BookUser}
                 label="Donor Registry"
                 onClick={() => {
@@ -419,7 +371,7 @@ export function AppHeader({
             )}
 
             {isAdminRole(user?.role) && (
-              <HamburgerMenuItem
+              <MenuItem
                 icon={ShieldUser}
                 label="Admin Settings"
                 onClick={() => {
@@ -433,7 +385,7 @@ export function AppHeader({
           <MenuDivider subtle />
 
           <div>
-            <HamburgerMenuItem
+            <MenuItem
               icon={LogOut}
               label="Logout"
               onClick={() => {

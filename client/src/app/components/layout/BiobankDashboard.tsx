@@ -1,4 +1,4 @@
-import { useRef, useMemo, useCallback, useEffect } from 'react';
+import { useRef, useMemo, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 
 import { isAdminRole, getPersonDisplayName } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
@@ -102,6 +102,18 @@ function BiobankWorkspace() {
   const storageNavigatorRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const infoPanelRef = useRef<HTMLDivElement>(null);
+  const gridSectionRef = useRef<HTMLDivElement>(null);
+  const [gridSectionHeight, setGridSectionHeight] = useState<number>();
+
+  useLayoutEffect(() => {
+    const section = gridSectionRef.current;
+    if (!section) return;
+    const observer = new ResizeObserver(([entry]) =>
+      setGridSectionHeight(entry.borderBoxSize[0].blockSize)
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -334,8 +346,8 @@ function BiobankWorkspace() {
       </div>
 
       <div className="main-layout">
-        <div className="storage-navigator-panel">
-          <div className="h-full" ref={storageNavigatorRef}>
+        <div className="storage-navigator-panel" style={{ maxHeight: gridSectionHeight }}>
+          <div className="flex min-h-0 flex-col" ref={storageNavigatorRef}>
             <ErrorBoundary>
               <StorageNavigator
                 data={storageHierarchy}
@@ -348,7 +360,7 @@ function BiobankWorkspace() {
           </div>
         </div>
 
-        <div className="grid-section">
+        <div className="grid-section" ref={gridSectionRef}>
           <ConsolePanel intensity="medium" className="flex flex-col">
             <div className="flex-shrink-0">
               <PanelHeader
