@@ -1,9 +1,3 @@
-/**
- * Donor Table
- *
- * Searchable, sortable donor list with curation indicators.
- */
-
 import { useState, useMemo } from 'react';
 
 import { Plus } from 'lucide-react';
@@ -41,7 +35,6 @@ export function DonorTable({
 
   const filteredDonors = useMemo(() => {
     if (!searchQuery) return donors;
-    // Strip spaces and # for flexible matching (e.g., "LP8", "LP#8", "LP #8" all match)
     const normalize = (s: string) => s.toLowerCase().replace(/[\s#]+/g, '');
     const q = normalize(searchQuery);
     return donors.filter(
@@ -146,7 +139,6 @@ export function DonorTable({
 
       <ScrollArea className="min-h-0 flex-1">
         <Table
-          chassis={false}
           columns={columns}
           data={sortedDonors}
           hoverable

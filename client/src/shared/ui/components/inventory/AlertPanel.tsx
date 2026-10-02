@@ -1,10 +1,3 @@
-/**
- * Inventory Alert Panel
- *
- * Collapsible severity-toned alert table shared by the inventory catalogs. The rows, columns,
- * counts, and per-row tone are injected per domain; expansion, sorting, and the header are not.
- */
-
 import { useState, useMemo, useEffect, type ReactNode } from 'react';
 
 import { ChevronRight } from 'lucide-react';
@@ -133,7 +126,6 @@ export function AlertPanel<T extends { id: string }>({
       {isExpanded && (
         <>
           <Table
-            chassis={false}
             columns={columns}
             data={sortedRows}
             hoverable

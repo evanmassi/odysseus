@@ -1,9 +1,3 @@
-/**
- * Design System Variables
- *
- * HSL color tokens for light and dark themes, consumed by Tailwind config.
- */
-
 @layer base {
   * {
     box-sizing: border-box;
@@ -25,102 +19,69 @@
 
   :root,
   [data-theme='light'] {
-    /* Color system: --{name} for backgrounds, --{name}-foreground for text */
-    /* HSL format enables Tailwind opacity modifiers (e.g., text-foreground/50) */
-    /* [data-theme='light'] lets a subtree re-assert light tokens inside a forced-dark
-       island (e.g. a menu opened from the dark header). */
-
-    /* Typography — single source for the font stacks; Tailwind fontFamily references these. */
     --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui, sans-serif;
     --font-mono:
       'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
       'Courier New', monospace;
 
-    /* Phosphor text glow — crisp core + soft halo on the element's own currentColor. */
     --phosphor-shadow:
       0 0 1px currentColor, 0 0 6px color-mix(in srgb, currentColor 40%, transparent);
 
-    /* Core */
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
     --page: 214 22% 93%;
 
-    /* Surfaces */
     --bg-void: 214 24% 94%;
     --bg-base: 0 0% 100%;
     --bg-panel: 0 0% 100%;
     --bg-panel-2: 210 30% 98%;
     --bg-elev: 0 0% 100%;
-    /* Recessed header-strip channel fill (light); dark uses the shade wash. */
     --strip-surface: 0 0% 100%;
 
-    /* Hairlines */
     --line-faint: 222 47% 11% / 0.04;
     --line-soft: 222 47% 11% / 0.08;
     --line-mid: 222 47% 11% / 0.14;
     --line-strong: 222 47% 11% / 0.28;
 
-    /* Input well — sunken surface overlay for text inputs/selects/etc. */
     --input-well: 0 0% 0% / 0.04;
 
-    /* CRT scanline tint — faint on the light surface; dark theme overrides to full. */
     --scanline: 0 0% 0% / 0.035;
 
-    /* Overlay/shadow bases — alpha applied per use. shade = brand-navy band/fill tint;
-       recess = neutral inset/drop shadow (kept off the brand hue); sheen = light
-       highlight; scrim = always-dark floating halo. Dark theme overrides to black. */
     --shade: 212 45% 43%;
     --recess: 218 16% 34%;
     --sheen: 0 0% 100%;
     --scrim: 0 0% 0%;
-    /* Lit switch: 0 = unlit (light), 1 = lit (dark). Multiplies the glow/sheen/bloom
-       alphas; elevation ignores it. */
     --lit: 0;
-    /* Table-header surface: % of card kept before mixing toward black (lighter in light). */
     --header-mix: 96%;
 
-    /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
 
-    /* Popover */
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
 
-    /* Primary — deep-navy accent (#234a82). */
     --primary: 213 60% 40%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary */
     --secondary: 214.3 31.8% 91.4%;
-    /* Neutral text — muted near-black, cool-neutral to sit with the navy ink. */
     --secondary-foreground: 220 9% 27%;
 
-    /* Muted */
     --muted: 210 40% 96.1%;
     --muted-hover: 210 35% 93%;
     --muted-foreground: 220 8% 40%;
 
-    /* Accent */
     --accent: 210 40% 98%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
-    /* Utilities */
     --border: 214.3 31.8% 91.4%;
     --input: 210 40% 96.1%;
 
-    /* Overlay - always dark regardless of theme */
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
-    /* Auth surface tokens — light console palette. Plain space-separated channels
-       (not HSL Tailwind tokens) so they compose into the gradient/shadow stacks in
-       auth-console.css. Dark overrides below. */
     --auth-ambient: 35 74 130;
     --auth-surface: 255 255 255;
-    /* Field behind the console — cool canvas. */
     --auth-field-bg: 236 239 243;
-    /* Inset edge tokens off in light; the rim hairline + soft shadow carry the console. */
     --auth-edge-lift-top: 255 255 255 / 0;
     --auth-edge-lift-left: 255 255 255 / 0;
     --auth-edge-recess-bottom: 28 39 51 / 0;
@@ -132,14 +93,12 @@
     --auth-text-mute: 28 39 51 / 0.55;
     --auth-text-faint: 28 39 51 / 0.38;
 
-    /* Action Colors */
     --color-action-default: var(--primary);
     --color-action-hover: 213 60% 32%;
     --color-action-focus: 213 60% 32%;
     --color-action-light: 213 50% 97%;
     --color-action-light-hover: 213 50% 94%;
 
-    /* Danger Theme — brick/clay ink (≈ rgb(178,66,52)). */
     --color-danger-bg: 7 55% 45%;
     --color-danger-hover: 7 60% 38%;
     --color-danger-text: 7 55% 45%;
@@ -149,13 +108,10 @@
     --color-danger-light-hover: 7 58% 94%;
     --color-danger-border: 7 50% 55%;
 
-    /* Clear Theme */
     --color-clear-bg: 220 13% 91%;
     --color-clear-hover: 220 13% 82.7%;
     --color-clear-text: 220 8.9% 46.1%;
 
-    /* Warning Theme — ochre ink (≈ rgb(158,110,30)), deepened so amber doesn't wash
-       out at high lightness. */
     --color-warning-bg: 38 68% 42%;
     --color-warning-hover: 38 72% 35%;
     --color-warning-text: 38 68% 37%;
@@ -165,7 +121,6 @@
     --color-warning-light-hover: 40 72% 91%;
     --color-warning-border: 38 58% 50%;
 
-    /* Success Theme — pine ink (≈ rgb(46,116,78)). */
     --color-success-bg: 147 43% 32%;
     --color-success-hover: 147 48% 26%;
     --color-success-text: 147 43% 32%;
@@ -175,8 +130,6 @@
     --color-success-light-hover: 147 43% 92%;
     --color-success-border: 147 38% 42%;
 
-    /* Info Theme — deep azure; deepened from a sky blue that read lighter than the
-       primary. */
     --color-info-bg: 206 62% 42%;
     --color-info-hover: 206 66% 35%;
     --color-info-text: 206 62% 41%;
@@ -192,32 +145,25 @@
     --color-demo-light-hover: 280 28% 93%;
     --color-demo-border: 280 35% 55%;
 
-    /* Validation - Default */
     --color-validation-default-border: 214.3 31.8% 91.4%;
     --color-validation-default-bg: 0 0% 100%;
     --color-validation-default-ring: 210 43.1% 50%;
 
-    /* Focus Ring System */
     --focus-ring-color: 200 85% 58%;
     --focus-ring-contrast: 0 0% 100%;
     --focus-ring-glow-outer: 200 85% 58% / 0.45;
     --focus-ring-blur: 200 85% 58% / 0.3;
     --focus-ring-offset: 0px;
-    /* Composed ring shared by the global focus rule and the auth-container focus-within. */
     --focus-ring-shadow:
       0 0 0 3px hsl(var(--ring)), 0 0 6px 2px hsl(var(--focus-ring-glow-outer)),
       0 0 14px 4px hsl(var(--focus-ring-blur));
 
-    /* Field focus glow — light = primary ring only; dark adds the phosphor bloom. */
     --input-focus-shadow: 0 0 0 1px hsl(var(--primary) / 0.3);
 
-    /* Dropdown elevation — primary-tinted ring + soft halo. */
     --popup-shadow: 0 0 0 1px hsl(var(--primary) / 0.15), 0 0 24px -4px hsl(var(--primary) / 0.3);
 
-    /* Component library aliases */
     --ring: var(--focus-ring-color);
 
-    /* Audit Log - Entity Colors */
     --color-audit-entity-tube: 209.3 89.7% 77.3%;
     --color-audit-entity-storage: 209.5 36.1% 52.7%;
     --color-audit-entity-person: 236.5 28.4% 59.4%;
@@ -225,7 +171,6 @@
     --color-audit-entity-supply: 174 42% 45%;
     --color-audit-entity-reagent: 41 74% 45%;
 
-    /* Audit Log - Action Colors */
     --color-audit-action-create: var(--color-success-text);
     --color-audit-action-update: var(--color-info-text);
     --color-audit-action-delete: var(--color-danger-text);
@@ -233,18 +178,13 @@
     --color-audit-action-auth: 215.4 16.3% 46.9%;
     --color-audit-action-link: 238.7 83.5% 66.7%;
 
-    /* Ownership Indicator */
     --ownership-user-badge: 210 50% 56.7%;
     --ownership-other-badge: 215.4 16.3% 46.9%;
     --ownership-unassigned-badge: 45 40% 48%;
 
-    /* Tube Grid */
     --grid-border: 220 13% 91%;
     --grid-empty: 214 33% 96%;
     --grid-empty-foreground: 213 16% 63%;
-    /* Light selection: bold ring + fill tint (overlay) + elevation, no glow bloom. Ring
-       is brighter/more saturated than the primary so it stays visible on pale and dark
-       cells. */
     --grid-selection: 213 82% 47%;
     --grid-selection-glow: 213 82% 50% / 0.45;
     --grid-selection-inner: 0 0% 100% / 0.5;
@@ -260,8 +200,6 @@
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
 
-    /* Row/table glow alpha scale — light flattens the blooms to 0 (no additive glow
-       on white); fill, accent bar, and rims stay. Dark block re-pins the lit values. */
     --alpha-glow-wash-1: 0.14;
     --alpha-glow-wash-2: 0.09;
     --alpha-glow-wash-3: 0.045;
@@ -272,17 +210,12 @@
     --alpha-glow-edge-bloom: 0;
     --alpha-glow-outer-near: 0;
     --alpha-glow-outer-far: 0;
-    --alpha-glow-bar-strong: 0;
-    --alpha-glow-bar-mid: 0;
-    --alpha-glow-bar-far: 0;
     --alpha-checkbox-glow-inner: 0;
     --alpha-checkbox-glow-outer: 0;
     --alpha-checkbox-shadow: 0.25;
-    --alpha-zebra: 0.02;
+    --alpha-zebra: 0.035;
     --alpha-hover: 0.05;
     --alpha-header-rim: 0.09;
-    --alpha-phosphor-rim: 0;
-    --alpha-phosphor-bloom: 0;
     --alpha-hover-stripe: 0.45;
     --alpha-hover-edge: 0.1;
     --alpha-hover-bloom: 0;
@@ -290,14 +223,10 @@
     --alpha-hover-wash-2: 0.06;
     --alpha-hover-wash-3: 0.03;
     --alpha-hover-wash-4: 0.01;
-    --alpha-hover-rim: 0.07;
     --alpha-hover-bloom-edge: 0;
     --alpha-hover-bloom-far: 0;
     --alpha-stripe-muted: 0.3;
 
-    /* Tone-independent glow layer — safe at :root because it reads only :root tokens.
-       The tone-keyed recipes that pair with it live on `.row-glow` (row-glow.css);
-       see the invariant documented there before moving anything back up here. */
     --scanline-layer: repeating-linear-gradient(
       to bottom,
       hsl(var(--scanline)) 0,
@@ -306,24 +235,18 @@
       transparent 3px
     );
 
-    /* Always-dark components */
-
-    /* Toast */
     --toast: 220 14.3% 15.9%;
     --toast-foreground: 220 13% 91%;
 
-    /* Tooltip */
     --tooltip: 222.2 47.4% 11.2%;
     --tooltip-foreground: 0 0% 100%;
     --tooltip-border: 215.3 25% 26.7%;
     --tooltip-muted: 215 20.2% 65.1%;
 
-    /* Chip Active */
     --chip-active: 215.4 19.3% 34.5%;
     --chip-active-foreground: 0 0% 100%;
     --chip-active-hover: 215.3 25% 26.7%;
 
-    /* Status Offline */
     --status-offline: 220 14.3% 15.9%;
     --status-offline-foreground: 220 13% 82.7%;
     --status-offline-border: 217.2 19.2% 26.7%;
@@ -331,30 +254,24 @@
     --status-offline-hover: 220 8.9% 46.1%;
   }
 
-  /* Dark Theme */
   [data-theme='dark'] {
-    /* Core */
     --background: 220 38% 7%;
     --foreground: 45 29% 87%;
     --page: 220 38% 7%;
 
-    /* Surfaces */
     --bg-void: 220 43% 4%;
     --bg-base: 220 38% 7%;
     --bg-panel: 217 32% 9%;
     --bg-panel-2: 217 26% 11%;
     --bg-elev: 218 28% 15%;
 
-    /* Hairlines */
     --line-faint: 45 27% 87% / 0.06;
     --line-soft: 45 27% 87% / 0.1;
     --line-mid: 45 27% 87% / 0.18;
     --line-strong: 45 27% 87% / 0.32;
 
-    /* Input well — dark theme: deeper black wash so fields read as recessed against panels */
     --input-well: 0 0% 0% / 0.15;
 
-    /* Field focus glow — phosphor bloom over the base ring (light is ring-only). */
     --input-focus-shadow:
       0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px -2px hsl(var(--primary) / 0.45),
       inset 0 0 12px -4px hsl(var(--primary) / 0.25);
@@ -365,35 +282,27 @@
     --lit: 1;
     --header-mix: 85%;
 
-    /* Card */
     --card: 217 32% 9%;
     --card-foreground: 45 29% 87%;
 
-    /* Popover */
     --popover: 217 32% 11%;
     --popover-foreground: 45 29% 87%;
 
-    /* Primary */
     --primary: 210 60% 60%;
 
-    /* Secondary */
     --secondary: 217 26% 11%;
     --secondary-foreground: 44 14% 65%;
 
-    /* Muted */
     --muted: 215 24% 19%;
     --muted-hover: 215 24% 23%;
     --muted-foreground: 44 14% 65%;
 
-    /* Accent */
     --accent: 215.3 25% 26.7%;
     --accent-foreground: 45 29% 87%;
 
-    /* Utilities */
     --border: 215.3 25% 26.7%;
     --input: 217.2 25% 26.7%;
 
-    /* Auth surface tokens — always-dark navy console. Overrides the light values above. */
     --auth-ambient: 91 157 217;
     --auth-surface: 14 22 34;
     --auth-field-bg: 6 10 18;
@@ -407,17 +316,14 @@
     --auth-text-dim: 232 227 213 / 0.62;
     --auth-text-mute: 232 227 213 / 0.42;
     --auth-text-faint: 232 227 213 / 0.28;
-    /* Smoked input well — dark only; light fields use their own surfaces. */
     --auth-well: 0 0 0 / 0.42;
     --auth-well-hover: 0 0 0 / 0.55;
 
-    /* Action Colors */
     --color-action-hover: 210 65% 52%;
     --color-action-focus: 210 65% 52%;
     --color-action-light: 210 45% 12%;
     --color-action-light-hover: 210 50% 16%;
 
-    /* Danger Theme */
     --color-danger-bg: 5 50% 60%;
     --color-danger-hover: 5 58% 52%;
     --color-danger-text: 5 50% 65%;
@@ -426,7 +332,6 @@
     --color-danger-light-hover: 5 35% 16%;
     --color-danger-border: 5 45% 45%;
 
-    /* Warning Theme */
     --color-warning-bg: 32 67% 62%;
     --color-warning-hover: 32 72% 54%;
     --color-warning-text: 32 67% 68%;
@@ -435,7 +340,6 @@
     --color-warning-light-hover: 32 45% 14%;
     --color-warning-border: 32 60% 45%;
 
-    /* Success Theme */
     --color-success-bg: 152 38% 50%;
     --color-success-hover: 152 45% 42%;
     --color-success-text: 152 45% 60%;
@@ -444,7 +348,6 @@
     --color-success-light-hover: 152 20% 16%;
     --color-success-border: 152 35% 40%;
 
-    /* Info Theme */
     --color-info-bg: 213 75% 60%;
     --color-info-hover: 213 80% 52%;
     --color-info-text: 213 75% 70%;
@@ -459,23 +362,19 @@
     --color-demo-light-hover: 280 25% 16%;
     --color-demo-border: 280 35% 45%;
 
-    /* Clear Theme */
     --color-clear-bg: 215.4 19.3% 34.5%;
     --color-clear-hover: 215.3 25% 26.7%;
     --color-clear-text: 212.7 26.8% 83.9%;
 
-    /* Validation - Default */
     --color-validation-default-border: 215.3 25% 26.7%;
     --color-validation-default-bg: 217.2 32.6% 17.5%;
     --color-validation-default-ring: 213.1 93.9% 67.8%;
 
-    /* Focus Ring System */
     --focus-ring-color: 213.1 93.9% 67.8%;
     --focus-ring-contrast: var(--page);
     --focus-ring-glow-outer: 213.1 93.9% 67.8% / 0.35;
     --focus-ring-blur: 213.1 93.9% 67.8% / 0.25;
 
-    /* Audit Log - Entity Colors */
     --color-audit-entity-tube: 199 85% 65%;
     --color-audit-entity-storage: 210 45% 60%;
     --color-audit-entity-person: 250 40% 70%;
@@ -483,15 +382,12 @@
     --color-audit-entity-supply: 172 50% 58%;
     --color-audit-entity-reagent: 41 80% 60%;
 
-    /* Audit Log - Action Colors (auth needs override, others use semantic colors) */
     --color-audit-action-auth: 215 20% 60%;
 
-    /* Ownership Indicator */
     --ownership-user-badge: 213 85% 67.8%;
     --ownership-other-badge: 215 20.2% 65.1%;
     --ownership-unassigned-badge: 45 45% 62%;
 
-    /* Tube Grid */
     --grid-border: 217.2 19.2% 26.7%;
     --grid-empty: 0 0% 0% / 0.32;
     --grid-empty-foreground: 220 8.9% 46.1%;
@@ -509,7 +405,6 @@
     --grid-copied: 215 20.2% 65.1%;
     --grid-copied-alt: 217.2 32.6% 17.5%;
 
-    /* Lit glow scale — dark re-pins the bloom/glow values that light flattens. */
     --alpha-glow-wash-1: 0.21;
     --alpha-glow-wash-2: 0.13;
     --alpha-glow-wash-3: 0.06;
@@ -520,14 +415,9 @@
     --alpha-glow-edge-bloom: 0.14;
     --alpha-glow-outer-near: 0.2;
     --alpha-glow-outer-far: 0.09;
-    --alpha-glow-bar-strong: 0.5;
-    --alpha-glow-bar-mid: 0.4;
-    --alpha-glow-bar-far: 0.19;
     --alpha-checkbox-glow-inner: 0.55;
     --alpha-checkbox-glow-outer: 0.22;
     --alpha-checkbox-shadow: 0.6;
-    --alpha-phosphor-rim: 0.045;
-    --alpha-phosphor-bloom: 0.04;
     --alpha-hover-edge: 0.18;
     --alpha-hover-bloom: 0.08;
     --alpha-hover-bloom-edge: 0.06;
