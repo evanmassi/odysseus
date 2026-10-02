@@ -30,7 +30,7 @@ import {
 } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
-import { AccentTick, ErrorBoundary, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
+import { ErrorBoundary, HeaderStrip, OccupancyBar, PanelHeader, StripLabel } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { notifications } from '@shared/utils/notifications';
@@ -359,13 +359,15 @@ function BiobankWorkspace() {
 
             <HeaderStrip className="px-4 py-2.5">
               <div className="flex items-center gap-3">
-                <span className="flex min-w-0 items-center gap-1.5 font-mono text-data-sm tracking-[0.04em]">
-                  <AccentTick tone="warning" />
-                  <span className="truncate text-foreground">{tankDisplayName}</span>
-                  <span className="flex-shrink-0 text-foreground/30">›</span>
-                  <span className="truncate text-foreground">{rackDisplayName}</span>
-                  <span className="flex-shrink-0 text-foreground/30">›</span>
-                  <span className="truncate font-medium text-foreground">{boxDisplayName}</span>
+                <span className="flex min-w-0 items-center gap-3">
+                  <StripLabel tone="warning">Location</StripLabel>
+                  <span className="flex min-w-0 items-center gap-1.5 font-mono text-data-sm tracking-[0.04em]">
+                    <span className="truncate text-foreground">{tankDisplayName}</span>
+                    <span className="flex-shrink-0 text-foreground/30">›</span>
+                    <span className="truncate text-foreground">{rackDisplayName}</span>
+                    <span className="flex-shrink-0 text-foreground/30">›</span>
+                    <span className="truncate font-medium text-foreground">{boxDisplayName}</span>
+                  </span>
                 </span>
                 <span className="flex-1" />
                 <span className="flex flex-shrink-0 items-center gap-2">

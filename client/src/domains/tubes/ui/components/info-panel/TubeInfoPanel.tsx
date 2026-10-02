@@ -47,8 +47,6 @@ import { parsePositionKey } from '../../../types/gridSelectionTypes';
 import { getTubeColor } from '../../../utils/tubeColorCoding';
 import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
 
-import { TubeLocationDisplay } from './TubeLocationDisplay';
-
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';
 
@@ -119,12 +117,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const cellTypeBoxRef = useRef<HTMLDivElement>(null);
   const cellTypeTextRef = useRef<HTMLDivElement>(null);
 
-  const {
-    tankName,
-    rackName,
-    boxName,
-    box: currentBoxObj,
-  } = useStorageLocationNames(currentTank, currentRack, currentBox);
+  const { box: currentBoxObj } = useStorageLocationNames(currentTank, currentRack, currentBox);
 
   const positionSummary = useMemo(() => {
     if (selectedTubes.length === 0) return { positionLabel: '', formattedPositions: '' };
@@ -248,20 +241,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       </div>
 
       <HeaderStrip className="px-4 py-2.5">
-        <div className="space-y-2">
-          <TubeLocationDisplay
-            tankName={tankName}
-            rackName={rackName}
-            boxName={boxName}
-            positionLabel=""
-          />
-          {position.value && (
-            <div className="flex items-baseline gap-2">
-              <StripLabel tone="warning">{position.word}</StripLabel>
-              <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
-                {position.value.replace(/-/g, '‑')}
-              </span>
-            </div>
+        <div className="flex items-baseline gap-2">
+          <StripLabel tone="warning">{position.word}</StripLabel>
+          {position.value ? (
+            <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
+              {position.value.replace(/-/g, '‑')}
+            </span>
+          ) : (
+            <span className="font-mono text-data-sm text-muted-foreground">—</span>
           )}
         </div>
       </HeaderStrip>
