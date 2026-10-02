@@ -1,9 +1,3 @@
-/**
- * Password Reset Modal
- *
- * Admin resets a user's password directly, or generates a one-time reset link.
- */
-
 import { useState, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
@@ -74,7 +68,6 @@ export function PasswordResetModal({
     return PasswordValidator.validate(newPassword, passwordRequirements).isValid;
   }, [newPassword, passwordRequirements]);
 
-  // Reset form state when modal opens
   useEffect(() => {
     if (isOpen) {
       setActiveTab('direct');
@@ -203,18 +196,14 @@ export function PasswordResetModal({
           <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             User
           </span>
-          <span className="font-mono text-data-sm text-secondary-foreground phosphor-text">
-            {username}
-          </span>
+          <span className="font-mono text-data-sm text-foreground">{username}</span>
         </div>
       }
       onClose={onClose}
     >
-      {/* Fixed height so switching tabs or generating a link never resizes the modal */}
       <div className="h-[110px]">
         {activeTab === 'direct' ? (
           <div>
-            {/* Password Input */}
             <div className="mb-4">
               <AuthInput
                 id="newPassword"
@@ -246,7 +235,6 @@ export function PasswordResetModal({
               </div>
             </div>
 
-            {/* Require Password Change Toggle */}
             <div className="flex items-center justify-end gap-2.5">
               <span className="text-body-sm text-secondary-foreground">
                 Require password change on next login
@@ -277,9 +265,7 @@ export function PasswordResetModal({
               ].map(({ icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
                   <span className="text-primary phosphor-glow">{icon}</span>
-                  <span className="w-14 type-label text-label-2xs text-primary phosphor-text">
-                    {label}
-                  </span>
+                  <span className="w-14 type-label text-label-2xs text-primary">{label}</span>
                   <span className="text-body-sm text-secondary-foreground">{value}</span>
                 </div>
               ))}

@@ -1,13 +1,6 @@
-/**
- * Attribute Section
- *
- * The pane behind an attribute leaf: how the field behaves on reagent forms, above the
- * curated option list it offers. Free-text and number attributes have no option list.
- */
-
 import { useState } from 'react';
 
-import { Chip, ConsolePanel, SettingsRow, Subsection, Tooltip } from '@shared/ui';
+import { Chip, SettingsRow, Subsection, Tooltip } from '@shared/ui';
 import { Button, Toggle } from '@shared/ui/primitives';
 
 import { CatalogEntryTable, type CatalogEntry } from './CatalogEntryTable';
@@ -25,7 +18,6 @@ const VALUE_TYPE_LABELS: Record<AttributeValueType, string> = {
 interface AttributeSectionProps {
   definition: AttributeDefinition;
   options: CatalogEntry[];
-  /** Reagent types this attribute can be scoped to; empty while the lab has defined none. */
   reagentTypeOptions: SelectOption[];
   itemsUsingCount: number;
   loading?: boolean;
@@ -57,8 +49,6 @@ export function AttributeSection({
   const [isEditingScope, setIsEditingScope] = useState(false);
   const usesOptions = definition.valueType === 'select' || definition.valueType === 'multi_select';
 
-  // Empty means every type including ones the lab adds later, which is why the reveal offers
-  // "All types" as a clear rather than a select-all — those differ the moment a type is added.
   const scopeSummary =
     definition.appliesToTypes.length === 0
       ? 'All reagent types'
@@ -73,7 +63,7 @@ export function AttributeSection({
 
   return (
     <div className="space-y-2">
-      <ConsolePanel intensity="soft">
+      <div>
         <Subsection
           title="Attribute Settings"
           meta={
@@ -148,7 +138,6 @@ export function AttributeSection({
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                {/* The summary truncates past three, so the full scope lives on hover. */}
                 <Tooltip
                   content={
                     definition.appliesToTypes.length > 0
@@ -200,7 +189,7 @@ export function AttributeSection({
             </Button>
           </SettingsRow>
         </Subsection>
-      </ConsolePanel>
+      </div>
 
       {usesOptions ? (
         <CatalogEntryTable
@@ -221,12 +210,10 @@ export function AttributeSection({
           readOnly={readOnly}
         />
       ) : (
-        <ConsolePanel intensity="soft" className="px-4 py-3">
-          <p className="text-body-sm text-muted-foreground">
-            {VALUE_TYPE_LABELS[definition.valueType]} attributes are typed in on the reagent form —
-            there is no option list to curate.
-          </p>
-        </ConsolePanel>
+        <p className="pt-2 text-body-sm text-muted-foreground">
+          {VALUE_TYPE_LABELS[definition.valueType]} attributes are typed in on the reagent form —
+          there is no option list to curate.
+        </p>
       )}
     </div>
   );

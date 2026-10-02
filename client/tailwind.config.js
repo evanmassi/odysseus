@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class', '[data-theme="dark"]'],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
@@ -6,14 +5,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* Core color system - HSL format enables opacity modifiers */
-
-        /* Core */
         background: 'hsl(var(--background) / <alpha-value>)',
         foreground: 'hsl(var(--foreground) / <alpha-value>)',
         page: 'hsl(var(--page) / <alpha-value>)',
 
-        /* Surfaces */
         surface: {
           void: 'hsl(var(--bg-void) / <alpha-value>)',
           base: 'hsl(var(--bg-base) / <alpha-value>)',
@@ -31,7 +26,6 @@ export default {
           foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',
         },
 
-        /* Semantic */
         primary: {
           DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
           foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
@@ -49,12 +43,10 @@ export default {
           DEFAULT: 'hsl(var(--accent) / <alpha-value>)',
           foreground: 'hsl(var(--accent-foreground) / <alpha-value>)',
         },
-        /* Utilities */
         border: 'hsl(var(--border) / <alpha-value>)',
         input: 'hsl(var(--input) / <alpha-value>)',
         ring: 'hsl(var(--ring) / <alpha-value>)',
 
-        /* Hairlines */
         line: {
           faint: 'hsl(var(--line-faint))',
           soft: 'hsl(var(--line-soft))',
@@ -62,12 +54,9 @@ export default {
           strong: 'hsl(var(--line-strong))',
         },
 
-        /* Console overlay washes — alpha set per use (bg-shade/35, bg-sheen/20). */
         shade: 'hsl(var(--shade) / <alpha-value>)',
         sheen: 'hsl(var(--sheen) / <alpha-value>)',
         scrim: 'hsl(var(--scrim) / <alpha-value>)',
-
-        /* Application-specific extensions */
 
         action: {
           DEFAULT: 'hsl(var(--color-action-default) / <alpha-value>)',
@@ -136,8 +125,6 @@ export default {
           },
         },
 
-        /* Always-dark components */
-
         toast: {
           DEFAULT: 'hsl(var(--toast) / <alpha-value>)',
           foreground: 'hsl(var(--toast-foreground) / <alpha-value>)',
@@ -167,44 +154,34 @@ export default {
         },
       },
       fontSize: {
-        // Semantic type tokens — see docs/typography-refactor-plan.md.
-        // The numeric ladder (text-xs…text-4xl) stays at Tailwind defaults
-        // (12/14/16/18/20/24/30/36) and is the escape hatch; reach for the
-        // semantic tokens below first. Format: [size, { lineHeight }]; px @16px root.
+        caption: ['0.8125rem', { lineHeight: '1.4' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.45' }],
+        body: ['1rem', { lineHeight: '1.5' }],
+        'body-lg': ['1.125rem', { lineHeight: '1.5' }],
 
-        // Prose (sans, sentence case)
-        caption: ['0.8125rem', { lineHeight: '1.4' }], // 13px
-        'body-sm': ['0.875rem', { lineHeight: '1.45' }], // 14px (was "secondary"; renamed — color collision)
-        body: ['1rem', { lineHeight: '1.5' }], // 16px — workhorse
-        'body-lg': ['1.125rem', { lineHeight: '1.5' }], // 18px
+        'title-sm': ['1.125rem', { lineHeight: '1.3', fontWeight: '600' }],
+        title: ['1.25rem', { lineHeight: '1.25', fontWeight: '600' }],
+        'title-lg': ['1.5rem', { lineHeight: '1.2', fontWeight: '700' }],
+        display: ['1.875rem', { lineHeight: '1.15', fontWeight: '700' }],
 
-        // Heading (sans, weighted)
-        'title-sm': ['1.125rem', { lineHeight: '1.3', fontWeight: '600' }], // 18px
-        title: ['1.25rem', { lineHeight: '1.25', fontWeight: '600' }], // 20px
-        'title-lg': ['1.5rem', { lineHeight: '1.2', fontWeight: '700' }], // 24px
-        display: ['1.875rem', { lineHeight: '1.15', fontWeight: '700' }], // 30px
+        'label-2xs': ['0.75rem', { lineHeight: '1' }],
+        'label-xs': ['0.8125rem', { lineHeight: '1' }],
+        'label-sm': ['0.875rem', { lineHeight: '1.1' }],
+        'label-md': ['0.9375rem', { lineHeight: '1.1' }],
+        'label-lg': ['1rem', { lineHeight: '1.1' }],
+        'label-xl': ['1.125rem', { lineHeight: '1.1' }],
 
-        // Label / chrome (mono · uppercase · tracked — pair with .type-label)
-        'label-2xs': ['0.625rem', { lineHeight: '1' }], // 10px (floor)
-        'label-xs': ['0.6875rem', { lineHeight: '1' }], // 11px
-        'label-sm': ['0.75rem', { lineHeight: '1.1' }], // 12px
-        'label-md': ['0.875rem', { lineHeight: '1.1' }], // 14px
-        'label-lg': ['1rem', { lineHeight: '1.1' }], // 16px — tabs
-
-        // Data / numeric (mono · tabular)
-        'data-sm': ['0.8125rem', { lineHeight: '1.2' }], // 13px
-        data: ['0.875rem', { lineHeight: '1.3' }], // 14px
-        'data-lg': ['1rem', { lineHeight: '1.3' }], // 16px
-        stat: ['1.875rem', { lineHeight: '1.05' }], // 30px — hero numbers
+        'data-sm': ['0.8125rem', { lineHeight: '1.2' }],
+        data: ['0.875rem', { lineHeight: '1.3' }],
+        'data-lg': ['1rem', { lineHeight: '1.3' }],
+        stat: ['1.875rem', { lineHeight: '1.05' }],
       },
       letterSpacing: {
-        // Tracking tokens for the label/data voices — see plan §4.3.
-        // Adds to Tailwind defaults (tight/normal/wide/…); no key overlap.
-        data: '0.02em', // tabular numerals, data cells
-        meta: '0.10em', // mono meta — IdStamp, Kbd, menu items
-        label: '0.18em', // standard uppercase chrome (default in .type-label)
-        'label-wide': '0.24em', // emphasized labels — subsection, table headers
-        ceremonial: '0.32em', // auth register, loaders
+        data: '0.02em',
+        meta: '0.10em',
+        label: '0.08em',
+        'label-wide': '0.12em',
+        ceremonial: '0.32em',
       },
       fontFamily: {
         sans: ['var(--font-sans)'],
@@ -213,7 +190,6 @@ export default {
       },
       boxShadow: {
         sheen: 'inset 0 1px 0 0 hsl(var(--sheen) / 0.18)',
-        /* Inset top sheen + single soft halo. Mirrors LabBadge `lit` + Toggle ON vocabulary. */
         'glow-primary':
           'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
         'glow-danger':
@@ -224,9 +200,6 @@ export default {
           'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
         'glow-info':
           'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
-        /* Standard-weight button surface. Light (1 - --lit): paper-sheen highlight +
-           faint contact shadow — the part sits ON the page, no emission. Dark (--lit):
-           the inset + outer tonal glow. Both baked in; the gate swaps them per theme. */
         'standard-primary':
           'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--primary) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--primary) / calc(0.40 * var(--lit)))',
         'standard-primary-hover':
@@ -251,17 +224,10 @@ export default {
       backgroundImage: {
         scanlines:
           'repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
-        /* Stacked, paints front-to-back:
-           1. Primary-tinted 1px hairline at the very top — etched HUD edge
-           2. Off-axis sheen (115°) — implies a light source above-left, not the
-              symmetric top-down sheen used by generic glass UI
-           3. Scanlines — material texture */
         'lit-fill':
           'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, hsl(var(--sheen) / 0.08) 0%, hsl(var(--sheen) / 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
-        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own
-           color. Bloom strength scales by --lit, so the glow drops to zero in light. */
         'icon-bloom':
           '0 0 6px color-mix(in srgb, currentColor calc(55% * var(--lit)), transparent)',
         'icon-bloom-hover': [

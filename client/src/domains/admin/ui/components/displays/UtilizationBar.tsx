@@ -1,9 +1,3 @@
-/**
- * Utilization Bar
- *
- * Compact capacity meter — fill width and threshold tint reflect the utilization percent.
- */
-
 interface UtilizationBarProps {
   percent: number;
 }
@@ -21,7 +15,7 @@ export function UtilizationBar({ percent }: UtilizationBarProps) {
       <div className="relative h-1.5 w-20 border border-foreground/15 bg-foreground/[0.03]">
         <div className={`h-full bg-scanlines ${tone}`} style={{ width: `${clamped}%` }} />
       </div>
-      <span className="inline-block w-10 text-right font-mono text-data-sm tabular-nums tracking-data text-foreground/70">
+      <span className="inline-block w-10 text-right font-mono text-data-sm tabular-nums tracking-data text-foreground">
         {percent}%
       </span>
     </div>

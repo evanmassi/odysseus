@@ -1,8 +1,3 @@
-/**
- * User Settings Modal
- *
- * Modal for managing user-specific preferences and settings.
- */
 import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react';
 
 import { Settings, Table2, UserRound, Shield } from 'lucide-react';
@@ -81,7 +76,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       ...prev,
       theme,
     }));
-    // Apply theme immediately for instant visual feedback
     setPreference(theme);
   };
 
@@ -147,9 +141,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           User
         </span>
-        <span className="phosphor-text text-data-sm text-secondary-foreground">
-          {user?.username ?? '—'}
-        </span>
+        <span className="text-data-sm text-foreground">{user?.username ?? '—'}</span>
       </div>
       <span aria-hidden className="text-muted-foreground/40">
         ·
@@ -158,9 +150,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Sessions
         </span>
-        <span className="phosphor-text text-data-sm text-secondary-foreground">
-          {sessions.length}
-        </span>
+        <span className="text-data-sm text-foreground">{sessions.length}</span>
       </div>
     </div>
   );

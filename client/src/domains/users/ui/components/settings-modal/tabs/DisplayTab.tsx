@@ -1,13 +1,8 @@
-/**
- * Display Preferences
- *
- * Theme and position display format settings.
- */
 import { type ReactNode } from 'react';
 
 import { Monitor, Moon, Save, Sun, type LucideIcon } from 'lucide-react';
 
-import { Button, ConsolePanel, Subsection, UnsavedChangesIndicator } from '@shared/ui';
+import { Button, Subsection, UnsavedChangesIndicator } from '@shared/ui';
 
 import type { PositionDisplayPreference, ThemePreference } from '@odysseus/shared-schemas';
 
@@ -39,7 +34,7 @@ function SavedMarker() {
 function SampleChip({ isSelected, children }: { isSelected: boolean; children: ReactNode }) {
   return (
     <span
-      className={`phosphor-text border px-1.5 py-0.5 font-mono ${
+      className={`border px-1.5 py-0.5 font-mono ${
         isSelected
           ? 'border-primary/30 bg-primary/15 text-foreground'
           : 'border-transparent bg-foreground/[0.06] text-secondary-foreground'
@@ -122,7 +117,7 @@ export function DisplayTab({
   };
 
   return (
-    <ConsolePanel intensity="soft">
+    <div>
       <Subsection title="Theme" index={1} accent>
         <div className="col-span-2 py-4">
           <div className="grid grid-cols-3 gap-2">
@@ -146,9 +141,7 @@ export function DisplayTab({
                         : 'text-muted-foreground'
                     }`}
                   />
-                  <h5 className={`text-body font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
-                    {label}
-                  </h5>
+                  <h5 className="text-body font-semibold">{label}</h5>
                   <p className="text-caption text-secondary-foreground">{description}</p>
                 </button>
               );
@@ -176,11 +169,7 @@ export function DisplayTab({
                   className={`${CARD_BASE} ${isSelected ? CARD_SELECTED : CARD_UNSELECTED}`}
                 >
                   {isSaved && <SavedMarker />}
-                  <h5
-                    className={`mb-1 text-body font-semibold ${isSelected ? 'phosphor-text' : ''}`}
-                  >
-                    {label}
-                  </h5>
+                  <h5 className="mb-1 text-body font-semibold">{label}</h5>
                   <p className="mb-2 text-caption text-secondary-foreground">{description}</p>
                   <div className="flex items-center space-x-1 text-data-sm">
                     <SampleChip isSelected={isSelected}>{samples[0]}</SampleChip>
@@ -195,7 +184,7 @@ export function DisplayTab({
         </div>
       </Subsection>
 
-      <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+      <div className="flex items-center justify-between gap-4 pt-2">
         <UnsavedChangesIndicator count={dirtyCount} />
         <Button
           variant="primary"
@@ -209,6 +198,6 @@ export function DisplayTab({
           Save Display Settings
         </Button>
       </div>
-    </ConsolePanel>
+    </div>
   );
 }

@@ -1,10 +1,3 @@
-/**
- * Invite Codes Tab
- *
- * Manages invite codes for the current lab (lab admins)
- * or any lab (system admins via the system admin dashboard).
- */
-
 import { useState } from 'react';
 
 import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
@@ -12,7 +5,6 @@ import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 import {
   Button,
   Chip,
-  ConsolePanel,
   NubDivider,
   NumberInput,
   Select,
@@ -37,7 +29,6 @@ interface InviteCodesTabProps {
   readOnly?: boolean;
 }
 
-// Expiry presets in days; 0 means the code never expires.
 const EXPIRY_OPTIONS: SelectOption[] = [
   { value: 0, label: 'Never' },
   { value: 7, label: '7 days' },
@@ -55,7 +46,6 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  // New code form
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCodeMaxUses, setNewCodeMaxUses] = useState(1);
   const [newCodeCreateResearcher, setNewCodeCreateResearcher] = useState(false);
@@ -223,7 +213,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   return (
     <div className="space-y-4">
       {showCreateForm && (
-        <ConsolePanel intensity="soft">
+        <div>
           <Subsection title="New Code" index={1}>
             <SettingsRow
               label="Researcher Profile"
@@ -258,7 +248,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               </div>
             </SettingsRow>
           </Subsection>
-          <div className="flex justify-end gap-2 border-t border-line-soft px-5 py-3">
+          <div className="flex justify-end gap-2 pt-3">
             <Button variant="ghost" size="sm" onClick={resetForm}>
               Cancel
             </Button>
@@ -271,7 +261,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               Create
             </Button>
           </div>
-        </ConsolePanel>
+        </div>
       )}
 
       <Table

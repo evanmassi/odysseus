@@ -1,8 +1,3 @@
-/**
- * Admin Settings Modal
- *
- * Top-level admin modal with lazy-loaded tabs for security, users, researchers, and system config.
- */
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
@@ -25,7 +20,6 @@ import {
   AccentTick,
   AlertBanner,
   Button,
-  ConsolePanel,
   SectionHeader,
   Tab,
   LoadingSkeleton,
@@ -132,8 +126,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const refreshUsers = () =>
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
 
-  // Security config is read-only here: writing it is a system-admin action, and the system-admin
-  // dashboard owns the only surface that can save it.
   const { config, handleConfigChange, load: loadConfiguration } = useSecurityConfig();
 
   useEffect(() => {
@@ -146,8 +138,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const handleTabAction = useCallback((action: React.ReactNode) => setTabAction(action), []);
 
   const tabs = (
-    // Stated rather than inferred: a system admin sees only two tabs, and the automatic choice
-    // would lay them out side by side inside the modal's vertical rail.
     <Tabs
       orientation="vertical"
       value={activeTab}
@@ -194,7 +184,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             {isSystemAdmin ? 'Scope' : 'Lab'}
           </span>
-          <span className="text-data-sm text-secondary-foreground phosphor-text">
+          <span className="text-data-sm text-foreground">
             {isSystemAdmin ? 'System-wide' : (currentLab?.name ?? '—')}
           </span>
         </div>
@@ -205,9 +195,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             Admin
           </span>
-          <span className="text-data-sm text-secondary-foreground phosphor-text">
-            {user?.username ?? '—'}
-          </span>
+          <span className="text-data-sm text-foreground">{user?.username ?? '—'}</span>
         </div>
       </div>
 
@@ -251,9 +239,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           <AlertBanner variant="info" spacing="sm">
             Only system admins can modify security settings.
           </AlertBanner>
-          <ConsolePanel intensity="soft">
-            <SecurityTab config={config} onChange={handleConfigChange} readOnly />
-          </ConsolePanel>
+          <SecurityTab config={config} onChange={handleConfigChange} readOnly />
         </Suspense>
       )}
 

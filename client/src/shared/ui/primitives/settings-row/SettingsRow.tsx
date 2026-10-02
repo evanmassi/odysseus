@@ -1,12 +1,5 @@
-/**
- * Settings Row
- *
- * Labeled control rows and the index-titled sections that group them.
- */
-
 import type { ReactNode } from 'react';
 
-import { headerSurface } from '../console-panel/consoleHeaderSurface';
 import { SubsectionHeader } from '../titles/SubsectionHeader';
 
 interface SettingsRowProps {
@@ -20,9 +13,9 @@ export function SettingsRow({ label, hint, children, className }: SettingsRowPro
   return (
     <div className={`flex items-center justify-between gap-4 py-3 ${className ?? ''}`}>
       <div className="min-w-0">
-        <div className="type-label text-label-xs text-foreground/85">{label}</div>
+        <div className="font-display text-body-sm text-foreground">{label}</div>
         {hint && (
-          <div className="mt-0.5 font-display text-caption leading-snug text-muted-foreground/70">
+          <div className="mt-0.5 font-display text-caption leading-snug text-muted-foreground">
             {hint}
           </div>
         )}
@@ -41,26 +34,17 @@ interface SubsectionProps {
   className?: string;
 }
 
-// clip-path trims the grid's leftmost 1px so each cell's left rim reads only as an
-// inter-column divider — never at the grid edge or down a full-width row.
-const GRID_CLASSES =
-  'grid grid-cols-2 [clip-path:inset(-100px_-100px_-100px_1px)] [&>*]:px-5 ' +
-  '[&>*]:shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_1px_0_0_hsl(var(--foreground)/var(--alpha-phosphor-rim))]';
-
 export function Subsection({ title, index, meta, accent, children, className }: SubsectionProps) {
   return (
-    <div className={`border-t border-line-soft first:border-t-0 ${className ?? ''}`}>
-      <div
-        className="relative border-b border-line-soft px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]"
-        style={{ background: headerSurface(true) }}
-      >
+    <div className={`pt-10 first:pt-1 ${className ?? ''}`}>
+      <div className="flex items-center gap-3 pb-2">
         <SubsectionHeader title={title} index={index} meta={meta} accent={accent} />
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 -bottom-px h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.18)_12%,hsl(var(--primary)/0.18)_88%,transparent_100%)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.12),0_0_18px_hsl(var(--primary)/0.05)]"
+          className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.1)_70%,hsl(var(--foreground)/0.05)_100%)]"
         />
       </div>
-      <div className={GRID_CLASSES}>{children}</div>
+      <div className="grid grid-cols-2 gap-x-10 pl-4 pr-6">{children}</div>
     </div>
   );
 }

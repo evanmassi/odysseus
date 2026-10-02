@@ -1,8 +1,3 @@
-/**
- * Audit Retention Settings
- *
- * Admin controls for retention policy, metrics, and manual archival.
- */
 import { useState } from 'react';
 
 import {
@@ -48,7 +43,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   const [exportError, setExportError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  // One inline banner across loads, archival, and export; each error source is mutually exclusive.
   const error =
     exportError ??
     (retentionQuery.isError ? getErrorMessage(retentionQuery.error) : null) ??
@@ -91,7 +85,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   const currentStatus = STATUS_CONFIG[status];
   const StatusIcon = currentStatus.icon;
 
-  // First load only: a refresh keeps the panel on screen and lets the button's spinner carry it.
   if (loading && !metrics) {
     return (
       <ConsolePanel intensity="soft">
@@ -102,7 +95,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     );
   }
 
-  // Collapsed View — single status bar; warning tints the chassis.
   if (isCollapsed) {
     return (
       <ConsolePanel
@@ -145,10 +137,8 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     );
   }
 
-  // Expanded View
   return (
     <div className="space-y-3">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -178,7 +168,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
         </Button>
       </div>
 
-      {/* Performance Warning */}
       {metrics?.performanceWarning && (
         <AlertBanner variant="warning" title="Performance warning" spacing="none">
           Active audit log table is approaching the warning threshold (
@@ -187,7 +176,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
         </AlertBanner>
       )}
 
-      {/* Archive Result */}
       {archiveResult && (
         <AlertBanner variant="success" title="Archival completed" spacing="none">
           Archived {archiveResult.archived} entries and deleted {archiveResult.deleted} expired
@@ -195,19 +183,17 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
         </AlertBanner>
       )}
 
-      {/* Error */}
       {error && (
         <AlertBanner variant="error" spacing="none">
           {error}
         </AlertBanner>
       )}
 
-      <ConsolePanel intensity="soft">
-        {/* Retention Policy */}
+      <div>
         {policy && (
           <Subsection title="Retention Policy" index={1} accent>
             <div className="col-span-2 py-2">
-              <div className={STAT_STRIP}>
+              <div className={`${STAT_STRIP} -mx-3`}>
                 <StatCell
                   size="sm"
                   label="Active Retention"
@@ -249,11 +235,10 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </Subsection>
         )}
 
-        {/* Active Table Metrics */}
         {metrics && (
           <Subsection title="Active Table" index={2} accent meta="Hot storage">
             <div className="col-span-2 py-2">
-              <div className={STAT_STRIP}>
+              <div className={`${STAT_STRIP} -mx-3`}>
                 <StatCell
                   size="sm"
                   label="Total Entries"
@@ -284,11 +269,10 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </Subsection>
         )}
 
-        {/* Archive Table Metrics */}
         {metrics && (
           <Subsection title="Archive Table" index={3} accent meta="Warm storage">
             <div className="col-span-2 py-2">
-              <div className={STAT_STRIP}>
+              <div className={`${STAT_STRIP} -mx-3`}>
                 <StatCell
                   size="sm"
                   label="Total Entries"
@@ -313,7 +297,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </Subsection>
         )}
 
-        {/* Manual Operations */}
         <Subsection title="Operations" index={4} accent>
           <div className="col-span-2 space-y-3 py-4">
             <div className="flex flex-wrap gap-2">
@@ -342,7 +325,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             </p>
           </div>
         </Subsection>
-      </ConsolePanel>
+      </div>
     </div>
   );
 }

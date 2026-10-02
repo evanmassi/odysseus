@@ -1,9 +1,3 @@
-/**
- * Lab Demo Settings
- *
- * Demo lab management: per-resource limits, seed/unseed, reset.
- */
-
 import { useState } from 'react';
 
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
@@ -31,7 +25,6 @@ import { useDemoLimitsQuery } from '../../../hooks/useLabQueries';
 
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
-// Every limit counts only what was added beyond the seeded dataset, which never spends the budget.
 interface LimitRow {
   key: keyof DemoLimits;
   label: string;
@@ -76,8 +69,6 @@ const CONTENT_LIMITS: LimitRow[] = [
   },
 ];
 
-// Subsection lays its children out in a two-column grid filled row-first, so interleaving the two
-// lists is what makes storage read down the left and content down the right.
 const LIMIT_ROWS: LimitRow[] = STORAGE_LIMITS.flatMap((storage, i) => [storage, CONTENT_LIMITS[i]]);
 
 interface LabDemoSettingsProps {
@@ -167,7 +158,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
         />
         {isExpanded && (
           <>
-            <Subsection title="Resource Limits" index={1}>
+            <Subsection title="Resource Limits" index={1} className="px-5">
               {rows.map(row => (
                 <SettingsRow key={row.key} label={row.label} hint={row.hint}>
                   <NumberInput

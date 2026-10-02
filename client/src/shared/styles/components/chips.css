@@ -1,34 +1,23 @@
-/**
- * Chip Styles
- *
- * Lit chip treatment — lit left edge + dark radial wash + tone border, aligned with the alert banner's tokens.
- */
-
-/* Rules deliberately unlayered so they outrank Tailwind utility classes
-   (`border-{tone}-border`) which live in @layer utilities. */
 .chip-lit {
   position: relative;
   isolation: isolate;
   border-color: hsl(var(--c) / 0.28);
 }
 
-/* Radial wash behind the label, dark only — light stays flat (the tone's label fill carries it). */
 [data-theme='dark'] .chip-lit::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    70% 220% at 35% 50%,
-    hsl(var(--c) / 0.16) 0%,
-    hsl(var(--c) / 0.05) 35%,
-    transparent 70%
+  background: linear-gradient(
+    90deg,
+    hsl(var(--c) / 0.22) 0,
+    hsl(var(--c) / 0.07) 22px,
+    transparent 31px
   );
   pointer-events: none;
   z-index: 0;
 }
 
-/* Lit left edge — solid bar in both themes, halo dark only. top/bottom extend 1px
-   so it meets the borders; the clip-path trims the overflow. */
 .chip-lit::after {
   content: '';
   position: absolute;
@@ -52,8 +41,6 @@
   z-index: 1;
 }
 
-/* Tone bindings — --color-{tone}-text matches the banner's tokens so chip and
-   banner read alike across themes. */
 .chip-lit.chip-lit--success {
   --c: var(--color-success-text);
 }
@@ -73,7 +60,6 @@
   --c: var(--foreground);
 }
 
-/* Inner lead/label divider uses the same alpha as the outer border, so they read as one frame. */
 .chip-lit > *:first-child {
   border-right-color: hsl(var(--c) / 0.28);
 }

@@ -1,8 +1,3 @@
-/**
- * Audit Log Filter Panel
- *
- * Multi-select filters for actions, entity types, users, and date ranges.
- */
 import { useState, useCallback, useMemo, type ReactNode } from 'react';
 
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
@@ -215,9 +210,7 @@ function CollapsibleSection({
           </span>
         </div>
         {count > 0 && (
-          <span className="font-mono text-data-sm tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
-            {count}
-          </span>
+          <span className="font-mono text-data-sm tabular-nums text-primary/90">{count}</span>
         )}
       </button>
       {isOpen && <div className="px-4 pb-3 pt-0.5">{children}</div>}

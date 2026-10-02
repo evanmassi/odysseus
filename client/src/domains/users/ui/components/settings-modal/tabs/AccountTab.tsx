@@ -1,15 +1,10 @@
-/**
- * Account Profile Editor
- *
- * User profile management with password confirmation requirement.
- */
 import { useState, useEffect, useMemo } from 'react';
 
 import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save } from 'lucide-react';
 
 import { useIsDemo } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { AuthInput, Button, ConsolePanel, LoadingSpinner, Subsection } from '@shared/ui';
+import { AuthInput, Button, LoadingSpinner, Subsection } from '@shared/ui';
 import { DemoModeBanner } from '@shared/ui/components/info-display/DemoModeBanner';
 import { notifications } from '@shared/utils';
 import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
@@ -19,7 +14,6 @@ import { useUserProfile, useUserProfileActions } from '../../../../hooks/useUser
 import type { UpdateMyProfileRequest } from '@odysseus/shared-schemas';
 
 interface AccountTabProps {
-  /** Reports the number of unsaved profile field edits to the modal footer. */
   onDirtyChange?: (count: number) => void;
 }
 
@@ -96,8 +90,6 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
     if (firstName !== profile?.firstName) updateData.firstName = firstName.trim();
     if (lastName !== profile?.lastName) updateData.lastName = lastName.trim();
     if (email !== profile?.email) updateData.email = email.trim();
-    // Send the empty string rather than undefined: JSON.stringify drops undefined, and an absent
-    // field means "unchanged" to the server, which is what made these fields unclearable.
     if (department !== (profile?.department ?? '')) updateData.department = department.trim();
     if (position !== (profile?.position ?? '')) updateData.position = position.trim();
 
@@ -109,7 +101,6 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       },
       onError: (error: Error) => {
         logger.error('AccountTab update failed', { error });
-        // Flag the password field too; the global handler shows the server message as a toast.
         if (error.message.includes('password')) {
           setPasswordTouched(true);
         }
@@ -126,7 +117,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
   }
 
   return (
-    <ConsolePanel intensity="soft">
+    <div>
       <Subsection title="Identity" index={1} accent>
         <div className="col-span-2 space-y-4 py-4">
           <DemoModeBanner />
@@ -246,6 +237,6 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
           </div>
         </Subsection>
       )}
-    </ConsolePanel>
+    </div>
   );
 }
