@@ -14,6 +14,12 @@ interface SectionHeaderProps {
 export const PLAIN_SECTION_RULE =
   '[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.1)_70%,hsl(var(--foreground)/0.05)_100%)]';
 
+const SPACING: Record<SectionHeaderSize, string> = {
+  sm: 'pt-3 pb-1.5',
+  md: 'pb-3.5',
+  lg: 'pb-3.5',
+};
+
 const TITLE_SIZE: Record<SectionHeaderSize, string> = {
   sm: 'text-label-2xs',
   md: 'text-label-sm',
@@ -29,7 +35,7 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
+    <div className={`flex items-center gap-2.5 ${SPACING[size]} ${className ?? ''}`}>
       {icon && (
         <span aria-hidden className="flex shrink-0 items-center text-muted-foreground">
           {icon}
