@@ -212,13 +212,13 @@ export function ReagentsTab() {
           </HeaderStrip>
 
           <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <SearchInput
                 value={searchQuery}
                 onChange={setSearchQuery}
                 placeholder="Search reagents…"
                 size="sm"
-                className="w-64 min-w-[9rem]"
+                className="min-w-[9rem] max-w-64 flex-1"
                 aria-label="Search reagents"
               />
               <div className="flex items-center gap-2">
@@ -228,6 +228,15 @@ export function ReagentsTab() {
                   onRecordTransaction={handleScannedTransaction}
                 />
               </div>
+              {isAdmin && (
+                <CatalogActionBar
+                  addItemLabel="Add Item"
+                  isTaxonomyLocked={isTaxonomyLocked}
+                  onBulkOperations={() => setIsBulkUpdateOpen(true)}
+                  onAddCategory={categoryState.onAddCategory}
+                  onAddItem={() => setRightPanel({ type: 'edit' })}
+                />
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -288,15 +297,6 @@ export function ReagentsTab() {
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
             />
-            {isAdmin && (
-              <CatalogActionBar
-                addItemLabel="Add Item"
-                isTaxonomyLocked={isTaxonomyLocked}
-                onBulkOperations={() => setIsBulkUpdateOpen(true)}
-                onAddCategory={categoryState.onAddCategory}
-                onAddItem={() => setRightPanel({ type: 'edit' })}
-              />
-            )}
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}

@@ -140,29 +140,35 @@ export function AppHeader({
           aria-label="Switch management suite"
         >
           <OdysseusLogo
-            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_calc(30%_*_var(--lit)),transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_calc(30%_*_var(--lit)),transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom [[data-theme=dark]_&]:text-muted-foreground"
             aria-label="Odysseus"
           />
           {hasLab && (
             <>
+              <span
+                aria-hidden
+                className="mx-1 h-[18px] w-px [background:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_20%,hsl(var(--foreground)/0.28)_80%,transparent_100%)]"
+              />
               {routeCrumbs.flatMap((crumb, i) => [
-                <span
-                  key={`sep-${i}`}
-                  aria-hidden
-                  className="font-mono text-data-sm text-foreground/40 transition-colors duration-200 group-hover:text-foreground/70"
-                >
-                  {'//'}
-                </span>,
+                ...(i > 0
+                  ? [
+                      <span
+                        key={`sep-${i}`}
+                        aria-hidden
+                        className="h-[3px] w-[3px] bg-primary/80 shadow-[0_0_6px_1px_hsl(var(--primary)/calc(0.6*var(--lit)))] transition duration-200 group-hover:bg-primary group-hover:shadow-[0_0_6px_1px_hsl(var(--primary)/calc(0.9*var(--lit)))]"
+                      />,
+                    ]
+                  : []),
                 <span
                   key={`crumb-${i}`}
-                  className="type-label text-label-xs font-medium tracking-label-wide text-primary transition duration-200 group-hover:font-bold group-hover:brightness-125 group-hover:drop-shadow-icon-bloom-hover"
+                  className="type-label text-label-xs font-medium tracking-label-wide text-foreground/90 transition-colors duration-200 group-hover:text-foreground"
                 >
                   {crumb}
                 </span>,
               ])}
               <ChevronDown
                 size={12}
-                className="text-muted-foreground transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover"
+                className="text-muted-foreground transition-colors duration-200 group-hover:text-foreground"
               />
             </>
           )}
@@ -284,16 +290,16 @@ export function AppHeader({
           className="group flex items-center gap-3"
         >
           <div className="text-right leading-tight">
-            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:font-semibold group-hover:drop-shadow-icon-bloom-hover">
+            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground/90 transition-colors duration-200 group-hover:text-foreground">
               {displayName}
             </div>
             {user?.role && (
-              <div className="type-label text-label-2xs font-medium tracking-label-wide text-foreground/70 transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover">
+              <div className="type-label text-label-2xs font-medium tracking-label-wide text-foreground/70 transition-colors duration-200 group-hover:text-foreground/90">
                 {ROLE_LABELS[user.role] ?? user.role}
               </div>
             )}
           </div>
-          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-icon-bloom-hover">
+          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:brightness-110 group-hover:drop-shadow-icon-bloom">
             <UserBadge
               type="currentUser"
               initials={initials}

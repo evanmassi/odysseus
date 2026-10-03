@@ -218,15 +218,24 @@ export function EquipmentTab() {
           </HeaderStrip>
 
           <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <SearchInput
                 value={searchQuery}
                 onChange={setSearchQuery}
                 placeholder="Search equipment…"
                 size="sm"
-                className="w-64 min-w-[9rem]"
+                className="min-w-[9rem] max-w-64 flex-1"
                 aria-label="Search equipment"
               />
+              {isAdmin && (
+                <CatalogActionBar
+                  addItemLabel="Add Equipment"
+                  isTaxonomyLocked={isTaxonomyLocked}
+                  onBulkOperations={() => setIsBulkModalOpen(true)}
+                  onAddCategory={categoryState.onAddCategory}
+                  onAddItem={handleAddEquipment}
+                />
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -288,15 +297,6 @@ export function EquipmentTab() {
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
             />
-            {isAdmin && (
-              <CatalogActionBar
-                addItemLabel="Add Equipment"
-                isTaxonomyLocked={isTaxonomyLocked}
-                onBulkOperations={() => setIsBulkModalOpen(true)}
-                onAddCategory={categoryState.onAddCategory}
-                onAddItem={handleAddEquipment}
-              />
-            )}
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}

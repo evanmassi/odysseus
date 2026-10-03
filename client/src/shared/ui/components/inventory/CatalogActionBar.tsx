@@ -19,7 +19,7 @@ export function CatalogActionBar({
   onAddItem,
 }: CatalogActionBarProps) {
   return (
-    <div className="mb-2 flex flex-shrink-0 items-center justify-end gap-2 px-1">
+    <div className="ml-auto flex flex-shrink-0 items-center gap-2">
       <Tooltip content="Bulk Operations" side="bottom">
         <Button
           variant="secondary"
