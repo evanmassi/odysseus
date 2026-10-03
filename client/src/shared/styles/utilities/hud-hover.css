@@ -65,27 +65,3 @@
     opacity: 0.6;
   }
 }
-
-.power-on-trigger:hover .power-on-text,
-.power-on-trigger:focus-visible .power-on-text {
-  animation: hud-signal-flash 450ms ease-out both;
-}
-
-@keyframes hud-signal-flash {
-  0% {
-    color: #fff;
-    text-shadow:
-      0 0 1px #fff,
-      0 0 12px hsl(var(--foreground) / 0.55);
-  }
-  100% {
-    text-shadow: 0 0 0 transparent;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .power-on-trigger:hover .power-on-text,
-  .power-on-trigger:focus-visible .power-on-text {
-    animation: none;
-  }
-}

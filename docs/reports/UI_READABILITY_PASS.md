@@ -19,7 +19,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 
 **Words and hover**
 
-- Words never glow. The only exceptions are the active tab and a brief one-shot flash on a lab name when hovered.
+- Words never glow. The only exception is the active tab.
 - Hover brightens. It does not bold, scale, or bloom.
 - For a text hover, change the word itself. Don't add brackets or underlines around it, and don't turn it blue.
 - Table rows, detail rows, and filter rows all share one hover: a faint blue stripe plus a soft wash (`ROW_HOVER_GLOW`). It layers over zebra stripes evenly.

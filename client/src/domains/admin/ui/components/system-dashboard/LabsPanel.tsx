@@ -140,9 +140,9 @@ export function LabsPanel({ onSelectLab, isCreatingLab, onCloseCreateLab }: Labs
                 <button
                   type="button"
                   onClick={() => onSelectLab(lab.id)}
-                  className="power-on-trigger group/open flex cursor-pointer items-center gap-3 text-left text-foreground/85 outline-none transition-colors duration-200 hover:text-foreground focus-visible:text-foreground"
+                  className="group/open flex cursor-pointer items-center gap-3 text-left text-foreground/85 outline-none transition-colors duration-500 hover:text-primary hover:duration-75 focus-visible:text-primary focus-visible:duration-75 dark:hover:text-foreground dark:focus-visible:text-foreground"
                 >
-                  <span className="power-on-text">{lab.name}</span>
+                  <span>{lab.name}</span>
                   <ArrowRight
                     size={20}
                     className="text-muted-foreground transition-[color,transform] duration-200 group-hover/open:translate-x-1 group-hover/open:text-primary group-focus-visible/open:translate-x-1 group-focus-visible/open:text-primary"
