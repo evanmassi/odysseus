@@ -1,17 +1,8 @@
-/**
- * Maintenance Schedule
- *
- * Day-count math for equipment maintenance due dates, shared by the item row
- * and the maintenance alert panel.
- */
-
 import { daysUntil } from '@shared/utils/dateExpiry';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 
-/**
- * Resolves a maintenance date to its normalized string and whole-day distance from
- * today (local midnight). Returns undefined when the date is unset or unparseable.
- */
+export const MAINTENANCE_DUE_SOON_DAYS = 30;
+
 export function resolveMaintenanceDue(
   date: Date | string
 ): { daysUntil: number; dateStr: string } | undefined {

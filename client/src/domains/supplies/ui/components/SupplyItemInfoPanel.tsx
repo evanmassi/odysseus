@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
-import { Trash2, Archive, ClipboardList, MapPin, NotepadText, SquarePen, Plus } from 'lucide-react';
+import { Archive, ClipboardList, MapPin, NotepadText, Plus, SquarePen, Trash2 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
@@ -24,15 +24,21 @@ import {
   Chip,
   DemoLockIndicator,
   DetailRow,
-  HeaderStrip,
   Divider,
+  HeaderStrip,
+  ItemIdentityHeader,
   OverflowMenu,
   PanelHeader,
   SectionHeader,
   StripLabel,
 } from '@shared/ui';
 import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
-import { DocumentList, toAttributeDisplayRows } from '@shared/ui/components/inventory';
+import {
+  DocumentList,
+  ItemStatusStripe,
+  toAttributeDisplayRows,
+  type ItemRowStatusTone,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -52,6 +58,7 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface SupplyItemInfoPanelProps {
   itemId: string;
+  statusTone: ItemRowStatusTone;
   onEdit: () => void;
   onRecordTransaction: () => void;
   onVoidAndReplace: (
@@ -64,6 +71,7 @@ interface SupplyItemInfoPanelProps {
 
 export function SupplyItemInfoPanel({
   itemId,
+  statusTone,
   onEdit,
   onRecordTransaction,
   onVoidAndReplace,
@@ -242,9 +250,12 @@ export function SupplyItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
+            <ItemIdentityHeader
+              marker={<ItemStatusStripe tone={statusTone} className="h-11 w-1" />}
+              name={item.name}
+            />
             {item.description && (
-              <p className="mt-1 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
+              <p className="mt-3 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}

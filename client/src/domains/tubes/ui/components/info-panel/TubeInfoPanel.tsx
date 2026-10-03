@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useMemo, useState, useEffect, type ReactNode } from 'react';
 
 import {
   formatConcentrationDisplay,
@@ -31,6 +31,7 @@ import {
   Chip,
   DetailRow,
   HeaderStrip,
+  ItemIdentityHeader,
   Divider,
   PanelEmptyState,
   PanelHeader,
@@ -49,9 +50,6 @@ import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
 
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';
-
-const CELL_TYPE_MAX_PX = 36;
-const CELL_TYPE_MIN_PX = 12;
 
 const FIELD_PATHS = [
   'sample.cellType',
@@ -113,9 +111,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const isDemo = useIsDemo();
 
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
-
-  const cellTypeBoxRef = useRef<HTMLDivElement>(null);
-  const cellTypeTextRef = useRef<HTMLDivElement>(null);
 
   const { box: currentBoxObj } = useStorageLocationNames(currentTank, currentRack, currentBox);
 
@@ -200,34 +195,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       setShowEditLockNoteModal(false);
     }
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
-
-  useLayoutEffect(() => {
-    const box = cellTypeBoxRef.current;
-    const text = cellTypeTextRef.current;
-    if (!box || !text) return;
-
-    const fit = () => {
-      let size = CELL_TYPE_MAX_PX;
-      text.style.fontSize = `${size}px`;
-      while (size > CELL_TYPE_MIN_PX && text.scrollHeight > box.clientHeight) {
-        size -= 1;
-        text.style.fontSize = `${size}px`;
-      }
-    };
-
-    fit();
-
-    if (typeof ResizeObserver === 'undefined') return;
-    let lastWidth = box.clientWidth;
-    const observer = new ResizeObserver(entries => {
-      const width = entries[0].contentRect.width;
-      if (Math.abs(width - lastWidth) < 0.5) return;
-      lastWidth = width;
-      fit();
-    });
-    observer.observe(box);
-    return () => observer.disconnect();
-  }, [fieldAnalysis]);
 
   const renderPanel = (
     position: { word: string; value: string },
@@ -420,55 +387,44 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const body = (
     <>
-      <div className="relative flex items-center gap-3 pb-5">
-        <div className="relative flex-shrink-0">
-          <div
-            className="flex h-11 w-11 items-center justify-center border"
-            style={{
-              backgroundColor: swatch.backgroundColor,
-              backgroundImage:
-                'linear-gradient(180deg, hsl(var(--sheen) / 0.18) 0%, hsl(var(--sheen) / 0) 48%, hsl(var(--shade) / 0.14) 100%)',
-              borderColor: swatch.borderColor,
-            }}
-          >
-            <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
-          </div>
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-full h-2.5 w-[160%] -translate-x-1/2"
-            style={{
-              background: `linear-gradient(180deg, ${swatch.backgroundColor}, transparent)`,
-              clipPath: 'polygon(19% 0, 81% 0, 100% 100%, 0 100%)',
-              opacity: 0.4,
-            }}
-          />
-        </div>
-
-        {cellType ? (
-          <div
-            ref={cellTypeBoxRef}
-            className="flex h-11 min-w-0 flex-1 items-center overflow-hidden"
-          >
+      <ItemIdentityHeader
+        marker={
+          <>
             <div
-              ref={cellTypeTextRef}
-              className="w-full break-words font-semibold leading-none text-foreground"
+              className="flex h-11 w-11 items-center justify-center border"
+              style={{
+                backgroundColor: swatch.backgroundColor,
+                backgroundImage:
+                  'linear-gradient(180deg, hsl(var(--sheen) / 0.18) 0%, hsl(var(--sheen) / 0) 48%, hsl(var(--shade) / 0.14) 100%)',
+                borderColor: swatch.borderColor,
+              }}
             >
-              {cellType}
+              <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
             </div>
-          </div>
-        ) : isFieldMixed('sample.cellType') ? (
-          <div className="flex flex-1 items-center gap-1 text-body-sm text-card-foreground/30">
-            —
-            <AlertTriangle className="h-3 w-3 text-warning-text" />
-          </div>
-        ) : (
-          <div className="flex-1 text-body-sm text-card-foreground/40">Unknown</div>
-        )}
-
-        {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
-
-        <Divider tone="neutral" className="absolute inset-x-0 bottom-0" />
-      </div>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-full h-2.5 w-[160%] -translate-x-1/2"
+              style={{
+                background: `linear-gradient(180deg, ${swatch.backgroundColor}, transparent)`,
+                clipPath: 'polygon(19% 0, 81% 0, 100% 100%, 0 100%)',
+                opacity: 0.4,
+              }}
+            />
+          </>
+        }
+        name={cellType ? String(cellType) : undefined}
+        fallback={
+          isFieldMixed('sample.cellType') ? (
+            <div className="flex flex-1 items-center gap-1 text-body-sm text-card-foreground/30">
+              —
+              <AlertTriangle className="h-3 w-3 text-warning-text" />
+            </div>
+          ) : (
+            <div className="flex-1 text-body-sm text-card-foreground/40">Unknown</div>
+          )
+        }
+        trailing={speciesTag}
+      />
 
       {selectedTubes.length > 1 && (
         <div className="flex items-center gap-2">

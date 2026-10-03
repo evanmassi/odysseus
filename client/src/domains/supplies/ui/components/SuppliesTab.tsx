@@ -12,6 +12,7 @@ import {
   useDeleteSupplyCategoryMutation,
   useUpdateSupplyCategoryMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
+import { resolveSupplyStatusTone } from '@domains/supplies/utils/supplyStatus';
 import {
   AccentTick,
   Button,
@@ -185,6 +186,9 @@ export function SuppliesTab() {
   const itemCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
+  const infoPanelItem =
+    rightPanel?.type === 'info' ? items.find(item => item.id === rightPanel.itemId) : undefined;
+
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
@@ -210,21 +214,47 @@ export function SuppliesTab() {
             </span>
           </HeaderStrip>
 
-          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search supplies…"
-              size="sm"
-              className="w-64 min-w-[9rem]"
-              aria-label="Search supplies"
-            />
+          <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
             <div className="flex items-center gap-2">
-              <SupplyQuickScanBar
-                items={items}
-                onViewItem={handleScanViewItem}
-                onRecordTransaction={handleScanRecordTransaction}
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search supplies…"
+                size="sm"
+                className="w-64 min-w-[9rem]"
+                aria-label="Search supplies"
               />
+              <div className="flex items-center gap-2">
+                <SupplyQuickScanBar
+                  items={items}
+                  onViewItem={handleScanViewItem}
+                  onRecordTransaction={handleScanRecordTransaction}
+                />
+              </div>
+              {isAdmin && (
+                <div className="ml-auto flex items-center gap-2">
+                  <Tooltip content="Bulk Operations" side="bottom">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      iconOnly
+                      onClick={() => setIsBulkUpdateOpen(true)}
+                      className="h-8 flex-shrink-0"
+                      aria-label="Bulk Operations"
+                    >
+                      <Layers className="h-3.5 w-3.5" />
+                    </Button>
+                  </Tooltip>
+                  <Button
+                    size="sm"
+                    onClick={handleAddItem}
+                    className="h-8 flex-shrink-0"
+                    leftIcon={<Plus className="h-3.5 w-3.5" />}
+                  >
+                    Add Item
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -264,30 +294,6 @@ export function SuppliesTab() {
                 {showArchived ? 'Hide' : 'Show'} Archived
               </Button>
             </div>
-            {isAdmin && (
-              <div className="ml-auto flex items-center gap-2">
-                <Tooltip content="Bulk Operations" side="bottom">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    iconOnly
-                    onClick={() => setIsBulkUpdateOpen(true)}
-                    className="h-8 flex-shrink-0"
-                    aria-label="Bulk Operations"
-                  >
-                    <Layers className="h-3.5 w-3.5" />
-                  </Button>
-                </Tooltip>
-                <Button
-                  size="sm"
-                  onClick={handleAddItem}
-                  className="h-8 flex-shrink-0"
-                  leftIcon={<Plus className="h-3.5 w-3.5" />}
-                >
-                  Add Item
-                </Button>
-              </div>
-            )}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
@@ -351,6 +357,7 @@ export function SuppliesTab() {
           {rightPanel?.type === 'info' && (
             <SupplyItemInfoPanel
               itemId={rightPanel.itemId}
+              statusTone={infoPanelItem ? resolveSupplyStatusTone(infoPanelItem) : 'muted'}
               onEdit={handleEditItem}
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}

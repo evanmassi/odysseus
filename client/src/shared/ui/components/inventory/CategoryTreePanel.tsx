@@ -251,7 +251,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
         </p>
       )}
 
-      <div data-tree-id={treeId} className="nav-tree relative flex flex-col gap-1">
+      <div data-tree-id={treeId} className="nav-tree relative flex flex-col gap-2">
         <NavTreeLines treeId={treeId} expandedCategoryIds={expandedCategoryIds} />
         {topLevelCategories.map(category => {
           const subs = subcategoriesByParent.get(category.id) ?? [];
@@ -298,12 +298,12 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                   </div>
                 )}
                 {isExpanded ? (
-                  <FolderOpen size={14} className="flex-shrink-0 text-primary" />
+                  <FolderOpen size={16} className="flex-shrink-0 text-primary" />
                 ) : (
-                  <Folder size={14} className="flex-shrink-0 text-muted-foreground" />
+                  <Folder size={16} className="flex-shrink-0 text-muted-foreground" />
                 )}
                 <span
-                  className={`nav-tree-row__label font-display text-body-sm ${
+                  className={`nav-tree-row__label font-display text-body-lg font-semibold ${
                     isExpanded ? 'text-foreground' : 'text-secondary-foreground'
                   }`}
                 >
@@ -444,10 +444,12 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
           </div>
         )}
         <CornerDownRight
-          size={12}
+          size={14}
           className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
         />
-        <span className="nav-tree-row__label font-display text-caption">{subcategory.name}</span>
+        <span className="nav-tree-row__label font-display text-body font-medium">
+          {subcategory.name}
+        </span>
         <span aria-hidden className="flex-shrink-0 font-mono text-data-sm text-foreground/30">
           {'//'}
         </span>

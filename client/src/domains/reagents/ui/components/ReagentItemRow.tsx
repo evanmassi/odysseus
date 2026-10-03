@@ -1,17 +1,12 @@
-/**
- * Reagent Item Row
- *
- * Inset card for a reagent: status line, urgency icon, two-line identity, and
- * location / stock chips. Stock and expiry are independent urgency axes, so the
- * row takes the worse of the two.
- */
-
 import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
 import { AlertTriangle, CalendarClock, MapPin } from 'lucide-react';
 
 import { resolveExpiryBadge } from '@domains/reagents/utils/reagentExpiry';
-import { REAGENT_STATUS_DISPLAY } from '@domains/reagents/utils/reagentStatus';
-import { ItemRowShell, type ItemRowStatusTone } from '@shared/ui/components/inventory';
+import {
+  REAGENT_STATUS_DISPLAY,
+  resolveReagentStatusTone,
+} from '@domains/reagents/utils/reagentStatus';
+import { ItemRowShell } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { resolveStockTone } from '@shared/utils/stockLevel';
@@ -37,14 +32,8 @@ export function ReagentItemRow({ item, isSelected, onSelect }: ReagentItemRowPro
   const stockUrgency: 'danger' | 'warning' | undefined =
     !isArchived && (stockTone === 'danger' || stockTone === 'warning') ? stockTone : undefined;
 
-  const urgentTone: ItemRowStatusTone | undefined =
-    expiry?.tone === 'danger' || stockUrgency === 'danger'
-      ? 'danger'
-      : expiry !== undefined || stockUrgency !== undefined
-        ? 'warning'
-        : undefined;
-
-  const statusTone: ItemRowStatusTone = isArchived ? 'muted' : (urgentTone ?? 'success');
+  const statusTone = resolveReagentStatusTone(item);
+  const urgentTone = statusTone === 'danger' || statusTone === 'warning' ? statusTone : undefined;
 
   const stockDetail =
     item.totalStock <= 0

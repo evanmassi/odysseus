@@ -12,6 +12,7 @@ import {
   useReagentItemsQuery,
   useUpdateReagentCategoryMutation,
 } from '@domains/reagents/hooks';
+import { resolveReagentStatusTone } from '@domains/reagents/utils/reagentStatus';
 import { useDemoTaxonomyLock } from '@domains/storage';
 import {
   AccentTick,
@@ -182,6 +183,9 @@ export function ReagentsTab() {
   const itemCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
+  const infoPanelItem =
+    rightPanel?.type === 'info' ? items.find(item => item.id === rightPanel.itemId) : undefined;
+
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
@@ -207,21 +211,47 @@ export function ReagentsTab() {
             </span>
           </HeaderStrip>
 
-          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search reagents…"
-              size="sm"
-              className="w-64 min-w-[9rem]"
-              aria-label="Search reagents"
-            />
+          <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
             <div className="flex items-center gap-2">
-              <ReagentQuickScanBar
-                items={items}
-                onViewItem={handleScannedItem}
-                onRecordTransaction={handleScannedTransaction}
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search reagents…"
+                size="sm"
+                className="w-64 min-w-[9rem]"
+                aria-label="Search reagents"
               />
+              <div className="flex items-center gap-2">
+                <ReagentQuickScanBar
+                  items={items}
+                  onViewItem={handleScannedItem}
+                  onRecordTransaction={handleScannedTransaction}
+                />
+              </div>
+              {isAdmin && (
+                <div className="ml-auto flex items-center gap-2">
+                  <Tooltip content="Bulk Operations" side="bottom">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      iconOnly
+                      onClick={() => setIsBulkUpdateOpen(true)}
+                      className="h-8 flex-shrink-0"
+                      aria-label="Bulk Operations"
+                    >
+                      <Layers className="h-3.5 w-3.5" />
+                    </Button>
+                  </Tooltip>
+                  <Button
+                    size="sm"
+                    onClick={() => setRightPanel({ type: 'edit' })}
+                    className="h-8 flex-shrink-0"
+                    leftIcon={<Plus className="h-3.5 w-3.5" />}
+                  >
+                    Add Item
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -261,30 +291,6 @@ export function ReagentsTab() {
                 {showArchived ? 'Hide' : 'Show'} Archived
               </Button>
             </div>
-            {isAdmin && (
-              <div className="ml-auto flex items-center gap-2">
-                <Tooltip content="Bulk Operations" side="bottom">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    iconOnly
-                    onClick={() => setIsBulkUpdateOpen(true)}
-                    className="h-8 flex-shrink-0"
-                    aria-label="Bulk Operations"
-                  >
-                    <Layers className="h-3.5 w-3.5" />
-                  </Button>
-                </Tooltip>
-                <Button
-                  size="sm"
-                  onClick={() => setRightPanel({ type: 'edit' })}
-                  className="h-8 flex-shrink-0"
-                  leftIcon={<Plus className="h-3.5 w-3.5" />}
-                >
-                  Add Item
-                </Button>
-              </div>
-            )}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
@@ -349,6 +355,7 @@ export function ReagentsTab() {
           {rightPanel?.type === 'info' && (
             <ReagentItemInfoPanel
               itemId={rightPanel.itemId}
+              statusTone={infoPanelItem ? resolveReagentStatusTone(infoPanelItem) : 'muted'}
               onEdit={handleEditItem}
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}

@@ -2,15 +2,15 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
-  SquarePen,
-  Trash2,
-  Power,
-  Plus,
   Edit,
   ExternalLink,
-  X,
-  NotepadText,
   MapPin,
+  NotepadText,
+  Plus,
+  Power,
+  SquarePen,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -30,14 +30,19 @@ import {
   Chip,
   DemoLockIndicator,
   DetailRow,
-  HeaderStrip,
   Divider,
+  HeaderStrip,
+  ItemIdentityHeader,
   PanelHeader,
   SectionHeader,
   StripLabel,
   Tooltip,
 } from '@shared/ui';
-import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
+import {
+  ItemStatusStripe,
+  toAttributeDisplayRows,
+  type ItemRowStatusTone,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -55,6 +60,7 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
   itemId: string;
+  statusTone: ItemRowStatusTone;
   onEdit: () => void;
   onDecommission: () => void;
   onAddMaintenance: () => void;
@@ -69,6 +75,7 @@ function formatDate(date: Date | string | undefined): string | undefined {
 
 export function EquipmentItemInfoPanel({
   itemId,
+  statusTone,
   onEdit,
   onDecommission,
   onAddMaintenance,
@@ -223,9 +230,12 @@ export function EquipmentItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
+            <ItemIdentityHeader
+              marker={<ItemStatusStripe tone={statusTone} className="h-11 w-1" />}
+              name={item.name}
+            />
             {item.description && (
-              <p className="mt-1 text-body leading-relaxed text-card-foreground/70">
+              <p className="mt-3 text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}

@@ -1,9 +1,3 @@
-/**
- * Inventory Components
- *
- * Domain-agnostic category and alert UI shared by the inventory domains.
- */
-
 export { AlertPanel, type AlertCount, type AlertTone } from './AlertPanel';
 export {
   BulkCategoryTreeSelector,
@@ -39,7 +33,7 @@ export { BulkVoidTab, type VoidableEntry } from './BulkVoidTab';
 export { CategoryModal, CategoryManager, useCatalogCategories } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { DocumentList } from './DocumentList';
-export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
+export { ItemRowShell, ItemStatusStripe, type ItemRowStatusTone } from './ItemRowShell';
 export {
   toItemAutocompleteOptions,
   filterItemAutocompleteOptions,
