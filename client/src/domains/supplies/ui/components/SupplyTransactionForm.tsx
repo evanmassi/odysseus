@@ -243,7 +243,7 @@ export function SupplyTransactionForm({
             <span className="truncate font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
               {identityParts.map((part, i) => (
                 <span key={i}>
-                  {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                  {i > 0 && <span className="mx-1.5 text-foreground/30">·</span>}
                   {part}
                 </span>
               ))}

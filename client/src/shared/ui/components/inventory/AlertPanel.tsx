@@ -108,7 +108,7 @@ export function AlertPanel<T extends { id: string }>({
           {label}
         </span>
         <span aria-hidden className="font-mono text-data-sm text-foreground/30">
-          {'//'}
+          ·
         </span>
         <span className="flex items-center gap-2 font-mono text-data-sm tracking-[0.04em]">
           {visibleCounts.map((entry, index) => (

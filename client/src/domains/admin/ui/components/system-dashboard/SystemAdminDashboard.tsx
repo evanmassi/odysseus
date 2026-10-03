@@ -1,9 +1,3 @@
-/**
- * System Admin Dashboard
- *
- * Top-level page for system admins.
- */
-
 import { lazy, Suspense, useState } from 'react';
 
 import { FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
@@ -15,6 +9,7 @@ import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQu
 
 import { LabDashboard } from './LabDashboard';
 import { LabsPanel } from './LabsPanel';
+import { LabsToolbar } from './LabsToolbar';
 
 const SecurityPanel = lazy(() =>
   import('./SecurityPanel').then(m => ({ default: m.SecurityPanel }))
@@ -25,6 +20,7 @@ const StoragePanel = lazy(() => import('./StoragePanel').then(m => ({ default: m
 export function SystemAdminDashboard() {
   const [activeTab, setActiveTab] = useState<string>('labs');
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
+  const [isCreatingLab, setIsCreatingLab] = useState(false);
   const { data: overview } = useSystemOverviewQuery();
   const { data: securityOverview } = useSecurityOverviewQuery();
   const activeSessions = securityOverview?.sessionOverview?.activeSessions;
@@ -59,7 +55,7 @@ export function SystemAdminDashboard() {
         </div>
 
         <ConsolePanel className="overflow-hidden">
-          <div className={overview ? 'border-b border-line-faint' : undefined}>
+          <div className={`flex items-center ${overview ? 'border-b border-line-faint' : ''}`}>
             <Tabs value={activeTab} onChange={setActiveTab} orientation="horizontal">
               <Tab id="labs" icon={<FlaskConical size={18} />}>
                 Labs
@@ -71,6 +67,11 @@ export function SystemAdminDashboard() {
                 Storage
               </Tab>
             </Tabs>
+            {activeTab === 'labs' && (
+              <div className="ml-auto pr-3">
+                <LabsToolbar onCreateLab={() => setIsCreatingLab(true)} />
+              </div>
+            )}
           </div>
 
           {overview && (
@@ -89,22 +90,18 @@ export function SystemAdminDashboard() {
                 className="flex-1"
               />
               <StatCell label="Active Sessions" value={activeSessions ?? '—'} className="flex-1" />
-              {/* TODO(2026-05-15): wire to tubes-created-in-last-24h aggregator */}
-              <StatCell label="Tubes Added 24h" value="—" className="flex-1" />
-              {/* TODO(2026-05-15): wire to cross-cutting anomaly aggregator */}
-              <StatCell
-                label="Needs Attention"
-                value="—"
-                unit="items"
-                tone="danger"
-                className="flex-1"
-              />
             </div>
           )}
         </ConsolePanel>
 
         <div className="pt-2">
-          {activeTab === 'labs' && <LabsPanel onSelectLab={setSelectedLabId} />}
+          {activeTab === 'labs' && (
+            <LabsPanel
+              onSelectLab={setSelectedLabId}
+              isCreatingLab={isCreatingLab}
+              onCloseCreateLab={() => setIsCreatingLab(false)}
+            />
+          )}
 
           {activeTab === 'security' && (
             <Suspense fallback={<LoadingSkeleton />}>

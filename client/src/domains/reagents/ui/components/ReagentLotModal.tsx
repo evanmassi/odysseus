@@ -1,10 +1,4 @@
-/**
- * Reagent Lot Modal
- *
- * Corrects a lot's opened and expiration dates. Quantity and status are not editable
- * here — stock leaves a lot through a transaction so the ledger records it.
- */
-
+// PITFALL: quantity and status stay read-only here; stock leaves a lot through a transaction so the ledger records it.
 import { useState } from 'react';
 
 import { formatQuantity } from '@odysseus/shared-schemas';
@@ -53,7 +47,7 @@ export function ReagentLotModal({ itemId, lot, stockUnit, onClose }: ReagentLotM
       locator={
         <span className="font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
           {lot.lotNumber ?? 'No lot #'}
-          <span className="mx-1.5 text-foreground/30">{'//'}</span>
+          <span className="mx-1.5 text-foreground/30">·</span>
           {stockUnit ? formatQuantity(lot.quantity, stockUnit) : lot.quantity}
         </span>
       }

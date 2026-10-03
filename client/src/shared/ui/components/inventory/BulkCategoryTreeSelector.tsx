@@ -106,7 +106,7 @@ function BulkSelectItem<T extends BulkTreeItem>({
             <span className="block truncate text-caption text-muted-foreground">
               {identity.map((part, i) => (
                 <span key={i}>
-                  {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}
+                  {i > 0 && <span className="mx-1 text-foreground/30">·</span>}
                   {part}
                 </span>
               ))}
