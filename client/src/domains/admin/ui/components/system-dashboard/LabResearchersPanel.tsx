@@ -1,14 +1,8 @@
-/**
- * Lab Researchers Panel
- *
- * Researchers table with name, linked user, tube count, and delete action.
- */
-
 import { useMemo, useState } from 'react';
 
 import { Trash2 } from 'lucide-react';
 
-import { Button, Chip, ConsolePanel, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Button, Chip, ConsolePanel, Subsection, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -60,9 +54,8 @@ export function LabResearchersPanel({
 
   return (
     <>
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader title="Researchers" meta={`${activeResearchers.length} records`} />
+      <Subsection title="Researchers" meta={`${activeResearchers.length} records`} isCompact>
+        <ConsolePanel intensity="soft" className="p-4">
           <Table
             columns={columns}
             data={activeResearchers}
@@ -88,8 +81,8 @@ export function LabResearchersPanel({
               />
             </CollapsibleInactiveSection>
           )}
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
       <ConfirmDialog
         isOpen={deleteTarget !== null}

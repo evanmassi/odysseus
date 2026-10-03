@@ -27,9 +27,12 @@ export function SubsectionHeader({
         {title}
       </span>
       {meta && (
-        <span className="ml-1 type-label text-label-2xs leading-none text-foreground/35">
-          {meta}
-        </span>
+        <>
+          <span aria-hidden className="text-label-sm leading-none text-foreground/35">
+            ·
+          </span>
+          <span className="type-label text-label-2xs leading-none text-foreground/35">{meta}</span>
+        </>
       )}
     </>
   );
