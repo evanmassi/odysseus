@@ -1,9 +1,3 @@
-/**
- * Global Error Store
- *
- * Captures unhandled errors and promise rejections for display in the error overlay.
- */
-
 import { create } from 'zustand';
 
 import { logger } from '@infra/logger';
@@ -29,6 +23,8 @@ export const useErrorStore = create<ErrorStore>((set, get) => ({
     const formattedError = `[${timestamp}] ${error}`;
 
     const { errors } = get();
+    // PITFALL: React dev mode replays a failed render, so one crash fires the window error event twice within the same second.
+    if (errors.at(-1) === formattedError) return;
     set({ errors: [...errors, formattedError].slice(-MAX_STORED_ERRORS) });
 
     logger.error('Odysseus Error', { error });
@@ -39,7 +35,6 @@ export const useErrorStore = create<ErrorStore>((set, get) => ({
   },
 }));
 
-// Global error handlers
 window.addEventListener('error', event => {
   useErrorStore
     .getState()

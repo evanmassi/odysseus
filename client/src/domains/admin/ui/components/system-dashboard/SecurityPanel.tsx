@@ -11,8 +11,9 @@ import {
   UsersRound,
 } from 'lucide-react';
 
+import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
-import { useResolvedTheme } from '@shared/hooks';
+import { useRefreshQueryGroup, useResolvedTheme } from '@shared/hooks';
 import {
   Button,
   Chip,
@@ -38,7 +39,6 @@ import {
   useActiveSessionsQuery,
   useIpActivityQuery,
   useFailedLoginsQuery,
-  useRefreshSecurityData,
   useSessionActivityQuery,
 } from '../../../hooks/useSecurityMonitoringQueries';
 
@@ -85,7 +85,7 @@ export function SecurityPanel() {
   const user = useAuthStore(s => s.user);
   const { data: overview } = useSecurityOverviewQuery();
   const { data: sessionsData, isLoading: sessionsLoading } = useActiveSessionsQuery();
-  const { refresh: doRefresh } = useRefreshSecurityData();
+  const { refresh: doRefresh } = useRefreshQueryGroup(queryKeys.security.all);
 
   const [filterText, setFilterText] = useState('');
   const [sessionSortConfig, setSessionSortConfig] = useState<SortConfig | undefined>({

@@ -12,6 +12,7 @@ export { useFocusTrap } from './useFocusTrap';
 export { useIconPop } from './useIconPop';
 export { useMenuKeyboardNavigation } from './useMenuKeyboardNavigation';
 export { useMergedRef } from './useMergedRef';
+export { useRefreshQueryGroup } from './useRefreshQueryGroup';
 export { useModalKeyboardNavigation } from './useModalKeyboardNavigation';
 export { useResolvedTheme } from './useResolvedTheme';
 export { useTextTruncation } from './useTextTruncation';

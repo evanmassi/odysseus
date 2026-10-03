@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 
 import { FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
 
+import { queryKeys } from '@app/cache/queryKeys';
 import { ConsolePanel, IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
 
 import { useSystemOverviewQuery } from '../../../hooks/useLabQueries';
@@ -10,7 +11,7 @@ import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQu
 import { LabDashboard } from './LabDashboard';
 import { LabsPanel } from './LabsPanel';
 import { LabsToolbar } from './LabsToolbar';
-import { SecurityToolbar } from './SecurityToolbar';
+import { TabRefreshButton } from './TabRefreshButton';
 
 const SecurityPanel = lazy(() =>
   import('./SecurityPanel').then(m => ({ default: m.SecurityPanel }))
@@ -70,7 +71,10 @@ export function SystemAdminDashboard() {
             </Tabs>
             <div className="ml-auto pr-3">
               {activeTab === 'labs' && <LabsToolbar onCreateLab={() => setIsCreatingLab(true)} />}
-              {activeTab === 'security' && <SecurityToolbar />}
+              {activeTab === 'security' && <TabRefreshButton queryKey={queryKeys.security.all} />}
+              {activeTab === 'storage' && (
+                <TabRefreshButton queryKey={queryKeys.storageAnalytics.all} />
+              )}
             </div>
           </div>
 
