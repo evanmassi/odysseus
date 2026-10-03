@@ -10,6 +10,7 @@ import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQu
 import { LabDashboard } from './LabDashboard';
 import { LabsPanel } from './LabsPanel';
 import { LabsToolbar } from './LabsToolbar';
+import { SecurityToolbar } from './SecurityToolbar';
 
 const SecurityPanel = lazy(() =>
   import('./SecurityPanel').then(m => ({ default: m.SecurityPanel }))
@@ -67,11 +68,10 @@ export function SystemAdminDashboard() {
                 Storage
               </Tab>
             </Tabs>
-            {activeTab === 'labs' && (
-              <div className="ml-auto pr-3">
-                <LabsToolbar onCreateLab={() => setIsCreatingLab(true)} />
-              </div>
-            )}
+            <div className="ml-auto pr-3">
+              {activeTab === 'labs' && <LabsToolbar onCreateLab={() => setIsCreatingLab(true)} />}
+              {activeTab === 'security' && <SecurityToolbar />}
+            </div>
           </div>
 
           {overview && (

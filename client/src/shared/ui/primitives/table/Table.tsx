@@ -281,8 +281,7 @@ const TableBody = <T extends TableRowBase>({
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
         const state = rowState?.(row, index) ?? 'default';
-        const zebra =
-          index % 2 === 1 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
+        const zebra = index % 2 === 1 ? 'bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
         const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];

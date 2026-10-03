@@ -1,10 +1,6 @@
-/**
- * Security Monitoring Queries
- *
- * React Query hooks for security monitoring data.
- */
+import { useCallback } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
+import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 
@@ -49,4 +45,14 @@ export function useSessionActivityQuery(hours?: number) {
     queryFn: () => securityMonitoringService.getSessionActivity(hours),
     staleTime: 60_000,
   });
+}
+
+export function useRefreshSecurityData() {
+  const queryClient = useQueryClient();
+  const isRefreshing = useIsFetching({ queryKey: queryKeys.security.all }) > 0;
+  const refresh = useCallback(
+    () => void queryClient.invalidateQueries({ queryKey: queryKeys.security.all }),
+    [queryClient]
+  );
+  return { refresh, isRefreshing };
 }
