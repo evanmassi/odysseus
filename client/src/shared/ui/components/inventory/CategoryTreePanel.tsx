@@ -1,11 +1,3 @@
-/**
- * Category Tree Panel
- *
- * Collapsible category sections with nested subcategories and item cards, shared
- * by all three inventory catalogs. Callers pass the already-narrowed item list;
- * item rendering and the labels are injected per domain.
- */
-
 import { useState, useMemo, useCallback, type ReactNode } from 'react';
 
 import {
@@ -40,22 +32,18 @@ interface TreeItem {
 }
 
 export interface CategoryTreePanelLabels {
-  /** Singular/plural count noun, e.g. ['unit', 'units']. */
   countNoun: [string, string];
   emptyCategories: string;
-  /** Prefix for the no-search-match line; the quoted query is appended. */
   noSearchMatch: string;
   emptyCategoryBody: string;
 }
 
 interface CategoryTreePanelProps<T extends TreeItem, C extends TreeCategory> {
   categories: C[];
-  /** Already narrowed by the caller; drives the rows and the header count alike. */
   items: T[];
-  /** Not applied here — it force-opens matching categories and names the empty state. */
+  selectedItemId?: string;
   searchQuery: string;
   isAdmin: boolean;
-  /** A seeded demo lab freezes its vocabulary, so management is withdrawn rather than left to fail. */
   isTaxonomyLocked: boolean;
   sortField: 'name' | 'manufacturer' | 'dateAdded';
   sortDirection: 'asc' | 'desc';
@@ -89,6 +77,7 @@ function buildCategoryMenuItems<C>(
 export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   categories,
   items,
+  selectedItemId,
   searchQuery,
   isAdmin,
   isTaxonomyLocked,
@@ -103,6 +92,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   onDeleteCategory,
 }: CategoryTreePanelProps<T, C>) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [revealedItemId, setRevealedItemId] = useState<string | undefined>();
   const canManageCategories = isAdmin && !isTaxonomyLocked;
 
   const topLevelCategories = useMemo(
@@ -124,6 +114,16 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   }, [categories]);
 
   const isSearching = searchQuery.trim().length > 0;
+
+  if (selectedItemId !== revealedItemId) {
+    setRevealedItemId(selectedItemId);
+    const selectedCategoryId = items.find(item => item.id === selectedItemId)?.categoryId;
+    const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+    const topLevelId = selectedCategory?.parentId ?? selectedCategory?.id;
+    if (topLevelId && !expandedCategories.has(topLevelId)) {
+      setExpandedCategories(prev => new Set(prev).add(topLevelId));
+    }
+  }
 
   const sortItems = useCallback(
     (a: T, b: T): number => {
@@ -189,8 +189,6 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     [itemsByCategoryId, subcategoriesByParent]
   );
 
-  // Categories the tree currently shows expanded — search force-opens any with
-  // matches; otherwise honor the manual toggle. Drives the SVG tree-line redraw.
   const expandedCategoryIds = useMemo(() => {
     const ids = new Set<string>();
     for (const category of topLevelCategories) {

@@ -5,7 +5,6 @@ import {
   Archive,
   Atom,
   ClipboardList,
-  FolderOpen,
   MapPin,
   NotepadText,
   Plus,
@@ -37,7 +36,7 @@ import {
   DemoLockIndicator,
   DetailRow,
   HeaderStrip,
-  NubDivider,
+  Divider,
   OverflowMenu,
   PanelHeader,
   SectionHeader,
@@ -73,7 +72,6 @@ interface ReagentItemInfoPanelProps {
     prefill: TransactionPrefill
   ) => void;
   onDeleted: () => void;
-  categoryName?: string;
 }
 
 export function ReagentItemInfoPanel({
@@ -82,7 +80,6 @@ export function ReagentItemInfoPanel({
   onRecordTransaction,
   onVoidAndReplace,
   onDeleted,
-  categoryName,
 }: ReagentItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
@@ -233,14 +230,6 @@ export function ReagentItemInfoPanel({
               <StripLabel>Type</StripLabel>
               <Chip size="sm" color="default" lit lead={<Atom />}>
                 {item.reagentType}
-              </Chip>
-            </>
-          )}
-          {categoryName && (
-            <>
-              <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" lead={<FolderOpen />}>
-                {categoryName}
               </Chip>
             </>
           )}
@@ -430,7 +419,7 @@ export function ReagentItemInfoPanel({
 
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <Divider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             {isLocked ? (
               <DemoLockIndicator />

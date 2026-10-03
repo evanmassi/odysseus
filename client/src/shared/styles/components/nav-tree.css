@@ -198,16 +198,23 @@
 [data-theme='dark'] .nav-tree .nav-tree-row--item.is-selected {
   border-color: hsl(var(--row-tone) / 0.6);
   background:
-    var(--scanline-layer), var(--glow-selected-tint), var(--glow-selected-wash), hsl(var(--card));
+    var(--scanline-layer), var(--glow-selected-tint),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.12) 0%,
+      hsl(var(--row-tone) / 0.05) 55%,
+      transparent 100%
+    ),
+    hsl(var(--card));
   box-shadow:
     inset 3px 0 0 0 hsl(var(--row-tone)),
-    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-glow-edge-inner)),
+    inset 14px 0 36px -10px hsl(var(--row-tone) / calc(var(--alpha-glow-edge-inner) * 0.5)),
     inset 0 1px 0 hsl(var(--row-tone) / var(--alpha-glow-edge-rim)),
     inset 0 -1px 0 hsl(var(--row-tone) / var(--alpha-glow-edge-rim)),
-    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
-    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
-    0 0 32px -4px hsl(var(--row-tone) / var(--alpha-glow-outer-near)),
-    0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
+    inset 0 10px 16px -8px hsl(var(--row-tone) / calc(var(--alpha-glow-edge-bloom) * 0.5)),
+    inset 0 -10px 16px -8px hsl(var(--row-tone) / calc(var(--alpha-glow-edge-bloom) * 0.5)),
+    0 0 24px -4px hsl(var(--row-tone) / calc(var(--alpha-glow-outer-near) * 0.5)),
+    0 0 48px 2px hsl(var(--row-tone) / calc(var(--alpha-glow-outer-far) * 0.5));
 }
 
 [data-theme='dark'] .nav-tree .nav-tree-row--item.is-selected:hover {

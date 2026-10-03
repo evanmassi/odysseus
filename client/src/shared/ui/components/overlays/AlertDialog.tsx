@@ -1,16 +1,8 @@
-/**
- * Alert Dialog
- *
- * Shared shell for the small centered alert dialogs (confirm/info): backdrop, lit
- * card with corner pins and a phosphor scrim, a variant-marked header, and an
- * actions slot. Owners supply the animation state, focus-trap ref, and buttons.
- */
-
 import { useId, type ComponentType, type ReactNode, type Ref } from 'react';
 
 import { X } from 'lucide-react';
 
-import { NubDivider, ScrimHalo } from '../../primitives';
+import { Divider, ScrimHalo } from '../../primitives';
 
 import { ModalPortal } from './ModalPortal';
 
@@ -99,7 +91,7 @@ export function AlertDialog({
             </button>
           </div>
 
-          <NubDivider tone="neutral" className="relative my-4" />
+          <Divider tone="neutral" className="relative my-4" />
 
           <p id={messageId} className="mb-7 text-body leading-relaxed text-tooltip-foreground/80">
             {message}

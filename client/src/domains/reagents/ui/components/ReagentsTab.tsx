@@ -111,7 +111,6 @@ export function ReagentsTab() {
     updateMutation: updateCategoryMutation,
     deleteMutation: deleteCategoryMutation,
   });
-  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -311,6 +310,7 @@ export function ReagentsTab() {
               <CategoryTreePanel
                 categories={categories}
                 items={treeItems}
+                selectedItemId={selectedItemId}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 isTaxonomyLocked={isTaxonomyLocked}
@@ -353,9 +353,6 @@ export function ReagentsTab() {
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}
               onDeleted={handleItemDeleted}
-              categoryName={categoryNameMap.get(
-                items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
-              )}
             />
           )}
 

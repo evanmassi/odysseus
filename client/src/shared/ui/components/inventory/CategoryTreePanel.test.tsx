@@ -1,17 +1,3 @@
-/**
- * CategoryTreePanel tests
- *
- * Guards the parametrization that lets one panel back all three catalogs: the
- * count-noun labels (including in subcategories), the tree id, item rendering,
- * the search-driven expansion, and — the subtle one — the Remove-disable parity
- * between a category (counts subcategory items) and a subcategory (counts only
- * its own items).
- *
- * NavTreeLines (document-scoped SVG geometry) and OverflowMenu (a portalled
- * widget) are stubbed; OverflowMenu becomes plain buttons so disabled state is
- * assertable.
- */
-
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
@@ -108,17 +94,28 @@ describe('CategoryTreePanel', () => {
     render(<CategoryTreePanel {...baseProps} />);
     expect(screen.queryByTestId('item-i3')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Reagents')); // c2 has direct items, no subcategories
+    fireEvent.click(screen.getByText('Reagents'));
     expect(screen.getByTestId('item-i3')).toBeInTheDocument();
     expect(screen.getByTestId('item-i4')).toBeInTheDocument();
   });
 
   it('force-expands categories holding results while a search is active', () => {
-    // The caller narrows the list; the panel opens whatever survived without a click.
     render(<CategoryTreePanel {...baseProps} items={[items[0]]} searchQuery="eppendorf" />);
 
     expect(screen.getByTestId('item-i1')).toBeInTheDocument();
-    expect(screen.queryByText('Reagents')).not.toBeInTheDocument(); // no results, so no row
+    expect(screen.queryByText('Reagents')).not.toBeInTheDocument();
+  });
+
+  it("opens the selected item's top-level category when the selection changes", () => {
+    const { rerender } = render(<CategoryTreePanel {...baseProps} />);
+    expect(screen.queryByTestId('item-i1')).not.toBeInTheDocument();
+
+    rerender(<CategoryTreePanel {...baseProps} selectedItemId="i1" />);
+    expect(screen.getByTestId('item-i1')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Pipettes'));
+    rerender(<CategoryTreePanel {...baseProps} selectedItemId="i1" />);
+    expect(screen.queryByTestId('item-i1')).not.toBeInTheDocument();
   });
 
   it('reports no match when a search narrows the list to nothing', () => {
@@ -129,25 +126,22 @@ describe('CategoryTreePanel', () => {
   it('labels counts with the singular/plural noun, in categories and subcategories', () => {
     render(<CategoryTreePanel {...baseProps} />);
 
-    expect(screen.getByText('unit')).toBeInTheDocument(); // c1 = 1
-    expect(screen.getAllByText('units').length).toBeGreaterThan(0); // c2 = 2
+    expect(screen.getByText('unit')).toBeInTheDocument();
+    expect(screen.getAllByText('units').length).toBeGreaterThan(0);
 
-    // Expanding surfaces the subcategory rows, which must use the same noun.
     fireEvent.click(screen.getByText('Pipettes'));
-    expect(screen.getAllByText('unit').length).toBeGreaterThan(1); // c1 + subcategory c1s (each 1)
+    expect(screen.getAllByText('unit').length).toBeGreaterThan(1);
   });
 
   it('disables Remove per count-scope parity (category totals subs, subcategory does not)', () => {
     render(<CategoryTreePanel {...baseProps} />);
 
-    // c1 has no direct items but its subcategory does → totalCount > 0 → disabled.
     expect(
       within(screen.getByRole('group', { name: 'Actions for Pipettes' })).getByRole('button', {
         name: 'Remove',
       })
     ).toBeDisabled();
 
-    // c3 is genuinely empty → enabled.
     expect(
       within(screen.getByRole('group', { name: 'Actions for Empty' })).getByRole('button', {
         name: 'Remove',
@@ -156,7 +150,6 @@ describe('CategoryTreePanel', () => {
 
     fireEvent.click(screen.getByText('Pipettes'));
 
-    // Subcategory with its own items → disabled.
     expect(
       within(screen.getByRole('group', { name: 'Actions for Single Channel' })).getByRole(
         'button',
@@ -166,7 +159,6 @@ describe('CategoryTreePanel', () => {
       )
     ).toBeDisabled();
 
-    // Empty subcategory → enabled, even though its parent has items elsewhere.
     expect(
       within(screen.getByRole('group', { name: 'Actions for Empty Sub' })).getByRole('button', {
         name: 'Remove',
@@ -180,7 +172,6 @@ describe('CategoryTreePanel', () => {
   });
 
   it('withdraws category management from an admin when the demo taxonomy is locked', () => {
-    // The lock swaps in a padlock, whose tooltip needs the provider the app root supplies.
     render(
       <TooltipPrimitive.Provider>
         <CategoryTreePanel {...baseProps} isTaxonomyLocked />

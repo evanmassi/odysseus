@@ -1,9 +1,3 @@
-/**
- * Lab Location Modal
- *
- * Manages the lab's location tree: the places on the left, the editor for the selected one on the right.
- */
-
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { MapPin, Save, SquarePen, Trash2 } from 'lucide-react';
@@ -15,7 +9,7 @@ import {
   Button,
   DemoLockIndicator,
   Input,
-  NubDivider,
+  Divider,
   ScrollArea,
   Select,
   Tooltip,
@@ -163,7 +157,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Enter is a second route to the hidden Save button, so it has to answer the lock too.
+    // PITFALL: Enter is a second route to the hidden Save button, so it has to respect the lock too.
     if (e.key === 'Enter' && name.trim() && !isPending && !isTaxonomyLocked) {
       e.preventDefault();
       handleSave();
@@ -252,7 +246,7 @@ export function LabLocationModal({ isOpen, onClose }: LabLocationModalProps) {
                     {locations.length} {locations.length === 1 ? 'place' : 'places'}
                   </span>
                 </div>
-                <NubDivider tone="neutral" className="relative" />
+                <Divider tone="neutral" className="relative" />
               </div>
 
               <ScrollArea className="min-h-0 flex-1">

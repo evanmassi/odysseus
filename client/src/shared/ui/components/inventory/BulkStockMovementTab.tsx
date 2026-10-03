@@ -1,16 +1,8 @@
-/**
- * Bulk Stock Movement Tab
- *
- * Order-form for moving stock on many items at once — search or scan to add a row, set a quantity
- * and location, submit them together. Receiving and issuing differ only in the mutation, the
- * wording, and whatever extra fields a receipt records, so those are injected.
- */
-
 import { useState, useCallback, useRef, useMemo, type ReactNode } from 'react';
 
 import { Search } from 'lucide-react';
 
-import { Autocomplete, Button, NubDivider, type AutocompleteOption } from '@shared/ui';
+import { Autocomplete, Button, Divider, type AutocompleteOption } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { BulkItemRow, type ItemPackaging } from './BulkItemRow';
@@ -29,11 +21,8 @@ interface MovementRow<TExtra> {
 }
 
 interface MovementLabels {
-  /** Shown when no rows have been added yet. */
   emptyBody: string;
-  /** Footer count noun, singular. */
   countNoun: string;
-  /** Footer verb, e.g. 'receive'. */
   actionVerb: string;
   submitLabel: string;
   loadingText: string;
@@ -45,15 +34,12 @@ interface BulkStockMovementTabProps<TItem extends { id: string; name: string }, 
   locationOptions: SelectOption[];
   labels: MovementLabels;
   isPending: boolean;
-  /** Called with one payload row per valid row; the caller adds its own mutation and toast. */
   onSubmit: (
     rows: { itemId: string; locationId: string; quantity: number; extra: TExtra }[]
   ) => void;
   onComplete: () => void;
   useItemPackaging: (itemId: string) => ItemPackaging;
-  /** Barcode scanning is catalog-specific; the tab only needs the id it resolves to. */
   renderScanInput: (onItemFound: (itemId: string) => void) => ReactNode;
-  /** Fields a receipt records beyond quantity and location; omitted entirely for an issue. */
   extraFields?: {
     initial: TExtra;
     render: (extra: TExtra, update: (patch: Partial<TExtra>) => void) => ReactNode;
@@ -130,7 +116,6 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
     setRows(prev => prev.filter(row => row.rowId !== rowId));
   }, []);
 
-  // The Autocomplete renders whatever it is handed, so the narrowing happens here.
   const visibleOptions = useMemo(
     () => filterItemAutocompleteOptions(itemOptions, searchValue),
     [itemOptions, searchValue]
@@ -197,7 +182,7 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
       </ScrollArea>
 
       <div className="relative flex items-center justify-between px-4 py-3 border-t border-line-faint flex-shrink-0">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <span className="text-caption text-muted-foreground">
           {validRows.length} {labels.countNoun}
           {validRows.length !== 1 ? 's' : ''} to {labels.actionVerb}

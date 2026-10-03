@@ -31,7 +31,7 @@ import {
   Chip,
   DetailRow,
   HeaderStrip,
-  NubDivider,
+  Divider,
   PanelEmptyState,
   PanelHeader,
   SectionHeader,
@@ -467,7 +467,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
         {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
 
-        <NubDivider tone="neutral" className="absolute inset-x-0 bottom-0" />
+        <Divider tone="neutral" className="absolute inset-x-0 bottom-0" />
       </div>
 
       {selectedTubes.length > 1 && (
@@ -640,7 +640,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const footer =
     selectedTubes.length === 1 ? (
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <Button
           variant="primary"
           size="sm"

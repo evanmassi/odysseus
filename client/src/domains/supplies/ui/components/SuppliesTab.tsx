@@ -104,7 +104,6 @@ export function SuppliesTab() {
     updateMutation: updateCategoryMutation,
     deleteMutation: deleteCategoryMutation,
   });
-  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -313,6 +312,7 @@ export function SuppliesTab() {
               <CategoryTreePanel
                 categories={categories}
                 items={treeItems}
+                selectedItemId={selectedItemId}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 isTaxonomyLocked={isTaxonomyLocked}
@@ -355,9 +355,6 @@ export function SuppliesTab() {
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}
               onDeleted={handleItemDeleted}
-              categoryName={categoryNameMap.get(
-                items.find(p => p.id === rightPanel.itemId)?.categoryId ?? ''
-              )}
             />
           )}
 

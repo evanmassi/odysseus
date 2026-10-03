@@ -11,6 +11,9 @@ interface SectionHeaderProps {
   className?: string;
 }
 
+export const PLAIN_SECTION_RULE =
+  '[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.1)_70%,hsl(var(--foreground)/0.05)_100%)]';
+
 const TITLE_SIZE: Record<SectionHeaderSize, string> = {
   sm: 'text-label-2xs',
   md: 'text-label-sm',
@@ -47,16 +50,20 @@ export function SectionHeader({
           </span>
         </>
       )}
-      <div className="relative flex flex-1 items-center">
-        <span
-          aria-hidden
-          className="h-px flex-1 [background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.22)_30%,hsl(var(--foreground)/0.18)_85%,transparent_100%)]"
-        />
-        <span
-          aria-hidden
-          className="absolute right-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
-        />
-      </div>
+      {size === 'sm' ? (
+        <span aria-hidden className={`h-px flex-1 ${PLAIN_SECTION_RULE}`} />
+      ) : (
+        <div className="relative flex flex-1 items-center">
+          <span
+            aria-hidden
+            className="h-px flex-1 [background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.22)_30%,hsl(var(--foreground)/0.18)_85%,transparent_100%)]"
+          />
+          <span
+            aria-hidden
+            className="absolute right-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
+          />
+        </div>
+      )}
       {rightMeta && (
         <span className="pl-4 type-label text-label-2xs tracking-label-wide text-foreground/40">
           {rightMeta}

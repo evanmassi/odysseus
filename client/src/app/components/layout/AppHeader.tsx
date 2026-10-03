@@ -24,7 +24,7 @@ import { useStorageData } from '@domains/storage';
 import { useUserProfile } from '@domains/users';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { useResolvedTheme } from '@shared/hooks';
-import { DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/ui';
+import { Divider, DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -127,7 +127,7 @@ export function AppHeader({
   return (
     <header
       data-theme="dark"
-      className="app-header-bar relative flex h-full items-stretch bg-background after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.20)_10%,hsl(var(--primary)/0.20)_90%,transparent_100%)] dark:after:[box-shadow:0_0_8px_hsl(var(--primary)/0.14),0_0_18px_hsl(var(--primary)/0.06)]"
+      className="app-header-bar relative flex h-full items-stretch bg-background"
     >
       <div className="relative flex items-center px-4">
         <button
@@ -424,6 +424,7 @@ export function AppHeader({
           initialIdType={donorRegistry.initialIdType}
         />
       </LazyModalBoundary>
+      <Divider tone="primary" className="absolute inset-x-0 bottom-0" />
     </header>
   );
 }

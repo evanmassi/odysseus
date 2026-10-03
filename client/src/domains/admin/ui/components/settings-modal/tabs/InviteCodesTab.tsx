@@ -5,7 +5,7 @@ import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 import {
   Button,
   Chip,
-  NubDivider,
+  Divider,
   NumberInput,
   Select,
   SettingsRow,
@@ -300,7 +300,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
 
       {inactiveCodes.length > 0 && (
         <div className="relative pt-5">
-          <NubDivider tone="neutral" className="absolute inset-x-0 top-0" />
+          <Divider tone="neutral" className="absolute inset-x-0 top-0" />
           <button
             onClick={() => setShowInactive(prev => !prev)}
             className="group flex items-center gap-2"

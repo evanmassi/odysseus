@@ -1,11 +1,11 @@
-export type NubDividerTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
+export type DividerTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
 
-interface NubDividerProps {
-  tone?: NubDividerTone;
+interface DividerProps {
+  tone?: DividerTone;
   className?: string;
 }
 
-const TONE: Record<NubDividerTone, string> = {
+const TONE: Record<DividerTone, string> = {
   primary:
     '[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.2)_10%,hsl(var(--primary)/0.2)_90%,transparent_100%)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.14),0_0_18px_hsl(var(--primary)/0.06)]',
   success:
@@ -18,7 +18,7 @@ const TONE: Record<NubDividerTone, string> = {
     '[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.12)_10%,hsl(var(--foreground)/0.12)_90%,transparent_100%)]',
 };
 
-export function NubDivider({ tone = 'primary', className = '' }: NubDividerProps) {
+export function Divider({ tone = 'primary', className = '' }: DividerProps) {
   return (
     <span aria-hidden className={`pointer-events-none block h-px ${TONE[tone]} ${className}`} />
   );

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 
 import { Plus } from 'lucide-react';
 
-import { Button, Chip, ConsolePanel, ScrollArea, SearchInput, Table } from '@shared/ui';
+import { Button, Chip, ScrollArea, SearchInput, Table } from '@shared/ui';
 
 import type { DonorWithTubeCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -115,8 +115,8 @@ export function DonorTable({
   );
 
   return (
-    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-2 pb-3">
         <SearchInput
           value={searchQuery}
           onChange={onSearchChange}
@@ -152,6 +152,6 @@ export function DonorTable({
           aria-label="Donor registry"
         />
       </ScrollArea>
-    </ConsolePanel>
+    </div>
   );
 }

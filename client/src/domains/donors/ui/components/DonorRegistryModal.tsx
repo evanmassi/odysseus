@@ -7,7 +7,7 @@ import { useAuthStore } from '@domains/authentication';
 import { useDonorCollectionHistoryQuery } from '@domains/donors/hooks/useDonorCollectionHistoryQuery';
 import { useDeleteDonorMutation } from '@domains/donors/hooks/useDonorMutations';
 import { useDonorsQuery } from '@domains/donors/hooks/useDonorsQuery';
-import { AccentTick, InfoPanelEmpty, LoadingSpinner } from '@shared/ui';
+import { AccentTick, FramelessPanel, LoadingSpinner, PanelEmptyState } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
@@ -176,13 +176,9 @@ export function DonorRegistryModal({
                 isAdmin={isAdmin}
               />
             ) : (
-              <InfoPanelEmpty
-                title="Donor Information"
-                headerIcon={BookUser}
-                stripLabel="Collections"
-                emptyIcon={BookUser}
-                emptyMessage="Select a donor to view details"
-              />
+              <FramelessPanel icon={<BookUser className="h-4 w-4" />} title="Donor Information">
+                <PanelEmptyState icon={BookUser} message="Select a donor to view details" />
+              </FramelessPanel>
             )}
           </div>
         </div>

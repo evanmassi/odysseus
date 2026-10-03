@@ -1,16 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
-import {
-  Trash2,
-  Archive,
-  ClipboardList,
-  MapPin,
-  FolderOpen,
-  NotepadText,
-  SquarePen,
-  Plus,
-} from 'lucide-react';
+import { Trash2, Archive, ClipboardList, MapPin, NotepadText, SquarePen, Plus } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
@@ -34,7 +25,7 @@ import {
   DemoLockIndicator,
   DetailRow,
   HeaderStrip,
-  NubDivider,
+  Divider,
   OverflowMenu,
   PanelHeader,
   SectionHeader,
@@ -69,7 +60,6 @@ interface SupplyItemInfoPanelProps {
     prefill: TransactionPrefill
   ) => void;
   onDeleted: () => void;
-  categoryName?: string;
 }
 
 export function SupplyItemInfoPanel({
@@ -78,7 +68,6 @@ export function SupplyItemInfoPanel({
   onRecordTransaction,
   onVoidAndReplace,
   onDeleted,
-  categoryName,
 }: SupplyItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
@@ -235,14 +224,6 @@ export function SupplyItemInfoPanel({
           <Chip size="sm" color={statusConfig.color}>
             {statusConfig.label}
           </Chip>
-          {categoryName && (
-            <>
-              <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" lead={<FolderOpen />}>
-                {categoryName}
-              </Chip>
-            </>
-          )}
           {locationChips.length > 0 && (
             <>
               <StripLabel>Location</StripLabel>
@@ -477,7 +458,7 @@ export function SupplyItemInfoPanel({
 
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <Divider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             {isLocked ? (
               <DemoLockIndicator />

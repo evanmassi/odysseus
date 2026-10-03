@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, type ReactNode } from 'react';
 
 import { ChevronRight } from 'lucide-react';
 
-import { NubDivider, Table } from '../../primitives';
+import { Divider, Table } from '../../primitives';
 
 import type { TableColumn, SortConfig } from '../../primitives/table/types';
 
@@ -120,7 +120,7 @@ export function AlertPanel<T extends { id: string }>({
             </span>
           ))}
         </span>
-        <NubDivider tone={tone} className="absolute inset-x-0 -bottom-px" />
+        <Divider tone={tone} className="absolute inset-x-0 -bottom-px" />
       </div>
 
       {isExpanded && (

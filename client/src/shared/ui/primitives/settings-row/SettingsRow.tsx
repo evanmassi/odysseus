@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { PLAIN_SECTION_RULE } from '../titles/SectionHeader';
 import { SubsectionHeader } from '../titles/SubsectionHeader';
 
 interface SettingsRowProps {
@@ -30,21 +31,29 @@ interface SubsectionProps {
   index?: number;
   meta?: ReactNode;
   accent?: boolean;
+  isCompact?: boolean;
   children: ReactNode;
   className?: string;
 }
 
-export function Subsection({ title, index, meta, accent, children, className }: SubsectionProps) {
+export function Subsection({
+  title,
+  index,
+  meta,
+  accent,
+  isCompact = false,
+  children,
+  className,
+}: SubsectionProps) {
   return (
-    <div className={`pt-10 first:pt-1 ${className ?? ''}`}>
+    <div className={`${isCompact ? 'pt-7 first:pt-0' : 'pt-10 first:pt-1'} ${className ?? ''}`}>
       <div className="flex items-center gap-3 pb-2">
         <SubsectionHeader title={title} index={index} meta={meta} accent={accent} />
-        <span
-          aria-hidden
-          className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.1)_70%,hsl(var(--foreground)/0.05)_100%)]"
-        />
+        <span aria-hidden className={`h-px flex-1 ${PLAIN_SECTION_RULE}`} />
       </div>
-      <div className="grid grid-cols-2 gap-x-10 pl-4 pr-6">{children}</div>
+      <div className={isCompact ? 'pl-3 pt-1.5' : 'grid grid-cols-2 gap-x-10 pl-4 pr-6'}>
+        {children}
+      </div>
     </div>
   );
 }

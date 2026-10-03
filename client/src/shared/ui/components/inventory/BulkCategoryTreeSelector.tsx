@@ -1,12 +1,3 @@
-/**
- * Bulk Category Tree Selector
- *
- * Multi-select tree of category → subcategory → item checkboxes for bulk
- * operations, shared by the equipment, supply, and reagent bulk-operations modals.
- * Selectability, each item's secondary text, and the labels are injected per
- * domain; search is controlled by the caller.
- */
-
 import { useMemo, useCallback } from 'react';
 
 import { CornerDownRight, FolderOpen } from 'lucide-react';
@@ -14,7 +5,7 @@ import { CornerDownRight, FolderOpen } from 'lucide-react';
 import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategoryIds';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
-import { Checkbox, NubDivider, ScrollArea, SearchInput } from '../../primitives';
+import { Checkbox, Divider, ScrollArea, SearchInput } from '../../primitives';
 import { SelectTreeLines } from '../tree-lines';
 
 interface BulkTreeCategory {
@@ -32,13 +23,11 @@ interface BulkTreeItem {
 }
 
 export interface BulkCategoryTreeSelectorLabels {
-  /** Singular/plural count noun, e.g. ['unit', 'units']. */
   countNoun: [string, string];
   filterPlaceholder: string;
   filterAriaLabel: string;
   selectAllLabel: string;
   selectAllAriaLabel: string;
-  /** Prefix for the no-match line; the quoted query is appended. */
   noMatch: string;
 }
 
@@ -228,7 +217,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
             {selectedCount}/{allSelectableIds.length} {countPlural}
           </span>
         </div>
-        <NubDivider tone="neutral" className="relative" />
+        <Divider tone="neutral" className="relative" />
       </div>
       <ScrollArea className="flex-1 min-h-0">
         <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">

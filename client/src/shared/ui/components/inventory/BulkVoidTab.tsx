@@ -1,16 +1,9 @@
-/**
- * Bulk Void Tab
- *
- * Pick an item, tick the movements to reverse, submit them under one reason. What a tick owns is
- * the catalog's call: a supply movement is one ledger row, a reagent's FEFO draw is one per lot.
- */
-
 import { useState, useMemo, useCallback, type ReactNode } from 'react';
 
 import { Search } from 'lucide-react';
 
 import { useLabLocationsQuery } from '@domains/lab-management';
-import { Autocomplete, Button, Checkbox, NubDivider, type AutocompleteOption } from '@shared/ui';
+import { Autocomplete, Button, Checkbox, Divider, type AutocompleteOption } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
@@ -21,16 +14,12 @@ import { filterItemAutocompleteOptions } from './itemAutocompleteOptions';
 import { transactionTypeDisplay } from './transactionTypeDisplay';
 
 export interface VoidableEntry {
-  /** Row key and unit of selection. */
   id: string;
-  /** The ledger rows this entry reverses — one per lot for a movement that drew across several. */
   transactionIds: string[];
   type: string;
   createdAt: Date | string;
   locationId: string;
-  /** Signed and unit-formatted; each catalog spells its own quantities. */
   quantityLabel: string;
-  /** Optional trailing note, e.g. how many lots the movement touched. */
   note?: string;
 }
 
@@ -38,11 +27,8 @@ interface BulkVoidTabProps<TItem extends { id: string; name: string }> {
   items: TItem[];
   itemOptions: AutocompleteOption[];
   isPending: boolean;
-  /** The selected item's reversible movements, in display order. */
   useVoidableEntries: (item: TItem | undefined) => VoidableEntry[];
-  /** Barcode scanning is catalog-specific; the tab only needs the id it resolves to. */
   renderScanInput: (onItemFound: (itemId: string) => void) => ReactNode;
-  /** The caller runs the mutation and calls `reset` once it succeeds. */
   onSubmit: (transactionIds: string[], reason: string, reset: () => void, item: TItem) => void;
   onComplete: () => void;
 }
@@ -67,7 +53,6 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
 
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
 
-  // The Autocomplete renders whatever it is handed, so the narrowing happens here.
   const visibleOptions = useMemo(
     () => filterItemAutocompleteOptions(itemOptions, searchValue),
     [itemOptions, searchValue]
@@ -172,7 +157,7 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
       </ScrollArea>
 
       <div className="relative px-4 pt-3 pb-4 border-t border-line-faint flex-shrink-0 space-y-3">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div>
           <label htmlFor="bulk-void-reason" className={FIELD_LABEL_COMPACT}>
             Reason for voiding *

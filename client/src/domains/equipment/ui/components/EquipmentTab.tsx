@@ -310,6 +310,7 @@ export function EquipmentTab() {
               <CategoryTreePanel
                 categories={categories}
                 items={treeItems}
+                selectedItemId={selectedItemId}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 isTaxonomyLocked={isTaxonomyLocked}
@@ -356,9 +357,6 @@ export function EquipmentTab() {
               onAddMaintenance={handleAddMaintenance}
               onEditMaintenance={handleEditMaintenance}
               onDeleted={handleItemDeleted}
-              categoryName={categoryNameMap.get(
-                items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
-              )}
             />
           )}
 
