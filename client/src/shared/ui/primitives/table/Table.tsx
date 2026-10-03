@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { cva } from 'class-variance-authority';
 
 import { Checkbox } from '../checkbox/Checkbox';
+import { PanelEmptyState } from '../panel-empty-state/PanelEmptyState';
 
 import { ROW_HOVER_GLOW } from './rowHoverGlow';
 import { defaultTableProps } from './types';
@@ -341,6 +342,7 @@ export function Table<T extends TableRowBase>({
   onSelectionChange = () => {},
   onRowClick,
   emptyMessage = defaultTableProps.emptyMessage,
+  emptyIcon,
   loadingMessage = defaultTableProps.loadingMessage,
   'aria-label': ariaLabel,
   className,
@@ -364,9 +366,13 @@ export function Table<T extends TableRowBase>({
       <div className="text-muted-foreground">{loadingMessage}</div>
     </div>
   ) : data.length === 0 ? (
-    <div className="flex items-center justify-center py-8">
-      <div className="text-muted-foreground">{emptyMessage}</div>
-    </div>
+    emptyIcon ? (
+      <PanelEmptyState icon={emptyIcon} message={emptyMessage} />
+    ) : (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">{emptyMessage}</div>
+      </div>
+    )
   ) : (
     <TableContext.Provider value={contextValue}>
       <table className={`w-full border-collapse ${className ?? ''}`} aria-label={ariaLabel}>

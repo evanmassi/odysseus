@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Check,
@@ -13,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { queryKeys } from '@app/cache/queryKeys';
 import { Button, ConsolePanel, IdStamp, StatCell, Subsection, Well } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -41,6 +43,7 @@ interface LabDashboardProps {
 
 export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const { data: details, isLoading, isFetching, refetch } = useLabDetailsQuery(labId);
+  const queryClient = useQueryClient();
   const updateLabMutation = useUpdateLabMutation();
   const activateLabMutation = useActivateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
@@ -147,7 +150,10 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => void refetch()}
+            onClick={() => {
+              void refetch();
+              void queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditLogAll() });
+            }}
             disabled={isLoading}
             leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
           >

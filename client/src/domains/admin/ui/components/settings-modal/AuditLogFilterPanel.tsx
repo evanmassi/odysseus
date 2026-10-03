@@ -1,12 +1,9 @@
-import { useState, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
 import { Chip, DatePicker, Input, Tooltip } from '@shared/ui';
-import {
-  headerSurface,
-  HEADER_TOP_EDGE,
-} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
+import { FilterSection } from '@shared/ui/components/filters/FilterSection';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { MS_PER_DAY } from '@shared/utils';
 
@@ -173,49 +170,6 @@ interface AuditLogFilterPanelProps {
   filters: AuditFilterState;
   onChange: (filters: AuditFilterState) => void;
   onClear: () => void;
-}
-
-interface CollapsibleSectionProps {
-  title: string;
-  icon: ReactNode;
-  count: number;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}
-
-function CollapsibleSection({
-  title,
-  icon,
-  count,
-  isOpen,
-  onToggle,
-  children,
-}: CollapsibleSectionProps) {
-  return (
-    <div className="border-b border-line-soft last:border-b-0">
-      <button
-        onClick={onToggle}
-        className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-foreground/[0.03]"
-      >
-        <div className="flex items-center gap-2.5">
-          {isOpen ? (
-            <ChevronDown className="h-3.5 w-3.5 text-foreground/40" />
-          ) : (
-            <ChevronRight className="h-3.5 w-3.5 text-foreground/40" />
-          )}
-          <span className="flex items-center text-foreground/55">{icon}</span>
-          <span className="type-label text-label-xs tracking-label-wide text-foreground/80">
-            {title}
-          </span>
-        </div>
-        {count > 0 && (
-          <span className="font-mono text-data-sm tabular-nums text-primary/90">{count}</span>
-        )}
-      </button>
-      {isOpen && <div className="px-4 pb-3 pt-0.5">{children}</div>}
-    </div>
-  );
 }
 
 interface ActionSubsectionProps {
@@ -394,16 +348,9 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
   const selectedActions = filters.actions ?? [];
 
   return (
-    <div className="border border-line-soft bg-card">
-      <div
-        className="relative flex items-center justify-between border-b border-line-soft px-4 py-2.5"
-        style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
-      >
+    <div>
+      <div className="flex items-center justify-between border-b border-line-faint px-4 py-2.5">
         <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-          />
           <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
             Filters
           </span>
@@ -420,8 +367,8 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
 
       <ScrollArea className="max-h-96 p-1" tabIndex={-1}>
         <div className="grid grid-cols-2">
-          <div className="border-r border-line-soft">
-            <CollapsibleSection
+          <div className="border-r border-line-faint">
+            <FilterSection
               title="User"
               icon={<UserRound className="h-3.5 w-3.5" />}
               count={getSectionCount('user')}
@@ -436,9 +383,9 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                 size="sm"
                 fullWidth
               />
-            </CollapsibleSection>
+            </FilterSection>
 
-            <CollapsibleSection
+            <FilterSection
               title="Action"
               icon={<Zap className="h-3.5 w-3.5" />}
               count={getSectionCount('actions')}
@@ -457,11 +404,11 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                   />
                 ))}
               </div>
-            </CollapsibleSection>
+            </FilterSection>
           </div>
 
           <div>
-            <CollapsibleSection
+            <FilterSection
               title="Item"
               icon={<Box className="h-3.5 w-3.5" />}
               count={getSectionCount('entityTypes')}
@@ -481,9 +428,9 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                   </Chip>
                 ))}
               </div>
-            </CollapsibleSection>
+            </FilterSection>
 
-            <CollapsibleSection
+            <FilterSection
               title="Date Range"
               icon={<Calendar className="h-3.5 w-3.5" />}
               count={getSectionCount('date')}
@@ -548,13 +495,13 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                   </div>
                 </fieldset>
               </div>
-            </CollapsibleSection>
+            </FilterSection>
           </div>
         </div>
       </ScrollArea>
 
       {hasActiveFilters && (
-        <div className="border-t border-line-soft bg-foreground/[0.02] px-3 py-2">
+        <div className="border-t border-line-faint px-3 py-2">
           <div className="flex flex-wrap gap-1 items-center">
             {visibleFilters.map((filter, idx) => (
               <Tooltip

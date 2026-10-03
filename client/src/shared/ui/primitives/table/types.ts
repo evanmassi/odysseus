@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import type { LucideIcon } from 'lucide-react';
+
 type TableDensity = 'compact' | 'default';
 
 export type RowState = 'success' | 'warning' | 'danger' | 'muted' | 'default';
@@ -47,6 +49,7 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (row: T, index: number) => void;
   emptyMessage?: string;
+  emptyIcon?: LucideIcon;
   loadingMessage?: string;
   'aria-label'?: string;
   className?: string;

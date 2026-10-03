@@ -1,17 +1,10 @@
-/**
- * Users Tab
- *
- * Admin interface for user management, role assignment, and researcher linking.
- */
-
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
 import {
   KeyRound,
   Link2,
   Power,
-  RefreshCw,
   ShieldBan,
   ShieldUser,
   Trash2,
@@ -20,8 +13,9 @@ import {
   UserRoundCheck,
 } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication';
-import { Button, OverflowMenu, Table, Tooltip } from '@shared/ui';
+import { queryKeys } from '@app/cache/queryKeys';
+import { useAuthStore, useLabId } from '@domains/authentication';
+import { OverflowMenu, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -38,6 +32,7 @@ import {
 } from '../../../../hooks/useUserMutations';
 import { CollapsibleInactiveSection } from '../../displays/CollapsibleInactiveSection';
 import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
+import { TabRefreshButton } from '../../displays/TabRefreshButton';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
@@ -49,11 +44,22 @@ import type { TableColumn, SortConfig } from '@shared/ui';
 interface UsersTabProps {
   users: AdminUser[];
   onUserUpdate: () => void;
+  onTabAction: (action: ReactNode) => void;
   readOnly?: boolean;
 }
 
-export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTabProps) {
-  // Modal state: separate data from visibility for exit animations
+export function UsersTab({
+  users = [],
+  onUserUpdate,
+  onTabAction,
+  readOnly = false,
+}: UsersTabProps) {
+  const labId = useLabId();
+
+  useEffect(() => {
+    onTabAction(readOnly ? null : <TabRefreshButton queryKey={queryKeys.admin.users(labId)} />);
+  }, [onTabAction, readOnly, labId]);
+
   const [researcherModalData, setResearcherModalData] = useState<{
     id: string;
     username: string;
@@ -374,7 +380,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <Table
         columns={visibleColumns(userColumns, readOnly)}
         data={activeUsers}
@@ -384,22 +390,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         onSort={setSortConfig}
         emptyMessage="No users found"
         aria-label="Users list"
-        toolbar={
-          readOnly
-            ? undefined
-            : {
-                right: (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={onUserUpdate}
-                    leftIcon={<RefreshCw size={14} />}
-                  >
-                    Refresh
-                  </Button>
-                ),
-              }
-        }
       />
 
       {inactiveUsers.length > 0 && (

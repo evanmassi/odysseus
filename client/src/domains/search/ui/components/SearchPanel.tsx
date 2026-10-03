@@ -1,9 +1,3 @@
-/**
- * Search Panel
- *
- * Top-bar search input with dropdown results and filter panel.
- */
-
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 
 import { SlidersHorizontal, X } from 'lucide-react';
@@ -19,11 +13,9 @@ import { useSearchStore } from '../../stores/searchStore';
 import { SearchFilterPanel } from './SearchFilterPanel';
 import { SearchResultsPanel } from './SearchResultsPanel';
 
-/** Console icon button — chamfered like the selectable chips, with a primary selected state. */
 const ICON_BTN_BASE =
   'flex h-6 w-6 items-center justify-center border transition-[background-color,border-color,box-shadow,color] duration-150';
 
-/** Top-right chamfer matching the chip silhouette; only inset shadows survive the clip. */
 const ICON_BTN_CHAMFER: React.CSSProperties = {
   clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%)',
 };
@@ -86,9 +78,7 @@ export function SearchPanel() {
     };
   }, []);
 
-  // The dropdown is portaled to <body> so it escapes the header's permanent
-  // data-theme="dark" anchor (otherwise dark-only glows leak into light mode).
-  // Position is tracked against the trigger since it no longer flows with it.
+  // PITFALL: the dropdown is portaled out of the header's permanent dark theme so dark-only glows don't leak into light mode, so its position is tracked against the trigger.
   useLayoutEffect(() => {
     if (!showDropdown && !isClosingDropdown) return;
 
@@ -229,18 +219,18 @@ export function SearchPanel() {
               isClosingDropdown ? 'animate-dropdown-reveal-out' : 'animate-dropdown-reveal-in'
             }`}
           >
-            <div className="flex items-stretch">
+            <div className="flex h-[560px] items-stretch">
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
                   showFilters ? 'w-80' : 'w-0'
                 }`}
               >
-                <div className="w-80 h-[500px] flex flex-col border-r border-line-soft">
+                <div className="flex h-full w-80 flex-col border-r border-line-soft bg-foreground/[0.025] dark:bg-shade/20">
                   <SearchFilterPanel onClose={() => setShowFilters(false)} />
                 </div>
               </div>
 
-              <div className="w-96 min-h-[500px] flex flex-col">
+              <div className="flex h-full w-96 flex-col">
                 <SearchResultsPanel
                   results={results}
                   isSearching={isSearching}

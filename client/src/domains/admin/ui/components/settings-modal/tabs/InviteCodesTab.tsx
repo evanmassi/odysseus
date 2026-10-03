@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
-import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
+import { Plus, Copy, Trash2, ChevronDown, TicketCheck } from 'lucide-react';
 
+import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import {
   Button,
   Chip,
@@ -21,12 +23,14 @@ import {
   useDeactivateInviteCodeMutation,
 } from '../../../../hooks/useInviteCodeMutations';
 import { useInviteCodesQuery } from '../../../../hooks/useInviteCodesQuery';
+import { TabRefreshButton } from '../../displays/TabRefreshButton';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 import type { SelectOption, TableColumn } from '@shared/ui';
 
 interface InviteCodesTabProps {
   readOnly?: boolean;
+  onTabAction: (action: ReactNode) => void;
 }
 
 const EXPIRY_OPTIONS: SelectOption[] = [
@@ -39,8 +43,9 @@ const EXPIRY_OPTIONS: SelectOption[] = [
 
 const DEFAULT_EXPIRY_DAYS = 7;
 
-export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
-  const { data: codes = [], isLoading, isFetching, refetch } = useInviteCodesQuery();
+export function InviteCodesTab({ readOnly = false, onTabAction }: InviteCodesTabProps) {
+  const { data: codes = [], isLoading } = useInviteCodesQuery();
+  const labId = useLabId();
   const createMutation = useCreateInviteCodeMutation();
   const deactivateMutation = useDeactivateInviteCodeMutation();
 
@@ -210,6 +215,23 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
     },
   ];
 
+  useEffect(() => {
+    onTabAction(
+      <div className="flex items-center gap-2">
+        <TabRefreshButton queryKey={queryKeys.admin.inviteCodes(labId)} />
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => setShowCreateForm(true)}
+          leftIcon={<Plus size={14} />}
+          disabled={readOnly}
+        >
+          New Code
+        </Button>
+      </div>
+    );
+  }, [onTabAction, readOnly, labId]);
+
   return (
     <div className="space-y-4">
       {showCreateForm && (
@@ -270,32 +292,9 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
         hoverable
         loading={isLoading}
         emptyMessage="No active invite codes. Create one to invite new users to your lab."
+        emptyIcon={TicketCheck}
         loadingMessage="Loading invite codes..."
         aria-label="Active invite codes"
-        toolbar={{
-          right: (
-            <>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
-              >
-                Refresh
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowCreateForm(true)}
-                leftIcon={<Plus size={14} />}
-                disabled={readOnly}
-              >
-                New Code
-              </Button>
-            </>
-          ),
-        }}
       />
 
       {inactiveCodes.length > 0 && (
@@ -311,6 +310,9 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
             />
             <span className="type-label text-label-xs tracking-label-wide text-foreground/70 transition-colors group-hover:text-foreground/90">
               Inactive Codes
+            </span>
+            <span aria-hidden className="text-label-sm leading-none text-foreground/35">
+              ·
             </span>
             <span className="type-label text-label-2xs text-foreground/35">
               {inactiveCodes.length}

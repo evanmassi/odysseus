@@ -7,10 +7,6 @@
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 import { Select, Tooltip } from '@shared/ui';
-import {
-  headerSurface,
-  HEADER_TOP_EDGE,
-} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 
 import { useSearchStore, type SortField } from '../../stores/searchStore';
 
@@ -31,10 +27,7 @@ export function SearchSortControls() {
   const toggleSortDirection = useSearchStore(state => state.toggleSortDirection);
 
   return (
-    <div
-      className="relative flex h-9 items-center gap-2.5 border-b border-line-soft px-4"
-      style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
-    >
+    <div className="flex h-9 items-center gap-2.5 border-b border-line-faint px-4">
       <span className="type-label text-label-2xs tracking-label-wide text-foreground/55">Sort</span>
 
       <Select

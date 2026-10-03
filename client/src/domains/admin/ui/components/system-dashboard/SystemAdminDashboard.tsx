@@ -7,11 +7,11 @@ import { ConsolePanel, IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@sh
 
 import { useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQueries';
+import { TabRefreshButton } from '../displays/TabRefreshButton';
 
 import { LabDashboard } from './LabDashboard';
 import { LabsPanel } from './LabsPanel';
 import { LabsToolbar } from './LabsToolbar';
-import { TabRefreshButton } from './TabRefreshButton';
 
 const SecurityPanel = lazy(() =>
   import('./SecurityPanel').then(m => ({ default: m.SecurityPanel }))

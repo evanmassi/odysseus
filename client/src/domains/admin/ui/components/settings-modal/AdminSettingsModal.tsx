@@ -231,27 +231,35 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         icon={TAB_META[activeTab].icon}
         title={TAB_META[activeTab].title}
         rightMeta={tabAction}
+        className="mb-1.5"
         size="lg"
       />
 
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <AlertBanner variant="info" spacing="sm">
-            Only system admins can modify security settings.
-          </AlertBanner>
-          <SecurityTab config={config} onChange={handleConfigChange} readOnly />
+          <div className="space-y-4">
+            <AlertBanner variant="info" spacing="none">
+              Only system admins can modify security settings.
+            </AlertBanner>
+            <SecurityTab config={config} onChange={handleConfigChange} readOnly />
+          </div>
         </Suspense>
       )}
 
       {activeTab === 'invite-codes' && !isSystemAdmin && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <InviteCodesTab readOnly={demoSeeded} />
+          <InviteCodesTab readOnly={demoSeeded} onTabAction={handleTabAction} />
         </Suspense>
       )}
 
       {activeTab === 'users' && !isSystemAdmin && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <UsersTab users={users} onUserUpdate={refreshUsers} readOnly={isDemo} />
+          <UsersTab
+            users={users}
+            onUserUpdate={refreshUsers}
+            onTabAction={handleTabAction}
+            readOnly={isDemo}
+          />
         </Suspense>
       )}
 
@@ -263,6 +271,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
               refreshUsers();
             }}
             onTabFooter={handleTabFooter}
+            onTabAction={handleTabAction}
             readOnly={isDemo}
           />
         </Suspense>
@@ -286,7 +295,11 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'monitoring' && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <MonitoringTab isSystemAdmin={isSystemAdmin} isDemo={isDemo} />
+          <MonitoringTab
+            isSystemAdmin={isSystemAdmin}
+            isDemo={isDemo}
+            onTabAction={handleTabAction}
+          />
         </Suspense>
       )}
     </BaseModal>

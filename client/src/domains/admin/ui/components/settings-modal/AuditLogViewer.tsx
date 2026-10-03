@@ -1,13 +1,7 @@
-/**
- * Audit Log Viewer
- *
- * Paginated audit log table with filtering and archive search
- */
 import { useState, useCallback, createElement } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import {
-  RefreshCw,
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +20,8 @@ import {
 } from 'lucide-react';
 
 import { Button, Table, Tooltip } from '@shared/ui';
+import { PLAIN_SECTION_RULE } from '@shared/ui/primitives/titles/SectionHeader';
+import { SubsectionHeader } from '@shared/ui/primitives/titles/SubsectionHeader';
 import { getErrorMessage } from '@shared/utils/getErrorMessage';
 
 import { useAuditLogQuery } from '../../../hooks/useAuditLogQuery';
@@ -61,7 +57,7 @@ const ACTION_LABEL_OVERRIDES: Record<string, string> = {
   lab_created: 'Created',
 };
 
-// Full class names so Tailwind's content scanner can detect them
+// PITFALL: class names stay whole strings so Tailwind's content scanner can find them.
 const BADGE_CLASS_OVERRIDES: Record<string, string> = {
   invite_code_created: 'badge-audit-action-created',
   invite_code_used: 'badge-audit-action-linked',
@@ -352,17 +348,19 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
   const currentPage = Math.floor((filters.offset ?? 0) / (filters.limit ?? 50)) + 1;
   const totalPages = Math.ceil((pagination?.total ?? 0) / (filters.limit ?? 50));
 
+  const entryCountLabel = `${(pagination?.total ?? 0).toLocaleString()} entries`;
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {!hideHeader && (
-            <h4 className="text-body font-semibold text-card-foreground">Audit Log</h4>
-          )}
-          <span className="text-caption text-muted-foreground">
-            ({(pagination?.total || 0).toLocaleString()} total entries)
+      <div className="flex items-center gap-3">
+        {hideHeader ? (
+          <span className="type-label text-label-2xs leading-none text-foreground/35">
+            {entryCountLabel}
           </span>
-        </div>
+        ) : (
+          <SubsectionHeader title="Audit Log" meta={entryCountLabel} />
+        )}
+        <span aria-hidden className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE}`} />
 
         <div className="flex items-center gap-2">
           {!readOnly && (
@@ -403,15 +401,6 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
             leftIcon={<SlidersHorizontal size={12} />}
           >
             Filters
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="xs"
-            onClick={() => query.refetch()}
-            leftIcon={<RefreshCw size={12} />}
-          >
-            Refresh
           </Button>
         </div>
       </div>

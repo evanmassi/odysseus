@@ -46,7 +46,7 @@ export function Subsection({
   className,
 }: SubsectionProps) {
   return (
-    <div className={`${isCompact ? 'pt-7 first:pt-0' : 'pt-10 first:pt-1'} ${className ?? ''}`}>
+    <div className={`${isCompact ? 'pt-7 first:pt-0' : 'pt-10 first:pt-0'} ${className ?? ''}`}>
       <div className="flex items-center gap-3 pb-2">
         <SubsectionHeader title={title} index={index} meta={meta} accent={accent} />
         <span aria-hidden className={`h-px flex-1 ${PLAIN_SECTION_RULE}`} />

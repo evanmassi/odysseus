@@ -15,8 +15,6 @@ import {
   UsersRound,
   Calendar,
   X,
-  ChevronDown,
-  ChevronRight,
   TestTubeDiagonal,
   Barcode,
   CircleUserRound,
@@ -32,11 +30,8 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData } from '@domains/storage';
 import { useTubeFilterOptions } from '@domains/tubes';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
+import { FilterSection } from '@shared/ui/components/filters/FilterSection';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
-import {
-  headerSurface,
-  HEADER_TOP_EDGE,
-} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 
@@ -116,51 +111,6 @@ const SAMPLE_FILTER_GROUPS: SampleFilterGroup[] = [
     ariaLabel: 'Source filters',
   },
 ];
-
-interface CollapsibleSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  count: number;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function CollapsibleSection({
-  title,
-  icon,
-  count,
-  isOpen,
-  onToggle,
-  children,
-}: CollapsibleSectionProps) {
-  return (
-    <div className="border-b border-line-soft last:border-b-0">
-      <button
-        onClick={onToggle}
-        className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-foreground/[0.03]"
-      >
-        <div className="flex items-center gap-2.5">
-          {isOpen ? (
-            <ChevronDown className="h-3.5 w-3.5 text-foreground/40" />
-          ) : (
-            <ChevronRight className="h-3.5 w-3.5 text-foreground/40" />
-          )}
-          <span className="flex items-center text-foreground/55">{icon}</span>
-          <span className="type-label text-label-xs tracking-label-wide text-foreground/80">
-            {title}
-          </span>
-        </div>
-        {count > 0 && (
-          <span className="font-mono text-data-sm tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
-            {count}
-          </span>
-        )}
-      </button>
-      {isOpen && <div className="px-4 pb-3 pt-0.5">{children}</div>}
-    </div>
-  );
-}
 
 interface SearchFilterPanelProps {
   onClose?: () => void;
@@ -364,15 +314,8 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div
-        className="relative flex h-9 flex-shrink-0 items-center justify-between border-b border-line-soft px-4"
-        style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
-      >
+      <div className="flex h-9 flex-shrink-0 items-center justify-between border-b border-line-faint px-4">
         <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-          />
           <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
             Filters
           </span>
@@ -400,7 +343,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
       </div>
 
       <ScrollArea className="flex-1 p-1" tabIndex={-1}>
-        <CollapsibleSection
+        <FilterSection
           title="Location"
           icon={<MapPin className="w-3.5 h-3.5" />}
           count={getSectionCount('location')}
@@ -474,9 +417,9 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
               </div>
             )}
           </div>
-        </CollapsibleSection>
+        </FilterSection>
 
-        <CollapsibleSection
+        <FilterSection
           title="Sample"
           icon={<TestTubeDiagonal className="w-3.5 h-3.5" />}
           count={getSectionCount('sample')}
@@ -509,10 +452,10 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
                 )
             )}
           </div>
-        </CollapsibleSection>
+        </FilterSection>
 
         {filterOptions.researchers.length > 0 && (
-          <CollapsibleSection
+          <FilterSection
             title="Researcher"
             icon={<UsersRound className="w-3.5 h-3.5" />}
             count={getSectionCount('researcher')}
@@ -532,10 +475,10 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
                 </Chip>
               ))}
             </div>
-          </CollapsibleSection>
+          </FilterSection>
         )}
 
-        <CollapsibleSection
+        <FilterSection
           title="Date Range"
           icon={<Calendar className="w-3.5 h-3.5" />}
           count={getSectionCount('date')}
@@ -566,7 +509,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
               />
             </div>
           </div>
-        </CollapsibleSection>
+        </FilterSection>
       </ScrollArea>
 
       {hasActiveFilters && (
