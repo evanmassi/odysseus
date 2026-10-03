@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Eye, EyeOff, Layers, Microscope, Plus, SlidersHorizontal } from 'lucide-react';
+import { Eye, EyeOff, Microscope, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import {
@@ -23,22 +23,22 @@ import {
   InfoPanelEmpty,
   PanelHeader,
   SearchInput,
-  Tooltip,
 } from '@shared/ui';
 import {
-  CategoryManager,
-  useCatalogCategories,
   AttributeFilterPanel,
-  countAttributeFilters,
-  matchesAttributeFilters,
-  EMPTY_ATTRIBUTE_FILTERS,
   type AttributeFilters,
+  CatalogActionBar,
+  CategoryManager,
   CategoryTreePanel,
   type CategoryTreePanelLabels,
+  countAttributeFilters,
+  EMPTY_ATTRIBUTE_FILTERS,
   INVENTORY_SORT_OPTIONS,
+  type InventorySortField,
+  matchesAttributeFilters,
   searchCatalogItems,
   SortControls,
-  type InventorySortField,
+  useCatalogCategories,
 } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -227,30 +227,6 @@ export function EquipmentTab() {
                 className="w-64 min-w-[9rem]"
                 aria-label="Search equipment"
               />
-              {isAdmin && (
-                <div className="ml-auto flex items-center gap-2">
-                  <Tooltip content="Bulk Operations" side="bottom">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      iconOnly
-                      onClick={() => setIsBulkModalOpen(true)}
-                      className="h-8 flex-shrink-0"
-                      aria-label="Bulk Operations"
-                    >
-                      <Layers className="h-3.5 w-3.5" />
-                    </Button>
-                  </Tooltip>
-                  <Button
-                    size="sm"
-                    onClick={handleAddEquipment}
-                    className="h-8 flex-shrink-0"
-                    leftIcon={<Plus className="h-3.5 w-3.5" />}
-                  >
-                    Add Equipment
-                  </Button>
-                </div>
-              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -312,6 +288,15 @@ export function EquipmentTab() {
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
             />
+            {isAdmin && (
+              <CatalogActionBar
+                addItemLabel="Add Equipment"
+                isTaxonomyLocked={isTaxonomyLocked}
+                onBulkOperations={() => setIsBulkModalOpen(true)}
+                onAddCategory={categoryState.onAddCategory}
+                onAddItem={handleAddEquipment}
+              />
+            )}
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
@@ -334,7 +319,6 @@ export function EquipmentTab() {
                 )}
                 treeId="equipment"
                 labels={TREE_LABELS}
-                onAddCategory={categoryState.onAddCategory}
                 onAddSubcategory={categoryState.onAddSubcategory}
                 onRenameCategory={categoryState.onRenameCategory}
                 onDeleteCategory={categoryState.onDeleteCategory}

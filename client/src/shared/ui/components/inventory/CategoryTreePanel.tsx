@@ -13,7 +13,7 @@ import {
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Button, OverflowMenu, type OverflowMenuItem } from '../../primitives';
-import { DemoLockIndicator } from '../info-display/DemoLockIndicator';
+import { PLAIN_SECTION_RULE } from '../../primitives/titles/SectionHeader';
 import { NavTreeLines } from '../tree-lines';
 
 interface TreeCategory {
@@ -50,7 +50,6 @@ interface CategoryTreePanelProps<T extends TreeItem, C extends TreeCategory> {
   renderItem: (item: T) => ReactNode;
   treeId: string;
   labels: CategoryTreePanelLabels;
-  onAddCategory: () => void;
   onAddSubcategory: (parentId: string) => void;
   onRenameCategory: (category: C) => void;
   onDeleteCategory: (category: C) => void;
@@ -86,7 +85,6 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   renderItem,
   treeId,
   labels,
-  onAddCategory,
   onAddSubcategory,
   onRenameCategory,
   onDeleteCategory,
@@ -200,51 +198,16 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     return ids;
   }, [topLevelCategories, isSearching, getCategoryItemCount, expandedCategories]);
 
-  const [countSingular, countPlural] = labels.countNoun;
-
   if (topLevelCategories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
         <p className="text-body-sm">{labels.emptyCategories}</p>
-        {isAdmin && (
-          <div className="mt-3">
-            {isTaxonomyLocked ? (
-              <DemoLockIndicator />
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onAddCategory}
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Add Category
-              </Button>
-            )}
-          </div>
-        )}
       </div>
     );
   }
 
   return (
     <div className="pt-1">
-      {isAdmin && (
-        <div className="mb-2 flex justify-end px-1">
-          {isTaxonomyLocked ? (
-            <DemoLockIndicator side="left" />
-          ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onAddCategory}
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
-            >
-              Add Category
-            </Button>
-          )}
-        </div>
-      )}
-
       {items.length === 0 && isSearching && (
         <p className="text-body-sm text-muted-foreground text-center py-6">
           {labels.noSearchMatch} &ldquo;{searchQuery}&rdquo;
@@ -309,37 +272,23 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                 >
                   {category.name}
                 </span>
-                <span
-                  aria-hidden
-                  className="flex-shrink-0 font-mono text-data-sm text-foreground/30"
-                >
-                  {'//'}
-                </span>
-                <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
-                  {totalCount}{' '}
-                  <span className="text-foreground/25">
-                    {totalCount === 1 ? countSingular : countPlural}
-                  </span>
-                </span>
-                <span className="flex-1" />
-                {canManageCategories && (
-                  <div
-                    className="flex flex-shrink-0 items-center"
-                    role="presentation"
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onAddSubcategory(category.id)}
-                      className="h-6 text-label-sm"
-                      leftIcon={<Plus className="w-3 h-3" />}
-                    >
-                      Subcategory
-                    </Button>
-                  </div>
-                )}
+                <TreeRowRail
+                  count={totalCount}
+                  countNoun={labels.countNoun}
+                  tools={
+                    canManageCategories && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onAddSubcategory(category.id)}
+                        className="h-6 text-label-sm"
+                        leftIcon={<Plus className="w-3 h-3" />}
+                      >
+                        Subcategory
+                      </Button>
+                    )
+                  }
+                />
               </div>
 
               {isExpanded && (
@@ -387,6 +336,44 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   );
 }
 
+interface TreeRowRailProps {
+  count: number;
+  countNoun: [string, string];
+  tools?: ReactNode;
+  isSubtle?: boolean;
+}
+
+function TreeRowRail({ count, countNoun, tools, isSubtle = false }: TreeRowRailProps) {
+  const [singular, plural] = countNoun;
+  return (
+    <>
+      <span className="nav-tree-row__rail">
+        <span
+          aria-hidden
+          className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE} ${isSubtle ? 'opacity-60' : ''}`}
+        />
+        {tools && (
+          <span className="nav-tree-row__tools">
+            <span className="min-w-0 overflow-hidden">
+              <span
+                className="flex items-center pl-2.5"
+                role="presentation"
+                onClick={e => e.stopPropagation()}
+                onKeyDown={e => e.stopPropagation()}
+              >
+                {tools}
+              </span>
+            </span>
+          </span>
+        )}
+      </span>
+      <span className="nav-tree-row__count whitespace-nowrap font-mono text-data-sm tracking-[0.04em]">
+        {count} <span className="text-muted-foreground/60">{count === 1 ? singular : plural}</span>
+      </span>
+    </>
+  );
+}
+
 interface SubcategorySectionProps<T extends TreeItem, C extends TreeCategory> {
   subcategory: C;
   items: T[];
@@ -410,7 +397,6 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
 }: SubcategorySectionProps<T, C>) {
   const [isExpanded, setIsExpanded] = useState(true);
   const effectiveExpanded = forceExpanded ?? isExpanded;
-  const [countSingular, countPlural] = labels.countNoun;
 
   return (
     <div data-level="l2" data-id={subcategory.id}>
@@ -450,15 +436,7 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
         <span className="nav-tree-row__label font-display text-body font-medium">
           {subcategory.name}
         </span>
-        <span aria-hidden className="flex-shrink-0 font-mono text-data-sm text-foreground/30">
-          {'//'}
-        </span>
-        <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
-          {items.length}{' '}
-          <span className="text-foreground/25">
-            {items.length === 1 ? countSingular : countPlural}
-          </span>
-        </span>
+        <TreeRowRail count={items.length} countNoun={labels.countNoun} isSubtle />
       </div>
 
       {effectiveExpanded && items.length > 0 && (

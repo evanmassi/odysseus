@@ -75,7 +75,6 @@ const baseProps = {
   renderItem: (item: TestItem) => <div data-testid={`item-${item.id}`}>{item.name}</div>,
   treeId: 'equipment',
   labels,
-  onAddCategory: vi.fn(),
   onAddSubcategory: vi.fn(),
   onRenameCategory: vi.fn(),
   onDeleteCategory: vi.fn(),

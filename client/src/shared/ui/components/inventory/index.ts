@@ -31,6 +31,7 @@ export { BulkStockMovementTab } from './BulkStockMovementTab';
 export { BulkReassignTab } from './BulkReassignTab';
 export { BulkVoidTab, type VoidableEntry } from './BulkVoidTab';
 export { CategoryModal, CategoryManager, useCatalogCategories } from './CategoryModal';
+export { CatalogActionBar } from './CatalogActionBar';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
 export { DocumentList } from './DocumentList';
 export { ItemRowShell, ItemStatusStripe, type ItemRowStatusTone } from './ItemRowShell';

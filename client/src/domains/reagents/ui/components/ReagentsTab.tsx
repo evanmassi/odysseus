@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Biohazard, Eye, EyeOff, Layers, Plus, SlidersHorizontal } from 'lucide-react';
+import { Biohazard, Eye, EyeOff, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery } from '@domains/lab-management';
@@ -21,17 +21,17 @@ import {
   InfoPanelEmpty,
   PanelHeader,
   SearchInput,
-  Tooltip,
 } from '@shared/ui';
 import {
+  CatalogActionBar,
   CategoryManager,
-  useCatalogCategories,
   CategoryTreePanel,
+  type CategoryTreePanelLabels,
   INVENTORY_SORT_OPTIONS,
+  type InventorySortField,
   searchCatalogItems,
   SortControls,
-  type CategoryTreePanelLabels,
-  type InventorySortField,
+  useCatalogCategories,
 } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -228,30 +228,6 @@ export function ReagentsTab() {
                   onRecordTransaction={handleScannedTransaction}
                 />
               </div>
-              {isAdmin && (
-                <div className="ml-auto flex items-center gap-2">
-                  <Tooltip content="Bulk Operations" side="bottom">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      iconOnly
-                      onClick={() => setIsBulkUpdateOpen(true)}
-                      className="h-8 flex-shrink-0"
-                      aria-label="Bulk Operations"
-                    >
-                      <Layers className="h-3.5 w-3.5" />
-                    </Button>
-                  </Tooltip>
-                  <Button
-                    size="sm"
-                    onClick={() => setRightPanel({ type: 'edit' })}
-                    className="h-8 flex-shrink-0"
-                    leftIcon={<Plus className="h-3.5 w-3.5" />}
-                  >
-                    Add Item
-                  </Button>
-                </div>
-              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -312,6 +288,15 @@ export function ReagentsTab() {
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
             />
+            {isAdmin && (
+              <CatalogActionBar
+                addItemLabel="Add Item"
+                isTaxonomyLocked={isTaxonomyLocked}
+                onBulkOperations={() => setIsBulkUpdateOpen(true)}
+                onAddCategory={categoryState.onAddCategory}
+                onAddItem={() => setRightPanel({ type: 'edit' })}
+              />
+            )}
             <ScrollArea className="min-h-0 flex-1">
               <CategoryTreePanel
                 categories={categories}
@@ -331,7 +316,6 @@ export function ReagentsTab() {
                 )}
                 treeId="reagents"
                 labels={TREE_LABELS}
-                onAddCategory={categoryState.onAddCategory}
                 onAddSubcategory={categoryState.onAddSubcategory}
                 onRenameCategory={categoryState.onRenameCategory}
                 onDeleteCategory={categoryState.onDeleteCategory}
