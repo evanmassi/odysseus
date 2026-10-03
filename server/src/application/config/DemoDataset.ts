@@ -1,12 +1,5 @@
-/**
- * Demo Lab Dataset
- *
- * Contents of the public demo lab — data only, with stable ids and nothing environment-specific.
- */
-
 import type { ConcentrationUnit, EquipmentStatus, UnitKindValue } from '@odysseus/shared-schemas';
 
-/** A tube batch expands to `count` tubes sharing a sample profile, ids `tube_<batch>_01`… */
 export interface DemoTubeBatch {
   batch: string;
   donorRef: string;
@@ -23,15 +16,13 @@ export interface DemoTubeBatch {
   notes?: string;
 }
 
-/** A seeded history row. Actors are assigned at apply time from the lab's real users. */
+// PITFALL: history actors are assigned at apply time from the lab's real users.
 export interface DemoAuditEntry {
   action: string;
   entityType: string;
-  /** A dataset id where one exists; storage and tube rows have no stable id to point at. */
   entityId?: string;
   details: Record<string, unknown>;
   hoursAgo: number;
-  /** Setting up the lab and its vocabulary is an admin's job, not a bench user's. */
   byAdmin?: boolean;
 }
 
@@ -73,7 +64,7 @@ export interface DemoDonor {
   collections: Array<{ id: string; daysAgo: number; specimenType: string; source: string }>;
 }
 
-/** Referenced by `system_key`, the one attribute handle that is identical in every environment. */
+// PITFALL: referenced by system_key, the one attribute handle identical in every environment.
 export interface DemoAttributeValue {
   systemKey: 'hazard_class' | 'physical_form' | 'grade' | 'storage_conditions';
   values: string[];
@@ -136,6 +127,7 @@ export interface DemoEquipment {
     id: string;
     daysAgo: number;
     type: string;
+    performedBy: string;
     technician?: string;
     description: string;
     nextInDays?: number;
@@ -143,7 +135,7 @@ export interface DemoEquipment {
   }>;
 }
 
-// Authored first: a tube whose species no dropdown offers reads as broken data in the edit form.
+// PITFALL: authored first: a tube whose species no dropdown offers reads as broken data in the edit form.
 const LOOKUP_VALUES: Record<string, string[]> = {
   species: ['Human', 'Mouse'],
   source: ['ATCC', 'Stanford Blood Center', 'Leukopak Vendor', 'In-house Derivation'],
@@ -181,7 +173,7 @@ const CUSTOM_UNITS: Array<{ id: string; label: string; kind: UnitKindValue }> = 
   { id: 'cunit_demo03', label: 'cassette', kind: 'count' },
 ];
 
-// Two levels deep — the tree's maximum.
+// PITFALL: categories stop at two levels, the tree's maximum.
 const LOCATIONS: DemoLocation[] = [
   {
     id: 'loc_demo_mainlab',
@@ -257,8 +249,7 @@ const EQUIPMENT_CATEGORIES: DemoCategory[] = [
   { id: 'ecat_demo_small', name: 'Small Equipment' },
 ];
 
-// Named from the Odyssey: this dataset is public, and a realistic name risks colliding with a
-// real person.
+// PITFALL: names come from the Odyssey because this dataset is public and a realistic name could match a real person.
 const PEOPLE: DemoPerson[] = [
   {
     ref: 'r01',
@@ -679,7 +670,7 @@ const REAGENTS: DemoReagent[] = [
     unitPrice: 159,
     expiryWarningDays: 45,
     attributes: [{ systemKey: 'storage_conditions', values: ['4 °C', 'Protect from Light'] }],
-    // Deliberately near expiry so the expiry alert panel has something to show.
+    // PITFALL: deliberately near expiry so the expiry alert panel has something to show.
     lots: [
       {
         id: 'rlot_demo05a',
@@ -860,7 +851,7 @@ const REAGENTS: DemoReagent[] = [
     reorderThreshold: 3,
     unitPrice: 402,
     expiryWarningDays: 60,
-    // Below threshold on purpose so the low-stock panel is populated.
+    // PITFALL: deliberately below threshold so the low-stock panel is populated.
     lots: [
       {
         id: 'rlot_demo12a',
@@ -1520,6 +1511,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo01a',
         daysAgo: 30,
         type: 'Preventative Maintenance',
+        performedBy: 'CryoServe',
         technician: 'CryoServe Field Tech',
         description: 'Quarterly PM — vacuum check, level sensor calibration, alarm test.',
         nextInDays: 60,
@@ -1529,6 +1521,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo01b',
         daysAgo: 120,
         type: 'Preventative Maintenance',
+        performedBy: 'CryoServe',
         technician: 'CryoServe Field Tech',
         description: 'Quarterly PM — no findings.',
         cost: 480,
@@ -1553,6 +1546,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo02a',
         daysAgo: 30,
         type: 'Preventative Maintenance',
+        performedBy: 'CryoServe',
         technician: 'CryoServe Field Tech',
         description: 'Quarterly PM — replaced one level sensor gasket.',
         nextInDays: 60,
@@ -1578,6 +1572,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo03a',
         daysAgo: 45,
         type: 'Preventative Maintenance',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Condenser filter cleaned, door gasket inspected.',
         nextInDays: 135,
@@ -1601,6 +1596,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo04a',
         daysAgo: 200,
         type: 'Repair',
+        performedBy: 'Cold Chain Services',
         technician: 'Cold Chain Services',
         description: 'Replaced failed door heater; temperature excursion logged and closed.',
         cost: 890,
@@ -1624,6 +1620,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo05a',
         daysAgo: 60,
         type: 'Calibration',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Probe verified against NIST-traceable thermometer, +0.3 °C offset recorded.',
         nextInDays: 120,
@@ -1648,6 +1645,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo06a',
         daysAgo: 14,
         type: 'Certification',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Annual performance qualification — all detectors within spec.',
         nextInDays: 351,
@@ -1657,6 +1655,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo06b',
         daysAgo: 190,
         type: 'Repair',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Replaced sheath filter and cleaned flow cell after clog.',
         cost: 1450,
@@ -1680,6 +1679,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo07a',
         daysAgo: 75,
         type: 'Calibration',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Bead standard verification, within tolerance.',
         nextInDays: 105,
@@ -1703,6 +1703,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo08a',
         daysAgo: 3,
         type: 'Repair',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Luminescence channel drifting; awaiting replacement PMT.',
       },
@@ -1726,6 +1727,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo09a',
         daysAgo: 40,
         type: 'Preventative Maintenance',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'CO2 sensor calibrated, water pan sanitised, HEPA inspected.',
         nextInDays: 140,
@@ -1750,6 +1752,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo10a',
         daysAgo: 40,
         type: 'Preventative Maintenance',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Routine PM, no findings.',
         nextInDays: 140,
@@ -1773,6 +1776,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo11a',
         daysAgo: 95,
         type: 'Certification',
+        performedBy: 'NSF',
         technician: 'NSF Certifier',
         description: 'Annual NSF/ANSI 49 certification passed.',
         nextInDays: 270,
@@ -1797,6 +1801,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo12a',
         daysAgo: 95,
         type: 'Certification',
+        performedBy: 'NSF',
         technician: 'NSF Certifier',
         description: 'Annual certification passed; airflow re-balanced.',
         nextInDays: 270,
@@ -1821,6 +1826,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo13a',
         daysAgo: 150,
         type: 'Preventative Maintenance',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Rotor inspection and speed verification.',
         nextInDays: 215,
@@ -1859,6 +1865,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo15a',
         daysAgo: 55,
         type: 'Preventative Maintenance',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Fluidics flush and column seal replacement.',
         nextInDays: 125,
@@ -1883,6 +1890,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo16a',
         daysAgo: 88,
         type: 'Calibration',
+        performedBy: 'Calibration Services Inc.',
         technician: 'Calibration Services Inc.',
         description: 'Gravimetric calibration, within ISO 8655 tolerance.',
         nextInDays: 277,
@@ -1907,6 +1915,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo17a',
         daysAgo: 88,
         type: 'Calibration',
+        performedBy: 'Calibration Services Inc.',
         technician: 'Calibration Services Inc.',
         description: 'Gravimetric calibration passed.',
         nextInDays: 277,
@@ -1931,6 +1940,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo18a',
         daysAgo: 88,
         type: 'Calibration',
+        performedBy: 'Calibration Services Inc.',
         technician: 'Calibration Services Inc.',
         description: 'Gravimetric calibration — adjusted, now within tolerance.',
         nextInDays: 277,
@@ -1969,6 +1979,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo20a',
         daysAgo: 210,
         type: 'Preventative Maintenance',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Objective cleaning and LED alignment.',
         cost: 380,
@@ -1992,6 +2003,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo21a',
         daysAgo: 12,
         type: 'Repair',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Motor bearing failure — tagged out, replacement quoted.',
       },
@@ -1999,26 +2011,13 @@ const EQUIPMENT: DemoEquipment[] = [
   },
 ];
 
-/**
- * How the lab is loaded, cycled across boxes in walk order. The mix is the point: a lab where
- * every box looks the same reads as generated.
- */
 const PLACEMENT = {
-  /** Share of each box's own capacity. The box a visitor lands on stays mostly free, so there is
-   *  somewhere obvious to add their own tube; the full ones sit deeper in the lab. */
   fillPattern: [0.2, 0.7, 0.45, 1, 0.15, 0.6, 0.85, 0.3, 0, 0.95, 0.5, 0.35],
-  /** Sample groups sharing a box. More than one splits the box into blocks of colour. */
   groupsPerBox: [1, 2, 1, 1, 3, 1, 2, 1, 1, 2, 1, 1],
-  /** Roughly how often a seat is skipped inside a partly-filled box. */
   gapPercent: 7,
 };
 
-/**
- * ~200 tubes as batches, because two hundred near-identical literals would be unreviewable.
- * Fill order matters: boxes are loaded front to back in batch order, so the first two batches
- * are the two donors' baseline T cells — giving the opening box two colour groups and an
- * obvious block of free seats. Everything after stays grouped by donor.
- */
+// PITFALL: fill order matters: the first two batches fill the opening box, so they are the two donors' baseline T cells.
 const TUBE_BATCHES: DemoTubeBatch[] = [
   {
     batch: 'b01',
@@ -2487,10 +2486,7 @@ const TUBE_BATCHES: DemoTubeBatch[] = [
   },
 ];
 
-/**
- * Two weeks of history, oldest first: the lab is stood up, stocked, filled, then worked in.
- * Timestamps are relative to the run, so a nightly reset keeps the log reading as recent.
- */
+// PITFALL: timestamps are relative to the run so a nightly reset keeps the log reading as recent.
 const AUDIT_ENTRIES: DemoAuditEntry[] = [
   {
     action: 'tank_created',
