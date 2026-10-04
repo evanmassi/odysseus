@@ -1,17 +1,7 @@
-/**
- * Location Catalog Panel
- *
- * The locations leaf of the catalog rail: the tree read-only, edited in its own modal.
- */
-
 import { MapPin } from 'lucide-react';
 
 import { LabLocationTree } from '@domains/lab-management';
-import { Button, ConsolePanel } from '@shared/ui';
-import {
-  headerSurface,
-  HEADER_TOP_EDGE,
-} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
+import { Button } from '@shared/ui';
 
 import type { LabLocation } from '@odysseus/shared-schemas';
 
@@ -23,11 +13,8 @@ interface LocationCatalogPanelProps {
 
 export function LocationCatalogPanel({ locations, readOnly, onManage }: LocationCatalogPanelProps) {
   return (
-    <ConsolePanel intensity="soft">
-      <div
-        className="relative flex items-center gap-3 px-4 py-3"
-        style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
-      >
+    <div>
+      <div className="flex items-center gap-3 px-5 py-3.5">
         <span className="min-w-0 truncate type-label text-label-2xs tracking-label-wide text-foreground/40">
           used by equipment · supplies · reagents
         </span>
@@ -44,13 +31,13 @@ export function LocationCatalogPanel({ locations, readOnly, onManage }: Location
         </Button>
       </div>
 
-      <div className="px-4 py-3">
+      <div className="px-5 py-3">
         <LabLocationTree
           locations={locations}
           treeId="lab-location-catalog"
           emptyMessage="No locations yet"
         />
       </div>
-    </ConsolePanel>
+    </div>
   );
 }

@@ -184,7 +184,7 @@ export function DisplayTab({
         </div>
       </Subsection>
 
-      <div className="flex items-center justify-between gap-4 pt-2">
+      <div className="flex items-center justify-between gap-4 pt-4">
         <UnsavedChangesIndicator count={dirtyCount} />
         <Button
           variant="primary"

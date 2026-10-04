@@ -38,7 +38,7 @@ export const queryKeys = {
     auditLogAll: () => ['admin', 'auditLog'] as const,
     auditLog: (labId: string, filters: AuditLogFilters, includeArchive: boolean) =>
       [...queryKeys.admin.auditLogAll(), labId, filters, includeArchive] as const,
-    auditRetention: () => ['admin', 'auditRetention'] as const,
+    auditRetention: () => [...queryKeys.admin.auditLogAll(), 'retention'] as const,
   },
 
   tubes: {

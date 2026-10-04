@@ -198,7 +198,7 @@ export function SecurityTab() {
         </div>
       </Subsection>
 
-      <div className="flex items-center gap-4 pt-2">
+      <div className="flex items-center gap-4 pt-4">
         {showSuccess && (
           <AlertBanner variant="success" spacing="none">
             Password changed successfully

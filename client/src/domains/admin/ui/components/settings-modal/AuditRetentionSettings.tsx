@@ -1,10 +1,8 @@
 import { useState } from 'react';
 
 import {
-  RefreshCw,
   Archive,
   Download,
-  FileClock,
   AlertTriangle,
   CheckCircle,
   ChevronDown,
@@ -13,6 +11,8 @@ import {
 
 import { logger } from '@infra/logger';
 import { AlertBanner, Button, ConsolePanel, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
+import { PLAIN_SECTION_RULE } from '@shared/ui/primitives/titles/SectionHeader';
+import { SubsectionHeader } from '@shared/ui/primitives/titles/SubsectionHeader';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { getErrorMessage } from '@shared/utils/getErrorMessage';
@@ -139,34 +139,17 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          className="group flex items-center gap-2.5"
-          onClick={() => setIsCollapsed(true)}
-          aria-expanded="true"
-          aria-label="Collapse audit retention settings"
-        >
-          <ChevronUp className="h-3.5 w-3.5 text-foreground/40 transition-colors group-hover:text-foreground/70" />
-          <span
-            aria-hidden
-            className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-          />
-          <FileClock className="h-3.5 w-3.5 text-foreground/55" />
-          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
-            Audit Log Retention
-          </span>
-        </button>
-        <Button
-          variant="secondary"
-          size="xs"
-          onClick={() => retentionQuery.refetch()}
-          isLoading={loading}
-          leftIcon={<RefreshCw size={12} />}
-        >
-          Refresh
-        </Button>
-      </div>
+      <button
+        type="button"
+        className="group flex w-full items-center gap-3 text-left"
+        onClick={() => setIsCollapsed(true)}
+        aria-expanded="true"
+        aria-label="Collapse audit retention settings"
+      >
+        <SubsectionHeader title="Audit Log Retention" meta={currentStatus.label} />
+        <span aria-hidden className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE}`} />
+        <ChevronUp className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+      </button>
 
       {metrics?.performanceWarning && (
         <AlertBanner variant="warning" title="Performance warning" spacing="none">

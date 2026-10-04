@@ -52,21 +52,17 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
   - Security tab and Storage tab.
   - Refresh moved to the tab bar.
 - **Admin Settings:** consistent title-row actions and spacing across all tabs; flattened audit log filters; ticket icon on the empty invite list.
+- **User Settings:** same title-to-content distance and 16px gaps as Admin Settings.
+- **Audit Log Retention:** plain title row with status and a collapse arrow; the Monitoring tab's Refresh covers it.
+- **Lit header bars retired:** Catalog › Locations uses the plain list toolbar row; the catalog filter panel is a flat titled section. `consoleHeaderSurface` is deleted.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
 - **Tables:** zebra stripes are painted on the row, so the hover tint layers over them evenly.
 - **Demo data:** maintenance "performed by" shows readable names. Production updates on the first nightly reset after deploy.
 
 ## Still to do
 
-1. **Light mode check.** Most of this was tuned in dark mode. Walk every changed screen in light mode, especially:
-   - the header crumbs and their squares;
-   - the lock-on brackets, which use the accent color in light mode;
-   - the search dropdown's darker filter column;
-   - the lab cards.
-2. **User Settings modal.** Apply the same tab rule as Admin Settings: title-row actions, one title-to-content distance, and 16px gaps.
-3. **Audit Log Retention section** (Monitoring tab, system admin). It still has the old lit header bar with a tick, plus its own Refresh.
-4. **Two leftover lit header bars.** `LocationCatalogPanel` (Admin Settings › Catalog › Locations) and `AttributeFilterPanel` (the catalog filter panel) still use `headerSurface`.
-5. **Glowing words still in place:**
+1. **Light mode check.** A code scan found every color on this branch goes through theme tokens; the one gap (the lab-name flash) is fixed. A visual walk is still worth doing as screens are reviewed.
+2. **Glowing words still in place:**
    - the auth screens: gateway, reset password, verification, and the success modals;
    - `AlertDialog`;
    - the print options panels;
@@ -74,15 +70,15 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 
    Some shared primitives also glow on purpose (Select, DatePicker, Tabs, Kbd, Button). Review those case by case rather than sweeping them.
 
-6. **Edit forms and other modals.** Donor is done. Still unreviewed:
+3. **Edit forms and other modals.** Donor is done. Still unreviewed:
    - the tube editor;
    - equipment maintenance and decommission;
    - the supply and reagent stock-transaction forms;
    - the bulk-operation tabs.
-7. **Storage Manager modal.** Still on the old style; it should match the redesigned navigator.
-8. **Catalog page footers.** The equipment, supplies, and reagents details views and forms still have the shaded footer band behind their buttons. Decide whether it goes, like the donor and lab-settings footers did.
-9. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
-10. **Setting names.** Labels mix Title Case and sentence case. Pick one.
+4. **Storage Manager modal.** Still on the old style; it should match the redesigned navigator.
+5. **Catalog page footers.** The equipment, supplies, and reagents details views and forms still have the shaded footer band behind their buttons. Decide whether it goes, like the donor and lab-settings footers did.
+6. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
+7. **Setting names.** Labels mix Title Case and sentence case. Pick one.
 
 ## Mocks
 

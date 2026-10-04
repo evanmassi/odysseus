@@ -169,7 +169,12 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       className="h-[75vh]"
       onClose={handleClose}
     >
-      <SectionHeader icon={TAB_META[activeTab].icon} title={TAB_META[activeTab].title} size="lg" />
+      <SectionHeader
+        icon={TAB_META[activeTab].icon}
+        title={TAB_META[activeTab].title}
+        className="mb-1.5"
+        size="lg"
+      />
 
       {isLoading ? (
         <LoadingSkeleton />

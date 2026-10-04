@@ -1,18 +1,9 @@
-/**
- * Attribute Filter Panel
- *
- * Facet chips for an item list. Only attributes some item actually carries get a group, since a
- * lab's full palette would be mostly dead rows.
- */
-
 import { useMemo, type ReactNode } from 'react';
 
-import { AccentTick, ScrollArea, Tooltip } from '@shared/ui';
+import { ScrollArea, Tooltip } from '@shared/ui';
 import { Chip } from '@shared/ui/primitives';
-import {
-  headerSurface,
-  HEADER_TOP_EDGE,
-} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
+import { PLAIN_SECTION_RULE } from '@shared/ui/primitives/titles/SectionHeader';
+import { SubsectionHeader } from '@shared/ui/primitives/titles/SubsectionHeader';
 
 import { toggleFilterOption, type AttributeFilters } from './attributeFilters';
 
@@ -32,16 +23,12 @@ interface AttributeFilterPanelProps<
 > {
   definitions: AttributeDefinition[];
   options: AttributeOption[];
-  /** Every item in the current view scope, not the filtered set, so a group never vanishes as you narrow. */
   items: TItem[];
-  /** How many are actually on screen — search included, so the panel never contradicts the tree. */
   matchCount: number;
   filters: TFilters;
-  /** Includes any facets the caller added, so Clear All lights up for those too. */
   activeCount: number;
   onChange: (filters: TFilters) => void;
   onClearAll: () => void;
-  /** Shown when no item carries an attribute value yet. */
   emptyMessage: string;
   extraFacets?: ReactNode;
 }
@@ -98,28 +85,23 @@ export function AttributeFilterPanel<
     [definitions, options, optionCounts, filters.optionIds]
   );
 
+  const itemNoun = items.length === 1 ? 'item' : 'items';
+  const matchLabel =
+    matchCount === items.length
+      ? `${items.length} ${itemNoun}`
+      : `${matchCount} of ${items.length} ${itemNoun}`;
+
   return (
-    <div className="mb-2 border border-line-soft bg-card">
-      <div
-        className="relative flex items-center justify-between border-b border-line-soft px-4 py-2.5"
-        style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
-      >
-        <div className="flex items-center gap-2.5">
-          <AccentTick />
-          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
-            Filters
-          </span>
-          <span className="font-mono text-data-sm tracking-data text-foreground/45">
-            {matchCount === items.length ? `${items.length}` : `${matchCount} of ${items.length}`}
-            <span className="text-foreground/30"> {items.length === 1 ? 'item' : 'items'}</span>
-          </span>
-        </div>
+    <div className="mb-3 border-b border-line-faint px-1 pb-3">
+      <div className="flex items-center gap-3 pb-2.5">
+        <SubsectionHeader title="Filters" meta={matchLabel} />
+        <span aria-hidden className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE}`} />
         <Tooltip content="Clear all filters" side="bottom">
           <button
             type="button"
             onClick={onClearAll}
             disabled={activeCount === 0}
-            className="px-2 py-1 type-label text-label-2xs text-foreground/55 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:text-foreground/25 disabled:hover:text-foreground/25"
+            className="px-2 py-1 type-label text-label-2xs text-foreground/55 transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:text-foreground/25 disabled:hover:text-foreground/25"
           >
             Clear All
           </button>
@@ -127,7 +109,7 @@ export function AttributeFilterPanel<
       </div>
 
       <ScrollArea className="max-h-64">
-        <div className="space-y-3 px-4 py-3">
+        <div className="space-y-3 pl-3">
           {groups.length === 0 ? (
             <p className="text-caption text-muted-foreground">{emptyMessage}</p>
           ) : (
