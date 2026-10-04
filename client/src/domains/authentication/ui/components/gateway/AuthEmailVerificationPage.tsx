@@ -1,10 +1,3 @@
-/**
- * Email Verification Landing Page
- *
- * Reads token from URL, verifies via backend, then redirects to login. Renders
- * inside the gateway console so it shares the lit field and chrome.
- */
-
 import { useEffect, useState, useRef } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -18,7 +11,6 @@ import { AuthGatewayPanel } from './AuthGatewayPanel';
 
 import type { ShellConfig } from './shellConfigContext';
 
-// Enough time to read the confirmation before redirecting to the login console.
 const REDIRECT_DELAY_MS = 3000;
 
 type VerifyState = 'verifying' | 'success' | 'error';
@@ -98,7 +90,7 @@ function VerifyContent() {
 
         <div className="auth-microheader mb-6">
           <span className="auth-microheader-bar" />
-          <span className="phosphor-text">[ Redirecting… ]</span>
+          <span>Redirecting…</span>
           <span className="auth-microheader-rule" />
         </div>
 

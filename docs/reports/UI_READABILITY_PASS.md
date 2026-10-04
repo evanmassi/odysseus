@@ -55,6 +55,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **User Settings:** same title-to-content distance and 16px gaps as Admin Settings.
 - **Audit Log Retention:** plain title row with status and a collapse arrow; the Monitoring tab's Refresh covers it.
 - **Lit header bars retired:** Catalog › Locations uses the plain list toolbar row; the catalog filter panel is a flat titled section. `consoleHeaderSurface` is deleted.
+- **Auth screens and boot splash:** status lines lose their `[ ]` brackets and glow and keep the side bar; greeting, tagline, reset-link keywords, and splash status text are plain. Both logos keep their glow.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
 - **Tables:** zebra stripes are painted on the row, so the hover tint layers over them evenly.
 - **Demo data:** maintenance "performed by" shows readable names. Production updates on the first nightly reset after deploy.
@@ -63,7 +64,6 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 
 1. **Light mode check.** A code scan found every color on this branch goes through theme tokens; the one gap (the lab-name flash) is fixed. A visual walk is still worth doing as screens are reviewed.
 2. **Glowing words still in place:**
-   - the auth screens: gateway, reset password, verification, and the success modals;
    - `AlertDialog`;
    - the print options panels;
    - `DetailRow`'s hover text glow.

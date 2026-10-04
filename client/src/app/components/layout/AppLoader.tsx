@@ -1,9 +1,3 @@
-/**
- * App Loader
- *
- * Branded boot splash shown while the app bootstraps; surfaces diagnostics when boot is slow or fails.
- */
-
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -20,11 +14,8 @@ interface AppLoaderProps {
   onRetry?: () => void;
 }
 
-// Defer the "taking longer" hint until boot is genuinely dragging; a fast boot
-// never shows it.
 const SLOW_BOOT_MS = 4000;
 
-// Bloom alphas scale by --lit (1 dark, 0 light), so the glow drops to zero in light.
 const HERO_BLOOM =
   'drop-shadow(0 0 26px rgb(var(--auth-ambient) / calc(0.35 * var(--lit)))) drop-shadow(0 0 60px rgb(var(--auth-ambient) / calc(0.15 * var(--lit))))';
 
@@ -38,7 +29,6 @@ export function AppLoader({ context, onRetry }: AppLoaderProps) {
     return () => clearTimeout(timer);
   }, [state]);
 
-  // Dedicated offline page owns its own auto-retry flow for network failures.
   if (error === 'OFFLINE_DURING_INIT' && onRetry) {
     return <OfflineInitializationPage onRetry={onRetry} />;
   }
@@ -115,7 +105,7 @@ function SplashLogo() {
 
 function ConsoleStatus({ label }: { label: string }) {
   return (
-    <span className="phosphor-text type-label text-label-2xs tracking-ceremonial text-[rgb(var(--auth-text-mute))]">
+    <span className="type-label text-label-2xs tracking-ceremonial text-[rgb(var(--auth-text-mute))]">
       [ {label} ]
     </span>
   );

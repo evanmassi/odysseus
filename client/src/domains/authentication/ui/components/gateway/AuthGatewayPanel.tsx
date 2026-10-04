@@ -1,9 +1,3 @@
-/**
- * Auth Gateway Panel
- *
- * Persistent chrome around the active auth modal; child declares its config via useShellConfig.
- */
-
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
@@ -13,12 +7,10 @@ import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
 import { ShellConfigContext, type ShellConfig } from './shellConfigContext';
 
-// Delayed write so Strict Mode's unmount cleanup cancels it before the legitimate
-// remount checks the flag.
+// PITFALL: the flag is set on a delay so Strict Mode's unmount cleanup cancels it before the real remount reads it.
 let hasPlayedIntro = false;
 
-// Equality bail so the per-render useShellConfig call doesn't trip a
-// setState→rerender→setState loop.
+// PITFALL: without this equality bail, the per-render useShellConfig call loops setState→rerender→setState.
 function configsEqual(a: ShellConfig, b: ShellConfig): boolean {
   return (
     a.contentKey === b.contentKey &&
@@ -60,9 +52,7 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
     initialFocusRef: config?.initialFocusRef,
   });
 
-  // ResizeObserver tracks the inner content's natural height; we mirror it onto
-  // an explicit-height wrapper that transitions. CSS can't transition height: auto
-  // directly, so the wrapper holds a pixel value while the inner sizes freely.
+  // PITFALL: CSS can't transition height: auto, so the wrapper mirrors the measured inner height in pixels.
   const measureRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   useEffect(() => {
@@ -83,10 +73,7 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
 
   const isStack = config?.variant === 'stack';
 
-  // Brand + microheader render as siblings of children (not parents) so the
-  // children stay at a stable React tree position across config changes — their
-  // internal state survives content swaps. Each modal owns its own keyed wrapper
-  // for content animation.
+  // PITFALL: brand and microheader stay siblings of children, not parents, or content swaps remount the modal and drop its state.
   return (
     <ShellConfigContext.Provider value={contextValue}>
       <ModalPortal>
@@ -118,7 +105,7 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
                 {config?.microheader && (
                   <div className="auth-microheader mb-5">
                     <span className="auth-microheader-bar" />
-                    <span className="phosphor-text">[ {config.microheader} ]</span>
+                    <span>{config.microheader}</span>
                     <span className="auth-microheader-rule" />
                   </div>
                 )}
@@ -156,9 +143,7 @@ function BrandBlock({ config, isStack }: BrandBlockProps) {
             aria-label="Odysseus"
           />
         )}
-        {config.brandTagline && (
-          <span className="auth-tagline phosphor-text">{config.brandTagline}</span>
-        )}
+        {config.brandTagline && <span className="auth-tagline">{config.brandTagline}</span>}
       </div>
     );
   }
@@ -172,7 +157,7 @@ function BrandBlock({ config, isStack }: BrandBlockProps) {
         />
       )}
       {config.brandGreeting && (
-        <span className="text-body-sm text-[rgb(var(--auth-text-dim))] phosphor-text">
+        <span className="text-body-sm text-[rgb(var(--auth-text-dim))]">
           {config.brandGreeting}
         </span>
       )}
