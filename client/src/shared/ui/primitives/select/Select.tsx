@@ -1,9 +1,3 @@
-/**
- * Select Component
- *
- * Accessible single-select dropdown primitive with design system tokens.
- */
-
 import React, {
   Fragment,
   forwardRef,
@@ -30,7 +24,6 @@ import type { SelectOption, SelectProps, SelectRef } from './types';
 const TRIGGER_FOCUS_SHADOW = 'shadow-[var(--input-focus-shadow)]';
 const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
 
-// Max height of the dropdown, in px.
 const DROPDOWN_MAX_HEIGHT = 240;
 
 const ICON_BUTTON =
@@ -87,7 +80,7 @@ const selectVariants = cva(
 
 const dropdownVariants = cva(
   [
-    'fixed z-[9999]',
+    'fixed z-popover',
     'bg-card border border-line-mid',
     'overflow-hidden flex flex-col',
     'py-1',
@@ -183,11 +176,10 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const listboxId = `${id}-listbox`;
     const errorId = `${id}-error`;
 
-    // Top-level rows only stand out when there is something nested under them.
     const isTiered = useMemo(() => options.some(option => option.depth), [options]);
 
     const selectedOptions = useMemo(() => {
-      // Check for null/undefined specifically, not falsy - empty string '' is a valid value
+      // PITFALL: '' is a valid value, so only null and undefined mean nothing is selected.
       if (value === null || value === undefined) return [];
       return options.filter(option => option.value === value);
     }, [value, options]);
@@ -316,7 +308,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       };
     }, [isOpen, updateDropdownPosition]);
 
-    // Close dropdown on outside click (check both trigger and dropdown since dropdown is portaled)
+    // PITFALL: the dropdown is portaled, so an outside click must miss both the trigger and the dropdown.
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as Node;
@@ -352,7 +344,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         return <span className="text-foreground/40">{placeholder}</span>;
       }
 
-      // Treat empty-value options as placeholders (e.g., { value: '', label: 'Select...' })
       const firstOption = selectedOptions[0];
       if (firstOption.value === '') {
         return <span className="text-foreground/40">{firstOption.label}</span>;
@@ -459,8 +450,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                       selected => selected.value === option.value
                     );
                     const isHighlighted = index === highlightedIndex;
-                    // Headings are decorative siblings, so option indices stay aligned with
-                    // `options` and keyboard navigation is untouched.
+                    // PITFALL: headings render as siblings so option indices stay aligned with keyboard navigation.
                     const startsGroup =
                       !!option.group && option.group !== options[index - 1]?.group;
 

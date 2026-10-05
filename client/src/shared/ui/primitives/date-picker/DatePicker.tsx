@@ -1,9 +1,3 @@
-/**
- * Date Picker
- *
- * Calendar date selector with segmented MM/DD/YYYY keyboard entry.
- */
-
 import React, { useState, useRef, useCallback, useEffect, useId, useMemo } from 'react';
 
 import { cva } from 'class-variance-authority';
@@ -73,7 +67,6 @@ function shouldAutoAdvance(segment: Segment, rawValue: string): boolean {
   if (rawValue.length !== 1) return false;
 
   const digit = parseInt(rawValue, 10);
-  // 2-9 can only be 02-09 for month; 4-9 can only be 04-09 for day
   if (segment === 'month') return digit >= 2;
   if (segment === 'day') return digit >= 4;
   return false;
@@ -117,7 +110,6 @@ const triggerVariants = cva(
       },
     },
     compoundVariants: [
-      // Primary edge only when no state override; hover lift only when idle.
       { focused: true, state: 'default', class: 'border-primary/70' },
       {
         focused: false,
@@ -246,7 +238,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       const current = prev[segment];
       const maxLen = segment === 'year' ? 4 : 2;
 
-      // Start fresh if segment is full
       const next = current.length >= maxLen ? digit : current + digit;
       const advance = shouldAutoAdvance(segment, next);
       const updated = { ...prev, [segment]: advance ? padSegmentForAdvance(segment, next) : next };
@@ -352,7 +343,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     [commitSegments, segments, processDigit]
   );
 
-  // Sync segments from external value changes (not from our own commits)
   useEffect(() => {
     if (isEditing) return;
     if (justCommittedRef.current) {
@@ -380,7 +370,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     };
   }, [isOpen, updatePosition]);
 
-  // Close calendar or commit edits when clicking outside
   useEffect(() => {
     if (!isOpen && !isEditing) return undefined;
     const handleClickOutside = (event: MouseEvent) => {
@@ -527,7 +516,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           <div
             ref={dropdownRef}
             id={dialogId}
-            className={`fixed z-[9999] border border-line-mid bg-card p-3 ${POPUP_SHADOW}`}
+            className={`fixed z-popover border border-line-mid bg-card p-3 ${POPUP_SHADOW}`}
             role="dialog"
             aria-label="Choose date"
             onKeyDown={e => {
@@ -572,8 +561,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   'text-primary [text-decoration:underline] [text-decoration-thickness:1px] [text-underline-offset:3px]',
                 outside: 'text-muted-foreground opacity-30',
                 disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
-                // fill-current — react-day-picker's Chevron polygons ship without an explicit
-                // fill attribute, so without this they render in SVG's default (black).
+                // PITFALL: react-day-picker's chevrons ship without a fill, so they render black without fill-current.
                 chevron: 'w-4 h-4 fill-current',
               }}
             />

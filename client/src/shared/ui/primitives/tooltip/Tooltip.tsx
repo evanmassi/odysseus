@@ -1,9 +1,3 @@
-/**
- * Tooltip Component
- *
- * Accessible tooltip built on Radix UI — tactical fuzzy-black card with mono text.
- */
-
 import type { ReactNode } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
@@ -15,14 +9,11 @@ interface TooltipProps {
   children: ReactNode;
   side?: 'top' | 'right' | 'bottom' | 'left';
   align?: 'start' | 'center' | 'end';
-  /** Delay in ms before showing */
   delayDuration?: number;
   disabled?: boolean;
-  /** Applied to the tooltip content element, not the trigger */
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** Render only a positioned container — caller supplies its own chrome (e.g. the grid card) */
   bare?: boolean;
 }
 
@@ -46,11 +37,10 @@ export const Tooltip = ({
   }
 
   const contentClassName = bare
-    ? `relative z-50 ${ANIMATION} ${className}`
-    : `relative isolate z-50 px-3 py-1.5 font-mono text-data-sm text-tooltip-foreground ${ANIMATION} ${className}`;
+    ? `relative z-tooltip ${ANIMATION} ${className}`
+    : `relative isolate z-tooltip px-3 py-1.5 font-mono text-data-sm text-tooltip-foreground ${ANIMATION} ${className}`;
 
-  // Always render the Radix tree to keep children's DOM nodes stable.
-  // Prevents ref detachment when disabled toggles (e.g., truncation detection).
+  // PITFALL: the Radix tree always renders so toggling disabled doesn't detach the child's ref.
   return (
     <TooltipPrimitive.Root
       delayDuration={delayDuration}

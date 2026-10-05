@@ -57,6 +57,8 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Lit header bars retired:** Catalog › Locations uses the plain list toolbar row; the catalog filter panel is a flat titled section. `consoleHeaderSurface` is deleted.
 - **Auth screens and boot splash:** status lines lose their `[ ]` brackets and glow and keep the side bar; greeting, tagline, reset-link keywords, and splash status text are plain. Both logos keep their glow.
 - **Alert banners:** dark-mode wash matches the chips (short fade off the edge bar); bold words in the message keep their tone color without glow.
+- **Header search bar:** filter and clear are plain ghost icon buttons. An "on" filter uses the shared `ghost-primary` button, which stays blue and shifts shade on hover; the catalog Filter buttons use it too.
+- **Stacking:** named `z-popover` and `z-tooltip` layers, so tooltips always sit above popups.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
 - **Tables:** zebra stripes are painted on the row, so the hover tint layers over them evenly.
 - **Demo data:** maintenance "performed by" shows readable names. Production updates on the first nightly reset after deploy.

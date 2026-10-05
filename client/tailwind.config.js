@@ -4,6 +4,10 @@ export default {
   safelist: ['expanded', 'tank-level', 'rack-level', 'selector-level'],
   theme: {
     extend: {
+      zIndex: {
+        popover: '9999',
+        tooltip: '10000',
+      },
       colors: {
         background: 'hsl(var(--background) / <alpha-value>)',
         foreground: 'hsl(var(--foreground) / <alpha-value>)',

@@ -47,6 +47,8 @@ const buttonVariants = cva(
 
         'ghost-danger': `bg-transparent border-transparent text-danger-text hover:font-medium hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_70%,white)] ${GHOST_HOVER_SHADOW}`,
 
+        'ghost-primary': `bg-transparent border-transparent text-primary hover:font-medium hover:text-[color-mix(in_srgb,hsl(var(--primary))_75%,black)] dark:hover:text-[color-mix(in_srgb,hsl(var(--primary))_70%,white)] ${GHOST_HOVER_SHADOW}`,
+
         secondary: GHOST_BASE,
 
         cancel: GHOST_BASE,
@@ -86,6 +88,11 @@ const buttonVariants = cva(
         className: 'dark:hover:drop-shadow-icon-bloom-hover',
       },
       {
+        variant: 'ghost-primary',
+        iconOnly: true,
+        className: 'dark:hover:drop-shadow-icon-bloom-hover',
+      },
+      {
         variant: 'secondary',
         iconOnly: true,
         className: 'dark:hover:drop-shadow-icon-bloom-hover',
@@ -111,6 +118,7 @@ const ICON_TONE: Record<ButtonVariant, string> = {
   warning: 'text-warning-bg dark:drop-shadow-icon-bloom',
   ghost: GHOST_ICON_TONE,
   'ghost-danger': GHOST_ICON_TONE,
+  'ghost-primary': GHOST_ICON_TONE,
   secondary: GHOST_ICON_TONE,
   cancel: GHOST_ICON_TONE,
 };

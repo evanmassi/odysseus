@@ -247,13 +247,13 @@ export function ReagentsTab() {
                 options={INVENTORY_SORT_OPTIONS}
               />
               <Button
-                variant="ghost"
+                variant={isFilterOpen || activeFilterCount > 0 ? 'ghost-primary' : 'ghost'}
                 size="sm"
                 onClick={() => setIsFilterOpen(open => !open)}
                 aria-expanded={isFilterOpen}
                 className={`h-8 flex-shrink-0 text-label-sm ${
                   isFilterOpen || activeFilterCount > 0
-                    ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                    ? 'border border-primary/55 bg-primary/[0.10]'
                     : ''
                 }`}
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
