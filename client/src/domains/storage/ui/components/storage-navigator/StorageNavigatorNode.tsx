@@ -2,8 +2,7 @@ import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronRight, Icon, Rows3 } from 'lucide-react';
 
-import { useTextTruncation } from '@shared/hooks';
-import { OccupancyBar, Tooltip } from '@shared/ui';
+import { OccupancyBar, TruncatedText } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import type { StorageNavigatorNodeProps } from './storageNavigatorTypes';
@@ -37,7 +36,6 @@ export function StorageNavigatorNode({
   occupancyFilled,
   occupancyCapacity,
 }: StorageNavigatorNodeProps) {
-  const { ref: textRef, isTruncated } = useTextTruncation<HTMLSpanElement>([name]);
   const showOccupancy = occupancyCapacity !== undefined && occupancyCapacity > 0;
 
   return (
@@ -68,11 +66,11 @@ export function StorageNavigatorNode({
           <div className="storage-nav-button__icon">
             <LevelIcon level={level} />
           </div>
-          <Tooltip content={name} disabled={!isTruncated} side="right" delayDuration={400}>
-            <span ref={textRef} className="storage-nav-button__text font-display">
-              {name}
-            </span>
-          </Tooltip>
+          <TruncatedText
+            text={name}
+            side="right"
+            className="storage-nav-button__text font-display"
+          />
           {showOccupancy && (
             <span className="flex flex-none items-center gap-1.5">
               <OccupancyBar

@@ -1,5 +1,4 @@
-import { useTextTruncation } from '@shared/hooks';
-import { OccupancyBar, Tooltip } from '@shared/ui';
+import { OccupancyBar, TruncatedText } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import { BoxOccupancyMatrix } from './BoxOccupancyMatrix';
@@ -23,7 +22,6 @@ export function StorageBoxMinimap({
   ownershipInitials,
 }: StorageBoxMinimapProps) {
   const isFull = capacity > 0 && filled >= capacity;
-  const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([box.name]);
 
   return (
     <div data-level="box" data-id={box.id} className="ml-8 w-[calc(100%-2rem)]">
@@ -46,16 +44,10 @@ export function StorageBoxMinimap({
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center justify-between gap-2">
-            <Tooltip content={box.name} disabled={!isTruncated} side="top" delayDuration={400}>
-              <span
-                ref={nameRef}
-                className={`min-w-0 truncate font-display text-body-sm ${
-                  isSelected ? 'font-semibold' : ''
-                }`}
-              >
-                {box.name}
-              </span>
-            </Tooltip>
+            <TruncatedText
+              text={box.name}
+              className={`min-w-0 font-display text-body-sm ${isSelected ? 'font-semibold' : ''}`}
+            />
             {ownershipType && (
               <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
             )}
