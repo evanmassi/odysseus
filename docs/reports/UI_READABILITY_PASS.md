@@ -10,6 +10,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - A group whose children are already cards sits flat: the Labs tab's Registered and Demo groups.
 - Inside a modal, side panels are frameless: the Donor Registry's table, details, and form.
 - Main pages (equipment, supplies, reagents, tubes) keep their framed panels and header strips.
+- Catalog details views and forms keep the shaded footer band behind their buttons; the contrast earns its place. Frameless panels don't get it: without a frame around it, the band floats.
 
 **Section titles**
 
@@ -86,8 +87,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
    - equipment maintenance and decommission;
    - the supply and reagent stock-transaction forms;
    - the bulk-operation tabs.
-4. **Catalog page footers.** The equipment, supplies, and reagents details views and forms still have the shaded footer band behind their buttons. Decide whether it goes, like the donor and lab-settings footers did.
-5. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
+4. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
 
 ## Mocks
 
