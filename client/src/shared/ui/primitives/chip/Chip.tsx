@@ -200,10 +200,10 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       .filter(Boolean)
       .join(' ');
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent<HTMLElement>) => {
       if (disabled) return;
       if (isSelectable && onSelect) onSelect();
-      if (isAction && onClick) onClick();
+      if (isAction && onClick) onClick(e);
     };
 
     const handleRemove = (e: React.MouseEvent) => {
