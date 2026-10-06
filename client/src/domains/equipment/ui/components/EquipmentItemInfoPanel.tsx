@@ -23,7 +23,11 @@ import {
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
-import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
+import {
+  buildLocationPathMap,
+  useAttributesQuery,
+  useLabLocationsQuery,
+} from '@domains/lab-management';
 import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import {
   Button,
@@ -105,19 +109,10 @@ export function EquipmentItemInfoPanel({
     doc?: EquipmentDocument;
   }>({ isOpen: false, mode: 'add' });
 
-  const locationPath = useMemo(() => {
-    const locationId = detail?.item.locationId;
-    if (!locationId) return undefined;
-    const byId = new Map(locations.map(l => [l.id, l]));
-    let current = byId.get(locationId);
-    if (!current) return undefined;
-    const path: string[] = [];
-    while (current) {
-      path.unshift(current.name);
-      current = current.parentId ? byId.get(current.parentId) : undefined;
-    }
-    return path.join(' › ');
-  }, [detail?.item.locationId, locations]);
+  const locationPathMap = useMemo(() => buildLocationPathMap(locations), [locations]);
+  const locationPath = detail?.item.locationId
+    ? locationPathMap.get(detail.item.locationId)
+    : undefined;
 
   if (!detail) {
     return (
