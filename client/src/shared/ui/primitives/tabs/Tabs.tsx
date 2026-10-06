@@ -1,8 +1,3 @@
-/**
- * Tabs
- *
- * Recessive tab navigation — mono uppercase chrome, active state lit by a sliding phosphor glow tile.
- */
 import {
   createContext,
   useContext,
@@ -20,14 +15,12 @@ import { useIconPop } from '@shared/hooks';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
-/** `sm` is for dense rails — a long list of destinations rather than a few section tabs. */
 export type TabSize = 'md' | 'sm';
 
 interface TabsProps {
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
-  /** Override automatic orientation detection */
   orientation?: TabOrientation;
   size?: TabSize;
   className?: string;
@@ -76,9 +69,6 @@ const INACTIVE_STATE =
   'text-muted-foreground ' +
   'hover:text-foreground dark:hover:[text-shadow:0_0_8px_hsl(var(--sheen)/0.7)]';
 
-// Sliding tile that fills the active tab. Light is a flat primary tint + a single
-// leading stripe (bottom edge horizontal, left edge vertical). Dark restores the lit
-// table-row recipe — directional wash + edge stripe + bloom, rotated per orientation.
 const TILE_HORIZONTAL =
   'bg-[linear-gradient(0deg,hsl(var(--primary)/0.1),hsl(var(--primary)/0.1))] ' +
   'shadow-[inset_0_-2px_0_0_hsl(var(--primary))] ' +
@@ -97,20 +87,19 @@ const INDICATOR_TRANSITION =
 export function Tab({ id, icon, children }: TabProps) {
   const { value, onChange, orientation, size } = useTabsContext();
   const isActive = value === id;
+  const isVertical = orientation === 'vertical';
 
-  // Icon-pop is a vertical-only hover micro-affordance.
   const { isAnimating, trigger } = useIconPop();
   const handleMouseEnter = () => {
-    if (orientation === 'vertical') trigger();
+    if (isVertical) trigger();
   };
 
   const handleClick = () => onChange(id);
 
   const padding = size === 'sm' ? 'px-3 py-2' : 'px-4 py-2.5';
-  const orientationClasses =
-    orientation === 'vertical'
-      ? `w-full flex items-center gap-2 ${padding} text-left min-w-0`
-      : `flex items-center gap-2 ${padding} min-w-0`;
+  const orientationClasses = isVertical
+    ? `w-full flex items-center gap-2 ${padding} text-left min-w-0`
+    : `flex items-center gap-2 ${padding}`;
 
   const className = `${BASE} ${SIZE_TEXT[size]} ${orientationClasses} ${
     isActive ? ACTIVE_STATE : INACTIVE_STATE
@@ -129,12 +118,14 @@ export function Tab({ id, icon, children }: TabProps) {
       {icon && (
         <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
       )}
-      <span className="min-w-0 flex-1 break-words">{children}</span>
+      <span className={isVertical ? 'min-w-0 flex-1 break-words' : 'whitespace-nowrap'}>
+        {children}
+      </span>
     </button>
   );
 }
 
-/** Heading over a run of rail tabs. Decorative: a `tablist` may only own `tab` elements. */
+// PITFALL: the group heading is decorative because a `tablist` may only own `tab` elements.
 export function TabGroup({ label, children }: TabGroupProps) {
   return (
     <>
