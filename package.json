@@ -17,6 +17,7 @@
     "test": "npm run test:server && npm run test:client",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
+    "prelint": "npm run build:shared",
     "lint": "npm run lint:client && npm run lint:server && npm run lint:shared",
     "lint:fix": "npm run lint:client:fix && npm run lint:server:fix && npm run lint:shared:fix",
     "lint:client": "cd client && npm run lint",
