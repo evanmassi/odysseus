@@ -1,12 +1,3 @@
-/**
- * Bulk Operations Modal
- *
- * The chassis every catalog's bulk operations share: the tab strip, the item selector, and the
- * confirm step. Each catalog renders its own tab bodies, so a lot-aware tab needs nothing of the
- * shell. Selector tabs act on a checked set and share the modal footer; full-width tabs are forms
- * that carry their own.
- */
-
 import { useCallback, useState, type ReactNode } from 'react';
 
 import { Layers } from 'lucide-react';
@@ -19,8 +10,8 @@ import {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
+import { BulkFooterSlotContext } from './BulkTabFooter';
 
-// What the selector needs to render and group a row; the shell only passes these through.
 interface SelectableItem {
   id: string;
   name: string;
@@ -40,16 +31,13 @@ interface BulkTab {
   id: string;
   label: string;
   icon: ReactNode;
-  /** Selector tabs act on the checked set; full tabs own their whole pane and footer. */
   layout: 'selector' | 'full';
 }
 
 interface SelectorAction {
-  /** Button label, and the verb in the confirm prompt. */
   verb: string;
   isDanger?: boolean;
   title: string;
-  /** Blocks the action until the tab's own inputs are filled. */
   isReady?: boolean;
   run: (itemIds: string[]) => void;
 }
@@ -63,20 +51,15 @@ interface BulkOperationsModalProps<
   items: TItem[];
   categories: TCategory[];
   tabs: BulkTab[];
-  /** Owned by the caller, which needs the set for its own hooks (the print sheet builds from it). */
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
-  /** Rendered inside the right pane for a selector tab, or the whole body for a full one. */
   renderTab: (tabId: string) => ReactNode;
-  /** Undefined on a tab that needs no confirm step (e.g. a print preview with its own button). */
   selectorAction: (tabId: string) => SelectorAction | undefined;
-  /** Rendered beside Cancel for a selector tab that runs itself, like print. */
   renderSelectorFooterAction?: (tabId: string) => ReactNode;
   isPending: boolean;
   isSelectable: (item: TItem) => boolean;
   getSecondaryText: (item: TItem) => (string | undefined)[];
   selectorLabels: BulkCategoryTreeSelectorLabels;
-  /** Reset per-tab state the caller owns, on close and on tab change. */
   onReset?: () => void;
 }
 
@@ -103,6 +86,7 @@ export function BulkOperationsModal<
   const [activeTab, setActiveTab] = useState(tabs[0].id);
   const [searchQuery, setSearchQuery] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
+  const [footerSlot, setFooterSlot] = useState<HTMLDivElement | null>(null);
 
   const showSelector = tabs.find(tab => tab.id === activeTab)?.layout === 'selector';
   const selectableCount = items.filter(isSelectable).length;
@@ -116,8 +100,7 @@ export function BulkOperationsModal<
     onClose();
   }, [onClose, onReset, onSelectionChange, tabs]);
 
-  // Only tab-local state resets; the checked set survives, since choosing between operations on
-  // one selection is the point of the tab strip.
+  // PITFALL: a tab change keeps the checked set on purpose; choosing between operations on one selection is the point of the tabs.
   const handleTabChange = useCallback(
     (tab: string) => {
       setActiveTab(tab);
@@ -176,50 +159,52 @@ export function BulkOperationsModal<
         size="lg"
         fixedHeight
         locator={locator}
-        footer={showSelector ? selectorFooter : undefined}
+        footer={showSelector ? selectorFooter : <div ref={setFooterSlot} />}
         contentClassName="p-0 h-full"
       >
-        <div className="flex flex-col h-full min-h-0">
-          <div className="flex-shrink-0 border-b border-border px-4">
-            <Tabs
-              value={activeTab}
-              onChange={handleTabChange}
-              orientation="horizontal"
-              size="sm"
-              className="!gap-0 !px-0 [&_button]:!px-2.5 [&_button]:flex-1 [&_button]:justify-center"
-            >
-              {tabs.map(tab => (
-                <Tab key={tab.id} id={tab.id} icon={tab.icon}>
-                  {tab.label}
-                </Tab>
-              ))}
-            </Tabs>
-          </div>
-
-          {showSelector ? (
-            <div className="flex flex-1 min-h-0">
-              <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
-                <BulkCategoryTreeSelector
-                  items={items}
-                  categories={categories}
-                  selectedIds={selectedIds}
-                  onSelectionChange={onSelectionChange}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  isSelectable={isSelectable}
-                  getSecondaryText={getSecondaryText}
-                  labels={selectorLabels}
-                />
-              </div>
-
-              <div className="w-3/5 flex flex-col min-h-0 overflow-auto">
-                <div className="px-4 pt-4 flex-1">{renderTab(activeTab)}</div>
-              </div>
+        <BulkFooterSlotContext.Provider value={footerSlot}>
+          <div className="flex flex-col h-full min-h-0">
+            <div className="flex-shrink-0 border-b border-border px-4">
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                orientation="horizontal"
+                size="sm"
+                className="!gap-0 !px-0 [&_button]:!px-2.5 [&_button]:flex-1 [&_button]:justify-center"
+              >
+                {tabs.map(tab => (
+                  <Tab key={tab.id} id={tab.id} icon={tab.icon}>
+                    {tab.label}
+                  </Tab>
+                ))}
+              </Tabs>
             </div>
-          ) : (
-            <div className="flex-1 min-h-0">{renderTab(activeTab)}</div>
-          )}
-        </div>
+
+            {showSelector ? (
+              <div className="flex flex-1 min-h-0">
+                <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
+                  <BulkCategoryTreeSelector
+                    items={items}
+                    categories={categories}
+                    selectedIds={selectedIds}
+                    onSelectionChange={onSelectionChange}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    isSelectable={isSelectable}
+                    getSecondaryText={getSecondaryText}
+                    labels={selectorLabels}
+                  />
+                </div>
+
+                <div className="w-3/5 flex flex-col min-h-0 overflow-auto">
+                  <div className="px-4 pt-4 flex-1">{renderTab(activeTab)}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 min-h-0">{renderTab(activeTab)}</div>
+            )}
+          </div>
+        </BulkFooterSlotContext.Provider>
       </BaseModal>
 
       {action && (

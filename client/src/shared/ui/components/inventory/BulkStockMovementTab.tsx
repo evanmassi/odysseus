@@ -2,11 +2,12 @@ import { useState, useCallback, useRef, useMemo, type ReactNode } from 'react';
 
 import { Search } from 'lucide-react';
 
-import { Autocomplete, Button, Divider, type AutocompleteOption } from '@shared/ui';
+import { Autocomplete, Button, type AutocompleteOption } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { BulkItemRow, type ItemPackaging } from './BulkItemRow';
 import { SEARCH_INPUT_CLASS } from './bulkSearchInputStyle';
+import { BulkTabFooter } from './BulkTabFooter';
 import { filterItemAutocompleteOptions } from './itemAutocompleteOptions';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -28,7 +29,14 @@ interface MovementLabels {
   loadingText: string;
 }
 
-interface BulkStockMovementTabProps<TItem extends { id: string; name: string }, TExtra> {
+interface MovementItem {
+  id: string;
+  name: string;
+  manufacturer?: string;
+  catalogNumber?: string;
+}
+
+interface BulkStockMovementTabProps<TItem extends MovementItem, TExtra> {
   items: TItem[];
   itemOptions: AutocompleteOption[];
   locationOptions: SelectOption[];
@@ -46,7 +54,7 @@ interface BulkStockMovementTabProps<TItem extends { id: string; name: string }, 
   };
 }
 
-export function BulkStockMovementTab<TItem extends { id: string; name: string }, TExtra>({
+export function BulkStockMovementTab<TItem extends MovementItem, TExtra>({
   items,
   itemOptions,
   locationOptions,
@@ -121,6 +129,17 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
     [itemOptions, searchValue]
   );
 
+  const secondaryTextById = useMemo(
+    () =>
+      new Map(
+        items.map(item => [
+          item.id,
+          [item.manufacturer, item.catalogNumber].filter(Boolean).join(' · '),
+        ])
+      ),
+    [items]
+  );
+
   const validRows = useMemo(() => rows.filter(row => row.quantity > 0 && row.locationId), [rows]);
 
   const handleSubmit = useCallback(() => {
@@ -155,7 +174,7 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
-        <div className="px-4 space-y-2">
+        <div className="px-4 pb-4 space-y-2">
           {rows.length === 0 && (
             <p className="text-body-sm text-muted-foreground text-center py-8">
               {labels.emptyBody}
@@ -168,6 +187,7 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
               rowId={row.rowId}
               itemId={row.itemId}
               itemName={row.itemName}
+              secondaryText={secondaryTextById.get(row.itemId)}
               locationId={row.locationId}
               locationOptions={locationOptions}
               onLocationChange={updateLocation}
@@ -181,26 +201,28 @@ export function BulkStockMovementTab<TItem extends { id: string; name: string },
         </div>
       </ScrollArea>
 
-      <div className="relative flex items-center justify-between px-4 py-3 border-t border-line-faint flex-shrink-0">
-        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
-        <span className="text-caption text-muted-foreground">
-          {validRows.length} {labels.countNoun}
-          {validRows.length !== 1 ? 's' : ''} to {labels.actionVerb}
-        </span>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={onComplete}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={validRows.length === 0}
-            isLoading={isPending}
-            loadingText={labels.loadingText}
-          >
-            {labels.submitLabel}
-          </Button>
+      <BulkTabFooter>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-caption text-muted-foreground">
+            {validRows.length} {labels.countNoun}
+            {validRows.length !== 1 ? 's' : ''} to {labels.actionVerb}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={onComplete}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSubmit}
+              disabled={validRows.length === 0}
+              isLoading={isPending}
+              loadingText={labels.loadingText}
+            >
+              {labels.submitLabel}
+            </Button>
+          </div>
         </div>
-      </div>
+      </BulkTabFooter>
     </div>
   );
 }

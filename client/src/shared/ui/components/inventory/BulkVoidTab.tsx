@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
 
 import { useLabLocationsQuery } from '@domains/lab-management';
-import { Autocomplete, Button, Checkbox, Divider, type AutocompleteOption } from '@shared/ui';
+import { Autocomplete, Button, Checkbox, type AutocompleteOption } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { ROW_DARK_HOVER, ROW_DARK_SELECTED } from '@shared/ui/primitives/table/rowGlow';
@@ -11,6 +11,7 @@ import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { SEARCH_INPUT_CLASS } from './bulkSearchInputStyle';
+import { BulkTabFooter } from './BulkTabFooter';
 import { filterItemAutocompleteOptions } from './itemAutocompleteOptions';
 import { transactionTypeDisplay } from './transactionTypeDisplay';
 
@@ -129,7 +130,7 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
             return (
               <label
                 key={entry.id}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md border border-border hover:bg-accent/30 dark:hover:bg-transparent cursor-pointer transition-colors ${
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 border border-line-mid hover:bg-accent/30 dark:hover:bg-transparent cursor-pointer transition-colors ${
                   selectedEntryIds.has(entry.id) ? ROW_DARK_SELECTED : ROW_DARK_HOVER
                 }`}
               >
@@ -159,32 +160,33 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
         </div>
       </ScrollArea>
 
-      <div className="relative px-4 pt-3 pb-4 border-t border-line-faint flex-shrink-0 space-y-3">
-        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
-        <div>
-          <label htmlFor="bulk-void-reason" className={FIELD_LABEL_COMPACT}>
-            Reason for voiding *
-          </label>
-          <Textarea
-            id="bulk-void-reason"
-            value={reason}
-            onValueChange={setReason}
-            placeholder="e.g., Entire shipment was returned"
-            rows={2}
-            resize="none"
-            fullWidth
-          />
-        </div>
-        <div className="flex items-center justify-between">
+      <div className="px-4 pt-3 pb-4 border-t border-line-faint flex-shrink-0">
+        <label htmlFor="bulk-void-reason" className={FIELD_LABEL_COMPACT}>
+          Reason
+        </label>
+        <Textarea
+          id="bulk-void-reason"
+          value={reason}
+          onValueChange={setReason}
+          placeholder="e.g., Entire shipment was returned"
+          rows={2}
+          resize="none"
+          fullWidth
+        />
+      </div>
+
+      <BulkTabFooter>
+        <div className="flex items-center justify-between gap-4">
           <span className="text-caption text-muted-foreground">
             {selectedEntryIds.size} selected
           </span>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={onComplete}>
+            <Button variant="secondary" size="sm" onClick={onComplete}>
               Cancel
             </Button>
             <Button
               variant="danger"
+              size="sm"
               onClick={handleSubmit}
               disabled={selectedEntryIds.size === 0 || !reason.trim()}
               isLoading={isPending}
@@ -197,7 +199,7 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
             </Button>
           </div>
         </div>
-      </div>
+      </BulkTabFooter>
     </div>
   );
 }

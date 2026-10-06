@@ -1,17 +1,9 @@
-/**
- * Bulk Item Row
- *
- * A single item row in a bulk stock movement form. Multi-level inputs when the item has a
- * packaging chain, a single quantity field otherwise. The packaging lookup is injected, since
- * each catalog reads it from its own detail query.
- */
-
 import { useState, useMemo, useCallback, useEffect } from 'react';
 
 import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { X } from 'lucide-react';
 
-import { Input, Select } from '@shared/ui';
+import { AccentTick, Input, Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { computePackagingMultiplier, orderPackagingChain } from '@shared/utils/packagingChain';
 
@@ -26,6 +18,7 @@ interface BulkItemRowProps {
   rowId: string;
   itemId: string;
   itemName: string;
+  secondaryText?: string;
   locationId: string;
   locationOptions: SelectOption[];
   onLocationChange: (rowId: string, locationId: string) => void;
@@ -39,6 +32,7 @@ export function BulkItemRow({
   rowId,
   itemId,
   itemName,
+  secondaryText,
   locationId,
   locationOptions,
   onLocationChange,
@@ -73,9 +67,7 @@ export function BulkItemRow({
     return total;
   }, [hasPackaging, simpleQty, qtyByLevel, packagingLevels, computeMultiplier]);
 
-  // The parent mirrors this total rather than owning it. Reporting on every change — not just on
-  // edit — keeps the two in step when the quantity moves without one: on mount, and when a lazily
-  // fetched packaging chain arrives and switches the row from a simple quantity to per-level inputs.
+  // PITFALL: the total is reported on every change, not just on edit, so the parent stays in step on mount and when a lazily fetched packaging chain swaps the inputs.
   useEffect(() => {
     onQuantityChange(rowId, computedTotal);
   }, [rowId, computedTotal, onQuantityChange]);
@@ -89,93 +81,113 @@ export function BulkItemRow({
   }, []);
 
   return (
-    <div className="border border-border rounded-lg p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-body-sm font-semibold text-card-foreground">{itemName}</span>
-        <button
-          type="button"
-          onClick={() => onRemove(rowId)}
-          className="p-1 text-muted-foreground hover:text-danger-text rounded transition-colors"
-          aria-label={`Remove ${itemName}`}
-        >
-          <X size={14} />
-        </button>
+    <div className="row-tools-host border border-line-mid">
+      <div className="flex items-center gap-2 border-b border-line-faint py-2 pl-3 pr-1.5">
+        <AccentTick />
+        <span className="truncate text-body-sm font-semibold text-foreground">{itemName}</span>
+        {secondaryText && (
+          <span className="truncate font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
+            {secondaryText}
+          </span>
+        )}
+        <span className="row-tools ml-auto">
+          <span>
+            <button
+              type="button"
+              onClick={() => onRemove(rowId)}
+              className="p-1 text-muted-foreground transition-colors hover:text-danger-text"
+              aria-label={`Remove ${itemName}`}
+            >
+              <X size={14} />
+            </button>
+          </span>
+        </span>
       </div>
 
-      {hasPackaging ? (
-        <div className="space-y-1">
-          {orderedLevels.map(level => (
-            <div key={level.unitName} className="flex items-center gap-2">
-              <div className="w-16">
-                <Input
-                  type="number"
-                  value={qtyByLevel[level.unitName] || ''}
-                  onValueChange={v => handleLevelChange(level.unitName, v)}
-                  placeholder="0"
-                  size="sm"
-                  fullWidth
-                />
+      <div className="space-y-3 p-3">
+        <div className="grid grid-cols-2 gap-3 [&>*]:min-w-0">
+          <div>
+            <span className={FIELD_LABEL_COMPACT}>Quantity</span>
+            {hasPackaging ? (
+              <div className="space-y-1">
+                {orderedLevels.map(level => (
+                  <div key={level.unitName} className="flex items-center gap-2">
+                    <div className="w-16">
+                      <Input
+                        type="number"
+                        value={qtyByLevel[level.unitName] || ''}
+                        onValueChange={v => handleLevelChange(level.unitName, v)}
+                        placeholder="0"
+                        size="sm"
+                        fullWidth
+                        aria-label={pluralizeUnit(level.unitName, 2)}
+                      />
+                    </div>
+                    <span className="text-caption text-muted-foreground">
+                      {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
+                    </span>
+                  </div>
+                ))}
+                {showLooseRow && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-16">
+                      <Input
+                        type="number"
+                        value={qtyByLevel['__stock__'] || ''}
+                        onValueChange={v => handleLevelChange('__stock__', v)}
+                        placeholder="0"
+                        size="sm"
+                        fullWidth
+                        aria-label={`Loose ${pluralizeUnit(stockUnitSingular, 2)}`}
+                      />
+                    </div>
+                    <span className="text-caption text-muted-foreground">
+                      loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
+                    </span>
+                  </div>
+                )}
+                {computedTotal > 0 && (
+                  <p className="font-mono text-data-sm text-muted-foreground">
+                    = {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
+                  </p>
+                )}
               </div>
-              <span className="text-caption text-muted-foreground">
-                {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
-              </span>
-            </div>
-          ))}
-          {showLooseRow && (
-            <div className="flex items-center gap-2">
-              <div className="w-16">
-                <Input
-                  type="number"
-                  value={qtyByLevel['__stock__'] || ''}
-                  onValueChange={v => handleLevelChange('__stock__', v)}
-                  placeholder="0"
-                  size="sm"
-                  fullWidth
-                />
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="w-16">
+                  <Input
+                    type="number"
+                    value={String(simpleQty)}
+                    onValueChange={handleSimpleQtyChange}
+                    size="sm"
+                    fullWidth
+                    aria-label="Quantity"
+                  />
+                </div>
+                {stockUnit && (
+                  <span className="text-caption text-muted-foreground">
+                    {pluralizeUnit(stockUnitSingular, simpleQty)}
+                  </span>
+                )}
               </div>
-              <span className="text-caption text-muted-foreground">
-                loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
-              </span>
-            </div>
-          )}
-          {computedTotal > 0 && (
-            <p className="text-caption font-medium text-muted-foreground px-1">
-              = {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <div className="w-16">
-            <span className={FIELD_LABEL_COMPACT}>Qty *</span>
-            <Input
-              type="number"
-              value={String(simpleQty)}
-              onValueChange={handleSimpleQtyChange}
+            )}
+          </div>
+
+          <div>
+            <span className={FIELD_LABEL_COMPACT}>Location</span>
+            <Select
+              options={locationOptions}
+              value={locationId}
+              onChange={v => onLocationChange(rowId, String(v ?? ''))}
               size="sm"
               fullWidth
+              aria-label="Location"
             />
           </div>
-          {stockUnit && (
-            <span className="text-caption text-muted-foreground mt-4">
-              {pluralizeUnit(stockUnitSingular, simpleQty)}
-            </span>
-          )}
         </div>
-      )}
 
-      <div>
-        <span className={FIELD_LABEL_COMPACT}>Location *</span>
-        <Select
-          options={locationOptions}
-          value={locationId}
-          onChange={v => onLocationChange(rowId, String(v ?? ''))}
-          size="sm"
-          fullWidth
-        />
+        {children}
       </div>
-
-      {children}
     </div>
   );
 }
