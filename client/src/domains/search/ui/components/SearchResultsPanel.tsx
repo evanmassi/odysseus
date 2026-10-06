@@ -1,9 +1,3 @@
-/**
- * Search Results Panel
- *
- * Displays grouped, sorted search results with highlighting, export, and navigation.
- */
-
 import { useMemo } from 'react';
 
 import {
@@ -21,6 +15,7 @@ import { useUserSettings, useUserLookupQuery } from '@domains/users';
 import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { ROW_DARK_HOVER } from '@shared/ui/primitives/table/rowGlow';
 import { escapeCsvValue } from '@shared/utils/csv';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
@@ -65,7 +60,6 @@ export function SearchResultsPanel({
   }, [results?.tubes]);
   const { data: lockedByUsers = [] } = useUserLookupQuery(lockedByUserIds);
 
-  // Must be called before early returns (React hooks rule)
   const sortedGroups = useMemo(() => {
     const groups = results?.grouped ?? [];
     if (!groups || groups.length === 0) return groups;
@@ -324,7 +318,7 @@ export function SearchResultsPanel({
   };
 
   const handleGroupClick = async (group: { tubes: TubeData[] }) => {
-    // Add tankId if missing for legacy data compatibility
+    // PITFALL: legacy tubes may lack location.tankId, so fall back to the current tank.
     const tubesWithTankId = group.tubes.map(tube => ({
       ...tube,
       location: {
@@ -340,7 +334,6 @@ export function SearchResultsPanel({
   const formatPositions = (tubes: TubeData[]): string => {
     if (tubes.length === 0) return '';
 
-    // Get location info from first tube (all tubes in group share same box)
     const firstTube = tubes[0];
     const { tankId, rackId, boxId } = firstTube.location;
 
@@ -451,7 +444,7 @@ export function SearchResultsPanel({
                     type="button"
                     key={index}
                     onClick={() => handleGroupClick(group)}
-                    className="w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)]"
+                    className={`w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)] ${ROW_DARK_HOVER}`}
                     aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
                   >
                     <div className="flex items-center justify-between">

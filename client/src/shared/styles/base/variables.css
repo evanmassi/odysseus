@@ -204,10 +204,8 @@
     --alpha-glow-wash-2: 0.09;
     --alpha-glow-wash-3: 0.045;
     --alpha-glow-wash-4: 0.015;
-    --alpha-glow-tint: 0.05;
     --alpha-glow-edge-inner: 0.12;
     --alpha-glow-edge-rim: 0.12;
-    --alpha-glow-edge-bloom: 0;
     --alpha-glow-outer-near: 0;
     --alpha-glow-outer-far: 0;
     --alpha-checkbox-glow-inner: 0;
@@ -216,14 +214,6 @@
     --alpha-zebra: 0.035;
     --alpha-hover: 0.05;
     --alpha-hover-stripe: 0.45;
-    --alpha-hover-edge: 0.1;
-    --alpha-hover-bloom: 0;
-    --alpha-hover-wash-1: 0.1;
-    --alpha-hover-wash-2: 0.06;
-    --alpha-hover-wash-3: 0.03;
-    --alpha-hover-wash-4: 0.01;
-    --alpha-hover-bloom-edge: 0;
-    --alpha-hover-bloom-far: 0;
     --alpha-stripe-muted: 0.3;
 
     --scanline-layer: repeating-linear-gradient(
@@ -408,18 +398,12 @@
     --alpha-glow-wash-2: 0.13;
     --alpha-glow-wash-3: 0.06;
     --alpha-glow-wash-4: 0.02;
-    --alpha-glow-tint: 0.025;
     --alpha-glow-edge-inner: 0.43;
     --alpha-glow-edge-rim: 0.16;
-    --alpha-glow-edge-bloom: 0.14;
     --alpha-glow-outer-near: 0.2;
     --alpha-glow-outer-far: 0.09;
     --alpha-checkbox-glow-inner: 0.55;
     --alpha-checkbox-glow-outer: 0.22;
     --alpha-checkbox-shadow: 0.6;
-    --alpha-hover-edge: 0.18;
-    --alpha-hover-bloom: 0.08;
-    --alpha-hover-bloom-edge: 0.06;
-    --alpha-hover-bloom-far: 0.04;
   }
 }

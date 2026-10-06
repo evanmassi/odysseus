@@ -1,9 +1,3 @@
-/**
- * Lab Location Tree
- *
- * The location hierarchy with its connectors, read-only unless the caller supplies row actions.
- */
-
 import { useMemo, type ReactNode } from 'react';
 
 import { CornerDownRight, FolderOpen } from 'lucide-react';
@@ -17,7 +11,6 @@ const TIER_LEVELS = ['l1', 'l2', 'l3'] as const;
 
 interface LabLocationTreeProps {
   locations: LabLocation[];
-  /** Distinguishes this tree's connectors from another mounted alongside it. */
   treeId: string;
   emptyMessage: string;
   highlightId?: string;
@@ -53,7 +46,7 @@ export function LabLocationTree({
         <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
           <div
             className={`select-tree-row row-glow group flex items-center gap-2 py-1 pl-3 pr-1 ${
-              highlightId === location.id ? 'bg-foreground/[0.06]' : ''
+              highlightId === location.id ? 'is-open bg-foreground/[0.06]' : ''
             }`}
           >
             {depth === 0 ? (

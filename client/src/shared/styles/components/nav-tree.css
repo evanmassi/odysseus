@@ -23,7 +23,7 @@
   transition: all 0.15s ease;
 }
 
-.nav-tree .nav-tree-row:not(.is-selected):not(.is-open):hover {
+.nav-tree .nav-tree-row:not(.is-selected):not(.is-open):not(.nav-tree-row--static):hover {
   background: hsl(var(--row-tone) / 0.06);
   box-shadow: inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe));
 }
@@ -189,77 +189,54 @@
   background: hsl(var(--primary) / 0.06);
 }
 
-[data-theme='dark'] .nav-tree .nav-tree-row:not(.is-selected):not(.is-open):hover {
-  background:
-    var(--scanline-layer),
-    linear-gradient(
-      90deg,
-      hsl(var(--row-tone) / 0.035) 0%,
-      hsl(var(--row-tone) / 0.012) 55%,
-      transparent 100%
-    );
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
-    inset 14px 0 30px -12px hsl(var(--row-tone) / 0.05);
+[data-theme='dark']
+  .nav-tree
+  .nav-tree-row:not(.is-selected):not(.is-open):not(.nav-tree-row--static):hover {
+  background: var(--row-hover-bg);
+  box-shadow: var(--row-hover-shadow);
 }
 
 [data-theme='dark'] .nav-tree .nav-tree-row.is-open {
-  background:
-    var(--scanline-layer),
-    linear-gradient(
-      90deg,
-      hsl(var(--primary) / 0.065) 0%,
-      hsl(var(--primary) / 0.025) 55%,
-      transparent 100%
-    );
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary)),
-    inset 14px 0 30px -12px hsl(var(--primary) / 0.09);
+  background: var(--row-open-bg);
+  box-shadow: var(--row-open-shadow);
 }
 
 [data-theme='dark'] .nav-tree .nav-tree-row.is-open:hover {
-  background:
-    var(--scanline-layer),
-    linear-gradient(
-      90deg,
-      hsl(var(--primary) / 0.1) 0%,
-      hsl(var(--primary) / 0.04) 55%,
-      transparent 100%
-    );
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary)),
-    inset 14px 0 30px -12px hsl(var(--primary) / 0.14);
+  background: var(--row-open-hover-bg);
+  box-shadow: var(--row-open-hover-shadow);
 }
 
 [data-theme='dark'] .nav-tree .nav-tree-row--item.is-selected {
   border-color: hsl(var(--row-tone) / 0.6);
-  background:
-    var(--scanline-layer), var(--glow-selected-tint),
-    linear-gradient(
-      90deg,
-      hsl(var(--row-tone) / 0.12) 0%,
-      hsl(var(--row-tone) / 0.05) 55%,
-      transparent 100%
-    ),
-    hsl(var(--card));
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--row-tone)),
-    inset 14px 0 36px -10px hsl(var(--row-tone) / calc(var(--alpha-glow-edge-inner) * 0.5)),
-    inset 0 1px 0 hsl(var(--row-tone) / var(--alpha-glow-edge-rim)),
-    inset 0 -1px 0 hsl(var(--row-tone) / var(--alpha-glow-edge-rim)),
-    inset 0 10px 16px -8px hsl(var(--row-tone) / calc(var(--alpha-glow-edge-bloom) * 0.5)),
-    inset 0 -10px 16px -8px hsl(var(--row-tone) / calc(var(--alpha-glow-edge-bloom) * 0.5)),
-    0 0 24px -4px hsl(var(--row-tone) / calc(var(--alpha-glow-outer-near) * 0.5)),
-    0 0 48px 2px hsl(var(--row-tone) / calc(var(--alpha-glow-outer-far) * 0.5));
+  background: var(--row-selected-bg), hsl(var(--card));
+  box-shadow: var(--row-selected-shadow);
 }
 
 [data-theme='dark'] .nav-tree .nav-tree-row--item.is-selected:hover {
   border-color: hsl(var(--row-tone) / 0.8);
-  filter: brightness(1.2);
+  background: var(--row-selected-hover-bg), hsl(var(--card));
+  box-shadow: var(--row-selected-hover-shadow);
 }
 
-[data-theme='dark'] .nav-tree-select .select-tree-row:hover {
-  border-color: hsl(var(--primary) / 0.55);
-  background: var(--scanline-layer), var(--glow-hover-wash);
-  box-shadow: var(--glow-hover-shadow);
+[data-theme='dark'] .nav-tree-select .select-tree-row:not(.is-selected):not(.is-open):hover {
+  border-color: hsl(var(--row-tone) / 0.55);
+  border-left-color: hsl(var(--row-tone) / 0.7);
+  background: var(--row-hover-bg);
+}
+
+[data-theme='dark'] .nav-tree-select .select-tree-row.is-open {
+  border-left-color: hsl(var(--row-tone));
+  background: var(--row-open-bg);
+}
+
+[data-theme='dark'] .nav-tree-select .select-tree-row.is-selected {
+  border-color: hsl(var(--row-tone) / 0.45);
+  border-left-color: hsl(var(--row-tone));
+  background: var(--row-selected-bg);
+}
+
+[data-theme='dark'] .nav-tree-select .select-tree-row.is-selected:hover {
+  border-color: hsl(var(--row-tone) / 0.7);
+  border-left-color: hsl(var(--row-tone));
+  background: var(--row-selected-hover-bg);
 }

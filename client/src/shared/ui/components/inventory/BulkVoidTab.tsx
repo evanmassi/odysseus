@@ -6,6 +6,7 @@ import { useLabLocationsQuery } from '@domains/lab-management';
 import { Autocomplete, Button, Checkbox, Divider, type AutocompleteOption } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { ROW_DARK_HOVER, ROW_DARK_SELECTED } from '@shared/ui/primitives/table/rowGlow';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
@@ -128,7 +129,9 @@ export function BulkVoidTab<TItem extends { id: string; name: string }>({
             return (
               <label
                 key={entry.id}
-                className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md border border-border hover:bg-accent/30 cursor-pointer transition-colors"
+                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md border border-border hover:bg-accent/30 dark:hover:bg-transparent cursor-pointer transition-colors ${
+                  selectedEntryIds.has(entry.id) ? ROW_DARK_SELECTED : ROW_DARK_HOVER
+                }`}
               >
                 <Checkbox
                   checked={selectedEntryIds.has(entry.id)}

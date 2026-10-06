@@ -1,15 +1,8 @@
-/**
- * Detail Row
- *
- * Label–value ledger row for info panels: mono label left, value right, with the data
- * table's row-hover glow. Pass `children` for a custom value (e.g. a link); empty rows render nothing.
- */
-
 import type { ReactNode } from 'react';
 
 import { AlertTriangle } from 'lucide-react';
 
-import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowHoverGlow';
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 const FIELD_LABEL = 'type-label text-label-2xs tracking-label-wide text-muted-foreground';
 

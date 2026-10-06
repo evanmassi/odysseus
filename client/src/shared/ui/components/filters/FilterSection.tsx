@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
-import { ROW_HOVER_GLOW } from '../../primitives/table/rowHoverGlow';
+import { ROW_HOVER_GLOW } from '../../primitives/table/rowGlow';
 
 interface FilterSectionProps {
   title: string;

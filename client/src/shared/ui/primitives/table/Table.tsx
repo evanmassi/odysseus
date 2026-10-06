@@ -6,30 +6,21 @@ import { cva } from 'class-variance-authority';
 import { Checkbox } from '../checkbox/Checkbox';
 import { PanelEmptyState } from '../panel-empty-state/PanelEmptyState';
 
-import { ROW_HOVER_GLOW } from './rowHoverGlow';
+import { ROW_DARK_SELECTED, ROW_HOVER_GLOW, ROW_TONE, type RowTone } from './rowGlow';
 import { defaultTableProps } from './types';
 
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
 
-type GlowTone = 'primary' | 'success' | 'warning' | 'danger';
-
-const stateToGlowTone = (state: RowState): GlowTone =>
+const stateToGlowTone = (state: RowState): RowTone =>
   state === 'success' || state === 'warning' || state === 'danger' ? state : 'primary';
 
-const GLOW_BASE = [
+const SELECTED_ROW = [
   '[background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.1),hsl(var(--row-tone)/0.1))]',
-  'dark:[background-image:var(--scanline-layer),linear-gradient(90deg,hsl(var(--row-tone)/0.12)_0%,hsl(var(--row-tone)/0.05)_55%,transparent_100%)]',
   'shadow-[inset_3px_0_0_0_hsl(var(--row-tone))]',
+  ROW_DARK_SELECTED,
   '[&>td]:!bg-transparent',
   '[&>td]:font-semibold',
 ].join(' ');
-
-const ROW_GLOW: Record<GlowTone, string> = {
-  primary: `[--row-tone:var(--primary)] ${GLOW_BASE}`,
-  success: `[--row-tone:var(--color-success-bg)] ${GLOW_BASE}`,
-  warning: `[--row-tone:var(--color-warning-bg)] ${GLOW_BASE}`,
-  danger: `[--row-tone:var(--color-danger-bg)] ${GLOW_BASE}`,
-};
 
 const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
 
@@ -283,7 +274,10 @@ const TableBody = <T extends TableRowBase>({
         const isSelected = selectedRows.includes(row.id);
         const state = rowState?.(row, index) ?? 'default';
         const zebra = index % 2 === 1 ? 'bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
-        const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
+        const glow =
+          selectedRowGlow && isSelected
+            ? `${ROW_TONE[stateToGlowTone(state)]} ${SELECTED_ROW}`
+            : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
         const hover =

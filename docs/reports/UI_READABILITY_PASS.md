@@ -58,6 +58,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Auth screens and boot splash:** status lines lose their `[ ]` brackets and glow and keep the side bar; greeting, tagline, reset-link keywords, and splash status text are plain. Both logos keep their glow.
 - **Alert banners:** dark-mode wash matches the chips (short fade off the edge bar); bold words in the message keep their tone color without glow.
 - **Header search bar:** filter and clear are plain ghost icon buttons. An "on" filter uses the shared `ghost-primary` button, which stays blue and shifts shade on hover; the catalog Filter buttons use it too.
+- **Row highlights (dark mode):** hover, open, selected, and selected-plus-hover come from one recipe in `row-glow.css`, used by tables, catalog trees and item lists, the storage navigator and Storage Manager, the location and category pickers, search result cards, and the checkbox lists. Selected table rows now react to hover; non-clickable rows don't; full Storage Manager boxes tint red. Light mode is unchanged.
 - **Stacking:** named `z-popover` and `z-tooltip` layers, so tooltips always sit above popups.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
 - **Tables:** zebra stripes are painted on the row, so the hover tint layers over them evenly.

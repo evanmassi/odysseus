@@ -1,11 +1,3 @@
-/**
- * Reagent Print Options Panel
- *
- * Chooses what a sheet prints: one label per product, or one per bottle. Bottle labels are
- * ticked individually, because every active lot of every selected reagent is far more sheet
- * than a lab usually wants.
- */
-
 import { useMemo } from 'react';
 
 import { Boxes, FlaskConical } from 'lucide-react';
@@ -19,6 +11,7 @@ import {
   OPTION_CARD_UNSELECTED,
 } from '@shared/ui/components/inventory';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { ROW_DARK_HOVER, ROW_DARK_SELECTED } from '@shared/ui/primitives/table/rowGlow';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import type { LabelSource, ReagentPrintLabelState } from './useReagentPrintLabels';
@@ -63,7 +56,6 @@ export function ReagentPrintOptionsPanel({
     return [...byItem.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [items, lotLabels]);
 
-  // Named rather than silently skipped: an item with no labelled lots contributes nothing.
   const itemsWithoutLots = selectedIds.size - groups.length;
 
   return (
@@ -134,7 +126,9 @@ export function ReagentPrintOptionsPanel({
                     {group.lots.map(lot => (
                       <label
                         key={lot.lotId}
-                        className="flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-accent/30"
+                        className={`flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-accent/30 dark:hover:bg-transparent ${
+                          checkedLotIds.has(lot.lotId) ? ROW_DARK_SELECTED : ROW_DARK_HOVER
+                        }`}
                       >
                         <Checkbox
                           checked={checkedLotIds.has(lot.lotId)}

@@ -212,7 +212,7 @@ export function ByUserTab({
                           data-id={`${rackGroup.tankId}-${rackGroup.rackId}`}
                         >
                           <div className="storage-nav-item--modal storage-nav-item--rack">
-                            <div className="storage-nav-button row-glow storage-nav-button--rack">
+                            <div className="storage-nav-button storage-nav-button--static row-glow storage-nav-button--rack">
                               <UserBadge
                                 type={badgeType}
                                 initials={userAssignment.initials}
@@ -255,7 +255,7 @@ export function ByUserTab({
                                   data-id={box.boxId}
                                 >
                                   <div className="storage-nav-item--modal storage-nav-item--box">
-                                    <div className="storage-nav-button row-glow storage-nav-button--box">
+                                    <div className="storage-nav-button storage-nav-button--static row-glow storage-nav-button--box">
                                       <UserBadge
                                         type={badgeType}
                                         initials={userAssignment.initials}
