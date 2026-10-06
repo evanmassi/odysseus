@@ -18,6 +18,7 @@ export interface TableColumn<T = Record<string, unknown>> {
   header: string;
   accessor?: keyof T | ((row: T) => ReactNode);
   width?: string | number;
+  truncates?: boolean;
   sortable?: boolean;
   align?: 'left' | 'center' | 'right';
   render?: (value: unknown, row: T, index: number) => ReactNode;

@@ -22,12 +22,13 @@ interface AlertPanelProps<T extends { id: string }> {
   defaultSort: SortConfig;
   rowTone: (row: T) => AlertTone;
   onSelectItem: (id: string) => void;
+  getItemId?: (row: T) => string;
   ariaLabel: string;
   selectedItemId?: string;
   footer?: ReactNode;
 }
 
-const TONE_TEXT: Record<AlertTone, string> = {
+export const ALERT_TONE_TEXT: Record<AlertTone, string> = {
   danger: 'text-danger-text',
   warning: 'text-warning-text',
 };
@@ -50,6 +51,7 @@ export function AlertPanel<T extends { id: string }>({
   defaultSort,
   rowTone,
   onSelectItem,
+  getItemId = row => row.id,
   ariaLabel,
   selectedItemId,
   footer,
@@ -104,7 +106,7 @@ export function AlertPanel<T extends { id: string }>({
           className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
         />
         <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${TONE_STRIPE[tone]}`} />
-        <span className={`type-label text-label-2xs tracking-label-wide ${TONE_TEXT[tone]}`}>
+        <span className={`type-label text-label-2xs tracking-label-wide ${ALERT_TONE_TEXT[tone]}`}>
           {label}
         </span>
         <span aria-hidden className="font-mono text-data-sm text-foreground/30">
@@ -114,7 +116,7 @@ export function AlertPanel<T extends { id: string }>({
           {visibleCounts.map((entry, index) => (
             <span key={entry.label} className="flex items-center gap-2">
               {index > 0 && <span className="text-foreground/25">·</span>}
-              <span className={TONE_TEXT[entry.tone]}>
+              <span className={ALERT_TONE_TEXT[entry.tone]}>
                 {entry.count} {entry.label}
               </span>
             </span>
@@ -132,8 +134,10 @@ export function AlertPanel<T extends { id: string }>({
             sortable
             sortConfig={sortConfig}
             onSort={setSortConfig}
-            onRowClick={row => onSelectItem(row.id)}
-            selectedRows={selectedItemId ? [selectedItemId] : []}
+            onRowClick={row => onSelectItem(getItemId(row))}
+            selectedRows={sortedRows
+              .filter(row => getItemId(row) === selectedItemId)
+              .map(row => row.id)}
             selectedRowGlow
             rowState={rowTone}
             density="compact"

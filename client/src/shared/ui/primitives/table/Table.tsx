@@ -308,7 +308,7 @@ const TableBody = <T extends TableRowBase>({
             {columns.map(column => (
               <td
                 key={column.id}
-                className={cellVariants({ align: column.align, density })}
+                className={`${cellVariants({ align: column.align, density })} ${column.truncates ? 'max-w-0' : ''}`}
                 style={{ width: column.width }}
               >
                 {getCellValue(column, row, index)}

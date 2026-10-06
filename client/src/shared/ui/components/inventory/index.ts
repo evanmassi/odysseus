@@ -1,4 +1,4 @@
-export { AlertPanel, type AlertCount, type AlertTone } from './AlertPanel';
+export { ALERT_TONE_TEXT, AlertPanel, type AlertCount, type AlertTone } from './AlertPanel';
 export {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
