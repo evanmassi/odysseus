@@ -70,3 +70,4 @@ export { Well } from './well/Well';
 export { UnsavedChangesIndicator } from './unsaved-changes-indicator/UnsavedChangesIndicator';
 
 export { Tooltip } from './tooltip/Tooltip';
+export { TruncatedText } from './tooltip/TruncatedText';

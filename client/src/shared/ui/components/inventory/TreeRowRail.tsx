@@ -16,7 +16,7 @@ export function TreeRowRail({ count, countNoun, tools, isSubtle = false }: TreeR
       <span className="nav-tree-row__rail">
         <span
           aria-hidden
-          className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE} ${isSubtle ? 'opacity-60' : ''}`}
+          className={`h-px min-w-0 flex-1 ${PLAIN_SECTION_RULE} ${isSubtle ? 'opacity-60' : ''}`}
         />
         {tools && (
           <span className="row-tools">

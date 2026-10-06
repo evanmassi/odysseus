@@ -1,10 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 import {
   BulkCategoryTreeSelector,
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
+
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: TooltipPrimitive.Provider });
 
 vi.mock('../tree-lines', () => ({ NavTreeLines: () => null }));
 

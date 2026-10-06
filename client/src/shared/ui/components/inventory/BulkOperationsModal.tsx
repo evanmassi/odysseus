@@ -115,7 +115,9 @@ export function BulkOperationsModal<
         <AccentTick />
         <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
           {selectableCount}{' '}
-          <span className="text-foreground/45">{selectorLabels.countNoun[1]}</span>
+          <span className="text-foreground/45">
+            {selectorLabels.countNoun[selectableCount === 1 ? 0 : 1]}
+          </span>
         </span>
       </span>
       {showSelector && (

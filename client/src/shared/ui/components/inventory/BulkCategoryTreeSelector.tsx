@@ -5,7 +5,7 @@ import { CornerDownRight, FolderOpen } from 'lucide-react';
 import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategoryIds';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
-import { Checkbox, Divider, ScrollArea, SearchInput } from '../../primitives';
+import { Checkbox, Divider, ScrollArea, SearchInput, TruncatedText } from '../../primitives';
 import { NavTreeLines } from '../tree-lines';
 
 import { TreeRowRail } from './TreeRowRail';
@@ -101,9 +101,10 @@ function BulkSelectItem<T extends BulkTreeItem>({
       <div className={`nav-tree-row row-glow nav-tree-row--item ${selected ? 'is-selected' : ''}`}>
         <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate font-display text-body font-medium leading-tight text-card-foreground">
-            {item.name}
-          </span>
+          <TruncatedText
+            text={item.name}
+            className="font-display text-body font-medium leading-tight text-card-foreground"
+          />
           {identity.length > 0 && (
             <span className="truncate font-mono text-data-sm tracking-[0.02em] text-muted-foreground">
               {identity.map((part, i) => (
@@ -131,8 +132,6 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
   getSecondaryText,
   labels,
 }: BulkCategoryTreeSelectorProps<T, C>) {
-  const countPlural = labels.countNoun[1];
-
   const matchingCategoryIds = useMemo(() => {
     if (!searchQuery) return new Set<string>();
     return collectMatchingCategoryIds(categories, searchQuery);
@@ -205,7 +204,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
         aria-label={labels.filterAriaLabel}
       />
       <div className="mb-3 flex-shrink-0">
-        <div className="flex items-center gap-2 pb-2">
+        <div className="mr-2 flex items-center gap-2 border-x border-transparent px-2 pb-2">
           <Checkbox
             checked={allSelected}
             indeterminate={someSelected && !allSelected}
@@ -215,8 +214,11 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
           <span className="text-body-sm font-medium text-card-foreground flex-1">
             {labels.selectAllLabel}
           </span>
-          <span className="text-caption text-muted-foreground">
-            {selectedCount}/{allSelectableIds.length} {countPlural}
+          <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground/70">
+            {selectedCount}/{allSelectableIds.length}{' '}
+            <span className="text-muted-foreground/60">
+              {allSelectableIds.length === 1 ? labels.countNoun[0] : labels.countNoun[1]}
+            </span>
           </span>
         </div>
         <Divider tone="neutral" className="relative" />
@@ -245,9 +247,10 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
                     aria-label={`Select all in ${group.category.name}`}
                   />
                   <FolderOpen size={16} className="flex-shrink-0 text-muted-foreground" />
-                  <span className="nav-tree-row__label font-display text-body-lg font-semibold text-secondary-foreground">
-                    {group.category.name}
-                  </span>
+                  <TruncatedText
+                    text={group.category.name}
+                    className="nav-tree-row__label font-display text-body-lg font-semibold text-secondary-foreground"
+                  />
                   <TreeRowRail count={groupIds.length} countNoun={labels.countNoun} />
                 </div>
 
@@ -270,9 +273,10 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
                             size={14}
                             className="flex-shrink-0 text-muted-foreground"
                           />
-                          <span className="nav-tree-row__label font-display text-body font-medium">
-                            {sub.category.name}
-                          </span>
+                          <TruncatedText
+                            text={sub.category.name}
+                            className="nav-tree-row__label font-display text-body font-medium"
+                          />
                           <TreeRowRail
                             count={subIds.length}
                             countNoun={labels.countNoun}
