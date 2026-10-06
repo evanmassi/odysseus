@@ -1,9 +1,3 @@
-/**
- * Tube Lock Note Modal
- *
- * Edits the lock note on one or more tubes owned by the current user.
- */
-
 import { useState, useMemo, useEffect, useRef } from 'react';
 
 import { SquarePen } from 'lucide-react';
@@ -17,9 +11,9 @@ import { LockNoteField } from './LockNoteField';
 
 import type { TubeData } from '@domains/tubes/types';
 
+// PITFALL: callers must pass only tubes locked by the current user.
 export interface TubeLockNoteModalProps {
   isOpen?: boolean;
-  /** Must all be locked by current user */
   tubes: TubeData[];
   onClose: () => void;
   onSuccess?: () => void;
@@ -49,10 +43,8 @@ export function TubeLockNoteModal({
   const bulkUpdateMutation = useBulkUpdateTubesMutation();
   const prevIsOpenRef = useRef(isOpen);
 
-  // Prevents stale data from previous interactions
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
-      // Modal just opened - reset form to current initial value
       setLockNote(initialNote);
     }
     prevIsOpenRef.current = isOpen;
@@ -78,7 +70,7 @@ export function TubeLockNoteModal({
     );
   };
 
-  // For mixed notes, initialNote is empty so user must type something
+  // PITFALL: with mixed notes initialNote is empty, so saving requires typing a new note.
   const hasChanges = lockNote.trim() !== initialNote;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -124,7 +116,7 @@ export function TubeLockNoteModal({
             loadingText="Saving..."
             leftIcon={<SquarePen size={16} />}
           >
-            {isSingleTube ? 'Save' : `Update ${tubeCount} Tubes`}
+            Save Changes
           </Button>
         </div>
       </div>

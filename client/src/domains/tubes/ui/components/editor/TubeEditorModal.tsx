@@ -1,9 +1,3 @@
-/**
- * Tube Editor
- *
- * Modal for creating and editing tubes with create, edit, and mixed modes.
- */
-
 import { useMemo, useState, useEffect, useRef } from 'react';
 
 import {
@@ -171,7 +165,6 @@ function EditModeForm({
   const modalService = useModalStore();
   const isDemoLockedTube = useDemoItemLock();
   const isLocked = isDemoLockedTube(tube);
-  // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = useMemo(
     () => ({
       sample: {
@@ -205,13 +198,11 @@ function EditModeForm({
     initialData,
   });
 
-  // Stale form detection - track version when modal opened
   const [openedWithVersion, setOpenedWithVersion] = useState(tube.version);
   const [staleWarningDismissed, setStaleWarningDismissed] = useState(false);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
 
-  // Detect if tube was modified externally (version increased)
-  // Suppress warning while we're saving (our own save triggers version bump)
+  // PITFALL: our own save bumps the version, so the stale warning is suppressed while saving.
   const isStale = tube.version > openedWithVersion;
   const showStaleWarning =
     isStale && form.formState.isDirty && !staleWarningDismissed && !isSavingLocal;
@@ -222,7 +213,6 @@ function EditModeForm({
     setStaleWarningDismissed(false);
   };
 
-  // Reset all state when the modal opens
   useEffect(() => {
     if (isOpen) {
       form.reset(initialData);
@@ -233,7 +223,6 @@ function EditModeForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset when modal opens
   }, [isOpen]);
 
-  // Auto-update form when tube data changes externally and user hasn't made edits
   useEffect(() => {
     if (!form.formState.isDirty) {
       form.reset(initialData);
@@ -246,9 +235,7 @@ function EditModeForm({
   const deleteMutation = useDeleteTubeMutation();
   const isSubmitting = formSubmitting || deleteMutation.isPending;
 
-  // Receives form INPUT type, Zod transforms to OUTPUT type
   const handleFormSubmit = async (validatedData: UpdateTubeFormInput) => {
-    // Mark as saving to suppress stale warning (our save triggers version bump)
     setIsSavingLocal(true);
 
     try {
@@ -262,8 +249,7 @@ function EditModeForm({
       }
     } catch (error) {
       setIsSavingLocal(false);
-      // Global mutation error handler in queryClient.ts shows the toast
-      // Only log here for debugging
+      // PITFALL: the global mutation error handler already toasted; this only logs.
       if (!isOfflineError(error)) {
         logger.error('Tube update failed', { tubeId, error });
       }
@@ -342,10 +328,10 @@ function EditModeForm({
               variant="primary"
               disabled={!canSubmit}
               isLoading={isSubmitting}
-              loadingText="Updating..."
+              loadingText="Saving..."
               leftIcon={<Save className="w-4 h-4" />}
             >
-              Update Tube
+              Save Changes
             </Button>
           </div>
         </div>
@@ -364,20 +350,17 @@ function EditModeForm({
             className="text-caption"
             actions={
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleRefresh}
-                  className="text-body-sm font-medium px-2 py-1 rounded bg-warning-bg text-warning-btnText hover:bg-warning-hover transition-colors"
-                >
+                <Button type="button" variant="warning" size="sm" onClick={handleRefresh}>
                   Refresh
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setStaleWarningDismissed(true)}
-                  className="text-body-sm font-medium px-2 py-1 rounded bg-warning-light-hover text-warning-text hover:bg-warning-border transition-colors"
                 >
                   Continue Editing
-                </button>
+                </Button>
               </div>
             }
           >
@@ -407,7 +390,7 @@ function EditModeForm({
 
 function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEditorModalProps) {
   const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
-  // All selected positions are within a single box (tubeStore clears selection on box change).
+  // PITFALL: every selected position is in one box because tubeStore clears the selection on box change.
   const firstPositionLocation = useMemo(() => {
     if (!selectedPositions || selectedPositions.size === 0) return undefined;
     const first = selectedPositions.values().next().value;
@@ -505,7 +488,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     return { tankName, rackName, boxName, positionRanges };
   }, [parsedPositions, currentLab, getBox, userSettings]);
 
-  // FORM INPUT type (pre-transformation): concentration as string, date as string
   const defaultValues = useMemo(
     (): Partial<CreateTubeFormInput> => ({
       location: parsedPositions[0]?.location,
@@ -532,7 +514,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     [parsedPositions]
   );
 
-  // Only show individual notifications for single tube creation, not bulk operations
   const isSingleTube = parsedPositions.length === 1;
   const { form, submitTube, isSubmitting } = useCreateTubeForm({
     initialData: defaultValues,
@@ -541,10 +522,9 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
           notifications.success(`Successfully created tube at position ${data.location.position}`);
           onClose();
         }
-      : undefined, // Bulk mode: notification handled after all tubes are created
+      : undefined,
   });
 
-  // Reset form when modal opens to clear any stale data
   useEffect(() => {
     if (isOpen) {
       form.reset(defaultValues);
@@ -552,7 +532,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     }
   }, [isOpen, form, defaultValues]);
 
-  // Receives form INPUT type, Zod transforms to OUTPUT type
   const handleFormSubmit = async (formData: CreateTubeFormInput) => {
     try {
       if (parsedPositions.length === 0) {
@@ -561,7 +540,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       }
 
       if (parsedPositions.length === 1) {
-        // Single position - pass location as context
         const result = await submitTube(formData, parsedPositions[0].location);
 
         if (result.success) {
@@ -570,12 +548,10 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         return;
       }
 
-      // Multiple positions - handle creates AND updates
       let successCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
 
-      // Bulk create all empty positions in a single request
       if (positionAnalysis.emptyPositions.length > 0) {
         try {
           const createRequests: CreateTubeRequest[] = positionAnalysis.emptyPositions.map(
@@ -595,17 +571,14 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
           if (isOfflineError(error)) {
             return;
           }
-          // Total failure — count all creates as failed
           errorCount += positionAnalysis.emptyPositions.length;
           errors.push(error instanceof Error ? error.message : 'Unknown error');
         }
       }
 
-      // Process occupied positions (updates) - only if user explicitly allowed overwrite
       if (allowOverwrite) {
         for (const { location, tubeId } of positionAnalysis.occupiedPositions) {
           try {
-            // Validate and transform raw form data through Zod schema
             const validatedUpdates = updateTubeRequestSchema.parse({
               sample: formData.sample,
               researcherId: formData.researcherId,
@@ -617,7 +590,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
             });
             successCount++;
           } catch (error) {
-            // If offline, stop processing - global handler shows notification
             if (isOfflineError(error)) {
               return;
             }
@@ -629,8 +601,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         }
       }
 
-      // Occupied positions are only attempted when overwrite is enabled; otherwise they are
-      // intentionally skipped and must not count against the "processed / failed" tally.
+      // PITFALL: without overwrite, occupied positions are skipped on purpose and must not count as failures.
       const createCount = positionAnalysis.emptyPositions.length;
       const updateCount = allowOverwrite ? positionAnalysis.occupiedPositions.length : 0;
       const skippedCount = allowOverwrite ? 0 : positionAnalysis.occupiedPositions.length;
@@ -673,7 +644,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
           logger.warn('Tube operation errors', { errors });
         }
       } else {
-        // Skip error notification if it was an offline error - global handler shows it
         if (!errors.some(e => e.includes('offline'))) {
           notifications.error('Failed to process any positions');
           if (errors.length > 0) {
@@ -682,7 +652,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         }
       }
     } catch (error) {
-      // Skip notification for offline errors - global handler already shows it
       if (!isOfflineError(error)) {
         logger.error('Tube creation error', { error });
         notifications.error('An unexpected error occurred during tube creation');
