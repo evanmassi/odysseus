@@ -71,23 +71,22 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
 - **Tables:** zebra stripes are painted on the row, so the hover tint layers over them evenly.
 - **Demo data:** maintenance "performed by" shows readable names. Production updates on the first nightly reset after deploy.
+- **Tube editors:** bulk-edit failures use an error `AlertBanner` with Retry; stale-edit banner uses the shared `Button`; Title Case section titles. Tube, bulk, and lock-note editors say "Save Changes", like every other edit form; "Remove N Tubes" keeps its count because it's destructive.
+- **Bulk operations:** item cards are square with a tick-row header (name, then maker · catalog #) and a hover-reveal remove; plain "Quantity" / "Location" labels. Every tab's buttons sit in the modal footer (`BulkTabFooter`), so the footer no longer jumps between tabs. Void's reason field moved into the body.
+- **Horizontal tabs:** labels never wrap mid-word; vertical rail tabs still wrap.
+- **Reviewed and kept:** equipment maintenance and decommission, and the stock-transaction forms. Receive mode's long field list is task-specific and reads fine.
 
 ## Still to do
 
 1. **Light mode check.** A code scan found every color on this branch goes through theme tokens; the one gap (the lab-name flash) is fixed. A visual walk is still worth doing as screens are reviewed.
 2. **Glowing words still in place:**
    - `AlertDialog`;
-   - the print options panels;
+   - the print options panels (the reagent panel also has rounded boxes);
    - `DetailRow`'s hover text glow.
 
    Some shared primitives also glow on purpose (Select, DatePicker, Tabs, Kbd, Button). Review those case by case rather than sweeping them.
 
-3. **Edit forms and other modals.** Donor is done. Still unreviewed:
-   - the tube editor;
-   - equipment maintenance and decommission;
-   - the supply and reagent stock-transaction forms;
-   - the bulk-operation tabs.
-4. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
+3. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
 
 ## Mocks
 
