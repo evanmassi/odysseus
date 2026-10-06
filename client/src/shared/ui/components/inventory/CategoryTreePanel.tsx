@@ -240,26 +240,6 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                   size={11}
                   className={`nav-tree-row__chevron ${isExpanded ? 'rotate-90' : ''}`}
                 />
-                {canManageCategories && (
-                  <div
-                    className="flex flex-shrink-0 items-center"
-                    role="presentation"
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                  >
-                    <OverflowMenu
-                      items={buildCategoryMenuItems(
-                        category,
-                        totalCount > 0,
-                        onRenameCategory,
-                        onDeleteCategory
-                      )}
-                      dividerBefore={['Remove']}
-                      size="sm"
-                      aria-label={`Actions for ${category.name}`}
-                    />
-                  </div>
-                )}
                 {isExpanded ? (
                   <FolderOpen size={16} className="flex-shrink-0 text-primary" />
                 ) : (
@@ -277,15 +257,28 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                   countNoun={labels.countNoun}
                   tools={
                     canManageCategories && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onAddSubcategory(category.id)}
-                        className="h-6 text-label-sm"
-                        leftIcon={<Plus className="w-3 h-3" />}
-                      >
-                        Subcategory
-                      </Button>
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onAddSubcategory(category.id)}
+                          className="h-6 text-label-sm"
+                          leftIcon={<Plus className="w-3 h-3" />}
+                        >
+                          Subcategory
+                        </Button>
+                        <OverflowMenu
+                          items={buildCategoryMenuItems(
+                            category,
+                            totalCount > 0,
+                            onRenameCategory,
+                            onDeleteCategory
+                          )}
+                          dividerBefore={['Remove']}
+                          size="sm"
+                          aria-label={`Actions for ${category.name}`}
+                        />
+                      </>
                     )
                   }
                 />
@@ -356,7 +349,7 @@ function TreeRowRail({ count, countNoun, tools, isSubtle = false }: TreeRowRailP
           <span className="row-tools">
             <span className="min-w-0 overflow-hidden">
               <span
-                className="flex items-center pl-2.5"
+                className="flex items-center gap-1 pl-2.5"
                 role="presentation"
                 onClick={e => e.stopPropagation()}
                 onKeyDown={e => e.stopPropagation()}
@@ -401,7 +394,7 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
   return (
     <div data-level="l2" data-id={subcategory.id}>
       <div
-        className={`nav-tree-row row-glow nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
+        className={`nav-tree-row row-glow row-tools-host nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter') setIsExpanded(!isExpanded);
@@ -414,21 +407,6 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
           size={11}
           className={`nav-tree-row__chevron ${effectiveExpanded ? 'rotate-90' : ''}`}
         />
-        {canManage && (
-          <div
-            className="flex flex-shrink-0 items-center"
-            role="presentation"
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => e.stopPropagation()}
-          >
-            <OverflowMenu
-              items={buildCategoryMenuItems(subcategory, items.length > 0, onRename, onDelete)}
-              dividerBefore={['Remove']}
-              size="sm"
-              aria-label={`Actions for ${subcategory.name}`}
-            />
-          </div>
-        )}
         <CornerDownRight
           size={14}
           className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
@@ -436,7 +414,21 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
         <span className="nav-tree-row__label font-display text-body font-medium">
           {subcategory.name}
         </span>
-        <TreeRowRail count={items.length} countNoun={labels.countNoun} isSubtle />
+        <TreeRowRail
+          count={items.length}
+          countNoun={labels.countNoun}
+          isSubtle
+          tools={
+            canManage && (
+              <OverflowMenu
+                items={buildCategoryMenuItems(subcategory, items.length > 0, onRename, onDelete)}
+                dividerBefore={['Remove']}
+                size="sm"
+                aria-label={`Actions for ${subcategory.name}`}
+              />
+            )
+          }
+        />
       </div>
 
       {effectiveExpanded && items.length > 0 && (

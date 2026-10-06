@@ -75,7 +75,7 @@ export function AttributeSection({
           }
         >
           <SettingsRow
-            label="Value type"
+            label="Value Type"
             hint="Fixed when the attribute is created"
             className="col-span-2"
           >
@@ -85,7 +85,7 @@ export function AttributeSection({
           </SettingsRow>
 
           <SettingsRow
-            label="Applies to"
+            label="Applies To"
             hint={
               definition.appliesToTypes.length === 0
                 ? 'Offered on every reagent type — pick some to narrow it'
@@ -165,7 +165,7 @@ export function AttributeSection({
           </SettingsRow>
 
           <SettingsRow
-            label="Prompt on new items"
+            label="Prompt on New Items"
             hint="Render the field blank instead of waiting to be added"
             className="col-span-2"
           >
@@ -174,11 +174,11 @@ export function AttributeSection({
               onChange={onPromptChange}
               disabled={readOnly}
               size="sm"
-              aria-label="Prompt on new items"
+              aria-label="Prompt on New Items"
             />
           </SettingsRow>
 
-          <SettingsRow label="Delete attribute" hint={deleteHint} className="col-span-2">
+          <SettingsRow label="Delete Attribute" hint={deleteHint} className="col-span-2">
             <Button
               variant="ghost-danger"
               size="sm"

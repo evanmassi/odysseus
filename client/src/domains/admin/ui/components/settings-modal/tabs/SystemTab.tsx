@@ -169,7 +169,7 @@ export function SystemTab({ stats }: SystemTabProps) {
       </Subsection>
 
       <Subsection title="About" index={hasLab ? 4 : 2} accent>
-        <SettingsRow label="Odysseus version" hint="© 2025 Evan Massi" className="col-span-2">
+        <SettingsRow label="Odysseus Version" hint="© 2025 Evan Massi" className="col-span-2">
           <span className="font-mono text-data-sm font-semibold text-foreground">
             v{versionInfo?.version ?? '—'}
           </span>

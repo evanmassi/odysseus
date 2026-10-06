@@ -62,6 +62,8 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Header search bar:** filter and clear are plain ghost icon buttons. An "on" filter uses the shared `ghost-primary` button, which stays blue and shifts shade on hover; the catalog Filter buttons use it too.
 - **Row highlights (dark mode):** hover, open, selected, and selected-plus-hover come from one recipe in `row-glow.css`, used by tables, catalog trees and item lists, the storage navigator and Storage Manager, the location and category pickers, search result cards, and the checkbox lists. Selected table rows now react to hover; non-clickable rows don't; full Storage Manager boxes tint red. Light mode is unchanged.
 - **Storage Manager:** owner pickers read as plain names (flush right) with the dropdown frame on row hover; "+ Rack" / "+ Box" and the ⋮ menu slide in on hover using the shared `row-tools` reveal (also used by "+ Subcategory"); clicking "+ Rack" / "+ Box" opens the count picker in place. By User draws tree lines, drops repeated owner badges, and shows "2 of 4 boxes" on partly owned racks.
+- **Catalog trees:** the ⋮ menu on category and subcategory rows moved into the right-side hover tools, after "+ Subcategory", matching Storage Manager.
+- **Setting names:** Title Case everywhere ("Value Type", "Odysseus Version"); hint text below stays sentence case.
 - **Add labels:** Add Attribute, Add Lab, Add Demo Lab, Add Entry; "New Code" stays.
 - **Stacking:** named `z-popover` and `z-tooltip` layers, so tooltips always sit above popups.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
@@ -85,7 +87,6 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
    - the bulk-operation tabs.
 4. **Catalog page footers.** The equipment, supplies, and reagents details views and forms still have the shaded footer band behind their buttons. Decide whether it goes, like the donor and lab-settings footers did.
 5. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
-6. **Setting names.** Labels mix Title Case and sentence case. Pick one.
 
 ## Mocks
 
