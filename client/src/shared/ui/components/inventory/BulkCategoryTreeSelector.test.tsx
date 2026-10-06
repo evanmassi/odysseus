@@ -1,14 +1,3 @@
-/**
- * BulkCategoryTreeSelector tests
- *
- * Guards the parametrization shared by all three catalogs' bulk modals:
- * the injected selectability predicate, secondary text, count-noun labels, and
- * the controlled search — plus the selection-set math (item / category / all).
- *
- * SelectTreeLines (SVG geometry) is stubbed to null; Checkbox and SearchInput
- * become plain inputs so clicks and the selection set are assertable.
- */
-
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
@@ -17,7 +6,7 @@ import {
   type BulkCategoryTreeSelectorLabels,
 } from './BulkCategoryTreeSelector';
 
-vi.mock('../tree-lines', () => ({ SelectTreeLines: () => null }));
+vi.mock('../tree-lines', () => ({ NavTreeLines: () => null }));
 
 vi.mock('../../primitives', async importActual => {
   const actual = (await importActual()) as Record<string, unknown>;
@@ -103,8 +92,8 @@ describe('BulkCategoryTreeSelector', () => {
 
     expect(screen.getByLabelText('Select P200')).toBeInTheDocument();
     expect(screen.getByLabelText('Select Tips')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Select Old P')).not.toBeInTheDocument(); // decommissioned
-    expect(screen.getByText('Eppendorf')).toBeInTheDocument(); // injected secondary text
+    expect(screen.queryByLabelText('Select Old P')).not.toBeInTheDocument();
+    expect(screen.getByText('Eppendorf')).toBeInTheDocument();
   });
 
   it('toggles a single item', () => {
@@ -127,7 +116,6 @@ describe('BulkCategoryTreeSelector', () => {
     const onSelectionChange = vi.fn();
     render(<BulkCategoryTreeSelector {...baseProps} onSelectionChange={onSelectionChange} />);
 
-    // c1 has direct item i1 and subcategory (c1s) item i3.
     fireEvent.click(screen.getByLabelText('Select all in Pipettes'));
     expect(onSelectionChange).toHaveBeenCalledWith(new Set(['i1', 'i3']));
   });
@@ -154,7 +142,10 @@ describe('BulkCategoryTreeSelector', () => {
   it('labels counts with the injected singular/plural noun', () => {
     render(<BulkCategoryTreeSelector {...baseProps} />);
 
-    expect(screen.getAllByText('1 unit').length).toBeGreaterThan(0); // c2 + subcategory c1s (noun threads down)
-    expect(screen.getByText('2 units')).toBeInTheDocument(); // c1 = 2 (direct i1 + subcategory i3)
+    const countLabels = Array.from(document.querySelectorAll('.nav-tree-row__count')).map(
+      el => el.textContent
+    );
+    expect(countLabels).toContain('1 unit');
+    expect(countLabels).toContain('2 units');
   });
 });

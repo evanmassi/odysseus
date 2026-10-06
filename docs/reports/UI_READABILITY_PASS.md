@@ -64,6 +64,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Storage Manager:** owner pickers read as plain names (flush right) with the dropdown frame on row hover; "+ Rack" / "+ Box" and the ⋮ menu slide in on hover using the shared `row-tools` reveal (also used by "+ Subcategory"); clicking "+ Rack" / "+ Box" opens the count picker in place. By User draws tree lines, drops repeated owner badges, and shows "2 of 4 boxes" on partly owned racks.
 - **Catalog trees:** the ⋮ menu on category and subcategory rows moved into the right-side hover tools, after "+ Subcategory", matching Storage Manager.
 - **Setting names:** Title Case everywhere ("Value Type", "Odysseus Version"); hint text below stays sentence case.
+- **Location tree and bulk picker:** Catalog › Locations, the Manage Locations editor, and the bulk-operations category picker use the main catalog tree's rows, nesting, and tree lines with node squares; no box per row. The bulk picker keeps the name-to-count divider (shared `TreeRowRail`); locations have none.
 - **Add labels:** Add Attribute, Add Lab, Add Demo Lab, Add Entry; "New Code" stays.
 - **Stacking:** named `z-popover` and `z-tooltip` layers, so tooltips always sit above popups.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.

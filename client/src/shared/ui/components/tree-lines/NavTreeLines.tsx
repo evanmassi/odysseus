@@ -6,7 +6,7 @@ import { useTreeLines } from './useTreeLines';
 
 interface NavTreeLinesProps {
   treeId: string;
-  expandedCategoryIds: Set<string>;
+  expandedCategoryIds?: Set<string>;
 }
 
 export function NavTreeLines({ treeId, expandedCategoryIds }: NavTreeLinesProps) {
@@ -19,7 +19,7 @@ export function NavTreeLines({ treeId, expandedCategoryIds }: NavTreeLinesProps)
         leafLevelAttr: 'l3',
         rowSelector: '.nav-tree-row',
         leafRowSelector: '.nav-tree-row',
-        isTopExpanded: id => expandedCategoryIds.has(id),
+        isTopExpanded: id => expandedCategoryIds?.has(id) ?? true,
       }),
     [treeId, expandedCategoryIds]
   );
