@@ -1,98 +1,45 @@
 # Odysseus
 
-Professional Liquid Nitrogen Tube Inventory Management System for laboratory research teams.
+[![Checks](https://github.com/evanmassi/odysseus/actions/workflows/checks.yml/badge.svg)](https://github.com/evanmassi/odysseus/actions/workflows/checks.yml)
 
-## Overview
+A lab management platform. Your samples, supplies, reagents and equipment live in one place instead of a folder of
+spreadsheets.
 
-Odysseus is a web application to manage and track liquid nitrogen tube inventories in research laboratories. It provides a comprehensive solution for organizing samples across a hierarchical storage system (Tanks → Racks → Boxes → Tubes) with advanced search, tube locking, and real-time collaboration features.
+Try it at **https://odysse-us.vercel.app** with the demo account. The demo lab resets every night.
 
-## Tech Stack
+It started as a replacement for the Excel sheets our lab used to track its liquid nitrogen inventory, and grew to cover
+everything else the lab keeps track of.
 
-### Frontend
-- **React 18** with TypeScript
-- **Vite** - Build tool and dev server
-- **TanStack Query** - Server state management
-- **Zustand** - UI state management
-- **Tailwind CSS** - Styling
-- **React Hook Form + Zod** - Form handling and validation
+## Biobank
 
-### Backend
-- **Express** with TypeScript
-- **PostgreSQL** - Database
-- **Clean Architecture** - Domain → Application → Infrastructure → Presentation
-- **CQRS Pattern** - Commands and Queries separation
-- **JWT** - Authentication with refresh tokens
-- **Socket.IO** - Real-time updates
+- Set up storage to match your lab: tanks, racks and boxes, each box sized to fit. Boxes can belong to one person or
+  be shared.
+- See every box as a grid of tubes. Add, edit and move tubes one at a time or many at once, with copy and paste.
+- Lock tubes so no one else can change them or set them aside for specific projects, and share the lock with the people who need it.
+- Keep a donor registry with each donor's demographics and collection history, linked to their tubes.
+- Search every tube in the lab and jump straight to it in its box.
+- See changes the moment a colleague makes them.
 
-### Shared
-- **@odysseus/shared-schemas** - Centralized Zod schemas (monorepo package)
+## Lab management
 
-## Project Structure
+Everything else the lab tracks, with reminders so nothing runs out or gets missed.
 
-```
-odysseus-app/
-├── client/                 # React frontend
-│   └── src/
-│       ├── app/            # Providers, query config, stores
-│       ├── domains/        # Feature modules (tubes, researchers, search, etc.)
-│       ├── shared/         # Reusable components, hooks, utils
-│       └── infrastructure/ # HTTP client, socket, caching
-├── server/                 # Express backend
-│   └── src/
-│       ├── domain/         # Entities, repositories (interfaces), domain services
-│       ├── application/    # Use cases, DTOs, commands, queries, event handlers
-│       ├── infrastructure/ # Repository implementations, database, external services
-│       └── presentation/   # Controllers, routes, middleware
-└── packages/
-    └── shared-schemas/     # Shared Zod validation schemas
-```
+- **Supplies:** stock on hand, and a reorder list when something runs low.
+- **Reagents:** stock by lot, with a warning before anything expires or runs out.
+- **Equipment:** warranties, documents and a maintenance log that reminds you when service is due.
+- Barcode scanning and label printing for supplies and reagents to help maintain and organize your stock rooms.
 
-## Prerequisites
+## Your lab
 
-- **Node.js** v18+
-- **PostgreSQL** database
-- **npm** for package management
+- Many labs share one Odysseus, and each sees only its own.
+- Lab admins set up storage, manage stock and invite people. Everyone else gets on with the work.
+- Every change is recorded with who made it and when.
 
-## Installation
+## Coming next
 
-```bash
-npm install
-```
-
-## Development
-
-```bash
-# Full stack (server + client)
-npm run dev
-
-# Individual components
-npm run dev:client    # React on port 3000
-npm run dev:server    # Express on port 3001
-```
-
-## Build & Test
-
-```bash
-npm run build         # Build all
-npm test              # Run all tests
-npm run lint          # Lint client
-npm run typecheck     # Type checking
-```
-
-## Key Features
-
-- **Tube Inventory** - CRUD with hierarchical storage (Tank/Rack/Box/Position)
-- **Tube Locking** - Lock tubes with optional sharing to specific users
-- **Researcher Management** - Link researchers to tubes with approval workflow
-- **Advanced Search** - Full-text search with filters and saved searches
-- **Real-time Sync** - Socket.IO for collaborative updates
-- **Audit Trail** - Track all changes with archival
-- **Role-based Access** - Admin and user roles with configurable security
+A workbench for designing and building protocols and handing them off for record keeping, open to any scientist, in a
+lab or on their own.
 
 ## License
 
 MIT
-
-## Author
-
-Evan Massi
