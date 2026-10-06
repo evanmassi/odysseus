@@ -74,17 +74,14 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Tube editors:** bulk-edit failures use an error `AlertBanner` with Retry; stale-edit banner uses the shared `Button`; Title Case section titles. Tube, bulk, and lock-note editors say "Save Changes", like every other edit form; "Remove N Tubes" keeps its count because it's destructive.
 - **Bulk operations:** item cards are square with a tick-row header (name, then maker · catalog #) and a hover-reveal remove; plain "Quantity" / "Location" labels. Every tab's buttons sit in the modal footer (`BulkTabFooter`), so the footer no longer jumps between tabs. Void's reason field moved into the body.
 - **Horizontal tabs:** labels never wrap mid-word; vertical rail tabs still wrap.
+- **Word glow removed:** detail rows, alert dialog titles, and the print option labels; their icons keep their glow. The reagent print panel is square.
+- **Long names:** truncated names in the bulk item tree and the storage navigator show the full name in a tooltip after 400 ms (shared `TruncatedText`). The tree's name-to-count line collapses instead of crowding the count, checkboxes never shrink, and the All Items count lines up with the rows in the tree's count style.
 - **Reviewed and kept:** equipment maintenance and decommission, and the stock-transaction forms. Receive mode's long field list is task-specific and reads fine.
 
 ## Still to do
 
 1. **Light mode check.** A code scan found every color on this branch goes through theme tokens; the one gap (the lab-name flash) is fixed. A visual walk is still worth doing as screens are reviewed.
-2. **Glowing words still in place:**
-   - `AlertDialog`;
-   - the print options panels (the reagent panel also has rounded boxes);
-   - `DetailRow`'s hover text glow.
-
-   Some shared primitives also glow on purpose (Select, DatePicker, Tabs, Kbd, Button). Review those case by case rather than sweeping them.
+2. **Primitives that glow on hover:** Button, action Chip, the Select and DatePicker clear icons, NumberInput steppers, Kbd, and the active Tab. Review these case by case rather than sweeping them.
 
 3. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
 
