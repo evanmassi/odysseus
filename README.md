@@ -51,4 +51,4 @@ lab or on their own.
 
 ## License
 
-MIT
+Copyright (C) 2025-2026 Evan Massi. Licensed under the [GNU Affero General Public License v3.0](LICENSE).
