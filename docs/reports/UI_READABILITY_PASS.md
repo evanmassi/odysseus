@@ -76,6 +76,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Horizontal tabs:** labels never wrap mid-word; vertical rail tabs still wrap.
 - **Word glow removed:** detail rows, alert dialog titles, and the print option labels; their icons keep their glow. The reagent print panel is square.
 - **Long names:** truncated names in the bulk item tree and the storage navigator show the full name in a tooltip after 400 ms (shared `TruncatedText`). The tree's name-to-count line collapses instead of crowding the count, checkboxes never shrink, and the All Items count lines up with the rows in the tree's count style.
+- **Reagent expiry alerts:** one row per lot (Reagent with maker · catalog #, Lot with location, Expires with an in-words status in tone color). The list row carries `lotExpirations`, so alerts stay derived from the item list; the old `soonestExpiration` / `expiredLotCount` rollups are gone.
 - **Reviewed and kept:** equipment maintenance and decommission, and the stock-transaction forms. Receive mode's long field list is task-specific and reads fine.
 
 ## Still to do
