@@ -20,7 +20,7 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 
 **Words and hover**
 
-- Words never glow. The only exception is the active tab.
+- Words never glow. The exceptions are interactive primitives that glow on hover by design: buttons, action chips, select and date-picker icons, number steppers, Kbd, and the active tab.
 - Hover brightens. It does not bold, scale, or bloom.
 - For a text hover, change the word itself. Don't add brackets or underlines around it, and don't turn it blue.
 - Table rows, detail rows, and filter rows all share one hover: a faint blue stripe plus a soft wash (`ROW_HOVER_GLOW`). It layers over zebra stripes evenly.
@@ -81,9 +81,8 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 ## Still to do
 
 1. **Light mode check.** A code scan found every color on this branch goes through theme tokens; the one gap (the lab-name flash) is fixed. A visual walk is still worth doing as screens are reviewed.
-2. **Primitives that glow on hover:** Button, action Chip, the Select and DatePicker clear icons, NumberInput steppers, Kbd, and the active Tab. Review these case by case rather than sweeping them.
 
-3. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
+2. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
 
 ## Mocks
 
