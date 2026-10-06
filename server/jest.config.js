@@ -5,18 +5,14 @@ module.exports = {
     '**/src/**/*.test.ts',
     '**/src/**/*.test.js',
     '**/tests/**/*.test.ts',
-    '**/tests/**/*.test.js'
+    '**/tests/**/*.test.js',
   ],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.test.ts',
-    '!src/**/*.d.ts'
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.test.ts', '!src/**/*.d.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest'
+    '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   moduleNameMapper: {
     '^@domain/(.*)$': '<rootDir>/src/domain/$1',
@@ -27,5 +23,5 @@ module.exports = {
   },
   testTimeout: 10000,
   // Integration suites need a live Postgres; run them via jest.integration.config.js instead.
-  testPathIgnorePatterns: ['/node_modules/', '/tests/integration/']
+  testPathIgnorePatterns: ['/node_modules/', '/tests/integration/'],
 };

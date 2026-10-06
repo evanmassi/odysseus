@@ -37,11 +37,13 @@ server/src/domain/types/
 **Purpose:** Query and filter interfaces for all repositories.
 
 **Exports:**
+
 - `TubeSearchCriteria` - Multi-field search with filters, pagination, sorting
 - `ResearcherSearchCriteria` - Researcher filtering options
 - `UserSearchCriteria` - User filtering options
 
 **Usage:**
+
 ```typescript
 import type { TubeSearchCriteria } from '@domain/types/repository';
 
@@ -50,7 +52,7 @@ const criteria: TubeSearchCriteria = {
   tankIds: ['tank1'],
   sortBy: 'createdAt',
   sortOrder: 'desc',
-  limit: 50
+  limit: 50,
 };
 ```
 
@@ -61,6 +63,7 @@ const criteria: TubeSearchCriteria = {
 **Purpose:** Statistics and summary interfaces for repository analytics.
 
 **Exports:**
+
 - `TubeRepositoryStats` - Tube inventory statistics
 - `ResearcherUsageStats` - Per-researcher usage metrics
 - `ResearcherRepositoryStats` - Overall researcher statistics
@@ -71,6 +74,7 @@ const criteria: TubeSearchCriteria = {
 - `ConfigurationRepositoryStats` - Configuration statistics
 
 **Usage:**
+
 ```typescript
 import type { TubeRepositoryStats } from '@domain/types/repository';
 
@@ -91,10 +95,12 @@ async getStats(): Promise<TubeRepositoryStats> {
 **Purpose:** Common pagination and query configuration types.
 
 **Exports:**
+
 - `PaginatedResult<T>` - Standard paginated response wrapper
 - `QueryOptions` - Common query parameters (limit, offset, date range)
 
 **Usage:**
+
 ```typescript
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 
@@ -120,11 +126,13 @@ async findAll(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>>
 **Purpose:** Access control and permission checking types.
 
 **Exports:**
+
 - `AccessResult` - Single access check result
 - `BulkAccessResult` - Bulk operation access check
 - `BulkOperation` - Types of bulk operations ('edit' | 'delete' | 'move')
 
 **Usage:**
+
 ```typescript
 import type { AccessResult, BulkOperation } from '@domain/types/services';
 
@@ -144,12 +152,14 @@ async canEditTube(user: User, tube: Tube): Promise<AccessResult> {
 **Purpose:** Position validation and box statistics types.
 
 **Exports:**
+
 - `PositionValidation` - Basic validation result (isValid, errors)
 - `PositionValidationWithWarnings` - Validation with warnings
 - `PositionValidationResult` - Full validation with conflict info
 - `BoxStatistics` - Box occupancy and capacity statistics
 
 **Usage:**
+
 ```typescript
 import type { PositionValidationResult, BoxStatistics } from '@domain/types/services';
 
@@ -170,10 +180,12 @@ async canPlaceTubeAt(location: Location): Promise<PositionValidationResult> {
 **Purpose:** Tube creation and update data types for validation.
 
 **Exports:**
+
 - `TubeCreationData` - Tube creation request structure
 - `TubeUpdateData` - Tube update request structure (partial fields)
 
 **Usage:**
+
 ```typescript
 import type { TubeCreationData, TubeUpdateData } from '@domain/types/services';
 
@@ -195,10 +207,12 @@ async validateTubeUpdate(tube: Tube, updates: TubeUpdateData): Promise<Validatio
 **Purpose:** Domain-level validation result types.
 
 **Exports:**
+
 - `DomainValidationResult` - Standard validation result with errors/warnings
 - `BulkValidationResult` - Validation for bulk operations
 
 **Usage:**
+
 ```typescript
 import type { DomainValidationResult } from '@domain/types/validation';
 
@@ -221,14 +235,16 @@ async validateConfigurationUpdate(
 **Purpose:** Configuration-specific update data types.
 
 **Exports:**
+
 - `ConfigurationUpdateData` - Partial configuration updates
 
 **Usage:**
+
 ```typescript
 import type { ConfigurationUpdateData } from '@domain/types/configuration';
 
 const updates: ConfigurationUpdateData = {
-  tanks: [...updatedTanks]
+  tanks: [...updatedTanks],
 };
 ```
 
@@ -247,7 +263,8 @@ import type { AccessResult, BulkOperation } from '@domain/types/services';
 import type { DomainValidationResult } from '@domain/types/validation';
 
 // ❌ WRONG - Never define types inline or in service files
-interface TubeSearchCriteria {  // This creates duplication!
+interface TubeSearchCriteria {
+  // This creates duplication!
   query?: string;
   // ...
 }
@@ -289,6 +306,7 @@ export class AccessControlService {
 ### 1. Determine Type Category
 
 **Ask yourself:**
+
 - Is this a repository query/filter? → `domain/types/repository/SearchCriteria.ts`
 - Is this a repository statistic? → `domain/types/repository/Stats.ts`
 - Is this a pagination/query option? → `domain/types/repository/QueryOptions.ts`
@@ -358,21 +376,25 @@ import type { MyStats } from '@domain/types/repository';
 ## Benefits of Centralized Types
 
 ### 1. Single Source of Truth
+
 - Each type exists in exactly one location
 - No duplicate definitions across files
 - Changes propagate automatically through imports
 
 ### 2. Discoverability
+
 - Developers know exactly where to find types
 - Clear organization by domain and layer
 - Easy to browse type catalog
 
 ### 3. Maintainability
+
 - Type changes only need to happen once
 - Refactoring is safer and simpler
 - Reduces merge conflicts
 
 ### 4. Type Safety
+
 - TypeScript compilation catches all type mismatches
 - No accidental type drift between duplicates
 - Strong contracts between layers
@@ -404,6 +426,7 @@ When adding a new type to the centralized system:
 ## Maintenance
 
 This document should be updated when:
+
 - New type categories are added
 - Type organization structure changes
 - New centralized type files are created

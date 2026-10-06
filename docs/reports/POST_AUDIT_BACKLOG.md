@@ -18,31 +18,31 @@ closed, and the "unaudited frontend" this doc pointed at does not exist.
 >
 > **Read the code before trusting an item in this file.**
 >
-> | Item | State |
-> |------|-------|
-> | #0 Vulnerable dependencies | **Done** (`eb4e59f1`) — 16 prod vulns → 1, which is unreachable |
-> | #1 Transactions | **Done** (`cf4996a3`, `fcc99674`) — mechanism + every auth flow; the two "remaining" flows needed no transaction |
-> | #2 Wire contract | **Largely closed** (`ccc3a81a`); runtime serialization tests remain |
-> | #3 Equipment ↔ supplies twin | **Done** (`f966d4b7`, `c9ee8994`, `66c06491`) — split verdict; the standing rule now lives in AGENTS.md |
-> | #4 Frontend audit | **Already done before this doc was written** — 53 `audit:` commits; 151 of 216 branch commits touch `client/`. Only bundle size remains. |
-> | #5 Accessibility | **Partly done incidentally** by the component audit; no dedicated sweep |
-> | #6–#7 | Open |
+> | Item                          | State                                                                                                                                    |
+> | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+> | #0 Vulnerable dependencies    | **Done** (`eb4e59f1`) — 16 prod vulns → 1, which is unreachable                                                                          |
+> | #1 Transactions               | **Done** (`cf4996a3`, `fcc99674`) — mechanism + every auth flow; the two "remaining" flows needed no transaction                         |
+> | #2 Wire contract              | **Largely closed** (`ccc3a81a`); runtime serialization tests remain                                                                      |
+> | #3 Equipment ↔ supplies twin | **Done** (`f966d4b7`, `c9ee8994`, `66c06491`) — split verdict; the standing rule now lives in AGENTS.md                                  |
+> | #4 Frontend audit             | **Already done before this doc was written** — 53 `audit:` commits; 151 of 216 branch commits touch `client/`. Only bundle size remains. |
+> | #5 Accessibility              | **Partly done incidentally** by the component audit; no dedicated sweep                                                                  |
+> | #6–#7                         | Open                                                                                                                                     |
 
 ---
 
 ## 0. Vulnerable production dependencies
 
-**What:** `npm audit --omit=dev` reports 16 vulnerabilities (8 high) in *shipped* dependencies.
+**What:** `npm audit --omit=dev` reports 16 vulnerabilities (8 high) in _shipped_ dependencies.
 
 **Why it matters:** It undercuts the security pass. `jsonwebtoken` depends on `jws`, which has an
-advisory for *improperly verifying HMAC signatures* — the library that validates the tokens the
+advisory for _improperly verifying HMAC signatures_ — the library that validates the tokens the
 security pass just hardened. Also: `express-rate-limit` (IPv4-mapped IPv6 addresses bypass
 per-client limiting), `path-to-regexp` via `express` (ReDoS), `ws` via `socket.io` (uninitialized
 memory disclosure, memory-exhaustion DoS), `react-router-dom` (XSS via open redirect).
 
 **Where to start:** Every one of these reports `fixAvailable: true` with no breaking change. Run
 `npm audit fix`, re-run the suites, done. This is an afternoon, not a project. The knip pass covered
-*dead* dependencies; it never looked at *vulnerable* ones.
+_dead_ dependencies; it never looked at _vulnerable_ ones.
 
 ## 1. Transaction integrity across multi-write flows
 
@@ -53,7 +53,7 @@ so a mid-flow failure leaves inconsistent state.
 
 **Mechanism: built 2026-07-12** (`cf4996a3`). The original draft's premise was wrong twice over —
 `PostgresContext` already had `transaction()`, and the real blocker was that repositories query the
-pool directly, so no *cross-repository* flow could share one. Both are now resolved:
+pool directly, so no _cross-repository_ flow could share one. Both are now resolved:
 
 - `Queryable` — the query surface repositories depend on. `PostgresContext` implements it
   pool-backed; `TransactionalContext` implements it bound to one client. All 18 repos take
@@ -84,7 +84,7 @@ not to need transactions, and wrapping one of them would have been a bug:
 - ~~Storage import~~ — already atomic. It writes via `StorageRepository.saveWithOptimisticLock`,
   which wraps its writes in `context.transaction(...)` (`StorageRepository.ts:146`).
 
-## 2. Wire-contract enforcement — *largely closed 2026-07-12*
+## 2. Wire-contract enforcement — _largely closed 2026-07-12_
 
 **What it was:** Nothing bound the server's response shapes to the Zod schemas the client validates
 them against. This produced the login regression mid-review (`db403874`): the application-layer
@@ -93,7 +93,7 @@ cleanup dropped a field the client's `authResponseSchema` still required, and it
 **What was done** (commit `ccc3a81a`): the auth surface is now bound at the type level. Every auth
 response declares the shared-schemas type the client parses it with, so a dropped or added field is
 a `tsc` failure. Verified by re-introducing the original bug and watching it fail to compile.
-Alongside that: `refreshTokenResponseSchema` is new (the refresh payload previously had *no* schema
+Alongside that: `refreshTokenResponseSchema` is new (the refresh payload previously had _no_ schema
 and two independent hand-rolled shapes — a server interface and a client inline generic);
 `sessionToken` was deleted (required by the schema, sent in three places, read by nobody, and only a
 copy of `tokens.accessToken`); and `SessionService` now parses its refresh and session-info
@@ -103,7 +103,7 @@ responses instead of casting them. `User.toPublicData()` returns `Date` rather t
 **What remains:**
 
 - **Runtime serialization checks.** Types cannot see the wire. `dateField` is `z.coerce.date()`,
-  which accepts `Date` *and* `string`, so no type-level bind can catch a date that serializes wrong,
+  which accepts `Date` _and_ `string`, so no type-level bind can catch a date that serializes wrong,
   nor an envelope change. Only a test that round-trips through real JSON can. **Any such test must
   `JSON.parse(JSON.stringify(...))` before `.parse()`** — validating the controller's return object
   instead of its serialized form passes vacuously.
@@ -124,27 +124,27 @@ responses instead of casting them. `User.toPublicData()` returns `Date` rather t
   response bodies are currently discarded, so the blast radius is small, but it's a systematic
   bypass of the rule in AGENTS.md.
 
-## 3. The equipment ↔ supplies twin — *closed 2026-07-12*
+## 3. The equipment ↔ supplies twin — _closed 2026-07-12_
 
 **What it was:** Near-identical duplication between the equipment and supply domains, deferred at
-every layer of the review. Leaving it *undecided* was the stated cost — the two copies would drift.
+every layer of the review. Leaving it _undecided_ was the stated cost — the two copies would drift.
 
 **They had already drifted, and it had already cost a bug.** Both catalogs document a two-level
-category hierarchy and both enforced it on create. Only equipment enforced it on *reparent*, so
+category hierarchy and both enforced it on create. Only equipment enforced it on _reparent_, so
 `PUT /supplies/categories/:id` could move a category under a subcategory and reach a third level the
 create path forbids and the UI cannot render. Equipment got the hardening; supplies never did,
 because the rule lived in two places.
 
 **The answer was a split verdict, not the binary the draft posed.** Measured, not guessed:
 
-| Pair | Identical after renaming |
-|------|--------------------------|
-| Category repository | **100%** — zero differing lines |
-| Category entity | **98%** — differed by one line (the ID prefix) |
-| Document entity / mappers | 97% — differed by a header comment |
-| Item entity | 50% |
-| Item repository | 35% (207 vs 483 lines) |
-| Application service | 38% (19 vs 34 public methods) |
+| Pair                      | Identical after renaming                       |
+| ------------------------- | ---------------------------------------------- |
+| Category repository       | **100%** — zero differing lines                |
+| Category entity           | **98%** — differed by one line (the ID prefix) |
+| Document entity / mappers | 97% — differed by a header comment             |
+| Item entity               | 50%                                            |
+| Item repository           | 35% (207 vs 483 lines)                         |
+| Application service       | 38% (19 vs 34 public methods)                  |
 
 So the category and document surfaces are a genuine twin; the item surface only looks like one. That
 matches what the client-side twin analysis concluded in July.
@@ -153,7 +153,7 @@ matches what the client-side twin analysis concluded in July.
 document entities, repositories, and mappers collapsed to one implementation each; eight duplicate
 files removed. The four subclasses now hold nothing but an ID prefix, so the next drift is visible.
 
-**Deliberately NOT done, and recorded in AGENTS.md → *Equipment ↔ Supplies*:**
+**Deliberately NOT done, and recorded in AGENTS.md → _Equipment ↔ Supplies_:**
 
 - The **item surface stays separate, permanently.** ~6 shared fields out of 15+; equipment tracks
   asset lifecycle, supplies tracks a stock ledger. A generic "inventory item" would be a
@@ -169,7 +169,7 @@ behaviour change it is. Both now list newest-first, matching 7 of the 9 time-ord
 app — including the maintenance log sitting directly beside the documents on the equipment panel,
 which had been newest-first while the documents next to it were not.
 
-## 4. Code-splitting — *the "frontend audit" half of this item was already done*
+## 4. Code-splitting — _the "frontend audit" half of this item was already done_
 
 > ~~**What:** The client got lighter scrutiny than the server (the client sweep was narrow —
 > cross-domain barrels and design tokens — not the file-by-file pass the server layers got).~~
@@ -192,16 +192,16 @@ was never addressed by the audit.
 admin tabs are lazy-loaded.~~ Correction: `lazy()` is used in **seven** files (`App.tsx`,
 `AppDashboard`, `AppHeader`, `AdminSettingsModal`, `SystemAdminDashboard`, `HelpModal`,
 `UserSettingsModal`) — so the low-hanging fruit is already picked, and the remaining 1 MB is the
-*core* bundle. Note also `client/vite.config.ts:40` sets `chunkSizeWarningLimit: 1100`, i.e. the
+_core_ bundle. Note also `client/vite.config.ts:40` sets `chunkSizeWarningLimit: 1100`, i.e. the
 warning was **silenced, not fixed**. Split by domain / route.
 
 ~~Then a proper component-quality pass.~~ Not needed — that pass happened (see above). Component
 quality is not the open question here; bundle size is.
 
-## 5. Accessibility — *partly done, incidentally*
+## 5. Accessibility — _partly done, incidentally_
 
 **What:** AGENTS.md mandates keyboard support for interactive elements. ~~There's no evidence of an
-actual a11y pass.~~ Correction: there was no *dedicated* a11y pass, but the component audit did a
+actual a11y pass.~~ Correction: there was no _dedicated_ a11y pass, but the component audit did a
 fair amount of it in passing — 13 client commits touch aria/focus/keyboard (option ids and
 `aria-activedescendant` on Autocomplete, focus-ring tokens, the modal focus trap). So the state is
 better than the draft implies, but it was a by-product rather than a sweep.

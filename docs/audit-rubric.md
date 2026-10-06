@@ -41,6 +41,7 @@ near-identical helpers in different domains; a hand-rolled type overlapping a sh
 elsewhere).
 
 Two mitigations, both required:
+
 - **Finder:** for each non-trivial helper/const/type your file defines, grep the tree for its name
   and its distinctive logic. If a sibling reimplements it, flag it as duplication and cite both
   locations.
@@ -82,12 +83,12 @@ nothing (no `"use client"`, no blank line, no comment) before it.
 
 - **Title is plain English**, not the symbol name: "Audit Log Viewer", not "AuditLogViewer".
 - **Description is optional, but if present it must add context beyond the title.** A description that
-  only restates the title is a finding — drop it (title-only header is correct). *(established
-  convention)*
+  only restates the title is a finding — drop it (title-only header is correct). _(established
+  convention)_
 - No bullet lists, feature enumerations, author tags, dates, "Refactored from", "Phase 2", ticket
   numbers.
 - **Headers drift** — flag a header that lists consumers ("used by X, Y, Z") when that list is stale
-  or the file has other consumers; drop the consumer list, keep the *why*/rationale. Move
+  or the file has other consumers; drop the consumer list, keep the _why_/rationale. Move
   param-specific rationale into the relevant JSDoc `@param`.
 - Flag stale references inside headers (e.g. an old token/symbol name the code no longer uses).
 - Flag a missing header.
@@ -99,6 +100,7 @@ code shows that). Best comment = a well-named function. Scrutinize comments as h
 restatement comment is dead weight just like dead code, and easy to skim past while reading the logic.
 
 **KILL (flag for removal):**
+
 - Restatement comments — `// Increment counter` over `counter++`.
 - Restatement on config/options objects — `// Disable focus refetch` next to `refetchOnWindowFocus: false`. The property name is the doc.
 - Section dividers that only restate the adjacent symbol (`// TUBE HANDLERS` over `setupTubeHandlers`) → remove. A divider with a strategy/why suffix earns its place → keep.
@@ -116,7 +118,8 @@ restatement comment is dead weight just like dead code, and easy to skim past wh
 - Bare `eslint-disable` / `eslint-disable-next-line` with no `-- reason` → flag. A `prefer-nullish-coalescing` disable
   on code already using `??` is dead → remove.
 
-**KEEP (do not flag; flag if *missing* on a non-obvious spot):**
+**KEEP (do not flag; flag if _missing_ on a non-obvious spot):**
+
 - Business rationale (why a timeout is 15min, why an algorithm was chosen).
 - Non-obvious edge cases (null vs undefined handling, empty-value-placeholder logic, portal
   outside-click behavior, focus-return quirks).
@@ -128,14 +131,14 @@ getters, obvious handlers, functions whose types already tell the story. Flag JS
 param names/types (`@param data - the data`). Once a type is **unexported** (internal), its per-field
 JSDoc bar rises sharply — the impl is right there; document only genuinely non-obvious fields.
 
-**Self-documenting check:** if a comment only compensates for a poor name, the finding is the *name*,
+**Self-documenting check:** if a comment only compensates for a poor name, the finding is the _name_,
 not the missing comment.
 
 ### 3. Types & Props
 
 - **File-level Props convention:** a `*Props` interface used only in its own file with **no external
   importer** stays **unexported**. Grep for importers; zero → flag the `export` for removal.
-  *(established convention)*
+  _(established convention)_
 - **Unexport any type used only within its own file** (e.g. a size/state union referenced only in
   `types.ts`). Grep first.
 - **No parallel shapes:** a hand-rolled interface overlapping a shared-schema type for the same
@@ -163,7 +166,7 @@ harness still counts as speculative/dead.
 - **No-op React hooks:** `useCallback`/`useMemo` with no dependency benefit (e.g. `useCallback` whose
   result is invoked immediately, or a memo of a trivial value) → simplify to a plain function/value,
   or convert an immediately-invoked `useCallback` into a real `useMemo` if memoization is actually
-  wanted. *(established call)*
+  wanted. _(established call)_
 
 **Deletion grep discipline:** before declaring a file/barrel/export dead, grep **every** import form —
 relative (`./x`, `../x`), aliased (`@app/x`, `@shared/x`), and `export *` re-export chains. A
@@ -175,9 +178,10 @@ render site (`<Name`) and every import site, not just "is it exported."
 ### 5. Barrels (`index.ts`)
 
 Two-part decision, decided with **grep counts** (barrel-path imports vs deep-path imports):
+
 - **DELETE** a barrel with zero external importers (everyone deep-imports it → it isn't the real
   surface).
-- **KEEP-and-TRIM** a barrel that *is* the surface: re-export only the externally-consumed symbols,
+- **KEEP-and-TRIM** a barrel that _is_ the surface: re-export only the externally-consumed symbols,
   drop the rest (dead component/type re-exports).
 - Don't go barrel-free. Barrel headers may stay title-only.
 
@@ -187,7 +191,7 @@ Two-part decision, decided with **grep counts** (barrel-path imports vs deep-pat
   ≥2 real callers before extracting; a single-caller helper → inline it (premature abstraction).
 - Repeated Tailwind class strings → shared component, `cva` variant, or `clsx` helper. **Preserve the
   literal classes** when collapsing (e.g. merging identical color maps, hoisting a per-render map to a
-  module `const` typed `Record<Union>` so the union and map stay in sync). *(established call)*
+  module `const` typed `Record<Union>` so the union and map stay in sync). _(established call)_
 - Magic strings/keys duplicated across files (route paths, error codes, query-key roots, event names,
   toast messages) → centralize to the single owner (`@app/queryKeys`, shared-schemas, a `routes.ts`).
 - A design token is the single source of truth — flag an inlined literal that duplicates a token value
@@ -197,9 +201,9 @@ Two-part decision, decided with **grep counts** (barrel-path imports vs deep-pat
 
 - **Thin handler wrappers** that only forward to a store action / prop / function
   (`const handleX = () => clearX()`, or a `handleScrollOrResize` that only calls `updatePosition`) →
-  pass the target directly. *(established call)*
+  pass the target directly. _(established call)_
 - **Magic numbers** standalone or in collision/layout math → named consts, co-located, with the name
-  mirroring the source (`MENU_WIDTH` mirrors `min-w-40`). Numbers *inside* a named-key config object
+  mirroring the source (`MENU_WIDTH` mirrors `min-w-40`). Numbers _inside_ a named-key config object
   are self-documenting — don't flag those.
 - **Redundant params** always passed the same module singleton (a `queryClient` param that's always
   the imported instance) → drop the param, use the import.
@@ -264,6 +268,7 @@ Finding 2
 ```
 
 Rules for the report:
+
 - **Fix must be application-ready** — exact replacement text or an unambiguous instruction, not "consider simplifying".
 - Order findings by severity (dead code / behavior > convention > cosmetic).
 - If CLEAN, output the `File:`/`Verdict: CLEAN` lines and nothing else.

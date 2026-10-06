@@ -1,11 +1,11 @@
 /**
  * Example Test - Verifies testing infrastructure works
- * 
- * This test validates that our testing setup (Vitest + RTL + providers) 
+ *
+ * This test validates that our testing setup (Vitest + RTL + providers)
  * is working correctly. Remove this file once real tests are added.
  */
 
-import { screen , render } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 // Simple component for testing
@@ -21,7 +21,7 @@ function TestComponent() {
 describe('Testing Infrastructure Validation', () => {
   it('should render basic components', () => {
     render(<TestComponent />);
-    
+
     expect(screen.getByText('Test Component')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
   });

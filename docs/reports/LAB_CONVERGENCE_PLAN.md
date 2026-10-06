@@ -21,7 +21,7 @@ and the integration setup rebuilds it.
 
 **Governing rule.** One source of truth per concept. Where a concept is genuinely lab-wide (a vendor,
 a fridge, a unit), it gets one home and every suite points at it. Where it's genuinely suite-specific
-(an equipment category tree, a lot ledger), it stays split — see *Not merging* below, and don't
+(an equipment category tree, a lot ledger), it stays split — see _Not merging_ below, and don't
 relitigate it.
 
 **Standing pattern — alerts are derived, not fetched.** Low-stock, expiry and maintenance alerts are
@@ -33,7 +33,7 @@ Equipment already works this way; supplies' `GET /reorder-list` is the outlier (
 if a lab outgrows loading its item list, which would break the category tree first.
 
 **Authoring standard.** Same as reagents: fresh to the Donor exemplars in `AGENTS.md`. Supplies and
-equipment are the *surface* reference only — never a code reference.
+equipment are the _surface_ reference only — never a code reference.
 
 ---
 
@@ -50,10 +50,9 @@ and 123 lines differing in **30** — a clone. Collapsed into
 that folder), with each domain keeping only its query, its unit formatting (`formatQuantity` vs
 `pluralizeUnit`) and which reorder modal opens. Both bindings are now ~53 lines.
 
-
 **What.** Extract one alert panel component + one alert shape (severity, entity, message, action)
 to `shared/ui/components/`; rewire supplies and equipment onto it. Add a lab-wide roll-up (count
-badge in the header or dashboard) that links *into* the per-tab panels.
+badge in the header or dashboard) that links _into_ the per-tab panels.
 
 **Why.** `SupplyLowStockAlertPanel` (215 lines) and `EquipmentMaintenanceAlertPanel` (220 lines) are
 two hand-written implementations of one pattern. Reagents Phases 3 and 6 would add a third and
@@ -61,7 +60,7 @@ fourth. Separately, nothing today tells an admin anything needs attention unless
 and look.
 
 **Not doing:** merging the panels into one list. Per-tab placement is deliberate — scoped alerts are
-digestible and sit where you'd act on them. The roll-up reports *that* something needs attention;
+digestible and sit where you'd act on them. The roll-up reports _that_ something needs attention;
 the panels stay the place you deal with it.
 
 **Landed.** `shared/ui/components/inventory/AlertPanel.tsx` + co-located test; supplies and equipment
@@ -82,7 +81,7 @@ catalog keeps a thin `*_attribute_values` table with a real FK to its own items.
 dropped `properties[]` for the real one. Shipping both is two mechanisms for one concept.
 
 **Rejected:** a polymorphic `item_id` + `item_type` with no FK. `REAGENTS_PLAN` §5.4 chose normalized
-EAV *for* referential integrity; dropping the item FK partly undoes its own rationale. Sharing the
+EAV _for_ referential integrity; dropping the item FK partly undoes its own rationale. Sharing the
 vocabulary while keeping values local is the same call `AGENTS.md` already made for categories.
 
 **Landed.** `attribute_definitions` + `attribute_options` (lab-wide, `applies_to_catalog` CHECK of
@@ -109,9 +108,9 @@ it needs the same escape hatch.
 **hierarchical via a `parent_id` self-FK**, with equipment's free-text `location` column migrated onto
 it. All three catalogs FK to it.
 
-**Why.** "Freezer A" is one physical place holding supplies *and* reagents. Renaming it today means
-two tables and a text field. Hierarchy because a lab's places nest for real — *Room 204 → Cold Room →
-Shelf 2* — and flat lists force compound strings like "Room 204, Bench 3" that nothing can query.
+**Why.** "Freezer A" is one physical place holding supplies _and_ reagents. Renaming it today means
+two tables and a text field. Hierarchy because a lab's places nest for real — _Room 204 → Cold Room →
+Shelf 2_ — and flat lists force compound strings like "Room 204, Bench 3" that nothing can query.
 
 **Depth.** `validateCategoryDepth` generalises to a `maxDepth` option counting **tiers**: categories
 keep today's `2` as the default (behaviour identical), locations pass `3`. The guard switches to
@@ -126,7 +125,7 @@ The cycle that briefly ruled it out — its barrel exported `LabManagementPage`,
 consumer (`AppDashboard`), and even imported `@app/components/layout/AppHeader`, a domain reaching
 into the app shell. Moving it to `app/components/layout/` inverts the dependency correctly — the
 domain exports vocabularies, catalogs import them, `app/` composes both. Attributes and custom units
-land here too. Not `domains/storage/` — positional tube subsystem, disjoint consumers (see *Parked*).
+land here too. Not `domains/storage/` — positional tube subsystem, disjoint consumers (see _Parked_).
 
 **Landed (4a).** One `locations` table with `parent_id`, created in the amended 027; migration 030
 moves supply rows across, repoints the `supply_stock` and `supply_transactions` FKs and drops
@@ -139,12 +138,12 @@ stock row and transaction still resolve, `supply_locations` dropped, dev itself 
 
 **Follow-on.** Lookups (species, vendor, manufacturer) are still administered from
 `domains/admin/CatalogTab` while these vocabularies live in lab-management — the same concept in two
-homes. Item 7's rail is the moment to reconcile that, since the rail *is* one surface for every lab
+homes. Item 7's rail is the moment to reconcile that, since the rail _is_ one surface for every lab
 vocabulary.
 
 **Landed (4b).** The product call went to a **constrained dropdown**: `equipment_items.location_id` is
 a nullable FK to `locations` and the free-text column is gone. Nullable because a unit needs no place —
-three of four had none — so nothing is forced into the tree; only a unit that *has* a location needs the
+three of four had none — so nothing is forced into the tree; only a unit that _has_ a location needs the
 node to exist, which was already true for supplies and reagents.
 
 The FK sits on the **item**, not on stock, and that asymmetry is correct: supplies and reagents hang
@@ -153,7 +152,7 @@ centrifuge is in exactly one.
 
 **The backfill is the interesting half.** Dev held a single value — `"Main lab, Hood X0F"` — which is
 exactly the compound string this document predicted a flat field produces. Migration 036 splits on
-commas and walks the chain, creating *Main lab* and *Hood X0F* as two real nodes, capped at
+commas and walks the chain, creating _Main lab_ and _Hood X0F_ as two real nodes, capped at
 `LOCATION_MAX_DEPTH`; anything deeper keeps its text as one node rather than getting a hierarchy the
 depth guard would refuse. Nodes are matched by name **lab-wide**, not per parent, because
 `locations` is `UNIQUE(lab_id, name)` — matching per parent would have violated the constraint on any
@@ -184,15 +183,15 @@ commit 2c touched, and a rename/count cascade fanning out to three item tables.
 backfills equipment's free-text manufacturers into the shared list so existing items resolve against
 their own dropdown, and adds `vendor_name` / `vendor_catalog_number` to `equipment_items`. Migration
 027 was amended to never create the reagent-scoped pair. `LookupValueApplicationService` now resolves
-a *list* of catalog fns per category — vendor and manufacturer sum counts across supplies, reagents
+a _list_ of catalog fns per category — vendor and manufacturer sum counts across supplies, reagents
 and equipment, and a rename cascades to all three.
 
 **Rehearsed before shipping:** the data migration was replayed on a clone of the dev database — 3
-vendors and 4 manufacturers moved, *Eppendorf* backfilled from the one equipment item, *Thermo
-Scientific* correctly retained as both a vendor and a manufacturer.
+vendors and 4 manufacturers moved, _Eppendorf_ backfilled from the one equipment item, _Thermo
+Scientific_ correctly retained as both a vendor and a manufacturer.
 
 **Resolved by item 7:** the merged lists were parked in a `Suppliers` accordion group; the rail
-dissolved all grouping, so they are now simply the *Vendors* and *Manufacturers* leaves.
+dissolved all grouping, so they are now simply the _Vendors_ and _Manufacturers_ leaves.
 
 ### 6. Supplies → unit registry — ✅ done
 
@@ -233,11 +232,11 @@ filtered by dimension.
 
 **What.** Replace the accordion groups with a left rail + detail pane. Rail lists every editable
 vocabulary (flat, alphabetical, filter box, entry counts); right pane shows the selected list — the
-existing per-list table, unchanged. Shared vocabularies carry a *used by · Supplies · Reagents ·
-Equipment* line. Route context pre-selects a leaf. Reuses the existing `nav-tree` CSS and
+existing per-list table, unchanged. Shared vocabularies carry a _used by · Supplies · Reagents ·
+Equipment_ line. Route context pre-selects a leaf. Reuses the existing `nav-tree` CSS and
 `NavTreeLines` already used by the sibling `SystemTab`.
 
-**Why.** Semantic grouping can't classify Phase 7's *lab-defined* attribute vocabularies, so a
+**Why.** Semantic grouping can't classify Phase 7's _lab-defined_ attribute vocabularies, so a
 taxonomy solves the fixed half of the surface and structurally cannot solve the growing half. The
 rail also makes group names optional decoration rather than load-bearing containers.
 
@@ -247,12 +246,12 @@ land here as leaves).
 **Landed.** `CatalogRail` (flat, alphabetical, filter box, entry counts) beside the selected list;
 `CatalogGroup` and its five `expanded` flags deleted. The nine hand-written `CategorySection` blocks
 became one `CATALOG_LEAVES` config plus a single render, so the tab lost ~210 lines while gaining the
-filter and the *used by* line — which rides in `SubsectionHeader`'s existing `meta` slot rather than
+filter and the _used by_ line — which rides in `SubsectionHeader`'s existing `meta` slot rather than
 new chrome. `CategorySection` itself is untouched: the per-list table, inline add/rename/delete,
 sorting and usage counts are exactly as they were. Route context pre-selects on mount only, so
 navigating with the modal open doesn't yank the selection.
 
-**Deviation from the sketch:** `NavTreeLines` was *not* used. It only emits connectors for expanded
+**Deviation from the sketch:** `NavTreeLines` was _not_ used. It only emits connectors for expanded
 `l1` parents, so on a flat rail it renders an empty SVG. The `nav-tree` CSS is still the vocabulary —
 a new `--rail` variant was folded into the existing selected-row selectors (three lines of selector
 widening, no duplicated declarations) because `--item`'s junction dot expects a spine that a flat list
@@ -271,7 +270,7 @@ The `nav-tree` `--rail` CSS variant added by the first pass was reverted with it
 **The pane no longer names itself.** With a rail, the lit leaf is the title and the count, so
 `CategorySection`'s toolbar dropped its `SubsectionHeader` and became actions-only — matching
 `InviteCodesTab`, the app's existing pattern. `+ Add` reveals a full-width field (Enter commits,
-Escape cancels, stays open for consecutive entries); `toolbar.left` now carries only the *used by* note,
+Escape cancels, stays open for consecutive entries); `toolbar.left` now carries only the _used by_ note,
 and only for the two shared vocabularies.
 
 ### 8. Lab-wide barcode resolve — ✅ done
@@ -292,7 +291,7 @@ name is what makes a cross-catalog answer legible in a tab that holds no list fo
 context waits for Phase 8's real consumer, so `findLotById` went with the reagent chain.
 
 **Uniqueness had to fan out with it.** Each barcode table's `UNIQUE(barcode_value)` still allowed one
-value to sit on a supply *and* a reagent, which a lab-wide resolve cannot answer. `addBarcode` in both
+value to sit on a supply _and_ a reagent, which a lab-wide resolve cannot answer. `addBarcode` in both
 services now calls `requireUnusedBarcodeValue` (`application/guards/BarcodeGuards.ts`, beside
 `HierarchyGuards`), each service taking the other catalog's repository — the fan-out shape
 `LookupValueApplicationService` already uses. Auto-generated internal barcodes can't collide across
@@ -304,8 +303,8 @@ CHECKs. One `barcodes/` schema module now owns the vocabulary, mirroring `docume
 
 **Client.** `useBarcodeResolver` (in `domains/lab-management`, beside the other lab-wide surfaces)
 owns the in-flight flag and the failure toast the two supply scan components each hand-rolled. It
-returns a three-arm result rather than a nullable match: a *failed* lookup must not open the
-link-to-item dialog the way an *unknown* value does. A scan landing in another catalog is named
+returns a three-arm result rather than a nullable match: a _failed_ lookup must not open the
+link-to-item dialog the way an _unknown_ value does. A scan landing in another catalog is named
 ("That barcode belongs to the reagent Anti-CD3.") instead of offered for linking — which would have
 created exactly the cross-catalog duplicate the guard now refuses. Jumping to the other tab was
 considered and deferred to Phase 8, when reagents has its own scan bar.
@@ -359,14 +358,14 @@ rename / delete a category on each tab.
 
 **Deliberately not taken: the locator strip and the toolbar.** A single `CatalogTabShell` was costed
 at **~22 props with 5 render-prop slots** (scan input, toolbar actions, filter panel, alert panels,
-right panel) — and those slots *are* the variation, so the shell would mostly forward props. That
+right panel) — and those slots _are_ the variation, so the shell would mostly forward props. That
 also cuts against what has actually worked here: `AlertPanel`, `LowStockAlertPanel`,
 `BulkStockMovementTab`, `BulkVoidTab` and `AttributeFields` each do one job with a couple of injected
 callbacks. None is a chassis.
 
 The category block was a fact — byte-identical, zero variation points, no layout. The toolbar has
-three variation points (equipment has no scan bar, says *unit* not *item*, *Decommissioned* not
-*Archived*, and a Button where the others have an OverflowMenu) and carries layout risk on two
+three variation points (equipment has no scan bar, says _unit_ not _item_, _Decommissioned_ not
+_Archived_, and a Button where the others have an OverflowMenu) and carries layout risk on two
 un-audited tabs.
 
 **Trigger for the rest:** the next time a toolbar change has to be made in all three tabs by hand.
@@ -394,6 +393,7 @@ second caller instead of a guessed one — the order that produced `AlertPanel`,
 and the shared `Location`.
 
 **Scope.**
+
 - Migration: `supply_attribute_values` + `equipment_attribute_values` mirroring
   `reagent_attribute_values` (item FK, definition FK, the three value columns, same three indexes).
 - Repos: value read + `replaceAttributeValues`, plus the batched fill on each item-list query —
@@ -403,12 +403,12 @@ and the shared `Location`.
   `shared/ui/components/inventory/`; each catalog keeps only its query/mutation binding.
 - Admin: the create modal gains the catalog picker Phase 7 deliberately left off (`REAGENTS_PLAN` §9
   — a picker offering catalogs that can't store a value implies a capability that doesn't exist), and
-  each definition carries a *used by* line like the shared lookups.
+  each definition carries a _used by_ line like the shared lookups.
 - Data: migrate existing `supply_item_property` values into a "Product Property" multi-select
   definition, then drop the lookup category (CHECK swap plus the ~5 lookup touch-points).
 
 **Not doing:** a polymorphic `item_id` + `item_type` values table. Item 2 rejected it and nothing has
-changed — the item FK *is* the referential integrity the normalized EAV exists for.
+changed — the item FK _is_ the referential integrity the normalized EAV exists for.
 
 **Landed.** Migration **034** creates `supply_attribute_values` and `equipment_attribute_values` in one
 step, mirroring the reagent table exactly — six columns, three indexes, an item FK per catalog. Both
@@ -431,14 +431,14 @@ expiry selection.
 
 **The data half was free, and turned into a deletion.** `supply_item_property` held two values and
 **no supply item used `properties` at all** — checked against dev before planning. So migration **035**
-seeds those two values as a supply-scoped *Product Property* multi-select, drops the lookup category,
+seeds those two values as a supply-scoped _Product Property_ multi-select, drops the lookup category,
 and drops `supply_items.properties` — keeping the column would have shipped two metadata mechanisms
 for one concept, which is what this item exists to prevent. Two repo methods
 (`countItemsUsingProperty`, `renameProperty`) went with it; they would otherwise have queried a
-dropped column. `/lab/supplies` now pre-selects *Vendors* in the catalog rail, the only list supplies
+dropped column. `/lab/supplies` now pre-selects _Vendors_ in the catalog rail, the only list supplies
 still curates directly.
 
-**Rehearsed** on a clone of dev through 034→035: both tables created, *Product Property* seeded with
+**Rehearsed** on a clone of dev through 034→035: both tables created, _Product Property_ seeded with
 Sterile and Non-Pyrogenic, zero property lookups left, column gone, all four supply items intact —
 and dev untouched at 33 until applied deliberately.
 
@@ -446,10 +446,9 @@ and dev untouched at 33 until applied deliberately.
 `appliesToCatalog: 'reagent'`), with the reagent-type scope chips hidden when another catalog is
 picked, since only reagents has a type discriminator.
 
-**Deferred:** the *used by* line per definition. The shared lookups carry one because a rename fans
+**Deferred:** the _used by_ line per definition. The shared lookups carry one because a rename fans
 across three item tables; an attribute definition already names its catalog in the picker, so the
 line would restate what the row says.
-
 
 ### 12. Attribute scoping → many types — ✅ done
 
@@ -458,7 +457,7 @@ attribute can apply to several reagent types. Empty array = applies to all, whic
 today.
 
 **Why.** Scoping is currently one type or all, and the middle is the common case: a Storage
-Temperature that belongs on antibodies *and* buffers but not on a kit has to sit at "all types" and
+Temperature that belongs on antibodies _and_ buffers but not on a kit has to sit at "all types" and
 clutter every palette. Reagents Phase 7 shipped the scope as a single column because one type was
 enough to prove the mechanism; using it made the gap obvious.
 
@@ -467,6 +466,7 @@ the upsert, because every scoping decision is made client-side. So no query or i
 the column, the mapper, and the predicate.
 
 **Scope.**
+
 - Migration **033** — add the array, `ARRAY[applies_to_type]` for populated rows, drop the old column.
   First migration since amend-in-place closed, so it gets the clone rehearsal. `supply_items.properties`
   is the precedent for a text array here.
@@ -487,7 +487,7 @@ kind of split the rest of this document exists to remove.
 
 ## Parked — decide when we get there
 
-**Locations ↔ biobank storage.** Once locations are a real tree (item 4), the lab has *two* models of
+**Locations ↔ biobank storage.** Once locations are a real tree (item 4), the lab has _two_ models of
 physical place: `locations` (Room → Area → Shelf, named containment, no coordinates — used by
 supplies, reagents, equipment) and the biobank's `storage` (tank → rack → box **plus grid positions**,
 capacity and occupancy analytics — used by tubes). They are coherent as one thing: a cryo tank
@@ -504,27 +504,27 @@ that. Revisit deliberately once locations are in use; do **not** let it ride alo
 
 Decided; don't reopen without a new reason.
 
-| Concern | Why it stays split |
-|---|---|
-| Categories | An equipment tree ("Centrifuges › Benchtop") is meaningless to reagents. Behaviour already shared via `Category.ts`; identity stays local. |
-| Documents | Child rows of one item, not a shared vocabulary. `docType` is already shared additively — that's the right amount. |
-| Transactions / stock ledger | Reagent's carries `lot_id` and FEFO semantics supplies has no concept of. Genuinely different shapes. |
-| Packaging levels | Per-item structure. Only the *unit* vocabulary converges (item 6). |
-| Item surfaces | `AGENTS.md` §Equipment↔Supplies, still right: equipment tracks asset lifecycle, consumables track stock. |
+| Concern                     | Why it stays split                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Categories                  | An equipment tree ("Centrifuges › Benchtop") is meaningless to reagents. Behaviour already shared via `Category.ts`; identity stays local. |
+| Documents                   | Child rows of one item, not a shared vocabulary. `docType` is already shared additively — that's the right amount.                         |
+| Transactions / stock ledger | Reagent's carries `lot_id` and FEFO semantics supplies has no concept of. Genuinely different shapes.                                      |
+| Packaging levels            | Per-item structure. Only the _unit_ vocabulary converges (item 6).                                                                         |
+| Item surfaces               | `AGENTS.md` §Equipment↔Supplies, still right: equipment tracks asset lifecycle, consumables track stock.                                  |
 
 ---
 
 ## Progress
 
-- [x] 1 — Shared alert panel *(roll-up deferred to after reagents Phase 3)*
+- [x] 1 — Shared alert panel _(roll-up deferred to after reagents Phase 3)_
 - [x] 2 — Attribute system → shared vocabulary
 - [x] 3 — Custom units → catalog-agnostic
-- [x] 4 — Locations merge *(4a supplies, 4b equipment)*
+- [x] 4 — Locations merge _(4a supplies, 4b equipment)_
 - [x] 5 — Vendor / manufacturer merge
 - [x] 6 — Supplies → unit registry
 - [x] 7 — Catalog tab → nav rail
 - [x] 8 — Lab-wide barcode resolve
 - [x] 9 — Supplies low-stock → client-side
-- [◐] 10 — Catalog tab skeleton → shared shell *(category half done; toolbar deferred with a trigger)*
+- [◐] 10 — Catalog tab skeleton → shared shell _(category half done; toolbar deferred with a trigger)_
 - [x] 11 — Attributes → supplies + equipment
 - [x] 12 — Attribute scoping → many types
