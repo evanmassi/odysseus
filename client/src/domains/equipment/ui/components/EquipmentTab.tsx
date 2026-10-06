@@ -107,7 +107,6 @@ export function EquipmentTab() {
     updateMutation: updateCategoryMutation,
     deleteMutation: deleteCategoryMutation,
   });
-  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -293,7 +292,6 @@ export function EquipmentTab() {
             )}
             <EquipmentMaintenanceAlertPanel
               items={items}
-              categoryNameMap={categoryNameMap}
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
             />
