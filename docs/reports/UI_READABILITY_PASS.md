@@ -78,13 +78,12 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Long names:** truncated names in the bulk item tree and the storage navigator show the full name in a tooltip after 400 ms (shared `TruncatedText`). The tree's name-to-count line collapses instead of crowding the count, checkboxes never shrink, and the All Items count lines up with the rows in the tree's count style.
 - **Reagent expiry alerts:** one row per lot (Reagent with maker · catalog #, Lot with location, Expires with an in-words status in tone color). The list row carries `lotExpirations`, so alerts stay derived from the item list; the old `soonestExpiration` / `expiredLotCount` rollups are gone.
 - **Maintenance alerts:** Equipment (name with asset tag · model), Location (path), Due (date with an in-words status in tone color); category dropped. Low stock alerts reviewed and kept as is.
+- **Light mode:** walked and approved. Muted and secondary text moved from neutral gray to a blue-gray ink (`218 32% 32%` / `220 34% 20%`) so labels and ghost buttons fit the theme; dark mode unchanged.
 - **Reviewed and kept:** equipment maintenance and decommission, and the stock-transaction forms. Receive mode's long field list is task-specific and reads fine.
 
 ## Still to do
 
-1. **Light mode check.** A code scan found every color on this branch goes through theme tokens; the one gap (the lab-name flash) is fixed. A visual walk is still worth doing as screens are reviewed.
-
-2. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
+1. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
 
 ## Mocks
 
