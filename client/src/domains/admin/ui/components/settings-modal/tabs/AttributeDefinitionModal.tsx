@@ -1,10 +1,3 @@
-/**
- * Attribute Definition Modal
- *
- * Creates a lab-defined attribute for one catalog, or for all three. The value type is chosen
- * here and fixed afterwards, since existing values are stored per type.
- */
-
 import { useEffect, useRef, useState } from 'react';
 
 import { Plus, Tags } from 'lucide-react';
@@ -28,7 +21,7 @@ const VALUE_TYPE_OPTIONS: SelectOption[] = [
   { value: 'number', label: 'Number', description: 'A numeric value per item' },
 ];
 
-/** `appliesToCatalog` is nullable for "all"; the Select needs a concrete value to bind to. */
+// PITFALL: appliesToCatalog is null for "all", but the Select needs a concrete value to bind to.
 const ALL_CATALOGS = '__all__';
 
 const CATALOG_OPTIONS: SelectOption[] = [
@@ -86,7 +79,7 @@ export function AttributeDefinitionModal({
       notifications.success(`Attribute "${trimmed}" created`);
       onClose();
     } catch {
-      // The global handler toasts; the dialog stays open with the typed values.
+      // PITFALL: the global handler already toasts; swallowing here keeps the dialog open with the typed values.
     }
   };
 
@@ -185,14 +178,14 @@ export function AttributeDefinitionModal({
         )}
 
         <SettingsRow
-          label="Prompt on new items"
+          label="Prompt on New Items"
           hint="Render the field blank instead of waiting to be added"
         >
           <Toggle
             checked={promptOnForm}
             onChange={setPromptOnForm}
             size="sm"
-            aria-label="Prompt on new items"
+            aria-label="Prompt on New Items"
           />
         </SettingsRow>
 

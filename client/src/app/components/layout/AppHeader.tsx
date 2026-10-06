@@ -1,10 +1,4 @@
-/**
- * App Header
- *
- * Top navigation bar with contextual tube action toolbar, search, and hamburger menu.
- */
-
-import { useState, lazy, useRef, useCallback } from 'react';
+import { useState, lazy, useRef } from 'react';
 
 import { isAdminRole, getPersonDisplayName, getPersonInitials } from '@odysseus/shared-schemas';
 import {
@@ -30,7 +24,7 @@ import { useStorageData } from '@domains/storage';
 import { useUserProfile } from '@domains/users';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { useResolvedTheme } from '@shared/hooks';
-import { DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/ui';
+import { Divider, DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -39,7 +33,6 @@ import { TubeSelectionToolbar, type GridController } from './TubeSelectionToolba
 
 import type { PositionKey } from '@domains/tubes';
 import type { TubeData } from '@odysseus/shared-schemas';
-import type { LucideIcon } from 'lucide-react';
 
 const AdminSettingsModal = lazy(() =>
   import('@domains/admin').then(m => ({ default: m.AdminSettingsModal }))
@@ -61,9 +54,6 @@ const DonorRegistryModal = lazy(() =>
   }))
 );
 
-type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
-
-const ICON_POP_DURATION_MS = 350;
 const SUBMENU_CLOSE_DELAY_MS = 150;
 
 const ROLE_LABELS: Record<string, string> = {
@@ -71,43 +61,6 @@ const ROLE_LABELS: Record<string, string> = {
   lab_admin: 'Lab Admin',
   user: 'User',
 };
-
-interface HamburgerMenuItemProps {
-  icon: IconComponent;
-  label: string;
-  onClick: () => void;
-}
-
-function HamburgerMenuItem({ icon: Icon, label, onClick }: HamburgerMenuItemProps) {
-  const isDark = useResolvedTheme() === 'dark';
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), ICON_POP_DURATION_MS);
-  }, []);
-
-  return (
-    <button
-      role="menuitem"
-      onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      className={`group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-data tracking-data text-secondary-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors ${
-        isDark
-          ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]'
-          : 'hover:bg-[linear-gradient(0deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.08))]'
-      }`}
-    >
-      <span className={isAnimating ? 'animate-icon-pop' : ''}>
-        <Icon
-          size={16}
-          className="text-muted-foreground transition-colors group-hover:text-foreground"
-        />
-      </span>
-      <span>{label}</span>
-    </button>
-  );
-}
 
 interface AppHeaderProps {
   selectedPositions?: Set<PositionKey>;
@@ -164,7 +117,6 @@ export function AppHeader({
   const closeMenu = () => setShowHamburgerMenu(false);
 
   const handleLogout = () => {
-    // Socket cleanup is handled centrally by AppBootstrapService
     void logout();
   };
 
@@ -175,7 +127,7 @@ export function AppHeader({
   return (
     <header
       data-theme="dark"
-      className="app-header-bar relative flex h-full items-stretch bg-background after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.20)_10%,hsl(var(--primary)/0.20)_90%,transparent_100%)] dark:after:[box-shadow:0_0_8px_hsl(var(--primary)/0.14),0_0_18px_hsl(var(--primary)/0.06)]"
+      className="app-header-bar relative flex h-full items-stretch bg-background"
     >
       <div className="relative flex items-center px-4">
         <button
@@ -188,29 +140,35 @@ export function AppHeader({
           aria-label="Switch management suite"
         >
           <OdysseusLogo
-            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_calc(30%_*_var(--lit)),transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_calc(30%_*_var(--lit)),transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom [[data-theme=dark]_&]:text-muted-foreground"
             aria-label="Odysseus"
           />
           {hasLab && (
             <>
+              <span
+                aria-hidden
+                className="mx-1 h-[18px] w-px [background:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_20%,hsl(var(--foreground)/0.28)_80%,transparent_100%)]"
+              />
               {routeCrumbs.flatMap((crumb, i) => [
-                <span
-                  key={`sep-${i}`}
-                  aria-hidden
-                  className="font-mono text-data-sm text-foreground/40 transition-colors duration-200 group-hover:text-foreground/70"
-                >
-                  {'//'}
-                </span>,
+                ...(i > 0
+                  ? [
+                      <span
+                        key={`sep-${i}`}
+                        aria-hidden
+                        className="h-[3px] w-[3px] bg-primary/80 shadow-[0_0_6px_1px_hsl(var(--primary)/calc(0.6*var(--lit)))] transition duration-200 group-hover:bg-primary group-hover:shadow-[0_0_6px_1px_hsl(var(--primary)/calc(0.9*var(--lit)))]"
+                      />,
+                    ]
+                  : []),
                 <span
                   key={`crumb-${i}`}
-                  className="type-label text-label-xs font-medium tracking-label-wide text-primary transition duration-200 group-hover:font-bold group-hover:brightness-125 group-hover:drop-shadow-icon-bloom-hover"
+                  className="type-label text-label-xs font-medium tracking-label-wide text-foreground/90 transition-colors duration-200 group-hover:text-foreground"
                 >
                   {crumb}
                 </span>,
               ])}
               <ChevronDown
                 size={12}
-                className="text-muted-foreground transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover"
+                className="text-muted-foreground transition-colors duration-200 group-hover:text-foreground"
               />
             </>
           )}
@@ -332,16 +290,16 @@ export function AppHeader({
           className="group flex items-center gap-3"
         >
           <div className="text-right leading-tight">
-            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:font-semibold group-hover:drop-shadow-icon-bloom-hover">
+            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground/90 transition-colors duration-200 group-hover:text-foreground">
               {displayName}
             </div>
             {user?.role && (
-              <div className="type-label text-label-2xs font-medium tracking-label-wide text-foreground/70 transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover">
+              <div className="type-label text-label-2xs font-medium tracking-label-wide text-foreground/70 transition-colors duration-200 group-hover:text-foreground/90">
                 {ROLE_LABELS[user.role] ?? user.role}
               </div>
             )}
           </div>
-          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-icon-bloom-hover">
+          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:brightness-110 group-hover:drop-shadow-icon-bloom">
             <UserBadge
               type="currentUser"
               initials={initials}
@@ -378,7 +336,7 @@ export function AppHeader({
           )}
 
           <div>
-            <HamburgerMenuItem
+            <MenuItem
               icon={CircleHelp}
               label="Help"
               onClick={() => {
@@ -387,7 +345,7 @@ export function AppHeader({
               }}
             />
 
-            <HamburgerMenuItem
+            <MenuItem
               icon={Settings}
               label={isAdminRole(user?.role) ? 'User Settings' : 'Settings'}
               onClick={() => {
@@ -397,7 +355,7 @@ export function AppHeader({
             />
 
             {hasLab && isBiobankRoute && (
-              <HamburgerMenuItem
+              <MenuItem
                 icon={TankIcon}
                 label="Storage Manager"
                 onClick={() => {
@@ -408,7 +366,7 @@ export function AppHeader({
             )}
 
             {hasLab && isBiobankRoute && (
-              <HamburgerMenuItem
+              <MenuItem
                 icon={BookUser}
                 label="Donor Registry"
                 onClick={() => {
@@ -419,7 +377,7 @@ export function AppHeader({
             )}
 
             {isAdminRole(user?.role) && (
-              <HamburgerMenuItem
+              <MenuItem
                 icon={ShieldUser}
                 label="Admin Settings"
                 onClick={() => {
@@ -433,7 +391,7 @@ export function AppHeader({
           <MenuDivider subtle />
 
           <div>
-            <HamburgerMenuItem
+            <MenuItem
               icon={LogOut}
               label="Logout"
               onClick={() => {
@@ -472,6 +430,7 @@ export function AppHeader({
           initialIdType={donorRegistry.initialIdType}
         />
       </LazyModalBoundary>
+      <Divider tone="primary" className="absolute inset-x-0 bottom-0" />
     </header>
   );
 }

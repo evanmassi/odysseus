@@ -1,20 +1,23 @@
-/**
- * Monitoring Tab
- *
- * Audit log viewer with retention settings and archive controls.
- */
+import { useEffect, type ReactNode } from 'react';
 
+import { queryKeys } from '@app/cache/queryKeys';
 import { AlertBanner } from '@shared/ui';
 
+import { TabRefreshButton } from '../../displays/TabRefreshButton';
 import { AuditLogViewer } from '../AuditLogViewer';
 import { AuditRetentionSettings } from '../AuditRetentionSettings';
 
 interface MonitoringTabProps {
   isSystemAdmin?: boolean;
   isDemo?: boolean;
+  onTabAction: (action: ReactNode) => void;
 }
 
-export function MonitoringTab({ isSystemAdmin, isDemo }: MonitoringTabProps) {
+export function MonitoringTab({ isSystemAdmin, isDemo, onTabAction }: MonitoringTabProps) {
+  useEffect(() => {
+    onTabAction(<TabRefreshButton queryKey={queryKeys.admin.auditLogAll()} />);
+  }, [onTabAction]);
+
   return (
     <div className="space-y-4">
       {isDemo && (

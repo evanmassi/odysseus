@@ -1,10 +1,3 @@
-/**
- * Reagent Item Info Panel
- *
- * Read-only detail for the selected reagent: chemistry, per-lot stock, packaging,
- * safety documents, and the admin archive/remove actions.
- */
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
@@ -12,7 +5,6 @@ import {
   Archive,
   Atom,
   ClipboardList,
-  FolderOpen,
   MapPin,
   NotepadText,
   Plus,
@@ -43,15 +35,21 @@ import {
   Chip,
   DemoLockIndicator,
   DetailRow,
+  Divider,
   HeaderStrip,
-  NubDivider,
+  ItemIdentityHeader,
   OverflowMenu,
   PanelHeader,
   SectionHeader,
   StripLabel,
 } from '@shared/ui';
 import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
-import { DocumentList, toAttributeDisplayRows } from '@shared/ui/components/inventory';
+import {
+  DocumentList,
+  ItemStatusStripe,
+  toAttributeDisplayRows,
+  type ItemRowStatusTone,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -72,6 +70,7 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface ReagentItemInfoPanelProps {
   itemId: string;
+  statusTone: ItemRowStatusTone;
   onEdit: () => void;
   onRecordTransaction: () => void;
   onVoidAndReplace: (
@@ -80,16 +79,15 @@ interface ReagentItemInfoPanelProps {
     prefill: TransactionPrefill
   ) => void;
   onDeleted: () => void;
-  categoryName?: string;
 }
 
 export function ReagentItemInfoPanel({
   itemId,
+  statusTone,
   onEdit,
   onRecordTransaction,
   onVoidAndReplace,
   onDeleted,
-  categoryName,
 }: ReagentItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
@@ -141,7 +139,6 @@ export function ReagentItemInfoPanel({
   const isArchived = item.status === 'archived';
   const isLocked = isDemoLockedItem(item);
 
-  // A lot barcode labels one bottle, so it belongs on that lot's row, not in the item's list.
   const itemBarcodes = barcodes.filter(bc => !bc.lotId);
   const lotBarcodes = barcodes.filter(bc => bc.lotId);
 
@@ -226,7 +223,7 @@ export function ReagentItemInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Reagent Information" />
       </div>
 
@@ -241,14 +238,6 @@ export function ReagentItemInfoPanel({
               <StripLabel>Type</StripLabel>
               <Chip size="sm" color="default" lit lead={<Atom />}>
                 {item.reagentType}
-              </Chip>
-            </>
-          )}
-          {categoryName && (
-            <>
-              <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" lead={<FolderOpen />}>
-                {categoryName}
               </Chip>
             </>
           )}
@@ -270,9 +259,12 @@ export function ReagentItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
+            <ItemIdentityHeader
+              marker={<ItemStatusStripe tone={statusTone} className="h-11 w-1" />}
+              name={item.name}
+            />
             {item.description && (
-              <p className="mt-1 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
+              <p className="mt-3 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -424,7 +416,6 @@ export function ReagentItemInfoPanel({
 
           <div>
             <SectionHeader title="Transaction History" size="sm" />
-            {/* The ledger loads separately from the detail, so waiting beats claiming it's empty. */}
             {!isLedgerPending && (
               <ReagentTransactionTimeline
                 transactions={transactions}
@@ -439,7 +430,7 @@ export function ReagentItemInfoPanel({
 
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <Divider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             {isLocked ? (
               <DemoLockIndicator />

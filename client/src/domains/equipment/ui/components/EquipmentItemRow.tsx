@@ -1,14 +1,11 @@
-/**
- * Equipment Item Row
- *
- * Inset card for an individual equipment item: a status line, the colored
- * maintenance icon, a two-line identity, and location/asset chips.
- */
-
 import { MapPin, Tag, Wrench } from 'lucide-react';
 
-import { resolveMaintenanceDue } from '@domains/equipment/utils/maintenanceSchedule';
-import { ItemRowShell, type ItemRowStatusTone } from '@shared/ui/components/inventory';
+import { resolveEquipmentStatusTone } from '@domains/equipment/utils/equipmentStatus';
+import {
+  MAINTENANCE_DUE_SOON_DAYS,
+  resolveMaintenanceDue,
+} from '@domains/equipment/utils/maintenanceSchedule';
+import { ItemRowShell } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -19,7 +16,6 @@ interface EquipmentItemRowProps {
   item: EquipmentItem;
   isSelected: boolean;
   onSelect: (id: string) => void;
-  /** Resolved by the tab, which already holds the lab's location tree. */
   locationName?: string;
 }
 
@@ -38,7 +34,7 @@ function getMaintenanceIndicator(
       tooltip: `Overdue — was due ${formatDateForDisplay(dateStr)}`,
     };
   }
-  if (daysUntil <= 30) {
+  if (daysUntil <= MAINTENANCE_DUE_SOON_DAYS) {
     return {
       color: 'text-warning-text',
       tooltip: `Due in ${daysUntil} day${daysUntil === 1 ? '' : 's'} — ${formatDateForDisplay(dateStr)}`,
@@ -61,16 +57,8 @@ export function EquipmentItemRow({
     ? getMaintenanceIndicator(item.nextMaintenanceDate)
     : undefined;
 
-  // Maintenance wrench (and the warning/danger line tone) only show when actually
-  // due or overdue — a far-future schedule reads as active.
   const isUrgent = maint?.color === 'text-warning-text' || maint?.color === 'text-danger-text';
-  const statusTone: ItemRowStatusTone = isDecommissioned
-    ? 'muted'
-    : maint?.color === 'text-danger-text'
-      ? 'danger'
-      : maint?.color === 'text-warning-text'
-        ? 'warning'
-        : 'success';
+  const statusTone = resolveEquipmentStatusTone(item);
 
   return (
     <ItemRowShell

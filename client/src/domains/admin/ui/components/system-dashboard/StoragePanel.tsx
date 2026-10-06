@@ -1,9 +1,3 @@
-/**
- * Storage Panel
- *
- * Cross-lab storage capacity and utilization analytics for system admins.
- */
-
 import { useMemo, useState } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
@@ -13,21 +7,11 @@ import {
   FlaskConical,
   HardDrive,
   Icon,
-  RefreshCw,
   Rows3,
   TestTubeDiagonal,
 } from 'lucide-react';
 
-import {
-  Button,
-  Chip,
-  ConsolePanel,
-  IdStamp,
-  PanelHeader,
-  SectionHeader,
-  StatCell,
-  Table,
-} from '@shared/ui';
+import { Button, Chip, ConsolePanel, IdStamp, StatCell, Subsection, Table } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges/LabBadge';
 
 import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
@@ -56,12 +40,7 @@ const NEAR_CAPACITY_THRESHOLD = 85;
 const CRITICAL_CAPACITY_THRESHOLD = 95;
 
 export function StoragePanel() {
-  const {
-    data: crossLabData,
-    isLoading,
-    isFetching: crossLabFetching,
-    refetch: refetchCrossLab,
-  } = useCrossLabStorageAnalyticsQuery();
+  const { data: crossLabData, isLoading } = useCrossLabStorageAnalyticsQuery();
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
   const [labSortConfig, setLabSortConfig] = useState<SortConfig | undefined>({
     columnId: 'utilizationPercent',
@@ -180,24 +159,8 @@ export function StoragePanel() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <ConsolePanel intensity="soft">
-        <div className="flex-shrink-0 border-b border-line-faint pr-4">
-          <PanelHeader title="Storage" icon={<HardDrive size={14} />} />
-        </div>
-
-        <div className="flex items-center justify-end gap-2 border-b border-line-faint px-3 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void refetchCrossLab()}
-            disabled={isLoading}
-            leftIcon={<RefreshCw size={14} className={crossLabFetching ? 'animate-spin' : ''} />}
-          >
-            Refresh
-          </Button>
-        </div>
-
         <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.14)_16%,hsl(var(--foreground)/0.14)_92%,transparent_100%)_1]">
           <StatCell
             size="sm"
@@ -231,12 +194,12 @@ export function StoragePanel() {
         </div>
       </ConsolePanel>
 
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader
-            title="Lab Usage"
-            meta={`${activeLabsInTable} active · ${inactiveLabsInTable} inactive`}
-          />
+      <Subsection
+        title="Lab Usage"
+        meta={`${activeLabsInTable} active · ${inactiveLabsInTable} inactive`}
+        isCompact
+      >
+        <ConsolePanel intensity="soft" className="p-4">
           <Table<LabSummaryRow>
             columns={labColumns}
             data={sortedLabs.map(l => ({ ...l, id: l.labId }))}
@@ -249,8 +212,8 @@ export function StoragePanel() {
             aria-label="Per-lab storage utilization"
             onRowClick={row => setSelectedLabId(row.labId)}
           />
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
     </div>
   );
 }
@@ -349,8 +312,14 @@ function LabDrillDown({
   const expandedRack = expandedTank?.racks.find(r => r.rackId === expandedRackId);
 
   return (
-    <div className="space-y-8">
-      <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ChevronLeft size={14} />}>
+    <div className="flex flex-col gap-4">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onBack}
+        leftIcon={<ChevronLeft size={14} />}
+        className="self-start"
+      >
         All Labs
       </Button>
 
@@ -383,12 +352,12 @@ function LabDrillDown({
       </LabIdentityPanel>
 
       {data && data.nearCapacityBoxes.length > 0 && (
-        <ConsolePanel intensity="soft">
-          <div className="p-4">
-            <SectionHeader
-              title="Near Capacity"
-              meta={`${data.nearCapacityBoxes.length} ${data.nearCapacityBoxes.length === 1 ? 'box' : 'boxes'}`}
-            />
+        <Subsection
+          title="Near Capacity"
+          meta={`${data.nearCapacityBoxes.length} ${data.nearCapacityBoxes.length === 1 ? 'box' : 'boxes'}`}
+          isCompact
+        >
+          <ConsolePanel intensity="soft" className="p-4">
             <div className="flex flex-wrap items-center gap-2">
               {data.nearCapacityBoxes.map(box => (
                 <Chip
@@ -401,13 +370,12 @@ function LabDrillDown({
                 </Chip>
               ))}
             </div>
-          </div>
-        </ConsolePanel>
+          </ConsolePanel>
+        </Subsection>
       )}
 
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader title="Tanks" meta={`${tankCount}`} />
+      <Subsection title="Tanks" meta={`${tankCount}`} isCompact>
+        <ConsolePanel intensity="soft" className="p-4">
           <Table<TankRow>
             columns={tankColumns}
             data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
@@ -422,17 +390,17 @@ function LabDrillDown({
             selectedRows={expandedTankId ? [expandedTankId] : []}
             selectedRowGlow
           />
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
       {expandedTank && (
         <>
-          <ConsolePanel intensity="soft">
-            <div className="p-4">
-              <SectionHeader
-                title="Racks"
-                meta={`${expandedTank.racks.length} // ${expandedTank.tankName}`}
-              />
+          <Subsection
+            title="Racks"
+            meta={`${expandedTank.racks.length} · ${expandedTank.tankName}`}
+            isCompact
+          >
+            <ConsolePanel intensity="soft" className="p-4">
               <Table<RackRow>
                 columns={rackColumns}
                 data={expandedTank.racks.map(r => ({ ...r, id: r.rackId }))}
@@ -445,16 +413,16 @@ function LabDrillDown({
                 selectedRows={expandedRackId ? [expandedRackId] : []}
                 selectedRowGlow
               />
-            </div>
-          </ConsolePanel>
+            </ConsolePanel>
+          </Subsection>
 
           {expandedRack && (
-            <ConsolePanel intensity="soft">
-              <div className="p-4">
-                <SectionHeader
-                  title="Boxes"
-                  meta={`${expandedRack.boxes.length} // ${expandedTank.tankName} // ${expandedRack.rackName}`}
-                />
+            <Subsection
+              title="Boxes"
+              meta={`${expandedRack.boxes.length} · ${expandedTank.tankName} · ${expandedRack.rackName}`}
+              isCompact
+            >
+              <ConsolePanel intensity="soft" className="p-4">
                 <Table<BoxRow>
                   columns={[
                     {
@@ -480,8 +448,8 @@ function LabDrillDown({
                   emptyMessage="No boxes in this rack"
                   aria-label="Box utilization"
                 />
-              </div>
-            </ConsolePanel>
+              </ConsolePanel>
+            </Subsection>
           )}
         </>
       )}

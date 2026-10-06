@@ -1,9 +1,3 @@
-/**
- * Donor Registry Modal
- *
- * Browsable donor reference with searchable table and detail panel.
- */
-
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
@@ -13,7 +7,7 @@ import { useAuthStore } from '@domains/authentication';
 import { useDonorCollectionHistoryQuery } from '@domains/donors/hooks/useDonorCollectionHistoryQuery';
 import { useDeleteDonorMutation } from '@domains/donors/hooks/useDonorMutations';
 import { useDonorsQuery } from '@domains/donors/hooks/useDonorsQuery';
-import { AccentTick, InfoPanelEmpty, LoadingSpinner } from '@shared/ui';
+import { AccentTick, FramelessPanel, LoadingSpinner, PanelEmptyState } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
@@ -53,8 +47,6 @@ export function DonorRegistryModal({
 
   const { data: collectionHistory = [] } = useDonorCollectionHistoryQuery(selectedDonorId);
 
-  // Deep-link: resolve initialDonorId to a donor record once, so a later refetch (new donors
-  // identity) doesn't override a selection the user has since changed.
   const resolvedDeepLink = useRef<string | undefined>();
   useEffect(() => {
     if (!initialDonorId || donors.length === 0) return;
@@ -99,7 +91,6 @@ export function DonorRegistryModal({
     });
   }, [selectedDonorId, deleteMutation]);
 
-  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedDonorId(undefined);
@@ -118,9 +109,7 @@ export function DonorRegistryModal({
         <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Donors
         </span>
-        <span className="phosphor-text text-data-sm text-secondary-foreground">
-          {donors.length}
-        </span>
+        <span className="text-data-sm text-foreground">{donors.length}</span>
       </div>
       <span aria-hidden className="text-muted-foreground/40">
         ·
@@ -130,7 +119,7 @@ export function DonorRegistryModal({
           Needs Review
         </span>
         <span
-          className={`phosphor-text text-data-sm ${reviewCount > 0 ? 'text-warning-text' : 'text-secondary-foreground'}`}
+          className={`text-data-sm ${reviewCount > 0 ? 'text-warning-text' : 'text-foreground'}`}
         >
           {reviewCount}
         </span>
@@ -187,13 +176,9 @@ export function DonorRegistryModal({
                 isAdmin={isAdmin}
               />
             ) : (
-              <InfoPanelEmpty
-                title="Donor Information"
-                headerIcon={BookUser}
-                stripLabel="Collections"
-                emptyIcon={BookUser}
-                emptyMessage="Select a donor to view details"
-              />
+              <FramelessPanel icon={<BookUser className="h-4 w-4" />} title="Donor Information">
+                <PanelEmptyState icon={BookUser} message="Select a donor to view details" />
+              </FramelessPanel>
             )}
           </div>
         </div>

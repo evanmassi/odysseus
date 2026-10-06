@@ -1,10 +1,3 @@
-/**
- * Assignment Dropdown
- *
- * Compact owner field for assigning storage resources — inherit / common / user,
- * with an ownership badge per option and an ownership-tinted trigger value.
- */
-
 import { useMemo, useCallback } from 'react';
 
 import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
@@ -14,19 +7,17 @@ import { UserBadge, type UserBadgeType } from '@shared/ui/components/badges';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
-// Sentinel value distinguishing "explicitly common" (null) from "no selection"
+// PITFALL: null means explicitly common and undefined means inherit from the rack, so common needs its own sentinel.
 const COMMON_VALUE = '__COMMON__';
 
 interface AssignmentDropdownProps {
   value: string | null | undefined;
   users: UserDisplayInfo[];
   onChange: (userId: string | null | undefined) => void;
-  /** Current user id — types each option's badge and tints the trigger (you vs other). */
   currentUserId?: string;
-  /** Show "Unassigned/Common" option - only for boxes that can be made common */
   showCommonOption?: boolean;
-  /** User ID inherited from parent (e.g., rack owner) - shown in italics when value is undefined */
   parentUserId?: string;
+  isQuiet?: boolean;
 }
 
 interface AssignmentOption extends SelectOption {
@@ -41,6 +32,7 @@ export function AssignmentDropdown({
   currentUserId,
   showCommonOption = false,
   parentUserId,
+  isQuiet = false,
 }: AssignmentDropdownProps) {
   const userOptions = useMemo(
     (): AssignmentOption[] =>
@@ -73,7 +65,6 @@ export function AssignmentDropdown({
   const selectedValue = useMemo(() => {
     if (value === null) return COMMON_VALUE;
     if (value) return value;
-    // undefined = inherit from parent - show parent user
     if (parentUserId) return parentUserId;
     return '';
   }, [value, parentUserId]);
@@ -83,10 +74,8 @@ export function AssignmentDropdown({
   const handleChange = useCallback(
     (newValue: string | number | (string | number)[] | null) => {
       if (newValue === null || newValue === '') {
-        // Cleared - revert to inherit from rack
         onChange(undefined);
       } else if (newValue === COMMON_VALUE) {
-        // Explicitly unassigned/common
         onChange(null);
       } else {
         onChange(String(newValue));
@@ -143,6 +132,7 @@ export function AssignmentDropdown({
         placeholder="Assign…"
         size="xs"
         fullWidth
+        isQuiet={isQuiet}
         renderOption={renderOption}
         renderValue={renderValue}
         className="text-body-sm"

@@ -1,9 +1,3 @@
-/**
- * Storage Manager Modal
- *
- * Admin modal for managing storage layout (tanks, racks, boxes) and user assignments.
- */
-
 import { useState, useMemo, useRef, useEffect } from 'react';
 
 import { sortByName, GRID_TEMPLATES } from '@odysseus/shared-schemas';
@@ -58,7 +52,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const { data: activeUsers = [] } = useActiveUsersQuery();
 
-  // Includes deactivated users who still have assignments (for display purposes)
   const assignedUserIds = useMemo(() => extractAssignedUserIds(currentLab), [currentLab]);
   const { data: assignedUsers = [] } = useUserLookupQuery(assignedUserIds);
 
@@ -116,8 +109,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
   const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(new Set());
 
-  // Collapse every rack once the config first loads. Seeding this in a useState initializer read
-  // currentLab before the query resolved, so the tree opened fully expanded.
   const hasSeededCollapse = useRef(false);
   useEffect(() => {
     if (hasSeededCollapse.current || !currentLab) return;
@@ -146,7 +137,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const expandedRacks = useMemo(() => {
     if (!currentLab) return new Set<string>();
-    // Convert from `${tankId}-rack-${rackId}` to `${tankId}-${rackId}` format
     const expanded = new Set<string>();
     currentLab.equipment.tanks.forEach(tank => {
       tank.racks.forEach(rack => {
@@ -336,7 +326,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                   expandedRacks={expandedRacks}
                   treeId="modal"
                   initialDelay={420}
-                  lineOffset={2}
                 />
                 <div className="space-y-1">
                   {currentLab.equipment.tanks.map(tank => (

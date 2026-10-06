@@ -1,14 +1,7 @@
-/**
- * Supplies Tab
- *
- * Main composition for the supplies management page with category browser,
- * detail panel, and form overlays in a 60/40 split layout.
- */
-
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Eye, EyeOff, Layers, Package, Plus, SlidersHorizontal } from 'lucide-react';
+import { Eye, EyeOff, Package, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery } from '@domains/lab-management';
@@ -19,6 +12,7 @@ import {
   useDeleteSupplyCategoryMutation,
   useUpdateSupplyCategoryMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
+import { resolveSupplyStatusTone } from '@domains/supplies/utils/supplyStatus';
 import {
   AccentTick,
   Button,
@@ -26,22 +20,22 @@ import {
   InfoPanelEmpty,
   PanelHeader,
   SearchInput,
-  Tooltip,
 } from '@shared/ui';
 import {
-  CategoryManager,
-  useCatalogCategories,
   AttributeFilterPanel,
-  countAttributeFilters,
-  matchesAttributeFilters,
-  EMPTY_ATTRIBUTE_FILTERS,
   type AttributeFilters,
+  CatalogActionBar,
+  CategoryManager,
   CategoryTreePanel,
   type CategoryTreePanelLabels,
+  countAttributeFilters,
+  EMPTY_ATTRIBUTE_FILTERS,
   INVENTORY_SORT_OPTIONS,
+  type InventorySortField,
+  matchesAttributeFilters,
   searchCatalogItems,
   SortControls,
-  type InventorySortField,
+  useCatalogCategories,
 } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -111,7 +105,6 @@ export function SuppliesTab() {
     updateMutation: updateCategoryMutation,
     deleteMutation: deleteCategoryMutation,
   });
-  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -193,19 +186,20 @@ export function SuppliesTab() {
   const itemCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
+  const infoPanelItem =
+    rightPanel?.type === 'info' ? items.find(item => item.id === rightPanel.itemId) : undefined;
+
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
-        {/* Left Panel: Supplies list chassis */}
         <ConsolePanel
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
         >
-          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <div className="flex-shrink-0">
             <PanelHeader icon={<Package className="h-4 w-4" />} title="Supplies" />
           </div>
 
-          {/* Locator strip: inventory counts */}
           <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
               <AccentTick />
@@ -220,22 +214,32 @@ export function SuppliesTab() {
             </span>
           </HeaderStrip>
 
-          {/* Toolbar: search · scan · sort · archived · actions — the table's own header */}
-          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search supplies…"
-              size="sm"
-              className="w-64 min-w-[9rem]"
-              aria-label="Search supplies"
-            />
-            <div className="flex items-center gap-2">
-              <SupplyQuickScanBar
-                items={items}
-                onViewItem={handleScanViewItem}
-                onRecordTransaction={handleScanRecordTransaction}
+          <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search supplies…"
+                size="sm"
+                className="min-w-[9rem] max-w-64 flex-1"
+                aria-label="Search supplies"
               />
+              <div className="flex items-center gap-2">
+                <SupplyQuickScanBar
+                  items={items}
+                  onViewItem={handleScanViewItem}
+                  onRecordTransaction={handleScanRecordTransaction}
+                />
+              </div>
+              {isAdmin && (
+                <CatalogActionBar
+                  addItemLabel="Add Item"
+                  isTaxonomyLocked={isTaxonomyLocked}
+                  onBulkOperations={() => setIsBulkUpdateOpen(true)}
+                  onAddCategory={categoryState.onAddCategory}
+                  onAddItem={handleAddItem}
+                />
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -246,13 +250,13 @@ export function SuppliesTab() {
                 options={INVENTORY_SORT_OPTIONS}
               />
               <Button
-                variant="ghost"
+                variant={isFilterOpen || activeFilterCount > 0 ? 'ghost-primary' : 'ghost'}
                 size="sm"
                 onClick={() => setIsFilterOpen(open => !open)}
                 aria-expanded={isFilterOpen}
                 className={`h-8 flex-shrink-0 text-label-sm ${
                   isFilterOpen || activeFilterCount > 0
-                    ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                    ? 'border border-primary/55 bg-primary/[0.10]'
                     : ''
                 }`}
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
@@ -275,33 +279,8 @@ export function SuppliesTab() {
                 {showArchived ? 'Hide' : 'Show'} Archived
               </Button>
             </div>
-            {isAdmin && (
-              <div className="ml-auto flex items-center gap-2">
-                <Tooltip content="Bulk Operations" side="bottom">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    iconOnly
-                    onClick={() => setIsBulkUpdateOpen(true)}
-                    className="h-8 flex-shrink-0"
-                    aria-label="Bulk Operations"
-                  >
-                    <Layers className="h-3.5 w-3.5" />
-                  </Button>
-                </Tooltip>
-                <Button
-                  size="sm"
-                  onClick={handleAddItem}
-                  className="h-8 flex-shrink-0"
-                  leftIcon={<Plus className="h-3.5 w-3.5" />}
-                >
-                  Add Item
-                </Button>
-              </div>
-            )}
           </div>
 
-          {/* Body: pinned low-stock alerts + scrolling category tree */}
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
             {isFilterOpen && (
               <AttributeFilterPanel
@@ -324,6 +303,7 @@ export function SuppliesTab() {
               <CategoryTreePanel
                 categories={categories}
                 items={treeItems}
+                selectedItemId={selectedItemId}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 isTaxonomyLocked={isTaxonomyLocked}
@@ -338,7 +318,6 @@ export function SuppliesTab() {
                 )}
                 treeId="supplies"
                 labels={TREE_LABELS}
-                onAddCategory={categoryState.onAddCategory}
                 onAddSubcategory={categoryState.onAddSubcategory}
                 onRenameCategory={categoryState.onRenameCategory}
                 onDeleteCategory={categoryState.onDeleteCategory}
@@ -347,7 +326,6 @@ export function SuppliesTab() {
           </div>
         </ConsolePanel>
 
-        {/* Right Panel: Detail / Edit / Transaction */}
         <div
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
@@ -363,13 +341,11 @@ export function SuppliesTab() {
           {rightPanel?.type === 'info' && (
             <SupplyItemInfoPanel
               itemId={rightPanel.itemId}
+              statusTone={infoPanelItem ? resolveSupplyStatusTone(infoPanelItem) : 'muted'}
               onEdit={handleEditItem}
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}
               onDeleted={handleItemDeleted}
-              categoryName={categoryNameMap.get(
-                items.find(p => p.id === rightPanel.itemId)?.categoryId ?? ''
-              )}
             />
           )}
 

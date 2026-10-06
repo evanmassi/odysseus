@@ -1,15 +1,10 @@
-/**
- * Researchers Tab
- *
- * Admin interface for researcher profiles, status management, and deletion.
- */
-
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { Dna, Link, Plus, Power, RefreshCw, TestTubeDiagonal, Trash2 } from 'lucide-react';
+import { Dna, Link, Plus, Power, TestTubeDiagonal, Trash2 } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication';
+import { queryKeys } from '@app/cache/queryKeys';
+import { useAuthStore, useLabId } from '@domains/authentication';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -23,6 +18,7 @@ import {
 } from '../../../../hooks/useResearcherMutations';
 import { CollapsibleInactiveSection } from '../../displays/CollapsibleInactiveSection';
 import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
+import { TabRefreshButton } from '../../displays/TabRefreshButton';
 import { ResearcherModal } from '../ResearcherModal';
 
 import { visibleColumns } from './columnVisibility';
@@ -33,15 +29,18 @@ import type { TableColumn, SortConfig } from '@shared/ui';
 interface ResearchersTabProps {
   onResearcherUpdate?: () => void;
   onTabFooter?: (footer: ReactNode) => void;
+  onTabAction: (action: ReactNode) => void;
   readOnly?: boolean;
 }
 
 export function ResearchersTab({
   onResearcherUpdate,
   onTabFooter,
+  onTabAction,
   readOnly = false,
 }: ResearchersTabProps) {
-  const { data, isLoading, isFetching, refetch } = useAdminResearchersQuery();
+  const { data, isLoading } = useAdminResearchersQuery();
+  const labId = useLabId();
   const activateMutation = useActivateResearcherMutation();
   const createResearcherMutation = useCreateResearcherMutation();
   const deactivateMutation = useDeactivateResearcherMutation();
@@ -100,7 +99,6 @@ export function ResearchersTab({
       return;
     }
 
-    // Check safety conditions
     if (researcher.tubeCount > 0) {
       notifications.error(`Cannot delete researcher with ${researcher.tubeCount} existing tubes`);
       return;
@@ -324,8 +322,26 @@ export function ResearchersTab({
     },
   ];
 
+  useEffect(() => {
+    onTabAction(
+      readOnly ? null : (
+        <div className="flex items-center gap-2">
+          <TabRefreshButton queryKey={queryKeys.admin.researchers(labId)} />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+            leftIcon={<Plus size={14} />}
+          >
+            Add Researcher
+          </Button>
+        </div>
+      )
+    );
+  }, [onTabAction, readOnly, labId]);
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <Table
         columns={visibleColumns(researcherColumns, readOnly)}
         data={activeResearchers}
@@ -337,35 +353,6 @@ export function ResearchersTab({
         emptyMessage="No researchers found"
         loadingMessage="Loading researchers..."
         aria-label="Researchers list"
-        toolbar={
-          readOnly
-            ? undefined
-            : {
-                right: (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => refetch()}
-                      isLoading={isFetching}
-                      leftIcon={
-                        <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
-                      }
-                    >
-                      Refresh
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setShowAddModal(true)}
-                      leftIcon={<Plus size={14} />}
-                    >
-                      Add Researcher
-                    </Button>
-                  </>
-                ),
-              }
-        }
       />
 
       {inactiveResearchers.length > 0 && (

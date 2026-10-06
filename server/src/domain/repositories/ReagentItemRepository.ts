@@ -1,11 +1,3 @@
-/**
- * Reagent Item Repository Interface
- *
- * Data access contract for reagent items, documents, barcodes, per-lot stock,
- * transactions, and lookup value support. Stock lives in lots; a transaction
- * references the lot it moved and FEFO issues span lots as one action.
- */
-
 import type { DocumentPatch } from '@domain/entities/Document';
 import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
@@ -37,7 +29,6 @@ export interface ReagentBarcodeRow {
   label?: string;
 }
 
-/** A lot's internal barcode with the lot identity a bottle label prints. */
 export interface ReagentLotLabelRow {
   itemId: string;
   lotId: string;
@@ -83,17 +74,23 @@ export interface VoidTransactionData {
   voidReason: string;
 }
 
+export interface LotExpiration {
+  id: string;
+  locationId: string;
+  lotNumber?: string;
+  quantity: number;
+  expirationDate: string;
+}
+
 export interface ItemWithStock {
   item: ReagentItem;
   totalStock: number;
   lotCount: number;
-  expiredLotCount: number;
   locationNames: string[];
-  soonestExpiration?: string;
+  lotExpirations: LotExpiration[];
 }
 
-// Field usage by type: received uses quantity + lot metadata; issued/disposed use
-// quantity (+ optional lotId / includeExpired); count_adjustment uses actualCount + lotId.
+// PITFALL: received uses quantity + lot metadata; issued/disposed use quantity (+ optional lotId / includeExpired); count_adjustment uses actualCount + lotId.
 export interface RecordTransactionData {
   itemId: string;
   locationId: string;
@@ -116,19 +113,14 @@ export interface RecordTransactionData {
 }
 
 export interface ReagentItemRepository {
-  // Items
-
   findById(id: string, labId: string): Promise<ReagentItem | null>;
   findByLabIdWithStock(labId: string): Promise<ItemWithStock[]>;
   save(item: ReagentItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
   hasTransactions(id: string): Promise<boolean>;
-  /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
+  // PITFALL: visitor-created rows only; seeded rows must not consume the demo creation caps.
   countNonSeededByLabId(labId: string): Promise<number>;
-  /** Bulk delete for the demo reset. Returns the row count removed. */
   deleteAllForLab(labId: string): Promise<number>;
-
-  // Documents
 
   findDocumentsByItemId(itemId: string): Promise<ReagentDocument[]>;
   saveDocument(document: ReagentDocument): Promise<void>;
@@ -138,8 +130,6 @@ export interface ReagentItemRepository {
     fields: DocumentPatch
   ): Promise<ReagentDocument | null>;
   deleteDocument(id: string, itemId: string): Promise<boolean>;
-
-  // Barcodes
 
   findBarcodesByItemId(itemId: string): Promise<ReagentBarcodeRow[]>;
   findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<ReagentBarcodeRow[]>;
@@ -153,8 +143,6 @@ export interface ReagentItemRepository {
   ): Promise<ReagentBarcodeRow | null>;
   deleteBarcode(id: string, itemId: string): Promise<boolean>;
 
-  // Lots
-
   findLotsByItemId(itemId: string): Promise<ReagentLotRow[]>;
   updateLot(
     id: string,
@@ -162,8 +150,7 @@ export interface ReagentItemRepository {
     fields: { openedDate?: string | null; expirationDate?: string | null }
   ): Promise<ReagentLotRow | null>;
 
-  // Transactions — recordTransaction is atomic and lot-aware: a FEFO issue draws
-  // across lots and returns one transaction row per lot moved.
+  // PITFALL: recordTransaction is atomic and a FEFO issue returns one transaction row per lot moved.
 
   findTransactionsByItemId(itemId: string): Promise<ReagentTransactionRow[]>;
   findTransactionById(id: string, labId: string): Promise<ReagentTransactionRow | null>;
@@ -171,8 +158,6 @@ export interface ReagentItemRepository {
   voidTransaction(
     data: VoidTransactionData
   ): Promise<{ original: ReagentTransactionRow; reversal: ReagentTransactionRow }>;
-
-  // Attribute values
 
   findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]>;
   findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]>;
@@ -182,16 +167,12 @@ export interface ReagentItemRepository {
     values: AttributeValueRow[]
   ): Promise<void>;
 
-  // Lookup support — for reagent lookup category rename/delete cascading
-
   countItemsUsingReagentType(value: string, labId: string): Promise<number>;
   renameReagentType(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingVendor(value: string, labId: string): Promise<number>;
   renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingManufacturer(value: string, labId: string): Promise<number>;
   renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
-
-  // Packaging levels
 
   findPackagingLevelsByItemId(itemId: string): Promise<ReagentPackagingLevelRow[]>;
   savePackagingLevel(level: ReagentPackagingLevelRow): Promise<void>;

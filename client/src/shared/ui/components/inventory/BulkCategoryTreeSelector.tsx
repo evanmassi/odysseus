@@ -1,12 +1,3 @@
-/**
- * Bulk Category Tree Selector
- *
- * Multi-select tree of category → subcategory → item checkboxes for bulk
- * operations, shared by the equipment, supply, and reagent bulk-operations modals.
- * Selectability, each item's secondary text, and the labels are injected per
- * domain; search is controlled by the caller.
- */
-
 import { useMemo, useCallback } from 'react';
 
 import { CornerDownRight, FolderOpen } from 'lucide-react';
@@ -14,8 +5,10 @@ import { CornerDownRight, FolderOpen } from 'lucide-react';
 import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategoryIds';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
-import { Checkbox, NubDivider, ScrollArea, SearchInput } from '../../primitives';
-import { SelectTreeLines } from '../tree-lines';
+import { Checkbox, Divider, ScrollArea, SearchInput, TruncatedText } from '../../primitives';
+import { NavTreeLines } from '../tree-lines';
+
+import { TreeRowRail } from './TreeRowRail';
 
 interface BulkTreeCategory {
   id: string;
@@ -32,13 +25,11 @@ interface BulkTreeItem {
 }
 
 export interface BulkCategoryTreeSelectorLabels {
-  /** Singular/plural count noun, e.g. ['unit', 'units']. */
   countNoun: [string, string];
   filterPlaceholder: string;
   filterAriaLabel: string;
   selectAllLabel: string;
   selectAllAriaLabel: string;
-  /** Prefix for the no-match line; the quoted query is appended. */
   noMatch: string;
 }
 
@@ -107,17 +98,18 @@ function BulkSelectItem<T extends BulkTreeItem>({
 
   return (
     <div data-level={level} data-id={item.id}>
-      <div className="select-tree-row row-glow flex items-center gap-2 py-1 pl-3 pr-1">
+      <div className={`nav-tree-row row-glow nav-tree-row--item ${selected ? 'is-selected' : ''}`}>
         <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-body-sm font-medium text-card-foreground">
-            {item.name}
-          </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <TruncatedText
+            text={item.name}
+            className="font-display text-body font-medium leading-tight text-card-foreground"
+          />
           {identity.length > 0 && (
-            <span className="block truncate text-caption text-muted-foreground">
+            <span className="truncate font-mono text-data-sm tracking-[0.02em] text-muted-foreground">
               {identity.map((part, i) => (
                 <span key={i}>
-                  {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}
+                  {i > 0 && <span className="mx-1 text-foreground/30">·</span>}
                   {part}
                 </span>
               ))}
@@ -140,8 +132,6 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
   getSecondaryText,
   labels,
 }: BulkCategoryTreeSelectorProps<T, C>) {
-  const [countSingular, countPlural] = labels.countNoun;
-
   const matchingCategoryIds = useMemo(() => {
     if (!searchQuery) return new Set<string>();
     return collectMatchingCategoryIds(categories, searchQuery);
@@ -214,7 +204,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
         aria-label={labels.filterAriaLabel}
       />
       <div className="mb-3 flex-shrink-0">
-        <div className="flex items-center gap-2 pb-2">
+        <div className="mr-2 flex items-center gap-2 border-x border-transparent px-2 pb-2">
           <Checkbox
             checked={allSelected}
             indeterminate={someSelected && !allSelected}
@@ -224,15 +214,18 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
           <span className="text-body-sm font-medium text-card-foreground flex-1">
             {labels.selectAllLabel}
           </span>
-          <span className="text-caption text-muted-foreground">
-            {selectedCount}/{allSelectableIds.length} {countPlural}
+          <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground/70">
+            {selectedCount}/{allSelectableIds.length}{' '}
+            <span className="text-muted-foreground/60">
+              {allSelectableIds.length === 1 ? labels.countNoun[0] : labels.countNoun[1]}
+            </span>
           </span>
         </div>
-        <NubDivider tone="neutral" className="relative" />
+        <Divider tone="neutral" className="relative" />
       </div>
       <ScrollArea className="flex-1 min-h-0">
-        <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
-          <SelectTreeLines treeId="bulk-select" />
+        <div data-tree-id="bulk-select" className="nav-tree relative flex flex-col gap-2 pr-2">
+          <NavTreeLines treeId="bulk-select" />
           {groups.length === 0 && searchQuery && (
             <p className="text-body-sm text-muted-foreground text-center py-4">
               {labels.noMatch} &ldquo;{searchQuery}&rdquo;
@@ -242,67 +235,56 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
             const groupIds = getAllItemIds(group);
             const groupAllChecked = groupIds.every(id => selectedIds.has(id));
             const groupSomeChecked = groupIds.some(id => selectedIds.has(id));
-            const hasChildren =
-              group.items.length > 0 || group.subcategories.some(s => s.items.length > 0);
+            const subcategoriesWithItems = group.subcategories.filter(s => s.items.length > 0);
 
             return (
               <div key={group.category.id} data-level="l1" data-id={group.category.id}>
-                <div className="select-tree-row row-glow flex items-center gap-2 py-1 pl-3 pr-1">
+                <div className="nav-tree-row row-glow nav-tree-row--category">
                   <Checkbox
                     checked={groupAllChecked}
                     indeterminate={groupSomeChecked && !groupAllChecked}
                     onChange={() => toggleCategory(groupIds)}
                     aria-label={`Select all in ${group.category.name}`}
                   />
-                  <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
-                  <span className="text-body-sm text-secondary-foreground">
-                    {group.category.name}
-                  </span>
-                  <span className="text-caption text-muted-foreground ml-auto">
-                    {groupIds.length} {groupIds.length === 1 ? countSingular : countPlural}
-                  </span>
+                  <FolderOpen size={16} className="flex-shrink-0 text-muted-foreground" />
+                  <TruncatedText
+                    text={group.category.name}
+                    className="nav-tree-row__label font-display text-body-lg font-semibold text-secondary-foreground"
+                  />
+                  <TreeRowRail count={groupIds.length} countNoun={labels.countNoun} />
                 </div>
 
-                {hasChildren && (
-                  <div className="ml-3">
-                    {group.items.map(item => (
-                      <BulkSelectItem
-                        key={item.id}
-                        item={item}
-                        level="l2"
-                        selected={selectedIds.has(item.id)}
-                        secondaryText={getSecondaryText(item)}
-                        onToggle={() => toggleItem(item.id)}
-                      />
-                    ))}
+                <div className="nav-tree-children">
+                  {subcategoriesWithItems.map(sub => {
+                    const subIds = sub.items.map(i => i.id);
+                    const subAllChecked = subIds.every(id => selectedIds.has(id));
+                    const subSomeChecked = subIds.some(id => selectedIds.has(id));
 
-                    {group.subcategories.map(sub => {
-                      if (sub.items.length === 0) return null;
-                      const subIds = sub.items.map(i => i.id);
-                      const subAllChecked = subIds.every(id => selectedIds.has(id));
-                      const subSomeChecked = subIds.some(id => selectedIds.has(id));
-
-                      return (
-                        <div key={sub.category.id} data-level="l2" data-id={sub.category.id}>
-                          <div className="select-tree-row row-glow flex items-center gap-2 py-1 pl-3 pr-1">
-                            <Checkbox
-                              checked={subAllChecked}
-                              indeterminate={subSomeChecked && !subAllChecked}
-                              onChange={() => toggleCategory(subIds)}
-                              aria-label={`Select all in ${sub.category.name}`}
-                            />
-                            <CornerDownRight
-                              size={13}
-                              className="flex-shrink-0 text-muted-foreground"
-                            />
-                            <span className="text-body-sm text-secondary-foreground">
-                              {sub.category.name}
-                            </span>
-                            <span className="text-caption text-muted-foreground ml-auto">
-                              {subIds.length} {subIds.length === 1 ? countSingular : countPlural}
-                            </span>
-                          </div>
-                          <div className="ml-[30px]">
+                    return (
+                      <div key={sub.category.id} data-level="l2" data-id={sub.category.id}>
+                        <div className="nav-tree-row row-glow nav-tree-row--subcategory">
+                          <Checkbox
+                            checked={subAllChecked}
+                            indeterminate={subSomeChecked && !subAllChecked}
+                            onChange={() => toggleCategory(subIds)}
+                            aria-label={`Select all in ${sub.category.name}`}
+                          />
+                          <CornerDownRight
+                            size={14}
+                            className="flex-shrink-0 text-muted-foreground"
+                          />
+                          <TruncatedText
+                            text={sub.category.name}
+                            className="nav-tree-row__label font-display text-body font-medium"
+                          />
+                          <TreeRowRail
+                            count={subIds.length}
+                            countNoun={labels.countNoun}
+                            isSubtle
+                          />
+                        </div>
+                        <div className="nav-tree-children">
+                          <div className="nav-tree-well">
                             {sub.items.map(item => (
                               <BulkSelectItem
                                 key={item.id}
@@ -315,10 +297,25 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
                             ))}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
+                      </div>
+                    );
+                  })}
+
+                  {group.items.length > 0 && (
+                    <div className="nav-tree-well">
+                      {group.items.map(item => (
+                        <BulkSelectItem
+                          key={item.id}
+                          item={item}
+                          level="l2"
+                          selected={selectedIds.has(item.id)}
+                          secondaryText={getSecondaryText(item)}
+                          onToggle={() => toggleItem(item.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

@@ -1,10 +1,3 @@
-/**
- * Reagent Item Form
- *
- * React Hook Form for creating and editing reagents: sourcing and chemistry fields,
- * registry-backed unit dropdowns, and the packaging chain editor.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +32,7 @@ import {
   CompletenessMeter,
   Input,
   lookupOptions,
-  NubDivider,
+  Divider,
   SectionHeader,
   Select,
   withPlaceholder,
@@ -73,7 +66,6 @@ interface LocalPackagingLevel {
   parentUnit: string | null;
 }
 
-/** Rendered rows come from local state while creating and from the server while editing. */
 type PackagingLevelRow = LocalPackagingLevel & { id?: string };
 
 const TRACKED_FIELDS = [
@@ -123,7 +115,6 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     losing: string[];
   } | null>(null);
 
-  // Detail arrives after mount, and the panel reuses this component across items.
   useEffect(() => {
     if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
     const seeded = draftsFromValues(detail.attributeValues);
@@ -141,8 +132,6 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
   const [newLevelQty, setNewLevelQty] = useState('');
   const [newLevelUnit, setNewLevelUnit] = useState('');
 
-  // A level's `parentUnit` names what it holds, so the outermost pack is the one no other
-  // level points at. New packs wrap it; the first pack holds the stock unit itself.
   const outermostPack = useMemo(() => {
     const held = new Set(
       packagingLevels.map(level => level.parentUnit).filter((unit): unit is string => !!unit)
@@ -180,8 +169,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     setValue,
     formState: { errors, isSubmitting },
   } = useForm({
-    // The concentration preprocessor accepts `unknown`, so the schema's input type doesn't meet
-    // the resolver's FieldValues constraint even though every field arrives from an input as text.
+    // PITFALL: the concentration preprocessor accepts unknown, so the schema's input type misses the resolver's FieldValues constraint.
     resolver: zodResolver(
       (isEditing ? updateReagentItemRequestSchema : createReagentItemRequestSchema) as never
     ) as never,
@@ -209,7 +197,6 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
       : { categoryId: '', name: '' },
   });
 
-  // Blank clears the field on edit (null) but stays absent on create (undefined).
   const numberField = (value: string) =>
     value === '' ? (isEditing ? null : undefined) : Number(value);
 
@@ -256,8 +243,6 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     [isEditing, item, removePackagingMutation]
   );
 
-  // Attributes scoped to the outgoing type are cleared rather than left invisible on the item,
-  // so what the form shows and what the reagent holds stay the same thing.
   const attributesLostByType = (nextType: string) =>
     scopedOutOfType(attributeDefinitions, nextType).filter(definition =>
       isDraftPopulated(attributeDrafts[definition.id] ?? EMPTY_DRAFT)
@@ -292,9 +277,6 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     setPendingTypeChange(null);
   };
 
-  // Attribute values are their own endpoint, so they sequence off a saved item the way packaging
-  // levels do. Failures are reported by the global handler; the count comes back so the caller
-  // can say the item saved without claiming its attributes did.
   const saveAttributeValues = async (itemId: string): Promise<number> => {
     const requests = changedAttributeRequests(
       savedDraftsRef.current,
@@ -326,7 +308,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
         reportSaved('updated', await saveAttributeValues(item.id));
         onSubmit();
       } catch {
-        // The global handler toasts the update failure; the form stays open for a retry.
+        // PITFALL: the global handler toasts the update failure; swallowing it keeps the form open for a retry.
       }
       return;
     }
@@ -334,8 +316,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
     try {
       const created = await createMutation.mutateAsync(data as CreateReagentItemRequest);
 
-      // Packaging levels need the new item id, so they sequence off the create. The service is
-      // called directly: a failed level shouldn't lose the item, and there is no cache to patch.
+      // PITFALL: the service is called directly so a failed packaging level doesn't lose the created item.
       for (const level of localPackagingLevels) {
         try {
           await ReagentService.addPackagingLevel(created.id, level);
@@ -347,7 +328,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
       reportSaved('created', await saveAttributeValues(created.id));
       onSubmit();
     } catch {
-      // The global handler toasts the create failure; the form stays open for a retry.
+      // PITFALL: the global handler toasts the create failure; swallowing it keeps the form open for a retry.
     }
   };
 
@@ -713,7 +694,7 @@ export function ReagentItemForm({ item, categories, onSubmit, onCancel }: Reagen
       />
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

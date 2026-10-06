@@ -1,15 +1,11 @@
-/**
- * Supply Item Row
- *
- * Inset card for an individual supply item: a status line, the colored low-stock
- * icon, a two-line identity, and location/stock chips.
- */
-
 import { pluralizeUnit } from '@odysseus/shared-schemas';
 import { AlertTriangle, MapPin } from 'lucide-react';
 
-import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
-import { ItemRowShell, type ItemRowStatusTone } from '@shared/ui/components/inventory';
+import {
+  SUPPLY_STATUS_DISPLAY,
+  resolveSupplyStatusTone,
+} from '@domains/supplies/utils/supplyStatus';
+import { ItemRowShell } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { resolveStockTone } from '@shared/utils/stockLevel';
@@ -27,13 +23,8 @@ export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps
   const stockColor = resolveStockTone(item.totalStock, item.reorderThreshold);
   const statusInfo = SUPPLY_STATUS_DISPLAY[item.status];
 
-  // The tooltip distinguishes "running low" (the early warning band) from "low stock".
   const isUrgent = !isArchived && (stockColor === 'danger' || stockColor === 'warning');
-  const statusTone: ItemRowStatusTone = isArchived
-    ? 'muted'
-    : stockColor === 'default'
-      ? 'success'
-      : stockColor;
+  const statusTone = resolveSupplyStatusTone(item);
 
   const unit = pluralizeUnit(item.stockUnit ?? 'unit', item.totalStock);
   const urgentTooltip =

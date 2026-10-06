@@ -1,24 +1,16 @@
-/**
- * Equipment Item Info Panel
- *
- * Read-only detail display for a selected equipment item with documents,
- * maintenance log timeline, and admin action buttons.
- */
-
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
-  SquarePen,
-  Trash2,
-  Power,
-  Plus,
   Edit,
   ExternalLink,
-  X,
-  NotepadText,
   MapPin,
-  FolderOpen,
+  NotepadText,
+  Plus,
+  Power,
+  SquarePen,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -31,21 +23,30 @@ import {
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
-import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
+import {
+  buildLocationPathMap,
+  useAttributesQuery,
+  useLabLocationsQuery,
+} from '@domains/lab-management';
 import { useDemoItemLock } from '@shared/hooks/useDemoItemLock';
 import {
   Button,
   Chip,
   DemoLockIndicator,
   DetailRow,
+  Divider,
   HeaderStrip,
-  NubDivider,
+  ItemIdentityHeader,
   PanelHeader,
   SectionHeader,
   StripLabel,
   Tooltip,
 } from '@shared/ui';
-import { toAttributeDisplayRows } from '@shared/ui/components/inventory';
+import {
+  ItemStatusStripe,
+  toAttributeDisplayRows,
+  type ItemRowStatusTone,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -63,12 +64,12 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
   itemId: string;
+  statusTone: ItemRowStatusTone;
   onEdit: () => void;
   onDecommission: () => void;
   onAddMaintenance: () => void;
   onEditMaintenance: (entry: EquipmentMaintenanceLog) => void;
   onDeleted: () => void;
-  categoryName?: string;
 }
 
 function formatDate(date: Date | string | undefined): string | undefined {
@@ -78,12 +79,12 @@ function formatDate(date: Date | string | undefined): string | undefined {
 
 export function EquipmentItemInfoPanel({
   itemId,
+  statusTone,
   onEdit,
   onDecommission,
   onAddMaintenance,
   onEditMaintenance,
   onDeleted,
-  categoryName,
 }: EquipmentItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
@@ -108,20 +109,10 @@ export function EquipmentItemInfoPanel({
     doc?: EquipmentDocument;
   }>({ isOpen: false, mode: 'add' });
 
-  // The full path is what the free-text column used to spell out, so the chip keeps saying it.
-  const locationPath = useMemo(() => {
-    const locationId = detail?.item.locationId;
-    if (!locationId) return undefined;
-    const byId = new Map(locations.map(l => [l.id, l]));
-    let current = byId.get(locationId);
-    if (!current) return undefined;
-    const path: string[] = [];
-    while (current) {
-      path.unshift(current.name);
-      current = current.parentId ? byId.get(current.parentId) : undefined;
-    }
-    return path.join(' › ');
-  }, [detail?.item.locationId, locations]);
+  const locationPathMap = useMemo(() => buildLocationPathMap(locations), [locations]);
+  const locationPath = detail?.item.locationId
+    ? locationPathMap.get(detail.item.locationId)
+    : undefined;
 
   if (!detail) {
     return (
@@ -210,7 +201,7 @@ export function EquipmentItemInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 
@@ -220,14 +211,6 @@ export function EquipmentItemInfoPanel({
           <Chip size="sm" color={statusColor}>
             {statusLabel}
           </Chip>
-          {categoryName && (
-            <>
-              <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" lead={<FolderOpen />}>
-                {categoryName}
-              </Chip>
-            </>
-          )}
           {locationPath && (
             <>
               <StripLabel>Location</StripLabel>
@@ -242,9 +225,12 @@ export function EquipmentItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
+            <ItemIdentityHeader
+              marker={<ItemStatusStripe tone={statusTone} className="h-11 w-1" />}
+              name={item.name}
+            />
             {item.description && (
-              <p className="mt-1 text-body leading-relaxed text-card-foreground/70">
+              <p className="mt-3 text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -407,7 +393,7 @@ export function EquipmentItemInfoPanel({
 
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <Divider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             {isLocked ? (
               <DemoLockIndicator />

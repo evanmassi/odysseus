@@ -1,8 +1,3 @@
-/**
- * Researcher Modal
- *
- * Create or link researcher profiles to user accounts.
- */
 import { useState, type ReactNode } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,6 +12,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { AuthInput } from '@shared/ui/primitives';
+import { ROW_DARK_HOVER } from '@shared/ui/primitives/table/rowGlow';
 import { notifications } from '@shared/utils';
 
 interface ResearcherModalProps {
@@ -61,7 +57,7 @@ export function ResearcherModal({
       onSuccess();
       onClose();
     } catch {
-      // The create mutation surfaces the error toast globally; keep the modal open to retry.
+      // PITFALL: the create mutation already toasts its own error; swallowing it here keeps the modal open for retry.
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +71,7 @@ export function ResearcherModal({
       onSuccess();
       onClose();
     } catch {
-      // The link mutation surfaces the error toast globally; keep the modal open to retry.
+      // PITFALL: the link mutation already toasts its own error; swallowing it here keeps the modal open for retry.
     } finally {
       setIsSubmitting(false);
     }
@@ -197,7 +193,7 @@ export function ResearcherModal({
             unlinkedResearchers.map(researcher => (
               <div
                 key={researcher.id}
-                className="border border-border rounded p-3 flex items-center justify-between hover:bg-accent transition-colors"
+                className={`border border-border rounded p-3 flex items-center justify-between hover:bg-accent dark:hover:bg-transparent transition-colors ${ROW_DARK_HOVER}`}
               >
                 <div className="flex-1">
                   <div className="text-body-sm font-medium text-card-foreground">

@@ -1,14 +1,8 @@
-/**
- * Lab Location Tree
- *
- * The location hierarchy with its connectors, read-only unless the caller supplies row actions.
- */
-
 import { useMemo, type ReactNode } from 'react';
 
 import { CornerDownRight, FolderOpen } from 'lucide-react';
 
-import { SelectTreeLines } from '@shared/ui/components/tree-lines';
+import { NavTreeLines } from '@shared/ui/components/tree-lines';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import type { LabLocation } from '@odysseus/shared-schemas';
@@ -17,7 +11,6 @@ const TIER_LEVELS = ['l1', 'l2', 'l3'] as const;
 
 interface LabLocationTreeProps {
   locations: LabLocation[];
-  /** Distinguishes this tree's connectors from another mounted alongside it. */
   treeId: string;
   emptyMessage: string;
   highlightId?: string;
@@ -49,37 +42,48 @@ export function LabLocationTree({
       const hasChildren = (childrenByParent.get(location.id) ?? []).length > 0;
       const actions = renderActions?.(location);
 
+      const isTopLevel = depth === 0;
+      const rowClasses = [
+        'nav-tree-row row-glow',
+        isTopLevel ? 'nav-tree-row--category' : 'nav-tree-row--subcategory',
+        actions ? 'row-tools-host' : 'nav-tree-row--static',
+        highlightId === location.id ? 'is-open' : '',
+      ].join(' ');
+
       return (
         <div key={location.id} data-level={TIER_LEVELS[depth]} data-id={location.id}>
-          <div
-            className={`select-tree-row row-glow group flex items-center gap-2 py-1 pl-3 pr-1 ${
-              highlightId === location.id ? 'bg-foreground/[0.06]' : ''
-            }`}
-          >
-            {depth === 0 ? (
-              <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
+          <div className={rowClasses}>
+            {isTopLevel ? (
+              <FolderOpen size={16} className="flex-shrink-0 text-muted-foreground" />
             ) : (
-              <CornerDownRight size={13} className="flex-shrink-0 text-muted-foreground" />
+              <CornerDownRight size={14} className="flex-shrink-0 text-muted-foreground" />
             )}
-            <div className="min-w-0 flex-1">
-              <span className="block truncate text-body-sm font-medium text-card-foreground">
-                {location.name}
-              </span>
-              {location.description && (
-                <span className="block truncate text-caption text-muted-foreground">
-                  {location.description}
+            <span
+              className={`nav-tree-row__label font-display ${
+                isTopLevel
+                  ? 'text-body-lg font-semibold text-secondary-foreground'
+                  : 'text-body font-medium'
+              }`}
+            >
+              {location.name}
+            </span>
+            {location.description && (
+              <span className="min-w-0 truncate text-caption text-muted-foreground">
+                <span aria-hidden className="mr-1.5 text-foreground/25">
+                  ·
                 </span>
-              )}
-            </div>
+                {location.description}
+              </span>
+            )}
             {actions && (
-              <div className="flex flex-shrink-0 gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                {actions}
-              </div>
+              <span className="row-tools ml-auto">
+                <span className="flex items-center gap-1 pl-2.5">{actions}</span>
+              </span>
             )}
           </div>
 
           {hasChildren && depth < TIER_LEVELS.length - 1 && (
-            <div className="ml-3">{renderTier(location.id, depth + 1)}</div>
+            <div className="nav-tree-children">{renderTier(location.id, depth + 1)}</div>
           )}
         </div>
       );
@@ -91,8 +95,8 @@ export function LabLocationTree({
   }
 
   return (
-    <div data-tree-id={treeId} className="nav-tree-select relative space-y-2 pr-2">
-      <SelectTreeLines treeId={treeId} />
+    <div data-tree-id={treeId} className="nav-tree relative flex flex-col gap-2 pr-2">
+      <NavTreeLines treeId={treeId} />
       {renderTier(null, 0)}
     </div>
   );

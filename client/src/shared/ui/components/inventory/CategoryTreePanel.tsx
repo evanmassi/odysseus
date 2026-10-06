@@ -1,11 +1,3 @@
-/**
- * Category Tree Panel
- *
- * Collapsible category sections with nested subcategories and item cards, shared
- * by all three inventory catalogs. Callers pass the already-narrowed item list;
- * item rendering and the labels are injected per domain.
- */
-
 import { useState, useMemo, useCallback, type ReactNode } from 'react';
 
 import {
@@ -21,8 +13,9 @@ import {
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Button, OverflowMenu, type OverflowMenuItem } from '../../primitives';
-import { DemoLockIndicator } from '../info-display/DemoLockIndicator';
 import { NavTreeLines } from '../tree-lines';
+
+import { TreeRowRail } from './TreeRowRail';
 
 interface TreeCategory {
   id: string;
@@ -40,29 +33,24 @@ interface TreeItem {
 }
 
 export interface CategoryTreePanelLabels {
-  /** Singular/plural count noun, e.g. ['unit', 'units']. */
   countNoun: [string, string];
   emptyCategories: string;
-  /** Prefix for the no-search-match line; the quoted query is appended. */
   noSearchMatch: string;
   emptyCategoryBody: string;
 }
 
 interface CategoryTreePanelProps<T extends TreeItem, C extends TreeCategory> {
   categories: C[];
-  /** Already narrowed by the caller; drives the rows and the header count alike. */
   items: T[];
-  /** Not applied here — it force-opens matching categories and names the empty state. */
+  selectedItemId?: string;
   searchQuery: string;
   isAdmin: boolean;
-  /** A seeded demo lab freezes its vocabulary, so management is withdrawn rather than left to fail. */
   isTaxonomyLocked: boolean;
   sortField: 'name' | 'manufacturer' | 'dateAdded';
   sortDirection: 'asc' | 'desc';
   renderItem: (item: T) => ReactNode;
   treeId: string;
   labels: CategoryTreePanelLabels;
-  onAddCategory: () => void;
   onAddSubcategory: (parentId: string) => void;
   onRenameCategory: (category: C) => void;
   onDeleteCategory: (category: C) => void;
@@ -89,6 +77,7 @@ function buildCategoryMenuItems<C>(
 export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   categories,
   items,
+  selectedItemId,
   searchQuery,
   isAdmin,
   isTaxonomyLocked,
@@ -97,12 +86,12 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   renderItem,
   treeId,
   labels,
-  onAddCategory,
   onAddSubcategory,
   onRenameCategory,
   onDeleteCategory,
 }: CategoryTreePanelProps<T, C>) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [revealedItemId, setRevealedItemId] = useState<string | undefined>();
   const canManageCategories = isAdmin && !isTaxonomyLocked;
 
   const topLevelCategories = useMemo(
@@ -124,6 +113,16 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   }, [categories]);
 
   const isSearching = searchQuery.trim().length > 0;
+
+  if (selectedItemId !== revealedItemId) {
+    setRevealedItemId(selectedItemId);
+    const selectedCategoryId = items.find(item => item.id === selectedItemId)?.categoryId;
+    const selectedCategory = categories.find(c => c.id === selectedCategoryId);
+    const topLevelId = selectedCategory?.parentId ?? selectedCategory?.id;
+    if (topLevelId && !expandedCategories.has(topLevelId)) {
+      setExpandedCategories(prev => new Set(prev).add(topLevelId));
+    }
+  }
 
   const sortItems = useCallback(
     (a: T, b: T): number => {
@@ -189,8 +188,6 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     [itemsByCategoryId, subcategoriesByParent]
   );
 
-  // Categories the tree currently shows expanded — search force-opens any with
-  // matches; otherwise honor the manual toggle. Drives the SVG tree-line redraw.
   const expandedCategoryIds = useMemo(() => {
     const ids = new Set<string>();
     for (const category of topLevelCategories) {
@@ -202,58 +199,23 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
     return ids;
   }, [topLevelCategories, isSearching, getCategoryItemCount, expandedCategories]);
 
-  const [countSingular, countPlural] = labels.countNoun;
-
   if (topLevelCategories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
         <p className="text-body-sm">{labels.emptyCategories}</p>
-        {isAdmin && (
-          <div className="mt-3">
-            {isTaxonomyLocked ? (
-              <DemoLockIndicator />
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onAddCategory}
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Add Category
-              </Button>
-            )}
-          </div>
-        )}
       </div>
     );
   }
 
   return (
     <div className="pt-1">
-      {isAdmin && (
-        <div className="mb-2 flex justify-end px-1">
-          {isTaxonomyLocked ? (
-            <DemoLockIndicator side="left" />
-          ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onAddCategory}
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
-            >
-              Add Category
-            </Button>
-          )}
-        </div>
-      )}
-
       {items.length === 0 && isSearching && (
         <p className="text-body-sm text-muted-foreground text-center py-6">
           {labels.noSearchMatch} &ldquo;{searchQuery}&rdquo;
         </p>
       )}
 
-      <div data-tree-id={treeId} className="nav-tree relative flex flex-col gap-1">
+      <div data-tree-id={treeId} className="nav-tree relative flex flex-col gap-2">
         <NavTreeLines treeId={treeId} expandedCategoryIds={expandedCategoryIds} />
         {topLevelCategories.map(category => {
           const subs = subcategoriesByParent.get(category.id) ?? [];
@@ -266,7 +228,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
           return (
             <div key={category.id} data-level="l1" data-id={category.id}>
               <div
-                className={`nav-tree-row row-glow nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
+                className={`nav-tree-row row-glow row-tools-host nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
                 onClick={() => toggleCategory(category.id)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') toggleCategory(category.id);
@@ -279,69 +241,48 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
                   size={11}
                   className={`nav-tree-row__chevron ${isExpanded ? 'rotate-90' : ''}`}
                 />
-                {canManageCategories && (
-                  <div
-                    className="flex flex-shrink-0 items-center"
-                    role="presentation"
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                  >
-                    <OverflowMenu
-                      items={buildCategoryMenuItems(
-                        category,
-                        totalCount > 0,
-                        onRenameCategory,
-                        onDeleteCategory
-                      )}
-                      dividerBefore={['Remove']}
-                      size="sm"
-                      aria-label={`Actions for ${category.name}`}
-                    />
-                  </div>
-                )}
                 {isExpanded ? (
-                  <FolderOpen size={14} className="flex-shrink-0 text-primary" />
+                  <FolderOpen size={16} className="flex-shrink-0 text-primary" />
                 ) : (
-                  <Folder size={14} className="flex-shrink-0 text-muted-foreground" />
+                  <Folder size={16} className="flex-shrink-0 text-muted-foreground" />
                 )}
                 <span
-                  className={`nav-tree-row__label font-display text-body-sm ${
+                  className={`nav-tree-row__label font-display text-body-lg font-semibold ${
                     isExpanded ? 'text-foreground' : 'text-secondary-foreground'
                   }`}
                 >
                   {category.name}
                 </span>
-                <span
-                  aria-hidden
-                  className="flex-shrink-0 font-mono text-data-sm text-foreground/30"
-                >
-                  {'//'}
-                </span>
-                <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
-                  {totalCount}{' '}
-                  <span className="text-foreground/25">
-                    {totalCount === 1 ? countSingular : countPlural}
-                  </span>
-                </span>
-                <span className="flex-1" />
-                {canManageCategories && (
-                  <div
-                    className="flex flex-shrink-0 items-center"
-                    role="presentation"
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onAddSubcategory(category.id)}
-                      className="h-6 text-label-sm"
-                      leftIcon={<Plus className="w-3 h-3" />}
-                    >
-                      Subcategory
-                    </Button>
-                  </div>
-                )}
+                <TreeRowRail
+                  count={totalCount}
+                  countNoun={labels.countNoun}
+                  tools={
+                    canManageCategories && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onAddSubcategory(category.id)}
+                          className="h-6 text-label-sm"
+                          leftIcon={<Plus className="w-3 h-3" />}
+                        >
+                          Subcategory
+                        </Button>
+                        <OverflowMenu
+                          items={buildCategoryMenuItems(
+                            category,
+                            totalCount > 0,
+                            onRenameCategory,
+                            onDeleteCategory
+                          )}
+                          dividerBefore={['Remove']}
+                          size="sm"
+                          aria-label={`Actions for ${category.name}`}
+                        />
+                      </>
+                    )
+                  }
+                />
               </div>
 
               {isExpanded && (
@@ -412,12 +353,11 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
 }: SubcategorySectionProps<T, C>) {
   const [isExpanded, setIsExpanded] = useState(true);
   const effectiveExpanded = forceExpanded ?? isExpanded;
-  const [countSingular, countPlural] = labels.countNoun;
 
   return (
     <div data-level="l2" data-id={subcategory.id}>
       <div
-        className={`nav-tree-row row-glow nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
+        className={`nav-tree-row row-glow row-tools-host nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter') setIsExpanded(!isExpanded);
@@ -430,35 +370,28 @@ function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
           size={11}
           className={`nav-tree-row__chevron ${effectiveExpanded ? 'rotate-90' : ''}`}
         />
-        {canManage && (
-          <div
-            className="flex flex-shrink-0 items-center"
-            role="presentation"
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => e.stopPropagation()}
-          >
-            <OverflowMenu
-              items={buildCategoryMenuItems(subcategory, items.length > 0, onRename, onDelete)}
-              dividerBefore={['Remove']}
-              size="sm"
-              aria-label={`Actions for ${subcategory.name}`}
-            />
-          </div>
-        )}
         <CornerDownRight
-          size={12}
+          size={14}
           className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
         />
-        <span className="nav-tree-row__label font-display text-caption">{subcategory.name}</span>
-        <span aria-hidden className="flex-shrink-0 font-mono text-data-sm text-foreground/30">
-          {'//'}
+        <span className="nav-tree-row__label font-display text-body font-medium">
+          {subcategory.name}
         </span>
-        <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
-          {items.length}{' '}
-          <span className="text-foreground/25">
-            {items.length === 1 ? countSingular : countPlural}
-          </span>
-        </span>
+        <TreeRowRail
+          count={items.length}
+          countNoun={labels.countNoun}
+          isSubtle
+          tools={
+            canManage && (
+              <OverflowMenu
+                items={buildCategoryMenuItems(subcategory, items.length > 0, onRename, onDelete)}
+                dividerBefore={['Remove']}
+                size="sm"
+                aria-label={`Actions for ${subcategory.name}`}
+              />
+            )
+          }
+        />
       </div>
 
       {effectiveExpanded && items.length > 0 && (

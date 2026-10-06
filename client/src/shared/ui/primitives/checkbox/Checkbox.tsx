@@ -1,9 +1,3 @@
-/**
- * Checkbox
- *
- * Status-LED checkbox — glowing corner points that fill with the tone color when checked.
- */
-
 import { forwardRef, useEffect, useRef } from 'react';
 
 import { useMergedRef } from '@shared/hooks';
@@ -21,7 +15,7 @@ interface CheckboxProps {
   className?: string;
 }
 
-// One literal string per field per tone — Tailwind JIT can't see interpolated classes.
+// PITFALL: one literal string per field per tone; Tailwind JIT can't see interpolated classes.
 const TONE: Record<
   CheckboxTone,
   {
@@ -57,7 +51,6 @@ const TONE: Record<
   },
 };
 
-// Resting-state corner accent + soft connecting edge (checked state uses the tone above).
 const UNLIT_CORNER = 'bg-foreground/80';
 const UNLIT_CORNER_GLOW =
   'dark:shadow-[0_0_4px_color-mix(in_srgb,hsl(var(--foreground))_55%,transparent)]';
@@ -95,7 +88,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     return (
       <label
-        className={`relative inline-flex h-3.5 w-3.5 items-center justify-center ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
+        className={`relative inline-flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
       >
         <input
           ref={mergedRef}

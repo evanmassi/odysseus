@@ -1,9 +1,3 @@
-/**
- * Equipment Maintenance Form
- *
- * Form for adding or editing maintenance log entries with lab-managed type dropdown.
- */
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createEquipmentMaintenanceLogRequestSchema,
@@ -17,7 +11,7 @@ import {
   useUpdateEquipmentMaintenanceEntryMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, lookupOptions, NubDivider } from '@shared/ui';
+import { Button, lookupOptions, Divider } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
@@ -124,7 +118,7 @@ export function EquipmentMaintenanceForm({
       </ScrollArea>
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

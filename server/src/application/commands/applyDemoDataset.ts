@@ -1,9 +1,3 @@
-/**
- * Demo Dataset Application
- *
- * Writes DEMO_DATASET into the demo lab, resolving what the fixture cannot know per environment.
- */
-
 import { DEMO_DATASET } from '@application/config/DemoDataset';
 import type { DemoCategory, DemoLocation } from '@application/config/DemoDataset';
 import type { Repositories } from '@application/contracts/UnitOfWork';
@@ -43,10 +37,7 @@ interface BoxPlan {
   runs: SeatRun[];
 }
 
-/**
- * Scatters the skipped seats. The layout has to be identical on every reset, so this stands in
- * for randomness — a fixed stride would draw visible diagonals across a grid.
- */
+// PITFALL: seat skips must repeat exactly on every reset, so this stands in for randomness; a fixed stride draws visible diagonals.
 function seatHash(boxOrdinal: number, position: number): number {
   let h = (boxOrdinal * 374761393 + position * 668265263) >>> 0;
   h = (h ^ (h >>> 13)) >>> 0;
@@ -54,11 +45,6 @@ function seatHash(boxOrdinal: number, position: number): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
-/**
- * One plan per box, in walk order. Each box is filled to a share of its OWN capacity, so the
- * dataset spreads across whatever storage the lab has rather than pouring into the first rack —
- * and a lab with differently sized boxes shows that difference at a glance.
- */
 function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
   const { fillPattern, groupsPerBox, gapPercent } = DEMO_DATASET.placement;
   const plans: BoxPlan[] = [];
@@ -73,7 +59,6 @@ function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
         const seats: TubeLocation[] = [];
 
         for (let position = 1; position <= box.maxPositions && seats.length < target; position++) {
-          // Holes read as tubes pulled for use; a box filled to capacity has none by definition.
           if (fill < 1 && seatHash(ordinal, position) % 100 < gapPercent) continue;
           seats.push(
             TubeLocation.create({
@@ -85,8 +70,6 @@ function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
           );
         }
 
-        // Groups take contiguous runs, so a shared box reads as blocks of colour rather than
-        // interleaved noise.
         const wanted = seats.length === 0 ? 0 : groupsPerBox[ordinal % groupsPerBox.length];
         const runs: SeatRun[] = [];
         let cursor = 0;
@@ -141,7 +124,7 @@ interface FlatCategory {
   sortOrder: number;
 }
 
-/** Parents precede their children, which is what `parent_id` self-references require. */
+// PITFALL: parents must precede their children because parent_id references the same table.
 function flattenCategories(nodes: readonly DemoCategory[], parentId?: string): FlatCategory[] {
   return nodes.flatMap((node, index) => [
     { id: node.id, name: node.name, parentId, sortOrder: index },
@@ -158,10 +141,7 @@ export interface ApplyDemoDatasetResult {
   equipment: number;
 }
 
-/**
- * @param demoUserId the account every seeded transaction and maintenance entry is attributed to —
- * `performed_by` is a NOT NULL foreign key, and the demo lab has exactly one user.
- */
+// PITFALL: performed_by on stock transactions is a NOT NULL user foreign key, so seeded transactions are attributed to the demo lab's only user.
 export async function applyDemoDataset(
   repos: Repositories,
   labId: string,
@@ -188,7 +168,7 @@ export async function applyDemoDataset(
     }
   }
 
-  // Custom units are insert-only, so only the missing labels are created.
+  // PITFALL: custom units are insert-only, so only the missing labels are created.
   const existingUnits = await repos.customUnits.findByLabId(labId);
   const existingLabels = new Set(existingUnits.map(u => u.label));
   for (const unit of dataset.customUnits) {
@@ -223,7 +203,7 @@ export async function applyDemoDataset(
     );
   }
 
-  // researchers.person_id is NOT NULL, so persons land first.
+  // PITFALL: researchers.person_id is NOT NULL, so persons land first.
   for (const person of dataset.people) {
     await repos.persons.save(
       Person.fromData({
@@ -285,8 +265,7 @@ export async function applyDemoDataset(
     }
   }
 
-  // Attribute definitions already exist per lab; system_key is the one handle identical across
-  // environments, so values resolve against whatever rows this environment happens to have.
+  // PITFALL: attribute values resolve by system_key, the one handle identical across environments.
   const definitions = await repos.attributes.findDefinitionsByLabId(labId);
   const options = await repos.attributes.findOptionsByLabId(labId);
   const definitionByKey = new Map(
@@ -338,7 +317,7 @@ export async function applyDemoDataset(
       }
     }
 
-    // Receiving is what creates a lot, so the stock and its ledger entry land together.
+    // PITFALL: receiving is what creates a lot, so the stock and its ledger entry land together.
     for (const lot of reagent.lots) {
       await repos.reagentItems.recordTransaction({
         itemId: reagent.id,
@@ -417,7 +396,7 @@ export async function applyDemoDataset(
           itemId: item.id,
           datePerformed: dateOnly(daysAgo(entry.daysAgo)),
           maintenanceType: entry.type,
-          performedBy: demoUserId,
+          performedBy: entry.performedBy,
           technician: entry.technician,
           description: entry.description,
           nextScheduledDate: entry.nextInDays ? inDays(entry.nextInDays) : undefined,
@@ -440,8 +419,6 @@ export async function applyDemoDataset(
     );
   }
 
-  // Most boxes hold one group so they can be named for their contents; some hold two or three so
-  // the grid shows how a box splits. Groups advance in order, keeping a rack's boxes related.
   let totalTubes = 0;
   for (const plan of plans) {
     const boxTag = String(plan.ordinal).padStart(3, '0');

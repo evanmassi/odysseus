@@ -1,16 +1,10 @@
-/**
- * Lab Users Panel
- *
- * Users table with status actions (approve, deactivate, suspend, delete) and confirmation dialogs.
- */
-
 import { useMemo, useState } from 'react';
 
 import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
 import { Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, ConsolePanel, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Chip, ConsolePanel, OverflowMenu, Subsection, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -67,9 +61,8 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
 
   return (
     <>
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
+      <Subsection title="Users" meta={`${activeUsers.length} records`} isCompact>
+        <ConsolePanel intensity="soft" className="p-4">
           <Table
             columns={columns}
             data={activeUsers}
@@ -95,8 +88,8 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
               />
             </CollapsibleInactiveSection>
           )}
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
       <ConfirmDialog
         isOpen={userAction !== null}

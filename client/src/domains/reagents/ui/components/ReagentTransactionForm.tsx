@@ -1,11 +1,3 @@
-/**
- * Reagent Transaction Form
- *
- * Tabbed stock operation form. Receiving creates or tops up a lot; issuing and
- * disposing draw from a chosen lot or, by default, the first to expire; counting
- * reconciles one lot. Packaging levels let quantities be entered by the pack.
- */
-
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { formatQuantity, pluralizeUnit } from '@odysseus/shared-schemas';
@@ -29,7 +21,7 @@ import {
   DatePicker,
   HeaderStrip,
   Input,
-  NubDivider,
+  Divider,
   Select,
   Tab,
   Tabs,
@@ -116,8 +108,7 @@ export function ReagentTransactionForm({
 
   const [qtyByLevel, setQtyByLevel] = useState<Record<string, number>>({});
   const orderedLevels = useMemo(() => orderPackagingChain(packagingLevels), [packagingLevels]);
-  // A level named after the stock unit already is the loose row; a second input would
-  // share its key and overwrite it.
+  // PITFALL: a level named after the stock unit is already the loose row; a second input would share its key and overwrite it.
   const showLooseRow = packagingLevels.every(level => level.unitName !== stockUnitSingular);
 
   const {
@@ -146,8 +137,6 @@ export function ReagentTransactionForm({
     },
   });
 
-  // A scanned lot label names the bottle but not where it sits, and the lot picker only
-  // offers lots at the chosen location — so the lot supplies its own.
   const scannedLotId = prefill?.lotId;
   useEffect(() => {
     if (!scannedLotId) return;
@@ -160,7 +149,6 @@ export function ReagentTransactionForm({
   const selectedLotId = watch('lotId');
   const quantity = watch('quantity');
 
-  // Draws are scoped to one location, so only lots stocked there can be targeted.
   const lotsAtLocation = useMemo(
     () => (detail?.lots ?? []).filter(lot => isLotDrawable(lot) && lot.locationId === locationId),
     [detail?.lots, locationId]
@@ -177,7 +165,6 @@ export function ReagentTransactionForm({
     [stockUnit]
   );
 
-  // FEFO order for display only — the server plans the actual draw.
   const lotsByExpiry = useMemo(
     () =>
       [...lotsAtLocation].sort((a, b) => {
@@ -198,8 +185,6 @@ export function ReagentTransactionForm({
   const selectedLot = lotsByExpiry.find(lot => lot.id === selectedLotId);
   const nextLot = lotsByExpiry[0];
 
-  // The server refuses expired stock unless acknowledged: either the chosen lot is
-  // expired, or every lot the auto draw could reach is.
   const needsExpiredAck =
     isDraw &&
     lotsByExpiry.length > 0 &&
@@ -265,7 +250,6 @@ export function ReagentTransactionForm({
     });
   };
 
-  // Counting zero is a real measurement; moving zero stock is not.
   const validateQuantity = (value: unknown) => {
     if (typeof value !== 'number' || Number.isNaN(value)) {
       return mode === 'count' ? 'Count is required' : 'Quantity is required';
@@ -310,8 +294,7 @@ export function ReagentTransactionForm({
           mode === 'received' ? (data['expirationDate'] as string) || undefined : undefined,
         receivedDate:
           mode === 'received' ? (data['receivedDate'] as string) || undefined : undefined,
-        // Concentration crosses the wire as typed — the server's preprocessor parses
-        // scientific and caret notation, so the request type's `number` is its output.
+        // PITFALL: concentration is sent as typed; the server's preprocessor parses scientific and caret notation.
         concentration:
           mode === 'received'
             ? (((data['concentration'] as string) || undefined) as unknown as number | undefined)
@@ -347,7 +330,7 @@ export function ReagentTransactionForm({
             <span className="truncate font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
               {identityParts.map((part, i) => (
                 <span key={i}>
-                  {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                  {i > 0 && <span className="mx-1.5 text-foreground/30">·</span>}
                   {part}
                 </span>
               ))}
@@ -679,7 +662,7 @@ export function ReagentTransactionForm({
       </ScrollArea>
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

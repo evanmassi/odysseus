@@ -1,9 +1,3 @@
-/**
- * Password Reset Page
- *
- * Public token-based password reset. Token arrives via admin-generated email link.
- */
-
 import { useRef, useEffect, useState } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -19,10 +13,9 @@ import { AuthPasswordCreateForm } from './AuthPasswordCreateForm';
 
 import type { ShellConfig } from '@domains/authentication/ui/components/gateway/shellConfigContext';
 
-// Enough time to read the success message before redirecting
 const REDIRECT_DELAY_MS = 2500;
 
-const DANGER_KEYWORD_CLASS = 'text-danger-bg phosphor-text';
+const DANGER_KEYWORD_CLASS = 'text-danger-bg';
 
 type ResetState = 'invalid' | 'success' | 'form';
 

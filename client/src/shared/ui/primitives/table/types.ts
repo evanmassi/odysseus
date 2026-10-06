@@ -1,8 +1,6 @@
-/**
- * Table Component Types
- */
-
 import type { ReactNode } from 'react';
+
+import type { LucideIcon } from 'lucide-react';
 
 type TableDensity = 'compact' | 'default';
 
@@ -20,12 +18,12 @@ export interface TableColumn<T = Record<string, unknown>> {
   header: string;
   accessor?: keyof T | ((row: T) => ReactNode);
   width?: string | number;
+  truncates?: boolean;
   sortable?: boolean;
   align?: 'left' | 'center' | 'right';
   render?: (value: unknown, row: T, index: number) => ReactNode;
 }
 
-// Just needs an id for selection/keying
 export type TableRowBase = { id: string | number };
 
 interface TableRowMap extends TableRowBase {
@@ -52,18 +50,15 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (row: T, index: number) => void;
   emptyMessage?: string;
+  emptyIcon?: LucideIcon;
   loadingMessage?: string;
   'aria-label'?: string;
   className?: string;
   rowState?: (row: T, index: number) => RowState;
   selectedRowGlow?: boolean;
-  /** Integrated header strip rendered inside the chassis, above the rows. */
   toolbar?: TableToolbar;
-  /** Wrap the table in a ConsolePanel chassis. Defaults to true. */
-  chassis?: boolean;
 }
 
-// Internal
 export interface TableContextValue {
   selectable: boolean;
   multiSelect: boolean;
@@ -85,5 +80,4 @@ export const defaultTableProps = {
   selectedRows: [],
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',
-  chassis: true,
 } satisfies Partial<TableProps>;

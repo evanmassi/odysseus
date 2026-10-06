@@ -1,10 +1,4 @@
-/**
- * Biobank Dashboard
- *
- * Main lab workspace: storage navigator, tube grid, and info panel.
- */
-
-import { useRef, useMemo, useCallback, useEffect } from 'react';
+import { useRef, useMemo, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 
 import { isAdminRole, getPersonDisplayName } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
@@ -36,7 +30,7 @@ import {
 } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
-import { AccentTick, ErrorBoundary, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
+import { ErrorBoundary, HeaderStrip, OccupancyBar, PanelHeader, StripLabel } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { notifications } from '@shared/utils/notifications';
@@ -108,6 +102,18 @@ function BiobankWorkspace() {
   const storageNavigatorRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const infoPanelRef = useRef<HTMLDivElement>(null);
+  const gridSectionRef = useRef<HTMLDivElement>(null);
+  const [gridSectionHeight, setGridSectionHeight] = useState<number>();
+
+  useLayoutEffect(() => {
+    const section = gridSectionRef.current;
+    if (!section) return;
+    const observer = new ResizeObserver(([entry]) =>
+      setGridSectionHeight(entry.borderBoxSize[0].blockSize)
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -156,7 +162,6 @@ function BiobankWorkspace() {
 
   const isViewOnlySpace = useMemo(() => {
     if (!user) return true;
-    // Box owner wins; undefined means "inherit from rack", null means "explicitly unassigned".
     const effectiveOwnerId =
       currentBoxObj?.assignedUserId !== undefined
         ? currentBoxObj.assignedUserId
@@ -282,8 +287,6 @@ function BiobankWorkspace() {
     selectedPositions,
     onSelectionChange: setSelection,
     onDeleteTubes: async (tubeIds: string[], silent = false) => {
-      // Bulk delete is partial-success — protected or inaccessible tubes come back as
-      // failures rather than throwing, so the result decides the message.
       const result = await bulkDeleteTubesMutation.mutateAsync({
         tubeIds,
         location:
@@ -343,8 +346,8 @@ function BiobankWorkspace() {
       </div>
 
       <div className="main-layout">
-        <div className="storage-navigator-panel">
-          <div className="h-full" ref={storageNavigatorRef}>
+        <div className="storage-navigator-panel" style={{ maxHeight: gridSectionHeight }}>
+          <div className="flex min-h-0 flex-col" ref={storageNavigatorRef}>
             <ErrorBoundary>
               <StorageNavigator
                 data={storageHierarchy}
@@ -357,9 +360,9 @@ function BiobankWorkspace() {
           </div>
         </div>
 
-        <div className="grid-section">
+        <div className="grid-section" ref={gridSectionRef}>
           <ConsolePanel intensity="medium" className="flex flex-col">
-            <div className="flex-shrink-0 border-b border-line-faint pr-4">
+            <div className="flex-shrink-0">
               <PanelHeader
                 icon={<FlaskConical className="h-4 w-4" />}
                 title={currentLab?.name ?? 'Biobank'}
@@ -368,13 +371,15 @@ function BiobankWorkspace() {
 
             <HeaderStrip className="px-4 py-2.5">
               <div className="flex items-center gap-3">
-                <span className="flex min-w-0 items-center gap-1.5 font-mono text-data-sm tracking-[0.04em]">
-                  <AccentTick tone="warning" />
-                  <span className="truncate text-foreground">{tankDisplayName}</span>
-                  <span className="flex-shrink-0 text-foreground/30">›</span>
-                  <span className="truncate text-foreground">{rackDisplayName}</span>
-                  <span className="flex-shrink-0 text-foreground/30">›</span>
-                  <span className="truncate font-medium text-foreground">{boxDisplayName}</span>
+                <span className="flex min-w-0 items-center gap-3">
+                  <StripLabel tone="warning">Location</StripLabel>
+                  <span className="flex min-w-0 items-center gap-1.5 font-mono text-data-sm tracking-[0.04em]">
+                    <span className="truncate text-foreground">{tankDisplayName}</span>
+                    <span className="flex-shrink-0 text-foreground/30">›</span>
+                    <span className="truncate text-foreground">{rackDisplayName}</span>
+                    <span className="flex-shrink-0 text-foreground/30">›</span>
+                    <span className="truncate font-medium text-foreground">{boxDisplayName}</span>
+                  </span>
                 </span>
                 <span className="flex-1" />
                 <span className="flex flex-shrink-0 items-center gap-2">

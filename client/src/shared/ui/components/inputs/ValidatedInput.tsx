@@ -1,9 +1,3 @@
-/**
- * Validated Input
- *
- * Form input wrapper that integrates React Hook Form registration with validation states.
- */
-
 import type { ReactNode } from 'react';
 
 import { AlertCircle } from 'lucide-react';
@@ -34,8 +28,8 @@ interface ValidatedInputProps {
   step?: string;
   badge?: ReactNode;
   hasConflict?: boolean;
-  /** Label typography. 'default' = title-case sans; 'compact' = uppercase mono micro-label. */
   labelStyle?: 'default' | 'compact';
+  rows?: number;
 }
 
 export function ValidatedInput({
@@ -53,6 +47,7 @@ export function ValidatedInput({
   badge,
   hasConflict = false,
   labelStyle = 'default',
+  rows = 1,
 }: ValidatedInputProps) {
   const getLabelClasses = () => {
     if (labelStyle === 'compact') {
@@ -94,7 +89,7 @@ export function ValidatedInput({
           state={getInputState()}
           disabled={disabled}
           maxLength={maxLength}
-          rows={1}
+          rows={rows}
           resize="none"
           fullWidth
           className="pr-12"

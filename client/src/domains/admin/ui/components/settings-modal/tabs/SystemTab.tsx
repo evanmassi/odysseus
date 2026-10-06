@@ -1,9 +1,3 @@
-/**
- * System Tab
- *
- * Admin interface for lab settings, audit configuration, data export, and system statistics.
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
@@ -21,16 +15,7 @@ import {
 
 import { useLabId } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
-import {
-  Button,
-  Chip,
-  ConsolePanel,
-  Input,
-  SettingsRow,
-  StatCell,
-  STAT_STRIP,
-  Subsection,
-} from '@shared/ui';
+import { Button, Chip, Input, SettingsRow, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
 import { NavTreeLines } from '@shared/ui/components/tree-lines';
 import { notifications } from '@shared/utils';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -54,7 +39,6 @@ export function SystemTab({ stats }: SystemTabProps) {
   const { data: versionInfo } = useVersionInfoQuery();
   const updateSystemSettingsMutation = useUpdateSystemSettingsMutation();
 
-  // Lab name editing state
   const [isEditingLabName, setIsEditingLabName] = useState(false);
   const [labNameInput, setLabNameInput] = useState(currentLab?.name ?? '');
 
@@ -81,7 +65,6 @@ export function SystemTab({ stats }: SystemTabProps) {
         setIsEditingLabName(false);
       },
       onError: () => {
-        // Global handler toasts; revert the field to the last saved name.
         setLabNameInput(currentLab?.name ?? '');
       },
     });
@@ -104,94 +87,94 @@ export function SystemTab({ stats }: SystemTabProps) {
   );
 
   return (
-    <div className="space-y-4">
+    <div>
       {stats && (
-        <ConsolePanel intensity="soft">
-          <div className={STAT_STRIP}>
-            <StatCell
-              size="sm"
-              label="Total Tubes"
-              value={stats.totalTubes}
-              icon={<TestTubes size={11} />}
-              className="flex-1"
-            />
-            <StatCell
-              size="sm"
-              label="Total Users"
-              value={stats.totalUsers}
-              icon={<UsersRound size={11} />}
-              className="flex-1"
-            />
-            <StatCell
-              size="sm"
-              label="Researchers"
-              value={stats.totalResearchers}
-              icon={<Dna size={11} />}
-              className="flex-1"
-            />
-            <StatCell
-              size="sm"
-              label="Config Modified"
-              value={stats.lastBackup ? formatDateForDisplay(stats.lastBackup) : 'Never'}
-              icon={<DatabaseBackup size={11} />}
-              className="flex-1"
-            />
-          </div>
-        </ConsolePanel>
+        <div className={`${STAT_STRIP} ml-1 mr-3`}>
+          <StatCell
+            size="sm"
+            label="Total Tubes"
+            value={stats.totalTubes}
+            icon={<TestTubes size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Total Users"
+            value={stats.totalUsers}
+            icon={<UsersRound size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Researchers"
+            value={stats.totalResearchers}
+            icon={<Dna size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Config Modified"
+            value={stats.lastBackup ? formatDateForDisplay(stats.lastBackup) : 'Never'}
+            icon={<DatabaseBackup size={11} />}
+            className="flex-1"
+          />
+        </div>
       )}
 
-      <ConsolePanel intensity="soft">
-        {hasLab && (
-          <Subsection title="Laboratory" index={1} accent>
-            <SettingsRow
-              label="Lab Name"
-              hint="Display name shown across the app"
-              className="col-span-2"
-            >
-              <div className="flex w-72 items-center justify-end gap-2">
-                {isEditingLabName ? (
-                  <Input
-                    type="text"
-                    value={labNameInput}
-                    onValueChange={setLabNameInput}
-                    onKeyDown={handleLabNameKeyDown}
-                    onBlur={() => handleSaveLabName()}
-                    size="sm"
-                    className="w-full"
-                    title="Enter to save · Esc to cancel"
-                    // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
-                    autoFocus
-                  />
-                ) : (
-                  <>
-                    <span
-                      className="truncate font-mono text-data-sm font-semibold text-foreground phosphor-text"
-                      title={currentLab?.name ?? undefined}
-                    >
-                      {currentLab?.name ?? '—'}
-                    </span>
-                    <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
-                      Edit
-                    </Button>
-                  </>
-                )}
-              </div>
-            </SettingsRow>
-          </Subsection>
-        )}
-
-        {hasLab && <StorageUtilizationSection />}
-
-        <Subsection title="Data Export" index={hasLab ? 3 : 1} accent>
-          <div className="col-span-2 py-4">
-            <DataExportForm />
-          </div>
+      {hasLab && (
+        <Subsection title="Laboratory" index={1} accent>
+          <SettingsRow
+            label="Lab Name"
+            hint="Display name shown across the app"
+            className="col-span-2"
+          >
+            <div className="flex w-72 items-center justify-end gap-2">
+              {isEditingLabName ? (
+                <Input
+                  type="text"
+                  value={labNameInput}
+                  onValueChange={setLabNameInput}
+                  onKeyDown={handleLabNameKeyDown}
+                  onBlur={() => handleSaveLabName()}
+                  size="sm"
+                  className="w-full"
+                  title="Enter to save · Esc to cancel"
+                  // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
+                  autoFocus
+                />
+              ) : (
+                <>
+                  <span
+                    className="truncate font-mono text-data-sm font-semibold text-foreground"
+                    title={currentLab?.name ?? undefined}
+                  >
+                    {currentLab?.name ?? '—'}
+                  </span>
+                  <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
+                    Edit
+                  </Button>
+                </>
+              )}
+            </div>
+          </SettingsRow>
         </Subsection>
+      )}
 
-        <div className="border-t border-line-soft px-5 py-2.5 text-right type-label text-label-2xs text-muted-foreground/60">
-          Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
+      {hasLab && <StorageUtilizationSection />}
+
+      <Subsection title="Data Export" index={hasLab ? 3 : 1} accent>
+        <div className="col-span-2 py-4">
+          <DataExportForm />
         </div>
-      </ConsolePanel>
+      </Subsection>
+
+      <Subsection title="About" index={hasLab ? 4 : 2} accent>
+        <SettingsRow label="Odysseus Version" hint="© 2025 Evan Massi" className="col-span-2">
+          <span className="font-mono text-data-sm font-semibold text-foreground">
+            v{versionInfo?.version ?? '—'}
+          </span>
+        </SettingsRow>
+      </Subsection>
     </div>
   );
 }
@@ -221,7 +204,7 @@ function StorageUtilizationSection() {
   return (
     <Subsection title="Storage Utilization" index={2} accent>
       <div className="col-span-2 space-y-3 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border border-transparent px-2">
           <div className="flex items-center gap-2">
             <HardDrive size={16} className="text-muted-foreground" />
             <span className="font-mono text-data-sm tracking-data text-secondary-foreground">
@@ -339,6 +322,7 @@ function StorageUtilizationSection() {
                 key={`${box.tankName}-${box.rackName}-${box.boxName}`}
                 color="warning"
                 size="xs"
+                labelClassName="normal-case !tracking-data"
               >
                 {box.tankName} · {box.rackName} · {box.boxName}: {box.utilizationPercent}%
               </Chip>
@@ -356,7 +340,6 @@ interface StorageRowMeterProps {
   percent: number;
 }
 
-/** Fixed-width count + bar pinned to the row's right edge so meters align across tree depths. */
 function StorageRowMeter({ occupied, total, percent }: StorageRowMeterProps) {
   return (
     <div className="flex flex-shrink-0 items-center gap-2.5">

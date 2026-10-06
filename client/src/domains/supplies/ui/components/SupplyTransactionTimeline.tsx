@@ -1,10 +1,3 @@
-/**
- * Supply Transaction Timeline
- *
- * Chronological list of stock transactions with collapsible details,
- * type-specific color coding, voided state display, and void action.
- */
-
 import { useState, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
@@ -154,7 +147,7 @@ function TransactionEntry({
           </Chip>
         )}
         <span aria-hidden className="text-foreground/30">
-          {'//'}
+          ·
         </span>
         <span
           className={`whitespace-nowrap text-body-sm font-semibold ${config.color} ${isVoided ? 'line-through' : ''}`}
@@ -162,7 +155,7 @@ function TransactionEntry({
           {quantityDisplay} {unit}
         </span>
         <span aria-hidden className="text-foreground/30">
-          {'//'}
+          ·
         </span>
         <span className="min-w-0 flex-1 truncate text-caption text-muted-foreground">
           {locationName}

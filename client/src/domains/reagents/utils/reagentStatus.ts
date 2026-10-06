@@ -1,10 +1,9 @@
-/**
- * Reagent Status Display
- *
- * Chip color + label for each reagent item status, shared by the item row and info panel.
- */
+import { resolveStockTone } from '@shared/utils/stockLevel';
 
-import type { ReagentItemStatus } from '@odysseus/shared-schemas';
+import { resolveExpiryBadge } from './reagentExpiry';
+
+import type { ReagentItemStatus, ReagentItemWithStock } from '@odysseus/shared-schemas';
+import type { ItemRowStatusTone } from '@shared/ui/components/inventory';
 
 export const REAGENT_STATUS_DISPLAY: Record<
   ReagentItemStatus,
@@ -14,3 +13,12 @@ export const REAGENT_STATUS_DISPLAY: Record<
   discontinued: { color: 'warning', label: 'Discontinued' },
   archived: { color: 'danger', label: 'Archived' },
 };
+
+export function resolveReagentStatusTone(item: ReagentItemWithStock): ItemRowStatusTone {
+  if (item.status === 'archived') return 'muted';
+  const stockTone = resolveStockTone(item.totalStock, item.reorderThreshold);
+  const expiry = resolveExpiryBadge(item);
+  if (expiry?.tone === 'danger' || stockTone === 'danger') return 'danger';
+  if (expiry !== undefined || stockTone === 'warning') return 'warning';
+  return 'success';
+}

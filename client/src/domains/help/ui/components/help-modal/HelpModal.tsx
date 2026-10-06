@@ -1,9 +1,3 @@
-/**
- * Help Modal
- *
- * Read-only reference modal with vertical tab navigation and section search.
- * Admin users see additional Administration content.
- */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentType } from 'react';
 
@@ -99,7 +93,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
   const nav = useMemo<HelpNav>(() => ({ goToTab, goToSection }), [goToTab, goToSection]);
 
-  // Scroll to a pending jump target once its (possibly lazy-loaded) tab has mounted.
   useEffect(() => {
     const target = pendingSectionRef.current;
     if (!target) return;
@@ -149,7 +142,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Guide
         </span>
-        <span className="phosphor-text text-data-sm text-secondary-foreground">
+        <span className="text-data-sm text-foreground">
           {isSearching ? 'Search' : activeMeta.label}
         </span>
       </div>

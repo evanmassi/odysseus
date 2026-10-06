@@ -1,9 +1,3 @@
-/**
- * Tube Position Display
- *
- * Read-only location breadcrumb showing tank › rack › box · position.
- */
-
 import { useMemo } from 'react';
 
 import {
@@ -13,7 +7,8 @@ import {
   formatPositionForBox,
 } from '@domains/storage';
 import { useUserSettings } from '@domains/users';
-import { AccentTick } from '@shared/ui';
+import { useTextTruncation } from '@shared/hooks';
+import { AccentTick, Tooltip } from '@shared/ui';
 
 interface SinglePositionProps {
   tankId: string;
@@ -44,25 +39,48 @@ function LocationBreadcrumb({
   positionLabel,
   className = '',
 }: PreResolvedProps) {
+  const { ref: tankRef, isTruncated: isTankTruncated } = useTextTruncation<HTMLSpanElement>([
+    tankName,
+    rackName,
+    boxName,
+  ]);
+  const { ref: rackRef, isTruncated: isRackTruncated } = useTextTruncation<HTMLSpanElement>([
+    tankName,
+    rackName,
+    boxName,
+  ]);
+  const fullPath = [tankName, rackName, boxName].join(' › ');
+
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <span className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
+    <div className={`flex min-w-0 items-center gap-3 ${className}`}>
+      <span className="flex flex-none items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
         <AccentTick />
         Location
       </span>
-      <div className="flex flex-1 items-center gap-2 font-mono text-data-sm tracking-[0.06em] text-secondary-foreground">
-        <span className="text-foreground">{tankName}</span>
-        <span className="text-foreground/40">›</span>
-        <span className="text-foreground">{rackName}</span>
-        <span className="text-foreground/40">›</span>
-        <span className="text-foreground">{boxName}</span>
-        {positionLabel && (
-          <>
-            <span className="text-foreground/40">·</span>
-            <span className="text-foreground">{positionLabel}</span>
-          </>
-        )}
-      </div>
+      <Tooltip
+        content={positionLabel ? `${fullPath} · ${positionLabel}` : fullPath}
+        disabled={!isTankTruncated && !isRackTruncated}
+        side="bottom"
+        delayDuration={400}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap font-mono text-data-sm tracking-[0.06em] text-foreground">
+          <span ref={tankRef} className="min-w-0 shrink-[3] truncate">
+            {tankName}
+          </span>
+          <span className="flex-none text-foreground/40">›</span>
+          <span ref={rackRef} className="min-w-0 shrink-[2] truncate">
+            {rackName}
+          </span>
+          <span className="flex-none text-foreground/40">›</span>
+          <span className="flex-none">{boxName}</span>
+          {positionLabel && (
+            <>
+              <span className="flex-none text-foreground/40">·</span>
+              <span className="flex-none">{positionLabel}</span>
+            </>
+          )}
+        </div>
+      </Tooltip>
     </div>
   );
 }

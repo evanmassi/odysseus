@@ -1,9 +1,3 @@
-/**
- * Security Monitoring Queries
- *
- * React Query hooks for security monitoring data.
- */
-
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';

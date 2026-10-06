@@ -1,10 +1,3 @@
-/**
- * Catalog Tab
- *
- * Admin interface for every editable lab vocabulary: a rail of the lists, attributes, units and
- * locations beside the entries of the one selected.
- */
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { Plus, RefreshCw } from 'lucide-react';
@@ -97,8 +90,6 @@ const ATTRIBUTE_GROUP = 'Item Attributes';
 const UNIT_GROUP = 'Units';
 const LOCATION_GROUP = 'Places';
 
-// Alphabetical by title. Leaves group by the mechanism behind them, not by meaning — a
-// taxonomy of meaning can't place the lab-defined attribute vocabularies.
 const LOOKUP_LEAVES: Array<{ category: LookupCategory; title: string; usedBy?: string[] }> = [
   { category: 'equipment_maintenance_type', title: 'Maintenance Activities' },
   {
@@ -119,10 +110,9 @@ const LOCATIONS_LEAF_ID = 'locations';
 const lookupLeafId = (category: LookupCategory) => `lookup:${category}`;
 const attributeLeafId = (definitionId: string) => `attr:${definitionId}`;
 
-/** The list a route lands on, so opening the catalog from a suite starts where you are. */
 function leafForRoute(pathname: string): string {
   if (pathname.startsWith('/lab/reagents')) return lookupLeafId('reagent_type');
-  // Supplies has no lookup of its own left — vendor is the list it actually curates.
+  // PITFALL: supplies has no lookup of its own left; vendor is the list it actually curates.
   if (pathname.startsWith('/lab/supplies')) return lookupLeafId('vendor');
   if (pathname.startsWith('/lab/equipment')) return lookupLeafId('equipment_maintenance_type');
   return lookupLeafId('species');
@@ -146,7 +136,6 @@ const DELETE_COPY: Record<PendingDelete['kind'], { noun: string; consequence: st
 
 interface CatalogTabProps {
   onTabFooter?: (footer: React.ReactNode) => void;
-  /** Lifts the refresh control into the tab header — it refetches every list, not the visible one. */
   onTabAction?: (action: React.ReactNode) => void;
   readOnly?: boolean;
 }
@@ -209,34 +198,31 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
     setIsRefreshing(false);
   }, [refetch, refetchAttributes, refetchUnits]);
 
-  // Both actions are catalog-wide, and the header keeps "New attribute" in one place as the
-  // rail grows — anchored to the rail it would drift below the fold.
   useEffect(() => {
     onTabAction?.(
       <div className="flex items-center gap-2">
         <Button
-          variant="secondary"
+          variant="ghost"
+          size="sm"
+          onClick={() => void refreshAll()}
+          leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
+        >
+          Refresh
+        </Button>
+        <Button
+          variant="primary"
           size="sm"
           onClick={() => setIsDefinitionModalOpen(true)}
           disabled={readOnly}
           leftIcon={<Plus size={14} />}
         >
-          New attribute
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => void refreshAll()}
-          isLoading={isRefreshing}
-          leftIcon={<RefreshCw size={14} />}
-        >
-          Refresh
+          Add Attribute
         </Button>
       </div>
     );
   }, [onTabAction, isRefreshing, refreshAll, readOnly]);
 
-  // mutateAsync so the child form can await the result and keep the typed value on failure.
+  // PITFALL: mutateAsync so the child form can await the result and keep the typed value on failure.
   const handleAddLookup = async (category: LookupCategory, value: string) => {
     await createMutation.mutateAsync({ category, value });
     notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category]}`);
@@ -315,7 +301,6 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
         deleteDefinitionMutation.mutate(target.id, {
           onSuccess: () => {
             onSuccess();
-            // Stay among the attributes rather than falling back to the first list in the rail.
             const next = attributes.definitions
               .filter(definition => definition.id !== target.id)
               .sort((a, b) => a.name.localeCompare(b.name))[0];
@@ -394,8 +379,8 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col space-y-2">
-      {/* Without this, a failed fetch is indistinguishable from a lab that has nothing yet. */}
+    <div className="flex min-h-0 flex-1 flex-col space-y-4">
+      {/* PITFALL: without this banner, a failed fetch looks the same as a lab that has nothing yet. */}
       {(isError || isAttributesError || isUnitsError) && (
         <AlertBanner variant="error" spacing="none" className="text-body-sm">
           Some vocabularies could not be loaded. Use Refresh to try again.

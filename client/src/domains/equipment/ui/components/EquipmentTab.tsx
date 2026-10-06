@@ -1,14 +1,7 @@
-/**
- * Equipment Tab
- *
- * Main composition for the equipment management page with category browser,
- * detail panel, and form overlays in a 60/40 split layout.
- */
-
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Eye, EyeOff, Layers, Microscope, Plus, SlidersHorizontal } from 'lucide-react';
+import { Eye, EyeOff, Microscope, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import {
@@ -20,6 +13,7 @@ import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
+import { resolveEquipmentStatusTone } from '@domains/equipment/utils/equipmentStatus';
 import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
 import { useDemoTaxonomyLock } from '@domains/storage';
 import {
@@ -29,22 +23,22 @@ import {
   InfoPanelEmpty,
   PanelHeader,
   SearchInput,
-  Tooltip,
 } from '@shared/ui';
 import {
-  CategoryManager,
-  useCatalogCategories,
   AttributeFilterPanel,
-  countAttributeFilters,
-  matchesAttributeFilters,
-  EMPTY_ATTRIBUTE_FILTERS,
   type AttributeFilters,
+  CatalogActionBar,
+  CategoryManager,
   CategoryTreePanel,
   type CategoryTreePanelLabels,
+  countAttributeFilters,
+  EMPTY_ATTRIBUTE_FILTERS,
   INVENTORY_SORT_OPTIONS,
+  type InventorySortField,
+  matchesAttributeFilters,
   searchCatalogItems,
   SortControls,
-  type InventorySortField,
+  useCatalogCategories,
 } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -61,7 +55,6 @@ import type { EquipmentItem, EquipmentMaintenanceLog } from '@odysseus/shared-sc
 
 const isEquipmentHidden = (item: EquipmentItem) => item.status === 'decommissioned';
 
-/** Location is searchable by name, as it was when the column held the text itself. */
 const equipmentSearchFields = (item: EquipmentItem, locationName?: string) => [
   item.name,
   item.manufacturer,
@@ -107,7 +100,6 @@ export function EquipmentTab() {
   const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // The chip names the place; the path is what the free-text column used to spell out.
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const categoryState = useCatalogCategories({
     categories,
@@ -115,7 +107,6 @@ export function EquipmentTab() {
     updateMutation: updateCategoryMutation,
     deleteMutation: deleteCategoryMutation,
   });
-  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -197,6 +188,9 @@ export function EquipmentTab() {
   const unitCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
+  const infoPanelItem =
+    rightPanel?.type === 'info' ? items.find(item => item.id === rightPanel.itemId) : undefined;
+
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
@@ -204,7 +198,7 @@ export function EquipmentTab() {
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
         >
-          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <div className="flex-shrink-0">
             <PanelHeader icon={<Microscope className="h-4 w-4" />} title="Equipment" />
           </div>
 
@@ -222,15 +216,26 @@ export function EquipmentTab() {
             </span>
           </HeaderStrip>
 
-          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search equipment…"
-              size="sm"
-              className="w-64 min-w-[9rem]"
-              aria-label="Search equipment"
-            />
+          <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search equipment…"
+                size="sm"
+                className="min-w-[9rem] max-w-64 flex-1"
+                aria-label="Search equipment"
+              />
+              {isAdmin && (
+                <CatalogActionBar
+                  addItemLabel="Add Equipment"
+                  isTaxonomyLocked={isTaxonomyLocked}
+                  onBulkOperations={() => setIsBulkModalOpen(true)}
+                  onAddCategory={categoryState.onAddCategory}
+                  onAddItem={handleAddEquipment}
+                />
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
                 value={sortField}
@@ -240,13 +245,13 @@ export function EquipmentTab() {
                 options={INVENTORY_SORT_OPTIONS}
               />
               <Button
-                variant="ghost"
+                variant={isFilterOpen || activeFilterCount > 0 ? 'ghost-primary' : 'ghost'}
                 size="sm"
                 onClick={() => setIsFilterOpen(open => !open)}
                 aria-expanded={isFilterOpen}
                 className={`h-8 flex-shrink-0 text-label-sm ${
                   isFilterOpen || activeFilterCount > 0
-                    ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                    ? 'border border-primary/55 bg-primary/[0.10]'
                     : ''
                 }`}
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
@@ -269,30 +274,6 @@ export function EquipmentTab() {
                 {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
               </Button>
             </div>
-            {isAdmin && (
-              <div className="ml-auto flex items-center gap-2">
-                <Tooltip content="Bulk Operations" side="bottom">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    iconOnly
-                    onClick={() => setIsBulkModalOpen(true)}
-                    className="h-8 flex-shrink-0"
-                    aria-label="Bulk Operations"
-                  >
-                    <Layers className="h-3.5 w-3.5" />
-                  </Button>
-                </Tooltip>
-                <Button
-                  size="sm"
-                  onClick={handleAddEquipment}
-                  className="h-8 flex-shrink-0"
-                  leftIcon={<Plus className="h-3.5 w-3.5" />}
-                >
-                  Add Equipment
-                </Button>
-              </div>
-            )}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
@@ -311,7 +292,6 @@ export function EquipmentTab() {
             )}
             <EquipmentMaintenanceAlertPanel
               items={items}
-              categoryNameMap={categoryNameMap}
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
             />
@@ -319,6 +299,7 @@ export function EquipmentTab() {
               <CategoryTreePanel
                 categories={categories}
                 items={treeItems}
+                selectedItemId={selectedItemId}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 isTaxonomyLocked={isTaxonomyLocked}
@@ -336,7 +317,6 @@ export function EquipmentTab() {
                 )}
                 treeId="equipment"
                 labels={TREE_LABELS}
-                onAddCategory={categoryState.onAddCategory}
                 onAddSubcategory={categoryState.onAddSubcategory}
                 onRenameCategory={categoryState.onRenameCategory}
                 onDeleteCategory={categoryState.onDeleteCategory}
@@ -360,14 +340,12 @@ export function EquipmentTab() {
           {rightPanel?.type === 'info' && (
             <EquipmentItemInfoPanel
               itemId={rightPanel.itemId}
+              statusTone={infoPanelItem ? resolveEquipmentStatusTone(infoPanelItem) : 'muted'}
               onEdit={handleEditItem}
               onDecommission={handleDecommission}
               onAddMaintenance={handleAddMaintenance}
               onEditMaintenance={handleEditMaintenance}
               onDeleted={handleItemDeleted}
-              categoryName={categoryNameMap.get(
-                items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
-              )}
             />
           )}
 

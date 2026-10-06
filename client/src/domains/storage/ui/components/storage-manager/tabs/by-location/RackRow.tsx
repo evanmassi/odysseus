@@ -1,23 +1,17 @@
-/**
- * Rack Row
- *
- * Collapsible rack node in the By Location tab with box management and assignment controls.
- */
-
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { EQUIPMENT_DEFAULTS, formatStorageDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Lock, Plus, SquarePen, Tag, Trash2 } from 'lucide-react';
+import { ChevronDown, Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
-import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
+import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
-import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 import { AssignmentBadge } from '../by-user/AssignmentBadge';
 import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
+import { AddStorageTool } from './AddStorageTool';
 import { CustomLabelButton } from './CustomLabelButton';
 import { RackBoxMinimaps } from './RackBoxMinimaps';
 import { RowMeta } from './RowMeta';
@@ -56,7 +50,6 @@ export function RackRow({
     onAddBoxes,
   } = useStorageManagerContext();
 
-  const [boxCountToAdd, setBoxCountToAdd] = useState(1);
   const rackKey = `${tankId}-rack-${rack.id}`;
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const locked = isResourceLocked(rack);
@@ -66,7 +59,6 @@ export function RackRow({
   const extraBoxCount = Math.max(0, nonSeededBoxCount - boxBaseline);
   const boxLimitReached = demoLimitsActive && extraBoxCount >= demoLimits.maxBoxesPerRack;
 
-  // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
 
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
@@ -121,34 +113,18 @@ export function RackRow({
             onKeyDown={e => {
               if (e.key === 'Enter') onToggleCollapse();
             }}
-            className={`storage-nav-button row-glow storage-nav-button--rack ${!collapsed ? 'selected' : ''}`}
+            className={`storage-nav-button row-glow row-tools-host storage-nav-button--rack ${!collapsed ? 'selected' : ''}`}
             role="button"
             tabIndex={0}
             aria-expanded={!collapsed}
             aria-controls={`rack-content-${rackKey}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
           >
-            <TreeNub />
             <ChevronDown
               size={12}
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
               aria-hidden="true"
             />
-            {canManageStorage && !locked && overflowMenuItems.length > 0 && (
-              <div
-                role="presentation"
-                onClick={e => e.stopPropagation()}
-                onKeyDown={e => e.stopPropagation()}
-                className="flex-shrink-0"
-              >
-                <OverflowMenu
-                  items={overflowMenuItems}
-                  dividerBefore={dividerBefore}
-                  size="sm"
-                  aria-label={`Actions for rack ${rack.name}`}
-                />
-              </div>
-            )}
             <AssignmentBadge
               userId={rack.assignedUserId}
               size="md"
@@ -166,19 +142,55 @@ export function RackRow({
               />
             </div>
             {canManageStorage && !locked && (
-              <div
-                role="presentation"
-                onClick={e => e.stopPropagation()}
-                onKeyDown={e => e.stopPropagation()}
-                className="flex items-center gap-1 flex-shrink-0"
-              >
-                <AssignmentDropdown
-                  value={rack.assignedUserId}
-                  users={users}
-                  onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
-                  currentUserId={currentUser?.id}
-                />
-              </div>
+              <>
+                <div
+                  role="presentation"
+                  onClick={e => e.stopPropagation()}
+                  onKeyDown={e => e.stopPropagation()}
+                  className="flex items-center gap-1 flex-shrink-0"
+                >
+                  <AssignmentDropdown
+                    value={rack.assignedUserId}
+                    users={users}
+                    onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
+                    currentUserId={currentUser?.id}
+                    isQuiet
+                  />
+                </div>
+                <span className="row-tools -ml-2">
+                  <span
+                    className="flex items-center gap-1 pl-1.5"
+                    role="presentation"
+                    onClick={e => e.stopPropagation()}
+                    onKeyDown={e => e.stopPropagation()}
+                  >
+                    <AddStorageTool
+                      noun="Box"
+                      pluralNoun="Boxes"
+                      max={
+                        demoLimitsActive
+                          ? Math.max(1, demoLimits.maxBoxesPerRack - extraBoxCount)
+                          : 26
+                      }
+                      limitLabel={
+                        demoLimitsActive
+                          ? `${extraBoxCount}/${demoLimits.maxBoxesPerRack}`
+                          : undefined
+                      }
+                      isLimitReached={!!boxLimitReached}
+                      onAdd={(count, options) => onAddBoxes(tankId, rack.id, count, options)}
+                    />
+                    {overflowMenuItems.length > 0 && (
+                      <OverflowMenu
+                        items={overflowMenuItems}
+                        dividerBefore={dividerBefore}
+                        size="sm"
+                        aria-label={`Actions for rack ${rack.name}`}
+                      />
+                    )}
+                  </span>
+                </span>
+              </>
             )}
           </div>
           {locked && (
@@ -203,43 +215,6 @@ export function RackRow({
         <Collapsible.Content className="overflow-visible">
           <div id={`rack-content-${rackKey}`} className="storage-nav-children mt-0.5 space-y-0.5">
             <RackBoxMinimaps tankId={tankId} rack={rack} />
-
-            {canManageStorage && !locked && (
-              <div className="storage-nav-add-controls storage-nav-item--box">
-                {demoLimitsActive && (
-                  <span className="text-caption text-muted-foreground mr-1">
-                    {extraBoxCount}/{demoLimits.maxBoxesPerRack}
-                  </span>
-                )}
-                <Tooltip content="Number of boxes to add" side="bottom">
-                  <NumberInput
-                    value={boxCountToAdd}
-                    onChange={setBoxCountToAdd}
-                    min={1}
-                    max={
-                      demoLimitsActive
-                        ? Math.max(1, demoLimits.maxBoxesPerRack - extraBoxCount)
-                        : 26
-                    }
-                    size="xs"
-                    aria-label="Number of boxes to add"
-                  />
-                </Tooltip>
-                <Button
-                  variant="primary"
-                  size="xs"
-                  onClick={() =>
-                    onAddBoxes(tankId, rack.id, boxCountToAdd, {
-                      onSuccess: () => setBoxCountToAdd(1),
-                    })
-                  }
-                  leftIcon={<Plus size={12} />}
-                  disabled={!!boxLimitReached}
-                >
-                  Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
-                </Button>
-              </div>
-            )}
           </div>
         </Collapsible.Content>
       </div>

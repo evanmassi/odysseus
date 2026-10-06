@@ -1,9 +1,3 @@
-/**
- * Chip
- *
- * Stencil-plate tag — a lead cell and a label cell with a chamfered corner; tone drives the palette.
- */
-
 import React, { forwardRef } from 'react';
 
 import { CircleCheckBig, OctagonX, TriangleAlert, X } from 'lucide-react';
@@ -18,7 +12,6 @@ const AUTO_GLYPHS: Partial<Record<ChipColor, React.ReactNode>> = {
   danger: <OctagonX />,
 };
 
-/** Tones with a meaningful semantic color get the banner-matching left-edge wash. */
 const LIT_CLASSES: Partial<Record<ChipColor, string>> = {
   success: 'chip-lit chip-lit--success',
   warning: 'chip-lit chip-lit--warning',
@@ -38,31 +31,31 @@ const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
   success: {
     text: 'text-success-text',
     border: 'border-success-border',
-    labelBg: 'bg-success-bg/[0.08]',
+    labelBg: 'bg-success-bg/[0.06]',
     leadBg: 'bg-success-bg/[0.14]',
   },
   warning: {
     text: 'text-warning-text',
     border: 'border-warning-border',
-    labelBg: 'bg-warning-bg/[0.08]',
+    labelBg: 'bg-warning-bg/[0.06]',
     leadBg: 'bg-warning-bg/[0.14]',
   },
   danger: {
     text: 'text-danger-text',
     border: 'border-danger-border',
-    labelBg: 'bg-danger-bg/[0.08]',
+    labelBg: 'bg-danger-bg/[0.06]',
     leadBg: 'bg-danger-bg/[0.14]',
   },
   info: {
     text: 'text-info-text',
     border: 'border-info-border',
-    labelBg: 'bg-info-bg/[0.08]',
+    labelBg: 'bg-info-bg/[0.06]',
     leadBg: 'bg-info-bg/[0.14]',
   },
   primary: {
     text: 'text-action',
     border: 'border-action',
-    labelBg: 'bg-primary/[0.08]',
+    labelBg: 'bg-primary/[0.06]',
     leadBg: 'bg-primary/[0.14]',
   },
   default: {
@@ -85,18 +78,13 @@ const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
   },
 };
 
-// Selected selectable chips light up with the primary treatment. clip-path crops
-// outer box-shadows, so the glow must stay inset.
 const SELECTED_BORDER = 'border-primary/55';
 const SELECTED_GLOW = 'dark:shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
-const SELECTED_LABEL = 'opacity-100 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
 
 interface SizeConfig {
   height: string;
-  chamfer: number;
   leadText: string;
   lblText: string;
-  /** Label size when `numeric` — larger than lblText so counts stay legible. */
   numText: string;
   leadPx: string;
   lblPx: string;
@@ -106,7 +94,6 @@ interface SizeConfig {
 const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
   sm: {
     height: 'h-5',
-    chamfer: 6,
     leadText: 'text-label-xs',
     lblText: 'text-label-2xs',
     numText: 'text-data-sm',
@@ -116,7 +103,6 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
   },
   xs: {
     height: 'h-[18px]',
-    chamfer: 5,
     leadText: 'text-label-2xs',
     lblText: 'text-label-2xs',
     numText: 'text-data-sm',
@@ -125,12 +111,6 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
     removeIcon: 9,
   },
 };
-
-function chamferStyle(chamfer: number): React.CSSProperties {
-  return {
-    clipPath: `polygon(0 0, calc(100% - ${chamfer}px) 0, 100% ${chamfer}px, 100% 100%, 0 100%)`,
-  };
-}
 
 interface RemoveButtonProps {
   onClick: (e: React.MouseEvent) => void;
@@ -181,7 +161,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const tone = TONE_CLASSES[color];
     const sizeCfg = SIZE_CONFIG[size];
 
-    // Lead resolution: explicit prop > tone auto-glyph > non-specific square.
     const autoGlyph = AUTO_GLYPHS[color];
     const displayLead: React.ReactNode = lead ?? autoGlyph ?? (
       <span
@@ -192,8 +171,10 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const leadIsAutoFilled = lead == null;
 
     const isLit = isSelectable && selected;
+    const litToneClasses = LIT_CLASSES[color];
     const borderClass = isLit ? SELECTED_BORDER : tone.border;
     const textClass = isLit ? 'text-foreground' : tone.text;
+    const labelTextClass = litToneClasses ? 'text-foreground' : textClass;
     const leadBgClass = isLit ? 'bg-primary/25' : tone.leadBg;
     const labelBgClass = isLit ? 'bg-primary/[0.10]' : tone.labelBg;
 
@@ -205,7 +186,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       borderClass,
       labelBgClass,
       isLit ? SELECTED_GLOW : '',
-      LIT_CLASSES[color] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
+      litToneClasses ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
         ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
@@ -219,12 +200,10 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       .filter(Boolean)
       .join(' ');
 
-    const style = chamferStyle(sizeCfg.chamfer);
-
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent<HTMLElement>) => {
       if (disabled) return;
       if (isSelectable && onSelect) onSelect();
-      if (isAction && onClick) onClick();
+      if (isAction && onClick) onClick(e);
     };
 
     const handleRemove = (e: React.MouseEvent) => {
@@ -235,7 +214,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const labelTypography = numeric
       ? `${sizeCfg.numText} font-semibold tabular-nums tracking-data`
       : `${sizeCfg.lblText} type-label tracking-label-wide`;
-    const labelState = isLit ? SELECTED_LABEL : '';
+    const labelState = isLit ? 'opacity-100' : '';
 
     const content = (
       <>
@@ -246,7 +225,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           {displayLead}
         </span>
         <span
-          className={`flex items-center ${textClass} ${sizeCfg.lblPx} ${labelTypography} ${labelState} ${labelClassName ?? ''}`}
+          className={`flex items-center ${labelTextClass} ${sizeCfg.lblPx} ${labelTypography} ${labelState} ${labelClassName ?? ''}`}
         >
           {children}
         </span>
@@ -262,7 +241,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           ref={ref as React.Ref<HTMLButtonElement>}
           type="button"
           className={wrapperClasses}
-          style={style}
           onClick={handleClick}
           disabled={disabled}
           aria-label={ariaLabel}
@@ -278,7 +256,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       <span
         ref={ref as React.Ref<HTMLSpanElement>}
         className={wrapperClasses}
-        style={style}
         aria-label={ariaLabel}
         {...rest}
       >

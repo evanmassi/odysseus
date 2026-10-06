@@ -1,9 +1,3 @@
-/**
- * Button
- *
- * Tonal action primitive — standard and ghost weights across five tones.
- */
-
 import { forwardRef } from 'react';
 
 import { cva } from 'class-variance-authority';
@@ -14,18 +8,12 @@ import { defaultButtonProps } from './types';
 
 import type { ButtonProps, ButtonRef, ButtonSize, ButtonVariant } from './types';
 
-// Phosphor text-glow on ghost hover, scaled by --lit — glows where lit (dark, forced-dark
-// header), flat where not (light).
 const GHOST_HOVER_SHADOW =
   'hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_calc(55%_*_var(--lit)),transparent),0_0_14px_color-mix(in_srgb,currentColor_calc(35%_*_var(--lit)),transparent)]';
 
-// Neutral ghost weight — ghost / secondary / cancel render identically; the names differ only
-// in caller intent.
 const GHOST_BASE = `bg-transparent border-transparent text-muted-foreground hover:font-medium hover:text-foreground ${GHOST_HOVER_SHADOW}`;
-const NEUTRAL_MARKER =
-  'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/calc(0.55_*_var(--lit)))]';
-const NEUTRAL_MARKER_HOVER =
-  'group-hover:bg-foreground group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/calc(0.7_*_var(--lit))),0_0_14px_2px_hsl(var(--muted-foreground)/calc(0.35_*_var(--lit)))]';
+const CEREMONIAL_MARKER =
+  'h-3 w-0.5 flex-shrink-0 bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.55)]';
 const GHOST_ICON_TONE = 'dark:drop-shadow-icon-bloom dark:group-hover:drop-shadow-icon-bloom-hover';
 
 const buttonVariants = cva(
@@ -43,12 +31,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Standard weight: pale tint + ink rim; the lit-vs-paper shadow split lives in the
-        // shadow-standard-* tokens.
         primary:
           'bg-primary/10 border-primary/45 text-foreground shadow-standard-primary hover:bg-primary/20 hover:border-primary hover:shadow-standard-primary-hover active:bg-primary/[0.28]',
 
-        // Solid weight: the one filled variant — opaque fill in light, backlit glow in dark.
         solid:
           'bg-primary border-[color-mix(in_srgb,hsl(var(--primary))_70%,black)] text-white shadow-[inset_0_1px_0_hsl(var(--sheen)/0.22),inset_0_-1px_0_hsl(var(--recess)/0.18),0_1px_2px_hsl(var(--recess)/0.18),0_3px_8px_-3px_hsl(var(--recess)/0.22)] hover:bg-[color-mix(in_srgb,hsl(var(--primary))_88%,black)] hover:shadow-[inset_0_1px_0_hsl(var(--sheen)/0.22),inset_0_-1px_0_hsl(var(--recess)/0.2),0_2px_3px_hsl(var(--recess)/0.2),0_5px_12px_-4px_hsl(var(--recess)/0.26)] active:translate-y-px dark:bg-[hsl(var(--primary)/0.32)] dark:border-[hsl(var(--primary)/0.85)] dark:text-[color-mix(in_srgb,hsl(var(--primary))_25%,white)] dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.55)] dark:shadow-[inset_0_0_22px_-2px_hsl(var(--primary)/0.5),inset_0_1px_0_hsl(var(--sheen)/0.3),inset_0_-1px_0_hsl(var(--shade)/0.2),0_0_22px_-2px_hsl(var(--primary)/0.7),0_0_48px_-10px_hsl(var(--primary)/0.5)] dark:hover:bg-[hsl(var(--primary)/0.45)] dark:hover:text-white dark:hover:shadow-[inset_0_0_26px_-2px_hsl(var(--primary)/0.65),inset_0_1px_0_hsl(var(--sheen)/0.4),inset_0_-1px_0_hsl(var(--shade)/0.2),0_0_28px_-2px_hsl(var(--primary)/0.85),0_0_60px_-10px_hsl(var(--primary)/0.6)]',
 
@@ -58,10 +43,11 @@ const buttonVariants = cva(
         warning:
           'bg-warning-bg/10 border-warning-bg/45 text-foreground shadow-standard-warning hover:bg-warning-bg/20 hover:border-warning-bg hover:shadow-standard-warning-hover active:bg-warning-bg/[0.28]',
 
-        // Ghost weight: no fill or border; hover boldens + deepens the label (phosphor glow in dark).
         ghost: GHOST_BASE,
 
         'ghost-danger': `bg-transparent border-transparent text-danger-text hover:font-medium hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_70%,white)] ${GHOST_HOVER_SHADOW}`,
+
+        'ghost-primary': `bg-transparent border-transparent text-primary hover:font-medium hover:text-[color-mix(in_srgb,hsl(var(--primary))_75%,black)] dark:hover:text-[color-mix(in_srgb,hsl(var(--primary))_70%,white)] ${GHOST_HOVER_SHADOW}`,
 
         secondary: GHOST_BASE,
 
@@ -102,12 +88,16 @@ const buttonVariants = cva(
         className: 'dark:hover:drop-shadow-icon-bloom-hover',
       },
       {
+        variant: 'ghost-primary',
+        iconOnly: true,
+        className: 'dark:hover:drop-shadow-icon-bloom-hover',
+      },
+      {
         variant: 'secondary',
         iconOnly: true,
         className: 'dark:hover:drop-shadow-icon-bloom-hover',
       },
       { variant: 'cancel', iconOnly: true, className: 'dark:hover:drop-shadow-icon-bloom-hover' },
-      // Ceremonial register replaces size dims entirely.
       { ceremonial: true, className: '!h-11 !px-4 !text-label-xs !gap-3.5' },
     ],
 
@@ -121,31 +111,6 @@ const buttonVariants = cva(
   }
 );
 
-const MARKER_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.55)]',
-  solid:
-    'bg-sheen/95 dark:shadow-[0_0_8px_0_hsl(var(--sheen)/0.65),inset_0_0_2px_hsl(var(--primary)/0.5)]',
-  danger: 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.55)]',
-  warning: 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
-  ghost: NEUTRAL_MARKER,
-  'ghost-danger':
-    'bg-danger-text shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/calc(0.55_*_var(--lit)))]',
-  secondary: NEUTRAL_MARKER,
-  cancel: NEUTRAL_MARKER,
-};
-
-// Hover state for ghost + solid markers; other variants' markers have no hover transition.
-const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
-  solid:
-    'group-hover:bg-sheen dark:group-hover:shadow-[0_0_12px_0_hsl(var(--sheen)/0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
-  ghost: NEUTRAL_MARKER_HOVER,
-  'ghost-danger':
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/calc(0.7_*_var(--lit))),0_0_14px_2px_hsl(var(--color-danger-text)/calc(0.35_*_var(--lit)))]',
-  secondary: NEUTRAL_MARKER_HOVER,
-  cancel: NEUTRAL_MARKER_HOVER,
-};
-
-// Standard variants set the icon color explicitly; ghost variants inherit it from text-*.
 const ICON_TONE: Record<ButtonVariant, string> = {
   primary: 'text-primary dark:drop-shadow-icon-bloom',
   solid: 'text-white dark:drop-shadow-icon-bloom',
@@ -153,6 +118,7 @@ const ICON_TONE: Record<ButtonVariant, string> = {
   warning: 'text-warning-bg dark:drop-shadow-icon-bloom',
   ghost: GHOST_ICON_TONE,
   'ghost-danger': GHOST_ICON_TONE,
+  'ghost-primary': GHOST_ICON_TONE,
   secondary: GHOST_ICON_TONE,
   cancel: GHOST_ICON_TONE,
 };
@@ -210,10 +176,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       if (isLoading) return <ButtonSpinner size={size} />;
       return (
         <>
-          <span
-            aria-hidden
-            className={`h-3 w-0.5 flex-shrink-0 transition-[background,box-shadow] duration-150 ${MARKER_CLASSES[variant]} ${MARKER_HOVER_CLASSES[variant] ?? ''}`}
-          />
+          {ceremonial && <span aria-hidden className={CEREMONIAL_MARKER} />}
           {leftIcon && <span className={`flex-shrink-0 ${ICON_TONE[variant]}`}>{leftIcon}</span>}
         </>
       );

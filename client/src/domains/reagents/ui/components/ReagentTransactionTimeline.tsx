@@ -1,11 +1,4 @@
-/**
- * Reagent Transaction Timeline
- *
- * Stock history grouped by the action that produced it: a FEFO issue writes one
- * ledger row per lot drawn, and those rows share a timestamp, so they read — and
- * void — as the single movement the user actually performed.
- */
-
+// PITFALL: a FEFO issue writes one ledger row per lot with a shared timestamp, so rows are grouped to read and void as one movement.
 import { useMemo, useState } from 'react';
 
 import { formatQuantity, isAdminRole } from '@odysseus/shared-schemas';
@@ -157,7 +150,7 @@ function TransactionEntry({
           </Chip>
         )}
         <span aria-hidden className="text-foreground/30">
-          {'//'}
+          ·
         </span>
         <span
           className={`whitespace-nowrap text-body-sm font-semibold ${config.color} ${isFullyVoided ? 'line-through' : ''}`}
@@ -170,7 +163,7 @@ function TransactionEntry({
           </span>
         )}
         <span aria-hidden className="text-foreground/30">
-          {'//'}
+          ·
         </span>
         <span className="min-w-0 flex-1 truncate text-caption text-muted-foreground">
           {locationName}

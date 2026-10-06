@@ -1,12 +1,4 @@
-/**
- * Alert Styles
- *
- * Warning, error, success, and info alert classes for the design system.
- */
-
 @layer components {
-  /* Banner primitive: 3px lit edge bar + halo, tone-tinted translucent body,
-     mono lead + hairline separator. */
   .alert-banner {
     --c: var(--color-info-text);
     position: relative;
@@ -37,7 +29,7 @@
   }
   .alert-banner__lead {
     font-family: var(--font-mono);
-    font-size: 0.625rem; /* label-2xs (10px) */
+    font-size: 0.625rem;
     font-weight: 500;
     letter-spacing: 0.24em;
     text-transform: uppercase;
@@ -61,19 +53,17 @@
   .alert-banner__title {
     margin: 0;
     font-family: var(--font-sans);
-    font-size: 0.8125rem; /* caption (13px) */
+    font-size: 0.8125rem;
     font-weight: 500;
     color: hsl(var(--c));
     line-height: 1.4;
   }
   .alert-banner__message {
     font-family: var(--font-sans);
-    font-size: 0.8125rem; /* caption (13px) */
+    font-size: 0.8125rem;
     color: hsl(var(--foreground));
     line-height: 1.45;
   }
-  /* Inline <b>/<strong> takes the tone color; the phosphor halo (dark only, below)
-     uses --phosphor-shadow — the markup is user-supplied so we can't add .phosphor-text. */
   .alert-banner__message b,
   .alert-banner__message strong {
     color: hsl(var(--c));
@@ -86,8 +76,7 @@
     align-items: center;
     gap: 10px;
   }
-  /* Chained selectors so modifier specificity (0,2,0) beats the base rule (0,1,0)
-     — without this the base's --c default wins and every variant reads info-blue. */
+  /* PITFALL: chained selectors so the modifier outranks the base --c default; otherwise every variant reads info-blue. */
   .alert-banner.alert-banner--error {
     --c: var(--color-danger-text);
   }
@@ -104,25 +93,14 @@
     --c: var(--color-demo-text);
   }
 
-  /* Dark: restore the lit recipe — radial wash off the edge, edge-bar halo, and
-     phosphor emphasis. Light stays flat (tone tint + solid edge bar). */
   [data-theme='dark'] .alert-banner {
     background:
-      radial-gradient(
-        80% 180% at -8% 50%,
-        hsl(var(--c) / 0.14) 0%,
-        hsl(var(--c) / 0.04) 35%,
-        transparent 70%
-      ),
+      linear-gradient(90deg, hsl(var(--c) / 0.2) 0, hsl(var(--c) / 0.06) 42px, transparent 60px),
       hsl(var(--c) / 0.06);
   }
   [data-theme='dark'] .alert-banner::before {
     box-shadow:
       0 0 10px 0 hsl(var(--c) / 0.55),
       0 0 22px -2px hsl(var(--c) / 0.35);
-  }
-  [data-theme='dark'] .alert-banner__message b,
-  [data-theme='dark'] .alert-banner__message strong {
-    text-shadow: var(--phosphor-shadow);
   }
 }

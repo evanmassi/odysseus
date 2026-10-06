@@ -1,9 +1,3 @@
-/**
- * UI Primitives
- *
- * Barrel export for the shared primitive components and the types consumers import from them.
- */
-
 export { Autocomplete } from './autocomplete/Autocomplete';
 export type { AutocompleteOption } from './autocomplete/types';
 
@@ -45,7 +39,9 @@ export { Select } from './select/Select';
 export { buildHierarchyOptions, lookupOptions, withPlaceholder } from './select/selectOptions';
 export type { SelectOption } from './select/types';
 
-export { NubDivider } from './nub-divider/NubDivider';
+export { Divider } from './divider/Divider';
+
+export { FramelessPanel } from './frameless-panel/FramelessPanel';
 
 export { PanelEmptyState } from './panel-empty-state/PanelEmptyState';
 
@@ -74,3 +70,4 @@ export { Well } from './well/Well';
 export { UnsavedChangesIndicator } from './unsaved-changes-indicator/UnsavedChangesIndicator';
 
 export { Tooltip } from './tooltip/Tooltip';
+export { TruncatedText } from './tooltip/TruncatedText';

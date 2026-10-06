@@ -1,9 +1,3 @@
-/**
- * Tube Share Access Modal
- *
- * Shares or revokes edit access to locked tubes with other users.
- */
-
 import { useEffect, useState, useMemo } from 'react';
 
 import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
@@ -13,13 +7,13 @@ import { useActiveUsersQuery } from '@domains/users';
 import { AlertBanner, Button, Checkbox, LoadingSpinner } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { ROW_DARK_HOVER, ROW_DARK_SELECTED } from '@shared/ui/primitives/table/rowGlow';
 import { notifications } from '@shared/utils/notifications';
 
 import type { TubeData } from '@domains/tubes/types';
 
 export interface TubeShareAccessModalProps {
   isOpen?: boolean;
-  /** Must be locked by current user */
   tubes: TubeData[];
   currentUserId: string;
   onClose: () => void;
@@ -35,7 +29,7 @@ export function TubeShareAccessModal({
   const shareMutation = useShareTubeAccessMutation();
   const revokeMutation = useRevokeTubeAccessMutation();
 
-  // The host mounts this modal permanently, so a stale selection would survive a close
+  // PITFALL: the host mounts this modal permanently, so a stale selection would survive a close.
   useEffect(() => {
     if (isOpen) {
       setSelectedUserIds([]);
@@ -181,8 +175,10 @@ export function TubeShareAccessModal({
                   return (
                     <label
                       key={user.id}
-                      className={`flex items-center px-3 py-2 cursor-pointer hover:bg-accent transition-colors ${
-                        isSelected ? 'bg-action/10' : ''
+                      className={`flex items-center px-3 py-2 cursor-pointer hover:bg-accent dark:hover:bg-transparent transition-colors ${
+                        isSelected
+                          ? `bg-action/10 dark:bg-transparent ${ROW_DARK_SELECTED}`
+                          : ROW_DARK_HOVER
                       }`}
                     >
                       <Checkbox

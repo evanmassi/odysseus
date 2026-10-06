@@ -1,10 +1,4 @@
-/**
- * Selected Tube Details
- *
- * Read-only detail panel for one or more selected tubes with conflict indicators.
- */
-
-import { useMemo, useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useMemo, useState, useEffect, type ReactNode } from 'react';
 
 import {
   formatConcentrationDisplay,
@@ -37,7 +31,8 @@ import {
   Chip,
   DetailRow,
   HeaderStrip,
-  NubDivider,
+  ItemIdentityHeader,
+  Divider,
   PanelEmptyState,
   PanelHeader,
   SectionHeader,
@@ -53,14 +48,8 @@ import { parsePositionKey } from '../../../types/gridSelectionTypes';
 import { getTubeColor } from '../../../utils/tubeColorCoding';
 import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
 
-import { TubeLocationDisplay } from './TubeLocationDisplay';
-
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';
-
-// Cell-type heading auto-fits the swatch-height box: largest size whose wrapped text doesn't clip.
-const CELL_TYPE_MAX_PX = 36;
-const CELL_TYPE_MIN_PX = 12;
 
 const FIELD_PATHS = [
   'sample.cellType',
@@ -123,15 +112,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
 
-  const cellTypeBoxRef = useRef<HTMLDivElement>(null);
-  const cellTypeTextRef = useRef<HTMLDivElement>(null);
-
-  const {
-    tankName,
-    rackName,
-    boxName,
-    box: currentBoxObj,
-  } = useStorageLocationNames(currentTank, currentRack, currentBox);
+  const { box: currentBoxObj } = useStorageLocationNames(currentTank, currentRack, currentBox);
 
   const positionSummary = useMemo(() => {
     if (selectedTubes.length === 0) return { positionLabel: '', formattedPositions: '' };
@@ -209,44 +190,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     };
   }, [ownedLockedTubes]);
 
-  // Prevents auto-opening when selecting new locked tubes after previous selection was cleared
   useEffect(() => {
     if (showEditLockNoteModal && ownedLockedTubes.length === 0) {
       setShowEditLockNoteModal(false);
     }
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
-  // Shrink the cell-type heading from its max until the wrapped text fits the fixed-height box.
-  // Box height is stable, so the observer only refires on width changes (no feedback loop).
-  useLayoutEffect(() => {
-    const box = cellTypeBoxRef.current;
-    const text = cellTypeTextRef.current;
-    if (!box || !text) return;
-
-    const fit = () => {
-      let size = CELL_TYPE_MAX_PX;
-      text.style.fontSize = `${size}px`;
-      while (size > CELL_TYPE_MIN_PX && text.scrollHeight > box.clientHeight) {
-        size -= 1;
-        text.style.fontSize = `${size}px`;
-      }
-    };
-
-    fit();
-
-    if (typeof ResizeObserver === 'undefined') return;
-    let lastWidth = box.clientWidth;
-    const observer = new ResizeObserver(entries => {
-      const width = entries[0].contentRect.width;
-      if (Math.abs(width - lastWidth) < 0.5) return;
-      lastWidth = width;
-      fit();
-    });
-    observer.observe(box);
-    return () => observer.disconnect();
-  }, [fieldAnalysis]);
-
-  // Lit chassis mirroring the tube editor modal.
   const renderPanel = (
     position: { word: string; value: string },
     body: ReactNode,
@@ -254,26 +203,19 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     scrollable = true
   ) => (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 
       <HeaderStrip className="px-4 py-2.5">
-        <div className="space-y-2">
-          <TubeLocationDisplay
-            tankName={tankName}
-            rackName={rackName}
-            boxName={boxName}
-            positionLabel=""
-          />
-          {position.value && (
-            <div className="flex items-baseline gap-2">
-              <StripLabel tone="warning">{position.word}</StripLabel>
-              {/* Non-breaking hyphen so position ranges (A1-A9) don't wrap mid-range. */}
-              <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
-                {position.value.replace(/-/g, '‑')}
-              </span>
-            </div>
+        <div className="flex items-baseline gap-2">
+          <StripLabel tone="warning">{position.word}</StripLabel>
+          {position.value ? (
+            <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
+              {position.value.replace(/-/g, '‑')}
+            </span>
+          ) : (
+            <span className="font-mono text-data-sm text-muted-foreground">—</span>
           )}
         </div>
       </HeaderStrip>
@@ -320,7 +262,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
       : 'Select a tube to view details';
 
-    // Demo visitors read this panel before anything else, so it orients rather than reports.
     const demoMessage = hasEmptySelection ? positionText : 'Click any tube to inspect it';
     const demoDescription = hasEmptySelection
       ? 'Double-click to add one here'
@@ -396,7 +337,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       : undefined;
   const formattedDate = date ? formatDateForDisplay(date as string | Date) : undefined;
 
-  // Fall back to historical createdByName if researcher was deleted
   const researcherDisplay = (() => {
     if (researcherId && researcherMap.has(researcherId as string)) {
       return formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!);
@@ -404,7 +344,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return createdByName as string | undefined;
   })();
 
-  // createdByName is a historical fallback, not a tube field — exclude from conflict detection
   const conflictPaths = FIELD_PATHS.filter(p => p !== 'createdByName');
   const hasConflicts = hasAnyConflicts(selectedTubes, [...conflictPaths]);
 
@@ -448,55 +387,44 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const body = (
     <>
-      <div className="relative flex items-center gap-3 pb-5">
-        <div className="relative flex-shrink-0">
-          <div
-            className="flex h-11 w-11 items-center justify-center border"
-            style={{
-              backgroundColor: swatch.backgroundColor,
-              backgroundImage:
-                'linear-gradient(180deg, hsl(var(--sheen) / 0.18) 0%, hsl(var(--sheen) / 0) 48%, hsl(var(--shade) / 0.14) 100%)',
-              borderColor: swatch.borderColor,
-            }}
-          >
-            <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
-          </div>
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-full h-2.5 w-[160%] -translate-x-1/2"
-            style={{
-              background: `linear-gradient(180deg, ${swatch.backgroundColor}, transparent)`,
-              clipPath: 'polygon(19% 0, 81% 0, 100% 100%, 0 100%)',
-              opacity: 0.4,
-            }}
-          />
-        </div>
-
-        {cellType ? (
-          <div
-            ref={cellTypeBoxRef}
-            className="flex h-11 min-w-0 flex-1 items-center overflow-hidden"
-          >
+      <ItemIdentityHeader
+        marker={
+          <>
             <div
-              ref={cellTypeTextRef}
-              className="w-full break-words font-semibold leading-none text-foreground"
+              className="flex h-11 w-11 items-center justify-center border"
+              style={{
+                backgroundColor: swatch.backgroundColor,
+                backgroundImage:
+                  'linear-gradient(180deg, hsl(var(--sheen) / 0.18) 0%, hsl(var(--sheen) / 0) 48%, hsl(var(--shade) / 0.14) 100%)',
+                borderColor: swatch.borderColor,
+              }}
             >
-              {cellType}
+              <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
             </div>
-          </div>
-        ) : isFieldMixed('sample.cellType') ? (
-          <div className="flex flex-1 items-center gap-1 text-body-sm text-card-foreground/30">
-            —
-            <AlertTriangle className="h-3 w-3 text-warning-text" />
-          </div>
-        ) : (
-          <div className="flex-1 text-body-sm text-card-foreground/40">Unknown</div>
-        )}
-
-        {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
-
-        <NubDivider tone="neutral" className="absolute inset-x-0 bottom-0" />
-      </div>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-full h-2.5 w-[160%] -translate-x-1/2"
+              style={{
+                background: `linear-gradient(180deg, ${swatch.backgroundColor}, transparent)`,
+                clipPath: 'polygon(19% 0, 81% 0, 100% 100%, 0 100%)',
+                opacity: 0.4,
+              }}
+            />
+          </>
+        }
+        name={cellType ? String(cellType) : undefined}
+        fallback={
+          isFieldMixed('sample.cellType') ? (
+            <div className="flex flex-1 items-center gap-1 text-body-sm text-card-foreground/30">
+              —
+              <AlertTriangle className="h-3 w-3 text-warning-text" />
+            </div>
+          ) : (
+            <div className="flex-1 text-body-sm text-card-foreground/40">Unknown</div>
+          )
+        }
+        trailing={speciesTag}
+      />
 
       {selectedTubes.length > 1 && (
         <div className="flex items-center gap-2">
@@ -668,7 +596,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const footer =
     selectedTubes.length === 1 ? (
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <Button
           variant="primary"
           size="sm"

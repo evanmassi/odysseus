@@ -1,19 +1,14 @@
-/**
- * Tank Row
- *
- * Collapsible tank node in the By Location tab with rack management controls.
- */
-
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Lock, Plus, SquarePen, Trash2 } from 'lucide-react';
+import { ChevronDown, Lock, SquarePen, Trash2 } from 'lucide-react';
 
-import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
+import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 
 import { useStorageManagerContext } from '../../StorageManagerContext';
 
+import { AddStorageTool } from './AddStorageTool';
 import { RackRow } from './RackRow';
 import { RowMeta } from './RowMeta';
 
@@ -46,8 +41,6 @@ export function TankRow({
     demoLimits,
     hasSeededResources,
   } = useStorageManagerContext();
-
-  const [rackCountToAdd, setRackCountToAdd] = useState(1);
 
   const locked = isResourceLocked(tank);
   const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
@@ -90,7 +83,7 @@ export function TankRow({
             onKeyDown={e => {
               if (e.key === 'Enter') onToggleCollapse();
             }}
-            className={`storage-nav-button row-glow storage-nav-button--tank ${!collapsed ? 'selected' : ''}`}
+            className={`storage-nav-button row-glow row-tools-host storage-nav-button--tank ${!collapsed ? 'selected' : ''}`}
             role="button"
             tabIndex={0}
             aria-expanded={!collapsed}
@@ -102,21 +95,6 @@ export function TankRow({
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
               aria-hidden="true"
             />
-            {canManageStorage && !locked && overflowMenuItems.length > 0 && (
-              <div
-                role="presentation"
-                onClick={e => e.stopPropagation()}
-                onKeyDown={e => e.stopPropagation()}
-                className="flex-shrink-0"
-              >
-                <OverflowMenu
-                  items={overflowMenuItems}
-                  dividerBefore={dividerBefore}
-                  size="sm"
-                  aria-label={`Actions for tank ${tank.name}`}
-                />
-              </div>
-            )}
             <div className="storage-nav-button__icon">
               <TankIcon size={18} aria-hidden="true" />
             </div>
@@ -129,6 +107,41 @@ export function TankRow({
                 ]}
               />
             </div>
+            {canManageStorage && (
+              <span className="row-tools -ml-2">
+                <span
+                  className="flex items-center gap-1 pl-2.5"
+                  role="presentation"
+                  onClick={e => e.stopPropagation()}
+                  onKeyDown={e => e.stopPropagation()}
+                >
+                  <AddStorageTool
+                    noun="Rack"
+                    pluralNoun="Racks"
+                    max={
+                      demoLimitsActive
+                        ? Math.max(1, demoLimits.maxRacksPerTank - extraRackCount)
+                        : 50
+                    }
+                    limitLabel={
+                      demoLimitsActive
+                        ? `${extraRackCount}/${demoLimits.maxRacksPerTank}`
+                        : undefined
+                    }
+                    isLimitReached={!!rackLimitReached}
+                    onAdd={(count, options) => onAddRacks(tank.id, count, options)}
+                  />
+                  {!locked && overflowMenuItems.length > 0 && (
+                    <OverflowMenu
+                      items={overflowMenuItems}
+                      dividerBefore={dividerBefore}
+                      size="sm"
+                      aria-label={`Actions for tank ${tank.name}`}
+                    />
+                  )}
+                </span>
+              </span>
+            )}
           </div>
           {locked && (
             <div className="flex items-center px-1.5">
@@ -154,41 +167,6 @@ export function TankRow({
                 />
               );
             })}
-
-            {canManageStorage && (
-              <div className="storage-nav-add-controls storage-nav-item--rack">
-                {demoLimitsActive && (
-                  <span className="text-caption text-muted-foreground mr-1">
-                    {extraRackCount}/{demoLimits.maxRacksPerTank}
-                  </span>
-                )}
-                <Tooltip content="Number of racks to add" side="bottom">
-                  <NumberInput
-                    value={rackCountToAdd}
-                    onChange={setRackCountToAdd}
-                    min={1}
-                    max={
-                      demoLimitsActive
-                        ? Math.max(1, demoLimits.maxRacksPerTank - extraRackCount)
-                        : 50
-                    }
-                    size="xs"
-                    aria-label="Number of racks to add"
-                  />
-                </Tooltip>
-                <Button
-                  variant="primary"
-                  size="xs"
-                  onClick={() =>
-                    onAddRacks(tank.id, rackCountToAdd, { onSuccess: () => setRackCountToAdd(1) })
-                  }
-                  leftIcon={<Plus size={12} />}
-                  disabled={!!rackLimitReached}
-                >
-                  Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
-                </Button>
-              </div>
-            )}
           </div>
         </Collapsible.Content>
       </div>
