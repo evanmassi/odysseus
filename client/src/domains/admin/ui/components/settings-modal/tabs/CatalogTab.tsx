@@ -216,7 +216,7 @@ export function CatalogTab({ onTabFooter, onTabAction, readOnly = false }: Catal
           disabled={readOnly}
           leftIcon={<Plus size={14} />}
         >
-          New attribute
+          Add Attribute
         </Button>
       </div>
     );

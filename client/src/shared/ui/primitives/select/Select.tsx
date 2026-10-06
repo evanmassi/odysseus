@@ -139,6 +139,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       state = defaultSelectProps.state,
       placeholder = defaultSelectProps.placeholder,
       fullWidth = defaultSelectProps.fullWidth,
+      isQuiet = defaultSelectProps.isQuiet,
       label,
       labelClassName,
       error,
@@ -334,7 +335,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       isOpen,
       state: currentState,
       disabled,
-      className,
+      className: `${isQuiet ? 'select-quiet' : ''} ${className ?? ''}`,
     });
 
     const dropdownClasses = dropdownVariants({ isOpen });
@@ -392,29 +393,33 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           tabIndex={disabled ? -1 : 0}
         >
           <div className="flex items-center justify-between h-full">
-            <div className="flex-1 truncate">{renderDisplayValueContent()}</div>
+            <div className={`flex-1 truncate ${isQuiet ? 'text-right' : ''}`}>
+              {renderDisplayValueContent()}
+            </div>
 
-            <div className="flex items-center gap-1">
-              {clearable && selectedOptions.length > 0 && !disabled && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className={ICON_BUTTON}
-                  aria-label="Clear selection"
+            <div className={isQuiet ? 'select-quiet__chrome' : 'contents'}>
+              <div className="flex items-center gap-1">
+                {clearable && selectedOptions.length > 0 && !disabled && (
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className={ICON_BUTTON}
+                    aria-label="Clear selection"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
+                    </svg>
+                  </button>
+                )}
+
+                <svg
+                  className={`w-4 h-4 text-secondary-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
                 >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
-                  </svg>
-                </button>
-              )}
-
-              <svg
-                className={`w-4 h-4 text-secondary-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
-              </svg>
+                  <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>

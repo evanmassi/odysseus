@@ -102,7 +102,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
         <div
-          className="storage-nav-button row-glow storage-nav-button--box"
+          className="storage-nav-button row-glow row-tools-host storage-nav-button--box"
           data-full={isFull || undefined}
         >
           <BoxOccupancyMatrix gridConfig={box.gridConfig} tubes={tubes} size={46} />
@@ -132,15 +132,20 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
                       currentUserId={currentUser?.id}
                       showCommonOption
                       parentUserId={rack.assignedUserId}
+                      isQuiet
                     />
                   )}
                   {canManageStorage && overflowMenuItems.length > 0 && (
-                    <OverflowMenu
-                      items={overflowMenuItems}
-                      dividerBefore={dividerBefore}
-                      size="sm"
-                      aria-label={`Actions for box ${box.name}`}
-                    />
+                    <span className="row-tools -ml-2">
+                      <span className="flex items-center pl-1.5">
+                        <OverflowMenu
+                          items={overflowMenuItems}
+                          dividerBefore={dividerBefore}
+                          size="sm"
+                          aria-label={`Actions for box ${box.name}`}
+                        />
+                      </span>
+                    </span>
                   )}
                   {showInlineCustomLabel && (
                     <CustomLabelButton

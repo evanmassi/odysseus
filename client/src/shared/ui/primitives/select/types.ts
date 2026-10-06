@@ -1,7 +1,3 @@
-/**
- * Select Component Types
- */
-
 import type { ReactNode } from 'react';
 
 type SelectSize = 'xs' | 'sm' | 'md';
@@ -12,12 +8,10 @@ export interface SelectOption {
   value: string | number;
   label: string;
   disabled?: boolean;
-  /** Shown below the label in the dropdown */
   description?: string;
-  /** Tier in a parent/child list; the option indents by it. */
   depth?: number;
   icon?: ReactNode;
-  /** Heading above this option's run. Options must arrive grouped — the list is not reordered. */
+  // PITFALL: options must arrive already grouped; the list is not reordered by group.
   group?: string;
 }
 
@@ -30,10 +24,9 @@ export interface SelectProps {
   state?: SelectState;
   placeholder?: string;
   fullWidth?: boolean;
+  isQuiet?: boolean;
   label?: string;
-  /** Overrides the label's styling, so a field can match the micro-labels around it. */
   labelClassName?: string;
-  /** Also sets error validation state */
   error?: string;
   onChange?: (value: string | number | null) => void;
   'aria-label'?: string;
@@ -54,5 +47,6 @@ export const defaultSelectProps = {
   clearable: false,
   disabled: false,
   fullWidth: false,
+  isQuiet: false,
   placeholder: 'Select an option...',
 } satisfies Partial<SelectProps>;

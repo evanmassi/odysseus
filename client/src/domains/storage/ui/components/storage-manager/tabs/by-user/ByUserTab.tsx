@@ -17,6 +17,11 @@ import { TreeLinesByUser } from './TreeLinesByUser';
 import type { UserInfo } from '../../../../../hooks/useStorageOwnership';
 import type { LabConfiguration, UserDisplayInfo } from '@odysseus/shared-schemas';
 
+function formatOwnedBoxCount(owned: number, total: number): string {
+  const noun = total === 1 ? 'box' : 'boxes';
+  return owned < total ? `${owned} of ${total} ${noun}` : `${owned} ${noun}`;
+}
+
 interface ByUserTabProps {
   lab: LabConfiguration;
   getUserInfo: (userId: string) => UserInfo | null;
@@ -57,6 +62,16 @@ export function ByUserTab({
     [lab, getUserInfo, currentUserId]
   );
 
+  const rackBoxTotals = useMemo(
+    () =>
+      new Map(
+        lab.equipment.tanks.flatMap(tank =>
+          tank.racks.map(rack => [`${tank.id}/${rack.id}`, rack.boxes.length] as const)
+        )
+      ),
+    [lab]
+  );
+
   const buildOverflowMenuItems = useCallback(
     (userId: string | null): OverflowMenuItem[] => {
       const items: OverflowMenuItem[] = [
@@ -93,7 +108,7 @@ export function ByUserTab({
   }
 
   return (
-    <div className="relative" data-view="by-user" data-tree-id="modal-user">
+    <div className="relative" role="tree" data-view="by-user" data-tree-id="modal-user">
       <TreeLinesByUser expandedUsers={expandedUsers} />
       <div className="space-y-1">
         {assignmentsByUser.map(userAssignment => {
@@ -132,7 +147,7 @@ export function ByUserTab({
                     onKeyDown={e => {
                       if (e.key === 'Enter') toggleUser(userAssignment.userId);
                     }}
-                    className={`storage-nav-button row-glow storage-nav-button--tank ${isExpanded ? 'selected' : ''}`}
+                    className={`storage-nav-button row-glow row-tools-host storage-nav-button--tank ${isExpanded ? 'selected' : ''}`}
                     role="button"
                     tabIndex={0}
                     aria-expanded={isExpanded}
@@ -143,22 +158,6 @@ export function ByUserTab({
                       className={`storage-nav-button__chevron transition-transform duration-200 ${!isExpanded ? '-rotate-90' : ''}`}
                       aria-hidden="true"
                     />
-                    <div className="flex w-5 flex-shrink-0 justify-center">
-                      {showOverflowMenu && (
-                        <div
-                          role="presentation"
-                          onClick={e => e.stopPropagation()}
-                          onKeyDown={e => e.stopPropagation()}
-                        >
-                          <OverflowMenu
-                            items={buildOverflowMenuItems(userAssignment.userId)}
-                            dividerBefore={['Unassign All']}
-                            size="sm"
-                            aria-label={`Actions for ${userAssignment.displayName}`}
-                          />
-                        </div>
-                      )}
-                    </div>
                     <UserBadge
                       type={badgeType}
                       initials={userAssignment.initials}
@@ -169,6 +168,23 @@ export function ByUserTab({
                       <span className="min-w-0 truncate">{userAssignment.displayName}</span>
                       <RowMeta parts={metaParts} />
                     </div>
+                    {showOverflowMenu && (
+                      <span className="row-tools -ml-2">
+                        <span
+                          className="flex items-center pl-1.5"
+                          role="presentation"
+                          onClick={e => e.stopPropagation()}
+                          onKeyDown={e => e.stopPropagation()}
+                        >
+                          <OverflowMenu
+                            items={buildOverflowMenuItems(userAssignment.userId)}
+                            dividerBefore={['Unassign All']}
+                            size="sm"
+                            aria-label={`Actions for ${userAssignment.displayName}`}
+                          />
+                        </span>
+                      </span>
+                    )}
                   </div>
 
                   {isReassigning && (
@@ -213,12 +229,6 @@ export function ByUserTab({
                         >
                           <div className="storage-nav-item--modal storage-nav-item--rack">
                             <div className="storage-nav-button storage-nav-button--static row-glow storage-nav-button--rack">
-                              <UserBadge
-                                type={badgeType}
-                                initials={userAssignment.initials}
-                                username={userAssignment.username}
-                                size="md"
-                              />
                               <div className="storage-nav-button__icon">
                                 <RackIcon size={16} aria-hidden="true" />
                               </div>
@@ -238,7 +248,12 @@ export function ByUserTab({
                                 {rackGroup.boxes.length > 0 && (
                                   <RowMeta
                                     parts={[
-                                      `${rackGroup.boxes.length} ${rackGroup.boxes.length === 1 ? 'box' : 'boxes'}`,
+                                      formatOwnedBoxCount(
+                                        rackGroup.boxes.length,
+                                        rackBoxTotals.get(
+                                          `${rackGroup.tankId}/${rackGroup.rackId}`
+                                        ) ?? rackGroup.boxes.length
+                                      ),
                                     ]}
                                   />
                                 )}
@@ -256,12 +271,6 @@ export function ByUserTab({
                                 >
                                   <div className="storage-nav-item--modal storage-nav-item--box">
                                     <div className="storage-nav-button storage-nav-button--static row-glow storage-nav-button--box">
-                                      <UserBadge
-                                        type={badgeType}
-                                        initials={userAssignment.initials}
-                                        username={userAssignment.username}
-                                        size="sm"
-                                      />
                                       <div className="storage-nav-button__icon">
                                         <BoxIcon size={14} aria-hidden="true" />
                                       </div>

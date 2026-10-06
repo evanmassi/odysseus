@@ -35,6 +35,8 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 
 - Tab-wide actions sit on the tab's title row: Refresh, quiet, on the left, and the create action, primary, far right.
 - Controls that change only the view (filters, Active Only, search) stay with their table.
+- Add buttons come in two tiers. Full-size buttons are a + icon plus "Add <Thing>" in Title Case ("Add Tank", "Add Donor"). Small hover-reveal row tools are + plus the noun only ("+ Subcategory", "+ Rack", "+ Box").
+- "Add" is the verb for adding, never "Create". The one exception is "New" for something the app generates, such as "New Code" for invite codes. A bare "Add" is fine only right next to the field it adds from.
 
 **Empty states**
 
@@ -59,6 +61,8 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
 - **Alert banners:** dark-mode wash matches the chips (short fade off the edge bar); bold words in the message keep their tone color without glow.
 - **Header search bar:** filter and clear are plain ghost icon buttons. An "on" filter uses the shared `ghost-primary` button, which stays blue and shifts shade on hover; the catalog Filter buttons use it too.
 - **Row highlights (dark mode):** hover, open, selected, and selected-plus-hover come from one recipe in `row-glow.css`, used by tables, catalog trees and item lists, the storage navigator and Storage Manager, the location and category pickers, search result cards, and the checkbox lists. Selected table rows now react to hover; non-clickable rows don't; full Storage Manager boxes tint red. Light mode is unchanged.
+- **Storage Manager:** owner pickers read as plain names (flush right) with the dropdown frame on row hover; "+ Rack" / "+ Box" and the ⋮ menu slide in on hover using the shared `row-tools` reveal (also used by "+ Subcategory"); clicking "+ Rack" / "+ Box" opens the count picker in place. By User draws tree lines, drops repeated owner badges, and shows "2 of 4 boxes" on partly owned racks.
+- **Add labels:** Add Attribute, Add Lab, Add Demo Lab, Add Entry; "New Code" stays.
 - **Stacking:** named `z-popover` and `z-tooltip` layers, so tooltips always sit above popups.
 - **Search dropdown:** fixed height, plain headers, darker filter column, shared `FilterSection`.
 - **Tables:** zebra stripes are painted on the row, so the hover tint layers over them evenly.
@@ -79,10 +83,9 @@ Branch `update/ui-readability`. A calmer pass over the console theme: fewer boxe
    - equipment maintenance and decommission;
    - the supply and reagent stock-transaction forms;
    - the bulk-operation tabs.
-4. **Storage Manager modal.** Still on the old style; it should match the redesigned navigator.
-5. **Catalog page footers.** The equipment, supplies, and reagents details views and forms still have the shaded footer band behind their buttons. Decide whether it goes, like the donor and lab-settings footers did.
-6. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
-7. **Setting names.** Labels mix Title Case and sentence case. Pick one.
+4. **Catalog page footers.** The equipment, supplies, and reagents details views and forms still have the shaded footer band behind their buttons. Decide whether it goes, like the donor and lab-settings footers did.
+5. **Table columns.** Cells default to the sans font. Columns that should stay monospace (IDs, barcodes, dates) need a per-column fix as they're spotted.
+6. **Setting names.** Labels mix Title Case and sentence case. Pick one.
 
 ## Mocks
 

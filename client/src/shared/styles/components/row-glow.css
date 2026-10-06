@@ -60,3 +60,70 @@
   --row-selected-hover-shadow:
     inset 3px 0 0 0 hsl(var(--row-tone)), inset 14px 0 30px -12px hsl(var(--row-tone) / 0.35);
 }
+
+.row-tools,
+.select-quiet__chrome {
+  display: grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-columns 0.24s ease,
+    opacity 0.2s ease 0.04s,
+    transform 0.24s ease;
+}
+
+.row-tools {
+  flex-shrink: 0;
+  transform: translateX(0.5rem);
+}
+
+.row-tools > *,
+.select-quiet__chrome > * {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.row-tools-host:hover .row-tools,
+.row-tools-host:focus-visible .row-tools,
+.row-tools-host:has(:focus-visible) .row-tools,
+.row-tools:has([aria-expanded='true'], [data-pinned]) {
+  grid-template-columns: 1fr;
+  opacity: 1;
+  transform: none;
+}
+
+.select-quiet {
+  background: transparent;
+  border-color: transparent;
+}
+
+.row-tools-host:hover .select-quiet,
+.select-quiet:focus-visible {
+  background: hsl(var(--input-well));
+  border-color: hsl(var(--line-faint));
+}
+
+.row-tools-host:hover .select-quiet:hover {
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.select-quiet[aria-expanded='true'] {
+  background: hsl(var(--primary) / 0.04);
+  border-color: hsl(var(--primary) / 0.7);
+}
+
+.row-tools-host:hover .select-quiet__chrome,
+.select-quiet:focus-visible .select-quiet__chrome,
+.select-quiet[aria-expanded='true'] .select-quiet__chrome {
+  grid-template-columns: 1fr;
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .row-tools,
+  .select-quiet__chrome {
+    grid-template-columns: 1fr;
+    opacity: 1;
+    transform: none;
+  }
+}

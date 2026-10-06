@@ -1,9 +1,3 @@
-/**
- * Collection History Timeline
- *
- * Chronological list of sample collection events with admin add/edit/delete.
- */
-
 import { useState } from 'react';
 
 import { Plus, SquarePen, Trash2 } from 'lucide-react';
@@ -26,7 +20,6 @@ interface CollectionHistoryTimelineProps {
   history: DonorCollectionHistory[];
   donorId: string;
   isAdmin: boolean;
-  /** Entries inherit protection from the donor, which owns them. */
   isDeleteLocked: boolean;
 }
 
@@ -237,7 +230,7 @@ export function CollectionHistoryTimeline({
           onClick={() => setIsAdding(true)}
           leftIcon={<Plus className="w-3 h-3" />}
         >
-          Add entry
+          Add Entry
         </Button>
       )}
 

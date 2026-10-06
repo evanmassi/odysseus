@@ -47,11 +47,11 @@ export function LabsToolbar({ onCreateLab }: LabsToolbarProps) {
           isLoading={createLabMutation.isPending}
           leftIcon={<Plus size={14} />}
         >
-          Create Demo Lab
+          Add Demo Lab
         </Button>
       )}
       <Button variant="primary" size="sm" onClick={onCreateLab} leftIcon={<Plus size={14} />}>
-        Create Lab
+        Add Lab
       </Button>
     </div>
   );

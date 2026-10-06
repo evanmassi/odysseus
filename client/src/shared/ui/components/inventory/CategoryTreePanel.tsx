@@ -227,7 +227,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
           return (
             <div key={category.id} data-level="l1" data-id={category.id}>
               <div
-                className={`nav-tree-row row-glow nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
+                className={`nav-tree-row row-glow row-tools-host nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
                 onClick={() => toggleCategory(category.id)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') toggleCategory(category.id);
@@ -353,7 +353,7 @@ function TreeRowRail({ count, countNoun, tools, isSubtle = false }: TreeRowRailP
           className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE} ${isSubtle ? 'opacity-60' : ''}`}
         />
         {tools && (
-          <span className="nav-tree-row__tools">
+          <span className="row-tools">
             <span className="min-w-0 overflow-hidden">
               <span
                 className="flex items-center pl-2.5"
