@@ -75,7 +75,7 @@ export function AlertDialog({
               <Mark size={22} className={iconColor} />
               <h2
                 id={titleId}
-                className="phosphor-text type-label text-label-lg font-semibold text-tooltip-foreground"
+                className="type-label text-label-lg font-semibold text-tooltip-foreground"
               >
                 {title}
               </h2>

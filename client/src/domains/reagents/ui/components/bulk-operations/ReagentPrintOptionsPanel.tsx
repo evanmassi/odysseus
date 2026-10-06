@@ -82,9 +82,7 @@ export function ReagentPrintOptionsPanel({
                       : 'text-muted-foreground'
                   }
                 />
-                <span className={`text-body-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
-                  {label}
-                </span>
+                <span className="text-body-sm font-semibold">{label}</span>
               </button>
             );
           })}
@@ -92,7 +90,7 @@ export function ReagentPrintOptionsPanel({
       </div>
 
       {source === 'lot' && (
-        <div className="space-y-2 rounded-md border border-border bg-muted/20 p-3">
+        <div className="space-y-2 border border-line-mid bg-muted/20 p-3">
           <div className="flex items-center justify-between gap-2">
             <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
               {checkedLotIds.size} of {lotLabels.length} lots
@@ -126,7 +124,7 @@ export function ReagentPrintOptionsPanel({
                     {group.lots.map(lot => (
                       <label
                         key={lot.lotId}
-                        className={`flex cursor-pointer items-center gap-2 rounded px-1 py-0.5 hover:bg-accent/30 dark:hover:bg-transparent ${
+                        className={`flex cursor-pointer items-center gap-2 px-1 py-0.5 hover:bg-accent/30 dark:hover:bg-transparent ${
                           checkedLotIds.has(lot.lotId) ? ROW_DARK_SELECTED : ROW_DARK_HOVER
                         }`}
                       >
