@@ -1,0 +1,58 @@
+.led-cell {
+  --led-tone: var(--primary);
+  --led-gap: hsl(var(--card));
+  --led-rim: inset 0 0 0 2px var(--led-gap), inset 0 0 0 3px hsl(var(--led-tone));
+
+  position: relative;
+  color: hsl(var(--foreground) / 0.75);
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+
+.led-cell:hover {
+  color: hsl(var(--foreground));
+  background: var(--scanline-layer);
+  box-shadow: inset 0 0 0 1px hsl(var(--led-tone) / 0.6);
+}
+
+.led-cell--today {
+  color: hsl(var(--led-tone));
+  font-weight: 700;
+  box-shadow: var(--led-rim);
+}
+
+.led-cell--today:hover {
+  color: hsl(var(--led-tone));
+  background: var(--scanline-layer), hsl(var(--led-tone) / 0.1);
+  box-shadow: var(--led-rim);
+}
+
+.led-cell--lit,
+.led-cell--lit:hover {
+  color: #fff;
+  font-weight: 700;
+  background: var(--scanline-layer), hsl(var(--led-tone));
+  box-shadow: var(--led-rim);
+}
+
+.led-cell--lit:hover {
+  background: var(--scanline-layer), hsl(var(--led-tone) / 0.85);
+}
+
+.led-cell--lit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(hsl(var(--led-tone)), hsl(var(--led-tone))) top left / 2px 2px no-repeat,
+    linear-gradient(hsl(var(--led-tone)), hsl(var(--led-tone))) top right / 2px 2px no-repeat,
+    linear-gradient(hsl(var(--led-tone)), hsl(var(--led-tone))) bottom left / 2px 2px no-repeat,
+    linear-gradient(hsl(var(--led-tone)), hsl(var(--led-tone))) bottom right / 2px 2px no-repeat;
+}
+
+[data-theme='dark'] .led-cell--lit {
+  filter: drop-shadow(0 0 6px hsl(var(--led-tone) / 0.55));
+}
