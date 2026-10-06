@@ -1,10 +1,3 @@
-/**
- * Reagent Expiry Alert Panel
- *
- * Reagents holding expired stock, or whose soonest-expiring lot falls inside the
- * warning window. Expired stock stays usable and is flagged, never hidden.
- */
-
 import { useMemo } from 'react';
 
 import { useReagentItemsQuery } from '@domains/reagents/hooks';
@@ -23,7 +16,6 @@ interface ExpiryRow {
   status: string;
   tone: AlertTone;
   expires: string;
-  /** Days to the soonest expiry — negative once expired; sorts the table. */
   daysRemaining: number;
 }
 
@@ -44,7 +36,9 @@ const columns: TableColumn<ExpiryRow>[] = [
     id: 'expires',
     header: 'Soonest Expiry',
     sortable: true,
-    render: (_value, row) => <span className="text-muted-foreground">{row.expires}</span>,
+    render: (_value, row) => (
+      <span className="font-mono tracking-[0.04em] text-muted-foreground">{row.expires}</span>
+    ),
   },
   {
     id: 'daysRemaining',

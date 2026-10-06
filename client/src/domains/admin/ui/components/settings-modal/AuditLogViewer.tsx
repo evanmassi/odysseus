@@ -240,9 +240,9 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
       case 'user':
         return UserRound;
       case 'researcher':
-        return 'researcher'; // Custom component
+        return 'researcher';
       case 'tank':
-        return 'tank'; // Custom from @lucide/lab
+        return 'tank';
       case 'rack':
         return Rows3;
       case 'box':
@@ -272,10 +272,10 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
       render: (_, entry) => {
         return (
           <div className="flex flex-col leading-tight">
-            <span className="text-data-sm text-secondary-foreground whitespace-nowrap">
+            <span className="font-mono tracking-[0.04em] text-data-sm text-secondary-foreground whitespace-nowrap">
               {formatAuditDate(entry.timestamp)}
             </span>
-            <span className="text-label-xs text-muted-foreground whitespace-nowrap">
+            <span className="font-mono tracking-[0.04em] text-label-xs text-muted-foreground whitespace-nowrap">
               {formatAuditTime(entry.timestamp)}
             </span>
           </div>

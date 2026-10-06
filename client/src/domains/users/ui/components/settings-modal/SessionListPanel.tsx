@@ -1,9 +1,3 @@
-/**
- * Active Session List
- *
- * Displays active sessions with revocation controls.
- */
-
 import { useState, useMemo } from 'react';
 
 import { formatDistanceToNow, format } from 'date-fns';
@@ -105,7 +99,6 @@ export function SessionListPanel() {
   };
 
   const handleBulkRevoke = () => {
-    // Drop the current session — the server skips it anyway, so there's no reason to send it.
     const currentSessionId = displayedSessions.find(s => s.isCurrentSession)?.id;
     const ids = selectedSessionIds.map(String).filter(id => id !== currentSessionId);
     if (ids.length === 0) return;
@@ -167,7 +160,7 @@ export function SessionListPanel() {
             {row.timestamp.relative}
           </p>
           <p
-            className={`text-caption ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
+            className={`font-mono tracking-[0.04em] text-caption ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
           >
             {row.timestamp.absolute}
           </p>

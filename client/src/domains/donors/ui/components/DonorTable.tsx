@@ -83,7 +83,7 @@ export function DonorTable({
                 title="Needs review — awaiting lab admin curation"
               />
             )}
-            <span className="truncate">{row.donorSourceId ?? '—'}</span>
+            <span className="truncate font-mono tracking-[0.04em]">{row.donorSourceId ?? '—'}</span>
           </div>
         ),
       },
@@ -91,7 +91,9 @@ export function DonorTable({
         id: 'donorInternalId',
         header: 'Internal ID',
         sortable: true,
-        render: (_value, row) => <span className="truncate">{row.donorInternalId ?? '—'}</span>,
+        render: (_value, row) => (
+          <span className="truncate font-mono tracking-[0.04em]">{row.donorInternalId ?? '—'}</span>
+        ),
       },
       {
         id: 'tubeCount',
