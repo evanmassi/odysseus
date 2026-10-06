@@ -1,9 +1,3 @@
-/**
- * Autocomplete Input
- *
- * Text input with keyboard-navigable dropdown suggestions. Supports free text entry.
- */
-
 import React, {
   forwardRef,
   useState,
@@ -20,6 +14,7 @@ import { useMergedRef } from '@shared/hooks';
 
 import { INPUT_WELL_BASE, INPUT_WELL_BORDER_DEFAULT } from '../input/fieldStyles';
 import { ScrollArea } from '../scroll-area/ScrollArea';
+import { ROW_LIT_HOVER, ROW_TONE } from '../table/rowGlow';
 
 import type { AutocompleteProps, AutocompleteRef, AutocompleteOption } from './types';
 
@@ -195,8 +190,8 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                       role="option"
                       tabIndex={-1}
                       aria-selected={isHighlighted}
-                      className={`px-3 py-1.5 cursor-pointer text-body transition-colors duration-150 ${
-                        isHighlighted ? 'bg-foreground/5' : 'hover:bg-foreground/5'
+                      className={`px-3 py-1.5 cursor-pointer text-body transition-[background-image,box-shadow,color] duration-150 ${ROW_TONE.primary} ${
+                        isHighlighted ? `${ROW_LIT_HOVER} text-foreground` : 'text-foreground/75'
                       }`}
                       onMouseDown={e => {
                         e.preventDefault();

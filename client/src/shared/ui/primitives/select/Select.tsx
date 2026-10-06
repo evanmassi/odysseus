@@ -16,6 +16,13 @@ import { createPortal } from 'react-dom';
 import { useMergedRef } from '@shared/hooks';
 
 import { ScrollArea } from '../scroll-area/ScrollArea';
+import {
+  ROW_HOVER_GLOW,
+  ROW_LIT_HOVER,
+  ROW_LIT_SELECTED_HOVER,
+  ROW_SELECTED,
+  ROW_TONE,
+} from '../table/rowGlow';
 
 import { defaultSelectProps } from './types';
 
@@ -103,23 +110,28 @@ const optionVariants = cva(
   [
     'px-3 py-2 cursor-pointer text-body',
     'flex items-center gap-2',
-    'transition-colors duration-150',
+    'transition-[background-image,box-shadow,color] duration-150',
+    ROW_TONE.primary,
   ],
   {
     variants: {
       isSelected: {
-        true: 'bg-primary/15 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.55)]',
-        false: 'text-foreground',
+        true: `${ROW_SELECTED} font-semibold text-foreground dark:text-white`,
+        false: `${ROW_HOVER_GLOW.primary} text-foreground/75 hover:text-foreground`,
       },
       isHighlighted: {
-        true: 'bg-foreground/5',
-        false: 'hover:bg-foreground/5',
+        true: '',
+        false: '',
       },
       isDisabled: {
         true: 'opacity-50 cursor-not-allowed',
         false: '',
       },
     },
+    compoundVariants: [
+      { isSelected: false, isHighlighted: true, className: `${ROW_LIT_HOVER} text-foreground` },
+      { isSelected: true, isHighlighted: true, className: ROW_LIT_SELECTED_HOVER },
+    ],
     defaultVariants: {
       isSelected: false,
       isHighlighted: false,
