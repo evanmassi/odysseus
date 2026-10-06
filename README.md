@@ -10,6 +10,8 @@ Try it at **https://odysse-us.vercel.app** with the demo account. The demo lab r
 It started as a replacement for the Excel sheets our lab used to track its liquid nitrogen inventory, and grew to cover
 everything else the lab keeps track of.
 
+![A box of tubes in the biobank, with the storage tree on the left and the selected tube's details on the right](docs/screenshots/biobank.png)
+
 ## Biobank
 
 - Set up storage to match your lab: tanks, racks and boxes, each box sized to fit. Boxes can belong to one person or
@@ -20,6 +22,8 @@ everything else the lab keeps track of.
 - Search every tube in the lab and jump straight to it in its box.
 - See changes the moment a colleague makes them.
 
+![The donor registry, showing a donor's demographics and collection history](docs/screenshots/donor-registry.png)
+
 ## Lab management
 
 Everything else the lab tracks, with reminders so nothing runs out or gets missed.
@@ -28,6 +32,11 @@ Everything else the lab tracks, with reminders so nothing runs out or gets misse
 - **Reagents:** stock by lot, with a warning before anything expires or runs out.
 - **Equipment:** warranties, documents and a maintenance log that reminds you when service is due.
 - Barcode scanning and label printing for supplies and reagents to help maintain and organize your stock rooms.
+
+<p>
+  <img src="docs/screenshots/supplies.png" width="49%" alt="Supplies, with low-stock alerts above the catalog">
+  <img src="docs/screenshots/equipment.png" width="49%" alt="Equipment, grouped by category, with an item open for editing">
+</p>
 
 ## Your lab
 
