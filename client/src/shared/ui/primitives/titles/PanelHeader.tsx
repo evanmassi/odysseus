@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
 
 interface PanelHeaderProps {
-  title: ReactNode;
+  title: string;
   icon?: ReactNode;
   className?: string;
 }
 
 export function PanelHeader({ title, icon, className }: PanelHeaderProps) {
   return (
-    <div className={`flex items-center gap-3.5 px-4 pb-2.5 pt-3 ${className ?? ''}`}>
+    <div className={`flex min-w-0 items-center gap-3.5 px-4 pb-2.5 pt-3 ${className ?? ''}`}>
       {icon && (
         <span
           aria-hidden
@@ -17,7 +17,7 @@ export function PanelHeader({ title, icon, className }: PanelHeaderProps) {
           {icon}
         </span>
       )}
-      <span className="inline-flex items-center gap-2 whitespace-nowrap type-label text-label-md font-semibold text-foreground">
+      <span className="min-w-0 break-words type-label text-label-md font-semibold text-foreground">
         {title}
       </span>
     </div>
