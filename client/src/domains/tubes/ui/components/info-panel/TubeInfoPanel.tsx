@@ -38,6 +38,7 @@ import {
   SectionHeader,
   StripLabel,
   Tooltip,
+  TruncatedText,
 } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -50,6 +51,9 @@ import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
 
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';
+
+const LOCK_NOTE_FONT = 'font-sans normal-case tracking-[0.02em]';
+const LOCK_NOTE_TOOLTIP_FONT = '!font-sans';
 
 const FIELD_PATHS = [
   'sample.cellType',
@@ -454,16 +458,16 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               content={
                 lockNoteDisplay?.isMixed
                   ? 'Edit lock notes'
-                  : lockNoteDisplay?.note
-                    ? 'Edit lock note'
-                    : 'Add lock note'
+                  : (lockNoteDisplay?.note ?? 'Add lock note')
               }
+              className={lockNoteDisplay?.note ? LOCK_NOTE_TOOLTIP_FONT : undefined}
               side="bottom"
             >
               <Chip
                 size="sm"
                 lit
                 behavior="action"
+                className="min-w-0 max-w-full"
                 onClick={() => setShowEditLockNoteModal(true)}
                 onFocus={e => {
                   if (!e.currentTarget.matches(':focus-visible')) {
@@ -478,7 +482,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                   lockNoteDisplay?.isMixed
                     ? 'italic'
                     : lockNoteDisplay?.note
-                      ? 'normal-case tracking-[0.02em] opacity-100'
+                      ? `min-w-0 opacity-100 ${LOCK_NOTE_FONT}`
                       : undefined
                 }
               >
@@ -489,8 +493,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                   </>
                 ) : lockNoteDisplay?.note ? (
                   <>
-                    {lockNoteDisplay.note}
-                    <SquarePen className="w-2.5 h-2.5 ml-1.5 opacity-60" />
+                    <span className="truncate">{lockNoteDisplay.note}</span>
+                    <SquarePen className="w-2.5 h-2.5 ml-1.5 shrink-0 opacity-60" />
                   </>
                 ) : (
                   'Add note'
@@ -499,8 +503,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </Tooltip>
           ) : (
             firstTube.lockNote && (
-              <Chip size="sm" color={lockInfo.isLockedOut ? 'danger' : 'info'} lead={<Notebook />}>
-                {firstTube.lockNote}
+              <Chip
+                size="sm"
+                color={lockInfo.isLockedOut ? 'danger' : 'info'}
+                lead={<Notebook />}
+                className="min-w-0 max-w-full"
+                labelClassName={`min-w-0 ${LOCK_NOTE_FONT}`}
+              >
+                <TruncatedText
+                  text={firstTube.lockNote}
+                  tooltipClassName={LOCK_NOTE_TOOLTIP_FONT}
+                />
               </Chip>
             )
           )}
