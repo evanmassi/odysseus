@@ -137,7 +137,7 @@ export function TubeGridTooltip({
             <span className="font-mono text-data-sm">{lockLabel}</span>
           </div>
           {tube.lockNote && (
-            <div className="mt-1 font-mono text-data-sm italic text-tooltip-muted">
+            <div className="mt-1 font-sans text-data-sm italic text-tooltip-muted">
               &ldquo;{tube.lockNote}&rdquo;
             </div>
           )}
