@@ -598,11 +598,12 @@ export class ReagentItemRepository implements IReagentItemRepository {
       cost?: number;
       notes?: string;
       relatedTransactionId?: string | null;
+      occurredAt?: Date;
     }
   ): Promise<ReagentTransactionRow> {
     const res = await client.query<ReagentTransactionDbRow>(
       `INSERT INTO reagent_transactions (${TXN_COLUMNS})
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NULL, NULL, NULL, $13, FALSE)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($14, NOW()), NULL, NULL, NULL, $13, FALSE)
        RETURNING ${TXN_COLUMNS}`,
       [
         generateId('rtxn'),
@@ -618,6 +619,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
         t.performedBy,
         t.notes ?? null,
         t.relatedTransactionId ?? null,
+        t.occurredAt ?? null,
       ]
     );
     return ReagentTransactionMapper.fromRow(res.rows[0]);

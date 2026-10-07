@@ -1,10 +1,3 @@
-/**
- * Supply Item Repository Interface
- *
- * Unified data access contract for supply items, documents, barcodes,
- * stock levels, transactions, and lookup value support.
- */
-
 import type { DocumentPatch } from '@domain/entities/Document';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
@@ -74,6 +67,7 @@ export interface RecordTransactionData {
   poNumber?: string;
   cost?: number;
   notes?: string;
+  occurredAt?: Date;
 }
 
 export interface SupplyPackagingLevelRow {
@@ -85,26 +79,18 @@ export interface SupplyPackagingLevelRow {
 }
 
 export interface SupplyItemRepository {
-  // Items
-
   findById(id: string, labId: string): Promise<SupplyItem | null>;
   findByLabIdWithStock(labId: string): Promise<ItemWithStock[]>;
   save(item: SupplyItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
   hasTransactions(id: string): Promise<boolean>;
-  /** Visitor-created only — the demo creation caps must not be consumed by seeded rows. */
   countNonSeededByLabId(labId: string): Promise<number>;
-  /** Bulk delete for the demo reset. Returns the row count removed. */
   deleteAllForLab(labId: string): Promise<number>;
-
-  // Documents
 
   findDocumentsByItemId(itemId: string): Promise<SupplyDocument[]>;
   saveDocument(document: SupplyDocument): Promise<void>;
   updateDocument(id: string, itemId: string, fields: DocumentPatch): Promise<SupplyDocument | null>;
   deleteDocument(id: string, itemId: string): Promise<boolean>;
-
-  // Barcodes
 
   findBarcodesByItemId(itemId: string): Promise<SupplyBarcodeRow[]>;
   findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<SupplyBarcodeRow[]>;
@@ -117,11 +103,7 @@ export interface SupplyItemRepository {
   ): Promise<SupplyBarcodeRow | null>;
   deleteBarcode(id: string, itemId: string): Promise<boolean>;
 
-  // Stock
-
   findStockByItemId(itemId: string): Promise<SupplyStockRow[]>;
-
-  // Transactions — recordTransaction is atomic: UPSERT stock RETURNING → INSERT transaction
 
   findTransactionsByItemId(itemId: string, limit?: number): Promise<SupplyTransactionRow[]>;
   findTransactionById(id: string, labId: string): Promise<SupplyTransactionRow | null>;
@@ -130,18 +112,12 @@ export interface SupplyItemRepository {
     data: VoidTransactionData
   ): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }>;
 
-  // Reorder
-
   findItemsAtOrBelowThreshold(labId: string): Promise<ItemWithStock[]>;
-
-  // Lookup support — for supply lookup category rename/delete cascading
 
   countItemsUsingVendor(value: string, labId: string): Promise<number>;
   renameVendor(oldValue: string, newValue: string, labId: string): Promise<number>;
   countItemsUsingManufacturer(value: string, labId: string): Promise<number>;
   renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
-
-  // Attribute values
 
   findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]>;
   findAttributeValuesByLabId(labId: string): Promise<AttributeValueRow[]>;
@@ -150,8 +126,6 @@ export interface SupplyItemRepository {
     definitionId: string,
     values: AttributeValueRow[]
   ): Promise<void>;
-
-  // Packaging levels
 
   findPackagingLevelsByItemId(itemId: string): Promise<SupplyPackagingLevelRow[]>;
   savePackagingLevel(level: SupplyPackagingLevelRow): Promise<void>;

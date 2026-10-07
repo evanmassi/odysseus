@@ -110,6 +110,7 @@ export interface RecordTransactionData {
   poNumber?: string;
   cost?: number;
   notes?: string;
+  occurredAt?: Date;
 }
 
 export interface ReagentItemRepository {

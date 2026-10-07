@@ -1,10 +1,3 @@
-/**
- * Supply Item Repository
- *
- * PostgreSQL implementation for supply items, documents, barcodes,
- * stock levels, transactions, and lookup value support.
- */
-
 import type { DocumentPatch } from '@domain/entities/Document';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
@@ -46,7 +39,6 @@ const TXN_COLUMNS = `id, item_id, location_id, lab_id, type, quantity_change, qu
   lot_number, expiration_date, po_number, cost, performed_by, notes, created_at,
   voided_at, voided_by, void_reason, related_transaction_id, is_seeded`;
 
-// Shared prefix for the two item-with-stock queries; callers append their own WHERE/GROUP BY/HAVING/ORDER BY.
 const ITEM_WITH_STOCK_SELECT = `
   SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
          COALESCE(
@@ -69,8 +61,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     );
     this.attributeValues = new AttributeValueQueries(db, 'supply_attribute_values', 'supply_items');
   }
-
-  // Items
 
   async findById(id: string, labId: string): Promise<SupplyItem | null> {
     const row = await this.db.queryOne<SupplyItemRow>(
@@ -161,8 +151,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return parseInt(row?.count ?? '0', 10) > 0;
   }
 
-  // Documents
-
   async findDocumentsByItemId(itemId: string): Promise<SupplyDocument[]> {
     return this.documents.findByItemId(itemId);
   }
@@ -182,8 +170,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   async deleteDocument(id: string, itemId: string): Promise<boolean> {
     return this.documents.delete(id, itemId);
   }
-
-  // Barcodes
 
   async findBarcodesByItemId(itemId: string): Promise<SupplyBarcodeRow[]> {
     const rows = await this.db.queryMany<SupplyBarcodeDbRow>(
@@ -274,8 +260,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // Stock
-
   async findStockByItemId(itemId: string): Promise<SupplyStockRow[]> {
     const rows = await this.db.queryMany<SupplyStockDbRow>(
       `SELECT ${STOCK_COLUMNS} FROM supply_stock WHERE item_id = $1`,
@@ -283,8 +267,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     );
     return SupplyStockMapper.fromRows(rows);
   }
-
-  // Transactions — atomic: UPSERT stock RETURNING quantity → INSERT transaction
 
   async findTransactionsByItemId(itemId: string, limit?: number): Promise<SupplyTransactionRow[]> {
     if (limit != null) {
@@ -317,7 +299,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       const txnId = generateId('stxn');
       const txnResult = await client.query<SupplyTransactionDbRow>(
         `INSERT INTO supply_transactions (${TXN_COLUMNS})
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NULL, NULL, NULL, NULL, FALSE)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, COALESCE($14, NOW()), NULL, NULL, NULL, NULL, FALSE)
          RETURNING ${TXN_COLUMNS}`,
         [
           txnId,
@@ -333,6 +315,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
           data.cost ?? null,
           data.performedBy,
           data.notes ?? null,
+          data.occurredAt ?? null,
         ]
       );
 
@@ -413,8 +396,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     });
   }
 
-  // Reorder
-
   async findItemsAtOrBelowThreshold(labId: string): Promise<ItemWithStock[]> {
     const rows = await this.db.queryMany<ItemWithStockRow>(
       `
@@ -437,8 +418,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       locationNames: row.location_names ?? [],
     };
   }
-
-  // Lookup support
 
   async countItemsUsingVendor(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
@@ -472,8 +451,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return result.rowCount ?? 0;
   }
 
-  // Attribute values
-
   async findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]> {
     return this.attributeValues.findByItemId(itemId);
   }
@@ -482,7 +459,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return this.attributeValues.findByLabId(labId);
   }
 
-  // A multi_select writes one row per option, so the definition's rows are replaced wholesale.
   async replaceAttributeValues(
     itemId: string,
     definitionId: string,
@@ -490,8 +466,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   ): Promise<void> {
     await this.attributeValues.replace(itemId, definitionId, values);
   }
-
-  // Packaging levels
 
   async findPackagingLevelsByItemId(itemId: string): Promise<SupplyPackagingLevelRow[]> {
     const rows = await this.db.queryMany<SupplyPackagingLevelDbRow>(
@@ -522,7 +496,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   }
 
   async deleteAllForLab(labId: string): Promise<number> {
-    // The ledger is NO ACTION so it goes first; everything else cascades from the item.
+    // PITFALL: the ledger is NO ACTION so it goes first; everything else cascades from the item.
     await this.db.execute('DELETE FROM supply_transactions WHERE lab_id = $1', [labId]);
     const result = await this.db.execute('DELETE FROM supply_items WHERE lab_id = $1', [labId]);
     return result.rowCount ?? 0;
