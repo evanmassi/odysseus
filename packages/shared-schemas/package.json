@@ -1,6 +1,6 @@
 {
   "name": "@odysseus/shared-schemas",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Shared Zod schemas for Odysseus client and server",
   "private": true,
   "main": "dist/index.cjs",

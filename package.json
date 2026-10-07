@@ -1,6 +1,6 @@
 {
   "name": "odysseus",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Lab management for research groups: sample storage, donors, equipment, supplies and reagents",
   "scripts": {
     "predev": "node scripts/ensure-docker.mjs && docker compose up -d postgres && npm run build:shared",
