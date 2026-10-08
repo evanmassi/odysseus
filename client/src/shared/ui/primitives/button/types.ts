@@ -1,7 +1,3 @@
-/**
- * Button Component Types
- */
-
 import type { ComponentProps, ReactNode } from 'react';
 
 export type ButtonVariant =
@@ -12,6 +8,7 @@ export type ButtonVariant =
   | 'warning'
   | 'ghost'
   | 'ghost-danger'
+  | 'ghost-primary'
   | 'cancel';
 
 export type ButtonSize = 'xs' | 'sm' | 'md';
@@ -25,9 +22,7 @@ export interface ButtonProps extends ComponentProps<'button'> {
   rightIcon?: ReactNode;
   iconOnly?: boolean;
   fullWidth?: boolean;
-  /** Trailing chevron that slides 2px right on hover. Suppressed when `rightIcon` is provided. */
   tail?: boolean;
-  /** Auth-modal register: uppercase, 0.32em tracking, 44h. Overrides `size`. */
   ceremonial?: boolean;
 }
 

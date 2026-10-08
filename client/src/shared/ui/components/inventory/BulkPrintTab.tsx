@@ -1,11 +1,3 @@
-/**
- * Bulk Print Tab
- *
- * Right-panel configuration for printing barcode labels onto standard label
- * sheets. State + action live in usePrintTabState; the parent owns the footer
- * buttons and the preview modal. Which labels get printed is the catalog's call.
- */
-
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import { Select } from '@shared/ui';
@@ -143,10 +135,6 @@ export interface PrintTabState {
   resetAll: () => void;
 }
 
-/**
- * `fetchLabels` resolves the selected items to the labels to print — one per item for a plain
- * catalog, one per chosen lot where the catalog has a lot layer.
- */
 export function usePrintTabState(
   selectedIds: Set<string>,
   fetchLabels: (itemIds: string[]) => Promise<PrintableLabel[]>
@@ -193,7 +181,6 @@ export function usePrintTabState(
     <K extends keyof CustomTemplateInputs>(field: K, value: CustomTemplateInputs[K]) => {
       setCustomInputs(prev => {
         const next = { ...prev, [field]: value };
-        // Keep startingPosition in bounds if the grid shrinks.
         if (field === 'columns' || field === 'rows') {
           setStartingPositionState(sp => Math.min(sp, next.columns * next.rows));
         }
@@ -264,10 +251,8 @@ export function usePrintTabState(
 
 interface BulkPrintTabProps {
   selectedCount: number;
-  /** Count noun for the selected rows, singular and plural. */
   countNoun: [string, string];
   state: PrintTabState;
-  /** Catalog-specific controls — a lot picker, a label-source toggle — above the sheet options. */
   renderExtraOptions?: ReactNode;
 }
 
@@ -323,9 +308,7 @@ export function BulkPrintTab({
                       : 'text-muted-foreground'
                   }
                 />
-                <span className={`text-body-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
-                  {label}
-                </span>
+                <span className="text-body-sm font-semibold">{label}</span>
               </button>
             );
           })}

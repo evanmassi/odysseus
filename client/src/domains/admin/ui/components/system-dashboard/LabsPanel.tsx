@@ -1,20 +1,13 @@
-/**
- * Labs Panel
- *
- * Lab management panel — lab cards, creation, and drill-down into individual labs.
- */
-
 import { useMemo, useState } from 'react';
 
 import {
+  ArrowRight,
+  Copy,
   Dna,
   FlaskConical,
-  Plus,
   ShieldUser,
   TestTubeDiagonal,
   TicketCheck,
-  Copy,
-  RefreshCw,
   UsersRound,
 } from 'lucide-react';
 
@@ -24,9 +17,9 @@ import {
   ConsolePanel,
   IdStamp,
   Input,
-  PanelHeader,
   SectionHeader,
   StatCell,
+  Subsection,
   Well,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -43,16 +36,17 @@ import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueri
 import { LabIdentityPanel } from './LabIdentityPanel';
 import { LabPowerToggle } from './LabPowerToggle';
 
-// 48-hour window gives lab admins time to register without codes lingering
 const LAB_ADMIN_CODE_EXPIRY_MS = 48 * MS_PER_HOUR;
 
 interface LabsPanelProps {
   onSelectLab: (labId: string) => void;
+  isCreatingLab: boolean;
+  onCloseCreateLab: () => void;
 }
 
-export function LabsPanel({ onSelectLab }: LabsPanelProps) {
-  const { data: labs = [], isLoading, refetch } = useLabsQuery();
-  const { data: overview, refetch: refetchOverview } = useSystemOverviewQuery();
+export function LabsPanel({ onSelectLab, isCreatingLab, onCloseCreateLab }: LabsPanelProps) {
+  const { data: labs = [], isLoading } = useLabsQuery();
+  const { data: overview } = useSystemOverviewQuery();
   const createLabMutation = useCreateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
   const activateLabMutation = useActivateLabMutation();
@@ -64,25 +58,10 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   );
   const demoLabs = useMemo(() => labs.filter(l => l.isDemo), [labs]);
 
-  const [showCreateLab, setShowCreateLab] = useState(false);
   const [newLabName, setNewLabName] = useState('');
   const [deactivateTarget, setDeactivateTarget] = useState<string | null>(null);
   const [generatingCodeForLab, setGeneratingCodeForLab] = useState<string | null>(null);
   const [labInviteCodes, setLabInviteCodes] = useState<Record<string, string>>({});
-
-  const handleRefresh = () => {
-    void refetch();
-    void refetchOverview();
-  };
-
-  const demoLabExists = labs.some(lab => lab.isDemo);
-
-  const handleCreateDemoLab = () => {
-    createLabMutation.mutate(
-      { name: 'Demo Lab', isDemo: true },
-      { onSuccess: () => notifications.success('Demo lab created') }
-    );
-  };
 
   const handleCreateLab = () => {
     const name = newLabName.trim();
@@ -94,7 +73,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         onSuccess: () => {
           notifications.success(`Lab "${name}" created`);
           setNewLabName('');
-          setShowCreateLab(false);
+          onCloseCreateLab();
         },
       }
     );
@@ -143,7 +122,6 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   const renderLabCard = (lab: (typeof labs)[number]) => {
     const stats = getLabStats(lab.id);
     const latestCode = labInviteCodes[lab.id];
-    // Keep the unique segments unbreakable; only the fixed ODYSS- prefix may wrap.
     const codeSplitAt = latestCode ? latestCode.indexOf('-') + 1 : 0;
 
     return (
@@ -162,9 +140,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                 <button
                   type="button"
                   onClick={() => onSelectLab(lab.id)}
-                  className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none dark:hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] dark:focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
+                  className="group/open flex cursor-pointer items-center gap-3 text-left text-foreground/85 outline-none transition-colors duration-500 hover:text-primary hover:duration-75 focus-visible:text-primary focus-visible:duration-75 dark:hover:text-foreground dark:focus-visible:text-foreground"
                 >
-                  {lab.name}
+                  <span>{lab.name}</span>
+                  <ArrowRight
+                    size={20}
+                    className="text-muted-foreground transition-[color,transform] duration-200 group-hover/open:translate-x-1 group-hover/open:text-primary group-focus-visible/open:translate-x-1 group-focus-visible/open:text-primary"
+                  />
                 </button>
               </h3>
               {stats && (
@@ -177,7 +159,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                 />
               )}
             </div>
-            <Well className="flex aspect-square shrink-0 items-center justify-center">
+            <Well className="flex w-28 shrink-0 items-center justify-center">
               <LabPowerToggle
                 isActive={lab.isActive}
                 isLoading={
@@ -209,9 +191,9 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   <TicketCheck size={11} className="shrink-0" />
                   Lab Admin Code
                 </span>
-                <div className="flex items-center border border-line-mid bg-shade/25 py-1.5 pl-2.5 shadow-[inset_0_1px_3px_-1px_hsl(var(--shade)/0.45)]">
+                <div className="flex items-center py-1.5">
                   <code
-                    className={`mr-auto pr-2 font-mono text-data-lg font-medium leading-none phosphor-text ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
+                    className={`mr-auto pr-2 font-mono text-data-lg font-medium leading-none ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
                   >
                     {latestCode ? (
                       <>
@@ -238,7 +220,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                       }
                     }}
                     disabled={!latestCode}
-                    className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="flex shrink-0 items-center self-stretch px-2 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
                   >
                     <Copy size={12} />
                   </button>
@@ -246,7 +228,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                     type="button"
                     onClick={() => handleGenerateLabAdminCode(lab.id)}
                     disabled={!lab.isActive || generatingCodeForLab === lab.id}
-                    className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2.5 type-label text-label-2xs whitespace-nowrap tracking-meta text-muted-foreground/60 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex shrink-0 items-center self-stretch px-2.5 type-label text-label-2xs whitespace-nowrap tracking-meta text-muted-foreground/60 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {latestCode ? 'Regenerate' : 'Generate'}
                   </button>
@@ -261,44 +243,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <ConsolePanel intensity="soft">
-        <div className="flex-shrink-0 border-b border-line-faint pr-4">
-          <PanelHeader title="Labs" icon={<FlaskConical size={14} />} />
-        </div>
-
-        <div className="flex items-center justify-end gap-2 px-3 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
-          >
-            Refresh
-          </Button>
-          {!demoLabExists && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleCreateDemoLab}
-              isLoading={createLabMutation.isPending}
-              leftIcon={<Plus size={14} />}
-            >
-              Create Demo Lab
-            </Button>
-          )}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreateLab(true)}
-            leftIcon={<Plus size={14} />}
-          >
-            Create Lab
-          </Button>
-        </div>
-      </ConsolePanel>
-
-      {showCreateLab && (
+      {isCreatingLab && (
         <ConsolePanel intensity="soft">
           <div className="p-4">
             <SectionHeader title="New Lab" icon={<FlaskConical size={13} />} />
@@ -336,7 +281,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    setShowCreateLab(false);
+                    onCloseCreateLab();
                     setNewLabName('');
                   }}
                 >
@@ -351,31 +296,27 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       {isLoading && labs.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-body-sm">Loading labs...</div>
       ) : (
-        <>
+        <div>
           {regularLabs.length > 0 && (
-            <ConsolePanel intensity="soft">
-              <div className="p-4">
-                <SectionHeader
-                  title="Registered"
-                  meta={`${regularLabs.length} ${regularLabs.length === 1 ? 'record' : 'records'}`}
-                />
-                <div className="space-y-5">{regularLabs.map(lab => renderLabCard(lab))}</div>
-              </div>
-            </ConsolePanel>
+            <Subsection
+              title="Registered"
+              meta={`${regularLabs.length} ${regularLabs.length === 1 ? 'record' : 'records'}`}
+              isCompact
+            >
+              <div className="space-y-5 pt-2">{regularLabs.map(lab => renderLabCard(lab))}</div>
+            </Subsection>
           )}
 
           {demoLabs.length > 0 && (
-            <ConsolePanel intensity="soft">
-              <div className="p-4">
-                <SectionHeader
-                  title="Demo"
-                  meta={`${demoLabs.length} ${demoLabs.length === 1 ? 'record' : 'records'}`}
-                />
-                <div className="space-y-5">{demoLabs.map(lab => renderLabCard(lab))}</div>
-              </div>
-            </ConsolePanel>
+            <Subsection
+              title="Demo"
+              meta={`${demoLabs.length} ${demoLabs.length === 1 ? 'record' : 'records'}`}
+              isCompact
+            >
+              <div className="space-y-5 pt-2">{demoLabs.map(lab => renderLabCard(lab))}</div>
+            </Subsection>
           )}
-        </>
+        </div>
       )}
 
       <ConfirmDialog

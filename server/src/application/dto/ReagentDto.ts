@@ -1,9 +1,3 @@
-/**
- * Reagent Data Transfer Objects
- *
- * Maps between reagent domain entities, row interfaces, and HTTP response shapes.
- */
-
 import type { ReagentCategory } from '@domain/entities/ReagentCategory';
 import type { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
@@ -89,15 +83,13 @@ export class ReagentDto {
     withStock: ItemWithStock,
     attributeValues: AttributeSummary[]
   ): ReagentItemWithStockResponse {
-    const { item, totalStock, lotCount, expiredLotCount, locationNames, soonestExpiration } =
-      withStock;
+    const { item, totalStock, lotCount, locationNames, lotExpirations } = withStock;
     return {
       ...this.itemToResponse(item),
       totalStock,
       lotCount,
-      expiredLotCount,
       locationNames,
-      soonestExpiration,
+      lotExpirations,
       attributeValues,
     };
   }

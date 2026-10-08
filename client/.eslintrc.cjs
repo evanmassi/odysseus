@@ -28,14 +28,7 @@ module.exports = {
     // Resolve relative to this file, so linting works from the repo root as well as in-package.
     tsconfigRootDir: __dirname,
   },
-  plugins: [
-    'react',
-    'react-hooks',
-    '@typescript-eslint',
-    'jsx-a11y',
-    '@tanstack/query',
-    'import',
-  ],
+  plugins: ['react', 'react-hooks', '@typescript-eslint', 'jsx-a11y', '@tanstack/query', 'import'],
   settings: {
     react: {
       version: 'detect',
@@ -78,16 +71,7 @@ module.exports = {
     'import/order': [
       'error',
       {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-          'object',
-          'type',
-        ],
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
         'newlines-between': 'always',
         alphabetize: {
           order: 'asc',

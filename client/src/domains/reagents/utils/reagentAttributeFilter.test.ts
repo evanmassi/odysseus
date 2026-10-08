@@ -1,10 +1,3 @@
-/**
- * Reagent List Filters
- *
- * The semantics are the whole feature: picking two fluorophores must widen the result, picking a
- * fluorophore and a hazard must narrow it. These cases pin that asymmetry down.
- */
-
 import { describe, expect, it } from 'vitest';
 
 import { toggleFilterOption } from '@shared/ui/components/inventory';
@@ -28,7 +21,7 @@ const item = (
     status: 'active',
     totalStock: 1,
     lotCount: 1,
-    expiredLotCount: 0,
+    lotExpirations: [],
     locationNames: [],
     attributeValues: values.map(value => ({
       ...value,
@@ -37,6 +30,14 @@ const item = (
     })),
     ...overrides,
   }) as ReagentItemWithStock;
+
+const expiredLots = (count: number): ReagentItemWithStock['lotExpirations'] =>
+  Array.from({ length: count }, (_, index) => ({
+    id: `rlot${index}`,
+    locationId: 'loc1',
+    quantity: 1,
+    expirationDate: '2020-01-01',
+  }));
 
 const FITC = { definitionId: 'fluor', valueOptionId: 'fitc' };
 const PE = { definitionId: 'fluor', valueOptionId: 'pe' };
@@ -63,7 +64,7 @@ describe('matchesReagentFilters', () => {
   });
 
   it('filters by expiry bucket', () => {
-    const expired = item([], { expiredLotCount: 2 });
+    const expired = item([], { lotExpirations: expiredLots(2) });
     const inDate = item([]);
     const filters = { optionIds: {}, expiry: ['expired' as const] };
 
@@ -74,14 +75,16 @@ describe('matchesReagentFilters', () => {
   it('requires both an attribute and an expiry match when both are set', () => {
     const filters = { optionIds: { fluor: ['fitc'] }, expiry: ['expired' as const] };
 
-    expect(matchesReagentFilters(item([FITC], { expiredLotCount: 1 }), filters)).toBe(true);
+    expect(matchesReagentFilters(item([FITC], { lotExpirations: expiredLots(1) }), filters)).toBe(
+      true
+    );
     expect(matchesReagentFilters(item([FITC]), filters)).toBe(false);
   });
 });
 
 describe('expiryBucket', () => {
   it('reads expired off the lot count and in-date off an absent badge', () => {
-    expect(expiryBucket(item([], { expiredLotCount: 1 }))).toBe('expired');
+    expect(expiryBucket(item([], { lotExpirations: expiredLots(1) }))).toBe('expired');
     expect(expiryBucket(item([]))).toBe('in-date');
   });
 });

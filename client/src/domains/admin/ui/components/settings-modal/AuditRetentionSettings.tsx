@@ -1,15 +1,8 @@
-/**
- * Audit Retention Settings
- *
- * Admin controls for retention policy, metrics, and manual archival.
- */
 import { useState } from 'react';
 
 import {
-  RefreshCw,
   Archive,
   Download,
-  FileClock,
   AlertTriangle,
   CheckCircle,
   ChevronDown,
@@ -18,6 +11,8 @@ import {
 
 import { logger } from '@infra/logger';
 import { AlertBanner, Button, ConsolePanel, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
+import { PLAIN_SECTION_RULE } from '@shared/ui/primitives/titles/SectionHeader';
+import { SubsectionHeader } from '@shared/ui/primitives/titles/SubsectionHeader';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { getErrorMessage } from '@shared/utils/getErrorMessage';
@@ -48,7 +43,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   const [exportError, setExportError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  // One inline banner across loads, archival, and export; each error source is mutually exclusive.
   const error =
     exportError ??
     (retentionQuery.isError ? getErrorMessage(retentionQuery.error) : null) ??
@@ -91,7 +85,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   const currentStatus = STATUS_CONFIG[status];
   const StatusIcon = currentStatus.icon;
 
-  // First load only: a refresh keeps the panel on screen and lets the button's spinner carry it.
   if (loading && !metrics) {
     return (
       <ConsolePanel intensity="soft">
@@ -102,7 +95,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     );
   }
 
-  // Collapsed View — single status bar; warning tints the chassis.
   if (isCollapsed) {
     return (
       <ConsolePanel
@@ -145,40 +137,20 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     );
   }
 
-  // Expanded View
   return (
     <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          className="group flex items-center gap-2.5"
-          onClick={() => setIsCollapsed(true)}
-          aria-expanded="true"
-          aria-label="Collapse audit retention settings"
-        >
-          <ChevronUp className="h-3.5 w-3.5 text-foreground/40 transition-colors group-hover:text-foreground/70" />
-          <span
-            aria-hidden
-            className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-          />
-          <FileClock className="h-3.5 w-3.5 text-foreground/55" />
-          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
-            Audit Log Retention
-          </span>
-        </button>
-        <Button
-          variant="secondary"
-          size="xs"
-          onClick={() => retentionQuery.refetch()}
-          isLoading={loading}
-          leftIcon={<RefreshCw size={12} />}
-        >
-          Refresh
-        </Button>
-      </div>
+      <button
+        type="button"
+        className="group flex w-full items-center gap-3 text-left"
+        onClick={() => setIsCollapsed(true)}
+        aria-expanded="true"
+        aria-label="Collapse audit retention settings"
+      >
+        <SubsectionHeader title="Audit Log Retention" meta={currentStatus.label} />
+        <span aria-hidden className={`h-px min-w-6 flex-1 ${PLAIN_SECTION_RULE}`} />
+        <ChevronUp className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+      </button>
 
-      {/* Performance Warning */}
       {metrics?.performanceWarning && (
         <AlertBanner variant="warning" title="Performance warning" spacing="none">
           Active audit log table is approaching the warning threshold (
@@ -187,7 +159,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
         </AlertBanner>
       )}
 
-      {/* Archive Result */}
       {archiveResult && (
         <AlertBanner variant="success" title="Archival completed" spacing="none">
           Archived {archiveResult.archived} entries and deleted {archiveResult.deleted} expired
@@ -195,19 +166,17 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
         </AlertBanner>
       )}
 
-      {/* Error */}
       {error && (
         <AlertBanner variant="error" spacing="none">
           {error}
         </AlertBanner>
       )}
 
-      <ConsolePanel intensity="soft">
-        {/* Retention Policy */}
+      <div>
         {policy && (
           <Subsection title="Retention Policy" index={1} accent>
             <div className="col-span-2 py-2">
-              <div className={STAT_STRIP}>
+              <div className={`${STAT_STRIP} -mx-3`}>
                 <StatCell
                   size="sm"
                   label="Active Retention"
@@ -249,11 +218,10 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </Subsection>
         )}
 
-        {/* Active Table Metrics */}
         {metrics && (
           <Subsection title="Active Table" index={2} accent meta="Hot storage">
             <div className="col-span-2 py-2">
-              <div className={STAT_STRIP}>
+              <div className={`${STAT_STRIP} -mx-3`}>
                 <StatCell
                   size="sm"
                   label="Total Entries"
@@ -284,11 +252,10 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </Subsection>
         )}
 
-        {/* Archive Table Metrics */}
         {metrics && (
           <Subsection title="Archive Table" index={3} accent meta="Warm storage">
             <div className="col-span-2 py-2">
-              <div className={STAT_STRIP}>
+              <div className={`${STAT_STRIP} -mx-3`}>
                 <StatCell
                   size="sm"
                   label="Total Entries"
@@ -313,7 +280,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </Subsection>
         )}
 
-        {/* Manual Operations */}
         <Subsection title="Operations" index={4} accent>
           <div className="col-span-2 space-y-3 py-4">
             <div className="flex flex-wrap gap-2">
@@ -342,7 +308,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             </p>
           </div>
         </Subsection>
-      </ConsolePanel>
+      </div>
     </div>
   );
 }

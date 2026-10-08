@@ -1,9 +1,3 @@
-/**
- * Tube Form Component
- *
- * 7-row form layout for tube create/edit with admin-managed dropdowns.
- */
-
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
@@ -111,7 +105,6 @@ export const TubeForm = ({
     return undefined;
   };
 
-  // Helper to get concentration field errors (checks both nested and refinement errors)
   const getConcentrationError = (): string | undefined => {
     const directError = getFieldError('sample.concentration', errors);
     if (directError) return directError;
@@ -119,7 +112,7 @@ export const TubeForm = ({
     const unitError = getFieldError('sample.concentrationUnit', errors);
     if (unitError) return unitError;
 
-    // Check for refinement error at sample level (concentration/unit invariant)
+    // PITFALL: the concentration/unit refinement error lands on sample, not on either field.
     const sampleError = errors.sample;
     if (
       sampleError &&
@@ -178,9 +171,8 @@ export const TubeForm = ({
 
   return (
     <div className="space-y-2">
-      <SectionHeader title="Donor information" size="sm" />
+      <SectionHeader title="Donor Information" size="sm" />
 
-      {/* ROW 1: Cell Type + Species */}
       <div className="grid grid-cols-[2fr_1fr] gap-2.5 [&>*]:min-w-0">
         <ValidatedInput
           label="Cell Type"
@@ -198,7 +190,6 @@ export const TubeForm = ({
         {renderSelectField('sample.species', 'Species', speciesOptions, 'Select species...')}
       </div>
 
-      {/* ROW 2: Donor IDs */}
       <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
         <Controller
           name="sample.donorInternalId"
@@ -247,10 +238,9 @@ export const TubeForm = ({
       </div>
 
       <div className="!mt-3.5">
-        <SectionHeader title="Sample information" size="sm" />
+        <SectionHeader title="Sample Information" size="sm" />
       </div>
 
-      {/* ROW 3: Concentration, Culture Condition, Passage # */}
       <div className="grid grid-cols-[1.2fr_1.5fr_90px] gap-2.5 [&>*]:min-w-0">
         <Controller
           name="sample.concentration"
@@ -317,7 +307,6 @@ export const TubeForm = ({
         />
       </div>
 
-      {/* ROW 4: Media */}
       <div className="grid grid-cols-[1fr_1.4fr_1.2fr] gap-2.5 [&>*]:min-w-0">
         {renderSelectField('sample.mediaType', 'Media Type', mediaOptions, 'Select media...')}
         <ValidatedInput
@@ -346,7 +335,6 @@ export const TubeForm = ({
         />
       </div>
 
-      {/* ROW 5: Source, Catalog #, Lot # */}
       <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-2.5 [&>*]:min-w-0">
         {renderSelectField('sample.source', 'Source', sourceOptions, 'Select source...')}
         <ValidatedInput
@@ -375,7 +363,6 @@ export const TubeForm = ({
         />
       </div>
 
-      {/* ROW 6: Date + Researcher */}
       <div className="grid grid-cols-[1fr_1.4fr] gap-2.5 [&>*]:min-w-0">
         <Controller
           name="sample.date"
@@ -420,7 +407,6 @@ export const TubeForm = ({
         )}
       </div>
 
-      {/* ROW 7: Notes */}
       <div className="!mt-3.5">
         <SectionHeader
           title="Notes"

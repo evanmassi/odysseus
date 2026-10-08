@@ -1,11 +1,3 @@
-/**
- * Supply Transaction Form
- *
- * Tabbed stock operation form for receiving, consuming, counting, and disposing
- * supply inventory. Multi-level packaging inputs on all tabs when packaging
- * levels are defined, with auto-computed totals in stock units.
- */
-
 import { useMemo, useState, useCallback, useEffect } from 'react';
 
 import { pluralizeUnit } from '@odysseus/shared-schemas';
@@ -25,7 +17,7 @@ import {
   DatePicker,
   HeaderStrip,
   Input,
-  NubDivider,
+  Divider,
   Select,
   Tab,
   Tabs,
@@ -160,7 +152,6 @@ export function SupplyTransactionForm({
     }
   }, [hasPackaging, computedTotal, setValue]);
 
-  // A count of zero is a real measurement; receiving, issuing, or disposing of zero is not.
   const validateQuantity = (value: unknown) => {
     if (typeof value !== 'number' || Number.isNaN(value)) {
       return mode === 'count' ? 'Count is required' : 'Quantity is required';
@@ -252,7 +243,7 @@ export function SupplyTransactionForm({
             <span className="truncate font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
               {identityParts.map((part, i) => (
                 <span key={i}>
-                  {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                  {i > 0 && <span className="mx-1.5 text-foreground/30">·</span>}
                   {part}
                 </span>
               ))}
@@ -476,7 +467,7 @@ export function SupplyTransactionForm({
       </ScrollArea>
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

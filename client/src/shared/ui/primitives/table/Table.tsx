@@ -1,57 +1,34 @@
-/**
- * Data Table
- *
- * Sortable, selectable data grid with status-edge rows and zebra body.
- */
-
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 
 import { cva } from 'class-variance-authority';
 
 import { Checkbox } from '../checkbox/Checkbox';
-import { headerSurface, HEADER_TOP_EDGE } from '../console-panel/consoleHeaderSurface';
+import { PanelEmptyState } from '../panel-empty-state/PanelEmptyState';
 
-import { ROW_HOVER_GLOW } from './rowHoverGlow';
+import { ROW_DARK_SELECTED, ROW_HOVER_GLOW, ROW_TONE, type RowTone } from './rowGlow';
 import { defaultTableProps } from './types';
 
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
 
-// Internal lookup keys — RowState collapses onto these for checkbox + glow recipes.
-// 'success' / 'warning' / 'danger' carry their own tone; 'muted' / 'default' fall through to 'primary'.
-type GlowTone = 'primary' | 'success' | 'warning' | 'danger';
-
-const stateToGlowTone = (state: RowState): GlowTone =>
+const stateToGlowTone = (state: RowState): RowTone =>
   state === 'success' || state === 'warning' || state === 'danger' ? state : 'primary';
 
-// One base recipe keyed to a per-row `--row-tone` custom property; each tone only sets that var.
-// Tailwind JIT needs literal classes, so the base is a literal string and the tones swap the var.
-// Light is flat (tone tint + solid leading bar); the lit recipe (scanline + directional wash +
-// bloom + glowing bar + text glow) is restored under `dark:`.
-const GLOW_BASE = [
+const SELECTED_ROW = [
   '[background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.1),hsl(var(--row-tone)/0.1))]',
-  'dark:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--row-tone)/var(--alpha-glow-tint)),hsl(var(--row-tone)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--row-tone)/var(--alpha-glow-wash-1))_0%,hsl(var(--row-tone)/var(--alpha-glow-wash-2))_18%,hsl(var(--row-tone)/var(--alpha-glow-wash-3))_48%,hsl(var(--row-tone)/var(--alpha-glow-wash-4))_78%,hsl(var(--row-tone)/0)_100%)]',
-  'dark:shadow-[inset_3px_0_0_0_hsl(var(--row-tone)),inset_14px_0_36px_-10px_hsl(var(--row-tone)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--row-tone)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--row-tone)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--row-tone)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--row-tone)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--row-tone)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--row-tone)/var(--alpha-glow-outer-far))]',
+  'shadow-[inset_3px_0_0_0_hsl(var(--row-tone))]',
+  ROW_DARK_SELECTED,
   '[&>td]:!bg-transparent',
-  '[&>td:first-child]:relative',
-  '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-[hsl(var(--row-tone))] [&>td:first-child]:before:pointer-events-none',
-  'dark:[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--row-tone)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--row-tone)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--row-tone)/var(--alpha-glow-bar-far))]',
   '[&>td]:font-semibold',
-  'dark:[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
 ].join(' ');
-
-const ROW_GLOW: Record<GlowTone, string> = {
-  primary: `[--row-tone:var(--primary)] ${GLOW_BASE}`,
-  success: `[--row-tone:var(--color-success-bg)] ${GLOW_BASE}`,
-  warning: `[--row-tone:var(--color-warning-bg)] ${GLOW_BASE}`,
-  danger: `[--row-tone:var(--color-danger-bg)] ${GLOW_BASE}`,
-};
 
 const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
 
-// Primary glowing end-cap for the header/body divider (mirrors NubDivider's primary nub).
-const HEADER_NUB =
-  'pointer-events-none absolute bottom-0 z-10 h-0.5 w-0.5 translate-y-1/2 bg-primary dark:shadow-[0_0_6px_1px_hsl(var(--primary)/0.7)]';
+const HEADER_BAND =
+  '[background:linear-gradient(0deg,hsl(var(--primary)/0.07),hsl(var(--primary)/0.07)),color-mix(in_srgb,hsl(var(--card))_96%,black)] dark:[background:color-mix(in_srgb,hsl(var(--card))_72%,black)]';
+
+const HEADER_RULE =
+  "after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.22)_12%,hsl(var(--foreground)/0.22)_88%,transparent_100%)]";
 
 const TableContext = createContext<TableContextValue | null>(null);
 
@@ -65,9 +42,9 @@ const useTableContext = () => {
 
 const headerVariants = cva(
   [
-    'type-label text-label-2xs tracking-label-wide font-normal',
-    'text-left text-primary/80 dark:text-foreground/60',
-    'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
+    'type-label text-label-2xs font-semibold',
+    'text-left text-primary/80 dark:text-foreground/80',
+    'px-4 first:pl-5 last:pr-5',
   ],
   {
     variants: {
@@ -95,10 +72,9 @@ const headerVariants = cva(
 
 const cellVariants = cva(
   [
-    'pr-[18px] pl-0 text-data font-mono text-foreground align-middle',
-    'first:pl-[14px]',
+    'px-4 first:pl-5 last:pr-5 align-middle',
+    'font-display text-body-sm tabular-nums text-foreground',
     'group-hover:bg-[hsl(var(--foreground)/var(--alpha-hover))]',
-    'dark:group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]',
   ],
   {
     variants: {
@@ -108,8 +84,8 @@ const cellVariants = cva(
         right: 'text-right',
       },
       density: {
-        compact: 'py-2',
-        default: 'py-3',
+        compact: 'py-2.5',
+        default: 'py-3.5',
       },
     },
     defaultVariants: {
@@ -136,22 +112,14 @@ const rowVariants = cva([''], {
   },
 });
 
-// Text styling per row state. Applies whenever state !== 'default', independent of selection.
 const STATE_TEXT: Record<RowState, string> = {
   default: '',
-  success: 'text-success-text phosphor-text',
-  warning: 'text-warning-text phosphor-text',
-  danger: 'text-danger-text phosphor-text',
+  success: 'text-success-text',
+  warning: 'text-warning-text',
+  danger: 'text-danger-text',
   muted: 'text-foreground/60',
 };
 
-// CRT phosphor: 1px cream hairlines top + bottom of every row + soft inset bloom.
-// Reads as "the screen is on" — applied to all rows except those displaying the full selection glow.
-const PHOSPHOR_ROW =
-  'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom))]';
-
-// Leading 3px stripe per row state. Shown when row is selected (without glow) or has a non-default state.
-// Strings are literal so Tailwind JIT can see them.
 const STATE_STRIPE: Record<RowState, string> = {
   default: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
   success: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]',
@@ -189,13 +157,7 @@ const SortIndicator = ({ direction }: SortIndicatorProps) => (
   </svg>
 );
 
-const TableHeader = <T,>({
-  columns,
-  hasToolbar,
-}: {
-  columns: TableColumn<T>[];
-  hasToolbar: boolean;
-}) => {
+const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
   const {
     selectable,
     multiSelect,
@@ -206,11 +168,6 @@ const TableHeader = <T,>({
     onSort,
     density,
   } = useTableContext();
-
-  // Header cells carry a top rim; soften it when a toolbar sits above so the divider isn't harsh.
-  const headerRim = hasToolbar
-    ? 'shadow-[inset_0_1px_0_hsl(var(--foreground)/0.04)]'
-    : 'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]';
 
   const handleSelectAll = (checked: boolean) => {
     onSelectionChange(checked ? allRowIds : []);
@@ -225,15 +182,9 @@ const TableHeader = <T,>({
 
   return (
     <thead>
-      <tr
-        className="relative z-10 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-primary/30 dark:after:shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
-        style={{ background: headerSurface(!hasToolbar) }}
-      >
+      <tr className={`relative z-10 ${HEADER_BAND} ${HEADER_RULE}`}>
         {selectable && (
-          <th
-            className={`relative ${headerVariants({ density })} ${headerRim} ${CHECKBOX_CELL_OVERRIDE}`}
-          >
-            <span aria-hidden className={`${HEADER_NUB} left-0`} />
+          <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (
               <Checkbox
                 checked={selectedRows.length > 0}
@@ -245,20 +196,18 @@ const TableHeader = <T,>({
           </th>
         )}
 
-        {columns.map((column, colIndex) => {
+        {columns.map(column => {
           const isSorted = sortConfig?.columnId === column.id;
           const sortDirection = isSorted ? sortConfig.direction : undefined;
-          const isFirstCell = colIndex === 0 && !selectable;
-          const isLastCell = colIndex === columns.length - 1;
 
           return (
             <th
               key={column.id}
-              className={`${headerVariants({
+              className={headerVariants({
                 sortable: column.sortable,
                 align: column.align,
                 density,
-              })} ${headerRim}${isFirstCell || isLastCell ? ' relative' : ''}`}
+              })}
               style={{ width: column.width }}
               onClick={column.sortable ? () => handleSort(column.id) : undefined}
               aria-sort={
@@ -271,8 +220,6 @@ const TableHeader = <T,>({
                     : undefined
               }
             >
-              {isFirstCell && <span aria-hidden className={`${HEADER_NUB} left-0`} />}
-              {isLastCell && <span aria-hidden className={`${HEADER_NUB} right-0`} />}
               <div className="flex items-center">
                 {column.header}
                 {column.sortable && <SortIndicator direction={sortDirection} />}
@@ -326,14 +273,13 @@ const TableBody = <T extends TableRowBase>({
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
         const state = rowState?.(row, index) ?? 'default';
-        const zebra =
-          index % 2 === 0 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
-        const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
+        const zebra = index % 2 === 1 ? 'bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
+        const glow =
+          selectedRowGlow && isSelected
+            ? `${ROW_TONE[stateToGlowTone(state)]} ${SELECTED_ROW}`
+            : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
-        const phosphor = !glow ? PHOSPHOR_ROW : '';
-        // Hover previews the row's own tone (primary/success/warning/danger); muted rows skip it
-        // since there is no muted glow recipe. The `td` bg is cleared so the zebra tint doesn't stack.
         const hover =
           hoverable && !isSelected && state !== 'muted'
             ? `${ROW_HOVER_GLOW[stateToGlowTone(state)]} [&:hover>td]:!bg-transparent`
@@ -345,7 +291,7 @@ const TableBody = <T extends TableRowBase>({
             className={`${rowVariants({
               hoverable,
               clickable: Boolean(onRowClick),
-            })} ${phosphor} ${zebra} ${stripe} ${text} ${glow} ${hover}`}
+            })} ${zebra} ${stripe} ${text} ${glow} ${hover}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
@@ -362,7 +308,7 @@ const TableBody = <T extends TableRowBase>({
             {columns.map(column => (
               <td
                 key={column.id}
-                className={cellVariants({ align: column.align, density })}
+                className={`${cellVariants({ align: column.align, density })} ${column.truncates ? 'max-w-0' : ''}`}
                 style={{ width: column.width }}
               >
                 {getCellValue(column, row, index)}
@@ -390,13 +336,13 @@ export function Table<T extends TableRowBase>({
   onSelectionChange = () => {},
   onRowClick,
   emptyMessage = defaultTableProps.emptyMessage,
+  emptyIcon,
   loadingMessage = defaultTableProps.loadingMessage,
   'aria-label': ariaLabel,
   className,
   rowState,
   selectedRowGlow,
   toolbar,
-  chassis = defaultTableProps.chassis,
 }: TableProps<T>) {
   const contextValue: TableContextValue = {
     selectable,
@@ -414,13 +360,17 @@ export function Table<T extends TableRowBase>({
       <div className="text-muted-foreground">{loadingMessage}</div>
     </div>
   ) : data.length === 0 ? (
-    <div className="flex items-center justify-center py-8">
-      <div className="text-muted-foreground">{emptyMessage}</div>
-    </div>
+    emptyIcon ? (
+      <PanelEmptyState icon={emptyIcon} message={emptyMessage} />
+    ) : (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">{emptyMessage}</div>
+      </div>
+    )
   ) : (
     <TableContext.Provider value={contextValue}>
       <table className={`w-full border-collapse ${className ?? ''}`} aria-label={ariaLabel}>
-        <TableHeader columns={columns} hasToolbar={Boolean(toolbar)} />
+        <TableHeader columns={columns} />
         <TableBody
           columns={columns}
           data={data}
@@ -433,57 +383,17 @@ export function Table<T extends TableRowBase>({
     </TableContext.Provider>
   );
 
-  if (!chassis) {
+  if (!toolbar) {
     return body;
   }
 
-  // Table-specific chassis: auth-console vocabulary at table intensity.
-  // Background carries a continuous top-band wash (cream sheen) that adapts to whether a
-  // toolbar is present — toolbar'd tables get a fuller sheen since the toolbar zone absorbs
-  // it before the header, while header-only tables get a shorter, lighter sheen so the cream
-  // doesn't pile up directly on the header row. Body diagonal lighting stays consistent.
-  // Box-shadow edges match auth-modal lift/recess.
-  const hasToolbar = Boolean(toolbar);
-  const topSheen = hasToolbar
-    ? 'linear-gradient(180deg, hsl(var(--primary) / calc(0.1 * var(--lit))) 0%, hsl(var(--primary) / calc(0.03 * var(--lit))) 10%, transparent 20%)'
-    : 'linear-gradient(180deg, hsl(var(--primary) / calc(0.05 * var(--lit))) 0%, transparent 9%)';
-
   return (
-    <div
-      className="relative"
-      style={{
-        background: [
-          topSheen,
-          // body diagonal lighting
-          'radial-gradient(ellipse 75% 95% at 100% 100%, hsl(var(--primary) / calc(0.09 * var(--lit))), transparent 60%)',
-          'radial-gradient(ellipse 90% 80% at 0% 0%, hsl(var(--foreground) / calc(0.04 * var(--lit))), transparent 60%)',
-          'radial-gradient(ellipse 110% 50% at 50% 100%, hsl(var(--shade) / calc(0.1 * var(--lit))), transparent 65%)',
-          'hsl(var(--card))',
-        ].join(', '),
-        boxShadow: [
-          'inset 0 1px 0 hsl(var(--sheen) / calc(0.2 * var(--lit)))',
-          'inset 1px 0 0 hsl(var(--sheen) / calc(0.05 * var(--lit)))',
-          'inset 0 -1px 0 hsl(var(--shade) / calc(0.35 * var(--lit)))',
-          'inset -1px 0 0 hsl(var(--shade) / calc(0.18 * var(--lit)))',
-          '0 0 0 1px hsl(var(--foreground) / 0.06)',
-          '0 20px 50px -22px hsl(var(--recess) / 0.65)',
-          '0 0 80px -28px hsl(var(--primary) / calc(0.12 * var(--lit)))',
-        ].join(', '),
-      }}
-    >
-      {toolbar && (
-        <div
-          className="relative flex items-center gap-3 px-4 py-3"
-          style={{
-            background: headerSurface(true),
-            boxShadow: HEADER_TOP_EDGE,
-          }}
-        >
-          {toolbar.left}
-          <div className="flex-1" />
-          {toolbar.right}
-        </div>
-      )}
+    <div>
+      <div className="flex items-center gap-3 px-5 py-3.5">
+        {toolbar.left}
+        <div className="flex-1" />
+        {toolbar.right}
+      </div>
       {body}
     </div>
   );

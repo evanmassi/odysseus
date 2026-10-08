@@ -29,8 +29,8 @@ that need eyes on the running app rather than a code read.
   larger sheet templates, and the lot panel listing depleted lots inline — both fixed. Still unexercised:
   the expiry alert panel against lots that actually cross the 90-day window.
 - **Persisted cache has no schema-version gate** — `queryClient` persists most query keys to
-  `localStorage` for a day, and `validateCacheVersion` only busts it on a *storage config* version
-  mismatch (a DB reset). Nothing busts it when a client data *shape* changes, so a user whose tab
+  `localStorage` for a day, and `validateCacheVersion` only busts it on a _storage config_ version
+  mismatch (a DB reset). Nothing busts it when a client data _shape_ changes, so a user whose tab
   cached the old shape rehydrates it and the new reader crashes before any refetch corrects it —
   exactly what convergence item 12 did to attribute definitions. Mitigated there by excluding
   `attributes`/`customUnits` from persistence, but tubes, storage, reagents and supplies are all
@@ -75,7 +75,7 @@ that need eyes on the running app rather than a code read.
 
 - **C-16 (remaining)** — do the crisp bits, skip the sprawl:
   - New `<AccentTick>` primitive for the standalone stripe `h-2.5 w-0.5 bg-primary/80
-    dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]` hand-rolled ~10×
+dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]` hand-rolled ~10×
     (AdminSettingsModal has a local `accentBar` const reused ×3; also PasswordResetModal,
     UserSettingsModal, DonorRegistryModal, TubeLocationDisplay, HelpModal, SupplyReorderList).
   - `StripLabel` `tone` prop for the 2 recolored copies (`InfoPanelEmpty` muted stripe, `TubeInfoPanel`
@@ -127,7 +127,7 @@ that need eyes on the running app rather than a code read.
   returns `1` (discards partial product); an over-long cycle → returns the partial product. **Decide:**
   make both malformed exits agree (recommend both return `1`). Low priority (corrupt data only).
 
-- **Supplies threshold UX limitation.** You cannot set a reorder threshold in a unit *smaller* than the
+- **Supplies threshold UX limitation.** You cannot set a reorder threshold in a unit _smaller_ than the
   stock unit — the dropdown only offers the stock unit + larger packaging levels. Surfaced during D-16
   verification. Not a bug; a product-design question about whether sub-stock thresholds should be possible.
 

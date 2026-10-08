@@ -1,17 +1,9 @@
-/**
- * Subsection Header
- *
- * Subsection label prefixed with a section index — one tier below SectionHeader.
- */
-
 import type { ReactNode } from 'react';
 
 interface SubsectionHeaderProps {
   title: ReactNode;
-  /** Zero-padded section ordinal rendered before the title (e.g. 1 → "01 /"). */
   index?: number;
   meta?: ReactNode;
-  /** Lead the header with a glowing primary accent bar. */
   accent?: boolean;
   className?: string;
 }
@@ -31,13 +23,16 @@ export function SubsectionHeader({
           <span className="pl-2.5 text-foreground/30">/</span>
         </span>
       )}
-      <span className="type-label text-label-xs leading-none tracking-label-wide text-foreground/70">
+      <span className="type-label text-label-sm font-semibold leading-none tracking-label-wide text-foreground">
         {title}
       </span>
       {meta && (
-        <span className="ml-1 type-label text-label-2xs leading-none text-foreground/35">
-          {meta}
-        </span>
+        <>
+          <span aria-hidden className="text-label-sm leading-none text-foreground/35">
+            ·
+          </span>
+          <span className="type-label text-label-2xs leading-none text-foreground/35">{meta}</span>
+        </>
       )}
     </>
   );

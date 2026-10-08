@@ -1,11 +1,3 @@
-/**
- * Info Panel — Empty State
- *
- * Shown in place of a detail info panel when no record is selected. Backs the
- * equipment, supplies, and donor panels; parametrized by title, icons, and the
- * status-strip label.
- */
-
 import { NotepadText, type LucideIcon } from 'lucide-react';
 
 import { ConsolePanel } from '../../primitives/console-panel/ConsolePanel';
@@ -32,7 +24,7 @@ export function InfoPanelEmpty({
 }: InfoPanelEmptyProps) {
   return (
     <ConsolePanel intensity="soft" className="flex flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<HeaderIcon className="h-4 w-4" />} title={title} />
       </div>
 

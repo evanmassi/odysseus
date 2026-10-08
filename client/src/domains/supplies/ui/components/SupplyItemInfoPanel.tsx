@@ -1,23 +1,7 @@
-/**
- * Supply Item Info Panel
- *
- * Read-only detail display for a selected supply item with stock levels,
- * barcodes, documents, and admin action buttons.
- */
-
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
-import {
-  Trash2,
-  Archive,
-  ClipboardList,
-  MapPin,
-  FolderOpen,
-  NotepadText,
-  SquarePen,
-  Plus,
-} from 'lucide-react';
+import { Archive, ClipboardList, MapPin, NotepadText, Plus, SquarePen, Trash2 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery, useLabLocationsQuery } from '@domains/lab-management';
@@ -40,15 +24,21 @@ import {
   Chip,
   DemoLockIndicator,
   DetailRow,
+  Divider,
   HeaderStrip,
-  NubDivider,
+  ItemIdentityHeader,
   OverflowMenu,
   PanelHeader,
   SectionHeader,
   StripLabel,
 } from '@shared/ui';
 import { BarcodeAddForm, BarcodeList } from '@shared/ui/components/barcodes';
-import { DocumentList, toAttributeDisplayRows } from '@shared/ui/components/inventory';
+import {
+  DocumentList,
+  ItemStatusStripe,
+  toAttributeDisplayRows,
+  type ItemRowStatusTone,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import {
   DocumentLinkModal,
@@ -68,6 +58,7 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface SupplyItemInfoPanelProps {
   itemId: string;
+  statusTone: ItemRowStatusTone;
   onEdit: () => void;
   onRecordTransaction: () => void;
   onVoidAndReplace: (
@@ -76,16 +67,15 @@ interface SupplyItemInfoPanelProps {
     prefill: TransactionPrefill
   ) => void;
   onDeleted: () => void;
-  categoryName?: string;
 }
 
 export function SupplyItemInfoPanel({
   itemId,
+  statusTone,
   onEdit,
   onRecordTransaction,
   onVoidAndReplace,
   onDeleted,
-  categoryName,
 }: SupplyItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
@@ -232,7 +222,7 @@ export function SupplyItemInfoPanel({
 
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+      <div className="flex-shrink-0">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Supply Information" />
       </div>
 
@@ -242,14 +232,6 @@ export function SupplyItemInfoPanel({
           <Chip size="sm" color={statusConfig.color}>
             {statusConfig.label}
           </Chip>
-          {categoryName && (
-            <>
-              <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" lead={<FolderOpen />}>
-                {categoryName}
-              </Chip>
-            </>
-          )}
           {locationChips.length > 0 && (
             <>
               <StripLabel>Location</StripLabel>
@@ -268,9 +250,12 @@ export function SupplyItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
+            <ItemIdentityHeader
+              marker={<ItemStatusStripe tone={statusTone} className="h-11 w-1" />}
+              name={item.name}
+            />
             {item.description && (
-              <p className="mt-1 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
+              <p className="mt-3 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -292,8 +277,6 @@ export function SupplyItemInfoPanel({
             <div>
               <SectionHeader title="Packaging" size="sm" />
               {(() => {
-                // Accumulate the running base-unit total over the base-up chain so
-                // each tier can show the multiplicative scale the flat text hid.
                 const bottomUp = orderPackagingChain(detail.packagingLevels);
                 const baseName = item.baseItemName ?? item.stockUnit ?? 'unit';
                 let running = 1;
@@ -307,7 +290,6 @@ export function SupplyItemInfoPanel({
                     roll: running,
                   };
                 });
-                // Largest unit on top; base unit as the final rung.
                 const rows = [
                   ...tiers.slice().reverse(),
                   { id: '__base__', name: baseName, contains: 'base unit', roll: 1 },
@@ -487,7 +469,7 @@ export function SupplyItemInfoPanel({
 
       {isAdmin && (
         <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <Divider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             {isLocked ? (
               <DemoLockIndicator />

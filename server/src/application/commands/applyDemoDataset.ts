@@ -1,37 +1,45 @@
-/**
- * Demo Dataset Application
- *
- * Writes DEMO_DATASET into the demo lab, resolving what the fixture cannot know per environment.
- */
-
 import { DEMO_DATASET } from '@application/config/DemoDataset';
-import type { DemoCategory, DemoLocation } from '@application/config/DemoDataset';
+import type {
+  DemoCategory,
+  DemoLocation,
+  DemoReagent,
+  DemoSupply,
+} from '@application/config/DemoDataset';
 import type { Repositories } from '@application/contracts/UnitOfWork';
 import { Donor } from '@domain/entities/Donor';
 import { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
+import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import { EquipmentItem } from '@domain/entities/EquipmentItem';
 import { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 import { LabLocation } from '@domain/entities/LabLocation';
 import { LookupValue } from '@domain/entities/LookupValue';
 import { Person } from '@domain/entities/Person';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
+import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import { ReagentItem } from '@domain/entities/ReagentItem';
 import { Researcher } from '@domain/entities/Researcher';
 import type { Storage } from '@domain/entities/Storage';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
+import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { SupplyItem } from '@domain/entities/SupplyItem';
 import { Tube } from '@domain/entities/Tube';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { generateInternalBarcodeValue } from '@domain/utils/barcodeValue';
+import { generateId } from '@domain/utils/generateId';
 import { TubeLocation } from '@domain/value-objects/TubeLocation';
 
 import type { LookupCategory } from '@odysseus/shared-schemas';
 
 const DAY_MS = 86_400_000;
+const SUPPLY_RECEIVED_DAYS_AGO_DEFAULT = 60;
+const TUBE_LOCKED_DAYS_AGO = 12;
 
 const daysAgo = (n: number): Date => new Date(Date.now() - n * DAY_MS);
 const dateOnly = (d: Date): string => d.toISOString().slice(0, 10);
 const inDays = (n: number): string => dateOnly(new Date(Date.now() + n * DAY_MS));
+const oldestFirst = <T extends { daysAgo: number }>(events: readonly T[]): T[] =>
+  [...events].sort((a, b) => b.daysAgo - a.daysAgo);
 
 interface SeatRun {
   groupIndex: number;
@@ -43,10 +51,7 @@ interface BoxPlan {
   runs: SeatRun[];
 }
 
-/**
- * Scatters the skipped seats. The layout has to be identical on every reset, so this stands in
- * for randomness — a fixed stride would draw visible diagonals across a grid.
- */
+// PITFALL: seat skips must repeat exactly on every reset, so this stands in for randomness; a fixed stride draws visible diagonals.
 function seatHash(boxOrdinal: number, position: number): number {
   let h = (boxOrdinal * 374761393 + position * 668265263) >>> 0;
   h = (h ^ (h >>> 13)) >>> 0;
@@ -54,11 +59,6 @@ function seatHash(boxOrdinal: number, position: number): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
-/**
- * One plan per box, in walk order. Each box is filled to a share of its OWN capacity, so the
- * dataset spreads across whatever storage the lab has rather than pouring into the first rack —
- * and a lab with differently sized boxes shows that difference at a glance.
- */
 function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
   const { fillPattern, groupsPerBox, gapPercent } = DEMO_DATASET.placement;
   const plans: BoxPlan[] = [];
@@ -73,7 +73,6 @@ function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
         const seats: TubeLocation[] = [];
 
         for (let position = 1; position <= box.maxPositions && seats.length < target; position++) {
-          // Holes read as tubes pulled for use; a box filled to capacity has none by definition.
           if (fill < 1 && seatHash(ordinal, position) % 100 < gapPercent) continue;
           seats.push(
             TubeLocation.create({
@@ -85,8 +84,6 @@ function planBoxes(config: Storage, groupTotal: number): BoxPlan[] {
           );
         }
 
-        // Groups take contiguous runs, so a shared box reads as blocks of colour rather than
-        // interleaved noise.
         const wanted = seats.length === 0 ? 0 : groupsPerBox[ordinal % groupsPerBox.length];
         const runs: SeatRun[] = [];
         let cursor = 0;
@@ -141,12 +138,158 @@ interface FlatCategory {
   sortOrder: number;
 }
 
-/** Parents precede their children, which is what `parent_id` self-references require. */
+// PITFALL: parents must precede their children because parent_id references the same table.
 function flattenCategories(nodes: readonly DemoCategory[], parentId?: string): FlatCategory[] {
   return nodes.flatMap((node, index) => [
     { id: node.id, name: node.name, parentId, sortOrder: index },
     ...(node.children ? flattenCategories(node.children, node.id) : []),
   ]);
+}
+
+async function seedNewSupply(
+  repos: Repositories,
+  supply: DemoSupply,
+  labId: string,
+  demoUserId: string
+): Promise<void> {
+  await repos.supplyItems.saveBarcode({
+    id: generateId('sbar'),
+    itemId: supply.id,
+    barcodeValue: generateInternalBarcodeValue('supplyItem'),
+    barcodeType: 'internal',
+    isPrimary: true,
+  });
+  for (const document of supply.documents ?? []) {
+    await repos.supplyItems.saveDocument(SupplyDocument.create({ itemId: supply.id, ...document }));
+  }
+  for (const level of supply.packaging ?? []) {
+    await repos.supplyItems.savePackagingLevel({
+      id: generateId('spkg'),
+      itemId: supply.id,
+      unitName: level.unitName,
+      quantity: level.quantity,
+      parentUnit: level.parentUnit,
+    });
+  }
+
+  const history = supply.history ?? [];
+  const receivedAt = daysAgo(supply.receivedDaysAgo ?? SUPPLY_RECEIVED_DAYS_AGO_DEFAULT);
+
+  for (const stock of supply.stock) {
+    const netChange = history
+      .filter(event => event.locationRef === stock.locationRef && !event.voidReason)
+      .reduce((sum, event) => sum + event.quantityChange, 0);
+    const opening = stock.quantity - netChange;
+    if (opening <= 0) continue;
+    await repos.supplyItems.recordTransaction({
+      itemId: supply.id,
+      locationId: stock.locationRef,
+      labId,
+      type: 'received',
+      quantityChange: opening,
+      performedBy: demoUserId,
+      occurredAt: receivedAt,
+    });
+  }
+
+  for (const event of oldestFirst(history)) {
+    const transaction = await repos.supplyItems.recordTransaction({
+      itemId: supply.id,
+      locationId: event.locationRef,
+      labId,
+      type: event.type,
+      quantityChange: event.quantityChange,
+      notes: event.notes,
+      performedBy: demoUserId,
+      occurredAt: daysAgo(event.daysAgo),
+    });
+    if (event.voidReason) {
+      await repos.supplyItems.voidTransaction({
+        transactionId: transaction.id,
+        labId,
+        voidedBy: demoUserId,
+        voidReason: event.voidReason,
+      });
+    }
+  }
+}
+
+async function seedNewReagent(
+  repos: Repositories,
+  reagent: DemoReagent,
+  labId: string,
+  demoUserId: string
+): Promise<void> {
+  await repos.reagentItems.saveBarcode({
+    id: generateId('rbcd'),
+    itemId: reagent.id,
+    barcodeValue: generateInternalBarcodeValue('reagentItem'),
+    barcodeType: 'internal',
+    isPrimary: true,
+  });
+  for (const document of reagent.documents ?? []) {
+    await repos.reagentItems.saveDocument(
+      ReagentDocument.create({ itemId: reagent.id, ...document })
+    );
+  }
+  for (const level of reagent.packaging ?? []) {
+    await repos.reagentItems.savePackagingLevel({
+      id: generateId('rpkg'),
+      itemId: reagent.id,
+      unitName: level.unitName,
+      quantity: level.quantity,
+      parentUnit: level.parentUnit,
+    });
+  }
+
+  const history = reagent.history ?? [];
+  const lotsByNumber = new Map<string, { lotId?: string; locationRef: string }>();
+
+  // PITFALL: receiving is what creates a lot, so the stock and its ledger entry land together.
+  for (const lot of reagent.lots) {
+    const consumed = history
+      .filter(event => event.lotNumber === lot.lotNumber && !event.voidReason)
+      .reduce((sum, event) => sum + event.quantity, 0);
+    const [receipt] = await repos.reagentItems.recordTransaction({
+      itemId: reagent.id,
+      locationId: lot.locationRef,
+      labId,
+      type: 'received',
+      quantity: lot.quantity + consumed,
+      lotNumber: lot.lotNumber,
+      expirationDate: inDays(lot.expiresInDays),
+      receivedDate: dateOnly(daysAgo(lot.receivedDaysAgo)),
+      performedBy: demoUserId,
+      occurredAt: daysAgo(lot.receivedDaysAgo),
+    });
+    lotsByNumber.set(lot.lotNumber, { lotId: receipt.lotId, locationRef: lot.locationRef });
+  }
+
+  for (const event of oldestFirst(history)) {
+    const lot = lotsByNumber.get(event.lotNumber);
+    if (!lot) {
+      throw new ValidationError(`Demo reagent ${reagent.id} has no lot ${event.lotNumber}.`);
+    }
+    const [transaction] = await repos.reagentItems.recordTransaction({
+      itemId: reagent.id,
+      locationId: lot.locationRef,
+      labId,
+      type: event.type,
+      quantity: event.quantity,
+      lotId: lot.lotId,
+      notes: event.notes,
+      performedBy: demoUserId,
+      occurredAt: daysAgo(event.daysAgo),
+    });
+    if (event.voidReason) {
+      await repos.reagentItems.voidTransaction({
+        transactionId: transaction.id,
+        labId,
+        voidedBy: demoUserId,
+        voidReason: event.voidReason,
+      });
+    }
+  }
 }
 
 export interface ApplyDemoDatasetResult {
@@ -158,10 +301,7 @@ export interface ApplyDemoDatasetResult {
   equipment: number;
 }
 
-/**
- * @param demoUserId the account every seeded transaction and maintenance entry is attributed to —
- * `performed_by` is a NOT NULL foreign key, and the demo lab has exactly one user.
- */
+// PITFALL: performed_by on stock transactions is a NOT NULL user foreign key, so seeded transactions are attributed to the demo lab's only user.
 export async function applyDemoDataset(
   repos: Repositories,
   labId: string,
@@ -188,7 +328,7 @@ export async function applyDemoDataset(
     }
   }
 
-  // Custom units are insert-only, so only the missing labels are created.
+  // PITFALL: custom units are insert-only, so only the missing labels are created.
   const existingUnits = await repos.customUnits.findByLabId(labId);
   const existingLabels = new Set(existingUnits.map(u => u.label));
   for (const unit of dataset.customUnits) {
@@ -223,7 +363,7 @@ export async function applyDemoDataset(
     );
   }
 
-  // researchers.person_id is NOT NULL, so persons land first.
+  // PITFALL: researchers.person_id is NOT NULL, so persons land first.
   for (const person of dataset.people) {
     await repos.persons.save(
       Person.fromData({
@@ -264,7 +404,7 @@ export async function applyDemoDataset(
         diagnosis: donor.diagnosis,
         diseaseStage: donor.diseaseStage,
         notes: donor.notes,
-        isCurated: true,
+        isCurated: !donor.needsReview,
         isSeeded: true,
         createdAt: daysAgo(300),
         updatedAt: daysAgo(300),
@@ -285,15 +425,16 @@ export async function applyDemoDataset(
     }
   }
 
-  // Attribute definitions already exist per lab; system_key is the one handle identical across
-  // environments, so values resolve against whatever rows this environment happens to have.
+  // PITFALL: attribute values resolve by system_key, the one handle identical across environments.
   const definitions = await repos.attributes.findDefinitionsByLabId(labId);
   const options = await repos.attributes.findOptionsByLabId(labId);
   const definitionByKey = new Map(
     definitions.filter(d => d.systemKey).map(d => [d.systemKey as string, d])
   );
 
+  // PITFALL: barcodes, documents, packaging and the stock ledger are insert-only, so they are written once per item; the reset clears items first.
   for (const reagent of dataset.reagents) {
+    const isNewReagent = (await repos.reagentItems.findById(reagent.id, labId)) === null;
     await repos.reagentItems.save(
       ReagentItem.fromData({
         id: reagent.id,
@@ -312,7 +453,7 @@ export async function applyDemoDataset(
         reorderThreshold: reagent.reorderThreshold,
         unitPrice: reagent.unitPrice,
         description: reagent.description,
-        status: 'active',
+        status: reagent.status ?? 'active',
         isSeeded: true,
         createdAt: daysAgo(250),
         updatedAt: daysAgo(250),
@@ -338,23 +479,11 @@ export async function applyDemoDataset(
       }
     }
 
-    // Receiving is what creates a lot, so the stock and its ledger entry land together.
-    for (const lot of reagent.lots) {
-      await repos.reagentItems.recordTransaction({
-        itemId: reagent.id,
-        locationId: lot.locationRef,
-        labId,
-        type: 'received',
-        quantity: lot.quantity,
-        lotNumber: lot.lotNumber,
-        expirationDate: inDays(lot.expiresInDays),
-        receivedDate: dateOnly(daysAgo(lot.receivedDaysAgo)),
-        performedBy: demoUserId,
-      });
-    }
+    if (isNewReagent) await seedNewReagent(repos, reagent, labId, demoUserId);
   }
 
   for (const supply of dataset.supplies) {
+    const isNewSupply = (await repos.supplyItems.findById(supply.id, labId)) === null;
     await repos.supplyItems.save(
       SupplyItem.fromData({
         id: supply.id,
@@ -367,26 +496,21 @@ export async function applyDemoDataset(
         stockUnit: supply.stockUnit,
         reorderThreshold: supply.reorderThreshold,
         unitPrice: supply.unitPrice,
-        status: 'active',
+        status: supply.status ?? 'active',
         isSeeded: true,
         createdAt: daysAgo(250),
         updatedAt: daysAgo(250),
       })
     );
-
-    for (const stock of supply.stock) {
-      await repos.supplyItems.recordTransaction({
-        itemId: supply.id,
-        locationId: stock.locationRef,
-        labId,
-        type: 'received',
-        quantityChange: stock.quantity,
-        performedBy: demoUserId,
-      });
-    }
+    if (isNewSupply) await seedNewSupply(repos, supply, labId, demoUserId);
   }
 
   for (const item of dataset.equipment) {
+    const isNewEquipment = (await repos.equipmentItems.findById(item.id, labId)) === null;
+    const nextInDays = [...item.maintenance]
+      .sort((a, b) => a.daysAgo - b.daysAgo)
+      .find(entry => entry.nextInDays !== undefined)?.nextInDays;
+
     await repos.equipmentItems.save(
       EquipmentItem.fromData({
         id: item.id,
@@ -404,6 +528,11 @@ export async function applyDemoDataset(
         warrantyExpiration: item.warrantyExpiresInDays
           ? inDays(item.warrantyExpiresInDays)
           : undefined,
+        nextMaintenanceDate: nextInDays === undefined ? undefined : inDays(nextInDays),
+        decommissionDate: item.decommission
+          ? dateOnly(daysAgo(item.decommission.daysAgo))
+          : undefined,
+        decommissionReason: item.decommission?.reason,
         isSeeded: true,
         createdAt: daysAgo(250),
         updatedAt: daysAgo(250),
@@ -417,14 +546,21 @@ export async function applyDemoDataset(
           itemId: item.id,
           datePerformed: dateOnly(daysAgo(entry.daysAgo)),
           maintenanceType: entry.type,
-          performedBy: demoUserId,
+          performedBy: entry.performedBy,
           technician: entry.technician,
           description: entry.description,
-          nextScheduledDate: entry.nextInDays ? inDays(entry.nextInDays) : undefined,
+          nextScheduledDate: entry.nextInDays === undefined ? undefined : inDays(entry.nextInDays),
           cost: entry.cost,
           createdAt: daysAgo(entry.daysAgo),
           updatedAt: daysAgo(entry.daysAgo),
         })
+      );
+    }
+
+    if (!isNewEquipment) continue;
+    for (const document of item.documents ?? []) {
+      await repos.equipmentItems.saveDocument(
+        EquipmentDocument.create({ itemId: item.id, ...document })
       );
     }
   }
@@ -440,8 +576,6 @@ export async function applyDemoDataset(
     );
   }
 
-  // Most boxes hold one group so they can be named for their contents; some hold two or three so
-  // the grid shows how a box splits. Groups advance in order, keeping a rack's boxes related.
   let totalTubes = 0;
   for (const plan of plans) {
     const boxTag = String(plan.ordinal).padStart(3, '0');
@@ -451,6 +585,14 @@ export async function applyDemoDataset(
       const group = dataset.tubeBatches[run.groupIndex];
       const donor = donorsById.get(group.donorRef);
       const researcher = researcherByRef.get(group.researcherRef);
+      const lock = group.lockNote
+        ? {
+            isLocked: true,
+            lockedBy: demoUserId,
+            lockNote: group.lockNote,
+            lockedAt: daysAgo(TUBE_LOCKED_DAYS_AGO).toISOString(),
+          }
+        : {};
 
       for (const seat of run.seats) {
         seatNumber++;
@@ -479,6 +621,7 @@ export async function applyDemoDataset(
             timestamps: { createdAt: daysAgo(200), updatedAt: daysAgo(200) },
             labId,
             isSeeded: true,
+            ...lock,
           })
         );
         totalTubes++;

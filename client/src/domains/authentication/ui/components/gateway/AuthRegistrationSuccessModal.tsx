@@ -1,9 +1,3 @@
-/**
- * Registration Success Confirmation
- *
- * Displays username, account status, and next steps after registration.
- */
-
 import { useState } from 'react';
 
 import { Copy, Check } from 'lucide-react';
@@ -27,7 +21,6 @@ export function AuthRegistrationSuccessModal({
     try {
       await navigator.clipboard.writeText(username);
     } catch {
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = username;
       document.body.appendChild(textArea);
@@ -47,7 +40,7 @@ export function AuthRegistrationSuccessModal({
 
       <div className="auth-microheader mb-6">
         <span className="auth-microheader-bar" />
-        <span className="phosphor-text">[ Ready to sign in ]</span>
+        <span>Ready to sign in</span>
         <span className="auth-microheader-rule" />
       </div>
 

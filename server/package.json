@@ -1,6 +1,6 @@
 {
   "name": "odysseus-server",
-  "version": "2.0.0",
+  "version": "3.0.1",
   "description": "Backend server for Odysseus",
   "main": "dist/index.js",
   "scripts": {

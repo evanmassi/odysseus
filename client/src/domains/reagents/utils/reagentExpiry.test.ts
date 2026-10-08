@@ -1,16 +1,8 @@
-/**
- * resolveExpiryBadge tests
- *
- * Verifies the precedence of expired lots over the warning window, the per-item
- * override of the lab default, and the boundaries of that window.
- */
-
 import { resolveExpiryBadge, resolveLotExpiry, isLotExpired } from './reagentExpiry';
 
 import type { ReagentItemWithStock } from '@odysseus/shared-schemas';
 
-// Built from local parts, not toISOString(): a UTC conversion shifts the calendar day
-// either side of midnight, which is the drift the expiry math exists to avoid.
+// PITFALL: built from local parts, not toISOString(); a UTC conversion shifts the calendar day near midnight.
 const dateInDays = (days: number): string => {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -18,6 +10,15 @@ const dateInDays = (days: number): string => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${date.getFullYear()}-${month}-${day}`;
 };
+
+const lots = (...dates: string[]): ReagentItemWithStock['lotExpirations'] =>
+  dates.map((expirationDate, index) => ({
+    id: `rlot${index}`,
+    locationId: 'loc1',
+    lotNumber: `L${index}`,
+    quantity: 10,
+    expirationDate,
+  }));
 
 const item = (overrides: Partial<ReagentItemWithStock>): ReagentItemWithStock =>
   ({
@@ -28,7 +29,7 @@ const item = (overrides: Partial<ReagentItemWithStock>): ReagentItemWithStock =>
     status: 'active',
     totalStock: 100,
     lotCount: 1,
-    expiredLotCount: 0,
+    lotExpirations: [],
     locationNames: [],
     attributeValues: [],
     createdAt: new Date(),
@@ -43,39 +44,39 @@ describe('resolveExpiryBadge', () => {
 
   it('reports expired lots ahead of the warning window', () => {
     const badge = resolveExpiryBadge(
-      item({ expiredLotCount: 2, soonestExpiration: dateInDays(-10) })
+      item({ lotExpirations: lots(dateInDays(-10), dateInDays(-3), dateInDays(20)) })
     );
     expect(badge).toMatchObject({ tone: 'danger', label: '2 expired' });
     expect(badge?.detail).toBe('2 lots expired');
   });
 
   it('singularizes a lone expired lot', () => {
-    expect(
-      resolveExpiryBadge(item({ expiredLotCount: 1, soonestExpiration: dateInDays(-1) }))?.detail
-    ).toBe('1 lot expired');
+    expect(resolveExpiryBadge(item({ lotExpirations: lots(dateInDays(-1)) }))?.detail).toBe(
+      '1 lot expired'
+    );
   });
 
   it('warns inside the default window and stays quiet outside it', () => {
-    expect(resolveExpiryBadge(item({ soonestExpiration: dateInDays(30) }))).toMatchObject({
+    expect(resolveExpiryBadge(item({ lotExpirations: lots(dateInDays(30)) }))).toMatchObject({
       tone: 'warning',
       label: 'exp 30d',
     });
-    expect(resolveExpiryBadge(item({ soonestExpiration: dateInDays(120) }))).toBeUndefined();
+    expect(resolveExpiryBadge(item({ lotExpirations: lots(dateInDays(120)) }))).toBeUndefined();
   });
 
   it('treats the window edge as inclusive', () => {
-    expect(resolveExpiryBadge(item({ soonestExpiration: dateInDays(90) }))).toBeDefined();
-    expect(resolveExpiryBadge(item({ soonestExpiration: dateInDays(91) }))).toBeUndefined();
+    expect(resolveExpiryBadge(item({ lotExpirations: lots(dateInDays(90)) }))).toBeDefined();
+    expect(resolveExpiryBadge(item({ lotExpirations: lots(dateInDays(91)) }))).toBeUndefined();
   });
 
   it("honours the item's own warning window over the lab default", () => {
-    const soonestExpiration = dateInDays(45);
-    expect(resolveExpiryBadge(item({ soonestExpiration, expiryWarningDays: 10 }))).toBeUndefined();
-    expect(resolveExpiryBadge(item({ soonestExpiration, expiryWarningDays: 60 }))).toBeDefined();
+    const lotExpirations = lots(dateInDays(45));
+    expect(resolveExpiryBadge(item({ lotExpirations, expiryWarningDays: 10 }))).toBeUndefined();
+    expect(resolveExpiryBadge(item({ lotExpirations, expiryWarningDays: 60 }))).toBeDefined();
   });
 
   it('reads today as expiring rather than expired', () => {
-    expect(resolveExpiryBadge(item({ soonestExpiration: dateInDays(0) }))).toMatchObject({
+    expect(resolveExpiryBadge(item({ lotExpirations: lots(dateInDays(0)) }))).toMatchObject({
       tone: 'warning',
       label: 'exp today',
     });
@@ -89,6 +90,13 @@ describe('resolveLotExpiry', () => {
       label: 'expired',
     });
     expect(resolveLotExpiry(dateInDays(5), 90)).toMatchObject({ tone: 'warning', label: '5d' });
+  });
+
+  it('describes the status in words for the alert table', () => {
+    expect(resolveLotExpiry(dateInDays(-3), 90)).toMatchObject({ detail: 'Expired', days: -3 });
+    expect(resolveLotExpiry(dateInDays(0), 90)?.detail).toBe('Today');
+    expect(resolveLotExpiry(dateInDays(1), 90)?.detail).toBe('In 1 day');
+    expect(resolveLotExpiry(dateInDays(5), 90)?.detail).toBe('In 5 days');
   });
 
   it('is quiet for an undated lot or one beyond the window', () => {

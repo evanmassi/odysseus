@@ -1,10 +1,3 @@
-/**
- * Lab Management Domain Public API
- *
- * Lab-wide vocabularies the catalogs share — locations, attributes, custom units — and the
- * barcode resolver that spans them.
- */
-
 export { useBarcodeResolver } from './hooks/useBarcodeResolver';
 
 export { useLabLocationsQuery } from './hooks/useLabLocationQueries';
@@ -15,6 +8,7 @@ export {
 } from './hooks/useLabLocationMutations';
 export { LabLocationModal } from './ui/components/LabLocationModal';
 export { LabLocationTree } from './ui/components/LabLocationTree';
+export { buildLocationPathMap } from './utils/locationPaths';
 
 export { EMPTY_ATTRIBUTES, useAttributesQuery } from './hooks/useAttributeQueries';
 export {

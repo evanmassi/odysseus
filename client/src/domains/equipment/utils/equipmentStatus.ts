@@ -1,11 +1,7 @@
-/**
- * Equipment Status Display
- *
- * Chip color + label for each equipment status, shared by the edit form,
- * info panel, and bulk update.
- */
+import { resolveMaintenanceDue, MAINTENANCE_DUE_SOON_DAYS } from './maintenanceSchedule';
 
-import type { EquipmentStatus } from '@odysseus/shared-schemas';
+import type { EquipmentItem, EquipmentStatus } from '@odysseus/shared-schemas';
+import type { ItemRowStatusTone } from '@shared/ui/components/inventory';
 
 export const EQUIPMENT_STATUS_DISPLAY: Record<
   EquipmentStatus,
@@ -17,3 +13,14 @@ export const EQUIPMENT_STATUS_DISPLAY: Record<
   out_of_service: { color: 'danger', label: 'Out of Service' },
   decommissioned: { color: 'danger', label: 'Decommissioned' },
 };
+
+export function resolveEquipmentStatusTone(item: EquipmentItem): ItemRowStatusTone {
+  if (item.status === 'decommissioned') return 'muted';
+  const due = item.nextMaintenanceDate
+    ? resolveMaintenanceDue(item.nextMaintenanceDate)
+    : undefined;
+  if (!due) return 'success';
+  if (due.daysUntil < 0) return 'danger';
+  if (due.daysUntil <= MAINTENANCE_DUE_SOON_DAYS) return 'warning';
+  return 'success';
+}

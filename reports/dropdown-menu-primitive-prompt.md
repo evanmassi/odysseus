@@ -68,6 +68,7 @@ Props:
 ```
 
 Handles:
+
 - Click-outside detection
 - Keyboard navigation via `useMenuKeyboardNavigation`
 - Animated open/close (`animate-dropdown-reveal-in/out`)
@@ -116,6 +117,7 @@ Replace the current bare logo dropdown in `AppHeader.tsx` with a proper `Dropdow
 The submenu should appear on hover/click of the Lab Management item, positioned to the right.
 
 The context label below the logo should show:
+
 - "Biobank" when on `/`
 - "Lab Management" when on `/lab/*`
 
@@ -147,6 +149,7 @@ Evaluate whether `TubeGridContextMenu` should migrate. It's positioned at mouse 
 ## Testing
 
 After each migration step, verify:
+
 - Menu opens/closes correctly
 - Click-outside closes the menu
 - Keyboard navigation works (arrow keys, Enter, Escape)

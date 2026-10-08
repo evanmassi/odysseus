@@ -1,9 +1,3 @@
-/**
- * Search Panel
- *
- * Top-bar search input with dropdown results and filter panel.
- */
-
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 
 import { SlidersHorizontal, X } from 'lucide-react';
@@ -11,22 +5,13 @@ import { createPortal } from 'react-dom';
 
 import { logger } from '@infra/logger';
 import { useResolvedTheme } from '@shared/hooks';
-import { SearchInput, Tooltip } from '@shared/ui';
+import { Button, SearchInput, Tooltip } from '@shared/ui';
 
 import { useSearch } from '../../hooks/useSearch';
 import { useSearchStore } from '../../stores/searchStore';
 
 import { SearchFilterPanel } from './SearchFilterPanel';
 import { SearchResultsPanel } from './SearchResultsPanel';
-
-/** Console icon button — chamfered like the selectable chips, with a primary selected state. */
-const ICON_BTN_BASE =
-  'flex h-6 w-6 items-center justify-center border transition-[background-color,border-color,box-shadow,color] duration-150';
-
-/** Top-right chamfer matching the chip silhouette; only inset shadows survive the clip. */
-const ICON_BTN_CHAMFER: React.CSSProperties = {
-  clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%)',
-};
 
 export function SearchPanel() {
   const { query, filters, results, isSearching, isFetching, search, clear, refetch } = useSearch();
@@ -86,9 +71,7 @@ export function SearchPanel() {
     };
   }, []);
 
-  // The dropdown is portaled to <body> so it escapes the header's permanent
-  // data-theme="dark" anchor (otherwise dark-only glows leak into light mode).
-  // Position is tracked against the trigger since it no longer flows with it.
+  // PITFALL: the dropdown is portaled out of the header's permanent dark theme so dark-only glows don't leak into light mode, so its position is tracked against the trigger.
   useLayoutEffect(() => {
     if (!showDropdown && !isClosingDropdown) return;
 
@@ -189,30 +172,22 @@ export function SearchPanel() {
             )}
 
             <Tooltip content="Filters" side="bottom">
-              <button
-                type="button"
+              <Button
+                variant={hasActiveFilters || showFilters ? 'ghost-primary' : 'ghost'}
+                size="xs"
+                iconOnly
                 onClick={handleFilterToggle}
-                style={ICON_BTN_CHAMFER}
+                aria-label="Filters"
                 aria-pressed={hasActiveFilters || showFilters}
-                className={`${ICON_BTN_BASE} ${
-                  hasActiveFilters || showFilters
-                    ? 'border-primary/55 bg-primary/[0.10] text-primary shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/calc(0.40_*_var(--lit)))]'
-                    : 'border-line-soft text-foreground/55 hover:border-primary/40 hover:text-primary'
-                }`}
               >
-                <SlidersHorizontal className="h-2.5 w-2.5" />
-              </button>
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+              </Button>
             </Tooltip>
 
             <Tooltip content="Clear" side="bottom">
-              <button
-                type="button"
-                onClick={handleClear}
-                style={ICON_BTN_CHAMFER}
-                className={`${ICON_BTN_BASE} border-line-soft text-foreground/55 hover:border-primary/40 hover:text-primary`}
-              >
-                <X className="h-2.5 w-2.5" />
-              </button>
+              <Button variant="ghost" size="xs" iconOnly onClick={handleClear} aria-label="Clear">
+                <X className="h-3.5 w-3.5" />
+              </Button>
             </Tooltip>
           </>
         }
@@ -225,22 +200,22 @@ export function SearchPanel() {
             ref={dropdownRef}
             data-theme={resolvedTheme}
             style={{ position: 'fixed', top: dropdownPos.top, right: dropdownPos.right }}
-            className={`z-[9999] overflow-hidden border border-line-soft bg-card shadow-[0_24px_50px_-24px_hsl(var(--recess)/0.7)] ${
+            className={`z-popover overflow-hidden border border-line-soft bg-card shadow-[0_24px_50px_-24px_hsl(var(--recess)/0.7)] ${
               isClosingDropdown ? 'animate-dropdown-reveal-out' : 'animate-dropdown-reveal-in'
             }`}
           >
-            <div className="flex items-stretch">
+            <div className="flex h-[560px] items-stretch">
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
                   showFilters ? 'w-80' : 'w-0'
                 }`}
               >
-                <div className="w-80 h-[500px] flex flex-col border-r border-line-soft">
+                <div className="flex h-full w-80 flex-col border-r border-line-soft bg-foreground/[0.025] dark:bg-shade/20">
                   <SearchFilterPanel onClose={() => setShowFilters(false)} />
                 </div>
               </div>
 
-              <div className="w-96 min-h-[500px] flex flex-col">
+              <div className="flex h-full w-96 flex-col">
                 <SearchResultsPanel
                   results={results}
                   isSearching={isSearching}

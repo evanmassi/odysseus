@@ -9,12 +9,12 @@
 import { execFile, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 /** Resolves true when `docker info` succeeds within the timeout (engine is up). */
 function isEngineUp(timeoutMs) {
-  return new Promise((resolve) => {
-    execFile('docker', ['info'], { timeout: timeoutMs, windowsHide: true }, (err) => {
+  return new Promise(resolve => {
+    execFile('docker', ['info'], { timeout: timeoutMs, windowsHide: true }, err => {
       resolve(!err);
     });
   });
@@ -24,7 +24,7 @@ function startDockerDesktop() {
   const candidates = [
     `${process.env.ProgramFiles ?? 'C:\\Program Files'}\\Docker\\Docker\\Docker Desktop.exe`,
     `${process.env.LOCALAPPDATA ?? ''}\\Docker\\Docker Desktop.exe`,
-  ].filter((p) => p && existsSync(p));
+  ].filter(p => p && existsSync(p));
 
   if (candidates.length === 0) {
     console.error('[ensure-docker] Could not locate Docker Desktop.exe — start Docker manually.');
@@ -35,7 +35,7 @@ function startDockerDesktop() {
 }
 
 function wslShutdown() {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     execFile('wsl', ['--shutdown'], { timeout: 30_000, windowsHide: true }, () => resolve());
   });
 }
@@ -74,7 +74,9 @@ async function main() {
     return;
   }
 
-  console.error('[ensure-docker] Could not bring up the Docker engine. Start Docker Desktop manually and retry.');
+  console.error(
+    '[ensure-docker] Could not bring up the Docker engine. Start Docker Desktop manually and retry.'
+  );
   process.exit(1);
 }
 

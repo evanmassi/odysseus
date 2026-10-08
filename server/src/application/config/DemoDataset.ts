@@ -1,12 +1,12 @@
-/**
- * Demo Lab Dataset
- *
- * Contents of the public demo lab — data only, with stable ids and nothing environment-specific.
- */
+import type {
+  ConcentrationUnit,
+  DocumentType,
+  EquipmentStatus,
+  ReagentItemStatus,
+  SupplyItemStatus,
+  UnitKindValue,
+} from '@odysseus/shared-schemas';
 
-import type { ConcentrationUnit, EquipmentStatus, UnitKindValue } from '@odysseus/shared-schemas';
-
-/** A tube batch expands to `count` tubes sharing a sample profile, ids `tube_<batch>_01`… */
 export interface DemoTubeBatch {
   batch: string;
   donorRef: string;
@@ -21,17 +21,16 @@ export interface DemoTubeBatch {
   concentrationUnit?: ConcentrationUnit;
   lotNumber?: string;
   notes?: string;
+  lockNote?: string;
 }
 
-/** A seeded history row. Actors are assigned at apply time from the lab's real users. */
+// PITFALL: history actors are assigned at apply time from the lab's real users.
 export interface DemoAuditEntry {
   action: string;
   entityType: string;
-  /** A dataset id where one exists; storage and tube rows have no stable id to point at. */
   entityId?: string;
   details: Record<string, unknown>;
   hoursAgo: number;
-  /** Setting up the lab and its vocabulary is an admin's job, not a bench user's. */
   byAdmin?: boolean;
 }
 
@@ -70,10 +69,42 @@ export interface DemoDonor {
   diagnosis?: string;
   diseaseStage?: string;
   notes?: string;
+  needsReview?: boolean;
   collections: Array<{ id: string; daysAgo: number; specimenType: string; source: string }>;
 }
 
-/** Referenced by `system_key`, the one attribute handle that is identical in every environment. */
+export interface DemoDocument {
+  label: string;
+  url: string;
+  docType: DocumentType;
+}
+
+export interface DemoPackagingLevel {
+  unitName: string;
+  quantity: number;
+  parentUnit?: string;
+}
+
+// PITFALL: a voided event nets to zero, so it never counts toward the stock the item ends on.
+export interface DemoReagentEvent {
+  type: 'issued' | 'disposed';
+  lotNumber: string;
+  quantity: number;
+  daysAgo: number;
+  notes?: string;
+  voidReason?: string;
+}
+
+export interface DemoSupplyEvent {
+  type: 'received' | 'issued' | 'count_adjustment' | 'disposed';
+  locationRef: string;
+  quantityChange: number;
+  daysAgo: number;
+  notes?: string;
+  voidReason?: string;
+}
+
+// PITFALL: referenced by system_key, the one attribute handle identical in every environment.
 export interface DemoAttributeValue {
   systemKey: 'hazard_class' | 'physical_form' | 'grade' | 'storage_conditions';
   values: string[];
@@ -95,7 +126,11 @@ export interface DemoReagent {
   unitPrice?: number;
   expiryWarningDays?: number;
   description?: string;
+  status?: ReagentItemStatus;
   attributes?: DemoAttributeValue[];
+  documents?: DemoDocument[];
+  packaging?: DemoPackagingLevel[];
+  history?: DemoReagentEvent[];
   lots: Array<{
     id: string;
     lotNumber: string;
@@ -116,6 +151,11 @@ export interface DemoSupply {
   stockUnit: string;
   reorderThreshold?: number;
   unitPrice?: number;
+  status?: SupplyItemStatus;
+  documents?: DemoDocument[];
+  packaging?: DemoPackagingLevel[];
+  receivedDaysAgo?: number;
+  history?: DemoSupplyEvent[];
   stock: Array<{ locationRef: string; quantity: number }>;
 }
 
@@ -132,10 +172,13 @@ export interface DemoEquipment {
   purchaseDaysAgo?: number;
   purchaseCost?: number;
   warrantyExpiresInDays?: number;
+  decommission?: { daysAgo: number; reason: string };
+  documents?: DemoDocument[];
   maintenance: Array<{
     id: string;
     daysAgo: number;
     type: string;
+    performedBy: string;
     technician?: string;
     description: string;
     nextInDays?: number;
@@ -143,7 +186,7 @@ export interface DemoEquipment {
   }>;
 }
 
-// Authored first: a tube whose species no dropdown offers reads as broken data in the edit form.
+// PITFALL: authored first: a tube whose species no dropdown offers reads as broken data in the edit form.
 const LOOKUP_VALUES: Record<string, string[]> = {
   species: ['Human', 'Mouse'],
   source: ['ATCC', 'Stanford Blood Center', 'Leukopak Vendor', 'In-house Derivation'],
@@ -181,7 +224,7 @@ const CUSTOM_UNITS: Array<{ id: string; label: string; kind: UnitKindValue }> = 
   { id: 'cunit_demo03', label: 'cassette', kind: 'count' },
 ];
 
-// Two levels deep — the tree's maximum.
+// PITFALL: categories stop at two levels, the tree's maximum.
 const LOCATIONS: DemoLocation[] = [
   {
     id: 'loc_demo_mainlab',
@@ -257,8 +300,7 @@ const EQUIPMENT_CATEGORIES: DemoCategory[] = [
   { id: 'ecat_demo_small', name: 'Small Equipment' },
 ];
 
-// Named from the Odyssey: this dataset is public, and a realistic name risks colliding with a
-// real person.
+// PITFALL: names come from the Odyssey because this dataset is public and a realistic name could match a real person.
 const PEOPLE: DemoPerson[] = [
   {
     ref: 'r01',
@@ -513,6 +555,7 @@ const DONORS: DemoDonor[] = [
     species: 'Mouse',
     clinicalStatus: 'Healthy',
     notes: 'C57BL/6 splenocytes for the murine cross-reactivity panel.',
+    needsReview: true,
     collections: [
       { id: 'dch_demo08a', daysAgo: 75, specimenType: 'Buffy Coat', source: 'In-house Derivation' },
     ],
@@ -540,6 +583,7 @@ const DONORS: DemoDonor[] = [
     ethnicity: 'Hispanic or Latino',
     clinicalStatus: 'Healthy',
     notes: 'Most recent draw. Expansion still in progress at the time of the last inventory.',
+    needsReview: true,
     collections: [
       { id: 'dch_demo10a', daysAgo: 21, specimenType: 'Leukopak', source: 'Stanford Blood Center' },
     ],
@@ -566,6 +610,31 @@ const REAGENTS: DemoReagent[] = [
       { systemKey: 'physical_form', values: ['Solution'] },
       { systemKey: 'storage_conditions', values: ['4 °C'] },
       { systemKey: 'grade', values: ['Cell Culture'] },
+    ],
+    documents: [
+      { label: 'SDS 2025 revision', url: 'https://www.biolegend.com', docType: 'sds' },
+      {
+        label: 'Certificate of analysis, lot B352004',
+        url: 'https://www.biolegend.com',
+        docType: 'coa',
+      },
+    ],
+    history: [
+      {
+        type: 'issued',
+        lotNumber: 'B341829',
+        quantity: 1,
+        daysAgo: 20,
+        notes: 'CD3 activation for donor LP-0075.',
+      },
+      {
+        type: 'issued',
+        lotNumber: 'B352004',
+        quantity: 2,
+        daysAgo: 9,
+        voidReason: 'Logged against the wrong lot.',
+      },
+      { type: 'issued', lotNumber: 'B341829', quantity: 2, daysAgo: 9 },
     ],
     lots: [
       {
@@ -679,7 +748,7 @@ const REAGENTS: DemoReagent[] = [
     unitPrice: 159,
     expiryWarningDays: 45,
     attributes: [{ systemKey: 'storage_conditions', values: ['4 °C', 'Protect from Light'] }],
-    // Deliberately near expiry so the expiry alert panel has something to show.
+    // PITFALL: deliberately near expiry so the expiry alert panel has something to show.
     lots: [
       {
         id: 'rlot_demo05a',
@@ -767,6 +836,7 @@ const REAGENTS: DemoReagent[] = [
   },
   {
     id: 'ritm_demo09',
+    status: 'discontinued',
     categoryId: 'rcat_demo_media_base',
     name: 'DMEM, high glucose',
     manufacturer: 'Corning',
@@ -860,7 +930,7 @@ const REAGENTS: DemoReagent[] = [
     reorderThreshold: 3,
     unitPrice: 402,
     expiryWarningDays: 60,
-    // Below threshold on purpose so the low-stock panel is populated.
+    // PITFALL: deliberately below threshold so the low-stock panel is populated.
     lots: [
       {
         id: 'rlot_demo12a',
@@ -886,6 +956,16 @@ const REAGENTS: DemoReagent[] = [
     attributes: [
       { systemKey: 'physical_form', values: ['Liquid'] },
       { systemKey: 'storage_conditions', values: ['Room Temperature'] },
+    ],
+    history: [
+      {
+        type: 'disposed',
+        lotNumber: '18024551',
+        quantity: 2,
+        daysAgo: 15,
+        notes: 'Cloudy on inspection, discarded.',
+      },
+      { type: 'issued', lotNumber: '18024551', quantity: 4, daysAgo: 5 },
     ],
     lots: [
       {
@@ -1059,6 +1139,10 @@ const REAGENTS: DemoReagent[] = [
       { systemKey: 'physical_form', values: ['Liquid'] },
       { systemKey: 'grade', values: ['Cell Culture'] },
     ],
+    documents: [
+      { label: 'Safety data sheet', url: 'https://www.sigmaaldrich.com', docType: 'sds' },
+    ],
+    packaging: [{ unitName: 'case', quantity: 6 }],
     lots: [
       {
         id: 'rlot_demo20a',
@@ -1093,6 +1177,14 @@ const REAGENTS: DemoReagent[] = [
         expiresInDays: 330,
         receivedDaysAgo: 50,
       },
+      {
+        id: 'rlot_demo21b',
+        lotNumber: '2398410RP',
+        locationRef: 'loc_demo_freezer20',
+        quantity: 2,
+        expiresInDays: -9,
+        receivedDaysAgo: 410,
+      },
     ],
   },
   {
@@ -1111,6 +1203,14 @@ const REAGENTS: DemoReagent[] = [
       { systemKey: 'hazard_class', values: ['Corrosive'] },
       { systemKey: 'physical_form', values: ['Liquid'] },
       { systemKey: 'storage_conditions', values: ['Room Temperature'] },
+    ],
+    documents: [
+      { label: 'Safety data sheet', url: 'https://www.thermofisher.com', docType: 'sds' },
+      {
+        label: 'Spill response protocol',
+        url: 'https://www.thermofisher.com',
+        docType: 'protocol',
+      },
     ],
     lots: [
       {
@@ -1175,6 +1275,7 @@ const REAGENTS: DemoReagent[] = [
   },
   {
     id: 'ritm_demo25',
+    status: 'archived',
     categoryId: 'rcat_demo_media_base',
     name: 'IMDM, with L-glutamine',
     manufacturer: 'Corning',
@@ -1319,6 +1420,33 @@ const SUPPLIES: DemoSupply[] = [
     stockUnit: 'box',
     reorderThreshold: 10,
     unitPrice: 18,
+    packaging: [{ unitName: 'case', quantity: 10 }],
+    receivedDaysAgo: 60,
+    history: [
+      {
+        type: 'issued',
+        locationRef: 'loc_demo_supply',
+        quantityChange: -6,
+        daysAgo: 41,
+        notes: 'Restocked both biosafety cabinets.',
+      },
+      {
+        type: 'issued',
+        locationRef: 'loc_demo_supply',
+        quantityChange: -10,
+        daysAgo: 27,
+        voidReason: 'Entered 10 instead of 1.',
+      },
+      { type: 'issued', locationRef: 'loc_demo_supply', quantityChange: -1, daysAgo: 27 },
+      {
+        type: 'count_adjustment',
+        locationRef: 'loc_demo_supply',
+        quantityChange: -2,
+        daysAgo: 13,
+        notes: 'Monthly count: two boxes short.',
+      },
+      { type: 'issued', locationRef: 'loc_demo_supply', quantityChange: -4, daysAgo: 6 },
+    ],
     stock: [
       { locationRef: 'loc_demo_supply', quantity: 24 },
       { locationRef: 'loc_demo_supply_backup', quantity: 12 },
@@ -1334,6 +1462,7 @@ const SUPPLIES: DemoSupply[] = [
     stockUnit: 'box',
     reorderThreshold: 10,
     unitPrice: 18,
+    packaging: [{ unitName: 'case', quantity: 10 }],
     stock: [{ locationRef: 'loc_demo_supply', quantity: 8 }],
   },
   {
@@ -1345,7 +1474,23 @@ const SUPPLIES: DemoSupply[] = [
     stockUnit: 'case',
     reorderThreshold: 2,
     unitPrice: 128,
-    stock: [{ locationRef: 'loc_demo_supply_backup', quantity: 3 }],
+    receivedDaysAgo: 75,
+    history: [
+      {
+        type: 'issued',
+        locationRef: 'loc_demo_supply_backup',
+        quantityChange: -2,
+        daysAgo: 30,
+      },
+      {
+        type: 'issued',
+        locationRef: 'loc_demo_supply_backup',
+        quantityChange: -1,
+        daysAgo: 9,
+        notes: 'Last case. Reorder placed.',
+      },
+    ],
+    stock: [{ locationRef: 'loc_demo_supply_backup', quantity: 0 }],
   },
   {
     id: 'sitm_demo13',
@@ -1368,6 +1513,10 @@ const SUPPLIES: DemoSupply[] = [
     stockUnit: 'rack',
     reorderThreshold: 12,
     unitPrice: 26,
+    packaging: [
+      { unitName: 'case', quantity: 10 },
+      { unitName: 'pallet', quantity: 40, parentUnit: 'case' },
+    ],
     stock: [{ locationRef: 'loc_demo_supply', quantity: 30 }],
   },
   {
@@ -1397,13 +1546,14 @@ const SUPPLIES: DemoSupply[] = [
   {
     id: 'sitm_demo17',
     categoryId: 'scat_demo_pipette',
-    name: '1.5 mL Microcentrifuge Tubes',
+    name: '1.5 mL Microcentrifuge Tubes, Bulk Case',
     manufacturer: 'Corning',
     catalogNumber: '4488',
     vendorName: 'VWR',
     stockUnit: 'case',
     reorderThreshold: 3,
     unitPrice: 88,
+    status: 'archived',
     stock: [{ locationRef: 'loc_demo_supply', quantity: 6 }],
   },
   {
@@ -1485,6 +1635,20 @@ const SUPPLIES: DemoSupply[] = [
     stockUnit: 'pack',
     reorderThreshold: 3,
     unitPrice: 96,
+    documents: [
+      { label: 'Product spec sheet', url: 'https://www.corning.com', docType: 'spec_sheet' },
+    ],
+    receivedDaysAgo: 45,
+    history: [
+      { type: 'issued', locationRef: 'loc_demo_supply', quantityChange: -3, daysAgo: 20 },
+      {
+        type: 'disposed',
+        locationRef: 'loc_demo_supply',
+        quantityChange: -1,
+        daysAgo: 8,
+        notes: 'Pack opened outside the hood.',
+      },
+    ],
     stock: [{ locationRef: 'loc_demo_supply', quantity: 2 }],
   },
   {
@@ -1515,20 +1679,29 @@ const EQUIPMENT: DemoEquipment[] = [
     purchaseDaysAgo: 900,
     purchaseCost: 18400,
     warrantyExpiresInDays: 190,
+    documents: [
+      {
+        label: 'CryoExtra operating manual',
+        url: 'https://www.thermofisher.com',
+        docType: 'other',
+      },
+    ],
     maintenance: [
       {
         id: 'eqlog_demo01a',
-        daysAgo: 30,
+        daysAgo: 82,
         type: 'Preventative Maintenance',
+        performedBy: 'CryoServe',
         technician: 'CryoServe Field Tech',
         description: 'Quarterly PM — vacuum check, level sensor calibration, alarm test.',
-        nextInDays: 60,
+        nextInDays: 8,
         cost: 480,
       },
       {
         id: 'eqlog_demo01b',
-        daysAgo: 120,
+        daysAgo: 172,
         type: 'Preventative Maintenance',
+        performedBy: 'CryoServe',
         technician: 'CryoServe Field Tech',
         description: 'Quarterly PM — no findings.',
         cost: 480,
@@ -1553,6 +1726,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo02a',
         daysAgo: 30,
         type: 'Preventative Maintenance',
+        performedBy: 'CryoServe',
         technician: 'CryoServe Field Tech',
         description: 'Quarterly PM — replaced one level sensor gasket.',
         nextInDays: 60,
@@ -1578,6 +1752,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo03a',
         daysAgo: 45,
         type: 'Preventative Maintenance',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Condenser filter cleaned, door gasket inspected.',
         nextInDays: 135,
@@ -1601,6 +1776,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo04a',
         daysAgo: 200,
         type: 'Repair',
+        performedBy: 'Cold Chain Services',
         technician: 'Cold Chain Services',
         description: 'Replaced failed door heater; temperature excursion logged and closed.',
         cost: 890,
@@ -1624,6 +1800,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo05a',
         daysAgo: 60,
         type: 'Calibration',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Probe verified against NIST-traceable thermometer, +0.3 °C offset recorded.',
         nextInDays: 120,
@@ -1643,11 +1820,16 @@ const EQUIPMENT: DemoEquipment[] = [
     purchaseDaysAgo: 480,
     purchaseCost: 412000,
     warrantyExpiresInDays: 250,
+    documents: [
+      { label: 'Instrument user guide', url: 'https://www.thermofisher.com', docType: 'other' },
+      { label: 'Daily QC protocol', url: 'https://www.thermofisher.com', docType: 'protocol' },
+    ],
     maintenance: [
       {
         id: 'eqlog_demo06a',
         daysAgo: 14,
         type: 'Certification',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Annual performance qualification — all detectors within spec.',
         nextInDays: 351,
@@ -1657,6 +1839,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo06b',
         daysAgo: 190,
         type: 'Repair',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Replaced sheath filter and cleaned flow cell after clog.',
         cost: 1450,
@@ -1680,6 +1863,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo07a',
         daysAgo: 75,
         type: 'Calibration',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Bead standard verification, within tolerance.',
         nextInDays: 105,
@@ -1703,6 +1887,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo08a',
         daysAgo: 3,
         type: 'Repair',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Luminescence channel drifting; awaiting replacement PMT.',
       },
@@ -1724,11 +1909,12 @@ const EQUIPMENT: DemoEquipment[] = [
     maintenance: [
       {
         id: 'eqlog_demo09a',
-        daysAgo: 40,
+        daysAgo: 186,
         type: 'Preventative Maintenance',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'CO2 sensor calibrated, water pan sanitised, HEPA inspected.',
-        nextInDays: 140,
+        nextInDays: -6,
       },
     ],
   },
@@ -1750,6 +1936,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo10a',
         daysAgo: 40,
         type: 'Preventative Maintenance',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Routine PM, no findings.',
         nextInDays: 140,
@@ -1773,6 +1960,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo11a',
         daysAgo: 95,
         type: 'Certification',
+        performedBy: 'NSF',
         technician: 'NSF Certifier',
         description: 'Annual NSF/ANSI 49 certification passed.',
         nextInDays: 270,
@@ -1797,6 +1985,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo12a',
         daysAgo: 95,
         type: 'Certification',
+        performedBy: 'NSF',
         technician: 'NSF Certifier',
         description: 'Annual certification passed; airflow re-balanced.',
         nextInDays: 270,
@@ -1821,6 +2010,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo13a',
         daysAgo: 150,
         type: 'Preventative Maintenance',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Rotor inspection and speed verification.',
         nextInDays: 215,
@@ -1837,10 +2027,19 @@ const EQUIPMENT: DemoEquipment[] = [
     serialNumber: 'EP5424-118330',
     assetTag: 'ITH-0031',
     locationRef: 'loc_demo_mainlab',
-    status: 'active',
+    status: 'out_of_service',
     purchaseDaysAgo: 640,
     purchaseCost: 4900,
-    maintenance: [],
+    maintenance: [
+      {
+        id: 'eqlog_demo14a',
+        daysAgo: 5,
+        type: 'Repair',
+        performedBy: 'In-house',
+        technician: 'In-house',
+        description: 'Imbalance error on every run — tagged out pending rotor inspection.',
+      },
+    ],
   },
   {
     id: 'eqitem_demo15',
@@ -1859,6 +2058,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo15a',
         daysAgo: 55,
         type: 'Preventative Maintenance',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Fluidics flush and column seal replacement.',
         nextInDays: 125,
@@ -1881,11 +2081,12 @@ const EQUIPMENT: DemoEquipment[] = [
     maintenance: [
       {
         id: 'eqlog_demo16a',
-        daysAgo: 88,
+        daysAgo: 351,
         type: 'Calibration',
+        performedBy: 'Calibration Services Inc.',
         technician: 'Calibration Services Inc.',
         description: 'Gravimetric calibration, within ISO 8655 tolerance.',
-        nextInDays: 277,
+        nextInDays: 14,
         cost: 95,
       },
     ],
@@ -1907,6 +2108,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo17a',
         daysAgo: 88,
         type: 'Calibration',
+        performedBy: 'Calibration Services Inc.',
         technician: 'Calibration Services Inc.',
         description: 'Gravimetric calibration passed.',
         nextInDays: 277,
@@ -1931,6 +2133,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo18a',
         daysAgo: 88,
         type: 'Calibration',
+        performedBy: 'Calibration Services Inc.',
         technician: 'Calibration Services Inc.',
         description: 'Gravimetric calibration — adjusted, now within tolerance.',
         nextInDays: 277,
@@ -1969,6 +2172,7 @@ const EQUIPMENT: DemoEquipment[] = [
         id: 'eqlog_demo20a',
         daysAgo: 210,
         type: 'Preventative Maintenance',
+        performedBy: 'Manufacturer service',
         technician: 'Vendor FSE',
         description: 'Objective cleaning and LED alignment.',
         cost: 380,
@@ -1984,14 +2188,16 @@ const EQUIPMENT: DemoEquipment[] = [
     serialNumber: 'MM2-220913',
     assetTag: 'ITH-0045',
     locationRef: 'loc_demo_mainlab',
-    status: 'out_of_service',
+    status: 'decommissioned',
     purchaseDaysAgo: 1400,
     purchaseCost: 610,
+    decommission: { daysAgo: 2, reason: 'Motor bearing failure' },
     maintenance: [
       {
         id: 'eqlog_demo21a',
         daysAgo: 12,
         type: 'Repair',
+        performedBy: 'In-house',
         technician: 'In-house',
         description: 'Motor bearing failure — tagged out, replacement quoted.',
       },
@@ -1999,26 +2205,13 @@ const EQUIPMENT: DemoEquipment[] = [
   },
 ];
 
-/**
- * How the lab is loaded, cycled across boxes in walk order. The mix is the point: a lab where
- * every box looks the same reads as generated.
- */
 const PLACEMENT = {
-  /** Share of each box's own capacity. The box a visitor lands on stays mostly free, so there is
-   *  somewhere obvious to add their own tube; the full ones sit deeper in the lab. */
   fillPattern: [0.2, 0.7, 0.45, 1, 0.15, 0.6, 0.85, 0.3, 0, 0.95, 0.5, 0.35],
-  /** Sample groups sharing a box. More than one splits the box into blocks of colour. */
   groupsPerBox: [1, 2, 1, 1, 3, 1, 2, 1, 1, 2, 1, 1],
-  /** Roughly how often a seat is skipped inside a partly-filled box. */
   gapPercent: 7,
 };
 
-/**
- * ~200 tubes as batches, because two hundred near-identical literals would be unreviewable.
- * Fill order matters: boxes are loaded front to back in batch order, so the first two batches
- * are the two donors' baseline T cells — giving the opening box two colour groups and an
- * obvious block of free seats. Everything after stays grouped by donor.
- */
+// PITFALL: fill order matters: the first two batches fill the opening box, so they are the two donors' baseline T cells.
 const TUBE_BATCHES: DemoTubeBatch[] = [
   {
     batch: 'b01',
@@ -2168,6 +2361,7 @@ const TUBE_BATCHES: DemoTubeBatch[] = [
     donorRef: 'donor_demo07',
     researcherRef: 'r05',
     cellType: 'STEAP1/CD3 Bispecific CAR-T cells',
+    lockNote: 'Reserved for the bispecific in vivo study. Check with the PI before thawing.',
     species: 'Human',
     source: 'Stanford Blood Center',
     mediaType: 'X-VIVO 15',
@@ -2487,10 +2681,7 @@ const TUBE_BATCHES: DemoTubeBatch[] = [
   },
 ];
 
-/**
- * Two weeks of history, oldest first: the lab is stood up, stocked, filled, then worked in.
- * Timestamps are relative to the run, so a nightly reset keeps the log reading as recent.
- */
+// PITFALL: timestamps are relative to the run so a nightly reset keeps the log reading as recent.
 const AUDIT_ENTRIES: DemoAuditEntry[] = [
   {
     action: 'tank_created',

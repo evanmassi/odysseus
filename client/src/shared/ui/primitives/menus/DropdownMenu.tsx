@@ -1,10 +1,3 @@
-/**
- * Dropdown Menu
- *
- * Shared container for trigger-anchored dropdown menus with click-outside
- * detection, keyboard navigation, animated open/close, and optional portal rendering.
- */
-
 import { useState, useRef, useEffect, useLayoutEffect, type RefObject } from 'react';
 
 import { createPortal } from 'react-dom';
@@ -58,8 +51,6 @@ export function DropdownMenu({
   const [visible, setVisible] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reacts to isOpen changes only — visible is read but intentionally excluded to
-  // avoid re-triggering when visible changes (would cancel our own close timeout)
   useLayoutEffect(() => {
     if (isOpen) {
       if (closeTimeoutRef.current) {
@@ -79,7 +70,6 @@ export function DropdownMenu({
     };
   }, []);
 
-  // Click-outside detection
   useEffect(() => {
     if (!isOpen) return;
 
@@ -94,7 +84,6 @@ export function DropdownMenu({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose, triggerRef]);
 
-  // Keyboard navigation
   const { handleKeyDown, handleBlur } = useMenuKeyboardNavigation({
     menuRef,
     triggerRef,
@@ -109,7 +98,7 @@ export function DropdownMenu({
   const animationClass = isClosing ? motionClass.out : motionClass.in;
 
   const alignClass = portal ? '' : align === 'start' ? 'left-0' : 'right-0';
-  const positionClass = portal ? 'fixed z-[9999]' : 'absolute z-50';
+  const positionClass = portal ? 'fixed z-popover' : 'absolute z-50';
 
   const menu = (
     <div

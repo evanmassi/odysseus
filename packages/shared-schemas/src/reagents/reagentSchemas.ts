@@ -1,10 +1,3 @@
-/**
- * Reagent Inventory Schemas
- *
- * Validation and types for reagent categories, items, locations, lots,
- * barcodes, transactions, documents, packaging, and lab-configurable attributes.
- */
-
 import { z } from 'zod';
 
 import { attributeSummarySchema, attributeValueSchema } from '../attributes';
@@ -15,10 +8,13 @@ import {
   concentrationPreprocessorNullable,
   concentrationUnitRefinement,
 } from '../units';
-import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/dateFields';
+import {
+  dateField,
+  dateOnlyField,
+  optionalDateField,
+  optionalDateOnlyField,
+} from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
-
-// Enums
 
 export const reagentItemStatusValues = ['active', 'discontinued', 'archived'] as const;
 export const reagentItemStatusSchema = z.enum(reagentItemStatusValues);
@@ -32,11 +28,9 @@ const reagentTransactionTypeValues = [
 ] as const;
 export const reagentTransactionTypeSchema = z.enum(reagentTransactionTypeValues);
 
-// Stored lot status; `expired` is derived at read time from the expiration date.
+// PITFALL: stored lot status has no `expired`; expiry is derived at read time from the date.
 const reagentLotStatusValues = ['active', 'depleted', 'disposed'] as const;
 export const reagentLotStatusSchema = z.enum(reagentLotStatusValues);
-
-// Category schemas
 
 export const reagentCategorySchema = z.object({
   id: z.string(),
@@ -68,8 +62,6 @@ export const reagentCategoryListResponseSchema = z.object({
   categories: z.array(reagentCategorySchema),
 });
 
-// Item schemas
-
 export const reagentItemSchema = z.object({
   id: z.string(),
   labId: z.string(),
@@ -98,12 +90,31 @@ export const reagentItemSchema = z.object({
   updatedAt: dateField,
 });
 
+export const reagentLotSchema = z.object({
+  id: z.string(),
+  itemId: z.string(),
+  locationId: z.string(),
+  lotNumber: z.string().optional(),
+  quantity: z.number(),
+  expirationDate: optionalDateOnlyField,
+  openedDate: optionalDateOnlyField,
+  receivedDate: optionalDateOnlyField,
+  concentration: z.number().optional(),
+  concentrationUnit: z.string().optional(),
+  status: reagentLotStatusSchema,
+  createdAt: dateField,
+  updatedAt: dateField,
+});
+
+const reagentLotExpirationSchema = reagentLotSchema
+  .pick({ id: true, locationId: true, lotNumber: true, quantity: true })
+  .extend({ expirationDate: dateOnlyField });
+
 export const reagentItemWithStockSchema = reagentItemSchema.extend({
   totalStock: z.number(),
   lotCount: z.number().int(),
-  expiredLotCount: z.number().int(),
   locationNames: z.array(z.string()),
-  soonestExpiration: optionalDateOnlyField,
+  lotExpirations: z.array(reagentLotExpirationSchema),
   attributeValues: z.array(attributeSummarySchema),
 });
 
@@ -163,26 +174,7 @@ export const reagentItemListResponseSchema = z.object({
   items: z.array(reagentItemWithStockSchema),
 });
 
-// Lot schemas — the stock unit of a reagent (quantity, expiry, location).
-
-export const reagentLotSchema = z.object({
-  id: z.string(),
-  itemId: z.string(),
-  locationId: z.string(),
-  lotNumber: z.string().optional(),
-  quantity: z.number(),
-  expirationDate: optionalDateOnlyField,
-  openedDate: optionalDateOnlyField,
-  receivedDate: optionalDateOnlyField,
-  concentration: z.number().optional(),
-  concentrationUnit: z.string().optional(),
-  status: reagentLotStatusSchema,
-  createdAt: dateField,
-  updatedAt: dateField,
-});
-
-// Date corrections only: a lot leaves stock through a disposal transaction, so the
-// ledger records it — status is never patched directly.
+// PITFALL: date corrections only; a lot leaves stock through a ledger disposal, never a status patch.
 export const updateReagentLotRequestSchema = z.object({
   openedDate: patchText(),
   expirationDate: patchText(),
@@ -191,8 +183,6 @@ export const updateReagentLotRequestSchema = z.object({
 export const reagentLotResponseSchema = z.object({
   lot: reagentLotSchema,
 });
-
-// Barcode schemas — item-level (product) or lot-level (physical bottle) via lotId.
 
 export const reagentBarcodeSchema = z.object({
   id: z.string(),
@@ -221,8 +211,6 @@ export const reagentBarcodeResponseSchema = z.object({
   barcode: reagentBarcodeSchema,
 });
 
-// Transaction schemas — append-only ledger; each row references the lot it moved.
-
 export const reagentTransactionSchema = z.object({
   id: z.string(),
   itemId: z.string(),
@@ -250,16 +238,14 @@ export const recordReagentTransactionRequestSchema = concentrationUnitRefinement
     locationId: z.string().min(1, 'Location is required'),
     type: z.enum(['received', 'issued', 'disposed']),
     quantity: z.number().positive('Quantity must be greater than 0'),
-    // received: creates or increments a lot
     lotNumber: optionalText(200),
     expirationDate: z.string().optional(),
     openedDate: z.string().optional(),
     receivedDate: z.string().optional(),
     concentration: concentrationPreprocessor,
     concentrationUnit: optionalText(100),
-    // issued/disposed: target a specific lot, else FEFO across lots
+    // PITFALL: issued/disposed without a lotId draws first-expiring-first-out across lots.
     lotId: optionalText(50),
-    // acknowledge drawing from an expired lot (single issue only)
     includeExpired: z.boolean().optional(),
     poNumber: optionalText(200),
     cost: z.number().min(0).optional(),
@@ -267,8 +253,7 @@ export const recordReagentTransactionRequestSchema = concentrationUnitRefinement
   })
 );
 
-// A count reconciles an existing lot, so `lotId` identifies it — new stock arrives
-// through a receive, not a count.
+// PITFALL: a count reconciles an existing lot, so new stock must arrive through a receive.
 export const recordReagentStockCountRequestSchema = z.object({
   itemId: z.string().min(1, 'Item is required'),
   locationId: z.string().min(1, 'Location is required'),
@@ -298,8 +283,6 @@ export const reagentTransactionListResponseSchema = z.object({
   transactions: z.array(reagentTransactionSchema),
 });
 
-// Document schemas — shared Document shape plus the optional docType classification.
-
 export const reagentDocumentSchema = z.object({
   id: z.string(),
   itemId: z.string(),
@@ -328,8 +311,6 @@ export const reagentDocumentResponseSchema = z.object({
   document: reagentDocumentSchema,
 });
 
-// Packaging level schemas — per-item hierarchical unit chain.
-
 export const reagentPackagingLevelSchema = z.object({
   id: z.string(),
   itemId: z.string(),
@@ -348,8 +329,6 @@ export const reagentPackagingLevelResponseSchema = z.object({
   packagingLevel: reagentPackagingLevelSchema,
 });
 
-// Composed detail response
-
 export const reagentItemDetailResponseSchema = z.object({
   item: reagentItemSchema,
   lots: z.array(reagentLotSchema),
@@ -358,8 +337,6 @@ export const reagentItemDetailResponseSchema = z.object({
   packagingLevels: z.array(reagentPackagingLevelSchema),
   attributeValues: z.array(attributeValueSchema),
 });
-
-// Bulk operation schemas
 
 const itemIdsField = z.array(z.string().min(1)).min(1, 'At least one item is required').max(100);
 
@@ -421,7 +398,7 @@ export const reagentBulkBarcodesResponseSchema = z.object({
   ),
 });
 
-// One entry per lot still holding stock — a bottle label, not a product label.
+// PITFALL: one entry per lot still holding stock; a bottle label, not a product label.
 export const reagentBulkLotLabelsResponseSchema = z.object({
   lotLabels: z.array(
     z.object({
@@ -434,8 +411,6 @@ export const reagentBulkLotLabelsResponseSchema = z.object({
     })
   ),
 });
-
-// Type exports
 
 export type ReagentItemStatus = z.infer<typeof reagentItemStatusSchema>;
 export type ReagentTransactionType = z.infer<typeof reagentTransactionTypeSchema>;

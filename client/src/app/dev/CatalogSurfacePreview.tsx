@@ -1,14 +1,8 @@
-/**
- * Catalog Surface Preview (Dev Only)
- *
- * The admin catalog rail beside every pane it opens, on fixtures that edit in local state.
- */
-
 import { useMemo, useState } from 'react';
 
 import { Plus, ShieldUser } from 'lucide-react';
 
-// Dev-only preview: reaches domain internals directly, bypassing the public barrels.
+// PITFALL: dev-only preview; it reaches domain internals directly, bypassing the public barrels.
 import { AttributeDefinitionModal } from '@domains/admin/ui/components/settings-modal/tabs/AttributeDefinitionModal';
 import { AttributeSection } from '@domains/admin/ui/components/settings-modal/tabs/AttributeSection';
 import {
@@ -197,7 +191,7 @@ export function CatalogSurfacePreview({ onClose }: { onClose: () => void }) {
             leftIcon={<Plus size={14} />}
             onClick={() => setIsDefinitionModalOpen(true)}
           >
-            New attribute
+            Add Attribute
           </Button>
         }
       />

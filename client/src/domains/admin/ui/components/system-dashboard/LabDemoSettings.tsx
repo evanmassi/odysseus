@@ -1,9 +1,3 @@
-/**
- * Lab Demo Settings
- *
- * Demo lab management: per-resource limits, seed/unseed, reset.
- */
-
 import { useState } from 'react';
 
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
@@ -12,8 +6,8 @@ import { BeanOff, ChevronDown, RotateCcw, Save, Sprout } from 'lucide-react';
 import {
   Button,
   ConsolePanel,
+  Divider,
   NumberInput,
-  SectionHeader,
   SettingsRow,
   Subsection,
   UnsavedChangesIndicator,
@@ -31,7 +25,6 @@ import { useDemoLimitsQuery } from '../../../hooks/useLabQueries';
 
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
-// Every limit counts only what was added beyond the seeded dataset, which never spends the budget.
 interface LimitRow {
   key: keyof DemoLimits;
   label: string;
@@ -76,8 +69,6 @@ const CONTENT_LIMITS: LimitRow[] = [
   },
 ];
 
-// Subsection lays its children out in a two-column grid filled row-first, so interleaving the two
-// lists is what makes storage read down the left and content down the right.
 const LIMIT_ROWS: LimitRow[] = STORAGE_LIMITS.flatMap((storage, i) => [storage, CONTENT_LIMITS[i]]);
 
 interface LabDemoSettingsProps {
@@ -147,26 +138,25 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
 
   return (
     <>
-      <ConsolePanel intensity="soft">
-        <SectionHeader
-          className="px-4 pt-4"
-          title="Demo Settings"
-          meta={
-            <button
-              type="button"
-              onClick={() => setIsExpanded(o => !o)}
-              className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
-            >
-              <ChevronDown
-                size={12}
-                className={`transition-transform ${isExpanded ? '' : '-rotate-90'}`}
-              />
-              {isExpanded ? 'Hide' : 'Show'}
-            </button>
-          }
-        />
+      <Subsection
+        title="Demo Settings"
+        meta={
+          <button
+            type="button"
+            onClick={() => setIsExpanded(o => !o)}
+            className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+          >
+            <ChevronDown
+              size={12}
+              className={`transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+            />
+            {isExpanded ? 'Hide' : 'Show'}
+          </button>
+        }
+        isCompact
+      >
         {isExpanded && (
-          <>
+          <ConsolePanel intensity="soft" className="p-4">
             <Subsection title="Resource Limits" index={1}>
               {rows.map(row => (
                 <SettingsRow key={row.key} label={row.label} hint={row.hint}>
@@ -181,7 +171,8 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
                 </SettingsRow>
               ))}
             </Subsection>
-            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+            <div className="relative mt-2 flex items-center justify-between gap-4 pt-4">
+              <Divider tone="neutral" className="absolute inset-x-0 top-0" />
               <UnsavedChangesIndicator count={changedCount} />
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <Button
@@ -225,9 +216,9 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
                 </Button>
               </div>
             </div>
-          </>
+          </ConsolePanel>
         )}
-      </ConsolePanel>
+      </Subsection>
 
       <ConfirmDialog
         isOpen={resetDemoConfirm}

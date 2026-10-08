@@ -1,12 +1,3 @@
-/**
- * Reagent Per-Lot Stock Ledger
- *
- * Exercises the atomic lot-aware recordTransaction against real Postgres:
- * receiving into lots, the label minted with each new lot, FEFO issues spanning lots
- * (one row per lot), expired-lot handling, insufficient-stock rejection, and void
- * restoring a lot.
- */
-
 import { ReagentItemRepository } from '@infrastructure/repositories/ReagentItemRepository';
 
 import { createSeed, type TestSeed } from './setup/factories';
@@ -54,16 +45,22 @@ describe('reagent per-lot stock ledger', () => {
     return { lab, user, item, location, base, record };
   }
 
-  it('receives into a lot and rolls up on-hand and soonest expiry', async () => {
-    const { lab, item, record } = await scenario();
+  it('receives into a lot and rolls up on-hand and lot expirations', async () => {
+    const { lab, item, location, record } = await scenario();
     await record({ type: 'received', quantity: 60, lotNumber: 'A', expirationDate: EARLY });
 
     const withStock = await repo.findByLabIdWithStock(lab.id);
     expect(withStock[0].item.id).toBe(item.id);
     expect(withStock[0].totalStock).toBe(60);
-    expect(withStock[0].soonestExpiration).toBe(EARLY);
     expect(withStock[0].lotCount).toBe(1);
-    expect(withStock[0].expiredLotCount).toBe(0);
+    expect(withStock[0].lotExpirations).toEqual([
+      expect.objectContaining({
+        locationId: location.id,
+        lotNumber: 'A',
+        quantity: 60,
+        expirationDate: EARLY,
+      }),
+    ]);
   });
 
   it('mints one internal barcode per new lot, carrying the lot it labels', async () => {
@@ -91,15 +88,19 @@ describe('reagent per-lot stock ledger', () => {
     expect(new Set(lotBarcodes.map(bc => bc.barcodeValue)).size).toBe(2);
   });
 
-  it('counts lots and flags only the expired ones', async () => {
+  it('lists each dated lot earliest first and skips undated ones', async () => {
     const { lab, record } = await scenario();
-    await record({ type: 'received', quantity: 10, lotNumber: 'A', expirationDate: '2020-01-01' });
     await record({ type: 'received', quantity: 20, lotNumber: 'B', expirationDate: LATE });
+    await record({ type: 'received', quantity: 10, lotNumber: 'A', expirationDate: '2020-01-01' });
+    await record({ type: 'received', quantity: 5, lotNumber: 'C' });
 
     const [withStock] = await repo.findByLabIdWithStock(lab.id);
-    expect(withStock.totalStock).toBe(30);
-    expect(withStock.lotCount).toBe(2);
-    expect(withStock.expiredLotCount).toBe(1);
+    expect(withStock.totalStock).toBe(35);
+    expect(withStock.lotCount).toBe(3);
+    expect(withStock.lotExpirations.map(lot => [lot.lotNumber, lot.expirationDate])).toEqual([
+      ['A', '2020-01-01'],
+      ['B', LATE],
+    ]);
   });
 
   it('issues FEFO across lots earliest-expiry first, one row per lot', async () => {

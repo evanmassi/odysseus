@@ -1,10 +1,3 @@
-/**
- * Tree Lines By Location
- *
- * Draws SVG connecting lines for tank → rack → box hierarchy.
- * Used by StorageNavigator and the By Location tab of StorageManagerModal.
- */
-
 import { useCallback } from 'react';
 
 import {
@@ -18,7 +11,6 @@ interface TreeLinesByLocationProps {
   expandedRacks: Set<string>;
   treeId?: string;
   initialDelay?: number;
-  lineOffset?: number;
 }
 
 export function TreeLinesByLocation({
@@ -26,7 +18,6 @@ export function TreeLinesByLocation({
   expandedRacks,
   treeId,
   initialDelay,
-  lineOffset,
 }: TreeLinesByLocationProps) {
   const calculate = useCallback(
     () =>
@@ -35,9 +26,8 @@ export function TreeLinesByLocation({
         topLevelAttr: 'tank',
         isTopExpanded: id => expandedTanks.has(id),
         isRackExpanded: (tankId, rackId) => expandedRacks.has(`${tankId}-${rackId}`),
-        lineOffset,
       }),
-    [expandedTanks, expandedRacks, treeId, lineOffset]
+    [expandedTanks, expandedRacks, treeId]
   );
 
   const lines = useTreeLines(calculate, initialDelay ? { initialDelay } : undefined);

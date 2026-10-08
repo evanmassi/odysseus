@@ -1,10 +1,3 @@
-/**
- * Supply Item Form
- *
- * React Hook Form for creating and editing supply items with lookup-driven
- * dropdowns, packaging hierarchy management, and multi-select properties.
- */
-
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,7 +28,7 @@ import {
   CompletenessMeter,
   Input,
   lookupOptions,
-  NubDivider,
+  Divider,
   SectionHeader,
   Select,
   withPlaceholder,
@@ -116,7 +109,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const savedDraftsRef = useRef<AttributeDrafts>({});
   const seededItemIdRef = useRef<string>();
 
-  // Detail arrives after mount, and the panel reuses this component across items.
   useEffect(() => {
     if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
     const seeded = draftsFromValues(detail.attributeValues);
@@ -125,7 +117,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     seededItemIdRef.current = item.id;
   }, [isEditing, detail?.attributeValues, item?.id]);
 
-  // Packaging — local state for create, server data for edit
   const [localPackagingLevels, setLocalPackagingLevels] = useState<LocalPackagingLevel[]>([]);
   const packagingLevels = useMemo(
     () => (isEditing ? (detail?.packagingLevels ?? []) : localPackagingLevels),
@@ -134,14 +125,11 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
   const [newLevelQty, setNewLevelQty] = useState('');
   const [newLevelUnit, setNewLevelUnit] = useState('');
-  // '__base__' = parent to the base item, '' = unset (defaults to the top of the chain), else a unit.
   const [newLevelParent, setNewLevelParent] = useState('');
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
   const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
   const [thresholdInputQty, setThresholdInputQty] = useState('');
-  // Stop the initializer below from overwriting the field once the user has edited it — otherwise
-  // adding a packaging level (which changes packagingLevels) resets the display to the stored value
-  // while the form still holds the user's number.
+  // PITFALL: without this guard, adding a packaging level re-runs the initializer and resets the display while the form keeps the user's number.
   const thresholdUserEdited = useRef(false);
 
   useEffect(() => {
@@ -181,7 +169,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
   const vendorOptions = useMemo(() => lookupOptions(vendors), [vendors]);
 
-  // Available units for the add-level "unit" dropdown (exclude already-used names)
   const availableUnitOptions = useMemo(() => {
     const usedNames = new Set(packagingLevels.map(l => l.unitName));
     return withPlaceholder(
@@ -195,7 +182,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     );
   }, [packagingLevels, unitOptions.pack]);
 
-  // Parent options for the add-level "per" dropdown
   const parentOptions: SelectOption[] = useMemo(
     () => [
       { value: '__base__', label: 'base item' },
@@ -321,16 +307,12 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     [isEditing, item, removePackagingMutation]
   );
 
-  // Blank clears the field on edit (null) but stays absent on create (undefined).
   const cleared = isEditing ? null : undefined;
   const numberField = (value: string) => (value === '' ? cleared : Number(value));
-  // RHF types these off the create-shaped defaults, so the null clear sentinel needs a cast.
+  // PITFALL: RHF types these off the create-shaped defaults, so the null clear sentinel needs a cast.
   const setThresholdValue = (name: 'reorderThreshold' | 'reorderThresholdUnit', value: unknown) =>
     setValue(name, value as never);
 
-  // Attribute values are their own endpoint, so they sequence off a saved item the way packaging
-  // levels do. Failures are reported by the global handler; the count comes back so the caller
-  // can say the item saved without claiming its attributes did.
   const saveAttributeValues = async (itemId: string): Promise<number> => {
     const requests = changedAttributeRequests(
       savedDraftsRef.current,
@@ -363,7 +345,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       } else {
         const created = await createMutation.mutateAsync(data as CreateSupplyItemRequest);
 
-        // Save manufacturer barcode
         if (manufacturerBarcode.trim()) {
           try {
             await SupplyService.addBarcode(created.id, {
@@ -376,7 +357,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
           }
         }
 
-        // Save packaging levels
         for (const level of localPackagingLevels) {
           try {
             await SupplyService.addPackagingLevel(created.id, {
@@ -395,9 +375,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       }
       onSubmit();
     } catch {
-      // Kept as mutateAsync: the create is awaited so the barcode + packaging follow-ups sequence
-      // off the new item id, and RHF's isSubmitting spans the whole flow. The global handler still
-      // toasts create/update failures.
+      // PITFALL: mutateAsync is kept because the barcode and packaging writes need the new item id, and isSubmitting must span the whole flow.
     }
   };
 
@@ -811,7 +789,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       </ScrollArea>
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: devpassword
       POSTGRES_DB: odysseus_dev
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - odysseus_pgdata:/var/lib/postgresql/data
 

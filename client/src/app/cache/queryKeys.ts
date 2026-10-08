@@ -1,10 +1,4 @@
-/**
- * Query Keys for React Query
- *
- * Hierarchical query key structure for TanStack Query.
- * Lab-scoped domains include labId for cache partitioning between tenants.
- * Default labId of '' is inert — queries using it should be disabled via enabled: !!labId.
- */
+// PITFALL: a default labId of '' is inert; queries using it must be disabled with enabled: !!labId.
 
 import type {
   AdvancedSearchOptions,
@@ -14,7 +8,6 @@ import type {
 } from '@odysseus/shared-schemas';
 
 export const queryKeys = {
-  // Users — per-user keys are not lab-scoped; list/presence/lookup are lab-scoped
   users: {
     all: ['users'] as const,
     settings: () => [...queryKeys.users.all, 'settings'] as const,
@@ -26,13 +19,11 @@ export const queryKeys = {
     presence: (labId = '') => [...queryKeys.users.all, labId, 'presence'] as const,
   },
 
-  // Auth (public — first-time setup detection, password policy; not lab-scoped)
   auth: {
     firstTime: () => ['auth', 'first-time'] as const,
     passwordRequirements: () => ['auth', 'password-requirements'] as const,
   },
 
-  // Admin (lab-scoped)
   admin: {
     all: (labId = '') => ['admin', labId] as const,
     users: (labId = '') => [...queryKeys.admin.all(labId), 'users'] as const,
@@ -41,16 +32,15 @@ export const queryKeys = {
     researchers: (labId = '') => [...queryKeys.admin.all(labId), 'researchers'] as const,
     unlinkedResearchers: (labId = '') =>
       [...queryKeys.admin.all(labId), 'unlinkedResearchers'] as const,
-    // Global (not lab-scoped): a single security-config row shared across the app.
     securityConfig: () => ['admin', 'securityConfig'] as const,
     versionInfo: () => ['admin', 'versionInfo'] as const,
     metrics: (labId = '') => [...queryKeys.admin.all(labId), 'metrics'] as const,
+    auditLogAll: () => ['admin', 'auditLog'] as const,
     auditLog: (labId: string, filters: AuditLogFilters, includeArchive: boolean) =>
-      ['admin', 'auditLog', labId, filters, includeArchive] as const,
-    auditRetention: () => ['admin', 'auditRetention'] as const,
+      [...queryKeys.admin.auditLogAll(), labId, filters, includeArchive] as const,
+    auditRetention: () => [...queryKeys.admin.auditLogAll(), 'retention'] as const,
   },
 
-  // Tubes (lab-scoped)
   tubes: {
     root: ['tubes'] as const,
     all: (labId = '') => [...queryKeys.tubes.root, labId] as const,
@@ -71,7 +61,6 @@ export const queryKeys = {
       ] as const,
   },
 
-  // Researchers (lab-scoped)
   researchers: {
     root: ['researchers'] as const,
     all: (labId = '') => [...queryKeys.researchers.root, labId] as const,
@@ -79,7 +68,6 @@ export const queryKeys = {
     visible: (labId = '') => [...queryKeys.researchers.all(labId), 'visible'] as const,
   },
 
-  // Search (lab-scoped)
   search: {
     all: (labId = '') => ['search', labId] as const,
     tubes: (labId = '') => [...queryKeys.search.all(labId), 'tubes'] as const,
@@ -87,7 +75,6 @@ export const queryKeys = {
       [...queryKeys.search.tubes(labId), 'search', options] as const,
   },
 
-  // Donors (lab-scoped)
   donors: {
     all: (labId = '') => ['donors', labId] as const,
     list: (labId = '') => [...queryKeys.donors.all(labId), 'list'] as const,
@@ -97,7 +84,6 @@ export const queryKeys = {
       [...queryKeys.donors.all(labId), 'collection-history', donorId] as const,
   },
 
-  // Equipment (lab-scoped)
   equipment: {
     all: (labId = '') => ['equipment', labId] as const,
     categories: (labId = '') => [...queryKeys.equipment.all(labId), 'categories'] as const,
@@ -105,7 +91,6 @@ export const queryKeys = {
     detail: (labId = '', id: string) => [...queryKeys.equipment.all(labId), 'detail', id] as const,
   },
 
-  // Supplies (lab-scoped)
   supplies: {
     all: (labId = '') => ['supplies', labId] as const,
     categories: (labId = '') => [...queryKeys.supplies.all(labId), 'categories'] as const,
@@ -115,22 +100,18 @@ export const queryKeys = {
       [...queryKeys.supplies.all(labId), 'transactions', itemId] as const,
   },
 
-  // Lab locations (lab-scoped, shared by every catalog)
   labLocations: {
     all: (labId = '') => ['labLocations', labId] as const,
   },
 
-  // Item attributes — definitions and their options, lab-wide
   attributes: {
     all: (labId = '') => ['attributes', labId] as const,
   },
 
-  // Custom units (lab-scoped supplement to the unit registry)
   customUnits: {
     all: (labId = '') => ['customUnits', labId] as const,
   },
 
-  // Reagents (lab-scoped)
   reagents: {
     all: (labId = '') => ['reagents', labId] as const,
     categories: (labId = '') => [...queryKeys.reagents.all(labId), 'categories'] as const,
@@ -138,19 +119,17 @@ export const queryKeys = {
     detail: (labId = '', id: string) => [...queryKeys.reagents.all(labId), 'detail', id] as const,
     transactions: (labId = '', itemId: string) =>
       [...queryKeys.reagents.all(labId), 'transactions', itemId] as const,
-    // Keyed by the selected items; callers pass a sorted list so the key is stable.
+    // PITFALL: callers pass a sorted list so the key stays stable.
     lotLabels: (labId = '', itemIds: string[]) =>
       [...queryKeys.reagents.all(labId), 'lotLabels', itemIds] as const,
   },
 
-  // Lookups (lab-scoped)
   lookups: {
     all: (labId = '') => ['lookups', labId] as const,
     byCategory: (labId = '', category: LookupCategory) =>
       [...queryKeys.lookups.all(labId), category] as const,
   },
 
-  // Labs (not lab-scoped — already parameterized by labId)
   labs: {
     all: ['labs'] as const,
     list: () => [...queryKeys.labs.all, 'list'] as const,
@@ -159,7 +138,6 @@ export const queryKeys = {
     demoLimits: (labId: string) => [...queryKeys.labs.all, 'demoLimits', labId] as const,
   },
 
-  // Security (not lab-scoped — system admin only)
   security: {
     all: ['security'] as const,
     overview: () => [...queryKeys.security.all, 'overview'] as const,
@@ -172,14 +150,12 @@ export const queryKeys = {
       [...queryKeys.security.all, 'sessionActivity', hours] as const,
   },
 
-  // Storage (lab-scoped)
   storage: {
     root: ['storage'] as const,
     all: (labId = '') => [...queryKeys.storage.root, labId] as const,
     data: (labId = '') => [...queryKeys.storage.all(labId), 'data'] as const,
   },
 
-  // Storage Analytics (not lab-scoped — system admin cross-lab or parameterized by labId)
   storageAnalytics: {
     all: ['storageAnalytics'] as const,
     lab: (labId: string) => [...queryKeys.storageAnalytics.all, 'lab', labId] as const,

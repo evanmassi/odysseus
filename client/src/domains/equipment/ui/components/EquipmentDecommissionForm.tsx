@@ -1,16 +1,10 @@
-/**
- * Equipment Decommission Form
- *
- * Form for permanently retiring equipment with date, reason, and disposal method.
- */
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { decommissionEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
 import { Power } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import { useDecommissionEquipmentItemMutation } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, DatePicker, NubDivider } from '@shared/ui';
+import { Button, DatePicker, Divider } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -120,7 +114,7 @@ export function EquipmentDecommissionForm({
       </ScrollArea>
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="warning" className="absolute inset-x-0 -top-px" />
+        <Divider tone="warning" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

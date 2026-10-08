@@ -1,14 +1,7 @@
-/**
- * Reagents Tab
- *
- * Main composition for the reagent catalog: category browser on the left,
- * item detail column on the right.
- */
-
 import { useState, useCallback, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Biohazard, Eye, EyeOff, Layers, Plus, SlidersHorizontal } from 'lucide-react';
+import { Biohazard, Eye, EyeOff, SlidersHorizontal } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useAttributesQuery } from '@domains/lab-management';
@@ -19,6 +12,7 @@ import {
   useReagentItemsQuery,
   useUpdateReagentCategoryMutation,
 } from '@domains/reagents/hooks';
+import { resolveReagentStatusTone } from '@domains/reagents/utils/reagentStatus';
 import { useDemoTaxonomyLock } from '@domains/storage';
 import {
   AccentTick,
@@ -27,17 +21,17 @@ import {
   InfoPanelEmpty,
   PanelHeader,
   SearchInput,
-  Tooltip,
 } from '@shared/ui';
 import {
+  CatalogActionBar,
   CategoryManager,
-  useCatalogCategories,
   CategoryTreePanel,
+  type CategoryTreePanelLabels,
   INVENTORY_SORT_OPTIONS,
+  type InventorySortField,
   searchCatalogItems,
   SortControls,
-  type CategoryTreePanelLabels,
-  type InventorySortField,
+  useCatalogCategories,
 } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -118,7 +112,6 @@ export function ReagentsTab() {
     updateMutation: updateCategoryMutation,
     deleteMutation: deleteCategoryMutation,
   });
-  const { categoryNameMap } = categoryState;
 
   const handleSelectItem = useCallback((id: string) => {
     setSelectedItemId(id);
@@ -190,6 +183,9 @@ export function ReagentsTab() {
   const itemCount = treeItems.length;
   const categoryCount = categories.filter(c => !c.parentId).length;
 
+  const infoPanelItem =
+    rightPanel?.type === 'info' ? items.find(item => item.id === rightPanel.itemId) : undefined;
+
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
@@ -197,7 +193,7 @@ export function ReagentsTab() {
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
         >
-          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <div className="flex-shrink-0">
             <PanelHeader icon={<Biohazard className="h-4 w-4" />} title="Reagents" />
           </div>
 
@@ -215,21 +211,32 @@ export function ReagentsTab() {
             </span>
           </HeaderStrip>
 
-          <div className="flex flex-shrink-0 flex-wrap items-center gap-2 border-b border-line-faint px-3 py-2">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search reagents…"
-              size="sm"
-              className="w-64 min-w-[9rem]"
-              aria-label="Search reagents"
-            />
-            <div className="flex items-center gap-2">
-              <ReagentQuickScanBar
-                items={items}
-                onViewItem={handleScannedItem}
-                onRecordTransaction={handleScannedTransaction}
+          <div className="flex flex-shrink-0 flex-col gap-2 border-b border-line-faint px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search reagents…"
+                size="sm"
+                className="min-w-[9rem] max-w-64 flex-1"
+                aria-label="Search reagents"
               />
+              <div className="flex items-center gap-2">
+                <ReagentQuickScanBar
+                  items={items}
+                  onViewItem={handleScannedItem}
+                  onRecordTransaction={handleScannedTransaction}
+                />
+              </div>
+              {isAdmin && (
+                <CatalogActionBar
+                  addItemLabel="Add Item"
+                  isTaxonomyLocked={isTaxonomyLocked}
+                  onBulkOperations={() => setIsBulkUpdateOpen(true)}
+                  onAddCategory={categoryState.onAddCategory}
+                  onAddItem={() => setRightPanel({ type: 'edit' })}
+                />
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <SortControls
@@ -240,13 +247,13 @@ export function ReagentsTab() {
                 options={INVENTORY_SORT_OPTIONS}
               />
               <Button
-                variant="ghost"
+                variant={isFilterOpen || activeFilterCount > 0 ? 'ghost-primary' : 'ghost'}
                 size="sm"
                 onClick={() => setIsFilterOpen(open => !open)}
                 aria-expanded={isFilterOpen}
                 className={`h-8 flex-shrink-0 text-label-sm ${
                   isFilterOpen || activeFilterCount > 0
-                    ? 'border border-primary/55 bg-primary/[0.10] text-primary'
+                    ? 'border border-primary/55 bg-primary/[0.10]'
                     : ''
                 }`}
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
@@ -269,30 +276,6 @@ export function ReagentsTab() {
                 {showArchived ? 'Hide' : 'Show'} Archived
               </Button>
             </div>
-            {isAdmin && (
-              <div className="ml-auto flex items-center gap-2">
-                <Tooltip content="Bulk Operations" side="bottom">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    iconOnly
-                    onClick={() => setIsBulkUpdateOpen(true)}
-                    className="h-8 flex-shrink-0"
-                    aria-label="Bulk Operations"
-                  >
-                    <Layers className="h-3.5 w-3.5" />
-                  </Button>
-                </Tooltip>
-                <Button
-                  size="sm"
-                  onClick={() => setRightPanel({ type: 'edit' })}
-                  className="h-8 flex-shrink-0"
-                  leftIcon={<Plus className="h-3.5 w-3.5" />}
-                >
-                  Add Item
-                </Button>
-              </div>
-            )}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
@@ -318,6 +301,7 @@ export function ReagentsTab() {
               <CategoryTreePanel
                 categories={categories}
                 items={treeItems}
+                selectedItemId={selectedItemId}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
                 isTaxonomyLocked={isTaxonomyLocked}
@@ -332,7 +316,6 @@ export function ReagentsTab() {
                 )}
                 treeId="reagents"
                 labels={TREE_LABELS}
-                onAddCategory={categoryState.onAddCategory}
                 onAddSubcategory={categoryState.onAddSubcategory}
                 onRenameCategory={categoryState.onRenameCategory}
                 onDeleteCategory={categoryState.onDeleteCategory}
@@ -356,13 +339,11 @@ export function ReagentsTab() {
           {rightPanel?.type === 'info' && (
             <ReagentItemInfoPanel
               itemId={rightPanel.itemId}
+              statusTone={infoPanelItem ? resolveReagentStatusTone(infoPanelItem) : 'muted'}
               onEdit={handleEditItem}
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}
               onDeleted={handleItemDeleted}
-              categoryName={categoryNameMap.get(
-                items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
-              )}
             />
           )}
 

@@ -1,12 +1,3 @@
-/**
- * Reagent Item Repository
- *
- * PostgreSQL implementation for reagent items, documents, barcodes, per-lot
- * stock, and transactions. Stock lives in lots: receiving finds-or-creates a
- * lot, FEFO issues draw across lots (one transaction row per lot moved), and a
- * count reconciles a single lot — all inside one transaction.
- */
-
 import type { DocumentPatch } from '@domain/entities/Document';
 import { ReagentDocument } from '@domain/entities/ReagentDocument';
 import type { ReagentItem } from '@domain/entities/ReagentItem';
@@ -68,13 +59,22 @@ const TXN_COLUMNS = `id, item_id, lot_id, location_id, lab_id, type, quantity_ch
   po_number, cost, performed_by, notes, created_at, voided_at, voided_by, void_reason, related_transaction_id,
   is_seeded`;
 
-// Shared prefix for the item-with-stock query; on-hand and soonest expiry roll up from active lots.
 const ITEM_WITH_STOCK_SELECT = `
   SELECT p.*,
     COALESCE(SUM(lt.quantity), 0) as total_stock,
     COUNT(lt.id) FILTER (WHERE lt.quantity > 0) as lot_count,
-    COUNT(lt.id) FILTER (WHERE lt.quantity > 0 AND lt.expiration_date < CURRENT_DATE) as expired_lot_count,
-    MIN(lt.expiration_date) FILTER (WHERE lt.quantity > 0) as soonest_expiration,
+    COALESCE(
+      json_agg(
+        json_build_object(
+          'id', lt.id,
+          'locationId', lt.location_id,
+          'lotNumber', lt.lot_number,
+          'quantity', lt.quantity,
+          'expirationDate', lt.expiration_date
+        ) ORDER BY lt.expiration_date
+      ) FILTER (WHERE lt.quantity > 0 AND lt.expiration_date IS NOT NULL),
+      '[]'
+    ) as lot_expirations,
     COALESCE(
       array_agg(DISTINCT loc.name ORDER BY loc.name) FILTER (WHERE loc.name IS NOT NULL AND lt.quantity > 0),
       '{}'
@@ -86,9 +86,14 @@ const ITEM_WITH_STOCK_SELECT = `
 type ItemWithStockRow = ReagentItemRow & {
   total_stock: string;
   lot_count: string;
-  expired_lot_count: string;
-  soonest_expiration: string | null;
   location_names: string[];
+  lot_expirations: Array<{
+    id: string;
+    locationId: string;
+    lotNumber: string | null;
+    quantity: number;
+    expirationDate: string;
+  }>;
 };
 
 function todayIso(): string {
@@ -109,8 +114,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
       'reagent_items'
     );
   }
-
-  // Items
 
   async findById(id: string, labId: string): Promise<ReagentItem | null> {
     const row = await this.db.queryOne<ReagentItemRow>(
@@ -207,8 +210,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return parseInt(row?.count ?? '0', 10) > 0;
   }
 
-  // Documents
-
   async findDocumentsByItemId(itemId: string): Promise<ReagentDocument[]> {
     return this.documents.findByItemId(itemId);
   }
@@ -228,8 +229,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
   async deleteDocument(id: string, itemId: string): Promise<boolean> {
     return this.documents.delete(id, itemId);
   }
-
-  // Barcodes
 
   async findBarcodesByItemId(itemId: string): Promise<ReagentBarcodeRow[]> {
     const rows = await this.db.queryMany<ReagentBarcodeDbRow>(
@@ -253,7 +252,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return ReagentBarcodeMapper.fromRows(rows);
   }
 
-  // Only lots still holding stock: a spent or disposed bottle needs no label.
+  // PITFALL: only lots still holding stock; a spent or disposed bottle needs no label.
   async findLotLabelsByItemIds(itemIds: string[], labId: string): Promise<ReagentLotLabelRow[]> {
     const rows = await this.db.queryMany<ReagentLotLabelDbRow>(
       `SELECT b.item_id, b.barcode_value, l.id AS lot_id, l.lot_number, l.expiration_date,
@@ -344,8 +343,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // Lots
-
   async findLotsByItemId(itemId: string): Promise<ReagentLotRow[]> {
     const rows = await this.db.queryMany<ReagentLotDbRow>(
       `SELECT ${LOT_COLUMNS} FROM reagent_lots WHERE item_id = $1
@@ -354,8 +351,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
     );
     return ReagentLotMapper.fromRows(rows);
   }
-
-  // Transactions — atomic and lot-aware; a FEFO issue returns one row per lot moved.
 
   async updateLot(
     id: string,
@@ -570,8 +565,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
     );
     const lot = inserted.rows[0];
 
-    // A lot is a physical bottle, so it gets its own label the moment it exists — printing it
-    // later is fine, minting it later would leave whatever was shelved unscannable.
+    // PITFALL: a lot gets its label the moment it exists; minting it later would leave shelved bottles unscannable.
     await client.query(
       `INSERT INTO reagent_barcodes (${BARCODE_COLUMNS})
        VALUES ($1, $2, $3, $4, 'internal', false, NULL)`,
@@ -604,11 +598,12 @@ export class ReagentItemRepository implements IReagentItemRepository {
       cost?: number;
       notes?: string;
       relatedTransactionId?: string | null;
+      occurredAt?: Date;
     }
   ): Promise<ReagentTransactionRow> {
     const res = await client.query<ReagentTransactionDbRow>(
       `INSERT INTO reagent_transactions (${TXN_COLUMNS})
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NULL, NULL, NULL, $13, FALSE)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($14, NOW()), NULL, NULL, NULL, $13, FALSE)
        RETURNING ${TXN_COLUMNS}`,
       [
         generateId('rtxn'),
@@ -624,6 +619,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
         t.performedBy,
         t.notes ?? null,
         t.relatedTransactionId ?? null,
+        t.occurredAt ?? null,
       ]
     );
     return ReagentTransactionMapper.fromRow(res.rows[0]);
@@ -687,8 +683,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
     });
   }
 
-  // Lookup support
-
   async countItemsUsingReagentType(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM reagent_items WHERE reagent_type = $1 AND lab_id = $2',
@@ -737,8 +731,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
     return result.rowCount ?? 0;
   }
 
-  // Attribute values
-
   async findAttributeValuesByItemId(itemId: string): Promise<AttributeValueRow[]> {
     return this.attributeValues.findByItemId(itemId);
   }
@@ -754,8 +746,6 @@ export class ReagentItemRepository implements IReagentItemRepository {
   ): Promise<void> {
     await this.attributeValues.replace(itemId, definitionId, values);
   }
-
-  // Packaging levels
 
   async findPackagingLevelsByItemId(itemId: string): Promise<ReagentPackagingLevelRow[]> {
     const rows = await this.db.queryMany<ReagentPackagingLevelDbRow>(
@@ -784,9 +774,14 @@ export class ReagentItemRepository implements IReagentItemRepository {
       item: ReagentItemMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
       lotCount: parseInt(row.lot_count, 10),
-      expiredLotCount: parseInt(row.expired_lot_count, 10),
       locationNames: row.location_names ?? [],
-      soonestExpiration: row.soonest_expiration ?? undefined,
+      lotExpirations: row.lot_expirations.map(lot => ({
+        id: lot.id,
+        locationId: lot.locationId,
+        lotNumber: lot.lotNumber ?? undefined,
+        quantity: Number(lot.quantity),
+        expirationDate: lot.expirationDate,
+      })),
     };
   }
 
@@ -799,7 +794,7 @@ export class ReagentItemRepository implements IReagentItemRepository {
   }
 
   async deleteAllForLab(labId: string): Promise<number> {
-    // The ledger is NO ACTION so it goes first; everything else cascades from the item.
+    // PITFALL: the ledger is NO ACTION so it goes first; everything else cascades from the item.
     await this.db.execute('DELETE FROM reagent_transactions WHERE lab_id = $1', [labId]);
     const result = await this.db.execute('DELETE FROM reagent_items WHERE lab_id = $1', [labId]);
     return result.rowCount ?? 0;

@@ -279,6 +279,8 @@ export function setupQueryPersistence(): void {
     queryClient,
     persister,
     maxAge: MS_PER_DAY,
+    // PITFALL: a new build discards the saved cache; rehydrating rows shaped by an older build crashes on fields the code now expects.
+    buster: __BUILD_ID__,
     dehydrateOptions: {
       shouldDehydrateQuery: query => {
         const defaultShouldDehydrate = query.state.status === 'success';

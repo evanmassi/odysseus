@@ -1,7 +1,7 @@
 {
   "name": "odysseus",
-  "version": "1.0.0",
-  "description": "Professional Liquid Nitrogen Tube Inventory Management System",
+  "version": "3.0.1",
+  "description": "Lab management for research groups: sample storage, donors, equipment, supplies and reagents",
   "scripts": {
     "predev": "node scripts/ensure-docker.mjs && docker compose up -d postgres && npm run build:shared",
     "dev": "concurrently \"npm --workspace @odysseus/shared-schemas run watch\" \"npm run dev:server\" \"npm run dev:client\"",
@@ -17,6 +17,7 @@
     "test": "npm run test:server && npm run test:client",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
+    "prelint": "npm run build:shared",
     "lint": "npm run lint:client && npm run lint:server && npm run lint:shared",
     "lint:fix": "npm run lint:client:fix && npm run lint:server:fix && npm run lint:shared:fix",
     "lint:client": "cd client && npm run lint",
@@ -50,7 +51,7 @@
     "rimraf": "^6.1.0"
   },
   "author": "Evan Massi",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "lint-staged": {
     "{client,server}/**/*.{ts,tsx}": [
       "eslint --fix",

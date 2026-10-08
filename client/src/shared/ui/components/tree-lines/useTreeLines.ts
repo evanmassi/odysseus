@@ -1,12 +1,6 @@
-/**
- * Tree Line Calculation Hook
- *
- * Shared infrastructure for SVG tree-line overlays. Handles observer setup,
- * throttled recalculation, and cleanup. Consumers provide a
- * calculateLines callback with their specific DOM-walking logic.
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+export type TreeNodeTone = 'default' | 'full';
 
 export interface TreeLine {
   id: string;
@@ -15,9 +9,9 @@ export interface TreeLine {
   x2: number;
   y2: number;
   strokeWidth: number;
+  startNode?: TreeNodeTone;
+  endNode?: TreeNodeTone;
 }
-
-export const LINE_OFFSET = 11;
 
 const RESIZE_THROTTLE_MS = 16;
 
@@ -60,7 +54,6 @@ export function useTreeLines(
     }
   }, [calculate]);
 
-  // One-time initial calculation, with optional delay for modal entrance animations
   useEffect(() => {
     if (initialDelay > 0) {
       const timer = setTimeout(() => {
@@ -80,7 +73,6 @@ export function useTreeLines(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Runs once on mount; subsequent recalcs are handled by the effect below
   }, []);
 
-  // Recalculate on next frame when expand/collapse state changes (after initial)
   useEffect(() => {
     if (!hasInitializedRef.current) return;
 

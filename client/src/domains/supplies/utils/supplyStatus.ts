@@ -1,10 +1,7 @@
-/**
- * Supply Status Display
- *
- * Chip color + label for each supply item status, shared by the item row and info panel.
- */
+import { resolveStockTone } from '@shared/utils/stockLevel';
 
-import type { SupplyItemStatus } from '@odysseus/shared-schemas';
+import type { SupplyItemStatus, SupplyItemWithStock } from '@odysseus/shared-schemas';
+import type { ItemRowStatusTone } from '@shared/ui/components/inventory';
 
 export const SUPPLY_STATUS_DISPLAY: Record<
   SupplyItemStatus,
@@ -14,3 +11,9 @@ export const SUPPLY_STATUS_DISPLAY: Record<
   discontinued: { color: 'warning', label: 'Discontinued' },
   archived: { color: 'danger', label: 'Archived' },
 };
+
+export function resolveSupplyStatusTone(item: SupplyItemWithStock): ItemRowStatusTone {
+  if (item.status === 'archived') return 'muted';
+  const stockTone = resolveStockTone(item.totalStock, item.reorderThreshold);
+  return stockTone === 'default' ? 'success' : stockTone;
+}

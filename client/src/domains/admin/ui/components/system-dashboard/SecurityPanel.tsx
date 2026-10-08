@@ -1,10 +1,4 @@
-/**
- * Security Panel
- *
- * System-wide session and token monitoring for system admins.
- */
-
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   AlertTriangle,
@@ -13,21 +7,20 @@ import {
   LogOut,
   MonitorX,
   RefreshCw,
-  Shield,
   Trash2,
   UsersRound,
 } from 'lucide-react';
 
+import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
-import { useResolvedTheme } from '@shared/hooks';
+import { useRefreshQueryGroup, useResolvedTheme } from '@shared/hooks';
 import {
   Button,
   Chip,
   ConsolePanel,
-  PanelHeader,
-  SectionHeader,
   StatCell,
   STAT_STRIP,
+  Subsection,
   Table,
   DatePicker,
   SearchInput,
@@ -66,7 +59,7 @@ const STRONG_DENIAL_KEYWORDS = ['suspended', 'deactivated', 'denied', 'rejected'
 function getReasonTone(reason: string): string {
   const lower = reason.toLowerCase();
   const isStrong = STRONG_DENIAL_KEYWORDS.some(kw => lower.includes(kw));
-  return isStrong ? 'phosphor-text text-danger-text-hover' : 'phosphor-text text-danger-text';
+  return isStrong ? 'text-danger-text-hover' : 'text-danger-text';
 }
 
 function formatDateStacked(value: Date) {
@@ -75,7 +68,6 @@ function formatDateStacked(value: Date) {
   return { date, time };
 }
 
-/** Stacked date / time / relative-time cell; `own` tints it as the viewer's own session. */
 function renderTimeCell(value: Date, own = false) {
   const { date, time } = formatDateStacked(value);
   return (
@@ -91,13 +83,9 @@ function renderTimeCell(value: Date, own = false) {
 
 export function SecurityPanel() {
   const user = useAuthStore(s => s.user);
-  const { data: overview, refetch: refetchOverview } = useSecurityOverviewQuery();
-  const {
-    data: sessionsData,
-    isLoading: sessionsLoading,
-    isFetching: sessionsFetching,
-    refetch: refetchSessions,
-  } = useActiveSessionsQuery();
+  const { data: overview } = useSecurityOverviewQuery();
+  const { data: sessionsData, isLoading: sessionsLoading } = useActiveSessionsQuery();
+  const { refresh: doRefresh } = useRefreshQueryGroup(queryKeys.security.all);
 
   const [filterText, setFilterText] = useState('');
   const [sessionSortConfig, setSessionSortConfig] = useState<SortConfig | undefined>({
@@ -113,26 +101,15 @@ export function SecurityPanel() {
   const [endDate, setEndDate] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const { data: ipData, refetch: refetchIpActivity } = useIpActivityQuery(
-    startDate || undefined,
-    endDate || undefined
-  );
-  const { data: failedLoginsData, refetch: refetchFailedLogins } = useFailedLoginsQuery(50);
-  const { data: activityData, refetch: refetchActivity } = useSessionActivityQuery(24);
+  const { data: ipData } = useIpActivityQuery(startDate || undefined, endDate || undefined);
+  const { data: failedLoginsData } = useFailedLoginsQuery(50);
+  const { data: activityData } = useSessionActivityQuery(24);
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
   const bulkRevokeMutation = useBulkRevokeSessionsMutation();
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const doRefresh = useCallback(() => {
-    void refetchOverview();
-    void refetchSessions();
-    void refetchIpActivity();
-    void refetchFailedLogins();
-    void refetchActivity();
-  }, [refetchOverview, refetchSessions, refetchIpActivity, refetchFailedLogins, refetchActivity]);
 
   useEffect(() => {
     if (autoRefresh) {
@@ -457,24 +434,8 @@ export function SecurityPanel() {
   const isDark = useResolvedTheme() === 'dark';
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <ConsolePanel intensity="soft">
-        <div className="flex-shrink-0 border-b border-line-faint pr-4">
-          <PanelHeader title="Security" icon={<Shield size={14} />} />
-        </div>
-
-        <div className="flex items-center justify-end gap-2 border-b border-line-faint px-3 py-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={doRefresh}
-            disabled={sessionsLoading}
-            leftIcon={<RefreshCw size={14} className={sessionsFetching ? 'animate-spin' : ''} />}
-          >
-            Refresh
-          </Button>
-        </div>
-
         <div>
           {expiredAwaitingCleanup > 0 && (
             <div
@@ -501,7 +462,7 @@ export function SecurityPanel() {
                 </span>
                 <span aria-hidden className="h-3.5 w-px bg-warning-text/30" />
                 <span className="font-display text-body-sm text-foreground/75">
-                  <span className="phosphor-text font-medium text-warning-text">
+                  <span className="font-medium text-warning-text">
                     {expiredAwaitingCleanup} expired{' '}
                     {expiredAwaitingCleanup === 1 ? 'session' : 'sessions'}
                   </span>{' '}
@@ -572,9 +533,8 @@ export function SecurityPanel() {
 
       <SecuritySettings />
 
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader title="Login Activity" meta="last 24h" />
+      <Subsection title="Login Activity" meta="last 24h" isCompact>
+        <ConsolePanel intensity="soft" className="p-4">
           <div className="relative px-4 py-4">
             <span className="absolute right-4 top-4 type-label text-label-2xs text-foreground/40">
               peak {maxActivityCount}
@@ -634,12 +594,11 @@ export function SecurityPanel() {
               <span className="absolute right-0">{activityBars[23]?.label}</span>
             </div>
           </div>
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader title="Active Sessions" meta={`${sortedSessions.length} active`} />
+      <Subsection title="Active Sessions" meta={`${sortedSessions.length} active`} isCompact>
+        <ConsolePanel intensity="soft" className="p-4">
           <Table<ActiveSessionEntry>
             columns={sessionColumns}
             data={sortedSessions}
@@ -704,15 +663,15 @@ export function SecurityPanel() {
               ),
             }}
           />
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader
-            title="IP Activity"
-            meta={`${ipData?.entries?.length ?? 0} unique addresses`}
-          />
+      <Subsection
+        title="IP Activity"
+        meta={`${ipData?.entries?.length ?? 0} unique addresses`}
+        isCompact
+      >
+        <ConsolePanel intensity="soft" className="p-4">
           <Table<IpActivityRow>
             columns={ipColumns}
             data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
@@ -756,15 +715,15 @@ export function SecurityPanel() {
               ),
             }}
           />
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
-      <ConsolePanel intensity="soft">
-        <div className="p-4">
-          <SectionHeader
-            title="Failed Login Attempts"
-            meta={`${failedLoginsCount} ${failedLoginsCount === 1 ? 'event' : 'events'} · last 7d`}
-          />
+      <Subsection
+        title="Failed Login Attempts"
+        meta={`${failedLoginsCount} ${failedLoginsCount === 1 ? 'event' : 'events'} · last 7d`}
+        isCompact
+      >
+        <ConsolePanel intensity="soft" className="p-4">
           <Table<FailedLoginRow>
             columns={failedLoginColumns}
             data={(failedLoginsData?.entries ?? []).map((e, i) => ({
@@ -775,8 +734,8 @@ export function SecurityPanel() {
             emptyMessage="No failed login attempts"
             aria-label="Failed login attempts"
           />
-        </div>
-      </ConsolePanel>
+        </ConsolePanel>
+      </Subsection>
 
       <ConfirmDialog
         isOpen={showPurgeConfirm}

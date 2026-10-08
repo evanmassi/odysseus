@@ -1,9 +1,3 @@
-/**
- * Equipment Edit Form
- *
- * React Hook Form for creating and editing equipment items with category tree dropdown.
- */
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +22,7 @@ import {
   Button,
   CompletenessMeter,
   DatePicker,
-  NubDivider,
+  Divider,
   SectionHeader,
   Select,
   withPlaceholder,
@@ -116,7 +110,6 @@ export function EquipmentEditForm({
   const savedDraftsRef = useRef<AttributeDrafts>({});
   const seededItemIdRef = useRef<string>();
 
-  // Detail arrives after mount, and the panel reuses this component across items.
   useEffect(() => {
     if (!isEditing || !detail?.attributeValues || seededItemIdRef.current === item.id) return;
     const seeded = draftsFromValues(detail.attributeValues);
@@ -171,9 +164,6 @@ export function EquipmentEditForm({
     return v != null && String(v).trim() !== '';
   }).length;
 
-  // Attribute values are their own endpoint, so they sequence off a saved item. Failures are
-  // reported by the global handler; the count comes back so the caller can say the item saved
-  // without claiming its attributes did.
   const saveAttributeValues = async (itemId: string): Promise<number> => {
     const requests = changedAttributeRequests(
       savedDraftsRef.current,
@@ -209,8 +199,7 @@ export function EquipmentEditForm({
       }
       onSubmit();
     } catch {
-      // Kept as mutateAsync: the attribute writes sequence off the saved item id. The global
-      // handler still toasts the create/update failure.
+      // PITFALL: mutateAsync is kept because the attribute writes need the saved item id; the global handler still toasts the failure.
     }
   };
 
@@ -494,7 +483,7 @@ export function EquipmentEditForm({
       </ScrollArea>
 
       <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
-        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Divider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             Cancel

@@ -1,11 +1,6 @@
-/**
- * Lab Dashboard
- *
- * Drill-down view for a single lab: header, stat strip, demo settings, users, researchers, audit log.
- */
-
 import { useState, useMemo } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Check,
@@ -19,7 +14,8 @@ import {
   X,
 } from 'lucide-react';
 
-import { Button, ConsolePanel, IdStamp, SectionHeader, StatCell, Well } from '@shared/ui';
+import { queryKeys } from '@app/cache/queryKeys';
+import { Button, ConsolePanel, IdStamp, StatCell, Subsection, Well } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -47,6 +43,7 @@ interface LabDashboardProps {
 
 export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const { data: details, isLoading, isFetching, refetch } = useLabDetailsQuery(labId);
+  const queryClient = useQueryClient();
   const updateLabMutation = useUpdateLabMutation();
   const activateLabMutation = useActivateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
@@ -65,7 +62,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
     if (!userSortConfig) return source;
     return [...source].sort((a, b) => {
       const { columnId, direction } = userSortConfig;
-      // Stringifying a Date sorts by weekday name, not chronologically.
+      // PITFALL: stringifying a Date sorts by weekday name, not chronologically.
       if (columnId === 'lastActivity') {
         const diff = a.lastActivity.getTime() - b.lastActivity.getTime();
         return direction === 'asc' ? diff : -diff;
@@ -153,7 +150,10 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => void refetch()}
+            onClick={() => {
+              void refetch();
+              void queryClient.invalidateQueries({ queryKey: queryKeys.admin.auditLogAll() });
+            }}
             disabled={isLoading}
             leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
           >
@@ -227,7 +227,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                   ]}
                 />
               </div>
-              <Well className="flex aspect-square shrink-0 items-center justify-center">
+              <Well className="flex w-28 shrink-0 items-center justify-center">
                 <LabPowerToggle
                   isActive={lab.isActive}
                   isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
@@ -254,43 +254,47 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           </div>
         </LabIdentityPanel>
 
-        {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
+        <div className="flex flex-col gap-4">
+          {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
 
-        <LabUsersPanel
-          labId={labId}
-          users={users}
-          sortConfig={userSortConfig}
-          onSort={setUserSortConfig}
-        />
+          <LabUsersPanel
+            labId={labId}
+            users={users}
+            sortConfig={userSortConfig}
+            onSort={setUserSortConfig}
+          />
 
-        <LabResearchersPanel
-          researchers={sortedResearchers}
-          sortConfig={researcherSortConfig}
-          onSort={setResearcherSortConfig}
-          onResearcherDeleted={() => void refetch()}
-        />
+          <LabResearchersPanel
+            researchers={sortedResearchers}
+            sortConfig={researcherSortConfig}
+            onSort={setResearcherSortConfig}
+            onResearcherDeleted={() => void refetch()}
+          />
 
-        <ConsolePanel intensity="soft">
-          <div className="p-4">
-            <SectionHeader
-              title="Audit Log"
-              meta={
-                <button
-                  type="button"
-                  onClick={() => setShowAudit(o => !o)}
-                  className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
-                >
-                  <ChevronDown
-                    size={12}
-                    className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
-                  />
-                  {showAudit ? 'Hide' : 'Show'}
-                </button>
-              }
-            />
-            {showAudit && <AuditLogViewer labId={labId} readOnly hideHeader />}
-          </div>
-        </ConsolePanel>
+          <Subsection
+            title="Audit Log"
+            meta={
+              <button
+                type="button"
+                onClick={() => setShowAudit(o => !o)}
+                className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+              >
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
+                />
+                {showAudit ? 'Hide' : 'Show'}
+              </button>
+            }
+            isCompact
+          >
+            {showAudit && (
+              <ConsolePanel intensity="soft" className="p-4">
+                <AuditLogViewer labId={labId} readOnly hideHeader />
+              </ConsolePanel>
+            )}
+          </Subsection>
+        </div>
 
         <ConfirmDialog
           isOpen={showDeactivate}

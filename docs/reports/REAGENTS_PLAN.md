@@ -51,16 +51,16 @@ _Phase 8 deferrals: bulk barcode sheets (the `/bulk/barcodes` endpoint has no ca
 _- 9a ✅ chassis — `BulkOperationsModal` in `shared/ui/components/inventory/` (tab strip, item selector, footer, confirm step) with each catalog rendering its own tab bodies, so a lot-aware tab needs nothing of the shell. Supplies' modal dropped 297→183, reagents' is 124; `BulkArchiveTab` and `BulkReassignTab` moved as-is. **Selection stays with the caller**, not the shell — `usePrintTabState` takes the set as a hook argument, so the shell cannot own it. Reagent bulk reassign/archive service + one dispatching mutation hook; 'Bulk Operations' in both action menus, ordered the same way._
 _- 9b ✅ stock movement — `BulkStockMovementTab` collapses supplies' receive (253→129) and issue (189→80) and gives reagents both for 163+80 rather than ~450 cloned; `AUDIT-BACKLOG` **C-8(b)** closes with it. Normalising domain words, the two supply tabs differed in seven things: header line, extra row fields, the setter those need, the payload mapping, empty copy, loading text, and the verb — all now injected. `BulkItemRow` came along with its packaging lookup injected, since each catalog reads it from its own detail query; `toItemAutocompleteOptions` and the bulk search-input style were already generic and merely misfiled. **`SupplyBarcodeScanInput` generalised into the shared `BarcodeScanInput`** (catalog + link callback injected) — the `ReagentBarcodeScanInput` Phase 8c deferred needed no reagent clone at all. Reagent receive carries all five optional fields (lot, expiry, **received date**, PO, cost), which is what makes it the onboarding path; reagent issue carries none, since the server draws FEFO and skips expired stock outright. Bulk tabs renamed entity-first across all three catalogs — prefixed when a catalog owns them, bare only when shared._
 _- 9c ✅ void — `queryKeys.reagents.transactions` + `ReagentService.getTransactionHistory` + `useReagentTransactionHistoryQuery`, giving the `GET /:id/transactions` endpoint Phase 2 built its first caller. Unpaged and `refetchOnMount: 'always'`, matching the detail query it displaces: a cut through a FEFO movement would show a partial sum, which is exactly the bug being closed. **The void tab was a parameterization, not the straight lift grep suggested** — supplies ticks a ledger row, reagents ticks a *movement*, so what the checkbox owns is the one real difference and everything else (search, scan, count line, reason, footer, the type icon/label maps both catalogs share) is common. Shared `BulkVoidTab` takes `useVoidableEntries(item)` as a hook prop, the shape `useItemPackaging` set in 9b; supplies' tab dropped 244→88 and reagents' is 98. Reagent entries submit only a movement's **pending** rows and are labelled `across 3 lots · 1 already voided`, so a partially-voided movement can't be silently re-voided. `groupTransactions` + `TransactionGroup` moved out of the timeline to `utils/reagentTransactionGroups.ts` on their second caller, with the first unit tests for the subtle half: reversals key by the movement they undo, and same-timestamp movements stay apart when location or type differs._
-_  **Phase 6b's boundary closed with it.** The info panel now reads the full ledger instead of the detail's 50-row `recentTransactions`, so a movement straddling the old cut sums correctly; the section is retitled *Transaction History*, and the timeline is gated on the query's `isPending` so it never claims "No transactions recorded" while the fetch is in flight. `recentTransactions` was then deleted from the reagent detail (service, DTO, response schema) — nothing else read it — which left `findTransactionsByItemId`'s `limit` unused on the reagent side, removed across interface, impl and service. Supplies keeps its own 50-row detail cap, untouched._
+_ **Phase 6b's boundary closed with it.** The info panel now reads the full ledger instead of the detail's 50-row `recentTransactions`, so a movement straddling the old cut sums correctly; the section is retitled *Transaction History*, and the timeline is gated on the query's `isPending` so it never claims "No transactions recorded" while the fetch is in flight. `recentTransactions` was then deleted from the reagent detail (service, DTO, response schema) — nothing else read it — which left `findTransactionsByItemId`'s `limit` unused on the reagent side, removed across interface, impl and service. Supplies keeps its own 50-row detail cap, untouched._
 _- 9d ✅ print — barcode sheets at **both levels**, in two sub-commits. **9d-1 (item sheets):** `BulkPrintTab` + `usePrintTabState` moved to `shared/ui/components/inventory/` with the domain half injected as `fetchLabels(itemIds)`, which drops `items` from the shared hook entirely — it only ever fed the supply mapping. `PrintableLabel` gained optional `lotNumber`/`expirationDate` (`BarcodeLabel` and `BarcodePrint` already took them from 8b) and **both React keys moved off `itemId` onto `barcodeValue`**, since item ids repeat the moment one item prints several lots — a latent collision in the skip/paging logic. Chunking (100/batch, 5 concurrent, against the request cap) came out of `SupplyService` to `shared/utils/chunkedFetch.ts` on its second and third callers. **9d-2 (lot labels):** `POST /bulk/lot-labels` over a new `findLotLabelsByItemIds` — barcodes with a `lot_id`, joined to their lot, filtered to `status = 'active' AND quantity > 0` (the `isLotDrawable` rule; a spent bottle needs no label) and ordered FEFO. `ReagentPrintOptionsPanel` puts an Item/Lot toggle over a grouped lot checklist (lot number · expiry · location) with **nothing pre-ticked** — selecting five reagents would otherwise print every active lot they have, and the sheet is the expensive kind of mistake. Ticks are intersected with what's on offer at print time rather than pruned on selection change, and the footer counts *labels* rather than items. The format cards' styling became `optionCardStyle.ts` so the toggle wears the same treatment, following `bulkSearchInputStyle.ts` in the same folder._
-_  **Two fixes found by looking at the running app.** Label text truncated worse on *larger* templates: `deriveLabelSize` scales fonts off `labelHeight` while the meta line's budget is `labelWidth`, so Avery 5163 and 5164 — both 4" wide, 2" and 3.33" tall — set a bigger font on the same width. `fitFontToWidth` shrinks a line to fit, capped at the existing size, so anything that already fit is byte-identical and only would-be-truncated lines change; applied to the 1D joined line and to the QR stack, which sizes off its longest field to stay uniform. Supplies' labels benefit identically, which is why it shipped as its own commit. Second, the lot panel listed depleted and disposed lots inline; they now sit behind a `Show N inactive` toggle in the footer, default hidden, patterned on `ReagentsTab`'s Show/Hide Archived — the count is on the button so nothing is hidden silently, and each row still carries its literal status chip. Also: the type chip gained an `Atom` lead and `lit`, since `default` is absent from `LIT_CLASSES` and it was the only unlit chip in a strip of three._
+_ **Two fixes found by looking at the running app.** Label text truncated worse on *larger* templates: `deriveLabelSize` scales fonts off `labelHeight` while the meta line's budget is `labelWidth`, so Avery 5163 and 5164 — both 4" wide, 2" and 3.33" tall — set a bigger font on the same width. `fitFontToWidth` shrinks a line to fit, capped at the existing size, so anything that already fit is byte-identical and only would-be-truncated lines change; applied to the 1D joined line and to the QR stack, which sizes off its longest field to stay uniform. Supplies' labels benefit identically, which is why it shipped as its own commit. Second, the lot panel listed depleted and disposed lots inline; they now sit behind a `Show N inactive` toggle in the footer, default hidden, patterned on `ReagentsTab`'s Show/Hide Archived — the count is on the button so nothing is hidden silently, and each row still carries its literal status chip. Also: the type chip gained an `Atom` lead and `lit`, since `default` is absent from `LIT_CLASSES` and it was the only unlit chip in a strip of three._
 _Phase 9 deferrals: no lot picker beyond the flat per-item checklist (no "lots received today" shortcut — bulk receive is the path that creates them, and the preview's skip-slot still trims); nothing tracks whether a label has already been printed, so a reprint is indistinguishable from a first print. **Unverified in-app:** a lot label on Avery 5160 (2.625", and the default template) — the small-template case where the sizing fix trades truncation for shrinking toward the 0.055" floor. If it reads too small there, drop a field on narrow templates rather than shrink further._
 
 _Phase 7 deferrals: an attribute's options still can't draw from a lookup list, so a Host Species attribute re-types the tube species vocabulary. (Single-type-or-all scoping was the other deferral; convergence item 12 closed it with an `applies_to_types` array.)_
 
 _Each session — read this plan, do the current sub-commit, gate green (server: typecheck + `npm test` unit + `npm run test:integration`), commit when told._
 
-> **Authoring standard (non-negotiable).** Supplies is the *surface* reference — what tables,
+> **Authoring standard (non-negotiable).** Supplies is the _surface_ reference — what tables,
 > endpoints, and components exist — **not** a code reference. The audit rubric explicitly bars
 > equipment/supplies/consumables as style references; they're un-audited. Every reagent file is
 > authored fresh to the **Donor exemplars** (AGENTS.md): plain-English title header above imports;
@@ -68,7 +68,7 @@ _Each session — read this plan, do the current sub-commit, gate green (server:
 > boilerplate); no restatement/inline comments; controllers = `try/catch` → service →
 > `ResponseBuilder.success` / `handleControllerError`; services = constructor-injected deps +
 > `requireAdminAccess` on writes + `getXOrThrow` helpers + publish-after-save + DTO mapping. We copy
-> supplies' *shape*, never its files.
+> supplies' _shape_, never its files.
 
 ---
 
@@ -93,8 +93,8 @@ _Each session — read this plan, do the current sub-commit, gate green (server:
 
 Supplies and reagents look like twins, but they differ on one axis that changes the model: **for a
 reagent, the lot is the unit of truth, not the SKU.** A supply asks "how many boxes of gloves." A
-reagent asks "which *lot* of this antibody is this, when does *it* expire, when was *it* opened, is
-*it* the one I should grab next." Expiry, safety, and traceability attach to the lot.
+reagent asks "which _lot_ of this antibody is this, when does _it_ expire, when was _it_ opened, is
+_it_ the one I should grab next." Expiry, safety, and traceability attach to the lot.
 
 So: **reagents = the supplies inventory model + a lot subsystem + chemistry/safety fields + a
 lab-configurable attribute system + expiry alerting.** Everything else is inherited.
@@ -114,7 +114,7 @@ live since Phase 5.
   with void/reversal. FEFO (first-expired-first-out) consumption.
 - **Dual alerting** — **low-stock** (reorder, inherited from supplies) **and** **expiry**
   (expired + expiring-soon, net-new). Both surface in the tab and drive a badge on rows.
-- **Storage by location** — named zones (fridge / freezer / cabinet). Storage *conditions* (−20 °C
+- **Storage by location** — named zones (fridge / freezer / cabinet). Storage _conditions_ (−20 °C
   etc.) are a seeded item attribute (§5.4), not a location property.
 - **Lab-configurable attributes** — the lab defines attributes (Fluorophore, Host, Clone, Isotype…)
   with curated value lists, then filters/sorts/searches reagents by them. Fluorophore is the poster
@@ -130,13 +130,13 @@ live since Phase 5.
 
 ## 3. Locked decisions
 
-| # | Decision | Choice |
-|---|----------|--------|
-| D1 | Lot/expiry model | **Full per-lot inventory.** `reagent_lots` is the stock unit; stock = SUM(lots); FEFO consume; per-lot expiry alerts. |
-| D2 | Optional subsystems | **All in v1:** barcode/label, packaging levels, SDS + hazard safety, storage locations, reorder. |
-| D3 | Alerting | **Both** low-stock and expiry alerts. |
-| D4 | Type-specific attributes | **Lab-configurable custom-attribute system** with controlled vocabularies, filterable/sortable — *not* a hardcoded per-type schema. Its own definition/option/value tables (§5.4), deliberately **not** the CHECK-constrained lookups table. |
-| D5 | Kits | **Single item in v1**, composition deferred to v2 (bones captured below). |
+| #   | Decision                 | Choice                                                                                                                                                                                                                                       |
+| --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Lot/expiry model         | **Full per-lot inventory.** `reagent_lots` is the stock unit; stock = SUM(lots); FEFO consume; per-lot expiry alerts.                                                                                                                        |
+| D2  | Optional subsystems      | **All in v1:** barcode/label, packaging levels, SDS + hazard safety, storage locations, reorder.                                                                                                                                             |
+| D3  | Alerting                 | **Both** low-stock and expiry alerts.                                                                                                                                                                                                        |
+| D4  | Type-specific attributes | **Lab-configurable custom-attribute system** with controlled vocabularies, filterable/sortable — _not_ a hardcoded per-type schema. Its own definition/option/value tables (§5.4), deliberately **not** the CHECK-constrained lookups table. |
+| D5  | Kits                     | **Single item in v1**, composition deferred to v2 (bones captured below).                                                                                                                                                                    |
 
 ---
 
@@ -147,6 +147,7 @@ The mandate: **use every bit of architecture already available.** Four buckets.
 ### 4.1 Reuse unchanged (free)
 
 **Server**
+
 - `domain/entities/Category.ts`, `Document.ts` — abstract bases; add thin `ReagentCategory` /
   `ReagentDocument` subclasses (ID prefix only).
 - `domain/repositories/CategoryRepository.ts` — generic `CategoryRepository<T>`; reuse via a new
@@ -166,15 +167,17 @@ The mandate: **use every bit of architecture already available.** Four buckets.
 - DI: `RepositoryFactory` + `ServiceContainer` + per-domain module pattern.
 
 **Shared-schemas**
+
 - `utils/dateFields.ts` — `optionalDateOnlyField` for expiration / opened / received dates.
 - `utils/stringFields.ts` — `optionalText()` / `patchText()` (equipment uses these; reagents should
   too, for trim + blank-normalisation on create/patch requests).
 - **Tubes concentration handling** — `tubes/tubeValidation.ts` `concentrationPreprocessor(Nullable)`
   (parses `1.5e6` scientific notation) + `concentrationUnitRefinement` (both-or-neither rule);
-  `tubes/tubeFormatters.ts` `formatConcentrationDisplay`. Reuse the *pattern* for the reagent
+  `tubes/tubeFormatters.ts` `formatConcentrationDisplay`. Reuse the _pattern_ for the reagent
   concentration field; reagents get their own unit set (see §6).
 
 **Client**
+
 - `shared/ui/components/inventory/*` — `CategoryTreePanel`, `CategoryModal`,
   `CategoryHierarchySelect`, `BulkCategoryTreeSelector`, `ItemRowShell`, `SortControls`
   (generic over structural shapes — satisfy the shape, inject callbacks/labels).
@@ -187,7 +190,7 @@ The mandate: **use every bit of architecture already available.** Four buckets.
 ### 4.2 Clone from supplies (identical structure, new identity)
 
 Per the non-negotiable two-catalog rule (AGENTS.md §Equipment↔Supplies): reagents get their **own**
-item type / repo / service / schemas. Share *behaviour/shape*, never *identity*.
+item type / repo / service / schemas. Share _behaviour/shape_, never _identity_.
 
 - **Server:** `ReagentItem` entity, `ReagentItemRepository` (interface + Postgres impl),
   `ReagentApplicationService`, `ReagentDto`, `ReagentEvents`,
@@ -204,11 +207,11 @@ item type / repo / service / schemas. Share *behaviour/shape*, never *identity*.
 ### 4.3 Genuinely new (the reagent delta)
 
 - **`reagent_lots`** — per item×lot×location stock with expiration/opened/received/status. Replaces a
-  separate `reagent_stock` table — the lot *is* the stock row (supplies' `supply_stock` analogue).
+  separate `reagent_stock` table — the lot _is_ the stock row (supplies' `supply_stock` analogue).
 - **New item columns** — `reagent_type`, `cas_number`, `concentration(+unit)`, `expiry_warning_days`
   (hazard / form / grade / storage are seeded **attributes**, §5.4 — not columns).
 - **Expiry alerting** — a client `ReagentExpiryAlertPanel` + expiry sort/filter, derived from the
-  list row's `soonestExpiration` (§7 *Alerting* — no server queries or events).
+  list row's `soonestExpiration` (§7 _Alerting_ — no server queries or events).
 - **Lab-configurable attribute system** — lab-wide `attribute_definitions` + `attribute_options`,
   reagent-scoped `reagent_attribute_values`; admin CRUD UI; dynamic form fields;
   attribute-based list filtering. (§5.4)
@@ -217,7 +220,7 @@ item type / repo / service / schemas. Share *behaviour/shape*, never *identity*.
 
 ### 4.4 Shared extractions (pre-work — DRY, not duplication)
 
-Verified reuse wins that happen *before* (or with) reagents, so we share instead of clone:
+Verified reuse wins that happen _before_ (or with) reagents, so we share instead of clone:
 
 - **Barcode render/print core → `shared/ui/components/barcodes/`.** The supplies "barcode subsystem"
   is really **8 domain-agnostic files** (label, sheet templates, print styles, sheet modal/preview,
@@ -269,7 +272,7 @@ the reagent lookup categories (that constraint currently lives in migration 021)
   quantity_after, po_number, cost, performed_by, notes, created_at, voided_at/by/reason,
   related_transaction_id (self-FK). lot_number/expiration_date move to `reagent_lots`.
 - **`reagent_documents`** — shared Document shape **+ optional `doc_type`** (`sds` / `spec_sheet` /
-  `coa` / `protocol` / `other`), added to the *shared* Document (§7) so all three catalogs gain it
+  `coa` / `protocol` / `other`), added to the _shared_ Document (§7) so all three catalogs gain it
   additively.
 - **`reagent_barcodes`** — like `supply_barcodes` **plus a nullable `lot_id`** (both-level model):
   `manufacturer_sku` / `upc` barcodes sit at the **item** level (`lot_id` NULL — identify the product);
@@ -278,7 +281,7 @@ the reagent lookup categories (that constraint currently lives in migration 021)
   when `lot_id` is set, the lot (→ its expiry / remaining).
 - **`reagent_packaging_levels`** — clone of `supply_packaging_levels` (unit_name, quantity,
   parent_unit; `UNIQUE(item_id, unit_name)`).
-- **`reagent_custom_units`** *(new — not a supplies clone)* — the lab-scoped custom-unit supplement (§6): `id` (`rcun`), `lab_id`,
+- **`reagent_custom_units`** _(new — not a supplies clone)_ — the lab-scoped custom-unit supplement (§6): `id` (`rcun`), `lab_id`,
   `label`, `kind`, `sort_order`, timestamps; `UNIQUE(lab_id, label)`. Created by migration 027 with the
   other reagent tables.
 
@@ -286,20 +289,20 @@ the reagent lookup categories (that constraint currently lives in migration 021)
 
 The stock unit. Replaces a separate stock table.
 
-| column | type / notes |
-|---|---|
-| id | TEXT PK (`rlot`) |
-| item_id | TEXT NOT NULL REFERENCES reagent_items(id) ON DELETE CASCADE |
-| location_id | TEXT NOT NULL REFERENCES reagent_locations(id) ON DELETE RESTRICT |
-| lot_number | TEXT |
-| quantity | NUMERIC NOT NULL DEFAULT 0 (in the item's `stock_unit` — this is the "amount", §5.7) |
-| expiration_date | DATE |
-| opened_date | DATE |
-| received_date | DATE |
-| concentration | NUMERIC NULLABLE (per-lot override of the item concentration; e.g. antibody titer) |
-| concentration_unit | TEXT NULLABLE |
-| status | TEXT (`active` / `depleted` / `disposed`) — `expired` is derived, never stored (see note) |
-| created_at / updated_at | TIMESTAMPTZ DEFAULT NOW() |
+| column                  | type / notes                                                                              |
+| ----------------------- | ----------------------------------------------------------------------------------------- |
+| id                      | TEXT PK (`rlot`)                                                                          |
+| item_id                 | TEXT NOT NULL REFERENCES reagent_items(id) ON DELETE CASCADE                              |
+| location_id             | TEXT NOT NULL REFERENCES reagent_locations(id) ON DELETE RESTRICT                         |
+| lot_number              | TEXT                                                                                      |
+| quantity                | NUMERIC NOT NULL DEFAULT 0 (in the item's `stock_unit` — this is the "amount", §5.7)      |
+| expiration_date         | DATE                                                                                      |
+| opened_date             | DATE                                                                                      |
+| received_date           | DATE                                                                                      |
+| concentration           | NUMERIC NULLABLE (per-lot override of the item concentration; e.g. antibody titer)        |
+| concentration_unit      | TEXT NULLABLE                                                                             |
+| status                  | TEXT (`active` / `depleted` / `disposed`) — `expired` is derived, never stored (see note) |
+| created_at / updated_at | TIMESTAMPTZ DEFAULT NOW()                                                                 |
 
 - On-hand = `SUM(quantity)` over active lots (per item, or per item×location).
 - **FEFO consume (default order):** issue draws from the earliest-expiring **non-expired** lot first
@@ -329,13 +332,13 @@ Common columns cloned from `supply_items` (name, manufacturer, catalog_number, v
 vendor_catalog_number, stock_unit, reorder_threshold(+unit), reorder_quantity(+unit), unit_price,
 description, notes, status, category_id, timestamps) **plus reagent-specific real columns:**
 
-| column | type / notes |
-|---|---|
-| reagent_type | TEXT (lookup-backed; the discriminator — scopes which attributes apply; antibody/enzyme/buffer/oligo/stain/kit/…) |
-| cas_number | TEXT |
-| concentration | NUMERIC (reuse tubes preprocessor pattern) |
-| concentration_unit | TEXT (shared unit registry, §6) |
-| expiry_warning_days | INTEGER NULLABLE (per-item override of the lab default expiry window; §9) |
+| column              | type / notes                                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| reagent_type        | TEXT (lookup-backed; the discriminator — scopes which attributes apply; antibody/enzyme/buffer/oligo/stain/kit/…) |
+| cas_number          | TEXT                                                                                                              |
+| concentration       | NUMERIC (reuse tubes preprocessor pattern)                                                                        |
+| concentration_unit  | TEXT (shared unit registry, §6)                                                                                   |
+| expiry_warning_days | INTEGER NULLABLE (per-item override of the lab default expiry window; §9)                                         |
 
 **Hazard class, physical form, grade, and storage conditions are NOT columns** — they're **seeded
 attributes** (§5.4), so the lab can extend/reorder their option lists. Of the chemistry/safety
@@ -367,14 +370,14 @@ Runtime-configurable (no migration to add "Fluorophore"), so it can't ride the C
 > `reagent_attribute_values` is reagent-scoped, keeping a real FK to `reagent_items`. Deletes are
 > guarded rather than left to the cascade — see `AttributeApplicationService`.
 
-- **`attribute_definitions`** (lab-wide) — id (`adef`), lab_id, name ("Fluorophore"), value_type
+- **`attribute_definitions`** (lab-wide) — id (`adef`), lab*id, name ("Fluorophore"), value_type
   (`select` / `multi_select` / `text` / `number`; `date` / `boolean` deferred until a real use case),
   applies_to_catalog (reagent/supply/equipment; null = all) + applies_to_type (nullable
   reagent_type scope — e.g. Fluorophore applies to antibodies; null = all), sort_order, timestamps,
   **`is_system`** (seeded defaults the lab may extend/reorder but not delete),
   **`system_key`** (stable slug for seeded defs — e.g. `hazard_class` — so code finds them without
   matching display names; null for user-created),
-  **`prompt_on_form`** (render blank by default vs add-on-demand — see *Form behaviour* below).
+  **`prompt_on_form`** (render blank by default vs add-on-demand — see \_Form behaviour* below).
 - **`attribute_options`** (lab-wide) — id (`aopt`), definition_id FK, value ("FITC"), sort_order — the
   curated vocabulary for select/multi_select attributes (the "colors available to you").
 - **`reagent_attribute_values`** — id (`ratv`), item_id FK, definition_id FK, and a value column set
@@ -388,14 +391,14 @@ server-side list filtering. **Filtering, sorting, and searching the list run cli
 supplies/equipment (all in-memory in `CategoryTreePanel`); the list row carries a compact
 `attributeValues` summary (§6) so the filter bar has what it needs. JSONB would lose the option FKs.
 
-**Form behaviour (columns vs attributes — the tedium question).** Real **columns** (reagent_type,
+**Form behaviour (columns vs attributes — the tedium question).** Real **columns** (reagent*type,
 cas_number, concentration, amount/stock_unit) always render on the form — that's why they're kept to
 the near-universal few. **Attributes are add-on-demand by default:** the lab's definitions form a
-*palette*; on a reagent form the user clicks "add attribute", picks the relevant one (scoped by
+\_palette*; on a reagent form the user clicks "add attribute", picks the relevant one (scoped by
 `applies_to_type`, so antibody-only attributes never clutter a buffer), and fills a value. Only
 populated attributes show. Each definition's **`prompt_on_form`** flag overrides this — leave it off
 and the attribute is purely opt-in; turn it on to pre-render it blank (a lab that wants to
-*encourage* hazard entry promotes Hazard Class to always-prompt). Nothing is required in v1, so forms
+_encourage_ hazard entry promotes Hazard Class to always-prompt). Nothing is required in v1, so forms
 never force busywork.
 
 **Seeding:** ship default **system** definitions per lab — **Hazard Class**, **Physical Form**,
@@ -423,10 +426,10 @@ kit expiry = MIN(component expiries)). No v1 schema commitment beyond the `kit` 
 
 Two different axes, both optional, no conflict:
 
-- **Concentration** — a *ratio* (mM, mg/mL, %, U/mL). A property of the substance. Item-level, with
+- **Concentration** — a _ratio_ (mM, mg/mL, %, U/mL). A property of the substance. Item-level, with
   an optional per-lot override for reagents titered per lot (antibodies). Often absent — a bottle of
   pure powder has no meaningful concentration until dissolved.
-- **Amount** — *how much you physically have* (500 g, 100 µg, 5 mL). Simply the **lot quantity** in a
+- **Amount** — _how much you physically have_ (500 g, 100 µg, 5 mL). Simply the **lot quantity** in a
   physical `stock_unit`; consuming decrements it. No separate field.
 
 **`stock_unit` is the unit you consume in** (decided). An antibody you pipette out of is `µL` — a
@@ -438,7 +441,7 @@ both — different products from one run — which `UNIQUE(item_id, location_id,
 
 **List row display:** `<totalStock> <stock_unit> / <lotCount> lots`, so an aliquoted reagent reads
 `1.5 mL / 3 lots` and a countable one `6 vials / 3 lots`. `expiredLotCount` lets the badge say
-*1 expired* rather than implying the whole item is. Pack size is deliberately **not** on the list row
+_1 expired_ rather than implying the whole item is. Pack size is deliberately **not** on the list row
 — the catalog number already distinguishes the SKUs there, and "which am I using" is asked at the
 point of use, where the info panel already has packaging levels. Per-lot quantities, with derived pack
 equivalents, live in the lot panel.
@@ -472,7 +475,7 @@ the root `src/index.ts` (flat, explicit re-exports — add a reagents block).
 - **Attribute surface:** `reagentAttributeDefinitionSchema`, `reagentAttributeOptionSchema`,
   `reagentAttributeValueSchema` + create/update requests; a `reagentAttributeValueType` enum.
 - **Alerts:** none. Low-stock and expiry are **derived client-side** from the item list row
-  (`totalStock` + `reorderThreshold`; `soonestExpiration`) — see §7 *Alerting*. The
+  (`totalStock` + `reorderThreshold`; `soonestExpiration`) — see §7 _Alerting_. The
   `reagentReorderListResponseSchema` / `reagentExpiringLotSchema` / `reagentExpiryListResponseSchema`
   shipped in Phase 1 have no consumer under that rule and are deleted in Phase 3.
 - **Units — shared registry (standard) + lab custom supplement (the tail), dimension-tagged.** A
@@ -484,14 +487,14 @@ the root `src/index.ts` (flat, explicit re-exports — add a reagents block).
   - `concentration_unit` → ratio kinds (molarity, mass-conc, count-conc, percent, activity, fold)
   - `stock_unit` / amount / reorder units → absolute kinds (mass, volume, activity, count)
   - tubes concentration → cell-conc only (`c/v`, `c/mL`) — dropdown unchanged
-  Standard units are code-fixed and canonically formatted. **Escape hatch for the oddball tail**
-  (`beads/50 µL`, units nobody enumerated): a lab-scoped **custom unit** — a row in a new
-  `reagent_custom_units` table (`id`, `lab_id`, `label`, `kind`, `sort_order`), added once by a lab
-  manager, reused across the lab, rendered verbatim (no auto-conversion). The dropdown =
-  registry ∪ the lab's customs, filtered by kind — bounded (only what the lab uses), controlled
-  (managed list, not per-item free text), consistent. **Reagents only**; tubes stay fixed. Reuse the
-  tubes `concentrationPreprocessor` (sci-notation) + both-or-neither refinement for the concentration
-  pair. See §5.7 and §9. **Tubes migrate onto this registry** (confirmed).
+    Standard units are code-fixed and canonically formatted. **Escape hatch for the oddball tail**
+    (`beads/50 µL`, units nobody enumerated): a lab-scoped **custom unit** — a row in a new
+    `reagent_custom_units` table (`id`, `lab_id`, `label`, `kind`, `sort_order`), added once by a lab
+    manager, reused across the lab, rendered verbatim (no auto-conversion). The dropdown =
+    registry ∪ the lab's customs, filtered by kind — bounded (only what the lab uses), controlled
+    (managed list, not per-item free text), consistent. **Reagents only**; tubes stay fixed. Reuse the
+    tubes `concentrationPreprocessor` (sci-notation) + both-or-neither refinement for the concentration
+    pair. See §5.7 and §9. **Tubes migrate onto this registry** (confirmed).
 - **Lookup categories:** add reagent categories to `lookups/lookupSchemas.ts` `LOOKUP_CATEGORIES`
   (and the other touch-points — see §8.4 / §12).
 
@@ -503,7 +506,7 @@ attribute + expiry filtering runs client-side (in-memory) like supplies/equipmen
 
 ## 7. Server plan
 
-Mirror the supplies *surface*, authored to the Donor exemplars (see Authoring standard). Splice in
+Mirror the supplies _surface_, authored to the Donor exemplars (see Authoring standard). Splice in
 lots, attributes, expiry.
 
 - **Entities (3 reagent-scoped):** `ReagentItem`, `ReagentCategory`, `ReagentDocument` — locations
@@ -522,9 +525,9 @@ lots, attributes, expiry.
   `ReagentDocumentMapper` files and no `ReagentCategoryRepository` file (map/build inline, per supplies).
 - **Application service** `ReagentApplicationService` — the supply use cases (categories, locations,
   items, documents, barcodes, packaging, stock ops) + new: lot management, attribute
-  definition/option/value CRUD, FEFO issue, custom-unit CRUD. **No alert use cases** — see *Alerting*.
+  definition/option/value CRUD, FEFO issue, custom-unit CRUD. **No alert use cases** — see _Alerting_.
   **Write access (decided):** **admin-only, mirroring supplies/equipment** — every write calls
-  `requireAdminAccess`. A delegated non-admin "operator" tier is intentionally *not* built here; it's
+  `requireAdminAccess`. A delegated non-admin "operator" tier is intentionally _not_ built here; it's
   deferred to a separate cross-catalog permissions project (§11) so reagents/supplies/equipment stay
   consistent rather than reagents growing a one-off role.
 - **Bulk ops** — bulk receive, **issue** (FEFO across lots per item), reassign-category, archive, void.
@@ -646,13 +649,13 @@ Two vocabulary mechanisms, one clear boundary:
   `reagent_type`, `reagent_vendor`, `reagent_manufacturer` (amount/concentration units come from the
   unit registry, §6 — not a lookup). **This is what 2c shipped; the vendor/manufacturer half is
   superseded** — they collapse into shared lab-wide categories and the `CatalogGroup` accordion
-  becomes a nav rail (§9 *Decided — catalog surface*).
+  becomes a nav rail (§9 _Decided — catalog surface_).
 - **Attributes** (lab-defined, runtime-added, type-scoped, filterable) — hazard / form / grade /
-  storage (seeded, `is_system`) *and* Fluorophore / Host / Clone / etc. (lab-added). Managed in the
+  storage (seeded, `is_system`) _and_ Fluorophore / Host / Clone / etc. (lab-added). Managed in the
   **`CatalogTab` subtree** (same surface as the lookup groups, richer editor); adding one is no code
   change. Custom units (§6) live here too.
 
-**Rule of thumb:** if the *code* keys off it (reorder unit, vendor cascade, type scoping) → lookup;
+**Rule of thumb:** if the _code_ keys off it (reorder unit, vendor cascade, type scoping) → lookup;
 if it's per-item metadata the lab curates and filters by → attribute.
 
 ---
@@ -660,9 +663,10 @@ if it's per-item metadata the lab curates and filters by → attribute.
 ## 9. Open questions / iteration points
 
 ### Resolved
+
 - **Columns vs attributes** → hazard / form / grade / storage are **seeded attributes** (`is_system`),
   not columns. Attributes are **add-on-demand** with an optional `prompt_on_form` flag (§5.4) — forms
-  stay lean and hazard can be *encouraged* without being forced. Columns stay minimal (reagent_type,
+  stay lean and hazard can be _encouraged_ without being forced. Columns stay minimal (reagent_type,
   cas_number, concentration, amount/stock_unit).
 - **Amount vs concentration** → distinct axes (§5.7). Concentration is optional, item-level with an
   optional **per-lot** override. Amount is just the **lot quantity** in a physical `stock_unit` — no
@@ -679,14 +683,16 @@ if it's per-item metadata the lab curates and filters by → attribute.
 - **Attribute value storage** → normalized EAV (JSONB rejected).
 
 ### Proposed unit lists — trim / add
+
 - **Concentration (ratio):** Molarity `M, mM, µM, nM, pM`; Mass-conc `g/L, mg/mL, µg/mL, µg/µL,
-  ng/µL`; Count-conc `beads/mL, cells/mL, particles/mL, IU/mL`; Percent `%`; Activity `U/mL`;
+ng/µL`; Count-conc `beads/mL, cells/mL, particles/mL, IU/mL`; Percent `%`; Activity `U/mL`;
   Fold `X`. Anything rarer → lab custom unit.
 - **Amount (absolute):** Mass `g, mg, µg, ng, kg`; Volume `L, mL, µL, nL`; Activity `U`; Count
   `vial, tube, each` (if wanted).
 - Formatting: `µ` micro sign, slash form, one space; no auto-conversion.
 
 ### Decided in review
+
 - **Consumption permission** → **admin-only for v1**, mirroring supplies/equipment (every write =
   `requireAdminAccess`). A delegated "operator" tier is deferred to a separate cross-catalog
   permissions project (§11) — building it only for reagents would fork the permission model.
@@ -694,6 +700,7 @@ if it's per-item metadata the lab curates and filters by → attribute.
 - **Bulk issue** → **included** in v1 (FEFO across lots; reuses the single-issue decrement).
 
 ### Decided — final review pass
+
 - **Barcodes** → **both levels.** Manufacturer/UPC at the item level; auto-generated internal barcodes
   at the **lot** level (printed on receive). `reagent_barcodes` gains a nullable `lot_id` (§5.1).
 - **Expired stock** → **stays in stock and usable**, flagged not excluded (antibodies etc. often work
@@ -713,11 +720,11 @@ if it's per-item metadata the lab curates and filters by → attribute.
 > doc is the work order; this section is the rationale.
 
 Shipping 2c made the Catalog tab render "Vendors" and "Manufacturers" under both Supplies and
-Reagents, so an admin types *Thermo Fisher* once per catalog. Two decisions came out of that:
+Reagents, so an admin types _Thermo Fisher_ once per catalog. Two decisions came out of that:
 
 - **Shared `vendor` / `manufacturer` lookup categories.** Drop the domain prefixes; one lab-wide
   list each, consumed by supplies, reagents **and equipment** (which carries a free-text
-  `manufacturer` column today with no controlled vocabulary at all). The *identity* separation that
+  `manufacturer` column today with no controlled vocabulary at all). The _identity_ separation that
   governs entities (AGENTS.md §Equipment↔Supplies) doesn't apply here: these categories resolve to a
   bare `TEXT` column, so splitting them buys no type safety — it only partitions a vocabulary a lab
   experiences as single. Work: a migration merging existing values (dedupe on collision), the CHECK
@@ -726,8 +733,8 @@ Reagents, so an admin types *Thermo Fisher* once per catalog. Two decisions came
   provably empty right now, so this is the cheapest it will ever be.
 - **Catalog tab moves from accordion groups to a nav rail.** Left rail lists every editable
   vocabulary (flat, alphabetical, filter box, entry count); the right pane shows the selected list —
-  the existing per-list table, unchanged. Shared vocabularies carry a *used by · Supplies · Reagents
-  · Equipment* line. Route context pre-selects a leaf (from `/lab/reagents` → Reagent Types).
+  the existing per-list table, unchanged. Shared vocabularies carry a _used by · Supplies · Reagents
+  · Equipment_ line. Route context pre-selects a leaf (from `/lab/reagents` → Reagent Types).
   Rationale: semantic grouping can't classify Phase 7's **lab-defined** attribute vocabularies, so a
   taxonomy solves the fixed half of the surface and structurally cannot solve the growing half. The
   rail also makes group names optional decoration rather than load-bearing containers, so that
@@ -737,6 +744,7 @@ Reagents, so an admin types *Thermo Fisher* once per catalog. Two decisions came
   Phase 7**, which roughly doubles this surface.
 
 ### Still parked
+
 - **Lab-default expiry home** — existing lab config vs a small reagent-settings row (infra detail,
   resolve at build time). **Per-category** expiry tier: not v1 unless you want it.
 - **`reagent_type` weight** — how hard it drives attribute scoping / grouping.
@@ -761,7 +769,7 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 2. **Server core CRUD** — entities (4), repos, app service, DTO, events + **audit wiring**, DI,
    controller, routes for catalog/categories/locations. Lots + transactions + FEFO ledger. Unit-test
    the FEFO/expiry logic; one lab-scoping integration test.
-3. ~~**Alerts**~~ — **dissolved.** Client-side derivation (§7 *Alerting*) removed the server half
+3. ~~**Alerts**~~ — **dissolved.** Client-side derivation (§7 _Alerting_) removed the server half
    entirely, and the reagent panels need the client domain that Phase 5 builds — they live in Phase 6,
    which already listed them. The cleanup that remained (supplies' `GET /reorder-list` chain deleted,
    three orphaned Phase-1 alert schemas dropped) landed as convergence item 9.
@@ -773,13 +781,13 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
    locations, documents. Flip the tab on.
 6. **Client stock + alerts** — transaction form/timeline/void, low-stock + expiry panels, reorder.
 7. **Client attributes** — dynamic form fields, list filter bar, admin definition/option/custom-unit
-   CRUD, hosted on the catalog nav rail (§9 *Decided — catalog surface*; the rail lands before this).
+   CRUD, hosted on the catalog nav rail (§9 _Decided — catalog surface_; the rail lands before this).
 8. **Barcodes** — thin reagent wrappers over the Phase-0 shared core (not a clone).
 9. **Bulk ops** — the six bulk endpoints Phase 2 shipped, given a client: modal, receive/issue/
    reassign/archive/void/print tabs, and the full-history query the void tab needs (which also
    closes the 50-row cap the info-panel timeline reads — see 6b). The other three items this line
    used to carry are **done or superseded**: the reorder CSV shipped client-side in 6c and is the
-   only export reagents was ever specified to have (there is no admin *item* export for supplies
+   only export reagents was ever specified to have (there is no admin _item_ export for supplies
    either, so this is parity, not a gap); the catalog group became the nav rail in convergence 7;
    the header quick-link flipped on with Phase 5's tab.
 
@@ -794,13 +802,13 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
    so supplies gets re-verified in the app at every extraction, not just reagents.
 
    **Void turned out to be a third exception** (9c): grep read it as a near-clone, but supplies ticks
-   a ledger row and reagents ticks a *movement*, so the unit of selection had to be injected too.
+   a ledger row and reagents ticks a _movement_, so the unit of selection had to be injected too.
    Print was the straight lift the line predicted — until lot labels, which are net-new server work
    plus a picker, because a sheet covering every active lot of every selected reagent is the
    expensive kind of mistake (9d).
 
-   **Bulk receive is the onboarding path** for a lab entering stock it already owns (§9 *Still
-   parked* raised it): lot number, expiry and a back-dated received date per row, so opening
+   **Bulk receive is the onboarding path** for a lab entering stock it already owns (§9 _Still
+   parked_ raised it): lot number, expiry and a back-dated received date per row, so opening
    balances land as real lots with real labels rather than being typed one modal at a time.
 
 ---
@@ -815,7 +823,7 @@ Each phase ends green (build + typecheck + lint + tests) and is independently re
 - **Global full-text search** wiring for reagents (and supplies/equipment).
 - **Open-shelf-life** effective-expiry computation (if not pulled into v1).
 - **Certificate-of-analysis / lot-document** attachments per lot (vs per item).
-- **Delegated inventory permissions (cross-catalog "operator" tier)** — a follow-on project *after*
+- **Delegated inventory permissions (cross-catalog "operator" tier)** — a follow-on project _after_
   reagents ships, applied uniformly to reagents + supplies + equipment (not one-off per catalog).
   Designed model to carry forward: a role between `user` and `lab_admin` (e.g. `lab_operator`) assigned
   in the admin Users tab, along **view / operate / govern** lines — User views; Operator does day-to-day

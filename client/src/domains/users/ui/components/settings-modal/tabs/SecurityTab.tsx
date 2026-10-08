@@ -1,8 +1,3 @@
-/**
- * Password & Session Security
- *
- * Password management and active session controls for authenticated users.
- */
 import { useState, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
@@ -14,7 +9,7 @@ import {
   PasswordRequirements,
 } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
+import { AlertBanner, AuthInput, Button, Subsection } from '@shared/ui';
 import { DemoModeBanner } from '@shared/ui/components/info-display/DemoModeBanner';
 import { notifications } from '@shared/utils';
 import { getValidationState } from '@shared/utils/fieldValidation';
@@ -101,7 +96,6 @@ export function SecurityTab() {
         },
         onError: (error: Error) => {
           logger.error('SecurityTab password change failed', { error });
-          // Highlight the field too; the global handler shows the server message as a toast.
           if (
             error.message.toLowerCase().includes('incorrect') ||
             error.message.toLowerCase().includes('invalid')
@@ -114,7 +108,7 @@ export function SecurityTab() {
   };
 
   return (
-    <ConsolePanel intensity="soft">
+    <div>
       <Subsection title="Password" index={1} accent>
         <div className="col-span-2 space-y-4 py-4">
           <DemoModeBanner />
@@ -204,7 +198,7 @@ export function SecurityTab() {
         </div>
       </Subsection>
 
-      <div className="flex items-center gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+      <div className="flex items-center gap-4 pt-4">
         {showSuccess && (
           <AlertBanner variant="success" spacing="none">
             Password changed successfully
@@ -232,6 +226,6 @@ export function SecurityTab() {
           <SessionListPanel />
         </div>
       </Subsection>
-    </ConsolePanel>
+    </div>
   );
 }

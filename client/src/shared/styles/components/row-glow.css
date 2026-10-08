@@ -1,64 +1,129 @@
-/**
- * Row Glow Recipe
- *
- * The tone-keyed lit-row layers shared by table rows (rowHoverGlow.ts), the nav
- * trees (nav-tree.css), and the storage navigator (storage-navigator.css). Add
- * `row-glow` to any row that consumes a --glow-* variable.
- *
- * INVARIANT: nothing referencing --row-tone may be declared at :root. A var() inside
- * a custom property is substituted where that property is *declared*, not where it is
- * used — so a recipe declared at :root resolves --row-tone there, finds nothing, and
- * becomes guaranteed-invalid. Every declaration using it is then dropped: backgrounds
- * fall back to transparent while sibling declarations (border-color) still apply, so
- * the row half-renders and nothing errors. Declaring the recipes here, on the same
- * element that carries --row-tone, is what makes them resolve.
- *
- * For the same reason a `var(--row-tone, …)` fallback is not a safe hardening: it
- * would let a :root recipe resolve, permanently baked to the fallback tone, and every
- * warning/danger row would silently render primary.
- */
-
-/* Zero-specificity default so every consumer override wins regardless of source order —
-   Tailwind's arbitrary `[--row-tone:…]` utilities would otherwise tie with `.row-glow`
-   and, being emitted earlier, lose. Consumers retint on the same element or an ancestor:
-   full boxes, low-stock supplies, expiring reagents. */
+/* PITFALL: recipes that read --row-tone must be declared on .row-glow, never :root; a var() resolves where it is declared, so a :root recipe goes invalid and rows silently render flat. */
 :where(.row-glow) {
   --row-tone: var(--primary);
 }
 
-.row-glow {
-  --glow-hover-wash: linear-gradient(
-    90deg,
-    hsl(var(--row-tone) / var(--alpha-hover-wash-1)) 0%,
-    hsl(var(--row-tone) / var(--alpha-hover-wash-2)) 18%,
-    hsl(var(--row-tone) / var(--alpha-hover-wash-3)) 48%,
-    hsl(var(--row-tone) / var(--alpha-hover-wash-4)) 78%,
-    hsl(var(--row-tone) / 0) 100%
-  );
-  --glow-hover-shadow:
-    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-hover-edge)),
-    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
-    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
-    0 0 22px -4px hsl(var(--row-tone) / var(--alpha-hover-bloom)),
-    0 0 50px 4px hsl(var(--row-tone) / var(--alpha-hover-bloom-far));
-  --glow-selected-tint: linear-gradient(
-    180deg,
-    hsl(var(--row-tone) / var(--alpha-glow-tint)),
-    hsl(var(--row-tone) / var(--alpha-glow-tint))
-  );
-  --glow-selected-wash: linear-gradient(
-    90deg,
-    hsl(var(--row-tone) / var(--alpha-glow-wash-1)) 0%,
-    hsl(var(--row-tone) / var(--alpha-glow-wash-2)) 18%,
-    hsl(var(--row-tone) / var(--alpha-glow-wash-3)) 48%,
-    hsl(var(--row-tone) / var(--alpha-glow-wash-4)) 78%,
-    hsl(var(--row-tone) / 0) 100%
-  );
-  --glow-selected-shadow:
-    inset 3px 0 0 0 hsl(var(--row-tone)),
-    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-glow-edge-inner)),
-    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
-    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
-    0 0 32px -4px hsl(var(--row-tone) / var(--alpha-glow-outer-near)),
-    0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
+.row-glow[data-full] {
+  --row-tone: var(--color-danger-bg);
+}
+
+[data-theme='dark'] .row-glow {
+  --row-hover-bg:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.12) 0%,
+      hsl(var(--row-tone) / 0.05) 55%,
+      transparent 100%
+    );
+  --row-hover-shadow: inset 3px 0 0 0 hsl(var(--row-tone) / 0.7);
+
+  --row-open-bg:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.14) 0%,
+      hsl(var(--row-tone) / 0.06) 55%,
+      transparent 100%
+    );
+  --row-open-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone)), inset 14px 0 30px -12px hsl(var(--row-tone) / 0.15);
+  --row-open-hover-bg:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.18) 0%,
+      hsl(var(--row-tone) / 0.08) 55%,
+      transparent 100%
+    );
+  --row-open-hover-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone)), inset 14px 0 30px -12px hsl(var(--row-tone) / 0.22);
+
+  --row-selected-bg:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.22) 0%,
+      hsl(var(--row-tone) / 0.09) 55%,
+      hsl(var(--row-tone) / 0.03) 100%
+    );
+  --row-selected-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone)), inset 14px 0 30px -12px hsl(var(--row-tone) / 0.25);
+  --row-selected-hover-bg:
+    var(--scanline-layer),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / 0.3) 0%,
+      hsl(var(--row-tone) / 0.13) 55%,
+      hsl(var(--row-tone) / 0.05) 100%
+    );
+  --row-selected-hover-shadow:
+    inset 3px 0 0 0 hsl(var(--row-tone)), inset 14px 0 30px -12px hsl(var(--row-tone) / 0.35);
+}
+
+.row-tools,
+.select-quiet__chrome {
+  display: grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-columns 0.24s ease,
+    opacity 0.2s ease 0.04s,
+    transform 0.24s ease;
+}
+
+.row-tools {
+  flex-shrink: 0;
+  transform: translateX(0.5rem);
+}
+
+.row-tools > *,
+.select-quiet__chrome > * {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.row-tools-host:hover .row-tools,
+.row-tools-host:focus-visible .row-tools,
+.row-tools-host:has(:focus-visible) .row-tools,
+.row-tools:has([aria-expanded='true'], [data-pinned]) {
+  grid-template-columns: 1fr;
+  opacity: 1;
+  transform: none;
+}
+
+.select-quiet {
+  background: transparent;
+  border-color: transparent;
+}
+
+.row-tools-host:hover .select-quiet,
+.select-quiet:focus-visible {
+  background: hsl(var(--input-well));
+  border-color: hsl(var(--line-faint));
+}
+
+.row-tools-host:hover .select-quiet:hover {
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.select-quiet[aria-expanded='true'] {
+  background: hsl(var(--primary) / 0.04);
+  border-color: hsl(var(--primary) / 0.7);
+}
+
+.row-tools-host:hover .select-quiet__chrome,
+.select-quiet:focus-visible .select-quiet__chrome,
+.select-quiet[aria-expanded='true'] .select-quiet__chrome {
+  grid-template-columns: 1fr;
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .row-tools,
+  .select-quiet__chrome {
+    grid-template-columns: 1fr;
+    opacity: 1;
+    transform: none;
+  }
 }

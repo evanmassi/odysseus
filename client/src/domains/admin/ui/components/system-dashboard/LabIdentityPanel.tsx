@@ -1,10 +1,3 @@
-/**
- * Lab Identity Panel
- *
- * Framed lab-identity console — status hairline, floating name//status label, and a badge column —
- * wrapping the caller's content. Shared by the labs list, lab drill-down, and storage drill-down.
- */
-
 import type { ReactNode } from 'react';
 
 import { BeanOff, CircleCheckBig, OctagonX, Sprout } from 'lucide-react';
@@ -13,12 +6,14 @@ import { useResolvedTheme } from '@shared/hooks';
 import { ConsolePanel } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 
+const LABEL_SEPARATOR =
+  'h-[3px] w-[3px] bg-foreground/55 dark:shadow-[0_0_5px_1px_hsl(var(--foreground)/0.25)]';
+
 interface LabIdentityPanelProps {
   labId: string;
   labName: string;
   isActive: boolean;
   isDemo: boolean;
-  /** When set on a demo lab, adds the seeded/not-seeded indicator to the status label. */
   isSeeded?: boolean;
   children: ReactNode;
 }
@@ -34,7 +29,6 @@ export function LabIdentityPanel({
   const isDark = useResolvedTheme() === 'dark';
   const statusVar = isActive ? '--color-success-bg' : '--color-danger-bg';
   const statusTextClass = isActive ? 'text-success-text' : 'text-danger-text';
-  const statusColor = `hsl(var(${statusVar}))`;
   const identityTextClass = getLabBadgeTextClasses(labId, isDemo);
 
   return (
@@ -50,14 +44,14 @@ export function LabIdentityPanel({
       <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
         <span className="flex items-center gap-2.5 type-label text-label-xs tracking-label-wide whitespace-nowrap">
           <span className="text-foreground">{labName}</span>
-          <span className="text-foreground/35">{'//'}</span>
+          <span aria-hidden className={LABEL_SEPARATOR} />
           <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
             {isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
             {isActive ? 'active' : 'deactivated'}
           </span>
           {isDemo && isSeeded !== undefined && (
             <>
-              <span className="text-foreground/35">{'//'}</span>
+              <span aria-hidden className={LABEL_SEPARATOR} />
               <span
                 className={`flex items-center gap-1.5 ${isSeeded ? 'text-success-text' : 'text-warning-text'}`}
               >
@@ -71,7 +65,6 @@ export function LabIdentityPanel({
 
       <ConsolePanel
         className={`flex items-stretch ${identityTextClass}`}
-        statusColor={statusColor}
         identityColor="currentColor"
       >
         <div

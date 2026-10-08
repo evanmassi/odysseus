@@ -1,9 +1,3 @@
-/**
- * Select Component
- *
- * Accessible single-select dropdown primitive with design system tokens.
- */
-
 import React, {
   Fragment,
   forwardRef,
@@ -22,6 +16,13 @@ import { createPortal } from 'react-dom';
 import { useMergedRef } from '@shared/hooks';
 
 import { ScrollArea } from '../scroll-area/ScrollArea';
+import {
+  ROW_HOVER_GLOW,
+  ROW_LIT_HOVER,
+  ROW_LIT_SELECTED_HOVER,
+  ROW_SELECTED,
+  ROW_TONE,
+} from '../table/rowGlow';
 
 import { defaultSelectProps } from './types';
 
@@ -30,7 +31,6 @@ import type { SelectOption, SelectProps, SelectRef } from './types';
 const TRIGGER_FOCUS_SHADOW = 'shadow-[var(--input-focus-shadow)]';
 const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
 
-// Max height of the dropdown, in px.
 const DROPDOWN_MAX_HEIGHT = 240;
 
 const ICON_BUTTON =
@@ -87,7 +87,7 @@ const selectVariants = cva(
 
 const dropdownVariants = cva(
   [
-    'fixed z-[9999]',
+    'fixed z-popover',
     'bg-card border border-line-mid',
     'overflow-hidden flex flex-col',
     'py-1',
@@ -110,23 +110,28 @@ const optionVariants = cva(
   [
     'px-3 py-2 cursor-pointer text-body',
     'flex items-center gap-2',
-    'transition-colors duration-150',
+    'transition-[background-image,box-shadow,color] duration-150',
+    ROW_TONE.primary,
   ],
   {
     variants: {
       isSelected: {
-        true: 'bg-primary/15 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.55)]',
-        false: 'text-foreground',
+        true: `${ROW_SELECTED} font-semibold text-foreground dark:text-white`,
+        false: `${ROW_HOVER_GLOW.primary} text-foreground/75 hover:text-foreground`,
       },
       isHighlighted: {
-        true: 'bg-foreground/5',
-        false: 'hover:bg-foreground/5',
+        true: '',
+        false: '',
       },
       isDisabled: {
         true: 'opacity-50 cursor-not-allowed',
         false: '',
       },
     },
+    compoundVariants: [
+      { isSelected: false, isHighlighted: true, className: `${ROW_LIT_HOVER} text-foreground` },
+      { isSelected: true, isHighlighted: true, className: ROW_LIT_SELECTED_HOVER },
+    ],
     defaultVariants: {
       isSelected: false,
       isHighlighted: false,
@@ -146,6 +151,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       state = defaultSelectProps.state,
       placeholder = defaultSelectProps.placeholder,
       fullWidth = defaultSelectProps.fullWidth,
+      isQuiet = defaultSelectProps.isQuiet,
       label,
       labelClassName,
       error,
@@ -183,11 +189,10 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const listboxId = `${id}-listbox`;
     const errorId = `${id}-error`;
 
-    // Top-level rows only stand out when there is something nested under them.
     const isTiered = useMemo(() => options.some(option => option.depth), [options]);
 
     const selectedOptions = useMemo(() => {
-      // Check for null/undefined specifically, not falsy - empty string '' is a valid value
+      // PITFALL: '' is a valid value, so only null and undefined mean nothing is selected.
       if (value === null || value === undefined) return [];
       return options.filter(option => option.value === value);
     }, [value, options]);
@@ -316,7 +321,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       };
     }, [isOpen, updateDropdownPosition]);
 
-    // Close dropdown on outside click (check both trigger and dropdown since dropdown is portaled)
+    // PITFALL: the dropdown is portaled, so an outside click must miss both the trigger and the dropdown.
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as Node;
@@ -342,7 +347,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       isOpen,
       state: currentState,
       disabled,
-      className,
+      className: `${isQuiet ? 'select-quiet' : ''} ${className ?? ''}`,
     });
 
     const dropdownClasses = dropdownVariants({ isOpen });
@@ -352,7 +357,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         return <span className="text-foreground/40">{placeholder}</span>;
       }
 
-      // Treat empty-value options as placeholders (e.g., { value: '', label: 'Select...' })
       const firstOption = selectedOptions[0];
       if (firstOption.value === '') {
         return <span className="text-foreground/40">{firstOption.label}</span>;
@@ -401,29 +405,33 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           tabIndex={disabled ? -1 : 0}
         >
           <div className="flex items-center justify-between h-full">
-            <div className="flex-1 truncate">{renderDisplayValueContent()}</div>
+            <div className={`flex-1 truncate ${isQuiet ? 'text-right' : ''}`}>
+              {renderDisplayValueContent()}
+            </div>
 
-            <div className="flex items-center gap-1">
-              {clearable && selectedOptions.length > 0 && !disabled && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className={ICON_BUTTON}
-                  aria-label="Clear selection"
+            <div className={isQuiet ? 'select-quiet__chrome' : 'contents'}>
+              <div className="flex items-center gap-1">
+                {clearable && selectedOptions.length > 0 && !disabled && (
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className={ICON_BUTTON}
+                    aria-label="Clear selection"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
+                    </svg>
+                  </button>
+                )}
+
+                <svg
+                  className={`w-4 h-4 text-secondary-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
                 >
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
-                  </svg>
-                </button>
-              )}
-
-              <svg
-                className={`w-4 h-4 text-secondary-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
-              </svg>
+                  <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
@@ -459,8 +467,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                       selected => selected.value === option.value
                     );
                     const isHighlighted = index === highlightedIndex;
-                    // Headings are decorative siblings, so option indices stay aligned with
-                    // `options` and keyboard navigation is untouched.
+                    // PITFALL: headings render as siblings so option indices stay aligned with keyboard navigation.
                     const startsGroup =
                       !!option.group && option.group !== options[index - 1]?.group;
 

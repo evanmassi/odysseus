@@ -1,9 +1,3 @@
-/**
- * Bulk Tube Editor
- *
- * Modal for bulk-editing multiple tubes with conflict detection and partial updates.
- */
-
 import { useState, useMemo, useEffect, useRef } from 'react';
 
 import {
@@ -12,7 +6,7 @@ import {
   updateTubeRequestSchema,
   formatConcentrationDisplay,
 } from '@odysseus/shared-schemas';
-import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
+import { RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
 import {
   useStorageData,
@@ -86,7 +80,6 @@ const COUPLED_FIELDS: Record<string, string[]> = {
   concentrationUnit: ['concentration'],
 };
 
-/** Extracts only user-modified fields to avoid clearing server data. Coupled fields always sent together for cross-field validation. */
 function pickDirtyFields(
   data: Record<string, unknown>,
   dirty: Record<string, unknown>
@@ -114,7 +107,6 @@ function pickDirtyFields(
     }
   }
 
-  // Pull in coupled siblings required by cross-field validation
   for (const key of Object.keys(result)) {
     const siblings = COUPLED_FIELDS[key];
     if (!siblings) continue;
@@ -131,7 +123,6 @@ function pickDirtyFields(
 export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBulkEditorModalProps) {
   const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
 
-  // Fetch specific tubes by ID - ensures fresh data regardless of cache state
   const { data: fetchedTubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
 
   const lastTubesRef = useRef(fetchedTubes);
@@ -163,7 +154,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       researcherId: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.researcherId),
     } satisfies BulkEditConflictAnalysis;
 
-    // Partial updates to concentration/unit pair corrupt data — treat as joint conflict
+    // PITFALL: a partial update to the concentration/unit pair corrupts the value, so a conflict in either clears both.
     if (
       analysis.concentration.state === 'conflict' ||
       analysis.concentrationUnit.state === 'conflict'
@@ -262,7 +253,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
     initialData: resolvedData,
   });
 
-  // Destructure in render phase so React Hook Form's proxy triggers re-renders
+  // PITFALL: formState is a proxy; destructuring during render is what subscribes this component to its changes.
   const { errors, dirtyFields, isValid, isDirty } = form.formState;
 
   const canSubmit = isValid && isDirty && dataReady;
@@ -297,7 +288,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const isSubmitting =
     formSubmitting || bulkUpdateMutation.isPending || bulkDeleteMutation.isPending;
 
-  /** Builds a validated payload from only the fields the user modified */
   const buildDirtyPayload = (): UpdateTubeRequest | undefined => {
     const rawFormData = form.getValues();
     const dirty = form.formState.dirtyFields;
@@ -366,7 +356,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       return;
     }
 
-    // Retry only the failed tubes
     setResult(null);
 
     try {
@@ -446,7 +435,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const rackId = tubes[0]?.location.rackId || '';
   const boxId = tubes[0]?.location.boxId || '';
 
-  // Only show validation errors for fields the user has touched
   const isRelatedFieldDirty = (
     fieldKey: string,
     parentDirtyNode: Record<string, unknown> | null | undefined
@@ -471,17 +459,13 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       const dirtyValue = dirtyNode?.[key];
       const currentPath = path ? `${path}.${key}` : key;
 
-      // If this is an error leaf (has 'message' property)
       if (errorValue && typeof errorValue === 'object' && 'message' in errorValue) {
-        // Include if field is dirty OR a related field is dirty
         const isRelated = isRelatedFieldDirty(key, dirtyNode);
         if (dirtyValue === true || isRelated) {
           filtered[key] = errorValue;
           hasAnyErrors = true;
         }
-      }
-      // If this is a nested object, recurse
-      else if (typeof errorValue === 'object') {
+      } else if (typeof errorValue === 'object') {
         const nestedFiltered = filterNode(
           errorValue as Record<string, unknown>,
           dirtyValue as Record<string, unknown>,
@@ -520,7 +504,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
     userSettings
   );
 
-  // Handle case where all selected tubes were deleted/moved (only after loading completes)
   if (isOpen && !isTubesLoading && fetchedTubes.length === 0) {
     return (
       <InfoDialog
@@ -585,10 +568,10 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
                 variant="primary"
                 disabled={!canSubmit}
                 isLoading={isSubmitting}
-                loadingText="Updating..."
+                loadingText="Saving..."
                 leftIcon={<Save className="w-4 h-4" />}
               >
-                Update {tubes.length} Tubes
+                Save Changes
               </Button>
             </div>
           </div>
@@ -620,46 +603,34 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         </form>
 
         {result && !result.success && result.errors.length > 0 && !showProgress && (
-          <div className="mt-6 p-4 bg-muted border border-danger-border rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <XCircle size={20} className="text-danger-text" />
-                <span className="font-semibold text-danger-text">
-                  Update Issues ({result.errors.length})
-                </span>
-              </div>
-              {result.errors.length > 0 && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleRetryFailures}
-                  disabled={isSubmitting}
-                  leftIcon={<RefreshCw size={14} />}
-                >
-                  Retry
-                </Button>
-              )}
-            </div>
-
-            <div className="max-h-32 overflow-y-auto space-y-2">
-              {result.errors.slice(0, 5).map((error, index) => (
-                <div
-                  key={index}
-                  className="text-body-sm text-danger-text flex items-start space-x-2"
-                >
-                  <div className="font-mono text-data-sm bg-muted px-2 py-1 rounded">
-                    {error.tubeId}
-                  </div>
-                  <div className="flex-1">{error.error}</div>
-                </div>
+          <AlertBanner
+            variant="error"
+            spacing="none"
+            animate={false}
+            className="mt-3"
+            title={`${result.errors.length} ${result.errors.length === 1 ? 'tube' : 'tubes'} failed to update`}
+            actions={
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleRetryFailures}
+                disabled={isSubmitting}
+                leftIcon={<RefreshCw size={14} />}
+              >
+                Retry
+              </Button>
+            }
+          >
+            <ul className="max-h-32 space-y-1 overflow-y-auto">
+              {result.errors.slice(0, 5).map(error => (
+                <li key={error.tubeId} className="flex items-start gap-2">
+                  <span className="font-mono text-data-sm">{error.tubeId}</span>
+                  <span>{error.error}</span>
+                </li>
               ))}
-              {result.errors.length > 5 && (
-                <div className="text-body-sm text-danger-text italic">
-                  +{result.errors.length - 5} more errors...
-                </div>
-              )}
-            </div>
-          </div>
+              {result.errors.length > 5 && <li>+{result.errors.length - 5} more</li>}
+            </ul>
+          </AlertBanner>
         )}
       </BaseModal>
 

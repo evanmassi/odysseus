@@ -1,10 +1,3 @@
-/**
- * Row Meta
- *
- * Faint, mono, `//`-separated metadata shown next to a tank/rack/box name
- * (location, child counts, grid size).
- */
-
 import { Fragment } from 'react';
 
 interface RowMetaProps {
@@ -17,7 +10,7 @@ export function RowMeta({ parts }: RowMetaProps) {
       {parts.map((part, index) => (
         <Fragment key={index}>
           <span aria-hidden className="text-foreground/25">
-            {'//'}
+            ·
           </span>
           <span className="whitespace-nowrap">{part}</span>
         </Fragment>

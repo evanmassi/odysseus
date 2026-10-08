@@ -1,15 +1,9 @@
-/**
- * Grid Tooltip
- *
- * Singleton tooltip for TubeGrid using controlled Tooltip component.
- * Positions anchor element at hovered cell, delegates all tooltip behavior to base component.
- */
 import { useState, useEffect, useRef } from 'react';
 
 import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { NubDivider, ScrimHalo, Tooltip } from '@shared/ui';
+import { Divider, ScrimHalo, Tooltip } from '@shared/ui';
 
 import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
@@ -135,7 +129,7 @@ export function TubeGridTooltip({
 
       {LockIcon && lockLabel && (
         <>
-          <NubDivider tone="neutral" className="relative my-2" />
+          <Divider tone="neutral" className="relative my-2" />
           <div
             className={`flex items-center gap-1.5 ${isLockedOut ? 'text-danger-text' : 'text-tooltip-foreground'}`}
           >
@@ -143,7 +137,7 @@ export function TubeGridTooltip({
             <span className="font-mono text-data-sm">{lockLabel}</span>
           </div>
           {tube.lockNote && (
-            <div className="mt-1 font-mono text-data-sm italic text-tooltip-muted">
+            <div className="mt-1 font-sans text-data-sm italic text-tooltip-muted">
               &ldquo;{tube.lockNote}&rdquo;
             </div>
           )}
@@ -171,7 +165,7 @@ export function TubeGridTooltip({
         side="top"
         bare
       >
-        {/* Explicit pixel dimensions - percentages don't work with display:contents wrapper */}
+        {/* PITFALL: percentages don't work inside the display:contents wrapper, so the size is in pixels. */}
         <div style={{ width: anchorRect.width, height: anchorRect.height }} />
       </Tooltip>
     </div>,

@@ -1,18 +1,10 @@
-/**
- * Reagent Lot Panel
- *
- * Per-lot stock for an item, listed in the order the server draws it: soonest-expiring usable
- * lot first, expired next. Depleted and disposed lots are history rather than stock, so they
- * sit behind a toggle instead of padding the list you read to find a bottle.
- */
-
 import { useMemo, useState } from 'react';
 
 import { formatQuantity, isAdminRole, pluralizeUnit } from '@odysseus/shared-schemas';
 import { Eye, EyeOff, MapPin, Printer, SquarePen } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useLabLocationsQuery } from '@domains/lab-management';
+import { buildLocationPathMap, useLabLocationsQuery } from '@domains/lab-management';
 import { resolveLotExpiry } from '@domains/reagents/utils/reagentExpiry';
 import { isLotDrawable } from '@domains/reagents/utils/reagentLots';
 import { Button, Tooltip } from '@shared/ui';
@@ -37,7 +29,7 @@ function compareForDisplay(a: ReagentLot, b: ReagentLot): number {
   const rank = (lot: ReagentLot) => (isLotDrawable(lot) ? 0 : 1);
   if (rank(a) !== rank(b)) return rank(a) - rank(b);
 
-  // Undated lots sort last, matching the server's draw order.
+  // PITFALL: undated lots sort last to match the server's draw order.
   if (a.expirationDate === b.expirationDate) return 0;
   if (!a.expirationDate) return 1;
   if (!b.expirationDate) return -1;
@@ -57,22 +49,8 @@ export function ReagentLotPanel({
   const { data: locations = [] } = useLabLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
 
-  // The chip names the container you reach for; the rooms above it are context, so they ride in
-  // the tooltip rather than widening every row.
-  const locationPathMap = useMemo(() => {
-    const byId = new Map(locations.map(l => [l.id, l]));
-    return new Map(
-      locations.map(location => {
-        const path = [location.name];
-        let current = location.parentId ? byId.get(location.parentId) : undefined;
-        while (current) {
-          path.unshift(current.name);
-          current = current.parentId ? byId.get(current.parentId) : undefined;
-        }
-        return [location.id, path.join(' › ')];
-      })
-    );
-  }, [locations]);
+  // PITFALL: the chip names the container you reach for; the rooms above it ride in the tooltip so rows stay narrow.
+  const locationPathMap = useMemo(() => buildLocationPathMap(locations), [locations]);
   const barcodeByLotId = useMemo(
     () => new Map(lotBarcodes.map(bc => [bc.lotId, bc.barcodeValue])),
     [lotBarcodes]

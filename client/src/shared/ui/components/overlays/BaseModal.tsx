@@ -1,16 +1,11 @@
-/**
- * Base Modal
- *
- * Reusable modal with animation, focus trap, and nested Escape support.
- */
 import React, { forwardRef, useImperativeHandle, useId } from 'react';
 
 import { X } from 'lucide-react';
 
 import { useAnimatedClose, useFocusTrap, useModalKeyboardNavigation } from '@shared/hooks';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { Divider } from '@shared/ui/primitives/divider/Divider';
 import { HeaderStrip } from '@shared/ui/primitives/header-strip/HeaderStrip';
-import { NubDivider } from '@shared/ui/primitives/nub-divider/NubDivider';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { ModalPortal } from './ModalPortal';
@@ -28,18 +23,13 @@ interface BaseModalProps {
   children: React.ReactNode;
   subtitle?: string;
   size?: ModalSize;
-  /** Locks height at 85vh with scrollable content area */
   fixedHeight?: boolean;
   tabs?: React.ReactNode;
   tabOrientation?: TabOrientation;
   footer?: React.ReactNode;
-  /** Footer pinned to the bottom of the tab content area (above the modal footer) */
   tabFooter?: React.ReactNode;
-  /** Content pinned to the bottom of the vertical tab sidebar */
   tabSidebarFooter?: React.ReactNode;
-  /** Surface treatment: 'default' = bg-card rounded card; 'lit' = ConsolePanel with primary emission. */
   chassis?: ModalChassis;
-  /** Strip rendered between header and body. Only honored when chassis='lit'. */
   locator?: React.ReactNode;
   contentClassName?: string;
   dataAttribute?: string;
@@ -48,7 +38,6 @@ interface BaseModalProps {
 }
 
 export interface BaseModalHandle {
-  /** Plays the exit animation, then invokes onClose. For consumer-driven closes (Cancel, save success). */
   requestClose: () => void;
 }
 
@@ -99,13 +88,12 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
 
   useImperativeHandle(ref, () => ({ requestClose: triggerClose }), [triggerClose]);
 
-  // Focus trap must exist before keyboard hook so we can pass containerRef
+  // PITFALL: the focus trap must be created before the keyboard hook, which needs its containerRef.
   const trapRef = useFocusTrap({
     isOpen: isVisible,
     autoFocusFirstInput: true,
   });
 
-  // containerRef scopes Escape to this modal only (nested modal support)
   useModalKeyboardNavigation({
     onEscape: triggerClose,
     enabled: isVisible && !isClosing,
@@ -135,9 +123,6 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
     size === 'lg' || size === 'xl' || size === 'xl-wide' || size === 'full' ? 'medium' : 'lit';
 
   const borderClass = isLit ? 'border-line-faint' : 'border-border';
-  // Lit chrome (footer/tab-footer) gets a dark wash in dark so it sits on top of the
-  // chassis lighting. In light --shade is navy, which read wrong as a footer wash, so
-  // light uses the plain card surface. The header stays transparent so it reads body-tone.
   const surfaceClass = isLit ? 'bg-card dark:bg-shade/15' : 'bg-card';
   const headerSurface = isLit ? '' : 'bg-card';
 
@@ -201,7 +186,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
 
   const footerBlock = footer ? (
     <div className={`relative border-t ${borderClass} px-6 py-3 ${surfaceClass} flex-shrink-0`}>
-      {isLit && <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />}
+      {isLit && <Divider tone="primary" className="absolute inset-x-0 -top-px" />}
       {footer}
     </div>
   ) : null;
@@ -231,11 +216,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
 
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         {isLit ? (
-          <ConsolePanel
-            intensity={chassisIntensity}
-            className={sharedClassName}
-            // ConsolePanel renders its own border; we add the dialog role and refs via wrapper props.
-          >
+          <ConsolePanel intensity={chassisIntensity} className={sharedClassName}>
             <div
               ref={trapRef}
               role="dialog"

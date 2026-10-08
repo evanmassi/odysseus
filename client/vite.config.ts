@@ -6,6 +6,9 @@ import path from 'path';
 export default defineConfig({
   plugins: [react(), svgr()],
   base: '/',
+  define: {
+    __BUILD_ID__: JSON.stringify(Date.now().toString(36)),
+  },
   resolve: {
     alias: {
       '@app': path.resolve(__dirname, './src/app'),
