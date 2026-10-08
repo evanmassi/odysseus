@@ -5,19 +5,23 @@ Living plan for the scientist-facing side of Odysseus. Everything built so far i
 flow cytometry panels first, general protocols and calculators after. This doc is the shared source
 of truth; we iterate on it until it is right, then build.
 
-**Status:** draft 10. Design phase. The run sheet mockup is under review with Evan. Nothing is built.
-Branch `feature/workbench`.
+**Status:** draft 11. Design phase. **Direction changed:** the workbench is now a general protocol
+builder, and the flow run sheet is parked as one block type (see _The builder_ below). Nothing is
+built. Branch `feature/workbench`.
 
 ### Where things stand (read this first)
 
-- **The mockup is the current truth for the run screens:** `refs/redesign/Workbench Run Sheet Study-2.html`
-  (local only; `refs/` is not tracked by git). Open it with `Start-Process`; the file name has spaces.
-  Study 1 beside it is the rejected first attempt.
+- **Current direction: _The builder_, right below the ledger.** It and W66 onward override everything
+  older where they disagree. §5 to §7, §12 and W43 to W65 are the parked flow work: still the design
+  for a future flow panel block and for runs, not the starting point.
+- **Builder mockup:** `refs/redesign/Workbench Builder Study.html`, a working study (drag, resize, live
+  formulas). The flow run sheet study (`Workbench Run Sheet Study-2.html`) stays as the reference for
+  the parked flow work. Both are local only (`refs/` is not tracked by git); open them with
+  `Start-Process`, since the file names have spaces.
 - **Later decisions override earlier ones.** The locked-decision table (§3) is in the order decisions
-  were made. Where two rows conflict, the higher number wins. W43 onward came out of the mockup review
-  and supersede the earlier prose in §5, §6 and §12 wherever they disagree. Known stale spots: fill
+  were made. Where two rows conflict, the higher number wins. Known stale spots in the flow work: fill
   modes and series fills (replaced by W46, W51), edge bands and legends on the plate (replaced by W48),
-  the separate controls list (W52), "variant" as a name (Q29).
+  the separate controls list (W52), "variant" as a name (Q29, Q34).
 - **Setup tab, approved so far:** 1. plate map (wells first, fill form beside it, every value written
   on the well, color by one chosen field), 2. panel and reagents (saved panel, in-place edit, swap from
   stock, add per laser, fluorochrome colors), 3. calculations (grouped cell table).
@@ -29,7 +33,8 @@ Branch `feature/workbench`.
 
 ### Progress ledger (details in §13)
 
-- [ ] Design: static studies for the five screens, approved
+- [ ] Design: builder study (board, blocks, formulas), approved
+- [ ] Design: library and run studies, approved
 - [ ] Phase 0: unit conversions
 - [ ] Phase 1: workbench foundation (protocols, versions, shell)
 - [ ] Phase 2: protocol editor
@@ -49,8 +54,117 @@ Branch `feature/workbench`.
 
 ---
 
+## The builder
+
+The workbench centers on a **protocol builder**: a board the scientist assembles from blocks, the
+way a plate-based assay is laid out in Excel today. Flow staining is one protocol among many (ELISA,
+PCR setup, DNA/RNA kit extractions, cell culture), not the base. The emphasis is customizability: type
+freely, or grab a value setter, a plate map or a formula and put it where it helps.
+
+**Board (W67).** A 12-column grid. Blocks are dragged by their title bar, resized from the corner, and
+snap to the columns. Print and export read the board row by row, top to bottom.
+
+**Blocks (W68).** The starting set. The library grows as needs show up.
+
+| Block        | What it does                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Table        | One block with the scientist's own columns (W80). Presets are only starting columns: Reagents, Cells, Samples, Equipment, blank |
+| Text         | Free notes                                                                                                                      |
+| Values       | Named number setters with units: Samples = 24, Vol per well = 100 µL                                                            |
+| Formula      | A named calculation over values and other formulas, typed or picked from the formula library                                    |
+| Vessel map   | Plates (6 to 384 wells), flasks, dishes or tubes, any number of each (W75); counts are named values formulas can use            |
+| Table        | A free grid: standard curve, reagent list, anything tabular                                                                     |
+| Steps        | The outline (I. 1. a.), ticked off on a run. Step text can quote a value, which stays live                                      |
+| Flow diagram | The steps drawn as boxes and arrows, with durations and side tracks (W73, Q33)                                                  |
+| Sketch       | A freehand whiteboard inside a tile (W71)                                                                                       |
+| Later        | Reagent mix; flow panel (carries the parked flow decisions)                                                                     |
+
+**Values and formulas (W69).** Values and formulas share one set of names, like named cells in a
+spreadsheet: `Wells = Samples × Replicates + Std points × 2 + Blanks`. The bar is that nobody re-checks
+the math at the bench. So every formula:
+
+- shows its working with the real numbers plugged in, not just the answer;
+- carries units through and flags a mismatch (adding µL to cells, a "mL" result that is really a count);
+- reruns everything downstream the moment a value changes;
+- says why, in place, when it cannot be worked out (unknown name, circular reference), instead of
+  showing a number.
+
+**Click, don't type (W76).** While a formula or a step is being written, every name on the board is
+one click away: a tray under the field lists values, formulas and vessel counts (plus operators for
+formulas), and clicking a name anywhere on the board inserts it too. In a step it goes in as a live
+value: "Add {Vol per well} per well" reads "Add 100 µL per well".
+
+**Readable chips (W78).** A name dropped into a step shows as a colored chip while writing (the same
+chip as in the tray). When the step is read, the line reads as plain English, with the name written
+small above each filled-in value: "Add **100 µL** per well" with _Vol per well_ over the 100 µL. A
+reagent reads as its name, with vendor and catalog above it, or its lot on a run.
+
+**Reagents are where definitions start (W79).** The reagents list is the protocol's materials
+section and the source of many values: a reagent's stock and working dilution become names formulas
+can use (_Capture Ab dilution_, _Capture Ab stock_). A reagent itself is not a number; a formula that
+uses one says so. On a run, each reagent takes its lot or batch and expiry (packaged) or made-on date
+(prepared). The run counts lots still to record and flags anything expired; changing a stock for a
+new lot is marked against the protocol like any other value. This is what makes a finished run a
+replicable record. In the real build, a lab member can pick the reagent from inventory (the existing
+Reagents suite already holds vendor, catalog and lots: Phase 7's inventory link), and typing it by
+hand always works.
+
+**Any assay without special windows (W80, W81).** Reagents turned out to be one case of a general
+table, and cells, samples and equipment are the same shape. So there is one Table block. Columns are
+added, renamed, reordered and hidden freely; each is text, number (with a unit, or a unit per row),
+date, or a fixed list of choices. A column marked _each run_ is filled in on the day: lot and expiry
+for reagents; passage, count, viability and split date for cells. Any number column becomes a name
+(_HeLa count_, _Capture Ab dilution_), so a cell-based assay's seeding math runs on that day's count.
+Until the count is entered on a run, dependent formulas say they are waiting for it instead of showing
+a number. A table can opt out of naming its rows (a standard curve is just a table).
+
+**Materials, not tables (W83).** The experiment's inputs live in one Materials block with grouped
+sections (the nine groups in `docs/reports/WORKBENCH_MATERIALS.md`, plus the scientist's own). Adding
+a material asks for group, type and name; it starts with only a few fields (vendor, catalog, lot for
+physical things) and every other field its type suggests is one click away, plus fields of the
+scientist's own. Nothing is forced. Lot-bound values are remembered by lot number. Layout (W84,
+for now): one table per group that reads as plain text, styled to the readability recipe; clicking a
+row opens it in place as a card with labeled fields and the suggested-field chips. On a run, fields
+recorded each run are typed straight into the table. The goal is a protocol that is scannable at the
+bench and on paper, not decoration. Plain tables (a standard curve)
+stay a separate block; the earlier table presets for reagents, cells, samples and equipment are gone.
+
+**Hide what is not needed (W82).** Every block collapses to its title bar, in build and on a run.
+
+**Step outline (W77).** Sections are visibly groups: a numbered heading with a rule and a step count
+(progress on a run), their steps indented under a guide line. Sub-steps (a. b. c.) sit one level in,
+smaller. Durations are a tag at the right. A step opens for editing on click; the rest stay read as
+the finished outline. The flow diagram folds sub-steps into their parent box.
+
+**Formula library (W70).** Built-ins to pick from (dilution C1V1 = C2V2, mix with overage, cells to
+volume, serial dilution prep), plus the scientist's own. It grows over time.
+
+**Protocols and runs (W72).** A protocol is named freely by its owner (_Cytotoxicity v1, 72 h flow_;
+_Cytotoxicity v2, 96 h ELISA only_) and keeps its own save history. A run is one dated use of it:
+the same board with that day's values, lots and ticks. Changing a value mid-run (an audible) is
+expected; the math reruns and the run marks what differs from the protocol. Finishing locks the run
+into a plain document (W47).
+
+**Built from what exists (W74).** The builder study in `refs/` is throwaway HTML; the real build
+reuses the app's pieces and adds only what is genuinely missing.
+
+| Need                           | Existing piece                                                                                                            | Work                                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Units in values and formulas   | `UNIT_REGISTRY` in `shared-schemas/units` (ids, labels, 11 kinds), custom lab units, `useUnitOptions`                     | Add a conversion factor per unit and one `convert()` (already Phase 0). The formula engine reads these; no second unit table |
+| Typing numbers (5e6, 5M)       | `parseConcentrationInput` in `concentrationFields.ts`; `formatScientific`                                                 | Export the parser under a general name; values and formulas use it                                                           |
+| Fields, menus, tables, dialogs | `Input`, `Select`, `Checkbox`, `Table`, `Tabs`, `Tooltip`, `DropdownMenu`, `ConfirmDialog`, `ConsolePanel`, `PanelHeader` | None. Block chrome and contents are composed from these                                                                      |
+| Plate map selection            | Tube grid hooks (`useGridSelection`, `useGridDragSelection`, keyboard, clipboard); `gridCoordinates.ts` is already shared | The Phase 4a extraction with its safeguards (§12.4); the plate block waits for it                                            |
+| Plate colors                   | `labColorSpace.ts` palette generator                                                                                      | None                                                                                                                         |
+| Print and export               | Barcode print pattern (`BarcodePrint`, `barcodePrintStyles`)                                                              | Generalize into the shared print wrapper (already Phase 5)                                                                   |
+| Board layout                   | Nothing                                                                                                                   | New library: `react-grid-layout` (the React counterpart of the study's gridstack)                                            |
+| Formula engine                 | Nothing                                                                                                                   | Small workbench-local parser over the registry's units. Not mathjs: it brings its own unit system, a second source of truth  |
+| Flow diagram, sketch           | Nothing                                                                                                                   | Plain SVG from the steps, and a canvas. No library                                                                           |
+
+---
+
 ## Table of Contents
 
+0. [The builder](#the-builder)
 1. [The higher view](#1-the-higher-view)
 2. [v1 feature set](#2-v1-feature-set)
 3. [Locked decisions](#3-locked-decisions)
@@ -174,6 +288,25 @@ numbers around" becomes "change two inputs."
 | W65 | Calculations layout             | The cell table is read in labeled groups: **what you have** (count, viability, volume, viable cells), **what you need** (wells, total cells needed, enough or short), **A. straight into each well** (cells volume and the top-up to about the plating volume), **B. or as one suspension** (take, make up to, then add diluent or spin down). The count typed is total cells; viability is applied to it. Plating volume, cells per well and overage (dead volume for pipetting error) are the scientist's own values per run, with their own defaults, never fixed by the app.                                                                                                                                                                                                                                                                                                                                                                                         |
 | W38 | Reordering steps                | Move-up / move-down buttons. No drag-and-drop library.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | W39 | First mockup                    | The run sheet.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| W66 | Direction                       | The workbench is a **protocol builder**. Flow staining becomes one block type (flow panel), not the base. Supersedes the run-sheet-first order (W39) and the flow-first framing; the flow decisions are parked, not discarded.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| W67 | Board                           | A snapping 12-column grid. Blocks are dragged by the title bar and resized from the corner. Reverses W38: a grid layout library is allowed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| W68 | Blocks                          | Starting set: text, values, formula, plate map, table, steps, flow diagram, sketch. Reagent mix and flow panel later. The set grows over time.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| W69 | Formulas                        | Named values and formulas, spreadsheet style. Working shown with numbers plugged in, units carried and checked, downstream reruns on change, errors explained in place. Built only if it truly removes double-checking at the bench.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| W70 | Formula library                 | Built-in formulas to pick from, plus the scientist's own. Grows over time.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| W71 | Whiteboard                      | A sketch block inside the grid, not a free-canvas page.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| W72 | Protocols and runs              | Protocols are named freely and keep their own save history. A run is one dated use of the board with that day's values; mid-run changes are expected, rerun the math and are marked against the protocol. Finishing locks the run into a plain document.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| W73 | Steps as a diagram              | Steps can be shown as a flow diagram, not only as a list.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| W74 | Reuse in the builder            | Units, number entry, primitives, grid selection, colors and printing come from the existing code (table under _The builder_). New code only where nothing exists: board layout library, formula parser, flow diagram, sketch.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| W75 | Vessels                         | The plate block is a vessel map: 6 to 384-well plates, T25/T75/T175 flasks, dishes, tubes, and a count of each (six T25 flasks, three 96-well plates). Extends W28. Counts per group feed formulas.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| W76 | Inserting names                 | Names are inserted by clicking, from a tray under the field being written or from the board itself. Typing still works.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| W77 | Step hierarchy                  | Sections are visible groups (heading, rule, count, indented steps); sub-steps are a real level, one in and smaller; one step is edited at a time.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| W78 | Chips in steps                  | Written as colored chips; read as plain English with the name small above each value. Reagents show vendor and catalog above, or the lot on a run.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| W79 | Reagents block                  | The protocol's materials list. Stock and working dilution feed formulas. Lot or batch and expiry or made-on date are recorded per run; missing lots are counted, expired ones flagged. Pickable from inventory for lab members, typed by hand otherwise.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| W80 | One table block                 | Reagents, cells, samples, equipment and plain tables are one block with user-defined columns (text, number, date, choice). Presets supply starting columns only. Supersedes the separate reagents and table blocks.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| W81 | Run-recorded columns            | A column can be marked _each run_: blank in the protocol, filled on the day, counted until done. Number columns feed formulas; a formula waiting on an unrecorded number says so.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| W82 | Collapsing blocks               | Any block collapses to its title bar, in build and on a run. Table columns can be hidden.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| W83 | Materials block                 | One block for every input, grouped per the materials catalog. Starts minimal; suggested fields per type are one click away; custom fields and groups allowed; lot-bound values remembered by lot. Supersedes the table presets of W80 for inputs.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| W84 | Readable at the bench           | Every workbench screen follows the calmer readability recipe (`docs/reports/UI_READABILITY_PASS.md`): plain text until clicked, no boxes in boxes, clear group headings, scannable in the lab and in print. Materials use a hybrid for now: per-group tables, a row opens as a card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | W37 | Reuse                           | Built from the existing primitives, chassis and tokens. A new shared piece is added only for a real gap, in the shared layer, to the same standard as the rest.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
@@ -732,6 +865,9 @@ individuals can be added afterwards without rework, and the part with daily valu
 | Q29 | **A name for child protocols.** Evan does not want "variant". "Version" is already used for save history.                                                                   | Call the children **versions** and rename save history to **revisions**. Awaiting his answer.                                                                  |
 | Q30 | **Finishing a run.** "Complete run" is an unclear label. Should a run save itself as it goes, with one deliberate finish-and-lock at the end, or have an explicit Save too? | Autosave plus "Finish and lock". Awaiting his answer.                                                                                                          |
 | Q31 | **Reopening a finished run.** Given W64 (living documents), can a locked run be reopened for corrections?                                                                   | Awaiting his answer.                                                                                                                                           |
+| Q33 | **Flow diagram source.** Is the diagram a second view of the same steps, or a drawing of its own?                                                                           | Same steps, so list and diagram never disagree. A step can be marked "meanwhile" to sit on a side track. Tried in the builder study.                           |
+| Q34 | **Parent and child protocols.** With free naming (W72), is a skeleton-to-variant tree still needed, or is duplicate-and-rename enough?                                      | Decide after using the builder study.                                                                                                                          |
+| Q35 | **Layout during a run.** Same board as built, or can a run rearrange it?                                                                                                    | Same board, layout locked; values, ticks and notes stay editable.                                                                                              |
 | Q32 | **Run tab plate on a laptop.** Wells are about 40 px there and long names are cut off. Move the plate above the steps on small screens?                                     | Awaiting his reaction to the mockup.                                                                                                                           |
 
 ### Resolved
