@@ -32,8 +32,6 @@
   .modes button.on { color: hsl(var(--fg)); background: hsl(var(--pri) / .16); box-shadow: inset 0 -2px 0 hsl(var(--pri)); }
   .runinfo { font-size: 13px; color: hsl(var(--muted-foreground)); }
   .runinfo b { color: hsl(var(--amber)); font-weight: 600; }
-  .legend { margin-left: auto; display: flex; gap: 14px; font-size: 12px; color: hsl(var(--muted-foreground)); }
-  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
   .lnk { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: transparent; border: 1px solid transparent; font: 400 14px/1 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); cursor: pointer; white-space: nowrap; transition: color .15s, text-shadow .15s; }
   .lnk:hover { color: hsl(var(--fg)); text-shadow: 0 0 8px color-mix(in srgb, currentColor calc(55% * var(--lit)), transparent); }
   .build #resetRun { display: none; }
@@ -83,7 +81,7 @@
   .ix:hover { color: hsl(var(--red)); }
   .hint { color: hsl(var(--muted-foreground)); font-style: italic; font-family: 'Hanken Grotesk', sans-serif; }
 
-  .pre { color: hsl(var(--amber)); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+  .pre { color: hsl(var(--muted-foreground)); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
   .unit { color: hsl(var(--muted-foreground)); font-size: 12.5px; }
   .vlist, .flist { display: flex; flex-direction: column; }
   .vrow, .frow { padding: 8px 10px; cursor: pointer; }
@@ -91,7 +89,7 @@
   .vrow:hover, .frow:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
   .vrow { display: flex; align-items: baseline; gap: 10px; }
   .vn { flex: 1; min-width: 0; font-size: 14px; }
-  .vv { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: hsl(var(--amber)); white-space: nowrap; }
+  .vv { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: hsl(var(--fg)); white-space: nowrap; }
   .vrow.bad .vv { color: hsl(var(--red)); }
   .vrow.changed .vv { text-decoration: underline dotted hsl(var(--amber)); text-underline-offset: 3px; }
   .was { margin-left: 8px; font: 12px 'Hanken Grotesk', sans-serif; color: hsl(var(--muted-foreground)); }
@@ -100,7 +98,7 @@
   .vedit .vname { flex: 1 1 100%; }
   .vedit .vn { flex: 1 1 100%; font-weight: 600; }
   .vedit .ramt { flex: 1; display: flex; align-items: center; gap: 3px; }
-  .vedit .vval { flex: 1; min-width: 0; color: hsl(var(--amber)); text-align: right; }
+  .vedit .vval { flex: 1; min-width: 0; text-align: right; }
   .vtools, .ftools { flex-basis: 100%; display: flex; justify-content: flex-end; gap: 6px; }
   .ftools { margin-top: 8px; }
   .fl1, .fl2 { display: flex; gap: 6px; align-items: center; }
@@ -111,16 +109,14 @@
   .fwork { margin-top: 3px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; color: hsl(var(--muted-foreground)); }
   .fwork:empty { display: none; }
   .fedit .fwork { margin-top: 6px; }
-  .res { color: hsl(var(--green)); font-weight: 600; }
-  .ok { color: hsl(var(--green) / .8); font-size: 12px; margin-left: 8px; font-family: 'Hanken Grotesk', sans-serif; white-space: nowrap; }
+  .res { color: hsl(var(--fg)); font-weight: 600; }
+  .ok { color: hsl(var(--muted-foreground)); font-size: 12px; margin-left: 8px; font-family: 'Hanken Grotesk', sans-serif; white-space: nowrap; }
   .err { color: hsl(var(--red)); font-family: 'Hanken Grotesk', sans-serif; font-size: 12.5px; }
   .mk { margin-left: 8px; background: none; border: 1px dashed hsl(var(--amber) / .6); color: hsl(var(--amber)); font-size: 12px; padding: 1px 8px; cursor: pointer; font-family: 'Hanken Grotesk', sans-serif; }
-  .r-value { color: hsl(var(--amber)); }
-  .r-formula { color: hsl(var(--green)); }
-  .r-plate { color: hsl(var(--pri)); }
+  .r-value, .r-formula, .r-plate, .r-item { color: hsl(var(--fg)); }
   .fhead { display: flex; align-items: baseline; gap: 10px; }
   .fname-ro { font-size: 14px; font-weight: 600; }
-  .fres { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: hsl(var(--green)); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .fres { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg)); font-size: 14px; font-weight: 600; white-space: nowrap; }
   .fexpr-ro { font-size: 12px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
   .vlist + .add { margin-top: 10px; }
   .fadd { display: flex; gap: 8px; margin-top: 10px; }
@@ -143,33 +139,51 @@
   .srow .body .in { width: 100%; }
   .sdisp { cursor: text; line-height: 1.5; }
   .run .srow { cursor: pointer; }
-  .srow.editing { background: hsl(var(--pri) / .07); box-shadow: inset 0 0 0 1px hsl(var(--pri) / .35); }
-  .meta { display: flex; gap: 12px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
-  .meta .sdur { width: 150px; font-size: 12px; color: hsl(var(--amber)); }
+  .srow.editing { background: hsl(var(--primary) / .04); }
+  .meta { display: flex; gap: 14px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
   .meta label { font-size: 12px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; gap: 4px; }
-  .dur { margin-left: auto; flex-shrink: 0; color: hsl(var(--amber)); font-size: 11.5px; white-space: nowrap; border: 1px solid hsl(var(--amber) / .35); border-radius: 10px; padding: 0 8px; align-self: center; }
-  .mwtag { font: 500 9.5px 'JetBrains Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: hsl(var(--pri)); border: 1px solid hsl(var(--pri) / .45); padding: 0 5px; margin-right: 6px; vertical-align: 1px; }
-  .srow.mw { border-left: 2px dashed hsl(var(--pri) / .5); margin-left: 14px; }
-  .srow.sub.mw { margin-left: 32px; }
+  .during { font-style: italic; color: hsl(var(--muted-foreground)); margin-right: 4px; }
   .tools { display: flex; gap: 0; opacity: 0; flex-shrink: 0; }
   .srow:hover .tools, .sec-head:hover .tools { opacity: 1; }
   .tools button { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0 4px; }
   .tools button:hover { color: hsl(var(--fg)); }
-  .sdisp:has(ruby) { line-height: 2.35; }
-  ruby.ref { ruby-position: over; padding: 0 5px; border-radius: 3px; background: hsl(var(--fg) / .06); border-bottom: 1px solid currentColor; font-family: 'JetBrains Mono', monospace; font-size: .92em; }
-  ruby.ref rt { font: 500 9.5px 'Hanken Grotesk', sans-serif; letter-spacing: .03em; color: hsl(var(--muted-foreground)); padding-bottom: 1px; }
-  ruby.ref.r-item { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; }
-  ruby.ref.missing { color: hsl(var(--red)); }
   .run ruby.r-item rt { color: hsl(var(--violet) / .85); }
-  .sedit { min-height: 30px; padding: 4px 8px; background: hsl(var(--input-well)); border: 1px solid hsl(var(--pri) / .6); border-radius: 2px; white-space: pre-wrap; line-height: 1.9; outline: none; cursor: text; }
+  .ref, .tok { color: hsl(var(--fg)); border-bottom: 1px dotted hsl(var(--primary) / .7); }
+  .ref { cursor: help; }
+  .ref.r-item, .tok.r-item { font-weight: 600; }
+  .ref.missing, .tok.missing { color: hsl(var(--red)); }
+  .grip { width: 12px; flex-shrink: 0; align-self: center; color: hsl(var(--foreground) / .25); cursor: grab; user-select: none; font-size: 13px; line-height: 1; opacity: 0; transition: opacity .15s; }
+  .srow:hover .grip, .sec-head:hover .grip { opacity: 1; }
+  .grip:hover { color: hsl(var(--primary)); }
+  .dragging { opacity: .35; }
+  .drop-before { box-shadow: inset 0 2px 0 hsl(var(--primary)); }
+  .drop-after { box-shadow: inset 0 -2px 0 hsl(var(--primary)); }
+  .slot { background: hsl(var(--amber) / .12); border-bottom: 1px dashed hsl(var(--amber) / .75); padding: 0 2px; }
+  .sedit.drop-ok { box-shadow: var(--input-focus-shadow), 0 0 0 2px hsl(var(--primary) / .55); }
+  .drag-ghost { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; padding: 3px 10px; border: 1px solid hsl(var(--primary) / .6); background: hsl(var(--card)); font: 12px 'JetBrains Mono', monospace; color: hsl(var(--fg)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
+  .modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: rgba(0, 0, 0, .55); }
+  .modal[hidden] { display: none; }
+  .modal-card { width: min(1040px, 92vw); max-height: 86vh; display: flex; flex-direction: column; border: 1px solid hsl(var(--line-soft)); background: linear-gradient(180deg, hsl(var(--primary) / calc(.032 * var(--lit))) 0%, transparent 17%), hsl(var(--card)); box-shadow: 0 30px 80px -24px hsl(var(--recess) / .85), 0 0 60px -16px hsl(var(--primary) / calc(.063 * var(--lit))); }
+  .modal-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 15px; font-weight: 600; letter-spacing: .08em; }
+  .modal-head .blk-glyph { text-transform: none; }
+  .modal-sub { padding: 0 16px 12px; font-size: 14px; color: hsl(var(--muted-foreground)); }
+  .modal-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 16px 16px; }
+  .modal-body textarea { min-height: 420px; resize: none; padding: 10px 12px; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font: 13px/1.55 'JetBrains Mono', monospace; }
+  .modal-body textarea:focus { outline: none; border-color: hsl(var(--primary) / .7); box-shadow: var(--input-focus-shadow); }
+  .paste-preview { overflow: auto; padding: 4px 4px 4px 0; }
+  .pp-sec { display: flex; gap: 10px; margin: 14px 0 6px; padding-bottom: 6px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 13px; font-weight: 600; letter-spacing: .12em; background: linear-gradient(90deg, hsl(var(--foreground) / .18), hsl(var(--foreground) / .05)) bottom / 100% 1px no-repeat; }
+  .pp-sec:first-child { margin-top: 0; }
+  .pp-sec span { color: hsl(var(--primary)); }
+  .pp-row { display: flex; gap: 10px; padding: 4px 0 4px 18px; font-size: 14px; line-height: 1.5; }
+  .pp-row.sub { padding-left: 48px; font-size: 13px; color: hsl(var(--fg) / .88); }
+  .pp-row span { flex-shrink: 0; min-width: 20px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  .modal-foot { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 16px; }
+  .modal-foot::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / .2) 10%, hsl(var(--primary) / .2) 90%, transparent 100%); }
+  .modal-foot .lnk:first-child { margin-right: auto; }
+  .add:disabled { opacity: .5; cursor: default; }
+  .sedit { min-height: 21px; padding: 0 2px 2px; background: transparent; border: 0; box-shadow: inset 0 -1px 0 hsl(var(--primary) / .6); white-space: pre-wrap; line-height: 1.5; outline: none; cursor: text; }
   .sedit:empty::before { content: attr(data-placeholder); color: hsl(var(--muted-foreground)); font-style: italic; }
-  .tok { display: inline-block; border: 1px solid; border-radius: 10px; padding: 0 8px; margin: 0 1px; font: 12px/1.55 'JetBrains Mono', monospace; user-select: all; cursor: default; }
-  .tok.v { color: hsl(var(--amber)); border-color: hsl(var(--amber) / .5); }
-  .tok.f { color: hsl(var(--green)); border-color: hsl(var(--green) / .5); }
-  .tok.p { color: hsl(var(--pri)); border-color: hsl(var(--pri) / .5); }
-  .tok.r { color: hsl(var(--violet)); border-color: hsl(var(--violet) / .5); font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; }
-  .tok.missing { color: hsl(var(--red)); border-color: hsl(var(--red) / .5); }
-  .r-item { color: hsl(var(--violet)); }
+  .tok { user-select: all; cursor: default; }
 
   .in.need { border-color: hsl(var(--amber) / .75); background: hsl(var(--amber) / .07); }
   .in.expired { border-color: hsl(var(--red)); color: hsl(var(--red)); }
@@ -316,23 +330,23 @@
   .sk-tools .sp { flex: 1; }
   .t-sketch canvas { flex: 1 1 0; min-height: 0; width: 100%; display: block; cursor: crosshair; touch-action: none; }
 
-  .tray { position: fixed; z-index: 50; display: none; max-width: 440px; padding: 8px 10px 6px; background: hsl(var(--popover)); border: 1px solid hsl(var(--pri) / .45); box-shadow: 0 16px 34px -12px hsl(var(--recess) / .8); }
+  .tray { position: fixed; z-index: 50; display: none; width: 340px; background: hsl(var(--popover)); border: 1px solid hsl(var(--line-mid)); box-shadow: var(--popup-shadow); }
+  .tray-toggle { background: none; border: 0; padding: 2px 0; margin-left: auto; font: 12px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); cursor: pointer; }
+  .tray-toggle:hover { color: hsl(var(--fg)); }
+  .tray-list { max-height: 280px; overflow: auto; padding: 2px 0 6px; }
+  .fl3 { margin-top: 4px; }
+  .tray-group { padding: 10px 12px 4px; font: 600 11px 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; color: hsl(var(--foreground) / .4); }
+  .tray-row { display: flex; gap: 12px; align-items: baseline; padding: 5px 12px; font-size: 13.5px; cursor: pointer; }
+  .tray-row:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
+  .tray-row .tv { margin-left: auto; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12.5px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
+  .tray-ops { display: flex; gap: 4px; padding: 8px 12px 2px; }
+  .tray-tip { padding: 7px 12px 8px; font-size: 12px; color: hsl(var(--muted-foreground)); border-top: 1px solid hsl(var(--line-faint)); }
   .tray.on { display: block; }
-  .tray h5 { margin: 0 0 4px; font: 500 9.5px 'JetBrains Mono', monospace; letter-spacing: .18em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
-  .tray .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 7px; }
-  .pick { background: none; border: 1px solid; border-radius: 10px; padding: 1px 9px; font: 12px 'JetBrains Mono', monospace; cursor: copy; }
-  .pick:hover { background: hsl(var(--fg) / .07); }
-  .pick.v { color: hsl(var(--amber)); border-color: hsl(var(--amber) / .45); }
-  .pick.f { color: hsl(var(--green)); border-color: hsl(var(--green) / .45); }
-  .pick.p { color: hsl(var(--pri)); border-color: hsl(var(--pri) / .45); }
-  .pick.r { color: hsl(var(--violet)); border-color: hsl(var(--violet) / .45); font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; }
-  .pick.op { color: hsl(var(--fg)); border-color: hsl(var(--line-mid)); border-radius: 2px; min-width: 28px; }
-  .tray .tip { font-size: 11px; color: hsl(var(--muted-foreground)); }
+  .pick { background: none; border: 1px solid hsl(var(--line-mid)); padding: 1px 9px; min-width: 28px; font: 13px 'JetBrains Mono', monospace; color: hsl(var(--fg)); cursor: pointer; }
+  .pick:hover { border-color: hsl(var(--primary) / .6); }
   .picking .vname, .picking .fname, .picking .lname, .picking .pcounts [data-pick] { cursor: copy; }
-  .picking .lname { box-shadow: 0 0 0 1px hsl(var(--violet) / .55); }
-  .picking .vname { box-shadow: 0 0 0 1px hsl(var(--amber) / .55); }
-  .picking .fname:not(:focus) { box-shadow: 0 0 0 1px hsl(var(--green) / .55); }
-  .picking .pcounts [data-pick] { text-decoration: underline dotted hsl(var(--pri)); }
+  .picking .vname, .picking .fname:not(:focus), .picking .lname { box-shadow: 0 0 0 1px hsl(var(--primary) / .4); }
+  .picking .pcounts [data-pick] { text-decoration: underline dotted hsl(var(--primary)); }
 
   .txt { min-height: 100%; outline: none; line-height: 1.55; }
   .txt:empty::before { content: 'Write anything here.'; color: hsl(var(--muted-foreground)); font-style: italic; }
@@ -345,7 +359,6 @@
     <input class="title" id="title" spellcheck="false" />
     <div class="modes"><button data-mode="build">Build</button><button data-mode="run">Run</button></div>
     <span class="runinfo" id="runinfo"></span>
-    <div class="legend"><span><i style="background:hsl(var(--violet))"></i>reagent</span><span><i style="background:hsl(var(--amber))"></i>you set</span><span><i style="background:hsl(var(--green))"></i>worked out</span><span><i style="background:hsl(var(--pri))"></i>from the plate</span></div>
     <button class="lnk" id="resetRun">Reset run</button>
     <select class="lnk" id="example"><option value="">Load an example…</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
   </div>
@@ -356,6 +369,17 @@
 </div>
 
 <div class="tray" id="tray"></div>
+<div class="modal" id="pasteModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head"><span class="blk-glyph">≡</span>Paste a protocol</div>
+    <div class="modal-sub">Paste steps from a vendor sheet or an old protocol. Sections, numbered steps, a. b. sub-steps, bullets and notes are recognized, and lines broken mid-sentence are joined. Check the outline before adding.</div>
+    <div class="modal-body">
+      <textarea id="pasteText" spellcheck="false" placeholder="Paste here…"></textarea>
+      <div class="paste-preview" id="pastePreview"></div>
+    </div>
+    <div class="modal-foot"><button class="lnk" id="pasteExample">Try an example</button><button class="lnk" id="pasteCancel">Cancel</button><button class="add primary" id="pasteAdd"><span class="plus">+</span><span>Add Steps</span></button></div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
 <script id="engine">
 const UNITS = {
@@ -822,7 +846,7 @@ function itemLabel({ list, item }) {
 }
 </script>
 <script>
-const STORAGE_KEY = 'odysseus-workbench-builder-study-v8';
+const STORAGE_KEY = 'odysseus-workbench-builder-study-v9';
 const uid = () => Math.random().toString(36).slice(2, 9);
 const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
 const GROUPS = { std: { label: 'Standard', short: 'Std' }, sample: { label: 'Sample', short: 'S' }, blank: { label: 'Blank', short: 'B' }, ctrl: { label: 'Control', short: 'C' } };
@@ -888,8 +912,8 @@ function exampleSketch() {
 const exampleParts = () => ({
   v: (name, value, unit = '') => ({ id: uid(), name, value, unit }),
   f: (name, expr, unit = 'auto') => ({ id: uid(), name, expr, unit }),
-  step: (text, dur = '', extra = {}) => ({ id: uid(), kind: 'step', level: 1, text, dur, meanwhile: false, ...extra }),
-  sub: (text, dur = '') => ({ id: uid(), kind: 'step', level: 2, text, dur, meanwhile: false }),
+  step: (text, extra = {}) => ({ id: uid(), kind: 'step', level: 1, text, meanwhile: false, ...extra }),
+  sub: text => ({ id: uid(), kind: 'step', level: 2, text, meanwhile: false }),
   section: text => ({ id: uid(), kind: 'section', text }),
 });
 
@@ -930,20 +954,20 @@ function exampleElisa() {
       step('Make the coating mix.'),
       sub('Dilute {Capture Ab} {Capture Ab dilution} in {Coating buffer}: {Capture Ab volume} into {Coating buffer volume}.'),
       sub('Mix by inversion. Keep on ice.'),
-      step('Add {Vol per well} per well to the {ELISA plate}. Seal.', 'overnight, 4 °C'),
+      step('Add {Vol per well} per well to the {ELISA plate}. Seal and incubate overnight at 4 °C.'),
       section('Block'),
-      step('Wash 3 × 300 µL {Wash buffer}.'),
-      step('Add 200 µL {Blocking buffer} per well.', '1 h, RT'),
-      step('Prepare the {IL-6 standard}: 2-fold series from {Top std}, {Std transfer} into {Std diluent}.', '', { meanwhile: true }),
+      step('Wash 3× with 300 µL {Wash buffer} per well.'),
+      step('Add 200 µL {Blocking buffer} per well. Incubate 1 h at room temperature.'),
+      step('Prepare the {IL-6 standard}: 2-fold series from {Top std}, {Std transfer} into {Std diluent}.', { meanwhile: true }),
       section('Standards and samples'),
-      step('Wash 3 × with {Wash buffer}.'),
-      step('Add {Vol per well} standards and samples per the plate map.', '2 h, RT'),
+      step('Wash 3× with 300 µL {Wash buffer} per well.'),
+      step('Add {Vol per well} of standards and samples per the plate map. Incubate 2 h at room temperature.'),
       section('Detect'),
-      step('Wash 3 ×, then add {Detection Ab} at {Detection Ab dilution}.', '1 h, RT'),
-      step('Wash 3 ×, then add {Streptavidin-HRP} at {Streptavidin-HRP dilution}.', '20 min, RT, dark'),
+      step('Wash 3×, then add {Detection Ab} at {Detection Ab dilution}. Incubate 1 h at room temperature.'),
+      step('Wash 3×, then add {Streptavidin-HRP} at {Streptavidin-HRP dilution}. Incubate 20 min at room temperature, protected from light.'),
       step('Develop and read.'),
-      sub('Add 100 µL {TMB substrate}.', '20 min, dark'),
-      sub('Add 50 µL {Stop solution}.'),
+      sub('Add 100 µL {TMB substrate} per well. Incubate 20 min, protected from light.'),
+      sub('Add 50 µL {Stop solution} per well.'),
       sub('Read at 450 nm on the {Plate reader} within 30 min.'),
     ],
     blocks: [
@@ -1001,21 +1025,21 @@ function exampleCells() {
     lotMemory: {},
     steps: [
       section('Prepare cells'),
-      step('Warm {Complete DMEM} and {Trypsin-EDTA} to 37 °C.', '15 min'),
-      step('Detach {HeLa}: rinse with {PBS}, add 2 mL {Trypsin-EDTA}.', '3–5 min, 37 °C'),
-      sub('Neutralize with 8 mL {Complete DMEM} and spin in the {Centrifuge}.', '5 min'),
+      step('Warm {Complete DMEM} and {Trypsin-EDTA} to 37 °C for 15 min.'),
+      step('Detach {HeLa}: rinse with {PBS}, add 2 mL {Trypsin-EDTA}, and incubate 3–5 min at 37 °C.'),
+      sub('Neutralize with 8 mL {Complete DMEM} and spin in the {Centrifuge}.'),
       sub('Resuspend and count. Live cells: {Live cell conc}.'),
       section('Seed'),
       step('Mix {Cell suspension} of cells into {Media to add} {Complete DMEM}.'),
       step('Seed {Vol per well} per well of the {Assay plate}: {Cells per well} per well.'),
       sub('Fill the outer wells with {Vol per well} {PBS}.'),
-      step('Incubate.', 'overnight, 37 °C, 5% CO₂'),
+      step('Incubate overnight at 37 °C, 5% CO₂.'),
       section('Treat'),
       step('Make a 3-fold series of {Compound X} from {Top dose}.'),
-      step('Add compound per the plate map; vehicle to control wells.', '72 h, 37 °C'),
+      step('Add compound per the plate map, vehicle to control wells. Incubate 72 h at 37 °C.'),
       section('Read'),
-      step('Bring the plate and {CellTiter-Glo} to room temperature.', '30 min'),
-      step('Add 100 µL {CellTiter-Glo} per well and shake.', '10 min, RT'),
+      step('Bring the plate and {CellTiter-Glo} to room temperature for 30 min.'),
+      step('Add 100 µL {CellTiter-Glo} per well, shake 2 min, then incubate 10 min at room temperature.'),
       step('Read luminescence on the {Plate reader}.'),
     ],
     blocks: [
@@ -1071,10 +1095,9 @@ const mapTemplate = (text, plain, ref) => String(text ?? '').split(/(\{[^}]+\})/
   const m = /^\{([^}]+)\}$/.exec(part);
   return m ? ref(m[1]) : plain(part);
 }).join('');
-const refInner = r => `${esc(r.text)}<rt>${esc(r.label)}</rt>`;
-const templateHtml = text => mapTemplate(text, esc, name => { const r = refInfo(name); return `<ruby class="ref ${r.cls}" data-ref="${esc(name)}">${refInner(r)}</ruby>`; });
+const templateHtml = text => mapTemplate(text, esc, name => { const r = refInfo(name); return `<span class="ref ${r.cls}" data-ref="${esc(name)}" title="${esc(r.label)}">${esc(r.text)}</span>`; });
 const templateText = text => mapTemplate(text, part => part, name => refInfo(name).text);
-const chipHtml = name => { const r = refInfo(name); return `<span class="tok ${r.kind}" contenteditable="false" data-ref="${esc(name)}" title="${esc(r.text)}">${esc(name)}</span>`; };
+const chipHtml = name => { const r = refInfo(name); return `<span class="tok ${r.cls}" contenteditable="false" data-ref="${esc(name)}" title="${esc(name)}">${esc(r.text)}</span>`; };
 const editorHtml = text => mapTemplate(text, esc, chipHtml);
 const chipNode = name => { const t = document.createElement('template'); t.innerHTML = chipHtml(name); return t.content.firstChild; };
 const serializeEditor = el => [...el.childNodes].map(n => {
@@ -1192,11 +1215,11 @@ function flowSvg(b, width) {
     const text = templateText(s.text) || '(empty step)';
     const isCur = run && (s.id === cur || n.subs.some(x => x.id === cur));
     const cls = ['fb', side ? 'side' : '', run && state.run.done[s.id] ? 'done' : '', isCur ? 'cur' : ''].join(' ');
-    const lines = wrap(text, 26, Math.max(1, 3 - (s.dur ? 1 : 0) - (n.subs.length ? 1 : 0)));
+    const lines = wrap(text, 26, Math.max(1, 3 - (n.subs.length ? 1 : 0)));
     const subsDone = n.subs.filter(x => state.run.done[x.id]).length;
     const subLine = n.subs.length ? `<text class="sb" x="${x + 10}" y="${y + 18 + lines.length * 15}">+ ${n.subs.length} sub-step${n.subs.length === 1 ? '' : 's'}${run ? `, ${subsDone} done` : ''}</text>` : '';
     const tip = [text, ...n.subs.map(x => `${nums[x.id]} ${templateText(x.text)}`)].join('\n');
-    return `<g class="${cls}" data-step="${s.id}"><title>${esc(tip)}</title><rect x="${x}" y="${y}" width="${BW}" height="${BH}" rx="4"/>${lines.map((l, i) => `<text class="tx" x="${x + 10}" y="${y + 18 + i * 15}">${i === 0 ? `<tspan class="nm">${n.num}</tspan> ` : ''}${esc(l)}</text>`).join('')}${subLine}${s.dur ? `<text class="du" x="${x + 10}" y="${y + BH - 9}">${esc(s.dur)}</text>` : ''}</g>`;
+    return `<g class="${cls}" data-step="${s.id}"><title>${esc(tip)}</title><rect x="${x}" y="${y}" width="${BW}" height="${BH}" rx="4"/>${lines.map((l, i) => `<text class="tx" x="${x + 10}" y="${y + 18 + i * 15}">${i === 0 ? `<tspan class="nm">${n.num}</tspan> ` : ''}${esc(l)}</text>`).join('')}${subLine}</g>`;
   };
   const parts = [];
   let y = 6;
@@ -1226,6 +1249,154 @@ function flowSvg(b, width) {
   }
   return `<svg width="${width}" height="${y - ROW_GAP + 12}"><defs><marker id="${marker}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="fl-head" d="M0 0L10 5L0 10z"/></marker></defs>${parts.join('')}</svg>`;
 }
+
+function stepBlockEnd(i) {
+  const s = state.steps[i];
+  const belongs = x => (s.kind === 'section' ? x.kind !== 'section' : s.level !== 2 && x.kind === 'step' && x.level === 2);
+  let end = i + 1;
+  while (end < state.steps.length && belongs(state.steps[end])) end++;
+  return end;
+}
+
+function moveStepBlock(id, targetId, after) {
+  const from = state.steps.findIndex(s => s.id === id);
+  const moving = state.steps[from];
+  const block = state.steps.splice(from, stepBlockEnd(from) - from);
+  if (block.some(s => s.id === targetId)) { state.steps.splice(from, 0, ...block); return; }
+  let to = state.steps.findIndex(s => s.id === targetId);
+  if (after) to = state.steps[to].kind === 'section' && moving.kind !== 'section' ? to + 1 : stepBlockEnd(to);
+  state.steps.splice(to, 0, ...block);
+}
+
+const sameRank = (other, s) => (s.kind === 'section' ? other.kind === 'section' : s.level === 2 || other.kind === 'section' || other.level !== 2);
+
+function moveStepUp(i) {
+  const s = state.steps[i];
+  for (let j = i - 1; j >= 0; j--) if (sameRank(state.steps[j], s)) { moveStepBlock(s.id, state.steps[j].id, false); return; }
+}
+
+function moveStepDown(i) {
+  const s = state.steps[i];
+  for (let j = stepBlockEnd(i); j < state.steps.length; j++) if (sameRank(state.steps[j], s)) { moveStepBlock(s.id, state.steps[j].id, true); return; }
+}
+
+let stepDrag = null;
+function startStepDrag(id, e) {
+  e.preventDefault();
+  stepDrag = { id, x: e.clientX, y: e.clientY, moved: false, target: null };
+}
+const clearStepDropMarks = () => document.querySelectorAll('.drop-before, .drop-after, .dragging').forEach(el => el.classList.remove('drop-before', 'drop-after', 'dragging'));
+
+const STEP_PRESETS = [
+  { label: 'Wash', text: 'Wash ‹3›× with ‹200 µL› ‹wash buffer› per well.' },
+  { label: 'Spin', text: 'Centrifuge at ‹400 × g› for ‹5 min› at ‹4 °C›.' },
+  { label: 'Incubate', text: 'Incubate ‹30 min› at ‹room temperature›, protected from light.' },
+  { label: 'Add', text: 'Add ‹100 µL› of ‹reagent› per well.' },
+  { label: 'Mix', text: 'Mix by pipetting up and down ‹10›×.' },
+  { label: 'Resuspend', text: 'Resuspend the pellet in ‹200 µL› ‹buffer›.' },
+  { label: 'Transfer', text: 'Transfer ‹100 µL› to ‹the new plate›.' },
+  { label: 'Seed', text: 'Seed ‹100 µL› per well.' },
+  { label: 'Count', text: 'Count the cells; record count and viability.' },
+  { label: 'Read', text: 'Read ‹absorbance at 450 nm› on the ‹plate reader›.' },
+];
+
+function insertPreset(editor, preset) {
+  const selection = getSelection();
+  let range = selection.rangeCount && editor.contains(selection.getRangeAt(0).startContainer) ? selection.getRangeAt(0) : null;
+  if (!range) { range = document.createRange(); range.selectNodeContents(editor); range.collapse(false); }
+  range.deleteContents();
+  const fragment = document.createDocumentFragment();
+  const lead = editor.textContent.trim() && !/\s$/.test(editor.textContent) ? ' ' : '';
+  preset.text.split(/(‹[^›]*›)/).forEach((part, i) => {
+    if (!part) return;
+    const slot = /^‹(.*)›$/.exec(part);
+    if (!slot) { fragment.append(document.createTextNode(i === 0 ? lead + part : part)); return; }
+    const span = document.createElement('span');
+    span.className = 'slot';
+    span.textContent = slot[1];
+    fragment.append(span);
+  });
+  range.insertNode(fragment);
+  const first = editor.querySelector('.slot');
+  if (first) { const r = document.createRange(); r.selectNodeContents(first); selection.removeAllRanges(); selection.addRange(r); }
+  editor.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function jumpToSlot(editor, backwards) {
+  const slots = [...editor.querySelectorAll('.slot')];
+  if (!slots.length) return false;
+  const selection = getSelection();
+  const caret = selection.rangeCount ? selection.getRangeAt(0) : null;
+  const inside = slot => caret && slot.contains(caret.startContainer);
+  const ahead = slots.filter(slot => !inside(slot) && (!caret || caret.comparePoint(slot, 0) === 1));
+  const behind = slots.filter(slot => !inside(slot) && caret && caret.comparePoint(slot, 0) === -1);
+  const next = backwards ? behind[behind.length - 1] ?? slots[slots.length - 1] : ahead[0] ?? slots[0];
+  const r = document.createRange();
+  r.selectNodeContents(next);
+  selection.removeAllRanges();
+  selection.addRange(r);
+  return true;
+}
+
+function caretRangeAt(x, y) {
+  if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+  const position = document.caretPositionFromPoint?.(x, y);
+  if (!position) return null;
+  const range = document.createRange();
+  range.setStart(position.offsetNode, position.offset);
+  return range;
+}
+
+function parseProtocolText(raw) {
+  const lines = raw.replace(/\r/g, '').replace(/(\w)-\n(\w)/g, '$1$2').split('\n').map(l => l.replace(/\s+/g, ' ').trim());
+  const ROMAN_HEAD = /^([IVX]+)[.)]\s+(.+)$/;
+  const WORD_HEAD = /^(day|part|section|stage|phase)\s+\d+\b.*$/i;
+  const NUMBERED = /^(?:step\s*)?\d{1,3}(?:[.)]\s+|\s*:\s*)(.+)$/i;
+  const LETTERED = /^\(?[a-h][.)]\s+(.+)$/;
+  const SMALL_ROMAN = /^\(?(?:i{1,3}|iv|vi{0,3}|ix|x)[.)]\s+(.+)$/;
+  const BULLET = /^[•·▪●◦*\-–—]\s+(.+)$/;
+  const NOTE = /^(note|caution|important|tip)\s*[:\-–]\s*(.+)$/i;
+  const numbered = lines.some(l => NUMBERED.test(l));
+  const out = [];
+  let current = null;
+  let gap = false;
+  let bulletLevel = 0;
+  const push = item => { out.push(item); current = item; };
+  for (const line of lines) {
+    if (!line) { gap = true; continue; }
+    const headingShaped = line.length <= 60 && !/[.!?]$/.test(line);
+    const shouting = /[A-Z]{3}/.test(line) && line === line.toUpperCase();
+    let m;
+    if ((m = ROMAN_HEAD.exec(line)) && !SMALL_ROMAN.test(line)) push({ kind: 'section', text: m[2] });
+    else if (WORD_HEAD.test(line) && headingShaped) push({ kind: 'section', text: line.replace(/:$/, '') });
+    else if (headingShaped && (/:$/.test(line) || shouting) && !NUMBERED.test(line)) push({ kind: 'section', text: line.replace(/:$/, '') });
+    else if ((m = NUMBERED.exec(line))) push({ kind: 'step', level: 1, text: m[1] });
+    else if ((m = SMALL_ROMAN.exec(line)) && current?.kind === 'step') push({ kind: 'step', level: 2, text: m[1] });
+    else if ((m = LETTERED.exec(line))) push({ kind: 'step', level: 2, text: m[1] });
+    else if ((m = BULLET.exec(line))) { bulletLevel = bulletLevel || (current?.kind === 'step' ? 2 : 1); push({ kind: 'step', level: bulletLevel, text: m[1] }); gap = false; continue; }
+    else if ((m = NOTE.exec(line)) && current?.kind === 'step') current.text += ` ${m[1][0].toUpperCase()}${m[1].slice(1).toLowerCase()}: ${m[2]}`;
+    else if (current?.kind === 'step' && (numbered || (!gap && !bulletLevel))) current.text += ` ${line}`;
+    else push({ kind: 'step', level: 1, text: line });
+    gap = false;
+    bulletLevel = 0;
+  }
+  return out.map(item => ({ ...item, text: item.text.trim(), ...(item.kind === 'step' ? { meanwhile: false } : {}) }));
+}
+
+const PASTE_EXAMPLE = `PREPARE THE PLATE
+1. Dilute the capture antibody to its working concentration in coating
+buffer and add 100 µL per well. Seal and incubate overnight at 4 °C.
+2. Wash the plate three times.
+   a. Fill each well with 300 µL of wash buffer and aspirate.
+   b. After the last wash, invert the plate and blot it on paper towels.
+3. Add 200 µL of blocking buffer per well and incubate for at least
+1 hour at room temperature.
+Note: blocked plates can be stored sealed at 4 °C for up to two weeks.
+
+RUN THE ASSAY
+4. Add 100 µL of standards or samples per well. Incubate 2 hours at
+room temperature.
+5. Wash as in step 2.`;
 
 const sketchTools = new Map();
 const sketchTool = b => { if (!sketchTools.has(b.id)) sketchTools.set(b.id, { color: SKETCH_COLORS[0], mode: 'pen' }); return sketchTools.get(b.id); };
@@ -1313,7 +1484,7 @@ function materialSection(b, items) {
       return `<td>${f && item.on.includes(f.key) ? materialCell(item, f) : ''}</td>`;
     }).join('');
     const isOpen = open === item.id;
-    const row = `<tr class="mrow${i % 2 ? ' alt' : ''}${isOpen ? ' open' : ''}" data-item="${item.id}" data-act="open"><td class="mname">${esc(item.name) || '<span class="hint">Unnamed</span>'}</td><td class="mtype">${esc(item.type)}</td>${cells}</tr>`;
+    const row = `<tr class="mrow${i % 2 ? ' alt' : ''}${isOpen ? ' open' : ''}" data-item="${item.id}" data-act="open" data-pick="${esc(item.name)}"><td class="mname">${esc(item.name) || '<span class="hint">Unnamed</span>'}</td><td class="mtype">${esc(item.type)}</td>${cells}</tr>`;
     return isOpen ? `${row}<tr class="medit-row"><td colspan="${columns.length + 2}">${materialEditor(b, item)}</td></tr>` : row;
   }).join('');
   return `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -1422,7 +1593,7 @@ const TYPES = {
     },
     onClick(b, e) {
       const act = e.target.closest('[data-act]')?.dataset.act;
-      if (!act || (act === 'open' && e.target.closest('input, select, button'))) return;
+      if (!act || (act === 'open' && (isPicking() || e.target.closest('input, select, button')))) return;
       const item = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
       const key = e.target.closest('[data-key]')?.dataset.key;
       let added = null;
@@ -1666,7 +1837,7 @@ const TYPES = {
         if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
         const tools = `<div class="ftools">${run ? '' : '<button class="lnk" data-act="del">Remove</button>'}<button class="lnk" data-act="close">Done</button></div>`;
         if (run) return `<div class="fedit" data-item="${it.id}"><div class="fhead"><span class="fname-ro">${esc(it.name)}</span><span class="fres" data-res></span></div><div class="fexpr-ro mono">= ${esc(it.expr)}</div><div class="fwork" data-work></div>${tools}</div>`;
-        return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${FORMULA_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(u === '' ? 'number' : u === 'x' ? 'fold ×' : u)}</option>`).join('')}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fwork" data-work></div>${tools}</div>`;
+        return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${FORMULA_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(u === '' ? 'number' : u === 'x' ? 'fold ×' : u)}</option>`).join('')}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
       }).join('')}</div>${run ? '' : `<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
     },
     update(b, body) {
@@ -1836,60 +2007,71 @@ const TYPES = {
       const nums = stepNumbers();
       const cur = currentStepId();
       const tools = '<span class="tools"><button data-act="up" title="Move up">↑</button><button data-act="down" title="Move down">↓</button><button data-act="del" title="Remove">×</button></span>';
+      const grip = run ? '' : '<span class="grip" title="Drag to move">⠿</span>';
       const groups = [];
       for (const s of state.steps) {
         if (s.kind === 'section' || !groups.length) groups.push({ section: s.kind === 'section' ? s : null, steps: [] });
         if (s.kind === 'step') groups[groups.length - 1].steps.push(s);
       }
+      const duringOf = {};
+      let lastMain = null;
+      for (const s of state.steps) {
+        if (s.kind !== 'step' || s.level === 2) continue;
+        if (s.meanwhile) duringOf[s.id] = lastMain;
+        else lastMain = nums[s.id].replace('.', '');
+      }
       const row = s => {
         const done = !!state.run.done[s.id];
         const editing = !run && editingStepId === s.id;
-        const cls = ['srow', s.level === 2 ? 'sub' : '', s.meanwhile ? 'mw' : '', run && done ? 'done' : '', run && s.id === cur ? 'cur' : '', editing ? 'editing' : ''].join(' ');
-        const tag = s.meanwhile ? '<span class="mwtag">meanwhile</span>' : '';
+        const cls = ['srow', s.level === 2 ? 'sub' : '', run && done ? 'done' : '', run && s.id === cur ? 'cur' : '', editing ? 'editing' : ''].join(' ');
+        const tag = s.meanwhile && duringOf[s.id] ? `<span class="during">During step ${duringOf[s.id]}:</span>` : '';
         const content = editing
-          ? `<div class="sedit" contenteditable="true" spellcheck="false" data-placeholder="What happens in this step">${editorHtml(s.text)}</div><div class="meta"><input class="in sdur" placeholder="time, temperature" value="${esc(s.dur)}" /><label><input type="checkbox" class="ssub"${s.level === 2 ? ' checked' : ''} /> sub-step</label><label><input type="checkbox" class="smw"${s.meanwhile ? ' checked' : ''} /> meanwhile</label></div>`
+          ? `<div class="sedit" contenteditable="true" spellcheck="false" data-placeholder="Write the step">${editorHtml(s.text)}</div><div class="meta"><label><input type="checkbox" class="ssub"${s.level === 2 ? ' checked' : ''} /> sub-step</label><label><input type="checkbox" class="smw"${s.meanwhile ? ' checked' : ''} /> during the previous step</label>${trayToggleHtml(false)}</div>`
           : `<div class="sdisp">${tag}${templateHtml(s.text) || '<span class="hint">Click to write this step</span>'}</div>`;
-        return `<div class="${cls}" data-step="${s.id}">${run ? `<span class="chk">${done ? '✓' : ''}</span>` : ''}<span class="num">${nums[s.id]}</span><div class="body">${content}</div>${!editing && s.dur ? `<span class="dur">${esc(s.dur)}</span>` : ''}${run || editing ? '' : tools}</div>`;
+        return `<div class="${cls}" data-step="${s.id}">${editing ? '' : grip}${run ? `<span class="chk">${done ? '✓' : ''}</span>` : ''}<span class="num">${nums[s.id]}</span><div class="body">${content}</div>${run || editing ? '' : tools}</div>`;
       };
       body.innerHTML = groups.map(({ section, steps }) => {
         const done = steps.filter(s => state.run.done[s.id]).length;
         const meta = run ? `${done} of ${steps.length}` : `${steps.length} step${steps.length === 1 ? '' : 's'}`;
         const head = section
-          ? `<div class="sec-head" data-step="${section.id}"><span class="sec-num">${nums[section.id]}</span>${run ? `<span class="sec-title">${esc(section.text)}</span>` : `<input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" />`}<span class="sec-meta">${meta}</span>${run ? '' : tools}</div>`
+          ? `<div class="sec-head" data-step="${section.id}">${grip}<span class="sec-num">${nums[section.id]}</span>${run ? `<span class="sec-title">${esc(section.text)}</span>` : `<input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" />`}<span class="sec-meta">${meta}</span>${run ? '' : tools}</div>`
           : '';
         const complete = run && steps.length && done === steps.length;
         return `<section class="sgroup${complete ? ' complete' : ''}">${head}<div class="${section ? 'sgroup-body' : ''}">${steps.map(row).join('')}</div></section>`;
-      }).join('') + (run ? '' : '<div class="sadd"><button class="add" data-act="step">+ Step</button><button class="add" data-act="section">+ Section</button></div><p class="shelp">While writing a step, click any name to drop it in. It stays live.</p>');
+      }).join('') + (run ? '' : '<div class="sadd"><button class="add" data-act="step">+ Step</button><button class="add" data-act="section">+ Section</button><button class="add" data-act="paste">Paste protocol</button></div>');
     },
     update(b, body) {
       body.querySelectorAll('.ref').forEach(el => {
         const r = refInfo(el.dataset.ref);
-        el.innerHTML = refInner(r);
+        el.textContent = r.text;
+        el.title = r.label;
         el.className = `ref ${r.cls}`;
       });
     },
     onMousedown(b, e) {
       if (isRun() || e.button !== 0) return;
+      const rowEl = e.target.closest('[data-step]');
+      if (e.target.closest('.grip') && rowEl) { startStepDrag(rowEl.dataset.step, e); return; }
       const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'paste') { e.preventDefault(); openPasteModal(); return; }
       if (act === 'step' || act === 'section') {
         e.preventDefault();
-        const s = act === 'step' ? { id: uid(), kind: 'step', level: 1, text: '', dur: '', meanwhile: false } : { id: uid(), kind: 'section', text: 'New section' };
+        const s = act === 'step' ? { id: uid(), kind: 'step', level: 1, text: '', meanwhile: false } : { id: uid(), kind: 'section', text: 'New section' };
         state.steps.push(s);
         editingStepId = act === 'step' ? s.id : null;
         commitSteps();
-        const row = bodyOf(b).querySelector(`[data-step="${s.id}"]`);
-        if (act === 'step') focusEditor(row.querySelector('.sedit'));
-        else { row.querySelector('.stext').focus(); row.querySelector('.stext').select(); }
+        const added = bodyOf(b).querySelector(`[data-step="${s.id}"]`);
+        if (act === 'step') focusEditor(added.querySelector('.sedit'));
+        else { added.querySelector('.stext').focus(); added.querySelector('.stext').select(); }
         return;
       }
-      const rowEl = e.target.closest('[data-step]');
       if (!rowEl) return;
       const i = state.steps.findIndex(s => s.id === rowEl.dataset.step);
       const s = state.steps[i];
       if (act) {
         e.preventDefault();
-        if (act === 'up' && i > 0) [state.steps[i - 1], state.steps[i]] = [state.steps[i], state.steps[i - 1]];
-        if (act === 'down' && i < state.steps.length - 1) [state.steps[i + 1], state.steps[i]] = [state.steps[i], state.steps[i + 1]];
+        if (act === 'up') moveStepUp(i);
+        if (act === 'down') moveStepDown(i);
         if (act === 'del') { state.steps.splice(i, 1); delete state.run.done[s.id]; }
         commitSteps();
         return;
@@ -1910,7 +2092,6 @@ const TYPES = {
       if (!s) return;
       if (e.target.matches('.stext')) s.text = e.target.value;
       if (e.target.matches('.sedit')) s.text = serializeEditor(e.target);
-      if (e.target.matches('.sdur')) s.dur = e.target.value;
       save();
       stepsRendering = true;
       state.blocks.filter(x => x.type === 'flow').forEach(renderBlock);
@@ -1924,9 +2105,9 @@ const TYPES = {
       bodyOf(b).querySelector(`[data-step="${s.id}"] .${e.target.classList.contains('smw') ? 'smw' : 'ssub'}`).focus();
     },
     onFocusout(b, e) {
-      if (stepsRendering || !e.target.matches('.stext, .sedit, .sdur, .ssub, .smw')) return;
+      if (stepsRendering || !e.target.matches('.stext, .sedit, .ssub, .smw')) return;
       const rowEl = e.target.closest('[data-step]');
-      if (e.relatedTarget && rowEl.contains(e.relatedTarget)) return;
+      if (e.relatedTarget && (rowEl.contains(e.relatedTarget) || e.relatedTarget.closest('#tray'))) return;
       if (!e.target.matches('.sectext')) editingStepId = null;
       commitSteps();
     },
@@ -2054,29 +2235,33 @@ function insertToken(token, isName) {
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+let trayOpen = false;
+const trayToggleLabel = isFormula => (trayOpen ? '− Hide the insert list' : isFormula ? '+ Insert a name or operator' : '+ Insert a value or a common step');
+const trayToggleHtml = isFormula => `<button class="tray-toggle" data-tray-toggle>${trayToggleLabel(isFormula)}</button>`;
 function showTray(input) {
   const isFormula = input.matches('.fexpr');
-  const ownName = isFormula ? input.closest('.frow').querySelector('.fname').value.trim().toLowerCase() : '';
-  const groups = { v: [], f: [], p: [] };
-  const lists = new Map();
+  const ownName = isFormula ? input.closest('.fedit').querySelector('.fname').value.trim().toLowerCase() : '';
+  document.querySelectorAll('[data-tray-toggle]').forEach(button => { button.textContent = trayToggleLabel(isFormula); });
+  tray.classList.toggle('on', trayOpen);
+  if (!trayOpen) return;
+  const groups = new Map();
+  const add = (title, row) => groups.set(title, [...(groups.get(title) ?? []), row]);
   for (const entry of calc.names.values()) {
-    if (entry.name.toLowerCase() === ownName) continue;
-    if (entry.kind !== 'item') groups[NAME_KIND_CLASS[entry.kind]].push(entry.name);
-    else if (!isFormula) lists.set(entry.groupTitle, [...(lists.get(entry.groupTitle) ?? []), entry.name]);
+    if (entry.name.toLowerCase() === ownName || (isFormula && entry.kind === 'item')) continue;
+    const title = entry.kind === 'item' ? entry.groupTitle : { value: 'Values', formula: 'Formulas', plate: 'Vessel counts' }[entry.kind];
+    const shown = refInfo(entry.name).text;
+    add(title, `<div class="tray-row" data-pick="${esc(entry.name)}"><span>${esc(entry.name)}</span>${shown !== entry.name ? `<span class="tv">${esc(shown)}</span>` : ''}</div>`);
   }
-  const chips = (key, title, names) => (names.length ? `<h5>${esc(title)}</h5><div class="chips">${names.map(n => `<button class="pick ${key}" data-pick="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : '');
-  tray.innerHTML = (isFormula ? `<div class="chips">${['+', '−', '×', '÷', '(', ')'].map(op => `<button class="pick op" data-op="${op}">${op}</button>`).join('')}</div>` : '')
-    + [...lists].map(([title, names]) => chips('r', title, names)).join('')
-    + chips('v', 'Values', groups.v) + chips('f', 'Formulas', groups.f) + chips('p', 'Vessel counts', groups.p)
-    + `<div class="tip">Click to insert${isFormula ? '' : ' as a live value'}. Names on the board work too.</div>`;
-  tray.classList.add('on');
+  const presets = isFormula ? '' : `<div class="tray-group">Common steps</div>${STEP_PRESETS.map((p, i) => `<div class="tray-row" data-preset="${i}"><span>${esc(p.label)}</span><span class="tv">${esc(p.text.replace(/[‹›]/g, ''))}</span></div>`).join('')}`;
+  const ops = isFormula ? `<div class="tray-ops">${['+', '−', '×', '÷', '(', ')'].map(op => `<button class="pick" data-op="${op}">${op}</button>`).join('')}</div>` : '';
+  tray.innerHTML = `<div class="tray-list">${ops}${presets}${[...groups].map(([title, rows]) => `<div class="tray-group">${esc(title)}</div>${rows.join('')}`).join('')}</div><div class="tray-tip">Click to insert, or drag into place. Names on the board can be dragged in too.${isFormula ? '' : ' Tab jumps between highlighted blanks.'}</div>`;
   placeTray();
 }
 
 function placeTray() {
   if (!insertTarget) return;
-  const r = insertTarget.getBoundingClientRect();
-  tray.style.width = `${Math.max(r.width, 300)}px`;
+  const r = (insertTarget.closest('.srow, .fedit') ?? insertTarget).getBoundingClientRect();
+  tray.style.width = `${Math.min(Math.max(r.width, 320), 420)}px`;
   tray.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - tray.offsetWidth - 8))}px`;
   tray.style.top = `${r.bottom + 6 + tray.offsetHeight > window.innerHeight ? r.top - tray.offsetHeight - 6 : r.bottom + 6}px`;
 }
@@ -2260,6 +2445,7 @@ const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
   TYPES[b.type][handlerName(type)]?.call(TYPES[b.type], b, e);
 }));
 board.addEventListener('keydown', e => {
+  if (e.key === 'Tab' && e.target.matches('.sedit') && jumpToSlot(e.target, e.shiftKey)) { e.preventDefault(); return; }
   if (e.key !== 'Enter' || !e.target.matches('input.in, input.sec-title, .sedit')) return;
   e.preventDefault();
   e.target.blur();
@@ -2284,18 +2470,114 @@ document.addEventListener('focusout', e => {
   document.body.classList.remove('picking');
   tray.classList.remove('on');
 });
+let nameDrag = null;
 document.addEventListener('mousedown', e => {
-  if (!insertTarget) return;
+  if (!insertTarget || e.button !== 0) return;
+  if (e.target.closest('[data-tray-toggle]')) { e.preventDefault(); trayOpen = !trayOpen; showTray(insertTarget); return; }
+  const preset = e.target.closest('[data-preset]');
+  if (preset && insertTarget.isContentEditable) {
+    e.preventDefault();
+    insertPreset(insertTarget, STEP_PRESETS[+preset.dataset.preset]);
+    return;
+  }
   const op = e.target.closest('[data-op]');
   const pick = e.target.closest('[data-pick], .vname, .fname, .lname');
   if (!op && !pick) return;
-  if (pick === insertTarget || (pick?.matches('.fname') && pick.closest('.frow') === insertTarget.closest('.frow'))) return;
+  if (pick === insertTarget || (pick?.matches('.fname') && pick.closest('.fedit') === insertTarget.closest('.fedit'))) return;
   const token = op ? op.dataset.op : (pick.dataset.pick ?? pick.value).trim();
   if (!token) return;
   e.preventDefault();
-  insertToken(token, !op);
+  nameDrag = { token, isName: !op, x: e.clientX, y: e.clientY, moved: false, ghost: null };
 }, true);
+
+document.addEventListener('mousemove', e => {
+  if (nameDrag) {
+    if (!nameDrag.moved && Math.hypot(e.clientX - nameDrag.x, e.clientY - nameDrag.y) < 5) return;
+    if (!nameDrag.moved) {
+      nameDrag.moved = true;
+      nameDrag.ghost = Object.assign(document.createElement('div'), { className: 'drag-ghost', textContent: nameDrag.token });
+      document.body.append(nameDrag.ghost);
+    }
+    nameDrag.ghost.style.transform = `translate(${e.clientX + 12}px, ${e.clientY + 10}px)`;
+    const over = document.elementFromPoint(e.clientX, e.clientY);
+    insertTarget?.classList.toggle('drop-ok', !!over && (over === insertTarget || insertTarget.contains(over)));
+    return;
+  }
+  if (!stepDrag) return;
+  if (!stepDrag.moved && Math.hypot(e.clientX - stepDrag.x, e.clientY - stepDrag.y) < 4) return;
+  stepDrag.moved = true;
+  clearStepDropMarks();
+  document.querySelectorAll(`[data-step="${stepDrag.id}"]`).forEach(el => el.classList.add('dragging'));
+  const row = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-step]');
+  stepDrag.target = null;
+  if (!row || row.dataset.step === stepDrag.id) return;
+  const rect = row.getBoundingClientRect();
+  const after = e.clientY > rect.top + rect.height / 2;
+  row.classList.add(after ? 'drop-after' : 'drop-before');
+  stepDrag.target = { id: row.dataset.step, after };
+});
+
+document.addEventListener('mouseup', e => {
+  if (nameDrag) {
+    const drag = nameDrag;
+    nameDrag = null;
+    drag.ghost?.remove();
+    if (!insertTarget) return;
+    insertTarget.classList.remove('drop-ok');
+    if (drag.moved) {
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      if (!over || !(over === insertTarget || insertTarget.contains(over))) return;
+      const range = insertTarget.isContentEditable ? caretRangeAt(e.clientX, e.clientY) : null;
+      if (range && insertTarget.contains(range.startContainer)) { getSelection().removeAllRanges(); getSelection().addRange(range); }
+    }
+    insertToken(drag.token, drag.isName);
+    return;
+  }
+  if (!stepDrag) return;
+  const drag = stepDrag;
+  stepDrag = null;
+  clearStepDropMarks();
+  if (!drag.moved || !drag.target) return;
+  moveStepBlock(drag.id, drag.target.id, drag.target.after);
+  commitSteps();
+}, true);
+
 document.getElementById('boardWrap').addEventListener('scroll', placeTray);
+
+const pasteModal = document.getElementById('pasteModal');
+const pasteText = document.getElementById('pasteText');
+const pastePreview = document.getElementById('pastePreview');
+const pasteAdd = document.getElementById('pasteAdd');
+let pasteItems = [];
+function renderPastePreview() {
+  pasteItems = parseProtocolText(pasteText.value);
+  let sections = 0;
+  let steps = 0;
+  let subs = 0;
+  pastePreview.innerHTML = pasteItems.length ? pasteItems.map(item => {
+    if (item.kind === 'section') { subs = 0; return `<div class="pp-sec"><span>${roman(++sections)}.</span>${esc(item.text)}</div>`; }
+    if (item.level === 2) return `<div class="pp-row sub"><span>${String.fromCharCode(97 + subs++)}.</span>${esc(item.text)}</div>`;
+    subs = 0;
+    return `<div class="pp-row"><span>${++steps}.</span>${esc(item.text)}</div>`;
+  }).join('') : '<p class="hint">The outline appears here as you paste.</p>';
+  const count = pasteItems.filter(i => i.kind === 'step').length;
+  pasteAdd.disabled = !count;
+  pasteAdd.lastChild.textContent = count ? `Add ${count} Step${count === 1 ? '' : 's'}` : 'Add Steps';
+}
+function openPasteModal() {
+  pasteModal.hidden = false;
+  pasteText.value = '';
+  renderPastePreview();
+  pasteText.focus();
+}
+pasteText.addEventListener('input', renderPastePreview);
+document.getElementById('pasteExample').addEventListener('click', () => { pasteText.value = PASTE_EXAMPLE; renderPastePreview(); });
+document.getElementById('pasteCancel').addEventListener('click', () => { pasteModal.hidden = true; });
+pasteAdd.addEventListener('click', () => {
+  state.steps.push(...pasteItems.map(item => ({ id: uid(), ...item })));
+  pasteModal.hidden = true;
+  commitSteps();
+});
 
 grid.on('change', (e, items) => {
   items.forEach(it => { const b = byId(it.id); if (b) Object.assign(b, { x: it.x, y: it.y, w: it.w, h: it.h }); });

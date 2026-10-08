@@ -5,31 +5,54 @@ Living plan for the scientist-facing side of Odysseus. Everything built so far i
 flow cytometry panels first, general protocols and calculators after. This doc is the shared source
 of truth; we iterate on it until it is right, then build.
 
-**Status:** draft 11. Design phase. **Direction changed:** the workbench is now a general protocol
-builder, and the flow run sheet is parked as one block type (see _The builder_ below). Nothing is
-built. Branch `feature/workbench`.
+**Status:** draft 12 (2026-10-07). Design phase, working panel by panel in the builder mockup. Nothing
+is built. Branch `feature/workbench` (has `main` merged in; pushed).
 
-### Where things stand (read this first)
+### Resume here (read this first)
 
-- **Current direction: _The builder_, right below the ledger.** It and W66 onward override everything
-  older where they disagree. §5 to §7, §12 and W43 to W65 are the parked flow work: still the design
-  for a future flow panel block and for runs, not the starting point.
-- **Builder mockup:** `docs/mockups/workbench-builder-study.html`, a working study (drag, resize, live
-  formulas) styled from the app's real primitives. Tracked in git so it travels between machines; an
-  exception to keeping mockups local. The flow run sheet study (`refs/redesign/Workbench Run Sheet
-Study-2.html`) stays local as the reference for the parked flow work.
-- **Later decisions override earlier ones.** The locked-decision table (§3) is in the order decisions
-  were made. Where two rows conflict, the higher number wins. Known stale spots in the flow work: fill
-  modes and series fills (replaced by W46, W51), edge bands and legends on the plate (replaced by W48),
-  the separate controls list (W52), "variant" as a name (Q29, Q34).
-- **Setup tab, approved so far:** 1. plate map (wells first, fill form beside it, every value written
-  on the well, color by one chosen field), 2. panel and reagents (saved panel, in-place edit, swap from
-  stock, add per laser, fluorochrome colors), 3. calculations (grouped cell table).
-- **Run tab:** steps under sections numbered I. 1. a., mixes inside their steps, pinned section strip,
-  plate and panel in a side column. Liked in general; the plate there is tight on a laptop.
-- **Not mocked yet:** library, protocol editor, the plain print/export page.
-- **How Evan wants to work:** ask plain numbered questions in chat before reworking how something is
-  used; do not guess at his workflow; keep it simple; American spelling.
+**What the workbench is now.** A protocol builder: a snapping board of blocks (materials, steps,
+values, formulas, vessel map, tables, flow diagram, sketch, text). Values and formulas share names
+like spreadsheet cells, show their working, and check units; steps quote them live. A run is a dated
+use of the same board with that day's values, lots and ticks. Full description: _The builder_ below.
+Decisions W66 to W89 are the current truth and override anything older; §5 to §7, §12 and W43 to W65
+are the parked flow-panel work.
+
+**The mockup.** `docs/mockups/workbench-builder-study.html` (tracked so it travels between machines).
+Open it in a browser; it reads the app's real CSS from `client/src/shared/styles/`, so keep it at this
+folder depth. It saves to the browser's local storage; "Load an example…" (top right) resets to the
+IL-6 ELISA or the cell viability assay. Build and Run (top) switch modes. It is styled from main's real
+primitives (soft `ConsolePanel` cards, `PanelHeader`, `Subsection`, `Table`, `Button`, `Input`,
+`Chip`) and follows the readability recipe (`docs/reports/UI_READABILITY_PASS.md`).
+
+**Panel review status.** Going block by block, deciding what each needs:
+
+| Block        | Status                                                                                                                                                                                              |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Materials    | Reviewed. Grouped per `docs/reports/WORKBENCH_MATERIALS.md`; hybrid layout (plain-text table per group, row opens as a card) is "for now" (W83, W84).                                               |
+| Steps        | Reviewed twice. Sentences with times written in, plain live values, drag or click to insert, drag to reorder, common-step presets, smart paste, "During step N:" (W85 to W89). Liked; refine later. |
+| Values       | Calmed (plain list, click to edit). Not yet reviewed on its own.                                                                                                                                    |
+| Formulas     | Calmed (name, answer, one line of working). Not yet reviewed on its own.                                                                                                                            |
+| Vessel map   | Not reviewed since the plate-to-vessel change (W75). Plate colors are still the old kind colors.                                                                                                    |
+| Table        | Calmed (plain text rows, columns editor). Not reviewed.                                                                                                                                             |
+| Flow diagram | Not reviewed. Draws from the steps; meanwhile branch kept here only.                                                                                                                                |
+| Sketch, Text | Not reviewed.                                                                                                                                                                                       |
+| Run mode     | Not reviewed as a whole (lots to record, changed values, ticking steps).                                                                                                                            |
+
+**Not mocked yet:** the protocol library (list of saved protocols and runs), the plain print/export
+page, the finished-run record.
+
+**Open questions:** Q33 to Q35 (flow diagram source, parent/child protocols, layout during a run) and
+Q25 to Q32 from the flow work (§14).
+
+**Editing the mockup (for Claude).** It is one large HTML file. Back it up before every change.
+Replace code by unique anchors only: one non-unique anchor once deleted a large section. After a
+change, load it headless in Edge and check for errors, and screenshot what changed instead of
+guessing. The formula engine sits in the `<script id="engine">` block and can be tested in Node.
+
+**How Evan wants to work.** Ask plain numbered questions in chat before reworking how something is
+used; don't guess at his workflow. Keep it simple, readable at the bench and in print, and calm (no
+decoration). Reuse the app's existing pieces; build new only where nothing exists (W74). American
+spelling. Commit when he says so.
 
 ### Progress ledger (details in §13)
 
@@ -307,6 +330,11 @@ numbers around" becomes "change two inputs."
 | W82 | Collapsing blocks               | Any block collapses to its title bar, in build and on a run. Table columns can be hidden.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | W83 | Materials block                 | One block for every input, grouped per the materials catalog. Starts minimal; suggested fields per type are one click away; custom fields and groups allowed; lot-bound values remembered by lot. Supersedes the table presets of W80 for inputs.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | W84 | Readable at the bench           | Every workbench screen follows the calmer readability recipe (`docs/reports/UI_READABILITY_PASS.md`): plain text until clicked, no boxes in boxes, clear group headings, scannable in the lab and in print. Materials use a hybrid for now: per-group tables, a row opens as a card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| W85 | Steps read as sentences         | A step is one plain sentence with its verbs, times and temperatures written in ("Incubate 30 min at 37 °C, protected from light"). No separate duration tag; a loose "1 h, RT" beside the text is ambiguous. Live values read as plain colored text with no label; their source shows on hover. Supersedes the duration field (W24 wording) and W78's labels.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| W86 | Inserting names                 | Names are clicked or dragged into a step or formula, from the tray or straight off the board (values, formulas, materials, vessel counts). Extends W76.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| W87 | Reordering and presets          | Steps reorder by dragging a handle, and the up/down buttons stay. A step carries its sub-steps; a section carries its group. Common steps (wash, spin, incubate, add, mix, resuspend, transfer, seed, count, read) insert a full sentence with highlighted blanks; Tab moves between blanks.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| W88 | Paste a protocol                | Pasted text becomes an outline only after a preview the scientist checks: sections (headings, roman numerals, "Day 2"), numbered steps, a./b./bullets as sub-steps, notes kept with their step, PDF line breaks joined. Nothing is added until confirmed. A model-assisted parse is a possible later upgrade.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| W89 | Editing looks like reading      | A step being edited keeps the reading size and font, with only a faint underline; inserted names show as their values, as in the finished line. The insert panel starts as a single "+ Insert" link and opens to a plain list (common steps, then names with their current values). One color for every live value: normal text with a thin blue dotted underline. Kind colors and the legend are gone; red means an error, amber means still to record. A meanwhile step reads "During step 4:" instead of a dashed side line. Supersedes the color coding in W69 and W78.                                                                                                                                                                                                                                                                                                                                                                                              |
 | W37 | Reuse                           | Built from the existing primitives, chassis and tokens. A new shared piece is added only for a real gap, in the shared layer, to the same standard as the rest.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
