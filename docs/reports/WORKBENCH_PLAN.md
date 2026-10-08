@@ -14,10 +14,10 @@ built. Branch `feature/workbench`.
 - **Current direction: _The builder_, right below the ledger.** It and W66 onward override everything
   older where they disagree. §5 to §7, §12 and W43 to W65 are the parked flow work: still the design
   for a future flow panel block and for runs, not the starting point.
-- **Builder mockup:** `refs/redesign/Workbench Builder Study.html`, a working study (drag, resize, live
-  formulas). The flow run sheet study (`Workbench Run Sheet Study-2.html`) stays as the reference for
-  the parked flow work. Both are local only (`refs/` is not tracked by git); open them with
-  `Start-Process`, since the file names have spaces.
+- **Builder mockup:** `docs/mockups/workbench-builder-study.html`, a working study (drag, resize, live
+  formulas) styled from the app's real primitives. Tracked in git so it travels between machines; an
+  exception to keeping mockups local. The flow run sheet study (`refs/redesign/Workbench Run Sheet
+Study-2.html`) stays local as the reference for the parked flow work.
 - **Later decisions override earlier ones.** The locked-decision table (§3) is in the order decisions
   were made. Where two rows conflict, the higher number wins. Known stale spots in the flow work: fill
   modes and series fills (replaced by W46, W51), edge bands and legends on the plate (replaced by W48),
@@ -824,8 +824,8 @@ Everything else is workbench-local until a second user appears.
 
 Both mechanisms already exist in the repo.
 
-1. **Static study** per screen in `refs/redesign/`, the same format as the earlier studies, using the
-   real tokens. Approved before any component is written.
+1. **Static study** per screen in `docs/mockups/` (the workbench exception to local-only mockups),
+   using the real tokens and primitives. Approved before any component is written.
 2. **Live preview** at `/__dev/modals`: the real components against fixtures, in light and dark,
    before any wiring to data.
 

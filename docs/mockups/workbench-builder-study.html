@@ -1,0 +1,2312 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<title>Odysseus // Workbench · Builder Study</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../../client/src/shared/styles/fonts/fonts.css" />
+<link rel="stylesheet" href="../../client/src/shared/styles/base/variables.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css" />
+<style>
+  :root { --fg: var(--foreground); --pri: var(--primary); --amber: 38 84% 65%; --green: 122 39% 59%; --red: 0 56% 66%; --violet: 265 62% 78%; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: hsl(var(--fg)); background: hsl(var(--page)); overflow: hidden; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  button { font: inherit; color: inherit; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / .25); border-radius: 10px; }
+
+  .app { height: 100vh; display: flex; flex-direction: column; background-color: hsl(var(--page)); background-image: repeating-linear-gradient(0deg, hsl(var(--foreground) / .013) 0 1px, transparent 1px 26px), repeating-linear-gradient(90deg, hsl(var(--foreground) / .013) 0 1px, transparent 1px 26px); }
+  .top { height: 52px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: hsl(var(--background)); border-bottom: 1px solid hsl(var(--primary) / .2); font-family: 'JetBrains Mono', monospace; }
+  .top .logo { letter-spacing: .3em; color: hsl(var(--muted-foreground)); font-size: 14px; }
+  .top .rule { width: 1px; height: 18px; margin: 0 6px; background: hsl(var(--foreground) / .2); }
+  .top .sq { width: 3px; height: 3px; background: hsl(var(--primary)); box-shadow: 0 0 6px hsl(var(--primary) / calc(.7 * var(--lit))); }
+  .top .crumb { text-transform: uppercase; font-size: 12px; letter-spacing: .2em; color: hsl(var(--fg)); }
+
+  .bar { flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 16px 24px 6px; flex-wrap: wrap; }
+  .bar .title { font: 400 26px/1.1 'Hanken Grotesk', sans-serif; letter-spacing: -.015em; background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 6px; width: 340px; }
+  .bar .title:hover, .bar .title:focus { border-color: hsl(var(--line-soft)); outline: none; }
+  .modes { display: flex; border: 1px solid hsl(var(--line-mid)); }
+  .modes button { background: none; border: 0; padding: 6px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: .16em; color: hsl(var(--muted-foreground)); cursor: pointer; }
+  .modes button.on { color: hsl(var(--fg)); background: hsl(var(--pri) / .16); box-shadow: inset 0 -2px 0 hsl(var(--pri)); }
+  .runinfo { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .runinfo b { color: hsl(var(--amber)); font-weight: 600; }
+  .legend { margin-left: auto; display: flex; gap: 14px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .lnk { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: transparent; border: 1px solid transparent; font: 400 14px/1 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); cursor: pointer; white-space: nowrap; transition: color .15s, text-shadow .15s; }
+  .lnk:hover { color: hsl(var(--fg)); text-shadow: 0 0 8px color-mix(in srgb, currentColor calc(55% * var(--lit)), transparent); }
+  .build #resetRun { display: none; }
+
+  .main { flex: 1; min-height: 0; display: flex; }
+  .rail { width: 224px; flex-shrink: 0; padding: 4px 8px 16px 16px; overflow-y: auto; }
+  .run .rail { display: none; }
+  .rail h4 { margin: 20px 8px 8px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; font-weight: 600; letter-spacing: .12em; color: hsl(var(--foreground) / .45); }
+  .rail button { display: flex; gap: 10px; width: 100%; text-align: left; background: none; border: 0; padding: 8px 10px; cursor: pointer; align-items: flex-start; }
+  .rail button:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
+  .rail .g { width: 18px; flex-shrink: 0; text-align: center; color: hsl(var(--primary)); font-family: 'JetBrains Mono', monospace; filter: drop-shadow(0 0 5px hsl(var(--primary) / calc(.75 * var(--lit)))); }
+  .rail .n { display: block; font-size: 14px; }
+  .rail .h { display: block; font-size: 12px; color: hsl(var(--muted-foreground)); line-height: 1.35; margin-top: 2px; }
+  .rail .tip { font-size: 12px; color: hsl(var(--muted-foreground)); margin: 18px 4px 0; line-height: 1.5; }
+  .rail code, .shelp code { font-family: 'JetBrains Mono', monospace; color: hsl(var(--amber)); }
+
+  .board-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 4px 16px 80px 4px; }
+  #board { min-height: 100%; }
+  .build #board { background-image: linear-gradient(90deg, hsl(var(--primary) / .025) 0 calc(100% - 20px), transparent 0); background-size: calc(100% / 12) 100%; background-position: 10px 0; }
+
+  .grid-stack-item-content.blk { display: flex; flex-direction: column; overflow: hidden; border: 1px solid hsl(var(--line-soft)); background: linear-gradient(180deg, hsl(var(--foreground) / calc(.016 * var(--lit))) 0%, transparent 12%), radial-gradient(ellipse 100% 130% at 0% 0%, hsl(var(--primary) / calc(.018 * var(--lit))), transparent 68%), radial-gradient(ellipse 75% 85% at 100% 100%, hsl(var(--primary) / calc(.023 * var(--lit))), transparent 66%), radial-gradient(ellipse 70% 80% at 100% 100%, hsl(var(--shade) / calc(.035 * var(--lit))), transparent 62%), hsl(var(--card)); box-shadow: 0 20px 44px -24px hsl(var(--recess) / .65); }
+  .grid-stack-placeholder > .placeholder-content { background: hsl(var(--pri) / .08) !important; border: 1px dashed hsl(var(--pri) / .55); }
+  .blk-head { flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 12px 10px 10px 16px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 15px; font-weight: 600; line-height: 1.1; letter-spacing: .08em; color: hsl(var(--fg)); cursor: grab; user-select: none; white-space: nowrap; }
+  .run .blk-head { cursor: default; }
+  .blk-glyph { color: hsl(var(--primary)); font-weight: 400; letter-spacing: 0; filter: drop-shadow(0 0 5px hsl(var(--primary) / calc(.75 * var(--lit)))); }
+  .blk-title { overflow: hidden; text-overflow: ellipsis; }
+  .blk-kind { margin-left: auto; font-size: 12px; font-weight: 400; color: hsl(var(--foreground) / .35); }
+  .blk-x { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: 15px; padding: 0 4px; line-height: 1; }
+  .blk-x:hover { color: hsl(var(--red)); }
+  .run .blk-x { display: none; }
+  .blk-body { flex: 1; min-height: 0; overflow: auto; padding: 4px 16px 16px; }
+
+  .in { height: 28px; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font: inherit; font-size: 14px; padding: 0 8px; border-radius: 0; min-width: 0; transition: border-color .2s, background .2s, box-shadow .2s; }
+  .in:hover { border-color: hsl(var(--foreground) / .3); }
+  .in::placeholder { color: hsl(var(--foreground) / .4); }
+  .in.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .in:focus { outline: none; border-color: hsl(var(--primary) / .7); background: hsl(var(--primary) / .04); box-shadow: var(--input-focus-shadow); }
+  .in.bad { border-color: hsl(var(--red) / .75); }
+  select.in { padding: 0 4px; }
+  select.in option { background: hsl(var(--card)); }
+  .add { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; background: transparent; border: 1px solid transparent; font: 400 14px/1 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); cursor: pointer; white-space: nowrap; }
+  .add.primary { height: 32px; padding: 0 12px; gap: 8px; font-size: 15px; color: hsl(var(--fg)); background: hsl(var(--primary) / .1); border-color: hsl(var(--primary) / .45); box-shadow: inset 0 0 12px -2px hsl(var(--primary) / calc(.2 * var(--lit))), 0 0 14px -4px hsl(var(--primary) / calc(.4 * var(--lit))); }
+  .add.primary .plus { color: hsl(var(--primary)); }
+  .add.primary:hover { background: hsl(var(--primary) / .2); border-color: hsl(var(--primary)); box-shadow: inset 0 0 16px -2px hsl(var(--primary) / calc(.35 * var(--lit))), 0 0 22px -2px hsl(var(--primary) / calc(.55 * var(--lit))); }
+  .add:hover { color: hsl(var(--fg)); }
+  .ix { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0 4px; font-size: 14px; }
+  .ix:hover { color: hsl(var(--red)); }
+  .hint { color: hsl(var(--muted-foreground)); font-style: italic; font-family: 'Hanken Grotesk', sans-serif; }
+
+  .pre { color: hsl(var(--amber)); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+  .unit { color: hsl(var(--muted-foreground)); font-size: 12.5px; }
+  .vlist, .flist { display: flex; flex-direction: column; }
+  .vrow, .frow { padding: 8px 10px; cursor: pointer; }
+  .vlist > :nth-child(even), .flist > :nth-child(even) { background: hsl(var(--foreground) / .035); }
+  .vrow:hover, .frow:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
+  .vrow { display: flex; align-items: baseline; gap: 10px; }
+  .vn { flex: 1; min-width: 0; font-size: 14px; }
+  .vv { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: hsl(var(--amber)); white-space: nowrap; }
+  .vrow.bad .vv { color: hsl(var(--red)); }
+  .vrow.changed .vv { text-decoration: underline dotted hsl(var(--amber)); text-underline-offset: 3px; }
+  .was { margin-left: 8px; font: 12px 'Hanken Grotesk', sans-serif; color: hsl(var(--muted-foreground)); }
+  .vedit, .fedit { padding: 10px; background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .22) 0%, hsl(var(--primary) / .09) 55%, hsl(var(--primary) / .03) 100%) !important; box-shadow: inset 3px 0 0 0 hsl(var(--primary)), inset 14px 0 30px -12px hsl(var(--primary) / .25); }
+  .vedit { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .vedit .vname { flex: 1 1 100%; }
+  .vedit .vn { flex: 1 1 100%; font-weight: 600; }
+  .vedit .ramt { flex: 1; display: flex; align-items: center; gap: 3px; }
+  .vedit .vval { flex: 1; min-width: 0; color: hsl(var(--amber)); text-align: right; }
+  .vtools, .ftools { flex-basis: 100%; display: flex; justify-content: flex-end; gap: 6px; }
+  .ftools { margin-top: 8px; }
+  .fl1, .fl2 { display: flex; gap: 6px; align-items: center; }
+  .fl2 { margin-top: 5px; }
+  .fname { flex: 1; font-weight: 600; }
+  .fl2 .eq { color: hsl(var(--muted-foreground)); font-family: 'JetBrains Mono', monospace; }
+  .fexpr { flex: 1; }
+  .fwork { margin-top: 3px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; color: hsl(var(--muted-foreground)); }
+  .fwork:empty { display: none; }
+  .fedit .fwork { margin-top: 6px; }
+  .res { color: hsl(var(--green)); font-weight: 600; }
+  .ok { color: hsl(var(--green) / .8); font-size: 12px; margin-left: 8px; font-family: 'Hanken Grotesk', sans-serif; white-space: nowrap; }
+  .err { color: hsl(var(--red)); font-family: 'Hanken Grotesk', sans-serif; font-size: 12.5px; }
+  .mk { margin-left: 8px; background: none; border: 1px dashed hsl(var(--amber) / .6); color: hsl(var(--amber)); font-size: 12px; padding: 1px 8px; cursor: pointer; font-family: 'Hanken Grotesk', sans-serif; }
+  .r-value { color: hsl(var(--amber)); }
+  .r-formula { color: hsl(var(--green)); }
+  .r-plate { color: hsl(var(--pri)); }
+  .fhead { display: flex; align-items: baseline; gap: 10px; }
+  .fname-ro { font-size: 14px; font-weight: 600; }
+  .fres { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: hsl(var(--green)); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .fexpr-ro { font-size: 12px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
+  .vlist + .add { margin-top: 10px; }
+  .fadd { display: flex; gap: 8px; margin-top: 10px; }
+
+  .sgroup { margin-bottom: 18px; }
+  .sec-head { display: flex; align-items: center; gap: 12px; padding: 4px 4px 8px; margin-bottom: 6px; background: linear-gradient(90deg, hsl(var(--foreground) / .18) 0%, hsl(var(--foreground) / .1) 70%, hsl(var(--foreground) / .05) 100%) bottom / 100% 1px no-repeat; }
+  .sec-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: hsl(var(--primary)); min-width: 30px; text-align: right; }
+  .sec-title { flex: 1; min-width: 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 14px; font-weight: 600; letter-spacing: .12em; }
+  input.sec-title { background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 5px; }
+  input.sec-title:hover, input.sec-title:focus { outline: none; border-color: hsl(var(--line-mid)); }
+  .sec-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: hsl(var(--foreground) / .35); white-space: nowrap; }
+  .sgroup.complete .sec-head { border-bottom-color: hsl(var(--green) / .7); }
+  .sgroup.complete .sec-num, .sgroup.complete .sec-meta { color: hsl(var(--green)); }
+  .sgroup-body { margin-left: 22px; padding-left: 10px; border-left: 1px solid hsl(var(--line-mid)); }
+  .srow { display: flex; gap: 10px; align-items: baseline; padding: 6px 6px; border-radius: 2px; font-size: 14px; }
+  .srow .num { font-family: 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); min-width: 22px; text-align: right; font-size: 12.5px; flex-shrink: 0; }
+  .srow.sub { margin-left: 32px; padding-top: 3px; padding-bottom: 3px; font-size: 13px; color: hsl(var(--fg) / .88); }
+  .srow.sub .num { min-width: 14px; font-size: 11.5px; }
+  .srow .body { flex: 1; min-width: 0; }
+  .srow .body .in { width: 100%; }
+  .sdisp { cursor: text; line-height: 1.5; }
+  .run .srow { cursor: pointer; }
+  .srow.editing { background: hsl(var(--pri) / .07); box-shadow: inset 0 0 0 1px hsl(var(--pri) / .35); }
+  .meta { display: flex; gap: 12px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+  .meta .sdur { width: 150px; font-size: 12px; color: hsl(var(--amber)); }
+  .meta label { font-size: 12px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; gap: 4px; }
+  .dur { margin-left: auto; flex-shrink: 0; color: hsl(var(--amber)); font-size: 11.5px; white-space: nowrap; border: 1px solid hsl(var(--amber) / .35); border-radius: 10px; padding: 0 8px; align-self: center; }
+  .mwtag { font: 500 9.5px 'JetBrains Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: hsl(var(--pri)); border: 1px solid hsl(var(--pri) / .45); padding: 0 5px; margin-right: 6px; vertical-align: 1px; }
+  .srow.mw { border-left: 2px dashed hsl(var(--pri) / .5); margin-left: 14px; }
+  .srow.sub.mw { margin-left: 32px; }
+  .tools { display: flex; gap: 0; opacity: 0; flex-shrink: 0; }
+  .srow:hover .tools, .sec-head:hover .tools { opacity: 1; }
+  .tools button { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0 4px; }
+  .tools button:hover { color: hsl(var(--fg)); }
+  .sdisp:has(ruby) { line-height: 2.35; }
+  ruby.ref { ruby-position: over; padding: 0 5px; border-radius: 3px; background: hsl(var(--fg) / .06); border-bottom: 1px solid currentColor; font-family: 'JetBrains Mono', monospace; font-size: .92em; }
+  ruby.ref rt { font: 500 9.5px 'Hanken Grotesk', sans-serif; letter-spacing: .03em; color: hsl(var(--muted-foreground)); padding-bottom: 1px; }
+  ruby.ref.r-item { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; }
+  ruby.ref.missing { color: hsl(var(--red)); }
+  .run ruby.r-item rt { color: hsl(var(--violet) / .85); }
+  .sedit { min-height: 30px; padding: 4px 8px; background: hsl(var(--input-well)); border: 1px solid hsl(var(--pri) / .6); border-radius: 2px; white-space: pre-wrap; line-height: 1.9; outline: none; cursor: text; }
+  .sedit:empty::before { content: attr(data-placeholder); color: hsl(var(--muted-foreground)); font-style: italic; }
+  .tok { display: inline-block; border: 1px solid; border-radius: 10px; padding: 0 8px; margin: 0 1px; font: 12px/1.55 'JetBrains Mono', monospace; user-select: all; cursor: default; }
+  .tok.v { color: hsl(var(--amber)); border-color: hsl(var(--amber) / .5); }
+  .tok.f { color: hsl(var(--green)); border-color: hsl(var(--green) / .5); }
+  .tok.p { color: hsl(var(--pri)); border-color: hsl(var(--pri) / .5); }
+  .tok.r { color: hsl(var(--violet)); border-color: hsl(var(--violet) / .5); font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; }
+  .tok.missing { color: hsl(var(--red)); border-color: hsl(var(--red) / .5); }
+  .r-item { color: hsl(var(--violet)); }
+
+  .in.need { border-color: hsl(var(--amber) / .75); background: hsl(var(--amber) / .07); }
+  .in.expired { border-color: hsl(var(--red)); color: hsl(var(--red)); }
+  .in.changed { border-color: hsl(var(--amber) / .85); background: hsl(var(--amber) / .1); }
+  input[type="date"].in { color-scheme: dark; }
+  .mtab .lname { font-weight: 600; }
+  .mtable-wrap + .add { margin-top: 10px; }
+  .ltools { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .ltools label { display: flex; align-items: center; gap: 5px; }
+  .lnk.on { color: hsl(var(--fg)); background: hsl(var(--primary) / .1); border-color: hsl(var(--primary) / .45); }
+  .coledit { border: 1px solid hsl(var(--line-soft)); background: hsl(var(--fg) / .02); padding: 8px; margin-bottom: 10px; }
+  .colrow { display: grid; grid-template-columns: minmax(120px, 1.2fr) 96px minmax(120px, 1.2fr) auto auto auto 76px; gap: 8px; align-items: center; margin-bottom: 5px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .colrow label { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .colrow.hid .cname { opacity: .5; text-decoration: line-through; }
+  .cfixed { font-size: 11.5px; font-style: italic; }
+  .ctools { display: flex; gap: 2px; justify-content: flex-end; }
+  .ctools button { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0 4px; }
+  .ctools button:hover { color: hsl(var(--fg)); }
+  .runtag { margin-left: 6px; font-size: 8.5px; letter-spacing: .1em; color: hsl(var(--amber)); border: 1px solid hsl(var(--amber) / .45); padding: 0 4px; vertical-align: 1px; }
+  .mrow select.in { max-width: 140px; }
+  .mrow .ramt select.in { width: auto; }
+  .blk-fold { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: 11px; padding: 0 2px; width: 16px; }
+  .blk-fold:hover { color: hsl(var(--fg)); }
+  .blk.folded .blk-body { display: none; }
+  .blk.folded .blk-head { border-bottom: 0; height: 100%; }
+  #example { background: hsl(var(--card)); }
+  .mtools { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .mtools .madd-name { width: 220px; }
+  .msec + .msec { margin-top: 28px; }
+  .msec-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; cursor: pointer; user-select: none; }
+  .msec-head .arrow { width: 12px; font-size: 11px; color: hsl(var(--muted-foreground)); }
+  .msec-title { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 14px; font-weight: 600; line-height: 1; letter-spacing: .12em; }
+  .msec-count { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1; letter-spacing: .08em; color: hsl(var(--foreground) / .35); }
+  .msec-count::before { content: '· '; }
+  .msec-line { flex: 1; height: 1px; background: linear-gradient(90deg, hsl(var(--foreground) / .18) 0%, hsl(var(--foreground) / .1) 70%, hsl(var(--foreground) / .05) 100%); }
+  .msec.folded .msec-head { padding-bottom: 0; }
+  .msec-body { padding: 6px 0 0 12px; }
+  .mtable-wrap { overflow-x: auto; }
+  .mtab { width: 100%; border-collapse: collapse; }
+  .mtab thead tr { background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / .22) 12%, hsl(var(--foreground) / .22) 88%, transparent 100%) bottom / 100% 1px no-repeat, color-mix(in srgb, hsl(var(--card)) 72%, black); }
+  .mtab th { text-align: left; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .08em; color: hsl(var(--foreground) / .8); padding: 11px 16px; white-space: nowrap; }
+  .mtab th:first-child, .mrow td:first-child { padding-left: 20px; }
+  .mrow { cursor: pointer; }
+  .mrow td { padding: 10px 16px; font-size: 14px; line-height: 1.45; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
+  .mrow.alt { background: hsl(var(--foreground) / .035); }
+  .mrow:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
+  .mrow.open { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .22) 0%, hsl(var(--primary) / .09) 55%, hsl(var(--primary) / .03) 100%) !important; box-shadow: inset 3px 0 0 0 hsl(var(--primary)), inset 14px 0 30px -12px hsl(var(--primary) / .25); font-weight: 600; }
+  .mname { font-weight: 600; }
+  .mtype { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .mpending { font-size: 12px; font-style: italic; color: hsl(var(--muted-foreground)); }
+  .mrow .in { width: 120px; height: 26px; font-size: 13px; }
+  .mrow .ramt { display: flex; align-items: center; gap: 3px; }
+  .mrow .ramt input.in { width: 70px; text-align: right; }
+  .mrow input[type="date"], .medit input[type="date"] { color-scheme: dark; }
+  .medit-row td { padding: 0; background: hsl(var(--primary) / .05); box-shadow: inset 3px 0 0 hsl(var(--primary)); }
+  .medit { padding: 14px 20px 16px 20px; }
+  .me-head { display: flex; align-items: center; gap: 10px; }
+  .me-name { font-size: 15px; font-weight: 600; }
+  input.me-name { width: 260px; background: transparent; }
+  .me-tools { margin-left: auto; display: flex; gap: 6px; }
+  .mc-type { font-size: 12px; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+  .mc-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px 14px; margin-top: 12px; }
+  .mf { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .mf-l { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; line-height: 1; letter-spacing: .12em; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+  .mf .in { width: 100%; font-size: 13px; padding: 3px 7px; }
+  .mf .ramt { display: flex; align-items: center; gap: 3px; }
+  .mf .ramt input.in { flex: 1; width: auto; min-width: 0; text-align: right; }
+  .mf .ramt select.in { flex: 0 0 auto; width: auto; }
+  .mf-x { margin-left: auto; background: none; border: 0; padding: 0 2px; color: hsl(var(--muted-foreground)); cursor: pointer; opacity: 0; }
+  .mf:hover .mf-x { opacity: 1; }
+  .mf-x:hover { color: hsl(var(--red)); }
+  .scope { font: 11px 'Hanken Grotesk', sans-serif; text-transform: none; letter-spacing: 0; color: hsl(var(--amber)); }
+  .mc-more { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 16px; }
+  .mc-more-l { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; letter-spacing: .12em; color: hsl(var(--muted-foreground)); margin-right: 6px; }
+  .fchip { display: inline-flex; align-items: center; height: 20px; padding: 0 10px 0 0; border: 1px solid hsl(var(--border)); background: hsl(var(--foreground) / .03); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; line-height: 1; letter-spacing: .12em; color: hsl(var(--secondary-foreground)); cursor: pointer; white-space: nowrap; }
+  .fchip::before { content: '+'; align-self: stretch; display: flex; align-items: center; padding: 0 7px; margin-right: 8px; border-right: 1px solid hsl(var(--border)); background: hsl(var(--foreground) / .06); font-weight: 500; letter-spacing: .04em; }
+  .fchip:hover { color: hsl(var(--fg)); border-color: hsl(var(--primary) / .45); }
+  .fchip.custom { border-color: hsl(var(--violet) / .5); }
+  .chk { width: 14px; height: 14px; border: 1px solid hsl(var(--line-mid)); flex-shrink: 0; align-self: center; display: grid; place-items: center; font-size: 10px; }
+  .srow.done { opacity: .5; }
+  .srow.done .chk { background: hsl(var(--green) / .7); border-color: hsl(var(--green)); color: hsl(var(--page)); }
+  .srow.cur { background: hsl(var(--pri) / .1); box-shadow: inset 2px 0 0 hsl(var(--pri)); }
+  .sadd { display: flex; gap: 8px; margin-top: 12px; }
+  .shelp { font-size: 12px; color: hsl(var(--muted-foreground)); margin: 10px 0 0; }
+
+  .ptools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  .pal { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid hsl(var(--line-soft)); padding: 3px 9px; font-size: 12px; cursor: pointer; }
+  .pal:hover { border-color: hsl(var(--pri) / .6); }
+  .pal i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid; }
+  .ptools .times { color: hsl(var(--muted-foreground)); }
+  .ptools .vcount { width: 56px; text-align: right; }
+  .vtabs { display: flex; gap: 2px; margin-bottom: 8px; flex-wrap: wrap; }
+  .vtab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 3px 10px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); cursor: pointer; }
+  .vtab.on { color: hsl(var(--fg)); border-bottom-color: hsl(var(--pri)); }
+  .vessels { display: grid; gap: 6px; justify-content: start; user-select: none; }
+  .vessel { width: var(--ws); height: var(--ws); border-radius: 6px 6px 10px 10px; border: 1px solid hsl(var(--line-mid)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; font-size: 11px; }
+  .vessel b { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 12px; }
+  .vessel span { font-size: 10px; color: hsl(var(--fg) / .85); }
+  .vessel.sel { box-shadow: 0 0 0 2px hsl(var(--pri)); }
+  .plate { display: grid; gap: 2px; justify-content: start; user-select: none; }
+  .plate .ch, .plate .rh, .plate .corner { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: hsl(var(--muted-foreground)); display: grid; place-items: center; cursor: pointer; }
+  .plate .ch:hover, .plate .rh:hover { color: hsl(var(--pri)); }
+  .well { width: var(--ws); height: var(--ws); border-radius: 50%; border: 1px solid hsl(var(--line-mid)); display: grid; place-items: center; font-size: calc(var(--ws) * .33); font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg) / .9); cursor: pointer; }
+  .plate.tiny .well { font-size: 0; }
+  .well.sel { box-shadow: 0 0 0 2px hsl(var(--pri)); }
+  .g-std { background: hsl(var(--amber) / .4); border-color: hsl(var(--amber)); }
+  .g-sample { background: hsl(var(--pri) / .4); border-color: hsl(var(--pri)); }
+  .g-blank { background: hsl(var(--muted-foreground) / .3); border-color: hsl(var(--muted-foreground)); }
+  .g-ctrl { background: hsl(var(--green) / .4); border-color: hsl(var(--green)); }
+  .pcounts { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .pcounts b { font-family: 'JetBrains Mono', monospace; color: hsl(var(--pri)); font-weight: 500; margin-left: 4px; }
+
+  .tbl { border-collapse: collapse; width: 100%; }
+  .tbl td { border: 1px solid hsl(var(--line-soft)); padding: 0; }
+  .tbl input { width: 100%; background: transparent; border: 0; color: hsl(var(--fg)); font: inherit; font-size: 13px; padding: 4px 7px; }
+  .tbl tr:first-child input { color: hsl(var(--muted-foreground)); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .tbl input:focus { outline: 1px solid hsl(var(--pri) / .6); background: hsl(var(--pri) / .06); }
+  .ttools { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .run .ttools { display: none; }
+
+  .t-flow { padding: 6px; }
+  .fb rect { fill: hsl(var(--card)); stroke: hsl(var(--line-mid)); }
+  .fb.side rect { stroke-dasharray: 4 3; stroke: hsl(var(--pri) / .6); }
+  .fb.done rect { stroke: hsl(var(--green)); fill: hsl(var(--green) / .08); }
+  .fb.cur rect { stroke: hsl(var(--pri)); stroke-width: 2; fill: hsl(var(--pri) / .12); }
+  .fb .tx { fill: hsl(var(--fg)); font-size: 11.5px; }
+  .fb.done .tx { fill: hsl(var(--fg) / .55); }
+  .fb .nm { fill: hsl(var(--muted-foreground)); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
+  .fb .du { fill: hsl(var(--amber)); font-size: 11px; }
+  .fb .sb { fill: hsl(var(--muted-foreground)); font-size: 10.5px; font-style: italic; }
+  .fl-sec { fill: hsl(var(--pri)); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; }
+  .fl-arrow { stroke: hsl(var(--muted-foreground)); fill: none; stroke-width: 1.3; }
+  .fl-mw { stroke: hsl(var(--pri) / .6); stroke-dasharray: 4 3; fill: none; }
+  .fl-mwl { fill: hsl(var(--pri)); font-size: 9px; font-family: 'JetBrains Mono', monospace; letter-spacing: .1em; }
+  .fl-head { fill: hsl(var(--muted-foreground)); }
+  .run .fb { cursor: pointer; }
+
+  .t-sketch { padding: 0; display: flex; flex-direction: column; }
+  .sk-tools { display: flex; gap: 6px; align-items: center; padding: 6px 8px; border-bottom: 1px solid hsl(var(--line-faint)); }
+  .sw { width: 16px; height: 16px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+  .sw.on { border-color: hsl(var(--fg)); }
+  .sk-tools .tb { background: none; border: 1px solid hsl(var(--line-soft)); color: hsl(var(--muted-foreground)); font-size: 11.5px; padding: 1px 8px; cursor: pointer; }
+  .sk-tools .tb.on { color: hsl(var(--fg)); border-color: hsl(var(--pri)); }
+  .sk-tools .sp { flex: 1; }
+  .t-sketch canvas { flex: 1 1 0; min-height: 0; width: 100%; display: block; cursor: crosshair; touch-action: none; }
+
+  .tray { position: fixed; z-index: 50; display: none; max-width: 440px; padding: 8px 10px 6px; background: hsl(var(--popover)); border: 1px solid hsl(var(--pri) / .45); box-shadow: 0 16px 34px -12px hsl(var(--recess) / .8); }
+  .tray.on { display: block; }
+  .tray h5 { margin: 0 0 4px; font: 500 9.5px 'JetBrains Mono', monospace; letter-spacing: .18em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .tray .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 7px; }
+  .pick { background: none; border: 1px solid; border-radius: 10px; padding: 1px 9px; font: 12px 'JetBrains Mono', monospace; cursor: copy; }
+  .pick:hover { background: hsl(var(--fg) / .07); }
+  .pick.v { color: hsl(var(--amber)); border-color: hsl(var(--amber) / .45); }
+  .pick.f { color: hsl(var(--green)); border-color: hsl(var(--green) / .45); }
+  .pick.p { color: hsl(var(--pri)); border-color: hsl(var(--pri) / .45); }
+  .pick.r { color: hsl(var(--violet)); border-color: hsl(var(--violet) / .45); font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; }
+  .pick.op { color: hsl(var(--fg)); border-color: hsl(var(--line-mid)); border-radius: 2px; min-width: 28px; }
+  .tray .tip { font-size: 11px; color: hsl(var(--muted-foreground)); }
+  .picking .vname, .picking .fname, .picking .lname, .picking .pcounts [data-pick] { cursor: copy; }
+  .picking .lname { box-shadow: 0 0 0 1px hsl(var(--violet) / .55); }
+  .picking .vname { box-shadow: 0 0 0 1px hsl(var(--amber) / .55); }
+  .picking .fname:not(:focus) { box-shadow: 0 0 0 1px hsl(var(--green) / .55); }
+  .picking .pcounts [data-pick] { text-decoration: underline dotted hsl(var(--pri)); }
+
+  .txt { min-height: 100%; outline: none; line-height: 1.55; }
+  .txt:empty::before { content: 'Write anything here.'; color: hsl(var(--muted-foreground)); font-style: italic; }
+</style>
+</head>
+<body class="build">
+<div class="app">
+  <div class="top"><span class="logo">ODYSSEUS</span><span class="rule"></span><span class="crumb">Workbench</span><span class="sq"></span><span class="crumb">Protocol builder</span></div>
+  <div class="bar">
+    <input class="title" id="title" spellcheck="false" />
+    <div class="modes"><button data-mode="build">Build</button><button data-mode="run">Run</button></div>
+    <span class="runinfo" id="runinfo"></span>
+    <div class="legend"><span><i style="background:hsl(var(--violet))"></i>reagent</span><span><i style="background:hsl(var(--amber))"></i>you set</span><span><i style="background:hsl(var(--green))"></i>worked out</span><span><i style="background:hsl(var(--pri))"></i>from the plate</span></div>
+    <button class="lnk" id="resetRun">Reset run</button>
+    <select class="lnk" id="example"><option value="">Load an example…</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
+  </div>
+  <div class="main">
+    <aside class="rail" id="rail"></aside>
+    <div class="board-wrap" id="boardWrap"><div id="board" class="grid-stack"></div></div>
+  </div>
+</div>
+
+<div class="tray" id="tray"></div>
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+<script id="engine">
+const UNITS = {
+  '': { f: 1, d: {} },
+  '%': { f: 0.01, d: {} },
+  'x': { f: 1, d: {} },
+  '1:N': { f: 1, d: {}, ratio: true },
+  'nL': { f: 1e-9, d: { vol: 1 } },
+  'µL': { f: 1e-6, d: { vol: 1 } },
+  'mL': { f: 1e-3, d: { vol: 1 } },
+  'L': { f: 1, d: { vol: 1 } },
+  'pg': { f: 1e-12, d: { mass: 1 } },
+  'ng': { f: 1e-9, d: { mass: 1 } },
+  'µg': { f: 1e-6, d: { mass: 1 } },
+  'mg': { f: 1e-3, d: { mass: 1 } },
+  'cells': { f: 1, d: { cell: 1 } },
+  'cells/mL': { f: 1e3, d: { cell: 1, vol: -1 } },
+  'pg/mL': { f: 1e-9, d: { mass: 1, vol: -1 } },
+  'ng/mL': { f: 1e-6, d: { mass: 1, vol: -1 } },
+  'µg/mL': { f: 1e-3, d: { mass: 1, vol: -1 } },
+  'mg/mL': { f: 1, d: { mass: 1, vol: -1 } },
+  'ng/µL': { f: 1e-3, d: { mass: 1, vol: -1 } },
+  'nM': { f: 1e-9, d: { mol: 1, vol: -1 } },
+  'µM': { f: 1e-6, d: { mol: 1, vol: -1 } },
+  'mM': { f: 1e-3, d: { mol: 1, vol: -1 } },
+  'min': { f: 60, d: { time: 1 } },
+  'h': { f: 3600, d: { time: 1 } },
+  '°C': { f: 1, d: { temp: 1 } },
+};
+const VALUE_UNITS = Object.keys(UNITS);
+const FORMULA_UNITS = ['auto', ...VALUE_UNITS.filter(u => u !== '°C')];
+const LITERAL_UNITS = VALUE_UNITS.filter(u => u && u !== '1:N' && u !== 'x').sort((a, b) => b.length - a.length);
+const AUTO_UNITS = {
+  'vol:1': ['L', 'mL', 'µL', 'nL'],
+  'mass:1': ['mg', 'µg', 'ng', 'pg'],
+  'mass:1|vol:-1': ['mg/mL', 'µg/mL', 'ng/mL', 'pg/mL'],
+  'mol:1|vol:-1': ['mM', 'µM', 'nM'],
+  'time:1': ['h', 'min'],
+  'cell:1': ['cells'],
+  'cell:1|vol:-1': ['cells/mL'],
+};
+const DIM_WORDS = {
+  '': 'plain number', 'vol:1': 'volume', 'cell:1': 'cell count', 'cell:1|vol:-1': 'cell concentration',
+  'mass:1': 'mass', 'mass:1|vol:-1': 'concentration', 'mol:1|vol:-1': 'molarity', 'time:1': 'time', 'temp:1': 'temperature',
+};
+const SYM = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+class CalcError extends Error {
+  constructor(message, extra = {}) { super(message); this.extra = extra; }
+}
+
+function fmt(x) {
+  if (!Number.isFinite(x)) return '?';
+  const a = Math.abs(x);
+  if (a === 0) return '0';
+  if (a >= 1e5 || a < 1e-3) return x.toExponential(2).replace('e+', 'E+').replace('e-', 'E-');
+  if (Number.isInteger(x)) return String(x);
+  return String(parseFloat(x.toPrecision(3)));
+}
+
+function parseNumber(text) {
+  const m = /^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*([kKM])?\s*$/.exec(String(text ?? ''));
+  return m ? parseFloat(m[1]) * ({ k: 1e3, K: 1e3, M: 1e6 }[m[2]] ?? 1) : NaN;
+}
+
+const dimKey = d => Object.entries(d).filter(([, p]) => p).sort(([a], [b]) => a.localeCompare(b)).map(([k, p]) => `${k}:${p}`).join('|');
+const dimWords = d => DIM_WORDS[dimKey(d)] ?? `mixed unit (${dimKey(d).replace(/\|/g, ' · ')})`;
+
+function combine(a, b, sign) {
+  const out = { ...a };
+  for (const [k, p] of Object.entries(b)) out[k] = (out[k] ?? 0) + sign * p;
+  for (const k of Object.keys(out)) if (!out[k]) delete out[k];
+  return out;
+}
+
+function autoText(q) {
+  const key = dimKey(q.d);
+  const candidates = AUTO_UNITS[key];
+  if (!candidates) return key ? `${fmt(q.v)} (${dimWords(q.d)})` : fmt(q.v);
+  const unit = q.v === 0 ? candidates[Math.min(1, candidates.length - 1)] : candidates.find(c => Math.abs(q.v) / UNITS[c].f >= 1) ?? candidates[candidates.length - 1];
+  return `${fmt(q.v / UNITS[unit].f)} ${unit}`;
+}
+
+function formatIn(q, unit) {
+  if (!unit || unit === 'auto') return { text: autoText(q) };
+  const u = UNITS[unit];
+  if (dimKey(u.d) !== dimKey(q.d)) return { error: `Works out to a ${dimWords(q.d)} (${autoText(q)}), not ${unit === '' ? 'a plain number' : unit}` };
+  if (u.ratio) return { text: `1:${fmt(1 / q.v)}` };
+  if (unit === 'x') return { text: `${fmt(q.v)}×` };
+  return { text: unit ? `${fmt(q.v / u.f)} ${unit}` : fmt(q.v) };
+}
+
+function tokenize(source, names) {
+  const s = source.replace(/−/g, '-').replace(/[×·]/g, '*').replace(/÷/g, '/').replace(/(\d\s*)u(L|g|M)\b/g, '$1µ$2');
+  const sorted = [...names].sort((a, b) => b.length - a.length);
+  const isWordChar = c => /[A-Za-z0-9_µ°]/.test(c ?? '');
+  const tokens = [];
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (/\s/.test(c)) { i++; continue; }
+    if ('+-*/()'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue; }
+    const rest = s.slice(i);
+    const num = /^(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/.exec(rest);
+    if (num) {
+      i += num[0].length;
+      let j = i;
+      while (s[j] === ' ') j++;
+      const unit = LITERAL_UNITS.find(u => s.startsWith(u, j) && !isWordChar(s[j + u.length])) ?? '';
+      if (unit) i = j + unit.length;
+      tokens.push({ t: 'num', v: parseFloat(num[0]), unit });
+      continue;
+    }
+    const fn = /^(ceil|round|floor)\s*(?=\()/i.exec(rest);
+    if (fn) { tokens.push({ t: 'fn', v: fn[1].toLowerCase() }); i += fn[0].length; continue; }
+    const name = sorted.find(n => rest.slice(0, n.length).toLowerCase() === n.toLowerCase() && !isWordChar(rest[n.length]));
+    if (name) { tokens.push({ t: 'name', v: name }); i += name.length; continue; }
+    const unknown = /^[^+\-*/()]+/.exec(rest)[0];
+    tokens.push({ t: 'unknown', v: unknown.trim() });
+    i += unknown.length;
+  }
+  return tokens;
+}
+
+function parse(tokens) {
+  let i = 0;
+  const isOp = v => tokens[i]?.t === 'op' && tokens[i].v === v;
+  const expect = v => { if (!isOp(v)) throw new CalcError(`Missing ‘${v}’`); i++; };
+  const expr = () => {
+    let n = term();
+    while (isOp('+') || isOp('-')) { const op = tokens[i++].v; n = { k: 'bin', op, a: n, b: term() }; }
+    return n;
+  };
+  const term = () => {
+    let n = factor();
+    while (isOp('*') || isOp('/')) { const op = tokens[i++].v; n = { k: 'bin', op, a: n, b: factor() }; }
+    return n;
+  };
+  const factor = () => {
+    if (isOp('-')) { i++; return { k: 'neg', a: factor() }; }
+    return primary();
+  };
+  const primary = () => {
+    const t = tokens[i++];
+    if (!t) throw new CalcError('The formula stops too early');
+    if (t.t === 'num') return { k: 'num', v: t.v, unit: t.unit };
+    if (t.t === 'name') return { k: 'ref', name: t.v };
+    if (t.t === 'unknown') throw new CalcError(`‘${t.v}’ isn't a value or formula on this board`, { missing: t.v });
+    if (t.t === 'fn') { expect('('); const a = expr(); expect(')'); return { k: 'fn', name: t.v, a }; }
+    if (t.t === 'op' && t.v === '(') { const a = expr(); expect(')'); return { k: 'par', a }; }
+    throw new CalcError(`Unexpected ‘${SYM[t.v] ?? t.v}’`);
+  };
+  if (!tokens.length) throw new CalcError('Empty formula');
+  const tree = expr();
+  if (i < tokens.length) throw new CalcError(`Unexpected ‘${SYM[tokens[i].v] ?? tokens[i].v}’`);
+  return tree;
+}
+
+const effectiveValue = it => {
+  if (state.mode !== 'run') return it.value;
+  if (it.id in state.run.overrides) return state.run.overrides[it.id];
+  return it.perRun ? '' : it.value;
+};
+
+function displayOf(it, raw) {
+  const text = String(raw ?? '').trim();
+  if (it.unit === '1:N') return `1:${text}`;
+  if (it.unit === 'x') return `${text}×`;
+  return it.unit ? `${text} ${it.unit}` : text;
+}
+
+function valueQuantity(it) {
+  const n = parseNumber(effectiveValue(it));
+  if (Number.isNaN(n)) return null;
+  const u = UNITS[it.unit] ?? UNITS[''];
+  if (u.ratio) return n > 0 ? { v: 1 / n, d: {} } : null;
+  return { v: n * u.f, d: u.d };
+}
+
+const fieldKey = label => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const mf = (label, kind = 'text', extra = {}) => ({ key: fieldKey(label), label, kind, scope: 'protocol', unit: '', options: [], ...extra });
+const num = (label, unit = '', extra = {}) => mf(label, 'number', { unit, ...extra });
+const day = (label, extra = {}) => mf(label, 'date', extra);
+const pick = (label, options, extra = {}) => mf(label, 'choice', { options, ...extra });
+const RUN = { scope: 'run' };
+const LOT = { scope: 'lot' };
+const YES_NO = ['Yes', 'No'];
+const LASERS = ['UV 355', 'Violet 405', 'Blue 488', 'Green 532', 'Yellow-green 561', 'Red 640', 'Near-IR 808'];
+const CONC = { units: ['mM', 'µM', 'nM', 'mg/mL', 'µg/mL', 'ng/mL', '%', 'x'] };
+const consent = mf('Consent or IRB reference');
+
+const PHYSICAL_CORE = [
+  mf('Vendor or source', 'text', { key: 'vendor' }), mf('Catalog #', 'text', { key: 'catalog' }), mf('Lot', 'text', RUN),
+  day('Expires', { ...RUN, warnPast: true }), mf('Storage'), mf('Hazard or biosafety', 'text', { key: 'hazard' }), mf('Notes'),
+];
+const EQUIPMENT_CORE = [mf('Model'), mf('Manufacturer'), mf('Notes')];
+const SOFTWARE_CORE = [mf('Source'), mf('Notes')];
+
+const MATERIAL_GROUPS = [
+  { key: 'bio', label: 'Biological material', core: PHYSICAL_CORE, types: {
+    'Cell line': [mf('Species'), mf('Tissue of origin'), mf('RRID'), mf('Genetic modification'), mf('Medium'), mf('Culture conditions'), day('Authentication date'), day('Mycoplasma test date'), num('Passage', '', RUN), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN)],
+    'Primary cells': [mf('Species'), mf('Donor ID'), mf('Tissue'), mf('Isolation method'), day('Collected'), day('Frozen'), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN), consent],
+    'Organoid or 3D culture': [mf('Species'), mf('Source line or donor'), mf('Matrix'), num('Passage', '', RUN), num('Days in culture', '', RUN)],
+    'Tissue': [mf('Species'), mf('Donor or animal ID'), mf('Tissue'), day('Collected'), pick('Preservation', ['Fresh', 'Frozen', 'FFPE']), mf('Section thickness'), consent],
+    'Blood or body fluid': [pick('Fluid', ['Serum', 'Plasma', 'Whole blood', 'CSF', 'Urine', 'Other']), mf('Donor ID'), mf('Anticoagulant'), day('Collected'), num('Freeze-thaw count'), num('Dilution', '1:N'), consent],
+    'Organism': [mf('Species'), mf('Strain'), pick('Sex', ['Female', 'Male', 'Mixed']), mf('Age'), mf('Genotype'), mf('Animal or cohort ID'), mf('Protocol number')],
+    'Microbial strain': [mf('Species'), mf('Strain'), mf('Genotype'), mf('Antibiotic resistance'), mf('Stock ID'), num('OD at use', '', RUN)],
+    'Virus or vector': [mf('Virus type'), mf('Construct'), mf('Serotype or pseudotype'), num('Titer per mL', '', LOT), mf('Biosafety level')],
+    'Nucleic acid sample': [pick('Nucleic acid', ['DNA', 'RNA']), mf('Source sample'), num('Concentration', 'ng/µL', RUN), num('A260/280'), num('RIN')],
+    'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL', RUN)],
+  } },
+  { key: 'ab', label: 'Antibodies and stains', core: PHYSICAL_CORE, types: {
+    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), pick('Format', ['Purified', 'Conjugated', 'Biotinylated']), mf('Fluorochrome or conjugate', 'text', { key: 'fluorochrome' }), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID')],
+    'Secondary antibody': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N')],
+    'Streptavidin or detection conjugate': [mf('Conjugate'), num('Dilution', '1:N')],
+    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Fluorochrome'), num('Concentration', 'µg/mL'), mf('Matched antibody')],
+    'Viability dye': [mf('Fluorochrome'), pick('Laser', LASERS), pick('Fixable', YES_NO), num('Dilution', '1:N')],
+    'Stain or dye': [mf('Target'), mf('Excitation and emission'), num('Concentration', '*', { defaultUnit: 'µM', ...CONC })],
+    'Tetramer or multimer': [mf('Specificity'), mf('Fluorochrome'), num('Dilution', '1:N')],
+    'Fc block': [mf('Species'), num('Amount', 'µL')],
+    'Beads': [pick('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']), num('Beads per µL', '', LOT)],
+  } },
+  { key: 'chem', label: 'Chemicals and proteins', core: PHYSICAL_CORE, types: {
+    'Chemical': [mf('CAS number'), mf('Molecular weight'), mf('Formula'), mf('Purity'), mf('Grade')],
+    'Drug or inhibitor': [mf('Target'), mf('CAS number'), mf('Molecular weight'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Vehicle'), num('Working concentration', '*', { defaultUnit: 'µM', ...CONC })],
+    'Recombinant protein or cytokine': [mf('Species'), mf('Tag'), mf('Expression host'), pick('Carrier-free', YES_NO), mf('Activity', 'text', LOT), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC })],
+    'Enzyme': [mf('Activity', 'text', LOT), mf('Reaction buffer'), num('Stock concentration', '*', { defaultUnit: 'mg/mL', ...CONC })],
+    'Antibiotic or selection agent': [num('Working concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), pick('Purpose', ['Selection', 'Contamination control'])],
+    'Transfection reagent': [mf('Ratio to nucleic acid'), num('Volume per well', 'µL')],
+    'Stimulant or activator': [mf('Target or pathway'), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC }), mf('Duration')],
+    'Peptide': [mf('Sequence'), mf('Modifications'), mf('Purity'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC })],
+    'Standard or calibrator': [num('Top concentration', '*', { defaultUnit: 'pg/mL', ...CONC, units: ['pg/mL', 'ng/mL', 'µg/mL', 'mM', 'µM', 'nM'] }), num('Reconstitution volume', 'µL')],
+    'Substrate or detection reagent': [pick('Detection', ['Colorimetric', 'Chemiluminescent', 'Fluorescent']), mf('Read wavelength')],
+    'Solvent': [mf('Grade'), mf('Purity')],
+  } },
+  { key: 'media', label: 'Media, buffers, solutions', core: PHYSICAL_CORE, types: {
+    'Commercial medium': [mf('Base medium'), mf('Glucose'), mf('Glutamine'), pick('Phenol red', YES_NO)],
+    'Commercial buffer': [mf('Strength'), pick('Calcium and magnesium', ['With', 'Without'])],
+    'Prepared buffer or solution': [mf('Recipe'), num('pH'), num('Volume made', 'mL'), day('Made on', RUN), mf('Made by', 'text', RUN), pick('Sterile-filtered', YES_NO)],
+    'Supplement': [num('Final concentration', '%'), pick('Heat-inactivated', YES_NO)],
+    'Stock solution': [num('Concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Solvent'), day('Made on', RUN), mf('Aliquot ID')],
+    'Fixation or permeabilization buffer': [mf('Fixative or detergent'), mf('Concentration'), mf('Time')],
+    'Coating or matrix': [mf('Matrix'), num('Protein concentration', 'mg/mL', LOT), num('Coating concentration', 'µg/mL')],
+    'Mounting medium': [pick('DAPI', ['With', 'Without']), pick('Hardening', YES_NO)],
+  } },
+  { key: 'kits', label: 'Kits and assays', core: PHYSICAL_CORE, types: {
+    'Commercial kit': [mf('Kit version'), mf('Components used'), mf('Protocol version')],
+  } },
+  { key: 'mol', label: 'Molecular biology', core: PHYSICAL_CORE, types: {
+    'Oligo or primer': [mf('Sequence'), mf('Target gene'), mf('Modifications'), mf('Purification'), num('Stock concentration', 'µM'), mf('Tm')],
+    'Probe': [mf('Sequence'), mf('Reporter and quencher'), mf('Target')],
+    'Plasmid': [mf('Backbone'), mf('Insert'), mf('Resistance'), mf('Repository ID'), num('Concentration', 'ng/µL'), pick('Sequence verified', YES_NO)],
+    'siRNA or guide RNA': [mf('Target gene'), mf('Sequence'), num('Concentration', 'µM')],
+    'Master mix': [mf('Chemistry'), num('Volume per reaction', 'µL')],
+    'Ladder or marker': [mf('Size range'), num('Amount loaded', 'µL')],
+  } },
+  { key: 'supplies', label: 'Supplies', core: PHYSICAL_CORE, types: {
+    'Plate': [pick('Format', ['6-well', '12-well', '24-well', '48-well', '96-well', '384-well']), pick('Surface', ['TC-treated', 'High-binding', 'Low-binding', 'Untreated']), pick('Color', ['Clear', 'White', 'Black']), pick('Bottom', ['Flat', 'Round', 'V']), pick('Sterile', YES_NO)],
+    'Tube': [mf('Volume'), mf('Material'), pick('Low-binding', YES_NO), pick('Sterile', YES_NO)],
+    'Flask or dish': [mf('Size'), mf('Surface'), pick('Vented', YES_NO)],
+    'Tips': [mf('Volume'), pick('Filtered', YES_NO), pick('Low-retention', YES_NO)],
+    'Filter': [mf('Pore size'), mf('Membrane'), mf('Format')],
+    'Column or cartridge': [mf('Chemistry'), mf('Capacity')],
+    'Slide or coverslip': [mf('Size'), mf('Coating'), mf('Thickness')],
+    'Gel': [mf('Percentage'), mf('Wells'), mf('Chemistry')],
+    'Membrane': [pick('Membrane type', ['PVDF', 'Nitrocellulose']), mf('Pore size')],
+  } },
+  { key: 'equip', label: 'Equipment', core: EQUIPMENT_CORE, types: {
+    'Instrument': [mf('Asset or serial ID'), mf('Location'), mf('Settings'), day('Calibration date'), mf('Software version')],
+  } },
+  { key: 'soft', label: 'Software and data', core: SOFTWARE_CORE, types: {
+    'Software': [mf('Version'), mf('Settings or template file')],
+    'Dataset': [mf('Repository'), mf('Accession number'), day('Date deposited')],
+  } },
+];
+const GROUP_DEFAULT_FIELDS = { equip: ['model'], soft: ['source'] };
+const TYPE_DEFAULT_FIELDS = { 'Prepared buffer or solution': ['recipe', 'made-on'], 'Software': ['version'], 'Dataset': ['repository', 'accession-number'] };
+
+const materialGroupsOf = b => [...MATERIAL_GROUPS, ...b.customGroups.map(label => ({ key: `custom:${label}`, label, core: PHYSICAL_CORE, types: {} }))];
+const materialGroup = (b, key) => materialGroupsOf(b).find(g => g.key === key) ?? { key, label: key, core: PHYSICAL_CORE, types: {} };
+const materialFields = (b, item) => {
+  const group = materialGroup(b, item.group);
+  return [...group.core, ...(group.types[item.type] ?? []), ...(item.custom ?? [])];
+};
+const materialDefaultFields = (group, type) => TYPE_DEFAULT_FIELDS[type] ?? GROUP_DEFAULT_FIELDS[group] ?? ['vendor', 'catalog', 'lot'];
+const newMaterial = (group, type, name) => {
+  const item = { id: uid(), group, type, name, on: [], values: {}, units: {}, custom: [] };
+  const keys = new Set(materialFields({ customGroups: [] }, item).map(f => f.key));
+  item.on = materialDefaultFields(group, type).filter(k => keys.has(k));
+  return item;
+};
+const fieldUnit =(item, f) => (f.unit === '*' ? (item.units?.[f.key] ?? f.defaultUnit ?? '') : f.unit);
+const fieldName = (item, f) => `${item.name.trim()} ${(f.nameByUnit?.[fieldUnit(item, f)] ?? f.label).toLowerCase()}`;
+
+function materialLabel(item) {
+  if (state.mode === 'run' && item.on.includes('lot')) {
+    const lot = String(effectiveValue({ id: `${item.id}:lot`, value: '', perRun: true })).trim();
+    return lot ? `lot ${lot}` : 'lot needed';
+  }
+  return ['vendor', 'catalog', 'model', 'version'].filter(k => item.on.includes(k)).map(k => String(item.values[k] ?? '').trim()).filter(Boolean).join(' ');
+}
+
+const VESSELS = {
+  '6': { label: '6-well plate', group: 'Plates', rows: 2, cols: 3, noun: 'well', many: 'Plates' },
+  '12': { label: '12-well plate', group: 'Plates', rows: 3, cols: 4, noun: 'well', many: 'Plates' },
+  '24': { label: '24-well plate', group: 'Plates', rows: 4, cols: 6, noun: 'well', many: 'Plates' },
+  '48': { label: '48-well plate', group: 'Plates', rows: 6, cols: 8, noun: 'well', many: 'Plates' },
+  '96': { label: '96-well plate', group: 'Plates', rows: 8, cols: 12, noun: 'well', many: 'Plates' },
+  '384': { label: '384-well plate', group: 'Plates', rows: 16, cols: 24, noun: 'well', many: 'Plates' },
+  'T25': { label: 'T25 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' },
+  'T75': { label: 'T75 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' },
+  'T175': { label: 'T175 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' },
+  'dish10': { label: '10 cm dish', group: 'Flasks and dishes', noun: 'dish', many: 'Dishes', prefix: 'D' },
+  'tube1.5': { label: '1.5 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
+  'facs': { label: '5 mL FACS tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
+  'tube15': { label: '15 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
+  'tube50': { label: '50 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
+};
+const VESSEL_PLURAL = { well: 'wells', flask: 'flasks', dish: 'dishes', tube: 'tubes' };
+
+function vesselCounts(b) {
+  const vessel = VESSELS[b.vessel];
+  const plural = VESSEL_PLURAL[vessel.noun];
+  const n = { std: 0, sample: 0, blank: 0, ctrl: 0 };
+  for (const g of Object.values(b.wells)) if (g in n) n[g]++;
+  return [
+    [`Standard ${plural}`, n.std], [`Sample ${plural}`, n.sample], [`Blank ${plural}`, n.blank], [`Control ${plural}`, n.ctrl],
+    [`${plural[0].toUpperCase()}${plural.slice(1)} used`, n.std + n.sample + n.blank + n.ctrl],
+    [vessel.many, b.count],
+  ];
+}
+
+let calc = { names: new Map(), results: new Map(), dupes: new Set() };
+
+function recompute() {
+  const names = new Map();
+  const dupes = new Set();
+  const results = new Map();
+  const define = (name, entry) => {
+    const key = String(name ?? '').trim().toLowerCase();
+    if (!key) return;
+    if (names.has(key)) { dupes.add(entry.id); return; }
+    names.set(key, { ...entry, name: name.trim() });
+  };
+  const formulas = [];
+  for (const b of state.blocks) {
+    if (b.type === 'list' && b.named) b.items.forEach(row => {
+      const rowName = String(row.cells[b.columns[0].id] ?? '').trim();
+      if (!rowName) return;
+      const firstNumber = b.columns.find(c => c.kind === 'number');
+      define(rowName, { kind: 'item', id: row.id, groupTitle: b.title, hint: firstNumber ? `${rowName} ${firstNumber.name.toLowerCase()}` : '', label: () => itemLabel({ list: b, item: row }) });
+      b.columns.filter(c => c.kind === 'number').forEach(c => {
+        const id = `${row.id}:${c.id}`;
+        const unit = c.unit === '*' ? (row.units?.[c.id] ?? '') : c.unit;
+        define(`${rowName} ${c.name.trim().toLowerCase()}`, { kind: 'value', id, item: { id, value: row.cells[c.id] ?? '', unit, perRun: c.perRun } });
+      });
+    });
+    if (b.type === 'materials') b.items.filter(item => item.name.trim()).forEach(item => {
+      const numbers = materialFields(b, item).filter(f => f.kind === 'number' && item.on.includes(f.key));
+      define(item.name, { kind: 'item', id: item.id, groupTitle: materialGroup(b, item.group).label, hint: numbers[0] ? fieldName(item, numbers[0]) : '', label: () => materialLabel(item) });
+      numbers.forEach(f => {
+        const id = `${item.id}:${f.key}`;
+        define(fieldName(item, f), { kind: 'value', id, item: { id, value: item.values[f.key] ?? '', unit: fieldUnit(item, f), perRun: f.scope !== 'protocol' } });
+      });
+    });
+    if (b.type === 'values') b.items.forEach(it => define(it.name, { kind: 'value', id: it.id, item: it }));
+    if (b.type === 'plate') vesselCounts(b).forEach(([name, n]) => define(name, { kind: 'plate', id: `${b.id}:${name}`, q: { v: n, d: {} }, display: String(n) }));
+    if (b.type === 'formula') b.items.forEach(it => { formulas.push(it); define(it.name, { kind: 'formula', id: it.id, item: it }); });
+  }
+  const nameList = [...names.values()].map(e => e.name);
+  const inProgress = [];
+
+  const resolve = name => {
+    const e = names.get(name.toLowerCase());
+    if (e.kind === 'value') {
+      const q = valueQuantity(e.item);
+      if (!q) throw new CalcError(e.item.perRun && state.mode === 'run' ? `Waiting for ${e.name}, recorded on the run` : `${e.name} has no number yet`);
+      return { q, html: `<span class="r-value">${esc(displayOf(e.item, effectiveValue(e.item)))}</span>` };
+    }
+    if (e.kind === 'plate') return { q: e.q, html: `<span class="r-plate">${e.display}</span>` };
+    if (e.kind === 'item') throw new CalcError(`${e.name} is in ${e.groupTitle}, not a number.${e.hint ? ` Use one of its numbers, like ${e.hint}.` : ''}`);
+    const r = evaluate(e.item);
+    if (r.error) throw new CalcError(r.cycle ? r.error : `Needs ${e.name}, which can't be worked out yet`, { cycle: r.cycle });
+    return { q: r.q, html: `<span class="r-formula">${esc(r.out.error ? autoText(r.q) : r.out.text)}</span>` };
+  };
+
+  const run = n => {
+    if (n.k === 'num') {
+      const u = UNITS[n.unit];
+      return { q: { v: n.v * u.f, d: u.d }, html: esc(fmt(n.v) + (n.unit ? ` ${n.unit}` : '')) };
+    }
+    if (n.k === 'ref') return resolve(n.name);
+    if (n.k === 'par') { const a = run(n.a); return { q: a.q, html: `(${a.html})` }; }
+    if (n.k === 'neg') { const a = run(n.a); return { q: { v: -a.q.v, d: a.q.d }, html: `−${a.html}` }; }
+    if (n.k === 'fn') {
+      const a = run(n.a);
+      if (!['', 'cell:1'].includes(dimKey(a.q.d))) throw new CalcError(`${n.name}() rounds counts, not a ${dimWords(a.q.d)}`);
+      return { q: { v: Math[n.name](a.q.v), d: a.q.d }, html: `${n.name}(${a.html})` };
+    }
+    const a = run(n.a);
+    const b = run(n.b);
+    const html = `${a.html} ${SYM[n.op]} ${b.html}`;
+    if (n.op === '+' || n.op === '-') {
+      if (dimKey(a.q.d) !== dimKey(b.q.d)) {
+        throw new CalcError(n.op === '+' ? `Can't add a ${dimWords(b.q.d)} to a ${dimWords(a.q.d)}` : `Can't subtract a ${dimWords(b.q.d)} from a ${dimWords(a.q.d)}`);
+      }
+      return { q: { v: n.op === '+' ? a.q.v + b.q.v : a.q.v - b.q.v, d: a.q.d }, html };
+    }
+    if (n.op === '/' && b.q.v === 0) throw new CalcError('Divides by zero');
+    return { q: { v: n.op === '*' ? a.q.v * b.q.v : a.q.v / b.q.v, d: combine(a.q.d, b.q.d, n.op === '*' ? 1 : -1) }, html };
+  };
+
+  const evaluate = it => {
+    if (results.has(it.id)) return results.get(it.id);
+    if (inProgress.includes(it.id)) {
+      const path = inProgress.slice(inProgress.indexOf(it.id)).map(id => formulas.find(f => f.id === id).name.trim());
+      throw new CalcError(`Goes in a circle: ${[...path, it.name.trim()].join(' → ')}`, { cycle: true });
+    }
+    inProgress.push(it.id);
+    let r;
+    try {
+      if (dupes.has(it.id)) throw new CalcError('Another value or formula already has this name');
+      if (!it.expr.trim()) {
+        r = { empty: true, error: 'Type a formula using the names on this board' };
+      } else {
+        const tree = parse(tokenize(it.expr, nameList));
+        const { q, html } = run(tree);
+        r = { q, html, showWork: !['num', 'ref'].includes(tree.k), out: formatIn(q, it.unit) };
+      }
+    } catch (e) {
+      if (!(e instanceof CalcError)) throw e;
+      r = { error: e.message, missing: e.extra.missing, cycle: e.extra.cycle };
+    }
+    inProgress.pop();
+    results.set(it.id, r);
+    return r;
+  };
+
+  formulas.forEach(evaluate);
+  calc = { names, results, dupes };
+}
+
+function refInfo(name) {
+  const e = calc.names.get(name.trim().toLowerCase());
+  if (!e) return { text: name, label: 'not on this board', cls: 'missing', kind: 'missing' };
+  if (e.kind === 'item') return { text: e.name, label: e.label(), cls: 'r-item', kind: 'r' };
+  if (e.kind === 'value') return { text: displayOf(e.item, effectiveValue(e.item)), label: e.name, cls: 'r-value', kind: 'v' };
+  if (e.kind === 'plate') return { text: e.display, label: e.name, cls: 'r-plate', kind: 'p' };
+  const r = calc.results.get(e.item.id);
+  if (!r || r.error) return { text: '?', label: e.name, cls: 'missing', kind: 'f' };
+  return { text: r.out.error ? autoText(r.q) : r.out.text, label: e.name, cls: 'r-formula', kind: 'f' };
+}
+
+function itemLabel({ list, item }) {
+  const visible = list.columns.slice(1).filter(c => !c.hidden);
+  const runColumn = visible.find(c => c.perRun && c.kind !== 'date');
+  if (state.mode === 'run' && runColumn) {
+    const value = String(effectiveValue({ id: `${item.id}:${runColumn.id}`, value: '', perRun: true })).trim();
+    return `${runColumn.name.toLowerCase()} ${value || 'needed'}`;
+  }
+  return visible.filter(c => c.kind === 'text' && !c.perRun).slice(0, 2).map(c => String(item.cells[c.id] ?? '').trim()).filter(Boolean).join(' ');
+}
+</script>
+<script>
+const STORAGE_KEY = 'odysseus-workbench-builder-study-v8';
+const uid = () => Math.random().toString(36).slice(2, 9);
+const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
+const GROUPS = { std: { label: 'Standard', short: 'Std' }, sample: { label: 'Sample', short: 'S' }, blank: { label: 'Blank', short: 'B' }, ctrl: { label: 'Control', short: 'C' } };
+const SKETCH_COLORS = ['#e3dccb', '#8fd3e8', '#f0b35b', '#d97a7a', '#6fbf73'];
+const SKETCH_WIDTH = 1000;
+const FORMULA_LIBRARY = [
+  { label: 'Mix with overage', name: 'Mix volume', expr: 'Wells × Vol per well × (1 + Overage)', unit: 'mL' },
+  { label: 'Dilution, C1V1 = C2V2', name: 'Stock volume', expr: 'Final volume × Final conc ÷ Stock conc', unit: 'µL' },
+  { label: 'Dilution, 1:N', name: 'Stock volume', expr: 'Final volume × Dilution', unit: 'µL' },
+  { label: 'Diluent to add', name: 'Diluent volume', expr: 'Final volume − Stock volume', unit: 'mL' },
+  { label: 'Cells to volume', name: 'Cell suspension', expr: 'Cells per well × Wells ÷ Cell conc', unit: 'µL' },
+  { label: 'Serial dilution transfer', name: 'Transfer volume', expr: 'Diluent per tube ÷ (Fold − 1)', unit: 'µL' },
+  { label: 'Plates needed', name: 'Plates needed', expr: 'ceil(Wells ÷ 96)', unit: 'auto' },
+];
+const TODAY = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const roman = n => [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].reduce((s, [v, r]) => { while (n >= v) { s += r; n -= v; } return s; }, '');
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
+const COLUMN_KINDS = ['text', 'number', 'date', 'choice'];
+const openColumnEditors = new Set();
+const COLUMN_UNITS = ['*', ...VALUE_UNITS];
+const newColumn = (name, kind = 'text', extra = {}) => ({ id: uid(), name, kind, unit: '', options: [], perRun: false, hidden: false, warnPast: false, ...extra });
+const LIST_PRESETS = {
+  blank: { label: 'Table', hint: 'Your own columns, e.g. a standard curve', named: false, columns: () => [newColumn('Column 1'), newColumn('Column 2'), newColumn('Column 3')] },
+};
+const listBlock = (title, layout, preset, rows, columns = LIST_PRESETS[preset].columns()) => {
+  const idByName = Object.fromEntries(columns.map(c => [c.name, c.id]));
+  const items = rows.map(values => {
+    const row = { id: uid(), cells: {}, units: {} };
+    Object.entries(values).forEach(([name, value]) => {
+      const [text, unit] = Array.isArray(value) ? value : [value];
+      row.cells[idByName[name]] = text;
+      if (unit) row.units[idByName[name]] = unit;
+    });
+    return row;
+  });
+  return { id: uid(), type: 'list', title, ...layout, named: LIST_PRESETS[preset].named, columns, items };
+};
+const shortUnit = unit => ({ '': '', 'x': '×', '1:N': '' }[unit] ?? unit);
+
+function exampleSketch() {
+  const strokes = [{ kind: 'text', color: SKETCH_COLORS[1], x: 40, y: 110, text: 'std curve, 2-fold', size: 64 }];
+  const labels = ['500', '250', '125', '62.5', '31', '16', '7.8', '0'];
+  labels.forEach((label, i) => {
+    const cx = 75 + i * 120;
+    strokes.push({ kind: 'line', color: SKETCH_COLORS[0], pts: [[cx - 25, 300], [cx - 25, 480], [cx - 18, 505], [cx, 515], [cx + 18, 505], [cx + 25, 480], [cx + 25, 300]] });
+    strokes.push({ kind: 'text', color: SKETCH_COLORS[0], x: cx - 26, y: 590, text: label, size: 40 });
+    if (i < labels.length - 1) {
+      const pts = [];
+      for (let t = 0; t <= 1.001; t += 0.1) pts.push([cx + 8 + 104 * t, 285 - 280 * t * (1 - t)]);
+      strokes.push({ kind: 'line', color: SKETCH_COLORS[1], pts });
+      strokes.push({ kind: 'line', color: SKETCH_COLORS[1], pts: [[cx + 94, 262], [cx + 112, 285], [cx + 88, 284]] });
+    }
+  });
+  const ring = [];
+  for (let a = 0; a <= Math.PI * 2.15; a += 0.2) ring.push([915 + 62 * Math.cos(a), 450 + 175 * Math.sin(a)]);
+  strokes.push({ kind: 'line', color: SKETCH_COLORS[3], pts: ring });
+  strokes.push({ kind: 'text', color: SKETCH_COLORS[3], x: 760, y: 700, text: 'blank!', size: 48 });
+  strokes.push({ kind: 'text', color: SKETCH_COLORS[2], x: 40, y: 820, text: 'pre-wet tips, mix 5×', size: 56 });
+  strokes.push({ kind: 'text', color: SKETCH_COLORS[0], x: 40, y: 900, text: 'pg/mL', size: 40 });
+  return strokes;
+}
+
+const exampleParts = () => ({
+  v: (name, value, unit = '') => ({ id: uid(), name, value, unit }),
+  f: (name, expr, unit = 'auto') => ({ id: uid(), name, expr, unit }),
+  step: (text, dur = '', extra = {}) => ({ id: uid(), kind: 'step', level: 1, text, dur, meanwhile: false, ...extra }),
+  sub: (text, dur = '') => ({ id: uid(), kind: 'step', level: 2, text, dur, meanwhile: false }),
+  section: text => ({ id: uid(), kind: 'section', text }),
+});
+
+const material = (group, type, name, values = {}, alsoOn = []) => {
+  const item = newMaterial(group, type, name);
+  Object.entries(values).forEach(([key, value]) => {
+    const [text, unit] = Array.isArray(value) ? value : [value];
+    item.values[key] = text;
+    if (unit) item.units[key] = unit;
+  });
+  [...Object.keys(values), ...alsoOn].forEach(key => { if (!item.on.includes(key)) item.on.push(key); });
+  return item;
+};
+const materialsBlock = (layout, items) => ({ id: uid(), type: 'materials', title: 'Materials', ...layout, folded: [], customGroups: [], items });
+
+function exampleElisa() {
+  const { v, f, step, sub, section } = exampleParts();
+  const wells = {};
+  for (let r = 0; r < 8; r++) { wells[`0:${ROW_LETTERS[r]}1`] = 'std'; wells[`0:${ROW_LETTERS[r]}2`] = 'std'; }
+  wells['0:A3'] = 'blank';
+  wells['0:B3'] = 'blank';
+  let placed = 0;
+  for (let c = 3; c <= 12 && placed < 48; c++) {
+    for (let r = 0; r < 8 && placed < 48; r++) {
+      const key = `0:${ROW_LETTERS[r]}${c}`;
+      if (!wells[key]) { wells[key] = 'sample'; placed++; }
+    }
+  }
+  const curveColumns = [newColumn('Point'), newColumn('pg/mL', 'number', { unit: 'pg/mL' }), newColumn('Transfer'), newColumn('Diluent')];
+  const captureAb = material('ab', 'Antibody', 'Capture Ab', { vendor: 'BioLegend', target: 'human IL-6', format: 'Purified', amount: ['200', '1:N'] }, ['concentration']);
+  return {
+    title: 'IL-6 sandwich ELISA',
+    mode: 'build',
+    run: { overrides: {}, done: {} },
+    lotMemory: { [captureAb.id]: { B271834: { concentration: '500' } } },
+    steps: [
+      section('Coat'),
+      step('Make the coating mix.'),
+      sub('Dilute {Capture Ab} {Capture Ab dilution} in {Coating buffer}: {Capture Ab volume} into {Coating buffer volume}.'),
+      sub('Mix by inversion. Keep on ice.'),
+      step('Add {Vol per well} per well to the {ELISA plate}. Seal.', 'overnight, 4 °C'),
+      section('Block'),
+      step('Wash 3 × 300 µL {Wash buffer}.'),
+      step('Add 200 µL {Blocking buffer} per well.', '1 h, RT'),
+      step('Prepare the {IL-6 standard}: 2-fold series from {Top std}, {Std transfer} into {Std diluent}.', '', { meanwhile: true }),
+      section('Standards and samples'),
+      step('Wash 3 × with {Wash buffer}.'),
+      step('Add {Vol per well} standards and samples per the plate map.', '2 h, RT'),
+      section('Detect'),
+      step('Wash 3 ×, then add {Detection Ab} at {Detection Ab dilution}.', '1 h, RT'),
+      step('Wash 3 ×, then add {Streptavidin-HRP} at {Streptavidin-HRP dilution}.', '20 min, RT, dark'),
+      step('Develop and read.'),
+      sub('Add 100 µL {TMB substrate}.', '20 min, dark'),
+      sub('Add 50 µL {Stop solution}.'),
+      sub('Read at 450 nm on the {Plate reader} within 30 min.'),
+    ],
+    blocks: [
+      materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
+        captureAb,
+        material('ab', 'Antibody', 'Detection Ab', { vendor: 'BioLegend', target: 'human IL-6', format: 'Biotinylated', amount: ['200', '1:N'] }),
+        material('ab', 'Streptavidin or detection conjugate', 'Streptavidin-HRP', { vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
+        material('chem', 'Standard or calibrator', 'IL-6 standard', { vendor: 'BioLegend' }),
+        material('chem', 'Substrate or detection reagent', 'TMB substrate', { vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
+        material('media', 'Prepared buffer or solution', 'Coating buffer', { recipe: 'carbonate-bicarbonate', ph: '9.5' }),
+        material('media', 'Prepared buffer or solution', 'Wash buffer', { recipe: 'PBS + 0.05% Tween-20' }),
+        material('media', 'Prepared buffer or solution', 'Blocking buffer', { recipe: '1% BSA in PBS' }),
+        material('media', 'Prepared buffer or solution', 'Stop solution', { recipe: '2 N sulfuric acid' }),
+        material('supplies', 'Plate', 'ELISA plate', { vendor: 'Corning', format: '96-well', surface: 'High-binding', color: 'Clear' }),
+        material('equip', 'Instrument', 'Plate reader', { settings: 'absorbance 450 nm, reference 570 nm' }),
+      ]),
+      { id: uid(), type: 'values', title: 'Values', x: 0, y: 13, w: 3, h: 9, items: [
+        v('Samples', '24'), v('Replicates', '2'), v('Std points', '8'), v('Blanks', '2'), v('Overage', '10', '%'),
+        v('Vol per well', '100', 'µL'), v('Top std', '500', 'pg/mL'), v('Std diluent', '150', 'µL'), v('Fold', '2', 'x'),
+      ] },
+      { id: uid(), type: 'plate', title: 'Plate map', x: 3, y: 13, w: 5, h: 9, vessel: '96', count: 1, active: 0, wells },
+      { id: uid(), type: 'formula', title: 'Calculations', x: 8, y: 13, w: 4, h: 12, items: [
+        f('Wells', 'Samples × Replicates + Std points × 2 + Blanks'),
+        f('Coating mix', 'Wells × Vol per well × (1 + Overage)', 'mL'),
+        f('Capture Ab volume', 'Coating mix × Capture Ab dilution', 'µL'),
+        f('Coating buffer volume', 'Coating mix − Capture Ab volume', 'mL'),
+        f('Std transfer', 'Std diluent ÷ (Fold − 1)', 'µL'),
+        f('Unplaced wells', 'Wells − Wells used'),
+      ] },
+      { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 22, w: 5, h: 13 },
+      { id: uid(), type: 'sketch', title: 'Sketch', x: 5, y: 22, w: 3, h: 13, strokes: exampleSketch() },
+      listBlock('Standard curve', { x: 8, y: 25, w: 4, h: 10 }, 'blank', [
+        { Point: 'S1', 'pg/mL': '500', Transfer: 'from stock' },
+        ...['250', '125', '62.5', '31.3', '15.6', '7.8'].map((conc, i) => ({ Point: `S${i + 2}`, 'pg/mL': conc, Transfer: '150 µL', Diluent: '150 µL' })),
+        { Point: 'S8', 'pg/mL': '0', Diluent: '150 µL' },
+      ], curveColumns),
+      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 35, w: 12, h: 7 },
+    ],
+  };
+}
+
+function exampleCells() {
+  const { v, f, step, sub, section } = exampleParts();
+  const wells = {};
+  for (let r = 0; r < 8; r++) {
+    for (let c = 1; c <= 12; c++) {
+      const edge = r === 0 || r === 7 || c === 1 || c === 12;
+      wells[`0:${ROW_LETTERS[r]}${c}`] = edge ? 'blank' : c === 11 ? 'ctrl' : 'sample';
+    }
+  }
+  return {
+    title: 'Cell viability dose response',
+    mode: 'build',
+    run: { overrides: {}, done: {} },
+    lotMemory: {},
+    steps: [
+      section('Prepare cells'),
+      step('Warm {Complete DMEM} and {Trypsin-EDTA} to 37 °C.', '15 min'),
+      step('Detach {HeLa}: rinse with {PBS}, add 2 mL {Trypsin-EDTA}.', '3–5 min, 37 °C'),
+      sub('Neutralize with 8 mL {Complete DMEM} and spin in the {Centrifuge}.', '5 min'),
+      sub('Resuspend and count. Live cells: {Live cell conc}.'),
+      section('Seed'),
+      step('Mix {Cell suspension} of cells into {Media to add} {Complete DMEM}.'),
+      step('Seed {Vol per well} per well of the {Assay plate}: {Cells per well} per well.'),
+      sub('Fill the outer wells with {Vol per well} {PBS}.'),
+      step('Incubate.', 'overnight, 37 °C, 5% CO₂'),
+      section('Treat'),
+      step('Make a 3-fold series of {Compound X} from {Top dose}.'),
+      step('Add compound per the plate map; vehicle to control wells.', '72 h, 37 °C'),
+      section('Read'),
+      step('Bring the plate and {CellTiter-Glo} to room temperature.', '30 min'),
+      step('Add 100 µL {CellTiter-Glo} per well and shake.', '10 min, RT'),
+      step('Read luminescence on the {Plate reader}.'),
+    ],
+    blocks: [
+      materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
+        material('bio', 'Cell line', 'HeLa', { vendor: 'ATCC', catalog: 'CCL-2', count: '1e6', viability: '95' }, ['passage', 'mycoplasma-test-date']),
+        material('media', 'Prepared buffer or solution', 'Complete DMEM', { recipe: 'DMEM + 10% FBS + 1% pen/strep' }),
+        material('media', 'Commercial buffer', 'PBS', { strength: '1×', 'calcium-and-magnesium': 'Without' }),
+        material('chem', 'Enzyme', 'Trypsin-EDTA', { notes: '0.25%' }),
+        material('chem', 'Drug or inhibitor', 'Compound X', { 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' }),
+        material('kits', 'Commercial kit', 'CellTiter-Glo', { vendor: 'Promega' }),
+        material('supplies', 'Plate', 'Assay plate', { vendor: 'Corning', format: '96-well', surface: 'TC-treated', color: 'White' }),
+        material('equip', 'Instrument', 'Centrifuge', { settings: '300 × g, 5 min, RT' }),
+        material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
+      ]),
+      { id: uid(), type: 'values', title: 'Values', x: 0, y: 13, w: 3, h: 8, items: [
+        v('Cells per well', '5000', 'cells'), v('Vol per well', '100', 'µL'), v('Overage', '10', '%'), v('Top dose', '10', 'µM'), v('Fold', '3', 'x'),
+      ] },
+      { id: uid(), type: 'plate', title: 'Assay plate map', x: 3, y: 13, w: 5, h: 9, vessel: '96', count: 1, active: 0, wells },
+      { id: uid(), type: 'formula', title: 'Calculations', x: 8, y: 13, w: 4, h: 12, items: [
+        f('Cell wells', 'Sample wells + Control wells'),
+        f('Cells needed', 'Cells per well × Cell wells × (1 + Overage)'),
+        f('Live cell conc', 'HeLa count × HeLa viability'),
+        f('Cell suspension', 'Cells needed ÷ Live cell conc', 'mL'),
+        f('Seeding volume', 'Cell wells × Vol per well × (1 + Overage)', 'mL'),
+        f('Media to add', 'Seeding volume − Cell suspension', 'mL'),
+      ] },
+      { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 25, w: 7, h: 14 },
+      { id: uid(), type: 'sketch', title: 'Sketch', x: 7, y: 25, w: 5, h: 14, strokes: [] },
+      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 39, w: 12, h: 8 },
+    ],
+  };
+}
+
+const EXAMPLES = { elisa: exampleElisa, cells: exampleCells };
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+}
+let state = loadState() ?? exampleElisa();
+state.lotMemory ??= {};
+let saveTimer;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {} }, 250);
+}
+
+const byId = id => state.blocks.find(b => b.id === id);
+const bodyOf = b => document.querySelector(`.blk[data-id="${b.id}"] .blk-body`);
+const isRun = () => state.mode === 'run';
+const uniqueName = base => { let name = base; let n = 2; while (calc.names.has(name.toLowerCase())) name = `${base} ${n++}`; return name; };
+
+const mapTemplate = (text, plain, ref) => String(text ?? '').split(/(\{[^}]+\})/).map(part => {
+  const m = /^\{([^}]+)\}$/.exec(part);
+  return m ? ref(m[1]) : plain(part);
+}).join('');
+const refInner = r => `${esc(r.text)}<rt>${esc(r.label)}</rt>`;
+const templateHtml = text => mapTemplate(text, esc, name => { const r = refInfo(name); return `<ruby class="ref ${r.cls}" data-ref="${esc(name)}">${refInner(r)}</ruby>`; });
+const templateText = text => mapTemplate(text, part => part, name => refInfo(name).text);
+const chipHtml = name => { const r = refInfo(name); return `<span class="tok ${r.kind}" contenteditable="false" data-ref="${esc(name)}" title="${esc(r.text)}">${esc(name)}</span>`; };
+const editorHtml = text => mapTemplate(text, esc, chipHtml);
+const chipNode = name => { const t = document.createElement('template'); t.innerHTML = chipHtml(name); return t.content.firstChild; };
+const serializeEditor = el => [...el.childNodes].map(n => {
+  if (n.nodeType === Node.TEXT_NODE) return n.textContent;
+  if (n.dataset?.ref) return `{${n.dataset.ref}}`;
+  return n.nodeName === 'BR' ? '' : serializeEditor(n);
+}).join('').replace(/ /g, ' ');
+function focusEditor(el) {
+  el.focus();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  getSelection().removeAllRanges();
+  getSelection().addRange(range);
+}
+
+function stepNumbers() {
+  let sections = 0;
+  let steps = 0;
+  let subs = 0;
+  return Object.fromEntries(state.steps.map(s => {
+    if (s.kind === 'section') { subs = 0; return [s.id, `${roman(++sections)}.`]; }
+    if (s.level === 2) return [s.id, `${String.fromCharCode(97 + subs++)}.`];
+    subs = 0;
+    return [s.id, `${++steps}.`];
+  }));
+}
+const currentStepId = () => state.steps.find(s => s.kind === 'step' && !state.run.done[s.id])?.id;
+
+function toggleDone(id) {
+  if (state.run.done[id]) delete state.run.done[id]; else state.run.done[id] = true;
+  commitSteps();
+}
+function commitSteps() {
+  save();
+  stepsRendering = true;
+  state.blocks.filter(b => b.type === 'steps' || b.type === 'flow').forEach(renderBlock);
+  stepsRendering = false;
+  updateBar();
+}
+
+const SINGLE_VESSEL_COLUMNS = 6;
+const vesselSelections = new Map();
+const vesselSel = b => { if (!vesselSelections.has(b.id)) vesselSelections.set(b.id, { set: new Set(), anchor: null }); return vesselSelections.get(b.id); };
+let vesselDrag = null;
+function vesselSheet(b) {
+  const vessel = VESSELS[b.vessel];
+  if (vessel.rows) {
+    return { plate: true, rows: vessel.rows, cols: vessel.cols, keyAt: (r, c) => `${b.active}:${ROW_LETTERS[r]}${c + 1}`, labelAt: (r, c) => `${ROW_LETTERS[r]}${c + 1}` };
+  }
+  const cols = Math.min(b.count, SINGLE_VESSEL_COLUMNS);
+  const index = (r, c) => r * cols + c;
+  return { plate: false, rows: Math.ceil(b.count / cols), cols, keyAt: (r, c) => (index(r, c) < b.count ? `${index(r, c)}:1` : null), labelAt: (r, c) => `${vessel.prefix}${index(r, c) + 1}` };
+}
+function pruneVesselWells(b) {
+  const vessel = VESSELS[b.vessel];
+  b.wells = Object.fromEntries(Object.entries(b.wells).filter(([key]) => {
+    const [index, position] = key.split(':');
+    if (+index >= b.count) return false;
+    if (!vessel.rows) return position === '1';
+    return /^[A-P]\d+$/.test(position) && ROW_LETTERS.indexOf(position[0]) < vessel.rows && +position.slice(1) <= vessel.cols;
+  }));
+}
+function selectRect(b, [r1, c1], [r2, c2]) {
+  const sheet = vesselSheet(b);
+  const sel = vesselSel(b).set;
+  sel.clear();
+  for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) {
+    for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) {
+      const key = sheet.keyAt(r, c);
+      if (key) sel.add(key);
+    }
+  }
+}
+function paintSelection(b) {
+  const sel = vesselSel(b).set;
+  bodyOf(b).querySelectorAll('[data-key]').forEach(el => el.classList.toggle('sel', sel.has(el.dataset.key)));
+}
+
+function flowSvg(b, width) {
+  const nums = stepNumbers();
+  const mains = [];
+  let sections = 0;
+  let pendingSection = null;
+  let last = null;
+  for (const s of state.steps) {
+    if (s.kind === 'section') { pendingSection = `${roman(++sections)}. ${s.text}`.toUpperCase(); continue; }
+    if (s.level === 2 && last) { last.subs.push(s); continue; }
+    const node = { s, num: nums[s.id], sides: [], subs: [] };
+    last = node;
+    if (s.meanwhile && mains.length) { mains[mains.length - 1].sides.push(node); continue; }
+    node.section = pendingSection;
+    pendingSection = null;
+    mains.push(node);
+  }
+  if (!mains.length) return '<p class="hint" style="padding:8px">Add steps in a Steps block and they are drawn here.</p>';
+  const BW = 176, BH = 62, GX = 36, PAD = 20, LABEL = 22, SIDE_GAP = 28, ROW_GAP = 34;
+  const perRow = Math.max(1, Math.floor((width - PAD * 2 + GX) / (BW + GX)));
+  const run = isRun();
+  const cur = currentStepId();
+  const marker = `ah-${b.id}`;
+  const wrap = (text, max, lines) => {
+    const out = [];
+    let line = '';
+    for (const word of text.split(/\s+/)) {
+      const next = line ? `${line} ${word}` : word;
+      if (next.length > max && line) { out.push(line); line = word; } else line = next;
+    }
+    if (line) out.push(line);
+    if (out.length > lines) { out.length = lines; out[lines - 1] = `${out[lines - 1].slice(0, max - 1)}…`; }
+    return out;
+  };
+  const box = (n, x, y, side) => {
+    const s = n.s;
+    const text = templateText(s.text) || '(empty step)';
+    const isCur = run && (s.id === cur || n.subs.some(x => x.id === cur));
+    const cls = ['fb', side ? 'side' : '', run && state.run.done[s.id] ? 'done' : '', isCur ? 'cur' : ''].join(' ');
+    const lines = wrap(text, 26, Math.max(1, 3 - (s.dur ? 1 : 0) - (n.subs.length ? 1 : 0)));
+    const subsDone = n.subs.filter(x => state.run.done[x.id]).length;
+    const subLine = n.subs.length ? `<text class="sb" x="${x + 10}" y="${y + 18 + lines.length * 15}">+ ${n.subs.length} sub-step${n.subs.length === 1 ? '' : 's'}${run ? `, ${subsDone} done` : ''}</text>` : '';
+    const tip = [text, ...n.subs.map(x => `${nums[x.id]} ${templateText(x.text)}`)].join('\n');
+    return `<g class="${cls}" data-step="${s.id}"><title>${esc(tip)}</title><rect x="${x}" y="${y}" width="${BW}" height="${BH}" rx="4"/>${lines.map((l, i) => `<text class="tx" x="${x + 10}" y="${y + 18 + i * 15}">${i === 0 ? `<tspan class="nm">${n.num}</tspan> ` : ''}${esc(l)}</text>`).join('')}${subLine}${s.dur ? `<text class="du" x="${x + 10}" y="${y + BH - 9}">${esc(s.dur)}</text>` : ''}</g>`;
+  };
+  const parts = [];
+  let y = 6;
+  for (let start = 0; start < mains.length; start += perRow) {
+    const row = mains.slice(start, start + perRow);
+    const top = y + LABEL;
+    const depth = Math.max(0, ...row.map(n => n.sides.length));
+    row.forEach((n, ci) => {
+      const x = PAD + ci * (BW + GX);
+      if (n.section) parts.push(`<text class="fl-sec" x="${x}" y="${top - 8}">${esc(n.section)}</text>`);
+      if (ci > 0) parts.push(`<line class="fl-arrow" x1="${x - GX + 2}" y1="${top + BH / 2}" x2="${x - 4}" y2="${top + BH / 2}" marker-end="url(#${marker})"/>`);
+      parts.push(box(n, x, top, false));
+      n.sides.forEach((side, k) => {
+        const sy = top + BH + SIDE_GAP + k * (BH + 12);
+        if (k === 0) parts.push(`<path class="fl-mw" d="M${x + BW / 2} ${top + BH} V${sy}"/><text class="fl-mwl" x="${x + BW / 2 + 6}" y="${top + BH + SIDE_GAP / 2 + 3}">MEANWHILE</text>`);
+        parts.push(box(side, x, sy, true));
+      });
+    });
+    const bottom = top + BH + (depth ? SIDE_GAP + depth * (BH + 12) - 12 : 0);
+    if (start + perRow < mains.length) {
+      const lastX = PAD + (row.length - 1) * (BW + GX);
+      const midY = bottom + ROW_GAP / 2;
+      const nextTop = bottom + ROW_GAP + LABEL;
+      parts.push(`<path class="fl-arrow" d="M${lastX + BW} ${top + BH / 2} h${GX / 2 - 4} V${midY} H${PAD + BW / 2} V${nextTop - 4}" marker-end="url(#${marker})"/>`);
+    }
+    y = bottom + ROW_GAP;
+  }
+  return `<svg width="${width}" height="${y - ROW_GAP + 12}"><defs><marker id="${marker}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="fl-head" d="M0 0L10 5L0 10z"/></marker></defs>${parts.join('')}</svg>`;
+}
+
+const sketchTools = new Map();
+const sketchTool = b => { if (!sketchTools.has(b.id)) sketchTools.set(b.id, { color: SKETCH_COLORS[0], mode: 'pen' }); return sketchTools.get(b.id); };
+function drawSketch(b, canvas) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const scale = canvas.clientWidth / SKETCH_WIDTH;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  for (const s of b.strokes) {
+    if (s.kind === 'text') {
+      ctx.fillStyle = s.color;
+      ctx.font = `${s.size}px "Segoe Print", "Comic Sans MS", cursive`;
+      ctx.fillText(s.text, s.x, s.y);
+      continue;
+    }
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1.7 / scale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+  }
+  if (!b.strokes.length) {
+    ctx.fillStyle = 'rgba(200,195,180,.35)';
+    ctx.font = 'italic 52px "Hanken Grotesk", sans-serif';
+    ctx.fillText('Draw here', 40, 110);
+  }
+}
+
+const openRows = new Map();
+const isPicking = () => document.body.classList.contains('picking');
+const materialAddState = new Map();
+const openMaterials = new Map();
+const scopeTag = f => (f.scope === 'protocol' ? '' : `<span class="scope">${f.scope === 'lot' ? 'per lot' : 'each run'}</span>`);
+
+function materialControl(item, f) {
+  const run = isRun();
+  const perRun = f.scope !== 'protocol';
+  const value = run ? effectiveValue({ id: `${item.id}:${f.key}`, value: item.values[f.key] ?? '', perRun }) : item.values[f.key] ?? '';
+  const placeholder = !run && perRun ? (f.scope === 'lot' ? 'per lot' : 'each run') : '';
+  const cls = `in mfield${f.kind === 'number' ? ' mono' : ''}`;
+  const control = f.kind === 'choice'
+    ? `<select class="${cls}" data-key="${f.key}">${['', ...f.options].map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
+    : `<input class="${cls}" data-key="${f.key}"${f.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" placeholder="${placeholder}" spellcheck="false" />`;
+  if (f.kind !== 'number') return control;
+  const unit = fieldUnit(item, f);
+  const unitControl = f.unit === '*' && !run
+    ? `<select class="in munit" data-unitkey="${f.key}">${(f.units ?? VALUE_UNITS).map(u => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u || 'none')}</option>`).join('')}</select>`
+    : `<span class="unit">${esc(shortUnit(unit))}</span>`;
+  return `<span class="ramt">${unit === '1:N' ? '<span class="pre">1:</span>' : ''}${control}${unitControl}</span>`;
+}
+
+function materialText(item, f) {
+  const perRun = f.scope !== 'protocol';
+  const raw = isRun() ? effectiveValue({ id: `${item.id}:${f.key}`, value: item.values[f.key] ?? '', perRun }) : item.values[f.key] ?? '';
+  return String(raw).trim() ? displayOf({ unit: f.kind === 'number' ? fieldUnit(item, f) : '' }, raw) : '';
+}
+
+function materialCell(item, f) {
+  if (f.scope === 'protocol') return esc(materialText(item, f));
+  if (isRun()) return materialControl(item, f);
+  return esc(materialText(item, f)) || `<span class="mpending">${f.scope === 'lot' ? 'per lot' : 'each run'}</span>`;
+}
+
+function materialEditor(b, item) {
+  const run = isRun();
+  const fields = materialFields(b, item);
+  const boxes = fields.filter(f => item.on.includes(f.key)).map(f => `<div class="mf"><span class="mf-l">${esc(f.label)}${scopeTag(f)}${run ? '' : `<button class="mf-x" data-act="off" data-key="${f.key}" title="Remove this field">×</button>`}</span>${materialControl(item, f)}</div>`).join('');
+  const name = run ? `<span class="me-name">${esc(item.name)}</span>` : `<input class="in lname me-name" value="${esc(item.name)}" placeholder="Name" spellcheck="false" />`;
+  const chips = run ? '' : `<div class="mc-more"><span class="mc-more-l">Add a field</span>${fields.filter(f => !item.on.includes(f.key)).map(f => `<button class="fchip" data-act="on" data-key="${f.key}">${esc(f.label)}</button>`).join('')}<button class="fchip custom" data-act="custom">Your own field</button></div>`;
+  return `<div class="medit" data-item="${item.id}"><div class="me-head">${name}<span class="mc-type">${esc(item.type)}</span><span class="me-tools">${run ? '' : '<button class="lnk" data-act="del">Remove</button>'}<button class="lnk" data-act="close">Done</button></span></div>${boxes ? `<div class="mc-fields">${boxes}</div>` : ''}${chips}</div>`;
+}
+
+function materialSection(b, items) {
+  const columns = [];
+  for (const item of items) for (const f of materialFields(b, item)) if (item.on.includes(f.key) && !columns.some(c => c.key === f.key)) columns.push(f);
+  const open = openMaterials.get(b.id);
+  const rows = items.map((item, i) => {
+    const fields = materialFields(b, item);
+    const cells = columns.map(c => {
+      const f = fields.find(x => x.key === c.key);
+      return `<td>${f && item.on.includes(f.key) ? materialCell(item, f) : ''}</td>`;
+    }).join('');
+    const isOpen = open === item.id;
+    const row = `<tr class="mrow${i % 2 ? ' alt' : ''}${isOpen ? ' open' : ''}" data-item="${item.id}" data-act="open"><td class="mname">${esc(item.name) || '<span class="hint">Unnamed</span>'}</td><td class="mtype">${esc(item.type)}</td>${cells}</tr>`;
+    return isOpen ? `${row}<tr class="medit-row"><td colspan="${columns.length + 2}">${materialEditor(b, item)}</td></tr>` : row;
+  }).join('');
+  return `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function rememberLotValue(item, key, value) {
+  const lot = String(state.run.overrides[`${item.id}:lot`] ?? '').trim();
+  if (lot) ((state.lotMemory[item.id] ??= {})[lot] ??= {})[key] = value;
+}
+
+function fillFromLotMemory(item) {
+  const lot = String(state.run.overrides[`${item.id}:lot`] ?? '').trim();
+  const remembered = state.lotMemory[item.id]?.[lot];
+  if (!remembered) return false;
+  let filled = false;
+  for (const [key, value] of Object.entries(remembered)) {
+    const id = `${item.id}:${key}`;
+    if (String(state.run.overrides[id] ?? '').trim()) continue;
+    state.run.overrides[id] = value;
+    if (!item.on.includes(key)) item.on.push(key);
+    filled = true;
+  }
+  return filled;
+}
+
+const TYPES = {
+  materials: {
+    label: 'Materials', glyph: '⚗', hint: 'Everything the experiment uses, grouped', size: [12, 10],
+    make: () => ({ title: 'Materials', folded: [], customGroups: [], items: [] }),
+    render(b, body) {
+      const run = isRun();
+      const groups = materialGroupsOf(b);
+      const add = materialAddState.get(b.id) ?? { group: 'ab', type: 'Antibody' };
+      const addGroup = groups.find(g => g.key === add.group) ?? groups[0];
+      const types = [...Object.keys(addGroup.types), 'Other'];
+      const adder = `<div class="mtools"><select class="in madd-group">${groups.map(g => `<option value="${esc(g.key)}"${g.key === addGroup.key ? ' selected' : ''}>${esc(g.label)}</option>`).join('')}<option value="__new">New group…</option></select><select class="in madd-type">${types.map(t => `<option${t === add.type ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select><input class="in madd-name" placeholder="Name, e.g. anti-CD4" spellcheck="false" /><button class="add primary" data-act="add"><span class="plus">+</span>Add Material</button></div>`;
+      const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key) })).filter(s => s.items.length);
+      body.innerHTML = (run ? '' : adder) + (sections.length ? sections.map(({ g, items }) => {
+        const folded = b.folded.includes(g.key);
+        return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items)}</div>`}</section>`;
+      }).join('') : '<p class="hint">Nothing yet. Pick a group and type above and add the first material.</p>');
+    },
+    update(b, body) {
+      const run = isRun();
+      body.querySelectorAll('tr.mrow[data-item], .medit[data-item]').forEach(el => {
+        const item = b.items.find(i => i.id === el.dataset.item);
+        if (!item) return;
+        el.querySelector('.lname')?.classList.toggle('bad', calc.dupes.has(item.id));
+        if (!run) return;
+        const fields = materialFields(b, item);
+        el.querySelectorAll('.mfield').forEach(input => {
+          const f = fields.find(x => x.key === input.dataset.key);
+          const id = `${item.id}:${f.key}`;
+          const changed = f.scope === 'protocol' && id in state.run.overrides;
+          input.classList.toggle('changed', changed);
+          input.classList.toggle('need', f.scope !== 'protocol' && !String(input.value).trim());
+          input.classList.toggle('expired', f.kind === 'date' && !!f.warnPast && !!input.value && input.value < TODAY_ISO);
+          input.title = changed ? `Protocol says ${item.values[f.key] || 'nothing'}` : '';
+        });
+      });
+    },
+    onInput(b, e) {
+      const el = e.target;
+      const item = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
+      if (!item) return;
+      if (el.matches('.lname')) item.name = el.value;
+      else if (el.dataset.unitkey) item.units[el.dataset.unitkey] = el.value;
+      else if (el.matches('.mfield')) {
+        const f = materialFields(b, item).find(x => x.key === el.dataset.key);
+        const id = `${item.id}:${f.key}`;
+        if (!isRun()) item.values[f.key] = el.value;
+        else if (f.scope === 'protocol' && el.value === (item.values[f.key] ?? '')) delete state.run.overrides[id];
+        else state.run.overrides[id] = el.value;
+        if (isRun() && f.scope === 'lot') rememberLotValue(item, f.key, el.value);
+        bodyOf(b).querySelectorAll(`[data-item="${item.id}"] .mfield[data-key="${f.key}"]`).forEach(twin => { if (twin !== el) twin.value = el.value; });
+      } else return;
+      save();
+      refresh();
+    },
+    onChange(b, e) {
+      const el = e.target;
+      if (el.matches('.madd-group')) {
+        if (el.value === '__new') {
+          const label = prompt('Name of the new group')?.trim();
+          if (label && !materialGroupsOf(b).some(g => g.label.toLowerCase() === label.toLowerCase())) b.customGroups.push(label);
+          const group = materialGroupsOf(b).find(g => g.label.toLowerCase() === (label ?? '').toLowerCase());
+          if (group) materialAddState.set(b.id, { group: group.key, type: 'Other' });
+          save();
+        } else {
+          materialAddState.set(b.id, { group: el.value, type: Object.keys(materialGroup(b, el.value).types)[0] ?? 'Other' });
+        }
+        renderBlock(b);
+        return;
+      }
+      if (el.matches('.madd-type')) {
+        materialAddState.set(b.id, { ...(materialAddState.get(b.id) ?? { group: 'ab' }), type: el.value });
+        return;
+      }
+      const item = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
+      if (!item) return;
+      if (el.dataset.unitkey || (isRun() && el.dataset.key === 'lot' && fillFromLotMemory(item))) {
+        renderBlock(b);
+        save();
+        refresh();
+      }
+    },
+    onClick(b, e) {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (!act || (act === 'open' && e.target.closest('input, select, button'))) return;
+      const item = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
+      const key = e.target.closest('[data-key]')?.dataset.key;
+      let added = null;
+      if (act === 'open') openMaterials.set(b.id, openMaterials.get(b.id) === item.id ? null : item.id);
+      else if (act === 'close') openMaterials.delete(b.id);
+      else if (act === 'fold-group') {
+        const group = e.target.closest('[data-group]').dataset.group;
+        b.folded = b.folded.includes(group) ? b.folded.filter(g => g !== group) : [...b.folded, group];
+      } else if (act === 'add') {
+        const add = materialAddState.get(b.id) ?? { group: 'ab', type: 'Antibody' };
+        added = newMaterial(add.group, add.type, bodyOf(b).querySelector('.madd-name').value.trim());
+        b.items.push(added);
+        b.folded = b.folded.filter(g => g !== add.group);
+        openMaterials.set(b.id, added.id);
+      } else if (act === 'del' && item && confirm(`Remove ${item.name || 'this material'}?`)) {
+        b.items = b.items.filter(i => i !== item);
+        openMaterials.delete(b.id);
+      } else if (act === 'on' && item) item.on.push(key);
+      else if (act === 'off' && item) item.on = item.on.filter(k => k !== key);
+      else if (act === 'custom' && item) {
+        const label = prompt('Name of the field')?.trim();
+        if (!label) return;
+        const f = { key: `custom-${uid()}`, label, kind: 'text', scope: 'protocol', unit: '', options: [] };
+        item.custom.push(f);
+        item.on.push(f.key);
+      } else return;
+      renderBlock(b);
+      if (added && !added.name) bodyOf(b).querySelector(`.medit[data-item="${added.id}"] .lname`)?.focus();
+      save();
+      refresh();
+    },
+  },
+
+  list: {
+    label: 'Table', glyph: '▤', hint: 'Your own columns', size: [12, 6],
+    make: preset => {
+      const p = LIST_PRESETS[preset ?? 'blank'];
+      return { title: p.label, named: p.named, columns: p.columns(), items: [] };
+    },
+    render(b, body) {
+      const run = isRun();
+      const nameColumn = b.columns[0];
+      const columns = b.columns.filter(c => c === nameColumn || !c.hidden);
+      const editing = !run && openColumnEditors.has(b.id);
+      const open = openRows.get(b.id);
+      const unitOf = (row, c) => (c.unit === '*' ? (row.units?.[c.id] ?? '') : c.unit);
+      const valueOf = (row, c) => (run ? effectiveValue({ id: `${row.id}:${c.id}`, value: row.cells[c.id] ?? '', perRun: c.perRun }) : row.cells[c.id] ?? '');
+      const control = (row, c) => {
+        const value = valueOf(row, c);
+        const cls = ['in', c.kind === 'number' ? 'mono' : '', c === nameColumn ? 'lname' : ''].filter(Boolean).join(' ');
+        const input = c.kind === 'choice'
+          ? `<select class="${cls}" data-col="${c.id}">${['', ...c.options].map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
+          : `<input class="${cls}" data-col="${c.id}"${c.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" placeholder="${!run && c.perRun ? 'each run' : ''}" spellcheck="false" />`;
+        if (c.kind !== 'number') return input;
+        const unit = unitOf(row, c);
+        const unitControl = c.unit === '*' && !run
+          ? `<select class="in lunit" data-unitcol="${c.id}">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u || 'none')}</option>`).join('')}</select>`
+          : `<span class="unit">${esc(shortUnit(unit))}</span>`;
+        return `<span class="ramt">${unit === '1:N' ? '<span class="pre">1:</span>' : ''}${input}${unitControl}</span>`;
+      };
+      const text = (row, c) => {
+        const raw = valueOf(row, c);
+        if (String(raw).trim()) return esc(displayOf({ unit: c.kind === 'number' ? unitOf(row, c) : '' }, raw));
+        return c.perRun && !run ? '<span class="mpending">each run</span>' : '';
+      };
+      const head = columns.map(c => `<th>${esc(c.name)}</th>`).join('');
+      const rows = b.items.map((row, i) => {
+        const isOpen = row.id === open;
+        const cells = columns.map(c => `<td>${isOpen || (run && c.perRun) ? control(row, c) : text(row, c)}</td>`).join('');
+        const tools = isOpen ? `<span class="mrow-tools">${run ? '' : '<button class="lnk" data-act="del-row">Remove</button>'}<button class="lnk" data-act="close">Done</button></span>` : '';
+        const pick = b.named ? ` data-pick="${esc(row.cells[nameColumn.id] ?? '')}"` : '';
+        return `<tr class="mrow${i % 2 ? ' alt' : ''}${isOpen ? ' open' : ''}" data-item="${row.id}" data-act="open"${pick}>${cells}<td>${tools}</td></tr>`;
+      }).join('');
+      const hiddenCount = b.columns.filter(c => c.hidden).length;
+      const tools = run ? '' : `<div class="ltools"><button class="lnk${editing ? ' on' : ''}" data-act="columns">Columns${hiddenCount ? ` · ${hiddenCount} hidden` : ''}</button><label><input type="checkbox" class="lnamed"${b.named ? ' checked' : ''} /> use rows in steps and formulas</label></div>`;
+      body.innerHTML = `${tools}${editing ? this.columnEditor(b) : ''}<div class="mtable-wrap"><table class="mtab"><thead><tr>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div>${run ? '' : '<button class="add" data-act="add-row">+ Row</button>'}`;
+    },
+    columnEditor(b) {
+      const option = (value, selected, label = value) => `<option value="${esc(value)}"${value === selected ? ' selected' : ''}>${esc(label)}</option>`;
+      return `<div class="coledit">${b.columns.map((c, i) => {
+        const kind = i === 0 ? '<span class="cfixed">row name</span>' : `<select class="in ckind">${COLUMN_KINDS.map(k => option(k, c.kind)).join('')}</select>`;
+        const detail = c.kind === 'number'
+          ? `<select class="in cunit">${COLUMN_UNITS.map(u => option(u, c.unit, u === '*' ? 'unit per row' : u || 'no unit')).join('')}</select>`
+          : c.kind === 'choice' ? `<input class="in copts" value="${esc(c.options.join(', '))}" placeholder="options, comma separated" />` : '<span></span>';
+        const flags = i === 0 ? '<span></span><span></span><span></span>'
+          : `<label><input type="checkbox" class="crun"${c.perRun ? ' checked' : ''} /> each run</label><label><input type="checkbox" class="chide"${c.hidden ? ' checked' : ''} /> hide</label>${c.kind === 'date' ? `<label><input type="checkbox" class="cwarn"${c.warnPast ? ' checked' : ''} /> flag if past</label>` : '<span></span>'}`;
+        const moves = `${i > 1 ? '<button data-act="col-left" title="Move left">←</button>' : ''}${i > 0 && i < b.columns.length - 1 ? '<button data-act="col-right" title="Move right">→</button>' : ''}${i > 0 ? '<button data-act="col-del" title="Remove column">×</button>' : ''}`;
+        return `<div class="colrow${c.hidden ? ' hid' : ''}" data-colid="${c.id}"><input class="in cname" value="${esc(c.name)}" spellcheck="false" />${kind}${detail}${flags}<span class="ctools">${moves}</span></div>`;
+      }).join('')}<button class="add" data-act="add-col">+ Column</button></div>`;
+    },
+    update(b, body) {
+      const run = isRun();
+      for (const row of b.items) {
+        const tr = body.querySelector(`[data-item="${row.id}"]`);
+        if (!tr) continue;
+        tr.querySelector('.lname')?.classList.toggle('bad', b.named && calc.dupes.has(row.id));
+        if (!run) continue;
+        tr.querySelectorAll('[data-col]').forEach(el => {
+          const c = b.columns.find(x => x.id === el.dataset.col);
+          const key = `${row.id}:${c.id}`;
+          const changed = !c.perRun && key in state.run.overrides;
+          el.classList.toggle('changed', changed);
+          el.classList.toggle('need', c.perRun && !String(el.value).trim());
+          el.classList.toggle('expired', c.kind === 'date' && c.warnPast && !!el.value && el.value < TODAY_ISO);
+          el.title = changed ? `Protocol says ${row.cells[c.id] || 'nothing'}` : '';
+        });
+      }
+    },
+    onInput(b, e) {
+      const el = e.target;
+      const row = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
+      const column = b.columns.find(c => c.id === el.closest('[data-colid]')?.dataset.colid);
+      if (row && el.dataset.col) {
+        const c = b.columns.find(x => x.id === el.dataset.col);
+        const key = `${row.id}:${c.id}`;
+        if (!isRun()) row.cells[c.id] = el.value;
+        else if (!c.perRun && el.value === (row.cells[c.id] ?? '')) delete state.run.overrides[key];
+        else state.run.overrides[key] = el.value;
+      } else if (row && el.dataset.unitcol) {
+        (row.units ??= {})[el.dataset.unitcol] = el.value;
+      } else if (column && el.matches('.cname')) column.name = el.value;
+      else if (column && el.matches('.copts')) column.options = el.value.split(',').map(s => s.trim()).filter(Boolean);
+      else return;
+      save();
+      refresh();
+    },
+    onChange(b, e) {
+      const el = e.target;
+      const column = b.columns.find(c => c.id === el.closest('[data-colid]')?.dataset.colid);
+      if (el.matches('.lnamed')) b.named = el.checked;
+      else if (column && el.matches('.ckind')) column.kind = el.value;
+      else if (column && el.matches('.cunit')) column.unit = el.value;
+      else if (column && el.matches('.crun')) column.perRun = el.checked;
+      else if (column && el.matches('.chide')) column.hidden = el.checked;
+      else if (column && el.matches('.cwarn')) column.warnPast = el.checked;
+      else if (!el.matches('.cname, .copts, .lunit')) return;
+      renderBlock(b);
+      save();
+      refresh();
+    },
+    onClick(b, e) {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (!act || (act === 'open' && (isPicking() || e.target.closest('input, select, button')))) return;
+      const rowId = e.target.closest('[data-item]')?.dataset.item;
+      const i = b.columns.findIndex(c => c.id === e.target.closest('[data-colid]')?.dataset.colid);
+      let added = null;
+      if (act === 'open') openRows.set(b.id, rowId);
+      else if (act === 'close') openRows.delete(b.id);
+      else if (act === 'columns') { if (openColumnEditors.has(b.id)) openColumnEditors.delete(b.id); else openColumnEditors.add(b.id); }
+      else if (act === 'add-row') { added = { id: uid(), cells: {}, units: {} }; b.items.push(added); openRows.set(b.id, added.id); }
+      else if (act === 'del-row') { b.items = b.items.filter(row => row.id !== rowId); openRows.delete(b.id); }
+      else if (act === 'add-col') b.columns.push(newColumn(`Column ${b.columns.length + 1}`));
+      else if (act === 'col-left') [b.columns[i - 1], b.columns[i]] = [b.columns[i], b.columns[i - 1]];
+      else if (act === 'col-right') [b.columns[i + 1], b.columns[i]] = [b.columns[i], b.columns[i + 1]];
+      else if (act === 'col-del' && confirm(`Remove the “${b.columns[i].name}” column and its values?`)) b.columns.splice(i, 1);
+      else return;
+      renderBlock(b);
+      if (act === 'open' || added) bodyOf(b).querySelector('tr.open .in')?.focus();
+      save();
+      refresh();
+    },
+  },
+
+  values: {
+    label: 'Values', glyph: '#', hint: 'Named numbers you set', size: [3, 6],
+    make: () => ({ items: [] }),
+    render(b, body) {
+      const run = isRun();
+      const open = openRows.get(b.id);
+      const unitLabel = u => ({ '': 'none', 'x': 'fold ×' }[u] ?? u);
+      body.innerHTML = `<div class="vlist">${b.items.map(it => {
+        if (it.id !== open) return `<div class="vrow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><span class="vn">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="vv"></span></div>`;
+        const pre = it.unit === '1:N' ? '<span class="pre">1:</span>' : '';
+        const value = `<span class="ramt">${pre}<input class="in vval mono" value="${esc(effectiveValue(it))}" placeholder="0" />${run ? `<span class="unit">${esc(shortUnit(it.unit))}</span>` : ''}</span>`;
+        const fields = run
+          ? `<span class="vn">${esc(it.name)}</span>${value}`
+          : `<input class="in vname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" />${value}<select class="in vunit">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select>`;
+        const reset = run && it.id in state.run.overrides ? `<button class="lnk" data-act="undo">Use protocol value (${esc(displayOf(it, it.value))})</button>` : '';
+        return `<div class="vedit" data-item="${it.id}">${fields}<span class="vtools">${reset}${run ? '' : '<button class="lnk" data-act="del">Remove</button>'}<button class="lnk" data-act="close">Done</button></span></div>`;
+      }).join('')}</div>${run ? '' : '<button class="add" data-act="add">+ Value</button>'}`;
+    },
+    update(b, body) {
+      const run = isRun();
+      for (const it of b.items) {
+        const row = body.querySelector(`[data-item="${it.id}"]`);
+        if (!row) continue;
+        const raw = String(effectiveValue(it)).trim();
+        const bad = Number.isNaN(parseNumber(raw));
+        const changed = run && it.id in state.run.overrides;
+        const vv = row.querySelector('.vv');
+        if (vv) vv.innerHTML = `${esc(raw ? displayOf(it, raw) : '–')}${changed ? `<span class="was">was ${esc(displayOf(it, it.value))}</span>` : ''}`;
+        row.classList.toggle('changed', changed);
+        row.classList.toggle('bad', bad || calc.dupes.has(it.id));
+        row.querySelector('.vval')?.classList.toggle('bad', bad);
+        row.querySelector('.vname')?.classList.toggle('bad', calc.dupes.has(it.id));
+      }
+    },
+    onInput(b, e) {
+      const it = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
+      if (!it) return;
+      if (e.target.matches('.vname')) it.name = e.target.value;
+      if (e.target.matches('.vval')) {
+        if (!isRun()) it.value = e.target.value;
+        else if (e.target.value === it.value) delete state.run.overrides[it.id];
+        else state.run.overrides[it.id] = e.target.value;
+      }
+      save();
+      refresh();
+    },
+    onChange(b, e) {
+      if (!e.target.matches('.vunit')) return;
+      b.items.find(i => i.id === e.target.closest('[data-item]').dataset.item).unit = e.target.value;
+      renderBlock(b);
+      save();
+      refresh();
+    },
+    onClick(b, e) {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (!act || (act === 'open' && isPicking())) return;
+      const id = e.target.closest('[data-item]')?.dataset.item;
+      if (act === 'open') openRows.set(b.id, id);
+      else if (act === 'close') openRows.delete(b.id);
+      else if (act === 'add') { const it = { id: uid(), name: '', value: '', unit: '' }; b.items.push(it); openRows.set(b.id, it.id); }
+      else if (act === 'del') { b.items = b.items.filter(i => i.id !== id); delete state.run.overrides[id]; openRows.delete(b.id); }
+      else if (act === 'undo') delete state.run.overrides[id];
+      else return;
+      renderBlock(b);
+      bodyOf(b).querySelector(act === 'add' ? '.vedit .vname' : '.vedit .vval')?.focus();
+      save();
+      refresh();
+    },
+  },
+
+  formula: {
+    label: 'Formula', glyph: 'ƒ', hint: 'Math over your values, shown with its working', size: [4, 6],
+    make: () => ({ items: [] }),
+    render(b, body) {
+      const run = isRun();
+      const open = openRows.get(b.id);
+      body.innerHTML = `<div class="flist">${b.items.map(it => {
+        if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
+        const tools = `<div class="ftools">${run ? '' : '<button class="lnk" data-act="del">Remove</button>'}<button class="lnk" data-act="close">Done</button></div>`;
+        if (run) return `<div class="fedit" data-item="${it.id}"><div class="fhead"><span class="fname-ro">${esc(it.name)}</span><span class="fres" data-res></span></div><div class="fexpr-ro mono">= ${esc(it.expr)}</div><div class="fwork" data-work></div>${tools}</div>`;
+        return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${FORMULA_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(u === '' ? 'number' : u === 'x' ? 'fold ×' : u)}</option>`).join('')}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fwork" data-work></div>${tools}</div>`;
+      }).join('')}</div>${run ? '' : `<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
+    },
+    update(b, body) {
+      for (const it of b.items) {
+        const row = body.querySelector(`[data-item="${it.id}"]`);
+        if (!row) continue;
+        const r = calc.results.get(it.id);
+        row.querySelector('[data-work]').innerHTML = workHtml(r, row.matches('.frow'));
+        row.querySelector('.fname')?.classList.toggle('bad', calc.dupes.has(it.id));
+        const res = row.querySelector('[data-res]');
+        if (res) res.textContent = r && !r.error && !r.out.error ? r.out.text : '?';
+      }
+    },
+    onInput(b, e) {
+      const it = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
+      if (!it) return;
+      if (e.target.matches('.fname')) it.name = e.target.value;
+      if (e.target.matches('.fexpr')) it.expr = e.target.value;
+      save();
+      refresh();
+    },
+    onChange(b, e) {
+      if (e.target.matches('.funit')) {
+        b.items.find(i => i.id === e.target.closest('[data-item]').dataset.item).unit = e.target.value;
+      } else if (e.target.matches('.lib') && e.target.value !== '') {
+        const preset = FORMULA_LIBRARY[+e.target.value];
+        const it = { id: uid(), name: uniqueName(preset.name), expr: preset.expr, unit: preset.unit };
+        b.items.push(it);
+        openRows.set(b.id, it.id);
+        renderBlock(b);
+      } else return;
+      save();
+      refresh();
+    },
+    onClick(b, e) {
+      if (e.target.matches('.mk')) { addValueNamed(e.target.dataset.name); return; }
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (!act || (act === 'open' && isPicking())) return;
+      const id = e.target.closest('[data-item]')?.dataset.item;
+      if (act === 'open') openRows.set(b.id, id);
+      else if (act === 'close') openRows.delete(b.id);
+      else if (act === 'add') { const it = { id: uid(), name: uniqueName('New formula'), expr: '', unit: 'auto' }; b.items.push(it); openRows.set(b.id, it.id); }
+      else if (act === 'del') { b.items = b.items.filter(i => i.id !== id); openRows.delete(b.id); }
+      else return;
+      renderBlock(b);
+      bodyOf(b).querySelector(act === 'add' ? '.fedit .fname' : '.fedit .fexpr')?.focus();
+      save();
+      refresh();
+    },
+  },
+
+  plate: {
+    label: 'Vessel map', glyph: '⠿', hint: 'Plates, flasks, dishes or tubes; counts feed formulas', size: [5, 8],
+    make: () => ({ vessel: '96', count: 1, active: 0, wells: {} }),
+    render(b, body) {
+      const sheet = vesselSheet(b);
+      const sel = vesselSel(b).set;
+      let cells = '';
+      if (sheet.plate) {
+        cells += '<div class="corner" title="Select all"></div>';
+        for (let c = 0; c < sheet.cols; c++) cells += `<div class="ch" data-col="${c}">${c + 1}</div>`;
+      }
+      for (let r = 0; r < sheet.rows; r++) {
+        if (sheet.plate) cells += `<div class="rh" data-row="${r}">${ROW_LETTERS[r]}</div>`;
+        for (let c = 0; c < sheet.cols; c++) {
+          const key = sheet.keyAt(r, c);
+          if (!key) continue;
+          const g = b.wells[key];
+          const label = sheet.labelAt(r, c);
+          const inner = sheet.plate ? (g ? GROUPS[g].short : '') : `<b>${label}</b><span>${g ? GROUPS[g].label : ''}</span>`;
+          cells += `<div class="${sheet.plate ? 'well' : 'vessel'}${g ? ` g-${g}` : ''}${sel.has(key) ? ' sel' : ''}" data-key="${key}" data-r="${r}" data-c="${c}" title="${label}${g ? ` · ${GROUPS[g].label}` : ''}">${inner}</div>`;
+        }
+      }
+      const byGroup = Object.entries(VESSELS).reduce((acc, [key, vessel]) => { (acc[vessel.group] ??= []).push([key, vessel]); return acc; }, {});
+      const options = Object.entries(byGroup).map(([group, list]) => `<optgroup label="${group}">${list.map(([key, vessel]) => `<option value="${key}"${key === b.vessel ? ' selected' : ''}>${vessel.label}</option>`).join('')}</optgroup>`).join('');
+      const tabs = sheet.plate && b.count > 1 ? `<div class="vtabs">${Array.from({ length: b.count }, (_, i) => `<button class="vtab${i === b.active ? ' on' : ''}" data-plate="${i}">Plate ${i + 1}</button>`).join('')}</div>` : '';
+      const columns = `${sheet.plate ? '16px ' : ''}repeat(${sheet.cols}, var(--ws))`;
+      const rows = `${sheet.plate ? '14px ' : ''}repeat(${sheet.rows}, var(--ws))`;
+      body.innerHTML = `<div class="ptools"><select class="in vkind">${options}</select><span class="times">×</span><input class="in vcount mono" type="number" min="1" max="48" value="${b.count}" title="How many" /></div><div class="ptools">${Object.entries(GROUPS).map(([k, g]) => `<button class="pal" data-group="${k}"><i class="g-${k}"></i>${g.label}</button>`).join('')}<button class="pal" data-group="">Set as empty</button></div>${tabs}<div class="${sheet.plate ? 'plate' : 'vessels'}" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
+    },
+    fit(b, body) {
+      const sheet = vesselSheet(b);
+      const grid = body.querySelector('.plate, .vessels');
+      if (!grid) return;
+      const above = [...body.querySelectorAll('.ptools, .vtabs')].reduce((h, el) => h + el.offsetHeight + 8, 0);
+      const headers = sheet.plate ? 18 : 0;
+      const byWidth = (body.clientWidth - 24 - headers) / sheet.cols - 4;
+      const byHeight = (body.clientHeight - 20 - above - 34 - headers) / sheet.rows - 4;
+      const size = Math.max(8, Math.min(sheet.plate ? 44 : 76, Math.floor(Math.min(byWidth, byHeight))));
+      grid.style.setProperty('--ws', `${size}px`);
+      grid.classList.toggle('tiny', size < 20);
+    },
+    update(b, body) {
+      body.querySelector('.pcounts').innerHTML = vesselCounts(b).map(([name, n]) => `<span data-pick="${esc(name)}">${esc(name)}<b>${n}</b></span>`).join('');
+    },
+    onPointerdown(b, e) {
+      const sel = vesselSel(b);
+      const sheet = vesselSheet(b);
+      const cell = e.target.closest('[data-key]');
+      if (cell) {
+        e.preventDefault();
+        const pt = [+cell.dataset.r, +cell.dataset.c];
+        if (e.ctrlKey || e.metaKey) {
+          if (sel.set.has(cell.dataset.key)) sel.set.delete(cell.dataset.key); else sel.set.add(cell.dataset.key);
+          sel.anchor = pt;
+        } else {
+          const start = e.shiftKey && sel.anchor ? sel.anchor : pt;
+          if (!e.shiftKey) sel.anchor = pt;
+          vesselDrag = { b, start };
+          selectRect(b, start, pt);
+        }
+      } else if (e.target.closest('.ch')) {
+        const c = +e.target.closest('.ch').dataset.col;
+        selectRect(b, [0, c], [sheet.rows - 1, c]);
+      } else if (e.target.closest('.rh')) {
+        const r = +e.target.closest('.rh').dataset.row;
+        selectRect(b, [r, 0], [r, sheet.cols - 1]);
+      } else if (e.target.closest('.corner')) {
+        selectRect(b, [0, 0], [sheet.rows - 1, sheet.cols - 1]);
+      } else return;
+      paintSelection(b);
+    },
+    onPointerover(b, e) {
+      const cell = e.target.closest('[data-key]');
+      if (!vesselDrag || vesselDrag.b !== b || !cell) return;
+      selectRect(b, vesselDrag.start, [+cell.dataset.r, +cell.dataset.c]);
+      paintSelection(b);
+    },
+    onClick(b, e) {
+      const tab = e.target.closest('.vtab');
+      if (tab) {
+        b.active = +tab.dataset.plate;
+        vesselSel(b).set.clear();
+        renderBlock(b);
+        save();
+        return;
+      }
+      const pal = e.target.closest('.pal');
+      if (!pal) return;
+      const sel = vesselSel(b).set;
+      if (!sel.size) return;
+      const group = pal.dataset.group;
+      if (!group && [...sel].some(key => b.wells[key]) && !confirm(`Set ${sel.size} as empty?`)) return;
+      sel.forEach(key => { if (group) b.wells[key] = group; else delete b.wells[key]; });
+      renderBlock(b);
+      save();
+      refresh();
+    },
+    onChange(b, e) {
+      if (e.target.matches('.vkind')) b.vessel = e.target.value;
+      else if (e.target.matches('.vcount')) b.count = Math.max(1, Math.min(48, Math.round(+e.target.value) || 1));
+      else return;
+      b.active = Math.min(b.active, b.count - 1);
+      pruneVesselWells(b);
+      vesselSel(b).set.clear();
+      renderBlock(b);
+      save();
+      refresh();
+    },
+  },
+
+  steps: {
+    label: 'Steps', glyph: '≡', hint: 'The outline, ticked off on a run', size: [5, 8],
+    make: () => ({}),
+    render(b, body) {
+      const run = isRun();
+      const nums = stepNumbers();
+      const cur = currentStepId();
+      const tools = '<span class="tools"><button data-act="up" title="Move up">↑</button><button data-act="down" title="Move down">↓</button><button data-act="del" title="Remove">×</button></span>';
+      const groups = [];
+      for (const s of state.steps) {
+        if (s.kind === 'section' || !groups.length) groups.push({ section: s.kind === 'section' ? s : null, steps: [] });
+        if (s.kind === 'step') groups[groups.length - 1].steps.push(s);
+      }
+      const row = s => {
+        const done = !!state.run.done[s.id];
+        const editing = !run && editingStepId === s.id;
+        const cls = ['srow', s.level === 2 ? 'sub' : '', s.meanwhile ? 'mw' : '', run && done ? 'done' : '', run && s.id === cur ? 'cur' : '', editing ? 'editing' : ''].join(' ');
+        const tag = s.meanwhile ? '<span class="mwtag">meanwhile</span>' : '';
+        const content = editing
+          ? `<div class="sedit" contenteditable="true" spellcheck="false" data-placeholder="What happens in this step">${editorHtml(s.text)}</div><div class="meta"><input class="in sdur" placeholder="time, temperature" value="${esc(s.dur)}" /><label><input type="checkbox" class="ssub"${s.level === 2 ? ' checked' : ''} /> sub-step</label><label><input type="checkbox" class="smw"${s.meanwhile ? ' checked' : ''} /> meanwhile</label></div>`
+          : `<div class="sdisp">${tag}${templateHtml(s.text) || '<span class="hint">Click to write this step</span>'}</div>`;
+        return `<div class="${cls}" data-step="${s.id}">${run ? `<span class="chk">${done ? '✓' : ''}</span>` : ''}<span class="num">${nums[s.id]}</span><div class="body">${content}</div>${!editing && s.dur ? `<span class="dur">${esc(s.dur)}</span>` : ''}${run || editing ? '' : tools}</div>`;
+      };
+      body.innerHTML = groups.map(({ section, steps }) => {
+        const done = steps.filter(s => state.run.done[s.id]).length;
+        const meta = run ? `${done} of ${steps.length}` : `${steps.length} step${steps.length === 1 ? '' : 's'}`;
+        const head = section
+          ? `<div class="sec-head" data-step="${section.id}"><span class="sec-num">${nums[section.id]}</span>${run ? `<span class="sec-title">${esc(section.text)}</span>` : `<input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" />`}<span class="sec-meta">${meta}</span>${run ? '' : tools}</div>`
+          : '';
+        const complete = run && steps.length && done === steps.length;
+        return `<section class="sgroup${complete ? ' complete' : ''}">${head}<div class="${section ? 'sgroup-body' : ''}">${steps.map(row).join('')}</div></section>`;
+      }).join('') + (run ? '' : '<div class="sadd"><button class="add" data-act="step">+ Step</button><button class="add" data-act="section">+ Section</button></div><p class="shelp">While writing a step, click any name to drop it in. It stays live.</p>');
+    },
+    update(b, body) {
+      body.querySelectorAll('.ref').forEach(el => {
+        const r = refInfo(el.dataset.ref);
+        el.innerHTML = refInner(r);
+        el.className = `ref ${r.cls}`;
+      });
+    },
+    onMousedown(b, e) {
+      if (isRun() || e.button !== 0) return;
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'step' || act === 'section') {
+        e.preventDefault();
+        const s = act === 'step' ? { id: uid(), kind: 'step', level: 1, text: '', dur: '', meanwhile: false } : { id: uid(), kind: 'section', text: 'New section' };
+        state.steps.push(s);
+        editingStepId = act === 'step' ? s.id : null;
+        commitSteps();
+        const row = bodyOf(b).querySelector(`[data-step="${s.id}"]`);
+        if (act === 'step') focusEditor(row.querySelector('.sedit'));
+        else { row.querySelector('.stext').focus(); row.querySelector('.stext').select(); }
+        return;
+      }
+      const rowEl = e.target.closest('[data-step]');
+      if (!rowEl) return;
+      const i = state.steps.findIndex(s => s.id === rowEl.dataset.step);
+      const s = state.steps[i];
+      if (act) {
+        e.preventDefault();
+        if (act === 'up' && i > 0) [state.steps[i - 1], state.steps[i]] = [state.steps[i], state.steps[i - 1]];
+        if (act === 'down' && i < state.steps.length - 1) [state.steps[i + 1], state.steps[i]] = [state.steps[i], state.steps[i + 1]];
+        if (act === 'del') { state.steps.splice(i, 1); delete state.run.done[s.id]; }
+        commitSteps();
+        return;
+      }
+      if (s.kind === 'step' && editingStepId !== s.id && e.target.closest('.sdisp')) {
+        e.preventDefault();
+        editingStepId = s.id;
+        commitSteps();
+        focusEditor(bodyOf(b).querySelector(`[data-step="${s.id}"] .sedit`));
+      }
+    },
+    onClick(b, e) {
+      const rowEl = e.target.closest('.srow[data-step]');
+      if (isRun() && rowEl) toggleDone(rowEl.dataset.step);
+    },
+    onInput(b, e) {
+      const s = state.steps.find(x => x.id === e.target.closest('[data-step]')?.dataset.step);
+      if (!s) return;
+      if (e.target.matches('.stext')) s.text = e.target.value;
+      if (e.target.matches('.sedit')) s.text = serializeEditor(e.target);
+      if (e.target.matches('.sdur')) s.dur = e.target.value;
+      save();
+      stepsRendering = true;
+      state.blocks.filter(x => x.type === 'flow').forEach(renderBlock);
+      stepsRendering = false;
+    },
+    onChange(b, e) {
+      if (!e.target.matches('.smw, .ssub')) return;
+      const s = state.steps.find(x => x.id === e.target.closest('[data-step]').dataset.step);
+      if (e.target.matches('.smw')) s.meanwhile = e.target.checked; else s.level = e.target.checked ? 2 : 1;
+      commitSteps();
+      bodyOf(b).querySelector(`[data-step="${s.id}"] .${e.target.classList.contains('smw') ? 'smw' : 'ssub'}`).focus();
+    },
+    onFocusout(b, e) {
+      if (stepsRendering || !e.target.matches('.stext, .sedit, .sdur, .ssub, .smw')) return;
+      const rowEl = e.target.closest('[data-step]');
+      if (e.relatedTarget && rowEl.contains(e.relatedTarget)) return;
+      if (!e.target.matches('.sectext')) editingStepId = null;
+      commitSteps();
+    },
+  },
+
+  flow: {
+    label: 'Flow diagram', glyph: '⇢', hint: 'The steps drawn as boxes and arrows', size: [12, 6],
+    make: () => ({}),
+    render(b, body) { body.innerHTML = flowSvg(b, body.clientWidth - 12); },
+    fit(b, body) { body.innerHTML = flowSvg(b, body.clientWidth - 12); },
+    update(b, body) { body.innerHTML = flowSvg(b, body.clientWidth - 12); },
+    onClick(b, e) {
+      const g = e.target.closest('.fb');
+      if (g && isRun()) toggleDone(g.dataset.step);
+    },
+  },
+
+  sketch: {
+    label: 'Sketch', glyph: '✎', hint: 'A freehand whiteboard tile', size: [3, 6],
+    make: () => ({ strokes: [] }),
+    render(b, body) {
+      const tool = sketchTool(b);
+      body.innerHTML = `<div class="sk-tools">${SKETCH_COLORS.map(c => `<button class="sw${c === tool.color ? ' on' : ''}" data-color="${c}" style="background:${c}" title="Pen color"></button>`).join('')}<button class="tb${tool.mode === 'text' ? ' on' : ''}" data-act="text">Text</button><span class="sp"></span><button class="tb" data-act="undo">Undo</button><button class="tb" data-act="clear">Clear</button></div><canvas></canvas>`;
+      const canvas = body.querySelector('canvas');
+      let stroke = null;
+      const point = e => { const scale = canvas.clientWidth / SKETCH_WIDTH; return [e.offsetX / scale, e.offsetY / scale]; };
+      canvas.addEventListener('pointerdown', e => {
+        const [x, y] = point(e);
+        if (tool.mode === 'text') {
+          const text = prompt('Text to place');
+          tool.mode = 'pen';
+          if (text) { b.strokes.push({ kind: 'text', color: tool.color, x, y, text, size: 48 }); save(); }
+          renderBlock(b);
+          return;
+        }
+        canvas.setPointerCapture(e.pointerId);
+        stroke = { kind: 'line', color: tool.color, pts: [[x, y]] };
+        b.strokes.push(stroke);
+      });
+      canvas.addEventListener('pointermove', e => {
+        if (!stroke) return;
+        stroke.pts.push(point(e));
+        drawSketch(b, canvas);
+      });
+      canvas.addEventListener('pointerup', () => { if (stroke) { stroke = null; save(); } });
+    },
+    fit(b, body) {
+      const canvas = body.querySelector('canvas');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.clientWidth * dpr;
+      canvas.height = canvas.clientHeight * dpr;
+      drawSketch(b, canvas);
+    },
+    onClick(b, e) {
+      const tool = sketchTool(b);
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (e.target.dataset.color) { tool.color = e.target.dataset.color; tool.mode = 'pen'; }
+      else if (act === 'text') tool.mode = tool.mode === 'text' ? 'pen' : 'text';
+      else if (act === 'undo') b.strokes.pop();
+      else if (act === 'clear' && b.strokes.length && confirm('Clear this sketch?')) b.strokes = [];
+      else return;
+      renderBlock(b);
+      save();
+    },
+  },
+
+  text: {
+    label: 'Text', glyph: '¶', hint: 'Free notes', size: [4, 3],
+    make: () => ({ html: '' }),
+    render(b, body) { body.innerHTML = `<div class="txt" contenteditable="true">${b.html}</div>`; },
+    onInput(b, e) {
+      if (!e.target.matches('.txt')) return;
+      b.html = e.target.innerHTML;
+      save();
+    },
+  },
+};
+
+function workHtml(r, compact) {
+  if (!r) return '';
+  if (r.empty) return `<span class="hint">${esc(r.error)}</span>`;
+  if (r.error) return `<span class="err">${esc(r.error)}</span>${r.missing ? `<button class="mk" data-name="${esc(r.missing)}">+ Add ‘${esc(r.missing)}’ as a value</button>` : ''}`;
+  if (compact) return r.out.error ? `<span class="err">${esc(r.out.error)}</span>` : r.showWork ? `= ${r.html}` : '';
+  const work = r.showWork ? `= ${r.html} ` : '';
+  if (r.out.error) return `${work}<br><span class="err">${esc(r.out.error)}</span>`;
+  return `${work}= <span class="res">${esc(r.out.text)}</span><span class="ok">✓ ${dimWords(r.q.d)}</span>`;
+}
+
+let editingStepId = null;
+let stepsRendering = false;
+let insertTarget = null;
+const tray = document.getElementById('tray');
+const NAME_KIND_CLASS = { value: 'v', formula: 'f', plate: 'p', item: 'r' };
+
+function insertChip(editor, name) {
+  const selection = getSelection();
+  let range = selection.rangeCount && editor.contains(selection.getRangeAt(0).startContainer) ? selection.getRangeAt(0) : null;
+  if (!range) { range = document.createRange(); range.selectNodeContents(editor); range.collapse(false); }
+  range.deleteContents();
+  const { startContainer, startOffset } = range;
+  const charBefore = startContainer.nodeType === Node.TEXT_NODE ? startContainer.textContent[startOffset - 1] : '';
+  const after = document.createTextNode(' ');
+  range.insertNode(after);
+  range.insertNode(chipNode(name));
+  if (charBefore && /\S/.test(charBefore)) range.insertNode(document.createTextNode(' '));
+  range.setStartAfter(after);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  editor.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function insertToken(token, isName) {
+  const input = insertTarget;
+  if (input.isContentEditable) { insertChip(input, token); return; }
+  const isFormula = input.matches('.fexpr');
+  let start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? start;
+  const text = isName && !isFormula ? `{${token}}` : token;
+  if (text === ')' && input.value[start - 1] === ' ') start -= 1;
+  const lead = text !== ')' && /[^\s(]$/.test(input.value.slice(0, start)) ? ' ' : '';
+  const trail = isFormula && text !== '(' ? ' ' : '';
+  input.setRangeText(`${lead}${text}${trail}`, start, end, 'end');
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function showTray(input) {
+  const isFormula = input.matches('.fexpr');
+  const ownName = isFormula ? input.closest('.frow').querySelector('.fname').value.trim().toLowerCase() : '';
+  const groups = { v: [], f: [], p: [] };
+  const lists = new Map();
+  for (const entry of calc.names.values()) {
+    if (entry.name.toLowerCase() === ownName) continue;
+    if (entry.kind !== 'item') groups[NAME_KIND_CLASS[entry.kind]].push(entry.name);
+    else if (!isFormula) lists.set(entry.groupTitle, [...(lists.get(entry.groupTitle) ?? []), entry.name]);
+  }
+  const chips = (key, title, names) => (names.length ? `<h5>${esc(title)}</h5><div class="chips">${names.map(n => `<button class="pick ${key}" data-pick="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : '');
+  tray.innerHTML = (isFormula ? `<div class="chips">${['+', '−', '×', '÷', '(', ')'].map(op => `<button class="pick op" data-op="${op}">${op}</button>`).join('')}</div>` : '')
+    + [...lists].map(([title, names]) => chips('r', title, names)).join('')
+    + chips('v', 'Values', groups.v) + chips('f', 'Formulas', groups.f) + chips('p', 'Vessel counts', groups.p)
+    + `<div class="tip">Click to insert${isFormula ? '' : ' as a live value'}. Names on the board work too.</div>`;
+  tray.classList.add('on');
+  placeTray();
+}
+
+function placeTray() {
+  if (!insertTarget) return;
+  const r = insertTarget.getBoundingClientRect();
+  tray.style.width = `${Math.max(r.width, 300)}px`;
+  tray.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - tray.offsetWidth - 8))}px`;
+  tray.style.top = `${r.bottom + 6 + tray.offsetHeight > window.innerHeight ? r.top - tray.offsetHeight - 6 : r.bottom + 6}px`;
+}
+
+function addValueNamed(name) {
+  let b = state.blocks.find(x => x.type === 'values');
+  if (!b) b = addBlock('values');
+  const it = { id: uid(), name, value: '', unit: '' };
+  b.items.push(it);
+  openRows.set(b.id, it.id);
+  renderBlock(b);
+  save();
+  refresh();
+  bodyOf(b).querySelector('.vedit .vval').focus();
+}
+
+const grid = GridStack.init({ column: 12, cellHeight: 44, margin: 10, handle: '.blk-head', float: false, animate: true, resizable: { handles: 'se' } }, '#board');
+const resizeObserver = new ResizeObserver(entries => {
+  for (const entry of entries) {
+    const b = byId(entry.target.closest('.blk')?.dataset.id);
+    if (b) TYPES[b.type].fit?.(b, entry.target);
+  }
+});
+
+function renderBlock(b) {
+  const T = TYPES[b.type];
+  const body = bodyOf(b);
+  const head = body.parentElement;
+  head.querySelector('.blk-title').textContent = b.title;
+  head.querySelector('.blk-kind').textContent = b.title === T.label ? '' : T.label;
+  T.render(b, body);
+  T.fit?.(b, body);
+  T.update?.(b, body);
+}
+
+function mountBlock(b) {
+  const T = TYPES[b.type];
+  const el = document.createElement('div');
+  el.className = 'grid-stack-item';
+  Object.entries({ 'gs-id': b.id, 'gs-x': b.x, 'gs-y': b.y, 'gs-w': b.w, 'gs-h': b.h, 'gs-min-w': 2, 'gs-min-h': b.collapsed ? 1 : 2 }).forEach(([k, v]) => el.setAttribute(k, v));
+  el.innerHTML = `<div class="grid-stack-item-content blk" data-id="${b.id}"><div class="blk-head"><button class="blk-fold" title="Collapse or expand"></button><span class="blk-glyph">${T.glyph}</span><span class="blk-title"></span><span class="blk-kind"></span><button class="blk-x" title="Remove block">×</button></div><div class="blk-body t-${b.type}"></div></div>`;
+  document.getElementById('board').appendChild(el);
+  grid.makeWidget(el);
+  renderBlock(b);
+  applyFold(b);
+  resizeObserver.observe(bodyOf(b));
+}
+
+function applyFold(b) {
+  const blk = document.querySelector(`.blk[data-id="${b.id}"]`);
+  blk.classList.toggle('folded', !!b.collapsed);
+  blk.querySelector('.blk-fold').textContent = b.collapsed ? '▸' : '▾';
+}
+
+function toggleFold(b) {
+  const el = document.querySelector(`.blk[data-id="${b.id}"]`).parentElement;
+  b.collapsed = !b.collapsed;
+  if (b.collapsed) { b.openH = b.h; grid.update(el, { h: 1, minH: 1 }); }
+  else grid.update(el, { h: b.openH ?? TYPES[b.type].size[1], minH: 2 });
+  applyFold(b);
+  save();
+}
+
+function addBlock(type, preset) {
+  const T = TYPES[type];
+  const [w, h] = T.size;
+  const b = { id: uid(), type, title: T.label, x: 0, y: Math.max(0, ...state.blocks.map(x => x.y + x.h)), w, h, ...T.make(preset) };
+  state.blocks.push(b);
+  mountBlock(b);
+  save();
+  refresh();
+  const wrap = document.getElementById('boardWrap');
+  wrap.scrollTo({ top: wrap.scrollHeight, behavior: 'smooth' });
+  return b;
+}
+
+function removeBlock(b) {
+  if (!confirm(`Remove the “${b.title}” block?`)) return;
+  grid.removeWidget(document.querySelector(`.blk[data-id="${b.id}"]`).parentElement);
+  state.blocks = state.blocks.filter(x => x.id !== b.id);
+  save();
+  refresh();
+}
+
+function refresh() {
+  recompute();
+  state.blocks.forEach(b => TYPES[b.type].update?.(b, bodyOf(b)));
+  updateBar();
+}
+
+function runTally() {
+  const overrides = state.run.overrides;
+  let changed = 0;
+  let toFill = 0;
+  for (const b of state.blocks) {
+    if (b.type === 'values') changed += b.items.filter(it => it.id in overrides).length;
+    if (b.type === 'materials') {
+      for (const item of b.items.filter(i => i.name.trim())) {
+        for (const f of materialFields(b, item).filter(x => item.on.includes(x.key))) {
+          const key = `${item.id}:${f.key}`;
+          if (f.scope !== 'protocol') toFill += String(overrides[key] ?? '').trim() ? 0 : 1;
+          else if (key in overrides) changed++;
+        }
+      }
+    }
+    if (b.type !== 'list') continue;
+    for (const row of b.items.filter(r => String(r.cells[b.columns[0].id] ?? '').trim())) {
+      for (const c of b.columns) {
+        const key = `${row.id}:${c.id}`;
+        if (c.perRun) toFill += String(overrides[key] ?? '').trim() ? 0 : 1;
+        else if (key in overrides) changed++;
+      }
+    }
+  }
+  return { changed, toFill };
+}
+
+function updateBar() {
+  const { changed, toFill } = runTally();
+  const steps = state.steps.filter(s => s.kind === 'step');
+  const done = steps.filter(s => state.run.done[s.id]).length;
+  const plural = (n, word) => `<b>${n}</b> ${word}${n === 1 ? '' : 's'}`;
+  document.getElementById('runinfo').innerHTML = isRun()
+    ? `Run · ${TODAY} · ${plural(changed, 'change')} from the protocol · ${plural(toFill, 'field')} to record · ${done} of ${steps.length} steps done`
+    : 'Building. Drag a block by its title, resize from the corner.';
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  document.body.classList.toggle('run', mode === 'run');
+  document.body.classList.toggle('build', mode === 'build');
+  document.querySelectorAll('.modes button').forEach(btn => btn.classList.toggle('on', btn.dataset.mode === mode));
+  grid.setStatic(mode === 'run');
+  recompute();
+  state.blocks.forEach(renderBlock);
+  updateBar();
+  save();
+}
+
+const RAIL = [
+  ['Inputs', [{ type: 'materials' }]],
+  ['Write', ['text', 'steps', 'flow', 'sketch'].map(type => ({ type }))],
+  ['Numbers', ['values', 'formula', 'list'].map(type => ({ type, preset: type === 'list' ? 'blank' : undefined }))],
+  ['Layout', [{ type: 'plate' }]],
+];
+document.getElementById('rail').innerHTML = RAIL.map(([group, entries]) => `<h4>${group}</h4>${entries.map(({ type, preset }) => {
+  const info = preset ? LIST_PRESETS[preset] : TYPES[type];
+  return `<button data-type="${type}"${preset ? ` data-preset="${preset}"` : ''}><span class="g">${TYPES[type].glyph}</span><span><span class="n">${info.label}</span><span class="h">${info.hint}</span></span></button>`;
+}).join('')}`).join('')
+  + '<p class="tip">Every table is yours to shape: add, rename, hide or reorder columns. Rows and their numbers can be clicked into steps and formulas.</p>';
+document.getElementById('rail').addEventListener('click', e => {
+  const btn = e.target.closest('[data-type]');
+  if (btn) addBlock(btn.dataset.type, btn.dataset.preset);
+});
+
+const titleInput = document.getElementById('title');
+titleInput.value = state.title;
+titleInput.addEventListener('input', () => { state.title = titleInput.value; save(); });
+document.querySelectorAll('.modes button').forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+document.getElementById('resetRun').addEventListener('click', () => {
+  if (!confirm('Clear today\'s recorded values, changes and ticks?')) return;
+  state.run = { overrides: {}, done: {} };
+  setMode('run');
+});
+document.getElementById('example').addEventListener('change', e => {
+  const key = e.target.value;
+  e.target.value = '';
+  if (!key || !confirm('Replace this board with the example? Changes here are lost.')) return;
+  clearTimeout(saveTimer);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(EXAMPLES[key]())); } catch {}
+  location.reload();
+});
+
+const board = document.getElementById('board');
+const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
+['input', 'change', 'click', 'focusout', 'pointerdown', 'pointerover', 'mousedown'].forEach(type => board.addEventListener(type, e => {
+  const b = byId(e.target.closest?.('.blk')?.dataset.id);
+  if (!b) return;
+  if (type === 'click' && e.target.closest('.blk-x')) { removeBlock(b); return; }
+  if (type === 'click' && e.target.closest('.blk-fold')) { toggleFold(b); return; }
+  TYPES[b.type][handlerName(type)]?.call(TYPES[b.type], b, e);
+}));
+board.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.matches('input.in, input.sec-title, .sedit')) return;
+  e.preventDefault();
+  e.target.blur();
+});
+board.addEventListener('dblclick', e => {
+  const title = e.target.closest('.blk-title');
+  if (!title || isRun()) return;
+  const b = byId(title.closest('.blk').dataset.id);
+  const name = prompt('Block title', b.title);
+  if (name) { b.title = name; renderBlock(b); save(); }
+});
+window.addEventListener('pointerup', () => { vesselDrag = null; });
+document.addEventListener('focusin', e => {
+  if (!e.target.matches?.('.fexpr, .sedit')) return;
+  insertTarget = e.target;
+  document.body.classList.add('picking');
+  showTray(e.target);
+});
+document.addEventListener('focusout', e => {
+  if (e.target !== insertTarget) return;
+  insertTarget = null;
+  document.body.classList.remove('picking');
+  tray.classList.remove('on');
+});
+document.addEventListener('mousedown', e => {
+  if (!insertTarget) return;
+  const op = e.target.closest('[data-op]');
+  const pick = e.target.closest('[data-pick], .vname, .fname, .lname');
+  if (!op && !pick) return;
+  if (pick === insertTarget || (pick?.matches('.fname') && pick.closest('.frow') === insertTarget.closest('.frow'))) return;
+  const token = op ? op.dataset.op : (pick.dataset.pick ?? pick.value).trim();
+  if (!token) return;
+  e.preventDefault();
+  insertToken(token, !op);
+}, true);
+document.getElementById('boardWrap').addEventListener('scroll', placeTray);
+
+grid.on('change', (e, items) => {
+  items.forEach(it => { const b = byId(it.id); if (b) Object.assign(b, { x: it.x, y: it.y, w: it.w, h: it.h }); });
+  save();
+});
+
+recompute();
+grid.batchUpdate();
+state.blocks.forEach(mountBlock);
+grid.batchUpdate(false);
+setMode(state.mode);
+</script>
+</body>
+</html>
