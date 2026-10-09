@@ -261,6 +261,23 @@
   .mrow .mcell.editing .ramt input.in { min-width: 70px; }
   .mrow .mcell.editing .mkind { max-width: 280px; }
   .mrm { width: 1%; text-align: right; }
+  .madd-row { display: flex; gap: 10px; align-items: center; max-width: 900px; }
+  .madd-row .madd-name { flex: 1; }
+  .mcopy { width: auto; height: 34px; font-size: 13px; }
+  .mg-dupe { color: hsl(var(--amber)); font-weight: 600; }
+  .mused { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .munused { color: hsl(var(--amber) / .85); font-style: italic; }
+  .mclash { margin: 0 0 10px 20px; font-size: 13px; color: hsl(var(--amber)); }
+  .mrow td.clash { color: hsl(var(--amber)); }
+  .mview { display: flex; gap: 4px; margin-bottom: 16px; }
+  .msec-head.plain { cursor: default; }
+  .plist { padding: 4px 0 0 12px; max-width: 640px; }
+  .prow { display: flex; align-items: center; gap: 12px; padding: 7px 12px; font-size: 14px; cursor: pointer; user-select: none; }
+  .prow:hover { background: hsl(var(--foreground) / .035); }
+  .prow .pname { font-weight: 600; }
+  .prow .pmeta { margin-left: auto; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .prow.done .pname { color: hsl(var(--muted-foreground)); font-weight: 400; text-decoration: line-through; }
+  .prow.done .chk { background: hsl(var(--green) / .7); border-color: hsl(var(--green)); color: hsl(var(--page)); }
   .aclist { position: fixed; z-index: 9999; max-height: 192px; overflow-y: auto; padding: 4px 0; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
   .aclist div { padding: 6px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); }
   .aclist div.on { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
@@ -623,13 +640,13 @@ const MATERIAL_GROUPS = [
     'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL', RUN)],
   } },
   { key: 'ab', label: 'Antibodies and stains', core: PHYSICAL_CORE, types: {
-    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), pick('Format', ['Purified', 'Conjugated', 'Biotinylated']), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID')],
-    'Secondary antibody': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N')],
-    'Streptavidin or detection conjugate': [mf('Conjugate'), num('Dilution', '1:N')],
-    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Concentration', 'µg/mL'), mf('Matched antibody')],
-    'Viability dye': [pick('Laser', LASERS), pick('Fixable', YES_NO), num('Dilution', '1:N')],
+    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), pick('Format', ['Purified', 'Conjugated', 'Biotinylated']), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
+    'Secondary antibody': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N'), mf('Panel')],
+    'Streptavidin or detection conjugate': [mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
+    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Concentration', 'µg/mL'), mf('Matched antibody'), mf('Panel')],
+    'Viability dye': [pick('Laser', LASERS), pick('Fixable', YES_NO), num('Dilution', '1:N'), mf('Panel')],
     'Stain or dye': [mf('Target'), mf('Excitation and emission'), num('Concentration', '*', { defaultUnit: 'µM', ...CONC })],
-    'Tetramer or multimer': [mf('Specificity'), mf('Conjugate'), num('Dilution', '1:N')],
+    'Tetramer or multimer': [mf('Specificity'), mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
     'Fc block': [mf('Species'), num('Amount', 'µL')],
     'Beads': [pick('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']), num('Beads per µL', '', LOT)],
   } },
@@ -1501,7 +1518,7 @@ function exampleElisa() {
     }
   }
   const curveColumns = [newColumn('Point'), newColumn('pg/mL', 'number', { unit: 'pg/mL' }), newColumn('Transfer'), newColumn('Diluent')];
-  const captureAb = material('ab', 'Antibody', 'Capture Ab', { vendor: 'BioLegend', target: 'human IL-6', format: 'Purified', amount: ['200', '1:N'] }, ['concentration']);
+  const captureAb = material('ab', 'Antibody', 'Capture Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', format: 'Purified', amount: ['200', '1:N'] }, ['concentration']);
   return {
     title: 'IL-6 sandwich ELISA',
     mode: 'build',
@@ -1531,15 +1548,15 @@ function exampleElisa() {
     blocks: [
       materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
         captureAb,
-        material('ab', 'Antibody', 'Detection Ab', { vendor: 'BioLegend', target: 'human IL-6', format: 'Biotinylated', amount: ['200', '1:N'] }),
-        material('ab', 'Streptavidin or detection conjugate', 'Streptavidin-HRP', { vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
-        material('chem', 'Standard or calibrator', 'IL-6 standard', { vendor: 'BioLegend' }),
-        material('chem', 'Substrate or detection reagent', 'TMB substrate', { vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
-        material('media', 'Buffer', 'Coating buffer', { recipe: 'carbonate-bicarbonate', ph: '9.5' }),
-        material('media', 'Buffer', 'Wash buffer', { recipe: 'PBS + 0.05% Tween-20' }),
-        material('media', 'Buffer', 'Blocking buffer', { recipe: '1% BSA in PBS' }),
-        material('media', 'Buffer', 'Stop solution', { recipe: '2 N sulfuric acid' }),
-        material('supplies', 'Plate', 'ELISA plate', { vendor: 'Corning', format: '96-well', surface: 'High-binding', color: 'Clear' }),
+        material('ab', 'Antibody', 'Detection Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', format: 'Biotinylated', amount: ['200', '1:N'] }),
+        material('ab', 'Streptavidin or detection conjugate', 'Streptavidin-HRP', { storage: '4 °C', vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
+        material('chem', 'Standard or calibrator', 'IL-6 standard', { storage: '−80 °C', vendor: 'BioLegend' }),
+        material('chem', 'Substrate or detection reagent', 'TMB substrate', { storage: '4 °C', vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
+        material('media', 'Buffer', 'Coating buffer', { storage: 'RT', recipe: 'carbonate-bicarbonate', ph: '9.5' }),
+        material('media', 'Buffer', 'Wash buffer', { storage: 'RT', recipe: 'PBS + 0.05% Tween-20' }),
+        material('media', 'Buffer', 'Blocking buffer', { storage: '4 °C', recipe: '1% BSA in PBS' }),
+        material('media', 'Buffer', 'Stop solution', { storage: 'RT', recipe: '2 N sulfuric acid' }),
+        material('supplies', 'Plate', 'ELISA plate', { storage: 'Shelf', vendor: 'Corning', format: '96-well', surface: 'High-binding', color: 'Clear' }),
         material('equip', 'Instrument', 'Plate reader', { settings: 'absorbance 450 nm, reference 570 nm' }),
       ]),
       { id: uid(), type: 'values', title: 'Values', x: 0, y: 13, w: 3, h: 9, items: [
@@ -1602,13 +1619,13 @@ function exampleCells() {
     ],
     blocks: [
       materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
-        material('bio', 'Cell line', 'HeLa', { vendor: 'ATCC', catalog: 'CCL-2', count: '1e6', viability: '95' }, ['passage', 'mycoplasma-test-date']),
-        material('media', 'Medium', 'Complete DMEM', { recipe: 'DMEM + 10% FBS + 1% pen/strep' }),
-        material('media', 'Buffer', 'PBS', { strength: '1×', 'calcium-and-magnesium': 'Without' }),
-        material('chem', 'Enzyme', 'Trypsin-EDTA', { notes: '0.25%' }),
-        material('chem', 'Drug or inhibitor', 'Compound X', { 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' }),
-        material('kits', 'Commercial kit', 'CellTiter-Glo', { vendor: 'Promega' }),
-        material('supplies', 'Plate', 'Assay plate', { vendor: 'Corning', format: '96-well', surface: 'TC-treated', color: 'White' }),
+        material('bio', 'Cell line', 'HeLa', { storage: '37 °C incubator', vendor: 'ATCC', catalog: 'CCL-2', count: '1e6', viability: '95' }, ['passage', 'mycoplasma-test-date']),
+        material('media', 'Medium', 'Complete DMEM', { storage: '4 °C', recipe: 'DMEM + 10% FBS + 1% pen/strep' }),
+        material('media', 'Buffer', 'PBS', { storage: 'RT', strength: '1×', 'calcium-and-magnesium': 'Without' }),
+        material('chem', 'Enzyme', 'Trypsin-EDTA', { storage: '−20 °C', notes: '0.25%' }),
+        material('chem', 'Drug or inhibitor', 'Compound X', { storage: '−20 °C', 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' }),
+        material('kits', 'Commercial kit', 'CellTiter-Glo', { storage: '−20 °C', vendor: 'Promega' }),
+        material('supplies', 'Plate', 'Assay plate', { storage: 'Shelf', vendor: 'Corning', format: '96-well', surface: 'TC-treated', color: 'White' }),
         material('equip', 'Instrument', 'Centrifuge', { settings: '300 × g, 5 min, RT' }),
         material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
       ]),
@@ -1639,6 +1656,7 @@ function loadState() {
 let state = loadState() ?? exampleElisa();
 state.lotMemory ??= {};
 state.guessMemory ??= {};
+state.keptBoth ??= [];
 let saveTimer;
 function save() {
   clearTimeout(saveTimer);
@@ -1992,6 +2010,10 @@ const openRows = new Map();
 const isPicking = () => document.body.classList.contains('picking');
 const materialPastes = new Map();
 const freshMaterials = new Map();
+const pendingDuplicates = new Map();
+const materialViews = new Map();
+const PULL_SKIP_GROUPS = new Set(['equip', 'soft']);
+let exampleTitles;
 const editingCells = new Map();
 const fieldMenus = new Map();
 const AMOUNT_FIELDS = ['amount', 'dilution', 'working-concentration', 'concentration', 'stock-concentration', 'final-concentration', 'top-concentration', 'coating-concentration'];
@@ -2127,11 +2149,139 @@ function fillDown(b, td) {
 
 const rememberKind = (name, group, type) => { if (name.trim()) state.guessMemory[normKey(name)] = { group, type }; };
 
-function setMaterialKind(b, item, group, type) {
+function applyKind(b, item, group, type) {
   Object.assign(item, { group, type });
   const keys = new Set(materialFields(b, item).map(f => f.key));
   item.on = [...new Set([...item.on, ...materialDefaultFields(group, type)])].filter(k => keys.has(k));
+}
+
+function setMaterialKind(b, item, group, type) {
+  applyKind(b, item, group, type);
   rememberKind(item.name, group, type);
+}
+
+const findDuplicate = (b, item) => (state.keptBoth.includes(normKey(item.name)) ? null : b.items.find(i => i !== item && normKey(i.name) === normKey(item.name)));
+
+function mergeInto(b, target, source) {
+  const targetFields = materialFields(b, target);
+  for (const f of materialFields(b, source)) {
+    const value = String(source.values[f.key] ?? '').trim();
+    if (!value || String(target.values[f.key] ?? '').trim()) continue;
+    if (!targetFields.some(x => x.key === f.key)) target.custom.push({ ...f });
+    target.values[f.key] = source.values[f.key];
+    if (source.units[f.key]) target.units[f.key] = source.units[f.key];
+    if (!target.on.includes(f.key)) target.on.push(f.key);
+  }
+}
+
+const reviewRow = (b, item, why) => ({ item, why, duplicate: findDuplicate(b, item), keepBoth: false });
+
+function commitMaterials(b, rows) {
+  const fresh = new Set();
+  for (const { item, duplicate, keepBoth } of rows) {
+    if (duplicate && !keepBoth) {
+      mergeInto(b, duplicate, item);
+      fresh.add(duplicate.id);
+      continue;
+    }
+    if (duplicate) state.keptBoth.push(normKey(item.name));
+    b.items.push(item);
+    fresh.add(item.id);
+    b.folded = b.folded.filter(g => g !== item.group);
+  }
+  freshMaterials.set(b.id, fresh);
+  pendingDuplicates.delete(b.id);
+  renderBlock(b);
+  bodyOf(b).querySelector('.madd-name')?.focus();
+  save();
+  refresh();
+}
+
+function stepLabels() {
+  const numbers = stepNumbers();
+  let parent = '';
+  return Object.fromEntries(state.steps.filter(s => s.kind === 'step').map(s => {
+    const own = numbers[s.id].replace('.', '');
+    if (s.level !== 2) parent = own;
+    return [s.id, s.level === 2 ? `${parent}${own}` : own];
+  }));
+}
+
+function materialUsage(b) {
+  const ids = new Set(b.items.map(i => i.id));
+  const owner = new Map();
+  for (const [key, entry] of calc.names) {
+    const id = String(entry.id ?? '').split(':')[0];
+    if (ids.has(id)) owner.set(key, id);
+  }
+  const usage = new Map(b.items.map(i => [i.id, { steps: [], formulas: 0 }]));
+  const labels = stepLabels();
+  for (const step of state.steps.filter(x => x.kind === 'step')) {
+    for (const [, ref] of String(step.text).matchAll(/\{([^}]+)\}/g)) {
+      const use = usage.get(owner.get(ref.trim().toLowerCase()));
+      if (use && !use.steps.includes(labels[step.id])) use.steps.push(labels[step.id]);
+    }
+  }
+  const names = [...calc.names.values()].map(e => e.name);
+  for (const blk of state.blocks.filter(x => x.type === 'formula')) {
+    for (const formula of blk.items) {
+      const used = new Set(tokenize(String(formula.expr ?? ''), names).filter(t => t.t === 'name').map(t => owner.get(t.v.toLowerCase())).filter(Boolean));
+      used.forEach(id => { usage.get(id).formulas += 1; });
+    }
+  }
+  return usage;
+}
+
+function usageText({ steps, formulas }) {
+  const parts = [];
+  if (steps.length) parts.push(`${steps.length === 1 ? 'Step' : 'Steps'} ${steps.join(', ')}`);
+  if (formulas) parts.push(`${formulas} formula${formulas === 1 ? '' : 's'}`);
+  return parts.length ? esc(parts.join(' · ')) : '<span class="munused">Not used</span>';
+}
+
+function conjugateClashes(items) {
+  const sharing = new Map();
+  for (const item of items) {
+    const raw = String(item.values.conjugate ?? '').trim();
+    if (!raw || item.type === 'Isotype control' || guessIndex.conjugates.has(normKey(raw))) continue;
+    const color = guessIndex.fluors.get(normKey(raw))?.name ?? raw;
+    const panel = String(item.values.panel ?? '').trim();
+    const key = `${normKey(panel)}|${normKey(color)}`;
+    if (!sharing.has(key)) sharing.set(key, { color, panel, items: [] });
+    sharing.get(key).items.push(item);
+  }
+  return [...sharing.values()].filter(c => c.items.length > 1);
+}
+
+const clashNote = ({ color, panel, items }) => `<div class="mclash">${panel ? `${esc(panel)}: ` : ''}${esc(color)} is on ${esc(listWords(items.map(i => i.name)))}.${panel ? '' : ' If they are stained in separate tubes, give them different panels.'}</div>`;
+
+function storageRank(label) {
+  const text = label.toLowerCase();
+  if (!text) return Infinity;
+  if (/ln2|liquid nitrogen|vapou?r phase/.test(text)) return -196;
+  const degrees = text.match(/[-−–]?\s*\d+/);
+  if (degrees) return parseFloat(degrees[0].replace(/[−–]/, '-').replace(/\s/g, ''));
+  if (/\b(rt|room|ambient)\b/.test(text)) return 22;
+  return 100;
+}
+
+function pullList(b) {
+  const pulled = state.run.pulled ?? {};
+  const places = new Map();
+  for (const item of b.items.filter(i => i.name.trim() && !PULL_SKIP_GROUPS.has(i.group))) {
+    const label = String(item.values.storage ?? '').trim();
+    const key = label.toLowerCase();
+    if (!places.has(key)) places.set(key, { label: label || 'Storage not set', rank: storageRank(label), items: [] });
+    places.get(key).items.push(item);
+  }
+  return [...places.values()].sort((x, y) => x.rank - y.rank || x.label.localeCompare(y.label)).map(place => {
+    const done = place.items.filter(i => pulled[i.id]).length;
+    const rows = place.items.map(item => {
+      const lot = String(effectiveValue({ id: `${item.id}:lot`, value: '', perRun: true })).trim();
+      return `<div class="prow${pulled[item.id] ? ' done' : ''}" data-act="pull" data-item="${item.id}"><span class="chk">${pulled[item.id] ? '✓' : ''}</span><span class="pname">${esc(item.name)}</span>${lot ? `<span class="pmeta">lot ${esc(lot)}</span>` : ''}</div>`;
+    }).join('');
+    return `<section class="msec"><div class="msec-head plain"><span class="msec-title">${esc(place.label)}</span><span class="msec-count">${done}/${place.items.length}</span><span class="msec-line"></span></div><div class="plist">${rows}</div></section>`;
+  }).join('');
 }
 
 function kindSelect(b, group, type, cls) {
@@ -2146,28 +2296,26 @@ function guessLine(b, text) {
   const filled = materialFields(b, item).filter(f => item.on.includes(f.key) && String(item.values[f.key] ?? '').trim());
   const where = guess.group === 'unsorted' ? 'Unsorted' : `${materialGroup(b, guess.group).label} › ${guess.type}`;
   const renamed = guess.name !== text.trim() ? `<span class="mg-f">name <b>${esc(guess.name)}</b></span>` : '';
-  return `<span class="mg-where${guess.group === 'unsorted' ? ' none' : ''}">${esc(where)}</span>${renamed}${filled.map(f => `<span class="mg-f">${esc(f.label.toLowerCase())} <b>${esc(materialText(item, f))}</b></span>`).join('')}<span class="mg-why">${esc(guess.why)}</span><span class="mg-key">Enter to add</span>`;
+  const duplicate = findDuplicate(b, item);
+  const listed = duplicate ? `<span class="mg-dupe">${esc(duplicate.name)} is already listed</span>` : '';
+  return `${listed}<span class="mg-where${guess.group === 'unsorted' ? ' none' : ''}">${esc(where)}</span>${renamed}${filled.map(f => `<span class="mg-f">${esc(f.label.toLowerCase())} <b>${esc(materialText(item, f))}</b></span>`).join('')}<span class="mg-why">${esc(guess.why)}</span><span class="mg-key">Enter to add</span>`;
 }
 
-function pasteReview(b, rows) {
-  const lines = rows.map((row, i) => `<tr class="mprow${i % 2 ? ' alt' : ''}" data-row="${i}"><td class="mname">${esc(row.guess.name)}</td><td>${kindSelect(b, row.guess.group, row.guess.type, 'mp-kind')}</td><td class="mg-why">${esc(row.guess.why)}</td><td class="mp-x"><button class="lnk" data-act="paste-drop" title="Leave this one out">×</button></td></tr>`).join('');
-  const count = `${rows.length} material${rows.length === 1 ? '' : 's'}`;
-  return `<div class="mpaste"><div class="mpaste-head">${count} from the paste. Check the groups, then add.</div><table class="mpaste-tab"><tbody>${lines}</tbody></table><div class="mpaste-tools"><button class="add primary" data-act="paste-add"><span class="plus">+</span>Add ${count}</button><button class="lnk" data-act="paste-cancel">Cancel</button></div></div>`;
+function pasteReview(b, { rows, source }) {
+  const note = row => (row.duplicate
+    ? `<span class="mg-dupe">Already listed: ${row.keepBoth ? 'keeping both' : 'will merge'}</span><button class="lnk" data-act="paste-keep">${row.keepBoth ? 'Merge' : 'Keep both'}</button>`
+    : esc(row.why));
+  const lines = rows.map((row, i) => `<tr class="mprow${i % 2 ? ' alt' : ''}" data-row="${i}"><td class="mname">${esc(row.item.name)}</td><td>${kindSelect(b, row.item.group, row.item.type, 'mp-kind')}</td><td class="mg-why">${note(row)}</td><td class="mp-x"><button class="lnk" data-act="paste-drop" title="Leave this one out">×</button></td></tr>`).join('');
+  const added = rows.filter(row => !row.duplicate || row.keepBoth).length;
+  const merged = rows.length - added;
+  const count = n => `${n} material${n === 1 ? '' : 's'}`;
+  const action = [added ? `Add ${count(added)}` : '', merged ? `merge ${merged}` : ''].filter(Boolean).join(', ');
+  return `<div class="mpaste"><div class="mpaste-head">${count(rows.length)} from ${esc(source)}. Check them, then add.</div><table class="mpaste-tab"><tbody>${lines}</tbody></table><div class="mpaste-tools"><button class="add primary" data-act="paste-add"><span class="plus">+</span>${action.charAt(0).toUpperCase()}${action.slice(1)}</button><button class="lnk" data-act="paste-cancel">Cancel</button></div></div>`;
 }
 
-function addMaterials(b, guesses) {
-  const fresh = new Set();
-  for (const guess of guesses) {
-    const item = materialFromGuess(b, guess);
-    b.items.push(item);
-    fresh.add(item.id);
-    b.folded = b.folded.filter(g => g !== item.group);
-  }
-  freshMaterials.set(b.id, fresh);
-  renderBlock(b);
-  bodyOf(b).querySelector('.madd-name')?.focus();
-  save();
-  refresh();
+function duplicatePrompt(b) {
+  const { duplicate } = pendingDuplicates.get(b.id);
+  return `<span class="mg-dupe">${esc(duplicate.name)} is already listed.</span><button class="lnk" data-act="dupe-merge">Merge</button><button class="lnk" data-act="dupe-keep">Keep both</button><span class="mg-why">Merge fills its blank fields from what you typed.</span>`;
 }
 
 function materialControl(item, f) {
@@ -2198,6 +2346,8 @@ function materialCell(item, f) {
 
 function materialSection(b, items, groupKey) {
   const run = isRun();
+  const clashes = groupKey === 'ab' ? conjugateClashes(items) : [];
+  const clashing = new Set(clashes.flatMap(c => c.items.map(i => i.id)));
   const columns = [];
   for (const item of items) for (const f of materialFields(b, item)) if (item.on.includes(f.key) && !columns.some(c => c.key === f.key)) columns.push(f);
   const editing = editingCells.get(b.id);
@@ -2214,15 +2364,17 @@ function materialSection(b, items, groupKey) {
       const f = fields.find(x => x.key === c.key) ?? c;
       const shown = item.on.includes(f.key);
       const editable = !run || (f.scope === 'protocol' && shown);
-      return cell(item, f.key, editable, () => (shown ? materialCell(item, f) : ''), () => materialControl(item, f));
+      const flag = f.key === 'conjugate' && clashing.has(item.id) ? 'clash ' : '';
+      return cell(item, f.key, editable, () => (shown ? materialCell(item, f) : ''), () => materialControl(item, f), flag);
     }).join('');
+    const used = run ? '' : '<td class="mused"></td>';
     const remove = run ? '' : '<td class="mrm"><button class="ghost-danger" data-act="del">Remove</button></td>';
-    return `<tr class="mrow${i % 2 ? ' alt' : ''}${fresh?.has(item.id) ? ' fresh' : ''}" data-item="${item.id}" data-pick="${esc(item.name)}">${name}${kind}${values}${remove}</tr>`;
+    return `<tr class="mrow${i % 2 ? ' alt' : ''}${fresh?.has(item.id) ? ' fresh' : ''}" data-item="${item.id}" data-pick="${esc(item.name)}">${name}${kind}${values}${used}${remove}</tr>`;
   }).join('');
   const hideButton = c => (run ? '' : `<button class="mcol-x" data-act="hide-col" data-key="${esc(c.key)}" title="Hide this column">×</button>`);
   const moreHead = run ? '' : `<th class="mmore"><button class="lnk mmore-btn${fieldMenus.get(b.id) === groupKey ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
-  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${moreHead}</tr></thead><tbody>${rows}</tbody></table></div>`;
-  return (fieldMenus.get(b.id) === groupKey && !run ? fieldMenu(b, items, columns) : '') + table;
+  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${run ? '' : '<th>Used in</th>'}${moreHead}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  return clashes.map(clashNote).join('') + (fieldMenus.get(b.id) === groupKey && !run ? fieldMenu(b, items, columns) : '') + table;
 }
 
 function fieldMenu(b, items, columns) {
@@ -2291,9 +2443,18 @@ const TYPES = {
       const run = isRun();
       const groups = materialGroupsOf(b);
       const pasted = materialPastes.get(b.id);
-      const adder = `<div class="madd"><input class="in madd-name" placeholder="Add a material: type a name and press Enter, or paste a list" spellcheck="false" autocomplete="off" /><div class="mguess">${guessLine(b, '')}</div>${pasted ? pasteReview(b, pasted) : ''}</div>`;
+      exampleTitles ??= Object.entries(EXAMPLES).map(([key, make]) => [key, make().title]);
+      const copyFrom = `<select class="in mcopy"><option value="">Copy from a protocol…</option>${exampleTitles.map(([key, title]) => `<option value="${key}">${esc(title)}</option>`).join('')}</select>`;
+      const guess = pendingDuplicates.has(b.id) ? duplicatePrompt(b) : guessLine(b, '');
+      const adder = `<div class="madd"><div class="madd-row"><input class="in madd-name" placeholder="Add a material: type a name and press Enter, or paste a list" spellcheck="false" autocomplete="off" />${copyFrom}</div><div class="mguess">${guess}</div>${pasted ? pasteReview(b, pasted) : ''}</div>`;
+      const view = materialViews.get(b.id) ?? 'table';
+      const viewSwitch = `<div class="mview"><button class="lnk${view === 'table' ? ' on' : ''}" data-act="view" data-view="table">Table</button><button class="lnk${view === 'pull' ? ' on' : ''}" data-act="view" data-view="pull">Pull list</button></div>`;
+      if (run && view === 'pull') {
+        body.innerHTML = viewSwitch + pullList(b);
+        return;
+      }
       const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key) })).filter(s => s.items.length).sort((x, y) => (y.g.key === 'unsorted') - (x.g.key === 'unsorted'));
-      body.innerHTML = (run ? '' : adder) + (sections.length ? sections.map(({ g, items }) => {
+      body.innerHTML = (run ? viewSwitch : adder) + (sections.length ? sections.map(({ g, items }) => {
         const folded = b.folded.includes(g.key);
         return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items, g.key)}</div>`}</section>`;
       }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>');
@@ -2301,9 +2462,11 @@ const TYPES = {
     },
     update(b, body) {
       const run = isRun();
+      const usage = run ? null : materialUsage(b);
       body.querySelectorAll('tr.mrow[data-item]').forEach(el => {
         const item = b.items.find(i => i.id === el.dataset.item);
         if (!item) return;
+        if (usage) el.querySelector('.mused').innerHTML = usageText(usage.get(item.id));
         el.querySelector('.lname')?.classList.toggle('bad', calc.dupes.has(item.id));
         if (!run) return;
         const fields = materialFields(b, item);
@@ -2321,6 +2484,7 @@ const TYPES = {
     onInput(b, e) {
       const el = e.target;
       if (el.matches('.madd-name')) {
+        pendingDuplicates.delete(b.id);
         bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, el.value);
         return;
       }
@@ -2348,6 +2512,14 @@ const TYPES = {
     },
     onChange(b, e) {
       const el = e.target;
+      if (el.matches('.mcopy')) {
+        const source = EXAMPLES[el.value]?.();
+        if (!source) return;
+        const items = source.blocks.filter(x => x.type === 'materials').flatMap(x => x.items);
+        materialPastes.set(b.id, { source: source.title, rows: items.map(item => reviewRow(b, item, '')) });
+        renderBlock(b);
+        return;
+      }
       if (el.matches('.mkind')) {
         let [group, type] = el.value.split('|');
         if (el.value === '__new') {
@@ -2357,9 +2529,9 @@ const TYPES = {
           type = 'Other';
         }
         if (group && el.matches('.mp-kind')) {
-          const row = materialPastes.get(b.id)[+el.closest('[data-row]').dataset.row];
-          row.guess = { ...row.guess, group, type, why: 'set by you' };
-          row.corrected = true;
+          const row = materialPastes.get(b.id).rows[+el.closest('[data-row]').dataset.row];
+          applyKind(b, row.item, group, type);
+          Object.assign(row, { why: 'set by you', corrected: true });
         } else if (group) {
           setMaterialKind(b, b.items.find(i => i.id === el.closest('[data-item]').dataset.item), group, type);
         }
@@ -2383,16 +2555,28 @@ const TYPES = {
       const item = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
       const key = e.target.closest('[data-key]')?.dataset.key;
       const pasted = materialPastes.get(b.id);
+      const pastedRow = pasted?.rows[+e.target.closest('[data-row]')?.dataset.row];
+      const pending = pendingDuplicates.get(b.id);
       if (act === 'paste-add' && pasted) {
-        pasted.filter(row => row.corrected).forEach(row => rememberKind(row.guess.name, row.guess.group, row.guess.type));
+        pasted.rows.filter(row => row.corrected).forEach(row => rememberKind(row.item.name, row.item.group, row.item.type));
         materialPastes.delete(b.id);
-        addMaterials(b, pasted.map(row => row.guess));
+        commitMaterials(b, pasted.rows);
         return;
       }
-      if (act === 'paste-cancel') materialPastes.delete(b.id);
-      else if (act === 'paste-drop' && pasted) {
-        pasted.splice(+e.target.closest('[data-row]').dataset.row, 1);
-        if (!pasted.length) materialPastes.delete(b.id);
+      if ((act === 'dupe-merge' || act === 'dupe-keep') && pending) {
+        commitMaterials(b, [{ ...pending, keepBoth: act === 'dupe-keep' }]);
+        return;
+      }
+      if (act === 'pull' && item) {
+        state.run.pulled ??= {};
+        if (state.run.pulled[item.id]) delete state.run.pulled[item.id];
+        else state.run.pulled[item.id] = true;
+      } else if (act === 'view') materialViews.set(b.id, e.target.closest('[data-view]').dataset.view);
+      else if (act === 'paste-cancel') materialPastes.delete(b.id);
+      else if (act === 'paste-keep' && pastedRow) pastedRow.keepBoth = !pastedRow.keepBoth;
+      else if (act === 'paste-drop' && pastedRow) {
+        pasted.rows.splice(pasted.rows.indexOf(pastedRow), 1);
+        if (!pasted.rows.length) materialPastes.delete(b.id);
       } else if (act === 'fold-group') {
         const group = e.target.closest('[data-group]').dataset.group;
         b.folded = b.folded.includes(group) ? b.folded.filter(g => g !== group) : [...b.folded, group];
@@ -2472,12 +2656,19 @@ const TYPES = {
       if (!el.matches('.madd-name')) return;
       if (e.key === 'Escape') {
         el.value = '';
+        pendingDuplicates.delete(b.id);
         bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, '');
         return;
       }
       if (e.key !== 'Enter' || !el.value.trim()) return;
       e.preventDefault();
-      addMaterials(b, [guessMaterial(el.value, rememberedKinds())]);
+      const row = reviewRow(b, materialFromGuess(b, guessMaterial(el.value, rememberedKinds())), '');
+      if (!row.duplicate) {
+        commitMaterials(b, [row]);
+        return;
+      }
+      pendingDuplicates.set(b.id, row);
+      bodyOf(b).querySelector('.mguess').innerHTML = duplicatePrompt(b);
     },
     onPaste(b, e) {
       if (!e.target.matches('.madd-name')) return;
@@ -2485,9 +2676,12 @@ const TYPES = {
       if (!/\n/.test(text.trim())) return;
       e.preventDefault();
       const known = rememberedKinds();
-      const rows = splitPastedMaterials(text).map(row => ({ guess: guessMaterial(row.text, known, row.context) }));
+      const rows = splitPastedMaterials(text).map(row => {
+        const guess = guessMaterial(row.text, known, row.context);
+        return reviewRow(b, materialFromGuess(b, guess), guess.why);
+      });
       if (!rows.length) return;
-      materialPastes.set(b.id, rows);
+      materialPastes.set(b.id, { source: 'the paste', rows });
       renderBlock(b);
     },
   },

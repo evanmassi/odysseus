@@ -226,6 +226,10 @@ Core: name, source, notes.
 - Media and buffers are typed by what they are (Medium, Buffer), not by where they came from.
   Bought is the default; a filled-in recipe marks one as made here and adds Made on
   (Evan, 2026-10-08).
+- Antibodies can carry a Panel (surface, intracellular, myeloid…); a color clash is only flagged
+  within one panel, and never blocks (Evan, 2026-10-08).
+- A duplicate name asks Merge or Keep both; intentional duplicates (two lots, 1× and 10×) are
+  normal (Evan, 2026-10-08).
 - Typing aids work like a spreadsheet: a cell offers values used before in that column (plus
   known vendors, and fluorochromes for Conjugate), and Ctrl+D copies the cell above
   (Evan, 2026-10-08).
