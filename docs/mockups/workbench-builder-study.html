@@ -215,6 +215,7 @@
   .mguess { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; max-width: 760px; min-height: 20px; margin-top: 7px; font-size: 13px; color: hsl(var(--muted-foreground)); }
   .mg-where { color: hsl(var(--fg)); font-weight: 600; }
   .mg-where.none { color: hsl(var(--amber)); }
+  .mguess .mg-kind { height: 24px; max-width: 320px; font-weight: 600; color: inherit; }
   .mg-f { white-space: nowrap; }
   .mg-f b { font-weight: 400; color: hsl(var(--fg)); }
   .mg-why { font-style: italic; }
@@ -282,23 +283,25 @@
   .aclist div { padding: 6px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); }
   .aclist div.on { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
   .vpair { width: 56px; }
-  .mrm, .mtab th.mmore { position: sticky; right: 0; background: hsl(var(--card)); }
-  .mrow.alt .mrm { background: color-mix(in srgb, hsl(var(--card)) 96%, hsl(var(--foreground))); }
-  .mtab thead th.mmore { background: color-mix(in srgb, hsl(var(--card)) 72%, black); }
   .ghost-danger { background: transparent; border: 0; padding: 2px 6px; font: 400 13px/1 'JetBrains Mono', monospace; color: hsl(var(--red)); cursor: pointer; opacity: 0; transition: opacity .12s; }
   .mrow:hover .ghost-danger, .ghost-danger:focus-visible { opacity: 1; }
   .ghost-danger:hover { font-weight: 500; color: color-mix(in srgb, hsl(var(--red)) 70%, white); }
   .mtab th .mcol-x { margin-left: 6px; background: none; border: 0; padding: 0 2px; font-size: 13px; color: hsl(var(--muted-foreground)); cursor: pointer; opacity: 0; }
   .mtab th:hover .mcol-x { opacity: 1; }
   .mtab th .mcol-x:hover { color: hsl(var(--red)); }
-  .mtab th.mmore { text-align: right; padding-top: 0; padding-bottom: 0; }
-  .mmore-btn { height: 26px; font-size: 13px; text-transform: none; letter-spacing: 0; }
-  .mfields { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 0 12px 20px; }
-  .mfields-l { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; letter-spacing: .12em; color: hsl(var(--muted-foreground)); margin-right: 6px; }
-  .fchip { display: inline-flex; align-items: center; height: 20px; padding: 0 10px 0 0; border: 1px solid hsl(var(--border)); background: hsl(var(--foreground) / .03); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; line-height: 1; letter-spacing: .12em; color: hsl(var(--secondary-foreground)); cursor: pointer; white-space: nowrap; }
-  .fchip::before { content: '+'; align-self: stretch; display: flex; align-items: center; padding: 0 7px; margin-right: 8px; border-right: 1px solid hsl(var(--border)); background: hsl(var(--foreground) / .06); font-weight: 500; letter-spacing: .04em; }
-  .fchip:hover { color: hsl(var(--fg)); border-color: hsl(var(--primary) / .45); }
-  .fchip.custom { border-color: hsl(var(--violet) / .5); }
+  .mtab th.mmore { width: 1%; text-align: right; }
+  .mtab th .mmore-btn { height: auto; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: hsl(var(--foreground) / .55); }
+  .mtab th .mmore-btn:hover, .mtab th .mmore-btn.on { color: hsl(var(--fg)); }
+  .mtab-anchor { position: relative; }
+  .fmenu { position: absolute; top: 35px; right: 0; z-index: 6; width: 260px; padding: 6px 0; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
+  .fmenu .fm-search { display: block; width: calc(100% - 16px); height: 30px; margin: 2px 8px 6px; font-size: 14px; }
+  .fm-list { max-height: 264px; overflow-y: auto; }
+  .fm-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 12px; border: 0; background: none; font: inherit; font-size: 14px; text-align: left; color: hsl(var(--foreground) / .75); cursor: pointer; }
+  .fm-row[hidden] { display: none; }
+  .fm-row:hover { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); }
+  .fm-row.on { color: hsl(var(--fg)); }
+  .fm-row.on .chk { background: hsl(var(--primary) / .7); border-color: hsl(var(--primary)); color: hsl(var(--page)); }
+  .fm-new .chk { border-style: dashed; }
   .chk { width: 14px; height: 14px; border: 1px solid hsl(var(--line-mid)); flex-shrink: 0; align-self: center; display: grid; place-items: center; font-size: 10px; }
   .srow.done { opacity: .5; }
   .srow.done .chk { background: hsl(var(--green) / .7); border-color: hsl(var(--green)); color: hsl(var(--page)); }
@@ -627,7 +630,7 @@ const EQUIPMENT_CORE = [mf('Model'), mf('Manufacturer'), mf('Notes')];
 const SOFTWARE_CORE = [mf('Source'), mf('Notes')];
 
 const MATERIAL_GROUPS = [
-  { key: 'bio', label: 'Biological material', core: PHYSICAL_CORE, types: {
+  { key: 'bio', label: 'Biological Material', core: PHYSICAL_CORE, types: {
     'Cell line': [mf('Species'), mf('Tissue of origin'), mf('RRID'), mf('Genetic modification'), mf('Medium'), mf('Culture conditions'), day('Authentication date'), day('Mycoplasma test date'), num('Passage', '', RUN), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN)],
     'Primary cells': [mf('Species'), mf('Donor ID'), mf('Tissue'), mf('Isolation method'), day('Collected'), day('Frozen'), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN), consent],
     'Organoid or 3D culture': [mf('Species'), mf('Source line or donor'), mf('Matrix'), num('Passage', '', RUN), num('Days in culture', '', RUN)],
@@ -639,8 +642,8 @@ const MATERIAL_GROUPS = [
     'Nucleic acid sample': [pick('Nucleic acid', ['DNA', 'RNA']), mf('Source sample'), num('Concentration', 'ng/µL', RUN), num('A260/280'), num('RIN')],
     'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL', RUN)],
   } },
-  { key: 'ab', label: 'Antibodies and stains', core: PHYSICAL_CORE, types: {
-    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), pick('Format', ['Purified', 'Conjugated', 'Biotinylated']), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
+  { key: 'ab', label: 'Antibodies & Stains', core: PHYSICAL_CORE, types: {
+    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
     'Secondary antibody': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N'), mf('Panel')],
     'Streptavidin or detection conjugate': [mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
     'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Concentration', 'µg/mL'), mf('Matched antibody'), mf('Panel')],
@@ -650,7 +653,7 @@ const MATERIAL_GROUPS = [
     'Fc block': [mf('Species'), num('Amount', 'µL')],
     'Beads': [pick('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']), num('Beads per µL', '', LOT)],
   } },
-  { key: 'chem', label: 'Chemicals and proteins', core: PHYSICAL_CORE, types: {
+  { key: 'chem', label: 'Chemicals & Proteins', core: PHYSICAL_CORE, types: {
     'Chemical': [mf('CAS number'), mf('Molecular weight'), mf('Formula'), mf('Purity'), mf('Grade')],
     'Drug or inhibitor': [mf('Target'), mf('CAS number'), mf('Molecular weight'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Vehicle'), num('Working concentration', '*', { defaultUnit: 'µM', ...CONC })],
     'Recombinant protein or cytokine': [mf('Species'), mf('Tag'), mf('Expression host'), pick('Carrier-free', YES_NO), mf('Activity', 'text', LOT), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC })],
@@ -663,7 +666,7 @@ const MATERIAL_GROUPS = [
     'Substrate or detection reagent': [pick('Detection', ['Colorimetric', 'Chemiluminescent', 'Fluorescent']), mf('Read wavelength')],
     'Solvent': [mf('Grade'), mf('Purity')],
   } },
-  { key: 'media', label: 'Media, buffers, solutions', core: PHYSICAL_CORE, types: {
+  { key: 'media', label: 'Media, Buffers, & Solutions', core: PHYSICAL_CORE, types: {
     'Medium': [mf('Base medium'), mf('Glucose'), mf('Glutamine'), pick('Phenol red', YES_NO), ...MADE_HERE],
     'Buffer': [mf('Strength'), pick('Calcium and magnesium', ['With', 'Without']), num('pH'), ...MADE_HERE],
     'Supplement': [num('Final concentration', '%'), pick('Heat-inactivated', YES_NO)],
@@ -672,10 +675,10 @@ const MATERIAL_GROUPS = [
     'Coating or matrix': [mf('Matrix'), num('Protein concentration', 'mg/mL', LOT), num('Coating concentration', 'µg/mL')],
     'Mounting medium': [pick('DAPI', ['With', 'Without']), pick('Hardening', YES_NO)],
   } },
-  { key: 'kits', label: 'Kits and assays', core: PHYSICAL_CORE, types: {
+  { key: 'kits', label: 'Kits & Assays', core: PHYSICAL_CORE, types: {
     'Commercial kit': [mf('Kit version'), mf('Components used'), mf('Protocol version')],
   } },
-  { key: 'mol', label: 'Molecular biology', core: PHYSICAL_CORE, types: {
+  { key: 'mol', label: 'Molecular Biology', core: PHYSICAL_CORE, types: {
     'Oligo or primer': [mf('Sequence'), mf('Target gene'), mf('Modifications'), mf('Purification'), num('Stock concentration', 'µM'), mf('Tm')],
     'Probe': [mf('Sequence'), mf('Reporter and quencher'), mf('Target')],
     'Plasmid': [mf('Backbone'), mf('Insert'), mf('Resistance'), mf('Repository ID'), num('Concentration', 'ng/µL'), pick('Sequence verified', YES_NO)],
@@ -697,7 +700,7 @@ const MATERIAL_GROUPS = [
   { key: 'equip', label: 'Equipment', core: EQUIPMENT_CORE, types: {
     'Instrument': [mf('Asset or serial ID'), mf('Location'), mf('Settings'), day('Calibration date'), mf('Software version')],
   } },
-  { key: 'soft', label: 'Software and data', core: SOFTWARE_CORE, types: {
+  { key: 'soft', label: 'Software & Data', core: SOFTWARE_CORE, types: {
     'Software': [mf('Version'), mf('Settings or template file')],
     'Dataset': [mf('Repository'), mf('Accession number'), day('Date deposited')],
   } },
@@ -1320,8 +1323,7 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
   const antibodyLike = isotype || secondary || (target && (fluor || conjugate || anti || (!target.hit.cytokine && !lexHit && !GUESS_FLUORESCENT_PROTEINS.has(normKey(target.text))))) || ((fluor || anti) && !lexHit);
   if (antibodyLike) {
     const host = nameText.match(HOST_RE)?.[1];
-    const format = /biotin/i.test(nameText) ? 'Biotinylated' : fluor || (conjugate && !/leaf/i.test(conjugate)) ? 'Conjugated' : /purified|unconjugated|leaf|functional grade|invivomab|low endotoxin|azide[-\s]free/i.test(nameText) ? 'Purified' : undefined;
-    const conj = fluor?.name ?? (conjugate && !/leaf|biotin/i.test(conjugate) ? conjugate : undefined);
+    const conj = fluor?.name ?? (/biotin/i.test(nameText) ? 'Biotin' : conjugate && !/leaf/i.test(conjugate) ? conjugate : undefined);
     if (secondary) {
       const isotypePart = secondary[2] ? ` ${secondary[2].replace(/\s+/g, '')}` : '';
       return done('ab', 'Secondary antibody', `“${secondary[0].trim()}” marks a secondary`, { amount, values: {
@@ -1344,7 +1346,7 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
     const why = fluor ? `${fluorHits[0].text} is a fluorochrome` : target ? `${target.text.replace(/^(anti|α)[-‐–]?/i, '')} is a ${target.hit.cytokine ? 'cytokine' : 'marker'}${anti ? ', with “anti-”' : ''}` : '“anti-” marks an antibody';
     return done('ab', 'Antibody', why, { amount, values: {
       target: target ? targetTokens.slice(target.start, target.start + target.n).map(t => t.text).join(' ') : undefined,
-      clone, 'host-species': host && titleCase(host), reactivity, format, conjugate: conj, laser: fluor?.laser || undefined,
+      clone, 'host-species': host && titleCase(host), reactivity, conjugate: conj, laser: fluor?.laser || undefined,
     } });
   }
 
@@ -1518,7 +1520,7 @@ function exampleElisa() {
     }
   }
   const curveColumns = [newColumn('Point'), newColumn('pg/mL', 'number', { unit: 'pg/mL' }), newColumn('Transfer'), newColumn('Diluent')];
-  const captureAb = material('ab', 'Antibody', 'Capture Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', format: 'Purified', amount: ['200', '1:N'] }, ['concentration']);
+  const captureAb = material('ab', 'Antibody', 'Capture Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', amount: ['200', '1:N'] }, ['concentration']);
   return {
     title: 'IL-6 sandwich ELISA',
     mode: 'build',
@@ -1548,7 +1550,7 @@ function exampleElisa() {
     blocks: [
       materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
         captureAb,
-        material('ab', 'Antibody', 'Detection Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', format: 'Biotinylated', amount: ['200', '1:N'] }),
+        material('ab', 'Antibody', 'Detection Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', conjugate: 'Biotin', amount: ['200', '1:N'] }),
         material('ab', 'Streptavidin or detection conjugate', 'Streptavidin-HRP', { storage: '4 °C', vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
         material('chem', 'Standard or calibrator', 'IL-6 standard', { storage: '−80 °C', vendor: 'BioLegend' }),
         material('chem', 'Substrate or detection reagent', 'TMB substrate', { storage: '4 °C', vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
@@ -2011,6 +2013,7 @@ const isPicking = () => document.body.classList.contains('picking');
 const materialPastes = new Map();
 const freshMaterials = new Map();
 const pendingDuplicates = new Map();
+const chosenKinds = new Map();
 const materialViews = new Map();
 const PULL_SKIP_GROUPS = new Set(['equip', 'soft']);
 let exampleTitles;
@@ -2191,6 +2194,7 @@ function commitMaterials(b, rows) {
   }
   freshMaterials.set(b.id, fresh);
   pendingDuplicates.delete(b.id);
+  chosenKinds.delete(b.id);
   renderBlock(b);
   bodyOf(b).querySelector('.madd-name')?.focus();
   save();
@@ -2289,16 +2293,21 @@ function kindSelect(b, group, type, cls) {
   return `<select class="in mkind ${cls}">${materialGroupsOf(b).map(g => `<optgroup label="${esc(g.label)}">${options(g)}</optgroup>`).join('')}<option value="__new">New group…</option></select>`;
 }
 
+function typedGuess(b, text) {
+  const guess = guessMaterial(text, rememberedKinds());
+  const chosen = chosenKinds.get(b.id);
+  return chosen ? { ...guess, ...chosen, why: 'set by you' } : guess;
+}
+
 function guessLine(b, text) {
   if (!text.trim()) return '<span class="mg-why">Anything works: CD4 BV421, HeLa, DMEM + 10% FBS, 96-well plate, FlowJo 10.9. Paste a list to add many.</span>';
-  const guess = guessMaterial(text, rememberedKinds());
+  const guess = typedGuess(b, text);
   const item = materialFromGuess(b, guess);
   const filled = materialFields(b, item).filter(f => item.on.includes(f.key) && String(item.values[f.key] ?? '').trim());
-  const where = guess.group === 'unsorted' ? 'Unsorted' : `${materialGroup(b, guess.group).label} › ${guess.type}`;
   const renamed = guess.name !== text.trim() ? `<span class="mg-f">name <b>${esc(guess.name)}</b></span>` : '';
   const duplicate = findDuplicate(b, item);
   const listed = duplicate ? `<span class="mg-dupe">${esc(duplicate.name)} is already listed</span>` : '';
-  return `${listed}<span class="mg-where${guess.group === 'unsorted' ? ' none' : ''}">${esc(where)}</span>${renamed}${filled.map(f => `<span class="mg-f">${esc(f.label.toLowerCase())} <b>${esc(materialText(item, f))}</b></span>`).join('')}<span class="mg-why">${esc(guess.why)}</span><span class="mg-key">Enter to add</span>`;
+  return `${listed}<span class="mg-where${guess.group === 'unsorted' ? ' none' : ''}">${kindSelect(b, guess.group, guess.type, 'mg-kind')}</span>${renamed}${filled.map(f => `<span class="mg-f">${esc(f.label.toLowerCase())} <b>${esc(materialText(item, f))}</b></span>`).join('')}<span class="mg-why">${esc(guess.why)}</span><span class="mg-key">Enter to add</span>`;
 }
 
 function pasteReview(b, { rows, source }) {
@@ -2372,21 +2381,53 @@ function materialSection(b, items, groupKey) {
     return `<tr class="mrow${i % 2 ? ' alt' : ''}${fresh?.has(item.id) ? ' fresh' : ''}" data-item="${item.id}" data-pick="${esc(item.name)}">${name}${kind}${values}${used}${remove}</tr>`;
   }).join('');
   const hideButton = c => (run ? '' : `<button class="mcol-x" data-act="hide-col" data-key="${esc(c.key)}" title="Hide this column">×</button>`);
-  const moreHead = run ? '' : `<th class="mmore"><button class="lnk mmore-btn${fieldMenus.get(b.id) === groupKey ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
+  const menuOpen = !run && fieldMenus.get(b.id)?.group === groupKey;
+  const moreHead = run ? '' : `<th class="mmore"><button class="lnk mmore-btn${menuOpen ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
   const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${run ? '' : '<th>Used in</th>'}${moreHead}</tr></thead><tbody>${rows}</tbody></table></div>`;
-  return clashes.map(clashNote).join('') + (fieldMenus.get(b.id) === groupKey && !run ? fieldMenu(b, items, columns) : '') + table;
+  return `${clashes.map(clashNote).join('')}<div class="mtab-anchor">${menuOpen ? fieldMenu(b, items, columns) : ''}${table}</div>`;
 }
 
 function fieldMenu(b, items, columns) {
   const counts = new Map();
   for (const item of items) for (const f of materialFields(b, item)) {
-    if (columns.some(c => c.key === f.key)) continue;
     const seen = counts.get(f.key) ?? { f, n: 0, core: materialGroup(b, item.group).core.includes(f) };
     seen.n += 1;
     counts.set(f.key, seen);
   }
-  const extras = [...counts.values()].sort((x, y) => x.core - y.core || y.n - x.n).map(({ f }) => `<button class="fchip" data-act="field-on" data-key="${esc(f.key)}">${esc(f.label)}</button>`).join('');
-  return `<div class="mfields"><span class="mfields-l">More fields</span>${extras}<button class="fchip custom" data-act="field-custom">Your own field</button><button class="lnk" data-act="field-menu">Done</button></div>`;
+  const shown = new Set(columns.map(c => c.key));
+  const rows = [...counts.values()].sort((x, y) => x.core - y.core || y.n - x.n).map(({ f }) => `<button class="fm-row${shown.has(f.key) ? ' on' : ''}" data-act="field-toggle" data-key="${esc(f.key)}" data-label="${esc(f.label.toLowerCase())}"><span class="chk">${shown.has(f.key) ? '✓' : ''}</span>${esc(f.label)}</button>`).join('');
+  return `<div class="fmenu"><input class="in fm-search" placeholder="Find or name a field" spellcheck="false" autocomplete="off" /><div class="fm-list">${rows}<button class="fm-row fm-new" data-act="field-custom" hidden></button></div></div>`;
+}
+
+function filterFieldMenu(b) {
+  const menu = bodyOf(b).querySelector('.fmenu');
+  if (!menu) return;
+  const query = fieldMenus.get(b.id).query.trim();
+  const typed = query.toLowerCase();
+  let exact = false;
+  menu.querySelectorAll('.fm-row[data-key]').forEach(row => {
+    row.hidden = !row.dataset.label.includes(typed);
+    if (row.dataset.label === typed) exact = true;
+  });
+  const make = menu.querySelector('.fm-new');
+  make.hidden = !query || exact;
+  make.innerHTML = `<span class="chk">+</span>Add “${esc(query)}” as a field`;
+}
+
+function restoreFieldMenu(b, listScroll, focus) {
+  const menu = bodyOf(b).querySelector('.fmenu');
+  if (!menu) return;
+  const search = menu.querySelector('.fm-search');
+  search.value = fieldMenus.get(b.id).query;
+  menu.querySelector('.fm-list').scrollTop = listScroll;
+  filterFieldMenu(b);
+  if (focus) search.focus({ preventScroll: true });
+}
+
+function closeFieldMenu(b) {
+  fieldMenus.delete(b.id);
+  bodyOf(b).querySelector('.fmenu')?.remove();
+  bodyOf(b).querySelector('.mmore-btn.on')?.classList.remove('on');
 }
 
 function editCell(b, itemId, key) {
@@ -2483,8 +2524,14 @@ const TYPES = {
     },
     onInput(b, e) {
       const el = e.target;
+      if (el.matches('.fm-search')) {
+        fieldMenus.get(b.id).query = el.value;
+        filterFieldMenu(b);
+        return;
+      }
       if (el.matches('.madd-name')) {
         pendingDuplicates.delete(b.id);
+        if (!el.value.trim()) chosenKinds.delete(b.id);
         bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, el.value);
         return;
       }
@@ -2527,6 +2574,14 @@ const TYPES = {
           if (label && !materialGroupsOf(b).some(g => g.label.toLowerCase() === label.toLowerCase())) b.customGroups.push(label);
           group = materialGroupsOf(b).find(g => g.label.toLowerCase() === (label ?? '').toLowerCase())?.key;
           type = 'Other';
+        }
+        if (el.matches('.mg-kind')) {
+          const input = bodyOf(b).querySelector('.madd-name');
+          if (group) chosenKinds.set(b.id, { group, type });
+          bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, input.value);
+          input.focus();
+          save();
+          return;
         }
         if (group && el.matches('.mp-kind')) {
           const row = materialPastes.get(b.id).rows[+el.closest('[data-row]').dataset.row];
@@ -2585,23 +2640,27 @@ const TYPES = {
         editingCells.delete(b.id);
       } else if (act === 'field-menu') {
         const group = e.target.closest('[data-group]').dataset.group;
-        if (fieldMenus.get(b.id) === group) fieldMenus.delete(b.id);
-        else fieldMenus.set(b.id, group);
-      } else if (act === 'field-on' || act === 'hide-col' || act === 'field-custom') {
+        if (fieldMenus.get(b.id)?.group === group) fieldMenus.delete(b.id);
+        else fieldMenus.set(b.id, { group, query: '' });
+      } else if (act === 'field-toggle' || act === 'hide-col' || act === 'field-custom') {
         const sectionItems = b.items.filter(i => i.group === e.target.closest('[data-group]').dataset.group);
         if (act === 'field-custom') {
-          const label = prompt('Name of the field')?.trim();
+          const menu = fieldMenus.get(b.id);
+          const label = menu.query.trim();
           if (!label) return;
           const f = { key: `custom-${fieldKey(label)}`, label, kind: 'text', scope: 'protocol', unit: '', options: [] };
           sectionItems.forEach(i => { if (!i.custom.some(c => c.key === f.key)) i.custom.push({ ...f }); });
           sectionItems.forEach(i => { if (!i.on.includes(f.key)) i.on.push(f.key); });
-        } else if (act === 'field-on') {
-          sectionItems.filter(i => materialFields(b, i).some(f => f.key === key) && !i.on.includes(key)).forEach(i => i.on.push(key));
+          menu.query = '';
+        } else if (act === 'field-toggle' && !sectionItems.some(i => i.on.includes(key))) {
+          sectionItems.filter(i => materialFields(b, i).some(f => f.key === key)).forEach(i => i.on.push(key));
         } else {
           sectionItems.forEach(i => { i.on = i.on.filter(k => k !== key); });
         }
       } else return;
+      const listScroll = bodyOf(b).querySelector('.fm-list')?.scrollTop ?? 0;
       renderBlock(b);
+      restoreFieldMenu(b, listScroll, act.startsWith('field'));
       save();
       refresh();
     },
@@ -2622,6 +2681,19 @@ const TYPES = {
     onKeydown(b, e) {
       const el = e.target;
       const td = el.closest('td.editing');
+      if (el.matches('.fm-search')) {
+        if (e.key === 'Escape') closeFieldMenu(b);
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const typed = el.value.trim().toLowerCase();
+        const visible = [...bodyOf(b).querySelectorAll('.fm-row[data-key]:not([hidden])')];
+        const match = visible.find(row => row.dataset.label === typed) ?? (visible.length === 1 ? visible[0] : null);
+        if (match) {
+          fieldMenus.get(b.id).query = '';
+          match.click();
+        } else bodyOf(b).querySelector('.fm-new:not([hidden])')?.click();
+        return;
+      }
       if (suggestState?.input === el) {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
@@ -2657,12 +2729,14 @@ const TYPES = {
       if (e.key === 'Escape') {
         el.value = '';
         pendingDuplicates.delete(b.id);
+        chosenKinds.delete(b.id);
         bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, '');
         return;
       }
       if (e.key !== 'Enter' || !el.value.trim()) return;
       e.preventDefault();
-      const row = reviewRow(b, materialFromGuess(b, guessMaterial(el.value, rememberedKinds())), '');
+      const row = reviewRow(b, materialFromGuess(b, typedGuess(b, el.value)), '');
+      if (chosenKinds.has(b.id)) rememberKind(row.item.name, row.item.group, row.item.type);
       if (!row.duplicate) {
         commitMaterials(b, [row]);
         return;
@@ -3509,7 +3583,7 @@ const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
 }));
 board.addEventListener('keydown', e => {
   if (e.key === 'Tab' && e.target.matches('.sedit') && jumpToSlot(e.target, e.shiftKey)) { e.preventDefault(); return; }
-  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name), input.sec-title, .sedit')) return;
+  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search), input.sec-title, .sedit')) return;
   e.preventDefault();
   e.target.blur();
 });
@@ -3534,6 +3608,11 @@ document.addEventListener('focusout', e => {
   tray.classList.remove('on');
 });
 let nameDrag = null;
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('.fmenu, .mmore-btn')) return;
+  [...fieldMenus.keys()].map(byId).filter(Boolean).forEach(closeFieldMenu);
+});
+
 document.addEventListener('mousedown', e => {
   if (!insertTarget || e.button !== 0) return;
   if (e.target.closest('[data-tray-toggle]')) { e.preventDefault(); trayOpen = !trayOpen; showTray(insertTarget); return; }
