@@ -106,48 +106,46 @@ each run; _(lot)_ marks a value remembered by lot number.
 
 ### 1. Biological Material
 
-| Type                   | Suggested fields                                                                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cell line              | species, tissue of origin, RRID, genetic modification, medium, culture conditions, authentication date, mycoplasma test date, passage (run), count (run), viability (run) |
-| Primary cells          | species, donor ID, tissue, isolation method, collection date, freeze date, count (run), viability (run), consent or IRB reference                                         |
-| Organoid or 3D culture | species, source line or donor, matrix, passage (run), days in culture (run)                                                                                               |
-| Tissue                 | species, donor or animal ID, tissue, collection date, preservation (fresh, frozen, FFPE), section thickness, consent or IRB reference                                     |
-| Blood or body fluid    | fluid (serum, plasma, whole blood, CSF, urine, other), donor ID, anticoagulant, collection date, freeze-thaw count, dilution, consent or IRB reference                    |
-| Organism               | species, strain, sex, age, genotype, source, animal or cohort ID, protocol number                                                                                         |
-| Microbial strain       | species, strain, genotype, antibiotic resistance, stock ID, OD at use (run)                                                                                               |
-| Virus or vector        | virus type, construct, serotype or pseudotype, titer (lot), biosafety level. MOI is a value the scientist sets, not a property of the virus                               |
-| Nucleic acid sample    | DNA or RNA, source sample, concentration (run), A260/280, RIN                                                                                                             |
-| Protein sample         | source sample, lysis buffer, concentration (run)                                                                                                                          |
+| Type                | Suggested fields                                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell line           | species, tissue of origin, RRID, genetic modification, medium, culture conditions, authentication date, mycoplasma test date, passage (run), count (run), viability (run) |
+| Primary cells       | species, donor ID, tissue, isolation method, collection date, freeze date, count (run), viability (run), consent or IRB reference                                         |
+| 3D culture          | species, source line or donor, matrix, passage (run), days in culture (run)                                                                                               |
+| Tissue              | species, donor or animal ID, tissue, collection date, preservation (fresh, frozen, FFPE), section thickness, consent or IRB reference                                     |
+| Body fluid          | fluid (serum, plasma, whole blood, CSF, urine, other), donor ID, anticoagulant, collection date, freeze-thaw count, dilution, consent or IRB reference                    |
+| Organism            | species, strain, sex, age, genotype, source, animal or cohort ID, protocol number                                                                                         |
+| Microbial strain    | species, strain, genotype, antibiotic resistance, stock ID, OD at use (run)                                                                                               |
+| Virus or vector     | virus type, construct, serotype or pseudotype, titer (lot), biosafety level. MOI is a value the scientist sets, not a property of the virus                               |
+| Nucleic acid sample | DNA or RNA, source sample, concentration (run), A260/280, RIN                                                                                                             |
+| Protein sample      | source sample, lysis buffer, concentration (run)                                                                                                                          |
 
 ### 2. Antibodies & Stains
 
-| Type                                      | Suggested fields                                                                                                                                                                                                                        |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Antibody                                  | target, clone, host species, reactivity, isotype, conjugate (blank means purified; biotin counts), laser (detector depends on the instrument), concentration (lot), amount (µL per test, dilution, or concentration), application, RRID |
-| Secondary antibody                        | host species, target species and isotype, conjugate, cross-adsorbed, dilution                                                                                                                                                           |
-| Streptavidin or other detection conjugate | conjugate (HRP, PE, fluorophore), dilution                                                                                                                                                                                              |
-| Isotype control                           | isotype, host species, conjugate, concentration, matched antibody                                                                                                                                                                       |
-| Viability dye                             | laser and channel, fixable, dilution                                                                                                                                                                                                    |
-| Stain or dye                              | target (DNA, membrane, mitochondria, other), excitation and emission, concentration                                                                                                                                                     |
-| Tetramer or multimer                      | specificity (peptide and MHC allele), conjugate, dilution                                                                                                                                                                               |
-| Fc block                                  | species, amount                                                                                                                                                                                                                         |
-| Beads                                     | purpose (compensation, counting, calibration, stimulation), beads per µL (lot)                                                                                                                                                          |
+| Type                                                                                  | Suggested fields                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Antibody                                                                              | target, clone, host species, reactivity, isotype, conjugate (blank means purified; biotin counts), laser (detector depends on the instrument), concentration (lot), amount (µL per test, dilution, or concentration), application, RRID |
+| Secondary reagent (secondary antibodies, streptavidin and other detection conjugates) | host species, target species and isotype, conjugate, cross-adsorbed, dilution                                                                                                                                                           |
+| Isotype control                                                                       | isotype, host species, conjugate, concentration, matched antibody                                                                                                                                                                       |
+| Dye                                                                                   | target (viability, DNA, membrane, mitochondria, other), fixable, laser and channel, excitation and emission, concentration or dilution                                                                                                  |
+| Multimer                                                                              | specificity (peptide and MHC allele), conjugate, dilution                                                                                                                                                                               |
+| Fc block                                                                              | species, amount                                                                                                                                                                                                                         |
+| Beads                                                                                 | purpose (compensation, counting, calibration, stimulation), beads per µL (lot)                                                                                                                                                          |
 
 ### 3. Chemicals & Proteins
 
-| Type                                           | Suggested fields                                                                                        |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Chemical                                       | CAS number, molecular weight, formula, purity, grade, hazard                                            |
-| Drug or inhibitor                              | target, CAS number, molecular weight, stock concentration, vehicle, working concentration               |
-| Recombinant protein, cytokine or growth factor | species, tag, expression host, carrier-free, activity (lot), stock concentration, working concentration |
-| Enzyme                                         | activity (lot), reaction buffer, stock concentration                                                    |
-| Antibiotic or selection agent                  | working concentration, purpose (selection, contamination control)                                       |
-| Transfection reagent                           | ratio to nucleic acid, volume per well                                                                  |
-| Stimulant or activator                         | target or pathway, working concentration, duration                                                      |
-| Peptide                                        | sequence, modifications, purity, stock concentration                                                    |
-| Standard or calibrator                         | top concentration, reconstitution volume, units                                                         |
-| Substrate or detection                         | detection (colorimetric, chemiluminescent, fluorescent), read wavelength                                |
-| Solvent                                        | grade, purity                                                                                           |
+| Type                          | Suggested fields                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Chemical                      | CAS number, molecular weight, formula, purity, grade, hazard                                            |
+| Drug or inhibitor             | target, CAS number, molecular weight, stock concentration, vehicle, working concentration               |
+| Recombinant protein           | species, tag, expression host, carrier-free, activity (lot), stock concentration, working concentration |
+| Enzyme                        | activity (lot), reaction buffer, stock concentration                                                    |
+| Antibiotic or selection agent | working concentration, purpose (selection, contamination control)                                       |
+| Transfection reagent          | ratio to nucleic acid, volume per well                                                                  |
+| Stimulant                     | target or pathway, working concentration, duration                                                      |
+| Peptide                       | sequence, modifications, purity, stock concentration                                                    |
+| Standard                      | top concentration, reconstitution volume, units                                                         |
+| Detection reagent             | detection (colorimetric, chemiluminescent, fluorescent), read wavelength                                |
+| Solvent                       | grade, purity                                                                                           |
 
 ### 4. Media, Buffers, & Solutions
 
@@ -163,20 +161,20 @@ each run; _(lot)_ marks a value remembered by lot number.
 
 ### 5. Kits & Assays
 
-| Type           | Suggested fields                                       |
-| -------------- | ------------------------------------------------------ |
-| Commercial kit | kit version, components used, protocol version, expiry |
+| Type | Suggested fields                                       |
+| ---- | ------------------------------------------------------ |
+| Kit  | kit version, components used, protocol version, expiry |
 
 ### 6. Molecular Biology
 
 | Type               | Suggested fields                                                                             |
 | ------------------ | -------------------------------------------------------------------------------------------- |
-| Oligo or primer    | sequence, target gene, modifications, purification, stock concentration, Tm                  |
+| Oligo              | sequence, target gene, modifications, purification, stock concentration, Tm                  |
 | Probe              | sequence, reporter and quencher, target                                                      |
 | Plasmid            | backbone, insert, resistance, repository ID (e.g. Addgene), concentration, sequence verified |
 | siRNA or guide RNA | target gene, sequence, concentration                                                         |
 | Master mix         | chemistry, volume per reaction                                                               |
-| Ladder or marker   | size range, amount loaded                                                                    |
+| Ladder             | size range, amount loaded                                                                    |
 
 ### 7. Supplies
 
@@ -236,6 +234,7 @@ Core: name, source, notes.
   known vendors, and fluorochromes for Conjugate), and Ctrl+D copies the cell above
   (Evan, 2026-10-08).
 - The group is "Supplies", not "Consumables", matching the Supplies suite (Evan, 2026-10-07).
+- Drop versus Remove: Drop keeps a struck-through copy in a Dropped box (restorable, still flagged in steps); Remove deletes, with Undo. Lab memory refills a known material's details and offers fields made for its type (plan W95 and W96, 2026-10-09).
 - Layout: one plain-text table per group, edited cell by cell; Tab moves to the next cell. "+ Field" at the end of the header row opens a checklist of the group's suggested fields, type-specific first, with a search box; it stays open so several can be ticked, unticking hides a column, and a name not on the list becomes the scientist's own field. Remove shows on row hover (plan W84, 2026-10-08).
 
 ## Open questions

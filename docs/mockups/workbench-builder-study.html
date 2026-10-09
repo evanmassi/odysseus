@@ -270,6 +270,10 @@
   .munused { color: hsl(var(--amber) / .85); font-style: italic; }
   .mclash { margin: 0 0 10px 20px; font-size: 13px; color: hsl(var(--amber)); }
   .mrow td.clash { color: hsl(var(--amber)); }
+  .mrow td.expired { color: hsl(var(--red)); }
+  .mrow.mghost td { padding-top: 6px; padding-bottom: 6px; font-size: 13px; font-style: italic; color: hsl(var(--muted-foreground)); }
+  .mrow.mghost .lnk { margin-left: 8px; font-style: normal; }
+  .prow .pexpired { font-size: 13px; color: hsl(var(--red)); }
   .mview { display: flex; gap: 4px; margin-bottom: 16px; }
   .msec-head.plain { cursor: default; }
   .plist { padding: 4px 0 0 12px; max-width: 640px; }
@@ -283,9 +287,15 @@
   .aclist div { padding: 6px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); }
   .aclist div.on { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
   .vpair { width: 56px; }
-  .ghost-danger { background: transparent; border: 0; padding: 2px 6px; font: 400 13px/1 'JetBrains Mono', monospace; color: hsl(var(--red)); cursor: pointer; opacity: 0; transition: opacity .12s; }
-  .mrow:hover .ghost-danger, .ghost-danger:focus-visible { opacity: 1; }
+  .ghost-danger, .ghost-quiet { background: transparent; border: 0; padding: 2px 6px; font: 400 13px/1 'JetBrains Mono', monospace; color: hsl(var(--red)); cursor: pointer; opacity: 0; transition: opacity .12s; }
+  .ghost-quiet { color: hsl(var(--muted-foreground)); }
+  .mrow:hover .ghost-danger, .ghost-danger:focus-visible, .mrow:hover .ghost-quiet, .ghost-quiet:focus-visible { opacity: 1; }
   .ghost-danger:hover { font-weight: 500; color: color-mix(in srgb, hsl(var(--red)) 70%, white); }
+  .ghost-quiet:hover { color: hsl(var(--fg)); }
+  .mrow.mdrop .mname { font-weight: 400; color: hsl(var(--muted-foreground)); text-decoration: line-through; }
+  .mrow.mdrop .mtype { text-decoration: line-through; }
+  .mstill { color: hsl(var(--amber)); }
+  .ref.dropped, .tok.dropped, .r-value.dropped { color: hsl(var(--amber)); text-decoration: line-through; border-bottom-color: hsl(var(--amber) / .7); }
   .mtab th .mcol-x { margin-left: 6px; background: none; border: 0; padding: 0 2px; font-size: 13px; color: hsl(var(--muted-foreground)); cursor: pointer; opacity: 0; }
   .mtab th:hover .mcol-x { opacity: 1; }
   .mtab th .mcol-x:hover { color: hsl(var(--red)); }
@@ -633,9 +643,9 @@ const MATERIAL_GROUPS = [
   { key: 'bio', label: 'Biological Material', core: PHYSICAL_CORE, types: {
     'Cell line': [mf('Species'), mf('Tissue of origin'), mf('RRID'), mf('Genetic modification'), mf('Medium'), mf('Culture conditions'), day('Authentication date'), day('Mycoplasma test date'), num('Passage', '', RUN), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN)],
     'Primary cells': [mf('Species'), mf('Donor ID'), mf('Tissue'), mf('Isolation method'), day('Collected'), day('Frozen'), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN), consent],
-    'Organoid or 3D culture': [mf('Species'), mf('Source line or donor'), mf('Matrix'), num('Passage', '', RUN), num('Days in culture', '', RUN)],
+    '3D culture': [mf('Species'), mf('Source line or donor'), mf('Matrix'), num('Passage', '', RUN), num('Days in culture', '', RUN)],
     'Tissue': [mf('Species'), mf('Donor or animal ID'), mf('Tissue'), day('Collected'), pick('Preservation', ['Fresh', 'Frozen', 'FFPE']), mf('Section thickness'), consent],
-    'Blood or body fluid': [pick('Fluid', ['Serum', 'Plasma', 'Whole blood', 'CSF', 'Urine', 'Other']), mf('Donor ID'), mf('Anticoagulant'), day('Collected'), num('Freeze-thaw count'), num('Dilution', '1:N'), consent],
+    'Body fluid': [pick('Fluid', ['Serum', 'Plasma', 'Whole blood', 'CSF', 'Urine', 'Other']), mf('Donor ID'), mf('Anticoagulant'), day('Collected'), num('Freeze-thaw count'), num('Dilution', '1:N'), consent],
     'Organism': [mf('Species'), mf('Strain'), pick('Sex', ['Female', 'Male', 'Mixed']), mf('Age'), mf('Genotype'), mf('Animal or cohort ID'), mf('Protocol number')],
     'Microbial strain': [mf('Species'), mf('Strain'), mf('Genotype'), mf('Antibiotic resistance'), mf('Stock ID'), num('OD at use', '', RUN)],
     'Virus or vector': [mf('Virus type'), mf('Construct'), mf('Serotype or pseudotype'), num('Titer per mL', '', LOT), mf('Biosafety level')],
@@ -644,26 +654,24 @@ const MATERIAL_GROUPS = [
   } },
   { key: 'ab', label: 'Antibodies & Stains', core: PHYSICAL_CORE, types: {
     'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
-    'Secondary antibody': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N'), mf('Panel')],
-    'Streptavidin or detection conjugate': [mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
+    'Secondary reagent': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N'), mf('Panel')],
     'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Concentration', 'µg/mL'), mf('Matched antibody'), mf('Panel')],
-    'Viability dye': [pick('Laser', LASERS), pick('Fixable', YES_NO), num('Dilution', '1:N'), mf('Panel')],
-    'Stain or dye': [mf('Target'), mf('Excitation and emission'), num('Concentration', '*', { defaultUnit: 'µM', ...CONC })],
-    'Tetramer or multimer': [mf('Specificity'), mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
+    'Dye': [mf('Target'), pick('Fixable', YES_NO), pick('Laser', LASERS), mf('Excitation and emission'), num('Concentration', '*', { defaultUnit: 'µM', ...CONC }), num('Dilution', '1:N'), mf('Panel')],
+    'Multimer': [mf('Specificity'), mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
     'Fc block': [mf('Species'), num('Amount', 'µL')],
     'Beads': [pick('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']), num('Beads per µL', '', LOT)],
   } },
   { key: 'chem', label: 'Chemicals & Proteins', core: PHYSICAL_CORE, types: {
     'Chemical': [mf('CAS number'), mf('Molecular weight'), mf('Formula'), mf('Purity'), mf('Grade')],
     'Drug or inhibitor': [mf('Target'), mf('CAS number'), mf('Molecular weight'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Vehicle'), num('Working concentration', '*', { defaultUnit: 'µM', ...CONC })],
-    'Recombinant protein or cytokine': [mf('Species'), mf('Tag'), mf('Expression host'), pick('Carrier-free', YES_NO), mf('Activity', 'text', LOT), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC })],
+    'Recombinant protein': [mf('Species'), mf('Tag'), mf('Expression host'), pick('Carrier-free', YES_NO), mf('Activity', 'text', LOT), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC })],
     'Enzyme': [mf('Activity', 'text', LOT), mf('Reaction buffer'), num('Stock concentration', '*', { defaultUnit: 'mg/mL', ...CONC })],
     'Antibiotic or selection agent': [num('Working concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), pick('Purpose', ['Selection', 'Contamination control'])],
     'Transfection reagent': [mf('Ratio to nucleic acid'), num('Volume per well', 'µL')],
-    'Stimulant or activator': [mf('Target or pathway'), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC }), mf('Duration')],
+    'Stimulant': [mf('Target or pathway'), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC }), mf('Duration')],
     'Peptide': [mf('Sequence'), mf('Modifications'), mf('Purity'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC })],
-    'Standard or calibrator': [num('Top concentration', '*', { defaultUnit: 'pg/mL', ...CONC, units: ['pg/mL', 'ng/mL', 'µg/mL', 'mM', 'µM', 'nM'] }), num('Reconstitution volume', 'µL')],
-    'Substrate or detection reagent': [pick('Detection', ['Colorimetric', 'Chemiluminescent', 'Fluorescent']), mf('Read wavelength')],
+    'Standard': [num('Top concentration', '*', { defaultUnit: 'pg/mL', ...CONC, units: ['pg/mL', 'ng/mL', 'µg/mL', 'mM', 'µM', 'nM'] }), num('Reconstitution volume', 'µL')],
+    'Detection reagent': [pick('Detection', ['Colorimetric', 'Chemiluminescent', 'Fluorescent']), mf('Read wavelength')],
     'Solvent': [mf('Grade'), mf('Purity')],
   } },
   { key: 'media', label: 'Media, Buffers, & Solutions', core: PHYSICAL_CORE, types: {
@@ -676,15 +684,15 @@ const MATERIAL_GROUPS = [
     'Mounting medium': [pick('DAPI', ['With', 'Without']), pick('Hardening', YES_NO)],
   } },
   { key: 'kits', label: 'Kits & Assays', core: PHYSICAL_CORE, types: {
-    'Commercial kit': [mf('Kit version'), mf('Components used'), mf('Protocol version')],
+    'Kit': [mf('Kit version'), mf('Components used'), mf('Protocol version')],
   } },
   { key: 'mol', label: 'Molecular Biology', core: PHYSICAL_CORE, types: {
-    'Oligo or primer': [mf('Sequence'), mf('Target gene'), mf('Modifications'), mf('Purification'), num('Stock concentration', 'µM'), mf('Tm')],
+    'Oligo': [mf('Sequence'), mf('Target gene'), mf('Modifications'), mf('Purification'), num('Stock concentration', 'µM'), mf('Tm')],
     'Probe': [mf('Sequence'), mf('Reporter and quencher'), mf('Target')],
     'Plasmid': [mf('Backbone'), mf('Insert'), mf('Resistance'), mf('Repository ID'), num('Concentration', 'ng/µL'), pick('Sequence verified', YES_NO)],
     'siRNA or guide RNA': [mf('Target gene'), mf('Sequence'), num('Concentration', 'µM')],
     'Master mix': [mf('Chemistry'), num('Volume per reaction', 'µL')],
-    'Ladder or marker': [mf('Size range'), num('Amount loaded', 'µL')],
+    'Ladder': [mf('Size range'), num('Amount loaded', 'µL')],
   } },
   { key: 'supplies', label: 'Supplies', core: PHYSICAL_CORE, types: {
     'Plate': [pick('Format', ['6-well', '12-well', '24-well', '48-well', '96-well', '384-well']), pick('Surface', ['TC-treated', 'High-binding', 'Low-binding', 'Untreated']), pick('Color', ['Clear', 'White', 'Black']), pick('Bottom', ['Flat', 'Round', 'V']), pick('Sterile', YES_NO)],
@@ -794,10 +802,10 @@ function recompute() {
     });
     if (b.type === 'materials') b.items.filter(item => item.name.trim()).forEach(item => {
       const numbers = materialFields(b, item).filter(f => f.kind === 'number' && item.on.includes(f.key));
-      define(item.name, { kind: 'item', id: item.id, groupTitle: materialGroup(b, item.group).label, hint: numbers[0] ? fieldName(item, numbers[0]) : '', label: () => materialLabel(item) });
+      define(item.name, { kind: 'item', id: item.id, groupTitle: materialGroup(b, item.group).label, hint: numbers[0] ? fieldName(item, numbers[0]) : '', label: () => materialLabel(item), dropped: !!item.dropped });
       numbers.forEach(f => {
         const id = `${item.id}:${f.key}`;
-        define(fieldName(item, f), { kind: 'value', id, item: { id, value: item.values[f.key] ?? '', unit: fieldUnit(item, f), perRun: f.scope !== 'protocol' } });
+        define(fieldName(item, f), { kind: 'value', id, item: { id, value: item.values[f.key] ?? '', unit: fieldUnit(item, f), perRun: f.scope !== 'protocol' }, dropped: !!item.dropped });
       });
     });
     if (b.type === 'values') b.items.forEach(it => define(it.name, { kind: 'value', id: it.id, item: it }));
@@ -812,7 +820,7 @@ function recompute() {
     if (e.kind === 'value') {
       const q = valueQuantity(e.item);
       if (!q) throw new CalcError(e.item.perRun && state.mode === 'run' ? `Waiting for ${e.name}, recorded on the run` : `${e.name} has no number yet`);
-      return { q, html: `<span class="r-value">${esc(displayOf(e.item, effectiveValue(e.item)))}</span>` };
+      return { q, html: `<span class="r-value${e.dropped ? ' dropped' : ''}">${esc(displayOf(e.item, effectiveValue(e.item)))}</span>` };
     }
     if (e.kind === 'plate') return { q: e.q, html: `<span class="r-plate">${e.display}</span>` };
     if (e.kind === 'item') throw new CalcError(`${e.name} is in ${e.groupTitle}, not a number.${e.hint ? ` Use one of its numbers, like ${e.hint}.` : ''}`);
@@ -880,8 +888,9 @@ function recompute() {
 function refInfo(name) {
   const e = calc.names.get(name.trim().toLowerCase());
   if (!e) return { text: name, label: 'not on this board', cls: 'missing', kind: 'missing' };
-  if (e.kind === 'item') return { text: e.name, label: e.label(), cls: 'r-item', kind: 'r' };
-  if (e.kind === 'value') return { text: displayOf(e.item, effectiveValue(e.item)), label: e.name, cls: 'r-value', kind: 'v' };
+  const dropped = e.dropped ? ' dropped' : '';
+  if (e.kind === 'item') return { text: e.name, label: e.dropped ? 'Dropped from Materials' : e.label(), cls: `r-item${dropped}`, kind: 'r' };
+  if (e.kind === 'value') return { text: displayOf(e.item, effectiveValue(e.item)), label: e.dropped ? `${e.name}, dropped from Materials` : e.name, cls: `r-value${dropped}`, kind: 'v' };
   if (e.kind === 'plate') return { text: e.display, label: e.name, cls: 'r-plate', kind: 'p' };
   const r = calc.results.get(e.item.id);
   if (!r || r.error) return { text: '?', label: e.name, cls: 'missing', kind: 'f' };
@@ -911,7 +920,7 @@ const GUESS_LEXICON = [
   ['bio', 'Cell line', { species: 'Rat' }, 'PC12|H9c2|INS-1|INS-1E'],
   ['bio', 'Cell line', { species: 'Insect' }, 'Sf9|Sf21|High Five|S2|Schneider 2'],
   ['bio', 'Primary cells', {}, 'PBMC|PBMCs|splenocytes|thymocytes|bone marrow cells|BMDM|BMDMs|BMDC|BMDCs|HUVEC|HUVECs|T cells|CD4+ T cells|CD8+ T cells|naive T cells|B cells|NK cells|monocytes|macrophages|dendritic cells|neutrophils|eosinophils|basophils|mast cells|hepatocytes|keratinocytes|fibroblasts|astrocytes|microglia|neurons|cardiomyocytes|iPSC|iPSCs|hESC|hESCs|MSC|MSCs|cord blood|buffy coat|leukapheresis|Tregs|Treg|TILs|lymph node cells|whole splenocytes|HSPC|HSPCs|CD34+ cells'],
-  ['bio', 'Organoid or 3D culture', {}, 'organoid|organoids|spheroid|spheroids|tumoroid|tumoroids|enteroid|enteroids|colonoid'],
+  ['bio', '3D culture', {}, 'organoid|organoids|spheroid|spheroids|tumoroid|tumoroids|enteroid|enteroids|colonoid'],
   ['bio', 'Organism', { species: 'Mouse' }, 'C57BL/6|C57BL/6J|C57BL/6N|B6|BALB/c|BALB/cJ|NSG|NOD|NOD/SCID|NOD scid gamma|SCID|nude mice|CD-1|ICR|FVB|FVB/N|DBA/2|C3H|129|OT-I|OT-II|Rag1-/-|Rag2-/-|B6.SJL|CD45.1 mice|mice|Mus musculus'],
   ['bio', 'Organism', { species: 'Rat' }, 'Sprague-Dawley|Wistar|Long-Evans|Lewis rats|rats|Rattus norvegicus'],
   ['bio', 'Organism', {}, 'zebrafish|Danio rerio|Drosophila|Drosophila melanogaster|C. elegans|Caenorhabditis elegans|Xenopus|Xenopus laevis|Arabidopsis|Arabidopsis thaliana|N2 worms'],
@@ -925,21 +934,29 @@ const GUESS_LEXICON = [
   ['bio', 'Nucleic acid sample', { 'nucleic-acid': 'DNA' }, 'gDNA|genomic DNA|DNA'],
   ['bio', 'Protein sample', {}, 'lysate|cell lysate|whole cell lysate|tissue lysate|nuclear extract|cytoplasmic extract|supernatant|culture supernatant|conditioned medium'],
   ['bio', 'Tissue', {}, 'spleen|lymph node|lymph nodes|thymus|liver|lung|kidney|heart|brain|skin|intestine|colon|small intestine|tumor|tumour|biopsy|tissue|FFPE block|tissue section|tumor tissue|bone marrow'],
-  ['bio', 'Blood or body fluid', { fluid: 'Whole blood' }, 'whole blood|peripheral blood|blood|cord blood sample'],
-  ['bio', 'Blood or body fluid', { fluid: 'Plasma' }, 'plasma|EDTA plasma|heparin plasma|citrate plasma'],
-  ['bio', 'Blood or body fluid', { fluid: 'Serum' }, 'patient serum|serum samples|mouse serum|sera'],
-  ['bio', 'Blood or body fluid', { fluid: 'CSF' }, 'CSF|cerebrospinal fluid'],
-  ['bio', 'Blood or body fluid', { fluid: 'Urine' }, 'urine'],
-  ['bio', 'Blood or body fluid', { fluid: 'Other' }, 'saliva|sputum|stool|BAL fluid|bronchoalveolar lavage|synovial fluid|ascites|milk sample'],
+  ['bio', 'Body fluid', { fluid: 'Whole blood' }, 'whole blood|peripheral blood|blood|cord blood sample'],
+  ['bio', 'Body fluid', { fluid: 'Plasma' }, 'plasma|EDTA plasma|heparin plasma|citrate plasma'],
+  ['bio', 'Body fluid', { fluid: 'Serum' }, 'patient serum|serum samples|mouse serum|sera'],
+  ['bio', 'Body fluid', { fluid: 'CSF' }, 'CSF|cerebrospinal fluid'],
+  ['bio', 'Body fluid', { fluid: 'Urine' }, 'urine'],
+  ['bio', 'Body fluid', { fluid: 'Other' }, 'saliva|sputum|stool|BAL fluid|bronchoalveolar lavage|synovial fluid|ascites|milk sample'],
 
-  ['ab', 'Viability dye', { fixable: 'Yes' }, 'Zombie Aqua|Zombie NIR|Zombie Violet|Zombie Green|Zombie Red|Zombie Yellow|Zombie UV|LIVE/DEAD|LIVE/DEAD Fixable Aqua|LIVE/DEAD Fixable Blue|LIVE/DEAD Fixable Near-IR|LIVE/DEAD Fixable Violet|LIVE/DEAD Fixable Green|LIVE/DEAD Fixable Yellow|Fixable Viability Dye|Fixable Viability Dye eFluor 780|Fixable Viability Dye eFluor 506|Fixable Viability Dye eFluor 450|FVD|FVS|Fixable Viability Stain 510|Fixable Viability Stain 575V|Fixable Viability Stain 780|Ghost Dye|Ghost Dye Violet 510|Ghost Dye Red 780|viability dye|live/dead stain'],
-  ['ab', 'Viability dye', { fixable: 'No' }, '7-AAD|propidium iodide|PI|DRAQ7|SYTOX Blue|SYTOX Green|SYTOX Red|TO-PRO-3|DAPI viability'],
-  ['ab', 'Stain or dye', { target: 'DNA' }, 'DAPI|Hoechst|Hoechst 33342|Hoechst 33258|DRAQ5|SYBR Green I|EdU|BrdU'],
-  ['ab', 'Stain or dye', { target: 'Mitochondria' }, 'MitoTracker|MitoTracker Red|MitoTracker Green|MitoTracker Deep Red|MitoTracker Red CMXRos|TMRM|TMRE|JC-1|MitoSOX|MitoSOX Red'],
-  ['ab', 'Stain or dye', { target: 'Membrane' }, 'DiI|DiO|DiD|DiR|PKH26|PKH67|WGA|wheat germ agglutinin|CellMask'],
-  ['ab', 'Stain or dye', {}, 'CFSE|CellTrace Violet|CellTrace Far Red|CellTrace Yellow|CellTrace CFSE|CTV|phalloidin|Annexin V|calcein|Calcein AM|LysoTracker|ER-Tracker|DCFDA|H2DCFDA|CellROX|Fluo-4|Fura-2|Indo-1|crystal violet|trypan blue|hematoxylin|eosin|H&E|Oil Red O|Alizarin Red|Alcian blue|Sirius red|Picrosirius red|Ponceau S|Coomassie|Coomassie blue|SYPRO Ruby|SYBR Safe|SYBR Gold|ethidium bromide|EtBr|GelRed|GelGreen|BODIPY|Nile red|filipin|lectin'],
-  ['ab', 'Streptavidin or detection conjugate', {}, 'streptavidin|SA|streptavidin-HRP|SA-HRP|avidin|ExtrAvidin|NeutrAvidin|Avidin-HRP|anti-biotin'],
-  ['ab', 'Tetramer or multimer', {}, 'tetramer|tetramers|dextramer|pentamer|multimer|MHC tetramer|MHC-I tetramer|MHC-II tetramer|CD1d tetramer|MR1 tetramer'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'Yes' }, 'LIVE/DEAD|Fixable Viability Dye|FVD|FVS|Ghost Dye|viability dye|live/dead stain'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'Yes', laser: 'UV 355' }, 'Zombie UV|LIVE/DEAD Fixable Blue'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'Yes', laser: 'Violet 405' }, 'Zombie Aqua|Zombie Violet|Zombie Yellow|LIVE/DEAD Fixable Aqua|LIVE/DEAD Fixable Violet|LIVE/DEAD Fixable Yellow|Fixable Viability Dye eFluor 450|Fixable Viability Dye eFluor 506|Fixable Viability Stain 510|Fixable Viability Stain 575V|Ghost Dye Violet 510'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'Yes', laser: 'Blue 488' }, 'Zombie Green|LIVE/DEAD Fixable Green'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'Yes', laser: 'Yellow-green 561' }, 'Zombie Red'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'Yes', laser: 'Red 640' }, 'Zombie NIR|LIVE/DEAD Fixable Near-IR|Fixable Viability Dye eFluor 780|Fixable Viability Stain 780|Ghost Dye Red 780'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'No', laser: 'Violet 405' }, 'SYTOX Blue|DAPI viability'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'No', laser: 'Blue 488' }, '7-AAD|propidium iodide|PI|SYTOX Green'],
+  ['ab', 'Dye', { target: 'Viability', fixable: 'No', laser: 'Red 640' }, 'DRAQ7|SYTOX Red|TO-PRO-3'],
+  ['ab', 'Dye', { target: 'DNA' }, 'DAPI|Hoechst|Hoechst 33342|Hoechst 33258|DRAQ5|SYBR Green I|EdU|BrdU'],
+  ['ab', 'Dye', { target: 'Mitochondria' }, 'MitoTracker|MitoTracker Red|MitoTracker Green|MitoTracker Deep Red|MitoTracker Red CMXRos|TMRM|TMRE|JC-1|MitoSOX|MitoSOX Red'],
+  ['ab', 'Dye', { target: 'Membrane' }, 'DiI|DiO|DiD|DiR|PKH26|PKH67|WGA|wheat germ agglutinin|CellMask'],
+  ['ab', 'Dye', {}, 'CFSE|CellTrace Violet|CellTrace Far Red|CellTrace Yellow|CellTrace CFSE|CTV|phalloidin|Annexin V|calcein|Calcein AM|LysoTracker|ER-Tracker|DCFDA|H2DCFDA|CellROX|Fluo-4|Fura-2|Indo-1|crystal violet|trypan blue|hematoxylin|eosin|H&E|Oil Red O|Alizarin Red|Alcian blue|Sirius red|Picrosirius red|Ponceau S|Coomassie|Coomassie blue|SYPRO Ruby|SYBR Safe|SYBR Gold|ethidium bromide|EtBr|GelRed|GelGreen|BODIPY|Nile red|filipin|lectin'],
+  ['ab', 'Secondary reagent', {}, 'streptavidin|SA|avidin|ExtrAvidin|NeutrAvidin|anti-biotin'],
+  ['ab', 'Secondary reagent', { conjugate: 'HRP' }, 'streptavidin-HRP|SA-HRP|Avidin-HRP'],
+  ['ab', 'Multimer', {}, 'tetramer|tetramers|dextramer|pentamer|multimer|MHC tetramer|MHC-I tetramer|MHC-II tetramer|CD1d tetramer|MR1 tetramer'],
   ['ab', 'Fc block', {}, 'Fc block|FcR block|Fc receptor block|FcR blocking reagent|TruStain FcX|Human TruStain FcX|Human Fc Block|Mouse Fc Block|anti-CD16/32|CD16/32|2.4G2|True-Stain Monocyte Blocker|Fc blocker'],
   ['ab', 'Beads', { purpose: 'Compensation' }, 'UltraComp eBeads|UltraComp eBeads Plus|OneComp eBeads|AbC Total Antibody Compensation Bead Kit|ArC Amine Reactive Compensation Bead Kit|compensation beads|comp beads|CompBeads|BD CompBeads'],
   ['ab', 'Beads', { purpose: 'Counting' }, 'CountBright|CountBright Absolute Counting Beads|counting beads|Precision Count Beads|123count eBeads|AccuCount'],
@@ -949,17 +966,17 @@ const GUESS_LEXICON = [
   ['chem', 'Solvent', {}, 'DMSO|dimethyl sulfoxide|ethanol|EtOH|70% ethanol|methanol|MeOH|isopropanol|2-propanol|acetone|chloroform|phenol|phenol:chloroform|acetonitrile|DMF|water|nuclease-free water|ddH2O|dH2O|Milli-Q water|DEPC water|distilled water|ultrapure water|hexane|xylene|toluene|TRIzol|TRI Reagent|QIAzol'],
   ['chem', 'Chemical', {}, 'NaCl|sodium chloride|KCl|potassium chloride|MgCl2|magnesium chloride|CaCl2|calcium chloride|Tris|Tris-HCl|Tris base|EDTA|EGTA|glycine|SDS|sodium dodecyl sulfate|Triton X-100|Tween-20|Tween 20|Tween-80|NP-40|IGEPAL CA-630|saponin|digitonin|BSA|bovine serum albumin|sodium azide|NaN3|glucose|D-glucose|sucrose|glycerol|DTT|dithiothreitol|TCEP|PMSF|sodium orthovanadate|sodium fluoride|sulfuric acid|H2SO4|hydrochloric acid|HCl|NaOH|sodium hydroxide|acetic acid|sodium bicarbonate|NaHCO3|sodium carbonate|sodium citrate|citric acid|ammonium chloride|NH4Cl|ammonium persulfate|APS|TEMED|acrylamide|bis-acrylamide|acrylamide/bis|agarose|low-melt agarose|urea|guanidine hydrochloride|imidazole|ATP|ADP|GTP|NADH|NADPH|dNTPs|dNTP|dNTP mix|skim milk|nonfat dry milk|non-fat milk|milk powder|casein|trehalose|mannitol|sorbitol|PEG|PEG 8000|polyethylene glycol|ammonium sulfate|potassium phosphate|yeast extract|tryptone|peptone|casamino acids|bacto agar|sodium phosphate|Na2HPO4|KH2PO4|ZnCl2|FeSO4|CuSO4|MnCl2|LiCl|CsCl|iodixanol|OptiPrep|Ficoll|Ficoll-Paque|Ficoll-Paque PLUS|Percoll|Lymphoprep|heparin|sodium heparin|protease inhibitor cocktail|cOmplete|cOmplete Mini|phosphatase inhibitor cocktail|PhosSTOP|Halt protease inhibitor|hydrogen peroxide|H2O2|sodium butyrate|cobalt chloride|CoCl2|EZ-Link Sulfo-NHS-Biotin|biotin|glutathione|ascorbic acid|ascorbate|retinoic acid|L-cysteine'],
   ['chem', 'Drug or inhibitor', {}, 'staurosporine|brefeldin A|BFA|monensin|GolgiPlug|GolgiStop|protein transport inhibitor|rapamycin|sirolimus|everolimus|wortmannin|LY294002|MG132|MG-132|bortezomib|cycloheximide|CHX|actinomycin D|nocodazole|paclitaxel|taxol|colchicine|cisplatin|carboplatin|oxaliplatin|doxorubicin|etoposide|5-FU|5-fluorouracil|gemcitabine|methotrexate|dexamethasone|hydrocortisone|forskolin|Y-27632|ROCK inhibitor|CHIR99021|CHIR|SB431542|LDN-193189|dorsomorphin|XAV939|IWP-2|DAPT|imatinib|dasatinib|ibrutinib|ruxolitinib|tofacitinib|trametinib|selumetinib|vemurafenib|dabrafenib|U0126|PD0325901|SP600125|SB203580|BAY 11-7082|Z-VAD-FMK|Q-VD-OPh|chloroquine|bafilomycin A1|3-MA|3-methyladenine|tunicamycin|thapsigargin|oligomycin|FCCP|rotenone|antimycin A|2-DG|2-deoxyglucose|metformin|cyclosporin A|CsA|FK506|tacrolimus|tamoxifen|4-OHT|4-hydroxytamoxifen|doxycycline|dox|IPTG|ATRA|calcitriol|JQ1|olaparib|palbociclib|venetoclax|ABT-199|navitoclax|nutlin-3|SAHA|vorinostat|TSA|trichostatin A|5-azacytidine|decitabine|tazemetostat|DMOG|NAC|N-acetylcysteine|Trolox|aspirin|ibuprofen|indomethacin|celecoxib|FTY720|fingolimod|anisomycin|puromycin aminonucleoside|blebbistatin|cytochalasin D|latrunculin A|nigericin|valinomycin|ouabain|tetrodotoxin|TTX|bicuculline|CNQX|APV|D-AP5|NMDA|glutamate|carbachol|isoproterenol|propranolol|epinephrine|norepinephrine|dopamine|serotonin|histamine|acetylcholine|insulin glargine|dapagliflozin|empagliflozin|vehicle'],
-  ['chem', 'Recombinant protein or cytokine', {}, 'insulin|transferrin|leptin|adiponectin|thrombin|fibrinogen|albumin|human serum albumin|HSA|ovalbumin|OVA|KLH|streptavidin protein|protein A|protein G|GFP protein|Cas9 protein|SpCas9 protein'],
+  ['chem', 'Recombinant protein', {}, 'insulin|transferrin|leptin|adiponectin|thrombin|fibrinogen|albumin|human serum albumin|HSA|ovalbumin|OVA|KLH|streptavidin protein|protein A|protein G|GFP protein|Cas9 protein|SpCas9 protein'],
   ['chem', 'Enzyme', {}, 'trypsin|trypsin-EDTA|0.25% trypsin-EDTA|0.05% trypsin-EDTA|TrypLE|TrypLE Express|TrypLE Select|Accutase|Accumax|collagenase|collagenase I|collagenase II|collagenase IV|collagenase D|dispase|liberase|Liberase TL|Liberase TM|DNase I|DNase|RNase A|RNase H|RNaseOUT|RNase inhibitor|SUPERase-In|proteinase K|benzonase|papain|hyaluronidase|pepsin|elastase|Taq|Taq polymerase|Phusion|Phusion polymerase|Q5|Q5 High-Fidelity DNA Polymerase|KAPA HiFi|Pfu|PrimeSTAR|PrimeSTAR GXL|T4 DNA ligase|T4 ligase|T7 RNA polymerase|SuperScript III|SuperScript IV|M-MLV|M-MLV reverse transcriptase|reverse transcriptase|Klenow|Klenow fragment|T4 PNK|T4 polynucleotide kinase|CIP|rSAP|Antarctic phosphatase|Cas9|SpCas9|Cas9 nuclease|Alt-R Cas9|Cas12a|Cpf1|TEV protease|PreScission protease|enterokinase|lysozyme|alkaline phosphatase|luciferase|neuraminidase|PNGase F|Endo H|sortase|uracil-DNA glycosylase|UDG|Exonuclease I|ExoI|Dpn I'],
   ['chem', 'Antibiotic or selection agent', { purpose: 'Contamination control' }, 'penicillin-streptomycin|pen/strep|pen-strep|PenStrep|P/S|antibiotic-antimycotic|anti-anti|gentamicin|amphotericin B|Fungizone|Normocin|Plasmocin|Primocin|penicillin|streptomycin|ciprofloxacin|MycoZap'],
   ['chem', 'Antibiotic or selection agent', { purpose: 'Selection' }, 'puromycin|blasticidin|blasticidin S|G418|geneticin|hygromycin|hygromycin B|zeocin|ampicillin|carbenicillin|kanamycin|chloramphenicol|tetracycline|spectinomycin|vancomycin|nourseothricin|bleomycin|ganciclovir|6-thioguanine|HAT|HAT supplement'],
   ['chem', 'Transfection reagent', {}, 'Lipofectamine|Lipofectamine 2000|Lipofectamine 3000|Lipofectamine RNAiMAX|Lipofectamine LTX|Lipofectamine MessengerMAX|RNAiMAX|PEI|polyethylenimine|PEI MAX|PEIpro|FuGENE|FuGENE HD|FuGENE 6|jetPRIME|jetPEI|jetOPTIMUS|TransIT-LT1|TransIT-X2|TransIT|X-tremeGENE|X-tremeGENE HP|Polybrene|hexadimethrine bromide|LentiBOOST|RetroNectin|Viromer|calcium phosphate|ExpiFectamine|ExpiFectamine 293|Lipofectamine CRISPRMAX|DharmaFECT|siPORT|Effectene|TurboFect|GeneJuice'],
-  ['chem', 'Stimulant or activator', {}, 'PMA|phorbol 12-myristate 13-acetate|ionomycin|PMA/ionomycin|PMA/Iono|LPS|lipopolysaccharide|poly(I:C)|poly I:C|polyIC|poly(dA:dT)|CpG|CpG ODN|ODN 1826|ODN 2006|ODN 2395|R848|resiquimod|imiquimod|Pam3CSK4|Pam2CSK4|flagellin|zymosan|curdlan|MDP|muramyl dipeptide|cGAMP|2\'3\'-cGAMP|DMXAA|PHA|phytohemagglutinin|PHA-L|ConA|concanavalin A|SEB|staphylococcal enterotoxin B|SEA|Cell Stimulation Cocktail|nigericin|MSU|MSU crystals|alum|Alhydrogel|CFA|complete Freund\'s adjuvant|IFA|incomplete Freund\'s adjuvant|anti-CD3/CD28|PepTivator|peptide pool|PepMix|CEF peptide pool|tuberculin|PPD|heat-killed|TNF stimulation'],
+  ['chem', 'Stimulant', {}, 'PMA|phorbol 12-myristate 13-acetate|ionomycin|PMA/ionomycin|PMA/Iono|LPS|lipopolysaccharide|poly(I:C)|poly I:C|polyIC|poly(dA:dT)|CpG|CpG ODN|ODN 1826|ODN 2006|ODN 2395|R848|resiquimod|imiquimod|Pam3CSK4|Pam2CSK4|flagellin|zymosan|curdlan|MDP|muramyl dipeptide|cGAMP|2\'3\'-cGAMP|DMXAA|PHA|phytohemagglutinin|PHA-L|ConA|concanavalin A|SEB|staphylococcal enterotoxin B|SEA|Cell Stimulation Cocktail|nigericin|MSU|MSU crystals|alum|Alhydrogel|CFA|complete Freund\'s adjuvant|IFA|incomplete Freund\'s adjuvant|anti-CD3/CD28|PepTivator|peptide pool|PepMix|CEF peptide pool|tuberculin|PPD|heat-killed|TNF stimulation'],
   ['chem', 'Peptide', {}, 'SIINFEKL|OVA 257-264|OVA257-264|OVA 323-339|OVA323-339|gp33|gp33-41|gp100|NY-ESO-1 peptide|MOG 35-55|MOG35-55|PLP 139-151|amyloid beta|Aβ42|Abeta42|scrambled peptide|TAT peptide|NLS peptide|FLAG peptide|3xFLAG peptide|HA peptide'],
-  ['chem', 'Standard or calibrator', {}, 'standard|standards|standard curve|calibrator|BSA standard|protein standard|DNA standard|quantification standard|reference standard|internal standard|spike-in|ERCC spike-in'],
-  ['chem', 'Substrate or detection reagent', { detection: 'Colorimetric' }, 'TMB|TMB substrate|TMB solution|ABTS|OPD|pNPP|DAB|DAB substrate|NBT/BCIP|BCIP/NBT|MTT|MTS|WST-1|WST-8|CCK-8|XTT|resazurin|alamarBlue|PrestoBlue|crystal violet solution'],
-  ['chem', 'Substrate or detection reagent', { detection: 'Chemiluminescent' }, 'ECL|ECL substrate|Western ECL|SuperSignal|SuperSignal West Pico|SuperSignal West Pico PLUS|SuperSignal West Femto|SuperSignal West Dura|SuperSignal West Atto|Clarity ECL|Clarity Western ECL|Clarity Max|Immobilon|Immobilon Western|D-luciferin|luciferin|coelenterazine|furimazine|Bright-Glo|Steady-Glo|ONE-Glo|Nano-Glo substrate|QuantaBlu|Lumigen'],
-  ['chem', 'Substrate or detection reagent', { detection: 'Fluorescent' }, 'Amplex Red|AmplexRed|QuantaRed|Amplex UltraRed|fluorescein substrate|4-MUP|MUG'],
+  ['chem', 'Standard', {}, 'standard|standards|standard curve|calibrator|BSA standard|protein standard|DNA standard|quantification standard|reference standard|internal standard|spike-in|ERCC spike-in'],
+  ['chem', 'Detection reagent', { detection: 'Colorimetric' }, 'TMB|TMB substrate|TMB solution|ABTS|OPD|pNPP|DAB|DAB substrate|NBT/BCIP|BCIP/NBT|MTT|MTS|WST-1|WST-8|CCK-8|XTT|resazurin|alamarBlue|PrestoBlue|crystal violet solution'],
+  ['chem', 'Detection reagent', { detection: 'Chemiluminescent' }, 'ECL|ECL substrate|Western ECL|SuperSignal|SuperSignal West Pico|SuperSignal West Pico PLUS|SuperSignal West Femto|SuperSignal West Dura|SuperSignal West Atto|Clarity ECL|Clarity Western ECL|Clarity Max|Immobilon|Immobilon Western|D-luciferin|luciferin|coelenterazine|furimazine|Bright-Glo|Steady-Glo|ONE-Glo|Nano-Glo substrate|QuantaBlu|Lumigen'],
+  ['chem', 'Detection reagent', { detection: 'Fluorescent' }, 'Amplex Red|AmplexRed|QuantaRed|Amplex UltraRed|fluorescein substrate|4-MUP|MUG'],
 
   ['media', 'Medium', {}, 'DMEM|DMEM high glucose|DMEM low glucose|RPMI|RPMI 1640|RPMI-1640|IMDM|MEM|EMEM|α-MEM|alpha-MEM|aMEM|MEM alpha|Opti-MEM|Opti-MEM I|OptiMEM|F-12|Ham\'s F-12|F12|F-12K|DMEM/F12|DMEM/F-12|Advanced DMEM/F12|McCoy\'s 5A|L-15|Leibovitz\'s L-15|Medium 199|M199|Williams\' E|Williams E|X-VIVO 15|X-VIVO 20|AIM-V|AIM V|TexMACS|ImmunoCult-XF|ImmunoCult|StemSpan|StemSpan SFEM|StemSpan SFEM II|mTeSR|mTeSR1|mTeSR Plus|Essential 8|E8|Essential 6|StemFlex|Neurobasal|Neurobasal-A|Neurobasal Plus|BrainPhys|EGM-2|EGM-2 MV|SmGM-2|KGM|KGM-Gold|keratinocyte SFM|MammoCult|PneumaCult|PneumaCult-ALI|IntestiCult|HepatiCult|MesenCult|FreeStyle 293|FreeStyle 293 Expression Medium|Expi293 Expression Medium|ExpiCHO Expression Medium|CD CHO|Sf-900 III|Sf-900 II|ESF 921|Grace\'s insect medium|Schneider\'s Drosophila medium|LB|LB broth|Luria broth|LB agar|LB Miller|LB Lennox|TB|terrific broth|SOC|SOC medium|SOB|2xYT|2YT|YPD|YPD broth|YPD agar|M9|M9 minimal medium|BHI|brain heart infusion|Middlebrook 7H9|7H9|7H10|7H11|TSB|tryptic soy broth|TSA plates|MacConkey|MacConkey agar|blood agar|Mueller-Hinton|Mueller-Hinton broth|FluoroBrite|FluoroBrite DMEM|Hybridoma-SFM|CryoStor|CryoStor CS10|Bambanker|Recovery Cell Culture Freezing Medium|Synth-a-Freeze|CELLBANKER|mFreSR|StemCellBanker'],
   ['media', 'Buffer', {}, 'PBS|DPBS|D-PBS|Dulbecco\'s PBS|HBSS|DPBS with calcium and magnesium|TBS|Tris-buffered saline|TAE|TBE|TE|TE buffer|MOPS SDS running buffer|MES SDS running buffer|Tris-glycine buffer|running buffer|transfer buffer|RIPA|RIPA buffer|RIPA lysis buffer|Laemmli|Laemmli buffer|Laemmli sample buffer|LDS sample buffer|NuPAGE LDS|sample buffer|loading dye|6x loading dye|gel loading dye|ACK|ACK lysing buffer|ACK lysis buffer|RBC lysis buffer|red blood cell lysis buffer|BD Pharm Lyse|Pharm Lyse|FACS Lysing Solution|Annexin V binding buffer|binding buffer|autoMACS Running Buffer|MACS buffer|Cell Staining Buffer|Stain Buffer|BD Stain Buffer|Brilliant Stain Buffer|Brilliant Stain Buffer Plus|Super Bright Complete Staining Buffer|CellCover|Versene|citrate buffer|sodium citrate buffer|antigen retrieval buffer|carbonate buffer|bicarbonate buffer|Krebs-Ringer|Krebs buffer|Ringer\'s solution|Tyrode\'s|saline|normal saline|0.9% saline|ELISA coating buffer|Reagent Diluent|assay diluent|Assay Diluent A|Intercept blocking buffer|Odyssey blocking buffer|SuperBlock|StartingBlock|Pierce IP lysis buffer|NP-40 lysis buffer|M-PER|T-PER|RLT buffer|Buffer RLT|PE buffer|EB buffer|Buffer EB|PCR buffer|CutSmart|rCutSmart|NEBuffer|T4 ligase buffer|10x PCR buffer'],
@@ -972,16 +989,16 @@ const GUESS_LEXICON = [
   ['media', 'Coating or matrix', {}, 'Matrigel|Corning Matrigel|Matrigel GFR|growth factor reduced Matrigel|Geltrex|Cultrex|Cultrex BME|collagen|collagen I|collagen type I|rat tail collagen|collagen IV|poly-L-lysine|PLL|poly-D-lysine|PDL|poly-L-ornithine|PLO|poly-HEMA|fibronectin|laminin|laminin-521|laminin-511|iMatrix-511|vitronectin|Vitronectin XF|gelatin|0.1% gelatin|Synthemax|CellStart|Cell-Tak|hyaluronic acid|alginate|agar|methylcellulose|MethoCult|hydrogel|PEG hydrogel'],
   ['media', 'Mounting medium', {}, 'ProLong Gold|ProLong Gold Antifade|ProLong Diamond|ProLong Glass|VECTASHIELD|Vectashield|Fluoromount-G|Fluoromount|Mowiol|SlowFade|SlowFade Gold|Permount|antifade|antifade mountant|mounting medium|mountant|Aqua-Poly/Mount|Fluoroshield|EverBrite|DPX|Cytoseal'],
 
-  ['kits', 'Commercial kit', {}, 'CellTiter-Glo|CellTiter-Glo 2.0|CellTiter-Glo 3D|CellTiter 96|CellTiter 96 AQueous One|CellTiter-Blue|CytoTox 96|CytoTox-Glo|LDH assay|LDH-Glo|Caspase-Glo|Caspase-Glo 3/7|RealTime-Glo|Dual-Glo|Dual-Luciferase|Dual-Luciferase Reporter Assay|Nano-Glo|Nano-Glo Dual-Luciferase|Luciferase Assay System|BCA|Pierce BCA|BCA Protein Assay|Micro BCA|Bradford|Bradford assay|Qubit dsDNA HS|Qubit dsDNA BR|Qubit RNA HS|Qubit Protein|Quant-iT PicoGreen|PicoGreen|RiboGreen|RNeasy|RNeasy Mini|RNeasy Micro|RNeasy Plus|RNeasy Plus Mini|DNeasy|DNeasy Blood & Tissue|QIAamp|QIAamp DNA Mini|QIAamp Viral RNA|QIAprep|QIAprep Spin Miniprep|QIAquick|QIAquick Gel Extraction|QIAquick PCR Purification|MinElute|Monarch|Monarch Plasmid Miniprep|Monarch Total RNA Miniprep|ZymoPURE|Zymo|Direct-zol|Direct-zol RNA Miniprep|Quick-RNA|PureLink|PureLink RNA Mini|miniprep|midiprep|maxiprep|HiSpeed Plasmid Maxi|EndoFree Plasmid Maxi|NucleoSpin|NucleoBond|iScript|iScript cDNA Synthesis|High-Capacity cDNA Reverse Transcription|SuperScript IV VILO|SuperScript VILO|LunaScript|PrimeScript RT|QuantiTect|DuoSet|DuoSet ELISA|Quantikine|Quantikine ELISA|ELISA MAX|LEGEND MAX|ELISA kit|ELISA|LEGENDplex|Bio-Plex|Bio-Plex Pro|Milliplex|CBA|Cytometric Bead Array|ProcartaPlex|MSD|V-PLEX|U-PLEX|Simoa|Olink|AlphaLISA|HTRF|EasySep|EasySep Human T Cell Isolation Kit|EasySep Mouse CD4+ T Cell Isolation Kit|RosetteSep|MicroBeads|MACS MicroBeads|Pan T Cell Isolation Kit|CD4+ T Cell Isolation Kit|Naive CD4+ T Cell Isolation Kit|Dynabeads Untouched|MojoSort|Annexin V Apoptosis Detection Kit|Click-iT EdU|Click-iT Plus EdU|BrdU Flow Kit|APC BrdU Flow Kit|Mycoplasma detection kit|MycoAlert|MycoStrip|MycoProbe|Nextera XT|Nextera|Illumina DNA Prep|TruSeq|TruSeq Stranded mRNA|NEBNext|NEBNext Ultra II|NEBNext Ultra II Directional RNA|Chromium Next GEM|Chromium Single Cell 3\'|Chromium Single Cell 5\'|SMART-Seq|SMART-Seq v4|In-Fusion|In-Fusion HD|NEBuilder HiFi|TOPO TA|TOPO TA Cloning|Zero Blunt TOPO|Gateway|LR Clonase|BP Clonase|Lenti-X GoStix|Lenti-X qRT-PCR Titration|p24 ELISA|P3 Primary Cell 4D-Nucleofector X Kit|Amaxa Nucleofector Kit|Neon Transfection Kit|Q5 Site-Directed Mutagenesis|QuikChange|QuikChange Lightning|Glutathione assay|GSH-Glo|ATP assay|Seahorse XF Cell Mito Stress Test|Mito Stress Test|Glycolysis Stress Test|Seahorse XF Glycolytic Rate|Pierce Protein A/G|Protein A/G beads|Protein A beads|Protein G beads|Dynabeads Protein G|Dynabeads Protein A|Anti-FLAG M2 Affinity Gel|Ni-NTA|Ni-NTA agarose|glutathione sepharose|SPRIselect|AMPure XP|ChIP kit|SimpleChIP|CUT&RUN|CUT&Tag|ATAC-seq kit|Senescence β-Galactosidase Staining Kit|TUNEL|TUNEL assay|In Situ Cell Death Detection Kit|ApoTox-Glo|Griess reagent|Griess assay|Bio-Rad Protein Assay|DC Protein Assay|RNAscope Multiplex Fluorescent|Opal|Opal 7-Color'],
+  ['kits', 'Kit', {}, 'CellTiter-Glo|CellTiter-Glo 2.0|CellTiter-Glo 3D|CellTiter 96|CellTiter 96 AQueous One|CellTiter-Blue|CytoTox 96|CytoTox-Glo|LDH assay|LDH-Glo|Caspase-Glo|Caspase-Glo 3/7|RealTime-Glo|Dual-Glo|Dual-Luciferase|Dual-Luciferase Reporter Assay|Nano-Glo|Nano-Glo Dual-Luciferase|Luciferase Assay System|BCA|Pierce BCA|BCA Protein Assay|Micro BCA|Bradford|Bradford assay|Qubit dsDNA HS|Qubit dsDNA BR|Qubit RNA HS|Qubit Protein|Quant-iT PicoGreen|PicoGreen|RiboGreen|RNeasy|RNeasy Mini|RNeasy Micro|RNeasy Plus|RNeasy Plus Mini|DNeasy|DNeasy Blood & Tissue|QIAamp|QIAamp DNA Mini|QIAamp Viral RNA|QIAprep|QIAprep Spin Miniprep|QIAquick|QIAquick Gel Extraction|QIAquick PCR Purification|MinElute|Monarch|Monarch Plasmid Miniprep|Monarch Total RNA Miniprep|ZymoPURE|Zymo|Direct-zol|Direct-zol RNA Miniprep|Quick-RNA|PureLink|PureLink RNA Mini|miniprep|midiprep|maxiprep|HiSpeed Plasmid Maxi|EndoFree Plasmid Maxi|NucleoSpin|NucleoBond|iScript|iScript cDNA Synthesis|High-Capacity cDNA Reverse Transcription|SuperScript IV VILO|SuperScript VILO|LunaScript|PrimeScript RT|QuantiTect|DuoSet|DuoSet ELISA|Quantikine|Quantikine ELISA|ELISA MAX|LEGEND MAX|ELISA kit|ELISA|LEGENDplex|Bio-Plex|Bio-Plex Pro|Milliplex|CBA|Cytometric Bead Array|ProcartaPlex|MSD|V-PLEX|U-PLEX|Simoa|Olink|AlphaLISA|HTRF|EasySep|EasySep Human T Cell Isolation Kit|EasySep Mouse CD4+ T Cell Isolation Kit|RosetteSep|MicroBeads|MACS MicroBeads|Pan T Cell Isolation Kit|CD4+ T Cell Isolation Kit|Naive CD4+ T Cell Isolation Kit|Dynabeads Untouched|MojoSort|Annexin V Apoptosis Detection Kit|Click-iT EdU|Click-iT Plus EdU|BrdU Flow Kit|APC BrdU Flow Kit|Mycoplasma detection kit|MycoAlert|MycoStrip|MycoProbe|Nextera XT|Nextera|Illumina DNA Prep|TruSeq|TruSeq Stranded mRNA|NEBNext|NEBNext Ultra II|NEBNext Ultra II Directional RNA|Chromium Next GEM|Chromium Single Cell 3\'|Chromium Single Cell 5\'|SMART-Seq|SMART-Seq v4|In-Fusion|In-Fusion HD|NEBuilder HiFi|TOPO TA|TOPO TA Cloning|Zero Blunt TOPO|Gateway|LR Clonase|BP Clonase|Lenti-X GoStix|Lenti-X qRT-PCR Titration|p24 ELISA|P3 Primary Cell 4D-Nucleofector X Kit|Amaxa Nucleofector Kit|Neon Transfection Kit|Q5 Site-Directed Mutagenesis|QuikChange|QuikChange Lightning|Glutathione assay|GSH-Glo|ATP assay|Seahorse XF Cell Mito Stress Test|Mito Stress Test|Glycolysis Stress Test|Seahorse XF Glycolytic Rate|Pierce Protein A/G|Protein A/G beads|Protein A beads|Protein G beads|Dynabeads Protein G|Dynabeads Protein A|Anti-FLAG M2 Affinity Gel|Ni-NTA|Ni-NTA agarose|glutathione sepharose|SPRIselect|AMPure XP|ChIP kit|SimpleChIP|CUT&RUN|CUT&Tag|ATAC-seq kit|Senescence β-Galactosidase Staining Kit|TUNEL|TUNEL assay|In Situ Cell Death Detection Kit|ApoTox-Glo|Griess reagent|Griess assay|Bio-Rad Protein Assay|DC Protein Assay|RNAscope Multiplex Fluorescent|Opal|Opal 7-Color'],
 
-  ['mol', 'Oligo or primer', {}, 'oligo dT|oligo(dT)|oligo(dT)20|random hexamers|random primers|primer|primers|primer pair|forward primer|reverse primer|M13 forward|M13 reverse|T7 promoter primer|CMV forward|hU6-F|LKO.1 5\''],
+  ['mol', 'Oligo', {}, 'oligo dT|oligo(dT)|oligo(dT)20|random hexamers|random primers|primer|primers|primer pair|forward primer|reverse primer|M13 forward|M13 reverse|T7 promoter primer|CMV forward|hU6-F|LKO.1 5\''],
   ['mol', 'Probe', {}, 'TaqMan probe|TaqMan assay|TaqMan Gene Expression Assay|PrimeTime|PrimeTime qPCR assay|molecular beacon|FISH probe|smFISH probe|RNAscope probe|RNAscope|Stellaris probes|HCR probes|in situ probe|riboprobe|DIG-labeled probe'],
   ['mol', 'Plasmid', {}, 'psPAX2|pMD2.G|pMD2G|VSV-G plasmid|pCMV-VSV-G|pLKO.1|pLKO|lentiCRISPRv2|lentiCRISPR v2|lentiGuide-Puro|lentiCas9-Blast|pX330|pX458|pX459|pSpCas9|pcDNA3.1|pcDNA3|pcDNA3.1(+)|pUC19|pUC57|pET-28a|pET28a|pET-21a|pGEX|pGEX-4T-1|pEGFP-N1|pEGFP-C1|pLenti|pLVX|pCDH|pMSCV|pMIG|pRetroX|pAAV|pHelper|pAdDeltaF6|pRSV-Rev|pMDLg/pRRE|pGL3|pGL3-Basic|pGL4|pRL-TK|pRL-SV40|pBABE|pBABE-puro|pSUPER|pLJM1|FUGW|pHIV|pRRL|pCAG|pCAGGS|pBluescript|pGEM-T|pGEM-T Easy|pCR2.1|pCR-Blunt|pENTR|pDONR221|pDEST|pTRIPZ|pINDUCER20|pCW57.1|pMXs|pMSCV-IRES-GFP|MSCV-IRES-GFP|MigR1|reporter plasmid|expression plasmid|empty vector|control vector'],
   ['mol', 'siRNA or guide RNA', {}, 'siRNA|siRNAs|shRNA|shRNAs|sgRNA|sgRNAs|gRNA|guide RNA|crRNA|tracrRNA|Alt-R crRNA|Alt-R tracrRNA|non-targeting siRNA|scrambled siRNA|non-targeting control|NTC sgRNA|ON-TARGETplus|SMARTpool|Silencer Select|Stealth RNAi|miRNA mimic|miRNA inhibitor|antagomir|ASO|antisense oligo|morpholino|gapmer'],
   ['mol', 'Master mix', { chemistry: 'SYBR Green' }, 'SYBR Green Master Mix|PowerUp SYBR Green|PowerUp SYBR Green Master Mix|PowerTrack SYBR Green|Fast SYBR Green|iTaq Universal SYBR Green Supermix|SsoAdvanced Universal SYBR Green|SsoAdvanced|SsoFast EvaGreen|Luna Universal qPCR|KAPA SYBR FAST|SYBR Select|QuantiNova SYBR|SYBR Green|PowerSYBR'],
   ['mol', 'Master mix', { chemistry: 'TaqMan' }, 'TaqMan Fast Advanced Master Mix|TaqMan Universal Master Mix|TaqMan Universal Master Mix II|TaqMan Gene Expression Master Mix|TaqMan Fast Virus 1-Step|Luna Universal Probe qPCR|iTaq Universal Probes Supermix|SsoAdvanced Universal Probes|PrimeTime Gene Expression Master Mix|ddPCR Supermix for Probes'],
   ['mol', 'Master mix', {}, 'GoTaq|GoTaq Green|GoTaq Green Master Mix|OneTaq|OneTaq 2X Master Mix|Q5 Hot Start High-Fidelity 2X Master Mix|Q5 2X Master Mix|Phusion High-Fidelity PCR Master Mix|Phusion Master Mix|Platinum SuperFi|Platinum SuperFi II|DreamTaq|DreamTaq Green|KAPA HiFi HotStart ReadyMix|CloneAmp HiFi|PrimeSTAR Max|Gibson Assembly Master Mix|NEBuilder HiFi DNA Assembly Master Mix|PCR master mix|qPCR master mix|2x master mix|master mix|mastermix|supermix|Taq 2X Master Mix|Q5 High-Fidelity 2X Master Mix|LongAmp|Terra PCR Direct|Phire'],
-  ['mol', 'Ladder or marker', {}, '1 kb ladder|1 kb Plus ladder|1 kb Plus|100 bp ladder|50 bp ladder|GeneRuler|GeneRuler 1 kb|GeneRuler 100 bp|GeneRuler 1 kb Plus|Quick-Load 1 kb|Quick-Load Purple 1 kb|Quick-Load 100 bp|PageRuler|PageRuler Plus|PageRuler Prestained|Precision Plus Protein|Precision Plus Protein Dual Color|Precision Plus Protein All Blue|SeeBlue Plus2|Spectra Multicolor|Chameleon Duo|HiMark|Novex Sharp|BenchMark|protein ladder|DNA ladder|RNA ladder|molecular weight marker|MW marker|prestained protein ladder|Kaleidoscope'],
+  ['mol', 'Ladder', {}, '1 kb ladder|1 kb Plus ladder|1 kb Plus|100 bp ladder|50 bp ladder|GeneRuler|GeneRuler 1 kb|GeneRuler 100 bp|GeneRuler 1 kb Plus|Quick-Load 1 kb|Quick-Load Purple 1 kb|Quick-Load 100 bp|PageRuler|PageRuler Plus|PageRuler Prestained|Precision Plus Protein|Precision Plus Protein Dual Color|Precision Plus Protein All Blue|SeeBlue Plus2|Spectra Multicolor|Chameleon Duo|HiMark|Novex Sharp|BenchMark|protein ladder|DNA ladder|RNA ladder|molecular weight marker|MW marker|prestained protein ladder|Kaleidoscope'],
 
   ['supplies', 'Other', {}, 'serological pipette|serological pipettes|stripette|pipette|pipettes|transfer pipette|Pasteur pipette|reservoir|reagent reservoir|syringe|syringes|needle|needles|gloves|nitrile gloves|parafilm|cuvette|cuvettes|electroporation cuvette|weigh boat|aluminum foil|Kimwipes|cryobox|freezer box|cell scraper|cell lifter|scalpel|forceps|scissors|plate seal|plate sealer film|sealing film|adhesive seal|MicroAmp optical adhesive film|aluminum seal|breathable seal|hemocytometer|counting chamber|Countess slides|transwell|Transwell insert|cell culture insert|Boyden chamber|µ-Slide|ibidi µ-Slide|Lab-Tek|Lab-Tek chamber slide|bottle|Nalgene bottle|media bottle|beaker|graduated cylinder|Erlenmeyer flask|spinner flask|bioreactor bag|G-Rex|blood collection tube|Vacutainer|EDTA tube|heparin tube|SepMate|SepMate-50|Leucosep|cryomold|OCT|Tissue-Tek OCT|embedding cassette|biopsy punch|cell spreader|inoculating loop|spreader|petri plates|bacterial plates|centrifugal filter|Amicon|Amicon Ultra|Slide-A-Lyzer|dialysis cassette|desalting column|Zeba spin column|magnet stand|spin column|lysis tubes|bead beating tubes|Lysing Matrix|razor blade|tape|lab tape|foil|zip tie|ice bucket|tube rack|FACS tube rack|kim wipes|bench paper|sharps container'],
 
@@ -1165,40 +1182,40 @@ function supplyShape(raw) {
 }
 
 const GUESS_KEYWORDS = [
-  [/\bkits?\b/i, 'kits', 'Commercial kit'],
-  [/\b(assay|isolation|microbeads|enrichment)\b/i, 'kits', 'Commercial kit'],
-  [/\b(standards?|calibrators?)\b/i, 'chem', 'Standard or calibrator'],
+  [/\bkits?\b/i, 'kits', 'Kit'],
+  [/\b(assay|isolation|microbeads|enrichment)\b/i, 'kits', 'Kit'],
+  [/\b(standards?|calibrators?)\b/i, 'chem', 'Standard'],
   [/\b(fix(ation|ative)?|perm(eabilization)?)\b/i, 'media', 'Fix or perm'],
   [/\b(mounting|mountant|antifade)\b/i, 'media', 'Mounting medium'],
   [/\b(buffer|solution|wash|diluent|blocking|block)\b/i, 'media', 'Buffer'],
   [/\b(medium|media|broth)\b/i, 'media', 'Medium'],
   [/\bstock\b/i, 'media', 'Stock solution'],
-  [/\b(primers?|oligos?|fwd|rev|forward|reverse)\b|[_-](f|r|fw|rv|fwd)$/i, 'mol', 'Oligo or primer'],
+  [/\b(primers?|oligos?|fwd|rev|forward|reverse)\b|[_-](f|r|fw|rv|fwd)$/i, 'mol', 'Oligo'],
   [/\bprobes?\b/i, 'mol', 'Probe'],
   [/\b(si|sh|sg|g|cr)rnas?\b|\b(si|sh|sg)[A-Z0-9][\w-]*/, 'mol', 'siRNA or guide RNA'],
   [/\b(plasmids?|vectors?|constructs?)\b/i, 'mol', 'Plasmid'],
   [/^p(cDNA|[A-Z])[A-Za-z0-9.()+-]{2,}/, 'mol', 'Plasmid', 'reads as a plasmid name'],
   [/\b(master ?mix|supermix|ready ?mix)\b/i, 'mol', 'Master mix'],
-  [/\b(ladder)\b/i, 'mol', 'Ladder or marker'],
+  [/\b(ladder)\b/i, 'mol', 'Ladder'],
   [/\bpeptides?\b/i, 'chem', 'Peptide'],
   [/\b(inhibitors?|antagonists?|agonists?|blockers?|drugs?|compounds?)\b|\w(inib|tinib|ciclib|parib|rafenib|lisib|tuzumab|zomib|limus)\b/i, 'chem', 'Drug or inhibitor'],
   [/\b(antibiotics?)\b|\w(mycin|micin|cillin|floxacin)\b/i, 'chem', 'Antibiotic or selection agent'],
   [/\b(transfection|transduction)\b/i, 'chem', 'Transfection reagent'],
-  [/\b(stimulation|stimulant|activator|adjuvant)\b/i, 'chem', 'Stimulant or activator'],
+  [/\b(stimulation|stimulant|activator|adjuvant)\b/i, 'chem', 'Stimulant'],
   [/^[A-Z][a-z]{2}[A-Z0-9]{0,2}[IVX]{1,4}(-HF)?$/, 'chem', 'Enzyme', 'reads as a restriction enzyme'],
   [/\w{3,}ases?\b/i, 'chem', 'Enzyme'],
-  [/\b(recombinant|cytokines?|growth factors?|chemokines?)\b/i, 'chem', 'Recombinant protein or cytokine'],
-  [/\b(organoids?|spheroids?)\b/i, 'bio', 'Organoid or 3D culture'],
+  [/\b(recombinant|cytokines?|growth factors?|chemokines?)\b/i, 'chem', 'Recombinant protein'],
+  [/\b(organoids?|spheroids?)\b/i, 'bio', '3D culture'],
   [/\b(cell lines?|clone \d+|knockout line|reporter line)\b/i, 'bio', 'Cell line'],
   [/\b(cells|splenocytes|thymocytes|lymphocytes|leukocytes|blasts)\b/i, 'bio', 'Primary cells'],
   [/(-\/-|−\/−|\+\/-|fl\/fl|\bcre\b|cre[-\s]?ert|\bko\b|knock-?out|knock-?in|transgenic|littermates|\bmice\b|\bmouse strain\b|\brats\b)/i, 'bio', 'Organism'],
   [/\b(virus|viral|lenti\w*|aav\w*|adeno\w*|retro\w*|phage|pseudovirus|vlps?)\b/i, 'bio', 'Virus or vector'],
-  [/\b(serum|plasma|blood|csf|urine|saliva|sputum|stool|lavage)\b/i, 'bio', 'Blood or body fluid'],
+  [/\b(serum|plasma|blood|csf|urine|saliva|sputum|stool|lavage)\b/i, 'bio', 'Body fluid'],
   [/\b(tissue|biopsy|biopsies|tumou?rs?|sections?|ffpe|explants?|resection)\b/i, 'bio', 'Tissue'],
   [/\b(lysates?|extracts?)\b/i, 'bio', 'Protein sample'],
   [/\b(rna|cdna|gdna|dna)\b/i, 'bio', 'Nucleic acid sample'],
   [/\b(beads?)\b/i, 'ab', 'Beads'],
-  [/\b(dyes?|stains?|tracker|probe dye)\b/i, 'ab', 'Stain or dye'],
+  [/\b(dyes?|stains?|tracker|probe dye)\b/i, 'ab', 'Dye'],
   [/\b(antibody|antibodies|mab|igg|polyclonal|monoclonal|isotype)\b/i, 'ab', 'Antibody'],
   [/\b(extract|peptone|tryptone|powder|salt|acid)\b/i, 'chem', 'Chemical'],
   [/\b(software|app|package|pipeline|script|template)\b/i, 'soft', 'Software'],
@@ -1207,7 +1224,7 @@ const GUESS_KEYWORDS = [
   [/\b(pipettes?|reservoirs?|syringes?|needles?|gloves|cuvettes?|scrapers?|consumables?)\b/i, 'supplies', 'Other'],
 ];
 
-const GUESS_DECISIVE_KEYWORD_TYPES = new Set(['Oligo or primer', 'Probe', 'siRNA or guide RNA', 'Plasmid', 'Master mix', 'Ladder or marker', 'Standard or calibrator', 'Commercial kit']);
+const GUESS_DECISIVE_KEYWORD_TYPES = new Set(['Oligo', 'Probe', 'siRNA or guide RNA', 'Plasmid', 'Master mix', 'Ladder', 'Standard', 'Kit']);
 const GUESS_STOP = new Set(['anti', 'antibody', 'antibodies', 'ab', 'mab', 'monoclonal', 'polyclonal', 'purified', 'unconjugated', 'conjugated', 'clone', 'human', 'mouse', 'rat', 'rabbit', 'goat', 'donkey', 'hamster', 'armenian', 'chicken', 'sheep', 'rhesus', 'primate', 'hu', 'ms', 'leaf', 'totalseq', 'ultraleaf', 'functional', 'grade', 'invivomab', 'biotin', 'biotinylated', 'hrp', 'isotype', 'control', 'ctrl', 'recombinant', 'rea', 'for', 'flow', 'ihc', 'wb', 'if', 'facs', 'cytometry', 'and', 'with', 'the', 'of', 'in', 'to', 'per', 'test', 'capture', 'detection', 'primary', 'secondary', 'reactive', 'reactivity', 'host', 'igg', 'igg1', 'igg2a', 'igg2b', 'igg2c', 'igg3', 'igm', 'kappa', 'k', 'lambda', 'totalseq', 'cite', 'seq', 'staining', 'stain', 'surface', 'intracellular', 'nuclear']);
 
 const SPECIES_WORDS = [[/\b(anti-?|α-?)?(human|hu|h)\b/i, 'Human'], [/\b(anti-?|α-?)?(mouse|murine|ms)\b/i, 'Mouse'], [/\b(anti-?|α-?)?(rat)\b/i, 'Rat'], [/\b(non-human primate|nhp|rhesus|cynomolgus|monkey)\b/i, 'Non-human primate']];
@@ -1272,7 +1289,7 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
   }
   const dna = text.match(DNA_RE);
   if (dna && /[ACGTU]{10,}/i.test(dna[1].replace(/[\s\-]/g, '')) && (dna[1].replace(/[^ACGTU]/gi, '').length / dna[1].replace(/[\s\-/*[\]]/g, '').length) > 0.85) {
-    return done('mol', 'Oligo or primer', 'reads as a DNA sequence', { source: 'pattern', values: { sequence: dna[1].replace(/\s+/g, '').toUpperCase() } });
+    return done('mol', 'Oligo', 'reads as a DNA sequence', { source: 'pattern', values: { sequence: dna[1].replace(/\s+/g, '').toUpperCase() } });
   }
 
   const shape = supplyShape(text);
@@ -1302,11 +1319,11 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
 
   const keyword = GUESS_KEYWORDS.find(([re]) => re.test(nameText));
   const keywordWord = keyword ? (nameText.match(keyword[0]) ?? [''])[0].trim() : '';
-  const recombinant = () => done('chem', 'Recombinant protein or cytokine', `${target.text} is a cytokine or growth factor`, { amount, values: {
+  const recombinant = () => done('chem', 'Recombinant protein', `${target.text} is a cytokine or growth factor`, { amount, values: {
     species: pickFirst(nameText.replace(/\b(anti|α)-?\s*\w+/gi, ''), SPECIES_WORDS) ?? (/^r?h(?=IL|IFN|TNF|GM|M-|G-|TGF|FLT|SCF|EGF|FGF|VEGF|BMP|TPO|EPO)/i.test(nameText) ? 'Human' : /^r?m(?=IL|IFN|TNF|GM|M-|G-|TGF|FLT|SCF|EGF|FGF|VEGF|BMP|TPO|EPO)/i.test(nameText) ? 'Mouse' : undefined),
   } });
 
-  if (explicitKit) return done('kits', 'Commercial kit', '“kit” in the name', { source: 'pattern', amount });
+  if (explicitKit) return done('kits', 'Kit', '“kit” in the name', { source: 'pattern', amount });
   const plainName = !fluor && !conjugate && !anti;
   if (plainName && keyword && !lexHit && GUESS_DECISIVE_KEYWORD_TYPES.has(keyword[2])) return done(keyword[1], keyword[2], keyword[3] ?? `“${keywordWord}” in the name`, { source: 'pattern', amount });
   if (plainName && target?.hit.cytokine && /\brecombinant\b|^r[hm]/i.test(nameText)) return recombinant();
@@ -1314,8 +1331,9 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
   if (lexHit?.hit.group === 'ab') {
     const extra = { ...lexHit.hit.values };
     if (fluor || conjugate) extra.conjugate = fluor?.name ?? conjugate;
-    if (lexHit.hit.type === 'Viability dye' && fluor?.laser) extra.laser = fluor.laser;
-    return done('ab', lexHit.hit.type, `${lexHit.text}: known ${lexHit.hit.type.toLowerCase()}`, { values: extra, amount });
+    if (lexHit.hit.type === 'Dye' && fluor?.laser) extra.laser = fluor.laser;
+    const known = extra.target === 'Viability' ? 'viability dye' : lexHit.hit.type.toLowerCase();
+    return done('ab', lexHit.hit.type, `${lexHit.text}: known ${known}`, { values: extra, amount });
   }
 
   const isotype = /\bisotype\b/i.test(nameText);
@@ -1326,7 +1344,7 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
     const conj = fluor?.name ?? (/biotin/i.test(nameText) ? 'Biotin' : conjugate && !/leaf/i.test(conjugate) ? conjugate : undefined);
     if (secondary) {
       const isotypePart = secondary[2] ? ` ${secondary[2].replace(/\s+/g, '')}` : '';
-      return done('ab', 'Secondary antibody', `“${secondary[0].trim()}” marks a secondary`, { amount, values: {
+      return done('ab', 'Secondary reagent', `“${secondary[0].trim()}” marks a secondary`, { amount, values: {
         'host-species': host && titleCase(host), 'target-species-and-isotype': `${titleCase(secondary[1])}${isotypePart}`, conjugate: conj,
         'cross-adsorbed': /cross[-\s]?adsorbed|highly cross/i.test(nameText) ? 'Yes' : undefined,
       } });
@@ -1378,7 +1396,7 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
     if (hit.type === 'Supplement') extra['heat-inactivated'] = /heat[-\s]?inactivated|\bhi[-\s]/i.test(text) ? 'Yes' : undefined;
     if (hit.type === 'Coating or matrix') extra.matrix = lexHit.text;
     if (hit.type === 'Mounting medium') extra.dapi = /(with|\+|w\/)\s*dapi/i.test(text) ? 'With' : /without dapi|no dapi/i.test(text) ? 'Without' : undefined;
-    if (hit.type === 'Recombinant protein or cytokine') extra.species = pickFirst(text, SPECIES_WORDS.map(([re, s]) => [re, s]));
+    if (hit.type === 'Recombinant protein') extra.species = pickFirst(text, SPECIES_WORDS.map(([re, s]) => [re, s]));
     if (hit.type === 'Organism' && /(-\/-|fl\/fl|\bcre\b|\bko\b|knock)/i.test(text)) extra.genotype = text.match(/\S*(-\/-|fl\/fl|cre|ko)\S*/i)?.[0];
     if (hit.type === 'Organism' && hit.values.species === 'Mouse' && !/^(mice|mouse|mus musculus)$/i.test(lexHit.text)) extra.strain = lexHit.text;
     if (hit.type === 'Microbial strain') {
@@ -1387,9 +1405,9 @@ function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
       extra.strain = microbes.find(m => m !== extra.species);
     }
     if (hit.type === 'Virus or vector') extra['serotype-or-pseudotype'] = (text.match(/\bAAV[-\s]?(\d+|DJ|PHP\.\w+)\b/i) ?? text.match(/\bVSV-?G\b/i) ?? [])[0];
-    if (hit.type === 'Blood or body fluid') extra.anticoagulant = pickFirst(lowerRaw, [[/\bedta\b/, 'EDTA'], [/heparin/, 'Heparin'], [/citrate|acd/, 'Citrate']]);
+    if (hit.type === 'Body fluid') extra.anticoagulant = pickFirst(lowerRaw, [[/\bedta\b/, 'EDTA'], [/heparin/, 'Heparin'], [/citrate|acd/, 'Citrate']]);
     if (hit.type === 'Tissue') extra.preservation = pickFirst(lowerRaw, [[/ffpe|paraffin/, 'FFPE'], [/frozen|oct|snap/, 'Frozen'], [/fresh/, 'Fresh']]);
-    if (hit.type === 'Antibiotic or selection agent' || hit.type === 'Drug or inhibitor' || hit.type === 'Recombinant protein or cytokine') extra.values = undefined;
+    if (hit.type === 'Antibiotic or selection agent' || hit.type === 'Drug or inhibitor' || hit.type === 'Recombinant protein') extra.values = undefined;
     if (amount && (hit.type === 'Chemical' || hit.type === 'Solvent' && amount.unit !== '%')) {
       return done('media', 'Stock solution', `${lexHit.text} with a concentration`, { amount, values: { solvent: undefined } });
     }
@@ -1551,9 +1569,9 @@ function exampleElisa() {
       materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
         captureAb,
         material('ab', 'Antibody', 'Detection Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', conjugate: 'Biotin', amount: ['200', '1:N'] }),
-        material('ab', 'Streptavidin or detection conjugate', 'Streptavidin-HRP', { storage: '4 °C', vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
-        material('chem', 'Standard or calibrator', 'IL-6 standard', { storage: '−80 °C', vendor: 'BioLegend' }),
-        material('chem', 'Substrate or detection reagent', 'TMB substrate', { storage: '4 °C', vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
+        material('ab', 'Secondary reagent', 'Streptavidin-HRP', { storage: '4 °C', vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
+        material('chem', 'Standard', 'IL-6 standard', { storage: '−80 °C', vendor: 'BioLegend' }),
+        material('chem', 'Detection reagent', 'TMB substrate', { storage: '4 °C', vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
         material('media', 'Buffer', 'Coating buffer', { storage: 'RT', recipe: 'carbonate-bicarbonate', ph: '9.5' }),
         material('media', 'Buffer', 'Wash buffer', { storage: 'RT', recipe: 'PBS + 0.05% Tween-20' }),
         material('media', 'Buffer', 'Blocking buffer', { storage: '4 °C', recipe: '1% BSA in PBS' }),
@@ -1626,7 +1644,7 @@ function exampleCells() {
         material('media', 'Buffer', 'PBS', { storage: 'RT', strength: '1×', 'calcium-and-magnesium': 'Without' }),
         material('chem', 'Enzyme', 'Trypsin-EDTA', { storage: '−20 °C', notes: '0.25%' }),
         material('chem', 'Drug or inhibitor', 'Compound X', { storage: '−20 °C', 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' }),
-        material('kits', 'Commercial kit', 'CellTiter-Glo', { storage: '−20 °C', vendor: 'Promega' }),
+        material('kits', 'Kit', 'CellTiter-Glo', { storage: '−20 °C', vendor: 'Promega' }),
         material('supplies', 'Plate', 'Assay plate', { storage: 'Shelf', vendor: 'Corning', format: '96-well', surface: 'TC-treated', color: 'White' }),
         material('equip', 'Instrument', 'Centrifuge', { settings: '300 × g, 5 min, RT' }),
         material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
@@ -1657,12 +1675,33 @@ function loadState() {
 }
 let state = loadState() ?? exampleElisa();
 state.lotMemory ??= {};
-state.guessMemory ??= {};
 state.keptBoth ??= [];
+
+const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory-v1';
+const labMemory = (() => { try { return JSON.parse(localStorage.getItem(LAB_MEMORY_KEY)); } catch { return null; } })() ?? {};
+labMemory.kinds ??= {};
+labMemory.materials ??= {};
+labMemory.fields ??= {};
+
+function learnFromBoard() {
+  for (const blk of state.blocks) if (blk.type === 'materials') for (const item of blk.items) {
+    if (!item.name.trim() || item.dropped || item.group === 'unsorted') continue;
+    labMemory.materials[normKey(item.name)] = { group: item.group, type: item.type, values: { ...item.values }, units: { ...item.units }, custom: item.custom.map(c => ({ ...c })), on: [...item.on] };
+    const known = labMemory.fields[`${item.group}|${item.type}`] ??= [];
+    for (const c of item.custom) if (item.on.includes(c.key) && !known.some(k => k.key === c.key)) known.push({ ...c });
+  }
+}
+
 let saveTimer;
 function save() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {} }, 250);
+  saveTimer = setTimeout(() => {
+    learnFromBoard();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(LAB_MEMORY_KEY, JSON.stringify(labMemory));
+    } catch {}
+  }, 250);
 }
 
 const byId = id => state.blocks.find(b => b.id === id);
@@ -2013,6 +2052,8 @@ const isPicking = () => document.body.classList.contains('picking');
 const materialPastes = new Map();
 const freshMaterials = new Map();
 const pendingDuplicates = new Map();
+const removedMaterials = new Map();
+const isPastDate = value => !!String(value ?? '').trim() && String(value) < TODAY_ISO;
 const chosenKinds = new Map();
 const materialViews = new Map();
 const PULL_SKIP_GROUPS = new Set(['equip', 'soft']);
@@ -2023,10 +2064,11 @@ const AMOUNT_FIELDS = ['amount', 'dilution', 'working-concentration', 'concentra
 
 function rememberedKinds() {
   const known = new Map();
+  for (const [key, m] of Object.entries(labMemory.materials)) known.set(key, { group: m.group, type: m.type, why: 'from your earlier protocols' });
   for (const blk of state.blocks) if (blk.type === 'materials') {
     for (const i of blk.items) if (i.name.trim() && i.group !== 'unsorted') known.set(normKey(i.name), { group: i.group, type: i.type, why: 'already in this protocol' });
   }
-  for (const [key, kind] of Object.entries(state.guessMemory)) known.set(key, kind);
+  for (const [key, kind] of Object.entries(labMemory.kinds)) known.set(key, kind);
   return known;
 }
 
@@ -2057,8 +2099,21 @@ function materialFromGuess(b, guess) {
     if (!item.on.includes(key)) item.on.push(key);
   }
   if (guess.amount) placeAmount(item, fields, guess.amount);
+  recallMaterial(b, item);
   showMadeHereFields(item);
   return item;
+}
+
+function recallMaterial(b, item) {
+  const recalled = labMemory.materials[normKey(item.name)];
+  if (!recalled || recalled.group !== item.group || recalled.type !== item.type) return;
+  for (const c of recalled.custom) if (!materialFields(b, item).some(f => f.key === c.key)) item.custom.push({ ...c });
+  for (const [key, value] of Object.entries(recalled.values)) {
+    if (String(item.values[key] ?? '').trim() || !String(value ?? '').trim()) continue;
+    item.values[key] = value;
+    if (recalled.units[key]) item.units[key] = recalled.units[key];
+  }
+  item.on = [...new Set([...item.on, ...recalled.on])];
 }
 
 const FIELD_SUGGESTION_LISTS = { vendor: GUESS_VENDOR_NAMES, manufacturer: GUESS_VENDOR_NAMES, conjugate: GUESS_CONJUGATE_NAMES };
@@ -2150,7 +2205,7 @@ function fillDown(b, td) {
   refresh();
 }
 
-const rememberKind = (name, group, type) => { if (name.trim()) state.guessMemory[normKey(name)] = { group, type }; };
+const rememberKind = (name, group, type) => { if (name.trim()) labMemory.kinds[normKey(name)] = { group, type }; };
 
 function applyKind(b, item, group, type) {
   Object.assign(item, { group, type });
@@ -2243,6 +2298,11 @@ function usageText({ steps, formulas }) {
   return parts.length ? esc(parts.join(' · ')) : '<span class="munused">Not used</span>';
 }
 
+function droppedUsageText(usage) {
+  const used = usageText(usage);
+  return usage.steps.length || usage.formulas ? `<span class="mstill">Still in ${used.charAt(0).toLowerCase()}${used.slice(1)}</span>` : '';
+}
+
 function conjugateClashes(items) {
   const sharing = new Map();
   for (const item of items) {
@@ -2269,10 +2329,22 @@ function storageRank(label) {
   return 100;
 }
 
+function droppedBox(b) {
+  const dropped = b.items.filter(i => i.dropped);
+  const removed = removedMaterials.get(b.id);
+  const ghostHere = removed?.item.dropped;
+  if (!dropped.length && !ghostHere) return '';
+  const open = b.droppedOpen;
+  const rows = dropped.map(item => `<tr class="mrow mdrop" data-item="${item.id}"><td class="mname">${esc(item.name)}</td><td class="mtype">${esc(item.group === 'unsorted' ? 'Unsorted' : item.type)}</td><td class="mused"></td><td class="mrm"><button class="ghost-quiet" data-act="restore-drop">Restore</button><button class="ghost-danger" data-act="del">Remove</button></td></tr>`);
+  if (ghostHere) rows.splice(Math.min(removed.groupIndex, rows.length), 0, `<tr class="mrow mghost"><td colspan="4">Removed ${esc(removed.item.name || 'a material')}<button class="lnk" data-act="restore">Undo</button></td></tr>`);
+  const body = open ? `<div class="msec-body"><div class="mtable-wrap"><table class="mtab"><tbody>${rows.join('')}</tbody></table></div></div>` : '';
+  return `<section class="msec mdropped${open ? '' : ' folded'}" data-group="dropped"><div class="msec-head" data-act="fold-dropped"><span class="arrow">${open ? '▾' : '▸'}</span><span class="msec-title">Dropped</span><span class="msec-count">${dropped.length}</span><span class="msec-line"></span></div>${body}</section>`;
+}
+
 function pullList(b) {
   const pulled = state.run.pulled ?? {};
   const places = new Map();
-  for (const item of b.items.filter(i => i.name.trim() && !PULL_SKIP_GROUPS.has(i.group))) {
+  for (const item of b.items.filter(i => i.name.trim() && !i.dropped && !PULL_SKIP_GROUPS.has(i.group))) {
     const label = String(item.values.storage ?? '').trim();
     const key = label.toLowerCase();
     if (!places.has(key)) places.set(key, { label: label || 'Storage not set', rank: storageRank(label), items: [] });
@@ -2282,7 +2354,8 @@ function pullList(b) {
     const done = place.items.filter(i => pulled[i.id]).length;
     const rows = place.items.map(item => {
       const lot = String(effectiveValue({ id: `${item.id}:lot`, value: '', perRun: true })).trim();
-      return `<div class="prow${pulled[item.id] ? ' done' : ''}" data-act="pull" data-item="${item.id}"><span class="chk">${pulled[item.id] ? '✓' : ''}</span><span class="pname">${esc(item.name)}</span>${lot ? `<span class="pmeta">lot ${esc(lot)}</span>` : ''}</div>`;
+      const expired = isPastDate(effectiveValue({ id: `${item.id}:expires`, value: item.values.expires ?? '', perRun: true }));
+      return `<div class="prow${pulled[item.id] ? ' done' : ''}" data-act="pull" data-item="${item.id}"><span class="chk">${pulled[item.id] ? '✓' : ''}</span><span class="pname">${esc(item.name)}</span>${expired ? '<span class="pexpired">Expired</span>' : ''}${lot ? `<span class="pmeta">lot ${esc(lot)}</span>` : ''}</div>`;
     }).join('');
     return `<section class="msec"><div class="msec-head plain"><span class="msec-title">${esc(place.label)}</span><span class="msec-count">${done}/${place.items.length}</span><span class="msec-line"></span></div><div class="plist">${rows}</div></section>`;
   }).join('');
@@ -2306,7 +2379,7 @@ function guessLine(b, text) {
   const filled = materialFields(b, item).filter(f => item.on.includes(f.key) && String(item.values[f.key] ?? '').trim());
   const renamed = guess.name !== text.trim() ? `<span class="mg-f">name <b>${esc(guess.name)}</b></span>` : '';
   const duplicate = findDuplicate(b, item);
-  const listed = duplicate ? `<span class="mg-dupe">${esc(duplicate.name)} is already listed</span>` : '';
+  const listed = duplicate?.dropped ? `<span class="mg-dupe">${esc(duplicate.name)} was dropped. Enter brings it back</span>` : duplicate ? `<span class="mg-dupe">${esc(duplicate.name)} is already listed</span>` : '';
   return `${listed}<span class="mg-where${guess.group === 'unsorted' ? ' none' : ''}">${kindSelect(b, guess.group, guess.type, 'mg-kind')}</span>${renamed}${filled.map(f => `<span class="mg-f">${esc(f.label.toLowerCase())} <b>${esc(materialText(item, f))}</b></span>`).join('')}<span class="mg-why">${esc(guess.why)}</span><span class="mg-key">Enter to add</span>`;
 }
 
@@ -2331,7 +2404,7 @@ function materialControl(item, f) {
   const run = isRun();
   const perRun = f.scope !== 'protocol';
   const value = run ? effectiveValue({ id: `${item.id}:${f.key}`, value: item.values[f.key] ?? '', perRun }) : item.values[f.key] ?? '';
-  const cls = `in mfield${f.kind === 'number' ? ' mono' : ''}`;
+  const cls = `in mfield${f.kind === 'number' ? ' mono' : ''}${f.warnPast && isPastDate(value) ? ' expired' : ''}`;
   const control = f.kind === 'choice'
     ? `<select class="${cls}" data-key="${f.key}">${['', ...f.options].map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
     : `<input class="${cls}" data-key="${f.key}"${f.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" spellcheck="false" />`;
@@ -2373,17 +2446,21 @@ function materialSection(b, items, groupKey) {
       const f = fields.find(x => x.key === c.key) ?? c;
       const shown = item.on.includes(f.key);
       const editable = !run || (f.scope === 'protocol' && shown);
-      const flag = f.key === 'conjugate' && clashing.has(item.id) ? 'clash ' : '';
+      const flag = f.key === 'conjugate' && clashing.has(item.id) ? 'clash ' : f.warnPast && shown && isPastDate(materialText(item, f)) ? 'expired ' : '';
       return cell(item, f.key, editable, () => (shown ? materialCell(item, f) : ''), () => materialControl(item, f), flag);
     }).join('');
     const used = run ? '' : '<td class="mused"></td>';
-    const remove = run ? '' : '<td class="mrm"><button class="ghost-danger" data-act="del">Remove</button></td>';
+    const remove = run ? '' : '<td class="mrm"><button class="ghost-quiet" data-act="drop">Drop</button><button class="ghost-danger" data-act="del">Remove</button></td>';
     return `<tr class="mrow${i % 2 ? ' alt' : ''}${fresh?.has(item.id) ? ' fresh' : ''}" data-item="${item.id}" data-pick="${esc(item.name)}">${name}${kind}${values}${used}${remove}</tr>`;
-  }).join('');
+  });
+  const removed = removedMaterials.get(b.id);
+  if (!run && removed?.item.group === groupKey && !removed.item.dropped) {
+    rows.splice(Math.min(removed.groupIndex, rows.length), 0, `<tr class="mrow mghost"><td colspan="${columns.length + 4}">Removed ${esc(removed.item.name || 'a material')}<button class="lnk" data-act="restore">Undo</button></td></tr>`);
+  }
   const hideButton = c => (run ? '' : `<button class="mcol-x" data-act="hide-col" data-key="${esc(c.key)}" title="Hide this column">×</button>`);
   const menuOpen = !run && fieldMenus.get(b.id)?.group === groupKey;
   const moreHead = run ? '' : `<th class="mmore"><button class="lnk mmore-btn${menuOpen ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
-  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${run ? '' : '<th>Used in</th>'}${moreHead}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${run ? '' : '<th>Used in</th>'}${moreHead}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
   return `${clashes.map(clashNote).join('')}<div class="mtab-anchor">${menuOpen ? fieldMenu(b, items, columns) : ''}${table}</div>`;
 }
 
@@ -2393,6 +2470,9 @@ function fieldMenu(b, items, columns) {
     const seen = counts.get(f.key) ?? { f, n: 0, core: materialGroup(b, item.group).core.includes(f) };
     seen.n += 1;
     counts.set(f.key, seen);
+  }
+  for (const item of items) for (const f of labMemory.fields[`${item.group}|${item.type}`] ?? []) {
+    if (!counts.has(f.key)) counts.set(f.key, { f, n: 0, core: false });
   }
   const shown = new Set(columns.map(c => c.key));
   const rows = [...counts.values()].sort((x, y) => x.core - y.core || y.n - x.n).map(({ f }) => `<button class="fm-row${shown.has(f.key) ? ' on' : ''}" data-act="field-toggle" data-key="${esc(f.key)}" data-label="${esc(f.label.toLowerCase())}"><span class="chk">${shown.has(f.key) ? '✓' : ''}</span>${esc(f.label)}</button>`).join('');
@@ -2494,11 +2574,12 @@ const TYPES = {
         body.innerHTML = viewSwitch + pullList(b);
         return;
       }
-      const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key) })).filter(s => s.items.length).sort((x, y) => (y.g.key === 'unsorted') - (x.g.key === 'unsorted'));
+      const removed = removedMaterials.get(b.id);
+      const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key && !i.dropped) })).filter(s => s.items.length || (removed?.item.group === s.g.key && !removed.item.dropped)).sort((x, y) => (y.g.key === 'unsorted') - (x.g.key === 'unsorted'));
       body.innerHTML = (run ? viewSwitch : adder) + (sections.length ? sections.map(({ g, items }) => {
         const folded = b.folded.includes(g.key);
         return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items, g.key)}</div>`}</section>`;
-      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>');
+      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>') + (run ? '' : droppedBox(b));
       freshMaterials.delete(b.id);
     },
     update(b, body) {
@@ -2507,7 +2588,7 @@ const TYPES = {
       body.querySelectorAll('tr.mrow[data-item]').forEach(el => {
         const item = b.items.find(i => i.id === el.dataset.item);
         if (!item) return;
-        if (usage) el.querySelector('.mused').innerHTML = usageText(usage.get(item.id));
+        if (usage) el.querySelector('.mused').innerHTML = item.dropped ? droppedUsageText(usage.get(item.id)) : usageText(usage.get(item.id));
         el.querySelector('.lname')?.classList.toggle('bad', calc.dupes.has(item.id));
         if (!run) return;
         const fields = materialFields(b, item);
@@ -2635,9 +2716,33 @@ const TYPES = {
       } else if (act === 'fold-group') {
         const group = e.target.closest('[data-group]').dataset.group;
         b.folded = b.folded.includes(group) ? b.folded.filter(g => g !== group) : [...b.folded, group];
-      } else if (act === 'del' && item && confirm(`Remove ${item.name || 'this material'}?`)) {
+      } else if (act === 'drop' && item) {
+        item.dropped = true;
+        editingCells.delete(b.id);
+      } else if (act === 'restore-drop' && item) {
+        item.dropped = false;
+        freshMaterials.set(b.id, new Set([item.id]));
+      } else if (act === 'fold-dropped') {
+        b.droppedOpen = !b.droppedOpen;
+      } else if (act === 'del' && item) {
+        clearTimeout(removedMaterials.get(b.id)?.timer);
+        const groupIndex = item.dropped ? b.items.filter(i => i.dropped).indexOf(item) : b.items.filter(i => i.group === item.group && !i.dropped).indexOf(item);
+        const timer = setTimeout(() => {
+          removedMaterials.delete(b.id);
+          const ghost = bodyOf(b)?.querySelector('.mghost');
+          const section = ghost?.closest('.msec');
+          ghost?.remove();
+          if (section && !section.querySelector('tr[data-item]')) section.remove();
+        }, 8000);
+        removedMaterials.set(b.id, { item, index: b.items.indexOf(item), groupIndex, timer });
         b.items = b.items.filter(i => i !== item);
         editingCells.delete(b.id);
+      } else if (act === 'restore') {
+        const removed = removedMaterials.get(b.id);
+        if (!removed) return;
+        clearTimeout(removed.timer);
+        removedMaterials.delete(b.id);
+        b.items.splice(Math.min(removed.index, b.items.length), 0, removed.item);
       } else if (act === 'field-menu') {
         const group = e.target.closest('[data-group]').dataset.group;
         if (fieldMenus.get(b.id)?.group === group) fieldMenus.delete(b.id);
@@ -2653,7 +2758,12 @@ const TYPES = {
           sectionItems.forEach(i => { if (!i.on.includes(f.key)) i.on.push(f.key); });
           menu.query = '';
         } else if (act === 'field-toggle' && !sectionItems.some(i => i.on.includes(key))) {
-          sectionItems.filter(i => materialFields(b, i).some(f => f.key === key)).forEach(i => i.on.push(key));
+          const learned = sectionItems.flatMap(i => labMemory.fields[`${i.group}|${i.type}`] ?? []).find(f => f.key === key);
+          sectionItems.forEach(i => {
+            const hasField = materialFields(b, i).some(f => f.key === key);
+            if (!hasField && learned) i.custom.push({ ...learned });
+            if (hasField || learned) i.on.push(key);
+          });
         } else {
           sectionItems.forEach(i => { i.on = i.on.filter(k => k !== key); });
         }
@@ -2737,6 +2847,16 @@ const TYPES = {
       e.preventDefault();
       const row = reviewRow(b, materialFromGuess(b, typedGuess(b, el.value)), '');
       if (chosenKinds.has(b.id)) rememberKind(row.item.name, row.item.group, row.item.type);
+      if (row.duplicate?.dropped) {
+        row.duplicate.dropped = false;
+        freshMaterials.set(b.id, new Set([row.duplicate.id]));
+        chosenKinds.delete(b.id);
+        renderBlock(b);
+        bodyOf(b).querySelector('.madd-name')?.focus();
+        save();
+        refresh();
+        return;
+      }
       if (!row.duplicate) {
         commitMaterials(b, [row]);
         return;
@@ -3496,7 +3616,7 @@ function runTally() {
   for (const b of state.blocks) {
     if (b.type === 'values') changed += b.items.filter(it => it.id in overrides).length;
     if (b.type === 'materials') {
-      for (const item of b.items.filter(i => i.name.trim())) {
+      for (const item of b.items.filter(i => i.name.trim() && !i.dropped)) {
         for (const f of materialFields(b, item).filter(x => item.on.includes(x.key))) {
           const key = `${item.id}:${f.key}`;
           if (f.scope !== 'protocol') toFill += String(overrides[key] ?? '').trim() ? 0 : 1;
