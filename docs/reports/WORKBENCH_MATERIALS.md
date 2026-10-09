@@ -7,13 +7,13 @@ suggested, so nobody has to think of them.
 
 ## How it behaves
 
-- **One Materials block, grouped sections.** Adding a material asks for its group and type. Groups
-  with nothing in them do not show.
+- **One Materials block, grouped sections.** A material is added by typing its name; the group and
+  type are guessed (_Adding a material_ below). Groups with nothing in them do not show.
 - **Every physical material has the same core:** name, type, vendor or source, catalog # or
   identifier, lot, expiry, storage, hazard or biosafety, notes. Lot sits up front because it matters
   most for replicating a run. Equipment and software have their own core instead (no lot or expiry).
-- **Each type suggests its own extra fields.** They appear as one-click "+ Clone", "+ Fluorochrome"
-  chips on the row. The scientist turns on what they care about and ignores the rest.
+- **Each type suggests its own extra fields.** They appear in the group's "+ Field" list, so "Clone" or "Fluorochrome" is one click from
+  becoming a column. The scientist turns on what they care about and ignores the rest.
 - **Some fields are recorded on each run** by default: lot, expiry, passage, count, viability,
   made-on date, titer. A scientist can switch any field between "protocol" and "each run".
 - **Some values belong to the lot, not the run** (marked _lot_ below): an antibody's concentration,
@@ -30,6 +30,57 @@ methods sections (antibodies, bacterial and virus strains, biological samples, c
 commercial assays, cell lines, organisms, oligonucleotides, recombinant DNA, software, deposited
 data), plus the bench groups that table leaves out (media and buffers, supplies, equipment). The Materials block can then export a ready-made Key
 Resources Table. _RRID_ below is the Research Resource Identifier those tables ask for.
+
+## Adding a material
+
+Protocols are built from a paper, what is on the shelf, and a preferred vendor's catalog, and a big
+experiment can have 30 or more materials. Classifying each one by hand is the tedious part, so the
+scientist never has to: type anything, press Enter, and it lands in the right group with what it
+could read already filled in.
+
+- **One line, any material.** `CD4 BV421`, `96-well V-bottom plate`, `DMEM high glucose`,
+  `HeLa`, `10 mM ATP`, `ACGTTGCAAGGTCC`, `FlowJo 10.9`, `GSE12345`. Each becomes a row in its group
+  with the fields it contained (marker and color; wells and bottom; concentration; sequence; version).
+- **The group shows on the row; one click changes it.** A correction is remembered, so the same name
+  is never wrong twice for that scientist or lab.
+- **Nothing recognized goes to Unsorted.** It is still added; the scientist picks a group once if
+  they want the suggested fields.
+- **Paste a list.** A materials list or Key Resources Table copied from a paper runs through the same
+  guessing, shown as a preview to fix before anything is added (same pattern as pasting steps, W88).
+- **Works offline.** The word list ships with the app; nothing is looked up while typing.
+
+### Where guesses come from, in order
+
+1. **The lab's own.** Inventory items, materials in earlier protocols, and past corrections. These
+   win, because they are what this lab actually uses and calls things.
+2. **Reference lists.** Names and synonyms pulled from open databases into one list that ships with
+   the app (sources below). This is what makes a first-time entry guess well.
+3. **Shape rules.** What a word looks like: a DNA sequence is an oligo, "N-well" is a plate, "kit" is
+   a kit, "buffer" or "solution" is a buffer, `GSE`/`SRR`/PDB IDs are datasets, "mouse anti-human"
+   is an antibody, amounts and units ("10 mM", "1:200", "5 µL/test") fill a field.
+
+A model-assisted guess for anything still unsorted is a possible later upgrade, as with pasted steps.
+
+### Reference sources
+
+Licenses checked 2026-10-08. Attribution goes on a credits page. Each list is trimmed to names and
+synonyms only.
+
+| Group                     | Source                                         | License                                        | Status     |
+| ------------------------- | ---------------------------------------------- | ---------------------------------------------- | ---------- |
+| Biological material       | Cellosaurus (cell lines)                       | CC BY 4.0                                      | Confirmed  |
+| Biological material       | NCBI Taxonomy (species, strains)               | US government, public                          | To confirm |
+| Biological material       | MGI / IMSR (mouse strains), ICTV (viruses)     | Not checked                                    | To check   |
+| Antibodies and stains     | FPbase (fluorochromes, fluorescent proteins)   | Free of copyright; credit the data authors     | Confirmed  |
+| Antibodies and stains     | HGNC gene symbols, HCDM CD marker list         | HGNC believed CC0; HCDM not checked            | To confirm |
+| Antibodies and stains     | Antibody Registry (RRIDs)                      | Conflicting: CC0 or CC BY                      | To confirm |
+| Chemicals and proteins    | ChEBI (chemicals)                              | CC BY 4.0                                      | Confirmed  |
+| Chemicals and proteins    | UniProt (proteins, cytokines)                  | Believed CC BY 4.0                             | To confirm |
+| Chemicals and proteins    | Guide to Pharmacology (drugs, inhibitors)      | Possibly CC BY-SA 4.0; share-alike may not fit | To confirm |
+| Chemicals and proteins    | PubChem                                        | Varies by contributing source                  | Avoid      |
+| Molecular biology         | HGNC (target genes); sequence shape rule       | As above                                       | To confirm |
+| Equipment, software, data | SciCrunch Registry (RRID `SCR_`)               | Not stated                                     | To check   |
+| Media, kits, supplies     | No open source; a hand-curated list of staples | Ours                                           | To write   |
 
 ## Default groups
 
@@ -68,17 +119,17 @@ each run; _(lot)_ marks a value remembered by lot number.
 
 ### 2. Antibodies and stains
 
-| Type                                      | Suggested fields                                                                                                                                                                                                                                               |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Antibody                                  | target, clone, host species, reactivity, isotype, format (purified, conjugated, biotinylated), fluorochrome or conjugate, laser (detector depends on the instrument), concentration (lot), amount (µL per test, dilution, or concentration), application, RRID |
-| Secondary antibody                        | host species, target species and isotype, conjugate, cross-adsorbed, dilution                                                                                                                                                                                  |
-| Streptavidin or other detection conjugate | conjugate (HRP, PE, fluorophore), dilution                                                                                                                                                                                                                     |
-| Isotype control                           | isotype, host species, fluorochrome, concentration, matched antibody                                                                                                                                                                                           |
-| Viability dye                             | fluorochrome, laser and channel, fixable, dilution                                                                                                                                                                                                             |
-| Stain or dye                              | target (DNA, membrane, mitochondria, other), excitation and emission, concentration                                                                                                                                                                            |
-| Tetramer or multimer                      | specificity (peptide and MHC allele), fluorochrome, dilution                                                                                                                                                                                                   |
-| Fc block                                  | species, amount                                                                                                                                                                                                                                                |
-| Beads                                     | purpose (compensation, counting, calibration, stimulation), beads per µL (lot)                                                                                                                                                                                 |
+| Type                                      | Suggested fields                                                                                                                                                                                                                               |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Antibody                                  | target, clone, host species, reactivity, isotype, format (purified, conjugated, biotinylated), conjugate, laser (detector depends on the instrument), concentration (lot), amount (µL per test, dilution, or concentration), application, RRID |
+| Secondary antibody                        | host species, target species and isotype, conjugate, cross-adsorbed, dilution                                                                                                                                                                  |
+| Streptavidin or other detection conjugate | conjugate (HRP, PE, fluorophore), dilution                                                                                                                                                                                                     |
+| Isotype control                           | isotype, host species, conjugate, concentration, matched antibody                                                                                                                                                                              |
+| Viability dye                             | laser and channel, fixable, dilution                                                                                                                                                                                                           |
+| Stain or dye                              | target (DNA, membrane, mitochondria, other), excitation and emission, concentration                                                                                                                                                            |
+| Tetramer or multimer                      | specificity (peptide and MHC allele), conjugate, dilution                                                                                                                                                                                      |
+| Fc block                                  | species, amount                                                                                                                                                                                                                                |
+| Beads                                     | purpose (compensation, counting, calibration, stimulation), beads per µL (lot)                                                                                                                                                                 |
 
 ### 3. Chemicals and proteins
 
@@ -98,15 +149,15 @@ each run; _(lot)_ marks a value remembered by lot number.
 
 ### 4. Media, buffers, solutions
 
-| Type                                | Suggested fields                                                                                            |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Commercial medium                   | base medium, glucose, glutamine, phenol red                                                                 |
-| Prepared buffer or solution         | recipe (components and amounts), pH, volume made, made on (run), made by, sterile-filtered, expires         |
-| Supplement                          | final concentration, heat-inactivated, lot (critical for serum)                                             |
-| Stock solution                      | concentration, solvent, made on (run), aliquot ID                                                           |
-| Fixation or permeabilization buffer | fixative or detergent, concentration, time                                                                  |
-| Coating or matrix                   | matrix (Matrigel, collagen, poly-L-lysine, fibronectin), protein concentration (lot), coating concentration |
-| Mounting medium                     | with or without DAPI, hardening or not                                                                      |
+| Type              | Suggested fields                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Medium            | base medium, glucose, glutamine, phenol red; if made here: recipe, volume made, made on (run), made by, sterile-filtered |
+| Buffer            | strength, calcium and magnesium, pH; if made here: recipe, volume made, made on (run), made by, sterile-filtered         |
+| Supplement        | final concentration, heat-inactivated, lot (critical for serum)                                                          |
+| Stock solution    | concentration, solvent, made on (run), aliquot ID                                                                        |
+| Fix or perm       | fixative or detergent, concentration, time                                                                               |
+| Coating or matrix | matrix (Matrigel, collagen, poly-L-lysine, fibronectin), protein concentration (lot), coating concentration              |
+| Mounting medium   | with or without DAPI, hardening or not                                                                                   |
 
 ### 5. Kits and assays
 
@@ -160,7 +211,7 @@ Core: name, source, notes.
 
 - **Plate types feed the vessel map.** A plate or flask in Supplies can be what the vessel map lays
   out, so its format is entered once.
-- **Antibody fields feed the flow panel.** Fluorochrome, laser and isotype are exactly what the parked
+- **Antibody fields feed the flow panel.** Conjugate, laser and isotype are exactly what the parked
   flow decisions (W45, W55, W60, W61) need; the flow panel block becomes a view of the antibodies.
 - **Inventory.** For lab members, any material can be picked from the lab's inventory (reagents,
   supplies, equipment suites), filling vendor, catalog and lot.
@@ -168,14 +219,22 @@ Core: name, source, notes.
 ## Decided
 
 - Antibodies are their own group, as journals list them (Evan, 2026-10-07).
+- One "Conjugate" field across the group, holding a fluorochrome, an enzyme or biotin, as vendors
+  list it; no separate fluorochrome field (Evan, 2026-10-08).
+- Any cell can be filled, even for a field the material's type does not suggest; it then gains
+  that field (Evan, 2026-10-08).
+- Media and buffers are typed by what they are (Medium, Buffer), not by where they came from.
+  Bought is the default; a filled-in recipe marks one as made here and adds Made on
+  (Evan, 2026-10-08).
+- Typing aids work like a spreadsheet: a cell offers values used before in that column (plus
+  known vendors, and fluorochromes for Conjugate), and Ctrl+D copies the cell above
+  (Evan, 2026-10-08).
 - The group is "Supplies", not "Consumables", matching the Supplies suite (Evan, 2026-10-07).
+- Layout: one plain-text table per group, edited cell by cell; Tab moves to the next cell. "+ Field" at the end of the header row lists the group's suggested fields, type-specific first. Remove shows on row hover (plan W84, 2026-10-08).
 
 ## Open questions
 
-1. Rows of different types in one group have different fields. Show each group as a table (columns
-   are the union, empty cells left blank) or each material as a compact card with only its fields?
-   Evan wants to see both; the aim is few columns, readable and clear.
-2. Other sciences (chemistry, materials, plant biology) are covered by custom groups and types for
+1. Other sciences (chemistry, materials, plant biology) are covered by custom groups and types for
    now. Add defaults for them only when someone needs them.
 
 ## Review notes (draft 2)

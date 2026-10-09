@@ -210,8 +210,26 @@
   .blk.folded .blk-body { display: none; }
   .blk.folded .blk-head { border-bottom: 0; height: 100%; }
   #example { background: hsl(var(--card)); }
-  .mtools { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
-  .mtools .madd-name { width: 220px; }
+  .madd { margin-bottom: 22px; }
+  .madd .madd-name { width: 100%; max-width: 620px; height: 34px; font-size: 14px; padding: 4px 10px; }
+  .mguess { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; max-width: 760px; min-height: 20px; margin-top: 7px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .mg-where { color: hsl(var(--fg)); font-weight: 600; }
+  .mg-where.none { color: hsl(var(--amber)); }
+  .mg-f { white-space: nowrap; }
+  .mg-f b { font-weight: 400; color: hsl(var(--fg)); }
+  .mg-why { font-style: italic; }
+  .mg-key { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: hsl(var(--foreground) / .4); }
+  .mkind { width: auto; max-width: 280px; height: 26px; font-size: 13px; }
+  .mpaste { margin-top: 14px; max-width: 900px; }
+  .mpaste-head { font-size: 13px; color: hsl(var(--muted-foreground)); margin-bottom: 6px; }
+  .mpaste-tab { width: 100%; border-collapse: collapse; }
+  .mprow td { padding: 5px 12px; font-size: 14px; vertical-align: middle; }
+  .mprow.alt { background: hsl(var(--foreground) / .035); }
+  .mprow .mg-why { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .mp-x { text-align: right; width: 1%; }
+  .mpaste-tools { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .mrow.fresh { animation: mfresh 1.8s ease-out; }
+  @keyframes mfresh { from { background: hsl(var(--primary) / .3); } to { background: transparent; } }
   .msec + .msec { margin-top: 28px; }
   .msec-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; cursor: pointer; user-select: none; }
   .msec-head .arrow { width: 12px; font-size: 11px; color: hsl(var(--muted-foreground)); }
@@ -226,38 +244,40 @@
   .mtab thead tr { background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / .22) 12%, hsl(var(--foreground) / .22) 88%, transparent 100%) bottom / 100% 1px no-repeat, color-mix(in srgb, hsl(var(--card)) 72%, black); }
   .mtab th { text-align: left; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .08em; color: hsl(var(--foreground) / .8); padding: 11px 16px; white-space: nowrap; }
   .mtab th:first-child, .mrow td:first-child { padding-left: 20px; }
-  .mrow { cursor: pointer; }
   .mrow td { padding: 10px 16px; font-size: 14px; line-height: 1.45; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
   .mrow.alt { background: hsl(var(--foreground) / .035); }
   .mrow:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
-  .mrow.open { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .22) 0%, hsl(var(--primary) / .09) 55%, hsl(var(--primary) / .03) 100%) !important; box-shadow: inset 3px 0 0 0 hsl(var(--primary)), inset 14px 0 30px -12px hsl(var(--primary) / .25); font-weight: 600; }
   .mname { font-weight: 600; }
   .mtype { font-size: 13px; color: hsl(var(--muted-foreground)); }
   .mpending { font-size: 12px; font-style: italic; color: hsl(var(--muted-foreground)); }
   .mrow .in { width: 120px; height: 26px; font-size: 13px; }
   .mrow .ramt { display: flex; align-items: center; gap: 3px; }
   .mrow .ramt input.in { width: 70px; text-align: right; }
-  .mrow input[type="date"], .medit input[type="date"] { color-scheme: dark; }
-  .medit-row td { padding: 0; background: hsl(var(--primary) / .05); box-shadow: inset 3px 0 0 hsl(var(--primary)); }
-  .medit { padding: 14px 20px 16px 20px; }
-  .me-head { display: flex; align-items: center; gap: 10px; }
-  .me-name { font-size: 15px; font-weight: 600; }
-  input.me-name { width: 260px; background: transparent; }
-  .me-tools { margin-left: auto; display: flex; gap: 6px; }
-  .mc-type { font-size: 12px; color: hsl(var(--muted-foreground)); white-space: nowrap; }
-  .mc-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px 14px; margin-top: 12px; }
-  .mf { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .mf-l { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; line-height: 1; letter-spacing: .12em; color: hsl(var(--muted-foreground)); white-space: nowrap; }
-  .mf .in { width: 100%; font-size: 13px; padding: 3px 7px; }
-  .mf .ramt { display: flex; align-items: center; gap: 3px; }
-  .mf .ramt input.in { flex: 1; width: auto; min-width: 0; text-align: right; }
-  .mf .ramt select.in { flex: 0 0 auto; width: auto; }
-  .mf-x { margin-left: auto; background: none; border: 0; padding: 0 2px; color: hsl(var(--muted-foreground)); cursor: pointer; opacity: 0; }
-  .mf:hover .mf-x { opacity: 1; }
-  .mf-x:hover { color: hsl(var(--red)); }
-  .scope { font: 11px 'Hanken Grotesk', sans-serif; text-transform: none; letter-spacing: 0; color: hsl(var(--amber)); }
-  .mc-more { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 16px; }
-  .mc-more-l { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; letter-spacing: .12em; color: hsl(var(--muted-foreground)); margin-right: 6px; }
+  .mrow input[type="date"] { color-scheme: dark; }
+  .mcell.editable { cursor: text; }
+  .mcell.editable:hover { box-shadow: inset 0 -1px 0 hsl(var(--primary) / .55); }
+  .mrow td.mcell.editing { padding-top: 4px; padding-bottom: 4px; }
+  .mrow .mcell.editing .in { width: 100%; min-width: 120px; height: 30px; font-size: 14px; }
+  .mrow .mcell.editing .ramt input.in { min-width: 70px; }
+  .mrow .mcell.editing .mkind { max-width: 280px; }
+  .mrm { width: 1%; text-align: right; }
+  .aclist { position: fixed; z-index: 9999; max-height: 192px; overflow-y: auto; padding: 4px 0; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
+  .aclist div { padding: 6px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); }
+  .aclist div.on { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
+  .vpair { width: 56px; }
+  .mrm, .mtab th.mmore { position: sticky; right: 0; background: hsl(var(--card)); }
+  .mrow.alt .mrm { background: color-mix(in srgb, hsl(var(--card)) 96%, hsl(var(--foreground))); }
+  .mtab thead th.mmore { background: color-mix(in srgb, hsl(var(--card)) 72%, black); }
+  .ghost-danger { background: transparent; border: 0; padding: 2px 6px; font: 400 13px/1 'JetBrains Mono', monospace; color: hsl(var(--red)); cursor: pointer; opacity: 0; transition: opacity .12s; }
+  .mrow:hover .ghost-danger, .ghost-danger:focus-visible { opacity: 1; }
+  .ghost-danger:hover { font-weight: 500; color: color-mix(in srgb, hsl(var(--red)) 70%, white); }
+  .mtab th .mcol-x { margin-left: 6px; background: none; border: 0; padding: 0 2px; font-size: 13px; color: hsl(var(--muted-foreground)); cursor: pointer; opacity: 0; }
+  .mtab th:hover .mcol-x { opacity: 1; }
+  .mtab th .mcol-x:hover { color: hsl(var(--red)); }
+  .mtab th.mmore { text-align: right; padding-top: 0; padding-bottom: 0; }
+  .mmore-btn { height: 26px; font-size: 13px; text-transform: none; letter-spacing: 0; }
+  .mfields { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 0 12px 20px; }
+  .mfields-l { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; letter-spacing: .12em; color: hsl(var(--muted-foreground)); margin-right: 6px; }
   .fchip { display: inline-flex; align-items: center; height: 20px; padding: 0 10px 0 0; border: 1px solid hsl(var(--border)); background: hsl(var(--foreground) / .03); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; line-height: 1; letter-spacing: .12em; color: hsl(var(--secondary-foreground)); cursor: pointer; white-space: nowrap; }
   .fchip::before { content: '+'; align-self: stretch; display: flex; align-items: center; padding: 0 7px; margin-right: 8px; border-right: 1px solid hsl(var(--border)); background: hsl(var(--foreground) / .06); font-weight: 500; letter-spacing: .04em; }
   .fchip:hover { color: hsl(var(--fg)); border-color: hsl(var(--primary) / .45); }
@@ -387,6 +407,7 @@ const UNITS = {
   '%': { f: 0.01, d: {} },
   'x': { f: 1, d: {} },
   '1:N': { f: 1, d: {}, ratio: true },
+  'N:N': { f: 1, d: {}, pair: true },
   'nL': { f: 1e-9, d: { vol: 1 } },
   'µL': { f: 1e-6, d: { vol: 1 } },
   'mL': { f: 1e-3, d: { vol: 1 } },
@@ -411,7 +432,7 @@ const UNITS = {
 };
 const VALUE_UNITS = Object.keys(UNITS);
 const FORMULA_UNITS = ['auto', ...VALUE_UNITS.filter(u => u !== '°C')];
-const LITERAL_UNITS = VALUE_UNITS.filter(u => u && u !== '1:N' && u !== 'x').sort((a, b) => b.length - a.length);
+const LITERAL_UNITS = VALUE_UNITS.filter(u => u && u !== '1:N' && u !== 'N:N' && u !== 'x').sort((a, b) => b.length - a.length);
 const AUTO_UNITS = {
   'vol:1': ['L', 'mL', 'µL', 'nL'],
   'mass:1': ['mg', 'µg', 'ng', 'pg'],
@@ -442,6 +463,11 @@ function fmt(x) {
   return String(parseFloat(x.toPrecision(3)));
 }
 
+function parseRatio(text) {
+  const [a, b] = String(text ?? '').split(':').map(parseNumber);
+  return b > 0 ? a / b : NaN;
+}
+
 function parseNumber(text) {
   const m = /^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*([kKM])?\s*$/.exec(String(text ?? ''));
   return m ? parseFloat(m[1]) * ({ k: 1e3, K: 1e3, M: 1e6 }[m[2]] ?? 1) : NaN;
@@ -470,6 +496,7 @@ function formatIn(q, unit) {
   const u = UNITS[unit];
   if (dimKey(u.d) !== dimKey(q.d)) return { error: `Works out to a ${dimWords(q.d)} (${autoText(q)}), not ${unit === '' ? 'a plain number' : unit}` };
   if (u.ratio) return { text: `1:${fmt(1 / q.v)}` };
+  if (u.pair) return { text: q.v >= 1 ? `${fmt(q.v)}:1` : `1:${fmt(1 / q.v)}` };
   if (unit === 'x') return { text: `${fmt(q.v)}×` };
   return { text: unit ? `${fmt(q.v / u.f)} ${unit}` : fmt(q.v) };
 }
@@ -549,14 +576,15 @@ const effectiveValue = it => {
 function displayOf(it, raw) {
   const text = String(raw ?? '').trim();
   if (it.unit === '1:N') return `1:${text}`;
+  if (it.unit === 'N:N') return text.replace(/\s*:\s*/, ':');
   if (it.unit === 'x') return `${text}×`;
   return it.unit ? `${text} ${it.unit}` : text;
 }
 
 function valueQuantity(it) {
-  const n = parseNumber(effectiveValue(it));
-  if (Number.isNaN(n)) return null;
   const u = UNITS[it.unit] ?? UNITS[''];
+  const n = u.pair ? parseRatio(effectiveValue(it)) : parseNumber(effectiveValue(it));
+  if (Number.isNaN(n)) return null;
   if (u.ratio) return n > 0 ? { v: 1 / n, d: {} } : null;
   return { v: n * u.f, d: u.d };
 }
@@ -573,6 +601,7 @@ const LASERS = ['UV 355', 'Violet 405', 'Blue 488', 'Green 532', 'Yellow-green 5
 const CONC = { units: ['mM', 'µM', 'nM', 'mg/mL', 'µg/mL', 'ng/mL', '%', 'x'] };
 const consent = mf('Consent or IRB reference');
 
+const MADE_HERE = [mf('Recipe'), num('Volume made', 'mL'), day('Made on', RUN), mf('Made by', 'text', RUN), pick('Sterile-filtered', YES_NO)];
 const PHYSICAL_CORE = [
   mf('Vendor or source', 'text', { key: 'vendor' }), mf('Catalog #', 'text', { key: 'catalog' }), mf('Lot', 'text', RUN),
   day('Expires', { ...RUN, warnPast: true }), mf('Storage'), mf('Hazard or biosafety', 'text', { key: 'hazard' }), mf('Notes'),
@@ -594,13 +623,13 @@ const MATERIAL_GROUPS = [
     'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL', RUN)],
   } },
   { key: 'ab', label: 'Antibodies and stains', core: PHYSICAL_CORE, types: {
-    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), pick('Format', ['Purified', 'Conjugated', 'Biotinylated']), mf('Fluorochrome or conjugate', 'text', { key: 'fluorochrome' }), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID')],
+    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), pick('Format', ['Purified', 'Conjugated', 'Biotinylated']), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID')],
     'Secondary antibody': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N')],
     'Streptavidin or detection conjugate': [mf('Conjugate'), num('Dilution', '1:N')],
-    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Fluorochrome'), num('Concentration', 'µg/mL'), mf('Matched antibody')],
-    'Viability dye': [mf('Fluorochrome'), pick('Laser', LASERS), pick('Fixable', YES_NO), num('Dilution', '1:N')],
+    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Concentration', 'µg/mL'), mf('Matched antibody')],
+    'Viability dye': [pick('Laser', LASERS), pick('Fixable', YES_NO), num('Dilution', '1:N')],
     'Stain or dye': [mf('Target'), mf('Excitation and emission'), num('Concentration', '*', { defaultUnit: 'µM', ...CONC })],
-    'Tetramer or multimer': [mf('Specificity'), mf('Fluorochrome'), num('Dilution', '1:N')],
+    'Tetramer or multimer': [mf('Specificity'), mf('Conjugate'), num('Dilution', '1:N')],
     'Fc block': [mf('Species'), num('Amount', 'µL')],
     'Beads': [pick('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']), num('Beads per µL', '', LOT)],
   } },
@@ -618,12 +647,11 @@ const MATERIAL_GROUPS = [
     'Solvent': [mf('Grade'), mf('Purity')],
   } },
   { key: 'media', label: 'Media, buffers, solutions', core: PHYSICAL_CORE, types: {
-    'Commercial medium': [mf('Base medium'), mf('Glucose'), mf('Glutamine'), pick('Phenol red', YES_NO)],
-    'Commercial buffer': [mf('Strength'), pick('Calcium and magnesium', ['With', 'Without'])],
-    'Prepared buffer or solution': [mf('Recipe'), num('pH'), num('Volume made', 'mL'), day('Made on', RUN), mf('Made by', 'text', RUN), pick('Sterile-filtered', YES_NO)],
+    'Medium': [mf('Base medium'), mf('Glucose'), mf('Glutamine'), pick('Phenol red', YES_NO), ...MADE_HERE],
+    'Buffer': [mf('Strength'), pick('Calcium and magnesium', ['With', 'Without']), num('pH'), ...MADE_HERE],
     'Supplement': [num('Final concentration', '%'), pick('Heat-inactivated', YES_NO)],
     'Stock solution': [num('Concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Solvent'), day('Made on', RUN), mf('Aliquot ID')],
-    'Fixation or permeabilization buffer': [mf('Fixative or detergent'), mf('Concentration'), mf('Time')],
+    'Fix or perm': [mf('Fixative or detergent'), mf('Concentration'), mf('Time')],
     'Coating or matrix': [mf('Matrix'), num('Protein concentration', 'mg/mL', LOT), num('Coating concentration', 'µg/mL')],
     'Mounting medium': [pick('DAPI', ['With', 'Without']), pick('Hardening', YES_NO)],
   } },
@@ -656,15 +684,20 @@ const MATERIAL_GROUPS = [
     'Software': [mf('Version'), mf('Settings or template file')],
     'Dataset': [mf('Repository'), mf('Accession number'), day('Date deposited')],
   } },
+  { key: 'unsorted', label: 'Unsorted', core: PHYSICAL_CORE, types: {} },
 ];
 const GROUP_DEFAULT_FIELDS = { equip: ['model'], soft: ['source'] };
-const TYPE_DEFAULT_FIELDS = { 'Prepared buffer or solution': ['recipe', 'made-on'], 'Software': ['version'], 'Dataset': ['repository', 'accession-number'] };
+const TYPE_DEFAULT_FIELDS = { 'Software': ['version'], 'Dataset': ['repository', 'accession-number'] };
 
 const materialGroupsOf = b => [...MATERIAL_GROUPS, ...b.customGroups.map(label => ({ key: `custom:${label}`, label, core: PHYSICAL_CORE, types: {} }))];
 const materialGroup = (b, key) => materialGroupsOf(b).find(g => g.key === key) ?? { key, label: key, core: PHYSICAL_CORE, types: {} };
 const materialFields = (b, item) => {
   const group = materialGroup(b, item.group);
   return [...group.core, ...(group.types[item.type] ?? []), ...(item.custom ?? [])];
+};
+const showMadeHereFields = item => {
+  const madeHere = String(item.values.recipe ?? '').trim() && materialFields({ customGroups: [] }, item).some(f => f.key === 'made-on');
+  if (madeHere && !item.on.includes('made-on')) item.on.push('made-on');
 };
 const materialDefaultFields = (group, type) => TYPE_DEFAULT_FIELDS[type] ?? GROUP_DEFAULT_FIELDS[group] ?? ['vendor', 'catalog', 'lot'];
 const newMaterial = (group, type, name) => {
@@ -845,6 +878,530 @@ function itemLabel({ list, item }) {
   return visible.filter(c => c.kind === 'text' && !c.perRun).slice(0, 2).map(c => String(item.cells[c.id] ?? '').trim()).filter(Boolean).join(' ');
 }
 </script>
+<script id="guesser">
+const normKey = s => String(s).toLowerCase().replace(/α/g, 'a').replace(/β/g, 'b').replace(/γ/g, 'g').replace(/δ/g, 'd').replace(/κ/g, 'k').replace(/λ/g, 'l').replace(/ε/g, 'e').replace(/[µμ]/g, 'u').replace(/[^a-z0-9]/g, '');
+
+const GUESS_LEXICON = [
+  ['bio', 'Cell line', { species: 'Human' }, 'HeLa|HEK293|HEK 293|HEK293T|293T|293FT|HEK-Blue|Expi293|Expi293F|Jurkat|Jurkat E6.1|K562|THP-1|U937|A549|MCF-7|MCF 10A|MDA-MB-231|MDA-MB-468|T47D|BT-474|SK-BR-3|HepG2|Huh7|Hep3B|HCT116|HT-29|Caco-2|SW480|SW620|LoVo|DLD-1|SH-SY5Y|PC-3|LNCaP|DU145|22Rv1|U2OS|U-2 OS|Saos-2|HL-60|Raji|Daudi|Ramos|MOLT-4|CCRF-CEM|Kasumi-1|KG-1|MOLM-13|MV4-11|OCI-AML3|NALM6|Nalm-6|RPMI 8226|U266|MM.1S|NK-92|A431|A375|SK-MEL-28|U87|U-87 MG|U251|T98G|NCI-H460|H460|NCI-H1299|H1299|Calu-3|BEAS-2B|HaCaT|IMR-90|WI-38|MRC-5|HAP1|Panc-1|MIA PaCa-2|OVCAR-3|SKOV3|SK-OV-3|RPE-1|hTERT RPE-1|ARPE-19|HT-1080|Karpas 299|SUP-T1|WTC-11|FaDu|Cal-27'],
+  ['bio', 'Cell line', { species: 'Mouse' }, 'NIH/3T3|NIH 3T3|3T3|3T3-L1|RAW 264.7|J774|J774A.1|B16|B16-F10|B16F10|B16-OVA|4T1|CT26|MC38|LLC|Lewis lung carcinoma|EL4|E.G7-OVA|A20|Ba/F3|YAC-1|P815|C2C12|Neuro-2a|N2a|L929|NSC-34|Hepa 1-6|E0771|KPC|TC-1|ID8|BV-2|MC3T3-E1|P19|CTLL-2|DO11.10|WEHI-3|WEHI-164|L1210|P388|Sp2/0|NS0|EMT6|Renca|Pan02|GL261|AT-3|MEF|MEFs'],
+  ['bio', 'Cell line', { species: 'Chinese hamster' }, 'CHO|CHO-K1|CHO-S|ExpiCHO|CHO DG44'],
+  ['bio', 'Cell line', { species: 'African green monkey' }, 'Vero|Vero E6|COS-7|COS-1'],
+  ['bio', 'Cell line', { species: 'Dog' }, 'MDCK'],
+  ['bio', 'Cell line', { species: 'Hamster' }, 'BHK-21'],
+  ['bio', 'Cell line', { species: 'Rat' }, 'PC12|H9c2|INS-1|INS-1E'],
+  ['bio', 'Cell line', { species: 'Insect' }, 'Sf9|Sf21|High Five|S2|Schneider 2'],
+  ['bio', 'Primary cells', {}, 'PBMC|PBMCs|splenocytes|thymocytes|bone marrow cells|BMDM|BMDMs|BMDC|BMDCs|HUVEC|HUVECs|T cells|CD4+ T cells|CD8+ T cells|naive T cells|B cells|NK cells|monocytes|macrophages|dendritic cells|neutrophils|eosinophils|basophils|mast cells|hepatocytes|keratinocytes|fibroblasts|astrocytes|microglia|neurons|cardiomyocytes|iPSC|iPSCs|hESC|hESCs|MSC|MSCs|cord blood|buffy coat|leukapheresis|Tregs|Treg|TILs|lymph node cells|whole splenocytes|HSPC|HSPCs|CD34+ cells'],
+  ['bio', 'Organoid or 3D culture', {}, 'organoid|organoids|spheroid|spheroids|tumoroid|tumoroids|enteroid|enteroids|colonoid'],
+  ['bio', 'Organism', { species: 'Mouse' }, 'C57BL/6|C57BL/6J|C57BL/6N|B6|BALB/c|BALB/cJ|NSG|NOD|NOD/SCID|NOD scid gamma|SCID|nude mice|CD-1|ICR|FVB|FVB/N|DBA/2|C3H|129|OT-I|OT-II|Rag1-/-|Rag2-/-|B6.SJL|CD45.1 mice|mice|Mus musculus'],
+  ['bio', 'Organism', { species: 'Rat' }, 'Sprague-Dawley|Wistar|Long-Evans|Lewis rats|rats|Rattus norvegicus'],
+  ['bio', 'Organism', {}, 'zebrafish|Danio rerio|Drosophila|Drosophila melanogaster|C. elegans|Caenorhabditis elegans|Xenopus|Xenopus laevis|Arabidopsis|Arabidopsis thaliana|N2 worms'],
+  ['bio', 'Microbial strain', {}, 'E. coli|Escherichia coli|DH5α|DH5alpha|DH10B|BL21|BL21(DE3)|Rosetta|Stbl3|TOP10|One Shot TOP10|XL1-Blue|NEB Stable|NEB 5-alpha|S. aureus|Staphylococcus aureus|MRSA|P. aeruginosa|Pseudomonas aeruginosa|PAO1|PA14|Salmonella|S. Typhimurium|Listeria|L. monocytogenes|M. tuberculosis|Mycobacterium tuberculosis|H37Rv|BCG|S. cerevisiae|Saccharomyces cerevisiae|yeast|Candida albicans|B. subtilis|Bacillus subtilis|Lactobacillus|Bacteroides|Klebsiella|Klebsiella pneumoniae|Streptococcus pneumoniae|Agrobacterium|C. difficile|Clostridioides difficile'],
+  ['bio', 'Virus or vector', { 'virus-type': 'Lentivirus' }, 'lentivirus|lentiviral|lentiviral particles|lenti'],
+  ['bio', 'Virus or vector', { 'virus-type': 'AAV' }, 'AAV|AAV1|AAV2|AAV5|AAV6|AAV8|AAV9|AAV-DJ|AAV2/9|AAV-PHP.eB|rAAV'],
+  ['bio', 'Virus or vector', { 'virus-type': 'Adenovirus' }, 'adenovirus|Ad5|adenoviral'],
+  ['bio', 'Virus or vector', { 'virus-type': 'Retrovirus' }, 'retrovirus|retroviral|MSCV retrovirus|gammaretrovirus'],
+  ['bio', 'Virus or vector', {}, 'HIV-1|SIV|influenza|influenza A|PR8|H1N1|SARS-CoV-2|VSV|vaccinia|MVA|HSV-1|HSV-2|CMV|MCMV|LCMV|LCMV Armstrong|LCMV clone 13|Sendai virus|Zika virus|dengue virus|RSV|EBV|baculovirus|bacteriophage|phage|lambda phage|M13 phage'],
+  ['bio', 'Nucleic acid sample', { 'nucleic-acid': 'RNA' }, 'RNA|total RNA|mRNA|cDNA'],
+  ['bio', 'Nucleic acid sample', { 'nucleic-acid': 'DNA' }, 'gDNA|genomic DNA|DNA'],
+  ['bio', 'Protein sample', {}, 'lysate|cell lysate|whole cell lysate|tissue lysate|nuclear extract|cytoplasmic extract|supernatant|culture supernatant|conditioned medium'],
+  ['bio', 'Tissue', {}, 'spleen|lymph node|lymph nodes|thymus|liver|lung|kidney|heart|brain|skin|intestine|colon|small intestine|tumor|tumour|biopsy|tissue|FFPE block|tissue section|tumor tissue|bone marrow'],
+  ['bio', 'Blood or body fluid', { fluid: 'Whole blood' }, 'whole blood|peripheral blood|blood|cord blood sample'],
+  ['bio', 'Blood or body fluid', { fluid: 'Plasma' }, 'plasma|EDTA plasma|heparin plasma|citrate plasma'],
+  ['bio', 'Blood or body fluid', { fluid: 'Serum' }, 'patient serum|serum samples|mouse serum|sera'],
+  ['bio', 'Blood or body fluid', { fluid: 'CSF' }, 'CSF|cerebrospinal fluid'],
+  ['bio', 'Blood or body fluid', { fluid: 'Urine' }, 'urine'],
+  ['bio', 'Blood or body fluid', { fluid: 'Other' }, 'saliva|sputum|stool|BAL fluid|bronchoalveolar lavage|synovial fluid|ascites|milk sample'],
+
+  ['ab', 'Viability dye', { fixable: 'Yes' }, 'Zombie Aqua|Zombie NIR|Zombie Violet|Zombie Green|Zombie Red|Zombie Yellow|Zombie UV|LIVE/DEAD|LIVE/DEAD Fixable Aqua|LIVE/DEAD Fixable Blue|LIVE/DEAD Fixable Near-IR|LIVE/DEAD Fixable Violet|LIVE/DEAD Fixable Green|LIVE/DEAD Fixable Yellow|Fixable Viability Dye|Fixable Viability Dye eFluor 780|Fixable Viability Dye eFluor 506|Fixable Viability Dye eFluor 450|FVD|FVS|Fixable Viability Stain 510|Fixable Viability Stain 575V|Fixable Viability Stain 780|Ghost Dye|Ghost Dye Violet 510|Ghost Dye Red 780|viability dye|live/dead stain'],
+  ['ab', 'Viability dye', { fixable: 'No' }, '7-AAD|propidium iodide|PI|DRAQ7|SYTOX Blue|SYTOX Green|SYTOX Red|TO-PRO-3|DAPI viability'],
+  ['ab', 'Stain or dye', { target: 'DNA' }, 'DAPI|Hoechst|Hoechst 33342|Hoechst 33258|DRAQ5|SYBR Green I|EdU|BrdU'],
+  ['ab', 'Stain or dye', { target: 'Mitochondria' }, 'MitoTracker|MitoTracker Red|MitoTracker Green|MitoTracker Deep Red|MitoTracker Red CMXRos|TMRM|TMRE|JC-1|MitoSOX|MitoSOX Red'],
+  ['ab', 'Stain or dye', { target: 'Membrane' }, 'DiI|DiO|DiD|DiR|PKH26|PKH67|WGA|wheat germ agglutinin|CellMask'],
+  ['ab', 'Stain or dye', {}, 'CFSE|CellTrace Violet|CellTrace Far Red|CellTrace Yellow|CellTrace CFSE|CTV|phalloidin|Annexin V|calcein|Calcein AM|LysoTracker|ER-Tracker|DCFDA|H2DCFDA|CellROX|Fluo-4|Fura-2|Indo-1|crystal violet|trypan blue|hematoxylin|eosin|H&E|Oil Red O|Alizarin Red|Alcian blue|Sirius red|Picrosirius red|Ponceau S|Coomassie|Coomassie blue|SYPRO Ruby|SYBR Safe|SYBR Gold|ethidium bromide|EtBr|GelRed|GelGreen|BODIPY|Nile red|filipin|lectin'],
+  ['ab', 'Streptavidin or detection conjugate', {}, 'streptavidin|SA|streptavidin-HRP|SA-HRP|avidin|ExtrAvidin|NeutrAvidin|Avidin-HRP|anti-biotin'],
+  ['ab', 'Tetramer or multimer', {}, 'tetramer|tetramers|dextramer|pentamer|multimer|MHC tetramer|MHC-I tetramer|MHC-II tetramer|CD1d tetramer|MR1 tetramer'],
+  ['ab', 'Fc block', {}, 'Fc block|FcR block|Fc receptor block|FcR blocking reagent|TruStain FcX|Human TruStain FcX|Human Fc Block|Mouse Fc Block|anti-CD16/32|CD16/32|2.4G2|True-Stain Monocyte Blocker|Fc blocker'],
+  ['ab', 'Beads', { purpose: 'Compensation' }, 'UltraComp eBeads|UltraComp eBeads Plus|OneComp eBeads|AbC Total Antibody Compensation Bead Kit|ArC Amine Reactive Compensation Bead Kit|compensation beads|comp beads|CompBeads|BD CompBeads'],
+  ['ab', 'Beads', { purpose: 'Counting' }, 'CountBright|CountBright Absolute Counting Beads|counting beads|Precision Count Beads|123count eBeads|AccuCount'],
+  ['ab', 'Beads', { purpose: 'Calibration' }, 'CS&T beads|CS&T|Rainbow beads|SPHERO Rainbow|calibration beads|SpectroFlo QC beads|QC beads|8-peak beads|CytoFLEX daily QC'],
+  ['ab', 'Beads', { purpose: 'Stimulation' }, 'Dynabeads Human T-Activator CD3/CD28|Dynabeads Mouse T-Activator CD3/CD28|T-Activator|Dynabeads|CD3/CD28 beads|TransAct|ImmunoCult CD3/CD28 T Cell Activator'],
+
+  ['chem', 'Solvent', {}, 'DMSO|dimethyl sulfoxide|ethanol|EtOH|70% ethanol|methanol|MeOH|isopropanol|2-propanol|acetone|chloroform|phenol|phenol:chloroform|acetonitrile|DMF|water|nuclease-free water|ddH2O|dH2O|Milli-Q water|DEPC water|distilled water|ultrapure water|hexane|xylene|toluene|TRIzol|TRI Reagent|QIAzol'],
+  ['chem', 'Chemical', {}, 'NaCl|sodium chloride|KCl|potassium chloride|MgCl2|magnesium chloride|CaCl2|calcium chloride|Tris|Tris-HCl|Tris base|EDTA|EGTA|glycine|SDS|sodium dodecyl sulfate|Triton X-100|Tween-20|Tween 20|Tween-80|NP-40|IGEPAL CA-630|saponin|digitonin|BSA|bovine serum albumin|sodium azide|NaN3|glucose|D-glucose|sucrose|glycerol|DTT|dithiothreitol|TCEP|PMSF|sodium orthovanadate|sodium fluoride|sulfuric acid|H2SO4|hydrochloric acid|HCl|NaOH|sodium hydroxide|acetic acid|sodium bicarbonate|NaHCO3|sodium carbonate|sodium citrate|citric acid|ammonium chloride|NH4Cl|ammonium persulfate|APS|TEMED|acrylamide|bis-acrylamide|acrylamide/bis|agarose|low-melt agarose|urea|guanidine hydrochloride|imidazole|ATP|ADP|GTP|NADH|NADPH|dNTPs|dNTP|dNTP mix|skim milk|nonfat dry milk|non-fat milk|milk powder|casein|trehalose|mannitol|sorbitol|PEG|PEG 8000|polyethylene glycol|ammonium sulfate|potassium phosphate|yeast extract|tryptone|peptone|casamino acids|bacto agar|sodium phosphate|Na2HPO4|KH2PO4|ZnCl2|FeSO4|CuSO4|MnCl2|LiCl|CsCl|iodixanol|OptiPrep|Ficoll|Ficoll-Paque|Ficoll-Paque PLUS|Percoll|Lymphoprep|heparin|sodium heparin|protease inhibitor cocktail|cOmplete|cOmplete Mini|phosphatase inhibitor cocktail|PhosSTOP|Halt protease inhibitor|hydrogen peroxide|H2O2|sodium butyrate|cobalt chloride|CoCl2|EZ-Link Sulfo-NHS-Biotin|biotin|glutathione|ascorbic acid|ascorbate|retinoic acid|L-cysteine'],
+  ['chem', 'Drug or inhibitor', {}, 'staurosporine|brefeldin A|BFA|monensin|GolgiPlug|GolgiStop|protein transport inhibitor|rapamycin|sirolimus|everolimus|wortmannin|LY294002|MG132|MG-132|bortezomib|cycloheximide|CHX|actinomycin D|nocodazole|paclitaxel|taxol|colchicine|cisplatin|carboplatin|oxaliplatin|doxorubicin|etoposide|5-FU|5-fluorouracil|gemcitabine|methotrexate|dexamethasone|hydrocortisone|forskolin|Y-27632|ROCK inhibitor|CHIR99021|CHIR|SB431542|LDN-193189|dorsomorphin|XAV939|IWP-2|DAPT|imatinib|dasatinib|ibrutinib|ruxolitinib|tofacitinib|trametinib|selumetinib|vemurafenib|dabrafenib|U0126|PD0325901|SP600125|SB203580|BAY 11-7082|Z-VAD-FMK|Q-VD-OPh|chloroquine|bafilomycin A1|3-MA|3-methyladenine|tunicamycin|thapsigargin|oligomycin|FCCP|rotenone|antimycin A|2-DG|2-deoxyglucose|metformin|cyclosporin A|CsA|FK506|tacrolimus|tamoxifen|4-OHT|4-hydroxytamoxifen|doxycycline|dox|IPTG|ATRA|calcitriol|JQ1|olaparib|palbociclib|venetoclax|ABT-199|navitoclax|nutlin-3|SAHA|vorinostat|TSA|trichostatin A|5-azacytidine|decitabine|tazemetostat|DMOG|NAC|N-acetylcysteine|Trolox|aspirin|ibuprofen|indomethacin|celecoxib|FTY720|fingolimod|anisomycin|puromycin aminonucleoside|blebbistatin|cytochalasin D|latrunculin A|nigericin|valinomycin|ouabain|tetrodotoxin|TTX|bicuculline|CNQX|APV|D-AP5|NMDA|glutamate|carbachol|isoproterenol|propranolol|epinephrine|norepinephrine|dopamine|serotonin|histamine|acetylcholine|insulin glargine|dapagliflozin|empagliflozin|vehicle'],
+  ['chem', 'Recombinant protein or cytokine', {}, 'insulin|transferrin|leptin|adiponectin|thrombin|fibrinogen|albumin|human serum albumin|HSA|ovalbumin|OVA|KLH|streptavidin protein|protein A|protein G|GFP protein|Cas9 protein|SpCas9 protein'],
+  ['chem', 'Enzyme', {}, 'trypsin|trypsin-EDTA|0.25% trypsin-EDTA|0.05% trypsin-EDTA|TrypLE|TrypLE Express|TrypLE Select|Accutase|Accumax|collagenase|collagenase I|collagenase II|collagenase IV|collagenase D|dispase|liberase|Liberase TL|Liberase TM|DNase I|DNase|RNase A|RNase H|RNaseOUT|RNase inhibitor|SUPERase-In|proteinase K|benzonase|papain|hyaluronidase|pepsin|elastase|Taq|Taq polymerase|Phusion|Phusion polymerase|Q5|Q5 High-Fidelity DNA Polymerase|KAPA HiFi|Pfu|PrimeSTAR|PrimeSTAR GXL|T4 DNA ligase|T4 ligase|T7 RNA polymerase|SuperScript III|SuperScript IV|M-MLV|M-MLV reverse transcriptase|reverse transcriptase|Klenow|Klenow fragment|T4 PNK|T4 polynucleotide kinase|CIP|rSAP|Antarctic phosphatase|Cas9|SpCas9|Cas9 nuclease|Alt-R Cas9|Cas12a|Cpf1|TEV protease|PreScission protease|enterokinase|lysozyme|alkaline phosphatase|luciferase|neuraminidase|PNGase F|Endo H|sortase|uracil-DNA glycosylase|UDG|Exonuclease I|ExoI|Dpn I'],
+  ['chem', 'Antibiotic or selection agent', { purpose: 'Contamination control' }, 'penicillin-streptomycin|pen/strep|pen-strep|PenStrep|P/S|antibiotic-antimycotic|anti-anti|gentamicin|amphotericin B|Fungizone|Normocin|Plasmocin|Primocin|penicillin|streptomycin|ciprofloxacin|MycoZap'],
+  ['chem', 'Antibiotic or selection agent', { purpose: 'Selection' }, 'puromycin|blasticidin|blasticidin S|G418|geneticin|hygromycin|hygromycin B|zeocin|ampicillin|carbenicillin|kanamycin|chloramphenicol|tetracycline|spectinomycin|vancomycin|nourseothricin|bleomycin|ganciclovir|6-thioguanine|HAT|HAT supplement'],
+  ['chem', 'Transfection reagent', {}, 'Lipofectamine|Lipofectamine 2000|Lipofectamine 3000|Lipofectamine RNAiMAX|Lipofectamine LTX|Lipofectamine MessengerMAX|RNAiMAX|PEI|polyethylenimine|PEI MAX|PEIpro|FuGENE|FuGENE HD|FuGENE 6|jetPRIME|jetPEI|jetOPTIMUS|TransIT-LT1|TransIT-X2|TransIT|X-tremeGENE|X-tremeGENE HP|Polybrene|hexadimethrine bromide|LentiBOOST|RetroNectin|Viromer|calcium phosphate|ExpiFectamine|ExpiFectamine 293|Lipofectamine CRISPRMAX|DharmaFECT|siPORT|Effectene|TurboFect|GeneJuice'],
+  ['chem', 'Stimulant or activator', {}, 'PMA|phorbol 12-myristate 13-acetate|ionomycin|PMA/ionomycin|PMA/Iono|LPS|lipopolysaccharide|poly(I:C)|poly I:C|polyIC|poly(dA:dT)|CpG|CpG ODN|ODN 1826|ODN 2006|ODN 2395|R848|resiquimod|imiquimod|Pam3CSK4|Pam2CSK4|flagellin|zymosan|curdlan|MDP|muramyl dipeptide|cGAMP|2\'3\'-cGAMP|DMXAA|PHA|phytohemagglutinin|PHA-L|ConA|concanavalin A|SEB|staphylococcal enterotoxin B|SEA|Cell Stimulation Cocktail|nigericin|MSU|MSU crystals|alum|Alhydrogel|CFA|complete Freund\'s adjuvant|IFA|incomplete Freund\'s adjuvant|anti-CD3/CD28|PepTivator|peptide pool|PepMix|CEF peptide pool|tuberculin|PPD|heat-killed|TNF stimulation'],
+  ['chem', 'Peptide', {}, 'SIINFEKL|OVA 257-264|OVA257-264|OVA 323-339|OVA323-339|gp33|gp33-41|gp100|NY-ESO-1 peptide|MOG 35-55|MOG35-55|PLP 139-151|amyloid beta|Aβ42|Abeta42|scrambled peptide|TAT peptide|NLS peptide|FLAG peptide|3xFLAG peptide|HA peptide'],
+  ['chem', 'Standard or calibrator', {}, 'standard|standards|standard curve|calibrator|BSA standard|protein standard|DNA standard|quantification standard|reference standard|internal standard|spike-in|ERCC spike-in'],
+  ['chem', 'Substrate or detection reagent', { detection: 'Colorimetric' }, 'TMB|TMB substrate|TMB solution|ABTS|OPD|pNPP|DAB|DAB substrate|NBT/BCIP|BCIP/NBT|MTT|MTS|WST-1|WST-8|CCK-8|XTT|resazurin|alamarBlue|PrestoBlue|crystal violet solution'],
+  ['chem', 'Substrate or detection reagent', { detection: 'Chemiluminescent' }, 'ECL|ECL substrate|Western ECL|SuperSignal|SuperSignal West Pico|SuperSignal West Pico PLUS|SuperSignal West Femto|SuperSignal West Dura|SuperSignal West Atto|Clarity ECL|Clarity Western ECL|Clarity Max|Immobilon|Immobilon Western|D-luciferin|luciferin|coelenterazine|furimazine|Bright-Glo|Steady-Glo|ONE-Glo|Nano-Glo substrate|QuantaBlu|Lumigen'],
+  ['chem', 'Substrate or detection reagent', { detection: 'Fluorescent' }, 'Amplex Red|AmplexRed|QuantaRed|Amplex UltraRed|fluorescein substrate|4-MUP|MUG'],
+
+  ['media', 'Medium', {}, 'DMEM|DMEM high glucose|DMEM low glucose|RPMI|RPMI 1640|RPMI-1640|IMDM|MEM|EMEM|α-MEM|alpha-MEM|aMEM|MEM alpha|Opti-MEM|Opti-MEM I|OptiMEM|F-12|Ham\'s F-12|F12|F-12K|DMEM/F12|DMEM/F-12|Advanced DMEM/F12|McCoy\'s 5A|L-15|Leibovitz\'s L-15|Medium 199|M199|Williams\' E|Williams E|X-VIVO 15|X-VIVO 20|AIM-V|AIM V|TexMACS|ImmunoCult-XF|ImmunoCult|StemSpan|StemSpan SFEM|StemSpan SFEM II|mTeSR|mTeSR1|mTeSR Plus|Essential 8|E8|Essential 6|StemFlex|Neurobasal|Neurobasal-A|Neurobasal Plus|BrainPhys|EGM-2|EGM-2 MV|SmGM-2|KGM|KGM-Gold|keratinocyte SFM|MammoCult|PneumaCult|PneumaCult-ALI|IntestiCult|HepatiCult|MesenCult|FreeStyle 293|FreeStyle 293 Expression Medium|Expi293 Expression Medium|ExpiCHO Expression Medium|CD CHO|Sf-900 III|Sf-900 II|ESF 921|Grace\'s insect medium|Schneider\'s Drosophila medium|LB|LB broth|Luria broth|LB agar|LB Miller|LB Lennox|TB|terrific broth|SOC|SOC medium|SOB|2xYT|2YT|YPD|YPD broth|YPD agar|M9|M9 minimal medium|BHI|brain heart infusion|Middlebrook 7H9|7H9|7H10|7H11|TSB|tryptic soy broth|TSA plates|MacConkey|MacConkey agar|blood agar|Mueller-Hinton|Mueller-Hinton broth|FluoroBrite|FluoroBrite DMEM|Hybridoma-SFM|CryoStor|CryoStor CS10|Bambanker|Recovery Cell Culture Freezing Medium|Synth-a-Freeze|CELLBANKER|mFreSR|StemCellBanker'],
+  ['media', 'Buffer', {}, 'PBS|DPBS|D-PBS|Dulbecco\'s PBS|HBSS|DPBS with calcium and magnesium|TBS|Tris-buffered saline|TAE|TBE|TE|TE buffer|MOPS SDS running buffer|MES SDS running buffer|Tris-glycine buffer|running buffer|transfer buffer|RIPA|RIPA buffer|RIPA lysis buffer|Laemmli|Laemmli buffer|Laemmli sample buffer|LDS sample buffer|NuPAGE LDS|sample buffer|loading dye|6x loading dye|gel loading dye|ACK|ACK lysing buffer|ACK lysis buffer|RBC lysis buffer|red blood cell lysis buffer|BD Pharm Lyse|Pharm Lyse|FACS Lysing Solution|Annexin V binding buffer|binding buffer|autoMACS Running Buffer|MACS buffer|Cell Staining Buffer|Stain Buffer|BD Stain Buffer|Brilliant Stain Buffer|Brilliant Stain Buffer Plus|Super Bright Complete Staining Buffer|CellCover|Versene|citrate buffer|sodium citrate buffer|antigen retrieval buffer|carbonate buffer|bicarbonate buffer|Krebs-Ringer|Krebs buffer|Ringer\'s solution|Tyrode\'s|saline|normal saline|0.9% saline|ELISA coating buffer|Reagent Diluent|assay diluent|Assay Diluent A|Intercept blocking buffer|Odyssey blocking buffer|SuperBlock|StartingBlock|Pierce IP lysis buffer|NP-40 lysis buffer|M-PER|T-PER|RLT buffer|Buffer RLT|PE buffer|EB buffer|Buffer EB|PCR buffer|CutSmart|rCutSmart|NEBuffer|T4 ligase buffer|10x PCR buffer'],
+  ['media', 'Medium', {}, 'complete medium|complete media|complete RPMI|complete DMEM|complete IMDM|R10|R10 medium|D10|D10 medium|cRPMI|cDMEM|cIMDM|T cell medium|freezing medium|freeze medium|freezing media|culture medium|growth medium|differentiation medium|starvation medium|serum-free medium|assay medium|imaging medium'],
+  ['media', 'Buffer', {}, 'FACS buffer|flow buffer|flow cytometry buffer|staining buffer|wash buffer|washing buffer|blocking buffer|block buffer|blocking solution|coating buffer|stop solution|lysis buffer|elution buffer|diluent|complete medium|complete media|complete RPMI|complete DMEM|complete IMDM|R10|R10 medium|D10|D10 medium|cRPMI|cDMEM|cIMDM|T cell medium|freezing medium|freeze medium|freezing media|PBST|TBST|PBS-T|TBS-T|PBS/BSA|PBS-BSA|PBS/EDTA|digestion buffer|digestion mix|digestion medium|sorting buffer|sort buffer|MACS separation buffer|resuspension buffer|annealing buffer|hybridization buffer|permeabilization solution|quenching solution|neutralization buffer|culture medium|growth medium|differentiation medium|starvation medium|serum-free medium|assay medium|imaging medium|Krebs-HEPES|working solution'],
+  ['media', 'Supplement', {}, 'FBS|FCS|fetal bovine serum|fetal calf serum|heat-inactivated FBS|HI-FBS|HI FBS|dialyzed FBS|charcoal-stripped FBS|horse serum|human AB serum|human serum|goat serum|normal goat serum|donkey serum|normal donkey serum|rabbit serum|normal rat serum|mouse serum blocking|L-glutamine|GlutaMAX|GlutaMAX-I|NEAA|MEM NEAA|non-essential amino acids|sodium pyruvate|β-mercaptoethanol|beta-mercaptoethanol|2-mercaptoethanol|2-ME|BME|B-27|B27|B-27 supplement|N-2|N2 supplement|ITS|ITS-X|insulin-transferrin-selenium|HEPES|1 M HEPES|KnockOut Serum Replacement|KSR|BIT 9500|CTS Immune Cell SR|human platelet lysate|platelet lysate|MEM vitamins|lipid concentrate|chemically defined lipid concentrate|Albumax|AlbuMAX II|N-acetyl-L-cysteine|nicotinamide|gastrin|primocin supplement|CEPT cocktail|RevitaCell|CloneR|ROCK inhibitor supplement'],
+  ['media', 'Fix or perm', { 'fixative-or-detergent': 'Paraformaldehyde' }, 'PFA|paraformaldehyde|4% PFA|2% PFA|1% PFA|formaldehyde|16% formaldehyde|methanol-free formaldehyde|formalin|10% formalin|neutral buffered formalin|NBF|10% NBF|IC Fixation Buffer|BD Cytofix|Cytofix|Fixation Buffer|fixation buffer|fix buffer|BD Lyse/Fix|Lyse/Fix|Phosflow Lyse/Fix|BioLegend Fixation Buffer'],
+  ['media', 'Fix or perm', { 'fixative-or-detergent': 'Glutaraldehyde' }, 'glutaraldehyde|2.5% glutaraldehyde|Karnovsky\'s fixative'],
+  ['media', 'Fix or perm', {}, 'Cytofix/Cytoperm|BD Cytofix/Cytoperm|Cytoperm|Perm/Wash|BD Perm/Wash|Perm/Wash buffer|Foxp3/Transcription Factor Staining Buffer Set|Foxp3 / Transcription Factor Staining Buffer Set|Foxp3 Fix/Perm|eBioscience Foxp3 Fix/Perm|Foxp3 Fix/Perm Buffer Set|True-Nuclear|True-Nuclear Transcription Factor Buffer Set|Fix/Perm|Fixation/Permeabilization|Fixation/Permeabilization Solution Kit|Intracellular Fixation & Permeabilization Buffer Set|Intracellular Staining Permeabilization Wash Buffer|Permeabilization Buffer|perm buffer|permeabilization buffer|Phosflow Perm Buffer III|Perm Buffer III|Cyto-Fast Fix/Perm|ice-cold methanol|90% methanol|Carnoy\'s|acetone fixation'],
+  ['media', 'Coating or matrix', {}, 'Matrigel|Corning Matrigel|Matrigel GFR|growth factor reduced Matrigel|Geltrex|Cultrex|Cultrex BME|collagen|collagen I|collagen type I|rat tail collagen|collagen IV|poly-L-lysine|PLL|poly-D-lysine|PDL|poly-L-ornithine|PLO|poly-HEMA|fibronectin|laminin|laminin-521|laminin-511|iMatrix-511|vitronectin|Vitronectin XF|gelatin|0.1% gelatin|Synthemax|CellStart|Cell-Tak|hyaluronic acid|alginate|agar|methylcellulose|MethoCult|hydrogel|PEG hydrogel'],
+  ['media', 'Mounting medium', {}, 'ProLong Gold|ProLong Gold Antifade|ProLong Diamond|ProLong Glass|VECTASHIELD|Vectashield|Fluoromount-G|Fluoromount|Mowiol|SlowFade|SlowFade Gold|Permount|antifade|antifade mountant|mounting medium|mountant|Aqua-Poly/Mount|Fluoroshield|EverBrite|DPX|Cytoseal'],
+
+  ['kits', 'Commercial kit', {}, 'CellTiter-Glo|CellTiter-Glo 2.0|CellTiter-Glo 3D|CellTiter 96|CellTiter 96 AQueous One|CellTiter-Blue|CytoTox 96|CytoTox-Glo|LDH assay|LDH-Glo|Caspase-Glo|Caspase-Glo 3/7|RealTime-Glo|Dual-Glo|Dual-Luciferase|Dual-Luciferase Reporter Assay|Nano-Glo|Nano-Glo Dual-Luciferase|Luciferase Assay System|BCA|Pierce BCA|BCA Protein Assay|Micro BCA|Bradford|Bradford assay|Qubit dsDNA HS|Qubit dsDNA BR|Qubit RNA HS|Qubit Protein|Quant-iT PicoGreen|PicoGreen|RiboGreen|RNeasy|RNeasy Mini|RNeasy Micro|RNeasy Plus|RNeasy Plus Mini|DNeasy|DNeasy Blood & Tissue|QIAamp|QIAamp DNA Mini|QIAamp Viral RNA|QIAprep|QIAprep Spin Miniprep|QIAquick|QIAquick Gel Extraction|QIAquick PCR Purification|MinElute|Monarch|Monarch Plasmid Miniprep|Monarch Total RNA Miniprep|ZymoPURE|Zymo|Direct-zol|Direct-zol RNA Miniprep|Quick-RNA|PureLink|PureLink RNA Mini|miniprep|midiprep|maxiprep|HiSpeed Plasmid Maxi|EndoFree Plasmid Maxi|NucleoSpin|NucleoBond|iScript|iScript cDNA Synthesis|High-Capacity cDNA Reverse Transcription|SuperScript IV VILO|SuperScript VILO|LunaScript|PrimeScript RT|QuantiTect|DuoSet|DuoSet ELISA|Quantikine|Quantikine ELISA|ELISA MAX|LEGEND MAX|ELISA kit|ELISA|LEGENDplex|Bio-Plex|Bio-Plex Pro|Milliplex|CBA|Cytometric Bead Array|ProcartaPlex|MSD|V-PLEX|U-PLEX|Simoa|Olink|AlphaLISA|HTRF|EasySep|EasySep Human T Cell Isolation Kit|EasySep Mouse CD4+ T Cell Isolation Kit|RosetteSep|MicroBeads|MACS MicroBeads|Pan T Cell Isolation Kit|CD4+ T Cell Isolation Kit|Naive CD4+ T Cell Isolation Kit|Dynabeads Untouched|MojoSort|Annexin V Apoptosis Detection Kit|Click-iT EdU|Click-iT Plus EdU|BrdU Flow Kit|APC BrdU Flow Kit|Mycoplasma detection kit|MycoAlert|MycoStrip|MycoProbe|Nextera XT|Nextera|Illumina DNA Prep|TruSeq|TruSeq Stranded mRNA|NEBNext|NEBNext Ultra II|NEBNext Ultra II Directional RNA|Chromium Next GEM|Chromium Single Cell 3\'|Chromium Single Cell 5\'|SMART-Seq|SMART-Seq v4|In-Fusion|In-Fusion HD|NEBuilder HiFi|TOPO TA|TOPO TA Cloning|Zero Blunt TOPO|Gateway|LR Clonase|BP Clonase|Lenti-X GoStix|Lenti-X qRT-PCR Titration|p24 ELISA|P3 Primary Cell 4D-Nucleofector X Kit|Amaxa Nucleofector Kit|Neon Transfection Kit|Q5 Site-Directed Mutagenesis|QuikChange|QuikChange Lightning|Glutathione assay|GSH-Glo|ATP assay|Seahorse XF Cell Mito Stress Test|Mito Stress Test|Glycolysis Stress Test|Seahorse XF Glycolytic Rate|Pierce Protein A/G|Protein A/G beads|Protein A beads|Protein G beads|Dynabeads Protein G|Dynabeads Protein A|Anti-FLAG M2 Affinity Gel|Ni-NTA|Ni-NTA agarose|glutathione sepharose|SPRIselect|AMPure XP|ChIP kit|SimpleChIP|CUT&RUN|CUT&Tag|ATAC-seq kit|Senescence β-Galactosidase Staining Kit|TUNEL|TUNEL assay|In Situ Cell Death Detection Kit|ApoTox-Glo|Griess reagent|Griess assay|Bio-Rad Protein Assay|DC Protein Assay|RNAscope Multiplex Fluorescent|Opal|Opal 7-Color'],
+
+  ['mol', 'Oligo or primer', {}, 'oligo dT|oligo(dT)|oligo(dT)20|random hexamers|random primers|primer|primers|primer pair|forward primer|reverse primer|M13 forward|M13 reverse|T7 promoter primer|CMV forward|hU6-F|LKO.1 5\''],
+  ['mol', 'Probe', {}, 'TaqMan probe|TaqMan assay|TaqMan Gene Expression Assay|PrimeTime|PrimeTime qPCR assay|molecular beacon|FISH probe|smFISH probe|RNAscope probe|RNAscope|Stellaris probes|HCR probes|in situ probe|riboprobe|DIG-labeled probe'],
+  ['mol', 'Plasmid', {}, 'psPAX2|pMD2.G|pMD2G|VSV-G plasmid|pCMV-VSV-G|pLKO.1|pLKO|lentiCRISPRv2|lentiCRISPR v2|lentiGuide-Puro|lentiCas9-Blast|pX330|pX458|pX459|pSpCas9|pcDNA3.1|pcDNA3|pcDNA3.1(+)|pUC19|pUC57|pET-28a|pET28a|pET-21a|pGEX|pGEX-4T-1|pEGFP-N1|pEGFP-C1|pLenti|pLVX|pCDH|pMSCV|pMIG|pRetroX|pAAV|pHelper|pAdDeltaF6|pRSV-Rev|pMDLg/pRRE|pGL3|pGL3-Basic|pGL4|pRL-TK|pRL-SV40|pBABE|pBABE-puro|pSUPER|pLJM1|FUGW|pHIV|pRRL|pCAG|pCAGGS|pBluescript|pGEM-T|pGEM-T Easy|pCR2.1|pCR-Blunt|pENTR|pDONR221|pDEST|pTRIPZ|pINDUCER20|pCW57.1|pMXs|pMSCV-IRES-GFP|MSCV-IRES-GFP|MigR1|reporter plasmid|expression plasmid|empty vector|control vector'],
+  ['mol', 'siRNA or guide RNA', {}, 'siRNA|siRNAs|shRNA|shRNAs|sgRNA|sgRNAs|gRNA|guide RNA|crRNA|tracrRNA|Alt-R crRNA|Alt-R tracrRNA|non-targeting siRNA|scrambled siRNA|non-targeting control|NTC sgRNA|ON-TARGETplus|SMARTpool|Silencer Select|Stealth RNAi|miRNA mimic|miRNA inhibitor|antagomir|ASO|antisense oligo|morpholino|gapmer'],
+  ['mol', 'Master mix', { chemistry: 'SYBR Green' }, 'SYBR Green Master Mix|PowerUp SYBR Green|PowerUp SYBR Green Master Mix|PowerTrack SYBR Green|Fast SYBR Green|iTaq Universal SYBR Green Supermix|SsoAdvanced Universal SYBR Green|SsoAdvanced|SsoFast EvaGreen|Luna Universal qPCR|KAPA SYBR FAST|SYBR Select|QuantiNova SYBR|SYBR Green|PowerSYBR'],
+  ['mol', 'Master mix', { chemistry: 'TaqMan' }, 'TaqMan Fast Advanced Master Mix|TaqMan Universal Master Mix|TaqMan Universal Master Mix II|TaqMan Gene Expression Master Mix|TaqMan Fast Virus 1-Step|Luna Universal Probe qPCR|iTaq Universal Probes Supermix|SsoAdvanced Universal Probes|PrimeTime Gene Expression Master Mix|ddPCR Supermix for Probes'],
+  ['mol', 'Master mix', {}, 'GoTaq|GoTaq Green|GoTaq Green Master Mix|OneTaq|OneTaq 2X Master Mix|Q5 Hot Start High-Fidelity 2X Master Mix|Q5 2X Master Mix|Phusion High-Fidelity PCR Master Mix|Phusion Master Mix|Platinum SuperFi|Platinum SuperFi II|DreamTaq|DreamTaq Green|KAPA HiFi HotStart ReadyMix|CloneAmp HiFi|PrimeSTAR Max|Gibson Assembly Master Mix|NEBuilder HiFi DNA Assembly Master Mix|PCR master mix|qPCR master mix|2x master mix|master mix|mastermix|supermix|Taq 2X Master Mix|Q5 High-Fidelity 2X Master Mix|LongAmp|Terra PCR Direct|Phire'],
+  ['mol', 'Ladder or marker', {}, '1 kb ladder|1 kb Plus ladder|1 kb Plus|100 bp ladder|50 bp ladder|GeneRuler|GeneRuler 1 kb|GeneRuler 100 bp|GeneRuler 1 kb Plus|Quick-Load 1 kb|Quick-Load Purple 1 kb|Quick-Load 100 bp|PageRuler|PageRuler Plus|PageRuler Prestained|Precision Plus Protein|Precision Plus Protein Dual Color|Precision Plus Protein All Blue|SeeBlue Plus2|Spectra Multicolor|Chameleon Duo|HiMark|Novex Sharp|BenchMark|protein ladder|DNA ladder|RNA ladder|molecular weight marker|MW marker|prestained protein ladder|Kaleidoscope'],
+
+  ['supplies', 'Other', {}, 'serological pipette|serological pipettes|stripette|pipette|pipettes|transfer pipette|Pasteur pipette|reservoir|reagent reservoir|syringe|syringes|needle|needles|gloves|nitrile gloves|parafilm|cuvette|cuvettes|electroporation cuvette|weigh boat|aluminum foil|Kimwipes|cryobox|freezer box|cell scraper|cell lifter|scalpel|forceps|scissors|plate seal|plate sealer film|sealing film|adhesive seal|MicroAmp optical adhesive film|aluminum seal|breathable seal|hemocytometer|counting chamber|Countess slides|transwell|Transwell insert|cell culture insert|Boyden chamber|µ-Slide|ibidi µ-Slide|Lab-Tek|Lab-Tek chamber slide|bottle|Nalgene bottle|media bottle|beaker|graduated cylinder|Erlenmeyer flask|spinner flask|bioreactor bag|G-Rex|blood collection tube|Vacutainer|EDTA tube|heparin tube|SepMate|SepMate-50|Leucosep|cryomold|OCT|Tissue-Tek OCT|embedding cassette|biopsy punch|cell spreader|inoculating loop|spreader|petri plates|bacterial plates|centrifugal filter|Amicon|Amicon Ultra|Slide-A-Lyzer|dialysis cassette|desalting column|Zeba spin column|magnet stand|spin column|lysis tubes|bead beating tubes|Lysing Matrix|razor blade|tape|lab tape|foil|zip tie|ice bucket|tube rack|FACS tube rack|kim wipes|bench paper|sharps container'],
+
+  ['equip', 'Instrument', {}, 'LSRFortessa|LSRFortessa X-20|BD LSRFortessa|Fortessa|LSR II|FACSymphony|FACSymphony A3|FACSymphony A5|FACSymphony S6|FACSCelesta|FACSLyric|FACSCanto|FACSCanto II|FACSCalibur|FACSMelody|FACSAria|FACSAria II|FACSAria III|FACSAria Fusion|FACSDiscover S8|Cytek Aurora|Aurora|Northern Lights|Cytek Northern Lights|Aurora CS|ID7000|SP6800|SA3800|Bigfoot|CytoFLEX|CytoFLEX S|CytoFLEX LX|CytoFLEX SRT|Attune|Attune NxT|Accuri|Accuri C6|Accuri C6 Plus|NovoCyte|NovoCyte Penteon|MACSQuant|MACSQuant Analyzer 10|MACSQuant Analyzer 16|MACSQuant Tyto|Guava easyCyte|ZE5|Helios|CyTOF|CyTOF XT|Hyperion|ImageStream|ImageStreamX|Amnis|SH800|Sony SH800|MA900|MoFlo|MoFlo Astrios|Astrios|BD Rhapsody|Chromium Controller|Chromium X|Chromium iX|NovaSeq|NovaSeq 6000|NovaSeq X|NextSeq|NextSeq 500|NextSeq 2000|MiSeq|iSeq|iSeq 100|MiniSeq|PacBio|Sequel|MinION|GridION|PromethION|Nanopore|Bioanalyzer|2100 Bioanalyzer|TapeStation|4200 TapeStation|Fragment Analyzer|NanoDrop|NanoDrop One|NanoDrop 2000|Qubit|Qubit 4|Qubit Flex|QuantStudio|QuantStudio 3|QuantStudio 5|QuantStudio 6|QuantStudio 7|QuantStudio 12K|CFX96|CFX Opus|CFX Opus 96|CFX384|CFX Connect|LightCycler|LightCycler 480|LightCycler 96|StepOnePlus|StepOne|7500 Fast|ViiA 7|QX200|QX600|QIAcuity|C1000 Touch|T100|ProFlex|SimpliAmp|Veriti|Mastercycler|Mastercycler nexus|SpectraMax|SpectraMax M5|SpectraMax i3x|SpectraMax iD3|SpectraMax iD5|SpectraMax Plus 384|Synergy|Synergy H1|Synergy HTX|Synergy Neo2|CLARIOstar|PHERAstar|FLUOstar|POLARstar|Varioskan|Varioskan LUX|EnVision|EnSpire|EnSight|VICTOR Nivo|GloMax|GloMax Discover|Infinite M200|Infinite 200 PRO|Infinite M Plex|Spark|Tecan Spark|Cytation|Cytation 5|Cytation 7|Luminex 200|FLEXMAP 3D|MAGPIX|INTELLIFLEX|Bio-Plex 200|MESO QuickPlex SQ 120|MSD QuickPlex|Simoa HD-X|SR-X|Incucyte|IncuCyte S3|Incucyte SX5|EVOS|EVOS M5000|EVOS M7000|EVOS FL|EVOS XL|LSM 880|LSM 900|LSM 980|Zeiss LSM 880|Leica SP8|Leica Stellaris|Stellaris|Nikon A1|Nikon A1R|Nikon Ti2|Nikon Eclipse|Olympus FV3000|Olympus IX83|Axio Observer|Axio Imager|Axioscan|Lionheart|Operetta|Operetta CLS|Opera Phenix|ImageXpress|CellInsight|Celigo|ChemiDoc|ChemiDoc MP|ChemiDoc XRS+|Gel Doc|Gel Doc EZ|Gel Doc XR+|Odyssey|Odyssey CLx|Odyssey DLx|Odyssey M|LI-COR Odyssey|iBright|iBright CL1500|Amersham Imager 680|ImageQuant 800|Typhoon|Typhoon FLA 9500|iBlot|iBlot 2|iBlot 3|Trans-Blot Turbo|Trans-Blot|Mini-PROTEAN|Mini-PROTEAN Tetra|XCell SureLock|Mini Gel Tank|PowerPac|PowerPac Basic|Neon|Neon Transfection System|Neon NxT|4D-Nucleofector|Nucleofector|Nucleofector 2b|Gene Pulser|Gene Pulser Xcell|MaxCyte|Countess|Countess II|Countess 3|Countess 3 FL|Vi-CELL|Vi-CELL BLU|Vi-CELL XR|Cellometer|Cellometer K2|LUNA-II|LUNA-FL|NucleoCounter|NC-200|Sorvall|Sorvall Legend|Sorvall ST 16R|Allegra X-15R|Avanti J-26|Optima XE|Eppendorf 5810R|5810R|5424R|5430R|5702|Heraeus Megafuge|Megafuge|Heracell|Heracell VIOS|Forma Steri-Cycle|Galaxy 170 S|Bioruptor|Bioruptor Pico|Covaris|Covaris M220|TissueLyser|TissueLyser II|Precellys|gentleMACS|gentleMACS Octo Dissociator|gentleMACS Dissociator|DynaMag|DynaMag-2|DynaMag-15|EasySep magnet|EasyEights|QuadroMACS|MidiMACS|MiniMACS|OctoMACS|autoMACS|autoMACS Pro|AKTA|ÄKTA|ÄKTA pure|ÄKTA start|FPLC|HPLC|UPLC|LC-MS|LC-MS/MS|Orbitrap|Orbitrap Exploris|Orbitrap Eclipse|Q Exactive|timsTOF|Seahorse|Seahorse XFe96|Seahorse XFe24|Seahorse XF Pro|XFe96|IVIS|IVIS Spectrum|IVIS Lumina|Echo 525|Opentrons|Opentrons OT-2|OT-2|Hamilton STAR|Biomek|Biomek i7|Tecan Fluent|Tecan EVO|Maxwell RSC|KingFisher|KingFisher Flex|QIAcube|QIAcube Connect|SpeedVac|Octet|Biacore|ThermoMixer|Thermomixer C|cryostat|Leica CM1950|microtome|vibratome|Leica VT1200'],
+  ['equip', 'Instrument', { generic: true }, 'centrifuge|benchtop centrifuge|microcentrifuge|minicentrifuge|ultracentrifuge|refrigerated centrifuge|plate centrifuge|swinging bucket centrifuge|flow cytometer|cytometer|cell sorter|sorter|spectral cytometer|spectral analyzer|mass cytometer|plate reader|microplate reader|luminometer|spectrophotometer|fluorometer|qPCR machine|qPCR instrument|real-time PCR system|thermocycler|thermal cycler|PCR machine|droplet reader|droplet generator|digital PCR|sequencer|microscope|fluorescence microscope|inverted microscope|light microscope|confocal|confocal microscope|spinning disk|spinning disk confocal|widefield microscope|dissecting microscope|stereo microscope|stereomicroscope|slide scanner|high-content imager|live-cell imager|gel imager|western blot imager|blot imager|imager|gel box|electrophoresis chamber|electrophoresis tank|power supply|transfer apparatus|semi-dry transfer|electroporator|cell counter|automated cell counter|CO2 incubator|incubator|shaking incubator|bacterial incubator|hypoxia chamber|hypoxia incubator|orbital shaker|shaker|plate shaker|rocker|rocking platform|nutator|rotator|tube rotator|vortex|vortexer|vortex mixer|heat block|dry bath|heating block|water bath|bead bath|sonicator|probe sonicator|bath sonicator|homogenizer|bead beater|tissue dissociator|biosafety cabinet|BSC|tissue culture hood|TC hood|laminar flow hood|fume hood|PCR hood|PCR workstation|-80 freezer|-80 °C freezer|-80|-20 freezer|-20 °C freezer|freezer|refrigerator|fridge|4 °C fridge|cold room|liquid nitrogen|liquid nitrogen tank|LN2|LN2 dewar|dewar|Mr. Frosty|CoolCell|controlled-rate freezer|autoclave|balance|analytical balance|scale|pH meter|stir plate|magnetic stirrer|hot plate|hot plate stirrer|pipette controller|Pipet-Aid|pipet-aid|multichannel pipette|electronic pipette|repeater pipette|pipettor|pipettors|plate washer|microplate washer|ELISA washer|magnet|magnetic separator|cell separator|MACS separator|liquid handler|pipetting robot|lyophilizer|freeze dryer|vacuum concentrator|vacuum pump|vacuum aspirator|aspirator|chromatography system|mass spectrometer|osmometer|cell analyzer|metabolic analyzer|in vivo imager|ultrasound|irradiator|X-ray irradiator|cesium irradiator|UV crosslinker|UV transilluminator|transilluminator|blue light transilluminator|ice machine|dry ice|microwave|timer|thermometer'],
+  ['soft', 'Software', {}, 'FlowJo|FCS Express|OMIQ|Cytobank|SpectroFlo|FACSDiva|BD FACSDiva|Diva|Kaluza|CytExpert|FlowLogic|Floreada|Attune NxT software|MACSQuantify|GraphPad Prism|Prism|GraphPad|ImageJ|Fiji|CellProfiler|CellProfiler Analyst|QuPath|Imaris|ZEN|ZEN Blue|ZEN Black|NIS-Elements|LAS X|Volocity|Harmony|Columbus|MetaMorph|Ilastik|napari|Cellpose|StarDist|HALO|inForm|Visiopharm|RStudio|R Studio|Python|Jupyter|MATLAB|Excel|Microsoft Excel|Google Sheets|SPSS|Stata|SAS|JMP|SnapGene|SnapGene Viewer|Benchling|Geneious|Geneious Prime|ApE|Vector NTI|Cell Ranger|Space Ranger|Loupe Browser|Seurat|Scanpy|Bioconductor|DESeq2|edgeR|limma|Bowtie2|BWA|HISAT2|Salmon|kallisto|featureCounts|MACS2|GSEA|Ingenuity Pathway Analysis|Metascape|DAVID|Enrichr|Cytoscape|PyMOL|ChimeraX|UCSF Chimera|AlphaFold|ColabFold|BLAST|Primer-BLAST|Primer3|CRISPick|CHOPCHOP|Gen5|SoftMax Pro|MARS|Magellan|i-control|QuantStudio Design & Analysis|Design & Analysis|CFX Maestro|CFX Manager|Image Lab|Image Studio|Empiria Studio|LEGENDplex Data Analysis|LEGENDplex Qognit|Bio-Plex Manager|xPONENT|Belysa|Incucyte software|Seahorse Wave|Wave|Living Image|MaxQuant|Proteome Discoverer|Skyline|Perseus|MSFragger|FragPipe|Spectronaut|DIA-NN|Agilent 2100 Expert|FlowJo Plugin|Flowing Software|CytoExploreR|flowCore|CATALYST|Spectre|Excel template|analysis template|acquisition template|experiment template'],
+  ['soft', 'Dataset', {}, 'GEO|SRA|ArrayExpress|PRIDE|Zenodo|figshare|Dryad|Mendeley Data|ImmPort|dbGaP|EGA|PDB|EMDB|FlowRepository|Cytobank dataset|ProteomeXchange|MassIVE|BioStudies|Single Cell Portal|CELLxGENE|Human Cell Atlas|deposited data|raw data|dataset|source data'],
+];
+
+const GUESS_FLUORS = [
+  ['UV 355', 'BUV395=Brilliant Ultraviolet 395|BUV496=Brilliant Ultraviolet 496|BUV563=Brilliant Ultraviolet 563|BUV615=Brilliant Ultraviolet 615|BUV661=Brilliant Ultraviolet 661|BUV737=Brilliant Ultraviolet 737|BUV805=Brilliant Ultraviolet 805|Spark UV 387'],
+  ['Violet 405', 'BV421=Brilliant Violet 421|BV480=Brilliant Violet 480|BV510=Brilliant Violet 510|BV570=Brilliant Violet 570|BV605=Brilliant Violet 605|BV650=Brilliant Violet 650|BV711=Brilliant Violet 711|BV750=Brilliant Violet 750|BV785=Brilliant Violet 785|BV786=Brilliant Violet 786|Pacific Blue=PB|Pacific Orange|Pacific Green|eFluor 450=eF450|eFluor 506=eF506|Super Bright 436=SB436|Super Bright 600=SB600|Super Bright 645=SB645|Super Bright 702=SB702|Super Bright 780=SB780|V450=Horizon V450|V500=Horizon V500|V500-C|Alexa Fluor 405=AF405|Spark Violet 500|Spark Violet 538|Krome Orange|cFluor V420|cFluor V450|cFluor V547|DyLight 405|VioBlue|VioGreen|Qdot 605|Qdot 655|Qdot 705|Qdot 800'],
+  ['Blue 488', 'FITC=fluorescein|Alexa Fluor 488=AF488=A488|BB515|BB630|BB660|BB700|BB755|BB790|Spark Blue 550|Spark Blue 574|PerCP|PerCP-Cy5.5=PerCP/Cyanine5.5=PerCP Cy5.5|PerCP-eFluor 710=PerCP-eF710|PerCP-Vio700|PerCP-Fire 806|Alexa Fluor 532=AF532|DyLight 488|VioBright FITC|VioBright 515|cFluor B515|cFluor B532|NovaFluor Blue 510|NovaFluor Blue 530|NovaFluor Blue 555|NovaFluor Blue 585|NovaFluor Blue 610|NovaFluor Blue 660|NovaFluor Blue 690|RB545|RB613|RB705|RB744|RB780|GFP|EGFP|mNeonGreen|YFP'],
+  ['', 'PE=R-PE|PE-Cy5=PE/Cyanine5=PE/Cy5|PE-Cy5.5=PE/Cyanine5.5|PE-Cy7=PE/Cyanine7=PE/Cy7|PE-CF594|PE-Dazzle 594=PE/Dazzle 594=PE Dazzle|PE-Texas Red=PE-TR|PE-eFluor 610=PE-eF610|PE-Fire 640=PE/Fire 640|PE-Fire 700=PE/Fire 700|PE-Fire 744=PE/Fire 744|PE-Fire 780=PE/Fire 780|PE-Fire 810=PE/Fire 810|PE-Vio770|PE-Vio615|PE-Alexa Fluor 610|PE-Alexa Fluor 700|Alexa Fluor 555=AF555|Alexa Fluor 568=AF568|Alexa Fluor 594=AF594|Texas Red|Cy3|Cy3.5|DyLight 550|DyLight 594|Spark YG 570|Spark YG 581|Spark YG 593|cFluor YG584|RY586|RY610|RY703|RY775|BYG584|tdTomato|mCherry|RFP|DsRed|mKate2|mScarlet'],
+  ['Red 640', 'APC|APC-Cy7=APC/Cyanine7=APC/Cy7|APC-H7|APC-Fire 750=APC/Fire 750|APC-Fire 810=APC/Fire 810|APC-R700|APC-eFluor 780=APC-eF780|APC-Vio770|APC-Alexa Fluor 750|APC-Cy5.5|Alexa Fluor 647=AF647=A647|Alexa Fluor 660=AF660|Alexa Fluor 680=AF680|Alexa Fluor 700=AF700|eFluor 660=eF660|Cy5|Cy5.5|Cy7|DyLight 649|DyLight 650|Spark NIR 685|Spark Red 718|NovaFluor Red 660|NovaFluor Red 685|NovaFluor Red 700|NovaFluor Red 710|NovaFluor Red 720|NovaFluor Red 787|Vio667|R718|iFluor 647|CF647|iRFP'],
+  ['Near-IR 808', 'Alexa Fluor 790=AF790|IRDye 800CW|IRDye 800|IRDye 680RD|IRDye 680'],
+];
+const GUESS_FLUORESCENT_PROTEINS = new Set(['gfp', 'egfp', 'mneongreen', 'yfp', 'tdtomato', 'mcherry', 'rfp', 'dsred', 'mkate2', 'mscarlet', 'irfp']);
+const GUESS_CONJUGATES = 'HRP|horseradish peroxidase|AP|biotin|biotinylated|digoxigenin|DIG|Ultra-LEAF|LEAF';
+
+const GUESS_TARGETS = 'GFP|EGFP|YFP|RFP|mCherry|tdTomato|HLA-DR|HLA-A2|HLA-ABC|HLA-E|HLA-G|MHC I|MHC II|MHCII|MHC class I|MHC class II|I-A/I-E|IA/IE|H-2Kb|H-2Db|H-2Kd|TCRb|TCRβ|TCR beta|TCRab|TCRαβ|TCRgd|TCRγδ|TCR Vβ|Vα2|Vα7.2|Vβ5|Vδ1|Vδ2|Vγ9|CCR2|CCR4|CCR5|CCR6|CCR7|CCR9|CCR10|CXCR3|CXCR4|CXCR5|CXCR6|CX3CR1|PD-1|PD-L1|PD-L2|CTLA-4|LAG-3|TIM-3|TIGIT|2B4|ICOS|OX40|4-1BB|GITR|KLRG1|NKG2D|NKG2A|NKG2C|NKp30|NKp44|NKp46|NK1.1|DX5|Ly6C|Ly-6C|Ly6G|Ly-6G|Ly6A/E|Gr-1|F4/80|B220|Sca-1|c-Kit|Thy1.1|Thy1.2|Thy-1|IgD|IgM|IgG|IgA|IgE|FcεRI|FceRIa|FoxP3|T-bet|GATA3|GATA-3|RORγt|RORgt|Eomes|TCF1|TCF-1|TCF7|TOX|Bcl-6|Bcl-2|Blimp-1|IRF4|IRF8|PU.1|Ki-67|Ki67|Helios|Granzyme B|GzmB|Granzyme A|Granzyme K|Perforin|Granulysin|EpCAM|E-cadherin|N-cadherin|vimentin|pan-cytokeratin|cytokeratin|CK19|CK8|β-actin|beta-actin|actin|GAPDH|tubulin|α-tubulin|β-tubulin|β-III tubulin|vinculin|lamin B1|histone H3|H3|H3K27me3|H3K4me3|H3K27ac|H3K9me3|γH2AX|gH2AX|p53|p21|p16|caspase-3|cleaved caspase-3|PARP|cleaved PARP|LC3B|LC3|p62|SQSTM1|mTOR|AKT|pAKT|p-AKT|ERK|pERK|p-ERK|ERK1/2|STAT1|STAT3|STAT5|STAT6|pSTAT1|pSTAT3|pSTAT5|pSTAT6|S6|pS6|NF-κB|NF-kB|p65|IκBα|Myc|c-Myc|MYC|GFP tag|FLAG|HA|HA tag|His tag|6xHis|V5|Myc tag|Strep-tag|GST|Ig kappa|Igκ|Ig lambda|Igλ|CD45.1|CD45.2|Ter119|TER-119|Siglec-F|SiglecF|Siglec-H|MerTK|XCR1|Clec9a|DEC-205|IL-7Rα|IL-7Ra|CLA|PSGL-1|Ly108|SLAMF6|SLAMF7|CD45RA|CD45RO|CD45RB|BTLA|VISTA|CD39|CD73|NRP1|Nrp1|ST2|KLRB1|MAIT|iNKT|PLZF|ROR-γt|AhR|Sox2|Oct4|Nanog|Pax6|Nestin|GFAP|NeuN|MAP2|Iba1|Olig2|MBP|Synapsin|PSD-95|Tuj1|α-SMA|alpha-SMA|SMA|CD31 PECAM|PECAM-1|VE-cadherin|vWF|LYVE-1|Podoplanin|Prox1|collagen I antibody|fibronectin antibody|E-selectin|P-selectin|ICAM-1|VCAM-1|LFA-1|VLA-4|integrin β7|α4β7|β7 integrin|Annexin A1|HMGB1|calreticulin|HSP70|HSP90|ubiquitin|K48-ubiquitin|K63-ubiquitin|phospho-tyrosine|pY|Ser473|Thr308|cyclin D1|cyclin B1|CDK4|CDK6|Rb|pRb|E2F1|Survivin|BAX|BAK|BIM|Mcl-1|XIAP|Caspase-8|Caspase-9|RIPK1|RIPK3|MLKL|pMLKL|NLRP3|ASC|Gasdermin D|GSDMD|IL-1β|pro-IL-1β|cGAS|STING|IRF3|pIRF3|TBK1|pTBK1|MAVS|RIG-I|MDA5|TLR4|TLR7|TLR9|MyD88|TRIF|PD1|PDL1|CTLA4|LAG3|TIM3|Tim-3|41BB|OX-40';
+const GUESS_CYTOKINES = 'IFN-α|IFN-alpha|IFNa|IFN-β|IFN-beta|IFNb|IFN-γ|IFN-gamma|IFNg|IFNγ|interferon gamma|interferon alpha|interferon beta|IFN-λ|IFN-lambda|TNF|TNF-α|TNFa|TNF-alpha|TNFα|LT-α|lymphotoxin|TGF-β|TGF-β1|TGFb|TGFb1|TGF-beta|TGF-beta1|GM-CSF|M-CSF|G-CSF|Flt3L|Flt3 ligand|FLT3L|SCF|stem cell factor|TPO|thrombopoietin|EPO|erythropoietin|EGF|FGF|bFGF|FGF2|FGF-2|FGF4|FGF7|FGF10|KGF|VEGF|VEGF-A|VEGF165|PDGF|PDGF-BB|PDGF-AA|HGF|IGF-1|IGF-I|IGF-2|BMP2|BMP-2|BMP4|BMP-4|BMP7|Wnt3a|Wnt-3a|Activin A|Noggin|R-spondin|R-spondin 1|Rspo1|RSPO1|Nodal|Shh|SHH|sonic hedgehog|BDNF|GDNF|NGF|NT-3|CNTF|LIF|oncostatin M|OSM|CXCL1|CXCL2|CXCL8|CXCL9|CXCL10|CXCL12|CXCL13|SDF-1|SDF-1α|CCL2|CCL3|CCL4|CCL5|RANTES|CCL17|CCL19|CCL20|CCL21|CCL22|MCP-1|MIP-1α|MIP-1β|IP-10|RANKL|TRAIL|FasL|BAFF|APRIL|TSLP|IL-33 |GDF15|Midkine|angiopoietin|Ang-1|Ang-2|DLL1|DLL4|Jagged-1|Jagged1|SLIT2|Netrin-1|Semaphorin 3A|Sema3A|ephrin-B2|Gas6|VEGF-C|PlGF|amphiregulin|AREG|heregulin|neuregulin|NRG1|TWEAK|LIGHT|IL-1RA|IL1RA|IL-2 complex|IL-15/IL-15Rα|IL-15 superagonist';
+
+const GUESS_VENDORS = 'Thermo Fisher=Thermo=ThermoFisher=Thermo Fisher Scientific=Thermo Scientific|Invitrogen|Gibco|Life Technologies|Applied Biosystems|Molecular Probes|eBioscience|Pierce|Nunc|Ambion|BioLegend|BD=BD Biosciences=Becton Dickinson|BD Pharmingen=Pharmingen|BD Horizon|Sigma=Sigma-Aldrich|Millipore=MilliporeSigma=Merck=Merck Millipore=EMD Millipore|Corning|Falcon|Costar|Promega|Qiagen|QIAGEN|NEB=New England Biolabs|Bio-Rad=BioRad|Abcam|Cell Signaling=Cell Signaling Technology=CST|R&D Systems=R&D=R and D Systems|Bio-Techne|PeproTech|Miltenyi=Miltenyi Biotec|STEMCELL=STEMCELL Technologies=StemCell|Takara=Takara Bio|Clontech|Lonza|ATCC|Addgene|IDT=Integrated DNA Technologies|Eurofins|GenScript|Twist Bioscience=Twist|Agilent|Beckman Coulter=Beckman|Sartorius|Eppendorf|Greiner=Greiner Bio-One|Sarstedt|VWR|Avantor|Fisher=Fisher Scientific|Roche|Illumina|10x Genomics|Enzo|Enzo Life Sciences|Cayman=Cayman Chemical|Selleck=Selleckchem=Selleck Chemicals|MedChemExpress=MCE|Tocris|InvivoGen|Biotium|Cytiva|GE Healthcare|Bethyl|Proteintech|Novus=Novus Biologicals|Leinco|Bio X Cell=BioXCell|Sino Biological|ACROBiosystems=Acro|Akoya|Standard BioTools=Fluidigm|Sony|Zeiss|Leica|Nikon|Olympus|Evident|Cytek|Tonbo|Santa Cruz=Santa Cruz Biotechnology=SCBT|Jackson ImmunoResearch=Jackson|Vector Laboratories=Vector Labs|Rockland|Southern Biotech=SouthernBiotech|Biosearch Technologies|Horizon Discovery|Dharmacon|Synthego|Origene=OriGene|VectorBuilder|Charles River|Jackson Laboratory=The Jackson Laboratory=JAX|Taconic|Envigo|Inotiv|Zymo Research|Lucigen|Kapa Biosystems|Meso Scale Discovery|Quanterix|Olink Proteomics|PerkinElmer=Revvity|Tecan|BioTek|Molecular Devices|Hamilton|Opentrons|Labcyte|Rainin|Gilson|Mettler Toledo|Nalgene|Ibidi|Matek|Electron Microscopy Sciences=EMS|Ted Pella|Polysciences|Alfa Aesar|TCI|Acros|Spectrum Chemical|Biowest|HyClone|Atlas Biologicals|Gemini Bio=GeminiBio|Wisent|Capricorn|PAN-Biotech|Irvine Scientific|Biological Industries|Sartorius Stedim|Pall|Millex|Whatman|GE Whatman|Thermo Nunc|Ibidi GmbH|MatTek|Celltreat|TPP|Biofil|Axygen|USA Scientific|Bioline|Meridian Bioscience|Quantabio|Vazyme|Yeasen|Abclonal=ABclonal|Boster|Elabscience|Biossance|Biogems|Absolute Antibody|Exbio|Beckman Coulter Life Sciences|Sysmex|Partec|Luminex|Bio-Techne R&D';
+
+const GUESS_KRT_HEADINGS = [
+  [/^antibodies$/i, 'ab'], [/^(bacterial and virus strains|virus strains|bacterial strains)$/i, 'bio'], [/^(biological samples)$/i, 'bio'],
+  [/^(chemicals|chemicals, peptides,? and recombinant proteins)$/i, 'chem'], [/^(critical commercial assays|commercial assays|kits)$/i, 'kits'],
+  [/^(experimental models: cell lines|cell lines)$/i, 'bio'], [/^(experimental models: organisms\/strains|organisms\/strains|organisms)$/i, 'bio'],
+  [/^(oligonucleotides|primers)$/i, 'mol'], [/^(recombinant dna|plasmids)$/i, 'mol'], [/^(software and algorithms|software)$/i, 'soft'],
+  [/^(deposited data)$/i, 'soft'], [/^(other|consumables|supplies)$/i, 'supplies'], [/^(equipment|instruments)$/i, 'equip'],
+  [/^(media|buffers|media and buffers|solutions)$/i, 'media'],
+];
+const GUESS_KRT_HEADER_ROW = /^(reagent or resource|resource|reagent)\s+(source)\b/i;
+
+const GUESS_REPOSITORIES = [
+  [/^(GSE|GSM|GPL|GDS)\d+$/i, 'GEO'], [/^(SRR|SRX|SRP|SRS|ERR|ERX|ERP|DRR)\d+$/i, 'SRA'], [/^PRJ(NA|EB|DB)\d+$/i, 'BioProject'],
+  [/^E-(MTAB|GEOD|MEXP)-\d+$/i, 'ArrayExpress'], [/^PXD\d+$/i, 'PRIDE'], [/^MSV\d+$/i, 'MassIVE'], [/^EGA[SD]\d+$/i, 'EGA'],
+  [/^phs\d+/i, 'dbGaP'], [/^FR-FCM-\w+$/i, 'FlowRepository'], [/^SDY\d+$/i, 'ImmPort'], [/^EMD-\d+$/i, 'EMDB'],
+  [/^10\.\d{4,}\/\S+$/, 'DOI'], [/^\d[A-Za-z0-9]{3}$/, 'PDB'],
+];
+
+const guessIndex = (() => {
+  const lex = new Map();
+  for (const [group, type, values, names] of GUESS_LEXICON) {
+    const { generic, ...rest } = values;
+    for (const name of names.split('|')) {
+      const key = normKey(name);
+      if (key && !lex.has(key)) lex.set(key, { group, type, values: rest, generic: !!generic });
+    }
+  }
+  const fluors = new Map();
+  for (const [laser, names] of GUESS_FLUORS) for (const chain of names.split('|')) {
+    const aliases = chain.split('=').map(s => s.trim()).filter(s => s && !s.includes('?'));
+    const protein = GUESS_FLUORESCENT_PROTEINS.has(normKey(aliases[0]));
+    for (const alias of aliases) fluors.set(normKey(alias), { name: aliases[0], laser, protein });
+  }
+  const conjugates = new Map(GUESS_CONJUGATES.split('|').map(n => [normKey(n), n]));
+  const targets = new Map(GUESS_TARGETS.split('|').map(n => [normKey(n), { cytokine: false }]));
+  for (const n of GUESS_CYTOKINES.split('|')) targets.set(normKey(n), { cytokine: true });
+  const vendors = new Map();
+  for (const chain of GUESS_VENDORS.split('|')) {
+    const aliases = chain.split('=');
+    for (const alias of aliases) vendors.set(normKey(alias), aliases[0]);
+  }
+  return { lex, fluors, conjugates, targets, vendors };
+})();
+
+const isTargetKey = key => /^cd\d{1,3}[a-z]{0,2}$/.test(key) || /^il\d{1,2}[a-z0-9]{0,3}$/.test(key) || guessIndex.targets.has(key);
+const isCytokineKey = key => /^il\d{1,2}[a-z0-9]{0,3}$/.test(key) || guessIndex.targets.get(key)?.cytokine === true;
+const CYTOKINE_SPECIES_PREFIX = /^(rh|rm|h|m)(?=il\d|ifn|tnf|gmcsf|mcsf|gcsf|tgf|flt3|scf|egf|fgf|vegf|bmp|tpo|epo)/;
+
+function guessTokens(text) {
+  return text.split(/[\s,;()[\]]+/).flatMap(t => t.split(/^(SA|streptavidin|anti|α)-(?=[A-Z])/i).filter(Boolean)).filter(Boolean).map(t => ({ text: t, key: normKey(t) })).filter(t => t.key);
+}
+
+function findMatches(tokens, lookup, used = new Set(), maxLen = 7) {
+  const found = [];
+  for (let n = Math.min(maxLen, tokens.length); n >= 1; n--) {
+    for (let i = 0; i + n <= tokens.length; i++) {
+      const span = tokens.slice(i, i + n);
+      if (span.some((t, k) => used.has(i + k) || !t.key)) continue;
+      const key = span.map(t => t.key).join('');
+      const hit = key && lookup(key);
+      if (!hit) continue;
+      for (let k = 0; k < n; k++) used.add(i + k);
+      found.push({ start: i, n, hit, text: span.map(t => t.text).join(' ') });
+    }
+  }
+  return found.sort((a, b) => a.start - b.start);
+}
+
+const UNIT_ALIASES = { um: 'µM', 'μm': 'µM', 'µm': 'µM', 'ug/ml': 'µg/mL', 'μg/ml': 'µg/mL', 'µg/ml': 'µg/mL', 'mg/ml': 'mg/mL', 'ng/ml': 'ng/mL', 'pg/ml': 'pg/mL', mm: 'mM', nm: 'nM', pm: 'pM', m: 'M', '%': '%', x: 'x', '×': 'x', 'u/ml': 'U/mL', 'iu/ml': 'IU/mL', ul: 'µL', 'µl': 'µL', 'μl': 'µL' };
+const AMOUNT_RE = /(?:^|\s)(\d+(?:\.\d+)?)\s*(mM|[uµμ]M|nM|pM|M|mg\/m[lL]|[uµμ]g\/m[lL]|ng\/m[lL]|pg\/m[lL]|I?U\/m[lL]|%|[x×])(?=$|[\s,;)])/;
+const DILUTION_RE = /(?:^|\s)1\s*:\s*(\d[\d,]*)(?=$|[\s,;)])/;
+const PER_TEST_RE = /(?:^|\s)(\d+(?:\.\d+)?)\s*([uµμ][lL])\s*(?:\/|per)\s*(?:test|sample|10\^?6 cells|well)/i;
+const CATALOG_RE = /(?:\bcat(?:alog)?\.?\s*(?:no\.?|#|number)?\s*:?\s*([A-Za-z0-9][\w.\-/]{2,})|#\s*([A-Za-z0-9][\w.\-/]{3,}))/i;
+const RRID_RE = /\bRRID\s*:\s*([A-Za-z]+_[\w-]+)/i;
+const LOT_RE = /\blot\s*(?:#|no\.?)?\s*:?\s*([A-Za-z0-9][\w-]{2,})/i;
+
+function extractAmount(text) {
+  let m = text.match(DILUTION_RE);
+  if (m) return { amount: { value: m[1].replace(/,/g, ''), unit: '1:N' }, text: text.replace(m[0], ' ') };
+  m = text.match(PER_TEST_RE);
+  if (m) return { amount: { value: m[1], unit: 'µL' }, text: text.replace(m[0], ' ') };
+  m = text.match(AMOUNT_RE);
+  if (m) return { amount: { value: m[1], unit: UNIT_ALIASES[m[2].toLowerCase()] ?? m[2] }, text: text.replace(m[0], ' ') };
+  return { amount: null, text };
+}
+
+const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const removeWords = (text, words) => text.replace(new RegExp(words.map(escapeRe).join('[\\s,;()\\[\\]-]*'), 'i'), ' ').replace(/\s+([,;])/g, '$1').replace(/,\s*,/g, ',');
+const listWords = words => (words.length < 2 ? words.join('') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`);
+const titleCase = s => s.replace(/\b\w/g, c => c.toUpperCase());
+const pickFirst = (text, pairs) => pairs.find(([re]) => re.test(text))?.[1];
+
+function supplyShape(raw) {
+  const t = raw.toLowerCase();
+  const sterile = /non[-\s]?sterile/.test(t) ? 'No' : /\bsterile\b/.test(t) ? 'Yes' : undefined;
+  const volume = t.match(/(\d+(?:\.\d+)?)\s*(ml|µl|ul|μl)\b/);
+  const vol = volume ? `${volume[1]} ${volume[2].startsWith('m') ? 'mL' : 'µL'}` : undefined;
+  if (/\bgel\b/.test(t) && !/gel ?doc|gel ?box|gel ?imager|gel ?stain|loading|geltrex|gelred|gelgreen/.test(t) && /%|precast|bis-?tris|tris-?glycine|tris-?acetate|tricine|polyacrylamide|sds-?page|agarose gel|criterion|nupage|tgx/.test(t)) {
+    const pct = raw.match(/(\d+(?:\.\d+)?(?:\s*[-–]\s*\d+)?)\s*%/);
+    const wells = t.match(/(\d+)[-\s]?wells?/);
+    return { type: 'Gel', match: 'gel', values: { percentage: pct ? `${pct[1].replace(/\s/g, '')}%` : undefined, wells: wells?.[1], chemistry: pickFirst(t, [[/bis-?tris/, 'Bis-Tris'], [/tris-?glycine|tgx/, 'Tris-glycine'], [/tris-?acetate/, 'Tris-acetate'], [/tricine/, 'Tricine'], [/agarose/, 'Agarose']]) } };
+  }
+  if (/\btips?\b/.test(t) && !/tip ?box ?rack/.test(t)) {
+    return { type: 'Tips', match: 'tips', values: { volume: vol, filtered: /filter|barrier/.test(t) ? 'Yes' : undefined, 'low-retention': /low[-\s]?retention/.test(t) ? 'Yes' : undefined } };
+  }
+  const wellsMatch = t.match(/\b(6|12|24|48|96|384|1536)[-\s]?well\b/);
+  const plateWord = /\b(plates?|microplates?|maxisorp)\b(?!\s*(reader|washer|seal|sealer|shaker|centrifuge|handler|imager|rotor))/.test(t) && !/\b(hot|stir|heating)\s+plate/.test(t);
+  if (wellsMatch || plateWord) {
+    return { type: 'Plate', match: wellsMatch ? wellsMatch[0] : 'plate', values: {
+      format: wellsMatch ? `${wellsMatch[1]}-well` : undefined,
+      surface: pickFirst(t, [[/tc[-\s]?treated|tissue[-\s]culture[-\s]treated|cell culture[-\s]treated/, 'TC-treated'], [/high[-\s]?binding|maxisorp|medisorp|immuno ?plate|elisa plate|immulon/, 'High-binding'], [/low[-\s]?(binding|attachment)|ultra[-\s]?low|\bula\b|nunclon sphera|lobind/, 'Low-binding'], [/non[-\s]?treated|untreated|non[-\s]?tc/, 'Untreated']]),
+      color: pickFirst(t, [[/\bwhite\b/, 'White'], [/\bblack\b/, 'Black'], [/\bclear\b|transparent/, 'Clear']]),
+      bottom: pickFirst(t, [[/\bv[-\s]?bottom/, 'V'], [/\b(u|round)[-\s]?bottom/, 'Round'], [/\bflat[-\s]?bottom|\bflat\b/, 'Flat']]),
+      sterile,
+    } };
+  }
+  if (/\bt-?(25|75|150|162|175|182|225)\b/.test(t) || /\bflasks?\b(?!.*erlenmeyer)/.test(t) && !/erlenmeyer|spinner/.test(t) || /\b(dish|dishes|petri)\b/.test(t) && !/glass[-\s]bottom/.test(t)) {
+    const flask = t.match(/\bt-?(25|75|150|162|175|182|225)\b/);
+    const dish = raw.match(/(\d+)\s*(cm|mm)\b/i);
+    return { type: 'Flask or dish', match: flask ? flask[0] : (t.match(/flask|dish|petri/) ?? ['flask'])[0], values: {
+      size: flask ? `T${flask[1]}` : dish ? `${dish[1]} ${dish[2].toLowerCase()}` : undefined,
+      surface: pickFirst(t, [[/tc[-\s]?treated|tissue[-\s]culture/, 'TC-treated'], [/ultra[-\s]?low|low[-\s]?attachment/, 'Ultra-low attachment'], [/suspension/, 'Suspension']]),
+      vented: /vent(ed)?|filter[-\s]?cap/.test(t) ? 'Yes' : /plug[-\s]?seal|non[-\s]?vented/.test(t) ? 'No' : undefined,
+    } };
+  }
+  if (/\b(tubes?|conicals?|cryovials?|cryotubes?|microtubes?|eppendorfs?|falcons?|vials?)\b(?!\s*(rotator|rack|roller|holder|opener))/.test(t) && !/vacutainer|blood collection|edta tube|heparin tube|lysis tube|bead/.test(t)) {
+    return { type: 'Tube', match: (t.match(/tubes?|conicals?|cryovials?|cryotubes?|microtubes?|eppendorfs?|falcons?|vials?/) ?? ['tube'])[0], values: {
+      volume: vol,
+      material: pickFirst(t, [[/polypropylene|\bpp\b/, 'Polypropylene'], [/polystyrene|\bps\b/, 'Polystyrene'], [/glass/, 'Glass']]),
+      'low-binding': /low[-\s]?(binding|bind|retention)|lobind/.test(t) ? 'Yes' : undefined,
+      sterile,
+    } };
+  }
+  if (/strainer|syringe filter|filter unit|steriflip|steritop|bottle[-\s]top filter|vacuum filter|\bfilters?\b/.test(t) && !/filter[-\s]?(tips?|cap|paper)/.test(t) && !/centrifugal filter|amicon/.test(t)) {
+    const pore = raw.match(/(\d+(?:\.\d+)?)\s*(µm|um|μm|micron)/i);
+    return { type: 'Filter', match: (t.match(/strainer|steriflip|steritop|filter/) ?? ['filter'])[0], values: {
+      'pore-size': pore ? `${pore[1]} µm` : undefined,
+      membrane: pickFirst(t, [[/\bpes\b|polyethersulfone/, 'PES'], [/\bpvdf\b/, 'PVDF'], [/nylon/, 'Nylon'], [/cellulose acetate|\bsfca\b/, 'Cellulose acetate'], [/\bptfe\b/, 'PTFE']]),
+      format: pickFirst(t, [[/strainer/, 'Cell strainer'], [/syringe/, 'Syringe filter'], [/steriflip|steritop|bottle[-\s]top|vacuum/, 'Vacuum filter unit']]),
+    } };
+  }
+  if (/\b(slides?|coverslips?|cover ?slips?|cover ?glass)\b/.test(t) && !/countess slides|chamber slide|lab-?tek|µ-slide|ibidi/.test(t)) {
+    return { type: 'Slide or coverslip', match: (t.match(/coverslips?|cover ?slips?|cover ?glass|slides?/) ?? ['slide'])[0], values: {
+      size: (raw.match(/(\d+)\s*(mm|x\s*\d+\s*mm)/i) ?? [])[0],
+      coating: pickFirst(t, [[/poly-?l-?lysine|\bpll\b/, 'Poly-L-lysine'], [/superfrost|charged|plus/, 'Charged (Superfrost Plus)'], [/gelatin/, 'Gelatin']]),
+      thickness: /#\s*1\.5|no\.?\s*1\.5|0\.17/.test(t) ? '#1.5' : /#\s*1\b|no\.?\s*1\b/.test(t) ? '#1' : undefined,
+    } };
+  }
+  if (/\b(pvdf|nitrocellulose)\b/.test(t) && !/filter/.test(t)) {
+    const pore = raw.match(/(\d+(?:\.\d+)?)\s*(µm|um|μm)/i);
+    return { type: 'Membrane', match: t.match(/pvdf|nitrocellulose/)[0], values: { 'membrane-type': /pvdf/.test(t) ? 'PVDF' : 'Nitrocellulose', 'pore-size': pore ? `${pore[1]} µm` : undefined } };
+  }
+  if (/\b(columns?|cartridges?)\b/.test(t) && !/desalting|zeba|spin column|chromatography system/.test(t)) {
+    return { type: 'Column or cartridge', match: (t.match(/columns?|cartridges?/))[0], values: { chemistry: pickFirst(t, [[/\bls\b|\bms\b|\bld\b|macs/, 'MACS magnetic'], [/ni-?nta|his/, 'Ni-NTA'], [/c18/, 'C18'], [/size exclusion|superdex|superose/, 'Size exclusion'], [/ion exchange|q sepharose|sp sepharose|mono ?q|mono ?s/, 'Ion exchange'], [/protein a|protein g/, 'Protein A/G']]) } };
+  }
+  return null;
+}
+
+const GUESS_KEYWORDS = [
+  [/\bkits?\b/i, 'kits', 'Commercial kit'],
+  [/\b(assay|isolation|microbeads|enrichment)\b/i, 'kits', 'Commercial kit'],
+  [/\b(standards?|calibrators?)\b/i, 'chem', 'Standard or calibrator'],
+  [/\b(fix(ation|ative)?|perm(eabilization)?)\b/i, 'media', 'Fix or perm'],
+  [/\b(mounting|mountant|antifade)\b/i, 'media', 'Mounting medium'],
+  [/\b(buffer|solution|wash|diluent|blocking|block)\b/i, 'media', 'Buffer'],
+  [/\b(medium|media|broth)\b/i, 'media', 'Medium'],
+  [/\bstock\b/i, 'media', 'Stock solution'],
+  [/\b(primers?|oligos?|fwd|rev|forward|reverse)\b|[_-](f|r|fw|rv|fwd)$/i, 'mol', 'Oligo or primer'],
+  [/\bprobes?\b/i, 'mol', 'Probe'],
+  [/\b(si|sh|sg|g|cr)rnas?\b|\b(si|sh|sg)[A-Z0-9][\w-]*/, 'mol', 'siRNA or guide RNA'],
+  [/\b(plasmids?|vectors?|constructs?)\b/i, 'mol', 'Plasmid'],
+  [/^p(cDNA|[A-Z])[A-Za-z0-9.()+-]{2,}/, 'mol', 'Plasmid', 'reads as a plasmid name'],
+  [/\b(master ?mix|supermix|ready ?mix)\b/i, 'mol', 'Master mix'],
+  [/\b(ladder)\b/i, 'mol', 'Ladder or marker'],
+  [/\bpeptides?\b/i, 'chem', 'Peptide'],
+  [/\b(inhibitors?|antagonists?|agonists?|blockers?|drugs?|compounds?)\b|\w(inib|tinib|ciclib|parib|rafenib|lisib|tuzumab|zomib|limus)\b/i, 'chem', 'Drug or inhibitor'],
+  [/\b(antibiotics?)\b|\w(mycin|micin|cillin|floxacin)\b/i, 'chem', 'Antibiotic or selection agent'],
+  [/\b(transfection|transduction)\b/i, 'chem', 'Transfection reagent'],
+  [/\b(stimulation|stimulant|activator|adjuvant)\b/i, 'chem', 'Stimulant or activator'],
+  [/^[A-Z][a-z]{2}[A-Z0-9]{0,2}[IVX]{1,4}(-HF)?$/, 'chem', 'Enzyme', 'reads as a restriction enzyme'],
+  [/\w{3,}ases?\b/i, 'chem', 'Enzyme'],
+  [/\b(recombinant|cytokines?|growth factors?|chemokines?)\b/i, 'chem', 'Recombinant protein or cytokine'],
+  [/\b(organoids?|spheroids?)\b/i, 'bio', 'Organoid or 3D culture'],
+  [/\b(cell lines?|clone \d+|knockout line|reporter line)\b/i, 'bio', 'Cell line'],
+  [/\b(cells|splenocytes|thymocytes|lymphocytes|leukocytes|blasts)\b/i, 'bio', 'Primary cells'],
+  [/(-\/-|−\/−|\+\/-|fl\/fl|\bcre\b|cre[-\s]?ert|\bko\b|knock-?out|knock-?in|transgenic|littermates|\bmice\b|\bmouse strain\b|\brats\b)/i, 'bio', 'Organism'],
+  [/\b(virus|viral|lenti\w*|aav\w*|adeno\w*|retro\w*|phage|pseudovirus|vlps?)\b/i, 'bio', 'Virus or vector'],
+  [/\b(serum|plasma|blood|csf|urine|saliva|sputum|stool|lavage)\b/i, 'bio', 'Blood or body fluid'],
+  [/\b(tissue|biopsy|biopsies|tumou?rs?|sections?|ffpe|explants?|resection)\b/i, 'bio', 'Tissue'],
+  [/\b(lysates?|extracts?)\b/i, 'bio', 'Protein sample'],
+  [/\b(rna|cdna|gdna|dna)\b/i, 'bio', 'Nucleic acid sample'],
+  [/\b(beads?)\b/i, 'ab', 'Beads'],
+  [/\b(dyes?|stains?|tracker|probe dye)\b/i, 'ab', 'Stain or dye'],
+  [/\b(antibody|antibodies|mab|igg|polyclonal|monoclonal|isotype)\b/i, 'ab', 'Antibody'],
+  [/\b(extract|peptone|tryptone|powder|salt|acid)\b/i, 'chem', 'Chemical'],
+  [/\b(software|app|package|pipeline|script|template)\b/i, 'soft', 'Software'],
+  [/\b(dataset|data set|accession|repository)\b/i, 'soft', 'Dataset'],
+  [/\w(meter|scope|cytometer|counter|centrifuge|incubator|reader|cycler|sequencer|imager|sonicator|shaker|cabinet|hood|bath|freezer|fridge|refrigerator|balance|autoclave|pump|robot|analy[sz]er|system|instrument|machine|station|separator|washer)\b/i, 'equip', 'Instrument'],
+  [/\b(pipettes?|reservoirs?|syringes?|needles?|gloves|cuvettes?|scrapers?|consumables?)\b/i, 'supplies', 'Other'],
+];
+
+const GUESS_DECISIVE_KEYWORD_TYPES = new Set(['Oligo or primer', 'Probe', 'siRNA or guide RNA', 'Plasmid', 'Master mix', 'Ladder or marker', 'Standard or calibrator', 'Commercial kit']);
+const GUESS_STOP = new Set(['anti', 'antibody', 'antibodies', 'ab', 'mab', 'monoclonal', 'polyclonal', 'purified', 'unconjugated', 'conjugated', 'clone', 'human', 'mouse', 'rat', 'rabbit', 'goat', 'donkey', 'hamster', 'armenian', 'chicken', 'sheep', 'rhesus', 'primate', 'hu', 'ms', 'leaf', 'totalseq', 'ultraleaf', 'functional', 'grade', 'invivomab', 'biotin', 'biotinylated', 'hrp', 'isotype', 'control', 'ctrl', 'recombinant', 'rea', 'for', 'flow', 'ihc', 'wb', 'if', 'facs', 'cytometry', 'and', 'with', 'the', 'of', 'in', 'to', 'per', 'test', 'capture', 'detection', 'primary', 'secondary', 'reactive', 'reactivity', 'host', 'igg', 'igg1', 'igg2a', 'igg2b', 'igg2c', 'igg3', 'igm', 'kappa', 'k', 'lambda', 'totalseq', 'cite', 'seq', 'staining', 'stain', 'surface', 'intracellular', 'nuclear']);
+
+const SPECIES_WORDS = [[/\b(anti-?|α-?)?(human|hu|h)\b/i, 'Human'], [/\b(anti-?|α-?)?(mouse|murine|ms)\b/i, 'Mouse'], [/\b(anti-?|α-?)?(rat)\b/i, 'Rat'], [/\b(non-human primate|nhp|rhesus|cynomolgus|monkey)\b/i, 'Non-human primate']];
+const HOST_RE = /\b(mouse|rat|rabbit|goat|donkey|armenian hamster|syrian hamster|hamster|chicken|sheep|llama|alpaca|guinea pig|horse)\s+(anti|α|monoclonal|polyclonal|mab|igg|recombinant)/i;
+const SECONDARY_RE = /\banti-?\s*(mouse|rabbit|rat|goat|human|chicken|donkey|hamster|armenian hamster|sheep|guinea pig|llama)\s*(ig[gmay]?\d?\w?|igg\s*\(h\s*\+\s*l\)|\(h\s*\+\s*l\)|h\s*\+\s*l|fc|f\(ab'?\)2|kappa|lambda)/i;
+const SECONDARY_SPECIES_ONLY_RE = /\banti-?\s*(mouse|rabbit|rat|goat|chicken|donkey|armenian hamster|hamster|sheep|guinea pig|llama)\b()/i;
+const ISOTYPE_RE = /\b(ig[gmade])\s*(\d[a-c]?)?\s*,?\s*(κ|kappa|λ|lambda)?/i;
+const DNA_RE = /^(?:5'\s*-?\s*)?([ACGTUNRYKMSWBDHVI\s/*\-[\]]{12,})(?:\s*-?\s*3')?$/i;
+const PEPTIDE_RE = /^[ACDEFGHIKLMNPQRSTVWY]{7,40}$/;
+
+const GUESS_VENDOR_NAMES = GUESS_VENDORS.split('|').map(chain => chain.split('=')[0]);
+const GUESS_CONJUGATE_NAMES = [...GUESS_FLUORS.flatMap(([, names]) => names.split('|').map(chain => chain.split('=')[0].trim())).filter(n => !GUESS_FLUORESCENT_PROTEINS.has(normKey(n))), 'HRP', 'Biotin', 'AP'];
+
+function guessMaterial(raw, remembered = new Map(), context = {}) {
+  const guess = guessFromText(raw, context);
+  const memory = remembered.get(normKey(guess.name)) ?? remembered.get(normKey(raw));
+  if (!memory || (memory.group === guess.group && memory.type === guess.type)) return guess;
+  return { ...guess, group: memory.group, type: memory.type, why: memory.why ?? 'you filed it this way before', source: 'yours' };
+}
+
+function guessFromText(raw, { groupHint, vendor, identifier } = {}) {
+  let text = String(raw).replace(/\t+/g, ' ').replace(/\s+/g, ' ').trim();
+  const values = {};
+  if (vendor) values.vendor = vendor;
+  if (identifier) {
+    const id = identifier.match(RRID_RE);
+    if (id) values.rrid = id[1];
+    const cat = identifier.match(CATALOG_RE) ?? identifier.replace(RRID_RE, '').match(/^\s*([A-Za-z0-9][\w.\-/]{2,})\s*;?\s*$/);
+    if (cat) values.catalog = cat[1] ?? cat[2];
+  }
+  const rrid = text.match(RRID_RE);
+  if (rrid) { values.rrid = rrid[1]; text = text.replace(rrid[0], ' '); }
+  const catalog = text.match(CATALOG_RE);
+  if (catalog) { values.catalog = catalog[1] ?? catalog[2]; text = text.replace(catalog[0], ' '); }
+  const lot = text.match(LOT_RE);
+  if (lot) text = text.replace(lot[0], ' ');
+
+  const fullTokens = guessTokens(text);
+  const insideKnownNames = new Set();
+  findMatches(fullTokens, key => guessIndex.lex.get(key), insideKnownNames);
+  const vendorHit = findMatches(fullTokens, key => guessIndex.vendors.get(key), new Set(), 4).find(h => h.n < fullTokens.length);
+  if (vendorHit) {
+    values.vendor ??= vendorHit.hit;
+    const partOfKnownName = Array.from({ length: vendorHit.n }, (_, k) => vendorHit.start + k).some(i => insideKnownNames.has(i));
+    const after = vendorHit.start + vendorHit.n;
+    const catalogAfterVendor = !values.catalog && /^[A-Za-z]{0,4}-?\d{3,}[\w.-]*$/.test(fullTokens[after]?.text ?? '') && !/^\d+(\.\d+)?$/.test(fullTokens[after].text) || /^\d{5,}$/.test(fullTokens[after]?.text ?? '');
+    if (catalogAfterVendor) values.catalog = fullTokens[after].text;
+    const dropUntil = catalogAfterVendor ? after + 1 : after;
+    if (!partOfKnownName) text = removeWords(text, fullTokens.slice(vendorHit.start, dropUntil).map(t => t.text));
+  }
+  text = text.replace(/\s*[|·•]\s*/g, ' ').replace(/\s+/g, ' ').replace(/^[\s,;:-]+|[\s,;:-]+$/g, '');
+
+  let name = text;
+  const done = (group, type, why, extra = {}) => ({ group, type, name: extra.name ?? name, values: { ...values, ...clean(extra.values ?? {}) }, amount: extra.amount ?? null, why, source: extra.source ?? 'list' });
+  const clean = obj => Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== ''));
+
+  const singleToken = text.split(' ').length === 1 ? text : null;
+  const accessionToken = text.split(' ').find(t => GUESS_REPOSITORIES.some(([re]) => re.test(t)) && !/^\d[A-Za-z0-9]{3}$/.test(t));
+  if (accessionToken) {
+    const repository = GUESS_REPOSITORIES.find(([re]) => re.test(accessionToken))[1];
+    return done('soft', 'Dataset', `${accessionToken} is a ${repository} ID`, { source: 'pattern', values: { repository, 'accession-number': accessionToken } });
+  }
+  const dna = text.match(DNA_RE);
+  if (dna && /[ACGTU]{10,}/i.test(dna[1].replace(/[\s\-]/g, '')) && (dna[1].replace(/[^ACGTU]/gi, '').length / dna[1].replace(/[\s\-/*[\]]/g, '').length) > 0.85) {
+    return done('mol', 'Oligo or primer', 'reads as a DNA sequence', { source: 'pattern', values: { sequence: dna[1].replace(/\s+/g, '').toUpperCase() } });
+  }
+
+  const shape = supplyShape(text);
+  if (shape) return done('supplies', shape.type, `“${shape.match}” reads as a ${shape.type.toLowerCase()}`, { source: 'pattern', values: shape.values });
+
+  const { amount, text: withoutAmount } = extractAmount(text);
+  const nameText = withoutAmount.replace(/\s+/g, ' ').trim() || text;
+  name = nameText;
+  const tokens = guessTokens(nameText);
+  const used = new Set();
+  const lexHits = findMatches(tokens, key => guessIndex.lex.get(key), used);
+  const fluorHits = findMatches(tokens, key => (guessIndex.fluors.get(key)?.protein ? null : guessIndex.fluors.get(key)), used);
+  const conjugateHits = findMatches(tokens, key => guessIndex.conjugates.get(key), used, 2);
+  const targetTokens = tokens.map(t => {
+    const stripped = t.text.replace(/^(anti|α)[-‐–]?/i, '');
+    const key = normKey(stripped).replace(CYTOKINE_SPECIES_PREFIX, '').replace(/^([hm])(?=cd\d)/, '');
+    return { text: stripped, key };
+  });
+  const targetHits = findMatches(targetTokens, key => (isTargetKey(key) ? { cytokine: isCytokineKey(key) } : null), used, 4);
+  const lexHit = [...lexHits].sort((a, b) => b.n - a.n || b.start - a.start)[0];
+  const fluor = fluorHits[0]?.hit;
+  const conjugate = conjugateHits[0]?.hit;
+  const target = targetHits[0];
+  const anti = /(^|[\s(])(anti|α)\s?-?\s?(?!anti|biotic|fade|mycotic|body|bodies|oxidant|gen)/i.test(nameText) && !/anti-anti/i.test(nameText);
+  const lowerRaw = text.toLowerCase();
+  const explicitKit = /\bkits?\b/i.test(nameText) && !(lexHit && /kit/i.test(lexHit.text));
+
+  const keyword = GUESS_KEYWORDS.find(([re]) => re.test(nameText));
+  const keywordWord = keyword ? (nameText.match(keyword[0]) ?? [''])[0].trim() : '';
+  const recombinant = () => done('chem', 'Recombinant protein or cytokine', `${target.text} is a cytokine or growth factor`, { amount, values: {
+    species: pickFirst(nameText.replace(/\b(anti|α)-?\s*\w+/gi, ''), SPECIES_WORDS) ?? (/^r?h(?=IL|IFN|TNF|GM|M-|G-|TGF|FLT|SCF|EGF|FGF|VEGF|BMP|TPO|EPO)/i.test(nameText) ? 'Human' : /^r?m(?=IL|IFN|TNF|GM|M-|G-|TGF|FLT|SCF|EGF|FGF|VEGF|BMP|TPO|EPO)/i.test(nameText) ? 'Mouse' : undefined),
+  } });
+
+  if (explicitKit) return done('kits', 'Commercial kit', '“kit” in the name', { source: 'pattern', amount });
+  const plainName = !fluor && !conjugate && !anti;
+  if (plainName && keyword && !lexHit && GUESS_DECISIVE_KEYWORD_TYPES.has(keyword[2])) return done(keyword[1], keyword[2], keyword[3] ?? `“${keywordWord}” in the name`, { source: 'pattern', amount });
+  if (plainName && target?.hit.cytokine && /\brecombinant\b|^r[hm]/i.test(nameText)) return recombinant();
+
+  if (lexHit?.hit.group === 'ab') {
+    const extra = { ...lexHit.hit.values };
+    if (fluor || conjugate) extra.conjugate = fluor?.name ?? conjugate;
+    if (lexHit.hit.type === 'Viability dye' && fluor?.laser) extra.laser = fluor.laser;
+    return done('ab', lexHit.hit.type, `${lexHit.text}: known ${lexHit.hit.type.toLowerCase()}`, { values: extra, amount });
+  }
+
+  const isotype = /\bisotype\b/i.test(nameText);
+  const secondary = nameText.match(SECONDARY_RE) ?? (!target ? nameText.match(SECONDARY_SPECIES_ONLY_RE) : null);
+  const antibodyLike = isotype || secondary || (target && (fluor || conjugate || anti || (!target.hit.cytokine && !lexHit && !GUESS_FLUORESCENT_PROTEINS.has(normKey(target.text))))) || ((fluor || anti) && !lexHit);
+  if (antibodyLike) {
+    const host = nameText.match(HOST_RE)?.[1];
+    const format = /biotin/i.test(nameText) ? 'Biotinylated' : fluor || (conjugate && !/leaf/i.test(conjugate)) ? 'Conjugated' : /purified|unconjugated|leaf|functional grade|invivomab|low endotoxin|azide[-\s]free/i.test(nameText) ? 'Purified' : undefined;
+    const conj = fluor?.name ?? (conjugate && !/leaf|biotin/i.test(conjugate) ? conjugate : undefined);
+    if (secondary) {
+      const isotypePart = secondary[2] ? ` ${secondary[2].replace(/\s+/g, '')}` : '';
+      return done('ab', 'Secondary antibody', `“${secondary[0].trim()}” marks a secondary`, { amount, values: {
+        'host-species': host && titleCase(host), 'target-species-and-isotype': `${titleCase(secondary[1])}${isotypePart}`, conjugate: conj,
+        'cross-adsorbed': /cross[-\s]?adsorbed|highly cross/i.test(nameText) ? 'Yes' : undefined,
+      } });
+    }
+    if (isotype) {
+      const iso = nameText.match(ISOTYPE_RE);
+      return done('ab', 'Isotype control', '“isotype” in the name', { amount, values: {
+        isotype: iso ? `${iso[1].replace(/^ig/i, 'Ig')}${iso[2] ?? ''}${iso[3] ? `, ${/κ|kappa/i.test(iso[3]) ? 'κ' : 'λ'}` : ''}` : undefined,
+        'host-species': host ? titleCase(host) : pickFirst(nameText, [[/\brat\b/i, 'Rat'], [/\bmouse\b/i, 'Mouse'], [/\brabbit\b/i, 'Rabbit'], [/hamster/i, 'Armenian hamster']]),
+        conjugate: conj,
+      } });
+    }
+    const consumed = new Set([...fluorHits, ...conjugateHits, ...targetHits].flatMap(h => Array.from({ length: h.n }, (_, k) => h.start + k)));
+    const cloneAfterWord = nameText.match(/\bclone\s*:?\s*([A-Za-z0-9][\w.\/-]*)/i)?.[1];
+    const clone = cloneAfterWord ?? tokens.find((t, i) => !consumed.has(i) && !GUESS_STOP.has(t.key) && /\d/.test(t.text) && (/[A-Za-z]/.test(t.text) || /^\d{1,4}[-.]\d[\w.-]*$/.test(t.text)) && t.text.length <= 14 && !/^(anti|α|totalseq)/i.test(t.text) && !/^ig/i.test(t.text))?.text;
+    const reactivity = pickFirst(nameText.replace(/\b(mouse|rat|rabbit|goat|donkey|hamster|chicken|sheep)\s+anti/ig, 'anti'), SPECIES_WORDS) ?? (/\bh(cd\d|il-?\d)/i.test(nameText) ? 'Human' : /\bm(cd\d|il-?\d)/i.test(nameText) ? 'Mouse' : undefined);
+    const why = fluor ? `${fluorHits[0].text} is a fluorochrome` : target ? `${target.text.replace(/^(anti|α)[-‐–]?/i, '')} is a ${target.hit.cytokine ? 'cytokine' : 'marker'}${anti ? ', with “anti-”' : ''}` : '“anti-” marks an antibody';
+    return done('ab', 'Antibody', why, { amount, values: {
+      target: target ? targetTokens.slice(target.start, target.start + target.n).map(t => t.text).join(' ') : undefined,
+      clone, 'host-species': host && titleCase(host), reactivity, format, conjugate: conj, laser: fluor?.laser || undefined,
+    } });
+  }
+
+  if (lexHit) {
+    const mediaHits = lexHits.filter(h => h.hit.group === 'media' || h.hit.group === 'chem');
+    if (mediaHits.length >= 2 && /\+|\bwith\b|\bin\b|\bsupplemented\b|\bcontaining\b|%/i.test(text) && lexHit.hit.type !== 'Fix or perm') {
+      return done('media', mediaHits.some(h => h.hit.type === 'Medium') ? 'Medium' : 'Buffer', `a mix of ${listWords(mediaHits.map(h => h.text))}`, { name: text, values: { recipe: text } });
+    }
+    const hit = lexHit.hit;
+    const extra = { ...hit.values };
+    if (hit.group === 'equip' && !hit.generic) extra.model = lexHit.text;
+    if (hit.group === 'equip') name = String(raw).trim();
+    if (hit.group === 'equip' && values.vendor) { extra.manufacturer = values.vendor; delete values.vendor; }
+    if (hit.group === 'soft') {
+      const version = nameText.match(/\bv?(\d+(?:\.\d+){0,3})\b/i);
+      if (version && hit.type === 'Software') extra.version = version[1];
+      if (hit.type === 'Dataset') extra.repository = lexHit.text;
+    }
+    if (hit.type === 'Medium') {
+      extra.glucose = pickFirst(lowerRaw, [[/high[-\s]?glucose|4\.5\s*g\/l/, 'High'], [/low[-\s]?glucose|1\s*g\/l/, 'Low'], [/no[-\s]?glucose|glucose[-\s]free/, 'None']]);
+      extra['phenol-red'] = /phenol[-\s]?red[-\s]?free|no phenol|without phenol/.test(lowerRaw) ? 'No' : undefined;
+      extra.glutamine = pickFirst(lowerRaw, [[/glutamax/, 'GlutaMAX'], [/no[-\s]?glutamine|without (l-)?glutamine|glutamine[-\s]free/, 'None'], [/(with |\+ ?)(l-)?glutamine/, 'L-glutamine']]);
+    }
+    if (hit.type === 'Buffer') {
+      const strength = text.match(/(\d+(?:\.\d+)?)\s*[x×]\b/i);
+      if (strength) extra.strength = `${strength[1]}×`;
+      extra['calcium-and-magnesium'] = /(without|no|w\/o|minus|-)\s*(ca|calcium)|ca\/mg[-\s]?free|calcium[-\s]?free|\(-\)\s*ca/i.test(text) ? 'Without' : /(with|w\/|\+)\s*(ca|calcium)|\(\+\)\s*ca/i.test(text) ? 'With' : undefined;
+    }
+    if (hit.type === 'Supplement') extra['heat-inactivated'] = /heat[-\s]?inactivated|\bhi[-\s]/i.test(text) ? 'Yes' : undefined;
+    if (hit.type === 'Coating or matrix') extra.matrix = lexHit.text;
+    if (hit.type === 'Mounting medium') extra.dapi = /(with|\+|w\/)\s*dapi/i.test(text) ? 'With' : /without dapi|no dapi/i.test(text) ? 'Without' : undefined;
+    if (hit.type === 'Recombinant protein or cytokine') extra.species = pickFirst(text, SPECIES_WORDS.map(([re, s]) => [re, s]));
+    if (hit.type === 'Organism' && /(-\/-|fl\/fl|\bcre\b|\bko\b|knock)/i.test(text)) extra.genotype = text.match(/\S*(-\/-|fl\/fl|cre|ko)\S*/i)?.[0];
+    if (hit.type === 'Organism' && hit.values.species === 'Mouse' && !/^(mice|mouse|mus musculus)$/i.test(lexHit.text)) extra.strain = lexHit.text;
+    if (hit.type === 'Microbial strain') {
+      const microbes = lexHits.filter(h => h.hit.type === 'Microbial strain').map(h => h.text);
+      extra.species = microbes.find(m => /^[A-Z]\.\s|^[A-Z][a-z]+ [a-z]+$|^[A-Z][a-z]+$|^yeast$/.test(m));
+      extra.strain = microbes.find(m => m !== extra.species);
+    }
+    if (hit.type === 'Virus or vector') extra['serotype-or-pseudotype'] = (text.match(/\bAAV[-\s]?(\d+|DJ|PHP\.\w+)\b/i) ?? text.match(/\bVSV-?G\b/i) ?? [])[0];
+    if (hit.type === 'Blood or body fluid') extra.anticoagulant = pickFirst(lowerRaw, [[/\bedta\b/, 'EDTA'], [/heparin/, 'Heparin'], [/citrate|acd/, 'Citrate']]);
+    if (hit.type === 'Tissue') extra.preservation = pickFirst(lowerRaw, [[/ffpe|paraffin/, 'FFPE'], [/frozen|oct|snap/, 'Frozen'], [/fresh/, 'Fresh']]);
+    if (hit.type === 'Antibiotic or selection agent' || hit.type === 'Drug or inhibitor' || hit.type === 'Recombinant protein or cytokine') extra.values = undefined;
+    if (amount && (hit.type === 'Chemical' || hit.type === 'Solvent' && amount.unit !== '%')) {
+      return done('media', 'Stock solution', `${lexHit.text} with a concentration`, { amount, values: { solvent: undefined } });
+    }
+    return done(hit.group, hit.type, `${lexHit.text}: known ${hit.type === 'Other' ? 'supply' : hit.type.toLowerCase()}`, { amount, values: extra });
+  }
+
+  if (target?.hit.cytokine) return recombinant();
+  if (keyword && !(target && keyword[2] === 'Antibody')) {
+    return done(keyword[1], keyword[2], keyword[3] ?? `“${keywordWord}” in the name`, { source: 'pattern', amount });
+  }
+  if (singleToken && PEPTIDE_RE.test(singleToken)) return done('chem', 'Peptide', 'reads as a peptide sequence', { source: 'pattern', values: { sequence: singleToken } });
+  if (singleToken && /^\d[A-Za-z][A-Za-z0-9]{2}$/.test(singleToken)) return done('soft', 'Dataset', `${singleToken} reads as a PDB ID`, { source: 'pattern', values: { repository: 'PDB', 'accession-number': singleToken } });
+  if (amount) return done('media', 'Stock solution', 'has a concentration', { source: 'pattern', amount });
+  if (groupHint) return done(groupHint, 'Other', 'from the table heading above it', { source: 'pattern' });
+  return done('unsorted', 'Other', 'not recognized', { source: 'none' });
+}
+
+function splitPastedMaterials(text) {
+  const rows = [];
+  let hint;
+  for (const line of String(text).split(/\r?\n/)) {
+    const clean = line.replace(/^\s*(\d+[.)]|[-•*·–])\s+/, '').replace(/^\s+|\s+$/g, '');
+    if (!clean || GUESS_KRT_HEADER_ROW.test(clean)) continue;
+    const heading = GUESS_KRT_HEADINGS.find(([re]) => re.test(clean.replace(/[:\t]+$/, '').trim()));
+    if (heading) { hint = heading[1]; continue; }
+    const [name, vendor, identifier] = clean.split(/\t+/).map(c => c.trim());
+    rows.push({ text: name, context: { groupHint: hint, vendor: vendor || undefined, identifier: identifier || undefined } });
+  }
+  return rows;
+}
+</script>
 <script>
 const STORAGE_KEY = 'odysseus-workbench-builder-study-v9';
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -884,7 +1441,7 @@ const listBlock = (title, layout, preset, rows, columns = LIST_PRESETS[preset].c
   });
   return { id: uid(), type: 'list', title, ...layout, named: LIST_PRESETS[preset].named, columns, items };
 };
-const shortUnit = unit => ({ '': '', 'x': '×', '1:N': '' }[unit] ?? unit);
+const shortUnit = unit => ({ '': '', 'x': '×', '1:N': '', 'N:N': '' }[unit] ?? unit);
 
 function exampleSketch() {
   const strokes = [{ kind: 'text', color: SKETCH_COLORS[1], x: 40, y: 110, text: 'std curve, 2-fold', size: 64 }];
@@ -925,6 +1482,7 @@ const material = (group, type, name, values = {}, alsoOn = []) => {
     if (unit) item.units[key] = unit;
   });
   [...Object.keys(values), ...alsoOn].forEach(key => { if (!item.on.includes(key)) item.on.push(key); });
+  showMadeHereFields(item);
   return item;
 };
 const materialsBlock = (layout, items) => ({ id: uid(), type: 'materials', title: 'Materials', ...layout, folded: [], customGroups: [], items });
@@ -977,10 +1535,10 @@ function exampleElisa() {
         material('ab', 'Streptavidin or detection conjugate', 'Streptavidin-HRP', { vendor: 'BioLegend', conjugate: 'HRP', dilution: '1000' }),
         material('chem', 'Standard or calibrator', 'IL-6 standard', { vendor: 'BioLegend' }),
         material('chem', 'Substrate or detection reagent', 'TMB substrate', { vendor: 'Thermo Fisher', detection: 'Colorimetric', 'read-wavelength': '450 nm' }),
-        material('media', 'Prepared buffer or solution', 'Coating buffer', { recipe: 'carbonate-bicarbonate', ph: '9.5' }),
-        material('media', 'Prepared buffer or solution', 'Wash buffer', { recipe: 'PBS + 0.05% Tween-20' }),
-        material('media', 'Prepared buffer or solution', 'Blocking buffer', { recipe: '1% BSA in PBS' }),
-        material('media', 'Prepared buffer or solution', 'Stop solution', { recipe: '2 N sulfuric acid' }),
+        material('media', 'Buffer', 'Coating buffer', { recipe: 'carbonate-bicarbonate', ph: '9.5' }),
+        material('media', 'Buffer', 'Wash buffer', { recipe: 'PBS + 0.05% Tween-20' }),
+        material('media', 'Buffer', 'Blocking buffer', { recipe: '1% BSA in PBS' }),
+        material('media', 'Buffer', 'Stop solution', { recipe: '2 N sulfuric acid' }),
         material('supplies', 'Plate', 'ELISA plate', { vendor: 'Corning', format: '96-well', surface: 'High-binding', color: 'Clear' }),
         material('equip', 'Instrument', 'Plate reader', { settings: 'absorbance 450 nm, reference 570 nm' }),
       ]),
@@ -1045,8 +1603,8 @@ function exampleCells() {
     blocks: [
       materialsBlock({ x: 0, y: 0, w: 12, h: 13 }, [
         material('bio', 'Cell line', 'HeLa', { vendor: 'ATCC', catalog: 'CCL-2', count: '1e6', viability: '95' }, ['passage', 'mycoplasma-test-date']),
-        material('media', 'Prepared buffer or solution', 'Complete DMEM', { recipe: 'DMEM + 10% FBS + 1% pen/strep' }),
-        material('media', 'Commercial buffer', 'PBS', { strength: '1×', 'calcium-and-magnesium': 'Without' }),
+        material('media', 'Medium', 'Complete DMEM', { recipe: 'DMEM + 10% FBS + 1% pen/strep' }),
+        material('media', 'Buffer', 'PBS', { strength: '1×', 'calcium-and-magnesium': 'Without' }),
         material('chem', 'Enzyme', 'Trypsin-EDTA', { notes: '0.25%' }),
         material('chem', 'Drug or inhibitor', 'Compound X', { 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' }),
         material('kits', 'Commercial kit', 'CellTiter-Glo', { vendor: 'Promega' }),
@@ -1080,6 +1638,7 @@ function loadState() {
 }
 let state = loadState() ?? exampleElisa();
 state.lotMemory ??= {};
+state.guessMemory ??= {};
 let saveTimer;
 function save() {
   clearTimeout(saveTimer);
@@ -1431,19 +1990,194 @@ function drawSketch(b, canvas) {
 
 const openRows = new Map();
 const isPicking = () => document.body.classList.contains('picking');
-const materialAddState = new Map();
-const openMaterials = new Map();
-const scopeTag = f => (f.scope === 'protocol' ? '' : `<span class="scope">${f.scope === 'lot' ? 'per lot' : 'each run'}</span>`);
+const materialPastes = new Map();
+const freshMaterials = new Map();
+const editingCells = new Map();
+const fieldMenus = new Map();
+const AMOUNT_FIELDS = ['amount', 'dilution', 'working-concentration', 'concentration', 'stock-concentration', 'final-concentration', 'top-concentration', 'coating-concentration'];
+
+function rememberedKinds() {
+  const known = new Map();
+  for (const blk of state.blocks) if (blk.type === 'materials') {
+    for (const i of blk.items) if (i.name.trim() && i.group !== 'unsorted') known.set(normKey(i.name), { group: i.group, type: i.type, why: 'already in this protocol' });
+  }
+  for (const [key, kind] of Object.entries(state.guessMemory)) known.set(key, kind);
+  return known;
+}
+
+function placeAmount(item, fields, { value, unit }) {
+  const order = unit === 'mM' || unit === 'M' ? ['stock-concentration', ...AMOUNT_FIELDS] : AMOUNT_FIELDS;
+  for (const key of order) {
+    const f = fields.find(x => x.key === key);
+    if (!f) continue;
+    if (f.kind === 'text') item.values[key] = unit === '1:N' ? `1:${value}` : `${value}${unit === '%' ? '' : ' '}${unit}`;
+    else if (f.unit === '*' && (f.units ?? VALUE_UNITS).includes(unit)) {
+      item.values[key] = value;
+      item.units[key] = unit;
+    }
+    else if (f.unit === unit) item.values[key] = value;
+    else continue;
+    if (!item.on.includes(key)) item.on.push(key);
+    return;
+  }
+}
+
+function materialFromGuess(b, guess) {
+  const item = newMaterial(guess.group, guess.type, guess.name);
+  const fields = materialFields(b, item);
+  for (const [key, value] of Object.entries(guess.values)) {
+    const f = fields.find(x => x.key === key);
+    if (!f || (f.kind === 'choice' && !f.options.includes(value))) continue;
+    item.values[key] = value;
+    if (!item.on.includes(key)) item.on.push(key);
+  }
+  if (guess.amount) placeAmount(item, fields, guess.amount);
+  showMadeHereFields(item);
+  return item;
+}
+
+const FIELD_SUGGESTION_LISTS = { vendor: GUESS_VENDOR_NAMES, manufacturer: GUESS_VENDOR_NAMES, conjugate: GUESS_CONJUGATE_NAMES };
+const suggestList = Object.assign(document.createElement('div'), { className: 'aclist', hidden: true });
+document.body.append(suggestList);
+let suggestState = null;
+
+function fieldSuggestions(key, typed, exceptItemId) {
+  const counts = new Map();
+  for (const blk of state.blocks) if (blk.type === 'materials') for (const i of blk.items) {
+    const value = String(i.values[key] ?? '').trim();
+    if (value && i.id !== exceptItemId) counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  const query = typed.trim().toLowerCase();
+  const pool = [...new Set([...[...counts].sort((x, y) => y[1] - x[1]).map(([value]) => value), ...(FIELD_SUGGESTION_LISTS[key] ?? [])])].filter(v => v.toLowerCase() !== query);
+  const starts = pool.filter(v => v.toLowerCase().startsWith(query));
+  return [...starts, ...pool.filter(v => !starts.includes(v) && v.toLowerCase().includes(query))].slice(0, 8);
+}
+
+function drawSuggestions() {
+  suggestList.innerHTML = suggestState.options.map((option, i) => `<div class="${i === suggestState.at ? 'on' : ''}" data-i="${i}">${esc(option)}</div>`).join('');
+}
+
+function showSuggestions(input) {
+  const isText = input.matches('input.mfield') && input.type === 'text' && !input.classList.contains('mono');
+  const options = isText && input.value.trim().length >= 2 ? fieldSuggestions(input.dataset.key, input.value, input.closest('[data-item]')?.dataset.item) : [];
+  if (!options.length) { hideSuggestions(); return; }
+  suggestState = { input, options, at: -1 };
+  placeSuggestions();
+  drawSuggestions();
+  suggestList.hidden = false;
+}
+
+function placeSuggestions() {
+  if (!suggestState) return;
+  if (!suggestState.input.isConnected) { hideSuggestions(); return; }
+  const r = suggestState.input.getBoundingClientRect();
+  const frame = suggestState.input.closest('.blk-body').getBoundingClientRect();
+  if (r.top < frame.top || r.bottom > frame.bottom) { hideSuggestions(); return; }
+  Object.assign(suggestList.style, { left: `${r.left}px`, top: `${r.bottom + 4}px`, minWidth: `${Math.max(r.width, 180)}px` });
+}
+
+function hideSuggestions() {
+  suggestState = null;
+  suggestList.hidden = true;
+}
+
+function acceptSuggestion(i) {
+  const { input, options } = suggestState;
+  input.value = options[i];
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  hideSuggestions();
+}
+
+suggestList.addEventListener('mousedown', e => {
+  e.preventDefault();
+  const row = e.target.closest('[data-i]');
+  if (row && suggestState) acceptSuggestion(+row.dataset.i);
+});
+suggestList.addEventListener('mouseover', e => {
+  const row = e.target.closest('[data-i]');
+  if (!row || !suggestState) return;
+  suggestState.at = +row.dataset.i;
+  drawSuggestions();
+});
+window.addEventListener('scroll', placeSuggestions, true);
+
+function fillDown(b, td) {
+  const row = td.closest('tr');
+  const key = td.dataset.cell;
+  const item = b.items.find(i => i.id === row.dataset.item);
+  const source = b.items.find(i => i.id === row.previousElementSibling?.dataset.item);
+  if (!source || key === 'name') return;
+  if (key === 'type') setMaterialKind(b, item, source.group, source.type);
+  else {
+    const own = materialFields(b, item).find(x => x.key === key);
+    const f = own ?? materialFields(b, source).find(x => x.key === key);
+    if (!f) return;
+    if (!own) item.custom.push({ ...f });
+    if (isRun()) state.run.overrides[`${item.id}:${key}`] = effectiveValue({ id: `${source.id}:${key}`, value: source.values[key] ?? '', perRun: f.scope !== 'protocol' });
+    else {
+      item.values[key] = source.values[key] ?? '';
+      if (source.units?.[key]) item.units[key] = source.units[key];
+    }
+    if (!item.on.includes(key)) item.on.push(key);
+  }
+  editCell(b, item.id, key);
+  save();
+  refresh();
+}
+
+const rememberKind = (name, group, type) => { if (name.trim()) state.guessMemory[normKey(name)] = { group, type }; };
+
+function setMaterialKind(b, item, group, type) {
+  Object.assign(item, { group, type });
+  const keys = new Set(materialFields(b, item).map(f => f.key));
+  item.on = [...new Set([...item.on, ...materialDefaultFields(group, type)])].filter(k => keys.has(k));
+  rememberKind(item.name, group, type);
+}
+
+function kindSelect(b, group, type, cls) {
+  const options = g => (g.key === 'unsorted' ? ['Other'] : [...Object.keys(g.types), 'Other']).map(t => `<option value="${esc(g.key)}|${esc(t)}"${g.key === group && t === type ? ' selected' : ''}>${esc(g.key === 'unsorted' ? 'Unsorted' : t === 'Other' ? `Other ${g.label.toLowerCase()}` : t)}</option>`).join('');
+  return `<select class="in mkind ${cls}">${materialGroupsOf(b).map(g => `<optgroup label="${esc(g.label)}">${options(g)}</optgroup>`).join('')}<option value="__new">New group…</option></select>`;
+}
+
+function guessLine(b, text) {
+  if (!text.trim()) return '<span class="mg-why">Anything works: CD4 BV421, HeLa, DMEM + 10% FBS, 96-well plate, FlowJo 10.9. Paste a list to add many.</span>';
+  const guess = guessMaterial(text, rememberedKinds());
+  const item = materialFromGuess(b, guess);
+  const filled = materialFields(b, item).filter(f => item.on.includes(f.key) && String(item.values[f.key] ?? '').trim());
+  const where = guess.group === 'unsorted' ? 'Unsorted' : `${materialGroup(b, guess.group).label} › ${guess.type}`;
+  const renamed = guess.name !== text.trim() ? `<span class="mg-f">name <b>${esc(guess.name)}</b></span>` : '';
+  return `<span class="mg-where${guess.group === 'unsorted' ? ' none' : ''}">${esc(where)}</span>${renamed}${filled.map(f => `<span class="mg-f">${esc(f.label.toLowerCase())} <b>${esc(materialText(item, f))}</b></span>`).join('')}<span class="mg-why">${esc(guess.why)}</span><span class="mg-key">Enter to add</span>`;
+}
+
+function pasteReview(b, rows) {
+  const lines = rows.map((row, i) => `<tr class="mprow${i % 2 ? ' alt' : ''}" data-row="${i}"><td class="mname">${esc(row.guess.name)}</td><td>${kindSelect(b, row.guess.group, row.guess.type, 'mp-kind')}</td><td class="mg-why">${esc(row.guess.why)}</td><td class="mp-x"><button class="lnk" data-act="paste-drop" title="Leave this one out">×</button></td></tr>`).join('');
+  const count = `${rows.length} material${rows.length === 1 ? '' : 's'}`;
+  return `<div class="mpaste"><div class="mpaste-head">${count} from the paste. Check the groups, then add.</div><table class="mpaste-tab"><tbody>${lines}</tbody></table><div class="mpaste-tools"><button class="add primary" data-act="paste-add"><span class="plus">+</span>Add ${count}</button><button class="lnk" data-act="paste-cancel">Cancel</button></div></div>`;
+}
+
+function addMaterials(b, guesses) {
+  const fresh = new Set();
+  for (const guess of guesses) {
+    const item = materialFromGuess(b, guess);
+    b.items.push(item);
+    fresh.add(item.id);
+    b.folded = b.folded.filter(g => g !== item.group);
+  }
+  freshMaterials.set(b.id, fresh);
+  renderBlock(b);
+  bodyOf(b).querySelector('.madd-name')?.focus();
+  save();
+  refresh();
+}
 
 function materialControl(item, f) {
   const run = isRun();
   const perRun = f.scope !== 'protocol';
   const value = run ? effectiveValue({ id: `${item.id}:${f.key}`, value: item.values[f.key] ?? '', perRun }) : item.values[f.key] ?? '';
-  const placeholder = !run && perRun ? (f.scope === 'lot' ? 'per lot' : 'each run') : '';
   const cls = `in mfield${f.kind === 'number' ? ' mono' : ''}`;
   const control = f.kind === 'choice'
     ? `<select class="${cls}" data-key="${f.key}">${['', ...f.options].map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
-    : `<input class="${cls}" data-key="${f.key}"${f.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" placeholder="${placeholder}" spellcheck="false" />`;
+    : `<input class="${cls}" data-key="${f.key}"${f.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" spellcheck="false" />`;
   if (f.kind !== 'number') return control;
   const unit = fieldUnit(item, f);
   const unitControl = f.unit === '*' && !run
@@ -1459,35 +2193,74 @@ function materialText(item, f) {
 }
 
 function materialCell(item, f) {
-  if (f.scope === 'protocol') return esc(materialText(item, f));
-  if (isRun()) return materialControl(item, f);
-  return esc(materialText(item, f)) || `<span class="mpending">${f.scope === 'lot' ? 'per lot' : 'each run'}</span>`;
+  return isRun() && f.scope !== 'protocol' ? materialControl(item, f) : esc(materialText(item, f));
 }
 
-function materialEditor(b, item) {
+function materialSection(b, items, groupKey) {
   const run = isRun();
-  const fields = materialFields(b, item);
-  const boxes = fields.filter(f => item.on.includes(f.key)).map(f => `<div class="mf"><span class="mf-l">${esc(f.label)}${scopeTag(f)}${run ? '' : `<button class="mf-x" data-act="off" data-key="${f.key}" title="Remove this field">×</button>`}</span>${materialControl(item, f)}</div>`).join('');
-  const name = run ? `<span class="me-name">${esc(item.name)}</span>` : `<input class="in lname me-name" value="${esc(item.name)}" placeholder="Name" spellcheck="false" />`;
-  const chips = run ? '' : `<div class="mc-more"><span class="mc-more-l">Add a field</span>${fields.filter(f => !item.on.includes(f.key)).map(f => `<button class="fchip" data-act="on" data-key="${f.key}">${esc(f.label)}</button>`).join('')}<button class="fchip custom" data-act="custom">Your own field</button></div>`;
-  return `<div class="medit" data-item="${item.id}"><div class="me-head">${name}<span class="mc-type">${esc(item.type)}</span><span class="me-tools">${run ? '' : '<button class="lnk" data-act="del">Remove</button>'}<button class="lnk" data-act="close">Done</button></span></div>${boxes ? `<div class="mc-fields">${boxes}</div>` : ''}${chips}</div>`;
-}
-
-function materialSection(b, items) {
   const columns = [];
   for (const item of items) for (const f of materialFields(b, item)) if (item.on.includes(f.key) && !columns.some(c => c.key === f.key)) columns.push(f);
-  const open = openMaterials.get(b.id);
+  const editing = editingCells.get(b.id);
+  const fresh = freshMaterials.get(b.id);
+  const cell = (item, key, editable, show, edit, extraClass = '') => {
+    const isEditing = editable && editing?.item === item.id && editing.key === key;
+    return `<td class="${extraClass}mcell${editable ? ' editable' : ''}${isEditing ? ' editing' : ''}"${editable ? ` data-cell="${esc(key)}"` : ''}>${isEditing ? edit() : show()}</td>`;
+  };
   const rows = items.map((item, i) => {
     const fields = materialFields(b, item);
-    const cells = columns.map(c => {
-      const f = fields.find(x => x.key === c.key);
-      return `<td>${f && item.on.includes(f.key) ? materialCell(item, f) : ''}</td>`;
+    const name = cell(item, 'name', !run, () => esc(item.name) || '<span class="hint">Unnamed</span>', () => `<input class="in lname" value="${esc(item.name)}" placeholder="Name" spellcheck="false" />`, 'mname ');
+    const kind = cell(item, 'type', !run, () => (item.group === 'unsorted' ? '<span class="mpending">choose</span>' : esc(item.type)), () => kindSelect(b, item.group, item.type, 'me-kind'), 'mtype ');
+    const values = columns.map(c => {
+      const f = fields.find(x => x.key === c.key) ?? c;
+      const shown = item.on.includes(f.key);
+      const editable = !run || (f.scope === 'protocol' && shown);
+      return cell(item, f.key, editable, () => (shown ? materialCell(item, f) : ''), () => materialControl(item, f));
     }).join('');
-    const isOpen = open === item.id;
-    const row = `<tr class="mrow${i % 2 ? ' alt' : ''}${isOpen ? ' open' : ''}" data-item="${item.id}" data-act="open" data-pick="${esc(item.name)}"><td class="mname">${esc(item.name) || '<span class="hint">Unnamed</span>'}</td><td class="mtype">${esc(item.type)}</td>${cells}</tr>`;
-    return isOpen ? `${row}<tr class="medit-row"><td colspan="${columns.length + 2}">${materialEditor(b, item)}</td></tr>` : row;
+    const remove = run ? '' : '<td class="mrm"><button class="ghost-danger" data-act="del">Remove</button></td>';
+    return `<tr class="mrow${i % 2 ? ' alt' : ''}${fresh?.has(item.id) ? ' fresh' : ''}" data-item="${item.id}" data-pick="${esc(item.name)}">${name}${kind}${values}${remove}</tr>`;
   }).join('');
-  return `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  const hideButton = c => (run ? '' : `<button class="mcol-x" data-act="hide-col" data-key="${esc(c.key)}" title="Hide this column">×</button>`);
+  const moreHead = run ? '' : `<th class="mmore"><button class="lnk mmore-btn${fieldMenus.get(b.id) === groupKey ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
+  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${moreHead}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  return (fieldMenus.get(b.id) === groupKey && !run ? fieldMenu(b, items, columns) : '') + table;
+}
+
+function fieldMenu(b, items, columns) {
+  const counts = new Map();
+  for (const item of items) for (const f of materialFields(b, item)) {
+    if (columns.some(c => c.key === f.key)) continue;
+    const seen = counts.get(f.key) ?? { f, n: 0, core: materialGroup(b, item.group).core.includes(f) };
+    seen.n += 1;
+    counts.set(f.key, seen);
+  }
+  const extras = [...counts.values()].sort((x, y) => x.core - y.core || y.n - x.n).map(({ f }) => `<button class="fchip" data-act="field-on" data-key="${esc(f.key)}">${esc(f.label)}</button>`).join('');
+  return `<div class="mfields"><span class="mfields-l">More fields</span>${extras}<button class="fchip custom" data-act="field-custom">Your own field</button><button class="lnk" data-act="field-menu">Done</button></div>`;
+}
+
+function editCell(b, itemId, key) {
+  hideSuggestions();
+  editingCells.set(b.id, { item: itemId, key });
+  renderBlock(b);
+  const control = bodyOf(b).querySelector('td.editing .in');
+  control?.focus();
+  if (control?.select && control.type !== 'date') control.select();
+}
+
+function stopEditing(b) {
+  hideSuggestions();
+  if (!editingCells.delete(b.id)) return;
+  renderBlock(b);
+  save();
+  refresh();
+}
+
+function moveEditing(b, td, step) {
+  const cells = [...bodyOf(b).querySelectorAll('td.mcell.editable')];
+  const next = cells[cells.indexOf(td) + step];
+  if (!next) { stopEditing(b); return; }
+  editCell(b, next.closest('[data-item]').dataset.item, next.dataset.cell);
+  save();
+  refresh();
 }
 
 function rememberLotValue(item, key, value) {
@@ -1517,19 +2290,18 @@ const TYPES = {
     render(b, body) {
       const run = isRun();
       const groups = materialGroupsOf(b);
-      const add = materialAddState.get(b.id) ?? { group: 'ab', type: 'Antibody' };
-      const addGroup = groups.find(g => g.key === add.group) ?? groups[0];
-      const types = [...Object.keys(addGroup.types), 'Other'];
-      const adder = `<div class="mtools"><select class="in madd-group">${groups.map(g => `<option value="${esc(g.key)}"${g.key === addGroup.key ? ' selected' : ''}>${esc(g.label)}</option>`).join('')}<option value="__new">New group…</option></select><select class="in madd-type">${types.map(t => `<option${t === add.type ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select><input class="in madd-name" placeholder="Name, e.g. anti-CD4" spellcheck="false" /><button class="add primary" data-act="add"><span class="plus">+</span>Add Material</button></div>`;
-      const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key) })).filter(s => s.items.length);
+      const pasted = materialPastes.get(b.id);
+      const adder = `<div class="madd"><input class="in madd-name" placeholder="Add a material: type a name and press Enter, or paste a list" spellcheck="false" autocomplete="off" /><div class="mguess">${guessLine(b, '')}</div>${pasted ? pasteReview(b, pasted) : ''}</div>`;
+      const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key) })).filter(s => s.items.length).sort((x, y) => (y.g.key === 'unsorted') - (x.g.key === 'unsorted'));
       body.innerHTML = (run ? '' : adder) + (sections.length ? sections.map(({ g, items }) => {
         const folded = b.folded.includes(g.key);
-        return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items)}</div>`}</section>`;
-      }).join('') : '<p class="hint">Nothing yet. Pick a group and type above and add the first material.</p>');
+        return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items, g.key)}</div>`}</section>`;
+      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>');
+      freshMaterials.delete(b.id);
     },
     update(b, body) {
       const run = isRun();
-      body.querySelectorAll('tr.mrow[data-item], .medit[data-item]').forEach(el => {
+      body.querySelectorAll('tr.mrow[data-item]').forEach(el => {
         const item = b.items.find(i => i.id === el.dataset.item);
         if (!item) return;
         el.querySelector('.lname')?.classList.toggle('bad', calc.dupes.has(item.id));
@@ -1548,39 +2320,53 @@ const TYPES = {
     },
     onInput(b, e) {
       const el = e.target;
+      if (el.matches('.madd-name')) {
+        bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, el.value);
+        return;
+      }
       const item = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
       if (!item) return;
       if (el.matches('.lname')) item.name = el.value;
       else if (el.dataset.unitkey) item.units[el.dataset.unitkey] = el.value;
       else if (el.matches('.mfield')) {
-        const f = materialFields(b, item).find(x => x.key === el.dataset.key);
+        const own = materialFields(b, item).find(x => x.key === el.dataset.key);
+        const f = own ?? b.items.flatMap(i => materialFields(b, i)).find(x => x.key === el.dataset.key);
+        if (!own && el.value.trim()) item.custom.push({ ...f });
         const id = `${item.id}:${f.key}`;
-        if (!isRun()) item.values[f.key] = el.value;
-        else if (f.scope === 'protocol' && el.value === (item.values[f.key] ?? '')) delete state.run.overrides[id];
+        if (!isRun()) {
+          item.values[f.key] = el.value;
+          if (el.value.trim() && !item.on.includes(f.key)) item.on.push(f.key);
+          if (f.key === 'recipe') showMadeHereFields(item);
+        } else if (f.scope === 'protocol' && el.value === (item.values[f.key] ?? '')) delete state.run.overrides[id];
         else state.run.overrides[id] = el.value;
         if (isRun() && f.scope === 'lot') rememberLotValue(item, f.key, el.value);
         bodyOf(b).querySelectorAll(`[data-item="${item.id}"] .mfield[data-key="${f.key}"]`).forEach(twin => { if (twin !== el) twin.value = el.value; });
       } else return;
       save();
       refresh();
+      if (el.matches('.mfield') && el.isConnected) showSuggestions(el);
     },
     onChange(b, e) {
       const el = e.target;
-      if (el.matches('.madd-group')) {
+      if (el.matches('.mkind')) {
+        let [group, type] = el.value.split('|');
         if (el.value === '__new') {
           const label = prompt('Name of the new group')?.trim();
           if (label && !materialGroupsOf(b).some(g => g.label.toLowerCase() === label.toLowerCase())) b.customGroups.push(label);
-          const group = materialGroupsOf(b).find(g => g.label.toLowerCase() === (label ?? '').toLowerCase());
-          if (group) materialAddState.set(b.id, { group: group.key, type: 'Other' });
-          save();
-        } else {
-          materialAddState.set(b.id, { group: el.value, type: Object.keys(materialGroup(b, el.value).types)[0] ?? 'Other' });
+          group = materialGroupsOf(b).find(g => g.label.toLowerCase() === (label ?? '').toLowerCase())?.key;
+          type = 'Other';
         }
+        if (group && el.matches('.mp-kind')) {
+          const row = materialPastes.get(b.id)[+el.closest('[data-row]').dataset.row];
+          row.guess = { ...row.guess, group, type, why: 'set by you' };
+          row.corrected = true;
+        } else if (group) {
+          setMaterialKind(b, b.items.find(i => i.id === el.closest('[data-item]').dataset.item), group, type);
+        }
+        editingCells.delete(b.id);
         renderBlock(b);
-        return;
-      }
-      if (el.matches('.madd-type')) {
-        materialAddState.set(b.id, { ...(materialAddState.get(b.id) ?? { group: 'ab' }), type: el.value });
+        save();
+        refresh();
         return;
       }
       const item = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
@@ -1593,37 +2379,116 @@ const TYPES = {
     },
     onClick(b, e) {
       const act = e.target.closest('[data-act]')?.dataset.act;
-      if (!act || (act === 'open' && (isPicking() || e.target.closest('input, select, button')))) return;
+      if (!act) return;
       const item = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
       const key = e.target.closest('[data-key]')?.dataset.key;
-      let added = null;
-      if (act === 'open') openMaterials.set(b.id, openMaterials.get(b.id) === item.id ? null : item.id);
-      else if (act === 'close') openMaterials.delete(b.id);
-      else if (act === 'fold-group') {
+      const pasted = materialPastes.get(b.id);
+      if (act === 'paste-add' && pasted) {
+        pasted.filter(row => row.corrected).forEach(row => rememberKind(row.guess.name, row.guess.group, row.guess.type));
+        materialPastes.delete(b.id);
+        addMaterials(b, pasted.map(row => row.guess));
+        return;
+      }
+      if (act === 'paste-cancel') materialPastes.delete(b.id);
+      else if (act === 'paste-drop' && pasted) {
+        pasted.splice(+e.target.closest('[data-row]').dataset.row, 1);
+        if (!pasted.length) materialPastes.delete(b.id);
+      } else if (act === 'fold-group') {
         const group = e.target.closest('[data-group]').dataset.group;
         b.folded = b.folded.includes(group) ? b.folded.filter(g => g !== group) : [...b.folded, group];
-      } else if (act === 'add') {
-        const add = materialAddState.get(b.id) ?? { group: 'ab', type: 'Antibody' };
-        added = newMaterial(add.group, add.type, bodyOf(b).querySelector('.madd-name').value.trim());
-        b.items.push(added);
-        b.folded = b.folded.filter(g => g !== add.group);
-        openMaterials.set(b.id, added.id);
       } else if (act === 'del' && item && confirm(`Remove ${item.name || 'this material'}?`)) {
         b.items = b.items.filter(i => i !== item);
-        openMaterials.delete(b.id);
-      } else if (act === 'on' && item) item.on.push(key);
-      else if (act === 'off' && item) item.on = item.on.filter(k => k !== key);
-      else if (act === 'custom' && item) {
-        const label = prompt('Name of the field')?.trim();
-        if (!label) return;
-        const f = { key: `custom-${uid()}`, label, kind: 'text', scope: 'protocol', unit: '', options: [] };
-        item.custom.push(f);
-        item.on.push(f.key);
+        editingCells.delete(b.id);
+      } else if (act === 'field-menu') {
+        const group = e.target.closest('[data-group]').dataset.group;
+        if (fieldMenus.get(b.id) === group) fieldMenus.delete(b.id);
+        else fieldMenus.set(b.id, group);
+      } else if (act === 'field-on' || act === 'hide-col' || act === 'field-custom') {
+        const sectionItems = b.items.filter(i => i.group === e.target.closest('[data-group]').dataset.group);
+        if (act === 'field-custom') {
+          const label = prompt('Name of the field')?.trim();
+          if (!label) return;
+          const f = { key: `custom-${fieldKey(label)}`, label, kind: 'text', scope: 'protocol', unit: '', options: [] };
+          sectionItems.forEach(i => { if (!i.custom.some(c => c.key === f.key)) i.custom.push({ ...f }); });
+          sectionItems.forEach(i => { if (!i.on.includes(f.key)) i.on.push(f.key); });
+        } else if (act === 'field-on') {
+          sectionItems.filter(i => materialFields(b, i).some(f => f.key === key) && !i.on.includes(key)).forEach(i => i.on.push(key));
+        } else {
+          sectionItems.forEach(i => { i.on = i.on.filter(k => k !== key); });
+        }
       } else return;
       renderBlock(b);
-      if (added && !added.name) bodyOf(b).querySelector(`.medit[data-item="${added.id}"] .lname`)?.focus();
       save();
       refresh();
+    },
+    onMousedown(b, e) {
+      const td = e.target.closest('td.mcell.editable');
+      if (!td || td.classList.contains('editing') || isPicking() || e.button !== 0) return;
+      e.preventDefault();
+      editCell(b, td.closest('[data-item]').dataset.item, td.dataset.cell);
+    },
+    onFocusout(b, e) {
+      const editing = editingCells.get(b.id);
+      if (!editing || !e.target.closest('td.editing')) return;
+      setTimeout(() => {
+        if (editingCells.get(b.id) !== editing || bodyOf(b).querySelector('td.editing')?.contains(document.activeElement)) return;
+        stopEditing(b);
+      });
+    },
+    onKeydown(b, e) {
+      const el = e.target;
+      const td = el.closest('td.editing');
+      if (suggestState?.input === el) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const last = suggestState.options.length - 1;
+          suggestState.at = Math.max(0, Math.min(last, suggestState.at + (e.key === 'ArrowDown' ? 1 : -1)));
+          drawSuggestions();
+          return;
+        }
+        if (e.key === 'Enter' && suggestState.at >= 0) {
+          e.preventDefault();
+          acceptSuggestion(suggestState.at);
+          return;
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          hideSuggestions();
+          return;
+        }
+        hideSuggestions();
+      }
+      if (td && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        fillDown(b, td);
+        return;
+      }
+      if (td && (e.key === 'Tab' || e.key === 'Enter' || e.key === 'Escape')) {
+        e.preventDefault();
+        if (e.key === 'Tab') moveEditing(b, td, e.shiftKey ? -1 : 1);
+        else stopEditing(b);
+        return;
+      }
+      if (!el.matches('.madd-name')) return;
+      if (e.key === 'Escape') {
+        el.value = '';
+        bodyOf(b).querySelector('.mguess').innerHTML = guessLine(b, '');
+        return;
+      }
+      if (e.key !== 'Enter' || !el.value.trim()) return;
+      e.preventDefault();
+      addMaterials(b, [guessMaterial(el.value, rememberedKinds())]);
+    },
+    onPaste(b, e) {
+      if (!e.target.matches('.madd-name')) return;
+      const text = e.clipboardData?.getData('text') ?? '';
+      if (!/\n/.test(text.trim())) return;
+      e.preventDefault();
+      const known = rememberedKinds();
+      const rows = splitPastedMaterials(text).map(row => ({ guess: guessMaterial(row.text, known, row.context) }));
+      if (!rows.length) return;
+      materialPastes.set(b.id, rows);
+      renderBlock(b);
     },
   },
 
@@ -1646,7 +2511,7 @@ const TYPES = {
         const cls = ['in', c.kind === 'number' ? 'mono' : '', c === nameColumn ? 'lname' : ''].filter(Boolean).join(' ');
         const input = c.kind === 'choice'
           ? `<select class="${cls}" data-col="${c.id}">${['', ...c.options].map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
-          : `<input class="${cls}" data-col="${c.id}"${c.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" placeholder="${!run && c.perRun ? 'each run' : ''}" spellcheck="false" />`;
+          : `<input class="${cls}" data-col="${c.id}"${c.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" spellcheck="false" />`;
         if (c.kind !== 'number') return input;
         const unit = unitOf(row, c);
         const unitControl = c.unit === '*' && !run
@@ -1657,7 +2522,7 @@ const TYPES = {
       const text = (row, c) => {
         const raw = valueOf(row, c);
         if (String(raw).trim()) return esc(displayOf({ unit: c.kind === 'number' ? unitOf(row, c) : '' }, raw));
-        return c.perRun && !run ? '<span class="mpending">each run</span>' : '';
+        return '';
       };
       const head = columns.map(c => `<th>${esc(c.name)}</th>`).join('');
       const rows = b.items.map((row, i) => {
@@ -1763,11 +2628,14 @@ const TYPES = {
     render(b, body) {
       const run = isRun();
       const open = openRows.get(b.id);
-      const unitLabel = u => ({ '': 'none', 'x': 'fold ×' }[u] ?? u);
+      const unitLabel = u => ({ '': 'none', 'x': 'fold ×', '1:N': 'dilution 1:N', 'N:N': 'ratio N:N' }[u] ?? u);
       body.innerHTML = `<div class="vlist">${b.items.map(it => {
         if (it.id !== open) return `<div class="vrow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><span class="vn">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="vv"></span></div>`;
         const pre = it.unit === '1:N' ? '<span class="pre">1:</span>' : '';
-        const value = `<span class="ramt">${pre}<input class="in vval mono" value="${esc(effectiveValue(it))}" placeholder="0" />${run ? `<span class="unit">${esc(shortUnit(it.unit))}</span>` : ''}</span>`;
+        const [first, second = '1'] = String(effectiveValue(it)).split(':');
+        const value = it.unit === 'N:N'
+          ? `<span class="ramt"><input class="in vval vpair mono" value="${esc(first)}" placeholder="10" /><span class="pre">:</span><input class="in vval vpair mono" value="${esc(second)}" placeholder="1" /></span>`
+          : `<span class="ramt">${pre}<input class="in vval mono" value="${esc(effectiveValue(it))}" placeholder="0" />${run ? `<span class="unit">${esc(shortUnit(it.unit))}</span>` : ''}</span>`;
         const fields = run
           ? `<span class="vn">${esc(it.name)}</span>${value}`
           : `<input class="in vname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" />${value}<select class="in vunit">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select>`;
@@ -1781,13 +2649,13 @@ const TYPES = {
         const row = body.querySelector(`[data-item="${it.id}"]`);
         if (!row) continue;
         const raw = String(effectiveValue(it)).trim();
-        const bad = Number.isNaN(parseNumber(raw));
+        const bad = Number.isNaN(it.unit === 'N:N' ? parseRatio(raw) : parseNumber(raw));
         const changed = run && it.id in state.run.overrides;
         const vv = row.querySelector('.vv');
         if (vv) vv.innerHTML = `${esc(raw ? displayOf(it, raw) : '–')}${changed ? `<span class="was">was ${esc(displayOf(it, it.value))}</span>` : ''}`;
         row.classList.toggle('changed', changed);
         row.classList.toggle('bad', bad || calc.dupes.has(it.id));
-        row.querySelector('.vval')?.classList.toggle('bad', bad);
+        row.querySelectorAll('.vval').forEach(input => input.classList.toggle('bad', bad));
         row.querySelector('.vname')?.classList.toggle('bad', calc.dupes.has(it.id));
       }
     },
@@ -1796,9 +2664,10 @@ const TYPES = {
       if (!it) return;
       if (e.target.matches('.vname')) it.name = e.target.value;
       if (e.target.matches('.vval')) {
-        if (!isRun()) it.value = e.target.value;
-        else if (e.target.value === it.value) delete state.run.overrides[it.id];
-        else state.run.overrides[it.id] = e.target.value;
+        const typed = e.target.matches('.vpair') ? [...e.target.closest('.ramt').querySelectorAll('.vpair')].map(input => input.value.trim()).join(':') : e.target.value;
+        if (!isRun()) it.value = typed;
+        else if (typed === it.value) delete state.run.overrides[it.id];
+        else state.run.overrides[it.id] = typed;
       }
       save();
       refresh();
@@ -2437,7 +3306,7 @@ document.getElementById('example').addEventListener('change', e => {
 
 const board = document.getElementById('board');
 const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
-['input', 'change', 'click', 'focusout', 'pointerdown', 'pointerover', 'mousedown'].forEach(type => board.addEventListener(type, e => {
+['input', 'change', 'click', 'focusout', 'pointerdown', 'pointerover', 'mousedown', 'keydown', 'paste'].forEach(type => board.addEventListener(type, e => {
   const b = byId(e.target.closest?.('.blk')?.dataset.id);
   if (!b) return;
   if (type === 'click' && e.target.closest('.blk-x')) { removeBlock(b); return; }
@@ -2446,7 +3315,7 @@ const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
 }));
 board.addEventListener('keydown', e => {
   if (e.key === 'Tab' && e.target.matches('.sedit') && jumpToSlot(e.target, e.shiftKey)) { e.preventDefault(); return; }
-  if (e.key !== 'Enter' || !e.target.matches('input.in, input.sec-title, .sedit')) return;
+  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name), input.sec-title, .sedit')) return;
   e.preventDefault();
   e.target.blur();
 });
@@ -2580,6 +3449,7 @@ pasteAdd.addEventListener('click', () => {
 });
 
 grid.on('change', (e, items) => {
+  if (!items) return;
   items.forEach(it => { const b = byId(it.id); if (b) Object.assign(b, { x: it.x, y: it.y, w: it.w, h: it.h }); });
   save();
 });
