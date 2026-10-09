@@ -27,18 +27,54 @@
   .bar { flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 16px 24px 6px; flex-wrap: wrap; }
   .bar .title { font: 400 26px/1.1 'Hanken Grotesk', sans-serif; letter-spacing: -.015em; background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 6px; width: 340px; }
   .bar .title:hover, .bar .title:focus { border-color: hsl(var(--line-soft)); outline: none; }
-  .modes { display: flex; border: 1px solid hsl(var(--line-mid)); }
-  .modes button { background: none; border: 0; padding: 6px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: .16em; color: hsl(var(--muted-foreground)); cursor: pointer; }
-  .modes button.on { color: hsl(var(--fg)); background: hsl(var(--pri) / .16); box-shadow: inset 0 -2px 0 hsl(var(--pri)); }
-  .runinfo { font-size: 13px; color: hsl(var(--muted-foreground)); }
-  .runinfo b { color: hsl(var(--amber)); font-weight: 600; }
+  .runon { display: flex; align-items: center; gap: 8px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .runon .in { width: auto; height: 30px; font-size: 13px; color-scheme: dark; }
+  .hintbar { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .export { position: fixed; inset: 0; z-index: 50; overflow: auto; background: hsl(var(--page) / .97); }
+  .export[hidden] { display: none; }
+  .ex-bar { position: sticky; top: 0; display: flex; justify-content: center; gap: 12px; padding: 14px 16px; background: hsl(var(--page)); }
+  .ex-page { width: 820px; max-width: calc(100% - 32px); margin: 0 auto 48px; padding: 48px 56px; background: #fff; color: #1b1e24; font: 13px/1.5 'Hanken Grotesk', sans-serif; box-shadow: 0 20px 50px -20px #000; }
+  .ex-page h1 { margin: 0; font: 600 24px/1.2 'Hanken Grotesk', sans-serif; }
+  .ex-when { margin-top: 4px; font-size: 14px; font-weight: 600; }
+  .ex-when.planned { font-weight: 400; color: #8a5a00; }
+  .ex-page h2 { margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1b1e24; font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; }
+  .ex-page h3 { margin: 14px 0 4px; font: 600 11px/1 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: #5b6170; }
+  .ex-page table { width: 100%; border-collapse: collapse; }
+  .ex-page td, .ex-page th { padding: 5px 8px 5px 0; border-bottom: 1px solid #e3e5ea; text-align: left; vertical-align: top; }
+  .ex-page th { font: 600 10.5px/1.2 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #5b6170; }
+  .ex-name { font-weight: 600; }
+  .ex-sub { font-size: 12px; color: #5b6170; }
+  .ex-num { text-align: right; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+  .ex-warn { color: #b3261e; font-weight: 600; }
+  .ex-blank { display: inline-block; min-width: 90px; border-bottom: 1px solid #9aa0ab; height: 1.1em; }
+  .ex-box { display: inline-block; width: 11px; height: 11px; margin-top: 3px; border: 1.2px solid #1b1e24; }
+  .ex-chk { width: 18px; }
+  .ex-page .ex-mat { table-layout: fixed; }
+  .ex-mat col.src { width: 24%; }
+  .ex-mat col.lot { width: 17%; }
+  .ex-mat col.exp { width: 15%; }
+  .ex-page .ex-kv td:first-child { width: 62%; }
+  .ex-steps { margin: 0; padding: 0; list-style: none; }
+  .ex-steps li { display: grid; grid-template-columns: 18px 30px 1fr; gap: 4px; padding: 4px 0; }
+  .ex-steps li.sub { padding-left: 34px; }
+  .ex-steps .n { font-family: 'JetBrains Mono', monospace; color: #5b6170; }
+  .ex-during { font-style: italic; color: #5b6170; }
+  .ex-work { font: 11.5px 'JetBrains Mono', monospace; color: #5b6170; }
+  .ex-text { white-space: pre-wrap; }
+  .ex-lines div { height: 28px; border-bottom: 1px solid #c9ccd3; }
+  .ex-foot { margin-top: 32px; font-size: 11px; color: #8a8f99; }
+  @media print {
+    body > .app, .ex-bar { display: none !important; }
+    .export { position: static; overflow: visible; background: none; }
+    .ex-page { width: auto; max-width: none; margin: 0; padding: 0; box-shadow: none; }
+    .ex-page h2 { break-after: avoid; }
+    .ex-page tr, .ex-steps li { break-inside: avoid; }
+  }
   .lnk { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; background: transparent; border: 1px solid transparent; font: 400 14px/1 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); cursor: pointer; white-space: nowrap; transition: color .15s, text-shadow .15s; }
   .lnk:hover { color: hsl(var(--fg)); text-shadow: 0 0 8px color-mix(in srgb, currentColor calc(55% * var(--lit)), transparent); }
-  .build #resetRun { display: none; }
 
   .main { flex: 1; min-height: 0; display: flex; }
   .rail { width: 224px; flex-shrink: 0; padding: 4px 8px 16px 16px; overflow-y: auto; }
-  .run .rail { display: none; }
   .rail h4 { margin: 20px 8px 8px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 12px; font-weight: 600; letter-spacing: .12em; color: hsl(var(--foreground) / .45); }
   .rail button { display: flex; gap: 10px; width: 100%; text-align: left; background: none; border: 0; padding: 8px 10px; cursor: pointer; align-items: flex-start; }
   .rail button:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
@@ -50,18 +86,16 @@
 
   .board-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 4px 16px 80px 4px; }
   #board { min-height: 100%; }
-  .build #board { background-image: linear-gradient(90deg, hsl(var(--primary) / .025) 0 calc(100% - 20px), transparent 0); background-size: calc(100% / 12) 100%; background-position: 10px 0; }
+  #board { background-image: linear-gradient(90deg, hsl(var(--primary) / .025) 0 calc(100% - 20px), transparent 0); background-size: calc(100% / 12) 100%; background-position: 10px 0; }
 
   .grid-stack-item-content.blk { display: flex; flex-direction: column; overflow: hidden; border: 1px solid hsl(var(--line-soft)); background: linear-gradient(180deg, hsl(var(--foreground) / calc(.016 * var(--lit))) 0%, transparent 12%), radial-gradient(ellipse 100% 130% at 0% 0%, hsl(var(--primary) / calc(.018 * var(--lit))), transparent 68%), radial-gradient(ellipse 75% 85% at 100% 100%, hsl(var(--primary) / calc(.023 * var(--lit))), transparent 66%), radial-gradient(ellipse 70% 80% at 100% 100%, hsl(var(--shade) / calc(.035 * var(--lit))), transparent 62%), hsl(var(--card)); box-shadow: 0 20px 44px -24px hsl(var(--recess) / .65); }
   .grid-stack-placeholder > .placeholder-content { background: hsl(var(--pri) / .08) !important; border: 1px dashed hsl(var(--pri) / .55); }
   .blk-head { flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 12px 10px 10px 16px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 15px; font-weight: 600; line-height: 1.1; letter-spacing: .08em; color: hsl(var(--fg)); cursor: grab; user-select: none; white-space: nowrap; }
-  .run .blk-head { cursor: default; }
   .blk-glyph { color: hsl(var(--primary)); font-weight: 400; letter-spacing: 0; filter: drop-shadow(0 0 5px hsl(var(--primary) / calc(.75 * var(--lit)))); }
   .blk-title { overflow: hidden; text-overflow: ellipsis; }
   .blk-kind { margin-left: auto; font-size: 12px; font-weight: 400; color: hsl(var(--foreground) / .35); }
   .blk-x { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: 15px; padding: 0 4px; line-height: 1; }
   .blk-x:hover { color: hsl(var(--red)); }
-  .run .blk-x { display: none; }
   .blk-body { flex: 1; min-height: 0; overflow: auto; padding: 4px 16px 16px; }
 
   .in { height: 28px; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font: inherit; font-size: 14px; padding: 0 8px; border-radius: 0; min-width: 0; transition: border-color .2s, background .2s, box-shadow .2s; }
@@ -100,14 +134,10 @@
   .vtable .vval { width: 64px; text-align: right; }
   .vtable .vpair { width: 48px; }
   .vtable .vunit { width: auto; field-sizing: content; padding-right: 22px; }
-  .vtable .vrun-btn { padding: 0 6px; font-size: 13px; }
   .vtable .vrm { width: 1%; padding-left: 0; text-align: right; }
   .vtable .ghost-danger { padding: 2px 0 2px 6px; }
   .vtable tr:hover .ghost-danger { opacity: 1; }
   .vuse { margin-left: 6px; font-size: 12px; font-style: italic; color: hsl(var(--amber) / .85); }
-  .vrun { font: italic 12.5px 'Hanken Grotesk', sans-serif; color: hsl(var(--muted-foreground)); }
-  .vrun-btn.on { color: hsl(var(--fg)); background: hsl(var(--primary) / .1); border-color: hsl(var(--primary) / .45); }
-  .vtable tr.torecord .vval { border-color: hsl(var(--amber) / .8); }
   .vtable tr.vghost td { padding-top: 6px; padding-bottom: 6px; font-size: 13px; font-style: italic; color: hsl(var(--muted-foreground)); }
   .vtable tr.vghost .lnk { font-style: normal; }
   .vadd-wrap { margin-top: 10px; }
@@ -116,8 +146,7 @@
   .vguess b { color: hsl(var(--fg)); font-weight: 600; }
   .vv { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: hsl(var(--fg)); white-space: nowrap; }
   .vrow.bad .vv { color: hsl(var(--red)); }
-  .vrow.changed .vv { text-decoration: underline dotted hsl(var(--amber)); text-underline-offset: 3px; }
-  .was { margin-left: 8px; font: 12px 'Hanken Grotesk', sans-serif; color: hsl(var(--muted-foreground)); }
+  .vfill { font: italic 12.5px 'Hanken Grotesk', sans-serif; color: hsl(var(--amber) / .85); }
   .fedit { padding: 10px; background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .22) 0%, hsl(var(--primary) / .09) 55%, hsl(var(--primary) / .03) 100%) !important; box-shadow: inset 3px 0 0 0 hsl(var(--primary)), inset 14px 0 30px -12px hsl(var(--primary) / .25); }
   .ftools { flex-basis: 100%; display: flex; justify-content: flex-end; gap: 6px; }
   .ftools { margin-top: 8px; }
@@ -147,8 +176,6 @@
   input.sec-title { background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 5px; }
   input.sec-title:hover, input.sec-title:focus { outline: none; border-color: hsl(var(--line-mid)); }
   .sec-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: hsl(var(--foreground) / .35); white-space: nowrap; }
-  .sgroup.complete .sec-head { border-bottom-color: hsl(var(--green) / .7); }
-  .sgroup.complete .sec-num, .sgroup.complete .sec-meta { color: hsl(var(--green)); }
   .sgroup-body { margin-left: 22px; padding-left: 10px; border-left: 1px solid hsl(var(--line-mid)); }
   .srow { display: flex; gap: 10px; align-items: baseline; padding: 6px 6px; border-radius: 2px; font-size: 14px; }
   .srow .num { font-family: 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); min-width: 22px; text-align: right; font-size: 12.5px; flex-shrink: 0; }
@@ -157,7 +184,6 @@
   .srow .body { flex: 1; min-width: 0; }
   .srow .body .in { width: 100%; }
   .sdisp { cursor: text; line-height: 1.5; }
-  .run .srow { cursor: pointer; }
   .srow.editing { background: hsl(var(--primary) / .04); }
   .meta { display: flex; gap: 14px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
   .meta label { font-size: 12px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; gap: 4px; }
@@ -166,7 +192,6 @@
   .srow:hover .tools, .sec-head:hover .tools { opacity: 1; }
   .tools button { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0 4px; }
   .tools button:hover { color: hsl(var(--fg)); }
-  .run ruby.r-item rt { color: hsl(var(--violet) / .85); }
   .ref, .tok { color: hsl(var(--fg)); border-bottom: 1px dotted hsl(var(--primary) / .7); }
   .ref { cursor: help; }
   .ref.r-item, .tok.r-item { font-weight: 600; }
@@ -204,9 +229,7 @@
   .sedit:empty::before { content: attr(data-placeholder); color: hsl(var(--muted-foreground)); font-style: italic; }
   .tok { user-select: all; cursor: default; }
 
-  .in.need { border-color: hsl(var(--amber) / .75); background: hsl(var(--amber) / .07); }
   .in.expired { border-color: hsl(var(--red)); color: hsl(var(--red)); }
-  .in.changed { border-color: hsl(var(--amber) / .85); background: hsl(var(--amber) / .1); }
   input[type="date"].in { color-scheme: dark; }
   .mtab .lname { font-weight: 600; }
   .mtable-wrap + .add { margin-top: 10px; }
@@ -214,7 +237,7 @@
   .ltools label { display: flex; align-items: center; gap: 5px; }
   .lnk.on { color: hsl(var(--fg)); background: hsl(var(--primary) / .1); border-color: hsl(var(--primary) / .45); }
   .coledit { border: 1px solid hsl(var(--line-soft)); background: hsl(var(--fg) / .02); padding: 8px; margin-bottom: 10px; }
-  .colrow { display: grid; grid-template-columns: minmax(120px, 1.2fr) 96px minmax(120px, 1.2fr) auto auto auto 76px; gap: 8px; align-items: center; margin-bottom: 5px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .colrow { display: grid; grid-template-columns: minmax(120px, 1.2fr) 96px minmax(120px, 1.2fr) auto auto 76px; gap: 8px; align-items: center; margin-bottom: 5px; font-size: 12px; color: hsl(var(--muted-foreground)); }
   .colrow label { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
   .colrow.hid .cname { opacity: .5; text-decoration: line-through; }
   .cfixed { font-size: 11.5px; font-style: italic; }
@@ -292,16 +315,7 @@
   .mrow td.expired { color: hsl(var(--red)); }
   .mrow.mghost td { padding-top: 6px; padding-bottom: 6px; font-size: 13px; font-style: italic; color: hsl(var(--muted-foreground)); }
   .mrow.mghost .lnk { margin-left: 8px; font-style: normal; }
-  .prow .pexpired { font-size: 13px; color: hsl(var(--red)); }
-  .mview { display: flex; gap: 4px; margin-bottom: 16px; }
   .msec-head.plain { cursor: default; }
-  .plist { padding: 4px 0 0 12px; max-width: 640px; }
-  .prow { display: flex; align-items: center; gap: 12px; padding: 7px 12px; font-size: 14px; cursor: pointer; user-select: none; }
-  .prow:hover { background: hsl(var(--foreground) / .035); }
-  .prow .pname { font-weight: 600; }
-  .prow .pmeta { margin-left: auto; font-size: 13px; color: hsl(var(--muted-foreground)); }
-  .prow.done .pname { color: hsl(var(--muted-foreground)); font-weight: 400; text-decoration: line-through; }
-  .prow.done .chk { background: hsl(var(--green) / .7); border-color: hsl(var(--green)); color: hsl(var(--page)); }
   .aclist { position: fixed; z-index: 9999; max-height: 192px; overflow-y: auto; padding: 4px 0; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
   .aclist div { padding: 6px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); }
   .aclist div.on { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
@@ -332,9 +346,6 @@
   .fm-row.on .chk { background: hsl(var(--primary) / .7); border-color: hsl(var(--primary)); color: hsl(var(--page)); }
   .fm-new .chk { border-style: dashed; }
   .chk { width: 14px; height: 14px; border: 1px solid hsl(var(--line-mid)); flex-shrink: 0; align-self: center; display: grid; place-items: center; font-size: 10px; }
-  .srow.done { opacity: .5; }
-  .srow.done .chk { background: hsl(var(--green) / .7); border-color: hsl(var(--green)); color: hsl(var(--page)); }
-  .srow.cur { background: hsl(var(--pri) / .1); box-shadow: inset 2px 0 0 hsl(var(--pri)); }
   .sadd { display: flex; gap: 8px; margin-top: 12px; }
   .shelp { font-size: 12px; color: hsl(var(--muted-foreground)); margin: 10px 0 0; }
 
@@ -371,15 +382,11 @@
   .tbl tr:first-child input { color: hsl(var(--muted-foreground)); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
   .tbl input:focus { outline: 1px solid hsl(var(--pri) / .6); background: hsl(var(--pri) / .06); }
   .ttools { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .run .ttools { display: none; }
 
   .t-flow { padding: 6px; }
   .fb rect { fill: hsl(var(--card)); stroke: hsl(var(--line-mid)); }
   .fb.side rect { stroke-dasharray: 4 3; stroke: hsl(var(--pri) / .6); }
-  .fb.done rect { stroke: hsl(var(--green)); fill: hsl(var(--green) / .08); }
-  .fb.cur rect { stroke: hsl(var(--pri)); stroke-width: 2; fill: hsl(var(--pri) / .12); }
   .fb .tx { fill: hsl(var(--fg)); font-size: 11.5px; }
-  .fb.done .tx { fill: hsl(var(--fg) / .55); }
   .fb .nm { fill: hsl(var(--muted-foreground)); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
   .fb .du { fill: hsl(var(--amber)); font-size: 11px; }
   .fb .sb { fill: hsl(var(--muted-foreground)); font-size: 10.5px; font-style: italic; }
@@ -388,7 +395,6 @@
   .fl-mw { stroke: hsl(var(--pri) / .6); stroke-dasharray: 4 3; fill: none; }
   .fl-mwl { fill: hsl(var(--pri)); font-size: 9px; font-family: 'JetBrains Mono', monospace; letter-spacing: .1em; }
   .fl-head { fill: hsl(var(--muted-foreground)); }
-  .run .fb { cursor: pointer; }
 
   .t-sketch { padding: 0; display: flex; flex-direction: column; }
   .sk-tools { display: flex; gap: 6px; align-items: center; padding: 6px 8px; border-bottom: 1px solid hsl(var(--line-faint)); }
@@ -421,14 +427,15 @@
   .txt:empty::before { content: 'Write anything here.'; color: hsl(var(--muted-foreground)); font-style: italic; }
 </style>
 </head>
-<body class="build">
+<body>
+<div class="export" id="exportView" hidden><div class="ex-bar"><button class="lnk" id="exportClose">Back to editing</button><button class="add primary" id="exportPrint">Print or save as PDF</button></div><div class="ex-page" id="exportPage"></div></div>
 <div class="app">
   <div class="top"><span class="logo">ODYSSEUS</span><span class="rule"></span><span class="crumb">Workbench</span><span class="sq"></span><span class="crumb">Protocol builder</span></div>
   <div class="bar">
     <input class="title" id="title" spellcheck="false" />
-    <div class="modes"><button data-mode="build">Build</button><button data-mode="run">Run</button></div>
-    <span class="runinfo" id="runinfo"></span>
-    <button class="lnk" id="resetRun">Reset run</button>
+    <span class="runon">Run on<input class="in" type="date" id="runFrom" />to<input class="in" type="date" id="runTo" /></span>
+    <span class="hintbar">Drag a block by its title, resize from the corner.</span>
+    <button class="add primary" id="exportOpen">Export</button>
     <select class="lnk" id="example"><option value="">Load an example…</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
   </div>
   <div class="main">
@@ -616,11 +623,6 @@ function parse(tokens) {
   return tree;
 }
 
-const effectiveValue = it => {
-  if (state.mode !== 'run') return it.value;
-  if (it.id in state.run.overrides) return state.run.overrides[it.id];
-  return it.perRun ? '' : it.value;
-};
 
 function displayOf(it, raw) {
   const text = String(raw ?? '').trim();
@@ -632,7 +634,7 @@ function displayOf(it, raw) {
 
 function valueQuantity(it) {
   const u = UNITS[it.unit] ?? UNITS[''];
-  const n = u.pair ? parseRatio(effectiveValue(it)) : parseNumber(effectiveValue(it));
+  const n = u.pair ? parseRatio(it.value) : parseNumber(it.value);
   if (Number.isNaN(n)) return null;
   if (u.ratio) return n > 0 ? { v: 1 / n, d: {} } : null;
   return { v: n * u.f, d: u.d };
@@ -643,33 +645,32 @@ const mf = (label, kind = 'text', extra = {}) => ({ key: fieldKey(label), label,
 const num = (label, unit = '', extra = {}) => mf(label, 'number', { unit, ...extra });
 const day = (label, extra = {}) => mf(label, 'date', extra);
 const pick = (label, options, extra = {}) => mf(label, 'choice', { options, ...extra });
-const RUN = { scope: 'run' };
 const LOT = { scope: 'lot' };
 const YES_NO = ['Yes', 'No'];
 const LASERS = ['UV 355', 'Violet 405', 'Blue 488', 'Green 532', 'Yellow-green 561', 'Red 640', 'Near-IR 808'];
 const CONC = { units: ['mM', 'µM', 'nM', 'mg/mL', 'µg/mL', 'ng/mL', '%', 'x'] };
 const consent = mf('Consent or IRB reference');
 
-const MADE_HERE = [mf('Recipe'), num('Volume made', 'mL'), day('Made on', RUN), mf('Made by', 'text', RUN), pick('Sterile-filtered', YES_NO)];
+const MADE_HERE = [mf('Recipe'), num('Volume made', 'mL'), day('Made on'), mf('Made by'), pick('Sterile-filtered', YES_NO)];
 const PHYSICAL_CORE = [
-  mf('Vendor or source', 'text', { key: 'vendor' }), mf('Catalog #', 'text', { key: 'catalog' }), mf('Lot', 'text', RUN),
-  day('Expires', { ...RUN, warnPast: true }), mf('Storage'), mf('Hazard or biosafety', 'text', { key: 'hazard' }), mf('Notes'),
+  mf('Vendor or source', 'text', { key: 'vendor' }), mf('Catalog #', 'text', { key: 'catalog' }), mf('Lot'),
+  day('Expires', { warnPast: true }), mf('Storage'), mf('Hazard or biosafety', 'text', { key: 'hazard' }), mf('Notes'),
 ];
 const EQUIPMENT_CORE = [mf('Model'), mf('Manufacturer'), mf('Notes')];
 const SOFTWARE_CORE = [mf('Source'), mf('Notes')];
 
 const MATERIAL_GROUPS = [
   { key: 'bio', label: 'Biological Material', core: PHYSICAL_CORE, types: {
-    'Cell line': [mf('Species'), mf('Tissue of origin'), mf('RRID'), mf('Genetic modification'), mf('Medium'), mf('Culture conditions'), day('Authentication date'), day('Mycoplasma test date'), num('Passage', '', RUN), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN)],
-    'Primary cells': [mf('Species'), mf('Donor ID'), mf('Tissue'), mf('Isolation method'), day('Collected'), day('Frozen'), num('Count', 'cells/mL', RUN), num('Viability', '%', RUN), consent],
-    '3D culture': [mf('Species'), mf('Source line or donor'), mf('Matrix'), num('Passage', '', RUN), num('Days in culture', '', RUN)],
+    'Cell line': [mf('Species'), mf('Tissue of origin'), mf('RRID'), mf('Genetic modification'), mf('Medium'), mf('Culture conditions'), day('Authentication date'), day('Mycoplasma test date'), num('Passage'), num('Count', 'cells/mL'), num('Viability', '%')],
+    'Primary cells': [mf('Species'), mf('Donor ID'), mf('Tissue'), mf('Isolation method'), day('Collected'), day('Frozen'), num('Count', 'cells/mL'), num('Viability', '%'), consent],
+    '3D culture': [mf('Species'), mf('Source line or donor'), mf('Matrix'), num('Passage'), num('Days in culture')],
     'Tissue': [mf('Species'), mf('Donor or animal ID'), mf('Tissue'), day('Collected'), pick('Preservation', ['Fresh', 'Frozen', 'FFPE']), mf('Section thickness'), consent],
     'Body fluid': [pick('Fluid', ['Serum', 'Plasma', 'Whole blood', 'CSF', 'Urine', 'Other']), mf('Donor ID'), mf('Anticoagulant'), day('Collected'), num('Freeze-thaw count'), num('Dilution', '1:N'), consent],
     'Organism': [mf('Species'), mf('Strain'), pick('Sex', ['Female', 'Male', 'Mixed']), mf('Age'), mf('Genotype'), mf('Animal or cohort ID'), mf('Protocol number')],
-    'Microbial strain': [mf('Species'), mf('Strain'), mf('Genotype'), mf('Antibiotic resistance'), mf('Stock ID'), num('OD at use', '', RUN)],
+    'Microbial strain': [mf('Species'), mf('Strain'), mf('Genotype'), mf('Antibiotic resistance'), mf('Stock ID'), num('OD at use')],
     'Virus or vector': [mf('Virus type'), mf('Construct'), mf('Serotype or pseudotype'), num('Titer per mL', '', LOT), mf('Biosafety level')],
-    'Nucleic acid sample': [pick('Nucleic acid', ['DNA', 'RNA']), mf('Source sample'), num('Concentration', 'ng/µL', RUN), num('A260/280'), num('RIN')],
-    'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL', RUN)],
+    'Nucleic acid sample': [pick('Nucleic acid', ['DNA', 'RNA']), mf('Source sample'), num('Concentration', 'ng/µL'), num('A260/280'), num('RIN')],
+    'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL')],
   } },
   { key: 'ab', label: 'Antibodies & Stains', core: PHYSICAL_CORE, types: {
     'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
@@ -697,7 +698,7 @@ const MATERIAL_GROUPS = [
     'Medium': [mf('Base medium'), mf('Glucose'), mf('Glutamine'), pick('Phenol red', YES_NO), ...MADE_HERE],
     'Buffer': [mf('Strength'), pick('Calcium and magnesium', ['With', 'Without']), num('pH'), ...MADE_HERE],
     'Supplement': [num('Final concentration', '%'), pick('Heat-inactivated', YES_NO)],
-    'Stock solution': [num('Concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Solvent'), day('Made on', RUN), mf('Aliquot ID')],
+    'Stock solution': [num('Concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Solvent'), day('Made on'), mf('Aliquot ID')],
     'Fix or perm': [mf('Fixative or detergent'), mf('Concentration'), mf('Time')],
     'Coating or matrix': [mf('Matrix'), num('Protein concentration', 'mg/mL', LOT), num('Coating concentration', 'µg/mL')],
     'Mounting medium': [pick('DAPI', ['With', 'Without']), pick('Hardening', YES_NO)],
@@ -757,10 +758,6 @@ const fieldUnit =(item, f) => (f.unit === '*' ? (item.units?.[f.key] ?? f.defaul
 const fieldName = (item, f) => `${item.name.trim()} ${(f.nameByUnit?.[fieldUnit(item, f)] ?? f.label).toLowerCase()}`;
 
 function materialLabel(item) {
-  if (state.mode === 'run' && item.on.includes('lot')) {
-    const lot = String(effectiveValue({ id: `${item.id}:lot`, value: '', perRun: true })).trim();
-    return lot ? `lot ${lot}` : 'lot needed';
-  }
   return ['vendor', 'catalog', 'model', 'version'].filter(k => item.on.includes(k)).map(k => String(item.values[k] ?? '').trim()).filter(Boolean).join(' ');
 }
 
@@ -816,7 +813,7 @@ function recompute() {
       b.columns.filter(c => c.kind === 'number').forEach(c => {
         const id = `${row.id}:${c.id}`;
         const unit = c.unit === '*' ? (row.units?.[c.id] ?? '') : c.unit;
-        define(`${rowName} ${c.name.trim().toLowerCase()}`, { kind: 'value', id, item: { id, value: row.cells[c.id] ?? '', unit, perRun: c.perRun } });
+        define(`${rowName} ${c.name.trim().toLowerCase()}`, { kind: 'value', id, item: { id, value: row.cells[c.id] ?? '', unit } });
       });
     });
     if (b.type === 'materials') b.items.filter(item => item.name.trim()).forEach(item => {
@@ -824,7 +821,7 @@ function recompute() {
       define(item.name, { kind: 'item', id: item.id, groupTitle: materialGroup(b, item.group).label, hint: numbers[0] ? fieldName(item, numbers[0]) : '', label: () => materialLabel(item), dropped: !!item.dropped });
       numbers.forEach(f => {
         const id = `${item.id}:${f.key}`;
-        define(fieldName(item, f), { kind: 'value', id, item: { id, value: item.values[f.key] ?? '', unit: fieldUnit(item, f), perRun: f.scope !== 'protocol' }, dropped: !!item.dropped });
+        define(fieldName(item, f), { kind: 'value', id, item: { id, value: item.values[f.key] ?? '', unit: fieldUnit(item, f) }, dropped: !!item.dropped });
       });
     });
     if (b.type === 'values') b.items.forEach(it => define(it.name, { kind: 'value', id: it.id, item: it }));
@@ -838,8 +835,8 @@ function recompute() {
     const e = names.get(name.toLowerCase());
     if (e.kind === 'value') {
       const q = valueQuantity(e.item);
-      if (!q) throw new CalcError(e.item.perRun && state.mode === 'run' ? `Waiting for ${e.name}, recorded on the run` : `${e.name} has no number yet`);
-      return { q, html: `<span class="r-value${e.dropped ? ' dropped' : ''}">${esc(displayOf(e.item, effectiveValue(e.item)))}</span>` };
+      if (!q) throw new CalcError(`${e.name} has no number yet`);
+      return { q, html: `<span class="r-value${e.dropped ? ' dropped' : ''}">${esc(displayOf(e.item, e.item.value))}</span>` };
     }
     if (e.kind === 'plate') return { q: e.q, html: `<span class="r-plate">${e.display}</span>` };
     if (e.kind === 'item') throw new CalcError(`${e.name} is in ${e.groupTitle}, not a number.${e.hint ? ` Use one of its numbers, like ${e.hint}.` : ''}`);
@@ -909,7 +906,7 @@ function refInfo(name) {
   if (!e) return { text: name, label: 'not on this board', cls: 'missing', kind: 'missing' };
   const dropped = e.dropped ? ' dropped' : '';
   if (e.kind === 'item') return { text: e.name, label: e.dropped ? 'Dropped from Materials' : e.label(), cls: `r-item${dropped}`, kind: 'r' };
-  if (e.kind === 'value') return { text: displayOf(e.item, effectiveValue(e.item)), label: e.dropped ? `${e.name}, dropped from Materials` : e.name, cls: `r-value${dropped}`, kind: 'v' };
+  if (e.kind === 'value') return { text: displayOf(e.item, e.item.value), label: e.dropped ? `${e.name}, dropped from Materials` : e.name, cls: `r-value${dropped}`, kind: 'v' };
   if (e.kind === 'plate') return { text: e.display, label: e.name, cls: 'r-plate', kind: 'p' };
   const r = calc.results.get(e.item.id);
   if (!r || r.error) return { text: '?', label: e.name, cls: 'missing', kind: 'f' };
@@ -918,12 +915,7 @@ function refInfo(name) {
 
 function itemLabel({ list, item }) {
   const visible = list.columns.slice(1).filter(c => !c.hidden);
-  const runColumn = visible.find(c => c.perRun && c.kind !== 'date');
-  if (state.mode === 'run' && runColumn) {
-    const value = String(effectiveValue({ id: `${item.id}:${runColumn.id}`, value: '', perRun: true })).trim();
-    return `${runColumn.name.toLowerCase()} ${value || 'needed'}`;
-  }
-  return visible.filter(c => c.kind === 'text' && !c.perRun).slice(0, 2).map(c => String(item.cells[c.id] ?? '').trim()).filter(Boolean).join(' ');
+  return visible.filter(c => c.kind === 'text').slice(0, 2).map(c => String(item.cells[c.id] ?? '').trim()).filter(Boolean).join(' ');
 }
 </script>
 <script id="guesser">
@@ -1459,7 +1451,7 @@ function splitPastedMaterials(text) {
 }
 </script>
 <script>
-const STORAGE_KEY = 'odysseus-workbench-builder-study-v9';
+const STORAGE_KEY = 'odysseus-workbench-builder-study-v10';
 const uid = () => Math.random().toString(36).slice(2, 9);
 const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
 const GROUPS = { std: { label: 'Standard', short: 'Std' }, sample: { label: 'Sample', short: 'S' }, blank: { label: 'Blank', short: 'B' }, ctrl: { label: 'Control', short: 'C' } };
@@ -1474,13 +1466,12 @@ const FORMULA_LIBRARY = [
   { label: 'Serial dilution transfer', name: 'Transfer volume', expr: 'Diluent per tube ÷ (Fold − 1)', unit: 'µL' },
   { label: 'Plates needed', name: 'Plates needed', expr: 'ceil(Wells ÷ 96)', unit: 'auto' },
 ];
-const TODAY = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 const roman = n => [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].reduce((s, [v, r]) => { while (n >= v) { s += r; n -= v; } return s; }, '');
 const TODAY_ISO = new Date().toISOString().slice(0, 10);
 const COLUMN_KINDS = ['text', 'number', 'date', 'choice'];
 const openColumnEditors = new Set();
 const COLUMN_UNITS = ['*', ...VALUE_UNITS];
-const newColumn = (name, kind = 'text', extra = {}) => ({ id: uid(), name, kind, unit: '', options: [], perRun: false, hidden: false, warnPast: false, ...extra });
+const newColumn = (name, kind = 'text', extra = {}) => ({ id: uid(), name, kind, unit: '', options: [], hidden: false, warnPast: false, ...extra });
 const LIST_PRESETS = {
   blank: { label: 'Table', hint: 'Your own columns, e.g. a standard curve', named: false, columns: () => [newColumn('Column 1'), newColumn('Column 2'), newColumn('Column 3')] },
 };
@@ -1560,8 +1551,6 @@ function exampleElisa() {
   const captureAb = material('ab', 'Antibody', 'Capture Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', amount: ['200', '1:N'] }, ['concentration']);
   return {
     title: 'IL-6 sandwich ELISA',
-    mode: 'build',
-    run: { overrides: {}, done: {} },
     lotMemory: { [captureAb.id]: { B271834: { concentration: '500' } } },
     steps: [
       section('Coat'),
@@ -1634,8 +1623,6 @@ function exampleCells() {
   }
   return {
     title: 'Cell viability dose response',
-    mode: 'build',
-    run: { overrides: {}, done: {} },
     lotMemory: {},
     steps: [
       section('Prepare cells'),
@@ -1695,6 +1682,7 @@ function loadState() {
 let state = loadState() ?? exampleElisa();
 state.lotMemory ??= {};
 state.keptBoth ??= [];
+state.runOn ??= { from: '', to: '' };
 
 const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory-v1';
 const labMemory = (() => { try { return JSON.parse(localStorage.getItem(LAB_MEMORY_KEY)); } catch { return null; } })() ?? {};
@@ -1725,7 +1713,6 @@ function save() {
 
 const byId = id => state.blocks.find(b => b.id === id);
 const bodyOf = b => document.querySelector(`.blk[data-id="${b.id}"] .blk-body`);
-const isRun = () => state.mode === 'run';
 const uniqueName = base => { let name = base; let n = 2; while (calc.names.has(name.toLowerCase())) name = `${base} ${n++}`; return name; };
 
 const mapTemplate = (text, plain, ref) => String(text ?? '').split(/(\{[^}]+\})/).map(part => {
@@ -1762,18 +1749,11 @@ function stepNumbers() {
     return [s.id, `${++steps}.`];
   }));
 }
-const currentStepId = () => state.steps.find(s => s.kind === 'step' && !state.run.done[s.id])?.id;
-
-function toggleDone(id) {
-  if (state.run.done[id]) delete state.run.done[id]; else state.run.done[id] = true;
-  commitSteps();
-}
 function commitSteps() {
   save();
   stepsRendering = true;
   state.blocks.filter(b => b.type === 'steps' || b.type === 'flow').forEach(renderBlock);
   stepsRendering = false;
-  updateBar();
 }
 
 const SINGLE_VESSEL_COLUMNS = 6;
@@ -1833,8 +1813,6 @@ function flowSvg(b, width) {
   if (!mains.length) return '<p class="hint" style="padding:8px">Add steps in a Steps block and they are drawn here.</p>';
   const BW = 176, BH = 62, GX = 36, PAD = 20, LABEL = 22, SIDE_GAP = 28, ROW_GAP = 34;
   const perRow = Math.max(1, Math.floor((width - PAD * 2 + GX) / (BW + GX)));
-  const run = isRun();
-  const cur = currentStepId();
   const marker = `ah-${b.id}`;
   const wrap = (text, max, lines) => {
     const out = [];
@@ -1850,11 +1828,9 @@ function flowSvg(b, width) {
   const box = (n, x, y, side) => {
     const s = n.s;
     const text = templateText(s.text) || '(empty step)';
-    const isCur = run && (s.id === cur || n.subs.some(x => x.id === cur));
-    const cls = ['fb', side ? 'side' : '', run && state.run.done[s.id] ? 'done' : '', isCur ? 'cur' : ''].join(' ');
+    const cls = ['fb', side ? 'side' : ''].join(' ');
     const lines = wrap(text, 26, Math.max(1, 3 - (n.subs.length ? 1 : 0)));
-    const subsDone = n.subs.filter(x => state.run.done[x.id]).length;
-    const subLine = n.subs.length ? `<text class="sb" x="${x + 10}" y="${y + 18 + lines.length * 15}">+ ${n.subs.length} sub-step${n.subs.length === 1 ? '' : 's'}${run ? `, ${subsDone} done` : ''}</text>` : '';
+    const subLine = n.subs.length ? `<text class="sb" x="${x + 10}" y="${y + 18 + lines.length * 15}">+ ${n.subs.length} sub-step${n.subs.length === 1 ? '' : 's'}</text>` : '';
     const tip = [text, ...n.subs.map(x => `${nums[x.id]} ${templateText(x.text)}`)].join('\n');
     return `<g class="${cls}" data-step="${s.id}"><title>${esc(tip)}</title><rect x="${x}" y="${y}" width="${BW}" height="${BH}" rx="4"/>${lines.map((l, i) => `<text class="tx" x="${x + 10}" y="${y + 18 + i * 15}">${i === 0 ? `<tspan class="nm">${n.num}</tspan> ` : ''}${esc(l)}</text>`).join('')}${subLine}</g>`;
   };
@@ -2087,7 +2063,6 @@ const VALUE_UNIT_WORDS = [
 const valueUnitOf = word => VALUE_UNIT_WORDS.find(([re]) => re.test(word))?.[1];
 const isPastDate = value => !!String(value ?? '').trim() && String(value) < TODAY_ISO;
 const chosenKinds = new Map();
-const materialViews = new Map();
 const PULL_SKIP_GROUPS = new Set(['equip', 'soft']);
 let exampleTitles;
 const editingCells = new Map();
@@ -2225,11 +2200,8 @@ function fillDown(b, td) {
     const f = own ?? materialFields(b, source).find(x => x.key === key);
     if (!f) return;
     if (!own) item.custom.push({ ...f });
-    if (isRun()) state.run.overrides[`${item.id}:${key}`] = effectiveValue({ id: `${source.id}:${key}`, value: source.values[key] ?? '', perRun: f.scope !== 'protocol' });
-    else {
-      item.values[key] = source.values[key] ?? '';
-      if (source.units?.[key]) item.units[key] = source.units[key];
-    }
+    item.values[key] = source.values[key] ?? '';
+    if (source.units?.[key]) item.units[key] = source.units[key];
     if (!item.on.includes(key)) item.on.push(key);
   }
   editCell(b, item.id, key);
@@ -2390,24 +2362,106 @@ function droppedBox(b) {
   return `<section class="msec mdropped${open ? '' : ' folded'}" data-group="dropped"><div class="msec-head" data-act="fold-dropped"><span class="arrow">${open ? '▾' : '▸'}</span><span class="msec-title">Dropped</span><span class="msec-count">${dropped.length}</span><span class="msec-line"></span></div>${body}</section>`;
 }
 
-function pullList(b) {
-  const pulled = state.run.pulled ?? {};
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dayParts = iso => { const [y, m, d] = iso.split('-').map(Number); return { d, m: MONTHS[m - 1], y }; };
+const dayLabel = iso => { const { d, m, y } = dayParts(iso); return `${d} ${m} ${y}`; };
+
+function runOnText() {
+  const { from, to } = state.runOn;
+  if (!from) return null;
+  if (!to || to === from) return `Run on ${dayLabel(from)}`;
+  const a = dayParts(from);
+  const z = dayParts(to);
+  if (a.y !== z.y) return `Run ${dayLabel(from)} – ${dayLabel(to)}`;
+  if (a.m === z.m) return `Run ${a.d}–${z.d} ${z.m} ${z.y}`;
+  return `Run ${a.d} ${a.m} – ${z.d} ${z.m} ${z.y}`;
+}
+
+const EXPORT_CORE_KEYS = new Set(['vendor', 'catalog', 'lot', 'expires', 'storage', 'notes', 'hazard']);
+const blankLine = '<span class="ex-blank"></span>';
+
+function exportMaterials() {
   const places = new Map();
-  for (const item of b.items.filter(i => i.name.trim() && !i.dropped && !PULL_SKIP_GROUPS.has(i.group))) {
-    const label = String(item.values.storage ?? '').trim();
-    const key = label.toLowerCase();
-    if (!places.has(key)) places.set(key, { label: label || 'Storage not set', rank: storageRank(label), items: [] });
-    places.get(key).items.push(item);
+  for (const b of state.blocks.filter(x => x.type === 'materials')) {
+    for (const item of b.items.filter(i => i.name.trim() && !i.dropped)) {
+      const equipment = PULL_SKIP_GROUPS.has(item.group);
+      const storage = String(item.values.storage ?? '').trim();
+      const label = equipment ? 'Equipment & Software' : storage || 'Storage not set';
+      if (!places.has(label)) places.set(label, { label, rank: equipment ? Infinity : storage ? storageRank(storage) : Number.MAX_VALUE, rows: [] });
+      const fields = materialFields(b, item);
+      const details = fields.filter(f => item.on.includes(f.key) && !EXPORT_CORE_KEYS.has(f.key) && materialText(item, f)).map(f => `${f.label.toLowerCase()} ${materialText(item, f)}`);
+      const source = [item.values.vendor, item.values.catalog].map(v => String(v ?? '').trim()).filter(Boolean).join(' · ');
+      const lot = String(item.values.lot ?? '').trim();
+      const expires = String(item.values.expires ?? '').trim();
+      places.get(label).rows.push(`<tr><td class="ex-chk"><span class="ex-box"></span></td><td><div class="ex-name">${esc(item.name)}</div><div class="ex-sub">${esc([item.group === 'unsorted' ? '' : item.type, ...details].filter(Boolean).join(' · '))}</div></td><td>${esc(source)}</td><td>${lot ? esc(lot) : blankLine}</td><td${isPastDate(expires) ? ' class="ex-warn"' : ''}>${expires ? `${esc(dayLabel(expires))}${isPastDate(expires) ? ' (expired)' : ''}` : ''}</td></tr>`);
+    }
   }
-  return [...places.values()].sort((x, y) => x.rank - y.rank || x.label.localeCompare(y.label)).map(place => {
-    const done = place.items.filter(i => pulled[i.id]).length;
-    const rows = place.items.map(item => {
-      const lot = String(effectiveValue({ id: `${item.id}:lot`, value: '', perRun: true })).trim();
-      const expired = isPastDate(effectiveValue({ id: `${item.id}:expires`, value: item.values.expires ?? '', perRun: true }));
-      return `<div class="prow${pulled[item.id] ? ' done' : ''}" data-act="pull" data-item="${item.id}"><span class="chk">${pulled[item.id] ? '✓' : ''}</span><span class="pname">${esc(item.name)}</span>${expired ? '<span class="pexpired">Expired</span>' : ''}${lot ? `<span class="pmeta">lot ${esc(lot)}</span>` : ''}</div>`;
-    }).join('');
-    return `<section class="msec"><div class="msec-head plain"><span class="msec-title">${esc(place.label)}</span><span class="msec-count">${done}/${place.items.length}</span><span class="msec-line"></span></div><div class="plist">${rows}</div></section>`;
+  if (!places.size) return '';
+  const groups = [...places.values()].sort((x, y) => x.rank - y.rank || x.label.localeCompare(y.label));
+  return `<h2>Materials</h2>${groups.map(g => `<h3>${esc(g.label)}</h3><table class="ex-mat"><colgroup><col class="ex-chk" /><col /><col class="src" /><col class="lot" /><col class="exp" /></colgroup><thead><tr><th></th><th>Name</th><th>Vendor · Cat #</th><th>Lot</th><th>Expires</th></tr></thead><tbody>${g.rows.join('')}</tbody></table>`).join('')}`;
+}
+
+function exportValues() {
+  const items = state.blocks.filter(b => b.type === 'values').flatMap(b => b.items.filter(it => it.name.trim()));
+  if (!items.length) return '';
+  return `<h2>Values</h2><table class="ex-kv"><tbody>${items.map(it => `<tr><td>${esc(it.name)}</td><td class="ex-num">${String(it.value).trim() ? esc(displayOf(it, it.value)) : `${blankLine}${it.unit && !['1:N', 'N:N'].includes(it.unit) ? ` ${esc(it.unit)}` : ''}`}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function exportFormulas() {
+  const items = state.blocks.filter(b => b.type === 'formula').flatMap(b => b.items);
+  if (!items.length) return '';
+  const rows = items.map(it => {
+    const r = calc.results.get(it.id);
+    const answer = r && !r.error && !r.out.error ? esc(r.out.text) : blankLine;
+    const work = r && !r.error && r.showWork ? `<div class="ex-work">= ${r.html.replace(/<[^>]+>/g, '')}</div>` : '';
+    return `<tr><td>${esc(it.name)}${work}</td><td class="ex-num">${answer}</td></tr>`;
   }).join('');
+  return `<h2>Calculations</h2><table class="ex-kv"><tbody>${rows}</tbody></table>`;
+}
+
+function exportSteps() {
+  if (!state.steps.some(st => st.kind === 'step')) return '';
+  const nums = stepNumbers();
+  let html = '';
+  let open = false;
+  let lastMain = '';
+  for (const st of state.steps) {
+    if (st.kind === 'section') {
+      if (open) html += '</ol>';
+      html += `<h3>${esc(nums[st.id])} ${esc(st.text)}</h3><ol class="ex-steps">`;
+      open = true;
+      continue;
+    }
+    if (!open) {
+      html += '<ol class="ex-steps">';
+      open = true;
+    }
+    const during = st.meanwhile && st.level !== 2 && lastMain ? `<span class="ex-during">During step ${esc(lastMain)}: </span>` : '';
+    if (st.level !== 2 && !st.meanwhile) lastMain = nums[st.id].replace('.', '');
+    html += `<li class="${st.level === 2 ? 'sub' : ''}"><span class="ex-box"></span><span class="n">${esc(nums[st.id])}</span><span>${during}${esc(templateText(st.text))}</span></li>`;
+  }
+  return `<h2>Steps</h2>${html}${open ? '</ol>' : ''}`;
+}
+
+function exportTables() {
+  return state.blocks.filter(b => b.type === 'list' && b.items.length).map(b => {
+    const columns = b.columns.filter((c, i) => i === 0 || !c.hidden);
+    const cell = (row, c) => {
+      const raw = String(row.cells[c.id] ?? '').trim();
+      return raw ? esc(displayOf({ unit: c.kind === 'number' ? (c.unit === '*' ? row.units?.[c.id] ?? '' : c.unit) : '' }, raw)) : blankLine;
+    };
+    return `<h2>${esc(b.title)}</h2><table><thead><tr>${columns.map(c => `<th>${esc(c.name)}</th>`).join('')}</tr></thead><tbody>${b.items.map(row => `<tr>${columns.map(c => `<td>${cell(row, c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  }).join('');
+}
+
+function exportNotes() {
+  const written = state.blocks.filter(b => b.type === 'text' && b.html.replace(/<[^>]+>/g, '').trim()).map(b => `<div class="ex-text">${b.html}</div>`).join('');
+  return `<h2>Notes</h2>${written}<div class="ex-lines">${'<div></div>'.repeat(6)}</div>`;
+}
+
+function exportHtml() {
+  const when = runOnText();
+  return `<h1>${esc(state.title)}</h1><div class="ex-when${when ? '' : ' planned'}">${esc(when ?? 'Planned · not yet run')}</div>${exportMaterials()}${exportValues()}${exportFormulas()}${exportSteps()}${exportTables()}${exportNotes()}<div class="ex-foot">Exported ${esc(dayLabel(TODAY_ISO))} from Odysseus Workbench</div>`;
 }
 
 function kindSelect(b, group, type, cls) {
@@ -2450,33 +2504,25 @@ function duplicatePrompt(b) {
 }
 
 function materialControl(item, f) {
-  const run = isRun();
-  const perRun = f.scope !== 'protocol';
-  const value = run ? effectiveValue({ id: `${item.id}:${f.key}`, value: item.values[f.key] ?? '', perRun }) : item.values[f.key] ?? '';
+  const value = item.values[f.key] ?? '';
   const cls = `in mfield${f.kind === 'number' ? ' mono' : ''}${f.warnPast && isPastDate(value) ? ' expired' : ''}`;
   const control = f.kind === 'choice'
     ? `<select class="${cls}" data-key="${f.key}">${['', ...f.options].map(o => `<option${o === value ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`
     : `<input class="${cls}" data-key="${f.key}"${f.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" spellcheck="false" />`;
   if (f.kind !== 'number') return control;
   const unit = fieldUnit(item, f);
-  const unitControl = f.unit === '*' && !run
+  const unitControl = f.unit === '*'
     ? `<select class="in munit" data-unitkey="${f.key}">${(f.units ?? VALUE_UNITS).map(u => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u || 'none')}</option>`).join('')}</select>`
     : `<span class="unit">${esc(shortUnit(unit))}</span>`;
   return `<span class="ramt">${unit === '1:N' ? '<span class="pre">1:</span>' : ''}${control}${unitControl}</span>`;
 }
 
 function materialText(item, f) {
-  const perRun = f.scope !== 'protocol';
-  const raw = isRun() ? effectiveValue({ id: `${item.id}:${f.key}`, value: item.values[f.key] ?? '', perRun }) : item.values[f.key] ?? '';
+  const raw = item.values[f.key] ?? '';
   return String(raw).trim() ? displayOf({ unit: f.kind === 'number' ? fieldUnit(item, f) : '' }, raw) : '';
 }
 
-function materialCell(item, f) {
-  return isRun() && f.scope !== 'protocol' ? materialControl(item, f) : esc(materialText(item, f));
-}
-
 function materialSection(b, items, groupKey) {
-  const run = isRun();
   const clashes = groupKey === 'ab' ? conjugateClashes(items) : [];
   const clashing = new Set(clashes.flatMap(c => c.items.map(i => i.id)));
   const columns = [];
@@ -2489,27 +2535,26 @@ function materialSection(b, items, groupKey) {
   };
   const rows = items.map((item, i) => {
     const fields = materialFields(b, item);
-    const name = cell(item, 'name', !run, () => esc(item.name) || '<span class="hint">Unnamed</span>', () => `<input class="in lname" value="${esc(item.name)}" placeholder="Name" spellcheck="false" />`, 'mname ');
-    const kind = cell(item, 'type', !run, () => (item.group === 'unsorted' ? '<span class="mpending">choose</span>' : esc(item.type)), () => kindSelect(b, item.group, item.type, 'me-kind'), 'mtype ');
+    const name = cell(item, 'name', true, () => esc(item.name) || '<span class="hint">Unnamed</span>', () => `<input class="in lname" value="${esc(item.name)}" placeholder="Name" spellcheck="false" />`, 'mname ');
+    const kind = cell(item, 'type', true, () => (item.group === 'unsorted' ? '<span class="mpending">choose</span>' : esc(item.type)), () => kindSelect(b, item.group, item.type, 'me-kind'), 'mtype ');
     const values = columns.map(c => {
       const f = fields.find(x => x.key === c.key) ?? c;
       const shown = item.on.includes(f.key);
-      const editable = !run || (f.scope === 'protocol' && shown);
       const flag = f.key === 'conjugate' && clashing.has(item.id) ? 'clash ' : f.warnPast && shown && isPastDate(materialText(item, f)) ? 'expired ' : '';
-      return cell(item, f.key, editable, () => (shown ? materialCell(item, f) : ''), () => materialControl(item, f), flag);
+      return cell(item, f.key, true, () => (shown ? esc(materialText(item, f)) : ''), () => materialControl(item, f), flag);
     }).join('');
-    const used = run ? '' : '<td class="mused"></td>';
-    const remove = run ? '' : '<td class="mrm"><button class="ghost-quiet" data-act="drop">Drop</button><button class="ghost-danger" data-act="del">Remove</button></td>';
+    const used = '<td class="mused"></td>';
+    const remove = '<td class="mrm"><button class="ghost-quiet" data-act="drop">Drop</button><button class="ghost-danger" data-act="del">Remove</button></td>';
     return `<tr class="mrow${i % 2 ? ' alt' : ''}${fresh?.has(item.id) ? ' fresh' : ''}" data-item="${item.id}" data-pick="${esc(item.name)}">${name}${kind}${values}${used}${remove}</tr>`;
   });
   const removed = removedMaterials.get(b.id);
-  if (!run && removed?.place === 'group' && removed.item.group === groupKey) {
+  if (removed?.place === 'group' && removed.item.group === groupKey) {
     rows.splice(Math.min(removed.groupIndex, rows.length), 0, `<tr class="mrow mghost"><td colspan="${columns.length + 3}">${removed.verb} ${esc(removed.item.name || 'a material')}</td><td class="mrm"><button class="lnk" data-act="restore">Undo</button></td></tr>`);
   }
-  const hideButton = c => (run ? '' : `<button class="mcol-x" data-act="hide-col" data-key="${esc(c.key)}" title="Hide this column">×</button>`);
-  const menuOpen = !run && fieldMenus.get(b.id)?.group === groupKey;
-  const moreHead = run ? '' : `<th class="mmore"><button class="lnk mmore-btn${menuOpen ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
-  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}${run ? '' : '<th>Used in</th>'}${moreHead}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+  const hideButton = c => `<button class="mcol-x" data-act="hide-col" data-key="${esc(c.key)}" title="Hide this column">×</button>`;
+  const menuOpen = fieldMenus.get(b.id)?.group === groupKey;
+  const moreHead = `<th class="mmore"><button class="lnk mmore-btn${menuOpen ? ' on' : ''}" data-act="field-menu">+ Field</button></th>`;
+  const table = `<div class="mtable-wrap"><table class="mtab"><thead><tr><th>Name</th><th>Type</th>${columns.map(c => `<th>${esc(c.label)}${hideButton(c)}</th>`).join('')}<th>Used in</th>${moreHead}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
   return `${clashes.map(clashNote).join('')}<div class="mtab-anchor">${menuOpen ? fieldMenu(b, items, columns) : ''}${table}</div>`;
 }
 
@@ -2586,19 +2631,18 @@ function moveEditing(b, td, step) {
 }
 
 function rememberLotValue(item, key, value) {
-  const lot = String(state.run.overrides[`${item.id}:lot`] ?? '').trim();
+  const lot = String(item.values.lot ?? '').trim();
   if (lot) ((state.lotMemory[item.id] ??= {})[lot] ??= {})[key] = value;
 }
 
 function fillFromLotMemory(item) {
-  const lot = String(state.run.overrides[`${item.id}:lot`] ?? '').trim();
+  const lot = String(item.values.lot ?? '').trim();
   const remembered = state.lotMemory[item.id]?.[lot];
   if (!remembered) return false;
   let filled = false;
   for (const [key, value] of Object.entries(remembered)) {
-    const id = `${item.id}:${key}`;
-    if (String(state.run.overrides[id] ?? '').trim()) continue;
-    state.run.overrides[id] = value;
+    if (String(item.values[key] ?? '').trim()) continue;
+    item.values[key] = value;
     if (!item.on.includes(key)) item.on.push(key);
     filled = true;
   }
@@ -2610,46 +2654,27 @@ const TYPES = {
     label: 'Materials', glyph: '⚗', hint: 'Everything the experiment uses, grouped', size: [12, 10],
     make: () => ({ title: 'Materials', folded: [], customGroups: [], items: [] }),
     render(b, body) {
-      const run = isRun();
       const groups = materialGroupsOf(b);
       const pasted = materialPastes.get(b.id);
       exampleTitles ??= Object.entries(EXAMPLES).map(([key, make]) => [key, make().title]);
       const copyFrom = `<select class="in mcopy"><option value="">Copy from a protocol…</option>${exampleTitles.map(([key, title]) => `<option value="${key}">${esc(title)}</option>`).join('')}</select>`;
       const guess = pendingDuplicates.has(b.id) ? duplicatePrompt(b) : guessLine(b, '');
       const adder = `<div class="madd"><div class="madd-row"><input class="in madd-name" placeholder="Add a material: type a name and press Enter, or paste a list" spellcheck="false" autocomplete="off" />${copyFrom}</div><div class="mguess">${guess}</div>${pasted ? pasteReview(b, pasted) : ''}</div>`;
-      const view = materialViews.get(b.id) ?? 'table';
-      const viewSwitch = `<div class="mview"><button class="lnk${view === 'table' ? ' on' : ''}" data-act="view" data-view="table">Table</button><button class="lnk${view === 'pull' ? ' on' : ''}" data-act="view" data-view="pull">Pull list</button></div>`;
-      if (run && view === 'pull') {
-        body.innerHTML = viewSwitch + pullList(b);
-        return;
-      }
       const removed = removedMaterials.get(b.id);
       const sections = groups.map(g => ({ g, items: b.items.filter(i => i.group === g.key && !i.dropped) })).filter(s => s.items.length || (removed?.place === 'group' && removed.item.group === s.g.key)).sort((x, y) => (y.g.key === 'unsorted') - (x.g.key === 'unsorted'));
-      body.innerHTML = (run ? viewSwitch : adder) + (sections.length ? sections.map(({ g, items }) => {
+      body.innerHTML = adder + (sections.length ? sections.map(({ g, items }) => {
         const folded = b.folded.includes(g.key);
         return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items, g.key)}</div>`}</section>`;
-      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>') + (run ? '' : droppedBox(b));
+      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>') + droppedBox(b);
       freshMaterials.delete(b.id);
     },
     update(b, body) {
-      const run = isRun();
-      const usage = run ? null : itemUsage(b);
+      const usage = itemUsage(b);
       body.querySelectorAll('tr.mrow[data-item]').forEach(el => {
         const item = b.items.find(i => i.id === el.dataset.item);
         if (!item) return;
-        if (usage) el.querySelector('.mused').innerHTML = item.dropped ? droppedUsageText(usage.get(item.id)) : usageText(usage.get(item.id));
+        el.querySelector('.mused').innerHTML = item.dropped ? droppedUsageText(usage.get(item.id)) : usageText(usage.get(item.id));
         el.querySelector('.lname')?.classList.toggle('bad', calc.dupes.has(item.id));
-        if (!run) return;
-        const fields = materialFields(b, item);
-        el.querySelectorAll('.mfield').forEach(input => {
-          const f = fields.find(x => x.key === input.dataset.key);
-          const id = `${item.id}:${f.key}`;
-          const changed = f.scope === 'protocol' && id in state.run.overrides;
-          input.classList.toggle('changed', changed);
-          input.classList.toggle('need', f.scope !== 'protocol' && !String(input.value).trim());
-          input.classList.toggle('expired', f.kind === 'date' && !!f.warnPast && !!input.value && input.value < TODAY_ISO);
-          input.title = changed ? `Protocol says ${item.values[f.key] || 'nothing'}` : '';
-        });
       });
     },
     onInput(b, e) {
@@ -2673,14 +2698,10 @@ const TYPES = {
         const own = materialFields(b, item).find(x => x.key === el.dataset.key);
         const f = own ?? b.items.flatMap(i => materialFields(b, i)).find(x => x.key === el.dataset.key);
         if (!own && el.value.trim()) item.custom.push({ ...f });
-        const id = `${item.id}:${f.key}`;
-        if (!isRun()) {
-          item.values[f.key] = el.value;
-          if (el.value.trim() && !item.on.includes(f.key)) item.on.push(f.key);
-          if (f.key === 'recipe') showMadeHereFields(item);
-        } else if (f.scope === 'protocol' && el.value === (item.values[f.key] ?? '')) delete state.run.overrides[id];
-        else state.run.overrides[id] = el.value;
-        if (isRun() && f.scope === 'lot') rememberLotValue(item, f.key, el.value);
+        item.values[f.key] = el.value;
+        if (el.value.trim() && !item.on.includes(f.key)) item.on.push(f.key);
+        if (f.key === 'recipe') showMadeHereFields(item);
+        if (f.scope === 'lot') rememberLotValue(item, f.key, el.value);
         bodyOf(b).querySelectorAll(`[data-item="${item.id}"] .mfield[data-key="${f.key}"]`).forEach(twin => { if (twin !== el) twin.value = el.value; });
       } else return;
       save();
@@ -2728,7 +2749,7 @@ const TYPES = {
       }
       const item = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
       if (!item) return;
-      if (el.dataset.unitkey || (isRun() && el.dataset.key === 'lot' && fillFromLotMemory(item))) {
+      if (el.dataset.unitkey || (el.dataset.key === 'lot' && fillFromLotMemory(item))) {
         renderBlock(b);
         save();
         refresh();
@@ -2752,12 +2773,7 @@ const TYPES = {
         commitMaterials(b, [{ ...pending, keepBoth: act === 'dupe-keep' }]);
         return;
       }
-      if (act === 'pull' && item) {
-        state.run.pulled ??= {};
-        if (state.run.pulled[item.id]) delete state.run.pulled[item.id];
-        else state.run.pulled[item.id] = true;
-      } else if (act === 'view') materialViews.set(b.id, e.target.closest('[data-view]').dataset.view);
-      else if (act === 'paste-cancel') materialPastes.delete(b.id);
+      if (act === 'paste-cancel') materialPastes.delete(b.id);
       else if (act === 'paste-keep' && pastedRow) pastedRow.keepBoth = !pastedRow.keepBoth;
       else if (act === 'paste-drop' && pastedRow) {
         pasted.rows.splice(pasted.rows.indexOf(pastedRow), 1);
@@ -2931,13 +2947,12 @@ const TYPES = {
       return { title: p.label, named: p.named, columns: p.columns(), items: [] };
     },
     render(b, body) {
-      const run = isRun();
       const nameColumn = b.columns[0];
       const columns = b.columns.filter(c => c === nameColumn || !c.hidden);
-      const editing = !run && openColumnEditors.has(b.id);
+      const editing = openColumnEditors.has(b.id);
       const open = openRows.get(b.id);
       const unitOf = (row, c) => (c.unit === '*' ? (row.units?.[c.id] ?? '') : c.unit);
-      const valueOf = (row, c) => (run ? effectiveValue({ id: `${row.id}:${c.id}`, value: row.cells[c.id] ?? '', perRun: c.perRun }) : row.cells[c.id] ?? '');
+      const valueOf = (row, c) => row.cells[c.id] ?? '';
       const control = (row, c) => {
         const value = valueOf(row, c);
         const cls = ['in', c.kind === 'number' ? 'mono' : '', c === nameColumn ? 'lname' : ''].filter(Boolean).join(' ');
@@ -2946,7 +2961,7 @@ const TYPES = {
           : `<input class="${cls}" data-col="${c.id}"${c.kind === 'date' ? ' type="date"' : ''} value="${esc(value)}" spellcheck="false" />`;
         if (c.kind !== 'number') return input;
         const unit = unitOf(row, c);
-        const unitControl = c.unit === '*' && !run
+        const unitControl = c.unit === '*'
           ? `<select class="in lunit" data-unitcol="${c.id}">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u || 'none')}</option>`).join('')}</select>`
           : `<span class="unit">${esc(shortUnit(unit))}</span>`;
         return `<span class="ramt">${unit === '1:N' ? '<span class="pre">1:</span>' : ''}${input}${unitControl}</span>`;
@@ -2959,14 +2974,14 @@ const TYPES = {
       const head = columns.map(c => `<th>${esc(c.name)}</th>`).join('');
       const rows = b.items.map((row, i) => {
         const isOpen = row.id === open;
-        const cells = columns.map(c => `<td>${isOpen || (run && c.perRun) ? control(row, c) : text(row, c)}</td>`).join('');
-        const tools = isOpen ? `<span class="mrow-tools">${run ? '' : '<button class="lnk" data-act="del-row">Remove</button>'}<button class="lnk" data-act="close">Done</button></span>` : '';
+        const cells = columns.map(c => `<td>${isOpen ? control(row, c) : text(row, c)}</td>`).join('');
+        const tools = isOpen ? `<span class="mrow-tools"><button class="lnk" data-act="del-row">Remove</button><button class="lnk" data-act="close">Done</button></span>` : '';
         const pick = b.named ? ` data-pick="${esc(row.cells[nameColumn.id] ?? '')}"` : '';
         return `<tr class="mrow${i % 2 ? ' alt' : ''}${isOpen ? ' open' : ''}" data-item="${row.id}" data-act="open"${pick}>${cells}<td>${tools}</td></tr>`;
       }).join('');
       const hiddenCount = b.columns.filter(c => c.hidden).length;
-      const tools = run ? '' : `<div class="ltools"><button class="lnk${editing ? ' on' : ''}" data-act="columns">Columns${hiddenCount ? ` · ${hiddenCount} hidden` : ''}</button><label><input type="checkbox" class="lnamed"${b.named ? ' checked' : ''} /> use rows in steps and formulas</label></div>`;
-      body.innerHTML = `${tools}${editing ? this.columnEditor(b) : ''}<div class="mtable-wrap"><table class="mtab"><thead><tr>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div>${run ? '' : '<button class="add" data-act="add-row">+ Row</button>'}`;
+      const tools = `<div class="ltools"><button class="lnk${editing ? ' on' : ''}" data-act="columns">Columns${hiddenCount ? ` · ${hiddenCount} hidden` : ''}</button><label><input type="checkbox" class="lnamed"${b.named ? ' checked' : ''} /> use rows in steps and formulas</label></div>`;
+      body.innerHTML = `${tools}${editing ? this.columnEditor(b) : ''}<div class="mtable-wrap"><table class="mtab"><thead><tr>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div><button class="add" data-act="add-row">+ Row</button>`;
     },
     columnEditor(b) {
       const option = (value, selected, label = value) => `<option value="${esc(value)}"${value === selected ? ' selected' : ''}>${esc(label)}</option>`;
@@ -2975,27 +2990,20 @@ const TYPES = {
         const detail = c.kind === 'number'
           ? `<select class="in cunit">${COLUMN_UNITS.map(u => option(u, c.unit, u === '*' ? 'unit per row' : u || 'no unit')).join('')}</select>`
           : c.kind === 'choice' ? `<input class="in copts" value="${esc(c.options.join(', '))}" placeholder="options, comma separated" />` : '<span></span>';
-        const flags = i === 0 ? '<span></span><span></span><span></span>'
-          : `<label><input type="checkbox" class="crun"${c.perRun ? ' checked' : ''} /> each run</label><label><input type="checkbox" class="chide"${c.hidden ? ' checked' : ''} /> hide</label>${c.kind === 'date' ? `<label><input type="checkbox" class="cwarn"${c.warnPast ? ' checked' : ''} /> flag if past</label>` : '<span></span>'}`;
+        const flags = i === 0 ? '<span></span><span></span>'
+          : `<label><input type="checkbox" class="chide"${c.hidden ? ' checked' : ''} /> hide</label>${c.kind === 'date' ? `<label><input type="checkbox" class="cwarn"${c.warnPast ? ' checked' : ''} /> flag if past</label>` : '<span></span>'}`;
         const moves = `${i > 1 ? '<button data-act="col-left" title="Move left">←</button>' : ''}${i > 0 && i < b.columns.length - 1 ? '<button data-act="col-right" title="Move right">→</button>' : ''}${i > 0 ? '<button data-act="col-del" title="Remove column">×</button>' : ''}`;
         return `<div class="colrow${c.hidden ? ' hid' : ''}" data-colid="${c.id}"><input class="in cname" value="${esc(c.name)}" spellcheck="false" />${kind}${detail}${flags}<span class="ctools">${moves}</span></div>`;
       }).join('')}<button class="add" data-act="add-col">+ Column</button></div>`;
     },
     update(b, body) {
-      const run = isRun();
       for (const row of b.items) {
         const tr = body.querySelector(`[data-item="${row.id}"]`);
         if (!tr) continue;
         tr.querySelector('.lname')?.classList.toggle('bad', b.named && calc.dupes.has(row.id));
-        if (!run) continue;
         tr.querySelectorAll('[data-col]').forEach(el => {
           const c = b.columns.find(x => x.id === el.dataset.col);
-          const key = `${row.id}:${c.id}`;
-          const changed = !c.perRun && key in state.run.overrides;
-          el.classList.toggle('changed', changed);
-          el.classList.toggle('need', c.perRun && !String(el.value).trim());
           el.classList.toggle('expired', c.kind === 'date' && c.warnPast && !!el.value && el.value < TODAY_ISO);
-          el.title = changed ? `Protocol says ${row.cells[c.id] || 'nothing'}` : '';
         });
       }
     },
@@ -3005,10 +3013,7 @@ const TYPES = {
       const column = b.columns.find(c => c.id === el.closest('[data-colid]')?.dataset.colid);
       if (row && el.dataset.col) {
         const c = b.columns.find(x => x.id === el.dataset.col);
-        const key = `${row.id}:${c.id}`;
-        if (!isRun()) row.cells[c.id] = el.value;
-        else if (!c.perRun && el.value === (row.cells[c.id] ?? '')) delete state.run.overrides[key];
-        else state.run.overrides[key] = el.value;
+        row.cells[c.id] = el.value;
       } else if (row && el.dataset.unitcol) {
         (row.units ??= {})[el.dataset.unitcol] = el.value;
       } else if (column && el.matches('.cname')) column.name = el.value;
@@ -3023,7 +3028,6 @@ const TYPES = {
       if (el.matches('.lnamed')) b.named = el.checked;
       else if (column && el.matches('.ckind')) column.kind = el.value;
       else if (column && el.matches('.cunit')) column.unit = el.value;
-      else if (column && el.matches('.crun')) column.perRun = el.checked;
       else if (column && el.matches('.chide')) column.hidden = el.checked;
       else if (column && el.matches('.cwarn')) column.warnPast = el.checked;
       else if (!el.matches('.cname, .copts, .lunit')) return;
@@ -3058,41 +3062,33 @@ const TYPES = {
     label: 'Values', glyph: '#', hint: 'Named numbers you set', size: [4, 6],
     make: () => ({ items: [] }),
     render(b, body) {
-      const run = isRun();
       const editing = valueEdits.get(b.id);
       const rows = b.items.map(it => {
         const isEditing = key => editing?.item === it.id && editing.key === key;
-        const name = run
-          ? `<td class="vname-cell">${esc(it.name)}</td>`
-          : `<td class="vcell vname-cell editable${isEditing('name') ? ' editing' : ''}" data-cell="name">${isEditing('name') ? `<input class="in vname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" />` : `${esc(it.name) || '<span class="hint">Unnamed</span>'}<span class="vuse"></span>`}</td>`;
-        const recordHere = run && it.perRun;
-        const valueCell = `<td class="vcell vval-cell${recordHere ? '' : ' editable'}${isEditing('value') ? ' editing' : ''}" data-cell="value">${recordHere || isEditing('value') ? valueControl(it) : '<span class="vv"></span>'}</td>`;
-        const remove = run ? '' : '<td class="vrm"><button class="ghost-danger" data-act="del">Remove</button></td>';
+        const name = `<td class="vcell vname-cell editable${isEditing('name') ? ' editing' : ''}" data-cell="name">${isEditing('name') ? `<input class="in vname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" />` : `${esc(it.name) || '<span class="hint">Unnamed</span>'}<span class="vuse"></span>`}</td>`;
+        const valueCell = `<td class="vcell vval-cell editable${isEditing('value') ? ' editing' : ''}" data-cell="value">${isEditing('value') ? valueControl(it) : '<span class="vv"></span>'}</td>`;
+        const remove = '<td class="vrm"><button class="ghost-danger" data-act="del">Remove</button></td>';
         return `<tr class="vrow" data-item="${it.id}" data-pick="${esc(it.name)}">${name}${valueCell}${remove}</tr>`;
       });
       const removed = removedValues.get(b.id);
-      if (!run && removed) rows.splice(Math.min(removed.index, rows.length), 0, `<tr class="vghost"><td colspan="2">Removed ${esc(removed.item.name || 'a value')}</td><td class="vrm"><button class="lnk" data-act="restore">Undo</button></td></tr>`);
-      const adder = run ? '' : '<div class="vadd-wrap"><input class="in vadd" placeholder="Add: Vol per well 100 µL" spellcheck="false" autocomplete="off" /><div class="vguess"></div></div>';
+      if (removed) rows.splice(Math.min(removed.index, rows.length), 0, `<tr class="vghost"><td colspan="2">Removed ${esc(removed.item.name || 'a value')}</td><td class="vrm"><button class="lnk" data-act="restore">Undo</button></td></tr>`);
+      const adder = '<div class="vadd-wrap"><input class="in vadd" placeholder="Add: Vol per well 100 µL" spellcheck="false" autocomplete="off" /><div class="vguess"></div></div>';
       body.innerHTML = `<table class="vtable"><tbody>${rows.join('')}</tbody></table>${adder}`;
     },
     update(b, body) {
-      const run = isRun();
-      const usage = run ? null : itemUsage(b);
+      const usage = itemUsage(b);
       for (const it of b.items) {
         const row = body.querySelector(`tr[data-item="${it.id}"]`);
         if (!row) continue;
-        const raw = String(effectiveValue(it)).trim();
-        const bad = raw ? Number.isNaN(it.unit === 'N:N' ? parseRatio(raw) : parseNumber(raw)) : !it.perRun;
-        const changed = run && !it.perRun && it.id in state.run.overrides;
+        const raw = String(it.value).trim();
+        const bad = !!raw && Number.isNaN(it.unit === 'N:N' ? parseRatio(raw) : parseNumber(raw));
         const vv = row.querySelector('.vv');
-        if (vv) vv.innerHTML = !run && it.perRun ? '<span class="vrun">each run</span>' : `${esc(raw ? displayOf(it, raw) : '–')}${changed ? `<span class="was">was ${esc(displayOf(it, it.value))}</span>` : ''}`;
-        row.classList.toggle('changed', changed);
+        if (vv) vv.innerHTML = raw ? esc(displayOf(it, raw)) : '<span class="vfill">to fill in</span>';
         row.classList.toggle('bad', bad || calc.dupes.has(it.id));
-        row.classList.toggle('torecord', run && !!it.perRun && !raw);
-        row.querySelectorAll('.vval').forEach(input => input.classList.toggle('bad', !!raw && bad));
+        row.querySelectorAll('.vval').forEach(input => input.classList.toggle('bad', bad));
         row.querySelector('.vname')?.classList.toggle('bad', calc.dupes.has(it.id));
         const use = row.querySelector('.vuse');
-        if (!use || !usage) continue;
+        if (!use) continue;
         const summary = usageSummary(usage.get(it.id));
         use.textContent = summary ? '' : 'unused';
         row.title = summary ? `Used in ${summary}` : 'Not used in any step or formula';
@@ -3109,9 +3105,7 @@ const TYPES = {
       if (el.matches('.vname')) it.name = el.value;
       else if (el.matches('.vval')) {
         const typed = el.matches('.vpair') ? [...el.closest('.ramt').querySelectorAll('.vpair')].map(input => input.value.trim()).join(':') : el.value;
-        if (!isRun()) it.value = typed;
-        else if (!it.perRun && typed === it.value) delete state.run.overrides[it.id];
-        else state.run.overrides[it.id] = typed;
+        it.value = typed;
       } else return;
       save();
       refresh();
@@ -3133,10 +3127,7 @@ const TYPES = {
         editValueCell(b, id, td.dataset.cell);
         return;
       }
-      if (act === 'toggle-run' && it) {
-        it.perRun = !it.perRun;
-        delete state.run.overrides[it.id];
-      } else if (act === 'del' && it) {
+      if (act === 'del' && it) {
         clearTimeout(removedValues.get(b.id)?.timer);
         const timer = setTimeout(() => {
           removedValues.delete(b.id);
@@ -3151,10 +3142,8 @@ const TYPES = {
         clearTimeout(removed.timer);
         removedValues.delete(b.id);
         b.items.splice(Math.min(removed.index, b.items.length), 0, removed.item);
-      } else if (act === 'undo' && it) delete state.run.overrides[it.id];
-      else return;
+      } else return;
       renderBlock(b);
-      if (act === 'toggle-run') bodyOf(b).querySelector('td.editing .vrun-btn')?.focus();
       save();
       refresh();
     },
@@ -3204,14 +3193,12 @@ const TYPES = {
     label: 'Formula', glyph: 'ƒ', hint: 'Math over your values, shown with its working', size: [4, 6],
     make: () => ({ items: [] }),
     render(b, body) {
-      const run = isRun();
       const open = openRows.get(b.id);
       body.innerHTML = `<div class="flist">${b.items.map(it => {
         if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
-        const tools = `<div class="ftools">${run ? '' : '<button class="lnk" data-act="del">Remove</button>'}<button class="lnk" data-act="close">Done</button></div>`;
-        if (run) return `<div class="fedit" data-item="${it.id}"><div class="fhead"><span class="fname-ro">${esc(it.name)}</span><span class="fres" data-res></span></div><div class="fexpr-ro mono">= ${esc(it.expr)}</div><div class="fwork" data-work></div>${tools}</div>`;
+        const tools = '<div class="ftools"><button class="lnk" data-act="del">Remove</button><button class="lnk" data-act="close">Done</button></div>';
         return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${FORMULA_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(u === '' ? 'number' : u === 'x' ? 'fold ×' : u)}</option>`).join('')}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
-      }).join('')}</div>${run ? '' : `<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
+      }).join('')}</div>${`<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
     },
     update(b, body) {
       for (const it of b.items) {
@@ -3373,14 +3360,12 @@ const TYPES = {
   },
 
   steps: {
-    label: 'Steps', glyph: '≡', hint: 'The outline, ticked off on a run', size: [5, 8],
+    label: 'Steps', glyph: '≡', hint: 'The outline of what you do', size: [5, 8],
     make: () => ({}),
     render(b, body) {
-      const run = isRun();
       const nums = stepNumbers();
-      const cur = currentStepId();
       const tools = '<span class="tools"><button data-act="up" title="Move up">↑</button><button data-act="down" title="Move down">↓</button><button data-act="del" title="Remove">×</button></span>';
-      const grip = run ? '' : '<span class="grip" title="Drag to move">⠿</span>';
+      const grip = '<span class="grip" title="Drag to move">⠿</span>';
       const groups = [];
       for (const s of state.steps) {
         if (s.kind === 'section' || !groups.length) groups.push({ section: s.kind === 'section' ? s : null, steps: [] });
@@ -3394,24 +3379,21 @@ const TYPES = {
         else lastMain = nums[s.id].replace('.', '');
       }
       const row = s => {
-        const done = !!state.run.done[s.id];
-        const editing = !run && editingStepId === s.id;
-        const cls = ['srow', s.level === 2 ? 'sub' : '', run && done ? 'done' : '', run && s.id === cur ? 'cur' : '', editing ? 'editing' : ''].join(' ');
+        const editing = editingStepId === s.id;
+        const cls = ['srow', s.level === 2 ? 'sub' : '', editing ? 'editing' : ''].join(' ');
         const tag = s.meanwhile && duringOf[s.id] ? `<span class="during">During step ${duringOf[s.id]}:</span>` : '';
         const content = editing
           ? `<div class="sedit" contenteditable="true" spellcheck="false" data-placeholder="Write the step">${editorHtml(s.text)}</div><div class="meta"><label><input type="checkbox" class="ssub"${s.level === 2 ? ' checked' : ''} /> sub-step</label><label><input type="checkbox" class="smw"${s.meanwhile ? ' checked' : ''} /> during the previous step</label>${trayToggleHtml(false)}</div>`
           : `<div class="sdisp">${tag}${templateHtml(s.text) || '<span class="hint">Click to write this step</span>'}</div>`;
-        return `<div class="${cls}" data-step="${s.id}">${editing ? '' : grip}${run ? `<span class="chk">${done ? '✓' : ''}</span>` : ''}<span class="num">${nums[s.id]}</span><div class="body">${content}</div>${run || editing ? '' : tools}</div>`;
+        return `<div class="${cls}" data-step="${s.id}">${editing ? '' : grip}<span class="num">${nums[s.id]}</span><div class="body">${content}</div>${editing ? '' : tools}</div>`;
       };
       body.innerHTML = groups.map(({ section, steps }) => {
-        const done = steps.filter(s => state.run.done[s.id]).length;
-        const meta = run ? `${done} of ${steps.length}` : `${steps.length} step${steps.length === 1 ? '' : 's'}`;
+        const meta = `${steps.length} step${steps.length === 1 ? '' : 's'}`;
         const head = section
-          ? `<div class="sec-head" data-step="${section.id}">${grip}<span class="sec-num">${nums[section.id]}</span>${run ? `<span class="sec-title">${esc(section.text)}</span>` : `<input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" />`}<span class="sec-meta">${meta}</span>${run ? '' : tools}</div>`
+          ? `<div class="sec-head" data-step="${section.id}">${grip}<span class="sec-num">${nums[section.id]}</span><input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" /><span class="sec-meta">${meta}</span>${tools}</div>`
           : '';
-        const complete = run && steps.length && done === steps.length;
-        return `<section class="sgroup${complete ? ' complete' : ''}">${head}<div class="${section ? 'sgroup-body' : ''}">${steps.map(row).join('')}</div></section>`;
-      }).join('') + (run ? '' : '<div class="sadd"><button class="add" data-act="step">+ Step</button><button class="add" data-act="section">+ Section</button><button class="add" data-act="paste">Paste protocol</button></div>');
+        return `<section class="sgroup">${head}<div class="${section ? 'sgroup-body' : ''}">${steps.map(row).join('')}</div></section>`;
+      }).join('') + ('<div class="sadd"><button class="add" data-act="step">+ Step</button><button class="add" data-act="section">+ Section</button><button class="add" data-act="paste">Paste protocol</button></div>');
     },
     update(b, body) {
       body.querySelectorAll('.ref').forEach(el => {
@@ -3422,7 +3404,7 @@ const TYPES = {
       });
     },
     onMousedown(b, e) {
-      if (isRun() || e.button !== 0) return;
+      if (e.button !== 0) return;
       const rowEl = e.target.closest('[data-step]');
       if (e.target.closest('.grip') && rowEl) { startStepDrag(rowEl.dataset.step, e); return; }
       const act = e.target.closest('[data-act]')?.dataset.act;
@@ -3445,7 +3427,7 @@ const TYPES = {
         e.preventDefault();
         if (act === 'up') moveStepUp(i);
         if (act === 'down') moveStepDown(i);
-        if (act === 'del') { state.steps.splice(i, 1); delete state.run.done[s.id]; }
+        if (act === 'del') state.steps.splice(i, 1);
         commitSteps();
         return;
       }
@@ -3455,10 +3437,6 @@ const TYPES = {
         commitSteps();
         focusEditor(bodyOf(b).querySelector(`[data-step="${s.id}"] .sedit`));
       }
-    },
-    onClick(b, e) {
-      const rowEl = e.target.closest('.srow[data-step]');
-      if (isRun() && rowEl) toggleDone(rowEl.dataset.step);
     },
     onInput(b, e) {
       const s = state.steps.find(x => x.id === e.target.closest('[data-step]')?.dataset.step);
@@ -3492,10 +3470,6 @@ const TYPES = {
     render(b, body) { body.innerHTML = flowSvg(b, body.clientWidth - 12); },
     fit(b, body) { body.innerHTML = flowSvg(b, body.clientWidth - 12); },
     update(b, body) { body.innerHTML = flowSvg(b, body.clientWidth - 12); },
-    onClick(b, e) {
-      const g = e.target.closest('.fb');
-      if (g && isRun()) toggleDone(g.dataset.step);
-    },
   },
 
   sketch: {
@@ -3652,16 +3626,14 @@ function addValueNamed(name) {
 }
 
 function parseValueLine(line) {
-  let text = line.trim();
-  const perRun = /\s+(?:each|every|per) run$/i.test(text);
-  text = text.replace(/\s+(?:each|every|per) run$/i, '').trim();
+  const text = line.trim();
   if (!text) return null;
   const clean = name => name.replace(/[\s:=]+$/, '').trim();
   const ratio = /^(.*?)[\s:=]+(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/.exec(text);
   if (ratio && clean(ratio[1])) {
     return ratio[2] === '1'
-      ? { name: clean(ratio[1]), value: ratio[3], unit: '1:N', perRun }
-      : { name: clean(ratio[1]), value: `${ratio[2]}:${ratio[3]}`, unit: 'N:N', perRun };
+      ? { name: clean(ratio[1]), value: ratio[3], unit: '1:N' }
+      : { name: clean(ratio[1]), value: `${ratio[2]}:${ratio[3]}`, unit: 'N:N' };
   }
   const words = text.split(/\s+/);
   let unit = '';
@@ -3676,7 +3648,7 @@ function parseValueLine(line) {
     if (words.length > 1 && !Number.isNaN(parseNumber(words[words.length - 1]))) value = words.pop();
   }
   const name = clean(words.join(' '));
-  return name ? { name, value, unit: value || unit ? unit : '', perRun } : null;
+  return name ? { name, value, unit: value || unit ? unit : '' } : null;
 }
 
 function valueGuessLine(b, text) {
@@ -3684,15 +3656,15 @@ function valueGuessLine(b, text) {
   const parsed = parseValueLine(text);
   if (!parsed) return '';
   const taken = b.items.some(it => it.name.trim().toLowerCase() === parsed.name.toLowerCase());
-  const shown = parsed.perRun ? 'each run' : parsed.value ? displayOf(parsed, parsed.value) : 'no number yet';
+  const shown = parsed.value ? displayOf(parsed, parsed.value) : 'to fill in';
   return `<b>${esc(parsed.name)}</b> · ${esc(shown)}${parsed.unit && !parsed.value ? ` (${esc(VALUE_UNIT_LABELS[parsed.unit] ?? parsed.unit)})` : ''}${taken ? ' · <span class="mg-dupe">name already used</span>' : ''}`;
 }
 
 function addValues(b, lines) {
-  const added = lines.map(parseValueLine).filter(Boolean).map(({ name, value, unit, perRun }) => ({ id: uid(), name, value, unit, ...(perRun ? { perRun } : {}) }));
+  const added = lines.map(parseValueLine).filter(Boolean).map(({ name, value, unit }) => ({ id: uid(), name, value, unit }));
   if (!added.length) return;
   b.items.push(...added);
-  const needsNumber = added.length === 1 && !added[0].value && !added[0].perRun ? added[0] : null;
+  const needsNumber = added.length === 1 && !added[0].value ? added[0] : null;
   if (needsNumber) valueEdits.set(b.id, { item: needsNumber.id, key: 'value' });
   renderBlock(b);
   bodyOf(b).querySelector(needsNumber ? 'td.editing .vval' : '.vadd')?.focus();
@@ -3701,18 +3673,13 @@ function addValues(b, lines) {
 }
 
 function valueControl(it) {
-  const run = isRun();
-  const raw = String(effectiveValue(it));
+  const raw = String(it.value);
   const [first, second = ''] = raw.split(':');
   const inputs = it.unit === 'N:N'
     ? `<input class="in vval vpair mono" value="${esc(first)}" placeholder="10" /><span class="pre">:</span><input class="in vval vpair mono" value="${esc(second)}" placeholder="1" />`
-    : `${it.unit === '1:N' ? '<span class="pre">1:</span>' : ''}<input class="in vval mono" value="${esc(raw)}" placeholder="${run && it.perRun ? 'record' : '0'}" />`;
-  if (run) {
-    const reset = !it.perRun && it.id in state.run.overrides ? `<button class="lnk" data-act="undo">Use ${esc(displayOf(it, it.value))}</button>` : '';
-    return `<span class="ramt">${inputs}<span class="unit">${esc(shortUnit(it.unit))}</span>${reset}</span>`;
-  }
+    : `${it.unit === '1:N' ? '<span class="pre">1:</span>' : ''}<input class="in vval mono" value="${esc(raw)}" placeholder="0" />`;
   const unitSelect = `<select class="in vunit">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(VALUE_UNIT_LABELS[u] ?? u)}</option>`).join('')}</select>`;
-  return `<span class="ramt">${it.perRun ? '' : inputs}${unitSelect}<button class="lnk vrun-btn${it.perRun ? ' on' : ''}" data-act="toggle-run" title="Left blank in the protocol and filled in on each run">Each run</button></span>`;
+  return `<span class="ramt">${inputs}${unitSelect}</span>`;
 }
 
 function editValueCell(b, itemId, key) {
@@ -3731,8 +3698,7 @@ function stopValueEdit(b) {
 }
 
 function moveValueEdit(b, td, step) {
-  const keys = isRun() ? ['value'] : ['name', 'value'];
-  const cells = b.items.filter(it => !(isRun() && it.perRun)).flatMap(it => keys.map(key => ({ item: it.id, key })));
+  const cells = b.items.flatMap(it => ['name', 'value'].map(key => ({ item: it.id, key })));
   const here = cells.findIndex(c => c.item === td.closest('[data-item]').dataset.item && c.key === td.dataset.cell);
   const next = cells[here + step];
   if (next) {
@@ -3814,59 +3780,6 @@ function removeBlock(b) {
 function refresh() {
   recompute();
   state.blocks.forEach(b => TYPES[b.type].update?.(b, bodyOf(b)));
-  updateBar();
-}
-
-function runTally() {
-  const overrides = state.run.overrides;
-  let changed = 0;
-  let toFill = 0;
-  for (const b of state.blocks) {
-    if (b.type === 'values') {
-      changed += b.items.filter(it => !it.perRun && it.id in overrides).length;
-      toFill += b.items.filter(it => it.perRun && !String(overrides[it.id] ?? '').trim()).length;
-    }
-    if (b.type === 'materials') {
-      for (const item of b.items.filter(i => i.name.trim() && !i.dropped)) {
-        for (const f of materialFields(b, item).filter(x => item.on.includes(x.key))) {
-          const key = `${item.id}:${f.key}`;
-          if (f.scope !== 'protocol') toFill += String(overrides[key] ?? '').trim() ? 0 : 1;
-          else if (key in overrides) changed++;
-        }
-      }
-    }
-    if (b.type !== 'list') continue;
-    for (const row of b.items.filter(r => String(r.cells[b.columns[0].id] ?? '').trim())) {
-      for (const c of b.columns) {
-        const key = `${row.id}:${c.id}`;
-        if (c.perRun) toFill += String(overrides[key] ?? '').trim() ? 0 : 1;
-        else if (key in overrides) changed++;
-      }
-    }
-  }
-  return { changed, toFill };
-}
-
-function updateBar() {
-  const { changed, toFill } = runTally();
-  const steps = state.steps.filter(s => s.kind === 'step');
-  const done = steps.filter(s => state.run.done[s.id]).length;
-  const plural = (n, word) => `<b>${n}</b> ${word}${n === 1 ? '' : 's'}`;
-  document.getElementById('runinfo').innerHTML = isRun()
-    ? `Run · ${TODAY} · ${plural(changed, 'change')} from the protocol · ${plural(toFill, 'field')} to record · ${done} of ${steps.length} steps done`
-    : 'Building. Drag a block by its title, resize from the corner.';
-}
-
-function setMode(mode) {
-  state.mode = mode;
-  document.body.classList.toggle('run', mode === 'run');
-  document.body.classList.toggle('build', mode === 'build');
-  document.querySelectorAll('.modes button').forEach(btn => btn.classList.toggle('on', btn.dataset.mode === mode));
-  grid.setStatic(mode === 'run');
-  recompute();
-  state.blocks.forEach(renderBlock);
-  updateBar();
-  save();
 }
 
 const RAIL = [
@@ -3888,12 +3801,21 @@ document.getElementById('rail').addEventListener('click', e => {
 const titleInput = document.getElementById('title');
 titleInput.value = state.title;
 titleInput.addEventListener('input', () => { state.title = titleInput.value; save(); });
-document.querySelectorAll('.modes button').forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
-document.getElementById('resetRun').addEventListener('click', () => {
-  if (!confirm('Clear today\'s recorded values, changes and ticks?')) return;
-  state.run = { overrides: {}, done: {} };
-  setMode('run');
+const exportView = document.getElementById('exportView');
+document.getElementById('exportOpen').addEventListener('click', () => {
+  document.getElementById('exportPage').innerHTML = exportHtml();
+  exportView.hidden = false;
 });
+document.getElementById('exportClose').addEventListener('click', () => { exportView.hidden = true; });
+document.getElementById('exportPrint').addEventListener('click', () => window.print());
+const runFrom = document.getElementById('runFrom');
+const runTo = document.getElementById('runTo');
+runFrom.value = state.runOn.from;
+runTo.value = state.runOn.to;
+[runFrom, runTo].forEach(input => input.addEventListener('change', () => {
+  state.runOn = { from: runFrom.value, to: runTo.value };
+  save();
+}));
 document.getElementById('example').addEventListener('change', e => {
   const key = e.target.value;
   e.target.value = '';
@@ -3920,7 +3842,7 @@ board.addEventListener('keydown', e => {
 });
 board.addEventListener('dblclick', e => {
   const title = e.target.closest('.blk-title');
-  if (!title || isRun()) return;
+  if (!title) return;
   const b = byId(title.closest('.blk').dataset.id);
   const name = prompt('Block title', b.title);
   if (name) { b.title = name; renderBlock(b); save(); }
@@ -4062,7 +3984,7 @@ recompute();
 grid.batchUpdate();
 state.blocks.forEach(mountBlock);
 grid.batchUpdate(false);
-setMode(state.mode);
+refresh();
 </script>
 </body>
 </html>

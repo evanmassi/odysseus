@@ -11,14 +11,12 @@ suggested, so nobody has to think of them.
   type are guessed (_Adding a material_ below). Groups with nothing in them do not show.
 - **Every physical material has the same core:** name, type, vendor or source, catalog # or
   identifier, lot, expiry, storage, hazard or biosafety, notes. Lot sits up front because it matters
-  most for replicating a run. Equipment and software have their own core instead (no lot or expiry).
+  most for repeating an experiment. Equipment and software have their own core instead (no lot or expiry).
 - **Each type suggests its own extra fields.** They appear in the group's "+ Field" list, so "Clone" or "Fluorochrome" is one click from
   becoming a column. The scientist turns on what they care about and ignores the rest.
-- **Some fields are recorded on each run** by default: lot, expiry, passage, count, viability,
-  made-on date, titer. A scientist can switch any field between "protocol" and "each run".
-- **Some values belong to the lot, not the run** (marked _lot_ below): an antibody's concentration,
+- **Some values belong to the lot** (marked _lot_ below): an antibody's concentration,
   beads per µL, an enzyme's activity, a virus titer, a matrix's protein concentration. They change
-  when the lot changes and stay the same across runs that use the same lot. So they are remembered by
+  when the lot changes and stay the same across experiments that use the same lot. So they are remembered by
   lot number: type a lot seen before and its values fill in. For lab members the lab's inventory
   already holds lots, so these come from there.
 - **Numbers feed formulas.** Any number field becomes a name a formula can use (_HeLa count_,
@@ -100,24 +98,23 @@ synonyms only.
 
 ## Types and suggested fields
 
-Core fields (every physical type): name, type, vendor or source, catalog # or identifier, **lot**
-(each run), expiry (each run), storage, hazard or biosafety, notes. _(run)_ marks a field recorded on
-each run; _(lot)_ marks a value remembered by lot number.
+Core fields (every physical type): name, type, vendor or source, catalog # or identifier, **lot**, expiry, storage, hazard or biosafety, notes. _(lot)_ marks a value remembered by lot
+number.
 
 ### 1. Biological Material
 
-| Type                | Suggested fields                                                                                                                                                          |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cell line           | species, tissue of origin, RRID, genetic modification, medium, culture conditions, authentication date, mycoplasma test date, passage (run), count (run), viability (run) |
-| Primary cells       | species, donor ID, tissue, isolation method, collection date, freeze date, count (run), viability (run), consent or IRB reference                                         |
-| 3D culture          | species, source line or donor, matrix, passage (run), days in culture (run)                                                                                               |
-| Tissue              | species, donor or animal ID, tissue, collection date, preservation (fresh, frozen, FFPE), section thickness, consent or IRB reference                                     |
-| Body fluid          | fluid (serum, plasma, whole blood, CSF, urine, other), donor ID, anticoagulant, collection date, freeze-thaw count, dilution, consent or IRB reference                    |
-| Organism            | species, strain, sex, age, genotype, source, animal or cohort ID, protocol number                                                                                         |
-| Microbial strain    | species, strain, genotype, antibiotic resistance, stock ID, OD at use (run)                                                                                               |
-| Virus or vector     | virus type, construct, serotype or pseudotype, titer (lot), biosafety level. MOI is a value the scientist sets, not a property of the virus                               |
-| Nucleic acid sample | DNA or RNA, source sample, concentration (run), A260/280, RIN                                                                                                             |
-| Protein sample      | source sample, lysis buffer, concentration (run)                                                                                                                          |
+| Type                | Suggested fields                                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cell line           | species, tissue of origin, RRID, genetic modification, medium, culture conditions, authentication date, mycoplasma test date, passage, count, viability |
+| Primary cells       | species, donor ID, tissue, isolation method, collection date, freeze date, count, viability, consent or IRB reference                                   |
+| 3D culture          | species, source line or donor, matrix, passage, days in culture                                                                                         |
+| Tissue              | species, donor or animal ID, tissue, collection date, preservation (fresh, frozen, FFPE), section thickness, consent or IRB reference                   |
+| Body fluid          | fluid (serum, plasma, whole blood, CSF, urine, other), donor ID, anticoagulant, collection date, freeze-thaw count, dilution, consent or IRB reference  |
+| Organism            | species, strain, sex, age, genotype, source, animal or cohort ID, protocol number                                                                       |
+| Microbial strain    | species, strain, genotype, antibiotic resistance, stock ID, OD at use                                                                                   |
+| Virus or vector     | virus type, construct, serotype or pseudotype, titer (lot), biosafety level. MOI is a value the scientist sets, not a property of the virus             |
+| Nucleic acid sample | DNA or RNA, source sample, concentration, A260/280, RIN                                                                                                 |
+| Protein sample      | source sample, lysis buffer, concentration                                                                                                              |
 
 ### 2. Antibodies & Stains
 
@@ -149,15 +146,15 @@ each run; _(lot)_ marks a value remembered by lot number.
 
 ### 4. Media, Buffers, & Solutions
 
-| Type              | Suggested fields                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Medium            | base medium, glucose, glutamine, phenol red; if made here: recipe, volume made, made on (run), made by, sterile-filtered |
-| Buffer            | strength, calcium and magnesium, pH; if made here: recipe, volume made, made on (run), made by, sterile-filtered         |
-| Supplement        | final concentration, heat-inactivated, lot (critical for serum)                                                          |
-| Stock solution    | concentration, solvent, made on (run), aliquot ID                                                                        |
-| Fix or perm       | fixative or detergent, concentration, time                                                                               |
-| Coating or matrix | matrix (Matrigel, collagen, poly-L-lysine, fibronectin), protein concentration (lot), coating concentration              |
-| Mounting medium   | with or without DAPI, hardening or not                                                                                   |
+| Type              | Suggested fields                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Medium            | base medium, glucose, glutamine, phenol red; if made here: recipe, volume made, made on, made by, sterile-filtered |
+| Buffer            | strength, calcium and magnesium, pH; if made here: recipe, volume made, made on, made by, sterile-filtered         |
+| Supplement        | final concentration, heat-inactivated, lot (critical for serum)                                                    |
+| Stock solution    | concentration, solvent, made on, aliquot ID                                                                        |
+| Fix or perm       | fixative or detergent, concentration, time                                                                         |
+| Coating or matrix | matrix (Matrigel, collagen, poly-L-lysine, fibronectin), protein concentration (lot), coating concentration        |
+| Mounting medium   | with or without DAPI, hardening or not                                                                             |
 
 ### 5. Kits & Assays
 
