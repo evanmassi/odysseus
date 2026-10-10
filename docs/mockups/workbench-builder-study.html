@@ -104,8 +104,19 @@
   .in.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
   .in:focus { outline: none; border-color: hsl(var(--primary) / .7); background: hsl(var(--primary) / .04); box-shadow: var(--input-focus-shadow); }
   .in.bad { border-color: hsl(var(--red) / .75); }
-  select.in { padding: 0 4px; }
-  select.in option { background: hsl(var(--card)); }
+  select.in { appearance: none; padding: 0 24px 0 8px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b0a994'%3E%3Cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 4px center; background-size: 16px; }
+  select.in:hover { border-color: hsl(var(--foreground) / .3); }
+  select.in.open { border-color: hsl(var(--primary) / .7); background-color: hsl(var(--primary) / .04); box-shadow: var(--input-focus-shadow); }
+  .sel-panel { position: fixed; z-index: 9999; overflow-y: auto; padding: 4px 0; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: var(--popup-shadow); scrollbar-width: thin; scrollbar-color: hsl(var(--muted-foreground) / .35) transparent; }
+  .sel-group { padding: 8px 12px 2px; font: 12px/1 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; color: hsl(var(--foreground) / .4); }
+  .sel-group:first-child { padding-top: 4px; }
+  .sel-opt { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); transition: background-image .15s, box-shadow .15s, color .15s; }
+  .sel-opt span { flex: 1; }
+  .sel-opt svg { width: 16px; height: 16px; fill: hsl(var(--primary)); }
+  .sel-opt.lit { color: hsl(var(--foreground)); background-image: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
+  .sel-opt.on { font-weight: 600; color: #fff; background-image: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .22) 0%, hsl(var(--primary) / .09) 55%, hsl(var(--primary) / .03) 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary)), inset 14px 0 30px -12px hsl(var(--primary) / .25); }
+  .sel-opt.on.lit { background-image: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .3) 0%, hsl(var(--primary) / .13) 55%, hsl(var(--primary) / .05) 100%); }
+  .sel-opt.off { opacity: .5; cursor: not-allowed; }
   .add { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; background: transparent; border: 1px solid transparent; font: 400 14px/1 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); cursor: pointer; white-space: nowrap; }
   .add.primary { height: 32px; padding: 0 12px; gap: 8px; font-size: 15px; color: hsl(var(--fg)); background: hsl(var(--primary) / .1); border-color: hsl(var(--primary) / .45); box-shadow: inset 0 0 12px -2px hsl(var(--primary) / calc(.2 * var(--lit))), 0 0 14px -4px hsl(var(--primary) / calc(.4 * var(--lit))); }
   .add.primary .plus { color: hsl(var(--primary)); }
@@ -140,9 +151,24 @@
   .vuse { margin-left: 6px; font-size: 12px; font-style: italic; color: hsl(var(--amber) / .85); }
   .vtable tr.vghost td { padding-top: 6px; padding-bottom: 6px; font-size: 13px; font-style: italic; color: hsl(var(--muted-foreground)); }
   .vtable tr.vghost .lnk { font-style: normal; }
-  .vadd-wrap { margin-top: 10px; }
-  .vadd-wrap .vadd { width: 100%; height: 32px; font-size: 14px; }
-  .vguess { min-height: 18px; margin-top: 5px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .vtable tr.vsec, .vtable tr.vadd-row { background: none !important; box-shadow: none !important; }
+  .vtable tr.vsec th { padding: 22px 10px 8px 0; text-align: left; font-weight: 400; }
+  .vtable tbody:first-child tr.vsec th { padding-top: 4px; }
+  .vtable tr.vsec .msec-count { margin-left: 8px; }
+  .vtable tr.vadd-row td { padding: 2px 0 0; }
+  .vtable .vadd { width: 100%; height: 30px; font-size: 14px; border-color: transparent; background: transparent; }
+  .vtable .vadd:hover { border-color: hsl(var(--line-faint)); }
+  .vtable .vadd:focus { border-color: hsl(var(--primary) / .5); background: hsl(var(--input-well)); }
+  .vmix-name, .vsec-name { width: auto; field-sizing: content; min-width: 90px; max-width: 75%; height: 26px; padding: 0 4px; font: 600 14px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; border-color: transparent; background: transparent; }
+  .vmix-name:hover, .vsec-name:hover { border-color: hsl(var(--line-faint)); }
+  .vmix-name:focus, .vsec-name:focus { border-color: hsl(var(--primary) / .5); background: hsl(var(--input-well)); }
+  .vlink { margin-left: 8px; font-size: 12px; color: hsl(var(--foreground) / .4); }
+  .vtable .vname-cell .pre { margin-left: 6px; color: hsl(var(--muted-foreground)); }
+  .vtable td.editing .pname { width: calc(100% - 60px); }
+  .vguess { margin: 0 10px 6px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .vguess:empty { display: none; }
+  .vmore { margin-top: 14px; }
+  .vmore .vfor { width: 100%; height: 32px; }
   .vguess b { color: hsl(var(--fg)); font-weight: 600; }
   .vv { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: hsl(var(--fg)); white-space: nowrap; }
   .vrow.bad .vv { color: hsl(var(--red)); }
@@ -369,10 +395,24 @@
   .well { width: var(--ws); height: var(--ws); border-radius: 50%; border: 1px solid hsl(var(--line-mid)); display: grid; place-items: center; font-size: calc(var(--ws) * .33); font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg) / .9); cursor: pointer; }
   .plate.tiny .well { font-size: 0; }
   .well.sel { box-shadow: 0 0 0 2px hsl(var(--pri)); }
-  .g-std { background: hsl(var(--amber) / .4); border-color: hsl(var(--amber)); }
-  .g-sample { background: hsl(var(--pri) / .4); border-color: hsl(var(--pri)); }
-  .g-blank { background: hsl(var(--muted-foreground) / .3); border-color: hsl(var(--muted-foreground)); }
-  .g-ctrl { background: hsl(var(--green) / .4); border-color: hsl(var(--green)); }
+  .gc0 { background: hsl(var(--amber) / .4); border-color: hsl(var(--amber)); }
+  .gc1 { background: hsl(var(--pri) / .4); border-color: hsl(var(--pri)); }
+  .gc2 { background: hsl(var(--green) / .4); border-color: hsl(var(--green)); }
+  .gc3 { background: hsl(var(--red) / .4); border-color: hsl(var(--red)); }
+  .gc4 { background: hsl(270 60% 70% / .4); border-color: hsl(270 60% 70%); }
+  .gc5 { background: hsl(175 50% 55% / .4); border-color: hsl(175 50% 55%); }
+  .gc6 { background: hsl(330 65% 72% / .4); border-color: hsl(330 65% 72%); }
+  .gc7 { background: hsl(var(--muted-foreground) / .3); border-color: hsl(var(--muted-foreground)); }
+  .pal .pal-x { width: 12px; min-width: 0; height: auto; margin: 0 -4px 0 0; padding: 0; background: none; border: 0; color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1; cursor: pointer; opacity: 0; }
+  .pal:hover .pal-x { opacity: 1; }
+  .pal .pal-x:hover { color: hsl(var(--red)); }
+  .pal.editing { padding: 1px 4px 1px 9px; }
+  .pal-name { height: 22px; width: auto; field-sizing: content; min-width: 60px; font-size: 12px; }
+  .pal-add { height: 25px; width: 120px; font-size: 12px; }
+  .vtable tr.vsugg-row { display: none; background: none !important; box-shadow: none !important; }
+  .vtable tbody.empty tr.vsugg-row, .vtable tbody:focus-within tr.vsugg-row { display: table-row; }
+  .vtable tr.vsugg-row td { padding: 0 10px 6px; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  .vsugg .lnk { margin-left: 10px; font-size: 12.5px; }
   .pcounts { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: hsl(var(--muted-foreground)); }
   .pcounts b { font-family: 'JetBrains Mono', monospace; color: hsl(var(--pri)); font-weight: 500; margin-left: 4px; }
 
@@ -436,7 +476,7 @@
     <span class="runon">Run on<input class="in" type="date" id="runFrom" />to<input class="in" type="date" id="runTo" /></span>
     <span class="hintbar">Drag a block by its title, resize from the corner.</span>
     <button class="add primary" id="exportOpen">Export</button>
-    <select class="lnk" id="example"><option value="">Load an example…</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
+    <select class="lnk" id="example"><option value="">Load an example…</option><option value="cytotox">T cell killing assay</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
   </div>
   <div class="main">
     <aside class="rail" id="rail"></aside>
@@ -503,6 +543,24 @@ const DIM_WORDS = {
   'mass:1': 'mass', 'mass:1|vol:-1': 'concentration', 'mol:1|vol:-1': 'molarity', 'time:1': 'time', 'temp:1': 'temperature',
 };
 const SYM = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+const UNIT_GROUPS = [
+  ['Number & ratio', ['', '%', 'x', '1:N', 'N:N']],
+  ['Volume', ['nL', 'µL', 'mL', 'L']],
+  ['Mass', ['pg', 'ng', 'µg', 'mg']],
+  ['Cells', ['cells', 'cells/mL']],
+  ['Mass per volume', ['pg/mL', 'ng/mL', 'µg/mL', 'mg/mL', 'ng/µL']],
+  ['Molar', ['nM', 'µM', 'mM']],
+  ['Time', ['min', 'h']],
+  ['Temperature', ['°C']],
+];
+
+function unitOptions(units, selected, labelOf = u => u) {
+  const option = u => `<option value="${esc(u)}"${u === selected ? ' selected' : ''}>${esc(labelOf(u))}</option>`;
+  const groups = UNIT_GROUPS.map(([label, list]) => [label, list.filter(u => units.includes(u))]).filter(([, list]) => list.length);
+  if (groups.length < 2) return units.map(option).join('');
+  const loose = units.filter(u => !UNIT_GROUPS.some(([, list]) => list.includes(u)));
+  return loose.map(option).join('') + groups.map(([label, list]) => `<optgroup label="${label}">${list.map(option).join('')}</optgroup>`).join('');
+}
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -755,7 +813,7 @@ const newMaterial = (group, type, name) => {
   return item;
 };
 const fieldUnit =(item, f) => (f.unit === '*' ? (item.units?.[f.key] ?? f.defaultUnit ?? '') : f.unit);
-const fieldName = (item, f) => `${item.name.trim()} ${(f.nameByUnit?.[fieldUnit(item, f)] ?? f.label).toLowerCase()}`;
+const fieldName = (item, f) => `${item.name.trim()} ${(item.labels?.[f.key] ?? f.nameByUnit?.[fieldUnit(item, f)] ?? f.label).toLowerCase()}`;
 
 function materialLabel(item) {
   return ['vendor', 'catalog', 'model', 'version'].filter(k => item.on.includes(k)).map(k => String(item.values[k] ?? '').trim()).filter(Boolean).join(' ');
@@ -779,15 +837,24 @@ const VESSELS = {
 };
 const VESSEL_PLURAL = { well: 'wells', flask: 'flasks', dish: 'dishes', tube: 'tubes' };
 
+const typedCount = (b, key) => { const n = parseNumber(b.counts?.[key]); return Number.isNaN(n) ? null : n; };
+
+function plateTally(b) {
+  const painted = new Map(b.groups.map(g => [g.id, 0]));
+  for (const id of Object.values(b.wells)) if (painted.has(id)) painted.set(id, painted.get(id) + 1);
+  const groups = b.groups.map(g => ({ g, painted: painted.get(g.id), count: typedCount(b, g.id) ?? painted.get(g.id) }));
+  const usedPainted = groups.reduce((sum, x) => sum + x.count, 0);
+  return { groups, used: { painted: usedPainted, count: typedCount(b, 'used') ?? usedPainted } };
+}
+
 function vesselCounts(b) {
   const vessel = VESSELS[b.vessel];
   const plural = VESSEL_PLURAL[vessel.noun];
-  const n = { std: 0, sample: 0, blank: 0, ctrl: 0 };
-  for (const g of Object.values(b.wells)) if (g in n) n[g]++;
+  const { groups, used } = plateTally(b);
   return [
-    [`Standard ${plural}`, n.std], [`Sample ${plural}`, n.sample], [`Blank ${plural}`, n.blank], [`Control ${plural}`, n.ctrl],
-    [`${plural[0].toUpperCase()}${plural.slice(1)} used`, n.std + n.sample + n.blank + n.ctrl],
-    [vessel.many, b.count],
+    ...groups.filter(({ g }) => g.label.trim()).map(({ g, count }) => [`${g.label.trim()} ${plural}`, count, g.id]),
+    [`${plural[0].toUpperCase()}${plural.slice(1)} used`, used.count, 'used'],
+    [vessel.many, b.count, 'count'],
   ];
 }
 
@@ -824,8 +891,8 @@ function recompute() {
         define(fieldName(item, f), { kind: 'value', id, item: { id, value: item.values[f.key] ?? '', unit: fieldUnit(item, f) }, dropped: !!item.dropped });
       });
     });
-    if (b.type === 'values') b.items.forEach(it => define(it.name, { kind: 'value', id: it.id, item: it }));
-    if (b.type === 'plate') vesselCounts(b).forEach(([name, n]) => define(name, { kind: 'plate', id: `${b.id}:${name}`, q: { v: n, d: {} }, display: String(n) }));
+    if (b.type === 'values') b.items.filter(it => !it.link).forEach(it => define(valueName(b, it), { kind: 'value', id: it.id, item: it }));
+    if (b.type === 'plate') vesselCounts(b).forEach(([name, n, key]) => define(name, { kind: 'plate', id: `${b.id}:${key}`, q: { v: n, d: {} }, display: String(n) }));
     if (b.type === 'formula') b.items.forEach(it => { formulas.push(it); define(it.name, { kind: 'formula', id: it.id, item: it }); });
   }
   const nameList = [...names.values()].map(e => e.name);
@@ -1451,10 +1518,19 @@ function splitPastedMaterials(text) {
 }
 </script>
 <script>
-const STORAGE_KEY = 'odysseus-workbench-builder-study-v10';
+const STORAGE_KEY = 'odysseus-workbench-builder-study-v12';
 const uid = () => Math.random().toString(36).slice(2, 9);
 const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
-const GROUPS = { std: { label: 'Standard', short: 'Std' }, sample: { label: 'Sample', short: 'S' }, blank: { label: 'Blank', short: 'B' }, ctrl: { label: 'Control', short: 'C' } };
+const PLATE_COLORS = 8;
+const shortLabel = label => {
+  const words = label.trim().split(/\s+/).filter(Boolean);
+  return (words.length > 1 ? words.map(w => w[0]).join('') : words[0] ?? '').slice(0, 3).toUpperCase();
+};
+function labeledWells(wells, labels) {
+  const groups = Object.entries(labels).map(([key, label], color) => ({ id: uid(), key, label, color }));
+  const idOf = Object.fromEntries(groups.map(g => [g.key, g.id]));
+  return { groups: groups.map(({ key, ...g }) => g), wells: Object.fromEntries(Object.entries(wells).map(([well, key]) => [well, idOf[key]])) };
+}
 const SKETCH_COLORS = ['#e3dccb', '#8fd3e8', '#f0b35b', '#d97a7a', '#6fbf73'];
 const SKETCH_WIDTH = 1000;
 const FORMULA_LIBRARY = [
@@ -1514,7 +1590,7 @@ function exampleSketch() {
 }
 
 const exampleParts = () => ({
-  v: (name, value, unit = '') => ({ id: uid(), name, value, unit }),
+  v: (name, value, unit = '', extra = {}) => ({ id: uid(), name, value, unit, ...extra }),
   f: (name, expr, unit = 'auto') => ({ id: uid(), name, expr, unit }),
   step: (text, extra = {}) => ({ id: uid(), kind: 'step', level: 1, text, meanwhile: false, ...extra }),
   sub: text => ({ id: uid(), kind: 'step', level: 2, text, meanwhile: false }),
@@ -1591,7 +1667,7 @@ function exampleElisa() {
         v('Samples', '24'), v('Replicates', '2'), v('Std points', '8'), v('Blanks', '2'), v('Overage', '10', '%'),
         v('Vol per well', '100', 'µL'), v('Top std', '500', 'pg/mL'), v('Std diluent', '150', 'µL'), v('Fold', '2', 'x'),
       ] },
-      { id: uid(), type: 'plate', title: 'Plate map', x: 4, y: 13, w: 4, h: 9, vessel: '96', count: 1, active: 0, wells },
+      { id: uid(), type: 'plate', title: 'Plate map', x: 4, y: 13, w: 4, h: 9, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { std: 'Standard', sample: 'Sample', blank: 'Blank' }) },
       { id: uid(), type: 'formula', title: 'Calculations', x: 8, y: 13, w: 4, h: 12, items: [
         f('Wells', 'Samples × Replicates + Std points × 2 + Blanks'),
         f('Coating mix', 'Wells × Vol per well × (1 + Overage)', 'mL'),
@@ -1658,7 +1734,7 @@ function exampleCells() {
       { id: uid(), type: 'values', title: 'Values', x: 0, y: 13, w: 4, h: 8, items: [
         v('Cells per well', '5000', 'cells'), v('Vol per well', '100', 'µL'), v('Overage', '10', '%'), v('Top dose', '10', 'µM'), v('Fold', '3', 'x'),
       ] },
-      { id: uid(), type: 'plate', title: 'Assay plate map', x: 4, y: 13, w: 4, h: 9, vessel: '96', count: 1, active: 0, wells },
+      { id: uid(), type: 'plate', title: 'Assay plate map', x: 4, y: 13, w: 4, h: 9, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { sample: 'Sample', ctrl: 'Control', blank: 'Edge' }) },
       { id: uid(), type: 'formula', title: 'Calculations', x: 8, y: 13, w: 4, h: 12, items: [
         f('Cell wells', 'Sample wells + Control wells'),
         f('Cells needed', 'Cells per well × Cell wells × (1 + Overage)'),
@@ -1674,15 +1750,97 @@ function exampleCells() {
   };
 }
 
-const EXAMPLES = { elisa: exampleElisa, cells: exampleCells };
+function exampleCytotox() {
+  const { v, f, step, section } = exampleParts();
+  const wells = {};
+  for (let r = 1; r <= 3; r++) {
+    for (let c = 2; c <= 9; c++) wells[`0:${ROW_LETTERS[r]}${c}`] = 'drug';
+    wells[`0:${ROW_LETTERS[r]}10`] = 'tcells';
+    wells[`0:${ROW_LETTERS[r]}11`] = 'targets';
+    wells[`0:${ROW_LETTERS[r]}12`] = 'medium';
+  }
+  const targets = material('bio', 'Cell line', 'Raji-Luc', { storage: '37 °C incubator', vendor: 'ATCC', catalog: 'CCL-86', 'genetic-modification': 'Firefly luciferase', count: '1.2M', viability: '96' }, ['passage']);
+  const effectors = material('bio', 'Primary cells', 'T cells', { storage: 'LN2', 'donor-id': 'D-104', 'isolation-method': 'Negative selection', count: '2.5M', viability: '90' });
+  const drug = material('chem', 'Drug or inhibitor', 'Compound X', { storage: '−20 °C', 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' });
+  const plate = material('supplies', 'Plate', 'Assay plate', { storage: 'Shelf', vendor: 'Corning', format: '96-well', surface: 'TC-treated', color: 'White', bottom: 'Round' });
+  const sectionFor = item => ({ id: uid(), of: item.id });
+  const [onPlate, onTargets, onEffectors, onDrug] = [plate, targets, effectors, drug].map(sectionFor);
+  const into = sec => (name, value, unit) => v(name, value, unit, { section: sec.id });
+  const link = (sec, key) => ({ id: uid(), section: sec.id, link: key });
+  const [t, e, d] = [onTargets, onEffectors, onDrug].map(into);
+  return {
+    title: 'T cell killing assay',
+    lotMemory: {},
+    steps: [
+      section('Targets'),
+      step('Count {Raji-Luc}: {Raji-Luc count} at {Raji-Luc viability} viable.'),
+      step('Take {Raji-Luc to take} of cells and bring to {Raji-Luc mix} with {Complete RPMI}.'),
+      step('Plate {Raji-Luc volume per well} per well into the {Assay plate}, {Raji-Luc per well} per well.'),
+      section('Compound'),
+      step('Top tube: {Compound X stock to add} of {Compound X} stock in {Compound X top tube} {Complete RPMI}, for {Compound X top working} ({Compound X added at} the top dose).'),
+      step('Make a {Compound X fold} series over {Compound X points} points, moving {Compound X transfer} each time.'),
+      step('Add {Compound X volume per well} per well per the plate map, and {DMSO} vehicle to the T cells only wells.'),
+      section('Effectors'),
+      step('Count {T cells}: {T cells count} at {T cells viability} viable.'),
+      step('Take {T cells to take} and bring to {T cells mix} with {Complete RPMI}.'),
+      step('Add {T cells volume per well} per well: {T cells per well}, E:T {T cells E:T}.'),
+      step('Incubate 24 h at 37 °C, 5% CO₂.'),
+      section('Read'),
+      step('Add 100 µL {Bright-Glo} per well and wait 5 min.'),
+      step('Read luminescence on the {Plate reader}.'),
+    ],
+    blocks: [
+      materialsBlock({ x: 0, y: 0, w: 12, h: 12 }, [
+        targets,
+        effectors,
+        material('media', 'Medium', 'Complete RPMI', { storage: '4 °C', recipe: 'RPMI 1640 + 10% FBS + 1% pen/strep' }),
+        drug,
+        material('chem', 'Solvent', 'DMSO', { storage: 'RT', grade: 'Cell culture' }),
+        material('kits', 'Kit', 'Bright-Glo', { storage: '−20 °C', vendor: 'Promega', catalog: 'E2610' }),
+        plate,
+        material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
+      ]),
+      { id: uid(), type: 'values', title: 'Values', x: 0, y: 12, w: 4, h: 19, sections: [onPlate, onTargets, onEffectors, onDrug], items: [
+        v('Replicates', '3'), v('Overage', '10', '%'),
+        t('Per well', '10000', 'cells'), t('Volume per well', '50', 'µL'), link(onTargets, 'count'), link(onTargets, 'viability'),
+        e('E:T', '5:1', 'N:N'), e('Volume per well', '100', 'µL'), link(onEffectors, 'count'), link(onEffectors, 'viability'),
+        link(onDrug, 'stock-concentration'), d('Top dose', '10', 'µM'), d('Fold', '3', 'x'), d('Points', '8'), d('Volume per well', '50', 'µL'),
+      ] },
+      { id: uid(), type: 'plate', title: 'Assay plate map', x: 4, y: 12, w: 4, h: 9, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }) },
+      { id: uid(), type: 'formula', title: 'Calculations', x: 8, y: 12, w: 4, h: 19, items: [
+        f('Target wells', 'Compound X wells + T cells only wells + Targets only wells'),
+        f('Effector wells', 'Compound X wells + T cells only wells'),
+        f('Well volume', 'Raji-Luc volume per well + T cells volume per well + Compound X volume per well', 'µL'),
+        f('Raji-Luc needed', 'Raji-Luc per well × Target wells × (1 + Overage)'),
+        f('Raji-Luc to take', 'Raji-Luc needed ÷ (Raji-Luc count × Raji-Luc viability)', 'µL'),
+        f('Raji-Luc mix', 'Target wells × Raji-Luc volume per well × (1 + Overage)', 'mL'),
+        f('T cells per well', 'Raji-Luc per well × T cells E:T'),
+        f('T cells needed', 'T cells per well × Effector wells × (1 + Overage)'),
+        f('T cells to take', 'T cells needed ÷ (T cells count × T cells viability)', 'mL'),
+        f('T cells mix', 'Effector wells × T cells volume per well × (1 + Overage)', 'mL'),
+        f('Compound X added at', 'Well volume ÷ Compound X volume per well', 'x'),
+        f('Compound X top working', 'Compound X top dose × Compound X added at', 'µM'),
+        f('Compound X per point', 'Replicates × Compound X volume per well × (1 + Overage)', 'µL'),
+        f('Compound X transfer', 'Compound X per point ÷ (Compound X fold − 1)', 'µL'),
+        f('Compound X top tube', 'Compound X per point + Compound X transfer', 'µL'),
+        f('Compound X stock to add', 'Compound X top tube × Compound X top working ÷ Compound X stock concentration', 'µL'),
+      ] },
+      { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 31, w: 8, h: 15 },
+      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 46, w: 12, h: 8 },
+    ],
+  };
+}
+
+const EXAMPLES = { cytotox: exampleCytotox, elisa: exampleElisa, cells: exampleCells };
 
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
 }
-let state = loadState() ?? exampleElisa();
+let state = loadState() ?? exampleCytotox();
 state.lotMemory ??= {};
 state.keptBoth ??= [];
 state.runOn ??= { from: '', to: '' };
+state.blocks.forEach(b => { if (b.type === 'values') b.sections ??= []; });
 
 const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory-v1';
 const labMemory = (() => { try { return JSON.parse(localStorage.getItem(LAB_MEMORY_KEY)); } catch { return null; } })() ?? {};
@@ -1758,6 +1916,18 @@ function commitSteps() {
 
 const SINGLE_VESSEL_COLUMNS = 6;
 const vesselSelections = new Map();
+const editingGroups = new Map();
+function addPlateGroup(b, label) {
+  const taken = new Set(b.groups.map(g => g.color));
+  const color = [...Array(PLATE_COLORS).keys()].find(i => !taken.has(i)) ?? b.groups.length % PLATE_COLORS;
+  const g = { id: uid(), label, color };
+  b.groups.push(g);
+  vesselSel(b).set.forEach(key => { b.wells[key] = g.id; });
+  renderBlock(b);
+  save();
+  refresh();
+  bodyOf(b).querySelector('.pal-add')?.focus();
+}
 const vesselSel = b => { if (!vesselSelections.has(b.id)) vesselSelections.set(b.id, { set: new Set(), anchor: null }); return vesselSelections.get(b.id); };
 let vesselDrag = null;
 function vesselSheet(b) {
@@ -2270,14 +2440,15 @@ function stepLabels() {
   }));
 }
 
-function itemUsage(b) {
-  const ids = new Set(b.items.map(i => i.id));
+function itemUsage(b, idList = b.items.map(i => i.id)) {
+  const ids = new Set(idList);
   const owner = new Map();
   for (const [key, entry] of calc.names) {
-    const id = String(entry.id ?? '').split(':')[0];
+    const full = String(entry.id ?? '');
+    const id = ids.has(full) ? full : full.split(':')[0];
     if (ids.has(id)) owner.set(key, id);
   }
-  const usage = new Map(b.items.map(i => [i.id, { steps: [], formulas: 0 }]));
+  const usage = new Map(idList.map(id => [id, { steps: [], formulas: 0 }]));
   const labels = stepLabels();
   for (const step of state.steps.filter(x => x.kind === 'step')) {
     for (const [, ref] of String(step.text).matchAll(/\{([^}]+)\}/g)) {
@@ -2401,10 +2572,26 @@ function exportMaterials() {
   return `<h2>Materials</h2>${groups.map(g => `<h3>${esc(g.label)}</h3><table class="ex-mat"><colgroup><col class="ex-chk" /><col /><col class="src" /><col class="lot" /><col class="exp" /></colgroup><thead><tr><th></th><th>Name</th><th>Vendor · Cat #</th><th>Lot</th><th>Expires</th></tr></thead><tbody>${g.rows.join('')}</tbody></table>`).join('')}`;
 }
 
+const exportAmount = it => (String(it.value).trim() ? esc(displayOf(it, it.value)) : `${blankLine}${it.unit && !['1:N', 'N:N'].includes(it.unit) ? ` ${esc(it.unit)}` : ''}`);
+
 function exportValues() {
-  const items = state.blocks.filter(b => b.type === 'values').flatMap(b => b.items.filter(it => it.name.trim()));
-  if (!items.length) return '';
-  return `<h2>Values</h2><table class="ex-kv"><tbody>${items.map(it => `<tr><td>${esc(it.name)}</td><td class="ex-num">${String(it.value).trim() ? esc(displayOf(it, it.value)) : `${blankLine}${it.unit && !['1:N', 'N:N'].includes(it.unit) ? ` ${esc(it.unit)}` : ''}`}</td></tr>`).join('')}</tbody></table>`;
+  const row = (label, shown) => `<tr><td>${esc(label)}</td><td class="ex-num">${shown}</td></tr>`;
+  const table = rows => (rows ? `<table class="ex-kv"><tbody>${rows}</tbody></table>` : '');
+  const html = state.blocks.filter(b => b.type === 'values').map(b => {
+    const rowsOf = sectionId => sectionPeers(b, sectionId).map(it => {
+      const shown = it.link ? linkedValue(b, it) : it;
+      return shown && (it.link || it.name.trim()) ? row(it.link ? shown.label : it.name, exportAmount(shown)) : '';
+    }).join('');
+    const sections = b.sections.map(sec => {
+      const found = materialById(sec.of);
+      const plate = found?.item.type === 'Plate' ? plateFor(found.item) : null;
+      const rows = (plate ? plateCounts(plate).map(([name, n]) => row(name, String(n))).join('') : '') + rowsOf(sec.id);
+      return rows ? `<h3>${esc(sectionName(sec) || 'Mix')}</h3>${table(rows)}` : '';
+    }).join('');
+    const general = rowsOf('');
+    return (general && b.sections.length ? `<h3>${esc(b.generalTitle ?? 'Whole experiment')}</h3>` : '') + table(general) + sections;
+  }).join('');
+  return html ? `<h2>Values</h2>${html}` : '';
 }
 
 function exportFormulas() {
@@ -2512,7 +2699,7 @@ function materialControl(item, f) {
   if (f.kind !== 'number') return control;
   const unit = fieldUnit(item, f);
   const unitControl = f.unit === '*'
-    ? `<select class="in munit" data-unitkey="${f.key}">${(f.units ?? VALUE_UNITS).map(u => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u || 'none')}</option>`).join('')}</select>`
+    ? `<select class="in munit" data-unitkey="${f.key}">${unitOptions(f.units ?? VALUE_UNITS, unit, u => u || 'none')}</select>`
     : `<span class="unit">${esc(shortUnit(unit))}</span>`;
   return `<span class="ramt">${unit === '1:N' ? '<span class="pre">1:</span>' : ''}${control}${unitControl}</span>`;
 }
@@ -2962,7 +3149,7 @@ const TYPES = {
         if (c.kind !== 'number') return input;
         const unit = unitOf(row, c);
         const unitControl = c.unit === '*'
-          ? `<select class="in lunit" data-unitcol="${c.id}">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u || 'none')}</option>`).join('')}</select>`
+          ? `<select class="in lunit" data-unitcol="${c.id}">${unitOptions(VALUE_UNITS, unit, u => u || 'none')}</select>`
           : `<span class="unit">${esc(shortUnit(unit))}</span>`;
         return `<span class="ramt">${unit === '1:N' ? '<span class="pre">1:</span>' : ''}${input}${unitControl}</span>`;
       };
@@ -2988,7 +3175,7 @@ const TYPES = {
       return `<div class="coledit">${b.columns.map((c, i) => {
         const kind = i === 0 ? '<span class="cfixed">row name</span>' : `<select class="in ckind">${COLUMN_KINDS.map(k => option(k, c.kind)).join('')}</select>`;
         const detail = c.kind === 'number'
-          ? `<select class="in cunit">${COLUMN_UNITS.map(u => option(u, c.unit, u === '*' ? 'unit per row' : u || 'no unit')).join('')}</select>`
+          ? `<select class="in cunit">${unitOptions(COLUMN_UNITS, c.unit, u => (u === '*' ? 'unit per row' : u || 'no unit'))}</select>`
           : c.kind === 'choice' ? `<input class="in copts" value="${esc(c.options.join(', '))}" placeholder="options, comma separated" />` : '<span></span>';
         const flags = i === 0 ? '<span></span><span></span>'
           : `<label><input type="checkbox" class="chide"${c.hidden ? ' checked' : ''} /> hide</label>${c.kind === 'date' ? `<label><input type="checkbox" class="cwarn"${c.warnPast ? ' checked' : ''} /> flag if past</label>` : '<span></span>'}`;
@@ -3060,59 +3247,127 @@ const TYPES = {
 
   values: {
     label: 'Values', glyph: '#', hint: 'Named numbers you set', size: [4, 6],
-    make: () => ({ items: [] }),
+    make: () => ({ items: [], sections: [] }),
     render(b, body) {
       const editing = valueEdits.get(b.id);
-      const rows = b.items.map(it => {
-        const isEditing = key => editing?.item === it.id && editing.key === key;
-        const name = `<td class="vcell vname-cell editable${isEditing('name') ? ' editing' : ''}" data-cell="name">${isEditing('name') ? `<input class="in vname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" />` : `${esc(it.name) || '<span class="hint">Unnamed</span>'}<span class="vuse"></span>`}</td>`;
-        const valueCell = `<td class="vcell vval-cell editable${isEditing('value') ? ' editing' : ''}" data-cell="value">${isEditing('value') ? valueControl(it) : '<span class="vv"></span>'}</td>`;
-        const remove = '<td class="vrm"><button class="ghost-danger" data-act="del">Remove</button></td>';
-        return `<tr class="vrow" data-item="${it.id}" data-pick="${esc(it.name)}">${name}${valueCell}${remove}</tr>`;
-      });
       const removed = removedValues.get(b.id);
-      if (removed) rows.splice(Math.min(removed.index, rows.length), 0, `<tr class="vghost"><td colspan="2">Removed ${esc(removed.item.name || 'a value')}</td><td class="vrm"><button class="lnk" data-act="restore">Undo</button></td></tr>`);
-      const adder = '<div class="vadd-wrap"><input class="in vadd" placeholder="Add: Vol per well 100 µL" spellcheck="false" autocomplete="off" /><div class="vguess"></div></div>';
-      body.innerHTML = `<table class="vtable"><tbody>${rows.join('')}</tbody></table>${adder}`;
+      const ghost = text => `<tr class="vghost"><td colspan="2">${text}</td><td class="vrm"><button class="lnk" data-act="restore">Undo</button></td></tr>`;
+      const rowHtml = it => {
+        const isEditing = key => editing?.item === it.id && editing.key === key;
+        const linked = it.link ? linkedValue(b, it) : null;
+        if (it.link && !linked) return '';
+        const label = linked ? linked.label : it.name;
+        const nameCell = `<td class="vcell vname-cell editable${isEditing('name') ? ' editing' : ''}" data-cell="name">${isEditing('name') ? `<input class="in vname" value="${esc(label)}" placeholder="Name" spellcheck="false" />` : `${esc(label) || '<span class="hint">Unnamed</span>'}${linked ? '<span class="vlink">in Materials</span>' : ''}<span class="vuse"></span>`}</td>`;
+        const valueCell = `<td class="vcell vval-cell editable${isEditing('value') ? ' editing' : ''}" data-cell="value">${isEditing('value') ? valueControl(linked ?? it, linked?.units) : '<span class="vv"></span>'}</td>`;
+        return `<tr class="vrow" data-item="${it.id}" data-pick="${esc(valueName(b, it))}">${nameCell}${valueCell}<td class="vrm"><button class="ghost-danger" data-act="del">Remove</button></td></tr>`;
+      };
+      const rowsOf = sectionId => {
+        const rows = sectionPeers(b, sectionId).map(rowHtml);
+        if (removed?.item && (removed.item.section ?? '') === sectionId) rows.splice(Math.min(removed.index, rows.length), 0, ghost(`Removed ${esc(removed.label)}`));
+        return rows.join('');
+      };
+      const adder = (sectionId, placeholder) => `<tr class="vadd-row"><td colspan="3"><input class="in vadd" data-section="${sectionId}" placeholder="${esc(placeholder)}" spellcheck="false" autocomplete="off" /><div class="vguess"></div></td></tr>`;
+      const head = (title, kind, tools = '') => `<tr class="vsec"><th colspan="2">${title}${kind ? `<span class="msec-count">${esc(kind)}</span>` : ''}</th><td class="vrm">${tools}</td></tr>`;
+      const general = `<tbody data-section="">${b.sections.length ? head(`<input class="in vsec-name vgen-name" value="${esc(b.generalTitle ?? 'Whole experiment')}" placeholder="Name this group" spellcheck="false" />`, '') : ''}${rowsOf('')}${adder('', 'Add: Incubation 24 h')}</tbody>`;
+      const sections = b.sections.map(sec => {
+        const found = sec.of ? materialById(sec.of) : null;
+        if (found) sec.name = found.item.name.trim();
+        const isMix = sec.mix !== undefined;
+        const plate = found?.item.type === 'Plate' ? plateFor(found.item) : null;
+        const title = isMix ? `<input class="in vmix-name" value="${esc(sec.mix)}" placeholder="Name this mix" spellcheck="false" />` : found ? `<input class="in vsec-name" value="${esc(found.item.name)}" placeholder="Name" spellcheck="false" title="Renames it in Materials too" />` : `<span class="msec-title">${esc(sectionName(sec))}</span>`;
+        const kind = isMix ? 'Mix' : !found ? 'No longer in Materials' : found.item.dropped ? `${found.item.type} · dropped` : found.item.type;
+        const counts = plate ? plateValueRows(plate, editing) : '';
+        const suggestions = valueSuggestions(b, sec);
+        const suggest = suggestions.length ? `<tr class="vsugg-row"><td colspan="3"><span class="vsugg">Often added:${suggestions.map((sg, i) => `<button class="lnk" data-suggest="${i}">${esc(sg.label)}</button>`).join('')}</span></td></tr>` : '';
+        const isEmpty = !counts && !sectionPeers(b, sec.id).length;
+        return `<tbody data-section="${sec.id}"${isEmpty ? ' class="empty"' : ''}>${head(title, kind, '<button class="ghost-danger" data-act="del-section">Remove</button>')}${counts}${rowsOf(sec.id)}${adder(sec.id, `Add to ${sectionName(sec) || 'this mix'}`)}${suggest}</tbody>`;
+      });
+      if (removed?.section) sections.splice(Math.min(removed.index, sections.length), 0, `<tbody>${ghost(`Removed ${esc(removed.label)}`)}</tbody>`);
+      const more = `<div class="vmore"><select class="in vfor"><option value="">+ Values for…</option>${valueSectionChoices(b)}<option value="mix">A mix or cocktail</option></select></div>`;
+      body.innerHTML = `<table class="vtable">${general}${sections.join('')}</table>${more}`;
     },
     update(b, body) {
-      const usage = itemUsage(b);
+      const usage = itemUsage(b, b.items.map(it => valueUsageId(b, it)));
       for (const it of b.items) {
         const row = body.querySelector(`tr[data-item="${it.id}"]`);
         if (!row) continue;
-        const raw = String(it.value).trim();
-        const bad = !!raw && Number.isNaN(it.unit === 'N:N' ? parseRatio(raw) : parseNumber(raw));
+        const shown = it.link ? linkedValue(b, it) : it;
+        const raw = String(shown.value ?? '').trim();
+        const bad = !!raw && Number.isNaN(shown.unit === 'N:N' ? parseRatio(raw) : parseNumber(raw));
         const vv = row.querySelector('.vv');
-        if (vv) vv.innerHTML = raw ? esc(displayOf(it, raw)) : '<span class="vfill">to fill in</span>';
+        if (vv) vv.innerHTML = raw ? esc(displayOf(shown, raw)) : '<span class="vfill">to fill in</span>';
         row.classList.toggle('bad', bad || calc.dupes.has(it.id));
         row.querySelectorAll('.vval').forEach(input => input.classList.toggle('bad', bad));
         row.querySelector('.vname')?.classList.toggle('bad', calc.dupes.has(it.id));
         const use = row.querySelector('.vuse');
         if (!use) continue;
-        const summary = usageSummary(usage.get(it.id));
+        const summary = usageSummary(usage.get(valueUsageId(b, it)));
         use.textContent = summary ? '' : 'unused';
-        row.title = summary ? `Used in ${summary}` : 'Not used in any step or formula';
+        row.title = `${valueName(b, it)}: ${summary ? `used in ${summary}` : 'not used in any step or formula'}`;
       }
     },
     onInput(b, e) {
       const el = e.target;
       if (el.matches('.vadd')) {
-        bodyOf(b).querySelector('.vguess').innerHTML = valueGuessLine(b, el.value);
+        el.parentElement.querySelector('.vguess').innerHTML = valueGuessLine(b, el.value, el.dataset.section);
+        return;
+      }
+      if (el.matches('.vgen-name')) {
+        b.generalTitle = el.value;
+        save();
+        return;
+      }
+      if (el.matches('.vmix-name, .vsec-name')) {
+        const sec = b.sections.find(x => x.id === el.closest('tbody').dataset.section);
+        const found = materialById(sec.of);
+        if (found) {
+          found.item.name = el.value;
+          renderBlock(found.b);
+        } else sec.mix = el.value;
+        save();
+        refresh();
+        return;
+      }
+      const plateRow = el.closest('[data-plate]');
+      if (plateRow) {
+        editPlateCount(byId(plateRow.dataset.plate), plateRow.dataset.group, el);
         return;
       }
       const it = b.items.find(i => i.id === el.closest('[data-item]')?.dataset.item);
       if (!it) return;
-      if (el.matches('.vname')) it.name = el.value;
+      const linked = it.link && linkedValue(b, it);
+      if (el.matches('.vname') && linked) {
+        linked.item.labels ??= {};
+        if (el.value.trim()) linked.item.labels[linked.f.key] = el.value;
+        else delete linked.item.labels[linked.f.key];
+        renderBlock(linked.b);
+      } else if (el.matches('.vname')) it.name = el.value;
       else if (el.matches('.vval')) {
         const typed = el.matches('.vpair') ? [...el.closest('.ramt').querySelectorAll('.vpair')].map(input => input.value.trim()).join(':') : el.value;
-        it.value = typed;
+        if (linked) {
+          linked.item.values[linked.f.key] = typed;
+          renderBlock(linked.b);
+        } else it.value = typed;
       } else return;
       save();
       refresh();
     },
     onChange(b, e) {
+      if (e.target.matches('.vfor')) {
+        if (e.target.value) addValueSection(b, e.target.value);
+        return;
+      }
+      if (e.target.matches('.vmix-name, .vsec-name')) {
+        renderBlock(b);
+        return;
+      }
       if (!e.target.matches('.vunit')) return;
-      b.items.find(i => i.id === e.target.closest('[data-item]').dataset.item).unit = e.target.value;
+      const it = b.items.find(i => i.id === e.target.closest('[data-item]').dataset.item);
+      const linked = it.link && linkedValue(b, it);
+      if (linked) {
+        linked.item.units[linked.f.key] = e.target.value;
+        renderBlock(linked.b);
+      } else it.unit = e.target.value;
       renderBlock(b);
       bodyOf(b).querySelector('td.editing .vunit')?.focus();
       save();
@@ -3127,25 +3382,48 @@ const TYPES = {
         editValueCell(b, id, td.dataset.cell);
         return;
       }
+      const suggestion = e.target.closest('[data-suggest]');
+      if (suggestion) {
+        const sec = b.sections.find(x => x.id === suggestion.closest('tbody').dataset.section);
+        addSuggestedValue(b, sec, valueSuggestions(b, sec)[+suggestion.dataset.suggest]);
+        return;
+      }
+      if (act === 'del-label') {
+        const row = e.target.closest('[data-plate]');
+        removePlateLabel(byId(row.dataset.plate), row.dataset.group);
+        return;
+      }
       if (act === 'del' && it) {
-        clearTimeout(removedValues.get(b.id)?.timer);
-        const timer = setTimeout(() => {
-          removedValues.delete(b.id);
-          bodyOf(b)?.querySelector('.vghost')?.remove();
-        }, 8000);
-        removedValues.set(b.id, { item: it, index: b.items.indexOf(it), timer });
+        const label = it.link ? linkedValue(b, it)?.label : it.name;
+        leaveValueUndo(b, { item: it, label: label || 'a value', index: sectionPeers(b, it.section).indexOf(it) });
         b.items = b.items.filter(i => i !== it);
-        valueEdits.delete(b.id);
+      } else if (act === 'del-section') {
+        const sec = b.sections.find(x => x.id === e.target.closest('tbody').dataset.section);
+        leaveValueUndo(b, { section: sec, items: b.items.filter(i => i.section === sec.id), label: `${sectionName(sec) || 'mix'} section`, index: b.sections.indexOf(sec) });
+        b.sections = b.sections.filter(x => x !== sec);
+        b.items = b.items.filter(i => i.section !== sec.id);
       } else if (act === 'restore') {
         const removed = removedValues.get(b.id);
         if (!removed) return;
         clearTimeout(removed.timer);
         removedValues.delete(b.id);
-        b.items.splice(Math.min(removed.index, b.items.length), 0, removed.item);
+        if (removed.section) {
+          b.sections.splice(Math.min(removed.index, b.sections.length), 0, removed.section);
+          b.items.push(...removed.items);
+        } else {
+          const peers = sectionPeers(b, removed.item.section);
+          const before = peers[removed.index];
+          const last = peers.at(-1);
+          b.items.splice(before ? b.items.indexOf(before) : last ? b.items.indexOf(last) + 1 : b.items.length, 0, removed.item);
+        }
       } else return;
+      valueEdits.delete(b.id);
       renderBlock(b);
       save();
       refresh();
+    },
+    onMousedown(b, e) {
+      if (e.target.closest('[data-suggest]')) e.preventDefault();
     },
     onFocusout(b, e) {
       const editing = valueEdits.get(b.id);
@@ -3160,11 +3438,11 @@ const TYPES = {
       if (el.matches('.vadd')) {
         if (e.key === 'Escape') {
           el.value = '';
-          bodyOf(b).querySelector('.vguess').innerHTML = '';
+          el.parentElement.querySelector('.vguess').innerHTML = '';
         }
         if (e.key !== 'Enter' || !el.value.trim()) return;
         e.preventDefault();
-        addValues(b, [el.value]);
+        addValues(b, [el.value], el.dataset.section);
         return;
       }
       const td = el.closest('td.editing');
@@ -3185,7 +3463,7 @@ const TYPES = {
       const text = e.clipboardData?.getData('text') ?? '';
       if (!/\n/.test(text.trim())) return;
       e.preventDefault();
-      addValues(b, text.split(/\r?\n/).filter(line => line.trim()));
+      addValues(b, text.split(/\r?\n/).filter(line => line.trim()), e.target.dataset.section);
     },
   },
 
@@ -3197,7 +3475,7 @@ const TYPES = {
       body.innerHTML = `<div class="flist">${b.items.map(it => {
         if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
         const tools = '<div class="ftools"><button class="lnk" data-act="del">Remove</button><button class="lnk" data-act="close">Done</button></div>';
-        return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${FORMULA_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(u === '' ? 'number' : u === 'x' ? 'fold ×' : u)}</option>`).join('')}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
+        return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${unitOptions(FORMULA_UNITS, it.unit, u => (u === '' ? 'number' : u === 'x' ? 'fold ×' : u))}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
       }).join('')}</div>${`<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
     },
     update(b, body) {
@@ -3251,7 +3529,7 @@ const TYPES = {
 
   plate: {
     label: 'Vessel map', glyph: '⠿', hint: 'Plates, flasks, dishes or tubes; counts feed formulas', size: [5, 8],
-    make: () => ({ vessel: '96', count: 1, active: 0, wells: {} }),
+    make: () => ({ vessel: '96', count: 1, active: 0, groups: [], wells: {} }),
     render(b, body) {
       const sheet = vesselSheet(b);
       const sel = vesselSel(b).set;
@@ -3265,10 +3543,10 @@ const TYPES = {
         for (let c = 0; c < sheet.cols; c++) {
           const key = sheet.keyAt(r, c);
           if (!key) continue;
-          const g = b.wells[key];
+          const g = b.groups.find(x => x.id === b.wells[key]);
           const label = sheet.labelAt(r, c);
-          const inner = sheet.plate ? (g ? GROUPS[g].short : '') : `<b>${label}</b><span>${g ? GROUPS[g].label : ''}</span>`;
-          cells += `<div class="${sheet.plate ? 'well' : 'vessel'}${g ? ` g-${g}` : ''}${sel.has(key) ? ' sel' : ''}" data-key="${key}" data-r="${r}" data-c="${c}" title="${label}${g ? ` · ${GROUPS[g].label}` : ''}">${inner}</div>`;
+          const inner = sheet.plate ? (g ? esc(shortLabel(g.label)) : '') : `<b>${label}</b><span>${g ? esc(g.label) : ''}</span>`;
+          cells += `<div class="${sheet.plate ? 'well' : 'vessel'}${g ? ` gc${g.color}` : ''}${sel.has(key) ? ' sel' : ''}" data-key="${key}" data-r="${r}" data-c="${c}" title="${label}${g ? ` · ${esc(g.label)}` : ''}">${inner}</div>`;
         }
       }
       const byGroup = Object.entries(VESSELS).reduce((acc, [key, vessel]) => { (acc[vessel.group] ??= []).push([key, vessel]); return acc; }, {});
@@ -3276,7 +3554,12 @@ const TYPES = {
       const tabs = sheet.plate && b.count > 1 ? `<div class="vtabs">${Array.from({ length: b.count }, (_, i) => `<button class="vtab${i === b.active ? ' on' : ''}" data-plate="${i}">Plate ${i + 1}</button>`).join('')}</div>` : '';
       const columns = `${sheet.plate ? '16px ' : ''}repeat(${sheet.cols}, var(--ws))`;
       const rows = `${sheet.plate ? '14px ' : ''}repeat(${sheet.rows}, var(--ws))`;
-      body.innerHTML = `<div class="ptools"><select class="in vkind">${options}</select><span class="times">×</span><input class="in vcount mono" type="number" min="1" max="48" value="${b.count}" title="How many" /></div><div class="ptools">${Object.entries(GROUPS).map(([k, g]) => `<button class="pal" data-group="${k}"><i class="g-${k}"></i>${g.label}</button>`).join('')}<button class="pal" data-group="">Set as empty</button></div>${tabs}<div class="${sheet.plate ? 'plate' : 'vessels'}" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
+      const plural = VESSEL_PLURAL[VESSELS[b.vessel].noun];
+      const chip = g => (editingGroups.get(b.id) === g.id
+        ? `<span class="pal editing"><i class="gc${g.color}"></i><input class="in pal-name" value="${esc(g.label)}" spellcheck="false" /></span>`
+        : `<span class="pal" data-group="${g.id}" title="Click to label the selected ${plural}. Double-click to rename."><i class="gc${g.color}"></i>${esc(g.label)}<button class="pal-x" data-del-group="${g.id}" title="Remove this label">×</button></span>`);
+      const palette = `<div class="ptools">${b.groups.map(chip).join('')}<input class="in pal-add" placeholder="+ New label" spellcheck="false" /><button class="pal" data-group="">Set as empty</button></div>`;
+      body.innerHTML = `<div class="ptools"><select class="in vkind">${options}</select><span class="times">×</span><input class="in vcount mono" type="number" min="1" max="48" value="${b.count}" title="How many" /></div>${palette}${tabs}<div class="${sheet.plate ? 'plate' : 'vessels'}" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
     },
     fit(b, body) {
       const sheet = vesselSheet(b);
@@ -3335,7 +3618,12 @@ const TYPES = {
         save();
         return;
       }
-      const pal = e.target.closest('.pal');
+      const removeLabel = e.target.closest('[data-del-group]');
+      if (removeLabel) {
+        removePlateLabel(b, removeLabel.dataset.delGroup);
+        return;
+      }
+      const pal = e.target.closest('.pal[data-group]');
       if (!pal) return;
       const sel = vesselSel(b).set;
       if (!sel.size) return;
@@ -3353,6 +3641,33 @@ const TYPES = {
       b.active = Math.min(b.active, b.count - 1);
       pruneVesselWells(b);
       vesselSel(b).set.clear();
+      renderBlock(b);
+      save();
+      refresh();
+    },
+    onDblclick(b, e) {
+      const pal = e.target.closest('.pal[data-group]');
+      if (!pal?.dataset.group) return;
+      editingGroups.set(b.id, pal.dataset.group);
+      renderBlock(b);
+      const input = bodyOf(b).querySelector('.pal-name');
+      input.focus();
+      input.select();
+    },
+    onKeydown(b, e) {
+      if (e.target.matches('.pal-add') && e.key === 'Enter' && e.target.value.trim()) {
+        e.preventDefault();
+        addPlateGroup(b, e.target.value.trim());
+      } else if (e.target.matches('.pal-name') && e.key === 'Escape') {
+        editingGroups.delete(b.id);
+        renderBlock(b);
+      }
+    },
+    onFocusout(b, e) {
+      if (!e.target.matches('.pal-name') || !editingGroups.has(b.id)) return;
+      const g = b.groups.find(x => x.id === editingGroups.get(b.id));
+      if (e.target.value.trim()) g.label = e.target.value.trim();
+      editingGroups.delete(b.id);
       renderBlock(b);
       save();
       refresh();
@@ -3613,6 +3928,145 @@ function placeTray() {
   tray.style.top = `${r.bottom + 6 + tray.offsetHeight > window.innerHeight ? r.top - tray.offsetHeight - 6 : r.bottom + 6}px`;
 }
 
+const VALUE_SUGGESTIONS = {
+  bio: [['Per well', '', 'cells'], ['Volume per well', '', 'µL']],
+  ab: [['Volume per well', '', 'µL'], ['Tests']],
+  chem: [['Final concentration', '', 'µM'], ['Volume per well', '', 'µL'], ['Fold', '', 'x'], ['Points']],
+  mix: [['Volume per well', '', 'µL'], ['Total volume', '', 'mL']],
+  other: [['Volume per well', '', 'µL']],
+};
+
+function materialById(id) {
+  for (const b of state.blocks) {
+    const item = b.type === 'materials' ? b.items.find(i => i.id === id) : null;
+    if (item) return { b, item };
+  }
+  return null;
+}
+
+const sectionPeers = (b, sectionId) => b.items.filter(it => (it.section ?? '') === (sectionId ?? ''));
+const sectionName = sec => (sec.mix !== undefined ? sec.mix.trim() : materialById(sec.of)?.item.name.trim() ?? sec.name ?? '');
+const lowerLead = label => (/^[A-Z][a-z]/.test(label) ? label[0].toLowerCase() + label.slice(1) : label);
+const joinName = (owner, label) => (owner ? `${owner} ${lowerLead(label.trim())}` : label);
+
+function linkedValue(b, it) {
+  const found = materialById(b.sections.find(sec => sec.id === it.section)?.of);
+  const f = found && materialFields(found.b, found.item).find(x => x.key === it.link);
+  if (!f) return null;
+  const unit = fieldUnit(found.item, f);
+  return { ...found, f, value: found.item.values[f.key] ?? '', unit, label: fieldLabel(found.item, f), name: fieldName(found.item, f), units: f.unit === '*' ? (f.units ?? VALUE_UNITS) : [] };
+}
+
+function valueName(b, it) {
+  if (it.link) return linkedValue(b, it)?.name ?? '';
+  const sec = b.sections.find(x => x.id === it.section);
+  return sec ? joinName(sectionName(sec), it.name) : it.name;
+}
+
+const valueUsageId = (b, it) => (it.link ? `${b.sections.find(sec => sec.id === it.section)?.of}:${it.link}` : it.id);
+
+function plateFor(item) {
+  const plates = state.blocks.filter(x => x.type === 'plate');
+  return plates.find(p => normKey(p.title).includes(normKey(item.name))) ?? (plates.length === 1 ? plates[0] : null);
+}
+
+const plateCounts = plate => vesselCounts(plate).filter(([, n], i, all) => i < all.length - 1 || n > 1);
+
+function valueSectionChoices(b) {
+  const taken = new Set(b.sections.map(sec => sec.of));
+  return state.blocks.filter(x => x.type === 'materials').flatMap(mb => materialGroupsOf(mb).filter(g => !PULL_SKIP_GROUPS.has(g.key)).map(g => {
+    const items = mb.items.filter(i => i.group === g.key && i.name.trim() && !i.dropped && !taken.has(i.id));
+    return items.length ? `<optgroup label="${esc(g.label)}">${items.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('')}</optgroup>` : '';
+  })).join('');
+}
+
+const fieldLabel = (item, f) => { const label = item.labels?.[f.key] ?? f.nameByUnit?.[fieldUnit(item, f)] ?? f.label; return label[0].toUpperCase() + label.slice(1); };
+
+function valueSuggestions(b, sec) {
+  const found = sec.of ? materialById(sec.of) : null;
+  if (sec.of && !found) return [];
+  const have = new Set(sectionPeers(b, sec.id).map(it => it.link ?? normKey(it.name)));
+  const own = found ? materialFields(found.b, found.item).filter(f => f.kind === 'number' && !have.has(f.key)).map(f => ({ link: f.key, label: fieldLabel(found.item, f) })) : [];
+  const usual = !found ? VALUE_SUGGESTIONS.mix : found.item.type === 'Plate' ? (plateFor(found.item) ? [] : [['Wells used']]) : VALUE_SUGGESTIONS[found.item.group] ?? VALUE_SUGGESTIONS.other;
+  return [...own, ...usual.filter(([name]) => !have.has(normKey(name))).map(([name, value = '', unit = '']) => ({ name, value, unit, label: name }))];
+}
+
+function addSuggestedValue(b, sec, suggestion) {
+  const found = sec.of ? materialById(sec.of) : null;
+  const it = suggestion.link ? { id: uid(), section: sec.id, link: suggestion.link } : { id: uid(), section: sec.id, name: suggestion.name, value: suggestion.value, unit: suggestion.unit };
+  const last = sectionPeers(b, sec.id).at(-1);
+  b.items.splice(last ? b.items.indexOf(last) + 1 : b.items.length, 0, it);
+  if (suggestion.link && !found.item.on.includes(suggestion.link)) {
+    found.item.on.push(suggestion.link);
+    renderBlock(found.b);
+  }
+  valueEdits.set(b.id, { item: it.id, key: 'value' });
+  renderBlock(b);
+  bodyOf(b).querySelector('td.editing .vval')?.focus();
+  save();
+  refresh();
+}
+
+function plateValueRows(plate, editing) {
+  const plural = VESSEL_PLURAL[VESSELS[plate.vessel].noun];
+  const { groups, used } = plateTally(plate);
+  const row = (key, label, tally, nameEdit, remove) => {
+    const id = `plate:${plate.id}:${key}`;
+    const isEditing = cell => editing?.item === id && editing.key === cell;
+    const typed = plate.counts?.[key] ?? '';
+    const name = nameEdit
+      ? `<td class="vcell vname-cell editable${isEditing('name') ? ' editing' : ''}" data-cell="name">${isEditing('name') ? `<input class="in vname pname" value="${esc(label)}" placeholder="Label" spellcheck="false" /><span class="pre">${plural}</span>` : `${esc(label)} ${plural}`}</td>`
+      : `<td class="vcell vname-cell">${esc(label)}</td>`;
+    const value = `<td class="vcell vval-cell editable${isEditing('value') ? ' editing' : ''}" data-cell="value">${isEditing('value') ? `<input class="in vval mono" value="${esc(typed)}" placeholder="${tally.painted}" />` : `${tally.count}${typed && tally.count !== tally.painted ? `<span class="vlink">map has ${tally.painted}</span>` : ''}`}</td>`;
+    const tools = remove ? '<button class="ghost-danger" data-act="del-label">Remove</button>' : '';
+    return `<tr class="vrow" data-item="${id}" data-plate="${plate.id}" data-group="${key}" data-pick="${esc(nameEdit ? `${label.trim()} ${plural}` : label)}" title="Painted on ${esc(plate.title)}. Type a number to use your own; clear it to go back to the map.">${name}${value}<td class="vrm">${tools}</td></tr>`;
+  };
+  return groups.map(({ g, ...tally }) => row(g.id, g.label, tally, true, true)).join('') + row('used', `${plural[0].toUpperCase()}${plural.slice(1)} used`, used, false, false);
+}
+
+function editPlateCount(plate, key, el) {
+  if (el.matches('.vname')) plate.groups.find(g => g.id === key).label = el.value;
+  else {
+    plate.counts ??= {};
+    if (el.value.trim()) plate.counts[key] = el.value.trim();
+    else delete plate.counts[key];
+  }
+  renderBlock(plate);
+  save();
+  refresh();
+}
+
+function removePlateLabel(plate, key) {
+  const g = plate.groups.find(x => x.id === key);
+  const used = Object.values(plate.wells).filter(id => id === g.id).length;
+  if (used && !confirm(`Remove “${g.label}”? Its ${used} ${VESSEL_PLURAL[VESSELS[plate.vessel].noun]} become empty.`)) return;
+  plate.groups = plate.groups.filter(x => x !== g);
+  plate.wells = Object.fromEntries(Object.entries(plate.wells).filter(([, id]) => id !== g.id));
+  if (plate.counts) delete plate.counts[key];
+  state.blocks.filter(x => x.type === 'plate' || x.type === 'values').forEach(renderBlock);
+  save();
+  refresh();
+}
+
+function addValueSection(b, choice) {
+  const found = choice === 'mix' ? null : materialById(choice);
+  const sec = found ? { id: uid(), of: found.item.id } : { id: uid(), mix: '' };
+  b.sections.push(sec);
+  renderBlock(b);
+  save();
+  refresh();
+  bodyOf(b).querySelector(found ? `.vadd[data-section="${sec.id}"]` : `tbody[data-section="${sec.id}"] .vmix-name`)?.focus();
+}
+
+function leaveValueUndo(b, entry) {
+  clearTimeout(removedValues.get(b.id)?.timer);
+  const timer = setTimeout(() => {
+    removedValues.delete(b.id);
+    bodyOf(b)?.querySelector('.vghost')?.remove();
+  }, 8000);
+  removedValues.set(b.id, { ...entry, timer });
+}
+
 function addValueNamed(name) {
   let b = state.blocks.find(x => x.type === 'values');
   if (!b) b = addBlock('values');
@@ -3651,34 +4105,37 @@ function parseValueLine(line) {
   return name ? { name, value, unit: value || unit ? unit : '' } : null;
 }
 
-function valueGuessLine(b, text) {
+function valueGuessLine(b, text, sectionId = '') {
   if (!text.trim()) return '';
   const parsed = parseValueLine(text);
   if (!parsed) return '';
-  const taken = b.items.some(it => it.name.trim().toLowerCase() === parsed.name.toLowerCase());
+  const sec = b.sections.find(x => x.id === sectionId);
+  const full = sec ? joinName(sectionName(sec), parsed.name) : parsed.name;
+  const taken = calc.names.has(full.toLowerCase());
   const shown = parsed.value ? displayOf(parsed, parsed.value) : 'to fill in';
-  return `<b>${esc(parsed.name)}</b> · ${esc(shown)}${parsed.unit && !parsed.value ? ` (${esc(VALUE_UNIT_LABELS[parsed.unit] ?? parsed.unit)})` : ''}${taken ? ' · <span class="mg-dupe">name already used</span>' : ''}`;
+  return `<b>${esc(full)}</b> · ${esc(shown)}${parsed.unit && !parsed.value ? ` (${esc(VALUE_UNIT_LABELS[parsed.unit] ?? parsed.unit)})` : ''}${taken ? ' · <span class="mg-dupe">name already used</span>' : ''}`;
 }
 
-function addValues(b, lines) {
-  const added = lines.map(parseValueLine).filter(Boolean).map(({ name, value, unit }) => ({ id: uid(), name, value, unit }));
+function addValues(b, lines, sectionId = '') {
+  const added = lines.map(parseValueLine).filter(Boolean).map(({ name, value, unit }) => ({ id: uid(), name, value, unit, ...(sectionId ? { section: sectionId } : {}) }));
   if (!added.length) return;
-  b.items.push(...added);
+  const last = sectionPeers(b, sectionId).at(-1);
+  b.items.splice(last ? b.items.indexOf(last) + 1 : b.items.length, 0, ...added);
   const needsNumber = added.length === 1 && !added[0].value ? added[0] : null;
   if (needsNumber) valueEdits.set(b.id, { item: needsNumber.id, key: 'value' });
   renderBlock(b);
-  bodyOf(b).querySelector(needsNumber ? 'td.editing .vval' : '.vadd')?.focus();
+  bodyOf(b).querySelector(needsNumber ? 'td.editing .vval' : `.vadd[data-section="${sectionId}"]`)?.focus();
   save();
   refresh();
 }
 
-function valueControl(it) {
+function valueControl(it, units = VALUE_UNITS) {
   const raw = String(it.value);
   const [first, second = ''] = raw.split(':');
   const inputs = it.unit === 'N:N'
     ? `<input class="in vval vpair mono" value="${esc(first)}" placeholder="10" /><span class="pre">:</span><input class="in vval vpair mono" value="${esc(second)}" placeholder="1" />`
     : `${it.unit === '1:N' ? '<span class="pre">1:</span>' : ''}<input class="in vval mono" value="${esc(raw)}" placeholder="0" />`;
-  const unitSelect = `<select class="in vunit">${VALUE_UNITS.map(u => `<option value="${esc(u)}"${u === it.unit ? ' selected' : ''}>${esc(VALUE_UNIT_LABELS[u] ?? u)}</option>`).join('')}</select>`;
+  const unitSelect = units.length ? `<select class="in vunit">${unitOptions(units, it.unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select>` : it.unit ? `<span class="pre">${esc(it.unit)}</span>` : '';
   return `<span class="ramt">${inputs}${unitSelect}</span>`;
 }
 
@@ -3698,15 +4155,15 @@ function stopValueEdit(b) {
 }
 
 function moveValueEdit(b, td, step) {
-  const cells = b.items.flatMap(it => ['name', 'value'].map(key => ({ item: it.id, key })));
-  const here = cells.findIndex(c => c.item === td.closest('[data-item]').dataset.item && c.key === td.dataset.cell);
-  const next = cells[here + step];
+  const sectionId = td.closest('tbody').dataset.section;
+  const cells = [...td.closest('tbody').querySelectorAll('td.vcell.editable')];
+  const next = cells[cells.indexOf(td) + step];
   if (next) {
-    editValueCell(b, next.item, next.key);
+    editValueCell(b, next.closest('[data-item]').dataset.item, next.dataset.cell);
     return;
   }
   stopValueEdit(b);
-  bodyOf(b).querySelector('.vadd')?.focus();
+  bodyOf(b).querySelector(`.vadd[data-section="${sectionId}"]`)?.focus();
 }
 
 const grid = GridStack.init({ column: 12, cellHeight: 44, margin: 10, handle: '.blk-head', float: false, animate: true, resizable: { handles: 'se' } }, '#board');
@@ -3777,8 +4234,40 @@ function removeBlock(b) {
   refresh();
 }
 
+const knownNames = new Map();
+
+function carryRenames() {
+  const previous = [...new Set(knownNames.values())].sort((a, b) => b.length - a.length);
+  const renamed = new Map();
+  for (const e of calc.names.values()) {
+    const old = knownNames.get(e.id);
+    if (old && old.toLowerCase() !== e.name.toLowerCase() && !calc.names.has(old.toLowerCase())) renamed.set(old.toLowerCase(), e.name);
+  }
+  if (!renamed.size) return false;
+  const isWordChar = c => /[A-Za-z0-9_µ°]/.test(c ?? '');
+  const rewrite = expr => {
+    let out = '';
+    let i = 0;
+    while (i < expr.length) {
+      const hit = isWordChar(expr[i - 1]) ? null : previous.find(n => expr.slice(i, i + n.length).toLowerCase() === n.toLowerCase() && !isWordChar(expr[i + n.length]));
+      if (!hit) { out += expr[i++]; continue; }
+      out += renamed.get(hit.toLowerCase()) ?? expr.slice(i, i + hit.length);
+      i += hit.length;
+    }
+    return out;
+  };
+  state.blocks.filter(b => b.type === 'formula').forEach(b => b.items.forEach(it => { it.expr = rewrite(String(it.expr ?? '')); }));
+  state.steps.forEach(step => { step.text = String(step.text ?? '').replace(/\{([^}]+)\}/g, (whole, ref) => (renamed.has(ref.trim().toLowerCase()) ? `{${renamed.get(ref.trim().toLowerCase())}}` : whole)); });
+  return true;
+}
+
 function refresh() {
   recompute();
+  if (carryRenames()) {
+    recompute();
+    state.blocks.filter(b => ['formula', 'steps', 'flow'].includes(b.type) && !bodyOf(b)?.contains(document.activeElement)).forEach(renderBlock);
+  }
+  for (const e of calc.names.values()) knownNames.set(e.id, e.name);
   state.blocks.forEach(b => TYPES[b.type].update?.(b, bodyOf(b)));
 }
 
@@ -3826,8 +4315,111 @@ document.getElementById('example').addEventListener('change', e => {
 });
 
 const board = document.getElementById('board');
+const selectPanel = Object.assign(document.createElement('div'), { className: 'sel-panel', hidden: true });
+document.body.append(selectPanel);
+const SELECT_CHECK = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z"/></svg>';
+let picker = null;
+
+function openSelect(select) {
+  const choices = [];
+  const row = option => {
+    if (option.value === '' && option.textContent.trim().endsWith('…')) return '';
+    choices.push(option);
+    return `<div class="sel-opt${option.selected ? ' on' : ''}${option.disabled ? ' off' : ''}" data-i="${choices.length - 1}"><span>${esc(option.textContent)}</span>${option.selected ? SELECT_CHECK : ''}</div>`;
+  };
+  selectPanel.innerHTML = [...select.children].map(child => (child.tagName === 'OPTGROUP' ? `<div class="sel-group">${esc(child.label)}</div>${[...child.children].map(row).join('')}` : row(child))).join('');
+  picker = { select, choices, lit: choices.findIndex(o => o.selected) };
+  select.classList.add('open');
+  selectPanel.hidden = false;
+  placeSelect();
+  lightSelect(picker.lit);
+}
+
+function placeSelect() {
+  const r = picker.select.getBoundingClientRect();
+  selectPanel.style.minWidth = `${r.width}px`;
+  selectPanel.style.maxHeight = `${Math.max(160, Math.min(360, Math.max(window.innerHeight - r.bottom, r.top) - 16))}px`;
+  const below = window.innerHeight - r.bottom >= selectPanel.offsetHeight + 8 || window.innerHeight - r.bottom >= r.top;
+  selectPanel.style.top = below ? `${r.bottom + 4}px` : `${r.top - 4 - selectPanel.offsetHeight}px`;
+  selectPanel.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - selectPanel.offsetWidth - 8))}px`;
+}
+
+function lightSelect(i) {
+  if (!picker) return;
+  picker.lit = Math.max(0, Math.min(picker.choices.length - 1, i));
+  selectPanel.querySelectorAll('.sel-opt').forEach(el => el.classList.toggle('lit', +el.dataset.i === picker.lit));
+  const lit = selectPanel.querySelector('.sel-opt.lit');
+  if (!lit) return;
+  if (lit.offsetTop < selectPanel.scrollTop) selectPanel.scrollTop = lit.offsetTop - 4;
+  else if (lit.offsetTop + lit.offsetHeight > selectPanel.scrollTop + selectPanel.clientHeight) selectPanel.scrollTop = lit.offsetTop + lit.offsetHeight - selectPanel.clientHeight + 4;
+}
+
+function closeSelect() {
+  if (!picker) return;
+  picker.select.classList.remove('open');
+  picker = null;
+  selectPanel.hidden = true;
+}
+
+function chooseSelect(i) {
+  if (!picker) return;
+  const { select, choices } = picker;
+  const option = choices[i];
+  closeSelect();
+  if (!option || option.disabled || option.selected) return;
+  select.value = option.value;
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('.sel-panel')) {
+    e.preventDefault();
+    return;
+  }
+  const select = e.target.closest('select');
+  if (!select || select.disabled) {
+    closeSelect();
+    return;
+  }
+  e.preventDefault();
+  const wasOpen = picker?.select === select;
+  closeSelect();
+  select.focus({ preventScroll: true });
+  if (!wasOpen) openSelect(select);
+}, true);
+selectPanel.addEventListener('click', e => {
+  const row = e.target.closest('.sel-opt');
+  if (row) chooseSelect(+row.dataset.i);
+});
+selectPanel.addEventListener('mousemove', e => {
+  const row = e.target.closest('.sel-opt');
+  if (row && +row.dataset.i !== picker?.lit) lightSelect(+row.dataset.i);
+});
+document.addEventListener('keydown', e => {
+  if (picker) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') lightSelect(picker.lit + (e.key === 'ArrowDown' ? 1 : -1));
+    else if (e.key === 'Enter' || e.key === ' ') chooseSelect(picker.lit);
+    else if (e.key === 'Escape') closeSelect();
+    else if (e.key === 'Tab') { closeSelect(); return; }
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+  if (e.target.matches?.('select') && [' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+    e.preventDefault();
+    e.stopPropagation();
+    openSelect(e.target);
+  }
+}, true);
+document.addEventListener('scroll', e => {
+  if (!picker || selectPanel.contains(e.target)) return;
+  if (picker.select.isConnected) placeSelect();
+  else closeSelect();
+}, true);
+window.addEventListener('resize', closeSelect);
 const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
-['input', 'change', 'click', 'focusout', 'pointerdown', 'pointerover', 'mousedown', 'keydown', 'paste'].forEach(type => board.addEventListener(type, e => {
+['input', 'change', 'click', 'dblclick', 'focusout', 'pointerdown', 'pointerover', 'mousedown', 'keydown', 'paste'].forEach(type => board.addEventListener(type, e => {
   const b = byId(e.target.closest?.('.blk')?.dataset.id);
   if (!b) return;
   if (type === 'click' && e.target.closest('.blk-x')) { removeBlock(b); return; }
@@ -3836,7 +4428,7 @@ const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
 }));
 board.addEventListener('keydown', e => {
   if (e.key === 'Tab' && e.target.matches('.sedit') && jumpToSlot(e.target, e.shiftKey)) { e.preventDefault(); return; }
-  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search):not(.vadd), input.sec-title, .sedit')) return;
+  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search):not(.vadd):not(.pal-add), input.sec-title, .sedit')) return;
   e.preventDefault();
   e.target.blur();
 });
