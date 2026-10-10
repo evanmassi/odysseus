@@ -382,7 +382,8 @@
   .ptools .vcount { width: 56px; text-align: right; }
   .vtabs { display: flex; gap: 2px; height: 26px; margin-bottom: 8px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
   .vtab { flex: none; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .t-plate .ptools { flex-wrap: nowrap; }
+  .t-plate .ptools { flex-wrap: nowrap; height: 38px; }
+  .pl-title { flex: 1 1 200px; min-width: 120px; padding: 0 6px; margin-left: -6px; font-size: 18px; font-weight: 600; line-height: 36px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .t-plate .ptools .vpick { flex: none; }
   .vtab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 3px 10px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); cursor: pointer; }
   .vtab.on { color: hsl(var(--fg)); border-bottom-color: hsl(var(--pri)); }
@@ -4691,7 +4692,7 @@ const TYPES = {
       const current = activeTab(b);
       const plateName = plate => plate.name || `Plate ${b.plates.indexOf(plate) + 1}`;
       const tabs = `<div class="vtabs" title="Drag to see more tabs">${tabList.map((tab, i) => `<button class="vtab${(tab.shelf && current.shelf) || (tab.plate && tab.plate === current.plate) ? ' on' : ''}" data-tab="${i}">${tab.plate ? `${esc(plateName(tab.plate))}<span class="vtab-kind">${esc(VESSELS[tab.plate.vessel].label.replace(' plate', ''))}</span>${tabList.length > 1 ? `<span class="vtab-x" data-act="del-plate" data-plate="${tab.plate.id}" title="Remove this plate">×</span>` : ''}` : esc(shelfName(b))}</button>`).join('')}</div>`;
-      const nameInput = current.plate ? `<input class="in pl-name" value="${esc(current.plate.name)}" placeholder="${esc(plateName(current.plate))} · name this plate" spellcheck="false" />` : '';
+      const nameInput = current.plate ? `<input class="in pl-name" value="${esc(current.plate.name)}" placeholder="${esc(plateName(current.plate))} · name this plate" spellcheck="false" />` : `<span class="pl-title">${esc(shelfName(b))}</span>`;
       const columns = sheet.plate ? `16px repeat(${sheet.cols}, var(--cw))` : `repeat(${sheet.cols}, var(--ws))`;
       const rows = sheet.plate ? `14px repeat(${sheet.rows}, var(--ch))` : `repeat(${sheet.rows}, var(--ws))`;
       const hint = b.w >= 9 ? `<span class="ptools-hint">Select ${vesselWords(b).plural} to fill them in</span>` : '';
