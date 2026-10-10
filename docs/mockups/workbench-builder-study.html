@@ -380,7 +380,10 @@
   .pal:hover { border-color: hsl(var(--pri) / .6); }
   .ptools .times { color: hsl(var(--muted-foreground)); }
   .ptools .vcount { width: 56px; text-align: right; }
-  .vtabs { display: flex; gap: 2px; margin-bottom: 8px; flex-wrap: wrap; }
+  .vtabs { display: flex; gap: 2px; height: 26px; margin-bottom: 8px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .vtab { flex: none; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .t-plate .ptools { flex-wrap: nowrap; }
+  .t-plate .ptools .vpick { flex: none; }
   .vtab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 3px 10px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); cursor: pointer; }
   .vtab.on { color: hsl(var(--fg)); border-bottom-color: hsl(var(--pri)); }
   .vessels { display: flex !important; flex-wrap: wrap; align-items: flex-end; gap: 22px 34px; user-select: none; }
@@ -468,7 +471,15 @@
   .vtext { position: absolute; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
   .vtext .wl { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 6px; row-gap: 1px; }
   .vtext .wl-amt { font-weight: 600; }
-  .plate { display: grid; gap: 4px; justify-content: start; user-select: none; }
+  .plate { display: grid; gap: 4px; justify-content: center; user-select: none; }
+  .blk-body.t-plate { overflow-x: auto; overflow-y: hidden; }
+  .vtabs { cursor: grab; user-select: none; }
+  .vtabs:active { cursor: grabbing; }
+  .vtabrow { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .vtabrow .vtabs { flex: 1; min-width: 0; margin-bottom: 0; }
+  .vnavs { display: inline-flex; flex: none; gap: 4px; }
+  .vnav { width: 32px; height: 28px; padding: 0; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-soft)); color: hsl(var(--fg)); font-size: 18px; line-height: 1; cursor: pointer; }
+  .vnav:hover { color: hsl(var(--fg)); border-color: hsl(var(--pri) / .6); }
   .plate .ch, .plate .rh, .plate .corner { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: hsl(var(--muted-foreground)); display: grid; place-items: center; cursor: pointer; }
   .plate .ch:hover, .plate .rh:hover { color: hsl(var(--pri)); }
   .well { width: var(--ws); height: var(--ws); border-radius: 50%; border: 1px solid hsl(var(--line-mid)); display: grid; place-items: center; font-size: calc(var(--ws) * .33); font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg) / .9); cursor: pointer; }
@@ -2135,6 +2146,7 @@ function setVesselCount(b, type, wanted) {
   if (!total) return false;
   const before = structuredClone({ plates: b.plates, sets: b.sets, active: b.active });
   const hadPlates = b.plates.length > 0;
+  const onlyType = b.plates.length === 1 ? b.plates[0].vessel : null;
   if (VESSELS[type].rows) {
     const same = b.plates.filter(plate => plate.vessel === type);
     for (let i = same.length; i < n; i++) b.plates.push({ id: uid(), vessel: type, name: '' });
@@ -2151,10 +2163,7 @@ function setVesselCount(b, type, wanted) {
     return false;
   }
   b.active = Math.min(b.active, cardTabs(b).length - 1);
-  if (hadPlates !== b.plates.length > 0) {
-    b.h = b.plates.length ? TYPES.plate.size[1] : 8;
-    grid.update(document.querySelector(`.blk[data-id="${b.id}"]`).parentElement, { h: b.h });
-  }
+  fitCardWidth(b, onlyType);
   pruneVesselWells(b);
   vesselSel(b).set.clear();
   closeWellEditor();
@@ -2275,6 +2284,22 @@ function duplicateTab(b) {
   save();
   refresh();
 }
+
+let tabDrag = null;
+let tabDragMoved = false;
+window.addEventListener('pointermove', e => {
+  if (!tabDrag) return;
+  const dx = e.clientX - tabDrag.x;
+  if (Math.abs(dx) > 4) tabDragMoved = true;
+  if (tabDragMoved) tabDrag.strip.scrollLeft = tabDrag.left - dx;
+});
+window.addEventListener('pointerup', () => { tabDrag = null; });
+document.addEventListener('wheel', e => {
+  const strip = e.target.closest?.('.vtabs');
+  if (!strip || strip.scrollWidth <= strip.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  e.preventDefault();
+  strip.scrollLeft += e.deltaY;
+}, { passive: false });
 
 function switchCardTab(b, index) {
   b.active = index;
@@ -2408,6 +2433,37 @@ function seriesFade(b, key) {
   if (!cell) return null;
   const last = Math.max(...Object.values(b.cells).flatMap(c => Object.values(c)).filter(v => isSeriesCell(v) && v.s === cell.s).map(v => v.step));
   return last > 0 ? Math.round(58 - (cell.step / last) * 46) : null;
+}
+
+const PLATE_SIZING = {
+  '6': { min: 90, max: 160, w: 4, ratio: 0.85 },
+  '12': { min: 76, max: 140, w: 5, ratio: 0.8 },
+  '24': { min: 60, max: 120, w: 5, ratio: 0.75 },
+  '48': { min: 48, max: 100, w: 6, ratio: 0.65 },
+  '96': { min: 36, max: 96, w: 6, ratio: 0.6 },
+  '384': { min: 22, max: 52, w: 12, ratio: 0.8 },
+};
+
+function fitCardHeight(b, body) {
+  if (b.collapsed) return;
+  const blk = body.closest('.blk');
+  const top = body.getBoundingClientRect().top;
+  const bottom = Math.max(...[...body.children].map(el => el.getBoundingClientRect().bottom));
+  const content = bottom - top + body.scrollTop + parseFloat(getComputedStyle(body).paddingBottom);
+  const room = body.clientHeight;
+  if (Math.abs(content - room) < 12 && content <= room) return;
+  const h = Math.max(4, Math.ceil((content + blk.offsetHeight - body.clientHeight + 10) / 44));
+  if (h === b.h) return;
+  b.h = h;
+  grid.update(blk.parentElement, { h });
+}
+
+function fitCardWidth(b, before) {
+  const types = b.plates.map(plate => plate.vessel);
+  if (types.length !== 1 || before === types[0]) return;
+  b.w = PLATE_SIZING[types[0]].w;
+  b.x = Math.min(b.x, 12 - b.w);
+  grid.update(document.querySelector(`.blk[data-id="${b.id}"]`).parentElement, { w: b.w, x: b.x });
 }
 
 const plateLineCount = b => Math.max(1, ...Object.values(b.cells).map(c => Object.keys(c).length));
@@ -4634,42 +4690,53 @@ const TYPES = {
       const tabList = cardTabs(b);
       const current = activeTab(b);
       const plateName = plate => plate.name || `Plate ${b.plates.indexOf(plate) + 1}`;
-      const tabs = tabList.length > 1 ? `<div class="vtabs">${tabList.map((tab, i) => `<button class="vtab${(tab.shelf && current.shelf) || (tab.plate && tab.plate === current.plate) ? ' on' : ''}" data-tab="${i}">${tab.plate ? `${esc(plateName(tab.plate))}<span class="vtab-kind">${esc(VESSELS[tab.plate.vessel].label.replace(' plate', ''))}</span><span class="vtab-x" data-act="del-plate" data-plate="${tab.plate.id}" title="Remove this plate">×</span>` : esc(shelfName(b))}</button>`).join('')}</div>` : '';
+      const tabs = `<div class="vtabs" title="Drag to see more tabs">${tabList.map((tab, i) => `<button class="vtab${(tab.shelf && current.shelf) || (tab.plate && tab.plate === current.plate) ? ' on' : ''}" data-tab="${i}">${tab.plate ? `${esc(plateName(tab.plate))}<span class="vtab-kind">${esc(VESSELS[tab.plate.vessel].label.replace(' plate', ''))}</span>${tabList.length > 1 ? `<span class="vtab-x" data-act="del-plate" data-plate="${tab.plate.id}" title="Remove this plate">×</span>` : ''}` : esc(shelfName(b))}</button>`).join('')}</div>`;
       const nameInput = current.plate ? `<input class="in pl-name" value="${esc(current.plate.name)}" placeholder="${esc(plateName(current.plate))} · name this plate" spellcheck="false" />` : '';
       const columns = sheet.plate ? `16px repeat(${sheet.cols}, var(--cw))` : `repeat(${sheet.cols}, var(--ws))`;
       const rows = sheet.plate ? `14px repeat(${sheet.rows}, var(--ch))` : `repeat(${sheet.rows}, var(--ws))`;
       const hint = b.w >= 9 ? `<span class="ptools-hint">Select ${vesselWords(b).plural} to fill them in</span>` : '';
-      const mergeToggle = current.plate ? `<button class="vpick${b.merge === false ? '' : ' on'}" data-act="toggle-merge" title="Draw matching neighbors, like replicates, as one well">Merge replicates</button>` : '';
+      const mergeToggle = current.plate ? `<button class="vpick${b.merge === false ? '' : ' on'}" data-act="toggle-merge" title="Draw matching neighbors, like replicates, as one well">${b.w >= 9 ? 'Merge replicates' : 'Merge'}</button>` : '';
       const kinds = `${nameInput}<span class="ptools-actions">${mergeToggle}<button class="vpick" data-act="pick-vessels" title="Add or remove plates, flasks, dishes and tubes">Add Vessel</button><button class="vpick" data-act="duplicate-tab" title="Copy ${current.plate ? 'this plate' : 'these'} into a new card beside this one">Duplicate</button></span>`;
-      body.innerHTML = `<div class="ptools">${kinds}${hint}</div>${tabs}<div class="${sheet.plate ? 'plate' : 'vessels'}" tabindex="0" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
+      body.innerHTML = `<div class="ptools">${kinds}${hint}</div><div class="vtabrow">${tabList.length > 1 ? '<span class="vnavs"><button class="vnav" data-act="prev-tab" title="Previous tab">‹</button><button class="vnav" data-act="next-tab" title="Next tab">›</button></span>' : ''}${tabs}</div><div class="${sheet.plate ? 'plate' : 'vessels'}" tabindex="0" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
     },
     fit(b, body) {
       const sheet = vesselSheet(b);
       const grid = body.querySelector('.plate, .vessels');
       if (!grid) return;
-      const around = [...body.querySelectorAll('.ptools, .vtabs, .pcounts')].reduce((h, el) => h + el.offsetHeight + 8, 0);
       if (sheet.plate) {
-        const cw = Math.max(10, Math.floor((body.clientWidth - 24 - 18) / sheet.cols - 5));
-        const needed = Math.min(5, plateLineCount(b)) * 13 + 8;
-        const fitted = Math.min(Math.round(cw * 0.6), 64, Math.floor((body.clientHeight - 20 - around - 16) / sheet.rows - 5));
-        const ch = cw < 30 ? Math.max(12, fitted) : Math.max(30, fitted, needed);
+        const sizing = PLATE_SIZING[activeTab(b).plate.vessel];
+        const room = Math.floor((body.clientWidth - 24 - 18) / sheet.cols - 5);
+        const cw = Math.max(sizing.min, Math.min(sizing.max, room));
+        const lines = Math.min(5, plateLineCount(b)) * 13 + 8;
+        const ch = cw < 30 ? Math.round(cw * sizing.ratio) : Math.max(30, Math.round(cw * sizing.ratio), lines);
         grid.style.setProperty('--cw', `${cw}px`);
         grid.style.setProperty('--ch', `${ch}px`);
-        const tallest = Math.max(0, ...[...grid.querySelectorAll('.well:not(.merged) > span')].map(span => span.scrollHeight));
-        if (cw >= 30 && tallest + 8 > ch) grid.style.setProperty('--ch', `${Math.min(96, tallest + 8)}px`);
-        grid.style.setProperty('--lines', String(Math.max(1, Math.floor((ch - 4) / 13))));
-        grid.classList.toggle('tiny', cw < 30 || ch < 18);
+        grid.classList.toggle('tiny', cw < 30);
         grid.classList.toggle('narrow', cw < 70);
-        return;
+        const tallest = Math.max(0, ...[...grid.querySelectorAll('.well:not(.merged) > span')].map(span => span.scrollHeight));
+        if (cw >= 30 && tallest + 8 > ch) grid.style.setProperty('--ch', `${Math.min(110, tallest + 8)}px`);
+      } else {
+        const widest = Math.max(...b.sets.map(set => VESSEL_SHAPES[VESSELS[set.vessel].shape].w * VESSELS[set.vessel].scale));
+        grid.style.setProperty('--vs', String(Math.max(0.5, Math.min(VESSEL_DRAW_SCALE, (body.clientWidth - 24) / widest))));
       }
-      const widest = Math.max(...b.sets.map(set => VESSEL_SHAPES[VESSELS[set.vessel].shape].w * VESSELS[set.vessel].scale));
-      grid.style.setProperty('--vs', String(Math.max(0.5, Math.min(VESSEL_DRAW_SCALE, (body.clientWidth - 24) / widest))));
+      const strip = body.querySelector('.vtabs');
+      if (strip) {
+        const on = strip.querySelector('.vtab.on');
+        if (on && (on.offsetLeft < strip.scrollLeft || on.offsetLeft + on.offsetWidth > strip.scrollLeft + strip.clientWidth)) strip.scrollLeft = on.offsetLeft - 8;
+      }
+      fitCardHeight(b, body);
     },
     update(b, body) {
       refreshWells(b);
       if (!body.querySelector('.pcounts').contains(document.activeElement)) drawPlateLegend(b);
     },
     onPointerdown(b, e) {
+      const strip = e.target.closest('.vtabs');
+      if (strip) {
+        tabDrag = { strip, x: e.clientX, left: strip.scrollLeft };
+        tabDragMoved = false;
+        return;
+      }
       const sel = vesselSel(b);
       const sheet = vesselSheet(b);
       const cell = e.target.closest('[data-key]');
@@ -4738,6 +4805,15 @@ const TYPES = {
       }
       if (act === 'pick-vessels') {
         openVesselPicker(b, e.target.closest('.vpick'));
+        return;
+      }
+      if (act === 'prev-tab' || act === 'next-tab') {
+        const count = cardTabs(b).length;
+        switchCardTab(b, (Math.min(b.active, count - 1) + (act === 'next-tab' ? 1 : count - 1)) % count);
+        return;
+      }
+      if (tabDragMoved) {
+        tabDragMoved = false;
         return;
       }
       const tab = e.target.closest('.vtab');
