@@ -378,43 +378,160 @@
   .ptools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
   .pal { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid hsl(var(--line-soft)); padding: 3px 9px; font-size: 12px; cursor: pointer; }
   .pal:hover { border-color: hsl(var(--pri) / .6); }
-  .pal i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid; }
   .ptools .times { color: hsl(var(--muted-foreground)); }
   .ptools .vcount { width: 56px; text-align: right; }
   .vtabs { display: flex; gap: 2px; margin-bottom: 8px; flex-wrap: wrap; }
   .vtab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 3px 10px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); cursor: pointer; }
   .vtab.on { color: hsl(var(--fg)); border-bottom-color: hsl(var(--pri)); }
-  .vessels { display: grid; gap: 6px; justify-content: start; user-select: none; }
-  .vessel { width: var(--ws); height: var(--ws); border-radius: 6px 6px 10px 10px; border: 1px solid hsl(var(--line-mid)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; font-size: 11px; }
-  .vessel b { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 12px; }
-  .vessel span { font-size: 10px; color: hsl(var(--fg) / .85); }
-  .vessel.sel { box-shadow: 0 0 0 2px hsl(var(--pri)); }
-  .plate { display: grid; gap: 2px; justify-content: start; user-select: none; }
+  .vessels { display: flex !important; flex-wrap: wrap; align-items: flex-end; gap: 22px 34px; user-select: none; }
+  .vrow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 14px; }
+  .vtab-kind { margin-left: 6px; font-size: 10px; opacity: .65; }
+  .vtab-x { margin-left: 6px; opacity: 0; color: hsl(var(--muted-foreground)); }
+  .vtab:hover .vtab-x { opacity: 1; }
+  .vtab-x:hover { color: hsl(var(--red)); }
+  .vpick { height: 30px; padding: 0 12px; background: none; border: 1px solid hsl(var(--line-soft)); color: hsl(var(--fg)); font-size: 13px; white-space: nowrap; cursor: pointer; }
+  .vpick:hover { border-color: hsl(var(--pri) / .6); }
+  .vpick.on { border-color: hsl(var(--primary) / .6); background: hsl(var(--primary) / .12); }
+  .plate .well.merged { position: relative; width: auto; height: auto; border-radius: 14px; }
+  .plate .well .mgrid { position: absolute; inset: 3px; display: grid; gap: 4px; width: auto; max-height: none; pointer-events: none; }
+  .plate .well .mgrid i { border: 1px dashed hsl(var(--foreground) / .22); border-radius: 999px; }
+  .plate .well.merged > span:not(.mgrid) { position: relative; max-height: none; }
+  .plate .well.merged .wl, .plate .well.merged .wl-label { white-space: normal; }
+  .vessel-pop { position: fixed; z-index: 9000; width: 340px; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: var(--popup-shadow); }
+  .vessel-pop[hidden] { display: none; }
+  .vp-search { width: 100%; height: 30px; }
+  .vp-list { max-height: 360px; overflow-y: auto; scrollbar-width: thin; }
+  .vp-group { padding: 8px 4px 3px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: hsl(var(--foreground) / .4); }
+  .vp-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 3px 4px 3px 10px; font-size: 13.5px; color: hsl(var(--foreground) / .7); }
+  .vp-row.on { color: hsl(var(--fg)); font-weight: 600; box-shadow: inset 3px 0 0 hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+  .vp-step { display: inline-flex; align-items: center; gap: 2px; }
+  .vp-btn { width: 26px; height: 26px; padding: 0; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font-size: 15px; cursor: pointer; }
+  .vp-btn:hover:not(:disabled) { border-color: hsl(var(--primary) / .6); }
+  .vp-btn:disabled { opacity: .3; cursor: default; }
+  .vp-n { width: 40px; height: 26px; text-align: center; font-weight: 400; }
+  .vp-none, .vp-foot { padding: 4px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .ptools .vdel { opacity: .6; }
+  .ptools .lnk { white-space: nowrap; }
+  .plate:focus, .vessels:focus { outline: none; }
+  .well.noted { border-color: hsl(var(--foreground) / .45); }
+  .pl-name { width: 100%; height: 28px; padding: 0 6px; font-size: 14px; font-weight: 600; border-color: transparent; background: transparent; }
+  .pl-name:hover { border-color: hsl(var(--line-faint)); }
+  .pl-name:focus { border-color: hsl(var(--primary) / .5); background: hsl(var(--input-well)); }
+  .well-editor[hidden], .swatch-pop[hidden] { display: none; }
+  .wseries { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid hsl(var(--line-faint)); background: hsl(var(--foreground) / .025); }
+  .sv-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .sv-row > span:first-child { flex: none; width: 70px; color: hsl(var(--muted-foreground)); }
+  .sv-row .in { flex: 1; min-width: 0; height: 28px; font-size: 13px; }
+  .sv-row .sv-fold { flex: 0 0 76px; }
+  .sv-ops, .sv-dirs { display: inline-flex; gap: 3px; }
+  .sv-op, .sv-dir { width: 30px; height: 28px; padding: 0; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font-size: 15px; cursor: pointer; }
+  .sv-op:hover, .sv-dir:hover { border-color: hsl(var(--foreground) / .3); }
+  .sv-op.on, .sv-dir.on { border-color: hsl(var(--primary) / .7); background: hsl(var(--primary) / .16); }
+  .sv-from { font: 600 13px 'JetBrains Mono', monospace; color: hsl(var(--fg)); }
+  .sv-linked { flex: none; font: 12px 'JetBrains Mono', monospace; color: hsl(var(--primary)); }
+  .sv-suggest { display: flex; flex-direction: column; margin: -4px 0 0 78px; border: 1px solid hsl(var(--line-mid)); background: hsl(var(--card)); }
+  .sv-suggest:empty { display: none; }
+  .sv-pick { display: flex; justify-content: space-between; gap: 10px; padding: 5px 8px; background: none; border: 0; color: hsl(var(--foreground) / .8); font-size: 13px; text-align: left; cursor: pointer; }
+  .sv-pick:hover { color: hsl(var(--fg)); background: hsl(var(--primary) / .1); box-shadow: inset 3px 0 0 hsl(var(--primary) / .7); }
+  .sv-pick span { font-family: 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
+  .sv-switch { align-self: flex-start; margin-left: 78px; }
+  .wseries .preview { font: 12px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
+  .sv-actions { display: flex; align-items: center; gap: 12px; }
+  .we-series { flex: 0 0 218px; min-width: 0; height: 30px; padding: 0 8px; text-align: left; background: hsl(var(--input-well)); border: 1px dashed hsl(var(--primary) / .5); color: hsl(var(--fg)); font: 12.5px 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .we-series:hover { border-style: solid; }
+  .we-adds { display: flex; gap: 16px; }
+  .we-cols { display: flex; gap: 8px; margin-bottom: -4px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .we-cols span:first-child { flex: 1; }
+  .we-cols span:last-child { width: 218px; }
+  .wamount { flex: 0 0 64px; height: 30px; text-align: right; }
+  .wunit { flex: 0 0 auto; width: auto; field-sizing: content; min-width: 54px; height: 30px; font-size: 13px; }
+  .wseries .sv-unit { flex: 0 0 auto; width: auto; field-sizing: content; min-width: 60px; }
+  .we-dil { flex: 0 0 66px; text-align: left; }
+  .sv-remove { margin-left: auto; color: hsl(var(--muted-foreground)); }
+  .vessel { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; background: none !important; border: 0; }
+  .vsvg { display: block; width: calc(var(--sw) * var(--vs, 1) * 1px); height: auto; overflow: visible; }
+  .vsvg .vbody { fill: transparent; stroke: hsl(var(--foreground) / .38); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  .vsvg .vcap { fill: hsl(var(--foreground) / .14); stroke: hsl(var(--foreground) / .38); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+  .vsvg .vrim { fill: none; stroke: hsl(var(--foreground) / .18); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  .vessel.gcol .vbody { fill: color-mix(in srgb, var(--gc) var(--tint, 34%), transparent); stroke: var(--gc); }
+  .vessel:hover .vbody { stroke: hsl(var(--foreground) / .6); }
+  .vessel.sel .vbody { stroke: hsl(var(--pri)); stroke-width: 2.4; }
+  .vtext { font-size: 11.5px; line-height: 13px; text-align: center; color: hsl(var(--fg)); }
+  .vessel.tube { min-width: 64px; }
+  .vdraw { position: relative; }
+  .vsize { font: 10.5px 'JetBrains Mono', monospace; letter-spacing: .04em; color: hsl(var(--muted-foreground) / .8); }
+  .vtext .wl { white-space: normal; }
+  .vtext.vert { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; line-height: 12px; }
+  .vtext.vert .wl { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vtext.vert .wl-amt { margin-inline-start: .55em; }
+  .vtext.vert .wl + .wl { margin-top: 0; margin-inline-start: 0; margin-block-start: 3px; }
+  .vtext { position: absolute; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  .vtext .wl { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 6px; row-gap: 1px; }
+  .vtext .wl-amt { font-weight: 600; }
+  .plate { display: grid; gap: 4px; justify-content: start; user-select: none; }
   .plate .ch, .plate .rh, .plate .corner { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: hsl(var(--muted-foreground)); display: grid; place-items: center; cursor: pointer; }
   .plate .ch:hover, .plate .rh:hover { color: hsl(var(--pri)); }
   .well { width: var(--ws); height: var(--ws); border-radius: 50%; border: 1px solid hsl(var(--line-mid)); display: grid; place-items: center; font-size: calc(var(--ws) * .33); font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg) / .9); cursor: pointer; }
   .plate.tiny .well { font-size: 0; }
+  .plate .well { width: var(--cw); height: var(--ch); border-radius: calc(var(--ch) / 2); padding: 2px 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-color: hsl(var(--foreground) / .14); font: 11.5px/13px 'Hanken Grotesk', sans-serif; color: hsl(var(--fg)); }
+  .plate .well span { display: block; width: 100%; max-height: 100%; overflow: hidden; text-align: center; }
+  .plate .well .wl { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 6px; row-gap: 1px; white-space: nowrap; }
+  .plate .well .wl + .wl, .vtext .wl + .wl { margin-top: 3px; }
+  .plate .well .wl-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .plate .well .wl-amt { flex: none; font-weight: 600; }
+  .plate.narrow .well { padding: 2px 3px; font-size: 10px; line-height: 11px; border-radius: 10px; }
+  .plate.narrow .well .wl, .plate.narrow .well .wl-label { white-space: normal; overflow-wrap: anywhere; }
+  .plate.narrow .well .wl-amt { white-space: nowrap; letter-spacing: -.02em; }
+  .plate .well.gcol { border-color: color-mix(in srgb, var(--gc) 70%, transparent); }
+  .sw { width: 18px; height: 18px; padding: 0; border-radius: 3px; border: 1px solid hsl(var(--foreground) / .2); background: var(--gc); cursor: pointer; }
+  .sw:hover { outline: 2px solid hsl(var(--foreground) / .55); outline-offset: 1px; }
+  .sw-none { background: repeating-linear-gradient(135deg, transparent 0 4px, hsl(var(--foreground) / .3) 4px 5px); }
+  .swatch-pop { position: fixed; z-index: 9999; display: grid; grid-template-columns: repeat(12, 22px); gap: 6px; padding: 8px; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: var(--popup-shadow); }
+  .swatch-pop .sw { width: 22px; height: 22px; }
+  .lg-sw { width: 14px; height: 14px; padding: 0; border: 0; border-radius: 3px; background: var(--gc); cursor: pointer; }
+  .ptools-actions { display: inline-flex; gap: 6px; margin-left: auto; }
+  .ptools .pl-name { flex: 1 1 200px; min-width: 120px; width: auto; height: 36px; margin: 0 8px 0 -6px; font-size: 18px; font-weight: 600; }
   .well.sel { box-shadow: 0 0 0 2px hsl(var(--pri)); }
-  .gc0 { background: hsl(var(--amber) / .4); border-color: hsl(var(--amber)); }
-  .gc1 { background: hsl(var(--pri) / .4); border-color: hsl(var(--pri)); }
-  .gc2 { background: hsl(var(--green) / .4); border-color: hsl(var(--green)); }
-  .gc3 { background: hsl(var(--red) / .4); border-color: hsl(var(--red)); }
-  .gc4 { background: hsl(270 60% 70% / .4); border-color: hsl(270 60% 70%); }
-  .gc5 { background: hsl(175 50% 55% / .4); border-color: hsl(175 50% 55%); }
-  .gc6 { background: hsl(330 65% 72% / .4); border-color: hsl(330 65% 72%); }
-  .gc7 { background: hsl(var(--muted-foreground) / .3); border-color: hsl(var(--muted-foreground)); }
-  .pal .pal-x { width: 12px; min-width: 0; height: auto; margin: 0 -4px 0 0; padding: 0; background: none; border: 0; color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1; cursor: pointer; opacity: 0; }
-  .pal:hover .pal-x { opacity: 1; }
-  .pal .pal-x:hover { color: hsl(var(--red)); }
-  .pal.editing { padding: 1px 4px 1px 9px; }
-  .pal-name { height: 22px; width: auto; field-sizing: content; min-width: 60px; font-size: 12px; }
-  .pal-add { height: 25px; width: 120px; font-size: 12px; }
+  .gcol { background: color-mix(in srgb, var(--gc) var(--tint, 34%), transparent); border-color: var(--gc); }
+  .ptools-label { font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .wfield-row { display: flex; align-items: center; gap: 8px; }
+  .wfield { flex: 1; min-width: 0; height: 30px; }
+  .well-editor { position: fixed; z-index: 9000; width: 480px; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: var(--popup-shadow); }
+  .we-head { display: flex; align-items: baseline; gap: 8px; }
+  .we-head b { font: 600 13px 'JetBrains Mono', monospace; letter-spacing: .06em; }
+  .we-head span { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .we-clear { margin-left: auto; padding: 2px 6px; background: none; border: 0; color: hsl(var(--muted-foreground)); font-size: 12px; cursor: pointer; }
+  .we-clear:hover { color: hsl(var(--red)); }
+  .we-done { padding: 2px 10px; background: none; border: 1px solid hsl(var(--line-soft)); color: hsl(var(--fg)); font-size: 12px; cursor: pointer; }
+  .we-done:hover { border-color: hsl(var(--pri) / .6); }
+  .we-parts { display: flex; flex-direction: column; gap: 6px; }
+  .well-editor .lnk { font-size: 13px; }
+  .we-color { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .we-swatches { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; }
+  .we-swatches .sw, .we-color .sw { width: 100%; aspect-ratio: 1; height: auto; }
+  .we-color .sw { width: 18px; }
+  .sw.on { outline: 2px solid hsl(var(--foreground) / .85); outline-offset: 1px; }
+  .ptools-hint { margin-left: auto; font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .wfield:disabled { opacity: .4; }
+  .wf-x { padding: 0 4px; background: none; border: 0; color: hsl(var(--muted-foreground)); font-size: 14px; cursor: pointer; opacity: 0; }
+  .wfield-row:hover .wf-x { opacity: 1; }
+  .wf-x:hover { color: hsl(var(--red)); }
   .vtable tr.vsugg-row { display: none; background: none !important; box-shadow: none !important; }
   .vtable tbody.empty tr.vsugg-row, .vtable tbody:focus-within tr.vsugg-row { display: table-row; }
   .vtable tr.vsugg-row td { padding: 0 10px 6px; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
   .vsugg .lnk { margin-left: 10px; font-size: 12.5px; }
-  .pcounts { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: hsl(var(--muted-foreground)); }
-  .pcounts b { font-family: 'JetBrains Mono', monospace; color: hsl(var(--pri)); font-weight: 500; margin-left: 4px; }
+  .pcounts { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+  .pl-sec { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
+  .pl-totals { display: inline-flex; gap: 18px; margin-left: auto; }
+  .pl-item { display: inline-flex; align-items: center; gap: 6px; color: hsl(var(--foreground) / .8); }
+  .pl-item b { font: 500 12px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
+  .pl-name { padding: 0; background: none; border: 0; color: hsl(var(--foreground) / .85); font: inherit; cursor: text; }
+  .pl-name:hover { color: hsl(var(--fg)); }
+  .pl-rename { width: auto; field-sizing: content; min-width: 80px; height: 24px; padding: 0 4px; font-size: 12.5px; }
+  .we-suggest { display: flex; flex-direction: column; margin-top: -4px; border: 1px solid hsl(var(--line-mid)); background: hsl(var(--card)); }
+  .we-suggest:empty { display: none; }
+  .we-pick { padding: 5px 8px; background: none; border: 0; color: hsl(var(--foreground) / .8); font-size: 13px; text-align: left; cursor: pointer; }
+  .we-pick:hover { color: hsl(var(--fg)); background: hsl(var(--primary) / .1); box-shadow: inset 3px 0 0 hsl(var(--primary) / .7); }
 
   .tbl { border-collapse: collapse; width: 100%; }
   .tbl td { border: 1px solid hsl(var(--line-soft)); padding: 0; }
@@ -826,16 +943,27 @@ const VESSELS = {
   '48': { label: '48-well plate', group: 'Plates', rows: 6, cols: 8, noun: 'well', many: 'Plates' },
   '96': { label: '96-well plate', group: 'Plates', rows: 8, cols: 12, noun: 'well', many: 'Plates' },
   '384': { label: '384-well plate', group: 'Plates', rows: 16, cols: 24, noun: 'well', many: 'Plates' },
-  'T25': { label: 'T25 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' },
-  'T75': { label: 'T75 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' },
-  'T175': { label: 'T175 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' },
-  'dish10': { label: '10 cm dish', group: 'Flasks and dishes', noun: 'dish', many: 'Dishes', prefix: 'D' },
-  'tube1.5': { label: '1.5 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
-  'facs': { label: '5 mL FACS tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
-  'tube15': { label: '15 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
-  'tube50': { label: '50 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' },
+  'T25': { label: 'T25 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F', shape: 'flask25', scale: 1, short: 'T25' },
+  'T75': { label: 'T75 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F', shape: 'flask75', scale: 1.25, short: 'T75' },
+  'T175': { label: 'T175 flask', group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F', shape: 'flask175', scale: 1.5, short: 'T175' },
+  'dish10': { label: '10 cm dish', group: 'Flasks and dishes', noun: 'dish', many: 'Dishes', prefix: 'D', shape: 'dish', scale: 1, short: '10 cm' },
+  'tube1.5': { label: '1.5 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T', shape: 'micro', scale: 0.6, short: '1.5 mL' },
+  'facs': { label: '5 mL FACS tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T', shape: 'facs', scale: 0.85, short: 'FACS' },
+  'tube15': { label: '15 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T', shape: 'conical15', scale: 1.1, short: '15 mL' },
+  'tube50': { label: '50 mL tube', group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T', shape: 'conical50', scale: 1.1, short: '50 mL' },
 };
 const VESSEL_PLURAL = { well: 'wells', flask: 'flasks', dish: 'dishes', tube: 'tubes' };
+const VESSEL_DRAW_SCALE = 1.25;
+const VESSEL_SHAPES = {
+  flask25: { w: 60, h: 90, inside: [12, 40, 76, 52], svg: '<rect class="vcap" x="18" y="2" width="24" height="12" rx="2"/><rect class="vbody" x="22" y="14" width="16" height="6"/><path class="vbody" d="M6 34 L21 20 H39 L54 34 V84 Q54 88 50 88 H10 Q6 88 6 84 Z"/>' },
+  flask75: { w: 64, h: 96, inside: [10, 34, 80, 60], svg: '<rect class="vcap" x="22" y="2" width="20" height="12" rx="2"/><rect class="vbody" x="25" y="14" width="14" height="6"/><path class="vbody" d="M4 46 Q4 21 23 20 H41 Q60 21 60 46 V90 Q60 94 56 94 H8 Q4 94 4 90 Z"/>' },
+  flask175: { w: 76, h: 100, inside: [9, 28, 82, 66], svg: '<rect class="vcap" x="28" y="2" width="20" height="11" rx="2"/><rect class="vbody" x="31" y="13" width="14" height="5"/><path class="vbody" d="M4 38 Q4 19 26 18 H50 Q72 19 72 38 V94 Q72 98 68 98 H8 Q4 98 4 94 Z"/>' },
+  dish: { w: 100, h: 100, inside: [14, 14, 72, 72], svg: '<circle class="vbody" cx="50" cy="50" r="47"/><circle class="vrim" cx="50" cy="50" r="41"/>' },
+  micro: { w: 46, h: 98, inside: [24, 17, 52, 58], vertical: true, svg: '<rect class="vcap" x="0" y="5" width="7" height="5" rx="1.5"/><rect class="vcap" x="4" y="3" width="40" height="8" rx="3"/><rect class="vbody" x="8" y="11" width="30" height="4" rx="1"/><path class="vbody" d="M9 15 H37 L35 44 L26 92 Q23 96 20 92 L11 44 Z"/>' },
+  facs: { w: 30, h: 110, inside: [20, 22, 60, 68], vertical: true, svg: '<rect class="vcap" x="2" y="2" width="26" height="18" rx="2"/><rect class="vcap" x="0" y="19" width="30" height="3" rx="1"/><path class="vbody" d="M6 22 H24 V99 A9 9 0 0 1 6 99 Z"/>' },
+  conical15: { w: 36, h: 110, inside: [16, 14, 70, 64], vertical: true, svg: '<rect class="vcap" x="3" y="2" width="30" height="11" rx="2"/><path class="vbody" d="M5 13 H31 V88 L22 106 Q18 110 14 106 L5 88 Z"/>' },
+  conical50: { w: 56, h: 106, inside: [12, 18, 80, 56], vertical: true, svg: '<rect class="vcap" x="2" y="2" width="52" height="14" rx="3"/><path class="vbody" d="M5 16 H51 V80 L33 100 Q28 104 23 100 L5 80 Z"/>' },
+};
 
 const typedCount = (b, key) => { const n = parseNumber(b.counts?.[key]); return Number.isNaN(n) ? null : n; };
 
@@ -843,18 +971,37 @@ function plateTally(b) {
   const painted = new Map(b.groups.map(g => [g.id, 0]));
   for (const id of Object.values(b.wells)) if (painted.has(id)) painted.set(id, painted.get(id) + 1);
   const groups = b.groups.map(g => ({ g, painted: painted.get(g.id), count: typedCount(b, g.id) ?? painted.get(g.id) }));
-  const usedPainted = groups.reduce((sum, x) => sum + x.count, 0);
+  const usedPainted = new Set([...Object.keys(b.wells), ...Object.keys(b.cells).filter(key => Object.keys(b.cells[key]).length)]).size;
   return { groups, used: { painted: usedPainted, count: typedCount(b, 'used') ?? usedPainted } };
 }
 
+function wordsForTypes(types) {
+  const nouns = [...new Set(types.map(type => VESSELS[type].noun))];
+  return nouns.length === 1 ? { noun: nouns[0], plural: VESSEL_PLURAL[nouns[0]] } : { noun: 'vessel', plural: 'vessels' };
+}
+
+const cardTabs = b => [...b.plates.map(plate => ({ plate })), ...(b.sets.length ? [{ shelf: true }] : [])];
+const activeTab = b => { const tabs = cardTabs(b); return tabs[Math.min(b.active, tabs.length - 1)] ?? tabs[0]; };
+const vesselWords = b => { const tab = activeTab(b); return wordsForTypes(tab.plate ? [tab.plate.vessel] : b.sets.map(set => set.vessel)); };
+const cardWords = b => wordsForTypes([...b.plates.map(plate => plate.vessel), ...b.sets.map(set => set.vessel)]);
+const shelfName = b => [...new Set(b.sets.map(set => VESSEL_PLURAL[VESSELS[set.vessel].noun]))].map((word, i) => (i ? word : capitalize(word))).join(' & ');
+
+function vesselTypeOf(b, key) {
+  const plate = b.plates.find(x => key.startsWith(`${x.id}:`));
+  return plate ? plate.vessel : b.sets.find(set => key.startsWith(`${set.id}#`))?.vessel ?? b.sets[0]?.vessel ?? '96';
+}
+const capitalize = text => text[0].toUpperCase() + text.slice(1);
+
 function vesselCounts(b) {
-  const vessel = VESSELS[b.vessel];
-  const plural = VESSEL_PLURAL[vessel.noun];
   const { groups, used } = plateTally(b);
+  const groupWords = g => wordsForTypes(Object.keys(b.wells).filter(key => b.wells[key] === g.id).map(key => vesselTypeOf(b, key))).plural;
+  const plateTotals = [...new Set(b.plates.map(plate => plate.vessel))].map(type => [`${VESSELS[type].label}s`, b.plates.filter(plate => plate.vessel === type).length, `count:${type}`, 'total']);
+  const setTotals = [...new Set(b.sets.map(set => set.vessel))].map(type => [`${VESSELS[type].label.replace(/ (flask|dish|tube)$/, '')} ${VESSEL_PLURAL[VESSELS[type].noun]}`, b.sets.filter(set => set.vessel === type).reduce((sum, set) => sum + set.count, 0), `count:${type}`, 'total']);
   return [
-    ...groups.filter(({ g }) => g.label.trim()).map(({ g, count }) => [`${g.label.trim()} ${plural}`, count, g.id]),
-    [`${plural[0].toUpperCase()}${plural.slice(1)} used`, used.count, 'used'],
-    [vessel.many, b.count, 'count'],
+    ...groups.map(({ g, count }) => [`${groupName(b, g)} ${groupWords(g)}`, count, g.id, 'group']),
+    [`${capitalize(cardWords(b).plural)} used`, used.count, 'used', 'used'],
+    ...plateTotals,
+    ...setTotals,
   ];
 }
 
@@ -1518,16 +1665,17 @@ function splitPastedMaterials(text) {
 }
 </script>
 <script>
-const STORAGE_KEY = 'odysseus-workbench-builder-study-v12';
+const STORAGE_KEY = 'odysseus-workbench-builder-study-v16';
 const uid = () => Math.random().toString(36).slice(2, 9);
 const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
-const PLATE_COLORS = 8;
-const shortLabel = label => {
-  const words = label.trim().split(/\s+/).filter(Boolean);
-  return (words.length > 1 ? words.map(w => w[0]).join('') : words[0] ?? '').slice(0, 3).toUpperCase();
-};
+const PLATE_PALETTE = [
+  '#f0b35b', '#e8875a', '#d97a7a', '#e88fbf', '#b48ee6', '#8b9cf0', '#6fa8e8', '#8fd3e8', '#5cc8bd', '#6fbf73', '#b8d36a', '#c9ccd3',
+  '#b9802a', '#b85a32', '#a84848', '#b5568a', '#7d58b3', '#5565c2', '#3d73b8', '#4b9bb8', '#2e8f86', '#3f8a47', '#83a033', '#7d8494',
+];
+const EXAMPLE_COLOR_ORDER = [0, 7, 9, 2, 4, 10, 3, 5];
+const SERIES_FADE_COLOR = '#7d8494';
 function labeledWells(wells, labels) {
-  const groups = Object.entries(labels).map(([key, label], color) => ({ id: uid(), key, label, color }));
+  const groups = Object.entries(labels).map(([key, label], i) => ({ id: uid(), key, label, color: PLATE_PALETTE[EXAMPLE_COLOR_ORDER[i % EXAMPLE_COLOR_ORDER.length]] }));
   const idOf = Object.fromEntries(groups.map(g => [g.key, g.id]));
   return { groups: groups.map(({ key, ...g }) => g), wells: Object.fromEntries(Object.entries(wells).map(([well, key]) => [well, idOf[key]])) };
 }
@@ -1753,11 +1901,21 @@ function exampleCells() {
 function exampleCytotox() {
   const { v, f, step, section } = exampleParts();
   const wells = {};
+  const cellsField = { id: uid(), name: 'Cells', values: [] };
+  const drugField = { id: uid(), name: 'Compound X', values: [] };
+  const plateCells = {};
+  const seriesId = uid();
   for (let r = 1; r <= 3; r++) {
-    for (let c = 2; c <= 9; c++) wells[`0:${ROW_LETTERS[r]}${c}`] = 'drug';
-    wells[`0:${ROW_LETTERS[r]}10`] = 'tcells';
-    wells[`0:${ROW_LETTERS[r]}11`] = 'targets';
-    wells[`0:${ROW_LETTERS[r]}12`] = 'medium';
+    for (let c = 2; c <= 9; c++) {
+      const key = `0:${ROW_LETTERS[r]}${c}`;
+      wells[key] = 'drug';
+      plateCells[key] = { [cellsField.id]: 'Raji-Luc + T cells', [drugField.id]: { s: seriesId, step: c - 2 } };
+    }
+    [[10, 'tcells', 'Raji-Luc + T cells', 'DMSO'], [11, 'targets', 'Raji-Luc only'], [12, 'medium', 'Medium only']].forEach(([c, group, cellsText, treatment]) => {
+      const key = `0:${ROW_LETTERS[r]}${c}`;
+      wells[key] = group;
+      plateCells[key] = { [cellsField.id]: cellsText, ...(treatment ? { [drugField.id]: treatment } : {}) };
+    });
   }
   const targets = material('bio', 'Cell line', 'Raji-Luc', { storage: '37 °C incubator', vendor: 'ATCC', catalog: 'CCL-86', 'genetic-modification': 'Firefly luciferase', count: '1.2M', viability: '96' }, ['passage']);
   const effectors = material('bio', 'Primary cells', 'T cells', { storage: 'LN2', 'donor-id': 'D-104', 'isolation-method': 'Negative selection', count: '2.5M', viability: '90' });
@@ -1800,14 +1958,14 @@ function exampleCytotox() {
         plate,
         material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
       ]),
-      { id: uid(), type: 'values', title: 'Values', x: 0, y: 12, w: 4, h: 19, sections: [onPlate, onTargets, onEffectors, onDrug], items: [
+      { id: uid(), type: 'values', title: 'Values', x: 0, y: 27, w: 4, h: 27, sections: [onPlate, onTargets, onEffectors, onDrug], items: [
         v('Replicates', '3'), v('Overage', '10', '%'),
         t('Per well', '10000', 'cells'), t('Volume per well', '50', 'µL'), link(onTargets, 'count'), link(onTargets, 'viability'),
         e('E:T', '5:1', 'N:N'), e('Volume per well', '100', 'µL'), link(onEffectors, 'count'), link(onEffectors, 'viability'),
         link(onDrug, 'stock-concentration'), d('Top dose', '10', 'µM'), d('Fold', '3', 'x'), d('Points', '8'), d('Volume per well', '50', 'µL'),
       ] },
-      { id: uid(), type: 'plate', title: 'Assay plate map', x: 4, y: 12, w: 4, h: 9, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }) },
-      { id: uid(), type: 'formula', title: 'Calculations', x: 8, y: 12, w: 4, h: 19, items: [
+      { id: uid(), type: 'plate', title: 'Assay plate map', x: 0, y: 12, w: 12, h: 15, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }), fields: [cellsField, drugField], cells: plateCells, series: { [seriesId]: { start: 'Compound X top dose', fold: 'Compound X fold', op: 'divide' } }, names: ['Killing plate'] },
+      { id: uid(), type: 'formula', title: 'Calculations', x: 4, y: 27, w: 8, h: 12, items: [
         f('Target wells', 'Compound X wells + T cells only wells + Targets only wells'),
         f('Effector wells', 'Compound X wells + T cells only wells'),
         f('Well volume', 'Raji-Luc volume per well + T cells volume per well + Compound X volume per well', 'µL'),
@@ -1825,8 +1983,8 @@ function exampleCytotox() {
         f('Compound X top tube', 'Compound X per point + Compound X transfer', 'µL'),
         f('Compound X stock to add', 'Compound X top tube × Compound X top working ÷ Compound X stock concentration', 'µL'),
       ] },
-      { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 31, w: 8, h: 15 },
-      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 46, w: 12, h: 8 },
+      { id: uid(), type: 'steps', title: 'Steps', x: 4, y: 39, w: 8, h: 15 },
+      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 54, w: 12, h: 8 },
     ],
   };
 }
@@ -1840,7 +1998,38 @@ let state = loadState() ?? exampleCytotox();
 state.lotMemory ??= {};
 state.keptBoth ??= [];
 state.runOn ??= { from: '', to: '' };
-state.blocks.forEach(b => { if (b.type === 'values') b.sections ??= []; });
+state.blocks.forEach(b => {
+  if (b.type === 'values') b.sections ??= [];
+  if (b.type === 'plate') {
+    if (!b.sets && b.vessel) {
+      b.sets = VESSELS[b.vessel].rows ? [] : [{ id: uid(), vessel: b.vessel, count: b.count }];
+      const rename = map => Object.fromEntries(Object.entries(map ?? {}).map(([key, v]) => [b.sets.length ? key.replace(/^(\d+):1$/, `${b.sets[0].id}#$1:1`) : key, v]));
+      b.wells = rename(b.wells);
+      b.cells = rename(b.cells);
+    }
+    b.fields ??= [];
+    b.fields.forEach(f => { f.values ??= []; });
+    Object.values(b.cells ?? {}).forEach(c => Object.entries(c).forEach(([fieldId, v]) => {
+      const f = b.fields.find(x => x.id === fieldId);
+      if (typeof v === 'string') c[fieldId] = { v: valueFor(f, v).id };
+      else if (v.s !== undefined && !v.v && f.name) c[fieldId] = { v: valueFor(f, f.name).id, ...v };
+    }));
+    b.cells ??= {};
+    b.series ??= {};
+    if (!b.plates) {
+      b.plates = VESSELS[b.vessel].rows ? Array.from({ length: b.count }, (_, i) => ({ id: uid(), vessel: b.vessel, name: b.names?.[i] ?? '' })) : [];
+      const rename = map => Object.fromEntries(Object.entries(map ?? {}).map(([key, v]) => {
+        const [index, position] = key.split(':');
+        return [b.plates[+index] && position !== '1' ? `${b.plates[+index].id}:${position}` : key, v];
+      }));
+      b.wells = rename(b.wells);
+      b.cells = rename(b.cells);
+      delete b.vessel;
+      delete b.count;
+      delete b.names;
+    }
+  }
+});
 
 const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory-v1';
 const labMemory = (() => { try { return JSON.parse(localStorage.getItem(LAB_MEMORY_KEY)); } catch { return null; } })() ?? {};
@@ -1916,37 +2105,923 @@ function commitSteps() {
 
 const SINGLE_VESSEL_COLUMNS = 6;
 const vesselSelections = new Map();
-const editingGroups = new Map();
-function addPlateGroup(b, label) {
-  const taken = new Set(b.groups.map(g => g.color));
-  const color = [...Array(PLATE_COLORS).keys()].find(i => !taken.has(i)) ?? b.groups.length % PLATE_COLORS;
-  const g = { id: uid(), label, color };
-  b.groups.push(g);
-  vesselSel(b).set.forEach(key => { b.wells[key] = g.id; });
+const vesselSel = b => { if (!vesselSelections.has(b.id)) vesselSelections.set(b.id, { set: new Set(), anchor: null }); return vesselSelections.get(b.id); };
+let vesselDrag = null;
+const vesselRows = new Map();
+
+function vesselSheet(b) {
+  const tab = activeTab(b);
+  if (tab.plate) {
+    const vessel = VESSELS[tab.plate.vessel];
+    return { plate: true, rows: vessel.rows, cols: vessel.cols, keyAt: (r, c) => `${tab.plate.id}:${ROW_LETTERS[r]}${c + 1}`, labelAt: (r, c) => `${ROW_LETTERS[r]}${c + 1}` };
+  }
+  b.sets.forEach((set, r) => vesselRows.set(set.id, r));
+  const before = (r, prefix) => b.sets.slice(0, r).filter(set => VESSELS[set.vessel].prefix === prefix).reduce((sum, set) => sum + set.count, 0);
+  return {
+    plate: false,
+    rows: b.sets.length,
+    cols: Math.max(...b.sets.map(set => set.count)),
+    keyAt: (r, c) => (b.sets[r] && c < b.sets[r].count ? `${b.sets[r].id}#${c}:1` : null),
+    labelAt: (r, c) => { const prefix = VESSELS[b.sets[r].vessel].prefix; return `${prefix}${before(r, prefix) + c + 1}`; },
+  };
+}
+function vesselCount(b, type) {
+  return VESSELS[type].rows ? b.plates.filter(plate => plate.vessel === type).length : b.sets.find(set => set.vessel === type)?.count ?? 0;
+}
+
+function setVesselCount(b, type, wanted) {
+  const n = Math.max(0, Math.min(48, Math.round(wanted) || 0));
+  const total = Object.keys(VESSELS).reduce((sum, t) => sum + (t === type ? n : vesselCount(b, t)), 0);
+  if (!total) return false;
+  const before = structuredClone({ plates: b.plates, sets: b.sets, active: b.active });
+  const hadPlates = b.plates.length > 0;
+  if (VESSELS[type].rows) {
+    const same = b.plates.filter(plate => plate.vessel === type);
+    for (let i = same.length; i < n; i++) b.plates.push({ id: uid(), vessel: type, name: '' });
+    const drop = new Set(same.slice(n).map(plate => plate.id));
+    b.plates = b.plates.filter(plate => !drop.has(plate.id));
+  } else {
+    const set = b.sets.find(x => x.vessel === type);
+    if (set && n) set.count = n;
+    else if (set) b.sets = b.sets.filter(x => x !== set);
+    else if (n) b.sets.push({ id: uid(), vessel: type, count: n });
+  }
+  if (!confirmVesselLoss(b)) {
+    Object.assign(b, before);
+    return false;
+  }
+  b.active = Math.min(b.active, cardTabs(b).length - 1);
+  if (hadPlates !== b.plates.length > 0) {
+    b.h = b.plates.length ? TYPES.plate.size[1] : 8;
+    grid.update(document.querySelector(`.blk[data-id="${b.id}"]`).parentElement, { h: b.h });
+  }
+  pruneVesselWells(b);
+  vesselSel(b).set.clear();
+  closeWellEditor();
   renderBlock(b);
   save();
   refresh();
-  bodyOf(b).querySelector('.pal-add')?.focus();
+  return true;
 }
-const vesselSel = b => { if (!vesselSelections.has(b.id)) vesselSelections.set(b.id, { set: new Set(), anchor: null }); return vesselSelections.get(b.id); };
-let vesselDrag = null;
-function vesselSheet(b) {
-  const vessel = VESSELS[b.vessel];
-  if (vessel.rows) {
-    return { plate: true, rows: vessel.rows, cols: vessel.cols, keyAt: (r, c) => `${b.active}:${ROW_LETTERS[r]}${c + 1}`, labelAt: (r, c) => `${ROW_LETTERS[r]}${c + 1}` };
+
+const vesselPop = Object.assign(document.createElement('div'), { className: 'vessel-pop', hidden: true });
+document.body.append(vesselPop);
+let vesselPicking = null;
+
+function vesselPickerHtml(b, query) {
+  const typed = query.trim().toLowerCase();
+  const byGroup = Object.entries(VESSELS).reduce((acc, [type, vessel]) => { (acc[vessel.group] ??= []).push([type, vessel]); return acc; }, {});
+  const groups = Object.entries(byGroup).map(([group, list]) => {
+    const rows = list.filter(([, vessel]) => !typed || vessel.label.toLowerCase().includes(typed)).map(([type, vessel]) => {
+      const n = vesselCount(b, type);
+      return `<div class="vp-row${n ? ' on' : ''}" data-type="${type}"><span>${esc(vessel.label)}</span><span class="vp-step"><button class="vp-btn" data-step="-1" title="One fewer"${n ? '' : ' disabled'}>−</button><input class="in vp-n mono" value="${n}" inputmode="numeric" /><button class="vp-btn" data-step="1" title="One more">+</button></span></div>`;
+    }).join('');
+    return rows ? `<div class="vp-group">${esc(group)}</div>${rows}` : '';
+  }).join('');
+  return `<input class="in vp-search" value="${esc(query)}" placeholder="Find a plate, flask or tube" spellcheck="false" /><div class="vp-list">${groups || '<div class="vp-none">Nothing matches.</div>'}</div><div class="vp-foot">Each plate gets its own tab; flasks, dishes and tubes share one.</div>`;
+}
+
+function drawVesselPicker(keepFocus) {
+  const { b, query } = vesselPicking;
+  const scroll = vesselPop.querySelector('.vp-list')?.scrollTop ?? 0;
+  vesselPop.innerHTML = vesselPickerHtml(b, query);
+  vesselPop.querySelector('.vp-list').scrollTop = scroll;
+  if (keepFocus) {
+    const search = vesselPop.querySelector('.vp-search');
+    search.focus();
+    search.setSelectionRange(search.value.length, search.value.length);
   }
-  const cols = Math.min(b.count, SINGLE_VESSEL_COLUMNS);
-  const index = (r, c) => r * cols + c;
-  return { plate: false, rows: Math.ceil(b.count / cols), cols, keyAt: (r, c) => (index(r, c) < b.count ? `${index(r, c)}:1` : null), labelAt: (r, c) => `${vessel.prefix}${index(r, c) + 1}` };
 }
-function pruneVesselWells(b) {
-  const vessel = VESSELS[b.vessel];
-  b.wells = Object.fromEntries(Object.entries(b.wells).filter(([key]) => {
-    const [index, position] = key.split(':');
-    if (+index >= b.count) return false;
-    if (!vessel.rows) return position === '1';
-    return /^[A-P]\d+$/.test(position) && ROW_LETTERS.indexOf(position[0]) < vessel.rows && +position.slice(1) <= vessel.cols;
+
+function openVesselPicker(b, anchor) {
+  if (vesselPicking?.b === b) {
+    closeVesselPicker();
+    return;
+  }
+  vesselPicking = { b, query: '' };
+  vesselPop.hidden = false;
+  drawVesselPicker(true);
+  const r = anchor.getBoundingClientRect();
+  vesselPop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - vesselPop.offsetWidth - 8))}px`;
+  vesselPop.style.top = `${Math.min(r.bottom + 6, window.innerHeight - vesselPop.offsetHeight - 8)}px`;
+}
+
+function closeVesselPicker() {
+  vesselPicking = null;
+  vesselPop.hidden = true;
+}
+
+vesselPop.addEventListener('input', e => {
+  if (!vesselPicking || !e.target.matches('.vp-search')) return;
+  vesselPicking.query = e.target.value;
+  drawVesselPicker(true);
+});
+vesselPop.addEventListener('click', e => {
+  const step = e.target.closest('[data-step]');
+  if (!vesselPicking || !step) return;
+  const type = step.closest('[data-type]').dataset.type;
+  setVesselCount(vesselPicking.b, type, vesselCount(vesselPicking.b, type) + +step.dataset.step);
+  drawVesselPicker(false);
+});
+vesselPop.addEventListener('change', e => {
+  if (!vesselPicking || !e.target.matches('.vp-n')) return;
+  setVesselCount(vesselPicking.b, e.target.closest('[data-type]').dataset.type, +e.target.value);
+  drawVesselPicker(false);
+});
+vesselPop.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeVesselPicker();
+  if (e.key === 'Enter' && e.target.matches('.vp-n')) e.target.blur();
+});
+document.addEventListener('mousedown', e => {
+  if (vesselPicking && !e.target.closest('.vessel-pop, .vpick')) closeVesselPicker();
+});
+
+function duplicateTab(b) {
+  const tab = activeTab(b);
+  const copy = structuredClone(b);
+  copy.id = uid();
+  const renames = new Map();
+  if (tab.plate) {
+    const plate = { ...tab.plate, id: uid(), name: tab.plate.name ? `${tab.plate.name} copy` : '' };
+    renames.set(`${tab.plate.id}:`, `${plate.id}:`);
+    copy.plates = [plate];
+    copy.sets = [];
+  } else {
+    copy.plates = [];
+    copy.sets = b.sets.map(set => {
+      const fresh = { ...set, id: uid() };
+      renames.set(`${set.id}#`, `${fresh.id}#`);
+      return fresh;
+    });
+  }
+  const moved = map => Object.fromEntries(Object.entries(map).flatMap(([key, v]) => {
+    const prefix = [...renames.keys()].find(from => key.startsWith(from));
+    return prefix ? [[renames.get(prefix) + key.slice(prefix.length), v]] : [];
   }));
+  copy.wells = moved(copy.wells);
+  copy.cells = moved(copy.cells);
+  copy.counts = {};
+  const used = new Set(Object.values(copy.wells));
+  copy.groups = copy.groups.filter(g => used.has(g.id));
+  pruneSeries(copy);
+  pruneValues(copy);
+  const lines = new Set(Object.values(copy.cells).flatMap(c => Object.keys(c)));
+  copy.fields = copy.fields.filter(f => lines.has(f.id));
+  copy.active = 0;
+  const fitsBeside = b.x + b.w * 2 <= 12;
+  Object.assign(copy, { x: fitsBeside ? b.x + b.w : b.x, y: fitsBeside ? b.y : b.y + b.h });
+  state.blocks.push(copy);
+  mountBlock(copy);
+  save();
+  refresh();
+}
+
+function switchCardTab(b, index) {
+  b.active = index;
+  vesselSel(b).set.clear();
+  closeWellEditor();
+  renderBlock(b);
+  save();
+}
+
+function confirmVesselLoss(b) {
+  const keys = [...new Set([...Object.keys(b.wells), ...Object.keys(b.cells)])].filter(key => wellIsFilled(b, key));
+  const kept = { ...b };
+  const probe = { ...kept, wells: Object.fromEntries(keys.map(key => [key, 1])), cells: {}, series: {} };
+  pruneVesselWells(probe);
+  const lost = keys.length - Object.keys(probe.wells).length;
+  return !lost || confirm(`${lost} filled ${lost === 1 ? 'spot is' : 'spots are'} no longer on this map and will be cleared. Continue?`);
+}
+
+function pruneVesselWells(b) {
+  const fits = key => {
+    const [index, position] = key.split(':');
+    const plate = b.plates.find(x => x.id === index);
+    if (!plate) {
+      const [setId, i] = index.split('#');
+      const set = b.sets.find(x => x.id === setId);
+      return position === '1' && !!set && +i < set.count;
+    }
+    const vessel = VESSELS[plate.vessel];
+    return /^[A-P]\d+$/.test(position) && ROW_LETTERS.indexOf(position[0]) < vessel.rows && +position.slice(1) <= vessel.cols;
+  };
+  for (const map of ['wells', 'cells']) b[map] = Object.fromEntries(Object.entries(b[map]).filter(([key]) => fits(key)));
+  pruneSeries(b);
+}
+
+const isSeriesCell = v => v?.s !== undefined;
+
+function valueFor(f, text) {
+  let value = f.values.find(x => x.text === text);
+  if (!value) {
+    value = { id: uid(), text };
+    f.values.push(value);
+  }
+  return value;
+}
+
+function pruneValues(b) {
+  const used = new Set(Object.values(b.cells).flatMap(c => Object.values(c)).filter(v => v?.v).map(v => v.v));
+  b.fields.forEach(f => { f.values = f.values.filter(x => used.has(x.id)); });
+}
+
+function wellLine(b, key, f) {
+  const v = b.cells[key]?.[f.id];
+  if (!v) return ['', ''];
+  return [v.v ? f.values.find(x => x.id === v.v)?.text ?? '' : '', isSeriesCell(v) ? seriesValue(b, v) ?? '' : amountText(v)];
+}
+
+const fieldText = (b, key, f) => {
+  const v = f && b.cells[key]?.[f.id];
+  if (v == null) return '';
+  const label = v.v ? f.values.find(x => x.id === v.v)?.text ?? '' : '';
+  const amount = isSeriesCell(v) ? seriesValue(b, v) ?? '' : amountText(v);
+  return [label, amount].filter(Boolean).join(' ');
+};
+const wellText = (b, key) => b.fields.map(f => fieldText(b, key, f)).filter(Boolean).join(' ');
+
+function seriesPart(text) {
+  const raw = String(text ?? '').trim();
+  const entry = raw && calc.names.get(raw.toLowerCase());
+  return entry && (entry.kind === 'value' || entry.kind === 'formula') ? { text: refInfo(raw).text, ref: entry.name } : { text: raw };
+}
+const NUMBER_IN = /[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/;
+const foldOf = text => { const m = /1\s*:\s*(\d+(?:\.\d+)?)/.exec(text) ?? NUMBER_IN.exec(text); return m ? parseFloat(m[1] ?? m[0]) : NaN; };
+const splitList = text => String(text ?? '').split(/[,;\n]/).map(x => x.trim()).filter(Boolean);
+
+function seriesStartText(series) {
+  const part = seriesPart(series.start);
+  return part.ref || !String(series.start ?? '').trim() ? part.text : displayOf({ unit: series.unit ?? '' }, series.start);
+}
+
+const amountText = line => (String(line.amt ?? '').trim() ? displayOf({ unit: line.unit ?? '' }, line.amt) : '');
+
+function splitAmount(text) {
+  const m = /^\s*([-+]?[\d.,]+(?:[eE][-+]?\d+)?(?:\s*:\s*[\d.]+)?[kKM]?)\s*(.+?)\s*$/.exec(text);
+  const unit = m && valueUnitOf(m[2]);
+  return unit ? { amt: m[1].replace(/\s+/g, ''), unit } : null;
+}
+
+function seriesValue(b, { s, step }) {
+  const series = b.series[s];
+  if (!series) return null;
+  if (series.list) return series.list[step] ?? '';
+  const start = seriesStartText(series);
+  const fold = foldOf(seriesPart(series.fold).text);
+  const numbers = [...start.matchAll(new RegExp(NUMBER_IN, 'g'))];
+  const m = !seriesPart(series.start).ref && series.unit === '1:N' ? numbers.at(-1) : numbers[0];
+  if (!m || Number.isNaN(fold) || fold <= 0) return start;
+  const n = parseFloat(m[0]);
+  const value = series.op === 'times' ? n * fold ** step : n / fold ** step;
+  return start.slice(0, m.index) + String(Number(value.toPrecision(3))) + start.slice(m.index + m[0].length);
+}
+
+function groupName(b, g) {
+  if (g.label.trim()) return g.label.trim();
+  const fallback = `Color ${b.groups.indexOf(g) + 1}`;
+  const texts = Object.entries(b.wells).filter(([, id]) => id === g.id).map(([key]) => wellText(b, key)).filter(Boolean);
+  if (!texts.length) return fallback;
+  const words = texts.map(t => t.split(/\s+/));
+  const common = [];
+  for (let i = 0; i < words[0].length && words.every(w => w[i] === words[0][i]); i++) common.push(words[0][i]);
+  return common.join(' ').replace(/[\s+,;:·-]+$/, '') || fallback;
+}
+
+function wellView(b, key, label, isPlate) {
+  const g = b.groups.find(x => x.id === b.wells[key]);
+  const text = wellText(b, key);
+  const fade = seriesFade(b, key);
+  const color = g?.color ?? (fade === null ? null : SERIES_FADE_COLOR);
+  const cls = `${isPlate ? 'well' : 'vessel'}${color ? ' gcol' : ''}${vesselSel(b).set.has(key) ? ' sel' : ''}${text ? ' noted' : ''}`;
+  const lines = b.fields.map(f => wellLine(b, key, f)).filter(([label, amount]) => label || amount).map(([label, amount]) => `<div class="wl">${label ? `<span class="wl-label">${esc(label)}</span>` : ''}${amount ? `<span class="wl-amt">${esc(amount)}</span>` : ''}</div>`).join('');
+  const vessel = VESSELS[vesselTypeOf(b, key)];
+  const shape = VESSEL_SHAPES[vessel.shape];
+  const textBox = shape?.inside ? ` style="left: ${shape.inside[0]}%; top: ${shape.inside[1]}%; width: ${shape.inside[2]}%; height: ${shape.inside[3]}%"` : '';
+  const inner = isPlate ? `<span>${lines}</span>` : `<div class="vdraw"><svg class="vsvg" viewBox="0 0 ${shape.w} ${shape.h}">${shape.svg}</svg><div class="vtext${shape.vertical ? ' vert' : ''}"${textBox}>${lines}</div></div><div class="vsize">${vessel.short}</div>`;
+  const colorStyle = color ? `--gc: ${color}${fade === null ? '' : `; --tint: ${fade}%`}` : '';
+  const sizeStyle = isPlate ? '' : `--sw: ${shape.w * vessel.scale}`;
+  return { cls: isPlate ? cls : `${cls}${shape.vertical ? ' tube' : ''}`, style: [colorStyle, sizeStyle].filter(Boolean).join('; '), inner, title: [isPlate ? label : vessel.label, text, g && groupName(b, g)].filter(Boolean).join(' · ') };
+}
+
+function seriesFade(b, key) {
+  const cell = Object.values(b.cells[key] ?? {}).find(isSeriesCell);
+  if (!cell) return null;
+  const last = Math.max(...Object.values(b.cells).flatMap(c => Object.values(c)).filter(v => isSeriesCell(v) && v.s === cell.s).map(v => v.step));
+  return last > 0 ? Math.round(58 - (cell.step / last) * 46) : null;
+}
+
+const plateLineCount = b => Math.max(1, ...Object.values(b.cells).map(c => Object.keys(c).length));
+
+const mergeLayouts = new Map();
+const mergeSignature = merges => [...merges.anchors].map(([key, m]) => `${key}:${m.w}x${m.h}`).join(',');
+
+function mergeLayout(b, sheet) {
+  const anchors = new Map();
+  const covered = new Set();
+  if (!sheet.plate || b.merge === false) return { anchors, covered };
+  const sig = (r, c) => {
+    const key = sheet.keyAt(r, c);
+    return key && !covered.has(key) && wellIsFilled(b, key) ? `${b.wells[key] ?? ''}|${wellText(b, key)}` : null;
+  };
+  const grow = (r, c, s, acrossFirst) => {
+    let w = 1;
+    let h = 1;
+    const rowMatches = rr => Array.from({ length: w }, (_, i) => sig(rr, c + i)).every(x => x === s);
+    const colMatches = cc => Array.from({ length: h }, (_, j) => sig(r + j, cc)).every(x => x === s);
+    if (acrossFirst) {
+      while (c + w < sheet.cols && sig(r, c + w) === s) w++;
+      while (r + h < sheet.rows && rowMatches(r + h)) h++;
+    } else {
+      while (r + h < sheet.rows && sig(r + h, c) === s) h++;
+      while (c + w < sheet.cols && colMatches(c + w)) w++;
+    }
+    return { w, h };
+  };
+  for (let r = 0; r < sheet.rows; r++) {
+    for (let c = 0; c < sheet.cols; c++) {
+      const s = sig(r, c);
+      if (!s) continue;
+      const across = grow(r, c, s, true);
+      const down = grow(r, c, s, false);
+      const { w, h } = across.w * across.h >= down.w * down.h ? across : down;
+      if (w * h === 1) continue;
+      const keys = [];
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) keys.push(sheet.keyAt(r + j, c + i));
+      keys.forEach(key => covered.add(key));
+      anchors.set(keys[0], { r, c, w, h, keys });
+    }
+  }
+  return { anchors, covered };
+}
+
+const mergeOutline = merged => `<span class="mgrid" style="grid-template: repeat(${merged.h}, 1fr) / repeat(${merged.w}, 1fr)">${'<i></i>'.repeat(merged.w * merged.h)}</span>`;
+
+function refreshWells(b) {
+  const sheet = vesselSheet(b);
+  const isPlate = sheet.plate;
+  if (isPlate && bodyOf(b) && mergeSignature(mergeLayout(b, sheet)) !== mergeSignature(mergeLayouts.get(b.id) ?? { anchors: new Map() })) {
+    renderBlock(b);
+    return;
+  }
+  bodyOf(b)?.querySelectorAll('[data-key]').forEach(el => {
+    const view = wellView(b, el.dataset.key, el.dataset.label, isPlate);
+    const merged = mergeLayouts.get(b.id)?.anchors.get(el.dataset.key);
+    el.className = `${view.cls}${merged ? ' merged' : ''}`;
+    if (merged && merged.keys.some(key => vesselSel(b).set.has(key))) el.classList.add('sel');
+    el.setAttribute('style', [view.style, el.dataset.place].filter(Boolean).join('; '));
+    el.innerHTML = `${merged ? mergeOutline(merged) : ''}${view.inner}`;
+    el.title = view.title;
+  });
+  const body = bodyOf(b);
+  if (isPlate && body) TYPES.plate.fit(b, body);
+}
+
+const legendEdits = new Map();
+
+function plateLegendHtml(b) {
+  const tab = activeTab(b);
+  const onTab = key => (tab.plate ? key.startsWith(`${tab.plate.id}:`) : key.includes('#'));
+  const plural = vesselWords(b).plural;
+  const pickable = cardTabs(b).length === 1;
+  const editing = legendEdits.get(b.id);
+  const name = (kind, id, text, fieldId = '') => (editing?.kind === kind && editing.id === id
+    ? `<input class="in pl-rename" data-kind="${kind}" data-id="${id}" data-field="${fieldId}" value="${esc(text)}" spellcheck="false" />`
+    : `<button class="pl-name" data-rename="${kind}" data-id="${id}" data-field="${fieldId}" title="Rename">${esc(text)}</button>`);
+  const pick = label => (pickable ? ` data-pick="${esc(label)}"` : '');
+  const colors = b.groups.map(g => [g, Object.keys(b.wells).filter(key => b.wells[key] === g.id && onTab(key)).length]).filter(([, count]) => count).map(([g, count]) => `<span class="pl-item"${pick(`${groupName(b, g)} ${plural}`)}><button class="lg-sw" style="--gc: ${g.color}" data-recolor="${g.id}" title="Change this color"></button>${name('group', g.id, groupName(b, g))}<b>${count}</b></span>`).join('');
+  const used = new Set([...Object.keys(b.wells), ...Object.keys(b.cells)].filter(key => onTab(key) && wellIsFilled(b, key))).size;
+  const usedLabel = `${capitalize(plural)} used`;
+  return `<div class="pl-sec">${colors}<span class="pl-totals"><span class="pl-item"${pick(usedLabel)}>${esc(usedLabel)}<b>${used}</b></span></span></div>`;
+}
+
+function drawPlateLegend(b) {
+  const legend = bodyOf(b)?.querySelector('.pcounts');
+  if (legend) legend.innerHTML = plateLegendHtml(b);
+}
+
+function sharedWellValue(b, g) {
+  const keys = Object.keys(b.wells).filter(key => b.wells[key] === g.id);
+  for (const f of b.fields) {
+    const ids = new Set(keys.map(key => b.cells[key]?.[f.id]?.v));
+    if (ids.size === 1 && [...ids][0]) return f.values.find(v => v.id === [...ids][0]);
+    if ([...ids].some(Boolean)) return null;
+  }
+  return null;
+}
+
+function commitLegendRename(b, input) {
+  const text = input.value.trim();
+  const g = b.groups.find(x => x.id === input.dataset.id);
+  const shared = !g.label.trim() && sharedWellValue(b, g);
+  if (shared && text) shared.text = text;
+  else g.label = text;
+  legendEdits.delete(b.id);
+  refreshWells(b);
+  save();
+  refresh();
+  drawPlateLegend(b);
+}
+
+const wellClipboard = { block: null, items: [] };
+
+function selectionCorner(keys) {
+  const spots = keys.map(wellPosition);
+  return { r: Math.min(...spots.map(p => p.r)), c: Math.min(...spots.map(p => p.c)) };
+}
+
+function copyWells(b) {
+  const keys = [...vesselSel(b).set];
+  const corner = selectionCorner(keys);
+  wellClipboard.block = b.id;
+  wellClipboard.items = keys.map(key => {
+    const p = wellPosition(key);
+    return { dr: p.r - corner.r, dc: p.c - corner.c, cells: structuredClone(b.cells[key] ?? {}), group: b.wells[key] };
+  });
+}
+
+function pasteWells(b) {
+  if (wellClipboard.block !== b.id || !wellClipboard.items.length || !vesselSel(b).set.size) return;
+  const sheet = vesselSheet(b);
+  const corner = selectionCorner([...vesselSel(b).set]);
+  const targets = wellClipboard.items.map(item => ({ item, key: sheet.keyAt(corner.r + item.dr, corner.c - 1 + item.dc) })).filter(t => t.key && corner.r + t.item.dr < sheet.rows && corner.c - 1 + t.item.dc < sheet.cols);
+  const filled = targets.filter(t => wellIsFilled(b, t.key)).length;
+  if (filled && !confirm(`Replace what’s in ${filled} ${filled === 1 ? vesselWords(b).noun : vesselWords(b).plural}?`)) return;
+  vesselSel(b).set.clear();
+  vesselSel(b).anchor = vesselSel(b).cursor = [corner.r, corner.c - 1];
+  targets.forEach(({ item, key }) => {
+    b.cells[key] = structuredClone(item.cells);
+    if (item.group) b.wells[key] = item.group;
+    else delete b.wells[key];
+    vesselSel(b).set.add(key);
+  });
+  pruneValues(b);
+  refreshWells(b);
+  paintSelection(b);
+  save();
+  refresh();
+}
+
+function moveWellCursor(b, dr, dc, extend) {
+  const sheet = vesselSheet(b);
+  const sel = vesselSel(b);
+  const from = sel.cursor ?? sel.anchor ?? [0, 0];
+  const to = [Math.max(0, Math.min(sheet.rows - 1, from[0] + dr)), Math.max(0, Math.min(sheet.cols - 1, from[1] + dc))];
+  sel.cursor = to;
+  if (!extend || !sel.anchor) sel.anchor = to;
+  selectRect(b, sel.anchor, to);
+  paintSelection(b);
+  closeWellEditor();
+  openWellEditor(b);
+}
+
+function paintWells(b, color) {
+  const keys = [...vesselSel(b).set];
+  if (!keys.length) return;
+  if (color) {
+    let g = b.groups.find(x => x.color === color);
+    if (!g) {
+      g = { id: uid(), label: '', color };
+      b.groups.push(g);
+    }
+    keys.forEach(key => { b.wells[key] = g.id; });
+  } else keys.forEach(key => delete b.wells[key]);
+  const used = new Set(Object.values(b.wells));
+  b.groups = b.groups.filter(g => used.has(g.id));
+  refreshWells(b);
+  save();
+  refresh();
+}
+
+const swatchPop = Object.assign(document.createElement('div'), { className: 'swatch-pop', hidden: true });
+document.body.append(swatchPop);
+let swatchChoice = null;
+
+function openSwatches(anchor, onPick) {
+  swatchChoice = onPick;
+  swatchPop.innerHTML = PLATE_PALETTE.map(color => `<button class="sw" style="--gc: ${color}" data-color="${color}"></button>`).join('');
+  swatchPop.hidden = false;
+  const r = anchor.getBoundingClientRect();
+  swatchPop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - swatchPop.offsetWidth - 8))}px`;
+  swatchPop.style.top = `${r.bottom + swatchPop.offsetHeight + 12 > window.innerHeight ? r.top - swatchPop.offsetHeight - 6 : r.bottom + 6}px`;
+}
+
+swatchPop.addEventListener('click', e => {
+  const color = e.target.closest('[data-color]')?.dataset.color;
+  if (!color) return;
+  swatchPop.hidden = true;
+  swatchChoice?.(color);
+});
+document.addEventListener('mousedown', e => {
+  if (!swatchPop.hidden && !e.target.closest('.swatch-pop, [data-recolor]')) swatchPop.hidden = true;
+});
+
+const wellIsFilled = (b, key) => !!b.wells[key] || Object.keys(b.cells[key] ?? {}).length > 0;
+
+function clearWells(b) {
+  const filled = [...vesselSel(b).set].filter(key => wellIsFilled(b, key)).length;
+  const plural = vesselWords(b).plural;
+  if (!filled || !confirm(`Clear ${filled} ${filled === 1 ? vesselWords(b).noun : plural}? Their text, series and color are removed.`)) return;
+  vesselSel(b).set.forEach(key => {
+    delete b.cells[key];
+    delete b.wells[key];
+  });
+  const used = new Set(Object.values(b.wells));
+  b.groups = b.groups.filter(g => used.has(g.id));
+  pruneSeries(b);
+  pruneValues(b);
+  refreshWells(b);
+  save();
+  refresh();
+}
+
+function ensureFirstField(b) {
+  if (!b.fields.length) b.fields.push({ id: uid(), name: '', values: [] });
+  return b.fields[0];
+}
+
+function updateWellLine(b, fieldId, change) {
+  vesselSel(b).set.forEach(key => {
+    b.cells[key] ??= {};
+    const line = { ...b.cells[key][fieldId] };
+    change(line);
+    if (line.v || line.amt || isSeriesCell(line)) b.cells[key][fieldId] = line;
+    else if (line.unit) b.cells[key][fieldId] = { unit: line.unit };
+    else delete b.cells[key][fieldId];
+  });
+  pruneSeries(b);
+  pruneValues(b);
+}
+
+function setWellField(b, fieldId, text) {
+  const f = b.fields.find(x => x.id === fieldId);
+  const value = text.trim() ? valueFor(f, text) : null;
+  updateWellLine(b, fieldId, line => {
+    if (value) line.v = value.id;
+    else delete line.v;
+  });
+}
+
+function setWellAmount(b, fieldId, text) {
+  updateWellLine(b, fieldId, line => {
+    delete line.s;
+    delete line.step;
+    if (text.trim()) line.amt = text;
+    else delete line.amt;
+  });
+}
+
+function setWellUnit(b, fieldId, unit) {
+  updateWellLine(b, fieldId, line => {
+    if (unit) line.unit = unit;
+    else delete line.unit;
+  });
+}
+
+const seriesForms = new Map();
+const SERIES_DIRECTIONS = [['right', '→', 'Left to right'], ['down', '↓', 'Top to bottom'], ['left', '←', 'Right to left'], ['up', '↑', 'Bottom to top']];
+
+function wellPosition(key) {
+  const [index, position] = key.split(':');
+  if (position !== '1') return { r: ROW_LETTERS.indexOf(position[0]), c: +position.slice(1) };
+  const [setId, i] = index.split('#');
+  return { r: vesselRows.get(setId) ?? 0, c: +i + 1 };
+}
+
+function seriesSteps(keys, dir) {
+  const axis = dir === 'right' || dir === 'left' ? 'c' : 'r';
+  const lines = [...new Set(keys.map(k => wellPosition(k)[axis]))].sort((x, y) => x - y);
+  if (dir === 'left' || dir === 'up') lines.reverse();
+  return new Map(keys.map(k => [k, lines.indexOf(wellPosition(k)[axis])]));
+}
+
+function seriesPreview(b, form, keys) {
+  const points = new Set(seriesSteps(keys, form.dir).values()).size;
+  const values = form.mode === 'list' ? splitList(form.list).slice(0, points) : Array.from({ length: points }, (_, step) => seriesValue({ series: { preview: form } }, { s: 'preview', step }));
+  if (!values.some(Boolean)) return form.mode === 'list' ? 'Type the values, separated by commas.' : 'Type a start and a step, or pick them from Values.';
+  const shown = values.length > 6 ? [...values.slice(0, 4), '…', values.at(-1)] : values;
+  const blanks = form.mode === 'list' && values.length < points ? `, and ${points - values.length} left blank` : '';
+  return `${points} ${points === 1 ? 'step' : 'steps'}: ${shown.join(', ')}${blanks}`;
+}
+
+function showSeriesPreview(b) {
+  const preview = wellEditor.querySelector('.wseries .preview');
+  if (preview) preview.textContent = seriesPreview(b, seriesForms.get(b.id), [...vesselSel(b).set]);
+}
+
+function seriesFormHtml(b, form, keys, existing) {
+  const linked = part => { const p = seriesPart(form[part]); return p.ref ? `<span class="sv-linked">${esc(p.text)}</span>` : ''; };
+  const dirs = SERIES_DIRECTIONS.map(([value, arrow, label]) => `<button class="sv-dir${form.dir === value ? ' on' : ''}" data-dir="${value}" title="${label}">${arrow}</button>`).join('');
+  const values = form.mode === 'list'
+    ? `<div class="sv-row"><span>Values</span><input class="in sv-list" data-part="list" value="${esc(form.list)}" placeholder="10:1, 5:1, 2.5:1, 1:1" spellcheck="false" /></div><button class="lnk sv-switch" data-act="series-step">Step by a number instead</button>`
+    : `${form.fromAmount ? `<div class="sv-row"><span>From</span><b class="sv-from">${esc(seriesStartText(form))}</b><button class="lnk" data-act="series-own-start">change</button></div>` : `<div class="sv-row"><span>Start</span><input class="in sv-start" data-part="start" value="${esc(form.start)}" placeholder="10, or a value’s name" spellcheck="false" autocomplete="off" />${seriesPart(form.start).ref ? linked('start') : `<select class="in sv-unit" title="Unit">${unitOptions(VALUE_UNITS, form.unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select>`}</div>`}<div class="sv-suggest" data-for="start"></div><div class="sv-row"><span>Each step</span><span class="sv-ops"><button class="sv-op${form.op === 'divide' ? ' on' : ''}" data-sop="divide" title="Divide each step">÷</button><button class="sv-op${form.op === 'times' ? ' on' : ''}" data-sop="times" title="Multiply each step">×</button></span><input class="in sv-fold" data-part="fold" value="${esc(form.fold)}" placeholder="2" spellcheck="false" autocomplete="off" />${linked('fold')}</div><div class="sv-suggest" data-for="fold"></div><button class="lnk sv-switch" data-act="series-list">Type each value instead</button>`;
+  return `<div class="wseries">${values}<div class="sv-row"><span>Direction</span><span class="sv-dirs">${dirs}</span></div><div class="preview">${esc(seriesPreview(b, form, keys))}</div><div class="sv-actions"><button class="pal" data-act="apply-series">Apply</button><button class="lnk" data-act="cancel-series">Cancel</button>${existing ? '<button class="lnk sv-remove" data-act="remove-series">Remove dilution</button>' : ''}</div></div>`;
+}
+
+function valueNameSuggestions(text) {
+  const typed = String(text ?? '').trim().toLowerCase();
+  if (!/[a-z]/.test(typed) || calc.names.has(typed)) return '';
+  return [...calc.names.values()].filter(e => (e.kind === 'value' || e.kind === 'formula') && e.name.toLowerCase().includes(typed)).slice(0, 6).map(e => `<button class="sv-pick" data-name="${esc(e.name)}">${esc(e.name)}<span>${esc(refInfo(e.name).text)}</span></button>`).join('');
+}
+
+const wellEditor = Object.assign(document.createElement('div'), { className: 'well-editor', hidden: true });
+document.body.append(wellEditor);
+let wellEditing = null;
+let pendingWellEditor = null;
+
+function selectionName(b, keys) {
+  if (!vesselSheet(b).plate) return '';
+  const spots = keys.map(wellPosition);
+  const rows = spots.map(p => p.r);
+  const cols = spots.map(p => p.c);
+  const [r1, r2, c1, c2] = [Math.min(...rows), Math.max(...rows), Math.min(...cols), Math.max(...cols)];
+  const name = (r, c) => `${ROW_LETTERS[r]}${c}`;
+  if (keys.length === 1) return name(r1, c1);
+  return (r2 - r1 + 1) * (c2 - c1 + 1) === keys.length ? `${name(r1, c1)}–${name(r2, c2)}` : '';
+}
+
+function wellEditorHtml(b) {
+  const keys = [...vesselSel(b).set];
+  const vessel = vesselWords(b);
+  const plural = vessel.plural;
+  const form = seriesForms.get(b.id);
+  const inUse = b.fields.filter(f => wellEditing.added.has(f.id) || keys.some(k => b.cells[k]?.[f.id] != null));
+  const lines = inUse.length ? inUse : [b.fields[0] ?? { id: '', values: [] }];
+  const rows = lines.map((f, i) => {
+    const cells = keys.map(k => b.cells[k]?.[f.id]);
+    const labels = new Set(cells.map(c => (c?.v ? f.values.find(x => x.id === c.v)?.text ?? '' : '')));
+    const label = labels.size === 1 ? [...labels][0] : '';
+    const series = cells.find(isSeriesCell);
+    const info = series && b.series[series.s];
+    const amounts = new Set(cells.map(c => c?.amt ?? ''));
+    const amount = amounts.size === 1 ? [...amounts][0] : '';
+    const units = new Set(cells.map(c => c?.unit ?? ''));
+    const unit = units.size === 1 ? [...units][0] : '';
+    const labelHint = labels.size > 1 ? 'Mixed. Typing replaces all' : i === 0 ? `What’s in ${keys.length === 1 ? `this ${vessel.noun}` : `these ${plural}`}` : 'Another line';
+    const amountBox = info
+      ? `<button class="we-series" data-act="series" title="Change this dilution">${esc(seriesSummary(info))}</button>`
+      : `<input class="in wamount" data-field="${f.id}" value="${esc(amount)}" placeholder="${amounts.size > 1 ? 'Mixed' : 'Amount'}" spellcheck="false" autocomplete="off" /><select class="in wunit" data-field="${f.id}" title="Unit">${unitOptions(VALUE_UNITS, unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select><button class="lnk we-dil" data-act="series" title="Fill these ${plural} with a dilution or any stepped series">Dilution</button>`;
+    const remove = lines.length > 1 ? `<button class="wf-x" data-act="del-part" title="Remove this line from these ${plural}">×</button>` : '';
+    const editing = form?.field === f.id ? seriesFormHtml(b, form, keys, !!info) : '';
+    return `<div class="wfield-row" data-field="${f.id}"><input class="in wfield" data-field="${f.id}" value="${esc(label)}" placeholder="${esc(labelHint)}" spellcheck="false" autocomplete="off" />${amountBox}${remove}</div><div class="we-suggest"></div>${editing}`;
+  }).join('');
+  const groupIds = new Set(keys.map(k => b.wells[k] ?? ''));
+  const current = groupIds.size === 1 ? b.groups.find(g => g.id === [...groupIds][0])?.color ?? '' : null;
+  const swatches = PLATE_PALETTE.map(color => `<button class="sw${color === current ? ' on' : ''}" style="--gc: ${color}" data-paint="${color}"></button>`).join('');
+  const where = selectionName(b, keys);
+  return `<div class="we-head"><b>${esc(where || `${keys.length} ${plural}`)}</b>${where ? `<span>${keys.length} ${keys.length === 1 ? vessel.noun : plural}</span>` : ''}<button class="we-clear" data-act="clear-wells" title="Remove everything from these ${plural} (Delete)">Clear</button><button class="we-done" data-act="close" title="Done (Esc)">Done</button></div><div class="we-cols"><span>Line</span><span>Amount</span></div><div class="we-parts">${rows}</div><div class="we-adds"><button class="lnk" data-act="add-part" title="Add another line to these ${plural}">+ Line</button></div><div class="we-color"><span class="ptools-label">Color</span><button class="sw sw-none${current === '' ? ' on' : ''}" data-paint="" title="No color"></button></div><div class="we-swatches">${swatches}</div>`;
+}
+
+function seriesSummary(info) {
+  const arrow = SERIES_DIRECTIONS.find(([value]) => value === info.dir)?.[1] ?? '';
+  return `${info.list ? info.list.join(', ') : `${seriesStartText(info)} ${info.op === 'times' ? '×' : '÷'} ${seriesPart(info.fold).text}`} ${arrow}`.trim();
+}
+
+function placeWellEditor() {
+  if (!wellEditing) return;
+  const grid = bodyOf(wellEditing.b)?.querySelector('.plate, .vessels');
+  const rects = [...vesselSel(wellEditing.b).set].map(key => grid?.querySelector(`[data-key="${key}"]`)?.getBoundingClientRect()).filter(Boolean);
+  if (!rects.length) return;
+  const box = { left: Math.min(...rects.map(r => r.left)), right: Math.max(...rects.map(r => r.right)), top: Math.min(...rects.map(r => r.top)), bottom: Math.max(...rects.map(r => r.bottom)) };
+  const w = wellEditor.offsetWidth;
+  const h = wellEditor.offsetHeight;
+  const fitsRight = box.right + 12 + w <= window.innerWidth - 8;
+  const fitsLeft = box.left - 12 - w >= 8;
+  const left = fitsRight ? box.right + 12 : fitsLeft ? box.left - 12 - w : Math.max(8, Math.min(box.left, window.innerWidth - w - 8));
+  const top = fitsRight || fitsLeft ? box.top : box.bottom + 8;
+  wellEditor.style.left = `${left}px`;
+  wellEditor.style.top = `${Math.max(8, Math.min(top, window.innerHeight - h - 8))}px`;
+}
+
+function drawWellEditor(focusField) {
+  if (!wellEditing) return;
+  wellEditor.innerHTML = wellEditorHtml(wellEditing.b);
+  wellEditor.hidden = false;
+  placeWellEditor();
+  if (focusField !== undefined) (wellEditor.querySelector(focusField ? `.wfield[data-field="${focusField}"]` : '.wfield'))?.focus();
+}
+
+function openWellEditor(b, focusField) {
+  if (!vesselSel(b).set.size) return;
+  wellEditing = { b, added: new Set() };
+  drawWellEditor(focusField);
+}
+
+function closeWellEditor() {
+  if (!wellEditing) return;
+  const { b } = wellEditing;
+  wellEditing = null;
+  wellEditor.hidden = true;
+  seriesForms.delete(b.id);
+  const used = new Set(Object.values(b.cells).flatMap(c => Object.keys(c)));
+  b.fields = b.fields.filter(f => used.has(f.id));
+  save();
+}
+
+wellEditor.addEventListener('input', e => {
+  if (!wellEditing) return;
+  const { b } = wellEditing;
+  const el = e.target;
+  const form = seriesForms.get(b.id);
+  if (el.matches('.wfield')) {
+    if (!el.dataset.field) {
+      el.dataset.field = ensureFirstField(b).id;
+      el.closest('.wfield-row').dataset.field = el.dataset.field;
+    }
+    wellEditing.added.add(el.dataset.field);
+    setWellField(b, el.dataset.field, el.value);
+    refreshWells(b);
+    save();
+    refresh();
+    const typed = el.value.trim().toLowerCase();
+    const known = [...new Set(b.fields.flatMap(f => f.values.map(v => v.text)))].filter(text => typed && text.toLowerCase().includes(typed) && text.toLowerCase() !== typed).slice(0, 6);
+    el.closest('.wfield-row').nextElementSibling.innerHTML = known.map(text => `<button class="we-pick" data-text="${esc(text)}">${esc(text)}</button>`).join('');
+  } else if (el.matches('.wamount')) {
+    if (!el.dataset.field) {
+      el.dataset.field = ensureFirstField(b).id;
+      el.closest('.wfield-row').dataset.field = el.dataset.field;
+    }
+    wellEditing.added.add(el.dataset.field);
+    setWellAmount(b, el.dataset.field, el.value);
+    refreshWells(b);
+    save();
+    refresh();
+  } else if (el.matches('.sv-start, .sv-fold, .sv-list')) {
+    form[el.dataset.part] = el.value;
+    showSeriesPreview(b);
+    const suggest = wellEditor.querySelector(`.sv-suggest[data-for="${el.dataset.part}"]`);
+    if (suggest) suggest.innerHTML = valueNameSuggestions(el.value);
+  }
+});
+
+wellEditor.addEventListener('click', e => {
+  if (!wellEditing) return;
+  const { b } = wellEditing;
+  const form = seriesForms.get(b.id);
+  const paint = e.target.closest('[data-paint]');
+  if (paint) {
+    paintWells(b, paint.dataset.paint);
+    drawWellEditor();
+    return;
+  }
+  const choice = e.target.closest('[data-sop], [data-dir]');
+  if (choice) {
+    if (choice.dataset.sop) form.op = choice.dataset.sop;
+    else form.dir = choice.dataset.dir;
+    choice.parentElement.querySelectorAll('button').forEach(btn => btn.classList.toggle('on', btn === choice));
+    showSeriesPreview(b);
+    return;
+  }
+  const known = e.target.closest('.we-pick');
+  if (known) {
+    const box = known.parentElement;
+    const input = box.previousElementSibling.querySelector('.wfield');
+    input.value = known.dataset.text;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    box.innerHTML = '';
+    input.focus();
+    return;
+  }
+  const pick = e.target.closest('.sv-pick');
+  if (pick) {
+    form[pick.closest('.sv-suggest').dataset.for] = pick.dataset.name;
+    drawWellEditor();
+    return;
+  }
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  const openSeries = fieldId => {
+    const existing = [...vesselSel(b).set].map(key => b.cells[key]?.[fieldId]).find(isSeriesCell);
+    const series = existing && b.series[existing.s];
+    const lines = [...vesselSel(b).set].map(key => b.cells[key]?.[fieldId]).filter(Boolean);
+    const lineUnit = lines.map(line => line.unit).find(Boolean) ?? '';
+    const typedAmounts = new Set(lines.map(line => String(line.amt ?? '').trim()).filter(Boolean));
+    const fromAmount = !series && typedAmounts.size === 1 ? [...typedAmounts][0] : '';
+    seriesForms.set(b.id, { field: fieldId, fromAmount: !!fromAmount, mode: series?.list ? 'list' : 'step', start: series?.start ?? fromAmount, unit: series?.unit ?? lineUnit, fold: series?.fold ?? '', op: series?.op ?? 'divide', list: series?.list?.join(', ') ?? '', dir: series?.dir ?? 'right' });
+    drawWellEditor();
+    wellEditor.querySelector(fromAmount ? '.sv-fold' : '.sv-start, .sv-list')?.focus();
+  };
+  if (act === 'close') closeWellEditor();
+  else if (act === 'clear-wells') {
+    clearWells(b);
+    wellEditing.added.clear();
+    seriesForms.delete(b.id);
+    drawWellEditor('');
+  } else if (act === 'add-part') {
+    if (!b.fields.length) ensureFirstField(b);
+    [...wellEditor.querySelectorAll('.wfield-row')].map(row => row.dataset.field).filter(Boolean).forEach(id => wellEditing.added.add(id));
+    const line = { id: uid(), name: '', values: [] };
+    b.fields.push(line);
+    wellEditing.added.add(line.id);
+    drawWellEditor(line.id);
+  } else if (act === 'series') {
+    const row = e.target.closest('.wfield-row');
+    if (!row.dataset.field) row.dataset.field = ensureFirstField(b).id;
+    wellEditing.added.add(row.dataset.field);
+    openSeries(row.dataset.field);
+  } else if (act === 'remove-series') {
+    setWellAmount(b, form.field, '');
+    seriesForms.delete(b.id);
+    refreshWells(b);
+    save();
+    refresh();
+    drawWellEditor();
+  } else if (act === 'series-own-start') {
+    form.fromAmount = false;
+    drawWellEditor();
+    wellEditor.querySelector('.sv-start')?.select();
+  } else if (act === 'series-list' || act === 'series-step') {
+    form.mode = act === 'series-list' ? 'list' : 'step';
+    drawWellEditor();
+    wellEditor.querySelector('.sv-list, .sv-start')?.focus();
+  } else if (act === 'cancel-series') {
+    if (![...vesselSel(b).set].some(key => b.cells[key]?.[form.field] != null)) wellEditing.added.delete(form.field);
+    seriesForms.delete(b.id);
+    drawWellEditor();
+  } else if (act === 'apply-series') {
+    applySeries(b);
+    refreshWells(b);
+    save();
+    refresh();
+    drawWellEditor();
+  } else if (act === 'del-part') {
+    const fieldId = e.target.closest('.wfield-row').dataset.field;
+    vesselSel(b).set.forEach(key => { if (b.cells[key]) delete b.cells[key][fieldId]; });
+    wellEditing.added.delete(fieldId);
+    pruneSeries(b);
+    refreshWells(b);
+    save();
+    refresh();
+    drawWellEditor();
+  }
+});
+
+wellEditor.addEventListener('mousedown', e => {
+  if (e.target.closest('.we-pick')) e.preventDefault();
+});
+
+wellEditor.addEventListener('change', e => {
+  if (!wellEditing) return;
+  const { b } = wellEditing;
+  const el = e.target;
+  if (el.matches('.wunit')) {
+    if (!el.dataset.field) el.dataset.field = ensureFirstField(b).id;
+    wellEditing.added.add(el.dataset.field);
+    setWellUnit(b, el.dataset.field, el.value);
+  } else if (el.matches('.wamount')) {
+    const split = splitAmount(el.value);
+    if (!split) return;
+    setWellAmount(b, el.dataset.field, split.amt);
+    setWellUnit(b, el.dataset.field, split.unit);
+    drawWellEditor();
+  } else if (el.matches('.sv-unit')) {
+    seriesForms.get(b.id).unit = el.value;
+    showSeriesPreview(b);
+    return;
+  } else return;
+  refreshWells(b);
+  save();
+  refresh();
+});
+
+wellEditor.addEventListener('keydown', e => {
+  if (!wellEditing) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeWellEditor();
+  } else if (e.key === 'Enter' && e.target.closest('.wseries')) {
+    e.preventDefault();
+    wellEditor.querySelector('[data-act="apply-series"]').click();
+  } else if (e.key === 'Enter' && e.target.matches('.wfield')) {
+    e.preventDefault();
+    closeWellEditor();
+  }
+});
+
+document.addEventListener('mousedown', e => {
+  if (!wellEditing || e.target.closest('.well-editor, .sel-panel, .swatch-pop')) return;
+  if (bodyOf(wellEditing.b)?.querySelector('.plate, .vessels')?.contains(e.target) && e.target.closest('[data-key], .ch, .rh, .corner')) return;
+  closeWellEditor();
+});
+document.addEventListener('scroll', e => { if (wellEditing && !wellEditor.contains(e.target)) placeWellEditor(); }, true);
+window.addEventListener('resize', placeWellEditor);
+
+function applySeries(b) {
+  const form = seriesForms.get(b.id);
+  const keys = [...vesselSel(b).set];
+  const steps = seriesSteps(keys, form.dir);
+  const id = uid();
+  b.series[id] = form.mode === 'list' ? { list: splitList(form.list), dir: form.dir } : { start: form.start.trim(), unit: form.unit, fold: form.fold.trim(), op: form.op, dir: form.dir };
+  keys.forEach(key => {
+    b.cells[key] ??= {};
+    const { v } = b.cells[key][form.field] ?? {};
+    b.cells[key][form.field] = { ...(v ? { v } : {}), s: id, step: steps.get(key) };
+  });
+  pruneSeries(b);
+  seriesForms.delete(b.id);
+}
+
+function pruneSeries(b) {
+  const used = new Set(Object.values(b.cells).flatMap(c => Object.values(c)).filter(isSeriesCell).map(v => v.s));
+  b.series = Object.fromEntries(Object.entries(b.series).filter(([id]) => used.has(id)));
 }
 function selectRect(b, [r1, c1], [r2, c2]) {
   const sheet = vesselSheet(b);
@@ -1961,7 +3036,8 @@ function selectRect(b, [r1, c1], [r2, c2]) {
 }
 function paintSelection(b) {
   const sel = vesselSel(b).set;
-  bodyOf(b).querySelectorAll('[data-key]').forEach(el => el.classList.toggle('sel', sel.has(el.dataset.key)));
+  for (const merged of mergeLayouts.get(b.id)?.anchors.values() ?? []) if (merged.keys.some(key => sel.has(key))) merged.keys.forEach(key => sel.add(key));
+  bodyOf(b).querySelectorAll('[data-key]').forEach(el => el.classList.toggle('sel', (el.dataset.keys?.split(' ') ?? [el.dataset.key]).some(key => sel.has(key))));
 }
 
 function flowSvg(b, width) {
@@ -3528,53 +4604,70 @@ const TYPES = {
   },
 
   plate: {
-    label: 'Vessel map', glyph: '⠿', hint: 'Plates, flasks, dishes or tubes; counts feed formulas', size: [5, 8],
-    make: () => ({ vessel: '96', count: 1, active: 0, groups: [], wells: {} }),
+    label: 'Vessel map', glyph: '⠿', hint: 'Plates, flasks, dishes or tubes; counts feed formulas', size: [6, 14],
+    make: () => ({ plates: [{ id: uid(), vessel: '96', name: '' }], sets: [], active: 0, groups: [], wells: {}, fields: [], cells: {}, series: {} }),
     render(b, body) {
       const sheet = vesselSheet(b);
-      const sel = vesselSel(b).set;
+      const merges = mergeLayout(b, sheet);
+      mergeLayouts.set(b.id, merges);
       let cells = '';
       if (sheet.plate) {
-        cells += '<div class="corner" title="Select all"></div>';
-        for (let c = 0; c < sheet.cols; c++) cells += `<div class="ch" data-col="${c}">${c + 1}</div>`;
+        cells += '<div class="corner" title="Select all" style="grid-row: 1; grid-column: 1"></div>';
+        for (let c = 0; c < sheet.cols; c++) cells += `<div class="ch" data-col="${c}" style="grid-row: 1; grid-column: ${c + 2}">${c + 1}</div>`;
       }
       for (let r = 0; r < sheet.rows; r++) {
-        if (sheet.plate) cells += `<div class="rh" data-row="${r}">${ROW_LETTERS[r]}</div>`;
+        if (sheet.plate) cells += `<div class="rh" data-row="${r}" style="grid-row: ${r + 2}; grid-column: 1">${ROW_LETTERS[r]}</div>`;
+        else cells += '<div class="vrow">';
         for (let c = 0; c < sheet.cols; c++) {
           const key = sheet.keyAt(r, c);
           if (!key) continue;
-          const g = b.groups.find(x => x.id === b.wells[key]);
+          const merged = merges.anchors.get(key);
+          if (!merged && merges.covered.has(key)) continue;
           const label = sheet.labelAt(r, c);
-          const inner = sheet.plate ? (g ? esc(shortLabel(g.label)) : '') : `<b>${label}</b><span>${g ? esc(g.label) : ''}</span>`;
-          cells += `<div class="${sheet.plate ? 'well' : 'vessel'}${g ? ` gc${g.color}` : ''}${sel.has(key) ? ' sel' : ''}" data-key="${key}" data-r="${r}" data-c="${c}" title="${label}${g ? ` · ${esc(g.label)}` : ''}">${inner}</div>`;
+          const view = wellView(b, key, label, sheet.plate);
+          const place = sheet.plate ? `grid-row: ${r + 2} / span ${merged?.h ?? 1}; grid-column: ${c + 2} / span ${merged?.w ?? 1}` : '';
+          const extra = merged ? ` data-keys="${merged.keys.join(' ')}" data-span="${merged.w}x${merged.h}"` : '';
+          cells += `<div class="${view.cls}${merged ? ' merged' : ''}" style="${[view.style, place].filter(Boolean).join('; ')}" data-place="${place}" data-key="${key}" data-label="${label}" data-r="${r}" data-c="${c}"${extra} title="${esc(view.title)}">${merged ? mergeOutline(merged) : ''}${view.inner}</div>`;
         }
+        if (!sheet.plate) cells += '</div>';
       }
-      const byGroup = Object.entries(VESSELS).reduce((acc, [key, vessel]) => { (acc[vessel.group] ??= []).push([key, vessel]); return acc; }, {});
-      const options = Object.entries(byGroup).map(([group, list]) => `<optgroup label="${group}">${list.map(([key, vessel]) => `<option value="${key}"${key === b.vessel ? ' selected' : ''}>${vessel.label}</option>`).join('')}</optgroup>`).join('');
-      const tabs = sheet.plate && b.count > 1 ? `<div class="vtabs">${Array.from({ length: b.count }, (_, i) => `<button class="vtab${i === b.active ? ' on' : ''}" data-plate="${i}">Plate ${i + 1}</button>`).join('')}</div>` : '';
-      const columns = `${sheet.plate ? '16px ' : ''}repeat(${sheet.cols}, var(--ws))`;
-      const rows = `${sheet.plate ? '14px ' : ''}repeat(${sheet.rows}, var(--ws))`;
-      const plural = VESSEL_PLURAL[VESSELS[b.vessel].noun];
-      const chip = g => (editingGroups.get(b.id) === g.id
-        ? `<span class="pal editing"><i class="gc${g.color}"></i><input class="in pal-name" value="${esc(g.label)}" spellcheck="false" /></span>`
-        : `<span class="pal" data-group="${g.id}" title="Click to label the selected ${plural}. Double-click to rename."><i class="gc${g.color}"></i>${esc(g.label)}<button class="pal-x" data-del-group="${g.id}" title="Remove this label">×</button></span>`);
-      const palette = `<div class="ptools">${b.groups.map(chip).join('')}<input class="in pal-add" placeholder="+ New label" spellcheck="false" /><button class="pal" data-group="">Set as empty</button></div>`;
-      body.innerHTML = `<div class="ptools"><select class="in vkind">${options}</select><span class="times">×</span><input class="in vcount mono" type="number" min="1" max="48" value="${b.count}" title="How many" /></div>${palette}${tabs}<div class="${sheet.plate ? 'plate' : 'vessels'}" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
+      const tabList = cardTabs(b);
+      const current = activeTab(b);
+      const plateName = plate => plate.name || `Plate ${b.plates.indexOf(plate) + 1}`;
+      const tabs = tabList.length > 1 ? `<div class="vtabs">${tabList.map((tab, i) => `<button class="vtab${(tab.shelf && current.shelf) || (tab.plate && tab.plate === current.plate) ? ' on' : ''}" data-tab="${i}">${tab.plate ? `${esc(plateName(tab.plate))}<span class="vtab-kind">${esc(VESSELS[tab.plate.vessel].label.replace(' plate', ''))}</span><span class="vtab-x" data-act="del-plate" data-plate="${tab.plate.id}" title="Remove this plate">×</span>` : esc(shelfName(b))}</button>`).join('')}</div>` : '';
+      const nameInput = current.plate ? `<input class="in pl-name" value="${esc(current.plate.name)}" placeholder="${esc(plateName(current.plate))} · name this plate" spellcheck="false" />` : '';
+      const columns = sheet.plate ? `16px repeat(${sheet.cols}, var(--cw))` : `repeat(${sheet.cols}, var(--ws))`;
+      const rows = sheet.plate ? `14px repeat(${sheet.rows}, var(--ch))` : `repeat(${sheet.rows}, var(--ws))`;
+      const hint = b.w >= 9 ? `<span class="ptools-hint">Select ${vesselWords(b).plural} to fill them in</span>` : '';
+      const mergeToggle = current.plate ? `<button class="vpick${b.merge === false ? '' : ' on'}" data-act="toggle-merge" title="Draw matching neighbors, like replicates, as one well">Merge replicates</button>` : '';
+      const kinds = `${nameInput}<span class="ptools-actions">${mergeToggle}<button class="vpick" data-act="pick-vessels" title="Add or remove plates, flasks, dishes and tubes">Add Vessel</button><button class="vpick" data-act="duplicate-tab" title="Copy ${current.plate ? 'this plate' : 'these'} into a new card beside this one">Duplicate</button></span>`;
+      body.innerHTML = `<div class="ptools">${kinds}${hint}</div>${tabs}<div class="${sheet.plate ? 'plate' : 'vessels'}" tabindex="0" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
     },
     fit(b, body) {
       const sheet = vesselSheet(b);
       const grid = body.querySelector('.plate, .vessels');
       if (!grid) return;
-      const above = [...body.querySelectorAll('.ptools, .vtabs')].reduce((h, el) => h + el.offsetHeight + 8, 0);
-      const headers = sheet.plate ? 18 : 0;
-      const byWidth = (body.clientWidth - 24 - headers) / sheet.cols - 4;
-      const byHeight = (body.clientHeight - 20 - above - 34 - headers) / sheet.rows - 4;
-      const size = Math.max(8, Math.min(sheet.plate ? 44 : 76, Math.floor(Math.min(byWidth, byHeight))));
-      grid.style.setProperty('--ws', `${size}px`);
-      grid.classList.toggle('tiny', size < 20);
+      const around = [...body.querySelectorAll('.ptools, .vtabs, .pcounts')].reduce((h, el) => h + el.offsetHeight + 8, 0);
+      if (sheet.plate) {
+        const cw = Math.max(10, Math.floor((body.clientWidth - 24 - 18) / sheet.cols - 5));
+        const needed = Math.min(5, plateLineCount(b)) * 13 + 8;
+        const fitted = Math.min(Math.round(cw * 0.6), 64, Math.floor((body.clientHeight - 20 - around - 16) / sheet.rows - 5));
+        const ch = cw < 30 ? Math.max(12, fitted) : Math.max(30, fitted, needed);
+        grid.style.setProperty('--cw', `${cw}px`);
+        grid.style.setProperty('--ch', `${ch}px`);
+        const tallest = Math.max(0, ...[...grid.querySelectorAll('.well:not(.merged) > span')].map(span => span.scrollHeight));
+        if (cw >= 30 && tallest + 8 > ch) grid.style.setProperty('--ch', `${Math.min(96, tallest + 8)}px`);
+        grid.style.setProperty('--lines', String(Math.max(1, Math.floor((ch - 4) / 13))));
+        grid.classList.toggle('tiny', cw < 30 || ch < 18);
+        grid.classList.toggle('narrow', cw < 70);
+        return;
+      }
+      const widest = Math.max(...b.sets.map(set => VESSEL_SHAPES[VESSELS[set.vessel].shape].w * VESSELS[set.vessel].scale));
+      grid.style.setProperty('--vs', String(Math.max(0.5, Math.min(VESSEL_DRAW_SCALE, (body.clientWidth - 24) / widest))));
     },
     update(b, body) {
-      body.querySelector('.pcounts').innerHTML = vesselCounts(b).map(([name, n]) => `<span data-pick="${esc(name)}">${esc(name)}<b>${n}</b></span>`).join('');
+      refreshWells(b);
+      if (!body.querySelector('.pcounts').contains(document.activeElement)) drawPlateLegend(b);
     },
     onPointerdown(b, e) {
       const sel = vesselSel(b);
@@ -3583,6 +4676,7 @@ const TYPES = {
       if (cell) {
         e.preventDefault();
         const pt = [+cell.dataset.r, +cell.dataset.c];
+        sel.cursor = pt;
         if (e.ctrlKey || e.metaKey) {
           if (sel.set.has(cell.dataset.key)) sel.set.delete(cell.dataset.key); else sel.set.add(cell.dataset.key);
           sel.anchor = pt;
@@ -3600,8 +4694,27 @@ const TYPES = {
         selectRect(b, [r, 0], [r, sheet.cols - 1]);
       } else if (e.target.closest('.corner')) {
         selectRect(b, [0, 0], [sheet.rows - 1, sheet.cols - 1]);
-      } else return;
+      } else {
+        if (e.target.closest('.plate, .vessels') && sel.set.size) {
+          sel.set.clear();
+          paintSelection(b);
+        }
+        return;
+      }
+      closeWellEditor();
+      bodyOf(b).querySelector('.plate, .vessels')?.focus({ preventScroll: true });
       paintSelection(b);
+      pendingWellEditor = b;
+    },
+    onInput(b, e) {
+      const el = e.target;
+      if (el.matches('.pl-name')) {
+        const plate = activeTab(b).plate;
+        plate.name = el.value;
+        const tab = bodyOf(b).querySelector('.vtab.on');
+        if (tab) tab.firstChild.textContent = el.value || `Plate ${b.plates.indexOf(plate) + 1}`;
+      } else return;
+      save();
     },
     onPointerover(b, e) {
       const cell = e.target.closest('[data-key]');
@@ -3610,67 +4723,112 @@ const TYPES = {
       paintSelection(b);
     },
     onClick(b, e) {
-      const tab = e.target.closest('.vtab');
-      if (tab) {
-        b.active = +tab.dataset.plate;
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'toggle-merge') {
+        b.merge = b.merge === false;
         vesselSel(b).set.clear();
+        closeWellEditor();
         renderBlock(b);
         save();
         return;
       }
-      const removeLabel = e.target.closest('[data-del-group]');
-      if (removeLabel) {
-        removePlateLabel(b, removeLabel.dataset.delGroup);
+      if (act === 'duplicate-tab') {
+        duplicateTab(b);
         return;
       }
-      const pal = e.target.closest('.pal[data-group]');
-      if (!pal) return;
-      const sel = vesselSel(b).set;
-      if (!sel.size) return;
-      const group = pal.dataset.group;
-      if (!group && [...sel].some(key => b.wells[key]) && !confirm(`Set ${sel.size} as empty?`)) return;
-      sel.forEach(key => { if (group) b.wells[key] = group; else delete b.wells[key]; });
-      renderBlock(b);
-      save();
-      refresh();
-    },
-    onChange(b, e) {
-      if (e.target.matches('.vkind')) b.vessel = e.target.value;
-      else if (e.target.matches('.vcount')) b.count = Math.max(1, Math.min(48, Math.round(+e.target.value) || 1));
-      else return;
-      b.active = Math.min(b.active, b.count - 1);
-      pruneVesselWells(b);
-      vesselSel(b).set.clear();
-      renderBlock(b);
-      save();
-      refresh();
-    },
-    onDblclick(b, e) {
-      const pal = e.target.closest('.pal[data-group]');
-      if (!pal?.dataset.group) return;
-      editingGroups.set(b.id, pal.dataset.group);
-      renderBlock(b);
-      const input = bodyOf(b).querySelector('.pal-name');
-      input.focus();
-      input.select();
-    },
-    onKeydown(b, e) {
-      if (e.target.matches('.pal-add') && e.key === 'Enter' && e.target.value.trim()) {
-        e.preventDefault();
-        addPlateGroup(b, e.target.value.trim());
-      } else if (e.target.matches('.pal-name') && e.key === 'Escape') {
-        editingGroups.delete(b.id);
-        renderBlock(b);
+      if (act === 'pick-vessels') {
+        openVesselPicker(b, e.target.closest('.vpick'));
+        return;
+      }
+      const tab = e.target.closest('.vtab');
+      if (tab && act !== 'del-plate') {
+        switchCardTab(b, +tab.dataset.tab);
+        return;
+      }
+      if (act === 'del-plate') {
+        const plate = b.plates.find(x => x.id === e.target.closest('[data-plate]').dataset.plate);
+        const before = [...b.plates];
+        b.plates = b.plates.filter(x => x !== plate);
+        if (!confirmVesselLoss(b)) {
+          b.plates = before;
+          return;
+        }
+        pruneVesselWells(b);
+        switchCardTab(b, Math.max(0, b.active - 1));
+        refresh();
+        return;
+      }
+      const recolor = e.target.closest('[data-recolor]');
+      if (recolor) {
+        openSwatches(recolor, color => {
+          b.groups.find(g => g.id === recolor.dataset.recolor).color = color;
+          renderBlock(b);
+          save();
+        });
+        return;
+      }
+      const rename = e.target.closest('[data-rename]');
+      if (rename && !isPicking()) {
+        legendEdits.set(b.id, { kind: rename.dataset.rename, id: rename.dataset.id });
+        drawPlateLegend(b);
+        const input = bodyOf(b).querySelector('.pl-rename');
+        input.focus();
+        input.select();
       }
     },
+    onDblclick(b, e) {
+      const cell = e.target.closest('[data-key]');
+      if (!cell) return;
+      const sel = vesselSel(b);
+      sel.set.clear();
+      sel.set.add(cell.dataset.key);
+      sel.anchor = sel.cursor = [+cell.dataset.r, +cell.dataset.c];
+      paintSelection(b);
+      closeWellEditor();
+      openWellEditor(b, '');
+      wellEditor.querySelector('.wfield')?.select();
+    },
     onFocusout(b, e) {
-      if (!e.target.matches('.pal-name') || !editingGroups.has(b.id)) return;
-      const g = b.groups.find(x => x.id === editingGroups.get(b.id));
-      if (e.target.value.trim()) g.label = e.target.value.trim();
-      editingGroups.delete(b.id);
-      renderBlock(b);
-      save();
-      refresh();
+      if (e.target.matches('.pl-rename') && legendEdits.has(b.id)) commitLegendRename(b, e.target);
+    },
+    onKeydown(b, e) {
+      if (e.target.matches('.pl-rename') && e.key === 'Escape') {
+        legendEdits.delete(b.id);
+        drawPlateLegend(b);
+        return;
+      }
+      if (!e.target.matches('.plate, .vessels')) return;
+      const arrows = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+      if (arrows[e.key] && vesselSheet(b).plate) {
+        e.preventDefault();
+        moveWellCursor(b, ...arrows[e.key], e.shiftKey);
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'v')) {
+        e.preventDefault();
+        if (e.key === 'c' && vesselSel(b).set.size) copyWells(b);
+        if (e.key === 'v') pasteWells(b);
+        return;
+      }
+      if (e.key === 'Escape') {
+        vesselSel(b).set.clear();
+        paintSelection(b);
+        closeWellEditor();
+        return;
+      }
+      const typedIntoGrid = vesselSel(b).set.size && !e.ctrlKey && !e.metaKey && !e.altKey;
+      if (!typedIntoGrid || !(e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete')) return;
+      e.preventDefault();
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        clearWells(b);
+        if (wellEditing?.b === b) drawWellEditor();
+        return;
+      }
+      if (wellEditing?.b !== b) openWellEditor(b);
+      const input = wellEditor.querySelector('.wfield');
+      input.focus();
+      input.value = e.key.length === 1 ? e.key : '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
     },
   },
 
@@ -3970,7 +5128,7 @@ function plateFor(item) {
   return plates.find(p => normKey(p.title).includes(normKey(item.name))) ?? (plates.length === 1 ? plates[0] : null);
 }
 
-const plateCounts = plate => vesselCounts(plate).filter(([, n], i, all) => i < all.length - 1 || n > 1);
+const plateCounts = plate => vesselCounts(plate).filter(entry => entry[3] !== 'total' || entry[1] > 1);
 
 function valueSectionChoices(b) {
   const taken = new Set(b.sections.map(sec => sec.of));
@@ -4008,7 +5166,7 @@ function addSuggestedValue(b, sec, suggestion) {
 }
 
 function plateValueRows(plate, editing) {
-  const plural = VESSEL_PLURAL[VESSELS[plate.vessel].noun];
+  const plural = vesselWords(plate).plural;
   const { groups, used } = plateTally(plate);
   const row = (key, label, tally, nameEdit, remove) => {
     const id = `plate:${plate.id}:${key}`;
@@ -4021,7 +5179,7 @@ function plateValueRows(plate, editing) {
     const tools = remove ? '<button class="ghost-danger" data-act="del-label">Remove</button>' : '';
     return `<tr class="vrow" data-item="${id}" data-plate="${plate.id}" data-group="${key}" data-pick="${esc(nameEdit ? `${label.trim()} ${plural}` : label)}" title="Painted on ${esc(plate.title)}. Type a number to use your own; clear it to go back to the map.">${name}${value}<td class="vrm">${tools}</td></tr>`;
   };
-  return groups.map(({ g, ...tally }) => row(g.id, g.label, tally, true, true)).join('') + row('used', `${plural[0].toUpperCase()}${plural.slice(1)} used`, used, false, false);
+  return groups.map(({ g, ...tally }) => row(g.id, groupName(plate, g), tally, true, true)).join('') + row('used', `${plural[0].toUpperCase()}${plural.slice(1)} used`, used, false, false);
 }
 
 function editPlateCount(plate, key, el) {
@@ -4039,7 +5197,7 @@ function editPlateCount(plate, key, el) {
 function removePlateLabel(plate, key) {
   const g = plate.groups.find(x => x.id === key);
   const used = Object.values(plate.wells).filter(id => id === g.id).length;
-  if (used && !confirm(`Remove “${g.label}”? Its ${used} ${VESSEL_PLURAL[VESSELS[plate.vessel].noun]} become empty.`)) return;
+  if (used && !confirm(`Remove “${groupName(plate, g)}”? Its ${used} ${vesselWords(plate).plural} become empty.`)) return;
   plate.groups = plate.groups.filter(x => x !== g);
   plate.wells = Object.fromEntries(Object.entries(plate.wells).filter(([, id]) => id !== g.id));
   if (plate.counts) delete plate.counts[key];
@@ -4257,6 +5415,9 @@ function carryRenames() {
     return out;
   };
   state.blocks.filter(b => b.type === 'formula').forEach(b => b.items.forEach(it => { it.expr = rewrite(String(it.expr ?? '')); }));
+  state.blocks.filter(b => b.type === 'plate').forEach(b => Object.values(b.series).forEach(series => {
+    for (const part of ['start', 'fold']) if (renamed.has(String(series[part]).trim().toLowerCase())) series[part] = renamed.get(String(series[part]).trim().toLowerCase());
+  }));
   state.steps.forEach(step => { step.text = String(step.text ?? '').replace(/\{([^}]+)\}/g, (whole, ref) => (renamed.has(ref.trim().toLowerCase()) ? `{${renamed.get(ref.trim().toLowerCase())}}` : whole)); });
   return true;
 }
@@ -4428,7 +5589,7 @@ const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
 }));
 board.addEventListener('keydown', e => {
   if (e.key === 'Tab' && e.target.matches('.sedit') && jumpToSlot(e.target, e.shiftKey)) { e.preventDefault(); return; }
-  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search):not(.vadd):not(.pal-add), input.sec-title, .sedit')) return;
+  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search):not(.vadd), input.sec-title, .sedit')) return;
   e.preventDefault();
   e.target.blur();
 });
@@ -4439,7 +5600,11 @@ board.addEventListener('dblclick', e => {
   const name = prompt('Block title', b.title);
   if (name) { b.title = name; renderBlock(b); save(); }
 });
-window.addEventListener('pointerup', () => { vesselDrag = null; });
+window.addEventListener('pointerup', () => {
+  vesselDrag = null;
+  if (pendingWellEditor) openWellEditor(pendingWellEditor);
+  pendingWellEditor = null;
+});
 document.addEventListener('focusin', e => {
   if (!e.target.matches?.('.fexpr, .sedit')) return;
   insertTarget = e.target;
