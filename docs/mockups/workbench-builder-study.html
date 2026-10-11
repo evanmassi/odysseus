@@ -387,7 +387,7 @@
   .vtab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 3px 10px; font: 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); cursor: pointer; }
   .vtab.on { color: hsl(var(--fg)); border-bottom-color: hsl(var(--pri)); }
   .vessels { display: flex !important; flex-wrap: wrap; align-items: flex-end; gap: 22px 34px; user-select: none; }
-  .vrow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 14px; }
+  .vshelf-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 14px; }
   .vtab-kind { margin-left: 6px; font-size: 10px; opacity: .65; }
   .vtab-x { margin-left: 6px; opacity: 0; color: hsl(var(--muted-foreground)); }
   .vtab:hover .vtab-x { opacity: 1; }
@@ -4729,7 +4729,7 @@ const TYPES = {
       }
       for (let r = 0; r < sheet.rows; r++) {
         if (sheet.plate) cells += `<div class="rh" data-row="${r}" style="grid-row: ${r + 2}; grid-column: 1">${ROW_LETTERS[r]}</div>`;
-        else cells += '<div class="vrow">';
+        else cells += '<div class="vshelf-row">';
         for (let c = 0; c < sheet.cols; c++) {
           const key = sheet.keyAt(r, c);
           if (!key) continue;
