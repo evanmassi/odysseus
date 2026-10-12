@@ -155,6 +155,7 @@
   .vtable tr.vsec th { padding: 22px 10px 8px 0; text-align: left; font-weight: 400; }
   .vtable tbody:first-child tr.vsec th { padding-top: 4px; }
   .vtable tr.vsec .msec-count { margin-left: 8px; }
+  .vsec-unused { margin-left: 8px; font-size: 12px; font-style: italic; color: hsl(var(--amber) / .85); }
   .vtable tr.vadd-row td { padding: 2px 0 0; }
   .vtable .vadd { width: 100%; height: 30px; font-size: 14px; border-color: transparent; background: transparent; }
   .vtable .vadd:hover { border-color: hsl(var(--line-faint)); }
@@ -1067,7 +1068,10 @@ function recompute() {
       });
     });
     if (b.type === 'values') b.items.filter(it => !it.link).forEach(it => define(valueName(b, it), { kind: 'value', id: it.id, item: it }));
-    if (b.type === 'plate') vesselCounts(b).forEach(([name, n, key]) => define(name, { kind: 'plate', id: `${b.id}:${key}`, q: { v: n, d: {} }, display: String(n) }));
+    if (b.type === 'plate') {
+      vesselCounts(b).forEach(([name, n, key]) => define(name, { kind: 'plate', id: `${b.id}:${key}`, q: { v: n, d: {} }, display: String(n) }));
+      plateAmounts(b).forEach(amount => define(amount.name, { kind: 'value', id: amount.id, item: { id: amount.id, value: amount.value, unit: amount.unit } }));
+    }
     if (b.type === 'formula') b.items.forEach(it => { formulas.push(it); define(it.name, { kind: 'formula', id: it.id, item: it }); });
   }
   const nameList = [...names.values()].map(e => e.name);
@@ -1990,9 +1994,9 @@ function exampleCytotox() {
         v('Replicates', '3'), v('Overage', '10', '%'),
         t('Per well', '10000', 'cells'), t('Volume per well', '50', 'µL'), link(onTargets, 'count'), link(onTargets, 'viability'),
         e('E:T', '5:1', 'N:N'), e('Volume per well', '100', 'µL'), link(onEffectors, 'count'), link(onEffectors, 'viability'),
-        link(onDrug, 'stock-concentration'), d('Top dose', '10', 'µM'), d('Fold', '3', 'x'), d('Points', '8'), d('Volume per well', '50', 'µL'),
+        link(onDrug, 'stock-concentration'), d('Volume per well', '50', 'µL'),
       ] },
-      { id: uid(), type: 'plate', title: 'Vessel map', x: 0, y: 12, w: 12, h: 15, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }), fields: [cellsField, drugField], cells: plateCells, series: { [seriesId]: { start: 'Compound X top dose', fold: 'Compound X fold', op: 'divide' } }, names: ['Killing plate'] },
+      { id: uid(), type: 'plate', title: 'Vessel map', x: 0, y: 12, w: 12, h: 15, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }), fields: [cellsField, drugField], cells: plateCells, series: { [seriesId]: { start: '10', unit: 'µM', fold: '3', op: 'divide' } }, names: ['Killing plate'] },
       { id: uid(), type: 'formula', title: 'Calculations', x: 4, y: 27, w: 8, h: 12, items: [
         f('Target wells', 'Compound X wells + T cells only wells + Targets only wells'),
         f('Effector wells', 'Compound X wells + T cells only wells'),
@@ -2423,12 +2427,18 @@ function seriesValue(b, { s, step }) {
 function groupName(b, g) {
   if (g.label.trim()) return g.label.trim();
   const fallback = `Color ${b.groups.indexOf(g) + 1}`;
-  const texts = Object.entries(b.wells).filter(([, id]) => id === g.id).map(([key]) => wellText(b, key)).filter(Boolean);
-  if (!texts.length) return fallback;
-  const words = texts.map(t => t.split(/\s+/));
-  const common = [];
-  for (let i = 0; i < words[0].length && words.every(w => w[i] === words[0][i]); i++) common.push(words[0][i]);
-  return common.join(' ').replace(/[\s+,;:·-]+$/, '') || fallback;
+  const keys = Object.keys(b.wells).filter(key => b.wells[key] === g.id);
+  const sharedWords = texts => {
+    const words = texts.map(t => t.split(/\s+/));
+    const common = [];
+    for (let i = 0; i < words[0].length && words.every(w => w[i] === words[0][i]); i++) common.push(words[0][i]);
+    return common.join(' ').replace(/[\s+,;:·-]+$/, '');
+  };
+  const lines = b.fields.map(f => {
+    const texts = [...new Set(keys.map(key => b.cells[key]?.[f.id]?.v).filter(Boolean).map(id => f.values.find(v => v.id === id)?.text.trim()).filter(Boolean))];
+    return texts.length ? sharedWords(texts) : '';
+  }).filter(Boolean);
+  return lines.join(' and ') || fallback;
 }
 
 function wellView(b, key, label, isPlate) {
@@ -2815,9 +2825,16 @@ function seriesPreview(b, form, keys) {
   return `${points} ${points === 1 ? 'step' : 'steps'}: ${shown.join(', ')}${blanks}`;
 }
 
+function seriesTargets(b, form) {
+  const selected = [...vesselSel(b).set];
+  if (!form.series) return selected;
+  return [...new Set([...selected, ...Object.keys(b.cells).filter(key => b.cells[key][form.field]?.s === form.series)])];
+}
+
 function showSeriesPreview(b) {
   const preview = wellEditor.querySelector('.wseries .preview');
-  if (preview) preview.textContent = seriesPreview(b, seriesForms.get(b.id), [...vesselSel(b).set]);
+  const form = seriesForms.get(b.id);
+  if (preview) preview.textContent = seriesPreview(b, form, seriesTargets(b, form));
 }
 
 function seriesFormHtml(b, form, keys, existing) {
@@ -2873,7 +2890,7 @@ function wellEditorHtml(b) {
       ? `<button class="we-series" data-act="series" title="Change this dilution">${esc(seriesSummary(info))}</button>`
       : `<input class="in wamount" data-field="${f.id}" value="${esc(amount)}" placeholder="${amounts.size > 1 ? 'Mixed' : 'Amount'}" spellcheck="false" autocomplete="off" /><select class="in wunit" data-field="${f.id}" title="Unit">${unitOptions(VALUE_UNITS, unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select><button class="lnk we-dil" data-act="series" title="Fill these ${plural} with a dilution or any stepped series">Dilution</button>`;
     const remove = lines.length > 1 ? `<button class="wf-x" data-act="del-part" title="Remove this line from these ${plural}">×</button>` : '';
-    const editing = form?.field === f.id ? seriesFormHtml(b, form, keys, !!info) : '';
+    const editing = form?.field === f.id ? seriesFormHtml(b, form, seriesTargets(b, form), !!info) : '';
     return `<div class="wfield-row" data-field="${f.id}"><input class="in wfield" data-field="${f.id}" value="${esc(label)}" placeholder="${esc(labelHint)}" spellcheck="false" autocomplete="off" />${amountBox}${remove}</div><div class="we-suggest"></div>${editing}`;
   }).join('');
   const groupIds = new Set(keys.map(k => b.wells[k] ?? ''));
@@ -3007,7 +3024,7 @@ wellEditor.addEventListener('click', e => {
     const lineUnit = lines.map(line => line.unit).find(Boolean) ?? '';
     const typedAmounts = new Set(lines.map(line => String(line.amt ?? '').trim()).filter(Boolean));
     const fromAmount = !series && typedAmounts.size === 1 ? [...typedAmounts][0] : '';
-    seriesForms.set(b.id, { field: fieldId, fromAmount: !!fromAmount, mode: series?.list ? 'list' : 'step', start: series?.start ?? fromAmount, unit: series?.unit ?? lineUnit, fold: series?.fold ?? '', op: series?.op ?? 'divide', list: series?.list?.join(', ') ?? '', dir: series?.dir ?? 'right' });
+    seriesForms.set(b.id, { field: fieldId, series: existing?.s, fromAmount: !!fromAmount, mode: series?.list ? 'list' : 'step', start: series?.start ?? fromAmount, unit: series?.unit ?? lineUnit, fold: series?.fold ?? '', op: series?.op ?? 'divide', list: series?.list?.join(', ') ?? '', dir: series?.dir ?? 'right' });
     drawWellEditor();
     wellEditor.querySelector(fromAmount ? '.sv-fold' : '.sv-start, .sv-list')?.focus();
   };
@@ -3118,9 +3135,9 @@ window.addEventListener('resize', placeWellEditor);
 
 function applySeries(b) {
   const form = seriesForms.get(b.id);
-  const keys = [...vesselSel(b).set];
+  const keys = seriesTargets(b, form);
   const steps = seriesSteps(keys, form.dir);
-  const id = uid();
+  const id = form.series ?? uid();
   b.series[id] = form.mode === 'list' ? { list: splitList(form.list), dir: form.dir } : { start: form.start.trim(), unit: form.unit, fold: form.fold.trim(), op: form.op, dir: form.dir };
   keys.forEach(key => {
     b.cells[key] ??= {};
@@ -3408,6 +3425,8 @@ const pendingDuplicates = new Map();
 const removedMaterials = new Map();
 const valueEdits = new Map();
 const removedValues = new Map();
+const amountSignatures = new Map();
+const amountSignature = amounts => amounts.map(amount => `${amount.id}|${amount.name}|${amount.section}`).join('\n');
 const VALUE_UNIT_LABELS = { '': 'none', 'x': 'fold ×', '1:N': 'dilution 1:N', 'N:N': 'ratio N:N' };
 const VALUE_UNIT_WORDS = [
   [/^(?:%|percent)$/i, '%'], [/^(?:x|×|fold)$/i, 'x'],
@@ -4449,8 +4468,10 @@ const TYPES = {
         const valueCell = `<td class="vcell vval-cell editable${isEditing('value') ? ' editing' : ''}" data-cell="value">${isEditing('value') ? valueControl(linked ?? it, linked?.units) : '<span class="vv"></span>'}</td>`;
         return `<tr class="vrow" data-item="${it.id}" data-pick="${esc(valueName(b, it))}">${nameCell}${valueCell}<td class="vrm"><button class="ghost-danger" data-act="del">Remove</button></td></tr>`;
       };
+      const amounts = valueAmounts(b);
+      amountSignatures.set(b.id, amountSignature(amounts));
       const rowsOf = sectionId => {
-        const rows = sectionPeers(b, sectionId).map(rowHtml);
+        const rows = [...amounts.filter(amount => amount.section === sectionId).map(amount => plateAmountRow(b, amount, editing)), ...sectionPeers(b, sectionId).map(rowHtml)];
         if (removed?.item && (removed.item.section ?? '') === sectionId) rows.splice(Math.min(removed.index, rows.length), 0, ghost(`Removed ${esc(removed.label)}`));
         return rows.join('');
       };
@@ -4468,14 +4489,39 @@ const TYPES = {
         const suggestions = valueSuggestions(b, sec);
         const suggest = suggestions.length ? `<tr class="vsugg-row"><td colspan="3"><span class="vsugg">Often added:${suggestions.map((sg, i) => `<button class="lnk" data-suggest="${i}">${esc(sg.label)}</button>`).join('')}</span></td></tr>` : '';
         const isEmpty = !counts && !sectionPeers(b, sec.id).length;
-        return `<tbody data-section="${sec.id}"${isEmpty ? ' class="empty"' : ''}>${head(title, kind, '<button class="ghost-danger" data-act="del-section">Remove</button>')}${counts}${rowsOf(sec.id)}${adder(sec.id, `Add to ${sectionName(sec) || 'this mix'}`)}${suggest}</tbody>`;
+        const unusedTag = found ? `<span class="vsec-unused" data-of="${found.item.id}"></span>` : '';
+        return `<tbody data-section="${sec.id}"${isEmpty ? ' class="empty"' : ''}>${head(`${title}${unusedTag}`, kind, '<button class="ghost-danger" data-act="del-section">Remove</button>')}${counts}${rowsOf(sec.id)}${adder(sec.id, `Add to ${sectionName(sec) || 'this mix'}`)}${suggest}</tbody>`;
       });
       if (removed?.section) sections.splice(Math.min(removed.index, sections.length), 0, `<tbody>${ghost(`Removed ${esc(removed.label)}`)}</tbody>`);
       const more = `<div class="vmore"><select class="in vfor"><option value="">+ Values for…</option>${valueSectionChoices(b)}<option value="mix">A mix or cocktail</option></select></div>`;
       body.innerHTML = `<table class="vtable">${general}${sections.join('')}</table>${more}`;
     },
     update(b, body) {
-      const usage = itemUsage(b, b.items.map(it => valueUsageId(b, it)));
+      const amounts = valueAmounts(b);
+      if (amountSignature(amounts) !== amountSignatures.get(b.id) && !body.contains(document.activeElement)) {
+        renderBlock(b);
+        return;
+      }
+      const usage = itemUsage(b, [...b.items.map(it => valueUsageId(b, it)), ...amounts.map(amount => amount.id)]);
+      const onPlates = new Set(plateLabels().map(label => normKey(label.text)));
+      const tags = [...body.querySelectorAll('.vsec-unused')];
+      const materialUsage = itemUsage(b, tags.map(tag => tag.dataset.of));
+      tags.forEach(tag => {
+        const name = materialById(tag.dataset.of)?.item.name ?? '';
+        const used = onPlates.has(normKey(name)) || usageSummary(materialUsage.get(tag.dataset.of));
+        tag.textContent = used ? '' : 'not used yet';
+        tag.title = used ? '' : `${name} isn't on a plate or in any step or formula yet`;
+      });
+      for (const amount of amounts) {
+        const row = body.querySelector(`tr[data-item="${CSS.escape(`amount:${amount.id}`)}"]`);
+        if (!row) continue;
+        const vv = row.querySelector('.vv');
+        if (vv) vv.textContent = displayOf(amount, amount.value);
+        const use = row.querySelector('.vuse');
+        const summary = usageSummary(usage.get(amount.id));
+        if (use) use.textContent = summary ? '' : 'unused';
+        row.title = `${amount.name}: set on ${blockTitle(amount.plate)}${summary ? `, used in ${summary}` : ''}. Edit it here or on the plate.`;
+      }
       for (const it of b.items) {
         const row = body.querySelector(`tr[data-item="${it.id}"]`);
         if (!row) continue;
@@ -4517,6 +4563,10 @@ const TYPES = {
         return;
       }
       const plateRow = el.closest('[data-plate]');
+      if (plateRow?.dataset.amount) {
+        editPlateAmount(b, byId(plateRow.dataset.plate), plateRow.dataset.amount, el);
+        return;
+      }
       if (plateRow) {
         editPlateCount(byId(plateRow.dataset.plate), plateRow.dataset.group, el);
         return;
@@ -4579,6 +4629,11 @@ const TYPES = {
       if (act === 'del-label') {
         const row = e.target.closest('[data-plate]');
         removePlateLabel(byId(row.dataset.plate), row.dataset.group);
+        return;
+      }
+      if (act === 'del-amount') {
+        const row = e.target.closest('[data-amount]');
+        removePlateAmount(byId(row.dataset.plate), row.dataset.amount);
         return;
       }
       if (act === 'del' && it) {
@@ -5319,6 +5374,150 @@ function plateValueRows(plate, editing) {
   return groups.map(({ g, ...tally }) => row(g.id, groupName(plate, g), tally, true, true)).join('') + row('used', `${plural[0].toUpperCase()}${plural.slice(1)} used`, used, false, false);
 }
 
+const CONCENTRATION_DIMS = new Set(['mass:1|vol:-1', 'mol:1|vol:-1', 'cell:1|vol:-1']);
+const PER_VESSEL_DIMS = { 'vol:1': 'volume per', 'cell:1': 'per', 'mass:1': 'per' };
+const startsWithNumber = text => /^\s*[-+]?\.?\d/.test(String(text ?? ''));
+
+function amountNoun(unit, vesselNoun) {
+  if (unit === 'N:N') return 'ratio';
+  const dim = dimKey((UNITS[unit] ?? UNITS['']).d);
+  if (CONCENTRATION_DIMS.has(dim)) return 'concentration';
+  return PER_VESSEL_DIMS[dim] ? `${PER_VESSEL_DIMS[dim]} ${vesselNoun}` : 'amount';
+}
+
+function plateAmounts(b) {
+  const entries = [];
+  const add = (key, auto, fields) => entries.push({ key, id: `${b.id}:${key}`, auto, name: b.amountNames?.[key]?.trim() || auto, ...fields });
+  const subjectOf = (f, cell) => (cell.v ? f.values.find(x => x.id === cell.v)?.text.trim() ?? '' : '');
+  const sameAmount = cells => new Set(cells.map(c => `${c.amt}|${c.unit}`)).size === 1;
+  for (const f of b.fields) {
+    const plain = new Map();
+    const series = new Map();
+    for (const [key, cells] of Object.entries(b.cells)) {
+      const cell = cells[f.id];
+      const subject = cell && subjectOf(f, cell);
+      if (!subject) continue;
+      if (isSeriesCell(cell)) {
+        if (!series.has(cell.s)) series.set(cell.s, { subject, keys: [], steps: new Set() });
+        series.get(cell.s).keys.push(key);
+        series.get(cell.s).steps.add(cell.step);
+      } else if (String(cell.amt ?? '').trim()) {
+        const unit = cell.unit ?? '';
+        const noun = amountNoun(unit, VESSELS[vesselTypeOf(b, key)].noun);
+        const group = `${normKey(subject)}-${normKey(noun)}`;
+        if (!plain.has(group)) plain.set(group, { subject, noun, cells: [] });
+        plain.get(group).cells.push({ key, amt: String(cell.amt).trim(), unit });
+      }
+    }
+    for (const [group, { subject, noun, cells }] of plain) {
+      const base = `a:${f.id}:${group}`;
+      const amount = list => ({ kind: 'amount', subject, field: f.id, keys: list.map(c => c.key), value: list[0].amt, raw: list[0].amt, unit: list[0].unit });
+      if (sameAmount(cells)) {
+        add(base, `${subject} ${noun}`, amount(cells));
+        continue;
+      }
+      for (const g of b.groups) {
+        const inGroup = cells.filter(c => b.wells[c.key] === g.id);
+        if (inGroup.length && sameAmount(inGroup)) add(`${base}:${g.id}`, `${subject} ${noun} in ${groupName(b, g)}`, amount(inGroup));
+      }
+    }
+    const runs = [...series.entries()].filter(([sid]) => b.series[sid] && !b.series[sid].list);
+    for (const [sid, { subject, keys, steps }] of runs) {
+      const s = b.series[sid];
+      const twins = runs.filter(([, run]) => normKey(run.subject) === normKey(subject));
+      const colors = new Set(keys.map(key => b.wells[key]));
+      const color = colors.size === 1 ? b.groups.find(g => g.id === [...colors][0]) : null;
+      const tag = twins.length < 2 ? '' : color ? ` in ${groupName(b, color)}` : ` ${twins.findIndex(([id]) => id === sid) + 1}`;
+      const start = s.unit === '1:N' ? 'dilution' : 'dose';
+      if (startsWithNumber(s.start)) add(`s:${sid}:start`, `${subject} ${s.op === 'times' ? 'lowest' : 'top'} ${start}${tag}`, { kind: 'start', subject, series: sid, value: String(s.start).trim(), raw: String(s.start).trim(), unit: s.unit ?? '' });
+      if (startsWithNumber(s.fold)) add(`s:${sid}:fold`, `${subject} fold${tag}`, { kind: 'fold', subject, series: sid, value: String(foldOf(s.fold)), raw: String(s.fold).trim(), unit: 'x' });
+      add(`s:${sid}:points`, `${subject} points${tag}`, { kind: 'points', subject, value: String(steps.size), raw: String(steps.size), unit: '' });
+    }
+  }
+  return entries;
+}
+
+function amountSection(b, plate, amount) {
+  const bySubject = b.sections.find(sec => sec.of && normKey(sectionName(sec)) === normKey(amount.subject));
+  if (bySubject) return bySubject.id;
+  const byPlate = b.sections.find(sec => {
+    const found = sec.of && materialById(sec.of);
+    return found?.item.type === 'Plate' && plateFor(found.item) === plate;
+  });
+  return byPlate?.id ?? '';
+}
+
+function valueAmounts(b) {
+  if (b !== state.blocks.find(x => x.type === 'values')) return [];
+  return state.blocks.filter(x => x.type === 'plate').flatMap(plate => plateAmounts(plate).map(amount => ({ ...amount, plate, section: amountSection(b, plate, amount) })));
+}
+
+function amountLabel(b, amount) {
+  const sec = b.sections.find(x => x.id === amount.section);
+  const owner = sec ? sectionName(sec) : '';
+  return owner && amount.name.toLowerCase().startsWith(`${owner.toLowerCase()} `) ? capitalize(amount.name.slice(owner.length + 1)) : amount.name;
+}
+
+function plateAmountRow(b, amount, editing) {
+  const id = `amount:${amount.id}`;
+  const isEditing = cell => editing?.item === id && editing.key === cell;
+  const label = amountLabel(b, amount);
+  const editable = amount.kind !== 'points';
+  const unit = amount.unit && amount.unit !== 'x' ? `<span class="pre">${esc(amount.unit)}</span>` : '';
+  const name = `<td class="vcell vname-cell editable${isEditing('name') ? ' editing' : ''}" data-cell="name">${isEditing('name') ? `<input class="in vname" value="${esc(label)}" placeholder="${esc(amountLabel(b, { ...amount, name: amount.auto }))}" spellcheck="false" />` : `${esc(label)}<span class="vlink">on the plate</span><span class="vuse"></span>`}</td>`;
+  const value = `<td class="vcell vval-cell${editable ? ' editable' : ''}${isEditing('value') ? ' editing' : ''}" data-cell="value">${isEditing('value') ? `<input class="in vval mono" value="${esc(amount.raw)}" />${unit}` : '<span class="vv"></span>'}</td>`;
+  return `<tr class="vrow" data-item="${esc(id)}" data-plate="${amount.plate.id}" data-amount="${esc(amount.key)}" data-pick="${esc(amount.name)}">${name}${value}<td class="vrm"><button class="ghost-danger" data-act="del-amount">Remove</button></td></tr>`;
+}
+
+function editPlateAmount(b, plate, key, el) {
+  const amount = plateAmounts(plate).find(x => x.key === key);
+  if (!amount) return;
+  if (el.matches('.vname')) {
+    const sec = b.sections.find(x => x.id === el.closest('tbody').dataset.section);
+    const typed = el.value.trim();
+    const full = typed && joinName(sec ? sectionName(sec) : '', typed);
+    plate.amountNames ??= {};
+    if (full && full !== amount.auto) plate.amountNames[key] = full;
+    else delete plate.amountNames[key];
+  } else if (amount.kind === 'amount') amount.keys.forEach(k => { plate.cells[k][amount.field].amt = el.value.trim(); });
+  else plate.series[amount.series][amount.kind] = el.value.trim();
+  renderBlock(plate);
+  save();
+  refresh();
+}
+
+function removePlateAmount(plate, key) {
+  const amount = plateAmounts(plate).find(x => x.key === key);
+  if (!amount) return;
+  const plural = vesselWords(plate).plural;
+  if (amount.kind === 'amount') {
+    if (!confirm(`Remove ${displayOf(amount, amount.value)} of ${amount.subject} from its ${amount.keys.length} ${plural}?`)) return;
+    amount.keys.forEach(k => { delete plate.cells[k][amount.field].amt; });
+  } else {
+    const keys = Object.keys(plate.cells).filter(k => Object.values(plate.cells[k]).some(cell => cell.s === amount.series));
+    if (!confirm(`Remove the ${amount.subject} dilution from its ${keys.length} ${plural}? Their amounts are cleared; the ${amount.subject} label stays.`)) return;
+    keys.forEach(k => Object.values(plate.cells[k]).filter(cell => cell.s === amount.series).forEach(cell => { delete cell.s; delete cell.step; }));
+    pruneSeries(plate);
+  }
+  renderBlock(plate);
+  save();
+  refresh();
+}
+
+function replaceTypedTwins() {
+  for (const plate of state.blocks.filter(b => b.type === 'plate')) {
+    for (const amount of plateAmounts(plate)) {
+      if (knownNames.get(amount.id) === amount.name) continue;
+      for (const vb of state.blocks.filter(b => b.type === 'values')) {
+        const twins = vb.items.filter(it => !it.link && valueName(vb, it).trim().toLowerCase() === amount.name.toLowerCase());
+        if (!twins.length) continue;
+        vb.items = vb.items.filter(it => !twins.includes(it));
+        renderBlock(vb);
+      }
+    }
+  }
+}
+
 function editPlateCount(plate, key, el) {
   if (el.matches('.vname')) plate.groups.find(g => g.id === key).label = el.value;
   else {
@@ -5535,13 +5734,17 @@ function removeBlock(b) {
 }
 
 const knownNames = new Map();
+const knownLabels = new Map();
 
 function carryRenames() {
   const previous = [...new Set(knownNames.values())].sort((a, b) => b.length - a.length);
   const renamed = new Map();
+  const renamedItems = new Map();
   for (const e of calc.names.values()) {
     const old = knownNames.get(e.id);
-    if (old && old.toLowerCase() !== e.name.toLowerCase() && !calc.names.has(old.toLowerCase())) renamed.set(old.toLowerCase(), e.name);
+    if (!old || old.toLowerCase() === e.name.toLowerCase() || calc.names.has(old.toLowerCase())) continue;
+    renamed.set(old.toLowerCase(), e.name);
+    if (e.kind === 'item') renamedItems.set(`${old.toLowerCase()} `, e.name);
   }
   if (!renamed.size) return false;
   const isWordChar = c => /[A-Za-z0-9_µ°]/.test(c ?? '');
@@ -5556,7 +5759,16 @@ function carryRenames() {
     }
     return out;
   };
-  state.blocks.filter(b => b.type === 'formula').forEach(b => b.items.forEach(it => { it.expr = rewrite(String(it.expr ?? '')); }));
+  state.blocks.filter(b => b.type === 'formula').forEach(b => b.items.forEach(it => {
+    it.expr = rewrite(String(it.expr ?? ''));
+    const owner = [...renamedItems.keys()].find(prefix => it.name.toLowerCase().startsWith(prefix));
+    if (owner) it.name = `${renamedItems.get(owner)} ${it.name.slice(owner.length)}`;
+  }));
+  state.blocks.filter(b => b.type === 'plate').forEach(b => b.fields.forEach(f => {
+    if (renamed.has(f.name.trim().toLowerCase())) f.name = renamed.get(f.name.trim().toLowerCase());
+    f.values.forEach(value => { if (renamed.has(value.text.trim().toLowerCase())) value.text = renamed.get(value.text.trim().toLowerCase()); });
+  }));
+  state.blocks.filter(b => b.type === 'plate').forEach(b => b.groups.forEach(g => { if (renamed.has(g.label.trim().toLowerCase())) g.label = renamed.get(g.label.trim().toLowerCase()); }));
   state.blocks.filter(b => b.type === 'plate').forEach(b => Object.values(b.series).forEach(series => {
     for (const part of ['start', 'fold']) if (renamed.has(String(series[part]).trim().toLowerCase())) series[part] = renamed.get(String(series[part]).trim().toLowerCase());
   }));
@@ -5564,13 +5776,39 @@ function carryRenames() {
   return true;
 }
 
+function plateLabels() {
+  return state.blocks.filter(b => b.type === 'plate').flatMap(b => [...b.fields.flatMap(f => f.values), ...b.groups.map(g => ({ id: g.id, text: g.label }))]);
+}
+
+function renameMaterialsAfterLabels() {
+  const materials = state.blocks.filter(b => b.type === 'materials').flatMap(b => b.items.map(item => ({ b, item })));
+  const named = text => materials.find(({ item }) => item.name.trim().toLowerCase() === text.trim().toLowerCase());
+  const touched = new Set();
+  for (const label of plateLabels()) {
+    const old = knownLabels.get(label.id);
+    if (!old || old === label.text || !label.text.trim() || named(label.text)) continue;
+    const match = named(old);
+    if (!match) continue;
+    match.item.name = label.text.trim();
+    touched.add(match.b);
+  }
+  touched.forEach(renderBlock);
+}
+
 function refresh() {
+  renameMaterialsAfterLabels();
+  replaceTypedTwins();
   recompute();
-  if (carryRenames()) {
+  let carried = 0;
+  while (carried < 3 && carryRenames()) {
     recompute();
-    state.blocks.filter(b => ['formula', 'steps', 'flow'].includes(b.type) && !bodyOf(b)?.contains(document.activeElement)).forEach(renderBlock);
+    carried++;
+  }
+  if (carried) {
+    state.blocks.filter(b => ['formula', 'steps', 'flow', 'plate', 'values'].includes(b.type) && !bodyOf(b)?.contains(document.activeElement)).forEach(renderBlock);
   }
   for (const e of calc.names.values()) knownNames.set(e.id, e.name);
+  for (const label of plateLabels()) knownLabels.set(label.id, label.text);
   state.blocks.forEach(b => TYPES[b.type].update?.(b, bodyOf(b)));
 }
 
