@@ -152,8 +152,9 @@
   .vtable tr.vghost td { padding-top: 6px; padding-bottom: 6px; font-size: 13px; font-style: italic; color: hsl(var(--muted-foreground)); }
   .vtable tr.vghost .lnk { font-style: normal; }
   .vtable tr.vsec, .vtable tr.vadd-row { background: none !important; box-shadow: none !important; }
-  .vtable tr.vsec th { padding: 22px 10px 8px 0; text-align: left; font-weight: 400; }
-  .vtable tbody:first-child tr.vsec th { padding-top: 4px; }
+  .vgrid, .vmore { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); column-gap: 32px; }
+  .vgrid { row-gap: 22px; align-items: start; }
+  .vtable tr.vsec th { padding: 4px 10px 8px 0; text-align: left; font-weight: 400; }
   .vtable tr.vsec .msec-count { margin-left: 8px; }
   .vsec-unused { margin-left: 8px; font-size: 12px; font-style: italic; color: hsl(var(--amber) / .85); }
   .vtable tr.vadd-row td { padding: 2px 0 0; }
@@ -1990,14 +1991,14 @@ function exampleCytotox() {
         plate,
         material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
       ]),
-      { id: uid(), type: 'values', title: 'Values', x: 0, y: 27, w: 4, h: 27, sections: [onPlate, onTargets, onEffectors, onDrug], items: [
+      { id: uid(), type: 'values', title: 'Values', x: 0, y: 27, w: 12, h: 10, sections: [onPlate, onTargets, onEffectors, onDrug], items: [
         v('Replicates', '3'), v('Overage', '10', '%'),
         t('Per well', '10000', 'cells'), t('Volume per well', '50', 'µL'), link(onTargets, 'count'), link(onTargets, 'viability'),
         e('E:T', '5:1', 'N:N'), e('Volume per well', '100', 'µL'), link(onEffectors, 'count'), link(onEffectors, 'viability'),
         link(onDrug, 'stock-concentration'), d('Volume per well', '50', 'µL'),
       ] },
       { id: uid(), type: 'plate', title: 'Vessel map', x: 0, y: 12, w: 12, h: 15, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }), fields: [cellsField, drugField], cells: plateCells, series: { [seriesId]: { start: '10', unit: 'µM', fold: '3', op: 'divide' } }, names: ['Killing plate'] },
-      { id: uid(), type: 'formula', title: 'Calculations', x: 4, y: 27, w: 8, h: 12, items: [
+      { id: uid(), type: 'formula', title: 'Calculations', x: 0, y: 37, w: 6, h: 16, items: [
         f('Target wells', 'Compound X wells + T cells only wells + Targets only wells'),
         f('Effector wells', 'Compound X wells + T cells only wells'),
         f('Well volume', 'Raji-Luc volume per well + T cells volume per well + Compound X volume per well', 'µL'),
@@ -2015,8 +2016,8 @@ function exampleCytotox() {
         f('Compound X top tube', 'Compound X per point + Compound X transfer', 'µL'),
         f('Compound X stock to add', 'Compound X top tube × Compound X top working ÷ Compound X stock concentration', 'µL'),
       ] },
-      { id: uid(), type: 'steps', title: 'Steps', x: 4, y: 39, w: 8, h: 15 },
-      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 54, w: 12, h: 8 },
+      { id: uid(), type: 'steps', title: 'Steps', x: 6, y: 37, w: 6, h: 16 },
+      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 53, w: 12, h: 8 },
     ],
   };
 }
@@ -4494,8 +4495,9 @@ const TYPES = {
       });
       if (removed?.section) sections.splice(Math.min(removed.index, sections.length), 0, `<tbody>${ghost(`Removed ${esc(removed.label)}`)}</tbody>`);
       const more = `<div class="vmore"><select class="in vfor"><option value="">+ Values for…</option>${valueSectionChoices(b)}<option value="mix">A mix or cocktail</option></select></div>`;
-      body.innerHTML = `<table class="vtable">${general}${sections.join('')}</table>${more}`;
+      body.innerHTML = `<div class="vgrid">${[general, ...sections].map(group => `<table class="vtable">${group}</table>`).join('')}</div>${more}`;
     },
+    fit: fitCardHeight,
     update(b, body) {
       const amounts = valueAmounts(b);
       if (amountSignature(amounts) !== amountSignatures.get(b.id) && !body.contains(document.activeElement)) {
