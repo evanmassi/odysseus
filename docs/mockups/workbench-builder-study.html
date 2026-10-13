@@ -185,15 +185,23 @@
   .fexpr { flex: 1; }
   .fwork { margin-top: 3px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; color: hsl(var(--muted-foreground)); }
   .fwork:empty { display: none; }
+  .frow .fwork { padding-left: 14px; }
   .fedit .fwork { margin-top: 6px; }
   .res { color: hsl(var(--fg)); font-weight: 600; }
   .ok { color: hsl(var(--muted-foreground)); font-size: 12px; margin-left: 8px; font-family: 'Hanken Grotesk', sans-serif; white-space: nowrap; }
   .err { color: hsl(var(--red)); font-family: 'Hanken Grotesk', sans-serif; font-size: 12.5px; }
   .mk { margin-left: 8px; background: none; border: 1px dashed hsl(var(--amber) / .6); color: hsl(var(--amber)); font-size: 12px; padding: 1px 8px; cursor: pointer; font-family: 'Hanken Grotesk', sans-serif; }
   .r-value, .r-formula, .r-plate, .r-item { color: hsl(var(--fg)); }
-  .fhead { display: flex; align-items: baseline; gap: 10px; }
+  .fhead { display: flex; align-items: center; gap: 10px; }
   .fname-ro { font-size: 14px; font-weight: 600; }
-  .fres { margin-left: auto; font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg)); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .fres { font-family: 'JetBrains Mono', monospace; color: hsl(var(--fg)); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .fsec-head { padding: 4px 0 8px; }
+  .fterms { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 8px; margin-top: 5px; }
+  .ft { display: inline-grid; justify-items: center; row-gap: 2px; font: 12.5px/1.3 'JetBrains Mono', monospace; white-space: nowrap; }
+  .ft-name { font-family: 'Hanken Grotesk', sans-serif; color: hsl(var(--muted-foreground)); }
+  .ft-num { color: hsl(var(--fg)); }
+  .ft.sym { color: hsl(var(--muted-foreground)); }
+  .fans { margin-top: 6px; }
   .fexpr-ro { font-size: 12px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
   .fadd { display: flex; gap: 8px; margin-top: 10px; }
 
@@ -1083,39 +1091,47 @@ function recompute() {
     if (e.kind === 'value') {
       const q = valueQuantity(e.item);
       if (!q) throw new CalcError(`${e.name} has no number yet`);
-      return { q, html: `<span class="r-value${e.dropped ? ' dropped' : ''}">${esc(displayOf(e.item, e.item.value))}</span>` };
+      const html = `<span class="r-value${e.dropped ? ' dropped' : ''}">${esc(displayOf(e.item, e.item.value))}</span>`;
+      return { q, html, terms: [{ name: e.name, html }] };
     }
-    if (e.kind === 'plate') return { q: e.q, html: `<span class="r-plate">${e.display}</span>` };
+    if (e.kind === 'plate') {
+      const html = `<span class="r-plate">${e.display}</span>`;
+      return { q: e.q, html, terms: [{ name: e.name, html }] };
+    }
     if (e.kind === 'item') throw new CalcError(`${e.name} is in ${e.groupTitle}, not a number.${e.hint ? ` Use one of its numbers, like ${e.hint}.` : ''}`);
     const r = evaluate(e.item);
     if (r.error) throw new CalcError(r.cycle ? r.error : `Needs ${e.name}, which can't be worked out yet`, { cycle: r.cycle });
-    return { q: r.q, html: `<span class="r-formula">${esc(r.out.error ? autoText(r.q) : r.out.text)}</span>` };
+    const html = `<span class="r-formula">${esc(r.out.error ? autoText(r.q) : r.out.text)}</span>`;
+    return { q: r.q, html, terms: [{ name: e.name, html }] };
   };
+  const symbol = text => ({ symbol: text });
 
   const run = n => {
     if (n.k === 'num') {
       const u = UNITS[n.unit];
-      return { q: { v: n.v * u.f, d: u.d }, html: esc(fmt(n.v) + (n.unit ? ` ${n.unit}` : '')) };
+      const literal = fmt(n.v) + (n.unit ? ` ${n.unit}` : '');
+      return { q: { v: n.v * u.f, d: u.d }, html: esc(literal), terms: [{ literal }] };
     }
     if (n.k === 'ref') return resolve(n.name);
-    if (n.k === 'par') { const a = run(n.a); return { q: a.q, html: `(${a.html})` }; }
-    if (n.k === 'neg') { const a = run(n.a); return { q: { v: -a.q.v, d: a.q.d }, html: `−${a.html}` }; }
+    if (n.k === 'par') { const a = run(n.a); return { q: a.q, html: `(${a.html})`, terms: [symbol('('), ...a.terms, symbol(')')] }; }
+    if (n.k === 'neg') { const a = run(n.a); return { q: { v: -a.q.v, d: a.q.d }, html: `−${a.html}`, terms: [symbol('−'), ...a.terms] }; }
     if (n.k === 'fn') {
       const a = run(n.a);
       if (!['', 'cell:1'].includes(dimKey(a.q.d))) throw new CalcError(`${n.name}() rounds counts, not a ${dimWords(a.q.d)}`);
-      return { q: { v: Math[n.name](a.q.v), d: a.q.d }, html: `${n.name}(${a.html})` };
+      return { q: { v: Math[n.name](a.q.v), d: a.q.d }, html: `${n.name}(${a.html})`, terms: [symbol(`${n.name}(`), ...a.terms, symbol(')')] };
     }
     const a = run(n.a);
     const b = run(n.b);
     const html = `${a.html} ${SYM[n.op]} ${b.html}`;
+    const terms = [...a.terms, symbol(SYM[n.op]), ...b.terms];
     if (n.op === '+' || n.op === '-') {
       if (dimKey(a.q.d) !== dimKey(b.q.d)) {
         throw new CalcError(n.op === '+' ? `Can't add a ${dimWords(b.q.d)} to a ${dimWords(a.q.d)}` : `Can't subtract a ${dimWords(b.q.d)} from a ${dimWords(a.q.d)}`);
       }
-      return { q: { v: n.op === '+' ? a.q.v + b.q.v : a.q.v - b.q.v, d: a.q.d }, html };
+      return { q: { v: n.op === '+' ? a.q.v + b.q.v : a.q.v - b.q.v, d: a.q.d }, html, terms };
     }
     if (n.op === '/' && b.q.v === 0) throw new CalcError('Divides by zero');
-    return { q: { v: n.op === '*' ? a.q.v * b.q.v : a.q.v / b.q.v, d: combine(a.q.d, b.q.d, n.op === '*' ? 1 : -1) }, html };
+    return { q: { v: n.op === '*' ? a.q.v * b.q.v : a.q.v / b.q.v, d: combine(a.q.d, b.q.d, n.op === '*' ? 1 : -1) }, html, terms };
   };
 
   const evaluate = it => {
@@ -1132,8 +1148,8 @@ function recompute() {
         r = { empty: true, error: 'Type a formula using the names on this board' };
       } else {
         const tree = parse(tokenize(it.expr, nameList));
-        const { q, html } = run(tree);
-        r = { q, html, showWork: !['num', 'ref'].includes(tree.k), out: formatIn(q, it.unit) };
+        const { q, html, terms } = run(tree);
+        r = { q, html, terms, showWork: !['num', 'ref'].includes(tree.k), out: formatIn(q, it.unit) };
       }
     } catch (e) {
       if (!(e instanceof CalcError)) throw e;
@@ -1998,7 +2014,7 @@ function exampleCytotox() {
         link(onDrug, 'stock-concentration'), d('Volume per well', '50', 'µL'),
       ] },
       { id: uid(), type: 'plate', title: 'Vessel map', x: 0, y: 12, w: 12, h: 15, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }), fields: [cellsField, drugField], cells: plateCells, series: { [seriesId]: { start: '10', unit: 'µM', fold: '3', op: 'divide' } }, names: ['Killing plate'] },
-      { id: uid(), type: 'formula', title: 'Calculations', x: 0, y: 37, w: 6, h: 16, items: [
+      { id: uid(), type: 'formula', title: 'Calculations', x: 0, y: 37, w: 12, h: 12, items: [
         f('Target wells', 'Compound X wells + T cells only wells + Targets only wells'),
         f('Effector wells', 'Compound X wells + T cells only wells'),
         f('Well volume', 'Raji-Luc volume per well + T cells volume per well + Compound X volume per well', 'µL'),
@@ -2016,8 +2032,8 @@ function exampleCytotox() {
         f('Compound X top tube', 'Compound X per point + Compound X transfer', 'µL'),
         f('Compound X stock to add', 'Compound X top tube × Compound X top working ÷ Compound X stock concentration', 'µL'),
       ] },
-      { id: uid(), type: 'steps', title: 'Steps', x: 6, y: 37, w: 6, h: 16 },
-      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 53, w: 12, h: 8 },
+      { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 49, w: 8, h: 15 },
+      { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 64, w: 12, h: 8 },
     ],
   };
 }
@@ -4717,18 +4733,27 @@ const TYPES = {
     make: () => ({ items: [] }),
     render(b, body) {
       const open = openRows.get(b.id);
-      body.innerHTML = `<div class="flist">${b.items.map(it => {
-        if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(it.name) || '<span class="hint">Unnamed</span>'}</span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
+      const rowHtml = it => {
+        if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(nameWithin(it.name, formulaMaterial(it.name))) || '<span class="hint">Unnamed</span>'}</span><span class="msec-line"></span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
         const tools = '<div class="ftools"><button class="lnk" data-act="del">Remove</button><button class="lnk" data-act="close">Done</button></div>';
         return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${unitOptions(FORMULA_UNITS, it.unit, u => (u === '' ? 'number' : u === 'x' ? 'fold ×' : u))}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
-      }).join('')}</div>${`<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
+      };
+      const groups = new Map([[null, []], ...boardMaterials().map(item => [item, []])]);
+      b.items.forEach(it => groups.get(formulaMaterial(it.name)).push(it));
+      const filled = [...groups].filter(([, items]) => items.length);
+      const titled = filled.length > 1 || filled[0]?.[0];
+      const sections = filled.map(([material, items]) => {
+        const head = !titled ? '' : material ? `<div class="fsec-head"><span class="msec-title">${esc(material.name.trim())}</span><span class="msec-count">${esc(material.type)}</span></div>` : '<div class="fsec-head"><span class="msec-title">Whole experiment</span></div>';
+        return `<div>${head}<div class="flist">${items.map(rowHtml).join('')}</div></div>`;
+      });
+      body.innerHTML = `<div class="vgrid">${sections.join('')}</div>${`<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
     },
     update(b, body) {
       for (const it of b.items) {
         const row = body.querySelector(`[data-item="${it.id}"]`);
         if (!row) continue;
         const r = calc.results.get(it.id);
-        row.querySelector('[data-work]').innerHTML = workHtml(r, row.matches('.frow'));
+        row.querySelector('[data-work]').innerHTML = workHtml(r, row.matches('.frow'), formulaMaterial(it.name));
         row.querySelector('.fname')?.classList.toggle('bad', calc.dupes.has(it.id));
         const res = row.querySelector('[data-res]');
         if (res) res.textContent = r && !r.error && !r.out.error ? r.out.text : '?';
@@ -4755,6 +4780,7 @@ const TYPES = {
       save();
       refresh();
     },
+    fit: fitCardHeight,
     onClick(b, e) {
       if (e.target.matches('.mk')) { addValueNamed(e.target.dataset.name); return; }
       const act = e.target.closest('[data-act]')?.dataset.act;
@@ -5201,14 +5227,38 @@ const TYPES = {
   },
 };
 
-function workHtml(r, compact) {
+function boardMaterials() {
+  return state.blocks.filter(b => b.type === 'materials').flatMap(b => b.items).filter(item => item.name.trim());
+}
+
+function formulaMaterial(name) {
+  const key = name.trim().toLowerCase();
+  return boardMaterials().filter(item => key.startsWith(`${item.name.trim().toLowerCase()} `)).sort((x, y) => y.name.trim().length - x.name.trim().length)[0] ?? null;
+}
+
+function nameWithin(name, material) {
+  const prefix = material ? `${material.name.trim().toLowerCase()} ` : '';
+  const trimmed = name.trim();
+  if (!prefix || !trimmed.toLowerCase().startsWith(prefix)) return trimmed;
+  const rest = trimmed.slice(prefix.length);
+  return rest.charAt(0).toUpperCase() + rest.slice(1);
+}
+
+function termHtml(term, material) {
+  if (term.symbol) return `<span class="ft sym"><span>${esc(term.symbol)}</span><span>${esc(term.symbol)}</span></span>`;
+  if (term.literal) return `<span class="ft"><span class="ft-name">${esc(term.literal)}</span><span class="ft-num">${esc(term.literal)}</span></span>`;
+  return `<span class="ft"><span class="ft-name">${esc(nameWithin(term.name, material))}</span><span class="ft-num">${term.html}</span></span>`;
+}
+
+function workHtml(r, compact, material) {
   if (!r) return '';
   if (r.empty) return `<span class="hint">${esc(r.error)}</span>`;
   if (r.error) return `<span class="err">${esc(r.error)}</span>${r.missing ? `<button class="mk" data-name="${esc(r.missing)}">+ Add ‘${esc(r.missing)}’ as a value</button>` : ''}`;
-  if (compact) return r.out.error ? `<span class="err">${esc(r.out.error)}</span>` : r.showWork ? `= ${r.html}` : '';
-  const work = r.showWork ? `= ${r.html} ` : '';
-  if (r.out.error) return `${work}<br><span class="err">${esc(r.out.error)}</span>`;
-  return `${work}= <span class="res">${esc(r.out.text)}</span><span class="ok">✓ ${dimWords(r.q.d)}</span>`;
+  if (compact && r.out.error) return `<span class="err">${esc(r.out.error)}</span>`;
+  const work = r.showWork ? `<div class="fterms">${r.terms.map(term => termHtml(term, material)).join('')}</div>` : '';
+  if (compact) return work;
+  if (r.out.error) return `${work}<div class="err">${esc(r.out.error)}</div>`;
+  return `${work}<div class="fans">= <span class="res">${esc(r.out.text)}</span><span class="ok">✓ ${dimWords(r.q.d)}</span></div>`;
 }
 
 let editingStepId = null;
