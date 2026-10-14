@@ -158,9 +158,14 @@
   .vtable tr.vsec .msec-count { margin-left: 8px; }
   .vsec-unused { margin-left: 8px; font-size: 12px; font-style: italic; color: hsl(var(--amber) / .85); }
   .vtable tr.vadd-row td { padding: 2px 0 0; }
-  .vtable .vadd { width: 100%; height: 30px; font-size: 14px; border-color: transparent; background: transparent; }
-  .vtable .vadd:hover { border-color: hsl(var(--line-faint)); }
-  .vtable .vadd:focus { border-color: hsl(var(--primary) / .5); background: hsl(var(--input-well)); }
+  .vtable .vadd, .fadd-name { width: 100%; height: 30px; font-size: 14px; border-color: transparent; background: transparent; }
+  .vtable .vadd:hover, .fadd-name:hover { border-color: hsl(var(--line-faint)); }
+  .vtable .vadd:focus, .fadd-name:focus { border-color: hsl(var(--primary) / .5); background: hsl(var(--input-well)); }
+  .fadd-name { margin-top: 2px; }
+  .fsec-head .ghost-danger { float: right; }
+  .fsugg { display: none; padding: 4px 10px 0; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  .fsec.empty .fsugg, .fsec:focus-within .fsugg { display: block; }
+  .fsec-head:hover .ghost-danger { opacity: 1; }
   .vmix-name, .vsec-name { width: auto; field-sizing: content; min-width: 90px; max-width: 75%; height: 26px; padding: 0 4px; font: 600 14px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; border-color: transparent; background: transparent; }
   .vmix-name:hover, .vsec-name:hover { border-color: hsl(var(--line-faint)); }
   .vmix-name:focus, .vsec-name:focus { border-color: hsl(var(--primary) / .5); background: hsl(var(--input-well)); }
@@ -203,7 +208,6 @@
   .ft.sym { color: hsl(var(--muted-foreground)); }
   .fans { margin-top: 6px; }
   .fexpr-ro { font-size: 12px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
-  .fadd { display: flex; gap: 8px; margin-top: 10px; }
 
   .sgroup { margin-bottom: 18px; }
   .sec-head { display: flex; align-items: center; gap: 12px; padding: 4px 4px 8px; margin-bottom: 6px; background: linear-gradient(90deg, hsl(var(--foreground) / .18) 0%, hsl(var(--foreground) / .1) 70%, hsl(var(--foreground) / .05) 100%) bottom / 100% 1px no-repeat; }
@@ -354,6 +358,7 @@
   .msec-head.plain { cursor: default; }
   .aclist { position: fixed; z-index: 9999; max-height: 192px; overflow-y: auto; padding: 4px 0; background: hsl(var(--card)); border: 1px solid hsl(var(--line-mid)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
   .aclist div { padding: 6px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); }
+  .aclist .ac-val { margin-left: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
   .aclist div.on { color: hsl(var(--fg)); background: linear-gradient(90deg, hsl(var(--primary) / .18), transparent); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
   .vpair { width: 56px; }
   .ghost-danger, .ghost-quiet { background: transparent; border: 0; padding: 2px 6px; font: 400 13px/1 'JetBrains Mono', monospace; color: hsl(var(--red)); cursor: pointer; opacity: 0; transition: opacity .12s; }
@@ -600,7 +605,8 @@
   .tray-row { display: flex; gap: 12px; align-items: baseline; padding: 5px 12px; font-size: 13.5px; cursor: pointer; }
   .tray-row:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
   .tray-row .tv { margin-left: auto; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12.5px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
-  .tray-ops { display: flex; gap: 4px; padding: 8px 12px 2px; }
+  .tray-ops { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px 2px; }
+  .tray-ops + .tray-ops { padding-top: 4px; }
   .tray-tip { padding: 7px 12px 8px; font-size: 12px; color: hsl(var(--muted-foreground)); border-top: 1px solid hsl(var(--line-faint)); }
   .tray.on { display: block; }
   .pick { background: none; border: 1px solid hsl(var(--line-mid)); padding: 1px 9px; min-width: 28px; font: 13px 'JetBrains Mono', monospace; color: hsl(var(--fg)); cursor: pointer; }
@@ -674,6 +680,13 @@ const UNITS = {
 };
 const VALUE_UNITS = Object.keys(UNITS);
 const FORMULA_UNITS = ['auto', ...VALUE_UNITS.filter(u => u !== '°C')];
+const FORMULA_FUNCTIONS = {
+  'round up': { round: Math.ceil, hint: 'to a whole number, or to a step: round up(Mix, 5 mL)' },
+  'round down': { round: Math.floor, hint: 'to a whole number, or to a step' },
+  round: { round: Math.round, hint: 'to the nearest whole number, or step' },
+  'at least': { hint: 'never below a minimum: at least(Needed, 100 µL)' },
+};
+const FORMULA_FUNCTION_PATTERN = new RegExp(`^(${Object.keys(FORMULA_FUNCTIONS).sort((a, b) => b.length - a.length).join('|')})\\s*(?=\\()`, 'i');
 const LITERAL_UNITS = VALUE_UNITS.filter(u => u && u !== '1:N' && u !== 'N:N' && u !== 'x').sort((a, b) => b.length - a.length);
 const AUTO_UNITS = {
   'vol:1': ['L', 'mL', 'µL', 'nL'],
@@ -770,7 +783,7 @@ function tokenize(source, names) {
   while (i < s.length) {
     const c = s[i];
     if (/\s/.test(c)) { i++; continue; }
-    if ('+-*/()'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue; }
+    if ('+-*/(),'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue; }
     const rest = s.slice(i);
     const num = /^(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/.exec(rest);
     if (num) {
@@ -782,11 +795,11 @@ function tokenize(source, names) {
       tokens.push({ t: 'num', v: parseFloat(num[0]), unit });
       continue;
     }
-    const fn = /^(ceil|round|floor)\s*(?=\()/i.exec(rest);
-    if (fn) { tokens.push({ t: 'fn', v: fn[1].toLowerCase() }); i += fn[0].length; continue; }
+    const fn = FORMULA_FUNCTION_PATTERN.exec(rest);
+    if (fn) { tokens.push({ t: 'fn', v: fn[1].toLowerCase().replace(/\s+/g, ' ') }); i += fn[0].length; continue; }
     const name = sorted.find(n => rest.slice(0, n.length).toLowerCase() === n.toLowerCase() && !isWordChar(rest[n.length]));
     if (name) { tokens.push({ t: 'name', v: name }); i += name.length; continue; }
-    const unknown = /^[^+\-*/()]+/.exec(rest)[0];
+    const unknown = /^[^+\-*/(),]+/.exec(rest)[0];
     tokens.push({ t: 'unknown', v: unknown.trim() });
     i += unknown.length;
   }
@@ -817,7 +830,14 @@ function parse(tokens) {
     if (t.t === 'num') return { k: 'num', v: t.v, unit: t.unit };
     if (t.t === 'name') return { k: 'ref', name: t.v };
     if (t.t === 'unknown') throw new CalcError(`‘${t.v}’ isn't a value or formula on this board`, { missing: t.v });
-    if (t.t === 'fn') { expect('('); const a = expr(); expect(')'); return { k: 'fn', name: t.v, a }; }
+    if (t.t === 'fn') {
+      expect('(');
+      const args = [expr()];
+      while (isOp(',')) { i++; args.push(expr()); }
+      expect(')');
+      if (t.v === 'at least' ? args.length !== 2 : args.length > 2) throw new CalcError(t.v === 'at least' ? 'at least needs two things: at least(Needed, 100 µL)' : `${t.v} takes a number, or a number and a step: ${t.v}(Mix, 5 mL)`);
+      return { k: 'fn', name: t.v, args };
+    }
     if (t.t === 'op' && t.v === '(') { const a = expr(); expect(')'); return { k: 'par', a }; }
     throw new CalcError(`Unexpected ‘${SYM[t.v] ?? t.v}’`);
   };
@@ -1083,6 +1103,10 @@ function recompute() {
     }
     if (b.type === 'formula') b.items.forEach(it => { formulas.push(it); define(it.name, { kind: 'formula', id: it.id, item: it }); });
   }
+  for (const [material, count] of materialWellCounts()) {
+    const name = `${material.name.trim()} wells`;
+    if (!names.has(name.toLowerCase())) define(name, { kind: 'plate', id: `${material.id}:wells`, q: { v: count, d: {} }, display: String(count) });
+  }
   const nameList = [...names.values()].map(e => e.name);
   const inProgress = [];
 
@@ -1116,9 +1140,15 @@ function recompute() {
     if (n.k === 'par') { const a = run(n.a); return { q: a.q, html: `(${a.html})`, terms: [symbol('('), ...a.terms, symbol(')')] }; }
     if (n.k === 'neg') { const a = run(n.a); return { q: { v: -a.q.v, d: a.q.d }, html: `−${a.html}`, terms: [symbol('−'), ...a.terms] }; }
     if (n.k === 'fn') {
-      const a = run(n.a);
-      if (!['', 'cell:1'].includes(dimKey(a.q.d))) throw new CalcError(`${n.name}() rounds counts, not a ${dimWords(a.q.d)}`);
-      return { q: { v: Math[n.name](a.q.v), d: a.q.d }, html: `${n.name}(${a.html})`, terms: [symbol(`${n.name}(`), ...a.terms, symbol(')')] };
+      const [a, b] = n.args.map(run);
+      const html = `${n.name}(${a.html}${b ? `, ${b.html}` : ''})`;
+      const terms = [symbol(`${n.name}(`), ...a.terms, ...(b ? [symbol(','), ...b.terms] : []), symbol(')')];
+      if (b && dimKey(a.q.d) !== dimKey(b.q.d)) throw new CalcError(n.name === 'at least' ? `at least needs two of the same kind, not a ${dimWords(a.q.d)} and a ${dimWords(b.q.d)}` : `The step has to be a ${dimWords(a.q.d)} too, not a ${dimWords(b.q.d)}`);
+      if (n.name === 'at least') return { q: { v: Math.max(a.q.v, b.q.v), d: a.q.d }, html, terms };
+      const { round } = FORMULA_FUNCTIONS[n.name];
+      if (!b && !['', 'cell:1'].includes(dimKey(a.q.d))) throw new CalcError(`To ${n.name} a ${dimWords(a.q.d)}, give a step: ${n.name}(…, 5 mL)`);
+      if (b && b.q.v <= 0) throw new CalcError(`The step for ${n.name} has to be more than zero`);
+      return { q: { v: b ? round(a.q.v / b.q.v) * b.q.v : round(a.q.v), d: a.q.d }, html, terms };
     }
     const a = run(n.a);
     const b = run(n.b);
@@ -1730,15 +1760,6 @@ function labeledWells(wells, labels) {
 }
 const SKETCH_COLORS = ['#e3dccb', '#8fd3e8', '#f0b35b', '#d97a7a', '#6fbf73'];
 const SKETCH_WIDTH = 1000;
-const FORMULA_LIBRARY = [
-  { label: 'Mix with overage', name: 'Mix volume', expr: 'Wells × Vol per well × (1 + Overage)', unit: 'mL' },
-  { label: 'Dilution, C1V1 = C2V2', name: 'Stock volume', expr: 'Final volume × Final conc ÷ Stock conc', unit: 'µL' },
-  { label: 'Dilution, 1:N', name: 'Stock volume', expr: 'Final volume × Dilution', unit: 'µL' },
-  { label: 'Diluent to add', name: 'Diluent volume', expr: 'Final volume − Stock volume', unit: 'mL' },
-  { label: 'Cells to volume', name: 'Cell suspension', expr: 'Cells per well × Wells ÷ Cell conc', unit: 'µL' },
-  { label: 'Serial dilution transfer', name: 'Transfer volume', expr: 'Diluent per tube ÷ (Fold − 1)', unit: 'µL' },
-  { label: 'Plates needed', name: 'Plates needed', expr: 'ceil(Wells ÷ 96)', unit: 'auto' },
-];
 const roman = n => [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].reduce((s, [v, r]) => { while (n >= v) { s += r; n -= v; } return s; }, '');
 const TODAY_ISO = new Date().toISOString().slice(0, 10);
 const COLUMN_KINDS = ['text', 'number', 'date', 'choice'];
@@ -1970,11 +1991,12 @@ function exampleCytotox() {
   const effectors = material('bio', 'Primary cells', 'T cells', { storage: 'LN2', 'donor-id': 'D-104', 'isolation-method': 'Negative selection', count: '2.5M', viability: '90' });
   const drug = material('chem', 'Drug or inhibitor', 'Compound X', { storage: '−20 °C', 'stock-concentration': ['10', 'mM'], vehicle: 'DMSO' });
   const plate = material('supplies', 'Plate', 'Assay plate', { storage: 'Shelf', vendor: 'Corning', format: '96-well', surface: 'TC-treated', color: 'White', bottom: 'Round' });
+  const readout = material('kits', 'Kit', 'Bright-Glo', { storage: '−20 °C', vendor: 'Promega', catalog: 'E2610' });
   const sectionFor = item => ({ id: uid(), of: item.id });
-  const [onPlate, onTargets, onEffectors, onDrug] = [plate, targets, effectors, drug].map(sectionFor);
+  const [onPlate, onTargets, onEffectors, onDrug, onReadout] = [plate, targets, effectors, drug, readout].map(sectionFor);
   const into = sec => (name, value, unit) => v(name, value, unit, { section: sec.id });
   const link = (sec, key) => ({ id: uid(), section: sec.id, link: key });
-  const [t, e, d] = [onTargets, onEffectors, onDrug].map(into);
+  const [t, e, d, r] = [onTargets, onEffectors, onDrug, onReadout].map(into);
   return {
     title: 'T cell killing assay',
     lotMemory: {},
@@ -1991,9 +2013,9 @@ function exampleCytotox() {
       step('Count {T cells}: {T cells count} at {T cells viability} viable.'),
       step('Take {T cells to take} and bring to {T cells mix} with {Complete RPMI}.'),
       step('Add {T cells volume per well} per well: {T cells per well}, E:T {T cells E:T}.'),
-      step('Incubate 24 h at 37 °C, 5% CO₂.'),
+      step('Incubate {Incubation} at 37 °C, 5% CO₂.'),
       section('Read'),
-      step('Add 100 µL {Bright-Glo} per well and wait 5 min.'),
+      step('Add {Bright-Glo volume per well} of {Bright-Glo} per well ({Bright-Glo needed} in all) and wait 5 min.'),
       step('Read luminescence on the {Plate reader}.'),
     ],
     blocks: [
@@ -2003,34 +2025,34 @@ function exampleCytotox() {
         material('media', 'Medium', 'Complete RPMI', { storage: '4 °C', recipe: 'RPMI 1640 + 10% FBS + 1% pen/strep' }),
         drug,
         material('chem', 'Solvent', 'DMSO', { storage: 'RT', grade: 'Cell culture' }),
-        material('kits', 'Kit', 'Bright-Glo', { storage: '−20 °C', vendor: 'Promega', catalog: 'E2610' }),
+        readout,
         plate,
         material('equip', 'Instrument', 'Plate reader', { settings: 'luminescence, 1 s integration' }),
       ]),
-      { id: uid(), type: 'values', title: 'Values', x: 0, y: 27, w: 12, h: 10, sections: [onPlate, onTargets, onEffectors, onDrug], items: [
-        v('Replicates', '3'), v('Overage', '10', '%'),
+      { id: uid(), type: 'values', title: 'Values', x: 0, y: 27, w: 12, h: 10, sections: [onPlate, onTargets, onEffectors, onDrug, onReadout], items: [
+        v('Replicates', '3'), v('Overage', '10', '%'), v('Incubation', '24', 'h'),
         t('Per well', '10000', 'cells'), t('Volume per well', '50', 'µL'), link(onTargets, 'count'), link(onTargets, 'viability'),
         e('E:T', '5:1', 'N:N'), e('Volume per well', '100', 'µL'), link(onEffectors, 'count'), link(onEffectors, 'viability'),
         link(onDrug, 'stock-concentration'), d('Volume per well', '50', 'µL'),
+        r('Volume per well', '100', 'µL'),
       ] },
       { id: uid(), type: 'plate', title: 'Vessel map', x: 0, y: 12, w: 12, h: 15, vessel: '96', count: 1, active: 0, ...labeledWells(wells, { drug: 'Compound X', tcells: 'T cells only', targets: 'Targets only', medium: 'Medium only' }), fields: [cellsField, drugField], cells: plateCells, series: { [seriesId]: { start: '10', unit: 'µM', fold: '3', op: 'divide' } }, names: ['Killing plate'] },
       { id: uid(), type: 'formula', title: 'Calculations', x: 0, y: 37, w: 12, h: 12, items: [
-        f('Target wells', 'Compound X wells + T cells only wells + Targets only wells'),
-        f('Effector wells', 'Compound X wells + T cells only wells'),
         f('Well volume', 'Raji-Luc volume per well + T cells volume per well + Compound X volume per well', 'µL'),
-        f('Raji-Luc needed', 'Raji-Luc per well × Target wells × (1 + Overage)'),
+        f('Raji-Luc needed', 'Raji-Luc per well × Raji-Luc wells × (1 + Overage)'),
         f('Raji-Luc to take', 'Raji-Luc needed ÷ (Raji-Luc count × Raji-Luc viability)', 'µL'),
-        f('Raji-Luc mix', 'Target wells × Raji-Luc volume per well × (1 + Overage)', 'mL'),
+        f('Raji-Luc mix', 'Raji-Luc wells × Raji-Luc volume per well × (1 + Overage)', 'mL'),
         f('T cells per well', 'Raji-Luc per well × T cells E:T'),
-        f('T cells needed', 'T cells per well × Effector wells × (1 + Overage)'),
+        f('T cells needed', 'T cells per well × T cells wells × (1 + Overage)'),
         f('T cells to take', 'T cells needed ÷ (T cells count × T cells viability)', 'mL'),
-        f('T cells mix', 'Effector wells × T cells volume per well × (1 + Overage)', 'mL'),
+        f('T cells mix', 'T cells wells × T cells volume per well × (1 + Overage)', 'mL'),
         f('Compound X added at', 'Well volume ÷ Compound X volume per well', 'x'),
         f('Compound X top working', 'Compound X top dose × Compound X added at', 'µM'),
         f('Compound X per point', 'Replicates × Compound X volume per well × (1 + Overage)', 'µL'),
         f('Compound X transfer', 'Compound X per point ÷ (Compound X fold − 1)', 'µL'),
         f('Compound X top tube', 'Compound X per point + Compound X transfer', 'µL'),
         f('Compound X stock to add', 'Compound X top tube × Compound X top working ÷ Compound X stock concentration', 'µL'),
+        f('Bright-Glo needed', 'Bright-Glo volume per well × Wells used × (1 + Overage)', 'mL'),
       ] },
       { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 49, w: 8, h: 15 },
       { id: uid(), type: 'flow', title: 'Flow diagram', x: 0, y: 64, w: 12, h: 8 },
@@ -2491,7 +2513,7 @@ const PLATE_SIZING = {
 };
 
 function fitCardHeight(b, body) {
-  if (b.collapsed) return;
+  if (b.collapsed || isResizing) return;
   const blk = body.closest('.blk');
   const top = body.getBoundingClientRect().top;
   const bottom = Math.max(...[...body.children].map(el => el.getBoundingClientRect().bottom));
@@ -3535,7 +3557,8 @@ function fieldSuggestions(key, typed, exceptItemId) {
 }
 
 function drawSuggestions() {
-  suggestList.innerHTML = suggestState.options.map((option, i) => `<div class="${i === suggestState.at ? 'on' : ''}" data-i="${i}">${esc(option)}</div>`).join('');
+  const label = suggestState.label ?? esc;
+  suggestList.innerHTML = suggestState.options.map((option, i) => `<div class="${i === suggestState.at ? 'on' : ''}" data-i="${i}">${label(option)}</div>`).join('');
 }
 
 function showSuggestions(input) {
@@ -3563,10 +3586,47 @@ function hideSuggestions() {
 }
 
 function acceptSuggestion(i) {
-  const { input, options } = suggestState;
-  input.value = options[i];
-  input.dispatchEvent(new Event('input', { bubbles: true }));
+  const { input, options, accept } = suggestState;
+  if (accept) accept(options[i]);
+  else {
+    input.value = options[i];
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
   hideSuggestions();
+}
+
+function formulaWordAt(input) {
+  const before = input.value.slice(0, input.selectionStart ?? input.value.length);
+  const word = /[^+\-*/×÷−()=,]*$/.exec(before)[0];
+  return { start: before.length - word.trimStart().length, end: before.length, text: word.trim() };
+}
+
+function showFormulaSuggestions(input, material, ownName) {
+  const { text, start, end } = formulaWordAt(input);
+  const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+  const { short } = scopedNames(material);
+  const options = !/[a-z]/i.test(text) ? [] : [...calc.names.values()]
+    .filter(entry => entry.kind !== 'item' && entry.name.toLowerCase() !== ownName)
+    .map(entry => ({ name: entry.name, label: short.get(entry.name) ?? entry.name, local: short.has(entry.name) }))
+    .concat(Object.keys(FORMULA_FUNCTIONS).map(name => ({ name, label: name, local: false, fn: true })))
+    .filter(option => option.label.toLowerCase() !== text.toLowerCase())
+    .filter(option => { const parts = option.name.toLowerCase().split(/[\s-]+/); return words.every(word => parts.some(part => part.startsWith(word))); })
+    .sort((x, y) => y.local - x.local || +y.label.toLowerCase().startsWith(words[0]) - +x.label.toLowerCase().startsWith(words[0]))
+    .slice(0, 8);
+  if (!options.length) { hideSuggestions(); return; }
+  suggestState = {
+    input,
+    options,
+    at: 0,
+    label: option => (option.fn ? `${esc(option.label)}(…)<span class="ac-val">${esc(FORMULA_FUNCTIONS[option.name].hint)}</span>` : `${esc(option.label)}<span class="ac-val">${esc(refInfo(option.name).text)}</span>`),
+    accept: option => {
+      input.setRangeText(option.fn ? `${option.label}(` : `${option.label} `, start, end, 'end');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    },
+  };
+  placeSuggestions();
+  drawSuggestions();
+  suggestList.hidden = false;
 }
 
 suggestList.addEventListener('mousedown', e => {
@@ -4730,25 +4790,39 @@ const TYPES = {
 
   formula: {
     label: 'Formula', glyph: 'ƒ', hint: 'Math over your values, shown with its working', size: [4, 6],
-    make: () => ({ items: [] }),
+    make: () => ({ items: [], sections: [] }),
     render(b, body) {
+      b.sections ??= [];
       const open = openRows.get(b.id);
-      const rowHtml = it => {
-        if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(nameWithin(it.name, formulaMaterial(it.name))) || '<span class="hint">Unnamed</span>'}</span><span class="msec-line"></span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
+      const rowHtml = (it, material) => {
+        if (it.id !== open) return `<div class="frow" data-item="${it.id}" data-act="open" data-pick="${esc(it.name)}"><div class="fhead"><span class="fname-ro">${esc(nameWithin(it.name, material)) || '<span class="hint">Unnamed</span>'}</span><span class="msec-line"></span><span class="fres" data-res></span></div><div class="fwork" data-work></div></div>`;
         const tools = '<div class="ftools"><button class="lnk" data-act="del">Remove</button><button class="lnk" data-act="close">Done</button></div>';
-        return `<div class="fedit" data-item="${it.id}"><div class="fl1"><input class="in fname" value="${esc(it.name)}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${unitOptions(FORMULA_UNITS, it.unit, u => (u === '' ? 'number' : u === 'x' ? 'fold ×' : u))}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(it.expr)}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
+        return `<div class="fedit" data-item="${it.id}" data-material="${material?.id ?? ''}"><div class="fl1"><input class="in fname" value="${esc(nameWithin(it.name, material))}" placeholder="Name" spellcheck="false" /><select class="in funit" title="Show the answer in">${unitOptions(FORMULA_UNITS, it.unit, u => (u === '' ? 'number' : u === 'x' ? 'fold ×' : u))}</select></div><div class="fl2"><span class="eq">=</span><input class="in fexpr mono" value="${esc(namesWithin(it.expr, material))}" placeholder="click names, or type" spellcheck="false" /></div><div class="fl3">${trayToggleHtml(true)}</div><div class="fwork" data-work></div>${tools}</div>`;
       };
       const groups = new Map([[null, []], ...boardMaterials().map(item => [item, []])]);
       b.items.forEach(it => groups.get(formulaMaterial(it.name)).push(it));
-      const filled = [...groups].filter(([, items]) => items.length);
-      const titled = filled.length > 1 || filled[0]?.[0];
-      const sections = filled.map(([material, items]) => {
-        const head = !titled ? '' : material ? `<div class="fsec-head"><span class="msec-title">${esc(material.name.trim())}</span><span class="msec-count">${esc(material.type)}</span></div>` : '<div class="fsec-head"><span class="msec-title">Whole experiment</span></div>';
-        return `<div>${head}<div class="flist">${items.map(rowHtml).join('')}</div></div>`;
+      const shown = [...groups].filter(([material, items]) => !material || items.length || b.sections.includes(material.id));
+      const titled = shown.length > 1;
+      const sections = shown.map(([material, items]) => {
+        const remove = material && !items.length ? '<button class="ghost-danger" data-act="del-section">Remove</button>' : '';
+        const head = !titled ? '' : material ? `<div class="fsec-head"><span class="msec-title">${esc(material.name.trim())}</span><span class="msec-count">${esc(material.type)}</span>${remove}</div>` : '<div class="fsec-head"><span class="msec-title">Whole experiment</span></div>';
+        const adder = `<input class="in fadd-name" data-material="${material?.id ?? ''}" placeholder="${material ? `Add to ${esc(material.name.trim())}` : 'Add: Total volume'}" title="Name it, or type Name = formula" spellcheck="false" autocomplete="off" />`;
+        const suggestions = calcSuggestions(b, material);
+        const suggest = suggestions.length ? `<div class="fsugg">Often added:<span class="vsugg">${suggestions.map((sg, i) => `<button class="lnk" data-suggest="${i}" title="${esc(namesWithin(sg.expr, material))}">${esc(sg.label)}</button>`).join('')}</span></div>` : '';
+        return `<div class="fsec${items.length ? '' : ' empty'}" data-material="${material?.id ?? ''}">${head}<div class="flist">${items.map(it => rowHtml(it, material)).join('')}</div>${adder}${suggest}</div>`;
       });
-      body.innerHTML = `<div class="vgrid">${sections.join('')}</div>${`<div class="fadd"><button class="add" data-act="add">+ Formula</button><select class="in lib"><option value="">From the library…</option>${FORMULA_LIBRARY.map((p, i) => `<option value="${i}">${esc(p.label)}</option>`).join('')}</select></div>`}`;
+      const choices = boardMaterials().filter(item => !shown.some(([material]) => material === item));
+      const withValues = choices.filter(item => [...calc.names.keys()].some(key => key.startsWith(`${item.name.trim().toLowerCase()} `)));
+      const option = item => `<option value="${item.id}">${esc(item.name.trim())}</option>`;
+      const sectionFor = `<select class="in vfor fsec-for"><option value="">+ Calculations for…</option><optgroup label="With values">${withValues.map(option).join('')}</optgroup><optgroup label="No values yet">${choices.filter(item => !withValues.includes(item)).map(option).join('')}</optgroup></select>`;
+      body.innerHTML = `<div class="vgrid">${sections.join('')}</div>${choices.length ? `<div class="vmore">${sectionFor}</div>` : ''}`;
+      calcSignatures.set(b.id, calcSignature(b));
     },
     update(b, body) {
+      if (calcSignature(b) !== calcSignatures.get(b.id) && !body.contains(document.activeElement)) {
+        renderBlock(b);
+        return;
+      }
       for (const it of b.items) {
         const row = body.querySelector(`[data-item="${it.id}"]`);
         if (!row) continue;
@@ -4760,39 +4834,92 @@ const TYPES = {
       }
     },
     onInput(b, e) {
-      const it = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
+      const editor = e.target.closest('.fedit');
+      const it = b.items.find(i => i.id === editor?.dataset.item);
       if (!it) return;
-      if (e.target.matches('.fname')) it.name = e.target.value;
-      if (e.target.matches('.fexpr')) it.expr = e.target.value;
+      const material = materialById(editor.dataset.material)?.item;
+      if (e.target.matches('.fname')) it.name = joinName(material?.name.trim(), e.target.value);
+      if (e.target.matches('.fexpr')) it.expr = namesInFull(e.target.value, material);
       save();
       refresh();
+      if (e.target.matches('.fexpr')) showFormulaSuggestions(e.target, material, it.name.trim().toLowerCase());
+    },
+    onFocusout(b, e) {
+      if (suggestState?.input === e.target) hideSuggestions();
     },
     onChange(b, e) {
       if (e.target.matches('.funit')) {
         b.items.find(i => i.id === e.target.closest('[data-item]').dataset.item).unit = e.target.value;
-      } else if (e.target.matches('.lib') && e.target.value !== '') {
-        const preset = FORMULA_LIBRARY[+e.target.value];
-        const it = { id: uid(), name: uniqueName(preset.name), expr: preset.expr, unit: preset.unit };
-        b.items.push(it);
-        openRows.set(b.id, it.id);
+      } else if (e.target.matches('.fsec-for') && e.target.value) {
+        b.sections.push(e.target.value);
         renderBlock(b);
+        bodyOf(b).querySelector(`.fadd-name[data-material="${e.target.value}"]`)?.focus();
       } else return;
       save();
       refresh();
     },
     fit: fitCardHeight,
+    onKeydown(b, e) {
+      const el = e.target;
+      if (el.matches('.fexpr') && suggestState?.input === el) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          suggestState.at = Math.max(0, Math.min(suggestState.options.length - 1, suggestState.at + (e.key === 'ArrowDown' ? 1 : -1)));
+          drawSuggestions();
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          acceptSuggestion(Math.max(0, suggestState.at));
+        } else if (e.key === 'Escape') hideSuggestions();
+        return;
+      }
+      if (!el.matches('.fadd-name')) return;
+      if (e.key === 'Escape') el.value = '';
+      if (e.key !== 'Enter' || !el.value.trim()) return;
+      e.preventDefault();
+      const material = materialById(el.dataset.material)?.item;
+      const [label, ...rest] = el.value.split('=');
+      const it = { id: uid(), name: uniqueName(joinName(material?.name.trim(), label.trim())), expr: namesInFull(rest.join('=').trim(), material), unit: 'auto' };
+      const last = b.items.findLastIndex(x => formulaMaterial(x.name) === (material ?? null));
+      b.items.splice(last < 0 ? b.items.length : last + 1, 0, it);
+      openRows.set(b.id, it.id);
+      save();
+      refresh();
+      renderBlock(b);
+      const expr = bodyOf(b).querySelector('.fedit .fexpr');
+      expr?.focus();
+      expr?.setSelectionRange(expr.value.length, expr.value.length);
+    },
     onClick(b, e) {
-      if (e.target.matches('.mk')) { addValueNamed(e.target.dataset.name); return; }
+      const id = e.target.closest('[data-item]')?.dataset.item;
+      if (e.target.matches('.mk')) {
+        const it = b.items.find(x => x.id === id);
+        const material = formulaMaterial(it.name);
+        addValueNamed(e.target.dataset.name, material);
+        it.expr = namesInFull(it.expr, material);
+        save();
+        refresh();
+        return;
+      }
+      if (e.target.matches('[data-suggest]')) {
+        const material = materialById(e.target.closest('[data-material]').dataset.material)?.item;
+        const suggestion = calcSuggestions(b, material)[+e.target.dataset.suggest];
+        const last = b.items.findLastIndex(x => formulaMaterial(x.name) === material);
+        b.items.splice(last < 0 ? b.items.length : last + 1, 0, { id: uid(), name: suggestion.name, expr: suggestion.expr, unit: 'auto' });
+        save();
+        refresh();
+        renderBlock(b);
+        return;
+      }
       const act = e.target.closest('[data-act]')?.dataset.act;
       if (!act || (act === 'open' && isPicking())) return;
-      const id = e.target.closest('[data-item]')?.dataset.item;
       if (act === 'open') openRows.set(b.id, id);
       else if (act === 'close') openRows.delete(b.id);
-      else if (act === 'add') { const it = { id: uid(), name: uniqueName('New formula'), expr: '', unit: 'auto' }; b.items.push(it); openRows.set(b.id, it.id); }
       else if (act === 'del') { b.items = b.items.filter(i => i.id !== id); openRows.delete(b.id); }
+      else if (act === 'del-section') b.sections = b.sections.filter(x => x !== e.target.closest('[data-material]').dataset.material);
       else return;
       renderBlock(b);
-      bodyOf(b).querySelector(act === 'add' ? '.fedit .fname' : '.fedit .fexpr')?.focus();
+      bodyOf(b).querySelector('.fedit .fexpr')?.focus();
       save();
       refresh();
     },
@@ -5227,6 +5354,44 @@ const TYPES = {
   },
 };
 
+function mentions(text, name) {
+  const escaped = name.trim().toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`).test(text);
+}
+
+function materialWellCounts() {
+  const materials = boardMaterials();
+  const counts = new Map();
+  for (const b of state.blocks.filter(x => x.type === 'plate')) {
+    for (const key of new Set([...Object.keys(b.wells), ...Object.keys(b.cells)])) {
+      const group = b.groups.find(g => g.id === b.wells[key]);
+      const lines = Object.entries(b.cells[key] ?? {}).map(([fieldId, v]) => (v?.v ? b.fields.find(f => f.id === fieldId)?.values.find(x => x.id === v.v)?.text ?? '' : ''));
+      const text = [group?.label ?? '', ...lines].join(' | ').toLowerCase();
+      materials.filter(item => mentions(text, item.name)).forEach(item => counts.set(item, (counts.get(item) ?? 0) + 1));
+    }
+  }
+  return counts;
+}
+
+const calcSignatures = new Map();
+const calcSignature = b => boardMaterials().map(item => `${item.id}:${calcSuggestions(b, item).map(sg => sg.label).join(',')}:${[...calc.names.keys()].some(key => key.startsWith(`${item.name.trim().toLowerCase()} `))}`).join('|');
+
+function calcSuggestions(b, material) {
+  if (!material) return [];
+  const has = name => calc.names.has(name.toLowerCase());
+  const own = suffix => `${material.name.trim()} ${suffix}`;
+  const wells = [own('wells'), 'Wells used'].find(has);
+  const overage = has('Overage') ? ' × (1 + Overage)' : '';
+  const amount = [own('per well'), own('volume per well')].find(has);
+  const isCells = has(own('per well'));
+  const recipes = [
+    { label: 'Needed', name: own('needed'), ready: amount && wells, expr: `${amount} × ${wells}${overage}` },
+    { label: 'To take', name: own('to take'), ready: isCells && has(own('needed')) && has(own('count')), expr: has(own('viability')) ? `${own('needed')} ÷ (${own('count')} × ${own('viability')})` : `${own('needed')} ÷ ${own('count')}` },
+    { label: 'Mix', name: own('mix'), ready: isCells && has(own('volume per well')) && wells, expr: `${wells} × ${own('volume per well')}${overage}` },
+  ];
+  return recipes.filter(recipe => recipe.ready && !has(recipe.name));
+}
+
 function boardMaterials() {
   return state.blocks.filter(b => b.type === 'materials').flatMap(b => b.items).filter(item => item.name.trim());
 }
@@ -5242,6 +5407,37 @@ function nameWithin(name, material) {
   if (!prefix || !trimmed.toLowerCase().startsWith(prefix)) return trimmed;
   const rest = trimmed.slice(prefix.length);
   return rest.charAt(0).toUpperCase() + rest.slice(1);
+}
+
+function scopedNames(material) {
+  const prefix = material ? `${material.name.trim().toLowerCase()} ` : '';
+  const full = [...calc.names.values()].map(e => e.name);
+  const short = new Map(prefix ? full.filter(name => name.toLowerCase().startsWith(prefix) && !calc.names.has(name.slice(prefix.length).toLowerCase())).map(name => [name, nameWithin(name, material)]) : []);
+  return { full, short };
+}
+
+function swapNames(text, pairs) {
+  const sorted = [...pairs.keys()].sort((x, y) => y.length - x.length);
+  const isWordChar = c => /[A-Za-z0-9_µ°]/.test(c ?? '');
+  let out = '';
+  let i = 0;
+  while (i < text.length) {
+    const hit = isWordChar(text[i - 1]) ? null : sorted.find(n => text.slice(i, i + n.length).toLowerCase() === n && !isWordChar(text[i + n.length]));
+    if (!hit) { out += text[i++]; continue; }
+    out += pairs.get(hit);
+    i += hit.length;
+  }
+  return out;
+}
+
+function namesWithin(expr, material) {
+  const { full, short } = scopedNames(material);
+  return swapNames(expr, new Map(full.map(name => [name.toLowerCase(), short.get(name) ?? name])));
+}
+
+function namesInFull(text, material) {
+  const { full, short } = scopedNames(material);
+  return swapNames(text, new Map([...full.map(name => [name.toLowerCase(), name]), ...[...short].map(([name, within]) => [within.toLowerCase(), name])]));
 }
 
 function termHtml(term, material) {
@@ -5291,10 +5487,10 @@ function insertToken(token, isName) {
   const isFormula = input.matches('.fexpr');
   let start = input.selectionStart ?? input.value.length;
   const end = input.selectionEnd ?? start;
-  const text = isName && !isFormula ? `{${token}}` : token;
+  const text = !isName ? token : isFormula ? namesWithin(token, materialById(input.closest('.fedit')?.dataset.material)?.item) : `{${token}}`;
   if (text === ')' && input.value[start - 1] === ' ') start -= 1;
   const lead = text !== ')' && /[^\s(]$/.test(input.value.slice(0, start)) ? ' ' : '';
-  const trail = isFormula && text !== '(' ? ' ' : '';
+  const trail = isFormula && !text.endsWith('(') ? ' ' : '';
   input.setRangeText(`${lead}${text}${trail}`, start, end, 'end');
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
@@ -5304,20 +5500,23 @@ const trayToggleLabel = isFormula => (trayOpen ? '− Hide the insert list' : is
 const trayToggleHtml = isFormula => `<button class="tray-toggle" data-tray-toggle>${trayToggleLabel(isFormula)}</button>`;
 function showTray(input) {
   const isFormula = input.matches('.fexpr');
-  const ownName = isFormula ? input.closest('.fedit').querySelector('.fname').value.trim().toLowerCase() : '';
+  const scope = isFormula ? materialById(input.closest('.fedit').dataset.material)?.item : null;
+  const ownName = isFormula ? joinName(scope?.name.trim(), input.closest('.fedit').querySelector('.fname').value.trim()).toLowerCase() : '';
+  const { short } = scopedNames(scope);
   document.querySelectorAll('[data-tray-toggle]').forEach(button => { button.textContent = trayToggleLabel(isFormula); });
   tray.classList.toggle('on', trayOpen);
   if (!trayOpen) return;
-  const groups = new Map();
+  const groups = new Map(scope ? [[scope.name.trim(), []]] : []);
   const add = (title, row) => groups.set(title, [...(groups.get(title) ?? []), row]);
   for (const entry of calc.names.values()) {
     if (entry.name.toLowerCase() === ownName || (isFormula && entry.kind === 'item')) continue;
-    const title = entry.kind === 'item' ? entry.groupTitle : { value: 'Values', formula: 'Formulas', plate: 'Vessel counts' }[entry.kind];
+    const title = short.has(entry.name) ? scope.name.trim() : entry.kind === 'item' ? entry.groupTitle : { value: 'Values', formula: 'Formulas', plate: 'Vessel counts' }[entry.kind];
+    const label = short.get(entry.name) ?? entry.name;
     const shown = refInfo(entry.name).text;
-    add(title, `<div class="tray-row" data-pick="${esc(entry.name)}"><span>${esc(entry.name)}</span>${shown !== entry.name ? `<span class="tv">${esc(shown)}</span>` : ''}</div>`);
+    add(title, `<div class="tray-row" data-pick="${esc(entry.name)}"><span>${esc(label)}</span>${shown !== entry.name ? `<span class="tv">${esc(shown)}</span>` : ''}</div>`);
   }
   const presets = isFormula ? '' : `<div class="tray-group">Common steps</div>${STEP_PRESETS.map((p, i) => `<div class="tray-row" data-preset="${i}"><span>${esc(p.label)}</span><span class="tv">${esc(p.text.replace(/[‹›]/g, ''))}</span></div>`).join('')}`;
-  const ops = isFormula ? `<div class="tray-ops">${['+', '−', '×', '÷', '(', ')'].map(op => `<button class="pick" data-op="${op}">${op}</button>`).join('')}</div>` : '';
+  const ops = isFormula ? `<div class="tray-ops">${['+', '−', '×', '÷', '(', ')', ','].map(op => `<button class="pick" data-op="${op}">${op}</button>`).join('')}</div><div class="tray-ops">${Object.entries(FORMULA_FUNCTIONS).map(([name, fn]) => `<button class="pick" data-op="${name}(" title="${esc(`${name}: ${fn.hint}`)}">${name}</button>`).join('')}</div>` : '';
   tray.innerHTML = `<div class="tray-list">${ops}${presets}${[...groups].map(([title, rows]) => `<div class="tray-group">${esc(title)}</div>${rows.join('')}`).join('')}</div><div class="tray-tip">Click to insert, or drag into place. Names on the board can be dragged in too.${isFormula ? '' : ' Tab jumps between highlighted blanks.'}</div>`;
   placeTray();
 }
@@ -5613,11 +5812,17 @@ function leaveValueUndo(b, entry) {
   removedValues.set(b.id, { ...entry, timer });
 }
 
-function addValueNamed(name) {
+function addValueNamed(name, material) {
   let b = state.blocks.find(x => x.type === 'values');
   if (!b) b = addBlock('values');
-  const it = { id: uid(), name, value: '', unit: '' };
-  b.items.push(it);
+  let sec = material ? b.sections.find(x => x.of === material.id) : null;
+  if (material && !sec) {
+    sec = { id: uid(), of: material.id };
+    b.sections.push(sec);
+  }
+  const it = { id: uid(), name: nameWithin(name, material), value: '', unit: '', ...(sec ? { section: sec.id } : {}) };
+  const last = sec ? sectionPeers(b, sec.id).at(-1) : null;
+  b.items.splice(last ? b.items.indexOf(last) + 1 : b.items.length, 0, it);
   valueEdits.set(b.id, { item: it.id, key: 'value' });
   renderBlock(b);
   save();
@@ -5712,6 +5917,7 @@ function moveValueEdit(b, td, step) {
   bodyOf(b).querySelector(`.vadd[data-section="${sectionId}"]`)?.focus();
 }
 
+let isResizing = false;
 const grid = GridStack.init({ column: 12, cellHeight: 44, margin: 10, handle: '.blk-head', float: false, animate: true, resizable: { handles: 'se' } }, '#board');
 const resizeObserver = new ResizeObserver(entries => {
   for (const entry of entries) {
@@ -6021,7 +6227,7 @@ const handlerName = type => `on${type[0].toUpperCase()}${type.slice(1)}`;
 }));
 board.addEventListener('keydown', e => {
   if (e.key === 'Tab' && e.target.matches('.sedit') && jumpToSlot(e.target, e.shiftKey)) { e.preventDefault(); return; }
-  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search):not(.vadd), input.sec-title, .sedit')) return;
+  if (e.key !== 'Enter' || e.target.closest('td.editing') || !e.target.matches('input.in:not(.madd-name):not(.fm-search):not(.vadd):not(.fadd-name), input.sec-title, .sedit')) return;
   e.preventDefault();
   e.target.blur();
 });
@@ -6161,6 +6367,13 @@ pasteAdd.addEventListener('click', () => {
   state.steps.push(...pasteItems.map(item => ({ id: uid(), ...item })));
   pasteModal.hidden = true;
   commitSteps();
+});
+
+grid.on('resizestart', () => { isResizing = true; });
+grid.on('resizestop', (e, el) => {
+  isResizing = false;
+  const b = byId(el.getAttribute('gs-id'));
+  if (b) requestAnimationFrame(() => TYPES[b.type].fit?.(b, bodyOf(b)));
 });
 
 grid.on('change', (e, items) => {
