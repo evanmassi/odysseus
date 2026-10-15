@@ -210,9 +210,9 @@
   .fexpr-ro { font-size: 12px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
 
   .sgroup { margin-bottom: 18px; }
-  .sec-head { display: flex; align-items: center; gap: 12px; padding: 4px 4px 8px; margin-bottom: 6px; background: linear-gradient(90deg, hsl(var(--foreground) / .18) 0%, hsl(var(--foreground) / .1) 70%, hsl(var(--foreground) / .05) 100%) bottom / 100% 1px no-repeat; }
-  .sec-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: hsl(var(--primary)); min-width: 30px; text-align: right; }
-  .sec-title { flex: 1; min-width: 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 14px; font-weight: 600; letter-spacing: .12em; }
+  .sec-head { display: flex; align-items: center; gap: 12px; padding: 4px 4px 8px; margin: 0 0 6px -6px; }
+  .sec-num { min-width: 36px; font-size: 26px; font-weight: 200; line-height: 1; color: hsl(var(--fg) / .3); text-align: right; }
+  .sec-title { field-sizing: content; min-width: 60px; max-width: 70%; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 15px; font-weight: 600; letter-spacing: .12em; }
   input.sec-title { background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 5px; }
   input.sec-title:hover, input.sec-title:focus { outline: none; border-color: hsl(var(--line-mid)); }
   .sec-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: hsl(var(--foreground) / .35); white-space: nowrap; }
@@ -232,9 +232,11 @@
   .srow:hover .tools, .sec-head:hover .tools { opacity: 1; }
   .tools button { background: none; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 0 4px; }
   .tools button:hover { color: hsl(var(--fg)); }
-  .ref, .tok { color: hsl(var(--fg)); border-bottom: 1px dotted hsl(var(--primary) / .7); }
+  .ref, .tok, .qty { color: hsl(var(--primary)); }
+  .tok { border-bottom: 1px dotted hsl(var(--primary) / .7); }
   .ref { cursor: help; }
-  .ref.r-item, .tok.r-item { font-weight: 600; }
+  .ref.r-item, .tok.r-item { font-weight: 600; color: hsl(var(--fg)); }
+  .verb { font-size: 12.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--fg)); }
   .ref.missing, .tok.missing { color: hsl(var(--red)); }
   .grip { width: 12px; flex-shrink: 0; align-self: center; color: hsl(var(--foreground) / .25); cursor: grab; user-select: none; font-size: 13px; line-height: 1; opacity: 0; transition: opacity .15s; }
   .srow:hover .grip, .sec-head:hover .grip { opacity: 1; }
@@ -242,6 +244,7 @@
   .dragging { opacity: .35; }
   .drop-before { box-shadow: inset 0 2px 0 hsl(var(--primary)); }
   .drop-after { box-shadow: inset 0 -2px 0 hsl(var(--primary)); }
+  .blank { color: hsl(var(--amber)); border-bottom: 1px dashed hsl(var(--amber) / .75); }
   .slot { background: hsl(var(--amber) / .12); border-bottom: 1px dashed hsl(var(--amber) / .75); padding: 0 2px; }
   .sedit.drop-ok { box-shadow: var(--input-focus-shadow), 0 0 0 2px hsl(var(--primary) / .55); }
   .drag-ghost { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; padding: 3px 10px; border: 1px solid hsl(var(--primary) / .6); background: hsl(var(--card)); font: 12px 'JetBrains Mono', monospace; color: hsl(var(--fg)); box-shadow: 0 10px 24px -8px hsl(var(--recess) / .8); }
@@ -366,6 +369,13 @@
   .mrow:hover .ghost-danger, .ghost-danger:focus-visible, .mrow:hover .ghost-quiet, .ghost-quiet:focus-visible { opacity: 1; }
   .ghost-danger:hover { font-weight: 500; color: color-mix(in srgb, hsl(var(--red)) 70%, white); }
   .ghost-quiet:hover { color: hsl(var(--fg)); }
+  .mrow.mfound .mname, .mrow.mfound .mtype, .vfound td:first-child, .vfound .vval-cell { color: hsl(var(--muted-foreground)); font-style: italic; }
+  .mrow.mfound .mname { font-weight: 400; }
+  .vfrom { margin-left: 8px; font-size: 12px; font-style: normal; color: hsl(var(--foreground) / .4); }
+  .vfound td { padding: 7px 10px; font-size: 14px; }
+  .vfound .vval-cell { font-family: 'JetBrains Mono', monospace; }
+  .vfound .vrm { white-space: nowrap; }
+  .vtable tr.vfound:hover .ghost-danger { opacity: 1; }
   .mrow.mdrop .mname { font-weight: 400; color: hsl(var(--muted-foreground)); text-decoration: line-through; }
   .mrow.mdrop .mtype { text-decoration: line-through; }
   .mstill { color: hsl(var(--amber)); }
@@ -674,9 +684,12 @@ const UNITS = {
   'nM': { f: 1e-9, d: { mol: 1, vol: -1 } },
   'µM': { f: 1e-6, d: { mol: 1, vol: -1 } },
   'mM': { f: 1e-3, d: { mol: 1, vol: -1 } },
+  's': { f: 1, d: { time: 1 } },
   'min': { f: 60, d: { time: 1 } },
   'h': { f: 3600, d: { time: 1 } },
   '°C': { f: 1, d: { temp: 1 } },
+  '× g': { f: 1, d: { rcf: 1 } },
+  'rpm': { f: 1, d: { rpm: 1 } },
 };
 const VALUE_UNITS = Object.keys(UNITS);
 const FORMULA_UNITS = ['auto', ...VALUE_UNITS.filter(u => u !== '°C')];
@@ -687,7 +700,7 @@ const FORMULA_FUNCTIONS = {
   'at least': { hint: 'never below a minimum: at least(Needed, 100 µL)' },
 };
 const FORMULA_FUNCTION_PATTERN = new RegExp(`^(${Object.keys(FORMULA_FUNCTIONS).sort((a, b) => b.length - a.length).join('|')})\\s*(?=\\()`, 'i');
-const LITERAL_UNITS = VALUE_UNITS.filter(u => u && u !== '1:N' && u !== 'N:N' && u !== 'x').sort((a, b) => b.length - a.length);
+const LITERAL_UNITS = VALUE_UNITS.filter(u => u && u !== '1:N' && u !== 'N:N' && u !== 'x' && u !== '× g').sort((a, b) => b.length - a.length);
 const AUTO_UNITS = {
   'vol:1': ['L', 'mL', 'µL', 'nL'],
   'mass:1': ['mg', 'µg', 'ng', 'pg'],
@@ -700,6 +713,7 @@ const AUTO_UNITS = {
 const DIM_WORDS = {
   '': 'plain number', 'vol:1': 'volume', 'cell:1': 'cell count', 'cell:1|vol:-1': 'cell concentration',
   'mass:1': 'mass', 'mass:1|vol:-1': 'concentration', 'mol:1|vol:-1': 'molarity', 'time:1': 'time', 'temp:1': 'temperature',
+  'rcf:1': 'g-force', 'rpm:1': 'rotor speed',
 };
 const SYM = { '+': '+', '-': '−', '*': '×', '/': '÷' };
 const UNIT_GROUPS = [
@@ -709,8 +723,9 @@ const UNIT_GROUPS = [
   ['Cells', ['cells', 'cells/mL']],
   ['Mass per volume', ['pg/mL', 'ng/mL', 'µg/mL', 'mg/mL', 'ng/µL']],
   ['Molar', ['nM', 'µM', 'mM']],
-  ['Time', ['min', 'h']],
+  ['Time', ['s', 'min', 'h']],
   ['Temperature', ['°C']],
+  ['Speed', ['× g', 'rpm']],
 ];
 
 function unitOptions(units, selected, labelOf = u => u) {
@@ -2133,18 +2148,26 @@ const byId = id => state.blocks.find(b => b.id === id);
 const bodyOf = b => document.querySelector(`.blk[data-id="${b.id}"] .blk-body`);
 const uniqueName = base => { let name = base; let n = 2; while (calc.names.has(name.toLowerCase())) name = `${base} ${n++}`; return name; };
 
-const mapTemplate = (text, plain, ref) => String(text ?? '').split(/(\{[^}]+\})/).map(part => {
+const mapTemplate = (text, plain, ref, blank) => String(text ?? '').split(/(\{[^}]+\}|‹[^›]*›)/).map((part, i) => {
   const m = /^\{([^}]+)\}$/.exec(part);
-  return m ? ref(m[1]) : plain(part);
+  const gap = /^‹([^›]*)›$/.exec(part);
+  return m ? ref(m[1]) : gap ? blank(gap[1]) : plain(part, i);
 }).join('');
-const templateHtml = text => mapTemplate(text, esc, name => { const r = refInfo(name); return `<span class="ref ${r.cls}" data-ref="${esc(name)}" title="${esc(r.label)}">${esc(r.text)}</span>`; });
-const templateText = text => mapTemplate(text, part => part, name => refInfo(name).text);
+const STEP_VERBS = new Set(['add', 'adjust', 'aliquot', 'aspirate', 'block', 'bring', 'centrifuge', 'coat', 'collect', 'combine', 'count', 'decant', 'dilute', 'discard', 'dispense', 'dissolve', 'elute', 'filter', 'fix', 'freeze', 'harvest', 'heat', 'image', 'incubate', 'invert', 'keep', 'label', 'load', 'lyse', 'measure', 'mix', 'pellet', 'permeabilize', 'pipette', 'place', 'plate', 'prepare', 'read', 'record', 'remove', 'replace', 'resuspend', 'rinse', 'run', 'seed', 'shake', 'sonicate', 'spin', 'split', 'stain', 'stop', 'store', 'take', 'thaw', 'transfer', 'vortex', 'wait', 'warm', 'wash', 'weigh']);
+const QUANTITY_PATTERN = /((?<![A-Za-z\d.-])\d[\d,.]*\s?(?:×\s?g|x\s?g|rpm|°C|µL|uL|mL|nL|L|µM|nM|mM|M|mg|µg|ng|g|min|hr|h|s|days?|weeks?|%|×)(?![A-Za-zµ])|(?<![A-Za-z\d])\d+:\d+|overnight|room temperature|on ice)/;
+const proseHtml = (text, part) => text.split(QUANTITY_PATTERN).map((piece, i) => (i % 2
+  ? `<span class="qty">${esc(piece)}</span>`
+  : esc(piece).replace(/(^\s*|[.;]\s+)([A-Za-z]+)/g, (whole, lead, word) => (STEP_VERBS.has(word.toLowerCase()) && (lead.trim() || (part === 0 && i === 0)) ? `${lead}<span class="verb">${word}</span>` : whole)))).join('');
+const templateHtml = text => mapTemplate(text, proseHtml, name => { const r = refInfo(name); return `<span class="ref ${r.cls}" data-ref="${esc(name)}" title="${esc(r.label)}">${esc(r.text)}</span>`; }, label => `<span class="blank">${esc(label)}</span>`);
+const templateText = text => mapTemplate(text, part => part, name => refInfo(name).text, label => `[${label}]`);
 const chipHtml = name => { const r = refInfo(name); return `<span class="tok ${r.cls}" contenteditable="false" data-ref="${esc(name)}" title="${esc(name)}">${esc(r.text)}</span>`; };
-const editorHtml = text => mapTemplate(text, esc, chipHtml);
+const slotHtml = label => `<span class="slot" data-blank="${esc(label)}">${esc(label)}</span>`;
+const editorHtml = text => mapTemplate(text, esc, chipHtml, slotHtml);
 const chipNode = name => { const t = document.createElement('template'); t.innerHTML = chipHtml(name); return t.content.firstChild; };
 const serializeEditor = el => [...el.childNodes].map(n => {
   if (n.nodeType === Node.TEXT_NODE) return n.textContent;
   if (n.dataset?.ref) return `{${n.dataset.ref}}`;
+  if (n.dataset?.blank && [n.dataset.blank, ''].includes(n.textContent.trim())) return `‹${n.dataset.blank}›`;
   return n.nodeName === 'BR' ? '' : serializeEditor(n);
 }).join('').replace(/ /g, ' ');
 function focusEditor(el) {
@@ -2171,6 +2194,7 @@ function commitSteps() {
   save();
   stepsRendering = true;
   state.blocks.filter(b => b.type === 'steps' || b.type === 'flow').forEach(renderBlock);
+  state.blocks.filter(b => (b.type === 'materials' || b.type === 'values') && !bodyOf(b)?.contains(document.activeElement)).forEach(renderBlock);
   stepsRendering = false;
 }
 
@@ -3315,17 +3339,230 @@ function startStepDrag(id, e) {
 const clearStepDropMarks = () => document.querySelectorAll('.drop-before, .drop-after, .dragging').forEach(el => el.classList.remove('drop-before', 'drop-after', 'dragging'));
 
 const STEP_PRESETS = [
-  { label: 'Wash', text: 'Wash ‹3›× with ‹200 µL› ‹wash buffer› per well.' },
-  { label: 'Spin', text: 'Centrifuge at ‹400 × g› for ‹5 min› at ‹4 °C›.' },
-  { label: 'Incubate', text: 'Incubate ‹30 min› at ‹room temperature›, protected from light.' },
-  { label: 'Add', text: 'Add ‹100 µL› of ‹reagent› per well.' },
-  { label: 'Mix', text: 'Mix by pipetting up and down ‹10›×.' },
-  { label: 'Resuspend', text: 'Resuspend the pellet in ‹200 µL› ‹buffer›.' },
-  { label: 'Transfer', text: 'Transfer ‹100 µL› to ‹the new plate›.' },
-  { label: 'Seed', text: 'Seed ‹100 µL› per well.' },
-  { label: 'Count', text: 'Count the cells; record count and viability.' },
-  { label: 'Read', text: 'Read ‹absorbance at 450 nm› on the ‹plate reader›.' },
+  { label: 'Wash', text: 'Wash ‹times› with ‹volume› of ‹buffer› per well.' },
+  { label: 'Spin', text: 'Centrifuge at ‹speed› for ‹time› at ‹temperature›.' },
+  { label: 'Incubate', text: 'Incubate for ‹time› at ‹temperature›.' },
+  { label: 'Add', text: 'Add ‹volume› of ‹reagent› per well.' },
+  { label: 'Mix', text: 'Mix by pipetting up and down ‹times›.' },
+  { label: 'Resuspend', text: 'Resuspend the pellet in ‹volume› of ‹buffer›.' },
+  { label: 'Transfer', text: 'Transfer ‹volume› to ‹destination›.' },
+  { label: 'Seed', text: 'Seed ‹volume› of ‹cells› per well.' },
+  { label: 'Count', text: 'Count ‹cells›; record count and viability.' },
+  { label: 'Read', text: 'Read ‹readout› on the ‹instrument›.' },
 ];
+const BLANK_CHOICES = {
+  speed: { units: ['× g', 'rpm'], common: ['300 × g', '400 × g', '500 × g', '1,500 rpm'] },
+  time: { units: ['min', 'h', 's'], common: ['5 min', '10 min', '30 min', '1 h', 'overnight'] },
+  temperature: { units: ['°C'], common: ['4 °C', 'room temperature', '37 °C', 'on ice'] },
+  volume: { units: ['µL', 'mL'], common: ['50 µL', '100 µL', '200 µL', '1 mL'] },
+  times: { units: ['times'], common: ['once', 'twice', '3 times'] },
+  readout: { common: ['absorbance at 450 nm', 'luminescence', 'fluorescence'] },
+};
+
+function blankOptions(label, typed) {
+  const choices = BLANK_CHOICES[label] ?? { onBoard: true };
+  const text = typed.trim() === label ? '' : typed.trim().toLowerCase();
+  const number = /^\d[\d,.]*$/.exec(text)?.[0];
+  const fits = entry => (choices.onBoard ? entry.kind === 'item' : entry.kind !== 'item' && choices.units?.some(unit => refInfo(entry.name).text.endsWith(` ${unit}`)));
+  const fromBoard = [...calc.names.values()].filter(fits).map(entry => ({ text: entry.name, ref: entry.name }));
+  const typedWithUnits = number ? (choices.units ?? []).map(unit => ({ text: `${number} ${unit}` })) : [];
+  const common = number ? [] : (choices.common ?? []).map(choice => ({ text: choice }));
+  return [...typedWithUnits, ...common.filter(o => o.text.includes(text)), ...fromBoard.filter(o => o.text.toLowerCase().includes(text))].slice(0, 8);
+}
+
+function showBlankSuggestions(editor, slot) {
+  const options = blankOptions(slot.dataset.blank, slot.textContent);
+  if (!options.length) { hideSuggestions(); return; }
+  const typed = slot.textContent.trim() !== slot.dataset.blank;
+  suggestState = {
+    input: editor,
+    anchor: slot,
+    options,
+    at: typed ? 0 : -1,
+    label: option => `${esc(option.text)}${option.ref && refInfo(option.ref).text !== option.ref ? `<span class="ac-val">${esc(refInfo(option.ref).text)}</span>` : ''}`,
+    accept: option => fillBlank(editor, slot, option),
+  };
+  placeSuggestions();
+  drawSuggestions();
+  suggestList.hidden = false;
+}
+
+function fillBlank(editor, slot, option) {
+  const filled = option.ref ? chipNode(option.ref) : document.createTextNode(option.text);
+  slot.replaceWith(filled);
+  const caret = document.createRange();
+  caret.setStartAfter(filled);
+  getSelection().removeAllRanges();
+  getSelection().addRange(caret);
+  editor.dispatchEvent(new Event('input', { bubbles: true }));
+  if (editor.querySelector('.slot')) jumpToSlot(editor, false);
+}
+
+document.addEventListener('selectionchange', () => {
+  const editor = document.activeElement?.closest?.('.sedit');
+  const node = getSelection().anchorNode;
+  const slot = editor && node ? (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement).closest('.slot') : null;
+  if (slot && editor.contains(slot)) showBlankSuggestions(editor, slot);
+  else if (suggestState?.anchor) hideSuggestions();
+});
+
+const AMOUNT_LABELS = { 'vol:1': 'Volume', 'mass:1': 'Amount', 'cell:1': 'Cells', 'mass:1|vol:-1': 'Concentration', 'mol:1|vol:-1': 'Concentration' };
+const CONDITION_LABELS = { 'time:1': 'time', 'temp:1': 'temperature', 'rcf:1': 'speed', 'rpm:1': 'speed' };
+const CONDITION_NOUNS = { centrifuge: 'Spin', spin: 'Spin', pellet: 'Spin', incubate: 'Incubation', block: 'Blocking', stain: 'Staining', wash: 'Wash', thaw: 'Thaw', warm: 'Warming', wait: 'Wait', shake: 'Shaking', vortex: 'Vortex', fix: 'Fixation', lyse: 'Lysis' };
+const PHRASE_STOP = new Set(['per', 'to', 'into', 'in', 'and', 'for', 'at', 'on', 'with', 'from', 'then', 'until', 'by', 'or', 'of', 'the', 'a', 'an', 'each', 'is', 'are', 'was', 'before', 'after', 'while', 'using']);
+const NOT_MATERIALS = new Set(['day', 'step', 'steps', 'section', 'note', 'optional', 'repeat', 'see', 'then', 'all', 'each']);
+const STEP_QUANTITY = /(?<![\w.-])(\d+(?:[.,]\d+)*)\s?(pg\/mL|ng\/mL|µg\/mL|mg\/mL|µL|uL|ul|mL|ml|nL|L|pg|ng|µg|ug|mg|cells|nM|µM|uM|mM|minutes?|mins?|hours?|hrs?|h|seconds?|secs?|s|°C|[×x]\s?g|rpm)(?![\w/µ])/g;
+const MATERIAL_CUE = /(?:(?:^|[.;]\s+)\s*([A-Za-z]+)\s+|\b(?:with|in|into|using|from|of|on)\s+(?:the\s+)?)(?=[A-Z])/g;
+const ignoredReadings = () => (state.ignoredReadings ??= []);
+
+function phraseAt(text, start) {
+  if (text[start] === '{') {
+    const end = text.indexOf('}', start) + 1;
+    return end ? { start, end, name: text.slice(start + 1, end - 1), isRef: true } : null;
+  }
+  const word = /[A-Za-z0-9µ][\w+\-/µ]*/y;
+  let end = start;
+  let count = 0;
+  while (count < 4) {
+    word.lastIndex = count ? end + 1 : start;
+    const m = word.exec(text);
+    if (!m || (count && (PHRASE_STOP.has(m[0].toLowerCase()) || /^\d/.test(m[0])))) break;
+    end = m.index + m[0].length;
+    count++;
+    if (text[end] !== ' ') break;
+  }
+  return count ? { start, end, name: text.slice(start, end) } : null;
+}
+
+function readSteps() {
+  const nums = stepNumbers();
+  const onBoard = new Map(boardMaterials().map(item => [normKey(item.name), item]));
+  const materials = new Map();
+  const values = new Map();
+  const noteMaterial = (name, span) => {
+    const board = onBoard.get(normKey(name));
+    const key = `material:${normKey(name)}`;
+    if (!materials.has(key)) materials.set(key, { kind: 'material', key, name: board?.name.trim() ?? name, exists: !!board, uses: [] });
+    const entry = materials.get(key);
+    if (!entry.uses.some(u => u.step === span.step && u.start === span.start)) entry.uses.push(span);
+    return entry.name;
+  };
+  const noteValue = (reading, use, materialUse) => {
+    const name = reading.material ? joinName(reading.material, reading.label) : reading.label;
+    const key = `value:${normKey(name)}`;
+    const entry = values.get(key) ?? { kind: 'value', key, name, ...reading, uses: [], materialUses: [] };
+    if (entry.value !== reading.value || entry.unit !== reading.unit) entry.conflict = true;
+    entry.uses.push(use);
+    if (materialUse) entry.materialUses.push(materialUse);
+    values.set(key, entry);
+  };
+  for (const s of state.steps.filter(x => x.kind === 'step')) {
+    const text = s.text ?? '';
+    const locked = [...text.matchAll(/\{[^}]+\}|‹[^›]*›/g)].map(m => [m.index, m.index + m[0].length]);
+    const isLocked = i => locked.some(([a, b]) => i >= a && i < b);
+    const at = { step: s.id, num: nums[s.id].replace('.', '') };
+    for (const m of text.matchAll(STEP_QUANTITY)) {
+      const unit = valueUnitOf(m[2].replace(/\s/g, ''));
+      if (isLocked(m.index) || !unit) continue;
+      const use = { ...at, start: m.index, end: m.index + m[0].length };
+      const value = m[1].replace(/,/g, '');
+      const dims = dimKey(UNITS[unit].d);
+      if (AMOUNT_LABELS[dims]) {
+        const lead = /^\s+(of\s+)?(the\s+)?/.exec(text.slice(use.end));
+        const phrase = lead ? phraseAt(text, use.end + lead[0].length) : null;
+        if (!phrase || (!lead[1] && !phrase.isRef && !/^[A-Z]/.test(phrase.name)) || NOT_MATERIALS.has(phrase.name.split(' ')[0].toLowerCase())) continue;
+        if (phrase.isRef && !onBoard.has(normKey(phrase.name))) continue;
+        const materialUse = phrase.isRef ? null : { ...at, start: phrase.start, end: phrase.end };
+        const material = phrase.isRef ? onBoard.get(normKey(phrase.name)).name.trim() : noteMaterial(phrase.name, materialUse);
+        const perWell = /^\s+per\s+well\b/i.test(text.slice(phrase.end));
+        const noun = AMOUNT_LABELS[dims];
+        const label = noun === 'Cells' ? (perWell ? 'Per well' : 'Cells') : `${noun}${perWell ? ' per well' : ''}`;
+        noteValue({ material, label, value, unit }, use, materialUse);
+      } else if (CONDITION_LABELS[dims]) {
+        const verb = (text.slice(0, use.start).split(/[.;]\s/).pop().match(/[A-Za-z]+/g) ?? []).map(w => w.toLowerCase()).findLast(w => CONDITION_NOUNS[w]);
+        if (CONDITION_NOUNS[verb]) noteValue({ material: null, label: `${CONDITION_NOUNS[verb]} ${CONDITION_LABELS[dims]}`, value, unit, isCondition: true }, use, null);
+      }
+    }
+    for (const m of text.matchAll(MATERIAL_CUE)) {
+      if (m[1] && !STEP_VERBS.has(m[1].toLowerCase())) continue;
+      const phrase = phraseAt(text, m.index + m[0].length);
+      if (!phrase || isLocked(phrase.start) || NOT_MATERIALS.has(phrase.name.split(' ')[0].toLowerCase())) continue;
+      const known = calc.names.get(phrase.name.toLowerCase());
+      if (known && known.kind !== 'item') continue;
+      noteMaterial(phrase.name, { ...at, start: phrase.start, end: phrase.end });
+    }
+  }
+  const ignored = new Set(ignoredReadings());
+  const shownValues = [...values.values()].filter(v => !v.conflict && !calc.names.has(v.name.toLowerCase()) && (!v.isCondition || new Set(v.uses.map(u => u.step)).size > 1));
+  return [...materials.values(), ...shownValues].filter(f => !ignored.has(f.key));
+}
+
+const readingSteps = uses => {
+  const nums = [...new Set(uses.map(u => u.num))];
+  return `step${nums.length === 1 ? '' : 's'} ${nums.join(', ')}`;
+};
+
+function ensureMaterial(name) {
+  const existing = boardMaterials().find(item => normKey(item.name) === normKey(name));
+  if (existing) return existing;
+  const mb = state.blocks.find(x => x.type === 'materials') ?? addBlock('materials');
+  const item = materialFromGuess(mb, guessMaterial(name, rememberedKinds()));
+  mb.items.push(item);
+  mb.folded = mb.folded.filter(g => g !== item.group);
+  return item;
+}
+
+function acceptReadings(readings) {
+  const edits = [];
+  for (const r of readings) {
+    if (r.kind === 'material') {
+      const item = ensureMaterial(r.name);
+      edits.push(...r.uses.map(u => ({ ...u, text: `{${item.name.trim()}}` })));
+      continue;
+    }
+    const material = r.material ? ensureMaterial(r.material) : null;
+    const it = { id: uid(), name: r.label, value: r.value, unit: r.unit };
+    const name = valueName(insertValue(material, it), it);
+    edits.push(...r.uses.map(u => ({ ...u, text: `{${name}}` })), ...r.materialUses.map(u => ({ ...u, text: `{${material.name.trim()}}` })));
+  }
+  const unique = [...new Map(edits.map(e => [`${e.step}:${e.start}`, e])).values()].sort((x, y) => y.start - x.start);
+  for (const e of unique) {
+    const step = state.steps.find(x => x.id === e.step);
+    step.text = step.text.slice(0, e.start) + e.text + step.text.slice(e.end);
+  }
+  save();
+  refresh();
+  state.blocks.filter(b => ['steps', 'flow', 'materials', 'values'].includes(b.type)).forEach(renderBlock);
+}
+
+function handleReadingClick(e, kind) {
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (!['found-add', 'found-ignore', 'found-all'].includes(act)) return false;
+  const readings = readSteps().filter(r => r.kind === kind);
+  const key = e.target.closest('[data-found]')?.dataset.found;
+  if (act === 'found-ignore') {
+    ignoredReadings().push(key);
+    save();
+    state.blocks.filter(b => b.type === 'materials' || b.type === 'values').forEach(renderBlock);
+  } else acceptReadings(act === 'found-all' ? readings : readings.filter(r => r.key === key));
+  return true;
+}
+
+function materialReadingsBox(b) {
+  if (state.blocks.find(x => x.type === 'materials') !== b) return '';
+  const readings = readSteps().filter(r => r.kind === 'material');
+  if (!readings.length) return '';
+  const rows = readings.map(r => `<tr class="mrow mfound" data-found="${esc(r.key)}"><td class="mname">${esc(r.name)}</td><td class="mtype">${r.exists ? 'Already here' : esc(guessMaterial(r.name, rememberedKinds()).type)}</td><td class="mused">${readingSteps(r.uses)}</td><td class="mrm"><button class="lnk" data-act="found-add">${r.exists ? 'Link' : 'Add'}</button><button class="ghost-danger" data-act="found-ignore">Ignore</button></td></tr>`);
+  return `<section class="msec"><div class="msec-head plain"><span class="msec-title">From your steps</span><span class="msec-count">${readings.length}</span><span class="msec-line"></span><button class="lnk" data-act="found-all">Add all</button></div><div class="msec-body"><div class="mtable-wrap"><table class="mtab"><tbody>${rows.join('')}</tbody></table></div></div></section>`;
+}
+
+function valueReadingsTable(b) {
+  if (state.blocks.find(x => x.type === 'values') !== b) return '';
+  const readings = readSteps().filter(r => r.kind === 'value');
+  if (!readings.length) return '';
+  const rows = readings.map(r => `<tr class="vfound" data-found="${esc(r.key)}"><td>${esc(r.name)}<span class="vfrom">${readingSteps(r.uses)}</span></td><td class="vval-cell">${esc(displayOf(r, r.value))}</td><td class="vrm"><button class="lnk" data-act="found-add">Add</button><button class="ghost-danger" data-act="found-ignore">Ignore</button></td></tr>`);
+  return `<table class="vtable"><tbody><tr class="vsec"><th colspan="2"><span class="msec-title">From your steps</span><span class="msec-count">${readings.length}</span></th><td class="vrm"><button class="lnk" data-act="found-all">Add all</button></td></tr>${rows.join('')}</tbody></table>`;
+}
 
 function insertPreset(editor, preset) {
   const selection = getSelection();
@@ -3340,6 +3577,7 @@ function insertPreset(editor, preset) {
     if (!slot) { fragment.append(document.createTextNode(i === 0 ? lead + part : part)); return; }
     const span = document.createElement('span');
     span.className = 'slot';
+    span.dataset.blank = slot[1];
     span.textContent = slot[1];
     fragment.append(span);
   });
@@ -3474,7 +3712,8 @@ const VALUE_UNIT_WORDS = [
   [/^cells?$/i, 'cells'], [/^cells?\/ml$/i, 'cells/mL'],
   [/^pg\/ml$/i, 'pg/mL'], [/^ng\/ml$/i, 'ng/mL'], [/^[uµμ]g\/ml$/i, 'µg/mL'], [/^mg\/ml$/i, 'mg/mL'], [/^ng\/[uµμ]l$/i, 'ng/µL'],
   [/^nM$/, 'nM'], [/^[uµμ]M$/, 'µM'], [/^mM$/, 'mM'],
-  [/^(?:min|mins|minutes?)$/i, 'min'], [/^(?:h|hr|hrs|hours?)$/i, 'h'], [/^°?C$/, '°C'],
+  [/^(?:min|mins|minutes?)$/i, 'min'], [/^(?:h|hr|hrs|hours?)$/i, 'h'], [/^(?:s|sec|secs|seconds?)$/i, 's'], [/^°?C$/, '°C'],
+  [/^(?:[x×]g|rcf)$/i, '× g'], [/^rpm$/i, 'rpm'],
 ];
 const valueUnitOf = word => VALUE_UNIT_WORDS.find(([re]) => re.test(word))?.[1];
 const isPastDate = value => !!String(value ?? '').trim() && String(value) < TODAY_ISO;
@@ -3574,7 +3813,7 @@ function showSuggestions(input) {
 function placeSuggestions() {
   if (!suggestState) return;
   if (!suggestState.input.isConnected) { hideSuggestions(); return; }
-  const r = suggestState.input.getBoundingClientRect();
+  const r = (suggestState.anchor ?? suggestState.input).getBoundingClientRect();
   const frame = suggestState.input.closest('.blk-body').getBoundingClientRect();
   if (r.top < frame.top || r.bottom > frame.bottom) { hideSuggestions(); return; }
   Object.assign(suggestList.style, { left: `${r.left}px`, top: `${r.bottom + 4}px`, minWidth: `${Math.max(r.width, 180)}px` });
@@ -3593,6 +3832,18 @@ function acceptSuggestion(i) {
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }
   hideSuggestions();
+}
+
+function steerSuggestions(e) {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    suggestState.at = Math.max(0, Math.min(suggestState.options.length - 1, suggestState.at + (e.key === 'ArrowDown' ? 1 : -1)));
+    drawSuggestions();
+  } else if ((e.key === 'Enter' || e.key === 'Tab') && suggestState.at >= 0) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    acceptSuggestion(suggestState.at);
+  } else if (e.key === 'Escape') hideSuggestions();
 }
 
 function formulaWordAt(input) {
@@ -4136,7 +4387,7 @@ const TYPES = {
       body.innerHTML = adder + (sections.length ? sections.map(({ g, items }) => {
         const folded = b.folded.includes(g.key);
         return `<section class="msec${folded ? ' folded' : ''}" data-group="${esc(g.key)}"><div class="msec-head" data-act="fold-group"><span class="arrow">${folded ? '▸' : '▾'}</span><span class="msec-title">${esc(g.label)}</span><span class="msec-count">${items.length}</span><span class="msec-line"></span></div>${folded ? '' : `<div class="msec-body">${materialSection(b, items, g.key)}</div>`}</section>`;
-      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>') + droppedBox(b);
+      }).join('') : '<p class="hint">Nothing yet. Type a material above; a name is enough.</p>') + materialReadingsBox(b) + droppedBox(b);
       freshMaterials.delete(b.id);
     },
     update(b, body) {
@@ -4228,7 +4479,7 @@ const TYPES = {
     },
     onClick(b, e) {
       const act = e.target.closest('[data-act]')?.dataset.act;
-      if (!act) return;
+      if (!act || handleReadingClick(e, 'material')) return;
       const item = b.items.find(i => i.id === e.target.closest('[data-item]')?.dataset.item);
       const key = e.target.closest('[data-key]')?.dataset.key;
       const pasted = materialPastes.get(b.id);
@@ -4571,7 +4822,7 @@ const TYPES = {
       });
       if (removed?.section) sections.splice(Math.min(removed.index, sections.length), 0, `<tbody>${ghost(`Removed ${esc(removed.label)}`)}</tbody>`);
       const more = `<div class="vmore"><select class="in vfor"><option value="">+ Values for…</option>${valueSectionChoices(b)}<option value="mix">A mix or cocktail</option></select></div>`;
-      body.innerHTML = `<div class="vgrid">${[general, ...sections].map(group => `<table class="vtable">${group}</table>`).join('')}</div>${more}`;
+      body.innerHTML = `<div class="vgrid">${[general, ...sections].map(group => `<table class="vtable">${group}</table>`).join('')}${valueReadingsTable(b)}</div>${more}`;
     },
     fit: fitCardHeight,
     update(b, body) {
@@ -4694,6 +4945,7 @@ const TYPES = {
       const id = e.target.closest('[data-item]')?.dataset.item;
       const it = b.items.find(i => i.id === id);
       const td = e.target.closest('td.vcell.editable');
+      if (handleReadingClick(e, 'value')) return;
       if (!act && td && !td.classList.contains('editing') && !isPicking()) {
         editValueCell(b, id, td.dataset.cell);
         return;
@@ -4862,15 +5114,7 @@ const TYPES = {
     onKeydown(b, e) {
       const el = e.target;
       if (el.matches('.fexpr') && suggestState?.input === el) {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-          e.preventDefault();
-          suggestState.at = Math.max(0, Math.min(suggestState.options.length - 1, suggestState.at + (e.key === 'ArrowDown' ? 1 : -1)));
-          drawSuggestions();
-        } else if (e.key === 'Enter' || e.key === 'Tab') {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          acceptSuggestion(Math.max(0, suggestState.at));
-        } else if (e.key === 'Escape') hideSuggestions();
+        steerSuggestions(e);
         return;
       }
       if (!el.matches('.fadd-name')) return;
@@ -5191,26 +5435,28 @@ const TYPES = {
         if (s.kind === 'section' || !groups.length) groups.push({ section: s.kind === 'section' ? s : null, steps: [] });
         if (s.kind === 'step') groups[groups.length - 1].steps.push(s);
       }
-      const duringOf = {};
+      const mainBefore = {};
       let lastMain = null;
       for (const s of state.steps) {
         if (s.kind !== 'step' || s.level === 2) continue;
-        if (s.meanwhile) duringOf[s.id] = lastMain;
-        else lastMain = nums[s.id].replace('.', '');
+        mainBefore[s.id] = lastMain;
+        if (!s.meanwhile) lastMain = nums[s.id].replace('.', '');
       }
       const row = s => {
         const editing = editingStepId === s.id;
         const cls = ['srow', s.level === 2 ? 'sub' : '', editing ? 'editing' : ''].join(' ');
-        const tag = s.meanwhile && duringOf[s.id] ? `<span class="during">During step ${duringOf[s.id]}:</span>` : '';
+        const during = s.level !== 2 && mainBefore[s.id];
+        const tag = s.meanwhile && during ? `<span class="during">During step ${during}:</span>` : '';
+        const duringToggle = during ? `<label><input type="checkbox" class="smw"${s.meanwhile ? ' checked' : ''} /> Runs during step ${during}</label>` : '';
         const content = editing
-          ? `<div class="sedit" contenteditable="true" spellcheck="false" data-placeholder="Write the step">${editorHtml(s.text)}</div><div class="meta"><label><input type="checkbox" class="ssub"${s.level === 2 ? ' checked' : ''} /> sub-step</label><label><input type="checkbox" class="smw"${s.meanwhile ? ' checked' : ''} /> during the previous step</label>${trayToggleHtml(false)}</div>`
+          ? `<div class="sedit" contenteditable="true" spellcheck="false" data-placeholder="Write the step">${editorHtml(s.text)}</div><div class="meta"><label><input type="checkbox" class="ssub"${s.level === 2 ? ' checked' : ''} /> sub-step</label>${duringToggle}${trayToggleHtml(false)}</div>`
           : `<div class="sdisp">${tag}${templateHtml(s.text) || '<span class="hint">Click to write this step</span>'}</div>`;
         return `<div class="${cls}" data-step="${s.id}">${editing ? '' : grip}<span class="num">${nums[s.id]}</span><div class="body">${content}</div>${editing ? '' : tools}</div>`;
       };
       body.innerHTML = groups.map(({ section, steps }) => {
         const meta = `${steps.length} step${steps.length === 1 ? '' : 's'}`;
         const head = section
-          ? `<div class="sec-head" data-step="${section.id}">${grip}<span class="sec-num">${nums[section.id]}</span><input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" /><span class="sec-meta">${meta}</span>${tools}</div>`
+          ? `<div class="sec-head" data-step="${section.id}">${grip}<span class="sec-num">${nums[section.id].replace('.', '')}</span><input class="sec-title stext sectext" value="${esc(section.text)}" spellcheck="false" /><span class="msec-line"></span><span class="sec-meta">${meta}</span>${tools}</div>`
           : '';
         return `<section class="sgroup">${head}<div class="${section ? 'sgroup-body' : ''}">${steps.map(row).join('')}</div></section>`;
       }).join('') + ('<div class="sadd"><button class="add" data-act="step">+ Step</button><button class="add" data-act="section">+ Section</button><button class="add" data-act="paste">Paste protocol</button></div>');
@@ -5275,7 +5521,11 @@ const TYPES = {
       commitSteps();
       bodyOf(b).querySelector(`[data-step="${s.id}"] .${e.target.classList.contains('smw') ? 'smw' : 'ssub'}`).focus();
     },
+    onKeydown(b, e) {
+      if (suggestState?.anchor && suggestState.input === e.target) steerSuggestions(e);
+    },
     onFocusout(b, e) {
+      if (suggestState?.input === e.target) hideSuggestions();
       if (stepsRendering || !e.target.matches('.stext, .sedit, .ssub, .smw')) return;
       const rowEl = e.target.closest('[data-step]');
       if (e.relatedTarget && (rowEl.contains(e.relatedTarget) || e.relatedTarget.closest('#tray'))) return;
@@ -5515,7 +5765,7 @@ function showTray(input) {
     const shown = refInfo(entry.name).text;
     add(title, `<div class="tray-row" data-pick="${esc(entry.name)}"><span>${esc(label)}</span>${shown !== entry.name ? `<span class="tv">${esc(shown)}</span>` : ''}</div>`);
   }
-  const presets = isFormula ? '' : `<div class="tray-group">Common steps</div>${STEP_PRESETS.map((p, i) => `<div class="tray-row" data-preset="${i}"><span>${esc(p.label)}</span><span class="tv">${esc(p.text.replace(/[‹›]/g, ''))}</span></div>`).join('')}`;
+  const presets = isFormula ? '' : `<div class="tray-group">Common steps</div>${STEP_PRESETS.map((p, i) => `<div class="tray-row" data-preset="${i}"><span>${esc(p.label)}</span><span class="tv">${esc(templateText(p.text))}</span></div>`).join('')}`;
   const ops = isFormula ? `<div class="tray-ops">${['+', '−', '×', '÷', '(', ')', ','].map(op => `<button class="pick" data-op="${op}">${op}</button>`).join('')}</div><div class="tray-ops">${Object.entries(FORMULA_FUNCTIONS).map(([name, fn]) => `<button class="pick" data-op="${name}(" title="${esc(`${name}: ${fn.hint}`)}">${name}</button>`).join('')}</div>` : '';
   tray.innerHTML = `<div class="tray-list">${ops}${presets}${[...groups].map(([title, rows]) => `<div class="tray-group">${esc(title)}</div>${rows.join('')}`).join('')}</div><div class="tray-tip">Click to insert, or drag into place. Names on the board can be dragged in too.${isFormula ? '' : ' Tab jumps between highlighted blanks.'}</div>`;
   placeTray();
@@ -5812,17 +6062,23 @@ function leaveValueUndo(b, entry) {
   removedValues.set(b.id, { ...entry, timer });
 }
 
-function addValueNamed(name, material) {
-  let b = state.blocks.find(x => x.type === 'values');
-  if (!b) b = addBlock('values');
+function insertValue(material, it) {
+  const b = state.blocks.find(x => x.type === 'values') ?? addBlock('values');
   let sec = material ? b.sections.find(x => x.of === material.id) : null;
   if (material && !sec) {
     sec = { id: uid(), of: material.id };
     b.sections.push(sec);
   }
-  const it = { id: uid(), name: nameWithin(name, material), value: '', unit: '', ...(sec ? { section: sec.id } : {}) };
+  it.name = nameWithin(it.name, material);
+  if (sec) it.section = sec.id;
   const last = sec ? sectionPeers(b, sec.id).at(-1) : null;
   b.items.splice(last ? b.items.indexOf(last) + 1 : b.items.length, 0, it);
+  return b;
+}
+
+function addValueNamed(name, material) {
+  const it = { id: uid(), name, value: '', unit: '' };
+  const b = insertValue(material, it);
   valueEdits.set(b.id, { item: it.id, key: 'value' });
   renderBlock(b);
   save();
