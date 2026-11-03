@@ -1,12 +1,7 @@
-/**
- * Tube Location
- *
- * Immutable value object representing a physical position: Tank → Rack → Box → Position.
- */
-
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import { VALIDATION_LIMITS } from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
+
 export class TubeLocation {
   private constructor(
     private readonly _tankId: string,
@@ -57,8 +52,6 @@ export class TubeLocation {
     if (this._rackId.trim().length > 50) {
       throw new ValidationError('Rack ID cannot exceed 50 characters');
     }
-    // Allow any string format for lab flexibility
-    // Examples: "1", "R1", "Top-Shelf", "Level-A", "Rack-B2"
   }
 
   private validateBoxId(): void {
@@ -68,17 +61,15 @@ export class TubeLocation {
     if (this._boxId.trim().length > 50) {
       throw new ValidationError('Box ID cannot exceed 50 characters');
     }
-    // Allow any string format for lab flexibility
-    // Examples: "A", "Box-01", "Front-Left", "Compartment-1"
   }
 
   private validatePosition(): void {
     if (!Number.isInteger(this._position)) {
       throw new ValidationError('Position must be an integer');
     }
-    if (this._position < 1 || this._position > EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX) {
+    if (this._position < 1 || this._position > VALIDATION_LIMITS.BOX.MAX_POSITIONS) {
       throw new ValidationError(
-        `Position must be between 1 and ${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`
+        `Position must be between 1 and ${VALIDATION_LIMITS.BOX.MAX_POSITIONS}`
       );
     }
   }

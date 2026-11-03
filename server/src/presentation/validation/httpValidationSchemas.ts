@@ -1,8 +1,3 @@
-/**
- * HTTP Input Validation Schemas
- *
- * Centralizes all request validation so route modules stay pure routing.
- */
 import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
@@ -40,6 +35,7 @@ import {
   assignRackRequestSchema,
   addBoxesRequestSchema,
   updateBoxRequestSchema,
+  updateBoxGridRequestSchema,
   assignBoxRequestSchema,
   updateResourceLabelRequestSchema,
   updateSystemStorageRequestSchema,
@@ -95,8 +91,6 @@ import {
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
-// Shared param schemas
-
 export const IdParams = z.object({ id: z.string().min(1) });
 export const UserIdParams = z.object({ userId: z.string().min(1) });
 export const LabIdParams = z.object({ labId: z.string().min(1) });
@@ -104,9 +98,6 @@ export const LabUserParams = z.object({ labId: z.string().min(1), userId: z.stri
 export const ResearcherIdParams = z.object({ researcherId: z.string().min(1) });
 export const CategoryParams = z.object({ category: z.string().min(1) });
 
-// Tube schemas
-
-// Supports both single tube creation and bulk paste operations (copy/cut)
 export const CreateTubeHttpSchema = z.union([
   createTubeRequestSchema,
   z.array(createTubeRequestSchema),
@@ -117,7 +108,6 @@ export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 
 export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
 
-// Navigator field map reads a whole rack — tank + rack only, no box or position
 export const RackQuerySchema = tubeLocationSchema.pick({ tankId: true, rackId: true });
 
 export const TubeFilterOptionsQuerySchema = z.object({
@@ -159,8 +149,6 @@ export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
 export const ShareTubeAccessHttpSchema = shareTubeAccessRequestSchema;
 export const RevokeTubeAccessHttpSchema = revokeTubeAccessRequestSchema;
 
-// Auth schemas
-
 export const LoginBodySchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1),
@@ -191,8 +179,6 @@ export const SetupSystemAdminBodySchema = z.object({
   position: z.string().max(100).optional(),
 });
 
-// Admin schemas
-
 export const UpdateRoleBodySchema = z.object({
   role: z.enum(['lab_admin', 'user']),
 });
@@ -209,15 +195,11 @@ export const LinkResearcherBodySchema = z
 
 export const CreateInviteCodeBodySchema = createInviteCodeRequestSchema;
 
-// Lab management schemas
-
 export const CreateLabBodySchema = createLabRequestSchema;
 
 export const UpdateLabBodySchema = z.object({
   name: z.string().min(1).max(200),
 });
-
-// Donor schemas
 
 export const DonorHistoryIdParams = z.object({ historyId: z.string().min(1) });
 export const CreateDonorHttpSchema = createDonorRequestSchema;
@@ -228,8 +210,6 @@ export const DonorSearchQuery = z.object({
   q: z.string().min(1),
   limit: z.coerce.number().int().min(1).max(50).optional(),
 });
-
-// Equipment schemas
 
 export const EquipmentCategoryIdParams = z.object({ categoryId: z.string().min(1) });
 export const EquipmentDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
@@ -250,8 +230,6 @@ export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceReques
 export const EquipmentBulkStatusHttpSchema = equipmentBulkStatusRequestSchema;
 export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchema;
 
-// Storage schemas
-
 export const TankIdParams = z.object({ tankId: z.string().min(1) });
 export const RackIdParams = z.object({ tankId: z.string().min(1), rackId: z.string().min(1) });
 export const BoxIdParams = z.object({
@@ -266,6 +244,7 @@ export const UpdateRackHttpSchema = updateRackRequestSchema;
 export const AssignRackHttpSchema = assignRackRequestSchema;
 export const AddBoxesHttpSchema = addBoxesRequestSchema;
 export const UpdateBoxHttpSchema = updateBoxRequestSchema;
+export const UpdateBoxGridHttpSchema = updateBoxGridRequestSchema;
 export const AssignBoxHttpSchema = assignBoxRequestSchema;
 export const UpdateResourceLabelHttpSchema = updateResourceLabelRequestSchema;
 export const UpdateSystemStorageHttpSchema = updateSystemStorageRequestSchema;
@@ -273,8 +252,6 @@ export const InitializeStorageHttpSchema = initializeStorageRequestSchema;
 export const BulkUnassignHttpSchema = bulkUnassignRequestSchema;
 export const BulkReassignHttpSchema = bulkReassignRequestSchema;
 export const ResetStorageHttpSchema = z.object({ confirmationToken: z.string().min(1) });
-
-// Attribute schemas
 
 export const SetAttributeValueHttpSchema = setAttributeValueRequestSchema;
 
@@ -285,23 +262,15 @@ export const UpdateAttributeDefinitionHttpSchema = updateAttributeDefinitionRequ
 export const CreateAttributeOptionHttpSchema = createAttributeOptionRequestSchema;
 export const UpdateAttributeOptionHttpSchema = updateAttributeOptionRequestSchema;
 
-// Custom unit schemas
-
 export const CustomUnitIdParams = z.object({ unitId: z.string().min(1) });
 export const CreateCustomUnitHttpSchema = createCustomUnitRequestSchema;
 export const UpdateCustomUnitHttpSchema = updateCustomUnitRequestSchema;
-
-// Location schemas
 
 export const LabLocationIdParams = z.object({ locationId: z.string().min(1) });
 export const CreateLabLocationHttpSchema = createLabLocationRequestSchema;
 export const UpdateLabLocationHttpSchema = updateLabLocationRequestSchema;
 
-// Barcode schemas
-
 export const BarcodeResolveQuery = z.object({ value: z.string().min(1) });
-
-// Supply schemas
 
 export const SupplyCategoryIdParams = z.object({ categoryId: z.string().min(1) });
 export const SupplyDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
@@ -333,8 +302,6 @@ export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
 export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
 export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
 
-// Reagent schemas
-
 export const ReagentCategoryIdParams = z.object({ categoryId: z.string().min(1) });
 export const ReagentDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
 export const ReagentBarcodeIdParams = z.object({
@@ -361,7 +328,6 @@ export const ReagentBulkReceiveHttpSchema = reagentBulkReceiveRequestSchema;
 export const ReagentBulkIssueHttpSchema = reagentBulkIssueRequestSchema;
 export const ReagentBulkReassignCategoryHttpSchema = reagentBulkReassignCategoryRequestSchema;
 export const ReagentBulkArchiveHttpSchema = reagentBulkArchiveRequestSchema;
-/** Shared by the barcode and lot-label endpoints — both take the same list of item ids. */
 export const ReagentBulkItemIdsHttpSchema = reagentBulkBarcodesRequestSchema;
 export const VoidReagentTransactionHttpSchema = voidReagentTransactionRequestSchema;
 export const ReagentBulkVoidHttpSchema = reagentBulkVoidRequestSchema;

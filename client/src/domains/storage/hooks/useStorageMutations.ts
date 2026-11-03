@@ -1,9 +1,3 @@
-/**
- * Storage Mutations
- *
- * React Query mutation hooks for tank, rack, and box operations.
- */
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -13,10 +7,12 @@ import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
-import type { GridConfiguration } from '@odysseus/shared-schemas';
+import type {
+  BoxGridUpdateResponse,
+  GridConfiguration,
+  UpdateBoxGridRequest,
+} from '@odysseus/shared-schemas';
 
-// Layout writes toast their errors through the global handler. The only local reaction is refetching
-// the layout on a 409, so the next edit starts from whatever another user just changed.
 function invalidateOnConflict(
   queryClient: ReturnType<typeof useQueryClient>,
   labId: string | undefined
@@ -50,6 +46,42 @@ function notifyBulkAssignmentResult(
 
   if (protectedSkipped > 0) {
     notifications.warning(`${summary}. ${protectedNote}`);
+  } else {
+    notifications.success(summary);
+  }
+}
+
+function notifyBoxGridResult(result: BoxGridUpdateResponse, { rows, cols }: GridConfiguration) {
+  const { boxesUpdated, tubesRenumbered, blockedSkipped, protectedSkipped } = result;
+  const grid = `${rows}×${cols}`;
+  const notes: string[] = [];
+  if (blockedSkipped > 0) {
+    notes.push(
+      `${blockedSkipped} ${blockedSkipped === 1 ? 'box' : 'boxes'} with tubes outside ${grid} ${blockedSkipped === 1 ? 'was' : 'were'} skipped`
+    );
+  }
+  if (protectedSkipped > 0) {
+    notes.push(
+      `${protectedSkipped} demo ${protectedSkipped === 1 ? 'box was' : 'boxes were'} protected`
+    );
+  }
+
+  if (boxesUpdated === 0) {
+    if (notes.length > 0) {
+      notifications.warning(`Nothing changed — ${notes.join(', ')}`);
+    } else {
+      notifications.info(`Every box already uses ${grid}`);
+    }
+    return;
+  }
+
+  const renumbered =
+    tubesRenumbered > 0
+      ? ` · ${tubesRenumbered} ${tubesRenumbered === 1 ? 'tube kept its' : 'tubes kept their'} row and column`
+      : '';
+  const summary = `Changed ${boxesUpdated} ${boxesUpdated === 1 ? 'box' : 'boxes'} to ${grid}${renumbered}`;
+  if (notes.length > 0) {
+    notifications.warning(`${summary}. ${notes.join(', ')}`);
   } else {
     notifications.success(summary);
   }
@@ -95,7 +127,6 @@ export const useUpdateTankMutation = () => {
   });
 };
 
-/** Blocks if tubes exist. */
 export const useDeleteTankMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -160,7 +191,6 @@ export const useUpdateRackMutation = () => {
   });
 };
 
-/** Blocks if tubes exist. */
 export const useDeleteRackMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -228,34 +258,24 @@ export const useAddBoxesMutation = () => {
   });
 };
 
-export const useUpdateBoxMutation = () => {
+export const useUpdateBoxGridMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
 
   return useMutation({
-    mutationKey: ['storage', 'updateBox'],
-    mutationFn: ({
-      tankId,
-      rackId,
-      boxId,
-      updates,
-    }: {
-      tankId: string;
-      rackId: string;
-      boxId: string;
-      updates: { gridConfig?: GridConfiguration };
-    }) => StorageService.updateBox(tankId, rackId, boxId, updates),
+    mutationKey: ['storage', 'updateBoxGrid'],
+    mutationFn: (request: UpdateBoxGridRequest) => StorageService.updateBoxGrid(request),
 
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
-      notifications.success('Box updated successfully');
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
+      notifyBoxGridResult(data, variables.gridConfig);
     },
 
     onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
-/** Blocks if tubes exist. */
 export const useDeleteBoxMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -303,7 +323,6 @@ export const useAssignBoxMutation = () => {
   });
 };
 
-/** Used when deactivating users. */
 export const useBulkUnassignMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -348,7 +367,6 @@ export const useBulkReassignMutation = () => {
   });
 };
 
-/** For fresh installs only. */
 export const useInitializeConfigurationMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();

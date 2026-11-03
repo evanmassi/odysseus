@@ -1,20 +1,12 @@
-/**
- * Storage Request Schemas
- *
- * Zod validation for tank/rack/box/label write requests. Optional text is
- * trimmed (globally, via sanitizeStrings) and blank-normalized here at the
- * schema boundary.
- */
-
 import { z } from 'zod';
 
+import { GRID_SIZES } from '../constants/gridSizes';
 import { VALIDATION_LIMITS } from '../constants/validationLimits';
 import { patchText } from '../utils/stringFields';
 import { positionDisplayConfigSchema } from './positionSchemas';
 import { GridConfigurationSchema } from './storageSchemas';
 
 const TANK_NAME_MAX = VALIDATION_LIMITS.TANK.NAME_MAX_LENGTH;
-// Rack/box names have no domain-level limit; keep the prior HTTP request cap.
 const RACK_NAME_MAX = 200;
 const BOX_NAME_MAX = 200;
 const LOCATION_MAX = 500;
@@ -49,10 +41,26 @@ export const addBoxesRequestSchema = z.object({ count });
 
 export const updateBoxRequestSchema = z.object({
   name: z.string().min(1, 'Box name is required').max(BOX_NAME_MAX).optional(),
-  gridConfig: GridConfigurationSchema.optional(),
   positionDisplay: positionDisplayConfigSchema.nullable().optional(),
   isActive: z.boolean().optional(),
 });
+
+export const updateBoxGridRequestSchema = z
+  .object({
+    tankId: z.string().min(1),
+    rackId: z.string().min(1).optional(),
+    boxId: z.string().min(1).optional(),
+    gridConfig: GridConfigurationSchema.refine(
+      grid => GRID_SIZES.some(size => size.rows === grid.rows && size.cols === grid.cols),
+      'Choose one of the standard box grid sizes'
+    ),
+  })
+  .refine(data => !data.boxId || !!data.rackId, {
+    message: 'rackId is required to change a single box',
+    path: ['rackId'],
+  });
+
+export type UpdateBoxGridRequest = z.infer<typeof updateBoxGridRequestSchema>;
 
 export const assignBoxRequestSchema = z.object({ assignedUserId });
 

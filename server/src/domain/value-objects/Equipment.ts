@@ -1,9 +1,3 @@
-/**
- * Lab Equipment Value Objects
- *
- * Immutable Tank, Rack, and Box definitions with domain validation.
- */
-
 import {
   EQUIPMENT_DEFAULTS,
   VALIDATION_LIMITS,
@@ -25,7 +19,6 @@ export interface CreateTankOptions {
   isSeeded?: boolean;
 }
 
-/** Represents a liquid nitrogen tank containing racks. */
 export class Tank {
   private constructor(
     private readonly _id: string,
@@ -285,8 +278,6 @@ export interface CreateBoxOptions {
 }
 
 export class Box {
-  private static readonly POSITIONS_PER_BOX = EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
-
   private constructor(
     private readonly _name: string,
     private readonly _gridConfig: { rows: number; cols: number },
@@ -352,14 +343,13 @@ export class Box {
     return Number.isInteger(position) && position >= 1 && position <= this._maxPositions;
   }
 
-  /**
-   * Format position number to display label based on box configuration
-   *
-   * Uses box-specific position display config, or defaults to alphanumeric format.
-   *
-   * @param position - 1-based position number
-   * @returns Display label (e.g., "C5" or "23")
-   */
+  remapPosition(position: number, toGrid: { rows: number; cols: number }): number | undefined {
+    const row = Math.floor((position - 1) / this._gridConfig.cols);
+    const col = (position - 1) % this._gridConfig.cols;
+    if (row >= toGrid.rows || col >= toGrid.cols) return undefined;
+    return row * toGrid.cols + col + 1;
+  }
+
   formatPosition(position: number): string {
     const config =
       this._positionDisplay ??
@@ -368,13 +358,6 @@ export class Box {
     return positionToLabel(position, this._gridConfig.rows, this._gridConfig.cols, config);
   }
 
-  /**
-   * Parse position label to numeric position based on box configuration
-   *
-   * @param label - Display label (e.g., "C5" or "23")
-   * @returns 1-based position number
-   * @throws ValidationError if label is invalid
-   */
   parsePositionLabel(label: string): number {
     const config =
       this._positionDisplay ??
@@ -441,7 +424,6 @@ export class Box {
   }
 }
 
-/** Top-level equipment container: Tank → Rack[] → Box[]. */
 export class EquipmentConfiguration {
   private constructor(private readonly _tanks: Tank[]) {
     this.validate();
@@ -460,8 +442,6 @@ export class EquipmentConfiguration {
     if (new Set(tankIds).size !== tankIds.length) {
       throw new ValidationError('Tank IDs must be unique');
     }
-
-    // Tanks validate their own rack/box relationships internally
   }
 
   isLocationValid(tankId: string, rackId: string, boxId: string, position: number): boolean {

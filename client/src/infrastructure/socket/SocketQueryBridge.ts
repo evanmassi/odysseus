@@ -1,9 +1,3 @@
-/**
- * Socket → Query Cache Bridge
- *
- * Centralizes all socket event handling and React Query cache synchronization.
- */
-
 import {
   tubeEventSchemas,
   researcherEventSchemas,
@@ -35,7 +29,7 @@ class SocketQueryBridge {
   private loadConfigVersion: () => Promise<number>;
   private isInitialized = false;
 
-  // Persists across socket reconnections for version-change detection
+  // PITFALL: survives reconnects on purpose; version-change detection needs the last value.
   private lastKnownConfigVersion: number | null = null;
 
   constructor(
@@ -71,7 +65,6 @@ class SocketQueryBridge {
     this.isInitialized = true;
   }
 
-  /** Preserves session state (version tracking) across reconnections. */
   public disconnect(): void {
     if (this.socket) {
       this.socket.removeAllListeners();
@@ -82,7 +75,6 @@ class SocketQueryBridge {
     }
   }
 
-  /** Registers a socket handler that validates the payload; invalid events are logged and skipped. */
   private registerHandler<T>(
     event: string,
     schema: ParsableSchema<T>,
@@ -113,7 +105,7 @@ class SocketQueryBridge {
         }
       }
 
-      // More reliable than catching user_online broadcast during connection
+      // PITFALL: ask for presence explicitly; the user_online broadcast can race the connect.
       this.socket?.emit('request_presence');
 
       getNetworkMonitor()?.notifySocketConnected();
@@ -190,8 +182,6 @@ class SocketQueryBridge {
       });
     }
   }
-
-  // TUBE LOCK EVENT HANDLERS — patches cache directly instead of invalidation
 
   private setupTubeLockEventHandlers(): void {
     if (!this.socket) return;
@@ -278,7 +268,6 @@ class SocketQueryBridge {
     );
   }
 
-  /** Refreshes the full tube list (used by TubeEditorModal position analysis). */
   private invalidateTubesList(): void {
     if (!this.labId) return;
     void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
@@ -299,8 +288,6 @@ class SocketQueryBridge {
       ),
     });
   }
-
-  // RESEARCHER EVENT HANDLERS — all invalidate researchers
 
   private setupResearcherEventHandlers(): void {
     if (!this.socket) return;
@@ -349,8 +336,6 @@ class SocketQueryBridge {
     }
   }
 
-  // PRESENCE EVENT HANDLERS — writes authoritative server list directly to cache
-
   private setupPresenceEventHandlers(): void {
     if (!this.socket) return;
 
@@ -361,7 +346,6 @@ class SocketQueryBridge {
         if (!this.labId) return;
         this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
 
-        // If the new user isn't in our cached list, refetch so we can display their badge
         const cachedUsers = this.queryClient.getQueryData<Array<{ id: string }>>(
           queryKeys.users.list(this.labId)
         );
@@ -396,6 +380,11 @@ class SocketQueryBridge {
 
         const versionChanged = await this.invalidateConfigurationIfChanged();
 
+        // PITFALL: a box grid change renumbers the tubes inside it, so cached positions go stale.
+        if (eventTypes.includes('BoxUpdated')) {
+          this.invalidateTubesList();
+        }
+
         if (versionChanged) {
           const message = this.generateConfigurationUpdateMessage(eventTypes, eventCount);
           notifications.info(message);
@@ -408,7 +397,6 @@ class SocketQueryBridge {
           timestamp: new Date().toISOString(),
         });
 
-        // Graceful degradation — invalidate anyway to ensure consistency
         try {
           if (!this.labId) return;
           await this.queryClient.invalidateQueries({
@@ -422,7 +410,6 @@ class SocketQueryBridge {
     });
   }
 
-  /** Detects database resets (version going backward). */
   private async invalidateConfigurationIfChanged(): Promise<boolean> {
     try {
       const currentVersion = this.lastKnownConfigVersion;
@@ -435,7 +422,6 @@ class SocketQueryBridge {
 
       const newVersion = await this.loadConfigVersion();
 
-      // First event — no baseline, assume changed
       if (currentVersion === null) {
         this.lastKnownConfigVersion = newVersion;
         return true;
@@ -521,10 +507,10 @@ class SocketQueryBridge {
     );
   }
 
-  // RECONNECTION HANDLERS — Manager-level events (socket.io) in Socket.IO v4
-
   private setupReconnectionHandlers(): void {
     if (!this.socket) return;
+
+    // PITFALL: Socket.IO v4 emits reconnection events on the Manager (socket.io), not the socket.
 
     this.socket.io.on('reconnect', () => {
       void this.queryClient.invalidateQueries();

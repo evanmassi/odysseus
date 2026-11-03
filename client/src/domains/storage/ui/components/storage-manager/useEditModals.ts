@@ -1,46 +1,39 @@
-/**
- * Storage Edit Modals
- *
- * Modal lifecycle state and update mutations for the storage manager's edit modals.
- */
-
 import { useState, useCallback } from 'react';
 
 import {
   useUpdateTankMutation,
   useUpdateRackMutation,
-  useUpdateBoxMutation,
+  useUpdateBoxGridMutation,
   useUpdateResourceLabelMutation,
 } from '../../../hooks/useStorageMutations';
 
+import type { BoxGridScope } from './StorageManagerContext';
 import type {
   TankConfiguration,
   RackConfiguration,
-  BoxConfiguration,
   GridConfiguration,
 } from '@odysseus/shared-schemas';
 
 export function useEditModals() {
   const updateTankMutation = useUpdateTankMutation();
   const updateRackMutation = useUpdateRackMutation();
-  const updateBoxMutation = useUpdateBoxMutation();
+  const updateBoxGridMutation = useUpdateBoxGridMutation();
   const updateLabelMutation = useUpdateResourceLabelMutation();
 
   const isMutating =
     updateTankMutation.isPending ||
     updateRackMutation.isPending ||
-    updateBoxMutation.isPending ||
+    updateBoxGridMutation.isPending ||
     updateLabelMutation.isPending;
 
   const [tankModalData, setTankModalData] = useState<TankConfiguration | null>(null);
   const [isTankModalOpen, setIsTankModalOpen] = useState(false);
 
-  const [boxModalData, setBoxModalData] = useState<{
-    tankId: string;
-    rackId: string;
-    box: BoxConfiguration;
+  const [gridModalData, setGridModalData] = useState<{
+    scope: BoxGridScope;
+    label: string;
   } | null>(null);
-  const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
+  const [isGridModalOpen, setIsGridModalOpen] = useState(false);
 
   const [rackModalData, setRackModalData] = useState<{
     tankId: string;
@@ -72,9 +65,9 @@ export function useEditModals() {
     setIsLabelModalOpen(true);
   }, []);
 
-  const onEditBox = useCallback((tankId: string, rackId: string, box: BoxConfiguration) => {
-    setBoxModalData({ tankId, rackId, box });
-    setIsBoxModalOpen(true);
+  const onChangeBoxGrid = useCallback((scope: BoxGridScope, label: string) => {
+    setGridModalData({ scope, label });
+    setIsGridModalOpen(true);
   }, []);
 
   const onEditBoxLabel = useCallback(
@@ -117,15 +110,10 @@ export function useEditModals() {
     );
   };
 
-  const handleUpdateBoxGrid = (
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    gridConfig: GridConfiguration
-  ) => {
-    updateBoxMutation.mutate(
-      { tankId, rackId, boxId, updates: { gridConfig } },
-      { onSuccess: () => setIsBoxModalOpen(false) }
+  const handleUpdateBoxGrid = (scope: BoxGridScope, gridConfig: GridConfiguration) => {
+    updateBoxGridMutation.mutate(
+      { ...scope, gridConfig },
+      { onSuccess: () => setIsGridModalOpen(false) }
     );
   };
 
@@ -148,9 +136,9 @@ export function useEditModals() {
     tankModalData,
     isTankModalOpen,
     setIsTankModalOpen,
-    boxModalData,
-    isBoxModalOpen,
-    setIsBoxModalOpen,
+    gridModalData,
+    isGridModalOpen,
+    setIsGridModalOpen,
     rackModalData,
     isRackModalOpen,
     setIsRackModalOpen,
@@ -161,7 +149,7 @@ export function useEditModals() {
     onEditTank,
     onEditRack,
     onEditRackLabel,
-    onEditBox,
+    onChangeBoxGrid,
     onEditBoxLabel,
 
     handleUpdateTank,

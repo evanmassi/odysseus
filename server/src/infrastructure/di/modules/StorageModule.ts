@@ -1,13 +1,7 @@
-/**
- * Storage DI Module
- *
- * Lazy-singleton wiring for storage configuration, tank/rack/box management,
- * lookup values, and demo seeding.
- */
-
 import {
   AddBoxesCommandHandler,
   UpdateBoxCommandHandler,
+  UpdateBoxGridCommandHandler,
   DeleteBoxCommandHandler,
   AssignBoxCommandHandler,
 } from '@application/commands/BoxCommands';
@@ -56,13 +50,11 @@ import { StorageController } from '@presentation/controllers/StorageController';
 import { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 
 export class StorageModule {
-  // Storage command handlers
   private updateSystemStorageHandler?: UpdateSystemStorageCommandHandler;
   private resetStorageToDefaultHandler?: ResetStorageToDefaultCommandHandler;
   private importStorageHandler?: ImportStorageCommandHandler;
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
 
-  // Tank/rack/box handlers
   private addTankHandler?: AddTankCommandHandler;
   private updateTankHandler?: UpdateTankCommandHandler;
   private deleteTankHandler?: DeleteTankCommandHandler;
@@ -73,6 +65,7 @@ export class StorageModule {
   private assignRackHandler?: AssignRackCommandHandler;
   private addBoxesHandler?: AddBoxesCommandHandler;
   private updateBoxHandler?: UpdateBoxCommandHandler;
+  private updateBoxGridHandler?: UpdateBoxGridCommandHandler;
   private deleteBoxHandler?: DeleteBoxCommandHandler;
   private assignBoxHandler?: AssignBoxCommandHandler;
   private bulkUnassignHandler?: BulkUnassignResourcesCommandHandler;
@@ -81,19 +74,16 @@ export class StorageModule {
   private seedDemoHandler?: SeedDemoCommandHandler;
   private unseedDemoHandler?: UnseedDemoCommandHandler;
 
-  // Query handlers
   private getCurrentStorageHandler?: GetCurrentStorageQueryHandler;
   private getStorageHistoryHandler?: GetStorageHistoryQueryHandler;
   private getStorageByVersionHandler?: GetStorageByVersionQueryHandler;
   private checkStorageHealthHandler?: CheckStorageHealthQueryHandler;
   private getSystemMetricsHandler?: GetSystemMetricsQueryHandler;
 
-  // Services
   private lookupValueApplicationService?: LookupValueApplicationService;
   private securityConfigApplicationService?: SecurityConfigApplicationService;
   private storageAnalyticsApplicationService?: StorageAnalyticsApplicationService;
 
-  // Controllers
   private storageController?: StorageController;
   private adminConfigController?: AdminConfigController;
   private lookupValueController?: LookupValueController;
@@ -103,8 +93,6 @@ export class StorageModule {
     private shared: SharedServices,
     private repositoryFactory: RepositoryFactory
   ) {}
-
-  // Storage command handlers
 
   getUpdateSystemStorageHandler(): UpdateSystemStorageCommandHandler {
     if (!this.updateSystemStorageHandler) {
@@ -154,8 +142,6 @@ export class StorageModule {
     }
     return this.updateResourceLabelHandler;
   }
-
-  // Tank/rack/box handlers
 
   getAddTankHandler(): AddTankCommandHandler {
     if (!this.addTankHandler) {
@@ -278,6 +264,18 @@ export class StorageModule {
     return this.updateBoxHandler;
   }
 
+  getUpdateBoxGridHandler(): UpdateBoxGridCommandHandler {
+    if (!this.updateBoxGridHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateBoxGridHandler = new UpdateBoxGridCommandHandler(
+        repositories.storage,
+        repositories.users,
+        this.shared.eventBus
+      );
+    }
+    return this.updateBoxGridHandler;
+  }
+
   getDeleteBoxHandler(): DeleteBoxCommandHandler {
     if (!this.deleteBoxHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -364,8 +362,6 @@ export class StorageModule {
     return this.unseedDemoHandler;
   }
 
-  // Query handlers
-
   getGetCurrentStorageHandler(): GetCurrentStorageQueryHandler {
     if (!this.getCurrentStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -409,8 +405,6 @@ export class StorageModule {
     return this.getSystemMetricsHandler;
   }
 
-  // Services
-
   getSecurityConfigApplicationService(): SecurityConfigApplicationService {
     if (!this.securityConfigApplicationService) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -448,8 +442,6 @@ export class StorageModule {
     return this.storageAnalyticsApplicationService;
   }
 
-  // Controllers
-
   getStorageController(): StorageController {
     if (!this.storageController) {
       this.storageController = new StorageController({
@@ -471,6 +463,7 @@ export class StorageModule {
         assignRackHandler: this.getAssignRackHandler(),
         addBoxesHandler: this.getAddBoxesHandler(),
         updateBoxHandler: this.getUpdateBoxHandler(),
+        updateBoxGridHandler: this.getUpdateBoxGridHandler(),
         deleteBoxHandler: this.getDeleteBoxHandler(),
         assignBoxHandler: this.getAssignBoxHandler(),
         bulkUnassignHandler: this.getBulkUnassignHandler(),

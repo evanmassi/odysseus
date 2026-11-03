@@ -1,9 +1,3 @@
-/**
- * Storage Hooks
- *
- * React Query hooks for storage equipment operations.
- */
-
 export { useStorageData } from './useStorageData';
 export { useStorageSync } from './useStorageSync';
 export { useStorageLocationNames } from './useStorageLocationNames';
@@ -19,7 +13,7 @@ export {
   useDeleteRackMutation,
   useAssignRackMutation,
   useAddBoxesMutation,
-  useUpdateBoxMutation,
+  useUpdateBoxGridMutation,
   useDeleteBoxMutation,
   useAssignBoxMutation,
   useBulkUnassignMutation,

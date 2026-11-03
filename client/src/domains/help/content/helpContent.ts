@@ -1,9 +1,3 @@
-/**
- * Help Content Registry
- *
- * Single source of truth for the help guide's tabs and sections. Drives the tab
- * navigation, the per-section headers (titles + anchors), and the search index.
- */
 import type { ComponentType } from 'react';
 
 import {
@@ -64,11 +58,9 @@ export interface HelpTabMeta {
   id: HelpTabId;
   label: string;
   icon: IconComponent;
-  /** Admin-only tabs are hidden from non-admin users. */
   adminOnly?: boolean;
 }
 
-/** Ordered tab list. Admin-gated entries are filtered in the modal. */
 export const HELP_TABS: HelpTabMeta[] = [
   { id: 'getting-started', label: 'Getting Started', icon: Rocket },
   { id: 'tubes', label: 'Tubes', icon: TestTubeDiagonal },
@@ -90,18 +82,11 @@ export interface HelpSectionMeta {
   tabId: HelpTabId;
   title: string;
   icon: IconComponent;
-  /** Extra search terms beyond the title (synonyms, feature names, concepts). */
   keywords: string[];
-  /** Sections only shown to admins are excluded from non-admin search results. */
   adminOnly?: boolean;
 }
 
-/**
- * Every help section, keyed by a stable anchor id. The section component reads its
- * title/icon from here; search filters across title + keywords.
- */
 const HELP_SECTIONS: HelpSectionMeta[] = [
-  // Getting Started
   {
     id: 'gs-grid',
     tabId: 'getting-started',
@@ -131,7 +116,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     keywords: ['filter', 'advanced search', 'csv', 'export', 'find tubes'],
   },
 
-  // Tubes
   {
     id: 'tubes-anatomy',
     tabId: 'tubes',
@@ -154,7 +138,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     keywords: ['cell line', 'donor color', 'brightness', 'swatch', 'indicator', 'lot', 'contrast'],
   },
 
-  // Storage
   {
     id: 'storage-hierarchy',
     tabId: 'storage',
@@ -181,10 +164,9 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     tabId: 'storage',
     title: 'Quick Reference',
     icon: BookmarkCheck,
-    keywords: ['custom labels', 'grid sizes', 'bulk creation', '5x5', '10x10'],
+    keywords: ['custom labels', 'grid sizes', 'change box grids', 'bulk creation', '5x5', '10x10'],
   },
 
-  // Lab Management
   {
     id: 'lab-suites',
     tabId: 'lab-management',
@@ -289,7 +271,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     adminOnly: true,
   },
 
-  // Donors
   {
     id: 'donors-what',
     tabId: 'donors',
@@ -334,7 +315,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     adminOnly: true,
   },
 
-  // Researchers
   {
     id: 'researchers-vs-users',
     tabId: 'researchers',
@@ -364,7 +344,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     keywords: ['create', 'edit', 'link', 'deactivate', 'tube counts', 'status'],
   },
 
-  // Shortcuts
   {
     id: 'shortcuts-grid',
     tabId: 'shortcuts',
@@ -387,7 +366,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
     keywords: ['search', 'escape', 'close', 'keyboard'],
   },
 
-  // Administration
   {
     id: 'admin-overview',
     tabId: 'administration',
@@ -471,7 +449,6 @@ const HELP_SECTIONS: HelpSectionMeta[] = [
 
 const SECTION_BY_ID = new Map(HELP_SECTIONS.map(s => [s.id, s]));
 
-// 1-based ordinal of each section within its own tab, for the subsection index.
 const SECTION_ORDINAL = new Map<string, number>();
 for (const tab of HELP_TABS) {
   let ordinal = 0;
@@ -490,7 +467,6 @@ export function getHelpSectionIndex(id: string): number | undefined {
   return SECTION_ORDINAL.get(id);
 }
 
-/** Sections matching the query across title + keywords, optionally hiding admin content. */
 export function searchHelpSections(query: string, includeAdmin: boolean): HelpSectionMeta[] {
   const visible = HELP_SECTIONS.filter(s => includeAdmin || !s.adminOnly);
   const trimmed = query.trim().toLowerCase();

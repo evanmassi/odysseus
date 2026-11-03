@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Lock, SquarePen, Trash2 } from 'lucide-react';
+import { ChevronDown, Grid3x3, Lock, SquarePen, Trash2 } from 'lucide-react';
 
 import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
@@ -33,6 +33,7 @@ export function TankRow({
 }: TankRowProps) {
   const {
     onEditTank,
+    onChangeBoxGrid,
     onDeleteTank,
     onAddRacks,
     canManageStorage,
@@ -58,6 +59,11 @@ export function TankRow({
         label: 'Edit Tank',
         onClick: () => onEditTank(tank),
       },
+      {
+        icon: Grid3x3,
+        label: 'Change Box Grids',
+        onClick: () => onChangeBoxGrid({ tankId: tank.id }, tank.name),
+      },
     ];
 
     if (canDeleteTank) {
@@ -70,7 +76,7 @@ export function TankRow({
     }
 
     return items;
-  }, [tank, locked, canDeleteTank, onEditTank, onDeleteTank]);
+  }, [tank, locked, canDeleteTank, onEditTank, onChangeBoxGrid, onDeleteTank]);
 
   const dividerBefore = canDeleteTank ? ['Delete Tank'] : [];
 
