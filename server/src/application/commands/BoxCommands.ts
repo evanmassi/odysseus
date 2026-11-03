@@ -21,11 +21,7 @@ import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
-import type {
-  BoxGridUpdateResponse,
-  GridConfiguration,
-  PositionDisplayConfig,
-} from '@odysseus/shared-schemas';
+import type { BoxGridUpdateResponse, GridConfiguration } from '@odysseus/shared-schemas';
 
 export interface AddBoxesCommand {
   userId: string;
@@ -33,17 +29,6 @@ export interface AddBoxesCommand {
   tankId: string;
   rackId: string;
   count: number;
-}
-
-export interface UpdateBoxCommand {
-  userId: string;
-  labId: string;
-  tankId: string;
-  rackId: string;
-  boxId: string;
-  name?: string;
-  positionDisplay?: PositionDisplayConfig | null;
-  isActive?: boolean;
 }
 
 export interface UpdateBoxGridCommand {
@@ -171,106 +156,6 @@ export class AddBoxesCommandHandler {
   }
 }
 
-export class UpdateBoxCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private userRepository: UserRepository,
-    private eventBus: EventBus
-  ) {}
-
-  async handle(command: UpdateBoxCommand): Promise<void> {
-    const currentConfig = await this.storageRepository.getForLab(command.labId);
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize system first.');
-    }
-
-    const user = await requireUser(this.userRepository, command.userId);
-    if (!user.isAdmin()) {
-      throw PermissionError.configurationManagement('update box', command.userId);
-    }
-
-    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
-
-    const tank = currentConfig.tanks.find(t => t.id === command.tankId);
-    if (!tank) {
-      throw new NotFoundError('The selected tank could not be found.');
-    }
-
-    const rack = tank.racks.find(r => r.id === command.rackId);
-    if (!rack) {
-      throw new NotFoundError('That rack could not be found in the selected tank.');
-    }
-
-    const boxIdUpper = command.boxId.toUpperCase();
-    const box = rack.boxes.find(b => b.name === boxIdUpper);
-    if (!box) {
-      throw new NotFoundError('That box could not be found in the selected rack.');
-    }
-
-    const changes: FieldChange[] = [];
-    const configData = currentConfig.toData();
-    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-    const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
-    const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
-      b => b.name === boxIdUpper
-    );
-
-    const boxData = configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex];
-
-    if (command.name !== undefined && command.name !== box.name) {
-      changes.push({ field: 'name', oldValue: box.name, newValue: command.name });
-      boxData.name = command.name.toUpperCase();
-    }
-
-    if (command.positionDisplay !== undefined) {
-      const oldDisplay = box.positionDisplay;
-      changes.push({
-        field: 'positionDisplay',
-        oldValue: oldDisplay,
-        newValue: command.positionDisplay,
-      });
-      boxData.positionDisplay = command.positionDisplay ?? undefined;
-    }
-
-    if (command.isActive !== undefined && command.isActive !== box.isActive) {
-      changes.push({ field: 'isActive', oldValue: box.isActive, newValue: command.isActive });
-      boxData.isActive = command.isActive;
-    }
-
-    if (changes.length === 0) {
-      return;
-    }
-
-    const expectedVersion = currentConfig.version;
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings,
-    });
-
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      currentConfig,
-      expectedVersion,
-      `Updated box '${boxData.name}' in rack '${rack.name}'`,
-      command.userId
-    );
-    currentConfig.applyPersistedVersion(newVersion);
-
-    const event = new BoxUpdatedEvent(
-      command.userId,
-      command.tankId,
-      tank.name,
-      command.rackId,
-      rack.name,
-      boxIdUpper,
-      boxData.name,
-      changes,
-      command.labId
-    );
-    await this.eventBus.publish(event);
-  }
-}
-
 export class UpdateBoxGridCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -336,13 +221,6 @@ export class UpdateBoxGridCommandHandler {
         { field: 'gridConfig.rows', oldValue: box.gridConfig.rows, newValue: rows },
         { field: 'gridConfig.cols', oldValue: box.gridConfig.cols, newValue: cols },
       ];
-      if (box.positionDisplay) {
-        changes.push({
-          field: 'positionDisplay',
-          oldValue: box.positionDisplay,
-          newValue: undefined,
-        });
-      }
 
       await this.eventBus.publish(
         new BoxUpdatedEvent(

@@ -2,9 +2,7 @@ import {
   EQUIPMENT_DEFAULTS,
   VALIDATION_LIMITS,
   positionToLabel,
-  labelToPosition,
   getDefaultPositionDisplay,
-  type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -269,7 +267,6 @@ export interface CreateBoxOptions {
   name: string;
   gridConfig?: { rows: number; cols: number };
   maxPositions?: number;
-  positionDisplay?: PositionDisplayConfig;
   isActive?: boolean;
   assignedUserId?: string | null;
   customLabel?: string;
@@ -282,7 +279,6 @@ export class Box {
     private readonly _name: string,
     private readonly _gridConfig: { rows: number; cols: number },
     private readonly _maxPositions: number,
-    private readonly _positionDisplay: PositionDisplayConfig | undefined,
     private readonly _isActive: boolean,
     private readonly _assignedUserId?: string | null,
     private readonly _customLabel?: string,
@@ -303,7 +299,6 @@ export class Box {
       options.name,
       gridConfig,
       positions,
-      options.positionDisplay,
       options.isActive ?? true,
       options.assignedUserId,
       options.customLabel,
@@ -351,31 +346,14 @@ export class Box {
   }
 
   formatPosition(position: number): string {
-    const config =
-      this._positionDisplay ??
-      getDefaultPositionDisplay(this._gridConfig.rows, this._gridConfig.cols);
-
-    return positionToLabel(position, this._gridConfig.rows, this._gridConfig.cols, config);
-  }
-
-  parsePositionLabel(label: string): number {
-    const config =
-      this._positionDisplay ??
-      getDefaultPositionDisplay(this._gridConfig.rows, this._gridConfig.cols);
-
-    try {
-      return labelToPosition(label, this._gridConfig.rows, this._gridConfig.cols, config);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new ValidationError(`Invalid position label: ${message}`);
-    }
+    const { rows, cols } = this._gridConfig;
+    return positionToLabel(position, rows, cols, getDefaultPositionDisplay(rows, cols));
   }
 
   toData(): {
     name: string;
     gridConfig: { rows: number; cols: number };
     maxPositions: number;
-    positionDisplay?: PositionDisplayConfig;
     isActive: boolean;
     assignedUserId?: string | null;
     customLabel?: string;
@@ -386,7 +364,6 @@ export class Box {
       name: this._name.toUpperCase(),
       gridConfig: this._gridConfig,
       maxPositions: this._maxPositions,
-      positionDisplay: this._positionDisplay,
       isActive: this._isActive,
       assignedUserId: this._assignedUserId,
       customLabel: this._customLabel,
@@ -403,9 +380,6 @@ export class Box {
   }
   get maxPositions(): number {
     return this._maxPositions;
-  }
-  get positionDisplay(): PositionDisplayConfig | undefined {
-    return this._positionDisplay;
   }
   get isActive(): boolean {
     return this._isActive;

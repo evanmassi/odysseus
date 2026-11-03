@@ -591,7 +591,6 @@ export class StorageRepository implements IStorageRepository {
 
         boxData.gridConfig = gridConfig;
         boxData.maxPositions = gridConfig.rows * gridConfig.cols;
-        boxData.positionDisplay = undefined;
         renumbered.push(...moves);
         resized.push(ref);
       }

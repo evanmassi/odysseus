@@ -1,15 +1,4 @@
-/**
- * Lab Storage Aggregate Root
- *
- * Manages the equipment hierarchy (tanks → racks → boxes) and system settings.
- */
-
-import {
-  EQUIPMENT_DEFAULTS,
-  NAMING_PATTERNS,
-  SYSTEM_DEFAULTS,
-  type PositionDisplayConfig,
-} from '@odysseus/shared-schemas';
+import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS, SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageImportData } from '@domain/types/storageTypes';
@@ -28,7 +17,6 @@ export class Storage {
   }
 
   static createDefault(): Storage {
-    // Create default boxes A-J for each rack
     const defaultBoxes: Box[] = [];
     for (let i = 0; i < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; i++) {
       const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(i);
@@ -91,7 +79,7 @@ export class Storage {
     }
   }
 
-  /** Handles legacy data migration where old capacity=9 but new boxes.length=10 */
+  // PITFALL: legacy racks store capacity=9 while holding 10 boxes, so capacity is derived here.
   private static effectiveRackCapacity(
     boxCount: number,
     maxBoxes: number | undefined,
@@ -108,7 +96,6 @@ export class Storage {
             name: boxData.name,
             gridConfig: boxData.gridConfig,
             maxPositions: boxData.maxPositions,
-            positionDisplay: boxData.positionDisplay,
             isActive: boxData.isActive,
             assignedUserId: boxData.assignedUserId,
             customLabel: boxData.customLabel,
@@ -158,7 +145,6 @@ export class Storage {
   ): Tank {
     const newTank = Tank.create({ id, name, maxRacks });
 
-    // Business rule: Tank IDs must be unique
     if (this._equipment.tanks.some(t => t.id === id)) {
       throw new ValidationError(`Tank with ID '${id}' already exists`);
     }
@@ -188,7 +174,6 @@ export class Storage {
       throw new ValidationError(`Tank '${tankId}' is at maximum rack capacity (${tank.maxRacks})`);
     }
 
-    // Business rule: Rack IDs must be unique within a tank
     if (tank.racks.some(r => r.id === rackId)) {
       throw new ValidationError(`Rack ${rackId} already exists in tank '${tankId}'`);
     }
@@ -248,7 +233,6 @@ export class Storage {
       throw new ValidationError(`Rack ${rackId} cannot accommodate box '${boxId}'`);
     }
 
-    // Business rule: Box names must be unique within a rack
     if (rack.boxes.some(b => b.name === boxId.toUpperCase())) {
       throw new ValidationError(
         `Box '${boxId}' already exists in rack ${rackId} of tank '${tankId}'`
@@ -308,17 +292,13 @@ export class Storage {
     return new Storage(this._equipment, newSystemSettings, new Date(), this._version);
   }
 
-  /**
-   * When a rack is unassigned, boxes inheriting ownership (no explicit assignedUserId)
-   * lose their ownership context, so their custom labels are cleared.
-   */
   clearInheritedBoxLabelsForRack(tankId: string, rackId: string): void {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
-    if (tankIndex === -1) return; // Tank not found, nothing to do
+    if (tankIndex === -1) return;
 
     const tank = this._equipment.tanks[tankIndex];
     const rackIndex = tank.racks.findIndex(r => r.id === rackId);
-    if (rackIndex === -1) return; // Rack not found, nothing to do
+    if (rackIndex === -1) return;
 
     const rack = tank.racks[rackIndex];
 
@@ -326,7 +306,7 @@ export class Storage {
       box => !box.assignedUserId && box.customLabel
     );
 
-    if (!hasInheritingBoxesWithLabels) return; // No changes needed
+    if (!hasInheritingBoxesWithLabels) return;
 
     const updatedBoxes = rack.boxes.map(box => {
       if (!box.assignedUserId && box.customLabel) {
@@ -334,7 +314,6 @@ export class Storage {
           name: box.name,
           gridConfig: box.gridConfig,
           maxPositions: box.maxPositions,
-          positionDisplay: box.positionDisplay,
           isActive: box.isActive,
           assignedUserId: box.assignedUserId,
           customLabel: undefined,
@@ -398,7 +377,6 @@ export class Storage {
     return { racks, boxes };
   }
 
-  /** Called on user deletion to prevent orphaned assignment references */
   clearAllAssignmentsForUser(userId: string): boolean {
     let hasChanges = false;
 
@@ -413,7 +391,6 @@ export class Storage {
               name: box.name,
               gridConfig: box.gridConfig,
               maxPositions: box.maxPositions,
-              positionDisplay: box.positionDisplay,
               isActive: box.isActive,
               sharedWithUserIds: box.sharedWithUserIds,
               isSeeded: box.isSeeded,
@@ -425,7 +402,6 @@ export class Storage {
               name: box.name,
               gridConfig: box.gridConfig,
               maxPositions: box.maxPositions,
-              positionDisplay: box.positionDisplay,
               isActive: box.isActive,
               assignedUserId: box.assignedUserId,
               sharedWithUserIds: box.sharedWithUserIds,
@@ -490,7 +466,7 @@ export class Storage {
     return hasChanges;
   }
 
-  /** Mutable pattern — called within commands that handle their own persistence */
+  // PITFALL: mutates in place without saving; the calling command persists the change.
   updateResourceCustomLabel(
     resourceType: 'rack' | 'box',
     tankId: string,
@@ -559,7 +535,6 @@ export class Storage {
         name: box.name,
         gridConfig: box.gridConfig,
         maxPositions: box.maxPositions,
-        positionDisplay: box.positionDisplay,
         isActive: box.isActive,
         assignedUserId: box.assignedUserId,
         customLabel: normalizedLabel,
@@ -663,7 +638,6 @@ export class Storage {
             name: box.name,
             gridConfig: box.gridConfig,
             maxPositions: box.maxPositions,
-            positionDisplay: box.positionDisplay,
             isActive: box.isActive,
             assignedUserId: box.assignedUserId,
             customLabel: box.customLabel,
@@ -706,7 +680,6 @@ export class Storage {
             name: box.name,
             gridConfig: box.gridConfig,
             maxPositions: box.maxPositions,
-            positionDisplay: box.positionDisplay,
             isActive: box.isActive,
             assignedUserId: box.assignedUserId,
             customLabel: box.customLabel,
@@ -818,10 +791,6 @@ export class Storage {
     this._updatedAt = new Date();
   }
 
-  /**
-   * Apply the persisted version from the database after a successful save.
-   * The database sequence is the single source of truth for version numbers.
-   */
   applyPersistedVersion(version: number): void {
     this._version = version;
   }
@@ -838,7 +807,6 @@ export class Storage {
           name: string;
           gridConfig: { rows: number; cols: number };
           maxPositions: number;
-          positionDisplay?: PositionDisplayConfig;
           isActive: boolean;
           assignedUserId?: string | null;
           customLabel?: string;
@@ -863,7 +831,6 @@ export class Storage {
       autoSave: boolean;
       auditTrailEnabled: boolean;
       syncEnabled: boolean;
-      defaultPositionDisplay?: PositionDisplayConfig;
     };
     updatedAt: string;
     version: number;
@@ -879,7 +846,6 @@ export class Storage {
     };
   }
 
-  // Getters
   get equipment(): EquipmentConfiguration {
     return this._equipment;
   }
@@ -904,8 +870,7 @@ class SystemSettings {
     private readonly _defaultResearcher: string,
     private readonly _autoSave: boolean,
     private readonly _auditTrailEnabled: boolean,
-    private readonly _syncEnabled: boolean,
-    private readonly _defaultPositionDisplay?: PositionDisplayConfig
+    private readonly _syncEnabled: boolean
   ) {
     this.validate();
   }
@@ -916,8 +881,7 @@ class SystemSettings {
       '',
       SYSTEM_DEFAULTS.SETTINGS.AUTO_BACKUP,
       SYSTEM_DEFAULTS.SETTINGS.AUDIT_TRAIL_ENABLED,
-      SYSTEM_DEFAULTS.SETTINGS.ENABLE_REAL_TIME_SYNC,
-      undefined // defaultPositionDisplay - use system default (alphanumeric)
+      SYSTEM_DEFAULTS.SETTINGS.ENABLE_REAL_TIME_SYNC
     );
   }
 
@@ -927,15 +891,13 @@ class SystemSettings {
     autoSave: boolean;
     auditTrailEnabled: boolean;
     syncEnabled: boolean;
-    defaultPositionDisplay?: PositionDisplayConfig;
   }): SystemSettings {
     return new SystemSettings(
       data.labName,
       data.defaultResearcher,
       data.autoSave,
       data.auditTrailEnabled,
-      data.syncEnabled,
-      data.defaultPositionDisplay
+      data.syncEnabled
     );
   }
 
@@ -959,21 +921,13 @@ class SystemSettings {
     autoSave?: boolean;
     auditTrailEnabled?: boolean;
     syncEnabled?: boolean;
-    defaultPositionDisplay?: PositionDisplayConfig | null;
   }): SystemSettings {
     return new SystemSettings(
       updates.labName ?? this._labName,
       updates.defaultResearcher ?? this._defaultResearcher,
       updates.autoSave ?? this._autoSave,
       updates.auditTrailEnabled ?? this._auditTrailEnabled,
-      updates.syncEnabled ?? this._syncEnabled,
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- three-way null/undefined/value logic */
-      updates.defaultPositionDisplay !== undefined
-        ? updates.defaultPositionDisplay === null
-          ? undefined
-          : updates.defaultPositionDisplay
-        : this._defaultPositionDisplay
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+      updates.syncEnabled ?? this._syncEnabled
     );
   }
 
@@ -983,7 +937,6 @@ class SystemSettings {
     autoSave: boolean;
     auditTrailEnabled: boolean;
     syncEnabled: boolean;
-    defaultPositionDisplay?: PositionDisplayConfig;
   } {
     return {
       labName: this._labName,
@@ -991,11 +944,9 @@ class SystemSettings {
       autoSave: this._autoSave,
       auditTrailEnabled: this._auditTrailEnabled,
       syncEnabled: this._syncEnabled,
-      defaultPositionDisplay: this._defaultPositionDisplay,
     };
   }
 
-  // Getters
   get labName(): string {
     return this._labName;
   }
@@ -1010,8 +961,5 @@ class SystemSettings {
   }
   get syncEnabled(): boolean {
     return this._syncEnabled;
-  }
-  get defaultPositionDisplay(): PositionDisplayConfig | undefined {
-    return this._defaultPositionDisplay;
   }
 }

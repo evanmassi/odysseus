@@ -3,7 +3,6 @@ export {
   BoxConfigurationSchema,
   RackConfigurationSchema,
   TankConfigurationSchema,
-  ColorSchemeSchema,
   EquipmentConfigurationSchema,
   LabConfigurationSchema,
   GlobalSettingsSchema,
@@ -33,7 +32,6 @@ export {
   updateRackRequestSchema,
   assignRackRequestSchema,
   addBoxesRequestSchema,
-  updateBoxRequestSchema,
   updateBoxGridRequestSchema,
   type UpdateBoxGridRequest,
   assignBoxRequestSchema,
@@ -47,9 +45,6 @@ export {
 export { formatStorageDisplayName } from './storageFormatters';
 
 export {
-  positionDisplayFormatSchema,
-  alphanumericConfigSchema,
-  positionDisplayConfigSchema,
   positionDisplayPreferenceSchema,
   type PositionDisplayConfig,
   type PositionDisplayPreference,
@@ -58,4 +53,4 @@ export {
   getDefaultPositionDisplay,
 } from './positionSchemas';
 
-export { positionToLabel, labelToPosition } from './positionFormatters';
+export { positionToLabel } from './positionFormatters';

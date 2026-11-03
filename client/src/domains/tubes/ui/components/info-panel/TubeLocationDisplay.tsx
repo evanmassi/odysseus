@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 
 import {
-  useStorageData,
   useStorageLocationNames,
   DEFAULT_GRID_CONFIG,
   formatPositionForBox,
@@ -92,14 +91,13 @@ function SingleLocationBreadcrumb({
   position,
   className,
 }: SinglePositionProps) {
-  const { currentLab } = useStorageData();
   const { settings } = useUserSettings();
   const { tankName, rackName, boxName, box } = useStorageLocationNames(tankId, rackId, boxId);
 
   const positionLabel = useMemo(() => {
     const gridConfig = box?.gridConfig ?? DEFAULT_GRID_CONFIG;
-    return formatPositionForBox(position, tankId, rackId, boxId, gridConfig, currentLab, settings);
-  }, [box, position, tankId, rackId, boxId, currentLab, settings]);
+    return formatPositionForBox(position, gridConfig, settings);
+  }, [box, position, settings]);
 
   return (
     <LocationBreadcrumb

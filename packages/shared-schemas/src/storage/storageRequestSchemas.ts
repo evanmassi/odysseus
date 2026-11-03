@@ -3,12 +3,10 @@ import { z } from 'zod';
 import { GRID_SIZES } from '../constants/gridSizes';
 import { VALIDATION_LIMITS } from '../constants/validationLimits';
 import { patchText } from '../utils/stringFields';
-import { positionDisplayConfigSchema } from './positionSchemas';
 import { GridConfigurationSchema } from './storageSchemas';
 
 const TANK_NAME_MAX = VALIDATION_LIMITS.TANK.NAME_MAX_LENGTH;
 const RACK_NAME_MAX = 200;
-const BOX_NAME_MAX = 200;
 const LOCATION_MAX = 500;
 const LABEL_MAX = 50;
 const LAB_NAME_MAX = 200;
@@ -38,12 +36,6 @@ export const updateRackRequestSchema = z.object({
 export const assignRackRequestSchema = z.object({ assignedUserId });
 
 export const addBoxesRequestSchema = z.object({ count });
-
-export const updateBoxRequestSchema = z.object({
-  name: z.string().min(1, 'Box name is required').max(BOX_NAME_MAX).optional(),
-  positionDisplay: positionDisplayConfigSchema.nullable().optional(),
-  isActive: z.boolean().optional(),
-});
 
 export const updateBoxGridRequestSchema = z
   .object({

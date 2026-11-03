@@ -1,9 +1,3 @@
-/**
- * Repository Factory
- *
- * Lazy-singleton wiring for all repository implementations against PostgreSQL.
- */
-
 import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import { ReagentCategory } from '@domain/entities/ReagentCategory';
@@ -90,8 +84,7 @@ export class RepositoryFactory implements UnitOfWork {
 
   getTubeRepository(): TubeRepository {
     if (!this.tubeRepository) {
-      const configRepo = this.getStorageRepository();
-      this.tubeRepository = new TubeRepositoryImpl(this.postgresContext, configRepo);
+      this.tubeRepository = new TubeRepositoryImpl(this.postgresContext);
     }
     return this.tubeRepository;
   }
@@ -264,11 +257,7 @@ export class RepositoryFactory implements UnitOfWork {
     };
   }
 
-  /**
-   * Runs `work` inside one transaction. The repositories passed to it are freshly bound to that
-   * transaction's client — distinct from the pool-backed singletons the getters hand out, which is
-   * what keeps event-handler writes out of the caller's transaction and safe from its rollback.
-   */
+  // PITFALL: these repos bind to the tx client, so event-handler writes stay out of its rollback.
   async withTransaction<T>(work: (repos: Repositories) => Promise<T>): Promise<T> {
     return this.postgresContext.transaction(async client => {
       return work(this.buildRepositories(new TransactionalContext(client)));
@@ -297,7 +286,7 @@ export class RepositoryFactory implements UnitOfWork {
     const storage = new StorageRepositoryImpl(db);
 
     return {
-      tubes: new TubeRepositoryImpl(db, storage),
+      tubes: new TubeRepositoryImpl(db),
       users: new UserRepositoryImpl(db),
       researchers: new ResearcherRepositoryImpl(db),
       persons: new PersonRepositoryImpl(db),

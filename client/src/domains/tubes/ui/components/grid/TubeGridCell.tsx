@@ -1,11 +1,6 @@
-/**
- * Grid Cell
- *
- * Individual tube position cell with color coding, lock indicators, and property indicators.
- */
 import React, { memo, useMemo, useRef, useCallback, useEffect } from 'react';
 
-import { useStorageData, formatPositionForBox } from '@domains/storage';
+import { formatPositionForBox } from '@domains/storage';
 import { useUserSettings } from '@domains/users';
 
 import {
@@ -23,11 +18,6 @@ import type { LockVariant, TubeData } from '@domains/tubes/types';
 
 import './tube-grid.css';
 
-/**
- * Cell type wraps to two lines (see .cell-line), so it holds a consistent size slightly
- * above the base font for a clear type→donor hierarchy — only very long names step back
- * toward the base rather than shrinking aggressively to fit a single line.
- */
 function getCellTypeFontSize(baseFont: number, text: string): number {
   const len = text.length;
   if (len <= 20) return Math.min(baseFont * 1.06, 18);
@@ -37,12 +27,9 @@ function getCellTypeFontSize(baseFont: number, text: string): number {
 
 interface TubeGridCellProps {
   position: number;
-  tankId: string;
-  rackId: string;
-  boxId: string;
   tube: TubeData | null | undefined;
   selected: boolean;
-  isDragPreview?: boolean; // Visual preview only, no animation
+  isDragPreview?: boolean;
   isCut: boolean;
   isCopied: boolean;
   gridConfig: GridConfiguration;
@@ -52,7 +39,6 @@ interface TubeGridCellProps {
   onPositionDoubleClick?: (position: number, event: React.MouseEvent) => void;
   onMouseDown: (position: number, event: React.MouseEvent) => void;
   onMouseMove: (position: number) => void;
-  // Shared tooltip handlers - parent renders single tooltip instance
   onHoverStart: (tube: TubeData, rect: DOMRect) => void;
   onHoverEnd: () => void;
   isLockedOut?: boolean;
@@ -65,9 +51,6 @@ interface TubeGridCellProps {
 export const TubeGridCell = memo<TubeGridCellProps>(
   ({
     position,
-    tankId,
-    rackId,
-    boxId,
     tube,
     selected,
     isDragPreview = false,
@@ -89,7 +72,6 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     lockOwnerName,
   }) => {
     const { settings } = useUserSettings();
-    const { currentLab } = useStorageData();
 
     const colors = tube ? getTubeColor(tube) : null;
     const lotStyle = tube?.sample?.lotNumber ? getLotStyleForBox(tube.sample.lotNumber) : null;
@@ -100,9 +82,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
     const cellTypeText = tube?.sample?.cellType || 'Unknown';
-    // A name with no break opportunity (no space/hyphen) can't wrap, so truncate it on one
-    // line with an ellipsis — the two-line clamp only ellipsizes multi-line overflow, which
-    // leaves a lone long word (e.g. "Macrophages") hard-clipped with no "…".
+    // PITFALL: line-clamp won't ellipsize one unbreakable word, so those truncate on one line.
     const cellTypeSingleWord = !/[\s-]/.test(cellTypeText);
     const cellTypeFontSize = useMemo(
       () => getCellTypeFontSize(fontSize.cellFont, cellTypeText),
@@ -129,15 +109,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
 
     const ink = colors?.textColor ?? 'hsl(var(--foreground))';
     const fill = colors?.backgroundColor ?? 'hsl(var(--grid-empty))';
-    const positionLabel = formatPositionForBox(
-      position,
-      tankId,
-      rackId,
-      boxId,
-      gridConfig,
-      currentLab,
-      settings
-    );
+    const positionLabel = formatPositionForBox(position, gridConfig, settings);
 
     const MARK_INSET = 2;
     const MARK_STROKE = 'rgba(0, 0, 0, 0.5)';

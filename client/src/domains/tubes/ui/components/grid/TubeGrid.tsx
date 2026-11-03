@@ -1,8 +1,3 @@
-/**
- * Tube Storage Grid
- *
- * Configuration-driven grid supporting individual box customization and dynamic grid sizes.
- */
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import {
@@ -68,23 +63,22 @@ export function TubeGrid({
   } = useTubesByLocation(tankId, rackId, boxId, {
     staleTime: 2 * MS_PER_MINUTE,
   });
-  const { getBox, currentLab } = useStorageData();
+  const { getBox } = useStorageData();
   const { settings } = useUserSettings();
   const boxConfig = getBox(tankId, rackId, boxId);
   const gridConfig = boxConfig?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
   const axisLabels = useMemo(
-    () => getAxisLabelsForBox(tankId, rackId, boxId, gridConfig, currentLab, settings),
-    [tankId, rackId, boxId, gridConfig, currentLab, settings]
+    () => getAxisLabelsForBox(gridConfig, settings),
+    [gridConfig, settings]
   );
 
-  // Clipboard access for Escape key clearing
   const setClipboard = useGridClipboardStore(state => state.setClipboard);
 
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
   const skipNextFocusSelect = useRef(false);
 
-  // Shared tooltip state - singleton pattern avoids Radix composeRefs bug
+  // PITFALL: one shared tooltip instance works around a Radix composeRefs bug.
   const [hoveredTube, setHoveredTube] = useState<TubeData | null>(null);
   const [hoverAnchorRect, setHoverAnchorRect] = useState<DOMRect | null>(null);
   const [hoveredLockVariant, setHoveredLockVariant] = useState<LockVariant | undefined>();
@@ -110,7 +104,7 @@ export function TubeGrid({
     setClipboard,
   });
 
-  // Callback ref from this hook guarantees font recalculation on grid mount
+  // PITFALL: the callback ref (not a plain ref) is what triggers font recalculation on mount.
   const { fontSize, gridRef, gridNode } = useGridFontSizing({
     gridConfig,
   });
@@ -155,7 +149,6 @@ export function TubeGrid({
     (position: number, event: React.MouseEvent) => {
       event.preventDefault();
 
-      // Right-click on unselected position selects only that position
       if (!gridController.isPositionSelected(position)) {
         gridController.actions.setSelection(position);
       }
@@ -307,9 +300,6 @@ export function TubeGrid({
                 <TubeGridCell
                   key={position}
                   position={position}
-                  tankId={tankId}
-                  rackId={rackId}
-                  boxId={boxId}
                   tube={tube}
                   selected={selected}
                   isDragPreview={inDragPreview && !selected}
