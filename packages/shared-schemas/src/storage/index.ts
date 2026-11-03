@@ -3,7 +3,6 @@ export {
   BoxConfigurationSchema,
   RackConfigurationSchema,
   TankConfigurationSchema,
-  ColorSchemeSchema,
   EquipmentConfigurationSchema,
   LabConfigurationSchema,
   GlobalSettingsSchema,

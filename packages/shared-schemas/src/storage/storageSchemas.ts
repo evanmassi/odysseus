@@ -51,16 +51,6 @@ export const TankConfigurationSchema = z
   })
   .strict();
 
-export const ColorSchemeSchema = z
-  .object({
-    primary: z.string(),
-    secondary: z.string(),
-    accent: z.string(),
-    background: z.string(),
-    text: z.string(),
-  })
-  .strict();
-
 export const EquipmentConfigurationSchema = z
   .object({
     tanks: z.array(TankConfigurationSchema),
@@ -78,19 +68,6 @@ export const LabConfigurationSchema = z
     createdAt: dateField,
     updatedAt: dateField,
     equipment: EquipmentConfigurationSchema,
-    branding: z
-      .object({
-        logo: z.string().optional(),
-        colors: ColorSchemeSchema.optional(),
-      })
-      .optional(),
-    settings: z
-      .object({
-        requireAuth: z.boolean(),
-        allowDataExport: z.boolean(),
-        enableRealTimeSync: z.boolean(),
-      })
-      .optional(),
     demoLimits: demoLimitsSchema.optional(),
   })
   .strict();
