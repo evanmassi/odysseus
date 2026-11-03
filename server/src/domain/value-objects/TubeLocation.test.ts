@@ -1,9 +1,5 @@
-/**
- * Location Value Object Tests
- */
-
 import { TubeLocation } from './TubeLocation';
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import { VALIDATION_LIMITS } from '@odysseus/shared-schemas';
 
 describe('TubeLocation', () => {
   describe('create', () => {
@@ -24,8 +20,13 @@ describe('TubeLocation', () => {
     });
 
     it('should accept max valid position', () => {
-      const loc = TubeLocation.create('T1', 'R1', 'A', EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX);
-      expect(loc.position).toBe(EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX);
+      const loc = TubeLocation.create('T1', 'R1', 'A', VALIDATION_LIMITS.BOX.MAX_POSITIONS);
+      expect(loc.position).toBe(VALIDATION_LIMITS.BOX.MAX_POSITIONS);
+    });
+
+    it('should accept the last position of a 10x10 box', () => {
+      const loc = TubeLocation.create('T1', 'R1', 'A', 100);
+      expect(loc.position).toBe(100);
     });
   });
 
@@ -68,7 +69,7 @@ describe('TubeLocation', () => {
 
     it('should reject position exceeding max', () => {
       expect(() =>
-        TubeLocation.create('T1', 'R1', 'A', EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX + 1)
+        TubeLocation.create('T1', 'R1', 'A', VALIDATION_LIMITS.BOX.MAX_POSITIONS + 1)
       ).toThrow('Position must be between');
     });
 

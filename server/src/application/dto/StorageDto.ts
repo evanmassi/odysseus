@@ -1,10 +1,3 @@
-/**
- * Storage Data Transfer Object
- *
- * Maps the Storage entity to its API response shape. Key responsibility — box
- * name mapping: server {name: "A"} → client {id: "A", name: "Box A"}.
- */
-
 import { NAMING_PATTERNS, DEFAULT_GRID_CONFIG } from '@odysseus/shared-schemas';
 
 import type { Storage } from '@domain/entities/Storage';
@@ -95,21 +88,15 @@ export class StorageDto {
     };
   }
 
-  /**
-   * Server Box has only `name` (e.g., "A"). Client expects both `id` ("A") for
-   * internal referencing and `name` ("Box A") for display.
-   */
   private static transformBox(boxData: ReturnType<Box['toData']>, index: number) {
-    // Letter index derived from name, not array position — "B" becomes "Box B" even at index 0
+    // PITFALL: the display letter comes from the box name, not its index ("B" at 0 is "Box B").
     const letterIndex = boxData.name.toUpperCase().charCodeAt(0) - 65;
 
     return {
       id: boxData.name,
       name: NAMING_PATTERNS.BOX.DEFAULT_NAME(letterIndex),
-      gridConfig: {
-        ...boxData.gridConfig,
-        template: 'standard' as const,
-      },
+      // PITFALL: copy rows/cols explicitly; stored JSON may hold keys the strict schema rejects.
+      gridConfig: { rows: boxData.gridConfig.rows, cols: boxData.gridConfig.cols },
       position: index + 1,
       assignedUserId: boxData.assignedUserId,
       customLabel: boxData.customLabel,

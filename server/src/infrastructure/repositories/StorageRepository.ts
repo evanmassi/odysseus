@@ -1,9 +1,3 @@
-/**
- * Storage Repository
- *
- * Data access for lab-scoped storage equipment configuration with versioning and optimistic locking.
- */
-
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 
 import { Storage } from '@domain/entities/Storage';
@@ -11,6 +5,7 @@ import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type {
+  BoxReference,
   StorageRepository as IStorageRepository,
   StorageHistory,
 } from '@domain/repositories/StorageRepository';
@@ -20,12 +15,27 @@ import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 import { logger } from '@infrastructure/logging/logger';
 
-import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
+import type { GridConfiguration, SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import type { PoolClient } from 'pg';
 
 type ConfigurationJson = Parameters<typeof Storage.fromData>[0];
 
 const MAX_SERIALIZATION_RETRIES = 3;
+
+function boxKey(tankId: string, rackId: string, boxId: string): string {
+  return `${tankId}/${rackId}/${boxId.toUpperCase()}`;
+}
+
+function findRackData(configData: ConfigurationJson, tankId: string, rackId: string) {
+  const tank = configData.tanks.find(t => t.id === tankId);
+  if (!tank) throw new NotFoundError('The selected tank could not be found.');
+
+  const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+  if (rackIndex === -1)
+    throw new NotFoundError('That rack could not be found in the selected tank.');
+
+  return { tank, rack: tank.racks[rackIndex], rackIndex };
+}
 
 export class StorageRepository implements IStorageRepository {
   constructor(private context: Queryable) {}
@@ -462,9 +472,9 @@ export class StorageRepository implements IStorageRepository {
     tankId: string,
     changedBy: string
   ): Promise<{ tankName: string }> {
-    return this.deleteEquipmentAtomically(
-      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1',
-      [tankId],
+    return this.deleteEquipmentIfEmpty(
+      'SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1 AND tank_id = $2',
+      [labId, tankId],
       labId,
       changedBy,
       configData => {
@@ -483,26 +493,17 @@ export class StorageRepository implements IStorageRepository {
     rackId: string,
     changedBy: string
   ): Promise<{ tankName: string; rackName: string }> {
-    return this.deleteEquipmentAtomically(
-      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2',
-      [tankId, rackId],
+    return this.deleteEquipmentIfEmpty(
+      'SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1 AND tank_id = $2 AND rack_id = $3',
+      [labId, tankId, rackId],
       labId,
       changedBy,
       configData => {
-        const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
-        if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
-
-        const tank = configData.tanks[tankIndex];
-        const rackIndex = tank.racks.findIndex(r => r.id === rackId);
-        if (rackIndex === -1)
-          throw new NotFoundError('That rack could not be found in the selected tank.');
-
-        const tankName = tank.name;
-        const rackName = tank.racks[rackIndex].name;
+        const { tank, rack, rackIndex } = findRackData(configData, tankId, rackId);
         tank.racks.splice(rackIndex, 1);
         return {
-          description: `Deleted rack '${rackName}' from tank '${tankName}'`,
-          result: { tankName, rackName },
+          description: `Deleted rack '${rack.name}' from tank '${tank.name}'`,
+          result: { tankName: tank.name, rackName: rack.name },
         };
       }
     );
@@ -517,61 +518,102 @@ export class StorageRepository implements IStorageRepository {
   ): Promise<{ tankName: string; rackName: string; boxName: string }> {
     const boxIdUpper = boxId.toUpperCase();
 
-    return this.deleteEquipmentAtomically(
-      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3',
-      [tankId, rackId, boxIdUpper],
+    return this.deleteEquipmentIfEmpty(
+      'SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1 AND tank_id = $2 AND rack_id = $3 AND box_id = $4',
+      [labId, tankId, rackId, boxIdUpper],
       labId,
       changedBy,
       configData => {
-        const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
-        if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
-
-        const tank = configData.tanks[tankIndex];
-        const rackIndex = tank.racks.findIndex(r => r.id === rackId);
-        if (rackIndex === -1)
-          throw new NotFoundError('That rack could not be found in the selected tank.');
-
-        const rack = tank.racks[rackIndex];
+        const { tank, rack } = findRackData(configData, tankId, rackId);
         const boxIndex = rack.boxes.findIndex(b => b.name === boxIdUpper);
         if (boxIndex === -1)
           throw new NotFoundError('That box could not be found in the selected rack.');
 
-        const tankName = tank.name;
-        const rackName = rack.name;
         const boxName = rack.boxes[boxIndex].name;
         rack.boxes.splice(boxIndex, 1);
         return {
-          description: `Deleted box '${boxName}' from rack '${rackName}'`,
-          result: { tankName, rackName, boxName },
+          description: `Deleted box '${boxName}' from rack '${rack.name}'`,
+          result: { tankName: tank.name, rackName: rack.name, boxName },
         };
       }
     );
   }
 
-  // Shared serializable transaction for atomic equipment deletion with retry on serialization failure
-  private async deleteEquipmentAtomically<T>(
+  async resizeEmptyBoxes(
+    labId: string,
+    boxes: BoxReference[],
+    gridConfig: GridConfiguration,
+    changedBy: string
+  ): Promise<BoxReference[]> {
+    const tankIds = [...new Set(boxes.map(b => b.tankId))];
+
+    return this.mutateStorageSerializable(labId, changedBy, async (client, configData) => {
+      const occupiedRows = await client.query<{ tank_id: string; rack_id: string; box_id: string }>(
+        'SELECT DISTINCT tank_id, rack_id, box_id FROM tubes WHERE lab_id = $1 AND tank_id = ANY($2)',
+        [labId, tankIds]
+      );
+      const occupiedKeys = new Set(
+        occupiedRows.rows.map(row => boxKey(row.tank_id, row.rack_id, row.box_id))
+      );
+      const resized = boxes.filter(b => !occupiedKeys.has(boxKey(b.tankId, b.rackId, b.boxId)));
+
+      if (resized.length === 0) {
+        throw new ValidationError(
+          boxes.length === 1
+            ? `Box '${boxes[0].boxId}' holds tubes. Empty it before changing its grid.`
+            : `All ${boxes.length} boxes hold tubes. Empty a box before changing its grid.`
+        );
+      }
+
+      for (const ref of resized) {
+        const { rack } = findRackData(configData, ref.tankId, ref.rackId);
+        const box = rack.boxes.find(b => b.name === ref.boxId.toUpperCase());
+        if (!box) throw new NotFoundError('That box could not be found in the selected rack.');
+        box.gridConfig = gridConfig;
+        box.maxPositions = gridConfig.rows * gridConfig.cols;
+        box.positionDisplay = undefined;
+      }
+
+      return {
+        description: `Changed ${resized.length} box grid(s) to ${gridConfig.rows}×${gridConfig.cols}`,
+        result: resized,
+      };
+    });
+  }
+
+  private async deleteEquipmentIfEmpty<T>(
     tubeCountQuery: string,
     tubeCountParams: string[],
     labId: string,
     changedBy: string,
     spliceEquipment: (configData: ConfigurationJson) => { description: string; result: T }
   ): Promise<T> {
+    return this.mutateStorageSerializable(labId, changedBy, async (client, configData) => {
+      const countResult = await client.query<{ count: string }>(tubeCountQuery, tubeCountParams);
+      const tubeCount = parseCount(countResult.rows[0]);
+
+      if (tubeCount > 0) {
+        throw new ValidationError(
+          `Cannot delete equipment: ${tubeCount} tube(s) are stored in this location. ` +
+            `Move or delete the tubes first.`
+        );
+      }
+
+      return spliceEquipment(configData);
+    });
+  }
+
+  private async mutateStorageSerializable<T>(
+    labId: string,
+    changedBy: string,
+    mutate: (
+      client: PoolClient,
+      configData: ConfigurationJson
+    ) => Promise<{ description: string; result: T }>
+  ): Promise<T> {
     for (let attempt = 1; attempt <= MAX_SERIALIZATION_RETRIES; attempt++) {
       try {
         return await this.context.transactionSerializable(async client => {
-          const countResult = await client.query<{ count: string }>(
-            tubeCountQuery,
-            tubeCountParams
-          );
-          const tubeCount = parseCount(countResult.rows[0]);
-
-          if (tubeCount > 0) {
-            throw new ValidationError(
-              `Cannot delete equipment: ${tubeCount} tube(s) are stored in this location. ` +
-                `Move or delete the tubes first.`
-            );
-          }
-
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM storage_current WHERE lab_id = $1',
             [labId]
@@ -582,7 +624,7 @@ export class StorageRepository implements IStorageRepository {
 
           const configData = configRow.rows[0].config_json;
           const currentVersion = configRow.rows[0].version;
-          const { description, result } = spliceEquipment(configData);
+          const { description, result } = await mutate(client, configData);
 
           const now = new Date();
           const configJson = JSON.stringify(configData);
@@ -615,7 +657,7 @@ export class StorageRepository implements IStorageRepository {
           error instanceof Error && 'code' in error && (error as { code: string }).code === '40001';
 
         if (isSerializationFailure && attempt < MAX_SERIALIZATION_RETRIES) {
-          logger.warn(`Serialization failure on equipment deletion, retrying (attempt ${attempt})`);
+          logger.warn(`Serialization failure on storage change, retrying (attempt ${attempt})`);
           continue;
         }
         throw error;
@@ -623,11 +665,10 @@ export class StorageRepository implements IStorageRepository {
     }
 
     throw new ValidationError(
-      'Could not delete this item because it is being changed by someone else. Please refresh and try again.'
+      'Could not save this change because the storage layout is being changed by someone else. Please refresh and try again.'
     );
   }
 
-  /** Appends a new immutable row to storage_versions and returns its generated version number. */
   private async insertStorageVersion(
     client: PoolClient,
     labId: string,

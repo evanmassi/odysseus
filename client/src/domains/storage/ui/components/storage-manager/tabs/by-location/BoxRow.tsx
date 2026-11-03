@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { formatStorageDisplayName } from '@odysseus/shared-schemas';
-import { Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
+import { Grid3x3, Lock, Tag, Trash2 } from 'lucide-react';
 
 import { OccupancyBar, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 
@@ -35,7 +35,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
     isResourceLocked,
     onAssignBox,
     onEditBoxLabel,
-    onEditBox,
+    onChangeBoxGrid,
     onDeleteBox,
   } = useStorageManagerContext();
 
@@ -67,9 +67,13 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
     }
 
     items.push({
-      icon: SquarePen,
+      icon: Grid3x3,
       label: 'Change Grid',
-      onClick: () => onEditBox(tankId, rackId, box),
+      onClick: () =>
+        onChangeBoxGrid(
+          { tankId, rackId, boxId: box.id },
+          formatStorageDisplayName(box.name, box.customLabel)
+        ),
     });
 
     if (canDeleteBox) {
@@ -92,7 +96,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
     tankId,
     rackId,
     onEditBoxLabel,
-    onEditBox,
+    onChangeBoxGrid,
     onDeleteBox,
   ]);
 

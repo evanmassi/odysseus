@@ -1,20 +1,12 @@
-/**
- * Storage Configuration Schemas
- *
- * Zod schemas for lab equipment hierarchy: tanks → racks → boxes → grid.
- */
-
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import { demoLimitsSchema } from '../demo/demoSchemas';
 import { positionDisplayConfigSchema } from './positionSchemas';
 
-// Minimal server representation; client computes derived values.
 export const GridConfigurationSchema = z
   .object({
     rows: z.number().min(1).max(20),
     cols: z.number().min(1).max(20),
-    template: z.string(),
   })
   .strict();
 
@@ -25,9 +17,8 @@ export const BoxConfigurationSchema = z
     gridConfig: GridConfigurationSchema,
     positionDisplay: positionDisplayConfigSchema.optional(),
     position: z.number().optional(),
-    // null = explicitly unassigned/common, undefined = inherit from rack
+    // PITFALL: null means explicitly common (everyone); undefined means inherit from the rack.
     assignedUserId: z.string().nullable().optional(),
-    // Users who can access tubes in this box (in addition to assignee)
     sharedWithUserIds: z.array(z.string()).optional(),
     customLabel: z.string().max(50).optional(),
     isSeeded: z.boolean().optional(),
@@ -42,7 +33,6 @@ export const RackConfigurationSchema = z
     isActive: z.boolean().default(true),
     boxes: z.array(BoxConfigurationSchema),
     assignedUserId: z.string().optional(),
-    // Users who can access tubes in this rack (in addition to assignee)
     sharedWithUserIds: z.array(z.string()).optional(),
     customLabel: z.string().max(50).optional(),
     isSeeded: z.boolean().optional(),
@@ -150,8 +140,6 @@ export type LabConfiguration = z.infer<typeof LabConfigurationSchema>;
 export type SystemConfiguration = z.infer<typeof SystemConfigurationSchema>;
 export type StorageResponse = z.infer<typeof StorageResponseSchema>;
 
-// Response schemas
-
 export const addTankResponseSchema = z.object({
   tankId: z.string(),
 });
@@ -169,3 +157,11 @@ export const bulkOperationResponseSchema = z.object({
   boxesAffected: z.number(),
   protectedSkipped: z.number(),
 });
+
+export const boxGridUpdateResponseSchema = z.object({
+  boxesUpdated: z.number(),
+  occupiedSkipped: z.number(),
+  protectedSkipped: z.number(),
+});
+
+export type BoxGridUpdateResponse = z.infer<typeof boxGridUpdateResponseSchema>;

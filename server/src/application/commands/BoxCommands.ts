@@ -1,10 +1,3 @@
-/**
- * Box CQRS Commands
- *
- * Atomic operations for box management with domain event emission.
- * Full parent context (tankId + rackId) required since boxId is not globally unique.
- */
-
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
 import { executeResourceAssignment } from '@application/commands/resourceAssignment';
@@ -28,9 +21,11 @@ import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
-import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-
-// COMMAND INTERFACES
+import type {
+  BoxGridUpdateResponse,
+  GridConfiguration,
+  PositionDisplayConfig,
+} from '@odysseus/shared-schemas';
 
 export interface AddBoxesCommand {
   userId: string;
@@ -47,9 +42,17 @@ export interface UpdateBoxCommand {
   rackId: string;
   boxId: string;
   name?: string;
-  gridConfig?: { rows: number; cols: number };
   positionDisplay?: PositionDisplayConfig | null;
   isActive?: boolean;
+}
+
+export interface UpdateBoxGridCommand {
+  userId: string;
+  labId: string;
+  tankId: string;
+  rackId?: string;
+  boxId?: string;
+  gridConfig: GridConfiguration;
 }
 
 export interface DeleteBoxCommand {
@@ -66,13 +69,9 @@ export interface AssignBoxCommand {
   tankId: string;
   rackId: string;
   boxId: string;
-  /** A user id, null (common — everyone), or undefined (inherit from the rack). */
   assignedUserId: string | null | undefined;
 }
 
-// COMMAND HANDLERS
-
-/** Creates one or more boxes in a rack. Pass count > 1 for bulk add. */
 export class AddBoxesCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -223,18 +222,6 @@ export class UpdateBoxCommandHandler {
       boxData.name = command.name.toUpperCase();
     }
 
-    if (command.gridConfig !== undefined) {
-      const oldConfig = box.gridConfig;
-      if (
-        command.gridConfig.rows !== oldConfig.rows ||
-        command.gridConfig.cols !== oldConfig.cols
-      ) {
-        changes.push({ field: 'gridConfig', oldValue: oldConfig, newValue: command.gridConfig });
-        boxData.gridConfig = command.gridConfig;
-        boxData.maxPositions = command.gridConfig.rows * command.gridConfig.cols;
-      }
-    }
-
     if (command.positionDisplay !== undefined) {
       const oldDisplay = box.positionDisplay;
       changes.push({
@@ -284,10 +271,102 @@ export class UpdateBoxCommandHandler {
   }
 }
 
-/**
- * Removes a box from a rack. Uses atomic check-and-delete to prevent TOCTOU race
- * conditions where tubes could be added between the emptiness check and the actual deletion.
- */
+export class UpdateBoxGridCommandHandler {
+  constructor(
+    private storageRepository: StorageRepository,
+    private userRepository: UserRepository,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: UpdateBoxGridCommand): Promise<BoxGridUpdateResponse> {
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
+    if (!currentConfig) {
+      throw new ValidationError('No configuration found. Initialize system first.');
+    }
+
+    const user = await requireUser(this.userRepository, command.userId);
+    if (!user.isAdmin()) {
+      throw PermissionError.configurationManagement('change box grids', command.userId);
+    }
+
+    const tank = currentConfig.tanks.find(t => t.id === command.tankId);
+    if (!tank) {
+      throw new NotFoundError('The selected tank could not be found.');
+    }
+
+    const racks =
+      command.rackId === undefined ? tank.racks : tank.racks.filter(r => r.id === command.rackId);
+    if (command.rackId !== undefined && racks.length === 0) {
+      throw new NotFoundError('That rack could not be found in the selected tank.');
+    }
+
+    const boxIdUpper = command.boxId?.toUpperCase();
+    const boxesInScope = racks.flatMap(rack =>
+      rack.boxes
+        .filter(box => boxIdUpper === undefined || box.name === boxIdUpper)
+        .map(box => ({ rack, box }))
+    );
+    if (boxIdUpper !== undefined && boxesInScope.length === 0) {
+      throw new NotFoundError('That box could not be found in the selected rack.');
+    }
+
+    const { rows, cols } = command.gridConfig;
+    const needsChange = boxesInScope.filter(
+      ({ box }) => box.gridConfig.rows !== rows || box.gridConfig.cols !== cols
+    );
+    const candidates = needsChange.filter(({ box }) => !(user.isDemo && box.isSeeded));
+    const protectedSkipped = needsChange.length - candidates.length;
+
+    if (candidates.length === 0) {
+      return { boxesUpdated: 0, occupiedSkipped: 0, protectedSkipped };
+    }
+
+    const resized = await this.storageRepository.resizeEmptyBoxes(
+      command.labId,
+      candidates.map(({ rack, box }) => ({ tankId: tank.id, rackId: rack.id, boxId: box.name })),
+      command.gridConfig,
+      command.userId
+    );
+
+    const resizedKeys = new Set(resized.map(ref => `${ref.rackId}/${ref.boxId}`));
+    for (const { rack, box } of candidates) {
+      if (!resizedKeys.has(`${rack.id}/${box.name}`)) continue;
+
+      const changes: FieldChange[] = [
+        { field: 'gridConfig.rows', oldValue: box.gridConfig.rows, newValue: rows },
+        { field: 'gridConfig.cols', oldValue: box.gridConfig.cols, newValue: cols },
+      ];
+      if (box.positionDisplay) {
+        changes.push({
+          field: 'positionDisplay',
+          oldValue: box.positionDisplay,
+          newValue: undefined,
+        });
+      }
+
+      await this.eventBus.publish(
+        new BoxUpdatedEvent(
+          command.userId,
+          tank.id,
+          tank.name,
+          rack.id,
+          rack.name,
+          box.name,
+          box.name,
+          changes,
+          command.labId
+        )
+      );
+    }
+
+    return {
+      boxesUpdated: resized.length,
+      occupiedSkipped: candidates.length - resized.length,
+      protectedSkipped,
+    };
+  }
+}
+
 export class DeleteBoxCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -306,7 +385,6 @@ export class DeleteBoxCommandHandler {
     if (currentConfig)
       rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
-    // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName, boxName } = await this.storageRepository.deleteEmptyBox(
       command.labId,
       command.tankId,
@@ -384,7 +462,7 @@ export class AssignBoxCommandHandler {
           const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
             b => b.name === boxIdUpper
           );
-          // Kept as-is: null means common (everyone), undefined means inherit from the rack.
+          // PITFALL: null means common (everyone) and undefined means inherit; never coalesce them.
           configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId =
             assignedUserId;
         },
