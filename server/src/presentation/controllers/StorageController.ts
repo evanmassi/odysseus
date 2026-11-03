@@ -1,14 +1,9 @@
-/**
- * Storage Management Controller
- *
- * HTTP handlers for storage configuration, tank/rack/box CRUD, and bulk assignment operations.
- */
-
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 import type {
   AddBoxesCommandHandler,
   UpdateBoxCommandHandler,
+  UpdateBoxGridCommandHandler,
   DeleteBoxCommandHandler,
   AssignBoxCommandHandler,
 } from '@application/commands/BoxCommands';
@@ -71,6 +66,7 @@ export interface StorageControllerDeps {
   assignRackHandler: AssignRackCommandHandler;
   addBoxesHandler: AddBoxesCommandHandler;
   updateBoxHandler: UpdateBoxCommandHandler;
+  updateBoxGridHandler: UpdateBoxGridCommandHandler;
   deleteBoxHandler: DeleteBoxCommandHandler;
   assignBoxHandler: AssignBoxCommandHandler;
   bulkUnassignHandler: BulkUnassignResourcesCommandHandler;
@@ -84,8 +80,6 @@ export class StorageController extends BaseController {
   constructor(private deps: StorageControllerDeps) {
     super();
   }
-
-  // QUERY ENDPOINTS
 
   async getCurrentStorage(req: Request, res: Response): Promise<void> {
     try {
@@ -195,8 +189,6 @@ export class StorageController extends BaseController {
     }
   }
 
-  // COMMAND ENDPOINTS
-
   async updateSystemStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -287,10 +279,6 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * Uses fine-grained permissions (canEditResource) rather than admin-only config
-   * management permissions, allowing resource owners to set their own labels.
-   */
   async updateResourceLabel(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -319,8 +307,6 @@ export class StorageController extends BaseController {
       handleControllerError(error, res, 'Failed to update resource label', req.requestId);
     }
   }
-
-  // TANK ENDPOINTS
 
   async addTank(req: Request, res: Response): Promise<void> {
     try {
@@ -364,8 +350,6 @@ export class StorageController extends BaseController {
       handleControllerError(error, res, 'Failed to delete tank', req.requestId);
     }
   }
-
-  // RACK ENDPOINTS
 
   async addRacks(req: Request, res: Response): Promise<void> {
     try {
@@ -446,8 +430,6 @@ export class StorageController extends BaseController {
     }
   }
 
-  // BOX ENDPOINTS
-
   async addBoxes(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -473,7 +455,7 @@ export class StorageController extends BaseController {
     try {
       const userId = this.extractUserId(req);
       const { tankId, rackId, boxId } = req.params;
-      const { name, gridConfig, positionDisplay, isActive } = req.body;
+      const { name, positionDisplay, isActive } = req.body;
       const labId = this.extractLabId(req);
 
       await this.deps.updateBoxHandler.handle({
@@ -483,7 +465,6 @@ export class StorageController extends BaseController {
         rackId,
         boxId,
         name,
-        gridConfig,
         positionDisplay,
         isActive,
       });
@@ -491,6 +472,27 @@ export class StorageController extends BaseController {
       res.json(ResponseBuilder.success({ message: `Box '${boxId}' updated` }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update box', req.requestId);
+    }
+  }
+
+  async updateBoxGrid(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
+      const { tankId, rackId, boxId, gridConfig } = req.body;
+
+      const result = await this.deps.updateBoxGridHandler.handle({
+        userId,
+        labId,
+        tankId,
+        rackId,
+        boxId,
+        gridConfig,
+      });
+
+      res.json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to change box grids', req.requestId);
     }
   }
 
@@ -515,7 +517,7 @@ export class StorageController extends BaseController {
       const { assignedUserId } = req.body;
       const labId = this.extractLabId(req);
 
-      // Passed through unflattened: an absent field means inherit, an explicit null means common.
+      // PITFALL: pass assignedUserId through unflattened — absent means inherit, null means common.
       await this.deps.assignBoxHandler.handle({
         userId,
         labId,
@@ -534,8 +536,6 @@ export class StorageController extends BaseController {
       handleControllerError(error, res, 'Failed to assign box', req.requestId);
     }
   }
-
-  // BULK ASSIGNMENT ENDPOINTS
 
   async bulkUnassignResources(req: Request, res: Response): Promise<void> {
     try {
@@ -582,8 +582,6 @@ export class StorageController extends BaseController {
     }
   }
 
-  // INITIALIZE ENDPOINT
-
   async initializeStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -609,8 +607,6 @@ export class StorageController extends BaseController {
       handleControllerError(error, res, 'Failed to initialize configuration', req.requestId);
     }
   }
-
-  // SYSTEM ADMIN WRAPPERS (labId from URL params)
 
   async resetDemoDataForLab(req: Request, res: Response): Promise<void> {
     try {

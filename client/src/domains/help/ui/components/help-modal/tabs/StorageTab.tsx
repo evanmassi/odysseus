@@ -1,9 +1,3 @@
-/**
- * Storage Tab
- *
- * Explains the storage hierarchy, ownership model, and key workflows
- * in the Storage Manager.
- */
 import { Grid3X3, ShieldUser, Tag, UserRound } from 'lucide-react';
 
 import { Well } from '@shared/ui';
@@ -101,8 +95,8 @@ export function StorageTab() {
             <Grid3X3 size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />
             <p className="text-body-sm text-muted-foreground">
               <span className="text-card-foreground font-medium">Grid Sizes</span> — boxes support
-              5x5, 6x6, 7x7, 8x8, 9x9 (default), and 10x10 grids. Admins can change the size per
-              box.
+              5x5, 6x6, 7x7, 8x8, 9x9 (default), and 10x10 grids. Admins can change one box, or
+              every box in a rack or tank at once, from its ⋯ menu. Tubes keep their row and column.
             </p>
           </div>
           <div className="flex items-start gap-2">

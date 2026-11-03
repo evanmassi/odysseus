@@ -1,13 +1,6 @@
-/**
- * Shared Validation Schemas
- *
- * Public exports for all Zod schemas used by both client and server.
- */
-
-// Lets client code type schemas without importing zod directly (only HttpClient may).
+// PITFALL: client code types schemas through this re-export; only HttpClient may import zod itself.
 export type { ZodType } from 'zod';
 
-// Tubes
 export {
   CONCENTRATION_UNITS,
   tubeLocationSchema,
@@ -63,7 +56,6 @@ export {
   type BulkMoveResponse,
 } from './tubes';
 
-// Units
 export {
   UNIT_KINDS,
   UNIT_REGISTRY,
@@ -85,7 +77,6 @@ export {
   type UpdateCustomUnitRequest,
 } from './units';
 
-// Attributes
 export {
   attributeValueTypeSchema,
   attributeCatalogSchema,
@@ -119,7 +110,6 @@ export {
   type SetAttributeValueRequest,
 } from './attributes';
 
-// Locations
 export {
   LAB_LOCATION_MAX_DEPTH,
   labLocationSchema,
@@ -132,10 +122,8 @@ export {
   type UpdateLabLocationRequest,
 } from './locations';
 
-// Documents
 export { DOCUMENT_TYPE_VALUES, documentTypeSchema, type DocumentType } from './documents';
 
-// Barcodes
 export {
   BARCODE_TYPE_VALUES,
   barcodeTypeSchema,
@@ -144,7 +132,6 @@ export {
   type BarcodeMatch,
 } from './barcodes';
 
-// Lookups
 export {
   LOOKUP_CATEGORIES,
   lookupValueSchema,
@@ -156,7 +143,6 @@ export {
   type LookupValueWithCount,
 } from './lookups/lookupSchemas';
 
-// Search
 export {
   AdvancedSearchOptionsSchema,
   SearchResultSchema,
@@ -166,7 +152,6 @@ export {
   type GroupedResult,
 } from './search/searchSchemas';
 
-// Researchers
 export {
   researcherSchema,
   createResearcherProfileSchema,
@@ -181,7 +166,6 @@ export {
   formatResearcherDropdownDisplay,
 } from './researchers/researcherFormatters';
 
-// Transport
 export {
   successEnvelopeSchema,
   errorEnvelopeSchema,
@@ -193,7 +177,6 @@ export {
   type VersionInfo,
 } from './infrastructure/transportSchemas';
 
-// Storage
 export {
   GridConfigurationSchema,
   BoxConfigurationSchema,
@@ -226,6 +209,8 @@ export {
   addRacksResponseSchema,
   addBoxesResponseSchema,
   bulkOperationResponseSchema,
+  boxGridUpdateResponseSchema,
+  type BoxGridUpdateResponse,
   addTankRequestSchema,
   updateTankRequestSchema,
   addRacksRequestSchema,
@@ -233,6 +218,8 @@ export {
   assignRackRequestSchema,
   addBoxesRequestSchema,
   updateBoxRequestSchema,
+  updateBoxGridRequestSchema,
+  type UpdateBoxGridRequest,
   assignBoxRequestSchema,
   updateResourceLabelRequestSchema,
   updateSystemStorageRequestSchema,
@@ -241,20 +228,17 @@ export {
   bulkReassignRequestSchema,
 } from './storage';
 
-// API Constants
 export { API_ERROR_CODES } from './api/apiSchemas';
 
-// System Constants
 export {
   EQUIPMENT_DEFAULTS,
   VALIDATION_LIMITS,
   SYSTEM_DEFAULTS,
   NAMING_PATTERNS,
-  GRID_TEMPLATES,
+  GRID_SIZES,
   DEFAULT_GRID_CONFIG,
 } from './constants';
 
-// Admin
 export {
   securityConfigSchema,
   updateSecurityConfigSchema,
@@ -326,7 +310,6 @@ export {
   type CrossLabStorageAnalyticsResponse,
 } from './admin';
 
-// Authentication
 export {
   registerWithProfileSchema,
   validateInviteCodeRequestSchema,
@@ -372,7 +355,6 @@ export {
   type SessionInfoResponse,
 } from './auth';
 
-// Labs
 export {
   labDataSchema,
   inviteCodeDataSchema,
@@ -394,7 +376,6 @@ export {
   type DemoLimitsData,
 } from './labs/labSchemas';
 
-// Users
 export {
   userSettingsSchema,
   userSettingsDataSchema,
@@ -411,7 +392,6 @@ export {
   type ActiveSession,
 } from './users';
 
-// Demo
 export {
   demoLimitsSchema,
   updateDemoLimitsSchema,
@@ -423,7 +403,6 @@ export {
   type UnseedDemoResponse,
 } from './demo/demoSchemas';
 
-// Events
 export {
   tubeEventSchemas,
   researcherEventSchemas,
@@ -433,7 +412,6 @@ export {
   systemAdminEventSchemas,
 } from './events';
 
-// Donors
 export {
   donorSchema,
   donorWithTubeCountSchema,
@@ -458,7 +436,6 @@ export {
   type DonorSearchResult,
 } from './donors';
 
-// Equipment
 export {
   equipmentStatusValues,
   equipmentStatusSchema,
@@ -509,7 +486,6 @@ export {
   type EquipmentBulkResponse,
 } from './equipment';
 
-// Supplies
 export {
   supplyItemStatusValues,
   supplyItemStatusSchema,
@@ -583,7 +559,6 @@ export {
   type CreateSupplyPackagingLevelRequest,
 } from './supplies';
 
-// Reagents
 export {
   reagentItemStatusValues,
   reagentItemStatusSchema,
@@ -664,7 +639,6 @@ export {
   type ReagentBulkLotLabelsResponse,
 } from './reagents';
 
-// Persons
 export {
   personSchema,
   updatePersonProfileSchema,

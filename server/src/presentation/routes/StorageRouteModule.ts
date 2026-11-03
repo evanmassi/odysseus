@@ -1,9 +1,3 @@
-/**
- * Storage Route Module
- *
- * Routes for storage configuration, tank/rack/box CRUD, and bulk assignment.
- */
-
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { StorageController } from '@presentation/controllers/StorageController';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
@@ -20,6 +14,7 @@ import {
   AssignRackHttpSchema,
   AddBoxesHttpSchema,
   UpdateBoxHttpSchema,
+  UpdateBoxGridHttpSchema,
   AssignBoxHttpSchema,
   UpdateResourceLabelHttpSchema,
   UpdateSystemStorageHttpSchema,
@@ -48,22 +43,18 @@ export class StorageRouteModule implements RouteModule {
   }
 
   configure(router: Router): void {
-    // AUTHENTICATED ROUTES
-
     router.get('/', this.storageController.getCurrentStorage.bind(this.storageController));
 
     router.get('/version', this.storageController.getStorageVersion.bind(this.storageController));
 
     router.get('/health', this.storageController.checkStorageHealth.bind(this.storageController));
 
-    // Uses fine-grained canEditResource permission, not admin-only
+    // PITFALL: no requireAdmin — resource owners set their own labels via canEditResource.
     router.put(
       '/resource-label',
       validateBody(UpdateResourceLabelHttpSchema),
       this.storageController.updateResourceLabel.bind(this.storageController)
     );
-
-    // ADMIN ROUTES
 
     router.put(
       '/system',
@@ -99,8 +90,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.importStorage.bind(this.storageController)
     );
 
-    // TANK ROUTES
-
     router.post(
       '/tanks',
       this.authMiddleware.requireAdmin,
@@ -116,7 +105,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.updateTank.bind(this.storageController)
     );
 
-    // Blocked if tubes exist in the tank
     router.delete(
       '/tanks/:tankId',
       this.authMiddleware.requireAdmin,
@@ -124,9 +112,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.deleteTank.bind(this.storageController)
     );
 
-    // RACK ROUTES
-
-    // Supports bulk creation via count parameter
     router.post(
       '/tanks/:tankId/racks',
       this.authMiddleware.requireAdmin,
@@ -143,7 +128,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.updateRack.bind(this.storageController)
     );
 
-    // Blocked if tubes exist in the rack
     router.delete(
       '/tanks/:tankId/racks/:rackId',
       this.authMiddleware.requireAdmin,
@@ -159,9 +143,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.assignRack.bind(this.storageController)
     );
 
-    // BOX ROUTES
-
-    // Supports bulk creation via count parameter
     router.post(
       '/tanks/:tankId/racks/:rackId/boxes',
       this.authMiddleware.requireAdmin,
@@ -178,7 +159,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.updateBox.bind(this.storageController)
     );
 
-    // Blocked if tubes exist in the box
     router.delete(
       '/tanks/:tankId/racks/:rackId/boxes/:boxId',
       this.authMiddleware.requireAdmin,
@@ -194,7 +174,12 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.assignBox.bind(this.storageController)
     );
 
-    // BULK ASSIGNMENT ROUTES
+    router.put(
+      '/box-grid',
+      this.authMiddleware.requireAdmin,
+      validateBody(UpdateBoxGridHttpSchema),
+      this.storageController.updateBoxGrid.bind(this.storageController)
+    );
 
     router.post(
       '/bulk-unassign',
@@ -209,8 +194,6 @@ export class StorageRouteModule implements RouteModule {
       validateBody(BulkReassignHttpSchema),
       this.storageController.bulkReassignResources.bind(this.storageController)
     );
-
-    // INITIALIZE ROUTE
 
     router.post(
       '/initialize',

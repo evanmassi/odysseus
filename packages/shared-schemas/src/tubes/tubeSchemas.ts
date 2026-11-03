@@ -1,9 +1,3 @@
-/**
- * Tube Data Schemas
- *
- * Zod schemas for tube validation, API requests, and TypeScript type generation.
- */
-
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import {
@@ -18,7 +12,7 @@ import {
   optionalFromEmpty,
   nullableOptionalFromEmpty,
 } from './tubeValidation';
-import { EQUIPMENT_DEFAULTS } from '../constants/equipmentDefaults';
+import { VALIDATION_LIMITS } from '../constants/validationLimits';
 
 export const CONCENTRATION_UNITS = CELL_CONCENTRATION_UNITS;
 export type ConcentrationUnit = (typeof CONCENTRATION_UNITS)[number];
@@ -32,17 +26,13 @@ export const tubeLocationSchema = z.object({
     .int()
     .min(1)
     .max(
-      EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
-      `Position must be between 1-${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`
+      VALIDATION_LIMITS.BOX.MAX_POSITIONS,
+      `Position must be between 1 and ${VALIDATION_LIMITS.BOX.MAX_POSITIONS}`
     ),
 });
 
 const concentrationUnitSchema = z.enum(CONCENTRATION_UNITS);
 
-/**
- * Domain schema with strict types used for API responses and domain entities.
- * No preprocessing - maintains type precision.
- */
 export const tubeSampleSchema = z.object({
   cellType: z.string().optional(),
   species: z.string().optional(),
@@ -82,7 +72,6 @@ export const tubeDataSchema = z.object({
   createdByName: z.string().optional(),
   timestamps: tubeTimestampsSchema,
   version: z.number().int().positive(),
-  // Lock fields
   isLocked: z.boolean().optional(),
   lockedBy: z.string().optional(),
   lockNote: z.string().max(100).optional(),
@@ -92,14 +81,6 @@ export const tubeDataSchema = z.object({
   isSeeded: z.boolean(),
 });
 
-/**
- * Navigator field-map projections.
- *
- * The navigator paints box minimaps in each tube's smart color and shows
- * per-box occupancy, so it needs only color inputs plus position — never the
- * full record. `rackTubeSchema` is the slim per-tube color feed (one open rack
- * at a time); `tubeLocationCountSchema` is the per-box count feed (whole lab).
- */
 export const rackTubeSchema = tubeSampleSchema
   .pick({
     cellType: true,
@@ -119,12 +100,6 @@ export const tubeLocationCountSchema = z.object({
 });
 export type TubeLocationCount = z.infer<typeof tubeLocationCountSchema>;
 
-/**
- * Preprocesses HTML form data:
- * - Empty strings → error for required fields
- * - Scientific notation → number (unified parser)
- * - Business rule: concentration + unit together or both absent
- */
 const createTubeRequestSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
@@ -162,21 +137,13 @@ const createTubeRequestSampleSchema = concentrationUnitRefinement(
   })
 );
 
-/**
- * Tube creation request schema (without ID and timestamps)
- * Handles HTML form empty strings through preprocessing.
- */
 export const createTubeRequestSchema = z.object({
   location: tubeLocationSchema,
   sample: createTubeRequestSampleSchema,
   researcherId: optionalFromEmpty(z.string()),
 });
 
-/**
- * Supports tri-state PATCH semantics: empty strings → undefined, null preserved.
- * Business rule: concentration + unit must both be present or both absent.
- * cellType must not be empty if provided.
- */
+// PITFALL: tri-state PATCH — undefined skips a field, null or '' clears it; cellType ignores ''.
 const tubeUpdateSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
@@ -217,14 +184,10 @@ const tubeUpdateSampleSchema = concentrationUnitRefinement(
   })
 );
 
-/**
- * Uses nullable fields to support PATCH semantics (null = clear field).
- */
 export const updateTubeRequestSchema = z.object({
   location: tubeLocationSchema.partial().optional(),
   sample: tubeUpdateSampleSchema.optional(),
   researcherId: nullableOptionalFromEmpty(z.string()),
-  /** Lock note update - only lock owner can modify */
   lockNote: z.string().max(100).optional(),
 });
 
@@ -269,21 +232,9 @@ export type TubeFilterOptions = z.infer<typeof tubeFilterOptionsResponseSchema>;
 export type TubeData = z.infer<typeof tubeDataSchema>;
 export type TubeLocation = z.infer<typeof tubeLocationSchema>;
 
-/**
- * Request types (output of preprocessing - normalized data)
- */
 export type CreateTubeRequest = z.output<typeof createTubeRequestSchema>;
 export type UpdateTubeRequest = z.output<typeof updateTubeRequestSchema>;
 
-/**
- * Form Input Types (input to preprocessing - raw form data)
- *
- * Represents the actual form state before Zod transformations:
- * - concentration: string (user types "1.5e6")
- * - date: string | Date (HTML input value)
- *
- * After Zod validation, these transform to the output types above.
- */
 export type CreateTubeFormInput = z.input<typeof createTubeRequestSchema>;
 export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
 

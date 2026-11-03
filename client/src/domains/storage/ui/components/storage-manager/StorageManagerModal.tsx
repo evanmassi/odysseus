@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 
-import { sortByName, GRID_TEMPLATES } from '@odysseus/shared-schemas';
+import { sortByName } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -15,10 +15,14 @@ import { useStorageData } from '../../../hooks/useStorageData';
 import { useStorageOwnership } from '../../../hooks/useStorageOwnership';
 import { useStoragePermissions } from '../../../hooks/useStoragePermissions';
 import { extractAssignedUserIds } from '../../../utils/extractAssignedUserIds';
-import { buildStorageHierarchy, computeNavigatorOccupancy } from '../storage-navigator';
+import {
+  boxOccupancyKey,
+  buildStorageHierarchy,
+  computeNavigatorOccupancy,
+} from '../storage-navigator';
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
-import { BoxEditModal } from './edit-modals/BoxEditModal';
+import { BoxGridModal } from './edit-modals/BoxGridModal';
 import { RackEditModal } from './edit-modals/RackEditModal';
 import { StorageRenameModal } from './edit-modals/StorageRenameModal';
 import { TankEditModal } from './edit-modals/TankEditModal';
@@ -124,6 +128,22 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   }, [currentLab]);
 
   const editModals = useEditModals();
+
+  const gridModalScope = editModals.gridModalData?.scope;
+  const gridModalBoxes = useMemo(() => {
+    const tank = currentLab?.equipment.tanks.find(t => t.id === gridModalScope?.tankId);
+    if (!tank || !gridModalScope) return [];
+    return tank.racks
+      .filter(rack => gridModalScope.rackId === undefined || rack.id === gridModalScope.rackId)
+      .flatMap(rack =>
+        rack.boxes
+          .filter(box => gridModalScope.boxId === undefined || box.id === gridModalScope.boxId)
+          .map(box => ({
+            box,
+            filled: occupancy.byBox.get(boxOccupancyKey(tank.id, rack.id, box.id))?.filled ?? 0,
+          }))
+      );
+  }, [currentLab, gridModalScope, occupancy]);
   const handlers = useStorageHandlers({ currentLab, getUserInfo, setCollapsedRacks });
 
   const isMutating = editModals.isMutating || handlers.isMutating;
@@ -178,7 +198,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       onAddBoxes: handlers.handleAddBoxes,
       onAssignRack: handlers.handleAssignRack,
       onEditRackLabel: editModals.onEditRackLabel,
-      onEditBox: editModals.onEditBox,
+      onChangeBoxGrid: editModals.onChangeBoxGrid,
       onDeleteBox: handlers.handleRemoveBox,
       onAssignBox: handlers.handleAssignBox,
       onEditBoxLabel: editModals.onEditBoxLabel,
@@ -198,7 +218,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       editModals.onEditTank,
       editModals.onEditRack,
       editModals.onEditRackLabel,
-      editModals.onEditBox,
+      editModals.onChangeBoxGrid,
       editModals.onEditBoxLabel,
       handlers.handleDeleteTank,
       handlers.handleAddRacks,
@@ -357,15 +377,14 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         </div>
       </BaseModal>
 
-      {editModals.boxModalData && (
-        <BoxEditModal
-          isOpen={editModals.isBoxModalOpen}
-          initialBox={editModals.boxModalData.box}
-          tankId={editModals.boxModalData.tankId}
-          rackId={editModals.boxModalData.rackId}
-          gridTemplates={GRID_TEMPLATES}
+      {editModals.gridModalData && (
+        <BoxGridModal
+          isOpen={editModals.isGridModalOpen}
+          scope={editModals.gridModalData.scope}
+          scopeLabel={editModals.gridModalData.label}
+          boxes={gridModalBoxes}
           onSave={editModals.handleUpdateBoxGrid}
-          onClose={() => editModals.setIsBoxModalOpen(false)}
+          onClose={() => editModals.setIsGridModalOpen(false)}
         />
       )}
 

@@ -405,10 +405,12 @@ The format is set per box by administrators.
 
 ### 6.4 Grid Sizes
 
-Boxes can have different grid sizes:
+Boxes use square grids from 5×5 to 10×10; new boxes start at 9×9. Administrators change them in the **Storage Manager**:
 
-- **81-well** (9×9) - Square format
-- **Other sizes** (10x10, 5x5, etc.) - Configured by administrators
+- **One box** - open the box's **⋯** menu and choose **Change Grid**
+- **Every box in a rack or tank** - open the rack's or tank's **⋯** menu and choose **Change Box Grids**
+
+Tubes keep their row and column when a box is resized, so a tube at B1 stays at B1. A box can only shrink if no tube sits in a row or column the smaller grid would remove. When changing a whole rack or tank, any such box is skipped and the result says how many.
 
 ---
 
@@ -581,8 +583,7 @@ Located in the **Researchers** tab.
 
 1. Select a rack
 2. Click **Add Box**
-3. Configure the grid size and position format
-4. Or click an existing box to edit/delete
+3. Use a box's **⋯** menu to change its grid, rename, or delete it (see 6.4 for changing many boxes at once)
 
 **Assigning resources to users:**
 

@@ -1,8 +1,3 @@
-/**
- * Storage Configuration API
- *
- * HTTP client for storage equipment CRUD and configuration management.
- */
 import {
   StorageResponseSchema,
   storageVersionResponseSchema,
@@ -10,12 +5,17 @@ import {
   addRacksResponseSchema,
   addBoxesResponseSchema,
   bulkOperationResponseSchema,
+  boxGridUpdateResponseSchema,
   messageResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 
-import type { StorageResponse, GridConfiguration } from '@odysseus/shared-schemas';
+import type {
+  BoxGridUpdateResponse,
+  StorageResponse,
+  UpdateBoxGridRequest,
+} from '@odysseus/shared-schemas';
 
 export class StorageService {
   static async loadConfiguration(): Promise<StorageResponse> {
@@ -27,7 +27,6 @@ export class StorageService {
     return version;
   }
 
-  /** Resource owners can set their own labels via canEditResource, not just admins. */
   static async updateResourceLabel(
     resourceType: 'rack' | 'box',
     tankId: string,
@@ -59,7 +58,6 @@ export class StorageService {
     await httpClient.put(`/storage/tanks/${tankId}`, updates);
   }
 
-  /** Delete a tank (blocks if tubes exist). */
   static async deleteTank(tankId: string): Promise<void> {
     await httpClient.delete(`/storage/tanks/${tankId}`);
   }
@@ -76,7 +74,6 @@ export class StorageService {
     await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}`, updates);
   }
 
-  /** Delete a rack (blocks if tubes exist). */
   static async deleteRack(tankId: string, rackId: string): Promise<void> {
     await httpClient.delete(`/storage/tanks/${tankId}/racks/${rackId}`);
   }
@@ -103,16 +100,10 @@ export class StorageService {
     );
   }
 
-  static async updateBox(
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    updates: { gridConfig?: GridConfiguration }
-  ): Promise<void> {
-    await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`, updates);
+  static async updateBoxGrid(request: UpdateBoxGridRequest): Promise<BoxGridUpdateResponse> {
+    return httpClient.putData('/storage/box-grid', request, boxGridUpdateResponseSchema);
   }
 
-  /** Delete a box (blocks if tubes exist). */
   static async deleteBox(tankId: string, rackId: string, boxId: string): Promise<void> {
     await httpClient.delete(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`);
   }
@@ -121,7 +112,7 @@ export class StorageService {
     tankId: string,
     rackId: string,
     boxId: string,
-    /** null = common (everyone); undefined omits the field, which the server reads as inherit. */
+    // PITFALL: null means common (everyone); undefined omits the field, read as inherit.
     assignedUserId: string | null | undefined
   ): Promise<void> {
     await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}/assign`, {
@@ -129,7 +120,6 @@ export class StorageService {
     });
   }
 
-  /** Unassign all resources from a user. Used when deactivating users. */
   static async bulkUnassignResources(
     fromUserId: string
   ): Promise<{ racksAffected: number; boxesAffected: number; protectedSkipped: number }> {
@@ -151,7 +141,6 @@ export class StorageService {
     );
   }
 
-  /** Initialize configuration for a fresh install. */
   static async initializeConfiguration(
     labName: string,
     tankCount: number,

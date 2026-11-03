@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { EQUIPMENT_DEFAULTS, formatStorageDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
+import { ChevronDown, Grid3x3, Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
@@ -46,6 +46,7 @@ export function RackRow({
     onAssignRack,
     onEditRackLabel,
     onEditRack,
+    onChangeBoxGrid,
     onDeleteRack,
     onAddBoxes,
   } = useStorageManagerContext();
@@ -80,6 +81,16 @@ export function RackRow({
       onClick: () => onEditRack(tankId, rack),
     });
 
+    items.push({
+      icon: Grid3x3,
+      label: 'Change Box Grids',
+      onClick: () =>
+        onChangeBoxGrid(
+          { tankId, rackId: rack.id },
+          formatStorageDisplayName(rack.name, rack.customLabel)
+        ),
+    });
+
     if (canDeleteRack) {
       items.push({
         icon: Trash2,
@@ -99,6 +110,7 @@ export function RackRow({
     tankId,
     onEditRackLabel,
     onEditRack,
+    onChangeBoxGrid,
     onDeleteRack,
   ]);
 

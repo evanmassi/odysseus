@@ -1,9 +1,3 @@
-/**
- * Storage Manager Context
- *
- * Shared state and callbacks for the storage manager modal's child components.
- */
-
 import { createContext, useContext } from 'react';
 
 import type { UserInfo } from '../../../hooks/useStorageOwnership';
@@ -14,7 +8,10 @@ import type {
   TankConfiguration,
   DemoLimits,
   UserDisplayInfo,
+  UpdateBoxGridRequest,
 } from '@odysseus/shared-schemas';
+
+export type BoxGridScope = Omit<UpdateBoxGridRequest, 'gridConfig'>;
 
 interface StorageManagerContextValue {
   users: UserDisplayInfo[];
@@ -22,7 +19,6 @@ interface StorageManagerContextValue {
   isDemo: boolean;
   demoLimits: DemoLimits | undefined;
   hasSeededResources: boolean;
-  /** Per-box/rack/tank tube fill against capacity, for the occupancy minimaps + bars. */
   occupancy: NavigatorOccupancy;
 
   getUserInfo: (userId: string) => UserInfo | null;
@@ -52,7 +48,7 @@ interface StorageManagerContextValue {
   onAssignRack: (tankId: string, rackId: string, userId: string | undefined) => void;
   onEditRackLabel: (tankId: string, rackId: string, currentLabel: string) => void;
 
-  onEditBox: (tankId: string, rackId: string, box: BoxConfiguration) => void;
+  onChangeBoxGrid: (scope: BoxGridScope, label: string) => void;
   onDeleteBox: (tankId: string, rackId: string, boxId: string) => void;
   onAssignBox: (
     tankId: string,

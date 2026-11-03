@@ -1,9 +1,3 @@
-/**
- * Storage Module Exports
- *
- * Lab configuration, equipment schemas, position display, and formatters.
- */
-
 export {
   GridConfigurationSchema,
   BoxConfigurationSchema,
@@ -28,6 +22,8 @@ export {
   addRacksResponseSchema,
   addBoxesResponseSchema,
   bulkOperationResponseSchema,
+  boxGridUpdateResponseSchema,
+  type BoxGridUpdateResponse,
 } from './storageSchemas';
 
 export {
@@ -38,6 +34,8 @@ export {
   assignRackRequestSchema,
   addBoxesRequestSchema,
   updateBoxRequestSchema,
+  updateBoxGridRequestSchema,
+  type UpdateBoxGridRequest,
   assignBoxRequestSchema,
   updateResourceLabelRequestSchema,
   updateSystemStorageRequestSchema,
