@@ -475,15 +475,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
     const positions = parsedPositions.map(p => p.location.position);
-    const positionRanges = formatPositionRangesForBox(
-      positions,
-      firstLocation.tankId,
-      firstLocation.rackId,
-      firstLocation.boxId,
-      gridConfig,
-      currentLab,
-      userSettings
-    );
+    const positionRanges = formatPositionRangesForBox(positions, gridConfig, userSettings);
 
     return { tankName, rackName, boxName, positionRanges };
   }, [parsedPositions, currentLab, getBox, userSettings]);

@@ -9,7 +9,6 @@ import {
 import { RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
 import {
-  useStorageData,
   useStorageLocationNames,
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
@@ -489,18 +488,13 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
     boxName,
     box: boxObj,
   } = useStorageLocationNames(tankId, rackId, boxId);
-  const { currentLab } = useStorageData();
 
   const { settings: userSettings } = useUserSettings();
 
   const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
   const positionRanges = formatPositionRangesForBox(
     tubes.map(t => t.location.position),
-    tankId,
-    rackId,
-    boxId,
     gridConfig,
-    currentLab,
     userSettings
   );
 

@@ -1,24 +1,13 @@
-/**
- * Search Domain Schemas
- *
- * Schemas for advanced search filters, options, and results.
- */
-
 import { z } from 'zod';
 import { tubeDataSchema, TUBE_SORT_FIELDS } from '../tubes/tubeSchemas';
 
 const SearchFiltersSchema = z
   .object({
-    // Location filters — arrays use OR logic (e.g. tankIds: ['a','b'] = tank a OR tank b)
+    // PITFALL: each location array is OR'd within itself (tankIds ['a','b'] means tank a or b).
     tankIds: z.array(z.string()).optional(),
     rackIds: z.array(z.string()).optional(),
     boxIds: z.array(z.string()).optional(),
 
-    // Position filter (alphanumeric label like "C5" or numeric like "23")
-    // NOTE: Position label is box-specific. Works best when filtering by a single box.
-    positionLabel: z.string().optional(),
-
-    // Sample filters (multiple selection)
     cellTypes: z.array(z.string()).optional(),
     species: z.array(z.string()).optional(),
     sources: z.array(z.string()).optional(),
@@ -27,10 +16,8 @@ const SearchFiltersSchema = z
     donorSourceIds: z.array(z.string()).optional(),
     cultureConditions: z.array(z.string()).optional(),
 
-    // Researcher filter (multiple selection)
     researcherIds: z.array(z.string()).optional(),
 
-    // Date range filters (single values for from/to)
     dateFrom: z.string().optional(),
     dateTo: z.string().optional(),
   })
@@ -76,15 +63,15 @@ const GroupedResultSchema = z
 export const SearchResultSchema = z
   .object({
     data: z.array(tubeDataSchema),
-    grouped: z.array(GroupedResultSchema).optional(), // Optional for backwards compatibility — server-side grouping
-    matchedTerms: z.array(z.string()).optional(), // Terms for client-side highlighting (includes synonyms)
+    grouped: z.array(GroupedResultSchema).optional(),
+    matchedTerms: z.array(z.string()).optional(),
     pagination: SearchPaginationSchema.optional(),
     metadata: SearchMetadataSchema.optional(),
   })
   .strict();
 
 export type SearchFilters = z.infer<typeof SearchFiltersSchema>;
-// Input shape: callers may omit limit/sortOrder — the schema applies their defaults on parse.
+// PITFALL: input shape; callers may omit limit/sortOrder because the schema fills defaults on parse.
 export type AdvancedSearchOptions = z.input<typeof AdvancedSearchOptionsSchema>;
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 export type GroupedResult = z.infer<typeof GroupedResultSchema>;

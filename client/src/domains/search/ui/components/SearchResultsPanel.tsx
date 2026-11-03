@@ -42,7 +42,7 @@ export function SearchResultsPanel({
 }: SearchResultsPanelProps) {
   const { navigateToResult } = useSearch();
   const { currentTank } = useTubeStore();
-  const { currentLab, getCurrentTanks, getBox } = useStorageData();
+  const { getCurrentTanks, getBox } = useStorageData();
   const { data: researchers = [] } = useResearchersQuery();
   const { settings: userSettings } = useUserSettings();
   const sortField = useSearchStore(state => state.sortField);
@@ -261,11 +261,7 @@ export function SearchResultsPanel({
           try {
             positionLabel = formatPositionForBox(
               tube.location.position,
-              tube.location.tankId,
-              tube.location.rackId,
-              tube.location.boxId,
               box.gridConfig,
-              currentLab,
               userSettings
             );
           } catch {
@@ -352,34 +348,16 @@ export function SearchResultsPanel({
     }
 
     if (positions.length === 1) {
-      const label = formatPositionForBox(
-        positions[0],
-        tankId,
-        rackId,
-        boxId,
-        box.gridConfig,
-        currentLab,
-        userSettings
-      );
+      const label = formatPositionForBox(positions[0], box.gridConfig, userSettings);
       return `Pos: ${label}`;
     }
 
     if (positions.length <= 3) {
-      const labels = positions.map(pos =>
-        formatPositionForBox(pos, tankId, rackId, boxId, box.gridConfig, currentLab, userSettings)
-      );
+      const labels = positions.map(pos => formatPositionForBox(pos, box.gridConfig, userSettings));
       return `Pos: ${labels.join(', ')}`;
     }
 
-    const ranges = buildPositionRangeLabels(
-      positions,
-      tankId,
-      rackId,
-      boxId,
-      box.gridConfig,
-      currentLab,
-      userSettings
-    );
+    const ranges = buildPositionRangeLabels(positions, box.gridConfig, userSettings);
 
     if (ranges.length > 4) {
       const displayRanges = ranges.slice(0, 4);

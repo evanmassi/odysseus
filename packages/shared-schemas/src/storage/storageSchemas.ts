@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import { demoLimitsSchema } from '../demo/demoSchemas';
-import { positionDisplayConfigSchema } from './positionSchemas';
 
 export const GridConfigurationSchema = z
   .object({
@@ -15,7 +14,6 @@ export const BoxConfigurationSchema = z
     id: z.string(),
     name: z.string(),
     gridConfig: GridConfigurationSchema,
-    positionDisplay: positionDisplayConfigSchema.optional(),
     position: z.number().optional(),
     // PITFALL: null means explicitly common (everyone); undefined means inherit from the rack.
     assignedUserId: z.string().nullable().optional(),
@@ -53,16 +51,6 @@ export const TankConfigurationSchema = z
   })
   .strict();
 
-export const ColorSchemeSchema = z
-  .object({
-    primary: z.string(),
-    secondary: z.string(),
-    accent: z.string(),
-    background: z.string(),
-    text: z.string(),
-  })
-  .strict();
-
 export const EquipmentConfigurationSchema = z
   .object({
     tanks: z.array(TankConfigurationSchema),
@@ -80,20 +68,6 @@ export const LabConfigurationSchema = z
     createdAt: dateField,
     updatedAt: dateField,
     equipment: EquipmentConfigurationSchema,
-    branding: z
-      .object({
-        logo: z.string().optional(),
-        colors: ColorSchemeSchema.optional(),
-      })
-      .optional(),
-    settings: z
-      .object({
-        requireAuth: z.boolean(),
-        allowDataExport: z.boolean(),
-        enableRealTimeSync: z.boolean(),
-        defaultPositionDisplay: positionDisplayConfigSchema.optional(),
-      })
-      .optional(),
     demoLimits: demoLimitsSchema.optional(),
   })
   .strict();

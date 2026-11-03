@@ -19,7 +19,6 @@ import { useIsDemo } from '@domains/authentication';
 import { useDonorRegistryStore } from '@domains/donors';
 import { useResearchersQuery } from '@domains/researchers';
 import {
-  useStorageData,
   useStorageLocationNames,
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
@@ -111,7 +110,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   }, [researchers]);
 
   const { currentTank, currentRack, currentBox, selectedPositions } = useTubeStore();
-  const { currentLab } = useStorageData();
   const isDemo = useIsDemo();
 
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
@@ -121,24 +119,15 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const positionSummary = useMemo(() => {
     if (selectedTubes.length === 0) return { positionLabel: '', formattedPositions: '' };
 
-    const firstTube = selectedTubes[0];
     const positions = selectedTubes.map(t => t.location.position);
 
     const gridConfig = currentBoxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
-    const formattedPositions = formatPositionRangesForBox(
-      positions,
-      firstTube.location.tankId,
-      firstTube.location.rackId,
-      firstTube.location.boxId,
-      gridConfig,
-      currentLab,
-      userSettings
-    );
+    const formattedPositions = formatPositionRangesForBox(positions, gridConfig, userSettings);
 
     const positionLabel = selectedTubes.length === 1 ? 'Position' : 'Positions';
     return { positionLabel, formattedPositions };
-  }, [selectedTubes, currentBoxObj, currentLab, userSettings]);
+  }, [selectedTubes, currentBoxObj, userSettings]);
 
   const fieldAnalysis = useMemo(() => {
     if (selectedTubes.length === 0) {
@@ -249,17 +238,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     const gridConfig = currentBoxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
     const formattedPositions =
-      positions.length > 0
-        ? formatPositionRangesForBox(
-            positions,
-            currentTank,
-            currentRack,
-            currentBox,
-            gridConfig,
-            currentLab,
-            userSettings
-          )
-        : '';
+      positions.length > 0 ? formatPositionRangesForBox(positions, gridConfig, userSettings) : '';
 
     const hasEmptySelection = positionCount > 0;
     const positionText = hasEmptySelection

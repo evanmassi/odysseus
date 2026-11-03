@@ -2,7 +2,6 @@ import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 import type {
   AddBoxesCommandHandler,
-  UpdateBoxCommandHandler,
   UpdateBoxGridCommandHandler,
   DeleteBoxCommandHandler,
   AssignBoxCommandHandler,
@@ -26,7 +25,6 @@ import type {
 import type {
   UpdateSystemStorageCommandHandler,
   ResetStorageToDefaultCommandHandler,
-  ImportStorageCommandHandler,
   UpdateResourceLabelCommandHandler,
 } from '@application/commands/StorageCommands';
 import type {
@@ -54,7 +52,6 @@ export interface StorageControllerDeps {
   checkStorageHealthHandler: CheckStorageHealthQueryHandler;
   updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
   resetStorageHandler: ResetStorageToDefaultCommandHandler;
-  importStorageHandler: ImportStorageCommandHandler;
   updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
   addTankHandler: AddTankCommandHandler;
   updateTankHandler: UpdateTankCommandHandler;
@@ -65,7 +62,6 @@ export interface StorageControllerDeps {
   deleteRackHandler: DeleteRackCommandHandler;
   assignRackHandler: AssignRackCommandHandler;
   addBoxesHandler: AddBoxesCommandHandler;
-  updateBoxHandler: UpdateBoxCommandHandler;
   updateBoxGridHandler: UpdateBoxGridCommandHandler;
   deleteBoxHandler: DeleteBoxCommandHandler;
   assignBoxHandler: AssignBoxCommandHandler;
@@ -233,49 +229,6 @@ export class StorageController extends BaseController {
       );
     } catch (error) {
       handleControllerError(error, res, 'Failed to reset configuration', req.requestId);
-    }
-  }
-
-  async importStorage(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const labId = this.extractLabId(req);
-      const validateOnly = req.query.validateOnly === 'true';
-
-      const result = await this.deps.importStorageHandler.handle({
-        userId,
-        labId,
-        configurationData: req.body,
-        validateOnly,
-      });
-
-      if (!result.isValid) {
-        res
-          .status(400)
-          .json(
-            ResponseBuilder.error(
-              API_ERROR_CODES.VALIDATION_FAILED,
-              'Storage import validation failed',
-              { errors: result.errors, warnings: result.warnings }
-            )
-          );
-        return;
-      }
-
-      res.json(
-        ResponseBuilder.success({
-          warnings: result.warnings,
-          message: validateOnly ? 'Storage validation successful' : 'Storage imported successfully',
-          ...(result.configuration && {
-            configuration: {
-              version: result.configuration.version,
-              lastUpdated: result.configuration.updatedAt,
-            },
-          }),
-        })
-      );
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to import configuration', req.requestId);
     }
   }
 
@@ -448,30 +401,6 @@ export class StorageController extends BaseController {
       res.status(201).json(ResponseBuilder.success({ boxIds: result.boxIds }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to add box(es)', req.requestId);
-    }
-  }
-
-  async updateBox(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const { tankId, rackId, boxId } = req.params;
-      const { name, positionDisplay, isActive } = req.body;
-      const labId = this.extractLabId(req);
-
-      await this.deps.updateBoxHandler.handle({
-        userId,
-        labId,
-        tankId,
-        rackId,
-        boxId,
-        name,
-        positionDisplay,
-        isActive,
-      });
-
-      res.json(ResponseBuilder.success({ message: `Box '${boxId}' updated` }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to update box', req.requestId);
     }
   }
 

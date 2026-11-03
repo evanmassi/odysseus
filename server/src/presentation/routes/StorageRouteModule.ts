@@ -13,7 +13,6 @@ import {
   UpdateRackHttpSchema,
   AssignRackHttpSchema,
   AddBoxesHttpSchema,
-  UpdateBoxHttpSchema,
   UpdateBoxGridHttpSchema,
   AssignBoxHttpSchema,
   UpdateResourceLabelHttpSchema,
@@ -84,13 +83,6 @@ export class StorageRouteModule implements RouteModule {
     );
 
     router.post(
-      '/import',
-      this.authMiddleware.requireAdmin,
-      this.strictLimiter,
-      this.storageController.importStorage.bind(this.storageController)
-    );
-
-    router.post(
       '/tanks',
       this.authMiddleware.requireAdmin,
       validateBody(AddTankHttpSchema),
@@ -149,14 +141,6 @@ export class StorageRouteModule implements RouteModule {
       validateParams(RackIdParams),
       validateBody(AddBoxesHttpSchema),
       this.storageController.addBoxes.bind(this.storageController)
-    );
-
-    router.put(
-      '/tanks/:tankId/racks/:rackId/boxes/:boxId',
-      this.authMiddleware.requireAdmin,
-      validateParams(BoxIdParams),
-      validateBody(UpdateBoxHttpSchema),
-      this.storageController.updateBox.bind(this.storageController)
     );
 
     router.delete(
