@@ -15,7 +15,6 @@ interface TestBox {
   name: string;
   gridConfig: { rows: number; cols: number };
   isSeeded?: boolean;
-  positionDisplay?: { format: 'numeric' };
 }
 
 interface TestRack {
@@ -190,10 +189,8 @@ describe('UpdateBoxGridCommandHandler', () => {
   });
 
   describe('audit trail', () => {
-    it('records the rows and columns change, plus a cleared custom position display', async () => {
-      const { handler, publish } = makeHandler([
-        { id: 'r1', name: 'Rack 1', boxes: [box('A', { positionDisplay: { format: 'numeric' } })] },
-      ]);
+    it('records the rows and columns change', async () => {
+      const { handler, publish } = makeHandler([{ id: 'r1', name: 'Rack 1', boxes: [box('A')] }]);
 
       await handler.handle(command);
 
@@ -201,7 +198,6 @@ describe('UpdateBoxGridCommandHandler', () => {
       expect(event.changes).toEqual([
         { field: 'gridConfig.rows', oldValue: 9, newValue: 10 },
         { field: 'gridConfig.cols', oldValue: 9, newValue: 10 },
-        { field: 'positionDisplay', oldValue: { format: 'numeric' }, newValue: undefined },
       ]);
     });
   });

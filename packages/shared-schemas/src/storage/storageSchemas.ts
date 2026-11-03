@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import { demoLimitsSchema } from '../demo/demoSchemas';
-import { positionDisplayConfigSchema } from './positionSchemas';
 
 export const GridConfigurationSchema = z
   .object({
@@ -15,7 +14,6 @@ export const BoxConfigurationSchema = z
     id: z.string(),
     name: z.string(),
     gridConfig: GridConfigurationSchema,
-    positionDisplay: positionDisplayConfigSchema.optional(),
     position: z.number().optional(),
     // PITFALL: null means explicitly common (everyone); undefined means inherit from the rack.
     assignedUserId: z.string().nullable().optional(),
@@ -91,7 +89,6 @@ export const LabConfigurationSchema = z
         requireAuth: z.boolean(),
         allowDataExport: z.boolean(),
         enableRealTimeSync: z.boolean(),
-        defaultPositionDisplay: positionDisplayConfigSchema.optional(),
       })
       .optional(),
     demoLimits: demoLimitsSchema.optional(),

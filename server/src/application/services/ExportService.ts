@@ -1,9 +1,3 @@
-/**
- * Data Export Service
- *
- * Transforms domain data into CSV/JSON export formats for admin users.
- */
-
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { Person } from '@domain/entities/Person';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
@@ -121,11 +115,7 @@ interface SystemBackup {
   securityConfig: unknown;
 }
 
-/**
- * Full "Room 204 > Cold Room > Shelf 2" path per node id. Walks to the root rather than
- * naming one parent, so a location three tiers deep exports its whole path; the loop
- * bound is a cycle backstop.
- */
+// PITFALL: walks to the root for the full path; the loop bound is a cycle backstop, not a depth cap.
 function buildPathMap<T extends { id: string; name: string; parentId?: string }>(
   nodes: T[]
 ): Map<string, string> {
@@ -408,7 +398,6 @@ export class ExportService {
     ]);
   }
 
-  /** Always JSON — structure too complex for CSV. */
   async exportSystemBackup(labId: string): Promise<SystemBackup> {
     logger.info('[ExportService] Exporting system backup', { labId });
 
@@ -439,7 +428,6 @@ export class ExportService {
                     id: b.name,
                     name: b.name,
                     gridConfig: b.gridConfig,
-                    positionDisplay: b.positionDisplay,
                     isActive: b.isActive,
                     customLabel: b.customLabel,
                     assignedUserId: b.assignedUserId,

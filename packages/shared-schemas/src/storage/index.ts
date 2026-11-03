@@ -46,9 +46,6 @@ export {
 export { formatStorageDisplayName } from './storageFormatters';
 
 export {
-  positionDisplayFormatSchema,
-  alphanumericConfigSchema,
-  positionDisplayConfigSchema,
   positionDisplayPreferenceSchema,
   type PositionDisplayConfig,
   type PositionDisplayPreference,
@@ -57,4 +54,4 @@ export {
   getDefaultPositionDisplay,
 } from './positionSchemas';
 
-export { positionToLabel, labelToPosition } from './positionFormatters';
+export { positionToLabel } from './positionFormatters';

@@ -400,8 +400,7 @@ Positions can be displayed as:
 - **Alphanumeric** - A1, A2, B1, B2... (row letter + column number)
 - **Numeric** - 1, 2, 3, 4... (sequential numbers)
 
-The format is set per box by administrators.
-**Note** that users can have preferential settings for **Alphanumeric** or **Numeric** by accessing the **Display Tab** in the **User Settings**
+Each user chooses their own format in the **Display Tab** of **User Settings**; it starts as **Alphanumeric**. The choice only changes what you see, not other users.
 
 ### 6.4 Grid Sizes
 
@@ -481,7 +480,7 @@ Customize how the application appears to you:
 
 **Position Display Format:**
 
-- **Numeric** - Sequential numbers (1, 2, 3... 81)
+- **Numeric** - Sequential numbers (1, 2, 3...)
 - **Alphanumeric** - Row letter + column number (A1, B2... I9)
 - **System Default** - Uses the default alphanumeric format
 

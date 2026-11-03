@@ -221,13 +221,6 @@ export class UpdateBoxGridCommandHandler {
         { field: 'gridConfig.rows', oldValue: box.gridConfig.rows, newValue: rows },
         { field: 'gridConfig.cols', oldValue: box.gridConfig.cols, newValue: cols },
       ];
-      if (box.positionDisplay) {
-        changes.push({
-          field: 'positionDisplay',
-          oldValue: box.positionDisplay,
-          newValue: undefined,
-        });
-      }
 
       await this.eventBus.publish(
         new BoxUpdatedEvent(

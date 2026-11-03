@@ -1,11 +1,3 @@
-/**
- * Configuration Import Types
- *
- * Shape accepted by Storage.fromData() for importing lab configuration.
- */
-
-import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-
 export interface StorageImportData {
   tanks: Array<{
     id: string;
@@ -18,7 +10,6 @@ export interface StorageImportData {
         name: string;
         gridConfig?: { rows: number; cols: number };
         maxPositions?: number;
-        positionDisplay?: PositionDisplayConfig;
         isActive?: boolean;
         assignedUserId?: string | null;
         customLabel?: string;
@@ -43,7 +34,6 @@ export interface StorageImportData {
     autoSave: boolean;
     auditTrailEnabled: boolean;
     syncEnabled: boolean;
-    defaultPositionDisplay?: PositionDisplayConfig;
   };
   updatedAt?: string;
   version?: number;

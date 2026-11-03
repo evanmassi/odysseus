@@ -1,120 +1,39 @@
-/**
- * Position Display Utilities
- *
- * Resolves position display config via 4-tier fallback hierarchy
- * (box override → user preference → lab default → system default)
- * and formats numeric positions to display labels.
- */
-
 import {
   positionToLabel,
   getDefaultPositionDisplay,
   createAlphanumericConfig,
   createNumericConfig,
   type PositionDisplayConfig,
-  type PositionDisplayPreference,
   type UserSettings,
   type GridConfiguration,
-  type LabConfiguration,
 } from '@odysseus/shared-schemas';
 
-// Preferences are format-only to avoid storing grid-specific data that varies by box.
-// Full configs are generated on-demand for each box.
-function preferenceToConfig(
-  preference: PositionDisplayPreference | undefined | null,
-  gridRows: number,
-  gridCols: number
-): PositionDisplayConfig {
-  if (!preference?.format) {
-    return getDefaultPositionDisplay(gridRows, gridCols);
-  }
-
-  if (preference.format === 'numeric') {
-    return createNumericConfig();
-  }
-
-  if (preference.format === 'alphanumeric') {
-    return createAlphanumericConfig(gridRows, gridCols, 'row-col');
-  }
-
-  return getDefaultPositionDisplay(gridRows, gridCols);
-}
-
-function getResolvedPositionDisplay(
-  tankId: string,
-  rackId: string,
-  boxId: string,
+function resolvePositionDisplay(
   gridConfig: GridConfiguration,
-  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): PositionDisplayConfig {
-  // 1. Box-specific override
-  const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
-  const rack = tank?.racks?.find(r => r.id === rackId);
-  const box = rack?.boxes?.find(b => b.id === boxId);
-  const boxOverride = box?.positionDisplay;
-  if (boxOverride) {
-    return boxOverride;
+  const format = userSettings?.defaultPositionDisplay?.format;
+  if (format === 'numeric') return createNumericConfig();
+  if (format === 'alphanumeric') {
+    return createAlphanumericConfig(gridConfig.rows, gridConfig.cols, 'row-col');
   }
-
-  // 2. User preference
-  if (userSettings?.defaultPositionDisplay) {
-    return preferenceToConfig(
-      userSettings.defaultPositionDisplay,
-      gridConfig.rows,
-      gridConfig.cols
-    );
-  }
-
-  // 3. Lab-wide default
-  const labDefault = currentLab?.settings?.defaultPositionDisplay;
-  if (labDefault) {
-    return labDefault;
-  }
-
-  // 4. System default
   return getDefaultPositionDisplay(gridConfig.rows, gridConfig.cols);
 }
 
-/** @example formatPositionForBox(23, 'tank-1', '1', 'A', { rows: 9, cols: 9 }, currentLab) // "C5" */
 export function formatPositionForBox(
   position: number,
-  tankId: string,
-  rackId: string,
-  boxId: string,
   gridConfig: GridConfiguration,
-  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): string {
-  const config = getResolvedPositionDisplay(
-    tankId,
-    rackId,
-    boxId,
-    gridConfig,
-    currentLab,
-    userSettings
-  );
-
+  const config = resolvePositionDisplay(gridConfig, userSettings);
   return positionToLabel(position, gridConfig.rows, gridConfig.cols, config);
 }
 
-/** Row/column axis labels for rulers, or null when the box uses numeric (axis-less) positions. */
 export function getAxisLabelsForBox(
-  tankId: string,
-  rackId: string,
-  boxId: string,
   gridConfig: GridConfiguration,
-  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): { rowLabels: string[]; colLabels: string[] } | null {
-  const config = getResolvedPositionDisplay(
-    tankId,
-    rackId,
-    boxId,
-    gridConfig,
-    currentLab,
-    userSettings
-  );
+  const config = resolvePositionDisplay(gridConfig, userSettings);
   if (config.format !== 'alphanumeric' || !config.alphanumericConfig) {
     return null;
   }
@@ -124,18 +43,9 @@ export function getAxisLabelsForBox(
   };
 }
 
-/**
- * Groups positions into consecutive runs and formats each run to a `start` or
- * `start-end` label. Returns one entry per run (e.g. `['A1-A3', 'C5']`), letting
- * callers join or truncate the runs however they display them.
- */
 export function buildPositionRangeLabels(
   positions: number[],
-  tankId: string,
-  rackId: string,
-  boxId: string,
   gridConfig: GridConfiguration,
-  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): string[] {
   if (positions.length === 0) return [];
@@ -158,56 +68,16 @@ export function buildPositionRangeLabels(
   ranges.push({ start: rangeStart, end: rangeEnd });
 
   return ranges.map(({ start, end }) => {
-    const startLabel = formatPositionForBox(
-      start,
-      tankId,
-      rackId,
-      boxId,
-      gridConfig,
-      currentLab,
-      userSettings
-    );
-
-    if (start === end) {
-      return startLabel;
-    }
-
-    const endLabel = formatPositionForBox(
-      end,
-      tankId,
-      rackId,
-      boxId,
-      gridConfig,
-      currentLab,
-      userSettings
-    );
-    return `${startLabel}-${endLabel}`;
+    const startLabel = formatPositionForBox(start, gridConfig, userSettings);
+    if (start === end) return startLabel;
+    return `${startLabel}-${formatPositionForBox(end, gridConfig, userSettings)}`;
   });
 }
 
-/**
- * Joins consecutive position runs into a display string.
- *
- * @example
- * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, lab, settings)
- * // alphanumeric: "A1-A3, C5-C7" | numeric: "1-3, 23-25"
- */
 export function formatPositionRangesForBox(
   positions: number[],
-  tankId: string,
-  rackId: string,
-  boxId: string,
   gridConfig: GridConfiguration,
-  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): string {
-  return buildPositionRangeLabels(
-    positions,
-    tankId,
-    rackId,
-    boxId,
-    gridConfig,
-    currentLab,
-    userSettings
-  ).join(', ');
+  return buildPositionRangeLabels(positions, gridConfig, userSettings).join(', ');
 }

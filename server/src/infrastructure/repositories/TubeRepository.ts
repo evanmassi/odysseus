@@ -1,13 +1,6 @@
-/**
- * Tube Repository
- *
- * Data access for tube sample records with multi-layer full-text search and location queries.
- */
-
 import type { Tube } from '@domain/entities/Tube';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository';
 import type { TubeLocation } from '@domain/value-objects/TubeLocation';
@@ -30,10 +23,7 @@ import { logger } from '@infrastructure/logging/logger';
 import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
 
 export class TubeRepository implements ITubeRepository {
-  constructor(
-    private context: Queryable,
-    private storageRepository: StorageRepository
-  ) {}
+  constructor(private context: Queryable) {}
 
   async findById(id: string, labId: string): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
@@ -161,12 +151,6 @@ export class TubeRepository implements ITubeRepository {
     }
   }
 
-  /**
-   * Save tube with optimistic locking.
-   * Uses UPDATE...WHERE version=$expected to detect concurrent modifications.
-   * @throws ConflictError if version mismatch (another user modified the tube)
-   * @throws ValidationError if position already occupied (race condition)
-   */
   async saveWithOptimisticLock(tube: Tube, expectedVersion: number): Promise<void> {
     const row = TubeMapper.toRow(tube);
     let result;
@@ -257,7 +241,6 @@ export class TubeRepository implements ITubeRepository {
     }
 
     if (result.rowCount === 0) {
-      // Version mismatch - fetch current version for error message
       const currentTube = await this.findById(tube.id, tube.labId ?? '');
       const currentVersion = currentTube?.version ?? 0;
       throw ConflictError.tube(tube.id, expectedVersion, currentVersion);
@@ -271,8 +254,6 @@ export class TubeRepository implements ITubeRepository {
     ]);
     return (result.rowCount ?? 0) > 0;
   }
-
-  // LOCATION-BASED QUERIES
 
   async findByLocation(location: TubeLocation, labId: string): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
@@ -324,8 +305,6 @@ export class TubeRepository implements ITubeRepository {
     return rows.map((row: { position: number }) => row.position);
   }
 
-  // LOCK-BASED QUERIES
-
   async findLockedByUser(userId: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
       `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE locked_by = $1 AND lab_id = $2 AND is_locked = TRUE`,
@@ -333,8 +312,6 @@ export class TubeRepository implements ITubeRepository {
     );
     return TubeMapper.fromRows(rows);
   }
-
-  // BUSINESS QUERIES
 
   async countByLabId(labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
@@ -423,13 +400,7 @@ export class TubeRepository implements ITubeRepository {
     }));
   }
 
-  // SEARCH AND FILTERING
-
-  /**
-   * Maps the camelCase `criteria.sortBy` union to real snake_case tube columns.
-   * Only mapped values ever reach SQL, so this doubles as the injection allowlist:
-   * an unmapped/absent sortBy falls back to a hardcoded default.
-   */
+  // PITFALL: only mapped columns reach SQL, so this map doubles as the sort injection allowlist.
   private readonly CRITERIA_SORT_COLUMNS: Record<
     NonNullable<TubeSearchCriteria['sortBy']>,
     string
@@ -441,7 +412,6 @@ export class TubeRepository implements ITubeRepository {
     researcherId: 'researcher_id',
   };
 
-  /** Completeness predicate: a tube is "complete" once its core identity fields are set. */
   private readonly TUBE_COMPLETE_CONDITION =
     'cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL';
 
@@ -489,7 +459,6 @@ export class TubeRepository implements ITubeRepository {
   ): string {
     let sql = baseSql;
 
-    // Array-based filters (multiple selection support)
     if (criteria.tankIds && criteria.tankIds.length > 0) {
       const placeholders = criteria.tankIds.map(() => `$${paramIndex.current++}`).join(',');
       sql += ` AND tubes.tank_id IN (${placeholders})`;
@@ -506,7 +475,6 @@ export class TubeRepository implements ITubeRepository {
       params.push(...criteria.boxIds);
     }
 
-    // Legacy single-value filters (backwards compatibility)
     if (criteria.tankId) {
       sql += ` AND tubes.tank_id = $${paramIndex.current++}`;
       params.push(criteria.tankId);
@@ -571,7 +539,6 @@ export class TubeRepository implements ITubeRepository {
       params.push(...criteria.cultureConditions);
     }
 
-    // Legacy single-value filters (backwards compatibility)
     if (criteria.cellType) {
       sql += ` AND tubes.cell_type = $${paramIndex.current++}`;
       params.push(criteria.cellType);
@@ -596,14 +563,12 @@ export class TubeRepository implements ITubeRepository {
   ): string {
     let sql = baseSql;
 
-    // Array-based researcher filter (multiple selection support)
     if (criteria.researcherIds && criteria.researcherIds.length > 0) {
       const placeholders = criteria.researcherIds.map(() => `$${paramIndex.current++}`).join(',');
       sql += ` AND tubes.researcher_id IN (${placeholders})`;
       params.push(...criteria.researcherIds);
     }
 
-    // Legacy single-value filter (backwards compatibility)
     if (criteria.researcher) {
       sql += ` AND tubes.researcher_id = $${paramIndex.current++}`;
       params.push(criteria.researcher);
@@ -627,71 +592,6 @@ export class TubeRepository implements ITubeRepository {
     if (criteria.dateTo) {
       sql += ` AND tubes.date <= $${paramIndex.current++}`;
       params.push(criteria.dateTo);
-    }
-
-    return sql;
-  }
-
-  /**
-   * Parses alphanumeric position labels (e.g., "C5") using box position display config.
-   * Position label is box-specific — when multiple boxes are filtered, uses the first box's config.
-   */
-  private async addPositionLabelFilter(
-    baseSql: string,
-    params: unknown[],
-    criteria: TubeSearchCriteria,
-    paramIndex: { current: number },
-    labId?: string
-  ): Promise<string> {
-    let sql = baseSql;
-
-    if (!criteria.positionLabel) {
-      return sql;
-    }
-
-    try {
-      const boxId = criteria.boxId ?? criteria.boxIds?.[0];
-      const tankId = criteria.tankId ?? criteria.tankIds?.[0];
-      const rackId = criteria.rackId ?? criteria.rackIds?.[0];
-
-      if (!boxId || !tankId || !rackId) {
-        // No box specified - try numeric parsing as fallback
-        const numericPosition = parseInt(criteria.positionLabel, 10);
-        if (!isNaN(numericPosition)) {
-          sql += ` AND tubes.position = $${paramIndex.current++}`;
-          params.push(numericPosition);
-        }
-        // Otherwise skip position filter (invalid label without box context)
-        return sql;
-      }
-
-      if (!labId) {
-        logger.warn('[TubeRepository] No labId provided for position label parsing');
-        return sql;
-      }
-      const configuration = await this.storageRepository.getForLab(labId);
-      if (!configuration) {
-        logger.warn('[TubeRepository] No configuration found for position label parsing');
-        return sql;
-      }
-
-      const box = configuration.equipment.findBox(tankId, rackId, boxId);
-      if (!box) {
-        logger.warn(`[TubeRepository] Box not found: ${tankId}/${rackId}/${boxId}`);
-        return sql;
-      }
-
-      const numericPosition = box.parsePositionLabel(criteria.positionLabel);
-
-      sql += ` AND tubes.position = $${paramIndex.current++}`;
-      params.push(numericPosition);
-
-      logger.info(
-        `[TubeRepository] Parsed position label "${criteria.positionLabel}" → ${numericPosition} for box ${boxId}`
-      );
-    } catch (error) {
-      logger.error('[TubeRepository] Failed to parse position label:', error);
-      // Continue search without position filter rather than failing entire search
     }
 
     return sql;
@@ -743,14 +643,6 @@ export class TubeRepository implements ITubeRepository {
     return { tubes, matchedTerms };
   }
 
-  /**
-   * Full-text search across all tube fields
-   *
-   * Search layers (in order of relevance):
-   * 1. tsvector full-text with synonym expansion
-   * 2. Fuzzy matching with pg_trgm similarity
-   * 3. Researcher name ILIKE
-   */
   private async comprehensiveSearch(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     const rawQuery = criteria.query!.trim();
     const normalizedQuery = normalizeSearchQuery(rawQuery);
@@ -761,7 +653,6 @@ export class TubeRepository implements ITubeRepository {
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
 
-    // CTE: pre-filter tubes once (lab_id + all user-selected filters)
     let cteSql = `SELECT * FROM tubes WHERE tubes.lab_id = $${paramIndex.current}`;
     params.push(labId);
     paramIndex.current++;
@@ -770,9 +661,7 @@ export class TubeRepository implements ITubeRepository {
     cteSql = this.addSampleFilters(cteSql, params, criteria, paramIndex);
     cteSql = this.addResearcherFilters(cteSql, params, criteria, paramIndex);
     cteSql = this.addDateRangeFilters(cteSql, params, criteria, paramIndex);
-    cteSql = await this.addPositionLabelFilter(cteSql, params, criteria, paramIndex, labId);
 
-    // Layer 1: tsvector full-text search
     const tsqueryParamNum = paramIndex.current;
     params.push(tsqueryTerms);
     paramIndex.current++;
@@ -784,7 +673,6 @@ export class TubeRepository implements ITubeRepository {
       WHERE tubes.search_vector @@ to_tsquery('english', $${tsqueryParamNum})
     `;
 
-    // Layer 2: Fuzzy matching with pg_trgm (catches typos)
     const fuzzyColumns = [
       'cell_type',
       'species',
@@ -821,7 +709,6 @@ export class TubeRepository implements ITubeRepository {
       `;
     }
 
-    // Layer 3: Researcher name search — AND between concepts, OR within variants
     const researcherConceptConditions: string[] = [];
     for (const conceptVariants of concepts) {
       const variantConditions: string[] = [];
@@ -843,7 +730,6 @@ export class TubeRepository implements ITubeRepository {
       WHERE ${researcherConceptConditions.join(' AND ')}
     `;
 
-    // Combine all layers with UNION
     const unionParts = [ftsSql, researcherSql];
     if (fuzzySql) {
       unionParts.splice(1, 0, fuzzySql);
@@ -856,7 +742,6 @@ export class TubeRepository implements ITubeRepository {
       ) combined_results
     `;
 
-    // Sorting with SQL injection protection — only mapped columns reach SQL
     const sortColumn = criteria.sortBy ? this.CRITERIA_SORT_COLUMNS[criteria.sortBy] : undefined;
     const sortOrder = criteria.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
@@ -900,7 +785,6 @@ export class TubeRepository implements ITubeRepository {
     sql = this.addSampleFilters(sql, params, criteria, paramIndex);
     sql = this.addResearcherFilters(sql, params, criteria, paramIndex);
     sql = this.addDateRangeFilters(sql, params, criteria, paramIndex);
-    sql = await this.addPositionLabelFilter(sql, params, criteria, paramIndex, labId);
 
     if (criteria.createdAfter) {
       sql += ` AND created_at >= $${paramIndex.current++}`;
@@ -926,7 +810,6 @@ export class TubeRepository implements ITubeRepository {
       }
     }
 
-    // Sorting with SQL injection protection — only mapped columns reach SQL
     const sortColumn = criteria.sortBy ? this.CRITERIA_SORT_COLUMNS[criteria.sortBy] : undefined;
     const sortOrder = criteria.sortOrder === 'asc' ? 'ASC' : 'DESC';
     sql += ` ORDER BY ${sortColumn ?? 'created_at'} ${sortOrder}`;
@@ -944,8 +827,6 @@ export class TubeRepository implements ITubeRepository {
     const rows = await this.context.queryMany<TubeRow>(sql, params);
     return TubeMapper.fromRows(rows);
   }
-
-  // BULK OPERATIONS
 
   async deleteMany(ids: string[], labId: string): Promise<number> {
     if (ids.length === 0) return 0;
@@ -1010,8 +891,6 @@ export class TubeRepository implements ITubeRepository {
 
     return Object.fromEntries(results) as TubeFilterOptions;
   }
-
-  // MAINTENANCE OPERATIONS
 
   async isHealthy(): Promise<boolean> {
     try {

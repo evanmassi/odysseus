@@ -1,9 +1,3 @@
-/**
- * Search Criteria Mapper
- *
- * Maps HTTP search filters to domain-layer TubeSearchCriteria.
- */
-
 import { type TubeSearchCriteria } from '@domain/types/repository';
 
 import type { SearchFilters } from '@odysseus/shared-schemas';
@@ -28,7 +22,6 @@ export class SearchCriteriaMapper {
       tankIds: filters?.tankIds,
       rackIds: filters?.rackIds,
       boxIds: filters?.boxIds,
-      positionLabel: filters?.positionLabel,
       cellTypes: filters?.cellTypes,
       species: filters?.species,
       sources: filters?.sources,
