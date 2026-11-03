@@ -34,7 +34,6 @@ import {
   updateRackRequestSchema,
   assignRackRequestSchema,
   addBoxesRequestSchema,
-  updateBoxRequestSchema,
   updateBoxGridRequestSchema,
   assignBoxRequestSchema,
   updateResourceLabelRequestSchema,
@@ -243,7 +242,6 @@ export const AddRacksHttpSchema = addRacksRequestSchema;
 export const UpdateRackHttpSchema = updateRackRequestSchema;
 export const AssignRackHttpSchema = assignRackRequestSchema;
 export const AddBoxesHttpSchema = addBoxesRequestSchema;
-export const UpdateBoxHttpSchema = updateBoxRequestSchema;
 export const UpdateBoxGridHttpSchema = updateBoxGridRequestSchema;
 export const AssignBoxHttpSchema = assignBoxRequestSchema;
 export const UpdateResourceLabelHttpSchema = updateResourceLabelRequestSchema;

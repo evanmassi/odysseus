@@ -217,7 +217,6 @@ export {
   updateRackRequestSchema,
   assignRackRequestSchema,
   addBoxesRequestSchema,
-  updateBoxRequestSchema,
   updateBoxGridRequestSchema,
   type UpdateBoxGridRequest,
   assignBoxRequestSchema,

@@ -1,9 +1,3 @@
-/**
- * Storage CQRS Commands
- *
- * System-wide storage operations not tied to a single tank, rack, or box.
- */
-
 import type { EventBus } from '@application/contracts/EventBus';
 import { rejectDemoConfigOperation, rejectIfSeeded } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
@@ -19,9 +13,6 @@ import type {
   ResourceWithOwnership,
 } from '@domain/services/AccessControlService';
 import type { ValidationService } from '@domain/services/ValidationService';
-import type { StorageImportData } from '@domain/types/storageTypes';
-
-// COMMAND INTERFACES
 
 export interface UpdateSystemStorageCommand {
   userId: string;
@@ -35,13 +26,6 @@ export interface ResetStorageToDefaultCommand {
   confirmationToken: string;
 }
 
-export interface ImportStorageCommand {
-  userId: string;
-  labId: string;
-  configurationData: StorageImportData;
-  validateOnly?: boolean;
-}
-
 export interface UpdateResourceLabelCommand {
   userId: string;
   labId: string;
@@ -51,17 +35,6 @@ export interface UpdateResourceLabelCommand {
   boxId?: string;
   customLabel?: string;
 }
-
-// RESPONSE TYPES
-
-export interface ImportResult {
-  isValid: boolean;
-  configuration: Storage | null;
-  warnings: string[];
-  errors: string[];
-}
-
-// COMMAND HANDLERS
 
 export class UpdateSystemStorageCommandHandler {
   constructor(
@@ -77,8 +50,7 @@ export class UpdateSystemStorageCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    // The only setting here is the lab's display name, and this route is reachable by any
-    // lab_admin — which every demo visitor is. Renaming the lab would outlast their visit.
+    // PITFALL: every demo visitor is a lab_admin, and a renamed lab would outlast their visit.
     rejectDemoConfigOperation(user, 'Renaming the lab');
 
     const updatedConfig = currentConfig.updateSystemSettings(command.systemSettings);
@@ -110,11 +82,6 @@ export class UpdateSystemStorageCommandHandler {
   }
 }
 
-/**
- * Resets entire system configuration to factory defaults.
- * Destructive operation requiring confirmation token.
- * Validates that no tubes exist before resetting to prevent orphaned data.
- */
 export class ResetStorageToDefaultCommandHandler {
   private static readonly CONFIRMATION_TOKEN = 'RESET_CONFIRM_TOKEN';
 
@@ -161,81 +128,6 @@ export class ResetStorageToDefaultCommandHandler {
   }
 }
 
-export class ImportStorageCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private validationService: ValidationService,
-    private userRepository: UserRepository
-  ) {}
-
-  async handle(command: ImportStorageCommand): Promise<ImportResult> {
-    try {
-      const user = await requireUser(this.userRepository, command.userId);
-      rejectDemoConfigOperation(user, 'Import configuration');
-
-      const importedConfig = Storage.fromData(command.configurationData);
-
-      if (command.validateOnly) {
-        return {
-          isValid: true,
-          configuration: importedConfig,
-          warnings: [],
-          errors: [],
-        };
-      }
-
-      const currentConfig = await this.storageRepository.getForLab(command.labId);
-
-      if (currentConfig) {
-        const validationResult = await this.validationService.validateStorageUpdate(
-          currentConfig,
-          importedConfig,
-          user,
-          command.labId
-        );
-
-        if (!validationResult.isValid) {
-          return {
-            isValid: false,
-            configuration: null,
-            warnings: [],
-            errors: validationResult.errors,
-          };
-        }
-      }
-
-      const expectedVersion = currentConfig?.version ?? 0;
-      const newVersion = await this.storageRepository.saveWithOptimisticLock(
-        command.labId,
-        importedConfig,
-        expectedVersion,
-        'Imported configuration',
-        command.userId
-      );
-      importedConfig.applyPersistedVersion(newVersion);
-
-      return {
-        isValid: true,
-        configuration: importedConfig,
-        warnings: [],
-        errors: [],
-      };
-    } catch (error) {
-      return {
-        isValid: false,
-        configuration: null,
-        warnings: [],
-        errors: [error instanceof Error ? error.message : 'Unknown import error'],
-      };
-    }
-  }
-}
-
-/**
- * Updates custom labels on racks and boxes.
- * Uses AccessControlService.canEditResource() for permission checking,
- * allowing resource owners (not just admins) to set their own labels.
- */
 export class UpdateResourceLabelCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -260,8 +152,7 @@ export class UpdateResourceLabelCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    // Relabelling a seeded tank outlasts the visit and the nightly reset, which restores content
-    // but not storage names. Their own tanks stay theirs to label.
+    // PITFALL: the nightly demo reset restores content, not storage names, so seeded labels stick.
     rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     let resource: (ResourceWithOwnership & { customLabel?: string }) | null = null;

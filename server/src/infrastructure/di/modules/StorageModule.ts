@@ -1,6 +1,5 @@
 import {
   AddBoxesCommandHandler,
-  UpdateBoxCommandHandler,
   UpdateBoxGridCommandHandler,
   DeleteBoxCommandHandler,
   AssignBoxCommandHandler,
@@ -24,7 +23,6 @@ import {
 import {
   UpdateSystemStorageCommandHandler,
   ResetStorageToDefaultCommandHandler,
-  ImportStorageCommandHandler,
   UpdateResourceLabelCommandHandler,
 } from '@application/commands/StorageCommands';
 import {
@@ -52,7 +50,6 @@ import { StorageAnalyticsController } from '@presentation/controllers/system/Sto
 export class StorageModule {
   private updateSystemStorageHandler?: UpdateSystemStorageCommandHandler;
   private resetStorageToDefaultHandler?: ResetStorageToDefaultCommandHandler;
-  private importStorageHandler?: ImportStorageCommandHandler;
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
 
   private addTankHandler?: AddTankCommandHandler;
@@ -64,7 +61,6 @@ export class StorageModule {
   private deleteRackHandler?: DeleteRackCommandHandler;
   private assignRackHandler?: AssignRackCommandHandler;
   private addBoxesHandler?: AddBoxesCommandHandler;
-  private updateBoxHandler?: UpdateBoxCommandHandler;
   private updateBoxGridHandler?: UpdateBoxGridCommandHandler;
   private deleteBoxHandler?: DeleteBoxCommandHandler;
   private assignBoxHandler?: AssignBoxCommandHandler;
@@ -116,18 +112,6 @@ export class StorageModule {
       );
     }
     return this.resetStorageToDefaultHandler;
-  }
-
-  getImportStorageHandler(): ImportStorageCommandHandler {
-    if (!this.importStorageHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.importStorageHandler = new ImportStorageCommandHandler(
-        repositories.storage,
-        this.shared.validationService,
-        repositories.users
-      );
-    }
-    return this.importStorageHandler;
   }
 
   getUpdateResourceLabelHandler(): UpdateResourceLabelCommandHandler {
@@ -250,18 +234,6 @@ export class StorageModule {
       );
     }
     return this.addBoxesHandler;
-  }
-
-  getUpdateBoxHandler(): UpdateBoxCommandHandler {
-    if (!this.updateBoxHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateBoxHandler = new UpdateBoxCommandHandler(
-        repositories.storage,
-        repositories.users,
-        this.shared.eventBus
-      );
-    }
-    return this.updateBoxHandler;
   }
 
   getUpdateBoxGridHandler(): UpdateBoxGridCommandHandler {
@@ -451,7 +423,6 @@ export class StorageModule {
         checkStorageHealthHandler: this.getCheckStorageHealthHandler(),
         updateSystemStorageHandler: this.getUpdateSystemStorageHandler(),
         resetStorageHandler: this.getResetStorageToDefaultHandler(),
-        importStorageHandler: this.getImportStorageHandler(),
         updateResourceLabelHandler: this.getUpdateResourceLabelHandler(),
         addTankHandler: this.getAddTankHandler(),
         updateTankHandler: this.getUpdateTankHandler(),
@@ -462,7 +433,6 @@ export class StorageModule {
         deleteRackHandler: this.getDeleteRackHandler(),
         assignRackHandler: this.getAssignRackHandler(),
         addBoxesHandler: this.getAddBoxesHandler(),
-        updateBoxHandler: this.getUpdateBoxHandler(),
         updateBoxGridHandler: this.getUpdateBoxGridHandler(),
         deleteBoxHandler: this.getDeleteBoxHandler(),
         assignBoxHandler: this.getAssignBoxHandler(),
