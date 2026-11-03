@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { GRID_TEMPLATES } from '../constants/gridTemplates';
+import { GRID_SIZES } from '../constants/gridSizes';
 import { VALIDATION_LIMITS } from '../constants/validationLimits';
 import { patchText } from '../utils/stringFields';
 import { positionDisplayConfigSchema } from './positionSchemas';
@@ -51,7 +51,7 @@ export const updateBoxGridRequestSchema = z
     rackId: z.string().min(1).optional(),
     boxId: z.string().min(1).optional(),
     gridConfig: GridConfigurationSchema.refine(
-      grid => GRID_TEMPLATES.some(t => t.rows === grid.rows && t.cols === grid.cols),
+      grid => GRID_SIZES.some(size => size.rows === grid.rows && size.cols === grid.cols),
       'Choose one of the standard box grid sizes'
     ),
   })

@@ -1,10 +1,12 @@
-import { DEFAULT_GRID_CONFIG, GRID_TEMPLATES } from '@odysseus/shared-schemas';
+import { DEFAULT_GRID_CONFIG, GRID_SIZES } from '@odysseus/shared-schemas';
 import { Save } from 'lucide-react';
 
+import { useTubesByLocation } from '@domains/tubes';
 import { useEditModalForm } from '@shared/hooks';
 import { AlertBanner, Button, Select } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
+import { positionToCoordinates } from '@shared/utils/gridCoordinates';
 
 import type { BoxGridScope } from '../StorageManagerContext';
 import type { BoxConfiguration, GridConfiguration } from '@odysseus/shared-schemas';
@@ -18,57 +20,99 @@ interface BoxGridModalProps {
   onClose: () => void;
 }
 
-const GRID_OPTIONS = GRID_TEMPLATES.map(template => ({
-  value: `${template.rows}x${template.cols}`,
-  label: `${template.rows}×${template.cols} Grid (${(template.rows * template.cols).toLocaleString()} positions)`,
+const GRID_OPTIONS = GRID_SIZES.map(size => ({
+  value: `${size.rows}x${size.cols}`,
+  label: `${size.rows}×${size.cols} Grid (${(size.rows * size.cols).toLocaleString()} positions)`,
 }));
 
-function findGridTemplate(rows: number, cols: number): GridConfiguration | undefined {
-  return GRID_TEMPLATES.find(template => template.rows === rows && template.cols === cols);
+function findGridSize(rows: number, cols: number): GridConfiguration | undefined {
+  return GRID_SIZES.find(size => size.rows === rows && size.cols === cols);
 }
 
-function describeGridChange(
-  isSingleBox: boolean,
+interface GridChangePreview {
+  banner?: { variant: 'info' | 'warning'; message: string };
+  canSave: boolean;
+}
+
+function countLabel(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function usesGrid(box: BoxConfiguration, grid: GridConfiguration): boolean {
+  return box.gridConfig.rows === grid.rows && box.gridConfig.cols === grid.cols;
+}
+
+function previewSingleBox(
+  box: BoxConfiguration,
+  filled: number,
+  grid: GridConfiguration,
+  tubePositions: number[] | undefined
+): GridChangePreview {
+  const gridLabel = `${grid.rows}×${grid.cols}`;
+  if (usesGrid(box, grid)) {
+    return {
+      banner: { variant: 'info', message: `This box already uses ${gridLabel}.` },
+      canSave: false,
+    };
+  }
+  if (filled === 0) return { canSave: true };
+  if (!tubePositions) return { canSave: false };
+
+  const outside = tubePositions.filter(position => {
+    const { row, col } = positionToCoordinates(position, box.gridConfig.cols);
+    return row >= grid.rows || col >= grid.cols;
+  }).length;
+  if (outside > 0) {
+    return {
+      banner: {
+        variant: 'warning',
+        message: `${countLabel(outside, 'tube sits', 'tubes sit')} in rows or columns a ${gridLabel} grid would remove. Move ${outside === 1 ? 'it' : 'them'} first.`,
+      },
+      canSave: false,
+    };
+  }
+  return {
+    banner: {
+      variant: 'info',
+      message: `${countLabel(filled, 'tube keeps its', 'tubes keep their')} row and column.`,
+    },
+    canSave: true,
+  };
+}
+
+function previewBoxes(
   boxes: BoxGridModalProps['boxes'],
   grid: GridConfiguration
-): { variant: 'info' | 'warning'; message: string } | undefined {
+): GridChangePreview {
   const gridLabel = `${grid.rows}×${grid.cols}`;
-  const changing = boxes.filter(
-    ({ box }) => box.gridConfig.rows !== grid.rows || box.gridConfig.cols !== grid.cols
-  );
-  const occupiedCount = changing.filter(({ filled }) => filled > 0).length;
-  const emptyCount = changing.length - occupiedCount;
-
-  if (isSingleBox) {
-    const filled = boxes[0]?.filled ?? 0;
-    if (filled > 0) {
-      return {
-        variant: 'warning',
-        message: `This box holds ${filled} ${filled === 1 ? 'tube' : 'tubes'}. Empty it before changing its grid.`,
-      };
-    }
-    return changing.length === 0
-      ? { variant: 'info', message: `This box already uses ${gridLabel}.` }
-      : undefined;
-  }
-
+  const changing = boxes.filter(({ box }) => !usesGrid(box, grid));
   if (changing.length === 0) {
-    return { variant: 'info', message: `All ${boxes.length} boxes already use ${gridLabel}.` };
-  }
-  if (emptyCount === 0) {
     return {
-      variant: 'warning',
-      message: 'Every box that would change holds tubes, so none can change.',
+      banner: { variant: 'info', message: `All ${boxes.length} boxes already use ${gridLabel}.` },
+      canSave: false,
     };
   }
 
-  const willChange = `${emptyCount} empty ${emptyCount === 1 ? 'box' : 'boxes'} will change to ${gridLabel}.`;
-  if (occupiedCount === 0) {
-    return { variant: 'info', message: willChange };
+  const occupied = changing.filter(({ filled }) => filled > 0);
+  const shrinking = occupied.filter(
+    ({ box }) => grid.rows < box.gridConfig.rows || grid.cols < box.gridConfig.cols
+  );
+  const keptTubes = occupied
+    .filter(entry => !shrinking.includes(entry))
+    .reduce((total, { filled }) => total + filled, 0);
+
+  const parts = [`${countLabel(changing.length, 'box', 'boxes')} will change to ${gridLabel}.`];
+  if (keptTubes > 0) {
+    parts.push(`${countLabel(keptTubes, 'tube keeps its', 'tubes keep their')} row and column.`);
+  }
+  if (shrinking.length > 0) {
+    parts.push(
+      `${countLabel(shrinking.length, 'box has', 'boxes have')} tubes and will be skipped if any sit outside ${gridLabel}.`
+    );
   }
   return {
-    variant: 'warning',
-    message: `${willChange} ${occupiedCount} holding tubes will keep their current grid.`,
+    banner: { variant: shrinking.length > 0 ? 'warning' : 'info', message: parts.join(' ') },
+    canSave: true,
   };
 }
 
@@ -83,7 +127,7 @@ export function BoxGridModal({
   const isSingleBox = scope.boxId !== undefined;
   const firstGrid = boxes[0]?.box.gridConfig;
   const initialGrid =
-    (firstGrid && findGridTemplate(firstGrid.rows, firstGrid.cols)) ?? DEFAULT_GRID_CONFIG;
+    (firstGrid && findGridSize(firstGrid.rows, firstGrid.cols)) ?? DEFAULT_GRID_CONFIG;
 
   const {
     formData: selectedGrid,
@@ -91,19 +135,27 @@ export function BoxGridModal({
     createSubmitHandler,
   } = useEditModalForm(isOpen, initialGrid);
 
-  const isOccupiedSingleBox = isSingleBox && (boxes[0]?.filled ?? 0) > 0;
-  const canSave = boxes.some(
-    ({ box, filled }) =>
-      filled === 0 &&
-      (box.gridConfig.rows !== selectedGrid.rows || box.gridConfig.cols !== selectedGrid.cols)
+  const singleBox = isSingleBox ? boxes[0] : undefined;
+  const { data: singleBoxTubes } = useTubesByLocation(
+    scope.tankId,
+    scope.rackId ?? '',
+    scope.boxId ?? '',
+    { enabled: isOpen && !!singleBox && singleBox.filled > 0 }
   );
-  const preview = describeGridChange(isSingleBox, boxes, selectedGrid);
+  const { banner, canSave } = singleBox
+    ? previewSingleBox(
+        singleBox.box,
+        singleBox.filled,
+        selectedGrid,
+        singleBoxTubes?.map(tube => tube.location.position)
+      )
+    : previewBoxes(boxes, selectedGrid);
 
   const handleGridChange = (value: string | number | (string | number)[] | null) => {
     if (typeof value !== 'string') return;
     const [rows, cols] = value.split('x').map(Number);
-    const template = findGridTemplate(rows, cols);
-    if (template) setSelectedGrid(template);
+    const size = findGridSize(rows, cols);
+    if (size) setSelectedGrid(size);
   };
 
   const handleSubmit = createSubmitHandler(() => {
@@ -145,13 +197,12 @@ export function BoxGridModal({
           options={GRID_OPTIONS}
           value={`${selectedGrid.rows}x${selectedGrid.cols}`}
           onChange={handleGridChange}
-          disabled={isOccupiedSingleBox}
           aria-label="Select box grid size"
           fullWidth
         />
-        {preview && (
-          <AlertBanner variant={preview.variant} spacing="none" className="text-body-sm">
-            {preview.message}
+        {banner && (
+          <AlertBanner variant={banner.variant} spacing="none" className="text-body-sm">
+            {banner.message}
           </AlertBanner>
         )}
       </form>

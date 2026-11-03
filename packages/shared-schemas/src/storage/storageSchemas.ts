@@ -160,7 +160,8 @@ export const bulkOperationResponseSchema = z.object({
 
 export const boxGridUpdateResponseSchema = z.object({
   boxesUpdated: z.number(),
-  occupiedSkipped: z.number(),
+  tubesRenumbered: z.number(),
+  blockedSkipped: z.number(),
   protectedSkipped: z.number(),
 });
 

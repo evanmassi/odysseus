@@ -36,12 +36,12 @@ export interface StorageRepository {
     changedBy: string
   ): Promise<{ tankName: string; rackName: string; boxName: string }>;
 
-  resizeEmptyBoxes(
+  resizeBoxes(
     labId: string,
     boxes: BoxReference[],
     gridConfig: GridConfiguration,
     changedBy: string
-  ): Promise<BoxReference[]>;
+  ): Promise<BoxResizeOutcome>;
 
   isLocationValid(labId: string, location: TubeLocation): Promise<boolean>;
   tankExists(labId: string, tankId: string): Promise<boolean>;
@@ -69,4 +69,9 @@ export interface BoxReference {
   tankId: string;
   rackId: string;
   boxId: string;
+}
+
+export interface BoxResizeOutcome {
+  resized: BoxReference[];
+  tubesRenumbered: number;
 }

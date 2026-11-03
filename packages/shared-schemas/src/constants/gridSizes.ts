@@ -1,6 +1,6 @@
 import type { GridConfiguration } from '../storage/storageSchemas';
 
-export const GRID_TEMPLATES: readonly GridConfiguration[] = [
+export const GRID_SIZES: readonly GridConfiguration[] = [
   { rows: 5, cols: 5 },
   { rows: 6, cols: 6 },
   { rows: 7, cols: 7 },

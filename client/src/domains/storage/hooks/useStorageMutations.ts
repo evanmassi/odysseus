@@ -52,11 +52,13 @@ function notifyBulkAssignmentResult(
 }
 
 function notifyBoxGridResult(result: BoxGridUpdateResponse, { rows, cols }: GridConfiguration) {
-  const { boxesUpdated, occupiedSkipped, protectedSkipped } = result;
+  const { boxesUpdated, tubesRenumbered, blockedSkipped, protectedSkipped } = result;
   const grid = `${rows}×${cols}`;
   const notes: string[] = [];
-  if (occupiedSkipped > 0) {
-    notes.push(`${occupiedSkipped} holding tubes kept their grid`);
+  if (blockedSkipped > 0) {
+    notes.push(
+      `${blockedSkipped} ${blockedSkipped === 1 ? 'box' : 'boxes'} with tubes outside ${grid} ${blockedSkipped === 1 ? 'was' : 'were'} skipped`
+    );
   }
   if (protectedSkipped > 0) {
     notes.push(
@@ -73,7 +75,11 @@ function notifyBoxGridResult(result: BoxGridUpdateResponse, { rows, cols }: Grid
     return;
   }
 
-  const summary = `Changed ${boxesUpdated} ${boxesUpdated === 1 ? 'box' : 'boxes'} to ${grid}`;
+  const renumbered =
+    tubesRenumbered > 0
+      ? ` · ${tubesRenumbered} ${tubesRenumbered === 1 ? 'tube kept its' : 'tubes kept their'} row and column`
+      : '';
+  const summary = `Changed ${boxesUpdated} ${boxesUpdated === 1 ? 'box' : 'boxes'} to ${grid}${renumbered}`;
   if (notes.length > 0) {
     notifications.warning(`${summary}. ${notes.join(', ')}`);
   } else {
@@ -262,6 +268,7 @@ export const useUpdateBoxGridMutation = () => {
 
     onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
       notifyBoxGridResult(data, variables.gridConfig);
     },
 

@@ -343,6 +343,13 @@ export class Box {
     return Number.isInteger(position) && position >= 1 && position <= this._maxPositions;
   }
 
+  remapPosition(position: number, toGrid: { rows: number; cols: number }): number | undefined {
+    const row = Math.floor((position - 1) / this._gridConfig.cols);
+    const col = (position - 1) % this._gridConfig.cols;
+    if (row >= toGrid.rows || col >= toGrid.cols) return undefined;
+    return row * toGrid.cols + col + 1;
+  }
+
   formatPosition(position: number): string {
     const config =
       this._positionDisplay ??

@@ -6,10 +6,11 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type {
   BoxReference,
+  BoxResizeOutcome,
   StorageRepository as IStorageRepository,
   StorageHistory,
 } from '@domain/repositories/StorageRepository';
-import type { Box } from '@domain/value-objects/Equipment';
+import { Box } from '@domain/value-objects/Equipment';
 import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
@@ -21,6 +22,7 @@ import type { PoolClient } from 'pg';
 type ConfigurationJson = Parameters<typeof Storage.fromData>[0];
 
 const MAX_SERIALIZATION_RETRIES = 3;
+const MAX_NAMED_CELLS = 6;
 
 function boxKey(tankId: string, rackId: string, boxId: string): string {
   return `${tankId}/${rackId}/${boxId.toUpperCase()}`;
@@ -539,44 +541,92 @@ export class StorageRepository implements IStorageRepository {
     );
   }
 
-  async resizeEmptyBoxes(
+  async resizeBoxes(
     labId: string,
     boxes: BoxReference[],
     gridConfig: GridConfiguration,
     changedBy: string
-  ): Promise<BoxReference[]> {
+  ): Promise<BoxResizeOutcome> {
     const tankIds = [...new Set(boxes.map(b => b.tankId))];
 
     return this.mutateStorageSerializable(labId, changedBy, async (client, configData) => {
-      const occupiedRows = await client.query<{ tank_id: string; rack_id: string; box_id: string }>(
-        'SELECT DISTINCT tank_id, rack_id, box_id FROM tubes WHERE lab_id = $1 AND tank_id = ANY($2)',
+      const tubeRows = await client.query<{
+        id: string;
+        tank_id: string;
+        rack_id: string;
+        box_id: string;
+        position: number;
+      }>(
+        'SELECT id, tank_id, rack_id, box_id, position FROM tubes WHERE lab_id = $1 AND tank_id = ANY($2)',
         [labId, tankIds]
       );
-      const occupiedKeys = new Set(
-        occupiedRows.rows.map(row => boxKey(row.tank_id, row.rack_id, row.box_id))
-      );
-      const resized = boxes.filter(b => !occupiedKeys.has(boxKey(b.tankId, b.rackId, b.boxId)));
+      const tubesByBox = new Map<string, { id: string; position: number }[]>();
+      for (const row of tubeRows.rows) {
+        const key = boxKey(row.tank_id, row.rack_id, row.box_id);
+        tubesByBox.set(key, [...(tubesByBox.get(key) ?? []), row]);
+      }
+
+      const resized: BoxReference[] = [];
+      const blockedCells: string[][] = [];
+      const renumbered: { id: string; position: number }[] = [];
+
+      for (const ref of boxes) {
+        const { rack } = findRackData(configData, ref.tankId, ref.rackId);
+        const boxData = rack.boxes.find(b => b.name === ref.boxId.toUpperCase());
+        if (!boxData) throw new NotFoundError('That box could not be found in the selected rack.');
+
+        const box = Box.create(boxData);
+        const moves: { id: string; position: number }[] = [];
+        const outside: string[] = [];
+        for (const tube of tubesByBox.get(boxKey(ref.tankId, ref.rackId, ref.boxId)) ?? []) {
+          const position = box.remapPosition(tube.position, gridConfig);
+          if (position === undefined) outside.push(box.formatPosition(tube.position));
+          else if (position !== tube.position) moves.push({ id: tube.id, position });
+        }
+
+        if (outside.length > 0) {
+          blockedCells.push(outside);
+          continue;
+        }
+
+        boxData.gridConfig = gridConfig;
+        boxData.maxPositions = gridConfig.rows * gridConfig.cols;
+        boxData.positionDisplay = undefined;
+        renumbered.push(...moves);
+        resized.push(ref);
+      }
 
       if (resized.length === 0) {
+        const grid = `${gridConfig.rows}×${gridConfig.cols}`;
+        const cells = blockedCells[0];
+        const named = cells.slice(0, MAX_NAMED_CELLS).join(', ');
+        const more =
+          cells.length > MAX_NAMED_CELLS ? ` and ${cells.length - MAX_NAMED_CELLS} more` : '';
         throw new ValidationError(
           boxes.length === 1
-            ? `Box '${boxes[0].boxId}' holds tubes. Empty it before changing its grid.`
-            : `All ${boxes.length} boxes hold tubes. Empty a box before changing its grid.`
+            ? `Box '${boxes[0].boxId}' has tubes at ${named}${more}, outside a ${grid} grid. Move them first.`
+            : `All ${boxes.length} boxes have tubes outside a ${grid} grid. Move those tubes first.`
         );
       }
 
-      for (const ref of resized) {
-        const { rack } = findRackData(configData, ref.tankId, ref.rackId);
-        const box = rack.boxes.find(b => b.name === ref.boxId.toUpperCase());
-        if (!box) throw new NotFoundError('That box could not be found in the selected rack.');
-        box.gridConfig = gridConfig;
-        box.maxPositions = gridConfig.rows * gridConfig.cols;
-        box.positionDisplay = undefined;
+      if (renumbered.length > 0) {
+        const ids = renumbered.map(t => t.id);
+        // PITFALL: the location UNIQUE check runs per row, so park new positions as negatives first.
+        await client.query(
+          `UPDATE tubes AS t SET position = -v.position
+           FROM unnest($2::text[], $3::int[]) AS v(id, position)
+           WHERE t.lab_id = $1 AND t.id = v.id`,
+          [labId, ids, renumbered.map(t => t.position)]
+        );
+        await client.query(
+          'UPDATE tubes SET position = -position, version = version + 1 WHERE lab_id = $1 AND id = ANY($2)',
+          [labId, ids]
+        );
       }
 
       return {
-        description: `Changed ${resized.length} box grid(s) to ${gridConfig.rows}×${gridConfig.cols}`,
-        result: resized,
+        description: `Changed ${resized.length} box grid(s) to ${gridConfig.rows}×${gridConfig.cols}, renumbering ${renumbered.length} tube(s)`,
+        result: { resized, tubesRenumbered: renumbered.length },
       };
     });
   }

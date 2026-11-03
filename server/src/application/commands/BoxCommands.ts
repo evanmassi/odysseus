@@ -318,10 +318,10 @@ export class UpdateBoxGridCommandHandler {
     const protectedSkipped = needsChange.length - candidates.length;
 
     if (candidates.length === 0) {
-      return { boxesUpdated: 0, occupiedSkipped: 0, protectedSkipped };
+      return { boxesUpdated: 0, tubesRenumbered: 0, blockedSkipped: 0, protectedSkipped };
     }
 
-    const resized = await this.storageRepository.resizeEmptyBoxes(
+    const { resized, tubesRenumbered } = await this.storageRepository.resizeBoxes(
       command.labId,
       candidates.map(({ rack, box }) => ({ tankId: tank.id, rackId: rack.id, boxId: box.name })),
       command.gridConfig,
@@ -361,7 +361,8 @@ export class UpdateBoxGridCommandHandler {
 
     return {
       boxesUpdated: resized.length,
-      occupiedSkipped: candidates.length - resized.length,
+      tubesRenumbered,
+      blockedSkipped: candidates.length - resized.length,
       protectedSkipped,
     };
   }

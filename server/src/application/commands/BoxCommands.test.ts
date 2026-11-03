@@ -33,7 +33,12 @@ function box(name: string, overrides: Partial<TestBox> = {}): TestBox {
 
 function makeHandler(
   racks: TestRack[],
-  options: { isDemo?: boolean; isAdmin?: boolean; occupied?: string[] } = {}
+  options: {
+    isDemo?: boolean;
+    isAdmin?: boolean;
+    blocked?: string[];
+    tubesRenumbered?: number;
+  } = {}
 ) {
   const config = {
     tanks: [{ id: 'tank1', name: 'Tank 1', racks }],
@@ -47,13 +52,16 @@ function makeHandler(
     findByIdAnyLab: jest.fn().mockResolvedValue(actor),
   } as unknown as UserRepository;
 
-  const occupied = new Set(options.occupied ?? []);
-  const resizeEmptyBoxes = jest.fn((_labId: string, boxes: BoxReference[]) =>
-    Promise.resolve(boxes.filter(b => !occupied.has(`${b.rackId}/${b.boxId}`)))
+  const blocked = new Set(options.blocked ?? []);
+  const resizeBoxes = jest.fn((_labId: string, boxes: BoxReference[]) =>
+    Promise.resolve({
+      resized: boxes.filter(b => !blocked.has(`${b.rackId}/${b.boxId}`)),
+      tubesRenumbered: options.tubesRenumbered ?? 0,
+    })
   );
   const storageRepository = {
     getForLab: jest.fn().mockResolvedValue(config),
-    resizeEmptyBoxes,
+    resizeBoxes,
   } as unknown as StorageRepository;
 
   const publish = jest.fn();
@@ -61,7 +69,7 @@ function makeHandler(
 
   return {
     handler: new UpdateBoxGridCommandHandler(storageRepository, userRepository, eventBus),
-    resizeEmptyBoxes,
+    resizeBoxes,
     publish,
   };
 }
@@ -71,15 +79,20 @@ const command = { userId: 'admin', labId: 'lab1', tankId: 'tank1', gridConfig: T
 describe('UpdateBoxGridCommandHandler', () => {
   describe('scope', () => {
     it('resizes every box in the tank that is not already at the target grid', async () => {
-      const { handler, resizeEmptyBoxes } = makeHandler([
+      const { handler, resizeBoxes } = makeHandler([
         { id: 'r1', name: 'Rack 1', boxes: [box('A'), box('B', { gridConfig: TEN })] },
         { id: 'r2', name: 'Rack 2', boxes: [box('A')] },
       ]);
 
       const result = await handler.handle(command);
 
-      expect(result).toEqual({ boxesUpdated: 2, occupiedSkipped: 0, protectedSkipped: 0 });
-      expect(resizeEmptyBoxes).toHaveBeenCalledWith(
+      expect(result).toEqual({
+        boxesUpdated: 2,
+        tubesRenumbered: 0,
+        blockedSkipped: 0,
+        protectedSkipped: 0,
+      });
+      expect(resizeBoxes).toHaveBeenCalledWith(
         'lab1',
         [
           { tankId: 'tank1', rackId: 'r1', boxId: 'A' },
@@ -91,7 +104,7 @@ describe('UpdateBoxGridCommandHandler', () => {
     });
 
     it('limits the change to one rack', async () => {
-      const { handler, resizeEmptyBoxes } = makeHandler([
+      const { handler, resizeBoxes } = makeHandler([
         { id: 'r1', name: 'Rack 1', boxes: [box('A')] },
         { id: 'r2', name: 'Rack 2', boxes: [box('A'), box('B')] },
       ]);
@@ -99,19 +112,17 @@ describe('UpdateBoxGridCommandHandler', () => {
       const result = await handler.handle({ ...command, rackId: 'r2' });
 
       expect(result.boxesUpdated).toBe(2);
-      expect(resizeEmptyBoxes.mock.calls[0][1].map(b => b.rackId)).toEqual(['r2', 'r2']);
+      expect(resizeBoxes.mock.calls[0][1].map(b => b.rackId)).toEqual(['r2', 'r2']);
     });
 
     it('limits the change to one box, matching its name case-insensitively', async () => {
-      const { handler, resizeEmptyBoxes } = makeHandler([
+      const { handler, resizeBoxes } = makeHandler([
         { id: 'r1', name: 'Rack 1', boxes: [box('A'), box('B')] },
       ]);
 
       await handler.handle({ ...command, rackId: 'r1', boxId: 'b' });
 
-      expect(resizeEmptyBoxes.mock.calls[0][1]).toEqual([
-        { tankId: 'tank1', rackId: 'r1', boxId: 'B' },
-      ]);
+      expect(resizeBoxes.mock.calls[0][1]).toEqual([{ tankId: 'tank1', rackId: 'r1', boxId: 'B' }]);
     });
 
     it('rejects a rack or box that does not exist', async () => {
@@ -127,15 +138,20 @@ describe('UpdateBoxGridCommandHandler', () => {
   });
 
   describe('skipped boxes', () => {
-    it('counts boxes the repository left alone because they hold tubes', async () => {
+    it('reports renumbered tubes and boxes blocked by tubes outside the new grid', async () => {
       const { handler, publish } = makeHandler(
         [{ id: 'r1', name: 'Rack 1', boxes: [box('A'), box('B'), box('C')] }],
-        { occupied: ['r1/B'] }
+        { blocked: ['r1/B'], tubesRenumbered: 40 }
       );
 
       const result = await handler.handle(command);
 
-      expect(result).toEqual({ boxesUpdated: 2, occupiedSkipped: 1, protectedSkipped: 0 });
+      expect(result).toEqual({
+        boxesUpdated: 2,
+        tubesRenumbered: 40,
+        blockedSkipped: 1,
+        protectedSkipped: 0,
+      });
       const published = publish.mock.calls.map(([event]: [BoxUpdatedEvent]) => event.boxId);
       expect(published).toEqual(['A', 'C']);
     });
@@ -146,7 +162,8 @@ describe('UpdateBoxGridCommandHandler', () => {
       const demo = makeHandler(racks, { isDemo: true });
       expect(await demo.handler.handle(command)).toEqual({
         boxesUpdated: 1,
-        occupiedSkipped: 0,
+        tubesRenumbered: 0,
+        blockedSkipped: 0,
         protectedSkipped: 1,
       });
 
@@ -155,14 +172,19 @@ describe('UpdateBoxGridCommandHandler', () => {
     });
 
     it('does nothing when every box already uses the target grid', async () => {
-      const { handler, resizeEmptyBoxes, publish } = makeHandler([
+      const { handler, resizeBoxes, publish } = makeHandler([
         { id: 'r1', name: 'Rack 1', boxes: [box('A', { gridConfig: TEN })] },
       ]);
 
       const result = await handler.handle(command);
 
-      expect(result).toEqual({ boxesUpdated: 0, occupiedSkipped: 0, protectedSkipped: 0 });
-      expect(resizeEmptyBoxes).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        boxesUpdated: 0,
+        tubesRenumbered: 0,
+        blockedSkipped: 0,
+        protectedSkipped: 0,
+      });
+      expect(resizeBoxes).not.toHaveBeenCalled();
       expect(publish).not.toHaveBeenCalled();
     });
   });

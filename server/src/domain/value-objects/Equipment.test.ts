@@ -1,7 +1,3 @@
-/**
- * Equipment Value Object Tests
- */
-
 import { Tank, Rack, Box, EquipmentConfiguration } from './Equipment';
 
 describe('Tank', () => {
@@ -211,6 +207,34 @@ describe('Box', () => {
     it('should reject non-integer', () => {
       const box = Box.create({ name: 'A' });
       expect(box.canAccommodatePosition(1.5)).toBe(false);
+    });
+  });
+
+  describe('remapPosition', () => {
+    const nineByNine = () => Box.create({ name: 'A', gridConfig: { rows: 9, cols: 9 } });
+
+    it('keeps a tube in the same row and column when the grid grows', () => {
+      expect(nineByNine().remapPosition(10, { rows: 10, cols: 10 })).toBe(11);
+      expect(nineByNine().remapPosition(81, { rows: 10, cols: 10 })).toBe(89);
+    });
+
+    it('leaves first-row positions unchanged', () => {
+      expect(nineByNine().remapPosition(9, { rows: 10, cols: 10 })).toBe(9);
+    });
+
+    it('renumbers into a smaller grid when the row and column still exist', () => {
+      expect(nineByNine().remapPosition(10, { rows: 8, cols: 8 })).toBe(9);
+    });
+
+    it('returns undefined for a tube in a row or column the new grid drops', () => {
+      expect(nineByNine().remapPosition(9, { rows: 8, cols: 8 })).toBeUndefined();
+      expect(nineByNine().remapPosition(73, { rows: 8, cols: 8 })).toBeUndefined();
+    });
+
+    it('handles non-square grids', () => {
+      const wide = Box.create({ name: 'A', gridConfig: { rows: 8, cols: 12 } });
+      expect(wide.remapPosition(13, { rows: 12, cols: 8 })).toBe(9);
+      expect(wide.remapPosition(9, { rows: 12, cols: 8 })).toBeUndefined();
     });
   });
 
