@@ -1,11 +1,3 @@
-/**
- * Attribute Delete Guard
- *
- * Every catalog's value table cascades from both the definition and the option, so an unguarded
- * delete would silently strip a field from every item that recorded a value. These are the guards
- * that stop it, plus the rule that seeded system attributes are undeletable.
- */
-
 import { AttributeApplicationService } from '@application/services/AttributeApplicationService';
 import { AttributeDefinition } from '@domain/entities/AttributeDefinition';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -32,7 +24,7 @@ describe('attribute delete guard', () => {
     context = await setupTestDatabase();
     seed = createSeed(context);
     repo = new AttributeRepository(context);
-    const tubes = new TubeRepository(context, new StorageRepository(context));
+    const tubes = new TubeRepository(context);
     service = new AttributeApplicationService(
       repo,
       new AccessControlService(tubes),
@@ -115,8 +107,7 @@ describe('attribute delete guard', () => {
     expect(await repo.findOptionById(option.id, lab.id)).toBeNull();
   });
 
-  // Definitions are lab-wide but each catalog stores its values in its own table, so a count that
-  // only looked at reagents would clear the guard and let the cascade wipe the other two.
+  // PITFALL: definitions are lab-wide but each catalog keeps its own value table, so the usage count must cover all three.
   it.each([
     ['a supply', 'supply', 'supply_attribute_values'],
     ['an equipment', 'equipment', 'equipment_attribute_values'],

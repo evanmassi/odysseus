@@ -1,10 +1,4 @@
-/**
- * Audit Log Formatters
- *
- * Formats audit log entry details into concise human-readable summaries for the audit table.
- */
-
-import type { AuditLogEntry } from '@odysseus/shared-schemas';
+import { usernameReassignmentsSchema, type AuditLogEntry } from '@odysseus/shared-schemas';
 
 interface AuditChangeRecord {
   field: string;
@@ -145,7 +139,7 @@ export function getRoleLabel(role: string): string {
   return ROLE_LABELS[role] ?? role;
 }
 
-// Converts legacy " / " separators to " · "
+// PITFALL: legacy rows stored " / " between location parts; newer rows use " · ".
 function normalizeLocation(location: string): string {
   return location.split(' / ').join(' · ');
 }
@@ -190,7 +184,7 @@ function formatUserList(users: unknown[]): { text: string; full?: string } {
   };
 }
 
-/** Older rows predate the item name being recorded, so the quantity still has to stand alone. */
+// PITFALL: older rows predate the item name being recorded, so the quantity has to stand alone.
 function stockMovement(action: string, details: Record<string, unknown>, name: string): string {
   const quantity = getNumberProperty(details, 'quantity');
   const movement = `${STOCK_MOVEMENT_VERBS[action]} ${Math.abs(quantity)}`;
@@ -199,7 +193,6 @@ function stockMovement(action: string, details: Record<string, unknown>, name: s
 
 interface AuditDetailFormatted {
   text: string;
-  /** Only set when content was truncated */
   fullText?: string;
 }
 
@@ -228,8 +221,6 @@ const BULK_SUPPLY_VERBS: Record<string, string> = {
   supply_bulk_category_reassigned: 'Recategorized',
 };
 
-/** Appends a bulk operation's location scope and cell coordinates to its summary line,
-    previewing the first few positions inline with the full list in the tooltip. */
 function formatBulkScope(
   summary: string,
   scope: string,
@@ -255,8 +246,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     const details = parseAuditDetailsJson(entry.details);
     const action = entry.action;
     const entityType = entry.entityType;
-
-    // ── TUBE EVENTS ──
 
     if (entityType === 'tube') {
       if (action === 'tube_bulk_created') {
@@ -388,12 +377,9 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         return plain(location ? `${location}${infoSuffix}` : '-');
       }
 
-      // Fallback for any other tube action
       const location = getLocation(details);
       return plain(location || '-');
     }
-
-    // ── TANK EVENTS ──
 
     if (entityType === 'tank') {
       const tankName =
@@ -420,8 +406,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
       return plain(tankName);
     }
-
-    // ── RACK EVENTS ──
 
     if (entityType === 'rack') {
       const tankName =
@@ -482,8 +466,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
       return plain(path);
     }
-
-    // ── BOX EVENTS ──
 
     if (entityType === 'box') {
       const tankName =
@@ -552,8 +534,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       return plain(path);
     }
 
-    // ── LAB EVENTS ──
-
     if (entityType === 'lab') {
       if (action === 'lab_created') {
         return plain(getStringProperty(details, 'labName') || '-');
@@ -567,7 +547,15 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
       if (action === 'lab_activated') {
         const labName = getStringProperty(details, 'labName');
-        return plain(labName ? `${labName} activated` : 'Lab activated');
+        const activated = labName ? `${labName} activated` : 'Lab activated';
+        const reassignments = usernameReassignmentsSchema.safeParse(
+          details['usernameReassignments']
+        );
+        if (!reassignments.success || reassignments.data.length === 0) {
+          return plain(activated);
+        }
+        const renamed = reassignments.data.map(({ from, to }) => `${from} → ${to}`).join(', ');
+        return plain(`${activated} · usernames reassigned: ${renamed}`);
       }
       if (action === 'lab_deactivated') {
         const labName = getStringProperty(details, 'labName');
@@ -580,8 +568,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
       return plain(newName || '-');
     }
-
-    // ── RESEARCHER EVENTS ──
 
     if (entityType === 'researcher') {
       const researcherName = getStringProperty(details, 'researcherName') || '-';
@@ -624,8 +610,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       return plain(researcherName);
     }
 
-    // ── DONOR EVENTS ──
-
     if (entityType === 'donor') {
       const sourceId = getStringProperty(details, 'donorSourceId');
       const internalId = getStringProperty(details, 'donorInternalId');
@@ -664,8 +648,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
       return plain(donorLabel);
     }
-
-    // ── USER EVENTS ──
 
     if (entityType === 'user') {
       const username = getStringProperty(details, 'username') || '-';
@@ -721,8 +703,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       return plain(username);
     }
 
-    // ── BULK CONFIGURATION EVENTS ──
-
     if (entityType === 'configuration') {
       const fromUser = details['fromUser'] as { username?: string } | null;
       const toUser = details['toUser'] as { username?: string } | null;
@@ -740,8 +720,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
       return plain(resourceSummary);
     }
-
-    // ── EQUIPMENT EVENTS ──
 
     if (entityType === 'equipment_item') {
       const name = getStringProperty(details, 'name');
@@ -847,8 +825,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       return plain(name ? name : '-');
     }
 
-    // ── SUPPLY EVENTS ──
-
     if (entityType === 'supply_item') {
       const name = getStringProperty(details, 'name');
 
@@ -928,8 +904,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
       return plain(name ? name : '-');
     }
-
-    // ── REAGENT EVENTS ──
 
     if (entityType === 'reagent_item') {
       const name = getStringProperty(details, 'name');

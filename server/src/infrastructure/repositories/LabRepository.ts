@@ -1,9 +1,3 @@
-/**
- * Lab Repository
- *
- * Data access for lab tenants with upsert support.
- */
-
 import type { Lab } from '@domain/entities/Lab';
 import type { LabRepository as ILabRepository } from '@domain/repositories/LabRepository';
 import type { LabRow } from '@infrastructure/database/mappers/LabMapper';
@@ -40,16 +34,23 @@ export class LabRepository implements ILabRepository {
 
   async save(lab: Lab): Promise<void> {
     const row = LabMapper.toRow(lab);
+    // PITFALL: users.lab_is_active mirrors labs.is_active so the username unique index can see it; write is_active only here.
     await this.context.execute(
-      `INSERT INTO labs (id, name, slug, is_active, is_demo, created_at, updated_at, demo_limits)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       ON CONFLICT (id) DO UPDATE SET
-         name = EXCLUDED.name,
-         slug = EXCLUDED.slug,
-         is_active = EXCLUDED.is_active,
-         is_demo = EXCLUDED.is_demo,
-         updated_at = EXCLUDED.updated_at,
-         demo_limits = EXCLUDED.demo_limits`,
+      `WITH saved AS (
+         INSERT INTO labs (id, name, slug, is_active, is_demo, created_at, updated_at, demo_limits)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (id) DO UPDATE SET
+           name = EXCLUDED.name,
+           slug = EXCLUDED.slug,
+           is_active = EXCLUDED.is_active,
+           is_demo = EXCLUDED.is_demo,
+           updated_at = EXCLUDED.updated_at,
+           demo_limits = EXCLUDED.demo_limits
+         RETURNING id, is_active
+       )
+       UPDATE users SET lab_is_active = saved.is_active
+       FROM saved
+       WHERE users.lab_id = saved.id AND users.lab_is_active <> saved.is_active`,
       [
         row.id,
         row.name,

@@ -1,9 +1,3 @@
-/**
- * User Account and Authentication
- *
- * Aggregate root for user identity, credentials, roles, and approval workflow.
- */
-
 import * as crypto from 'crypto';
 
 import {
@@ -59,7 +53,7 @@ export class User {
   private _settings: UserSettings;
 
   private readonly _id: string;
-  private readonly _username: string;
+  private _username: string;
   private readonly _apiKey: string;
   private _role: UserRole;
   private readonly _createdAt: Date;
@@ -240,7 +234,6 @@ export class User {
       parsedSettings = DEFAULT_USER_SETTINGS;
     }
 
-    // Normalize legacy 'admin' role to 'lab_admin'
     const normalizedRole = data.role === 'admin' ? 'lab_admin' : data.role;
 
     const user = new User({
@@ -284,22 +277,22 @@ export class User {
   }
 
   private validate(): void {
-    this.validateUsername();
+    User.validateUsername(this._username);
     this.validateApiKey();
     this.validateTimestamps();
   }
 
-  private validateUsername(): void {
-    if (!this._username || this._username.trim().length === 0) {
+  private static validateUsername(username: string): void {
+    if (!username || username.trim().length === 0) {
       throw new ValidationError('Username is required');
     }
 
-    if (this._username.length > 100) {
+    if (username.length > 100) {
       throw new ValidationError('Username cannot exceed 100 characters');
     }
 
     const usernamePattern = /^[a-zA-Z0-9_\-.@]+$/;
-    if (!usernamePattern.test(this._username)) {
+    if (!usernamePattern.test(username)) {
       throw new ValidationError(
         'Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols'
       );
@@ -330,7 +323,6 @@ export class User {
     this._lastActivity = new Date();
   }
 
-  /** Stores a pre-computed hash from PasswordService. Clears legacy salt. */
   setPasswordHash(hash: string): void {
     this._passwordHash = hash;
     this._salt = undefined;
@@ -368,17 +360,14 @@ export class User {
       return false;
     }
 
-    // System admin can manage anyone
     if (this.isSystemAdmin()) {
       return true;
     }
 
-    // Lab admin can only manage users in their own lab
     if (this._labId !== other._labId) {
       return false;
     }
 
-    // Lab admin cannot manage system admins
     if (other.isSystemAdmin()) {
       return false;
     }
@@ -386,7 +375,6 @@ export class User {
     return true;
   }
 
-  /** @throws PermissionError if this user cannot manage the target user */
   requireCanManage(other: User): void {
     if (!this.canManage(other)) {
       throw new PermissionError('Cannot manage user', {
@@ -405,7 +393,6 @@ export class User {
     return this._role.isLabAdmin();
   }
 
-  /** Returns true for both system_admin and lab_admin */
   isAdmin(): boolean {
     return this._role.isAdmin();
   }
@@ -479,6 +466,11 @@ export class User {
     return this._researcherId != null;
   }
 
+  reassignUsername(username: string): void {
+    User.validateUsername(username);
+    this._username = username;
+  }
+
   toPublicData(): {
     id: string;
     username: string;
@@ -512,8 +504,6 @@ export class User {
     return this._id === other._id;
   }
 
-  // GETTERS
-
   get id(): string {
     return this._id;
   }
@@ -542,16 +532,12 @@ export class User {
     return this._status;
   }
 
-  // PASSWORD
-
   get passwordHash(): string | undefined {
     return this._passwordHash;
   }
   get salt(): string | undefined {
     return this._salt;
   }
-
-  // EMAIL VERIFICATION
 
   get emailVerified(): boolean {
     return this._emailVerified;
@@ -565,8 +551,6 @@ export class User {
   get lastVerificationEmailSent(): Date | undefined {
     return this._lastVerificationEmailSent ? new Date(this._lastVerificationEmailSent) : undefined;
   }
-
-  // PASSWORD RESET
 
   get passwordResetToken(): string | undefined {
     return this._passwordResetToken;
@@ -595,14 +579,12 @@ export class User {
     return this._role.value;
   }
 
-  /** @returns Unhashed token for the email — only time it's visible */
   generateVerificationToken(): string {
     const token = crypto.randomBytes(32).toString('hex');
 
     const salt = crypto.randomBytes(16).toString('hex');
     const hashedToken = User.hashToken(token, salt);
 
-    // Store as salt:hash so verification can re-derive the hash
     this._emailVerificationToken = `${salt}:${hashedToken}`;
     this._emailVerificationExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
     this._lastVerificationEmailSent = new Date();
@@ -643,7 +625,6 @@ export class User {
     return this._emailVerified;
   }
 
-  /** Rate-limited: max 1 verification email per 5 minutes */
   canResendVerification(): boolean {
     if (!this._lastVerificationEmailSent) {
       return true;
@@ -665,7 +646,6 @@ export class User {
     this._passwordResetExpiry = undefined;
   }
 
-  /** 15-minute expiry. @returns Unhashed token for the reset URL — only time it's visible */
   generatePasswordResetToken(): string {
     const token = crypto.randomBytes(32).toString('hex');
 
@@ -678,7 +658,6 @@ export class User {
     return token;
   }
 
-  /** @throws ValidationError if token invalid or expired */
   resetPasswordWithToken(token: string, passwordHash: string): void {
     if (!this._passwordResetToken) {
       throw new ValidationError('No password reset token found');

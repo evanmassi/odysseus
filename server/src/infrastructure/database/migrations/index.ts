@@ -1,9 +1,3 @@
-/**
- * Migration Index
- *
- * Ordered array of all migrations. The runner executes them sequentially by ID.
- */
-
 import { migration001 } from './001_initial_schema';
 import { migration002 } from './002_rename_configuration_to_storage';
 import { migration003 } from './003_rename_vendor_to_source';
@@ -39,6 +33,7 @@ import { migration032 } from './032_supplies_onto_unit_registry';
 import { migration035 } from './035_retire_supply_item_property';
 import { migration036 } from './036_equipment_location_to_tree';
 import { migration037 } from './037_add_is_seeded_to_content';
+import { migration038 } from './038_usernames_unique_among_active_labs';
 
 import type { Migration } from './migrationRunner';
 
@@ -78,4 +73,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration035,
   migration036,
   migration037,
+  migration038,
 ];
