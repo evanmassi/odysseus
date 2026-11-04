@@ -1,9 +1,3 @@
-/**
- * User CQRS Commands
- *
- * Account lifecycle operations — registration, login, password changes, role changes, deletion.
- */
-
 import {
   verifyCurrentPassword,
   upgradePasswordHashIfNeeded,
@@ -37,8 +31,6 @@ import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
-
-// COMMAND INTERFACES
 
 export interface CreateSystemAdminCommand {
   username: string;
@@ -75,8 +67,6 @@ export interface UpdateUserSettingsCommand {
   settings: UserSettings;
 }
 
-// COMMAND HANDLERS
-
 export class CreateSystemAdminCommandHandler {
   constructor(
     private userRepository: UserRepository,
@@ -94,8 +84,7 @@ export class CreateSystemAdminCommandHandler {
       throw new ValidationError('System admin already exists');
     }
 
-    // Fail closed where a setup key is mandatory (production) but none is configured, so the
-    // first-admin endpoint can never be created without one.
+    // PITFALL: fails closed when a setup key is mandatory but unconfigured, so the first-admin endpoint never opens without one.
     if (this.requireSetupKey && !this.setupKey) {
       throw new ValidationError('System admin setup key is not configured');
     }
@@ -106,7 +95,7 @@ export class CreateSystemAdminCommandHandler {
       }
     }
 
-    const existingUser = await this.userRepository.findByUsername(command.username);
+    const existingUser = await this.userRepository.findByUsernameInActiveLabs(command.username);
     if (existingUser) {
       throw new UserAlreadyExistsError(command.username);
     }
@@ -168,12 +157,10 @@ export class ChangeUserPasswordCommandHandler {
 
     user.setPasswordHash(newHash);
 
-    // Atomic: a new password that failed to revoke the old sessions leaves them alive — the
-    // opposite of what changing a password is for.
+    // PITFALL: one transaction, because a new password whose session revocation failed would leave the old sessions alive.
     await this.unitOfWork.withTransaction(async repos => {
       await repos.users.save(user);
 
-      // The session the change was made from survives; every other one is revoked.
       if (command.currentSessionId) {
         const activeSessions = await repos.userSessions.findActiveSessionsByUserId(user.id);
         const otherSessionIds = activeSessions
@@ -249,15 +236,14 @@ export class LoginCommandHandler {
   ) {}
 
   async handle(command: LoginCommand): Promise<LoginResult> {
-    let user = await this.userRepository.findByUsername(command.username);
+    let user = await this.userRepository.findByUsernameInActiveLabs(command.username);
 
     if (!user) {
       user = await this.userRepository.findByEmail(command.username);
     }
 
     if (!user || !user.hasPassword()) {
-      // Equalize response time with the valid-user path (which runs a bcrypt verify below) so
-      // login latency can't be used to enumerate which usernames/emails exist.
+      // PITFALL: hashing here matches the valid-user path's bcrypt cost, so login latency can't enumerate accounts.
       await this.passwordService.hash(command.password);
       throw new InvalidCredentialsError('Invalid username or password');
     }
@@ -271,7 +257,6 @@ export class LoginCommandHandler {
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
-    // Lazy migration: re-hash PBKDF2 passwords to bcrypt on successful login
     await upgradePasswordHashIfNeeded(
       user,
       command.password,
@@ -300,7 +285,6 @@ export class LoginCommandHandler {
       }
     }
 
-    // Admin approval bypasses email verification (admin manually vets users)
     if (!user.isEmailVerified() && user.status !== 'approved') {
       throw new InvalidCredentialsError(
         'Email not verified. Check your inbox for verification link.'
@@ -319,8 +303,6 @@ export class LoginCommandHandler {
     };
   }
 }
-
-// USER SETTINGS
 
 export class UpdateUserSettingsCommandHandler {
   constructor(private userRepository: UserRepository) {}

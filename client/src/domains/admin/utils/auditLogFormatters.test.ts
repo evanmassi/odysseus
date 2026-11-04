@@ -1,9 +1,3 @@
-/**
- * Audit Log Formatters Tests
- *
- * Covers all event types, truncation behavior, legacy separator normalization, and edge cases.
- */
-
 import { describe, it, expect } from 'vitest';
 
 import { formatAuditDetails } from './auditLogFormatters';
@@ -25,8 +19,6 @@ function entry(
     timestamp: new Date('2026-01-27T12:00:00.000Z'),
   };
 }
-
-// ── TUBE EVENTS ──
 
 describe('tube events', () => {
   it('tube_created shows location, cell type, and IDs', () => {
@@ -166,8 +158,6 @@ describe('tube events', () => {
   });
 });
 
-// ── TANK EVENTS ──
-
 describe('tank events', () => {
   it('tank_created shows tank name', () => {
     const result = formatAuditDetails(entry('tank_created', 'tank', { tankName: 'Tank 1' }));
@@ -194,8 +184,6 @@ describe('tank events', () => {
     expect(result.text).toBe('Tank 1 deactivated');
   });
 });
-
-// ── RACK EVENTS ──
 
 describe('rack events', () => {
   it('rack_created shows tank · rack path', () => {
@@ -265,8 +253,6 @@ describe('rack events', () => {
   });
 });
 
-// ── BOX EVENTS ──
-
 describe('box events', () => {
   it('box_created shows full path', () => {
     const result = formatAuditDetails(
@@ -303,8 +289,6 @@ describe('box events', () => {
   });
 });
 
-// ── LAB EVENTS ──
-
 describe('lab events', () => {
   it('lab_name_changed shows old → new', () => {
     const result = formatAuditDetails(
@@ -325,13 +309,34 @@ describe('lab events', () => {
     expect(result.text).toBe('Lab activated');
   });
 
+  it('lab_activated lists the usernames it reassigned', () => {
+    const result = formatAuditDetails(
+      entry('lab_activated', 'lab', {
+        labName: 'Old Lab',
+        activatedBy: 'admin1',
+        usernameReassignments: [
+          { from: 'evan.massi', to: 'evan.massi.2' },
+          { from: 'jane.doe', to: 'jane.doe.2' },
+        ],
+      })
+    );
+    expect(result.text).toBe(
+      'Old Lab activated · usernames reassigned: evan.massi → evan.massi.2, jane.doe → jane.doe.2'
+    );
+  });
+
+  it('lab_activated stays plain when no usernames were reassigned', () => {
+    const result = formatAuditDetails(
+      entry('lab_activated', 'lab', { labName: 'Old Lab', usernameReassignments: [] })
+    );
+    expect(result.text).toBe('Old Lab activated');
+  });
+
   it('lab_deactivated shows deactivation message', () => {
     const result = formatAuditDetails(entry('lab_deactivated', 'lab', { deactivatedBy: 'admin1' }));
     expect(result.text).toBe('Lab deactivated');
   });
 });
-
-// ── RESEARCHER EVENTS ──
 
 describe('researcher events', () => {
   it('researcher_created shows name and email', () => {
@@ -381,8 +386,6 @@ describe('researcher events', () => {
     expect(result.text).toBe('Jane Doe');
   });
 });
-
-// ── USER EVENTS ──
 
 describe('user events', () => {
   it('user_created shows username and role', () => {
@@ -453,8 +456,6 @@ describe('user events', () => {
   });
 });
 
-// ── CONFIGURATION (BULK) EVENTS ──
-
 describe('configuration events', () => {
   it('resources_bulk_unassigned shows summary', () => {
     const result = formatAuditDetails(
@@ -480,8 +481,6 @@ describe('configuration events', () => {
   });
 });
 
-// ── LEGACY SEPARATOR NORMALIZATION ──
-
 describe('legacy separator normalization', () => {
   it('converts / separators to · in display locations', () => {
     const result = formatAuditDetails(
@@ -505,8 +504,6 @@ describe('legacy separator normalization', () => {
     expect(result.text).toContain(' · ');
   });
 });
-
-// ── EDGE CASES ──
 
 describe('edge cases', () => {
   it('returns dash for unknown entity type', () => {

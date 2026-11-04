@@ -1,9 +1,3 @@
-/**
- * User Repository
- *
- * PostgreSQL implementation of user data access with hashed token matching.
- */
-
 import * as crypto from 'crypto';
 
 import type { User } from '@domain/entities/User';
@@ -30,8 +24,6 @@ const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id LEFT JOIN researc
 export class UserRepository implements IUserRepository {
   constructor(private context: Queryable) {}
 
-  // BASIC CRUD OPERATIONS
-
   async findById(id: string, labId: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
       `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1 AND u.lab_id = $2`,
@@ -48,9 +40,9 @@ export class UserRepository implements IUserRepository {
     return row ? UserMapper.fromRow(row) : null;
   }
 
-  async findByUsername(username: string): Promise<User | null> {
+  async findByUsernameInActiveLabs(username: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.username = $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.username = $1 AND u.lab_is_active`,
       [username]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -143,8 +135,12 @@ export class UserRepository implements IUserRepository {
         INSERT INTO users (
           id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
           email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-          password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings, lab_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+          password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings, lab_id,
+          lab_is_active
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+          COALESCE((SELECT is_active FROM labs WHERE id = $20), TRUE)
+        )
         ON CONFLICT (id) DO UPDATE SET
           username = EXCLUDED.username,
           api_key = EXCLUDED.api_key,
@@ -164,7 +160,8 @@ export class UserRepository implements IUserRepository {
           require_password_change = EXCLUDED.require_password_change,
           last_password_change = EXCLUDED.last_password_change,
           settings = EXCLUDED.settings,
-          lab_id = EXCLUDED.lab_id
+          lab_id = EXCLUDED.lab_id,
+          lab_is_active = EXCLUDED.lab_is_active
       `,
         [
           row.id,
@@ -205,11 +202,9 @@ export class UserRepository implements IUserRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // AUTHENTICATION OPERATIONS
-
-  async usernameExists(username: string): Promise<boolean> {
+  async usernameExistsInActiveLabs(username: string): Promise<boolean> {
     const result = await this.context.queryOne<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM users WHERE username = $1) as exists',
+      'SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND lab_is_active) as exists',
       [username]
     );
     return result?.exists ?? false;
@@ -223,8 +218,6 @@ export class UserRepository implements IUserRepository {
     );
     return result?.exists ?? false;
   }
-
-  // ROLE-BASED OPERATIONS
 
   async countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
@@ -240,8 +233,6 @@ export class UserRepository implements IUserRepository {
     );
     return !(result?.exists ?? false);
   }
-
-  // LAB-SCOPED OPERATIONS
 
   async findByLabId(labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
@@ -272,15 +263,10 @@ export class UserRepository implements IUserRepository {
     return parseCount(result);
   }
 
-  // MAINTENANCE OPERATIONS
-
   async isHealthy(): Promise<boolean> {
     return this.context.isHealthy();
   }
 
-  // PRIVATE HELPERS
-
-  /** Loads all non-expired rows for a hashed token column and compares via PBKDF2. */
   private async findByHashedToken(
     token: string,
     tokenColumn: string,

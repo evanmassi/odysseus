@@ -1,10 +1,8 @@
-/**
- * User Management Service
- *
- * Orchestrates user CRUD, authentication, registration, and approval workflows.
- */
-
-import { nanoid } from 'nanoid';
+import {
+  usernameBase,
+  type RegisterWithProfileRequest,
+  type UserDisplayInfo,
+} from '@odysseus/shared-schemas';
 
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
@@ -37,10 +35,9 @@ import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
+import { allocateUsername } from '@domain/services/usernameAllocation';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
-
-import type { RegisterWithProfileRequest, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   firstName?: string;
@@ -66,10 +63,6 @@ export class UserApplicationService {
     private tubeRepository?: TubeRepository
   ) {}
 
-  /**
-   * Returns lab users enriched with Person names.
-   * Name resolution priority: direct personId link, then linked researcher's person.
-   */
   async getEnrichedLabUsers(labId: string): Promise<EnrichedPublicUser[]> {
     const users = await this.userRepository.findByLabId(labId);
     const publicDataList = users.map(u => u.toPublicData());
@@ -136,17 +129,11 @@ export class UserApplicationService {
     });
   }
 
-  /**
-   * Resolves slim display info (name via linked person) for the given user ids.
-   * Scoped to `labId` when provided so callers cannot resolve other labs' users;
-   * omit for cross-lab (system-admin) access.
-   */
   async lookupUsers(userIds: string[], labId?: string): Promise<UserDisplayInfo[]> {
     const users = await this.userRepository.findByIds(userIds, labId);
     return this.toDisplayUsers(users);
   }
 
-  /** Approved users in the lab, for user-selection dropdowns. */
   async listActiveUsers(labId: string): Promise<UserDisplayInfo[]> {
     const users = await this.userRepository.findByStatusInLab('approved', labId);
     return this.toDisplayUsers(users);
@@ -173,10 +160,6 @@ export class UserApplicationService {
     });
   }
 
-  /**
-   * Auto-clears storage assignments, deletes user, and cleans up linked records.
-   * Researchers with tubes are preserved for history (email cleared); otherwise deleted.
-   */
   async deleteUser(userId: string, admin: User): Promise<void> {
     const targetUser = await this.getUserOrThrow(userId, admin);
 
@@ -208,7 +191,6 @@ export class UserApplicationService {
 
     await this.userRepository.delete(userId, targetUser.labId ?? '');
 
-    // Clean up linked researcher and person records
     if (researcherId && this.researcherRepository && this.personRepository) {
       const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcherId);
 
@@ -218,7 +200,6 @@ export class UserApplicationService {
           await this.personRepository.delete(personId);
         }
       } else {
-        // Researcher has tubes — deactivate and preserve for history, release the email
         const researcher = await findByIdForRequester(this.researcherRepository, researcherId, {
           labId: admin.labId,
           isSystemAdmin: admin.isSystemAdmin(),
@@ -236,7 +217,6 @@ export class UserApplicationService {
         }
       }
     } else if (personId && this.personRepository) {
-      // User-only account (no researcher) — person is orphaned, delete it
       await this.personRepository.delete(personId);
     }
 
@@ -327,9 +307,6 @@ export class UserApplicationService {
     }
   }
 
-  /**
-   * @throws ValidationError if researcher name exists or password invalid
-   */
   async registerWithProfile(request: RegisterWithProfileRequest): Promise<User> {
     if (!this.researcherRepository || !this.storageRepository) {
       throw new Error('ResearcherRepository and StorageRepository are required for this operation');
@@ -361,7 +338,6 @@ export class UserApplicationService {
       throw new ValidationError('An invite code is required for registration');
     }
 
-    // Check for researcher name conflicts and returning-user relink
     let relinkedResearcher: Researcher | undefined;
     let relinkedPerson: Person | undefined;
 
@@ -377,7 +353,6 @@ export class UserApplicationService {
         );
       }
 
-      // Returning user — reactivate their deactivated researcher profile
       if (labId) {
         const deactivated = await this.researcherRepository.findDeactivatedByName(
           request.firstName,
@@ -423,7 +398,10 @@ export class UserApplicationService {
     }
     const passwordHash = await this.passwordService.hash(request.password);
 
-    const username = await this.generateUsername(request.firstName, request.lastName);
+    const username = await allocateUsername(
+      usernameBase(request.firstName, request.lastName),
+      candidate => this.userRepository.usernameExistsInActiveLabs(candidate)
+    );
 
     const person =
       relinkedPerson ??
@@ -487,37 +465,6 @@ export class UserApplicationService {
     return user;
   }
 
-  /**
-   * Tries firstname.lastname, then firstname.lastname.2, .3, etc.
-   * Falls back to nanoid suffix if 100 sequential candidates are taken.
-   */
-  private async generateUsername(firstName: string, lastName: string): Promise<string> {
-    const sanitize = (name: string) =>
-      name
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '')
-        .trim();
-
-    const first = sanitize(firstName);
-    const last = sanitize(lastName);
-
-    let candidate = `${first}.${last}`;
-    if (!(await this.userRepository.usernameExists(candidate))) {
-      return candidate;
-    }
-
-    let counter = 2;
-    while (counter < 100) {
-      candidate = `${first}.${last}.${counter}`;
-      if (!(await this.userRepository.usernameExists(candidate))) {
-        return candidate;
-      }
-      counter++;
-    }
-
-    return `${first}.${last}.${nanoid(6)}`;
-  }
-
   async reactivateUser(userId: string, admin: User): Promise<void> {
     await this.requireUserManagementAllowed(admin);
 
@@ -542,10 +489,6 @@ export class UserApplicationService {
     return this.disableUser(userId, admin, 'suspend', expectedLabId);
   }
 
-  /**
-   * For users who registered without a researcher profile.
-   * @throws ValidationError if user already has a linked researcher
-   */
   async linkResearcherToUser(userId: string, researcherId: string, admin: User): Promise<void> {
     if (!this.researcherRepository) {
       throw new Error('ResearcherRepository is required for this operation');
@@ -591,10 +534,6 @@ export class UserApplicationService {
     }
   }
 
-  /**
-   * Preserves the researcher record for tube history.
-   * @throws ValidationError if user has no linked researcher
-   */
   async unlinkResearcherFromUser(userId: string, admin: User): Promise<void> {
     await this.requireUserManagementAllowed(admin);
 
@@ -605,7 +544,6 @@ export class UserApplicationService {
       throw new ValidationError('User has no linked researcher profile', { userId });
     }
 
-    // Get researcher info before unlinking for audit
     const oldResearcherId = user.researcherId;
     let researcherName = oldResearcherId ?? '';
 
@@ -664,7 +602,7 @@ export class UserApplicationService {
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    return await this.userRepository.findByUsername(username);
+    return await this.userRepository.findByUsernameInActiveLabs(username);
   }
 
   async getUserByEmail(email: string): Promise<User | null> {

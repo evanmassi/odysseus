@@ -1,10 +1,3 @@
-/**
- * Password-Flow Command Tests
- *
- * Locks the behavior of the shared verify + lazy-upgrade helpers as consumed by
- * the change-password and login handlers.
- */
-
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
@@ -110,7 +103,7 @@ function makeLoginHandler(opts: { needsUpgrade?: boolean } = {}) {
 
   const save = jest.fn();
   const userRepository = {
-    findByUsername: jest.fn().mockResolvedValue(user),
+    findByUsernameInActiveLabs: jest.fn().mockResolvedValue(user),
     findByEmail: jest.fn().mockResolvedValue(null),
     save,
   } as unknown as UserRepository;

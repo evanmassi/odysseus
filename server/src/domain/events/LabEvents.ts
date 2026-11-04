@@ -1,10 +1,6 @@
-/**
- * Lab Domain Events
- *
- * Events related to lab tenant management and invite codes.
- */
-
 import { DomainEvent } from '@domain/events/DomainEvent';
+
+import type { UsernameReassignment } from '@odysseus/shared-schemas';
 
 export class LabCreatedEvent extends DomainEvent {
   constructor(
@@ -45,7 +41,8 @@ export class LabRenamedEvent extends DomainEvent {
 export class LabActivatedEvent extends DomainEvent {
   constructor(
     public readonly labId: string,
-    public readonly activatedBy: string
+    public readonly activatedBy: string,
+    public readonly usernameReassignments: UsernameReassignment[]
   ) {
     super(labId);
   }

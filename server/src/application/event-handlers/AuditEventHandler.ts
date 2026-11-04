@@ -1,9 +1,3 @@
-/**
- * Domain Event Audit Logger
- *
- * Subscribes to domain events and persists them as audit log entries.
- */
-
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService, LogActionParams } from '@application/services/AuditService';
 import type { Storage } from '@domain/entities/Storage';
@@ -144,11 +138,8 @@ import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import type { TubeLocation } from '@domain/value-objects/TubeLocation';
 import { logger } from '@infrastructure/logging/logger';
 
-/** Above this batch size, bulk operations record only the summary row — per-item entries
-    would flood the audit log without adding much signal. */
 const BULK_AUDIT_PER_ITEM_LIMIT = 10;
 
-/** Lock/share audit entries list at most this many tube IDs, flagging the rest via hasMore. */
 const AUDIT_TUBE_ID_PREVIEW_LIMIT = 10;
 
 export class AuditEventHandler {
@@ -203,7 +194,7 @@ export class AuditEventHandler {
     }
   }
 
-  /** Skips logging for demo lab users to keep audit logs clean. */
+  // PITFALL: actors in a demo lab are skipped, so visitor activity never reaches the audit log.
   private async logAuditEvent(params: {
     eventName: string;
     context: Record<string, unknown>;
@@ -239,7 +230,6 @@ export class AuditEventHandler {
   }
 
   private subscribeToEvents(): void {
-    // Tube events
     this.eventBus.subscribe('TubeCreated', e => this.handleTubeCreated(e));
     this.eventBus.subscribe('TubeUpdated', e => this.handleTubeUpdated(e));
     this.eventBus.subscribe('TubeLocationChanged', e => this.handleTubeLocationChanged(e));
@@ -249,13 +239,11 @@ export class AuditEventHandler {
     this.eventBus.subscribe('BulkTubesDeleted', e => this.handleBulkTubesDeleted(e));
     this.eventBus.subscribe('BulkTubesMoved', e => this.handleBulkTubesMoved(e));
 
-    // Tube lock events
     this.eventBus.subscribe('TubesLocked', e => this.handleTubesLocked(e));
     this.eventBus.subscribe('TubesUnlocked', e => this.handleTubesUnlocked(e));
     this.eventBus.subscribe('TubeAccessShared', e => this.handleTubeAccessShared(e));
     this.eventBus.subscribe('TubeAccessRevoked', e => this.handleTubeAccessRevoked(e));
 
-    // Configuration events
     this.eventBus.subscribe('TankUpdated', e => this.handleTankUpdated(e));
     this.eventBus.subscribe('TankAdded', e => this.handleTankAdded(e));
     this.eventBus.subscribe('TankDeleted', e => this.handleTankDeleted(e));
@@ -266,7 +254,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('BoxDeleted', e => this.handleBoxDeleted(e));
     this.eventBus.subscribe('BoxUpdated', e => this.handleBoxUpdated(e));
 
-    // Assignment events
     this.eventBus.subscribe('RackAssigned', e => this.handleRackAssigned(e));
     this.eventBus.subscribe('RackUnassigned', e => this.handleRackUnassigned(e));
     this.eventBus.subscribe('RackReassigned', e => this.handleRackReassigned(e));
@@ -274,15 +261,12 @@ export class AuditEventHandler {
     this.eventBus.subscribe('BoxUnassigned', e => this.handleBoxUnassigned(e));
     this.eventBus.subscribe('BoxReassigned', e => this.handleBoxReassigned(e));
 
-    // Label events
     this.eventBus.subscribe('RackLabelUpdated', e => this.handleRackLabelUpdated(e));
     this.eventBus.subscribe('BoxLabelUpdated', e => this.handleBoxLabelUpdated(e));
 
-    // Bulk assignment events
     this.eventBus.subscribe('BulkResourcesUnassigned', e => this.handleBulkResourcesUnassigned(e));
     this.eventBus.subscribe('BulkResourcesReassigned', e => this.handleBulkResourcesReassigned(e));
 
-    // User events
     this.eventBus.subscribe('UserCreated', e => this.handleUserCreated(e));
     this.eventBus.subscribe('UserPasswordChanged', e => this.handleUserPasswordChanged(e));
     this.eventBus.subscribe('UserRoleChanged', e => this.handleUserRoleChanged(e));
@@ -298,19 +282,16 @@ export class AuditEventHandler {
     this.eventBus.subscribe('UserSuspended', e => this.handleUserSuspended(e));
     this.eventBus.subscribe('UserReactivated', e => this.handleUserReactivated(e));
 
-    // Researcher events
     this.eventBus.subscribe('ResearcherCreated', e => this.handleResearcherCreated(e));
     this.eventBus.subscribe('ResearcherUpdated', e => this.handleResearcherUpdated(e));
     this.eventBus.subscribe('ResearcherDeactivated', e => this.handleResearcherDeactivated(e));
     this.eventBus.subscribe('ResearcherReactivated', e => this.handleResearcherReactivated(e));
     this.eventBus.subscribe('ResearcherDeleted', e => this.handleResearcherDeleted(e));
 
-    // Donor events
     this.eventBus.subscribe('DonorCreated', e => this.handleDonorCreated(e));
     this.eventBus.subscribe('DonorUpdated', e => this.handleDonorUpdated(e));
     this.eventBus.subscribe('DonorDeleted', e => this.handleDonorDeleted(e));
 
-    // Equipment events
     this.eventBus.subscribe('EquipmentItemCreated', e => this.handleEquipmentItemCreated(e));
     this.eventBus.subscribe('EquipmentItemUpdated', e => this.handleEquipmentItemUpdated(e));
     this.eventBus.subscribe('EquipmentItemDecommissioned', e =>
@@ -347,7 +328,6 @@ export class AuditEventHandler {
     );
     this.eventBus.subscribe('EquipmentBulkRelocated', e => this.handleEquipmentBulkRelocated(e));
 
-    // Supply events
     this.eventBus.subscribe('SupplyItemCreated', e => this.handleSupplyItemCreated(e));
     this.eventBus.subscribe('SupplyItemUpdated', e => this.handleSupplyItemUpdated(e));
     this.eventBus.subscribe('SupplyItemArchived', e => this.handleSupplyItemArchived(e));
@@ -372,7 +352,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('SupplyBulkArchived', e => this.handleSupplyBulkArchived(e));
     this.eventBus.subscribe('SupplyBulkVoided', e => this.handleSupplyBulkVoided(e));
 
-    // Reagent events
     this.eventBus.subscribe('ReagentItemCreated', e => this.handleReagentItemCreated(e));
     this.eventBus.subscribe('ReagentItemUpdated', e => this.handleReagentItemUpdated(e));
     this.eventBus.subscribe('ReagentItemArchived', e => this.handleReagentItemArchived(e));
@@ -397,15 +376,12 @@ export class AuditEventHandler {
     this.eventBus.subscribe('ReagentBulkArchived', e => this.handleReagentBulkArchived(e));
     this.eventBus.subscribe('ReagentBulkVoided', e => this.handleReagentBulkVoided(e));
 
-    // Lab events
     this.eventBus.subscribe('LabCreated', e => this.handleLabCreated(e));
     this.eventBus.subscribe('LabRenamed', e => this.handleLabRenamed(e));
     this.eventBus.subscribe('LabActivated', e => this.handleLabActivated(e));
     this.eventBus.subscribe('LabDeactivated', e => this.handleLabDeactivated(e));
     this.eventBus.subscribe('InviteCodeCreated', e => this.handleInviteCodeCreated(e));
   }
-
-  // TUBE EVENT HANDLERS
 
   private async getDisplayLocation(location: TubeLocation, labId: string): Promise<string> {
     try {
@@ -417,7 +393,6 @@ export class AuditEventHandler {
     }
   }
 
-  /** Formats a raw location as the `tankId/rackId/boxId/position` audit path. */
   private formatRawLocation(loc: {
     tankId: string;
     rackId: string;
@@ -427,8 +402,6 @@ export class AuditEventHandler {
     return `${loc.tankId}/${loc.rackId}/${loc.boxId}/${loc.position}`;
   }
 
-  /** Resolves a location to human-readable tank/rack/box/position names from a preloaded
-      storage config. Returns `fallback` (the raw path) when the config or any container is missing. */
   private resolveDisplayLocation(
     storage: Storage | null,
     location: { tankId: string; rackId: string; boxId: string; position: number },
@@ -448,9 +421,6 @@ export class AuditEventHandler {
     return `${tank.name} · ${rack.name} · ${box.name} · ${box.formatPosition(location.position)}`;
   }
 
-  /** Resolves a batch to its deepest shared tank/rack/box path plus, when every tube sits in a
-      single box, the formatted cell coordinates (capacity-bounded). `scope` is '' when the batch
-      spans multiple tanks or the config is missing. */
   private resolveBatchLocation(
     storage: Storage | null,
     locations: Array<{ tankId: string; rackId: string; boxId: string; position: number }>
@@ -628,7 +598,6 @@ export class AuditEventHandler {
       const storage = await this.storageRepository.getForLab(event.labId!);
       const entries: LogActionParams[] = [];
 
-      // Beyond the per-item limit, keep only the summary so a huge paste can't flood the log.
       if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
         const perItem: LogActionParams[] = event.perItemData.map(item => {
           const rawLocation = this.formatRawLocation(item.location);
@@ -653,8 +622,6 @@ export class AuditEventHandler {
         entries.push(...perItem);
       }
 
-      // A single create (e.g. copy/pasting one tube) needs no roll-up — the per-item entry
-      // already says it all. Add the summary whenever the batch holds more than one tube.
       if (count > 1) {
         const where = this.resolveBatchLocation(
           storage,
@@ -869,8 +836,6 @@ export class AuditEventHandler {
     });
   }
 
-  // TUBE LOCK EVENT HANDLERS
-
   private async resolveUsernames(
     userIds: string[]
   ): Promise<Array<{ userId: string; username: string }>> {
@@ -962,8 +927,6 @@ export class AuditEventHandler {
       },
     });
   }
-
-  // CONFIGURATION EVENT HANDLERS
 
   private async handleTankUpdated(event: TankUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
@@ -1140,8 +1103,6 @@ export class AuditEventHandler {
     });
   }
 
-  // ASSIGNMENT EVENT HANDLERS
-
   private async handleRackAssigned(event: RackAssignedEvent): Promise<void> {
     await this.logAuditEvent({
       eventName: 'rack assigned',
@@ -1280,8 +1241,6 @@ export class AuditEventHandler {
     });
   }
 
-  // LABEL EVENT HANDLERS
-
   private async handleRackLabelUpdated(event: RackLabelUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
       eventName: 'rack label updated',
@@ -1328,8 +1287,6 @@ export class AuditEventHandler {
     });
   }
 
-  // BULK ASSIGNMENT EVENT HANDLERS
-
   private async handleBulkResourcesUnassigned(event: BulkResourcesUnassignedEvent): Promise<void> {
     await this.logAuditEvent({
       eventName: 'bulk resources unassigned',
@@ -1366,8 +1323,6 @@ export class AuditEventHandler {
       }),
     });
   }
-
-  // RESEARCHER EVENT HANDLERS
 
   private async handleResearcherCreated(event: ResearcherCreatedEvent): Promise<void> {
     await this.logAuditEvent({
@@ -1463,8 +1418,6 @@ export class AuditEventHandler {
     });
   }
 
-  // USER EVENT HANDLERS
-
   private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
     await this.logAuditEvent({
       eventName: 'user created',
@@ -1558,8 +1511,7 @@ export class AuditEventHandler {
       });
       return;
     }
-    // Unknown-username attempts have no user record — bypass the actor-resolution path
-    // and write the row directly so the security panel still surfaces the attempt.
+    // PITFALL: unknown usernames have no user record, so this writes the row directly instead of resolving an actor.
     await this.safeLogAudit('user login failed', { username: event.username }, async () => {
       await this.auditService.logAction({
         username: event.username,
@@ -1721,7 +1673,11 @@ export class AuditEventHandler {
       entityId: event.labId,
       occurredOn: event.occurredOn,
       labId: event.labId,
-      buildDetails: username => ({ labName, activatedBy: username }),
+      buildDetails: username => ({
+        labName,
+        activatedBy: username,
+        usernameReassignments: event.usernameReassignments,
+      }),
     });
   }
 
@@ -1754,8 +1710,6 @@ export class AuditEventHandler {
       buildDetails: username => ({ labName, codeId: event.codeId, createdBy: username }),
     });
   }
-
-  // DONOR EVENT HANDLERS
 
   private async handleDonorCreated(event: DonorCreatedEvent): Promise<void> {
     await this.logAuditEvent({
@@ -1815,8 +1769,6 @@ export class AuditEventHandler {
       }),
     });
   }
-
-  // EQUIPMENT EVENT HANDLERS
 
   private async handleEquipmentItemCreated(event: EquipmentItemCreatedEvent): Promise<void> {
     await this.logAuditEvent({
@@ -2189,8 +2141,6 @@ export class AuditEventHandler {
     );
   }
 
-  // SUPPLY EVENT HANDLERS
-
   private async handleSupplyItemCreated(event: SupplyItemCreatedEvent): Promise<void> {
     await this.logAuditEvent({
       eventName: 'supply item created',
@@ -2464,8 +2414,6 @@ export class AuditEventHandler {
     });
   }
 
-  // Supply bulk handlers
-
   private async handleSupplyBulkReceived(event: SupplyBulkReceivedEvent): Promise<void> {
     await this.safeLogAudit(
       'supply bulk received',
@@ -2655,8 +2603,6 @@ export class AuditEventHandler {
       await this.auditService.logActions(entries);
     });
   }
-
-  // REAGENT EVENT HANDLERS
 
   private async handleReagentItemCreated(event: ReagentItemCreatedEvent): Promise<void> {
     await this.logAuditEvent({
@@ -2930,8 +2876,6 @@ export class AuditEventHandler {
       }),
     });
   }
-
-  // Reagent bulk handlers
 
   private async handleReagentBulkReceived(event: ReagentBulkReceivedEvent): Promise<void> {
     await this.safeLogAudit(

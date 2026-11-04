@@ -1,9 +1,3 @@
-/**
- * Lab & Invite Code Schemas
- *
- * Multi-tenancy schemas for lab management and invite code operations.
- */
-
 import { z } from 'zod';
 import { dateField, optionalDateField } from '../utils/dateFields';
 import { USER_ROLES, USER_STATUSES } from '../auth/authSchemas';
@@ -139,7 +133,14 @@ export const createInviteCodeRequestSchema = z.object({
 
 export type CreateInviteCodeRequest = z.infer<typeof createInviteCodeRequestSchema>;
 
-// Response data schemas
+export const usernameReassignmentsSchema = z.array(
+  z.object({
+    from: z.string(),
+    to: z.string(),
+  })
+);
+
+export type UsernameReassignment = z.infer<typeof usernameReassignmentsSchema>[number];
 
 export const labsListSchema = z.object({
   labs: z.array(labDataSchema),
