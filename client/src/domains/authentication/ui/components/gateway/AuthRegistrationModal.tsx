@@ -1,9 +1,3 @@
-/**
- * User Registration Form
- *
- * Invite-code-based registration with auto-generated usernames.
- */
-
 import { useState, useRef, useMemo, useCallback } from 'react';
 
 import { PasswordValidator, type PublicUserData } from '@odysseus/shared-schemas';
@@ -38,21 +32,18 @@ interface AuthRegistrationModalProps {
 }
 
 export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModalProps) {
-  // Invite code fields
   const [inviteCode, setInviteCode] = useState('');
   const [inviteCodeValidated, setInviteCodeValidated] = useState(false);
   const [inviteCodeLabName, setInviteCodeLabName] = useState<string | null>(null);
   const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
   const [isValidatingCode, setIsValidatingCode] = useState(false);
 
-  // Researcher profile fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
 
-  // Authentication fields
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,22 +51,17 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   const [codeRole, setCodeRole] = useState<'lab_admin' | 'user' | null>(null);
   const [codeCreateResearcher, setCodeCreateResearcher] = useState(false);
 
-  // Password validation
   const { data: passwordConfig } = usePasswordRequirementsQuery();
 
-  // Field touched state for validation
   const [firstNameTouched, setFirstNameTouched] = useState(false);
   const [lastNameTouched, setLastNameTouched] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
 
-  // Email error state (for duplicate email errors from backend)
   const [emailError, setEmailError] = useState<string | null>(null);
 
-  // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registrationResult, setRegistrationResult] = useState<{
-    username: string;
     email: string;
     user: PublicUserData;
     tokens: TokenPair;
@@ -173,7 +159,6 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
       if (result.success && result.user && result.tokens) {
         setRegistrationResult({
-          username: usernamePreview,
           email: email.trim(),
           user: result.user,
           tokens: result.tokens,
@@ -229,7 +214,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   if (regState === 'success' && registrationResult) {
     return (
       <AuthRegistrationSuccessModal
-        username={registrationResult.username}
+        username={registrationResult.user.username}
         onClose={handleSuccessModalClose}
       />
     );

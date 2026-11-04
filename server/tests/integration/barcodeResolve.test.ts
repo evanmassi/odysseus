@@ -1,11 +1,3 @@
-/**
- * Lab-Wide Barcode Resolution
- *
- * One scan must identify a thing in whichever catalog holds it, and never reach across labs.
- * Also holds the rule that keeps the answer unambiguous: a value already linked in one catalog
- * cannot be linked again in the other, which each catalog's own UNIQUE constraint allows.
- */
-
 import { BarcodeApplicationService } from '@application/services/BarcodeApplicationService';
 import { SupplyApplicationService } from '@application/services/SupplyApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -26,6 +18,7 @@ import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
+// PITFALL: each catalog's own UNIQUE allows a value already linked in the other catalog, so cross-catalog uniqueness is enforced in code.
 describe('lab-wide barcode resolve', () => {
   let context: PostgresContext;
   let seed: TestSeed;
@@ -44,7 +37,7 @@ describe('lab-wide barcode resolve', () => {
       supplies,
       reagents,
       new AttributeRepository(context),
-      new AccessControlService(new TubeRepository(context, new StorageRepository(context))),
+      new AccessControlService(new TubeRepository(context)),
       { publish: async () => undefined } as unknown as EventBus,
       new StorageRepository(context),
       new LabRepository(context)

@@ -1,9 +1,3 @@
-/**
- * Authentication Barrel
- *
- * Registration, email verification, password reset, and password validation.
- */
-
 export {
   registerWithProfileSchema,
   validateInviteCodeRequestSchema,
@@ -54,3 +48,5 @@ export {
   type GeneratePasswordResetTokenResponse,
   type PasswordChangeRequiredResponse,
 } from './passwordResetSchemas';
+
+export { usernameBase } from './usernameBase';

@@ -350,6 +350,7 @@ export {
   type FirstTimeResponse,
   type VerifyEmailResponse,
   type SessionInfoResponse,
+  usernameBase,
 } from './auth';
 
 export {
@@ -371,6 +372,8 @@ export {
   labDataResponseSchema,
   demoLimitsDataSchema,
   type DemoLimitsData,
+  usernameReassignmentsSchema,
+  type UsernameReassignment,
 } from './labs/labSchemas';
 
 export {

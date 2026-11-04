@@ -1,12 +1,8 @@
-/**
- * Lab CQRS Commands
- *
- * System admin operations for lab tenant management.
- */
-
 import type { EventBus } from '@application/contracts/EventBus';
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { requireSystemAdmin } from '@application/guards/UserGuards';
 import { Lab } from '@domain/entities/Lab';
+import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
@@ -20,6 +16,9 @@ import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { allocateUsername, usernameBaseOf } from '@domain/services/usernameAllocation';
+
+import type { UsernameReassignment } from '@odysseus/shared-schemas';
 
 export interface CreateLabCommand {
   userId: string;
@@ -149,26 +148,64 @@ export class DeactivateLabCommandHandler {
 
 export class ActivateLabCommandHandler {
   constructor(
-    private labRepository: LabRepository,
     private userRepository: UserRepository,
+    private unitOfWork: UnitOfWork,
     private eventBus: EventBus
   ) {}
 
   async handle(command: ActivateLabCommand): Promise<void> {
     await requireSystemAdmin(this.userRepository, command.userId);
 
-    const lab = await this.labRepository.findById(command.labId);
-    if (!lab) {
-      throw NotFoundError.forEntity('Lab', command.labId);
-    }
+    const usernameReassignments = await this.unitOfWork.withTransaction(async repos => {
+      const lab = await repos.labs.findById(command.labId);
+      if (!lab) {
+        throw NotFoundError.forEntity('Lab', command.labId);
+      }
 
-    if (lab.isActive) {
+      if (lab.isActive) {
+        return undefined;
+      }
+
+      const labUsers = await repos.users.findByLabId(command.labId);
+      const reassignments = await reassignUsernamesTakenByActiveLabs(labUsers, repos.users);
+
+      lab.activate();
+      await repos.labs.save(lab);
+
+      return reassignments;
+    });
+
+    if (!usernameReassignments) {
       return;
     }
 
-    lab.activate();
-    await this.labRepository.save(lab);
-
-    await this.eventBus.publish(new LabActivatedEvent(command.labId, command.userId));
+    await this.eventBus.publish(
+      new LabActivatedEvent(command.labId, command.userId, usernameReassignments)
+    );
   }
+}
+
+async function reassignUsernamesTakenByActiveLabs(
+  labUsers: User[],
+  userRepository: UserRepository
+): Promise<UsernameReassignment[]> {
+  const labUsernames = new Set(labUsers.map(user => user.username));
+  const isTaken = async (candidate: string): Promise<boolean> =>
+    labUsernames.has(candidate) || userRepository.usernameExistsInActiveLabs(candidate);
+
+  const reassignments: UsernameReassignment[] = [];
+  for (const user of labUsers) {
+    if (!(await userRepository.usernameExistsInActiveLabs(user.username))) {
+      continue;
+    }
+
+    const from = user.username;
+    const to = await allocateUsername(usernameBaseOf(from), isTaken);
+    user.reassignUsername(to);
+    await userRepository.save(user);
+    labUsernames.add(to);
+    reassignments.push({ from, to });
+  }
+
+  return reassignments;
 }

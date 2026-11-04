@@ -1,13 +1,3 @@
-/**
- * Custom Unit CRUD
- *
- * A custom unit is referenced by its label across twelve columns in five tables, so a rename has to
- * rewrite all of them — rewriting a subset detaches packaging chains, which walk `parent_unit` to
- * `unit_name` to `stock_unit` by string equality. That is the bug migration 032 was written to avoid
- * and the reason `renameStockUnit` was deleted rather than fixed. These cases hold that line, plus
- * the guards that keep the dropdown honest.
- */
-
 import { CustomUnitApplicationService } from '@application/services/CustomUnitApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { generateId } from '@domain/utils/generateId';
@@ -22,6 +12,7 @@ import { createTestAdmin } from '../../src/domain/__tests__/helpers';
 
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
+// PITFALL: a unit's label lives in twelve columns across five tables; a rename that rewrites only some detaches packaging chains.
 describe('custom unit CRUD', () => {
   let context: PostgresContext;
   let seed: TestSeed;
@@ -33,7 +24,7 @@ describe('custom unit CRUD', () => {
     context = await setupTestDatabase();
     seed = createSeed(context);
     repo = new CustomUnitRepository(context);
-    const tubes = new TubeRepository(context, new StorageRepository(context));
+    const tubes = new TubeRepository(context);
     service = new CustomUnitApplicationService(
       repo,
       new AccessControlService(tubes),
@@ -49,7 +40,6 @@ describe('custom unit CRUD', () => {
     await context.close();
   });
 
-  /** An item in every unit-bearing table, all holding `label`. */
   async function itemsUsing(labId: string, label: string) {
     const supplyItem = await seed.supplyItem({ labId });
     await context.execute(
@@ -152,7 +142,6 @@ describe('custom unit CRUD', () => {
     );
     expect(lot?.concentration_unit).toBe('beads/100 µL');
 
-    // The chain is intact only if each pack's parent_unit still names the item's stock unit.
     const chains = await context.queryMany<{ parent_unit: string; stock_unit: string }>(
       `SELECT p.parent_unit, i.stock_unit FROM supply_packaging_levels p
          JOIN supply_items i ON i.id = p.item_id WHERE i.lab_id = $1
@@ -181,7 +170,6 @@ describe('custom unit CRUD', () => {
       /Cannot change what/
     );
 
-    // A rename still works while in use — that is what the cascade is for.
     const renamed = await service.update(lab.id, created.id, { label: 'beads/100 µL' }, admin);
     expect(renamed.label).toBe('beads/100 µL');
     expect(renamed.kind).toBe('count');
@@ -201,7 +189,6 @@ describe('custom unit CRUD', () => {
     );
     expect(supply?.stock_unit).toBe(created.label);
 
-    // Counting is scoped the same way the rewrite is: the other lab's items are its own.
     const [renamed] = await service.list(lab.id);
     const [neighbour] = await service.list(other.id);
     expect(renamed.usageCount).toBe(0);

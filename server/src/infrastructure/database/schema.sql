@@ -1,12 +1,6 @@
--- Odysseus PostgreSQL Schema (Reference Only)
---
--- This file documents the final-state schema after all migrations have run.
--- It is NOT executed at runtime — migrations handle all DDL.
--- Last regenerated: 2026-03-12
+-- PITFALL: reference only, never executed; migrations own all DDL and this file can lag them.
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
--- LABS TABLE (root tenant — created before all FK references)
 
 CREATE TABLE labs (
   id TEXT PRIMARY KEY,
@@ -21,8 +15,6 @@ CREATE TABLE labs (
 
 CREATE INDEX idx_labs_slug ON labs(slug);
 CREATE INDEX idx_labs_is_active ON labs(is_active);
-
--- STORAGE TABLES (must come before users/tubes due to FK ordering)
 
 CREATE TABLE storage_versions (
   version SERIAL PRIMARY KEY,
@@ -78,8 +70,6 @@ CREATE TABLE security_config (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- PERSONS TABLE
-
 CREATE TABLE persons (
   id TEXT PRIMARY KEY,
   first_name TEXT NOT NULL,
@@ -95,8 +85,6 @@ CREATE INDEX idx_persons_email ON persons(LOWER(email));
 CREATE INDEX idx_persons_last_name ON persons(last_name);
 CREATE INDEX idx_persons_first_name ON persons(first_name);
 
--- RESEARCHERS TABLE
-
 CREATE TABLE researchers (
   id TEXT PRIMARY KEY,
   person_id TEXT NOT NULL,
@@ -111,11 +99,9 @@ CREATE INDEX idx_researchers_active ON researchers(active);
 CREATE INDEX idx_researchers_person_id ON researchers(person_id);
 CREATE INDEX idx_researchers_lab_id ON researchers(lab_id);
 
--- USERS TABLE
-
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
-  username TEXT NOT NULL UNIQUE,
+  username TEXT NOT NULL,
   api_key TEXT NOT NULL UNIQUE,
   role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('system_admin', 'lab_admin', 'user')),
   password_hash TEXT,
@@ -124,6 +110,7 @@ CREATE TABLE users (
   researcher_id TEXT,
   person_id TEXT,
   lab_id TEXT REFERENCES labs(id),
+  lab_is_active BOOLEAN NOT NULL DEFAULT TRUE,
   status TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('approved', 'deactivated', 'suspended')),
   email_verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
@@ -146,8 +133,7 @@ CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_users_email_verification_token ON users(email_verification_token);
 CREATE INDEX idx_users_password_reset_token ON users(password_reset_token);
 CREATE INDEX idx_users_lab_id ON users(lab_id);
-
--- TUBES TABLE
+CREATE UNIQUE INDEX users_username_active_lab_key ON users(username) WHERE lab_is_active;
 
 CREATE TABLE tubes (
   id TEXT PRIMARY KEY,
@@ -235,8 +221,6 @@ CREATE TRIGGER tubes_search_vector_trigger
   BEFORE INSERT OR UPDATE ON tubes
   FOR EACH ROW EXECUTE FUNCTION tubes_search_vector_update();
 
--- REFRESH TOKENS TABLE
-
 CREATE TABLE refresh_tokens (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -257,8 +241,6 @@ CREATE INDEX idx_refresh_tokens_created_at ON refresh_tokens(created_at DESC);
 CREATE INDEX idx_refresh_tokens_last_used ON refresh_tokens(last_used_at DESC);
 CREATE INDEX idx_refresh_tokens_ip_address ON refresh_tokens(ip_address);
 
--- USER SESSIONS TABLE
-
 CREATE TABLE user_sessions (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -278,8 +260,6 @@ CREATE INDEX idx_user_sessions_refresh_token ON user_sessions(refresh_token);
 CREATE INDEX idx_user_sessions_expires_at ON user_sessions(expires_at);
 CREATE INDEX idx_user_sessions_is_active ON user_sessions(is_active);
 CREATE INDEX idx_user_sessions_last_used ON user_sessions(last_used_at DESC);
-
--- AUDIT LOG TABLE
 
 CREATE TABLE audit_log (
   id TEXT PRIMARY KEY,
@@ -304,8 +284,6 @@ CREATE INDEX idx_audit_log_timestamp ON audit_log(timestamp DESC);
 CREATE INDEX idx_audit_log_composite ON audit_log(entity_type, entity_id, timestamp DESC);
 CREATE INDEX idx_audit_log_lab_id ON audit_log(lab_id);
 
--- LOOKUP VALUES TABLE
-
 CREATE TABLE lookup_values (
   id TEXT PRIMARY KEY,
   category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media', 'specimen_type')),
@@ -321,8 +299,6 @@ CREATE TABLE lookup_values (
 CREATE INDEX idx_lookup_values_category ON lookup_values(category);
 CREATE INDEX idx_lookup_values_category_active ON lookup_values(category, is_active);
 CREATE INDEX idx_lookup_values_lab_id ON lookup_values(lab_id);
-
--- AUDIT LOG ARCHIVE TABLE
 
 CREATE TABLE audit_log_archive (
   id TEXT PRIMARY KEY,
@@ -344,8 +320,6 @@ CREATE INDEX idx_audit_archive_timestamp ON audit_log_archive(timestamp DESC);
 CREATE INDEX idx_audit_archive_user_id ON audit_log_archive(user_id);
 CREATE INDEX idx_audit_archive_archived_at ON audit_log_archive(archived_at DESC);
 
--- INVITE CODES TABLE
-
 CREATE TABLE invite_codes (
   id TEXT PRIMARY KEY,
   lab_id TEXT NOT NULL REFERENCES labs(id),
@@ -361,8 +335,6 @@ CREATE TABLE invite_codes (
 
 CREATE INDEX idx_invite_codes_lab_id ON invite_codes(lab_id);
 CREATE INDEX idx_invite_codes_code ON invite_codes(code);
-
--- DONORS TABLE
 
 CREATE TABLE donors (
   id TEXT PRIMARY KEY,
@@ -391,8 +363,6 @@ CREATE INDEX idx_donors_uncurated ON donors(lab_id, is_curated) WHERE is_curated
 CREATE INDEX idx_donors_source_id_trgm ON donors USING gin (donor_source_id gin_trgm_ops) WHERE donor_source_id IS NOT NULL;
 CREATE INDEX idx_donors_internal_id_trgm ON donors USING gin (donor_internal_id gin_trgm_ops) WHERE donor_internal_id IS NOT NULL;
 
--- DONOR COLLECTION HISTORY TABLE
-
 CREATE TABLE donor_collection_history (
   id TEXT PRIMARY KEY,
   donor_id TEXT NOT NULL REFERENCES donors(id) ON DELETE CASCADE,
@@ -403,8 +373,6 @@ CREATE TABLE donor_collection_history (
 );
 
 CREATE INDEX idx_donor_collection_history_donor_id ON donor_collection_history(donor_id);
-
--- MIGRATION TRACKING TABLE (managed by migrationRunner.ts)
 
 CREATE TABLE schema_migrations (
   id INTEGER PRIMARY KEY,

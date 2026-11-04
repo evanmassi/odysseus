@@ -1,11 +1,3 @@
-/**
- * Reagent Attribute Values
- *
- * Writing a value replaces the definition's rows wholesale, because a multi_select stores one row
- * per chosen option. These pin that replacement, the single-value rule, and the batched fill the
- * list rollup depends on.
- */
-
 import { AttributeDefinition } from '@domain/entities/AttributeDefinition';
 import { ReagentApplicationService } from '@application/services/ReagentApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -41,7 +33,7 @@ describe('reagent attribute values', () => {
     seed = createSeed(context);
     attributes = new AttributeRepository(context);
     items = new ReagentItemRepository(context);
-    const tubes = new TubeRepository(context, new StorageRepository(context));
+    const tubes = new TubeRepository(context);
     service = new ReagentApplicationService(
       {} as CategoryRepository<ReagentCategory>,
       items,

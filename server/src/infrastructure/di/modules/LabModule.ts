@@ -1,9 +1,3 @@
-/**
- * Lab DI Module
- *
- * Lazy-singleton wiring for lab management, invite codes, and demo limits.
- */
-
 import { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
 import {
   CreateInviteCodeCommandHandler,
@@ -43,8 +37,6 @@ export class LabModule {
     private shared: SharedServices,
     private repositoryFactory: RepositoryFactory
   ) {}
-
-  // Handlers
 
   getCreateLabHandler(): CreateLabCommandHandler {
     if (!this.createLabHandler) {
@@ -89,8 +81,8 @@ export class LabModule {
     if (!this.activateLabHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.activateLabHandler = new ActivateLabCommandHandler(
-        repositories.labs,
         repositories.users,
+        this.repositoryFactory,
         this.shared.eventBus
       );
     }
@@ -166,8 +158,6 @@ export class LabModule {
     }
     return this.labApplicationService;
   }
-
-  // Controllers
 
   getLabController(): LabController {
     if (!this.labController) {

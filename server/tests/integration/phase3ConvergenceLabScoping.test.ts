@@ -1,16 +1,6 @@
-/**
- * Phase 3 — By-Id Convergence Lab-Scoping
- *
- * Defense-in-depth: the remaining guarded Camp-B by-id writes now scope lab_id in SQL. Proves the
- * delete methods no-op cross-lab (representative of the identical WHERE id AND lab_id pattern shared
- * by LookupValue.delete etc.), the donor collection-history read is lab-scoped via the donor subquery,
- * and the Tube optimistic-lock hot path still works with the added lab_id predicate.
- */
-
 import { ConflictError } from '@domain/errors/ConflictError';
 import { DonorRepository } from '@infrastructure/repositories/DonorRepository';
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
-import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { TubeRepository } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository } from '@infrastructure/repositories/UserRepository';
 
@@ -86,7 +76,7 @@ describe('phase 3 by-id lab-scoping convergence', () => {
 
   describe('tube optimistic-lock hot path (with lab_id predicate)', () => {
     it('saves within the lab and rejects a stale version', async () => {
-      const repo = new TubeRepository(context, new StorageRepository(context));
+      const repo = new TubeRepository(context);
       const labA = await seed.lab();
       const persisted = await seed.tube({ labId: labA.id });
 
@@ -97,7 +87,6 @@ describe('phase 3 by-id lab-scoping convergence', () => {
       const after = await repo.findById(persisted.id, labA.id);
       expect(after?.version).toBe(loaded!.version + 1);
 
-      // DB already advanced past the expected version → conflict.
       await expect(repo.saveWithOptimisticLock(updated, loaded!.version)).rejects.toThrow(
         ConflictError
       );
