@@ -54,6 +54,7 @@
   .ex-bar { position: sticky; top: 0; display: flex; justify-content: center; gap: 12px; padding: 14px 16px; background: hsl(var(--page)); }
   .ex-page { width: 820px; max-width: calc(100% - 32px); margin: 0 auto 48px; padding: 48px 56px; background: #fff; color: #1b1e24; font: 13px/1.5 'Hanken Grotesk', sans-serif; box-shadow: 0 20px 50px -20px #000; }
   .ex-page h1 { margin: 0; font: 600 24px/1.2 'Hanken Grotesk', sans-serif; }
+  .ex-part { margin: 32px 0 -4px; padding-top: 10px; border-top: 2px solid #1b1e24; font: 700 13px/1.2 'Hanken Grotesk', sans-serif; letter-spacing: .12em; text-transform: uppercase; }
   .ex-id { margin-top: 2px; font: 400 13px/1.4 'JetBrains Mono', monospace; color: #4a4f59; }
   .ex-when { margin-top: 4px; font-size: 14px; font-weight: 600; }
   .ex-when.planned { font-weight: 400; color: #8a5a00; }
@@ -105,6 +106,17 @@
   .rail code, .shelp code { font-family: 'JetBrains Mono', monospace; color: hsl(var(--amber)); }
 
   .board-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 4px 16px 80px 4px; }
+  .pages { position: sticky; top: -4px; z-index: 5; display: flex; align-items: flex-end; gap: 2px; margin: 0 0 8px 10px; border-bottom: 1px solid hsl(var(--foreground) / .1); background: hsl(var(--page)); }
+  .page-tab { display: flex; align-items: center; gap: 8px; margin-bottom: -1px; padding: 10px 14px 8px; background: none; border: 0; border-bottom: 2px solid transparent; font: 400 12px/1 'JetBrains Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: hsl(var(--muted-foreground)); cursor: pointer; white-space: nowrap; }
+  .page-tab:hover { color: hsl(var(--fg)); }
+  .page-tab.on { color: hsl(var(--fg)); border-bottom-color: hsl(var(--pri)); }
+  .page-x { opacity: 0; color: hsl(var(--muted-foreground)); }
+  .page-tab.on:hover .page-x { opacity: 1; }
+  .page-x:hover { color: hsl(var(--red)); }
+  .page-name-in { width: 220px; margin: 0 0 4px; height: 28px; padding: 0 8px; background: transparent; border: 1px solid hsl(var(--primary) / .45); color: hsl(var(--fg)); font: 400 12px 'JetBrains Mono', monospace; letter-spacing: .08em; outline: none; }
+  .pages .page-add { margin: 0 0 6px 8px; }
+  .page-empty { margin: 32px 10px; color: hsl(var(--muted-foreground)); }
+  .page-empty[hidden] { display: none; }
   #board { min-height: 100%; }
   #board { background-image: linear-gradient(90deg, hsl(var(--primary) / .025) 0 calc(100% - 20px), transparent 0); background-size: calc(100% / 12) 100%; background-position: 10px 0; }
 
@@ -668,7 +680,7 @@
   </div>
   <div class="main">
     <aside class="rail" id="rail"></aside>
-    <div class="board-wrap" id="boardWrap"><div id="board" class="grid-stack"></div></div>
+    <div class="board-wrap" id="boardWrap"><div class="pages" id="pages"></div><p class="page-empty" id="pageEmpty" hidden>Nothing on this page yet. Add a block from the left.</p><div id="board" class="grid-stack"></div></div>
   </div>
 </div>
 
@@ -2103,22 +2115,31 @@ function exampleCytotox() {
 
 const EXAMPLES = { cytotox: exampleCytotox, elisa: exampleElisa, cells: exampleCells };
 
-const blankProtocol = () => ({
-  title: 'Untitled protocol',
-  lotMemory: {},
-  steps: [],
-  blocks: [
-    materialsBlock({ x: 0, y: 0, w: 12, h: 8 }, []),
-    { id: uid(), type: 'values', title: 'Values', x: 0, y: 8, w: 6, h: 6, items: [] },
-    { id: uid(), type: 'formula', title: 'Calculations', x: 6, y: 8, w: 6, h: 6, items: [] },
-    { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 14, w: 12, h: 10 },
-  ],
-});
+function blankProtocol() {
+  const [setup, plates, takedown] = ['Setup', 'Plates & calculations', 'Takedown'].map(name => ({ id: uid(), name, steps: [] }));
+  return {
+    title: 'Untitled protocol',
+    lotMemory: {},
+    pages: [setup, plates, takedown],
+    blocks: [
+      { ...materialsBlock({ x: 0, y: 0, w: 12, h: 8 }, []), page: setup.id },
+      { id: uid(), type: 'steps', title: 'Steps', page: setup.id, x: 0, y: 8, w: 12, h: 10 },
+      { id: uid(), type: 'values', title: 'Values', page: plates.id, x: 0, y: 0, w: 6, h: 6, items: [] },
+      { id: uid(), type: 'formula', title: 'Calculations', page: plates.id, x: 6, y: 0, w: 6, h: 6, items: [] },
+    ],
+  };
+}
 
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
 }
 let state = loadState() ?? blankProtocol();
+if (!state.pages) {
+  state.pages = [{ id: uid(), name: 'Setup', steps: state.steps ?? [] }];
+  state.blocks.forEach(b => { b.page = state.pages[0].id; });
+  delete state.steps;
+}
+let activePageId = state.pages[0].id;
 state.lotMemory ??= {};
 state.keptBoth ??= [];
 state.runOn ??= { from: '', to: '' };
@@ -2220,11 +2241,17 @@ function focusEditor(el) {
   getSelection().addRange(range);
 }
 
-function stepNumbers() {
+const pageOf = id => state.pages.find(p => p.id === id);
+const pageSteps = () => pageOf(activePageId).steps;
+const allSteps = () => state.pages.flatMap(p => p.steps);
+const allStepNumbers = () => Object.assign({}, ...state.pages.map(p => stepNumbers(p.steps)));
+const onActivePage = b => b.page === activePageId;
+
+function stepNumbers(list = pageSteps()) {
   let sections = 0;
   let steps = 0;
   let subs = 0;
-  return Object.fromEntries(state.steps.map(s => {
+  return Object.fromEntries(list.map(s => {
     if (s.kind === 'section') { subs = 0; return [s.id, `${roman(++sections)}.`]; }
     if (s.level === 2) return [s.id, `${String.fromCharCode(97 + subs++)}.`];
     subs = 0;
@@ -3279,7 +3306,7 @@ function flowSvg(b, width) {
   let sections = 0;
   let pendingSection = null;
   let last = null;
-  for (const s of state.steps) {
+  for (const s of pageSteps()) {
     if (s.kind === 'section') { pendingSection = `${roman(++sections)}. ${s.text}`.toUpperCase(); continue; }
     if (s.level === 2 && last) { last.subs.push(s); continue; }
     const node = { s, num: nums[s.id], sides: [], subs: [] };
@@ -3343,33 +3370,33 @@ function flowSvg(b, width) {
 }
 
 function stepBlockEnd(i) {
-  const s = state.steps[i];
+  const s = pageSteps()[i];
   const belongs = x => (s.kind === 'section' ? x.kind !== 'section' : s.level !== 2 && x.kind === 'step' && x.level === 2);
   let end = i + 1;
-  while (end < state.steps.length && belongs(state.steps[end])) end++;
+  while (end < pageSteps().length && belongs(pageSteps()[end])) end++;
   return end;
 }
 
 function moveStepBlock(id, targetId, after) {
-  const from = state.steps.findIndex(s => s.id === id);
-  const moving = state.steps[from];
-  const block = state.steps.splice(from, stepBlockEnd(from) - from);
-  if (block.some(s => s.id === targetId)) { state.steps.splice(from, 0, ...block); return; }
-  let to = state.steps.findIndex(s => s.id === targetId);
-  if (after) to = state.steps[to].kind === 'section' && moving.kind !== 'section' ? to + 1 : stepBlockEnd(to);
-  state.steps.splice(to, 0, ...block);
+  const from = pageSteps().findIndex(s => s.id === id);
+  const moving = pageSteps()[from];
+  const block = pageSteps().splice(from, stepBlockEnd(from) - from);
+  if (block.some(s => s.id === targetId)) { pageSteps().splice(from, 0, ...block); return; }
+  let to = pageSteps().findIndex(s => s.id === targetId);
+  if (after) to = pageSteps()[to].kind === 'section' && moving.kind !== 'section' ? to + 1 : stepBlockEnd(to);
+  pageSteps().splice(to, 0, ...block);
 }
 
 const sameRank = (other, s) => (s.kind === 'section' ? other.kind === 'section' : s.level === 2 || other.kind === 'section' || other.level !== 2);
 
 function moveStepUp(i) {
-  const s = state.steps[i];
-  for (let j = i - 1; j >= 0; j--) if (sameRank(state.steps[j], s)) { moveStepBlock(s.id, state.steps[j].id, false); return; }
+  const s = pageSteps()[i];
+  for (let j = i - 1; j >= 0; j--) if (sameRank(pageSteps()[j], s)) { moveStepBlock(s.id, pageSteps()[j].id, false); return; }
 }
 
 function moveStepDown(i) {
-  const s = state.steps[i];
-  for (let j = stepBlockEnd(i); j < state.steps.length; j++) if (sameRank(state.steps[j], s)) { moveStepBlock(s.id, state.steps[j].id, true); return; }
+  const s = pageSteps()[i];
+  for (let j = stepBlockEnd(i); j < pageSteps().length; j++) if (sameRank(pageSteps()[j], s)) { moveStepBlock(s.id, pageSteps()[j].id, true); return; }
 }
 
 let stepDrag = null;
@@ -3476,7 +3503,7 @@ function phraseAt(text, start) {
 }
 
 function readSteps() {
-  const nums = stepNumbers();
+  const nums = allStepNumbers();
   const onBoard = new Map(boardMaterials().map(item => [normKey(item.name), item]));
   const materials = new Map();
   const values = new Map();
@@ -3497,7 +3524,7 @@ function readSteps() {
     if (materialUse) entry.materialUses.push(materialUse);
     values.set(key, entry);
   };
-  for (const s of state.steps.filter(x => x.kind === 'step')) {
+  for (const s of allSteps().filter(x => x.kind === 'step')) {
     const text = s.text ?? '';
     const locked = [...text.matchAll(/\{[^}]+\}|‹[^›]*›/g)].map(m => [m.index, m.index + m[0].length]);
     const isLocked = i => locked.some(([a, b]) => i >= a && i < b);
@@ -3568,7 +3595,7 @@ function acceptReadings(readings) {
   }
   const unique = [...new Map(edits.map(e => [`${e.step}:${e.start}`, e])).values()].sort((x, y) => y.start - x.start);
   for (const e of unique) {
-    const step = state.steps.find(x => x.id === e.step);
+    const step = allSteps().find(x => x.id === e.step);
     step.text = step.text.slice(0, e.start) + e.text + step.text.slice(e.end);
   }
   save();
@@ -4007,9 +4034,9 @@ function commitMaterials(b, rows) {
 }
 
 function stepLabels() {
-  const numbers = stepNumbers();
+  const numbers = allStepNumbers();
   let parent = '';
-  return Object.fromEntries(state.steps.filter(s => s.kind === 'step').map(s => {
+  return Object.fromEntries(allSteps().filter(s => s.kind === 'step').map(s => {
     const own = numbers[s.id].replace('.', '');
     if (s.level !== 2) parent = own;
     return [s.id, s.level === 2 ? `${parent}${own}` : own];
@@ -4026,7 +4053,7 @@ function itemUsage(b, idList = b.items.map(i => i.id)) {
   }
   const usage = new Map(idList.map(id => [id, { steps: [], formulas: 0 }]));
   const labels = stepLabels();
-  for (const step of state.steps.filter(x => x.kind === 'step')) {
+  for (const step of allSteps().filter(x => x.kind === 'step')) {
     for (const [, ref] of String(step.text).matchAll(/\{([^}]+)\}/g)) {
       const use = usage.get(owner.get(ref.trim().toLowerCase()));
       if (use && !use.steps.includes(labels[step.id])) use.steps.push(labels[step.id]);
@@ -4127,9 +4154,9 @@ function runOnText() {
 const EXPORT_CORE_KEYS = new Set(['vendor', 'catalog', 'lot', 'expires', 'storage', 'notes', 'hazard']);
 const blankLine = '<span class="ex-blank"></span>';
 
-function exportMaterials() {
+function exportMaterials(page) {
   const places = new Map();
-  for (const b of state.blocks.filter(x => x.type === 'materials')) {
+  for (const b of state.blocks.filter(x => x.page === page.id && x.type === 'materials')) {
     for (const item of b.items.filter(i => i.name.trim() && !i.dropped)) {
       const equipment = PULL_SKIP_GROUPS.has(item.group);
       const storage = String(item.values.storage ?? '').trim();
@@ -4150,10 +4177,10 @@ function exportMaterials() {
 
 const exportAmount = it => (String(it.value).trim() ? esc(displayOf(it, it.value)) : `${blankLine}${it.unit && !['1:N', 'N:N'].includes(it.unit) ? ` ${esc(it.unit)}` : ''}`);
 
-function exportValues() {
+function exportValues(page) {
   const row = (label, shown) => `<tr><td>${esc(label)}</td><td class="ex-num">${shown}</td></tr>`;
   const table = rows => (rows ? `<table class="ex-kv"><tbody>${rows}</tbody></table>` : '');
-  const html = state.blocks.filter(b => b.type === 'values').map(b => {
+  const html = state.blocks.filter(b => b.page === page.id && b.type === 'values').map(b => {
     const rowsOf = sectionId => sectionPeers(b, sectionId).map(it => {
       const shown = it.link ? linkedValue(b, it) : it;
       return shown && (it.link || it.name.trim()) ? row(it.link ? shown.label : it.name, exportAmount(shown)) : '';
@@ -4170,8 +4197,8 @@ function exportValues() {
   return html ? `<h2>Values</h2>${html}` : '';
 }
 
-function exportFormulas() {
-  const items = state.blocks.filter(b => b.type === 'formula').flatMap(b => b.items);
+function exportFormulas(page) {
+  const items = state.blocks.filter(b => b.page === page.id && b.type === 'formula').flatMap(b => b.items);
   if (!items.length) return '';
   const rows = items.map(it => {
     const r = calc.results.get(it.id);
@@ -4182,13 +4209,13 @@ function exportFormulas() {
   return `<h2>Calculations</h2><table class="ex-kv"><tbody>${rows}</tbody></table>`;
 }
 
-function exportSteps() {
-  if (!state.steps.some(st => st.kind === 'step')) return '';
-  const nums = stepNumbers();
+function exportSteps(page) {
+  if (!page.steps.some(st => st.kind === 'step')) return '';
+  const nums = stepNumbers(page.steps);
   let html = '';
   let open = false;
   let lastMain = '';
-  for (const st of state.steps) {
+  for (const st of page.steps) {
     if (st.kind === 'section') {
       if (open) html += '</ol>';
       html += `<h3>${esc(nums[st.id])} ${esc(st.text)}</h3><ol class="ex-steps">`;
@@ -4206,8 +4233,8 @@ function exportSteps() {
   return `<h2>Steps</h2>${html}${open ? '</ol>' : ''}`;
 }
 
-function exportTables() {
-  return state.blocks.filter(b => b.type === 'list' && b.items.length).map(b => {
+function exportTables(page) {
+  return state.blocks.filter(b => b.page === page.id && b.type === 'list' && b.items.length).map(b => {
     const columns = b.columns.filter((c, i) => i === 0 || !c.hidden);
     const cell = (row, c) => {
       const raw = String(row.cells[c.id] ?? '').trim();
@@ -4217,14 +4244,18 @@ function exportTables() {
   }).join('');
 }
 
-function exportNotes() {
-  const written = state.blocks.filter(b => b.type === 'text' && b.html.replace(/<[^>]+>/g, '').trim()).map(b => `<div class="ex-text">${b.html}</div>`).join('');
-  return `<h2>Notes</h2>${written}<div class="ex-lines">${'<div></div>'.repeat(6)}</div>`;
+function exportNotes(page) {
+  const written = state.blocks.filter(b => b.page === page.id && b.type === 'text' && b.html.replace(/<[^>]+>/g, '').trim()).map(b => `<div class="ex-text">${b.html}</div>`).join('');
+  return written ? `<h2>Notes</h2>${written}` : '';
 }
+
+const EXPORT_PARTS = [exportMaterials, exportValues, exportFormulas, exportSteps, exportTables, exportNotes];
 
 function exportHtml() {
   const when = runOnText();
-  return `<h1>${esc(state.title)}</h1><div class="ex-id">${esc(experimentId())}</div><div class="ex-when${when ? '' : ' planned'}">${esc(when ?? 'Planned · not yet run')}</div>${exportMaterials()}${exportValues()}${exportFormulas()}${exportSteps()}${exportTables()}${exportNotes()}<div class="ex-foot">Exported ${esc(dayLabel(TODAY_ISO))} from Odysseus Workbench</div>`;
+  const pages = state.pages.map(page => ({ page, html: EXPORT_PARTS.map(part => part(page)).join('') })).filter(p => p.html);
+  const body = pages.map(({ page, html }) => (pages.length > 1 ? `<div class="ex-part">${esc(page.name)}</div>` : '') + html).join('');
+  return `<h1>${esc(state.title)}</h1><div class="ex-id">${esc(experimentId())}</div><div class="ex-when${when ? '' : ' planned'}">${esc(when ?? 'Planned · not yet run')}</div>${body}<h2>Bench notes</h2><div class="ex-lines">${'<div></div>'.repeat(6)}</div><div class="ex-foot">Exported ${esc(dayLabel(TODAY_ISO))} from Odysseus Workbench</div>`;
 }
 
 function kindSelect(b, group, type, cls) {
@@ -5472,13 +5503,13 @@ const TYPES = {
       const tools = '<span class="tools"><button data-act="up" title="Move up">↑</button><button data-act="down" title="Move down">↓</button><button data-act="del" title="Remove">×</button></span>';
       const grip = '<span class="grip" title="Drag to move">⠿</span>';
       const groups = [];
-      for (const s of state.steps) {
+      for (const s of pageSteps()) {
         if (s.kind === 'section' || !groups.length) groups.push({ section: s.kind === 'section' ? s : null, steps: [] });
         if (s.kind === 'step') groups[groups.length - 1].steps.push(s);
       }
       const mainBefore = {};
       let lastMain = null;
-      for (const s of state.steps) {
+      for (const s of pageSteps()) {
         if (s.kind !== 'step' || s.level === 2) continue;
         mainBefore[s.id] = lastMain;
         if (!s.meanwhile) lastMain = nums[s.id].replace('.', '');
@@ -5519,7 +5550,7 @@ const TYPES = {
       if (act === 'step' || act === 'section') {
         e.preventDefault();
         const s = act === 'step' ? { id: uid(), kind: 'step', level: 1, text: '', meanwhile: false } : { id: uid(), kind: 'section', text: 'New section' };
-        state.steps.push(s);
+        pageSteps().push(s);
         editingStepId = act === 'step' ? s.id : null;
         commitSteps();
         const added = bodyOf(b).querySelector(`[data-step="${s.id}"]`);
@@ -5528,13 +5559,13 @@ const TYPES = {
         return;
       }
       if (!rowEl) return;
-      const i = state.steps.findIndex(s => s.id === rowEl.dataset.step);
-      const s = state.steps[i];
+      const i = pageSteps().findIndex(s => s.id === rowEl.dataset.step);
+      const s = pageSteps()[i];
       if (act) {
         e.preventDefault();
         if (act === 'up') moveStepUp(i);
         if (act === 'down') moveStepDown(i);
-        if (act === 'del') state.steps.splice(i, 1);
+        if (act === 'del') pageSteps().splice(i, 1);
         commitSteps();
         return;
       }
@@ -5546,7 +5577,7 @@ const TYPES = {
       }
     },
     onInput(b, e) {
-      const s = state.steps.find(x => x.id === e.target.closest('[data-step]')?.dataset.step);
+      const s = pageSteps().find(x => x.id === e.target.closest('[data-step]')?.dataset.step);
       if (!s) return;
       if (e.target.matches('.stext')) s.text = e.target.value;
       if (e.target.matches('.sedit')) s.text = serializeEditor(e.target);
@@ -5557,7 +5588,7 @@ const TYPES = {
     },
     onChange(b, e) {
       if (!e.target.matches('.smw, .ssub')) return;
-      const s = state.steps.find(x => x.id === e.target.closest('[data-step]').dataset.step);
+      const s = pageSteps().find(x => x.id === e.target.closest('[data-step]').dataset.step);
       if (e.target.matches('.smw')) s.meanwhile = e.target.checked; else s.level = e.target.checked ? 2 : 1;
       commitSteps();
       bodyOf(b).querySelector(`[data-step="${s.id}"] .${e.target.classList.contains('smw') ? 'smw' : 'ssub'}`).focus();
@@ -6231,6 +6262,7 @@ function blockTitle(b) {
 function renderBlock(b) {
   const T = TYPES[b.type];
   const body = bodyOf(b);
+  if (!body) return;
   const head = body.parentElement;
   head.querySelector('.blk-title').textContent = blockTitle(b);
   head.querySelector('.blk-kind').textContent = b.title === T.label ? '' : T.label;
@@ -6270,11 +6302,12 @@ function toggleFold(b) {
 function addBlock(type, preset) {
   const T = TYPES[type];
   const [w, h] = T.size;
-  const b = { id: uid(), type, title: T.label, x: 0, y: Math.max(0, ...state.blocks.map(x => x.y + x.h)), w, h, ...T.make(preset) };
+  const b = { id: uid(), type, title: T.label, page: activePageId, x: 0, y: Math.max(0, ...state.blocks.filter(onActivePage).map(x => x.y + x.h)), w, h, ...T.make(preset) };
   state.blocks.push(b);
   mountBlock(b);
   save();
   refresh();
+  showPageTabs();
   const wrap = document.getElementById('boardWrap');
   wrap.scrollTo({ top: wrap.scrollHeight, behavior: 'smooth' });
   return b;
@@ -6286,6 +6319,7 @@ function removeBlock(b) {
   state.blocks = state.blocks.filter(x => x.id !== b.id);
   save();
   refresh();
+  showPageTabs();
 }
 
 const knownNames = new Map();
@@ -6327,7 +6361,7 @@ function carryRenames() {
   state.blocks.filter(b => b.type === 'plate').forEach(b => Object.values(b.series).forEach(series => {
     for (const part of ['start', 'fold']) if (renamed.has(String(series[part]).trim().toLowerCase())) series[part] = renamed.get(String(series[part]).trim().toLowerCase());
   }));
-  state.steps.forEach(step => { step.text = String(step.text ?? '').replace(/\{([^}]+)\}/g, (whole, ref) => (renamed.has(ref.trim().toLowerCase()) ? `{${renamed.get(ref.trim().toLowerCase())}}` : whole)); });
+  allSteps().forEach(step => { step.text = String(step.text ?? '').replace(/\{([^}]+)\}/g, (whole, ref) => (renamed.has(ref.trim().toLowerCase()) ? `{${renamed.get(ref.trim().toLowerCase())}}` : whole)); });
   return true;
 }
 
@@ -6364,7 +6398,7 @@ function refresh() {
   }
   for (const e of calc.names.values()) knownNames.set(e.id, e.name);
   for (const label of plateLabels()) knownLabels.set(label.id, label.text);
-  state.blocks.forEach(b => TYPES[b.type].update?.(b, bodyOf(b)));
+  state.blocks.filter(onActivePage).forEach(b => TYPES[b.type].update?.(b, bodyOf(b)));
 }
 
 const RAIL = [
@@ -6492,7 +6526,8 @@ function replaceBoard(protocol, name) {
 function readProtocol(text, name) {
   try {
     const file = JSON.parse(text);
-    if (file?.format === FILE_FORMAT && Array.isArray(file.protocol?.blocks) && Array.isArray(file.protocol?.steps)) return file.protocol;
+    const protocol = file?.format === FILE_FORMAT ? file.protocol : undefined;
+    if (Array.isArray(protocol?.blocks) && (Array.isArray(protocol.pages) || Array.isArray(protocol.steps))) return protocol;
   } catch {}
   alert(`${name} is not a Workbench protocol file.`);
   return null;
@@ -6865,7 +6900,7 @@ pasteText.addEventListener('input', renderPastePreview);
 document.getElementById('pasteExample').addEventListener('click', () => { pasteText.value = PASTE_EXAMPLE; renderPastePreview(); });
 document.getElementById('pasteCancel').addEventListener('click', () => { pasteModal.hidden = true; });
 pasteAdd.addEventListener('click', () => {
-  state.steps.push(...pasteItems.map(item => ({ id: uid(), ...item })));
+  pageSteps().push(...pasteItems.map(item => ({ id: uid(), ...item })));
   pasteModal.hidden = true;
   commitSteps();
 });
@@ -6883,11 +6918,95 @@ grid.on('change', (e, items) => {
   save();
 });
 
+const pagesBar = document.getElementById('pages');
+let renamingPageId = null;
+
+function showPageTabs() {
+  const canDelete = state.pages.length > 1;
+  pagesBar.innerHTML = state.pages.map(p => (p.id === renamingPageId
+    ? `<input class="page-name-in" data-page="${p.id}" value="${esc(p.name)}" spellcheck="false" />`
+    : `<button class="page-tab${p.id === activePageId ? ' on' : ''}" data-page="${p.id}" title="Double-click or F2 to rename">${esc(p.name || 'Untitled page')}${canDelete && p.id === activePageId ? '<span class="page-x" data-act="del-page" title="Delete this page">×</span>' : ''}</button>`)).join('')
+    + '<button class="lnk page-add" data-act="add-page">+ Page</button>';
+  document.getElementById('pageEmpty').hidden = state.blocks.some(onActivePage);
+  const input = pagesBar.querySelector('.page-name-in');
+  input?.focus();
+  input?.select();
+}
+
+function showPage(id) {
+  activePageId = id;
+  resizeObserver.disconnect();
+  grid.removeAll();
+  grid.batchUpdate();
+  state.blocks.filter(onActivePage).forEach(mountBlock);
+  grid.batchUpdate(false);
+  refresh();
+  showPageTabs();
+  document.getElementById('boardWrap').scrollTop = 0;
+}
+
+function finishPageRename(input, keep) {
+  if (renamingPageId !== input.dataset.page) return;
+  if (keep && input.value.trim()) pageOf(renamingPageId).name = input.value.trim();
+  renamingPageId = null;
+  showPageTabs();
+  save();
+}
+
+function deletePage(id) {
+  const page = pageOf(id);
+  const blocks = state.blocks.filter(b => b.page === id).length;
+  const what = blocks ? ` and the ${blocks} block${blocks === 1 ? '' : 's'} on it` : '';
+  if ((blocks || page.steps.length) && !confirm(`Delete the “${page.name}” page${what}?`)) return;
+  const index = state.pages.indexOf(page);
+  state.blocks = state.blocks.filter(b => b.page !== id);
+  state.pages.splice(index, 1);
+  showPage(state.pages[Math.max(0, index - 1)].id);
+  save();
+}
+
+pagesBar.addEventListener('click', e => {
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (act === 'del-page') {
+    deletePage(activePageId);
+    return;
+  }
+  if (act === 'add-page') {
+    const page = { id: uid(), name: `Page ${state.pages.length + 1}`, steps: [] };
+    state.pages.push(page);
+    renamingPageId = page.id;
+    showPage(page.id);
+    save();
+    return;
+  }
+  const tab = e.target.closest('.page-tab');
+  if (tab && tab.dataset.page !== activePageId) showPage(tab.dataset.page);
+});
+pagesBar.addEventListener('dblclick', e => {
+  const tab = e.target.closest('.page-tab');
+  if (!tab) return;
+  renamingPageId = tab.dataset.page;
+  showPageTabs();
+});
+pagesBar.addEventListener('keydown', e => {
+  const tab = e.target.closest('.page-tab');
+  if (tab && e.key === 'F2') {
+    e.preventDefault();
+    renamingPageId = tab.dataset.page;
+    showPageTabs();
+  }
+  if (!e.target.matches('.page-name-in')) return;
+  if (e.key === 'Enter') finishPageRename(e.target, true);
+  else if (e.key === 'Escape') finishPageRename(e.target, false);
+});
+pagesBar.addEventListener('focusout', e => { if (e.target.matches('.page-name-in')) finishPageRename(e.target, true); });
+
 recompute();
 grid.batchUpdate();
-state.blocks.forEach(mountBlock);
+state.blocks.filter(onActivePage).forEach(mountBlock);
 grid.batchUpdate(false);
 refresh();
+showPageTabs();
 if (fileMeta.fresh) writeMeta({ saved: JSON.stringify(state), fresh: false });
 showFileState();
 </script>

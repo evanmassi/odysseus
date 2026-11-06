@@ -34,7 +34,12 @@ title and warn on close, and browser storage keeps a recovery copy. Firefox fall
 and upload. The bundle swaps in its own fixed storage keys so the study and the tool never share data.
 The file name is the experiment's identity: `YYYYMMDD_Assay_Descriptor_R#` (planned run date, today
 until set; title CamelCased; descriptor and run number optional), shown under the title, suggested on
-save, and printed in the export header. The title stays the plain assay name. To iterate, open the
+save, and printed in the export header. The title stays the plain assay name.
+An experiment has pages, mirroring Evan's Excel sheets (new files start with Setup, Plates &
+calculations, Takedown). Each page is its own board with its own steps, numbered from 1; values and
+formulas share one set of names across pages; the export prints the pages in order. Files from before
+pages open as a single Setup page. The file is his full personal record; what goes to Benchling is
+chosen at export (not built yet). To iterate, open the
 source file directly and press F5; rebuild only for a copy to take to work.
 **Saved files must keep opening:** when the state shape changes, add an upgrade to the load block
 (`state.blocks.forEach(...)` after `loadState()`) instead of relying on a new storage key. The export
