@@ -13,6 +13,7 @@
     "build:shared": "npm --workspace @odysseus/shared-schemas run build",
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",
+    "build:workbench": "node scripts/build-workbench.mjs",
     "pretest": "npm run build:shared",
     "test": "npm run test:server && npm run test:client",
     "test:server": "cd server && npm test",

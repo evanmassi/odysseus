@@ -25,6 +25,17 @@ killing assay, the IL-6 ELISA or the cell viability assay. It is styled from mai
 primitives (soft `ConsolePanel` cards, `PanelHeader`, `Subsection`, `Table`, `Button`, `Input`,
 `Chip`) and follows the readability recipe (`docs/reports/UI_READABILITY_PASS.md`).
 
+**The working tool (2026-11-05).** Until the in-app build, Evan plans real experiments in the mockup
+itself. `npm run build:workbench` bundles it into one offline file, `docs/mockups/dist/workbench.html`
+(git-ignored; fonts, styles and gridstack inlined), which he copies to his work laptop and opens in
+Chrome. It saves Excel-style: each protocol is a `.json` file (`format: odysseus-workbench-protocol`),
+Ctrl+S writes it in place, Ctrl+Shift+S saves as, Open lists recent files, unsaved changes show in the
+title and warn on close, and browser storage keeps a recovery copy. Firefox falls back to download
+and upload. The bundle swaps in its own fixed storage keys so the study and the tool never share data.
+**Saved files must keep opening:** when the state shape changes, add an upgrade to the load block
+(`state.blocks.forEach(...)` after `loadState()`) instead of relying on a new storage key. The export
+is the notebook record: it must let someone repeat the experiment without Evan there.
+
 **Panel review status.** Going block by block, deciding what each needs:
 
 | Block        | Status                                                                                                                                                                                                                   |

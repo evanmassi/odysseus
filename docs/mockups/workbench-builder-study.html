@@ -23,6 +23,10 @@
   .top .rule { width: 1px; height: 18px; margin: 0 6px; background: hsl(var(--foreground) / .2); }
   .top .sq { width: 3px; height: 3px; background: hsl(var(--primary)); box-shadow: 0 0 6px hsl(var(--primary) / calc(.7 * var(--lit))); }
   .top .crumb { text-transform: uppercase; font-size: 12px; letter-spacing: .2em; color: hsl(var(--fg)); }
+  .top .file { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .top .file-name { font-size: 13px; color: hsl(var(--fg)); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top .file-state { font-size: 13px; margin-right: 12px; color: hsl(var(--muted-foreground)); }
+  .top .file-state.dirty { color: hsl(var(--amber)); }
 
   .bar { flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 16px 24px 6px; flex-wrap: wrap; }
   .bar .title { font: 400 26px/1.1 'Hanken Grotesk', sans-serif; letter-spacing: -.015em; background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 6px; width: 340px; }
@@ -632,7 +636,7 @@
 <body>
 <div class="export" id="exportView" hidden><div class="ex-bar"><button class="lnk" id="exportClose">Back to editing</button><button class="add primary" id="exportPrint">Print or save as PDF</button></div><div class="ex-page" id="exportPage"></div></div>
 <div class="app">
-  <div class="top"><span class="logo">ODYSSEUS</span><span class="rule"></span><span class="crumb">Workbench</span><span class="sq"></span><span class="crumb">Protocol builder</span></div>
+  <div class="top"><span class="logo">ODYSSEUS</span><span class="rule"></span><span class="crumb">Workbench</span><span class="sq"></span><span class="crumb">Protocol builder</span><span class="file"><span class="file-name" id="fileName"></span><span class="file-state" id="fileState"></span><button class="lnk" id="fileNew">New</button><select class="lnk" id="fileOpen"><option value="">Open…</option></select><button class="lnk" id="fileSave" title="Ctrl+S · Ctrl+Shift+S to save as">Save</button><input type="file" id="fileInput" accept=".json,application/json" hidden /></span></div>
   <div class="bar">
     <input class="title" id="title" spellcheck="false" />
     <span class="runon">Run on<input class="in" type="date" id="runFrom" />to<input class="in" type="date" id="runTo" /></span>
@@ -2077,6 +2081,18 @@ function exampleCytotox() {
 
 const EXAMPLES = { cytotox: exampleCytotox, elisa: exampleElisa, cells: exampleCells };
 
+const blankProtocol = () => ({
+  title: 'Untitled protocol',
+  lotMemory: {},
+  steps: [],
+  blocks: [
+    materialsBlock({ x: 0, y: 0, w: 12, h: 8 }, []),
+    { id: uid(), type: 'values', title: 'Values', x: 0, y: 8, w: 6, h: 6, items: [] },
+    { id: uid(), type: 'formula', title: 'Calculations', x: 6, y: 8, w: 6, h: 6, items: [] },
+    { id: uid(), type: 'steps', title: 'Steps', x: 0, y: 14, w: 12, h: 10 },
+  ],
+});
+
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
 }
@@ -2141,6 +2157,7 @@ function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       localStorage.setItem(LAB_MEMORY_KEY, JSON.stringify(labMemory));
     } catch {}
+    afterAutosave();
   }, 250);
 }
 
@@ -6360,14 +6377,189 @@ runTo.value = state.runOn.to;
   state.runOn = { from: runFrom.value, to: runTo.value };
   save();
 }));
+const FILE_META_KEY = `${STORAGE_KEY}-file`;
+const FILE_FORMAT = 'odysseus-workbench-protocol';
+const FILE_TYPES = [{ description: 'Workbench protocol', accept: { 'application/json': ['.json'] } }];
+const RECENT_LIMIT = 8;
+const canWriteFiles = 'showSaveFilePicker' in window;
+const fileMeta = (() => { try { return JSON.parse(localStorage.getItem(FILE_META_KEY)); } catch { return null; } })() ?? { name: '', saved: '', fresh: true };
+let recentFiles = [];
+let isLeaving = false;
+let isSettling = fileMeta.fresh;
+
+const handleStore = (() => {
+  const open = () => new Promise((resolve, reject) => {
+    const req = indexedDB.open(FILE_META_KEY, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  const run = (mode, act) => open().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', mode);
+    const req = act(tx.objectStore('handles'));
+    tx.oncomplete = () => resolve(req.result);
+    tx.onerror = () => reject(tx.error);
+  }));
+  return {
+    get: key => (canWriteFiles ? run('readonly', s => s.get(key)) : Promise.resolve(undefined)),
+    set: (key, value) => (canWriteFiles ? run('readwrite', s => s.put(value, key)) : Promise.resolve()),
+  };
+})();
+
+const isDirty = () => JSON.stringify(state) !== fileMeta.saved;
+
+function writeMeta(next) {
+  Object.assign(fileMeta, next);
+  try { localStorage.setItem(FILE_META_KEY, JSON.stringify(fileMeta)); } catch {}
+}
+
+function showFileState() {
+  const dirty = isDirty();
+  const fileState = document.getElementById('fileState');
+  document.getElementById('fileName').textContent = fileMeta.name;
+  fileState.textContent = dirty ? 'Unsaved changes' : fileMeta.name ? 'Saved' : 'Not saved to a file';
+  fileState.classList.toggle('dirty', dirty);
+  document.title = `${dirty ? '• ' : ''}${fileMeta.name || state.title || 'Untitled protocol'} · Workbench`;
+}
+
+function afterAutosave() {
+  if (isSettling) writeMeta({ saved: JSON.stringify(state) });
+  showFileState();
+}
+
+const okToDiscard = () => !isDirty() || confirm('This protocol has unsaved changes. Discard them?');
+
+function replaceBoard(protocol, name) {
+  clearTimeout(saveTimer);
+  isLeaving = true;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(protocol)); } catch {}
+  writeMeta({ name, saved: '', fresh: true });
+  location.reload();
+}
+
+function readProtocol(text, name) {
+  try {
+    const file = JSON.parse(text);
+    if (file?.format === FILE_FORMAT && Array.isArray(file.protocol?.blocks) && Array.isArray(file.protocol?.steps)) return file.protocol;
+  } catch {}
+  alert(`${name} is not a Workbench protocol file.`);
+  return null;
+}
+
+const fileText = () => JSON.stringify({ format: FILE_FORMAT, version: 1, savedAt: new Date().toISOString(), protocol: state }, null, 2);
+const suggestedFileName = () => `${(state.title.trim() || 'Untitled protocol').replace(/[\\/:*?"<>|]+/g, '-')}.json`;
+
+async function hasPermission(handle, mode) {
+  return (await handle.queryPermission({ mode })) === 'granted' || (await handle.requestPermission({ mode })) === 'granted';
+}
+
+async function rememberFile(handle) {
+  const others = [];
+  for (const recent of recentFiles) if (!(await recent.isSameEntry(handle))) others.push(recent);
+  recentFiles = [handle, ...others].slice(0, RECENT_LIMIT);
+  await handleStore.set('recent', recentFiles);
+  await handleStore.set('current', handle);
+  renderOpenMenu();
+}
+
+function renderOpenMenu() {
+  const recent = recentFiles.length ? `<optgroup label="Recent">${recentFiles.map((h, i) => `<option value="${i}">${esc(h.name)}</option>`).join('')}</optgroup>` : '';
+  document.getElementById('fileOpen').innerHTML = `<option value="">Open…</option><option value="pick">Open a file…</option>${recent}`;
+}
+
+async function openHandle(handle) {
+  if (!(await hasPermission(handle, 'read'))) return;
+  const protocol = readProtocol(await (await handle.getFile()).text(), handle.name);
+  if (!protocol || !okToDiscard()) return;
+  await rememberFile(handle);
+  replaceBoard(protocol, handle.name);
+}
+
+async function openProtocol(recentIndex) {
+  if (!canWriteFiles) {
+    document.getElementById('fileInput').click();
+    return;
+  }
+  try {
+    const handle = recentIndex === undefined ? (await showOpenFilePicker({ types: FILE_TYPES }))[0] : recentFiles[recentIndex];
+    await openHandle(handle);
+  } catch (err) {
+    if (err.name !== 'AbortError') alert(`Could not open the file: ${err.message}`);
+  }
+}
+
+async function writeHandle(handle) {
+  if (!(await hasPermission(handle, 'readwrite'))) return;
+  const saved = JSON.stringify(state);
+  const writable = await handle.createWritable();
+  await writable.write(fileText());
+  await writable.close();
+  writeMeta({ name: handle.name, saved });
+  showFileState();
+}
+
+function downloadProtocol() {
+  const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([fileText()], { type: 'application/json' })), download: suggestedFileName() });
+  link.click();
+  URL.revokeObjectURL(link.href);
+  writeMeta({ name: link.download, saved: JSON.stringify(state) });
+  showFileState();
+}
+
+async function saveProtocol(asNew) {
+  document.activeElement?.blur?.();
+  if (!canWriteFiles) {
+    downloadProtocol();
+    return;
+  }
+  try {
+    const current = asNew ? undefined : await handleStore.get('current');
+    const handle = current ?? await showSaveFilePicker({ suggestedName: suggestedFileName(), types: FILE_TYPES });
+    await writeHandle(handle);
+    if (!current) await rememberFile(handle);
+  } catch (err) {
+    if (err.name !== 'AbortError') alert(`Could not save: ${err.message}. Try Save as (Ctrl+Shift+S).`);
+  }
+}
+
+async function startOver(protocol) {
+  if (!okToDiscard()) return;
+  await handleStore.set('current', undefined);
+  replaceBoard(protocol, '');
+}
+
 document.getElementById('example').addEventListener('change', e => {
   const key = e.target.value;
   e.target.value = '';
-  if (!key || !confirm('Replace this board with the example? Changes here are lost.')) return;
-  clearTimeout(saveTimer);
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(EXAMPLES[key]())); } catch {}
-  location.reload();
+  if (key) startOver(EXAMPLES[key]());
 });
+document.getElementById('fileNew').addEventListener('click', () => startOver(blankProtocol()));
+document.getElementById('fileSave').addEventListener('click', () => saveProtocol(false));
+document.getElementById('fileOpen').addEventListener('change', e => {
+  const choice = e.target.value;
+  e.target.value = '';
+  if (choice) openProtocol(choice === 'pick' ? undefined : +choice);
+});
+document.getElementById('fileInput').addEventListener('change', async e => {
+  const [file] = e.target.files;
+  e.target.value = '';
+  const protocol = file && readProtocol(await file.text(), file.name);
+  if (protocol && okToDiscard()) replaceBoard(protocol, file.name);
+});
+document.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  const key = e.key.toLowerCase();
+  if (key === 's') {
+    e.preventDefault();
+    saveProtocol(e.shiftKey);
+  } else if (key === 'o' && !e.shiftKey) {
+    e.preventDefault();
+    openProtocol();
+  }
+});
+['pointerdown', 'keydown'].forEach(type => document.addEventListener(type, () => { isSettling = false; }, { capture: true, once: true }));
+window.addEventListener('beforeunload', e => { if (!isLeaving && isDirty()) e.preventDefault(); });
+handleStore.get('recent').then(list => { recentFiles = list ?? []; renderOpenMenu(); }).catch(() => renderOpenMenu());
 
 const board = document.getElementById('board');
 const selectPanel = Object.assign(document.createElement('div'), { className: 'sel-panel', hidden: true });
@@ -6643,6 +6835,8 @@ grid.batchUpdate();
 state.blocks.forEach(mountBlock);
 grid.batchUpdate(false);
 refresh();
+if (fileMeta.fresh) writeMeta({ saved: JSON.stringify(state), fresh: false });
+showFileState();
 </script>
 </body>
 </html>
