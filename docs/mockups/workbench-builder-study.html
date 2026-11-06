@@ -23,22 +23,38 @@
   .top .rule { width: 1px; height: 18px; margin: 0 6px; background: hsl(var(--foreground) / .2); }
   .top .sq { width: 3px; height: 3px; background: hsl(var(--primary)); box-shadow: 0 0 6px hsl(var(--primary) / calc(.7 * var(--lit))); }
   .top .crumb { text-transform: uppercase; font-size: 12px; letter-spacing: .2em; color: hsl(var(--fg)); }
-  .top .file { margin-left: auto; display: flex; align-items: center; gap: 4px; }
-  .top .file-name { font-size: 13px; color: hsl(var(--fg)); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .top .file-state { font-size: 13px; margin-right: 12px; color: hsl(var(--muted-foreground)); }
-  .top .file-state.dirty { color: hsl(var(--amber)); }
+  .top { display: grid; grid-template-columns: 1fr minmax(0, max-content) 1fr; gap: 24px; }
+  .top-crumbs { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .top .file { justify-self: end; display: flex; align-items: center; gap: 4px; }
+  .top #fileOpen { width: 88px; }
+  .top .file-doc { min-width: 0; display: flex; align-items: center; gap: 12px; }
+  .top .file-name { min-width: 0; font: 400 15px/1 'Hanken Grotesk', sans-serif; color: hsl(var(--fg)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip { --tone: var(--muted-foreground); display: inline-flex; align-items: stretch; flex-shrink: 0; height: 20px; border: 1px solid hsl(var(--tone) / .45); background: hsl(var(--tone) / .06); color: hsl(var(--tone)); font: 400 11px/1 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 12px -4px hsl(var(--tone) / calc(.5 * var(--lit))); }
+  .chip-lead { display: flex; align-items: center; padding: 0 6px; background: hsl(var(--tone) / .14); }
+  .chip-lead svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .chip-dot { width: 3px; height: 3px; background: currentColor; box-shadow: 0 0 6px 1px color-mix(in srgb, currentColor calc(70% * var(--lit)), transparent); }
+  .chip-label { display: flex; align-items: center; padding: 0 9px 0 7px; }
+  .chip.saved { --tone: var(--green); }
+  .chip.dirty { --tone: var(--amber); }
 
   .bar { flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 16px 24px 6px; flex-wrap: wrap; }
   .bar .title { font: 400 26px/1.1 'Hanken Grotesk', sans-serif; letter-spacing: -.015em; background: transparent; border: 1px solid transparent; color: hsl(var(--fg)); padding: 2px 6px; width: 340px; }
   .bar .title:hover, .bar .title:focus { border-color: hsl(var(--line-soft)); outline: none; }
   .runon { display: flex; align-items: center; gap: 8px; font-size: 13px; color: hsl(var(--muted-foreground)); }
   .runon .in { width: auto; height: 30px; font-size: 13px; color-scheme: dark; }
-  .hintbar { font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .runon .ident-descriptor { width: 150px; }
+  .runon .ident-run { width: 52px; }
+  .titleblock { display: flex; flex-direction: column; gap: 4px; }
+  .bar .ident { padding-left: 7px; font: 400 14px/1.2 'JetBrains Mono', monospace; letter-spacing: .02em; color: hsl(var(--muted-foreground)); user-select: all; }
+  .bar-end { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .top .file-rename { color: hsl(var(--amber)); padding: 0 4px; }
+  .top .file-rename[hidden] { display: none; }
   .export { position: fixed; inset: 0; z-index: 50; overflow: auto; background: hsl(var(--page) / .97); }
   .export[hidden] { display: none; }
   .ex-bar { position: sticky; top: 0; display: flex; justify-content: center; gap: 12px; padding: 14px 16px; background: hsl(var(--page)); }
   .ex-page { width: 820px; max-width: calc(100% - 32px); margin: 0 auto 48px; padding: 48px 56px; background: #fff; color: #1b1e24; font: 13px/1.5 'Hanken Grotesk', sans-serif; box-shadow: 0 20px 50px -20px #000; }
   .ex-page h1 { margin: 0; font: 600 24px/1.2 'Hanken Grotesk', sans-serif; }
+  .ex-id { margin-top: 2px; font: 400 13px/1.4 'JetBrains Mono', monospace; color: #4a4f59; }
   .ex-when { margin-top: 4px; font-size: 14px; font-weight: 600; }
   .ex-when.planned { font-weight: 400; color: #8a5a00; }
   .ex-page h2 { margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid #1b1e24; font: 600 12px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; }
@@ -115,7 +131,8 @@
   .sel-group { padding: 8px 12px 2px; font: 12px/1 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: .12em; color: hsl(var(--foreground) / .4); }
   .sel-group:first-child { padding-top: 4px; }
   .sel-opt { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 14px; white-space: nowrap; cursor: pointer; color: hsl(var(--foreground) / .75); transition: background-image .15s, box-shadow .15s, color .15s; }
-  .sel-opt span { flex: 1; }
+  .sel-opt span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .sel-panel { max-width: min(560px, calc(100vw - 16px)); }
   .sel-opt svg { width: 16px; height: 16px; fill: hsl(var(--primary)); }
   .sel-opt.lit, .vmenu .sel-opt:hover { color: hsl(var(--foreground)); background-image: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
   .sel-opt.on { font-weight: 600; color: #fff; background-image: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .22) 0%, hsl(var(--primary) / .09) 55%, hsl(var(--primary) / .03) 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary)), inset 14px 0 30px -12px hsl(var(--primary) / .25); }
@@ -636,13 +653,18 @@
 <body>
 <div class="export" id="exportView" hidden><div class="ex-bar"><button class="lnk" id="exportClose">Back to editing</button><button class="add primary" id="exportPrint">Print or save as PDF</button></div><div class="ex-page" id="exportPage"></div></div>
 <div class="app">
-  <div class="top"><span class="logo">ODYSSEUS</span><span class="rule"></span><span class="crumb">Workbench</span><span class="sq"></span><span class="crumb">Protocol builder</span><span class="file"><span class="file-name" id="fileName"></span><span class="file-state" id="fileState"></span><button class="lnk" id="fileNew">New</button><select class="lnk" id="fileOpen"><option value="">Open…</option></select><button class="lnk" id="fileSave" title="Ctrl+S · Ctrl+Shift+S to save as">Save</button><input type="file" id="fileInput" accept=".json,application/json" hidden /></span></div>
+  <div class="top"><span class="top-crumbs"><span class="logo">ODYSSEUS</span><span class="rule"></span><span class="crumb">Workbench</span><span class="sq"></span><span class="crumb">Protocol builder</span></span><span class="file-doc"><span class="file-name" id="fileName"></span><span class="chip" id="fileState"></span><button class="lnk file-rename" id="fileRename" hidden>Save as new name</button></span><span class="file"><button class="lnk" id="fileNew">New</button><select class="lnk" id="fileOpen"><option value="">Open…</option></select><button class="lnk" id="fileSave" title="Ctrl+S · Ctrl+Shift+S to save as">Save</button><input type="file" id="fileInput" accept=".json,application/json" hidden /></span></div>
   <div class="bar">
-    <input class="title" id="title" spellcheck="false" />
+    <div class="titleblock">
+      <input class="title" id="title" spellcheck="false" />
+      <div class="ident" id="experimentId"></div>
+    </div>
     <span class="runon">Run on<input class="in" type="date" id="runFrom" />to<input class="in" type="date" id="runTo" /></span>
-    <span class="hintbar">Drag a block by its title, resize from the corner.</span>
-    <button class="add primary" id="exportOpen">Export</button>
-    <select class="lnk" id="example"><option value="">Load an example…</option><option value="cytotox">T cell killing assay</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
+    <span class="runon">Descriptor<input class="in ident-descriptor" id="descriptor" spellcheck="false" placeholder="D12-CMV" />Run #<input class="in ident-run" id="runNumber" inputmode="numeric" placeholder="1" /></span>
+    <span class="bar-end">
+      <button class="add primary" id="exportOpen">Export</button>
+      <select class="lnk" id="example"><option value="">Load an example…</option><option value="cytotox">T cell killing assay</option><option value="elisa">IL-6 ELISA</option><option value="cells">Cell viability assay</option></select>
+    </span>
   </div>
   <div class="main">
     <aside class="rail" id="rail"></aside>
@@ -1780,7 +1802,7 @@ function labeledWells(wells, labels) {
 const SKETCH_COLORS = ['#e3dccb', '#8fd3e8', '#f0b35b', '#d97a7a', '#6fbf73'];
 const SKETCH_WIDTH = 1000;
 const roman = n => [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].reduce((s, [v, r]) => { while (n >= v) { s += r; n -= v; } return s; }, '');
-const TODAY_ISO = new Date().toISOString().slice(0, 10);
+const TODAY_ISO = new Date().toLocaleDateString('en-CA');
 const COLUMN_KINDS = ['text', 'number', 'date', 'choice'];
 const openColumnEditors = new Set();
 const COLUMN_UNITS = ['*', ...VALUE_UNITS];
@@ -2096,10 +2118,12 @@ const blankProtocol = () => ({
 function loadState() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
 }
-let state = loadState() ?? exampleCytotox();
+let state = loadState() ?? blankProtocol();
 state.lotMemory ??= {};
 state.keptBoth ??= [];
 state.runOn ??= { from: '', to: '' };
+state.descriptor ??= '';
+state.runNumber ??= '';
 state.blocks.forEach(b => {
   if (b.type === 'values') b.sections ??= [];
   if (b.type === 'plate') {
@@ -4200,7 +4224,7 @@ function exportNotes() {
 
 function exportHtml() {
   const when = runOnText();
-  return `<h1>${esc(state.title)}</h1><div class="ex-when${when ? '' : ' planned'}">${esc(when ?? 'Planned · not yet run')}</div>${exportMaterials()}${exportValues()}${exportFormulas()}${exportSteps()}${exportTables()}${exportNotes()}<div class="ex-foot">Exported ${esc(dayLabel(TODAY_ISO))} from Odysseus Workbench</div>`;
+  return `<h1>${esc(state.title)}</h1><div class="ex-id">${esc(experimentId())}</div><div class="ex-when${when ? '' : ' planned'}">${esc(when ?? 'Planned · not yet run')}</div>${exportMaterials()}${exportValues()}${exportFormulas()}${exportSteps()}${exportTables()}${exportNotes()}<div class="ex-foot">Exported ${esc(dayLabel(TODAY_ISO))} from Odysseus Workbench</div>`;
 }
 
 function kindSelect(b, group, type, cls) {
@@ -6362,6 +6386,11 @@ document.getElementById('rail').addEventListener('click', e => {
 const titleInput = document.getElementById('title');
 titleInput.value = state.title;
 titleInput.addEventListener('input', () => { state.title = titleInput.value; save(); });
+['descriptor', 'runNumber'].forEach(key => {
+  const input = document.getElementById(key);
+  input.value = state[key];
+  input.addEventListener('input', () => { state[key] = input.value; save(); });
+});
 const exportView = document.getElementById('exportView');
 document.getElementById('exportOpen').addEventListener('click', () => {
   document.getElementById('exportPage').innerHTML = exportHtml();
@@ -6413,12 +6442,35 @@ function writeMeta(next) {
   try { localStorage.setItem(FILE_META_KEY, JSON.stringify(fileMeta)); } catch {}
 }
 
+const FILE_STATES = {
+  dirty: { label: 'Unsaved changes', lead: '<svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>' },
+  saved: { label: 'Saved', lead: '<svg viewBox="0 0 24 24"><path d="M21.8 10A10 10 0 1 1 17 3.34"/><path d="m9 11 3 3L22 4"/></svg>' },
+  none: { label: 'Not saved to a file', lead: '<span class="chip-dot"></span>' },
+};
+
+const idPart = text => String(text ?? '').trim().replace(/[\\/:*?"<>|_.]+/g, '-').split(/\s+/).filter(Boolean).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
+
+function experimentId() {
+  const run = idPart(state.runNumber).replace(/^R/i, '');
+  return [(state.runOn.from || TODAY_ISO).replaceAll('-', ''), idPart(state.title) || 'Untitled', idPart(state.descriptor), run && `R${run}`].filter(Boolean).join('_');
+}
+
+function showIdentifier() {
+  const id = experimentId();
+  const rename = document.getElementById('fileRename');
+  document.getElementById('experimentId').textContent = id;
+  rename.hidden = !fileMeta.name || fileMeta.name === `${id}.json`;
+  rename.title = `Save as ${id}.json`;
+}
+
 function showFileState() {
+  showIdentifier();
   const dirty = isDirty();
+  const kind = dirty ? 'dirty' : fileMeta.name ? 'saved' : 'none';
   const fileState = document.getElementById('fileState');
-  document.getElementById('fileName').textContent = fileMeta.name;
-  fileState.textContent = dirty ? 'Unsaved changes' : fileMeta.name ? 'Saved' : 'Not saved to a file';
-  fileState.classList.toggle('dirty', dirty);
+  Object.assign(document.getElementById('fileName'), { textContent: fileMeta.name, title: fileMeta.name });
+  fileState.className = `chip ${kind}`;
+  fileState.innerHTML = `<span class="chip-lead">${FILE_STATES[kind].lead}</span><span class="chip-label">${FILE_STATES[kind].label}</span>`;
   document.title = `${dirty ? '• ' : ''}${fileMeta.name || state.title || 'Untitled protocol'} · Workbench`;
 }
 
@@ -6447,7 +6499,7 @@ function readProtocol(text, name) {
 }
 
 const fileText = () => JSON.stringify({ format: FILE_FORMAT, version: 1, savedAt: new Date().toISOString(), protocol: state }, null, 2);
-const suggestedFileName = () => `${(state.title.trim() || 'Untitled protocol').replace(/[\\/:*?"<>|]+/g, '-')}.json`;
+const suggestedFileName = () => `${experimentId()}.json`;
 
 async function hasPermission(handle, mode) {
   return (await handle.queryPermission({ mode })) === 'granted' || (await handle.requestPermission({ mode })) === 'granted';
@@ -6535,6 +6587,7 @@ document.getElementById('example').addEventListener('change', e => {
 });
 document.getElementById('fileNew').addEventListener('click', () => startOver(blankProtocol()));
 document.getElementById('fileSave').addEventListener('click', () => saveProtocol(false));
+document.getElementById('fileRename').addEventListener('click', () => saveProtocol(true));
 document.getElementById('fileOpen').addEventListener('change', e => {
   const choice = e.target.value;
   e.target.value = '';

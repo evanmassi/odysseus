@@ -32,6 +32,10 @@ Chrome. It saves Excel-style: each protocol is a `.json` file (`format: odysseus
 Ctrl+S writes it in place, Ctrl+Shift+S saves as, Open lists recent files, unsaved changes show in the
 title and warn on close, and browser storage keeps a recovery copy. Firefox falls back to download
 and upload. The bundle swaps in its own fixed storage keys so the study and the tool never share data.
+The file name is the experiment's identity: `YYYYMMDD_Assay_Descriptor_R#` (planned run date, today
+until set; title CamelCased; descriptor and run number optional), shown under the title, suggested on
+save, and printed in the export header. The title stays the plain assay name. To iterate, open the
+source file directly and press F5; rebuild only for a copy to take to work.
 **Saved files must keep opening:** when the state shape changes, add an upgrade to the load block
 (`state.blocks.forEach(...)` after `loadState()`) instead of relying on a new storage key. The export
 is the notebook record: it must let someone repeat the experiment without Evan there.
