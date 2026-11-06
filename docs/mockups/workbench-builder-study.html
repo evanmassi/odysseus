@@ -54,6 +54,10 @@
   .ex-bar { position: sticky; top: 0; display: flex; justify-content: center; gap: 12px; padding: 14px 16px; background: hsl(var(--page)); }
   .ex-page { width: 820px; max-width: calc(100% - 32px); margin: 0 auto 48px; padding: 48px 56px; background: #fff; color: #1b1e24; font: 13px/1.5 'Hanken Grotesk', sans-serif; box-shadow: 0 20px 50px -20px #000; }
   .ex-page h1 { margin: 0; font: 600 24px/1.2 'Hanken Grotesk', sans-serif; }
+  .ex-prep { width: 100%; border-collapse: collapse; margin: 6px 0; }
+  .ex-prep th, .ex-prep td { padding: 3px 6px; border: 1px solid #c9ccd2; text-align: left; font-size: 11px; }
+  .ex-prep td.num { text-align: right; white-space: nowrap; }
+  .ex-dil { margin: 4px 0; font-size: 12px; }
   .ex-part { margin: 32px 0 -4px; padding-top: 10px; border-top: 2px solid #1b1e24; font: 700 13px/1.2 'Hanken Grotesk', sans-serif; letter-spacing: .12em; text-transform: uppercase; }
   .ex-id { margin-top: 2px; font: 400 13px/1.4 'JetBrains Mono', monospace; color: #4a4f59; }
   .ex-when { margin-top: 4px; font-size: 14px; font-weight: 600; }
@@ -166,6 +170,42 @@
   .flist > :nth-child(even) { background: hsl(var(--foreground) / .035); }
   .frow:hover, .vtable tr.vrow:hover { background: var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / .12) 0%, hsl(var(--primary) / .05) 55%, transparent 100%); box-shadow: inset 3px 0 0 0 hsl(var(--primary) / .7); }
   .vtable { width: 100%; border-collapse: collapse; }
+  .dil-series { padding: 12px 0 18px; border-bottom: 1px solid hsl(var(--foreground) / .08); }
+  .dil-series:last-child { border-bottom: 0; }
+  .dil-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  .dil-name { font: 600 16px/1.2 'Hanken Grotesk', sans-serif; color: hsl(var(--fg)); }
+  .dil-sum { font: 13px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
+  .dil-params { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-bottom: 8px; }
+  .dil-param { display: flex; flex-direction: column; gap: 4px; }
+  .dil-pt { font: 10px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+  .dil-f { display: flex; align-items: center; gap: 5px; font-size: 13px; color: hsl(var(--muted-foreground)); }
+  .dil-f .dil-in { width: 60px; height: 28px; font-size: 13px; text-align: right; }
+  .dil-x { display: flex; align-items: center; height: 28px; font: 600 15px 'JetBrains Mono', monospace; color: hsl(var(--primary)); }
+  .dil-strip { display: block; max-width: 100%; height: auto; margin: 6px 0 4px; }
+  .dil-strip text { font-family: 'JetBrains Mono', monospace; text-anchor: middle; }
+  .ds-arrow { stroke: hsl(var(--primary) / .7); stroke-width: 1.2; }
+  .ds-head { fill: hsl(var(--primary) / .7); }
+  .ds-arrow.stock { stroke: hsl(var(--muted-foreground)); stroke-dasharray: 4 3; }
+  .ds-pip { font-size: 9px; fill: hsl(var(--muted-foreground)); }
+  .ds-head.stock { fill: hsl(var(--muted-foreground)); }
+  .ds-vol { font-size: 10px; fill: hsl(var(--muted-foreground)); }
+  .ds-well { fill: hsl(var(--primary) / .1); stroke: hsl(var(--primary) / .55); }
+  .ds-v { font-size: 11px; fill: hsl(var(--fg)); }
+  .ds-u { font-size: 7.5px; fill: hsl(var(--muted-foreground)); }
+  .ds-c { font-size: 11px; font-weight: 600; fill: hsl(var(--fg)); }
+  .ds-w { font-size: 10px; fill: hsl(var(--muted-foreground)); }
+  .ds-src { fill: none; stroke: hsl(var(--foreground) / .35); stroke-dasharray: 3 3; }
+  .ds-src.issue { stroke: hsl(var(--amber)); }
+  .ds-src-t { font-size: 10px; fill: hsl(var(--fg)); }
+  .ds-src-s { font-size: 9px; fill: hsl(var(--muted-foreground)); }
+  .dil-strip .ds-legend { font: 10px 'Hanken Grotesk', sans-serif; fill: hsl(var(--muted-foreground)); text-anchor: start; }
+  .dil-foot { display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 13px; color: hsl(var(--fg)); }
+  .dil-foot .dil-pt { margin-right: 4px; }
+  .dil-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 6px 0; padding: 8px 10px; border: 1px dashed hsl(var(--amber) / .6); font-size: 13px; color: hsl(var(--amber)); }
+  .dil-ask .dil-f { color: hsl(var(--fg)); }
+  .dil-ask .dil-unit { height: 28px; width: auto; font-size: 13px; }
+  .dil-saved { font-size: 12px; color: hsl(var(--muted-foreground)); }
+  .dil-warn { margin-top: 6px; font-size: 13px; line-height: 1.5; color: hsl(var(--amber)); }
   .vtable tr:nth-child(even) { background: hsl(var(--foreground) / .035); }
   .vtable td { padding: 8px 10px; font-size: 14px; vertical-align: middle; }
   .vtable .vcell.editable { cursor: text; }
@@ -484,10 +524,11 @@
   .sv-row > span:first-child { flex: none; width: 70px; color: hsl(var(--muted-foreground)); }
   .sv-row .in { flex: 1; min-width: 0; height: 28px; font-size: 13px; }
   .sv-row .sv-fold { flex: 0 0 76px; }
-  .sv-ops, .sv-dirs { display: inline-flex; gap: 3px; }
-  .sv-op, .sv-dir { width: 30px; height: 28px; padding: 0; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font-size: 15px; cursor: pointer; }
-  .sv-op:hover, .sv-dir:hover { border-color: hsl(var(--foreground) / .3); }
-  .sv-op.on, .sv-dir.on { border-color: hsl(var(--primary) / .7); background: hsl(var(--primary) / .16); }
+  .sv-pre { flex: none; font: 13px 'JetBrains Mono', monospace; color: hsl(var(--muted-foreground)); }
+  .sv-dirs { display: inline-flex; gap: 3px; }
+  .sv-dir { width: 30px; height: 28px; padding: 0; background: hsl(var(--input-well)); border: 1px solid hsl(var(--line-faint)); color: hsl(var(--fg)); font-size: 15px; cursor: pointer; }
+  .sv-dir:hover { border-color: hsl(var(--foreground) / .3); }
+  .sv-dir.on { border-color: hsl(var(--primary) / .7); background: hsl(var(--primary) / .16); }
   .sv-from { font: 600 13px 'JetBrains Mono', monospace; color: hsl(var(--fg)); }
   .sv-linked { flex: none; font: 12px 'JetBrains Mono', monospace; color: hsl(var(--primary)); }
   .sv-suggest { display: flex; flex-direction: column; margin: -4px 0 0 78px; border: 1px solid hsl(var(--line-mid)); background: hsl(var(--card)); }
@@ -508,7 +549,7 @@
   .wunit { flex: 0 0 auto; width: auto; field-sizing: content; min-width: 54px; height: 30px; font-size: 13px; }
   .wseries .sv-unit { flex: 0 0 auto; width: auto; field-sizing: content; min-width: 60px; }
   .we-dil { flex: 0 0 66px; text-align: left; }
-  .sv-remove { margin-left: auto; color: hsl(var(--muted-foreground)); }
+  .sv-actions .ghost-quiet, .sv-actions .ghost-danger { opacity: 1; }
   .vessel { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; background: none !important; border: 0; }
   .vsvg { display: block; width: calc(var(--sw) * var(--vs, 1) * 1px); height: auto; overflow: visible; }
   .vsvg .vbody { fill: transparent; stroke: hsl(var(--foreground) / .38); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
@@ -719,6 +760,7 @@ const UNITS = {
   'µg/mL': { f: 1e-3, d: { mass: 1, vol: -1 } },
   'mg/mL': { f: 1, d: { mass: 1, vol: -1 } },
   'ng/µL': { f: 1e-3, d: { mass: 1, vol: -1 } },
+  'pM': { f: 1e-12, d: { mol: 1, vol: -1 } },
   'nM': { f: 1e-9, d: { mol: 1, vol: -1 } },
   'µM': { f: 1e-6, d: { mol: 1, vol: -1 } },
   'mM': { f: 1e-3, d: { mol: 1, vol: -1 } },
@@ -743,7 +785,7 @@ const AUTO_UNITS = {
   'vol:1': ['L', 'mL', 'µL', 'nL'],
   'mass:1': ['mg', 'µg', 'ng', 'pg'],
   'mass:1|vol:-1': ['mg/mL', 'µg/mL', 'ng/mL', 'pg/mL'],
-  'mol:1|vol:-1': ['mM', 'µM', 'nM'],
+  'mol:1|vol:-1': ['mM', 'µM', 'nM', 'pM'],
   'time:1': ['h', 'min'],
   'cell:1': ['cells'],
   'cell:1|vol:-1': ['cells/mL'],
@@ -760,7 +802,7 @@ const UNIT_GROUPS = [
   ['Mass', ['pg', 'ng', 'µg', 'mg']],
   ['Cells', ['cells', 'cells/mL']],
   ['Mass per volume', ['pg/mL', 'ng/mL', 'µg/mL', 'mg/mL', 'ng/µL']],
-  ['Molar', ['nM', 'µM', 'mM']],
+  ['Molar', ['pM', 'nM', 'µM', 'mM']],
   ['Time', ['s', 'min', 'h']],
   ['Temperature', ['°C']],
   ['Speed', ['× g', 'rpm']],
@@ -925,13 +967,16 @@ const pick = (label, options, extra = {}) => mf(label, 'choice', { options, ...e
 const LOT = { scope: 'lot' };
 const YES_NO = ['Yes', 'No'];
 const LASERS = ['UV 355', 'Violet 405', 'Blue 488', 'Green 532', 'Yellow-green 561', 'Red 640', 'Near-IR 808'];
-const CONC = { units: ['mM', 'µM', 'nM', 'mg/mL', 'µg/mL', 'ng/mL', '%', 'x'] };
+const CONC = { units: ['mM', 'µM', 'nM', 'pM', 'mg/mL', 'µg/mL', 'ng/mL', 'ng/µL', '%', 'x'] };
 const consent = mf('Consent or IRB reference');
 
 const MADE_HERE = [mf('Recipe'), num('Volume made', 'mL'), day('Made on'), mf('Made by'), pick('Sterile-filtered', YES_NO)];
+const STOCK_FIELD = num('Stock concentration', '*', { defaultUnit: 'µM', ...CONC });
+const WEIGHT_FIELD = num('Molecular weight', '*', { defaultUnit: 'g/mol', units: ['g/mol', 'kDa'] });
 const PHYSICAL_CORE = [
   mf('Vendor or source', 'text', { key: 'vendor' }), mf('Catalog #', 'text', { key: 'catalog' }), mf('Lot'),
   day('Expires', { warnPast: true }), mf('Storage'), mf('Hazard or biosafety', 'text', { key: 'hazard' }), mf('Notes'),
+  STOCK_FIELD, WEIGHT_FIELD,
 ];
 const EQUIPMENT_CORE = [mf('Model'), mf('Manufacturer'), mf('Notes')];
 const SOFTWARE_CORE = [mf('Source'), mf('Notes')];
@@ -946,26 +991,26 @@ const MATERIAL_GROUPS = [
     'Organism': [mf('Species'), mf('Strain'), pick('Sex', ['Female', 'Male', 'Mixed']), mf('Age'), mf('Genotype'), mf('Animal or cohort ID'), mf('Protocol number')],
     'Microbial strain': [mf('Species'), mf('Strain'), mf('Genotype'), mf('Antibiotic resistance'), mf('Stock ID'), num('OD at use')],
     'Virus or vector': [mf('Virus type'), mf('Construct'), mf('Serotype or pseudotype'), num('Titer per mL', '', LOT), mf('Biosafety level')],
-    'Nucleic acid sample': [pick('Nucleic acid', ['DNA', 'RNA']), mf('Source sample'), num('Concentration', 'ng/µL'), num('A260/280'), num('RIN')],
-    'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Concentration', 'mg/mL')],
+    'Nucleic acid sample': [pick('Nucleic acid', ['DNA', 'RNA']), mf('Source sample'), num('Stock concentration', '*', { defaultUnit: 'ng/µL', ...CONC }), num('A260/280'), num('RIN')],
+    'Protein sample': [mf('Source sample'), mf('Lysis buffer'), num('Stock concentration', '*', { defaultUnit: 'mg/mL', ...CONC })],
   } },
   { key: 'ab', label: 'Antibodies & Stains', core: PHYSICAL_CORE, types: {
-    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), mf('Conjugate'), pick('Laser', LASERS), num('Concentration', 'µg/mL', LOT), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
+    'Antibody': [mf('Target'), mf('Clone'), mf('Host species'), mf('Reactivity'), mf('Isotype'), mf('Conjugate'), pick('Laser', LASERS), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC, ...LOT }), num('Molecular weight', '*', { defaultUnit: 'kDa', units: ['kDa', 'g/mol'] }), num('Amount', '*', { defaultUnit: '1:N', units: ['µL', '1:N', 'µg/mL', 'ng/mL'], nameByUnit: { '1:N': 'dilution', 'µL': 'per test' } }), mf('Application'), mf('RRID'), mf('Panel')],
     'Secondary reagent': [mf('Host species'), mf('Target species and isotype'), mf('Conjugate'), pick('Cross-adsorbed', YES_NO), num('Dilution', '1:N'), mf('Panel')],
-    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Concentration', 'µg/mL'), mf('Matched antibody'), mf('Panel')],
-    'Dye': [mf('Target'), pick('Fixable', YES_NO), pick('Laser', LASERS), mf('Excitation and emission'), num('Concentration', '*', { defaultUnit: 'µM', ...CONC }), num('Dilution', '1:N'), mf('Panel')],
+    'Isotype control': [mf('Isotype'), mf('Host species'), mf('Conjugate'), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Molecular weight', '*', { defaultUnit: 'kDa', units: ['kDa', 'g/mol'] }), mf('Matched antibody'), mf('Panel')],
+    'Dye': [mf('Target'), pick('Fixable', YES_NO), pick('Laser', LASERS), mf('Excitation and emission'), num('Stock concentration', '*', { defaultUnit: 'µM', ...CONC }), num('Dilution', '1:N'), mf('Panel')],
     'Multimer': [mf('Specificity'), mf('Conjugate'), num('Dilution', '1:N'), mf('Panel')],
     'Fc block': [mf('Species'), num('Amount', 'µL')],
     'Beads': [pick('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']), num('Beads per µL', '', LOT)],
   } },
   { key: 'chem', label: 'Chemicals & Proteins', core: PHYSICAL_CORE, types: {
-    'Chemical': [mf('CAS number'), mf('Molecular weight'), mf('Formula'), mf('Purity'), mf('Grade')],
-    'Drug or inhibitor': [mf('Target'), mf('CAS number'), mf('Molecular weight'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Vehicle'), num('Working concentration', '*', { defaultUnit: 'µM', ...CONC })],
-    'Recombinant protein': [mf('Species'), mf('Tag'), mf('Expression host'), pick('Carrier-free', YES_NO), mf('Activity', 'text', LOT), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC })],
+    'Chemical': [mf('CAS number'), num('Molecular weight', '*', { defaultUnit: 'g/mol', units: ['g/mol', 'kDa'] }), mf('Formula'), mf('Purity'), mf('Grade')],
+    'Drug or inhibitor': [mf('Target'), mf('CAS number'), num('Molecular weight', '*', { defaultUnit: 'g/mol', units: ['g/mol', 'kDa'] }), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Vehicle'), num('Final concentration', '*', { defaultUnit: 'µM', ...CONC })],
+    'Recombinant protein': [mf('Species'), mf('Tag'), mf('Expression host'), pick('Carrier-free', YES_NO), mf('Activity', 'text', LOT), num('Stock concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), num('Molecular weight', '*', { defaultUnit: 'kDa', units: ['kDa', 'g/mol'] }), num('Final concentration', '*', { defaultUnit: 'ng/mL', ...CONC })],
     'Enzyme': [mf('Activity', 'text', LOT), mf('Reaction buffer'), num('Stock concentration', '*', { defaultUnit: 'mg/mL', ...CONC })],
-    'Antibiotic or selection agent': [num('Working concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), pick('Purpose', ['Selection', 'Contamination control'])],
+    'Antibiotic or selection agent': [num('Final concentration', '*', { defaultUnit: 'µg/mL', ...CONC }), pick('Purpose', ['Selection', 'Contamination control'])],
     'Transfection reagent': [mf('Ratio to nucleic acid'), num('Volume per well', 'µL')],
-    'Stimulant': [mf('Target or pathway'), num('Working concentration', '*', { defaultUnit: 'ng/mL', ...CONC }), mf('Duration')],
+    'Stimulant': [mf('Target or pathway'), num('Final concentration', '*', { defaultUnit: 'ng/mL', ...CONC }), mf('Duration')],
     'Peptide': [mf('Sequence'), mf('Modifications'), mf('Purity'), num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC })],
     'Standard': [num('Top concentration', '*', { defaultUnit: 'pg/mL', ...CONC, units: ['pg/mL', 'ng/mL', 'µg/mL', 'mM', 'µM', 'nM'] }), num('Reconstitution volume', 'µL')],
     'Detection reagent': [pick('Detection', ['Colorimetric', 'Chemiluminescent', 'Fluorescent']), mf('Read wavelength')],
@@ -974,9 +1019,9 @@ const MATERIAL_GROUPS = [
   { key: 'media', label: 'Media, Buffers, & Solutions', core: PHYSICAL_CORE, types: {
     'Medium': [mf('Base medium'), mf('Glucose'), mf('Glutamine'), pick('Phenol red', YES_NO), ...MADE_HERE],
     'Buffer': [mf('Strength'), pick('Calcium and magnesium', ['With', 'Without']), num('pH'), ...MADE_HERE],
-    'Supplement': [num('Final concentration', '%'), pick('Heat-inactivated', YES_NO)],
-    'Stock solution': [num('Concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Solvent'), day('Made on'), mf('Aliquot ID')],
-    'Fix or perm': [mf('Fixative or detergent'), mf('Concentration'), mf('Time')],
+    'Supplement': [num('Final concentration', '*', { defaultUnit: '%', ...CONC }), pick('Heat-inactivated', YES_NO)],
+    'Stock solution': [num('Stock concentration', '*', { defaultUnit: 'mM', ...CONC }), mf('Solvent'), day('Made on'), mf('Aliquot ID')],
+    'Fix or perm': [mf('Fixative or detergent'), num('Stock concentration', '*', { defaultUnit: '%', ...CONC }), mf('Time')],
     'Coating or matrix': [mf('Matrix'), num('Protein concentration', 'mg/mL', LOT), num('Coating concentration', 'µg/mL')],
     'Mounting medium': [pick('DAPI', ['With', 'Without']), pick('Hardening', YES_NO)],
   } },
@@ -984,10 +1029,10 @@ const MATERIAL_GROUPS = [
     'Kit': [mf('Kit version'), mf('Components used'), mf('Protocol version')],
   } },
   { key: 'mol', label: 'Molecular Biology', core: PHYSICAL_CORE, types: {
-    'Oligo': [mf('Sequence'), mf('Target gene'), mf('Modifications'), mf('Purification'), num('Stock concentration', 'µM'), mf('Tm')],
+    'Oligo': [mf('Sequence'), mf('Target gene'), mf('Modifications'), mf('Purification'), num('Stock concentration', '*', { defaultUnit: 'µM', ...CONC }), mf('Tm')],
     'Probe': [mf('Sequence'), mf('Reporter and quencher'), mf('Target')],
-    'Plasmid': [mf('Backbone'), mf('Insert'), mf('Resistance'), mf('Repository ID'), num('Concentration', 'ng/µL'), pick('Sequence verified', YES_NO)],
-    'siRNA or guide RNA': [mf('Target gene'), mf('Sequence'), num('Concentration', 'µM')],
+    'Plasmid': [mf('Backbone'), mf('Insert'), mf('Resistance'), mf('Repository ID'), num('Stock concentration', '*', { defaultUnit: 'ng/µL', ...CONC }), pick('Sequence verified', YES_NO)],
+    'siRNA or guide RNA': [mf('Target gene'), mf('Sequence'), num('Stock concentration', '*', { defaultUnit: 'µM', ...CONC })],
     'Master mix': [mf('Chemistry'), num('Volume per reaction', 'µL')],
     'Ladder': [mf('Size range'), num('Amount loaded', 'µL')],
   } },
@@ -1018,7 +1063,9 @@ const materialGroupsOf = b => [...MATERIAL_GROUPS, ...b.customGroups.map(label =
 const materialGroup = (b, key) => materialGroupsOf(b).find(g => g.key === key) ?? { key, label: key, core: PHYSICAL_CORE, types: {} };
 const materialFields = (b, item) => {
   const group = materialGroup(b, item.group);
-  return [...group.core, ...(group.types[item.type] ?? []), ...(item.custom ?? [])];
+  const own = [...(group.types[item.type] ?? []), ...(item.custom ?? [])];
+  const ownKeys = new Set(own.map(f => f.key));
+  return [...group.core.filter(f => !ownKeys.has(f.key)), ...own];
 };
 const showMadeHereFields = item => {
   const madeHere = String(item.values.recipe ?? '').trim() && materialFields({ customGroups: [] }, item).some(f => f.key === 'made-on');
@@ -1555,7 +1602,7 @@ const GUESS_KEYWORDS = [
   [/\b(master ?mix|supermix|ready ?mix)\b/i, 'mol', 'Master mix'],
   [/\b(ladder)\b/i, 'mol', 'Ladder'],
   [/\bpeptides?\b/i, 'chem', 'Peptide'],
-  [/\b(inhibitors?|antagonists?|agonists?|blockers?|drugs?|compounds?)\b|\w(inib|tinib|ciclib|parib|rafenib|lisib|tuzumab|zomib|limus)\b/i, 'chem', 'Drug or inhibitor'],
+  [/\b(inhibitors?|antagonists?|agonists?|blockers?|drugs?|compounds?)\b|\w(inib|tinib|ciclib|parib|rafenib|lisib|zomib|limus)\b/i, 'chem', 'Drug or inhibitor'],
   [/\b(antibiotics?)\b|\w(mycin|micin|cillin|floxacin)\b/i, 'chem', 'Antibiotic or selection agent'],
   [/\b(transfection|transduction)\b/i, 'chem', 'Transfection reagent'],
   [/\b(stimulation|stimulant|activator|adjuvant)\b/i, 'chem', 'Stimulant'],
@@ -1595,8 +1642,12 @@ const PEPTIDE_RE = /^[ACDEFGHIKLMNPQRSTVWY]{7,40}$/;
 const GUESS_VENDOR_NAMES = GUESS_VENDORS.split('|').map(chain => chain.split('=')[0]);
 const GUESS_CONJUGATE_NAMES = [...GUESS_FLUORS.flatMap(([, names]) => names.split('|').map(chain => chain.split('=')[0].trim())).filter(n => !GUESS_FLUORESCENT_PROTEINS.has(normKey(n))), 'HRP', 'Biotin', 'AP'];
 
+const THERAPEUTIC_ANTIBODY = /\b[a-z]{3,}mab\b/i;
+
 function guessMaterial(raw, remembered = new Map(), context = {}) {
-  const guess = guessFromText(raw, context);
+  const found = guessFromText(raw, context);
+  const mab = found.name.match(THERAPEUTIC_ANTIBODY)?.[0];
+  const guess = mab && found.type !== 'Drug or inhibitor' ? { ...found, group: 'chem', type: 'Drug or inhibitor', why: `${mab} is a therapeutic antibody` } : found;
   const memory = remembered.get(normKey(guess.name)) ?? remembered.get(normKey(raw));
   if (!memory || (memory.group === guess.group && memory.type === guess.type)) return guess;
   return { ...guess, group: memory.group, type: memory.type, why: memory.why ?? 'you filed it this way before', source: 'yours' };
@@ -1895,7 +1946,7 @@ function exampleElisa() {
     }
   }
   const curveColumns = [newColumn('Point'), newColumn('pg/mL', 'number', { unit: 'pg/mL' }), newColumn('Transfer'), newColumn('Diluent')];
-  const captureAb = material('ab', 'Antibody', 'Capture Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', amount: ['200', '1:N'] }, ['concentration']);
+  const captureAb = material('ab', 'Antibody', 'Capture Ab', { storage: '4 °C', vendor: 'BioLegend', target: 'human IL-6', amount: ['200', '1:N'] }, ['stock-concentration']);
   return {
     title: 'IL-6 sandwich ELISA',
     lotMemory: { [captureAb.id]: { B271834: { concentration: '500' } } },
@@ -2140,6 +2191,20 @@ if (!state.pages) {
   delete state.steps;
 }
 let activePageId = state.pages[0].id;
+const RENAMED_FIELDS = { concentration: 'stock-concentration', 'working-concentration': 'final-concentration' };
+function renameMaterialFields(entry) {
+  for (const [from, to] of Object.entries(RENAMED_FIELDS)) {
+    if (entry.values?.[from] !== undefined) {
+      entry.values[to] ??= entry.values[from];
+      if (entry.units?.[from]) entry.units[to] ??= entry.units[from];
+      delete entry.values[from];
+      delete entry.units?.[from];
+    }
+    if (entry.on) entry.on = [...new Set(entry.on.map(key => (key === from ? to : key)))];
+  }
+}
+state.blocks.filter(b => b.type === 'materials').forEach(b => b.items.forEach(renameMaterialFields));
+Object.values(state.lotMemory ?? {}).forEach(lots => Object.values(lots).forEach(values => renameMaterialFields({ values })));
 state.lotMemory ??= {};
 state.keptBoth ??= [];
 state.runOn ??= { from: '', to: '' };
@@ -2183,6 +2248,7 @@ const labMemory = (() => { try { return JSON.parse(localStorage.getItem(LAB_MEMO
 labMemory.kinds ??= {};
 labMemory.materials ??= {};
 labMemory.fields ??= {};
+Object.values(labMemory.materials).forEach(renameMaterialFields);
 
 function learnFromBoard() {
   for (const blk of state.blocks) if (blk.type === 'materials') for (const item of blk.items) {
@@ -2973,8 +3039,8 @@ function seriesFormHtml(b, form, keys, existing) {
   const dirs = SERIES_DIRECTIONS.map(([value, arrow, label]) => `<button class="sv-dir${form.dir === value ? ' on' : ''}" data-dir="${value}" title="${label}">${arrow}</button>`).join('');
   const values = form.mode === 'list'
     ? `<div class="sv-row"><span>Values</span><input class="in sv-list" data-part="list" value="${esc(form.list)}" placeholder="10:1, 5:1, 2.5:1, 1:1" spellcheck="false" /></div><button class="lnk sv-switch" data-act="series-step">Step by a number instead</button>`
-    : `${form.fromAmount ? `<div class="sv-row"><span>From</span><b class="sv-from">${esc(seriesStartText(form))}</b><button class="lnk" data-act="series-own-start">change</button></div>` : `<div class="sv-row"><span>Start</span><input class="in sv-start" data-part="start" value="${esc(form.start)}" placeholder="10, or a value’s name" spellcheck="false" autocomplete="off" />${seriesPart(form.start).ref ? linked('start') : `<select class="in sv-unit" title="Unit">${unitOptions(VALUE_UNITS, form.unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select>`}</div>`}<div class="sv-suggest" data-for="start"></div><div class="sv-row"><span>Each step</span><span class="sv-ops"><button class="sv-op${form.op === 'divide' ? ' on' : ''}" data-sop="divide" title="Divide each step">÷</button><button class="sv-op${form.op === 'times' ? ' on' : ''}" data-sop="times" title="Multiply each step">×</button></span><input class="in sv-fold" data-part="fold" value="${esc(form.fold)}" placeholder="2" spellcheck="false" autocomplete="off" />${linked('fold')}</div><div class="sv-suggest" data-for="fold"></div><button class="lnk sv-switch" data-act="series-list">Type each value instead</button>`;
-  return `<div class="wseries">${values}<div class="sv-row"><span>Direction</span><span class="sv-dirs">${dirs}</span></div><div class="preview">${esc(seriesPreview(b, form, keys))}</div><div class="sv-actions"><button class="pal" data-act="apply-series">Apply</button><button class="lnk" data-act="cancel-series">Cancel</button>${existing ? '<button class="lnk sv-remove" data-act="remove-series">Remove dilution</button>' : ''}</div></div>`;
+    : `${form.fromAmount ? `<div class="sv-row"><span>From</span><b class="sv-from">${esc(seriesStartText(form))}</b><button class="lnk" data-act="series-own-start">change</button></div>` : `<div class="sv-row"><span>Start</span><input class="in sv-start" data-part="start" value="${esc(form.start)}" placeholder="10, or a value’s name" spellcheck="false" autocomplete="off" />${seriesPart(form.start).ref ? linked('start') : `<select class="in sv-unit" title="Unit">${unitOptions(VALUE_UNITS, form.unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select>`}</div>`}<div class="sv-suggest" data-for="start"></div><div class="sv-row"><span>Dilution</span><span class="sv-pre">1:</span><input class="in sv-fold" data-part="fold" value="${esc(form.fold)}" placeholder="3" spellcheck="false" autocomplete="off" />${linked('fold')}</div><div class="sv-suggest" data-for="fold"></div><button class="lnk sv-switch" data-act="series-list">Type each value instead</button>`;
+  return `<div class="wseries">${values}<div class="sv-row"><span>Direction</span><span class="sv-dirs">${dirs}</span></div><div class="preview">${esc(seriesPreview(b, form, keys))}</div><div class="sv-actions"><button class="ghost-quiet" data-act="done-series">Done</button>${existing ? '<button class="ghost-danger" data-act="remove-series">Remove dilution</button>' : ''}</div></div>`;
 }
 
 function valueNameSuggestions(text) {
@@ -3033,7 +3099,9 @@ function wellEditorHtml(b) {
 
 function seriesSummary(info) {
   const arrow = SERIES_DIRECTIONS.find(([value]) => value === info.dir)?.[1] ?? '';
-  return `${info.list ? info.list.join(', ') : `${seriesStartText(info)} ${info.op === 'times' ? '×' : '÷'} ${seriesPart(info.fold).text}`} ${arrow}`.trim();
+  if (info.list) return `${info.list.join(', ')} ${arrow}`.trim();
+  const fold = seriesPart(info.fold).text;
+  return [seriesStartText(info), info.op === 'times' ? `×${fold}` : `1:${foldOf(fold) || fold}`, arrow].filter(Boolean).join(', ');
 }
 
 function placeWellEditor() {
@@ -3108,6 +3176,7 @@ wellEditor.addEventListener('input', e => {
   } else if (el.matches('.sv-start, .sv-fold, .sv-list')) {
     form[el.dataset.part] = el.value;
     showSeriesPreview(b);
+    commitSeries(b);
     const suggest = wellEditor.querySelector(`.sv-suggest[data-for="${el.dataset.part}"]`);
     if (suggest) suggest.innerHTML = valueNameSuggestions(el.value);
   }
@@ -3123,12 +3192,12 @@ wellEditor.addEventListener('click', e => {
     drawWellEditor();
     return;
   }
-  const choice = e.target.closest('[data-sop], [data-dir]');
+  const choice = e.target.closest('[data-dir]');
   if (choice) {
-    if (choice.dataset.sop) form.op = choice.dataset.sop;
-    else form.dir = choice.dataset.dir;
+    form.dir = choice.dataset.dir;
     choice.parentElement.querySelectorAll('button').forEach(btn => btn.classList.toggle('on', btn === choice));
     showSeriesPreview(b);
+    commitSeries(b);
     return;
   }
   const known = e.target.closest('.we-pick');
@@ -3144,6 +3213,7 @@ wellEditor.addEventListener('click', e => {
   const pick = e.target.closest('.sv-pick');
   if (pick) {
     form[pick.closest('.sv-suggest').dataset.for] = pick.dataset.name;
+    commitSeries(b);
     drawWellEditor();
     return;
   }
@@ -3155,7 +3225,7 @@ wellEditor.addEventListener('click', e => {
     const lineUnit = lines.map(line => line.unit).find(Boolean) ?? '';
     const typedAmounts = new Set(lines.map(line => String(line.amt ?? '').trim()).filter(Boolean));
     const fromAmount = !series && typedAmounts.size === 1 ? [...typedAmounts][0] : '';
-    seriesForms.set(b.id, { field: fieldId, series: existing?.s, fromAmount: !!fromAmount, mode: series?.list ? 'list' : 'step', start: series?.start ?? fromAmount, unit: series?.unit ?? lineUnit, fold: series?.fold ?? '', op: series?.op ?? 'divide', list: series?.list?.join(', ') ?? '', dir: series?.dir ?? 'right' });
+    seriesForms.set(b.id, { field: fieldId, series: existing?.s, fromAmount: !!fromAmount, mode: series?.list ? 'list' : 'step', start: series?.start ?? fromAmount, unit: series?.unit ?? lineUnit, fold: seriesPart(series?.fold).ref ? series.fold : foldOf(series?.fold ?? '') > 0 ? String(foldOf(series.fold)) : series?.fold ?? '', op: series?.op ?? 'divide', list: series?.list?.join(', ') ?? '', dir: series?.dir ?? 'right' });
     drawWellEditor();
     wellEditor.querySelector(fromAmount ? '.sv-fold' : '.sv-start, .sv-list')?.focus();
   };
@@ -3192,15 +3262,9 @@ wellEditor.addEventListener('click', e => {
     form.mode = act === 'series-list' ? 'list' : 'step';
     drawWellEditor();
     wellEditor.querySelector('.sv-list, .sv-start')?.focus();
-  } else if (act === 'cancel-series') {
+  } else if (act === 'done-series') {
     if (![...vesselSel(b).set].some(key => b.cells[key]?.[form.field] != null)) wellEditing.added.delete(form.field);
     seriesForms.delete(b.id);
-    drawWellEditor();
-  } else if (act === 'apply-series') {
-    applySeries(b);
-    refreshWells(b);
-    save();
-    refresh();
     drawWellEditor();
   } else if (act === 'del-part') {
     const fieldId = e.target.closest('.wfield-row').dataset.field;
@@ -3235,6 +3299,7 @@ wellEditor.addEventListener('change', e => {
   } else if (el.matches('.sv-unit')) {
     seriesForms.get(b.id).unit = el.value;
     showSeriesPreview(b);
+    commitSeries(b);
     return;
   } else return;
   refreshWells(b);
@@ -3249,7 +3314,7 @@ wellEditor.addEventListener('keydown', e => {
     closeWellEditor();
   } else if (e.key === 'Enter' && e.target.closest('.wseries')) {
     e.preventDefault();
-    wellEditor.querySelector('[data-act="apply-series"]').click();
+    wellEditor.querySelector('[data-act="done-series"]').click();
   } else if (e.key === 'Enter' && e.target.matches('.wfield')) {
     e.preventDefault();
     closeWellEditor();
@@ -3264,19 +3329,25 @@ document.addEventListener('mousedown', e => {
 document.addEventListener('scroll', e => { if (wellEditing && !wellEditor.contains(e.target)) placeWellEditor(); }, true);
 window.addEventListener('resize', placeWellEditor);
 
-function applySeries(b) {
+function commitSeries(b) {
   const form = seriesForms.get(b.id);
   const keys = seriesTargets(b, form);
+  if (!keys.length) return;
   const steps = seriesSteps(keys, form.dir);
   const id = form.series ?? uid();
-  b.series[id] = form.mode === 'list' ? { list: splitList(form.list), dir: form.dir } : { start: form.start.trim(), unit: form.unit, fold: form.fold.trim(), op: form.op, dir: form.dir };
+  const prep = b.series[id]?.prep;
+  const shape = form.mode === 'list' ? { list: splitList(form.list), dir: form.dir } : { start: form.start.trim(), unit: form.unit, fold: form.fold.trim(), op: form.op, dir: form.dir };
+  b.series[id] = prep ? { ...shape, prep } : shape;
   keys.forEach(key => {
     b.cells[key] ??= {};
     const { v } = b.cells[key][form.field] ?? {};
     b.cells[key][form.field] = { ...(v ? { v } : {}), s: id, step: steps.get(key) };
   });
+  form.series = id;
   pruneSeries(b);
-  seriesForms.delete(b.id);
+  refreshWells(b);
+  save();
+  refresh();
 }
 
 function pruneSeries(b) {
@@ -3790,7 +3861,7 @@ const PULL_SKIP_GROUPS = new Set(['equip', 'soft']);
 let exampleTitles;
 const editingCells = new Map();
 const fieldMenus = new Map();
-const AMOUNT_FIELDS = ['amount', 'dilution', 'working-concentration', 'concentration', 'stock-concentration', 'final-concentration', 'top-concentration', 'coating-concentration'];
+const AMOUNT_FIELDS = ['amount', 'dilution', 'final-concentration', 'stock-concentration', 'top-concentration', 'coating-concentration'];
 
 function rememberedKinds() {
   const known = new Map();
@@ -4249,7 +4320,19 @@ function exportNotes(page) {
   return written ? `<h2>Notes</h2>${written}` : '';
 }
 
-const EXPORT_PARTS = [exportMaterials, exportValues, exportFormulas, exportSteps, exportTables, exportNotes];
+function exportDilutions(page) {
+  if (!state.blocks.some(b => b.page === page.id && b.type === 'dilutions')) return '';
+  const parts = plateSeries().map(entry => {
+    const r = dilutionPrep(entry);
+    const head = `<h3>${esc(entry.subject || 'Unnamed treatment')} · ${esc(r.summary)}</h3>`;
+    if (r.problem) return `${head}<p class="ex-dil">${esc(r.problem)}</p>`;
+    const setup = `Well ${esc(r.prep.well)} µL, add ${esc(r.prep.add)} µL (${esc(r.strength)}), ${esc(r.prep.extra)}% extra.${r.stock.issue ? ` ${esc(r.stock.issue)}` : ` Stock ${esc(r.stock.text)}.`}`;
+    return `${head}<p class="ex-dil">${setup}</p>${prepTableHtml(r)}<p class="ex-dil">${esc(r.foot.map(([name, value]) => `${name}: ${value}`).join(' · '))}</p>${r.warnings.map(w => `<p class="ex-dil">${esc(w)}</p>`).join('')}`;
+  });
+  return parts.length ? `<h2>Dilutions</h2>${parts.join('')}` : '';
+}
+
+const EXPORT_PARTS = [exportMaterials, exportValues, exportFormulas, exportDilutions, exportSteps, exportTables, exportNotes];
 
 function exportHtml() {
   const when = runOnText();
@@ -4443,6 +4526,264 @@ function fillFromLotMemory(item) {
   return filled;
 }
 
+const PREP_PLATES = [
+  { label: '500 µL deep-well plate', fill: 450 },
+  { label: '1 mL deep-well plate', fill: 900 },
+  { label: '2 mL deep-well plate', fill: 1800 },
+];
+const PREP_DEFAULTS = { add: '', well: '', extra: '20', step: '5' };
+const MOLAR_DIM = 'mol:1|vol:-1';
+const MASS_CONC_DIM = 'mass:1|vol:-1';
+const PIPETTES = {
+  stock: [
+    { name: 'P2', min: 0.1, max: 2, step: 0.002 },
+    { name: 'P10', min: 0.5, max: 10, step: 0.02 },
+    { name: 'P20', min: 2, max: 20, step: 0.02 },
+    { name: 'P100', min: 10, max: 100, step: 0.2 },
+    { name: 'P200', min: 20, max: 200, step: 0.2 },
+    { name: 'P1000', min: 100, max: 1000, step: 2 },
+  ],
+  series: [
+    { name: '12-ch 10 µL', min: 0.5, max: 10, step: 0.02 },
+    { name: '12-ch 20 µL', min: 2, max: 20, step: 0.02 },
+    { name: '12-ch 50 µL', min: 5, max: 50, step: 0.05 },
+    { name: '12-ch 100 µL', min: 10, max: 100, step: 0.2 },
+    { name: '12-ch 200 µL', min: 20, max: 200, step: 0.2 },
+    { name: '12-ch 300 µL', min: 20, max: 300, step: 0.5 },
+    { name: '12-ch 1200 µL', min: 100, max: 1200, step: 2 },
+  ],
+  plating: [
+    { name: '24-ch 20 µL', min: 1, max: 20, step: 0.02 },
+    { name: '24-ch 100 µL', min: 5, max: 100, step: 0.1 },
+  ],
+};
+const pipetteFor = (use, volume) => PIPETTES[use].find(p => volume >= p.min - 1e-9 && volume <= p.max + 1e-9);
+const dialNearest = (pipette, volume) => (pipette ? Math.round(volume / pipette.step) * pipette.step : volume);
+const dialUp = (pipette, volume) => (pipette ? Math.ceil(volume / pipette.step - 1e-9) * pipette.step : volume);
+const dialDigits = pipette => (pipette.step < 0.01 ? 3 : pipette.step < 0.1 ? 2 : pipette.step < 1 ? 1 : 0);
+const dialNumber = (pipette, volume) => String(pipette ? Number(volume.toFixed(dialDigits(pipette))) : sig3(volume));
+const dialText = (pipette, volume) => `${dialNumber(pipette, volume)} µL`;
+const STRIP = { left: 100, column: 78, radius: 17, cy: 34 };
+const sig3 = n => String(Number(n.toPrecision(3)));
+
+function niceAmount(n, unit) {
+  const u = UNITS[unit];
+  const scale = u && AUTO_UNITS[dimKey(u.d)];
+  if (!scale) return `${sig3(n)} ${unit}`.trim();
+  const base = n * u.f;
+  const best = scale.find(x => base / UNITS[x].f >= 1) ?? scale.at(-1);
+  return `${sig3(base / UNITS[best].f)} ${best}`;
+}
+const microliters = n => niceAmount(n * 1e-6, 'L');
+
+function plateSeries() {
+  const found = [];
+  for (const b of state.blocks.filter(x => x.type === 'plate')) {
+    for (const f of b.fields) {
+      const runs = new Map();
+      for (const cells of Object.values(b.cells)) {
+        const cell = cells[f.id];
+        if (!isSeriesCell(cell) || !b.series[cell.s] || b.series[cell.s].list) continue;
+        if (!runs.has(cell.s)) runs.set(cell.s, { subject: cell.v ? f.values.find(x => x.id === cell.v)?.text.trim() ?? '' : '', perStep: new Map() });
+        const { perStep } = runs.get(cell.s);
+        perStep.set(cell.step, (perStep.get(cell.step) ?? 0) + 1);
+      }
+      for (const [id, run] of runs) found.push({ block: b, id, series: b.series[id], ...run });
+    }
+  }
+  return found;
+}
+
+const bareKey = text => normKey(String(text).replace(/\([^)]*\)/g, ' '));
+
+function materialNamed(name) {
+  const listed = state.blocks.filter(x => x.type === 'materials').flatMap(blk => blk.items.filter(i => !i.dropped).map(item => ({ blk, item })));
+  return listed.find(({ item }) => normKey(item.name) === normKey(name)) ?? listed.find(({ item }) => bareKey(item.name) === bareKey(name)) ?? null;
+}
+
+function materialNumber({ blk, item }, keys) {
+  for (const f of materialFields(blk, item).filter(x => keys.includes(x.key))) {
+    const n = parseNumber(item.values[f.key]);
+    if (!Number.isNaN(n)) return { n, unit: fieldUnit(item, f) };
+  }
+  return null;
+}
+
+function convertConcentration(n, from, to, gramsPerMol) {
+  const a = UNITS[from];
+  const z = UNITS[to];
+  if (!a || !z) return { error: `${from || 'a plain number'} cannot become ${to || 'a plain number'}` };
+  const da = dimKey(a.d);
+  const dz = dimKey(z.d);
+  if (da === dz) return { n: (n * a.f) / z.f };
+  if (!(new Set([da, dz, MOLAR_DIM, MASS_CONC_DIM]).size === 2)) return { error: `the stock is in ${from} and the series in ${to}` };
+  if (!gramsPerMol) return { needsWeight: true };
+  return { n: da === MASS_CONC_DIM ? (n * a.f) / gramsPerMol / z.f : (n * a.f * gramsPerMol) / z.f };
+}
+
+function stockFor(subject, unit, ratio) {
+  if (ratio) return { n: 1, text: 'undiluted stock', amount: 'undiluted' };
+  const found = materialNamed(subject);
+  const stock = found && materialNumber(found, ['stock-concentration']);
+  if (!stock) return { need: 'stock', unit, issue: found ? `${found.item.name} has no stock concentration yet.` : `${subject || 'This treatment'} is not in Materials yet.` };
+  const weight = materialNumber(found, ['molecular-weight']);
+  const conversion = convertConcentration(stock.n, stock.unit, unit, weight ? weight.n * (weight.unit === 'kDa' ? 1000 : 1) : 0);
+  if (conversion.needsWeight) {
+    const large = found.item.group === 'ab' || /protein|antibod|isotype/i.test(found.item.type) || THERAPEUTIC_ANTIBODY.test(found.item.name);
+    return { need: 'weight', unit: large ? 'kDa' : 'g/mol', issue: `Its stock is ${niceAmount(stock.n, stock.unit)}, so turning it into ${unit} needs a molecular weight${large ? ' (about 150 kDa for an IgG)' : ''}.` };
+  }
+  if (conversion.error) return { issue: `This series cannot be made from the stock: ${conversion.error}.` };
+  return { n: conversion.n, text: `${niceAmount(stock.n, stock.unit)} ${found.item.name}`, amount: niceAmount(stock.n, stock.unit) };
+}
+
+function dilutionPrep({ series, perStep, subject }) {
+  const prep = { ...PREP_DEFAULTS, ...series.prep };
+  const fold = foldOf(seriesPart(series.fold).text);
+  const points = Math.max(...perStep.keys()) + 1;
+  const wells = Math.max(...perStep.values());
+  const ratio = series.unit === '1:N' && !seriesPart(series.start).ref;
+  const amount = ratio ? null : splitAmount(seriesStartText(series));
+  const startN = ratio ? foldOf(seriesStartText(series)) : parseNumber(amount?.amt);
+  const known = fold > 1 && !Number.isNaN(startN);
+  const startIsTop = ratio ? series.op === 'times' : series.op !== 'times';
+  const top = !known || startIsTop ? startN : ratio ? startN / fold ** (points - 1) : startN * fold ** (points - 1);
+  const show = n => (ratio ? `1:${sig3(n)}` : niceAmount(n, amount.unit));
+  const base = { prep, summary: [known ? show(top) : seriesStartText(series) || '?', `1:${sig3(fold || 0)}`, `${points} points`].join(' · ') };
+  if (!known) return { ...base, problem: 'Give this series a starting amount with a unit, and a fold, on the plate map.' };
+  const add = parseNumber(prep.add);
+  const well = parseNumber(prep.well);
+  if (!(add > 0) || !(well >= add)) return { ...base, problem: 'Set the well volume and the volume added.' };
+  const strength = well / add;
+  const extra = Math.max(0, parseNumber(prep.extra) || 0) / 100;
+  const step = parseNumber(prep.step) > 0 ? parseNumber(prep.step) : 1;
+  const need = wells * add * (1 + extra);
+  const roughTransfer = Math.ceil(need / (fold - 1) / step - 1e-9) * step;
+  const transferPipette = pipetteFor('series', roughTransfer);
+  const transfer = dialUp(transferPipette, roughTransfer);
+  const diluentPipette = pipetteFor('series', transfer * (fold - 1));
+  const diluent = dialNearest(diluentPipette, transfer * (fold - 1));
+  const total = transfer + diluent;
+  const inWell = i => (ratio ? top * fold ** i : top / fold ** i);
+  const stock = stockFor(subject, amount?.unit, ratio);
+  const warnings = [];
+  let rawStock = stock.n ? (ratio ? total / (top / strength) : (total * top * strength) / stock.n) : null;
+  if (ratio && top / strength < 1) warnings.push(`At ${sig3(strength)}× the top well would need stock stronger than undiluted.`);
+  if (rawStock !== null && rawStock > total) {
+    warnings.push(`The stock (${stock.text}) is weaker than the top well needs (${show(top * (ratio ? 1 / strength : strength))}).`);
+    rawStock = null;
+  }
+  const stockPipette = rawStock === null ? undefined : pipetteFor('stock', rawStock);
+  if (rawStock !== null && !stockPipette) {
+    warnings.push(rawStock < PIPETTES.stock[0].min
+      ? `${sig3(rawStock)} µL of stock is below a ${PIPETTES.stock[0].name}'s range. Make an intermediate dilution first.`
+      : `${sig3(rawStock)} µL of stock is more than a ${PIPETTES.stock.at(-1).name} takes in one go.`);
+  }
+  const stockUl = rawStock === null ? null : dialNearest(stockPipette, rawStock);
+  const topPipette = stockUl === null ? undefined : pipetteFor('stock', total - stockUl);
+  const topDiluent = stockUl === null ? null : dialNearest(topPipette, total - stockUl);
+  const platingPipette = pipetteFor('plating', add);
+  if (!transferPipette) warnings.push(`No 12-channel covers a ${sig3(roughTransfer)} µL transfer.`);
+  if (!platingPipette) warnings.push(`No 24-channel covers adding ${sig3(add)} µL per well.`);
+  const plate = PREP_PLATES.find(p => p.fill >= total);
+  if (!plate) warnings.push(`${microliters(total)} per well is more than a 2 mL deep-well plate holds comfortably. Use tubes.`);
+  const rows = Array.from({ length: points }, (_, i) => ({
+    point: i + 1,
+    wells: perStep.get(startIsTop ? i : points - 1 - i) ?? 0,
+    volume: dialNumber(diluentPipette, i ? diluent : total),
+    inWell: show(inWell(i)),
+    working: show(ratio ? inWell(i) / strength : inWell(i) * strength),
+  }));
+  const foot = [
+    stockUl !== null && ['Well 1', `${dialText(stockPipette, stockUl)} stock + ${dialText(topPipette, topDiluent)} diluent`],
+    ['Diluent total', stockUl !== null ? microliters(topDiluent + diluent * (points - 1)) : `about ${microliters(diluent * points)}`],
+    plate && ['Recommended', plate.label],
+  ].filter(Boolean);
+  return { ...base, strength: `${sig3(strength)}×`, rows, uneven: new Set(perStep.values()).size > 1, transferText: dialText(transferPipette, transfer), stockText: stockUl === null ? null : dialText(stockPipette, stockUl), stockPipette: stockPipette?.name, foot, stock, warnings };
+}
+
+function addMaterialsBlock() {
+  const page = state.pages[0];
+  const b = { ...materialsBlock({ x: 0, y: Math.max(0, ...state.blocks.filter(x => x.page === page.id).map(x => x.y + x.h)), w: 12, h: 8 }, []), page: page.id };
+  state.blocks.push(b);
+  if (onActivePage(b)) mountBlock(b);
+  return b;
+}
+
+function recordOnMaterial(subject, key, value, unit) {
+  let found = materialNamed(subject);
+  if (!found) {
+    const blk = state.blocks.find(x => x.type === 'materials') ?? addMaterialsBlock();
+    const item = materialFromGuess(blk, guessMaterial(subject, rememberedKinds()));
+    blk.items.push(item);
+    found = { blk, item };
+  }
+  found.item.values[key] = value;
+  found.item.units[key] = unit;
+  if (!found.item.on.includes(key)) found.item.on.push(key);
+}
+
+function saveStockAnswer(ask) {
+  const n = parseNumber(ask.querySelector('[data-ask="n"]').value);
+  if (!(n > 0)) return;
+  recordOnMaterial(ask.closest('[data-series]').dataset.subject, ask.dataset.need === 'weight' ? 'molecular-weight' : 'stock-concentration', String(n), ask.querySelector('[data-ask="unit"]').value);
+  save();
+  refresh();
+  state.blocks.filter(x => x.type === 'materials').forEach(renderBlock);
+  setTimeout(renderDilutionBlocks);
+}
+
+function stockAskHtml(stock) {
+  const units = stock.need === 'weight' ? WEIGHT_FIELD.units : STOCK_FIELD.units;
+  const field = stock.need === 'weight' ? 'Molecular weight' : 'Stock';
+  return `<div class="dil-ask" data-need="${stock.need}"><span>${esc(stock.issue)}</span><label class="dil-f">${field} <input class="in dil-in" data-ask="n" placeholder="${stock.need === 'weight' ? '150' : '10'}" /><select class="in dil-unit" data-ask="unit">${unitOptions(units, units.includes(stock.unit) ? stock.unit : units[0])}</select></label><span class="dil-saved">saved to Materials</span></div>`;
+}
+
+function prepTableHtml(r) {
+  const line = (label, pick) => `<tr><th>${esc(label)}</th>${r.rows.map(row => `<td class="num">${esc(String(pick(row)))}</td>`).join('')}</tr>`;
+  return `<table class="ex-prep"><tbody>${line('Well', row => row.point)}${line('Volume', row => `${row.volume} µL`)}${line('Final', row => row.inWell)}${line(`Working ${r.strength}`, row => row.working)}${r.uneven ? line('Replicates', row => row.wells) : ''}</tbody></table>`;
+}
+
+function prepStripSvg(r, id) {
+  const { left, column, radius, cy } = STRIP;
+  const width = left + r.rows.length * column;
+  const height = r.uneven ? 104 : 90;
+  const cx = i => left + column * i + column / 2;
+  const marker = `dil-ah-${id}`;
+  const label = (x, y, cls, text) => `<text class="${cls}" x="${x}" y="${y}">${esc(text)}</text>`;
+  const arrow = (x1, x2, volume, kind = '') => `<line class="ds-arrow ${kind}" x1="${x1}" y1="${cy}" x2="${x2}" y2="${cy}" marker-end="url(#${marker}${kind})"/>${label((x1 + x2) / 2, cy - 7, 'ds-vol', volume)}`;
+  const head = kind => `<marker id="${marker}${kind}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ds-head ${kind}" d="M0 0L10 5L0 10z"/></marker>`;
+  const source = `<rect class="ds-src${r.stock.issue ? ' issue' : ''}" x="1" y="${cy - 17}" width="58" height="34" rx="3"/>${label(30, cy - 2, 'ds-src-t', r.stock.amount ?? '?')}${label(30, cy + 10, 'ds-src-s', 'stock')}`;
+  const legend = `${label(0, cy + radius + 17, 'ds-legend', 'Final')}${label(0, cy + radius + 31, 'ds-legend', `Working ${r.strength}`)}${r.uneven ? label(0, cy + radius + 45, 'ds-legend', 'Replicates') : ''}`;
+  const wells = r.rows.map((row, i) => {
+    const x = cx(i);
+    const into = i ? arrow(cx(i - 1) + radius + 3, x - radius - 5, r.transferText) : `${arrow(61, x - radius - 5, r.stockText ?? '?', 'stock')}${r.stockPipette ? label((61 + x - radius - 5) / 2, cy + 14, 'ds-pip', r.stockPipette) : ''}`;
+    return `${into}<circle class="ds-well" cx="${x}" cy="${cy}" r="${radius}"/>${label(x, cy + 1, 'ds-v', row.volume)}${label(x, cy + 10, 'ds-u', 'µL')}${label(x, cy + radius + 17, 'ds-c', row.inWell)}${label(x, cy + radius + 31, 'ds-w', row.working)}${r.uneven ? label(x, cy + radius + 45, 'ds-w', row.wells) : ''}`;
+  }).join('');
+  return `<svg class="dil-strip" viewBox="0 0 ${width} ${height}" width="${width}"><defs>${head('')}${head('stock')}</defs>${source}${legend}${wells}</svg>`;
+}
+
+function dilutionsHtml() {
+  const list = plateSeries();
+  if (!list.length) return '<p class="hint">Fill a dilution series across wells on a plate map, and how to make it shows here.</p>';
+  return list.map(entry => {
+    const r = dilutionPrep(entry);
+    const field = (key, unit) => `<span class="dil-f"><input class="in dil-in" data-prep="${key}" value="${esc(r.prep[key])}" />${unit}</span>`;
+    const param = (title, content) => `<div class="dil-param"><span class="dil-pt">${title}</span>${content}</div>`;
+    const params = `<div class="dil-params">${param('Well volume', field('well', 'µL'))}${param('Volume added', field('add', 'µL'))}${param('Factor', `<b class="dil-x">${r.strength ?? '–'}</b>`)}${param('Extra (dead vol.)', field('extra', '%'))}${param('Round to', field('step', 'µL'))}</div>`;
+    const body = r.problem
+      ? `<p class="hint">${esc(r.problem)}</p>`
+      : `${r.stock.need ? stockAskHtml(r.stock) : r.stock.issue ? `<div class="dil-warn">${esc(r.stock.issue)}</div>` : ''}${prepStripSvg(r, entry.id)}<div class="dil-foot">${r.foot.map(([name, value]) => `<span><span class="dil-pt">${esc(name)}</span> ${esc(value)}</span>`).join('')}</div>${r.warnings.map(w => `<div class="dil-warn">${esc(w)}</div>`).join('')}`;
+    return `<section class="dil-series" data-plate="${entry.block.id}" data-series="${entry.id}" data-subject="${esc(entry.subject)}"><div class="dil-head"><span class="dil-name">${esc(entry.subject || 'Unnamed treatment')}</span><span class="dil-sum">${esc(r.summary)}</span></div>${params}${body}</section>`;
+  }).join('');
+}
+
+function renderDilutionBlocks() {
+  const focused = document.activeElement?.closest?.('[data-prep]');
+  const where = focused && [focused.closest('[data-series]').dataset.series, focused.dataset.prep];
+  state.blocks.filter(x => x.type === 'dilutions').forEach(renderBlock);
+  if (where) document.querySelector(`[data-series="${where[0]}"] [data-prep="${where[1]}"]`)?.focus();
+}
+
 const TYPES = {
   materials: {
     label: 'Materials', glyph: '⚗', hint: 'Everything the experiment uses, grouped', size: [12, 10],
@@ -4504,6 +4845,7 @@ const TYPES = {
     },
     onChange(b, e) {
       const el = e.target;
+      if (el.matches('select.munit, select.mfield')) this.onInput(b, e);
       if (el.matches('.mcopy')) {
         const source = EXAMPLES[el.value]?.();
         if (!source) return;
@@ -4818,6 +5160,7 @@ const TYPES = {
     },
     onChange(b, e) {
       const el = e.target;
+      if (el.matches('select[data-col], select.lunit')) this.onInput(b, e);
       const column = b.columns.find(c => c.id === el.closest('[data-colid]')?.dataset.colid);
       if (el.matches('.lnamed')) b.named = el.checked;
       else if (column && el.matches('.ckind')) column.kind = el.value;
@@ -5604,6 +5947,33 @@ const TYPES = {
       if (!e.target.matches('.sectext')) editingStepId = null;
       commitSteps();
     },
+  },
+
+  dilutions: {
+    label: 'Dilutions', glyph: '⤓', hint: 'How to make each series on your plates', size: [12, 10],
+    make: () => ({}),
+    render(b, body) {
+      body.innerHTML = dilutionsHtml();
+      body.onfocusout = e => {
+        const ask = e.target.closest('[data-need]');
+        if (ask && !ask.contains(e.relatedTarget)) saveStockAnswer(ask);
+      };
+      body.onchange = e => {
+        const ask = e.target.closest('[data-need]');
+        if (ask) {
+          if (e.target.matches('[data-ask="unit"]')) saveStockAnswer(ask);
+          return;
+        }
+        const el = e.target.closest('[data-prep]');
+        const section = el?.closest('[data-series]');
+        const series = section && byId(section.dataset.plate)?.series[section.dataset.series];
+        if (!series) return;
+        series.prep = { ...series.prep, [el.dataset.prep]: el.value.trim() };
+        save();
+        setTimeout(renderDilutionBlocks);
+      };
+    },
+    update(b, body) { if (!body.contains(document.activeElement)) this.render(b, body); },
   },
 
   flow: {
@@ -6404,7 +6774,7 @@ function refresh() {
 const RAIL = [
   ['Inputs', [{ type: 'materials' }]],
   ['Write', ['text', 'steps', 'flow', 'sketch'].map(type => ({ type }))],
-  ['Numbers', ['values', 'formula', 'list'].map(type => ({ type, preset: type === 'list' ? 'blank' : undefined }))],
+  ['Numbers', ['values', 'formula', 'dilutions', 'list'].map(type => ({ type, preset: type === 'list' ? 'blank' : undefined }))],
   ['Layout', [{ type: 'plate' }]],
 ];
 document.getElementById('rail').innerHTML = RAIL.map(([group, entries]) => `<h4>${group}</h4>${entries.map(({ type, preset }) => {

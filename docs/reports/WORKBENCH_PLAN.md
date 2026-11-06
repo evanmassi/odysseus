@@ -39,7 +39,41 @@ An experiment has pages, mirroring Evan's Excel sheets (new files start with Set
 calculations, Takedown). Each page is its own board with its own steps, numbered from 1; values and
 formulas share one set of names across pages; the export prints the pages in order. Files from before
 pages open as a single Setup page. The file is his full personal record; what goes to Benchling is
-chosen at export (not built yet). To iterate, open the
+chosen at export (not built yet).
+**Dilutions block (2026-11-06).** Each series filled on a plate map gets a prep, sized per drug from
+its own wells (busiest point): add volume and final well volume give the working strength (20 µL into
+80 µL = 4×); extra defaults to 20% and rounding to 5 µL; each point keeps its diluent volume after
+transferring, so transfer = need ÷ (fold − 1) rounded up; the top point is made from the material's
+stock (matched by name), converting mass ↔ molar through its molecular weight (kDa or g/mol). The
+smallest 96 deep-well plate that fits (500 µL, 1 mL, 2 mL; filled to 90%) is recommended.
+Warnings: stock under 2 µL (make an intermediate), stock too weak, more than a 2 mL deep-well holds. Each
+series reads as: drug · top · fold · points; a row of settings (well volume, volume added, factor,
+extra, round to); one line of wells drawn as a scaling SVG so 12 points stay on one row on a laptop
+(well 1 shows its starting volume, the rest their diluent, arrows carry the transfer, in-well and N×
+concentration under each); and a one-line footnote ending in the recommended plate (no plate picker).
+The export prints the same line as a 4-row table. INN names ending in -mab guess as Drug or inhibitor.
+Volumes are pipette-aware: each is given the smallest pipette whose recommended range covers it and
+rounded to that pipette's setting increment (stock: Rainin Pipet-Lite XLS singles P2 to P1000; series:
+Rainin 12-channels 10 to 1200 µL; plating: Eppendorf Research plus 24-channel 1–20 µL in 0.02 and
+5–100 µL in 0.1). Specs are from Rainin's XLS operating manual and Eppendorf; the list is built in
+for now and should become an editable lab setting. A volume no pipette covers is a warning (below a
+P2 means make an intermediate dilution).
+A series works for any material, not just drugs: every physical material type can hold a Stock
+concentration (any concentration unit) and a Molecular weight (g/mol or kDa). When a series has no
+stock, or needs a molecular weight to cross mass and molar, the Dilutions block asks inline and saves
+the answer onto the material, adding the material if it is not listed. Treatments match materials by
+name, ignoring a description in parentheses; any INN name ending in -mab guesses as Drug or inhibitor.
+The plate map's series editor saves as you type (no Apply; Done closes it), and rewriting a series keeps
+its prep settings, so changing nM to µM or the fold never resets the Dilutions card. A series is a start
+and a 1:X dilution with a direction (shown as "300 nM, 1:3, ↓"); multiply was dropped because the
+direction already decides which end holds the top concentration. Pipettes drive rounding and label the
+stock arrow but are not listed in the footnote.
+**Concentration terms (2026-11-06).** Stock = what is in the tube (one Stock concentration field on every
+material, any concentration unit, lot-scoped for antibodies). Working = the intermediate solution made
+up first (the N× row of the Dilutions card). Final = what the cells see, set on the plate map; materials
+used at a fixed dose off the plate map (IL-2 in a flask, a supplement) carry an optional Final
+concentration. Old Concentration and Working concentration values move over on open. Next: define a series in the block first and place it on the map (series move to the
+experiment level); then diluent-only control wells and shared diluent totals. To iterate, open the
 source file directly and press F5; rebuild only for a copy to take to work.
 **Saved files must keep opening:** when the state shape changes, add an upgrade to the load block
 (`state.blocks.forEach(...)` after `loadState()`) instead of relying on a new storage key. The export
