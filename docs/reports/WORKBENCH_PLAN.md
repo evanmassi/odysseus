@@ -72,7 +72,19 @@ stock arrow but are not listed in the footnote.
 material, any concentration unit, lot-scoped for antibodies). Working = the intermediate solution made
 up first (the N× row of the Dilutions card). Final = what the cells see, set on the plate map; materials
 used at a fixed dose off the plate map (IL-2 in a flask, a supplement) carry an optional Final
-concentration. Old Concentration and Working concentration values move over on open. Next: define a series in the block first and place it on the map (series move to the
+concentration. Old Concentration and Working concentration values move over on open.
+**Plate map layers (2026-11-06).** Each line on the wells gets a role instead of more text in the well:
+the first line that varies (a treatment, a series) is the **color**, and a series adds color strength,
+with doses printed once in the column or row headers when every column (or row) holds one dose; a
+line on every used well is a **caption** above the plate ("Every well: Stim X"); any other line is a
+**band**: each connected cluster of its wells gets a tinted outline traced around the wells, labeled
+by a bracket on top (block spans all used rows) or on the left (other solid blocks), a corner tag
+(irregular shapes), or drawn as rings (clusters of one or two wells). Wells print only the color line:
+name and dose when wide, just the short dose when narrow (the color already names the drug), nothing
+when tiny. Hover lists the well or replicate block, then one line per line on the wells, with doses
+scaled to read easily (15.2 pM, not 0.0152 nM). A Show as menu per line overrides Auto
+(Color, Band, Caption, Hover only). Painted colors still win over the color line. Not yet: dashed
+"no X" brackets for the wells a band leaves out, and the plate map in the export. Next: define a series in the block first and place it on the map (series move to the
 experiment level); then diluent-only control wells and shared diluent totals. To iterate, open the
 source file directly and press F5; rebuild only for a copy to take to work.
 **Saved files must keep opening:** when the state shape changes, add an upgrade to the load block

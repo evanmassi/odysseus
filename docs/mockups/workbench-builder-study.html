@@ -570,7 +570,22 @@
   .vtext { position: absolute; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
   .vtext .wl { display: flex; flex-wrap: wrap; justify-content: center; column-gap: 6px; row-gap: 1px; }
   .vtext .wl-amt { font-weight: 600; }
-  .plate { display: grid; gap: 4px; justify-content: center; user-select: none; }
+  .plate { position: relative; display: grid; gap: 4px; justify-content: center; user-select: none; }
+  .plate .ch.dosed { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; line-height: 1; }
+  .plate .rh.dosed { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding-right: 2px; }
+  .plate .dose { font-size: 9px; color: hsl(var(--fg)); }
+  .plate .corner { font-size: 9px; }
+  .pbands { position: absolute; inset: 0; z-index: 2; overflow: visible; pointer-events: none; }
+  .pbands text { font-family: 'Hanken Grotesk', sans-serif; font-size: 10.5px; font-weight: 600; }
+  .pcaption { margin: 0 0 8px; font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+  .pcaption b { font-weight: 600; color: hsl(var(--fg)); }
+  .lg-band { width: 14px; height: 12px; border: 1px solid var(--gc); border-radius: 3px; background: color-mix(in srgb, var(--gc) 14%, transparent); }
+  .lg-shade { display: inline-flex; gap: 2px; }
+  .lg-shade i { width: 9px; height: 9px; border-radius: 50%; background: var(--gc); }
+  .plate .well .wl-short { display: none; }
+  .plate .well.snug .wl-label, .plate .well.snug .wl-amt { display: none; }
+  .plate .well.snug .wl-short { display: inline; font-weight: 600; }
+  .wshow { flex: none; width: auto; height: 30px; font-size: 12px; }
   .blk-body.t-plate { overflow-x: auto; overflow-y: hidden; }
   .vtabs { cursor: grab; user-select: none; }
   .vtabs:active { cursor: grabbing; }
@@ -2642,16 +2657,23 @@ function wellView(b, key, label, isPlate) {
   const g = b.groups.find(x => x.id === b.wells[key]);
   const text = wellText(b, key);
   const fade = seriesFade(b, key);
-  const color = g?.color ?? (fade === null ? null : SERIES_FADE_COLOR);
+  const decor = isPlate ? plateDecors.get(b.id) : null;
+  const lineCell = decor?.color && b.cells[key]?.[decor.color.f.id];
+  const color = g?.color ?? (lineCell ? lineColor(decor.color.f, lineCell) : null) ?? (fade === null ? null : SERIES_FADE_COLOR);
   const cls = `${isPlate ? 'well' : 'vessel'}${color ? ' gcol' : ''}${vesselSel(b).set.has(key) ? ' sel' : ''}${text ? ' noted' : ''}`;
-  const lines = b.fields.map(f => wellLine(b, key, f)).filter(([label, amount]) => label || amount).map(([label, amount]) => `<div class="wl">${label ? `<span class="wl-label">${esc(label)}</span>` : ''}${amount ? `<span class="wl-amt">${esc(amount)}</span>` : ''}</div>`).join('');
+  const shown = decor ? [decor.color?.f].filter(Boolean) : b.fields;
   const vessel = VESSELS[vesselTypeOf(b, key)];
   const shape = VESSEL_SHAPES[vessel.shape];
+  const lines = shown.map(f => wellLine(b, key, f)).filter(([label, amount]) => label || amount).map(([label, amount]) => `<div class="wl">${label ? `<span class="wl-label">${esc(label)}</span>` : ''}${amount ? `<span class="wl-amt">${esc(readableAmount(amount))}</span><span class="wl-short">${esc(decor?.headers?.unit ? headerNumber(amount) : amount)}</span>` : ''}</div>`).join('');
+  const merged = isPlate && mergeLayouts.get(b.id)?.anchors.get(key);
+  const details = b.fields.map(f => wellLine(b, key, f)).filter(([name, amount]) => name || amount).map(([name, amount]) => [name, amount && readableAmount(amount)].filter(Boolean).join(' · '));
+  const painted = g && groupName(b, g);
+  const where = merged ? `${selectionName(b, merged.keys) || label} · ${merged.keys.length} wells` : isPlate ? label : vessel.label;
   const textBox = shape?.inside ? ` style="left: ${shape.inside[0]}%; top: ${shape.inside[1]}%; width: ${shape.inside[2]}%; height: ${shape.inside[3]}%"` : '';
   const inner = isPlate ? `<span>${lines}</span>` : `<div class="vdraw"><svg class="vsvg" viewBox="0 0 ${shape.w} ${shape.h}">${shape.svg}</svg><div class="vtext${shape.vertical ? ' vert' : ''}"${textBox}>${lines}</div></div><div class="vsize">${vessel.short}</div>`;
   const colorStyle = color ? `--gc: ${color}${fade === null ? '' : `; --tint: ${fade}%`}` : '';
   const sizeStyle = isPlate ? '' : `--sw: ${shape.w * vessel.scale}`;
-  return { cls: isPlate ? cls : `${cls}${shape.vertical ? ' tube' : ''}`, style: [colorStyle, sizeStyle].filter(Boolean).join('; '), inner, title: [isPlate ? label : vessel.label, text, g && groupName(b, g)].filter(Boolean).join(' · ') };
+  return { cls: isPlate ? cls : `${cls}${shape.vertical ? ' tube' : ''}`, style: [colorStyle, sizeStyle].filter(Boolean).join('; '), inner, title: [where, ...details, painted && !details.some(d => d.startsWith(painted)) ? `Color: ${painted}` : ''].filter(Boolean).join('\n') };
 }
 
 function seriesFade(b, key) {
@@ -2659,6 +2681,197 @@ function seriesFade(b, key) {
   if (!cell) return null;
   const last = Math.max(...Object.values(b.cells).flatMap(c => Object.values(c)).filter(v => isSeriesCell(v) && v.s === cell.s).map(v => v.step));
   return last > 0 ? Math.round(58 - (cell.step / last) * 46) : null;
+}
+
+const LINE_ROLES = { auto: 'Auto', color: 'Color', band: 'Band', caption: 'Caption', hover: 'Hover only' };
+const NEUTRAL_VALUE = /^(no\b|none\b|vehicle|media\b|medium\b|untreated|unstim|blank|empty|mock)/i;
+const VALUE_COLORS = [6, 8, 4, 3, 5, 10, 1, 7].map(i => PLATE_PALETTE[i]);
+const BAND_COLORS = [0, 1, 9, 11].map(i => PLATE_PALETTE[i]);
+const LABEL_ROOM = 70;
+const NEUTRAL_COLOR = PLATE_PALETTE[23];
+const BAND_LANE = 16;
+const RING_MAX = 2;
+const plateDecors = new Map();
+
+function readableAmount(text) {
+  const split = splitAmount(text);
+  const n = split && parseNumber(split.amt);
+  return split && UNITS[split.unit] && !Number.isNaN(n) ? niceAmount(n, split.unit) : text;
+}
+
+function lineColor(f, cell) {
+  const value = f.values.find(x => x.id === cell.v);
+  if (NEUTRAL_VALUE.test(value?.text.trim() ?? '')) return NEUTRAL_COLOR;
+  const index = f.values.filter(x => !NEUTRAL_VALUE.test(x.text.trim())).indexOf(value);
+  return VALUE_COLORS[Math.max(0, index) % VALUE_COLORS.length];
+}
+
+function headerNumber(text) {
+  const n = parseFloat(NUMBER_IN.exec(text)?.[0]);
+  if (Number.isNaN(n)) return text;
+  if (Math.abs(n) >= 100) return String(Math.round(n));
+  const short = String(Number(n.toPrecision(2)));
+  return short.startsWith('0.') ? short.slice(1) : short;
+}
+
+function amountHeaders(b, line) {
+  for (const axis of ['c', 'r']) {
+    const byLine = new Map();
+    for (const spot of line.cells) {
+      const amount = wellLine(b, spot.key, line.f)[1];
+      if (!amount) continue;
+      if (!byLine.has(spot[axis])) byLine.set(spot[axis], new Set());
+      byLine.get(spot[axis]).add(amount);
+    }
+    if (byLine.size < 2 || ![...byLine.values()].every(set => set.size === 1)) continue;
+    const labels = new Map([...byLine].map(([i, set]) => [i, [...set][0]]));
+    const units = new Set([...labels.values()].map(text => splitAmount(text)?.unit ?? ''));
+    const unit = units.size === 1 ? [...units][0] : '';
+    return { axis, unit, labels: new Map([...labels].map(([i, text]) => [i, { text, short: unit ? headerNumber(text) : text }])) };
+  }
+  return null;
+}
+
+function wellClusters(spots) {
+  const left = new Map(spots.map(spot => [`${spot.r},${spot.c}`, spot]));
+  const clusters = [];
+  for (const start of spots) {
+    if (!left.has(`${start.r},${start.c}`)) continue;
+    const cells = [];
+    const queue = [start];
+    left.delete(`${start.r},${start.c}`);
+    while (queue.length) {
+      const spot = queue.pop();
+      cells.push(spot);
+      for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const id = `${spot.r + dr},${spot.c + dc}`;
+        if (left.has(id)) { queue.push(left.get(id)); left.delete(id); }
+      }
+    }
+    const rs = cells.map(x => x.r);
+    const cs = cells.map(x => x.c);
+    clusters.push({ cells, minR: Math.min(...rs), maxR: Math.max(...rs), minC: Math.min(...cs), maxC: Math.max(...cs) });
+  }
+  return clusters;
+}
+
+function plateDecor(b, sheet) {
+  if (!sheet.plate) return null;
+  const spots = [];
+  for (let r = 0; r < sheet.rows; r++) for (let c = 0; c < sheet.cols; c++) { const key = sheet.keyAt(r, c); if (key) spots.push({ key, r, c }); }
+  const used = spots.filter(({ key }) => b.fields.some(f => b.cells[key]?.[f.id] != null));
+  let colorTaken = b.fields.some(f => f.show === 'color');
+  const lines = [];
+  for (const f of b.fields) {
+    const cells = used.filter(({ key }) => b.cells[key][f.id] != null).map(spot => ({ ...spot, cell: b.cells[spot.key][f.id] }));
+    if (!cells.length) continue;
+    let role = f.show && f.show !== 'auto' ? f.show : '';
+    if (!role) {
+      const texts = new Set(cells.map(spot => fieldText(b, spot.key, f)));
+      if ((texts.size > 1 || cells.some(spot => isSeriesCell(spot.cell))) && !colorTaken) {
+        role = 'color';
+        colorTaken = true;
+      } else role = cells.length === used.length && texts.size === 1 ? 'caption' : 'band';
+    }
+    lines.push({ f, role, cells });
+  }
+  const color = lines.find(line => line.role === 'color');
+  const headers = color ? amountHeaders(b, color) : null;
+  const captions = lines.filter(line => line.role === 'caption').map(line => [...new Set(line.cells.map(spot => fieldText(b, spot.key, line.f)))].join(', ')).filter(Boolean);
+  const usedRows = used.map(spot => spot.r);
+  const rowSpan = [Math.min(...usedRows), Math.max(...usedRows)];
+  const bands = [];
+  for (const line of lines.filter(l => l.role === 'band')) {
+    const byText = new Map();
+    for (const spot of line.cells) {
+      const text = fieldText(b, spot.key, line.f);
+      if (!text) continue;
+      if (!byText.has(text)) byText.set(text, []);
+      byText.get(text).push(spot);
+    }
+    for (const [text, group] of byText) {
+      const clusters = wellClusters(group).map(cluster => {
+        const solid = cluster.cells.length === (cluster.maxR - cluster.minR + 1) * (cluster.maxC - cluster.minC + 1);
+        const place = cluster.cells.length <= RING_MAX ? 'ring' : !solid ? 'tag' : cluster.minR === rowSpan[0] && cluster.maxR === rowSpan[1] ? 'top' : 'left';
+        return { ...cluster, place };
+      });
+      bands.push({ text, color: BAND_COLORS[bands.length % BAND_COLORS.length], clusters });
+    }
+  }
+  const sig = JSON.stringify([lines.map(line => [line.f.id, line.role]), headers && [headers.axis, headers.unit, [...headers.labels]], captions]);
+  return { lines, color, headers, captions, bands, sig };
+}
+
+function bracketLanes(spans) {
+  const ends = [];
+  for (const span of spans.sort((x, y) => x.from - y.from)) {
+    let lane = ends.findIndex(end => end < span.from);
+    if (lane < 0) lane = ends.length;
+    ends[lane] = span.to;
+    span.lane = lane;
+  }
+  return ends.length;
+}
+
+function drawPlateBands(b, body) {
+  const grid = body.querySelector('.plate');
+  if (!grid) return;
+  grid.querySelector('.pbands')?.remove();
+  const bands = plateDecors.get(b.id)?.bands ?? [];
+  const spans = { top: [], left: [] };
+  bands.forEach(band => band.clusters.forEach(cluster => {
+    if (cluster.place === 'top') spans.top.push({ band, from: cluster.minC, to: cluster.maxC });
+    if (cluster.place === 'left') spans.left.push({ band, from: cluster.minR, to: cluster.maxR });
+  }));
+  const topLanes = bracketLanes(spans.top);
+  const leftLanes = bracketLanes(spans.left);
+  grid.style.paddingTop = topLanes ? `${topLanes * BAND_LANE + 2}px` : '';
+  grid.style.paddingLeft = leftLanes ? `${leftLanes * BAND_LANE + 2}px` : '';
+  if (!bands.length) return;
+  const base = grid.getBoundingClientRect();
+  const cols = [...grid.querySelectorAll('.ch')].map(el => el.getBoundingClientRect());
+  const rows = [...grid.querySelectorAll('.rh')].map(el => el.getBoundingClientRect());
+  const half = parseFloat(getComputedStyle(grid).rowGap) / 2 || 2;
+  const box = (r, c) => ({ x: cols[c].left - base.left - half, y: rows[r].top - base.top - half, w: cols[c].width + half * 2, h: rows[r].height + half * 2 });
+  let svg = '';
+  for (const band of bands) {
+    for (const cluster of band.clusters) {
+      if (cluster.place === 'ring') {
+        svg += cluster.cells.map(({ r, c }) => { const k = box(r, c); return `<rect x="${k.x + half + 1}" y="${k.y + half + 1}" width="${k.w - half * 2 - 2}" height="${k.h - half * 2 - 2}" rx="${(k.h - half * 2 - 2) / 2}" fill="none" stroke="${band.color}" stroke-width="1.8"/>`; }).join('');
+        continue;
+      }
+      const inside = new Set(cluster.cells.map(({ r, c }) => `${r},${c}`));
+      let fill = '';
+      let edge = '';
+      for (const { r, c } of cluster.cells) {
+        const k = box(r, c);
+        fill += `M${k.x} ${k.y}h${k.w}v${k.h}h${-k.w}Z`;
+        if (!inside.has(`${r - 1},${c}`)) edge += `M${k.x} ${k.y}h${k.w}`;
+        if (!inside.has(`${r + 1},${c}`)) edge += `M${k.x} ${k.y + k.h}h${k.w}`;
+        if (!inside.has(`${r},${c - 1}`)) edge += `M${k.x} ${k.y}v${k.h}`;
+        if (!inside.has(`${r},${c + 1}`)) edge += `M${k.x + k.w} ${k.y}v${k.h}`;
+      }
+      svg += `<path d="${fill}" fill="${band.color}" fill-opacity=".09"/><path d="${edge}" fill="none" stroke="${band.color}" stroke-opacity=".75" stroke-width="1.2"/>`;
+      if (cluster.place === 'tag') {
+        const k = box(cluster.minR, cluster.cells.filter(cell => cell.r === cluster.minR).reduce((m, cell) => Math.min(m, cell.c), Infinity));
+        const width = band.text.length * 6.2 + 12;
+        svg += `<rect x="${k.x}" y="${k.y - 9}" width="${width}" height="15" rx="3" fill="${band.color}"/><text x="${k.x + 6}" y="${k.y + 2}" style="fill: #11141a">${esc(band.text)}</text>`;
+      }
+    }
+  }
+  for (const span of spans.top) {
+    const y = (topLanes - span.lane - 1) * BAND_LANE + 12;
+    const x1 = cols[span.from].left - base.left + 2;
+    const x2 = cols[span.to].right - base.left - 2;
+    svg += `<path d="M${x1} ${y + 4}v-4H${x2}v4" fill="none" stroke="${span.band.color}" stroke-width="1.4"/><text x="${(x1 + x2) / 2}" y="${y - 2}" text-anchor="middle" style="fill: ${span.band.color}">${esc(span.band.text)}</text>`;
+  }
+  for (const span of spans.left) {
+    const x = (leftLanes - span.lane - 1) * BAND_LANE + 12;
+    const y1 = rows[span.from].top - base.top + 2;
+    const y2 = rows[span.to].bottom - base.top - 2;
+    svg += `<path d="M${x + 4} ${y1}h-4V${y2}h4" fill="none" stroke="${span.band.color}" stroke-width="1.4"/><text transform="translate(${x - 3} ${(y1 + y2) / 2}) rotate(-90)" text-anchor="middle" style="fill: ${span.band.color}">${esc(span.band.text)}</text>`;
+  }
+  grid.insertAdjacentHTML('beforeend', `<svg class="pbands" width="${base.width}" height="${base.height}">${svg}</svg>`);
 }
 
 const PLATE_SIZING = {
@@ -2692,7 +2905,6 @@ function fitCardWidth(b, before) {
   grid.update(document.querySelector(`.blk[data-id="${b.id}"]`).parentElement, { w: b.w, x: b.x });
 }
 
-const plateLineCount = b => Math.max(1, ...Object.values(b.cells).map(c => Object.keys(c).length));
 
 const mergeLayouts = new Map();
 const mergeSignature = merges => [...merges.anchors].map(([key, m]) => `${key}:${m.w}x${m.h}`).join(',');
@@ -2745,6 +2957,12 @@ function refreshWells(b) {
     renderBlock(b);
     return;
   }
+  const decor = plateDecor(b, sheet);
+  if (isPlate && bodyOf(b) && decor?.sig !== plateDecors.get(b.id)?.sig) {
+    renderBlock(b);
+    return;
+  }
+  plateDecors.set(b.id, decor);
   bodyOf(b)?.querySelectorAll('[data-key]').forEach(el => {
     const view = wellView(b, el.dataset.key, el.dataset.label, isPlate);
     const merged = mergeLayouts.get(b.id)?.anchors.get(el.dataset.key);
@@ -2773,7 +2991,13 @@ function plateLegendHtml(b) {
   const colors = b.groups.map(g => [g, Object.keys(b.wells).filter(key => b.wells[key] === g.id && onTab(key)).length]).filter(([, count]) => count).map(([g, count]) => `<span class="pl-item"${pick(`${groupName(b, g)} ${plural}`)}><button class="lg-sw" style="--gc: ${g.color}" data-recolor="${g.id}" title="Change this color"></button>${name('group', g.id, groupName(b, g))}<b>${count}</b></span>`).join('');
   const used = new Set([...Object.keys(b.wells), ...Object.keys(b.cells)].filter(key => onTab(key) && wellIsFilled(b, key))).size;
   const usedLabel = `${capitalize(plural)} used`;
-  return `<div class="pl-sec">${colors}<span class="pl-totals"><span class="pl-item"${pick(usedLabel)}>${esc(usedLabel)}<b>${used}</b></span></span></div>`;
+  const decor = plateDecors.get(b.id);
+  const values = decor?.color ? [...new Map(decor.color.cells.filter(spot => spot.cell.v).map(spot => [spot.cell.v, spot.cell])).values()].sort((x, y) => decor.color.f.values.findIndex(v => v.id === x.v) - decor.color.f.values.findIndex(v => v.id === y.v)) : [];
+  const treatments = values.map(cell => `<span class="pl-item"><i class="lg-sw" style="--gc: ${lineColor(decor.color.f, cell)}"></i>${esc(decor.color.f.values.find(x => x.id === cell.v)?.text ?? '')}</span>`).join('');
+  const shade = decor?.color?.cells.some(spot => isSeriesCell(spot.cell)) ? `<span class="pl-item"><span class="lg-shade">${[1, 0.6, 0.3].map(o => `<i style="--gc: color-mix(in srgb, ${VALUE_COLORS[0]} ${o * 100}%, transparent)"></i>`).join('')}</span>stronger color = higher ${decor.headers ? `(${decor.headers.axis === 'c' ? 'columns' : 'rows'} show the dose)` : 'dose'}</span>` : '';
+  const bandItems = (decor?.bands ?? []).map(band => `<span class="pl-item"><i class="lg-band" style="--gc: ${band.color}"></i>${esc(band.text)}</span>`).join('');
+  const layers = treatments || shade || bandItems ? `<div class="pl-sec">${treatments}${shade}${bandItems}</div>` : '';
+  return `${layers}<div class="pl-sec">${colors}<span class="pl-totals"><span class="pl-item"${pick(usedLabel)}>${esc(usedLabel)}<b>${used}</b></span></span></div>`;
 }
 
 function drawPlateLegend(b) {
@@ -3087,8 +3311,10 @@ function wellEditorHtml(b) {
       ? `<button class="we-series" data-act="series" title="Change this dilution">${esc(seriesSummary(info))}</button>`
       : `<input class="in wamount" data-field="${f.id}" value="${esc(amount)}" placeholder="${amounts.size > 1 ? 'Mixed' : 'Amount'}" spellcheck="false" autocomplete="off" /><select class="in wunit" data-field="${f.id}" title="Unit">${unitOptions(VALUE_UNITS, unit, u => VALUE_UNIT_LABELS[u] ?? u)}</select><button class="lnk we-dil" data-act="series" title="Fill these ${plural} with a dilution or any stepped series">Dilution</button>`;
     const remove = lines.length > 1 ? `<button class="wf-x" data-act="del-part" title="Remove this line from these ${plural}">×</button>` : '';
+    const decided = plateDecors.get(b.id)?.lines.find(line => line.f.id === f.id);
+    const showAs = f.id && vesselSheet(b).plate ? `<select class="in wshow" data-field="${f.id}" title="How this line shows on the plate">${Object.entries(LINE_ROLES).map(([value, text]) => `<option value="${value}"${(f.show ?? 'auto') === value ? ' selected' : ''}>${value === 'auto' && decided ? `Auto: ${LINE_ROLES[decided.role].toLowerCase()}` : text}</option>`).join('')}</select>` : '';
     const editing = form?.field === f.id ? seriesFormHtml(b, form, seriesTargets(b, form), !!info) : '';
-    return `<div class="wfield-row" data-field="${f.id}"><input class="in wfield" data-field="${f.id}" value="${esc(label)}" placeholder="${esc(labelHint)}" spellcheck="false" autocomplete="off" />${amountBox}${remove}</div><div class="we-suggest"></div>${editing}`;
+    return `<div class="wfield-row" data-field="${f.id}"><input class="in wfield" data-field="${f.id}" value="${esc(label)}" placeholder="${esc(labelHint)}" spellcheck="false" autocomplete="off" />${amountBox}${showAs}${remove}</div><div class="we-suggest"></div>${editing}`;
   }).join('');
   const groupIds = new Set(keys.map(k => b.wells[k] ?? ''));
   const current = groupIds.size === 1 ? b.groups.find(g => g.id === [...groupIds][0])?.color ?? '' : null;
@@ -3296,6 +3522,15 @@ wellEditor.addEventListener('change', e => {
     setWellAmount(b, el.dataset.field, split.amt);
     setWellUnit(b, el.dataset.field, split.unit);
     drawWellEditor();
+  } else if (el.matches('.wshow')) {
+    const f = b.fields.find(x => x.id === el.dataset.field);
+    if (!f) return;
+    f.show = el.value;
+    refreshWells(b);
+    save();
+    refresh();
+    drawWellEditor();
+    return;
   } else if (el.matches('.sv-unit')) {
     seriesForms.get(b.id).unit = el.value;
     showSeriesPreview(b);
@@ -5590,14 +5825,21 @@ const TYPES = {
     render(b, body) {
       const sheet = vesselSheet(b);
       const merges = mergeLayout(b, sheet);
+      const decor = plateDecor(b, sheet);
+      plateDecors.set(b.id, decor);
+      const doses = decor?.headers;
       mergeLayouts.set(b.id, merges);
       let cells = '';
       if (sheet.plate) {
-        cells += '<div class="corner" title="Select all" style="grid-row: 1; grid-column: 1"></div>';
-        for (let c = 0; c < sheet.cols; c++) cells += `<div class="ch" data-col="${c}" style="grid-row: 1; grid-column: ${c + 2}">${c + 1}</div>`;
+        cells += `<div class="corner" title="Select all" style="grid-row: 1; grid-column: 1">${esc(doses?.unit ?? '')}</div>`;
+        for (let c = 0; c < sheet.cols; c++) {
+          const dose = doses?.axis === 'c' && doses.labels.get(c);
+          cells += `<div class="ch${dose ? ' dosed' : ''}" data-col="${c}" style="grid-row: 1; grid-column: ${c + 2}"${dose ? ` title="${esc(dose.text)}"` : ''}>${c + 1}${dose ? `<span class="dose">${esc(dose.short)}</span>` : ''}</div>`;
+        }
       }
       for (let r = 0; r < sheet.rows; r++) {
-        if (sheet.plate) cells += `<div class="rh" data-row="${r}" style="grid-row: ${r + 2}; grid-column: 1">${ROW_LETTERS[r]}</div>`;
+        const rowDose = doses?.axis === 'r' && doses.labels.get(r);
+        if (sheet.plate) cells += `<div class="rh${rowDose ? ' dosed' : ''}" data-row="${r}" style="grid-row: ${r + 2}; grid-column: 1"${rowDose ? ` title="${esc(rowDose.text)}"` : ''}>${ROW_LETTERS[r]}${rowDose ? `<span class="dose">${esc(rowDose.short)}</span>` : ''}</div>`;
         else cells += '<div class="vshelf-row">';
         for (let c = 0; c < sheet.cols; c++) {
           const key = sheet.keyAt(r, c);
@@ -5617,12 +5859,13 @@ const TYPES = {
       const plateName = plate => plate.name || `Plate ${b.plates.indexOf(plate) + 1}`;
       const tabs = `<div class="vtabs" title="Drag to see more tabs">${tabList.map((tab, i) => `<button class="vtab${(tab.shelf && current.shelf) || (tab.plate && tab.plate === current.plate) ? ' on' : ''}" data-tab="${i}">${tab.plate ? `${esc(plateName(tab.plate))}<span class="vtab-kind">${esc(VESSELS[tab.plate.vessel].label.replace(' plate', ''))}</span>${tabList.length > 1 ? `<span class="vtab-x" data-act="del-plate" data-plate="${tab.plate.id}" title="Remove this plate">×</span>` : ''}` : `${esc(shelfLabel(b))}<span class="vtab-kind">${esc(shelfKinds(b))}</span>`}</button>`).join('')}</div>`;
       const nameInput = current.plate ? `<input class="in vessel-name" value="${esc(current.plate.name)}" placeholder="${esc(plateName(current.plate))}" spellcheck="false" />` : `<input class="in vessel-name" value="${esc(b.shelfName ?? '')}" placeholder="${esc(shelfLabel(b))}" spellcheck="false" />`;
-      const columns = sheet.plate ? `16px repeat(${sheet.cols}, var(--cw))` : `repeat(${sheet.cols}, var(--ws))`;
-      const rows = sheet.plate ? `14px repeat(${sheet.rows}, var(--ch))` : `repeat(${sheet.rows}, var(--ws))`;
+      const columns = sheet.plate ? `${doses?.axis === 'r' ? 44 : 16}px repeat(${sheet.cols}, var(--cw))` : `repeat(${sheet.cols}, var(--ws))`;
+      const rows = sheet.plate ? `${doses?.axis === 'c' ? 28 : 14}px repeat(${sheet.rows}, var(--ch))` : `repeat(${sheet.rows}, var(--ws))`;
+      const caption = decor?.captions.length ? `<div class="pcaption">Every well: <b>${decor.captions.map(esc).join(' · ')}</b></div>` : '';
       const hint = b.w >= 9 ? `<span class="ptools-hint">Select ${vesselWords(b).plural} to fill them in</span>` : '';
       const mergeToggle = current.plate ? `<button class="vpick wide-only${b.merge === false ? '' : ' on'}" data-act="toggle-merge" title="Draw matching neighbors, like replicates, as one well">Merge Replicates</button>` : '';
       const kinds = `${nameInput}<span class="ptools-actions">${mergeToggle}<button class="vpick" data-act="pick-vessels" title="Add or remove plates, flasks, dishes and tubes">Add Vessel</button><button class="vpick wide-only" data-act="duplicate-tab" title="Copy ${current.plate ? 'this plate' : 'these'} into a new card beside this one">Duplicate</button><button class="vpick vmore-btn" data-act="more" title="More actions" aria-label="More actions">⋮</button></span>`;
-      body.innerHTML = `<div class="ptools">${kinds}${hint}</div><div class="vtabrow">${tabs}<span class="vnavs"><button class="vnav" data-act="prev-tab" title="Previous tab"${tabList.length > 1 ? '' : ' disabled'}>‹</button><button class="vnav" data-act="next-tab" title="Next tab"${tabList.length > 1 ? '' : ' disabled'}>›</button></span></div><div class="${sheet.plate ? 'plate' : 'vessels'}" tabindex="0" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
+      body.innerHTML = `<div class="ptools">${kinds}${hint}</div><div class="vtabrow">${tabs}<span class="vnavs"><button class="vnav" data-act="prev-tab" title="Previous tab"${tabList.length > 1 ? '' : ' disabled'}>‹</button><button class="vnav" data-act="next-tab" title="Next tab"${tabList.length > 1 ? '' : ' disabled'}>›</button></span></div>${caption}<div class="${sheet.plate ? 'plate' : 'vessels'}" tabindex="0" style="grid-template-columns: ${columns}; grid-template-rows: ${rows}">${cells}</div><div class="pcounts"></div>`;
     },
     fit(b, body) {
       const sheet = vesselSheet(b);
@@ -5632,14 +5875,17 @@ const TYPES = {
         const sizing = PLATE_SIZING[activeTab(b).plate.vessel];
         const room = Math.floor((body.clientWidth - 24 - 18) / sheet.cols - 5);
         const cw = Math.max(sizing.min, Math.min(sizing.max, room));
-        const lines = Math.min(5, plateLineCount(b)) * 13 + 8;
+        const lines = 21;
         const ch = cw < 30 ? Math.round(cw * sizing.ratio) : Math.max(30, Math.round(cw * sizing.ratio), lines);
         grid.style.setProperty('--cw', `${cw}px`);
         grid.style.setProperty('--ch', `${ch}px`);
         grid.classList.toggle('tiny', cw < 30);
         grid.classList.toggle('narrow', cw < 70);
+        const keyed = Boolean(plateDecors.get(b.id)?.color);
+        grid.querySelectorAll('.well').forEach(el => el.classList.toggle('snug', keyed && el.getBoundingClientRect().width < LABEL_ROOM));
         const tallest = Math.max(0, ...[...grid.querySelectorAll('.well:not(.merged) > span')].map(span => span.scrollHeight));
         if (cw >= 30 && tallest + 8 > ch) grid.style.setProperty('--ch', `${Math.min(110, tallest + 8)}px`);
+        drawPlateBands(b, body);
       } else {
         const widest = Math.max(...b.sets.map(set => VESSEL_SHAPES[VESSELS[set.vessel].shape].w * VESSELS[set.vessel].scale));
         grid.style.setProperty('--vs', String(Math.max(0.5, Math.min(VESSEL_DRAW_SCALE, (body.clientWidth - 24) / widest))));
