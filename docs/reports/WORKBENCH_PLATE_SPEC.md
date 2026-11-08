@@ -61,9 +61,13 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    place while typing so colors hold; a new line is a screen-only row until typed), the series
    form (saves as you type, keeps prep, removal clears every well of the series), Add Vessel,
    Duplicate, remove plate, and the legend (recolor, rename one value, insertable names). Every
-   edit runs `normalizeVesselMap`, which drops lines, values and series no well uses. **Next:**
-   Values-block plate rows, then the Dilutions block, then `renameMaterialsAfterLabels`,
-   `replaceTypedTwins`, the kDa prompt, `utils/steps/stepReadings.ts`.
+   edit runs `normalizeVesselMap`, which drops lines, values, series and empty well entries no
+   well uses. **Values plate rows (done):** `utils/values/plateValueRows.ts` puts counts under a
+   Plate material's section and each amount under its own material's section (else the plate's,
+   else the first Values card's general list), shown once across Values cards; edits write back to
+   the wells or series, Remove clears from the wells after a confirm. **Next:** the Dilutions
+   block, then `renameMaterialsAfterLabels`, `replaceTypedTwins`, the kDa prompt,
+   `utils/steps/stepReadings.ts`.
 2. Agent A: plate grid, sizing, tabs/vessel picker/duplicate/remove, selection + keyboard + clipboard,
    well editor (lines, values, amounts, series editor), merging replicates.
 3. Agent B: Dilutions block (preps, pipettes, stock ask, strip SVG).

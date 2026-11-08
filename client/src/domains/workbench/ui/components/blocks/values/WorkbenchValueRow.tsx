@@ -14,7 +14,9 @@ export interface ValueRowData {
   value: string;
   unit: string;
   units: readonly string[] | undefined;
-  isLinked: boolean;
+  tag: string | undefined;
+  isValueEditable: boolean;
+  canRemove: boolean;
   isDuplicate: boolean;
   usage: string;
 }
@@ -91,9 +93,7 @@ export function WorkbenchValueRow({
             onClick={() => onEdit('name')}
           >
             {row.label || <span className="text-muted-foreground">Unnamed</span>}
-            {row.isLinked && (
-              <span className="ml-2 text-label-xs text-muted-foreground">in Materials</span>
-            )}
+            {row.tag && <span className="ml-2 text-label-xs text-muted-foreground">{row.tag}</span>}
             {!row.usage && (
               <span className="ml-2 text-label-xs text-muted-foreground/70">unused</span>
             )}
@@ -115,7 +115,8 @@ export function WorkbenchValueRow({
         ) : (
           <button
             type="button"
-            className="w-full text-right font-mono text-data-sm"
+            disabled={!row.isValueEditable}
+            className="w-full text-right font-mono text-data-sm disabled:cursor-default"
             onClick={() => onEdit('value')}
           >
             {row.value.trim() ? (
@@ -127,14 +128,16 @@ export function WorkbenchValueRow({
         )}
       </td>
       <td className="w-px px-1 text-right">
-        <Button
-          variant="ghost-danger"
-          size="xs"
-          className="opacity-0 group-hover:opacity-100"
-          onClick={onRemove}
-        >
-          Remove
-        </Button>
+        {row.canRemove && (
+          <Button
+            variant="ghost-danger"
+            size="xs"
+            className="opacity-0 group-hover:opacity-100"
+            onClick={onRemove}
+          >
+            Remove
+          </Button>
+        )}
       </td>
     </tr>
   );

@@ -22,18 +22,27 @@ import {
 
 type LineValue = PlateLine['values'][number];
 
-interface VesselCount {
+export interface VesselCount {
   name: string;
   count: number;
+  tally: number;
   key: string;
+  kind: 'value' | 'used' | 'total';
 }
 
-interface PlateAmount {
+export type PlateAmountSource =
+  | { kind: 'wells'; lineId: string; keys: string[] }
+  | { kind: 'series'; seriesId: string; field: 'start' | 'fold' }
+  | { kind: 'points'; seriesId: string };
+
+export interface PlateAmount {
   key: string;
   name: string;
+  automaticName: string;
   subject: string;
   value: string;
   unit: string;
+  source: PlateAmountSource;
 }
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -74,7 +83,9 @@ function valueCounts(block: VesselMapBlock): VesselCount[] {
       {
         name: `${text} ${plural}`,
         count: typedCount(block, value.id) ?? keys.length,
+        tally: keys.length,
         key: value.id,
+        kind: 'value' as const,
       },
     ];
   });
@@ -87,21 +98,33 @@ export function vesselCounts(block: VesselMapBlock): VesselCount[] {
   const used: VesselCount = {
     name: `${capitalize(wordsForTypes(allVesselTypes(block)).plural)} used`,
     count: typedCount(block, 'used') ?? usedKeys.length,
+    tally: usedKeys.length,
     key: 'used',
+    kind: 'used',
   };
   const plateTotals = [...new Set(block.plates.map(candidate => candidate.vessel))].map(
-    (type): VesselCount => ({
-      name: `${vesselOf(type).label}s`,
-      count: block.plates.filter(candidate => candidate.vessel === type).length,
-      key: `count:${type}`,
-    })
+    (type): VesselCount => {
+      const count = block.plates.filter(candidate => candidate.vessel === type).length;
+      return {
+        name: `${vesselOf(type).label}s`,
+        count,
+        tally: count,
+        key: `count:${type}`,
+        kind: 'total',
+      };
+    }
   );
   const setTotals = [...new Set(block.sets.map(set => set.vessel))].map((type): VesselCount => {
     const vessel = vesselOf(type);
+    const count = block.sets
+      .filter(set => set.vessel === type)
+      .reduce((sum, set) => sum + set.count, 0);
     return {
       name: `${vessel.label.replace(/ (flask|dish|tube)$/, '')} ${VESSEL_PLURALS[vessel.noun]}`,
-      count: block.sets.filter(set => set.vessel === type).reduce((sum, set) => sum + set.count, 0),
+      count,
+      tally: count,
       key: `count:${type}`,
+      kind: 'total',
     };
   });
   return [...valueCounts(block), used, ...plateTotals, ...setTotals];
@@ -126,13 +149,10 @@ const isSameAmount = (cells: PlainCell[]) =>
 
 export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
   const amounts: PlateAmount[] = [];
-  const add = (key: string, automaticName: string, subject: string, value: string, unit: string) =>
+  const add = (amount: Omit<PlateAmount, 'name'>) =>
     amounts.push({
-      key,
-      name: block.amountNames[key]?.trim() || automaticName,
-      subject,
-      value,
-      unit,
+      ...amount,
+      name: block.amountNames[amount.key]?.trim() || amount.automaticName,
     });
   const colorLine = colorLineOf(block);
   const colorValueAt = (key: string) =>
@@ -166,20 +186,24 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
 
     for (const [groupKey, { subject, noun, cells }] of plain) {
       const base = `a:${line.id}:${groupKey}`;
+      const fromWells = (inWells: PlainCell[]) => ({
+        subject,
+        value: inWells[0].amount,
+        unit: inWells[0].unit,
+        source: { kind: 'wells' as const, lineId: line.id, keys: inWells.map(cell => cell.key) },
+      });
       if (isSameAmount(cells)) {
-        add(base, `${subject} ${noun}`, subject, cells[0].amount, cells[0].unit);
+        add({ key: base, automaticName: `${subject} ${noun}`, ...fromWells(cells) });
         continue;
       }
       for (const value of colorLine?.values ?? []) {
         const inValue = cells.filter(cell => colorValueAt(cell.key) === value);
         if (inValue.length && isSameAmount(inValue)) {
-          add(
-            `${base}:${value.id}`,
-            `${subject} ${noun} in ${value.text.trim()}`,
-            subject,
-            inValue[0].amount,
-            inValue[0].unit
-          );
+          add({
+            key: `${base}:${value.id}`,
+            automaticName: `${subject} ${noun} in ${value.text.trim()}`,
+            ...fromWells(inValue),
+          });
         }
       }
     }
@@ -206,24 +230,33 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
             : ` ${index + 1}`;
       const startWord = series.unit === RATIO_NOTATION ? 'dilution' : 'dose';
       if (STARTS_WITH_NUMBER.test(series.start)) {
-        add(
-          `s:${seriesId}:start`,
-          `${subject} top ${startWord}${tag}`,
+        add({
+          key: `s:${seriesId}:start`,
+          automaticName: `${subject} top ${startWord}${tag}`,
           subject,
-          series.start.trim(),
-          series.unit
-        );
+          value: series.start.trim(),
+          unit: series.unit,
+          source: { kind: 'series', seriesId, field: 'start' },
+        });
       }
       if (STARTS_WITH_NUMBER.test(series.fold)) {
-        add(
-          `s:${seriesId}:fold`,
-          `${subject} fold${tag}`,
+        add({
+          key: `s:${seriesId}:fold`,
+          automaticName: `${subject} fold${tag}`,
           subject,
-          String(foldOf(series.fold)),
-          'X'
-        );
+          value: String(foldOf(series.fold)),
+          unit: 'X',
+          source: { kind: 'series', seriesId, field: 'fold' },
+        });
       }
-      add(`s:${seriesId}:points`, `${subject} points${tag}`, subject, String(steps.size), '');
+      add({
+        key: `s:${seriesId}:points`,
+        automaticName: `${subject} points${tag}`,
+        subject,
+        value: String(steps.size),
+        unit: '',
+        source: { kind: 'points', seriesId },
+      });
     }
   }
   return amounts;

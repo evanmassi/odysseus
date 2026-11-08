@@ -113,14 +113,10 @@ export function writeSeries(
 }
 
 export function removeSeries(block: VesselMapBlock, seriesId: string): void {
-  for (const [key, lines] of Object.entries(block.cells)) {
-    for (const [lineId, cell] of Object.entries(lines)) {
-      if (cell.seriesId !== seriesId) continue;
-      delete cell.seriesId;
-      delete cell.seriesStep;
-      if (!cell.valueId && !cell.unit) delete lines[lineId];
-    }
-    if (!Object.keys(lines).length) delete block.cells[key];
+  for (const cell of Object.values(block.cells).flatMap(lines => Object.values(lines))) {
+    if (cell.seriesId !== seriesId) continue;
+    delete cell.seriesId;
+    delete cell.seriesStep;
   }
   delete block.series[seriesId];
 }
