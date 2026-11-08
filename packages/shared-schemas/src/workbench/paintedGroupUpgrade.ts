@@ -12,6 +12,7 @@ import {
   moveValueKeys,
   normalizeVesselMap,
   plateValueKey,
+  pruneUnused,
   unifyPlateValues,
 } from './vesselMapValues';
 
@@ -23,13 +24,6 @@ const paintedGroupSchema = z.object({
   color: z.string(),
 });
 type PaintedGroup = z.infer<typeof paintedGroupSchema>;
-
-function pruneUnusedValues(block: VesselMapBlock): void {
-  const used = new Set(
-    Object.values(block.cells).flatMap(lines => Object.values(lines).map(cell => cell.valueId))
-  );
-  for (const line of block.lines) line.values = line.values.filter(value => used.has(value.id));
-}
 
 function addColorLine(block: VesselMapBlock): PlateLine {
   const line: PlateLine = { id: newProtocolId(), name: '', values: [], role: 'color' };
@@ -91,7 +85,7 @@ function retirePaintedGroups(
   groups: PaintedGroup[],
   wells: Record<string, string>
 ): VesselMapBlock {
-  pruneUnusedValues(block);
+  pruneUnused(block);
   unifyPlateValues(block);
   const painted = groups
     .map(

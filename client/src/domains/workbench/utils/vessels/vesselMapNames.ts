@@ -11,6 +11,7 @@ import {
 import { dimensionKey, PAIR_NOTATION, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { normalizeMaterialKey } from '../materials/materialGuesser';
 
+import { foldOf } from './plateSeries';
 import {
   VESSEL_PLURALS,
   vesselOf,
@@ -51,16 +52,6 @@ const PER_VESSEL_WORDS = new Map([
 ]);
 
 const STARTS_WITH_NUMBER = /^\s*[-+]?\.?\d/;
-const NUMBER_IN_TEXT = /[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/;
-const RATIO_IN_TEXT = /1\s*:\s*(\d+(?:\.\d+)?)/;
-
-function foldOf(text: string): number {
-  const ratio = RATIO_IN_TEXT.exec(text);
-  if (ratio) return parseFloat(ratio[1]);
-  const number = NUMBER_IN_TEXT.exec(text);
-  return number ? parseFloat(number[0]) : NaN;
-}
-
 const typedCount = (block: VesselMapBlock, key: string) => readNumber(block.counts[key] ?? '');
 
 const keysHolding = (block: VesselMapBlock, line: PlateLine, value: LineValue) =>

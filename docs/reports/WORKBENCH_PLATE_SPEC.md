@@ -54,6 +54,15 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    dropped. **Not done:** Values-block plate rows. The client must call `normalizeVesselMap` after
    every plate edit (Agent A's well editor). Vitest reads shared-schemas from `dist`, so run
    `npm run build` in the package before client tests.
+   **Plate map in the app (2026-11-08, uncommitted):** `ui/components/blocks/vessels/` draws plates
+   and shelves (value colors, series fade, captions, sizing from card width), selects (click,
+   shift, ctrl, drag, headers, arrows), copies/pastes/clears with confirms, and edits through the
+   floating well editor (values renamed in place while typing so colors hold, amounts and units,
+   - Line as a screen-only row, Show as, remove line). Every edit runs `normalizeVesselMap`,
+     which now also drops lines and values no well uses. Series math (forward `1:N`) is in
+     `utils/vessels/plateSeries.ts`. **Next:** series editor in the well editor, Merge Replicates,
+     Add Vessel / Duplicate / remove plate, bands and header doses, legend with recolor, then
+     Dilutions.
 2. Agent A: plate grid, sizing, tabs/vessel picker/duplicate/remove, selection + keyboard + clipboard,
    well editor (lines, values, amounts, series editor), merging replicates.
 3. Agent B: Dilutions block (preps, pipettes, stock ask, strip SVG).

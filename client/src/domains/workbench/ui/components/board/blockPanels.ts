@@ -4,6 +4,7 @@ import { WorkbenchFormulaPanel } from '../blocks/formulas/WorkbenchFormulaPanel'
 import { WorkbenchMaterialsPanel } from '../blocks/materials/WorkbenchMaterialsPanel';
 import { WorkbenchStepsPanel } from '../blocks/steps/WorkbenchStepsPanel';
 import { WorkbenchValuesPanel } from '../blocks/values/WorkbenchValuesPanel';
+import { WorkbenchVesselMapPanel } from '../blocks/vessels/WorkbenchVesselMapPanel';
 
 import type { ProtocolBlock, ProtocolBlockType } from '@odysseus/shared-schemas';
 
@@ -16,4 +17,5 @@ export const BLOCK_PANELS: BlockPanels = {
   steps: WorkbenchStepsPanel,
   values: WorkbenchValuesPanel,
   formula: WorkbenchFormulaPanel,
+  plate: WorkbenchVesselMapPanel,
 };

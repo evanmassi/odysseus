@@ -665,6 +665,8 @@ export {
   colorLineOf,
   isFilledCell,
   lineValueOf,
+  normalizeVesselMap,
+  plateValueKey,
   type FieldDefinition,
   type MaterialItem,
   type Protocol,
@@ -676,6 +678,8 @@ export {
   type MaterialsBlock,
   type ValuesBlock,
   type VesselMapBlock,
+  type CellLine,
   type PlateLine,
+  type PlateSeries,
   type ProtocolFile,
 } from './workbench';
