@@ -1,5 +1,6 @@
 import type { CSSProperties, PointerEvent } from 'react';
 
+import type { MergedWells } from '../../../../utils/vessels/replicateMerges';
 import type { WellDensity } from '../../../../utils/vessels/vesselSizing';
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
 
@@ -7,8 +8,10 @@ interface WorkbenchPlateWellButtonProps {
   wellKey: string;
   row: number;
   col: number;
+  merged: MergedWells | undefined;
   title: string;
   shownLine: WellLine | undefined;
+  shortAmount: string | undefined;
   isFilled: boolean;
   color: WellColor | undefined;
   density: WellDensity;
@@ -37,8 +40,10 @@ export function WorkbenchPlateWellButton({
   wellKey,
   row,
   col,
+  merged,
   title,
   shownLine,
+  shortAmount,
   isFilled,
   color,
   density,
@@ -60,15 +65,30 @@ export function WorkbenchPlateWellButton({
       onPointerDown={onPointerDown}
       onPointerEnter={onPointerEnter}
       onDoubleClick={onDoubleClick}
-      className={`flex cursor-pointer items-center justify-center overflow-hidden rounded-[calc(var(--well-height)/2)] border py-0.5 text-foreground ${
+      className={`relative flex cursor-pointer items-center justify-center overflow-hidden border py-0.5 ${merged ? 'rounded-[14px]' : 'rounded-[calc(var(--well-height)/2)]'} text-foreground ${
         isFilled ? 'border-foreground/45' : 'border-foreground/15'
       } ${isSelected ? 'shadow-[0_0_0_2px_hsl(var(--primary))]' : ''} ${DENSITY_CLASSES[density]}`}
-      style={{ gridRow: row + 2, gridColumn: col + 2, ...colorStyle(color) }}
+      style={{
+        gridRow: `${row + 2} / span ${merged?.height ?? 1}`,
+        gridColumn: `${col + 2} / span ${merged?.width ?? 1}`,
+        ...colorStyle(color),
+      }}
     >
+      {merged && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-[3px] grid gap-1"
+          style={{ gridTemplate: `repeat(${merged.height}, 1fr) / repeat(${merged.width}, 1fr)` }}
+        >
+          {merged.keys.map(key => (
+            <i key={key} className="rounded-full border border-dashed border-foreground/20" />
+          ))}
+        </span>
+      )}
       {shownLine && density !== 'tiny' && (
-        <span className="block max-h-full w-full overflow-hidden text-center">
+        <span className="relative block max-h-full w-full overflow-hidden text-center">
           {isSnug ? (
-            shownLine.amount && <span className="font-semibold">{shownLine.amount}</span>
+            shortAmount && <span className="font-semibold">{shortAmount}</span>
           ) : (
             <span className={`flex flex-wrap justify-center gap-x-1.5 gap-y-px ${wraps}`}>
               {shownLine.label && (

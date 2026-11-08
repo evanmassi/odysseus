@@ -5,7 +5,15 @@ import { createPortal } from 'react-dom';
 import { Button } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { createId } from '../../../../utils/ids/createId';
 import { seriesSummary } from '../../../../utils/vessels/plateSeries';
+import {
+  removeSeries,
+  seriesFormFor,
+  seriesPreview,
+  writeSeries,
+  type SeriesForm,
+} from '../../../../utils/vessels/seriesEdits';
 import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
   removeLineFromWells,
@@ -19,11 +27,17 @@ import { selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 import { WorkbenchWellLineRow } from './WorkbenchWellLineRow';
+import { WorkbenchWellSeriesForm } from './WorkbenchWellSeriesForm';
 
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
 import type { lineLayers } from '../../../../utils/vessels/plateLayers';
 import type { VesselSheet, VesselTab } from '../../../../utils/vessels/vesselTabs';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
+
+interface OpenSeries {
+  form: SeriesForm;
+  rowIndex: number;
+}
 
 interface WorkbenchWellEditorPanelProps {
   block: VesselMapBlock;
@@ -97,6 +111,7 @@ export function WorkbenchWellEditorPanel({
   const editorRef = useRef<HTMLDivElement>(null);
   const [blankRows, setBlankRows] = useState(0);
   const [position, setPosition] = useState({ left: -9999, top: 0 });
+  const [openSeries, setOpenSeries] = useState<OpenSeries>();
   const keyList = [...keys];
   const rows = [
     ...wellRows(block, keyList, colorLine),
@@ -107,6 +122,25 @@ export function WorkbenchWellEditorPanel({
   );
   const where = selectionName(sheet, keys);
   const count = `${keys.size} ${keys.size === 1 ? noun : plural}`;
+
+  useEffect(() => setOpenSeries(undefined), [keys]);
+
+  const changeSeries = (change: Partial<SeriesForm>) => {
+    if (!openSeries) return;
+    const next = { ...openSeries.form, ...change };
+    const isNewLine = !block.lines.some(line => line.id === next.lineId);
+    let { seriesId } = next;
+    updateVesselMap(draft => {
+      seriesId = writeSeries(draft, sheet, keys, next);
+    });
+    setOpenSeries({ ...openSeries, form: { ...next, seriesId } });
+    if (isNewLine && blankRows) setBlankRows(blankRows - 1);
+  };
+
+  const removeOpenSeries = (seriesId: string) => {
+    updateVesselMap(draft => removeSeries(draft, seriesId));
+    setOpenSeries(undefined);
+  };
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -130,7 +164,7 @@ export function WorkbenchWellEditorPanel({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [keys, wellsRef, rows.length]);
+  }, [keys, wellsRef, rows.length, openSeries?.rowIndex]);
 
   return createPortal(
     <div
@@ -158,33 +192,58 @@ export function WorkbenchWellEditorPanel({
           updateVesselMap(change);
           if (!lineId && blankRows) setBlankRows(blankRows - 1);
         };
+        const form = openSeries?.rowIndex === index ? openSeries.form : undefined;
         return (
-          <WorkbenchWellLineRow
-            key={`row-${index}`}
-            row={row}
-            textPlaceholder={
-              index === 0
-                ? `What’s in ${keys.size === 1 ? `this ${noun}` : `these ${plural}`}`
-                : 'Another line'
-            }
-            seriesText={series && seriesSummary(series, calculation)}
-            autoRole={layers.find(layer => layer.line.id === lineId)?.role}
-            showsRole={sheet.isPlate}
-            canRemove={!!lineId && rows.length > 1}
-            inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
-            onTextChange={text => edit(draft => setWellsText(draft, keyList, lineId, text))}
-            onAmountChange={amount => edit(draft => setWellsAmount(draft, keyList, lineId, amount))}
-            onUnitChange={unit => edit(draft => setWellsUnit(draft, keyList, lineId, unit))}
-            onRoleChange={role =>
-              updateVesselMap(draft => {
-                const line = draft.lines.find(candidate => candidate.id === lineId);
-                if (line) line.role = role;
-              })
-            }
-            onRemove={() =>
-              lineId && updateVesselMap(draft => removeLineFromWells(draft, keyList, lineId))
-            }
-          />
+          <div key={`row-${index}`} className="flex flex-col gap-2">
+            <WorkbenchWellLineRow
+              row={row}
+              textPlaceholder={
+                index === 0
+                  ? `What’s in ${keys.size === 1 ? `this ${noun}` : `these ${plural}`}`
+                  : 'Another line'
+              }
+              seriesText={series && seriesSummary(series, calculation)}
+              autoRole={layers.find(layer => layer.line.id === lineId)?.role}
+              showsRole={sheet.isPlate}
+              canRemove={!!lineId && rows.length > 1}
+              inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
+              onTextChange={text => edit(draft => setWellsText(draft, keyList, lineId, text))}
+              onAmountChange={amount =>
+                edit(draft => setWellsAmount(draft, keyList, lineId, amount))
+              }
+              onUnitChange={unit => edit(draft => setWellsUnit(draft, keyList, lineId, unit))}
+              onRoleChange={role =>
+                updateVesselMap(draft => {
+                  const line = draft.lines.find(candidate => candidate.id === lineId);
+                  if (line) line.role = role;
+                })
+              }
+              onRemove={() =>
+                lineId && updateVesselMap(draft => removeLineFromWells(draft, keyList, lineId))
+              }
+              onOpenSeries={() =>
+                setOpenSeries({
+                  rowIndex: index,
+                  form: seriesFormFor(lineId ?? createId(), row.seriesId, series, row),
+                })
+              }
+            />
+            {form && (
+              <WorkbenchWellSeriesForm
+                form={form}
+                preview={seriesPreview(block, sheet, keys, form, calculation)}
+                calculation={calculation}
+                startRef={focusOnMount}
+                onChange={changeSeries}
+                onDone={() => setOpenSeries(undefined)}
+                onRemove={
+                  form.seriesId === undefined
+                    ? undefined
+                    : () => form.seriesId && removeOpenSeries(form.seriesId)
+                }
+              />
+            )}
+          </div>
         );
       })}
       <button

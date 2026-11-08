@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { colorLineOf, type VesselMapBlock } from '@odysseus/shared-schemas';
+import { X } from 'lucide-react';
 
 import { Tab, Tabs } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -8,8 +9,15 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { lineLayers, plateCaptions } from '../../../../utils/vessels/plateLayers';
+import {
+  doseHeaders,
+  lineLayers,
+  plateBands,
+  plateCaptions,
+} from '../../../../utils/vessels/plateLayers';
+import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
 import { vesselOf } from '../../../../utils/vessels/vesselCatalog';
+import { vesselCounts } from '../../../../utils/vessels/vesselMapNames';
 import { shelfScaleFor, wellSizeFor } from '../../../../utils/vessels/vesselSizing';
 import {
   activeTabOf,
@@ -22,10 +30,14 @@ import {
 } from '../../../../utils/vessels/vesselTabs';
 import { setWellsText, wellRows } from '../../../../utils/vessels/wellEdits';
 
+import { useConfirmation } from './useConfirmation';
 import { useUpdateVesselMap } from './useUpdateVesselMap';
+import { useVesselChanges } from './useVesselChanges';
 import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
+import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
+import { WorkbenchVesselMapControls } from './WorkbenchVesselMapControls';
 import { WorkbenchVesselShelfList } from './WorkbenchVesselShelfList';
 import { WorkbenchWellEditorPanel } from './WorkbenchWellEditorPanel';
 
@@ -38,9 +50,6 @@ interface EditorOpening {
   generation: number;
 }
 
-const NAME_INPUT =
-  'h-9 min-w-[120px] flex-1 border border-transparent bg-transparent px-1.5 text-title-sm text-foreground outline-none placeholder:text-muted-foreground hover:border-border focus:border-primary/50';
-
 export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps) {
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateBlock = useUpdateBlock(block);
@@ -52,6 +61,8 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const colorLine = colorLineOf(block);
   const layers = lineLayers(block, colorLine, calculation);
   const captions = plateCaptions(layers);
+  const headers = doseHeaders(block, sheet, colorLine, calculation);
+  const bands = sheet.isPlate ? plateBands(block, sheet, layers, calculation) : [];
   const updateVesselMap = useUpdateVesselMap(block);
   const [editor, setEditor] = useState<EditorOpening>();
   const openEditor = useCallback(
@@ -60,7 +71,9 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   );
   const focusEditor = () =>
     setEditor(current => ({ focusesFirstRow: true, generation: (current?.generation ?? 0) + 1 }));
-  const selection = useWellSelection(sheet, tab.id, openEditor);
+  const merges = replicateMerges(block, sheet, calculation);
+  const expandToMerges = (keys: ReadonlySet<string>) => withMergedWells(merges, keys);
+  const selection = useWellSelection(sheet, tab.id, expandToMerges, openEditor);
 
   const openEditorWith = (seedText?: string) => {
     if (seedText === undefined) return openEditor();
@@ -70,13 +83,16 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
     focusEditor();
   };
 
-  const { onKeyDown, clearSelected, confirmation, dismissConfirmation } = useWellKeyboard(
+  const { confirmation, ask, dismiss } = useConfirmation();
+  const { onKeyDown, clearSelected } = useWellKeyboard(
     block,
     tab,
     sheet,
     selection,
+    ask,
     openEditorWith
   );
+  const vesselChanges = useVesselChanges(block, tab, ask);
 
   const openWell = (key: string) => {
     selection.selectKeys([key]);
@@ -95,8 +111,6 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
         ]
       : [shelfNameOf(block), shelfKinds(block)];
 
-  const ownName = tab.kind === 'plate' ? tab.plate.name : (block.shelfName ?? '');
-
   const rename = (name: string) =>
     updateBlock(draft => {
       const plate = tab.kind === 'plate' && draft.plates.find(({ id }) => id === tab.id);
@@ -106,17 +120,18 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
 
   return (
     <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-3">
-      <input
-        key={`${tab.id}:${ownName}`}
-        defaultValue={ownName}
-        placeholder={tabLabel(tab)[0]}
-        aria-label={tab.kind === 'plate' ? 'Plate name' : 'Vessel group name'}
-        spellCheck={false}
-        className={NAME_INPUT}
-        onBlur={event => rename(event.currentTarget.value)}
-        onKeyDown={event => {
-          if (event.key === 'Enter') event.currentTarget.blur();
-        }}
+      <WorkbenchVesselMapControls
+        block={block}
+        tab={tab}
+        namePlaceholder={tabLabel(tab)[0]}
+        onRename={rename}
+        onToggleMerge={() =>
+          updateBlock(draft => {
+            draft.mergesReplicates = !draft.mergesReplicates;
+          })
+        }
+        onSetCount={vesselChanges.setCount}
+        onDuplicate={vesselChanges.duplicateTab}
       />
       <Tabs
         value={tab.id}
@@ -134,6 +149,23 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             <Tab key={candidate.id} id={candidate.id}>
               {name}
               <span className="ml-1.5 text-label-2xs opacity-65">{kind}</span>
+              {candidate.kind === 'plate' && tabs.length > 1 && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Remove ${name}`}
+                  className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
+                  onClick={event => {
+                    event.stopPropagation();
+                    vesselChanges.removePlate(candidate.id);
+                  }}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter') vesselChanges.removePlate(candidate.id);
+                  }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </span>
+              )}
             </Tab>
           );
         })}
@@ -149,9 +181,12 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             block={block}
             sheet={sheet}
             colorLine={colorLine}
+            headers={headers}
+            bands={bands}
             size={wellSizeFor(tab.plate.vessel, roomWidth, sheet.cols)}
             calculation={calculation}
             selection={selection}
+            merges={merges}
             onKeyDown={onKeyDown}
             onOpenWell={openWell}
           />
@@ -167,6 +202,13 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             onOpenWell={openWell}
           />
         ))}
+      <WorkbenchPlateLegendSection
+        block={block}
+        colorLine={colorLine}
+        counts={vesselCounts(block)}
+        bands={bands}
+        headers={headers}
+      />
       {editor && selection.keys.size > 0 && (
         <WorkbenchWellEditorPanel
           key={editor.generation}
@@ -190,7 +232,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
         message={confirmation?.message ?? ''}
         confirmText={confirmation?.confirmText}
         onConfirm={() => confirmation?.onConfirm()}
-        onCancel={dismissConfirmation}
+        onCancel={dismiss}
       />
     </div>
   );

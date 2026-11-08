@@ -20,15 +20,17 @@ export interface ShapeMetrics {
 }
 
 const PLATE_SIZING: Readonly<
-  Record<PlateFormat, { min: number; max: number; heightRatio: number }>
+  Record<PlateFormat, { min: number; max: number; heightRatio: number; cardColumns: number }>
 > = {
-  '6': { min: 90, max: 160, heightRatio: 0.85 },
-  '12': { min: 76, max: 140, heightRatio: 0.8 },
-  '24': { min: 60, max: 120, heightRatio: 0.75 },
-  '48': { min: 48, max: 100, heightRatio: 0.65 },
-  '96': { min: 36, max: 96, heightRatio: 0.6 },
-  '384': { min: 22, max: 52, heightRatio: 0.8 },
+  '6': { min: 90, max: 160, heightRatio: 0.85, cardColumns: 4 },
+  '12': { min: 76, max: 140, heightRatio: 0.8, cardColumns: 5 },
+  '24': { min: 60, max: 120, heightRatio: 0.75, cardColumns: 5 },
+  '48': { min: 48, max: 100, heightRatio: 0.65, cardColumns: 6 },
+  '96': { min: 36, max: 96, heightRatio: 0.6, cardColumns: 6 },
+  '384': { min: 22, max: 52, heightRatio: 0.8, cardColumns: 12 },
 };
+
+export const cardColumnsFor = (format: PlateFormat) => PLATE_SIZING[format].cardColumns;
 
 const GRID_CHROME = 42;
 const WELL_GAP = 5;

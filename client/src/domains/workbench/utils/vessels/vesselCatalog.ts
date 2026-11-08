@@ -66,6 +66,11 @@ export const LOOSE_VESSELS: Readonly<
 
 export type VesselType = keyof typeof PLATE_VESSELS | keyof typeof LOOSE_VESSELS;
 
+export const VESSEL_TYPES: readonly VesselType[] = [
+  ...(Object.keys(PLATE_VESSELS) as Array<keyof typeof PLATE_VESSELS>),
+  ...(Object.keys(LOOSE_VESSELS) as Array<keyof typeof LOOSE_VESSELS>),
+];
+
 export const vesselOf = (type: VesselType): PlateVessel | LooseVessel =>
   type in PLATE_VESSELS
     ? PLATE_VESSELS[type as keyof typeof PLATE_VESSELS]

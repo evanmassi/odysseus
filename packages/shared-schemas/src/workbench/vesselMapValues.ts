@@ -120,6 +120,10 @@ export function pruneUnused(block: VesselMapBlock): void {
   const cellLines = Object.values(block.cells).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(cellLines.map(([lineId]) => lineId));
   const usedValues = new Set(cellLines.map(([, cell]) => cell.valueId));
+  const usedSeries = new Set(cellLines.map(([, cell]) => cell.seriesId));
+  for (const seriesId of Object.keys(block.series)) {
+    if (!usedSeries.has(seriesId)) delete block.series[seriesId];
+  }
   block.lines = block.lines.filter(line => usedLines.has(line.id));
   for (const line of block.lines)
     line.values = line.values.filter(value => usedValues.has(value.id));
