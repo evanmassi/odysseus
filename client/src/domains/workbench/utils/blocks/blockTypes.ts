@@ -81,6 +81,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
     label: 'Dilutions',
     hint: 'How to make each series on your plates',
     size: [12, 10],
+    fitsContent: true,
     createContent: () => ({}),
   },
   flow: {

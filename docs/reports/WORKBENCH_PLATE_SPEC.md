@@ -65,9 +65,12 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    well uses. **Values plate rows (done):** `utils/values/plateValueRows.ts` puts counts under a
    Plate material's section and each amount under its own material's section (else the plate's,
    else the first Values card's general list), shown once across Values cards; edits write back to
-   the wells or series, Remove clears from the wells after a confirm. **Next:** the Dilutions
-   block, then `renameMaterialsAfterLabels`, `replaceTypedTwins`, the kDa prompt,
-   `utils/steps/stepReadings.ts`.
+   the wells or series, Remove clears from the wells after a confirm. **Dilutions (done):**
+   `utils/dilutions/` (pipettes, stock lookup with mass↔molar through molecular weight, prep math
+   with forward `1:N`, edits) and `ui/components/blocks/dilutions/`; the stock ask saves onto the
+   material (creating it, and a Materials card, if needed) and suggests kDa for antibodies and
+   `-mab` names. Fitted cards now shrink as well as grow. **Next:** `renameMaterialsAfterLabels`,
+   `replaceTypedTwins`, `utils/steps/stepReadings.ts`.
 2. Agent A: plate grid, sizing, tabs/vessel picker/duplicate/remove, selection + keyboard + clipboard,
    well editor (lines, values, amounts, series editor), merging replicates.
 3. Agent B: Dilutions block (preps, pipettes, stock ask, strip SVG).

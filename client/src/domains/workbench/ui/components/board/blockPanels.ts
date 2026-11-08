@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 
+import { WorkbenchDilutionsPanel } from '../blocks/dilutions/WorkbenchDilutionsPanel';
 import { WorkbenchFormulaPanel } from '../blocks/formulas/WorkbenchFormulaPanel';
 import { WorkbenchMaterialsPanel } from '../blocks/materials/WorkbenchMaterialsPanel';
 import { WorkbenchStepsPanel } from '../blocks/steps/WorkbenchStepsPanel';
@@ -18,4 +19,5 @@ export const BLOCK_PANELS: BlockPanels = {
   values: WorkbenchValuesPanel,
   formula: WorkbenchFormulaPanel,
   plate: WorkbenchVesselMapPanel,
+  dilutions: WorkbenchDilutionsPanel,
 };

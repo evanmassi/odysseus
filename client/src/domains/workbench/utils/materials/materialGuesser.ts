@@ -219,6 +219,8 @@ export const findFluorochromeName = (name: string): string | undefined =>
 
 const THERAPEUTIC_ANTIBODY = /\b[a-z]{3,}mab\b/i;
 
+export const isTherapeuticAntibodyName = (name: string): boolean => THERAPEUTIC_ANTIBODY.test(name);
+
 export const listWithAnd = (words: readonly string[]): string =>
   words.length < 2
     ? words.join('')

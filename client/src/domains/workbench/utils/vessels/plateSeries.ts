@@ -4,6 +4,8 @@ import { displayValue, RATIO_NOTATION } from '../formulas/quantities';
 import type { BoardCalculation } from '../formulas/boardCalculation';
 import type { PlateSeries } from '@odysseus/shared-schemas';
 
+export type StepSeries = Extract<PlateSeries, { start: string }>;
+
 export interface SeriesPoint {
   amount: string;
   unit: string;
@@ -69,4 +71,20 @@ export function seriesSummary(series: PlateSeries, calculation: BoardCalculation
   ]
     .filter(Boolean)
     .join(', ');
+}
+
+export const seriesFold = (series: StepSeries, calculation: BoardCalculation) =>
+  foldOf(readPart(calculation, series.fold).text);
+
+const AMOUNT_WITH_UNIT = /^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(.*)$/;
+
+export function seriesTop(
+  series: StepSeries,
+  calculation: BoardCalculation
+): { value: number; unit: string } | undefined {
+  const { amount, unit } = seriesPoint(series, 0, calculation);
+  const match = AMOUNT_WITH_UNIT.exec(amount);
+  if (!match) return undefined;
+  const value = parseFloat(match[1]);
+  return Number.isNaN(value) ? undefined : { value, unit: unit || match[2].trim() };
 }
