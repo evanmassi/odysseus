@@ -46,8 +46,19 @@ const LASERS = [
   'Red 640',
   'Near-IR 808',
 ];
-const CONCENTRATION_UNITS = ['mM', 'µM', 'nM', 'pM', 'mg/mL', 'µg/mL', 'ng/mL', 'ng/µL', '%', 'X'];
-const MOLAR_MASS_UNITS = ['g/mol', 'kDa'];
+export const CONCENTRATION_UNITS = [
+  'mM',
+  'µM',
+  'nM',
+  'pM',
+  'mg/mL',
+  'µg/mL',
+  'ng/mL',
+  'ng/µL',
+  '%',
+  'X',
+];
+export const MOLAR_MASS_UNITS = ['g/mol', 'kDa'];
 
 const stockField = (defaultUnit: string, extras: FieldExtras = {}) =>
   numberField('Stock concentration', UNIT_PER_ITEM, {
