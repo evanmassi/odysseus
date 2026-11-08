@@ -23,6 +23,7 @@ interface WorkbenchWellLineRowProps {
   onUnitChange: (unit: string) => void;
   onRoleChange: (role: PlateLine['role']) => void;
   onRemove: () => void;
+  onOpenSeries: () => void;
 }
 
 const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
@@ -47,6 +48,7 @@ export function WorkbenchWellLineRow({
   onUnitChange,
   onRoleChange,
   onRemove,
+  onOpenSeries,
 }: WorkbenchWellLineRowProps) {
   const typed = plateValueKey(row.text);
   const suggestions = typed
@@ -79,20 +81,35 @@ export function WorkbenchWellLineRow({
           />
         </span>
         {seriesText ? (
-          <span className="whitespace-nowrap font-mono text-data-sm text-foreground">
+          <button
+            type="button"
+            title="Change this dilution"
+            className="whitespace-nowrap border border-line-soft px-2 py-1 font-mono text-data-sm text-foreground hover:border-primary/60"
+            onClick={onOpenSeries}
+          >
             {seriesText}
-          </span>
+          </button>
         ) : (
-          <WorkbenchValueAmountField
-            value={row.amount}
-            unit={row.unit}
-            units={undefined}
-            isInvalid={false}
-            placeholder={row.isAmountMixed ? 'Mixed' : 'Amount'}
-            isFocusedOnMount={false}
-            onValueChange={onAmountChange}
-            onUnitChange={onUnitChange}
-          />
+          <>
+            <WorkbenchValueAmountField
+              value={row.amount}
+              unit={row.unit}
+              units={undefined}
+              isInvalid={false}
+              placeholder={row.isAmountMixed ? 'Mixed' : 'Amount'}
+              isFocusedOnMount={false}
+              onValueChange={onAmountChange}
+              onUnitChange={onUnitChange}
+            />
+            <button
+              type="button"
+              title="Fill these wells with a dilution or any stepped series"
+              className="text-caption text-primary hover:underline"
+              onClick={onOpenSeries}
+            >
+              Dilution
+            </button>
+          </>
         )}
         {showsRole && row.line && (
           <Select

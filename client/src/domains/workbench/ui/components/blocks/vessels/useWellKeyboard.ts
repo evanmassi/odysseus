@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useRef, type KeyboardEvent } from 'react';
 
 import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
@@ -10,16 +10,10 @@ import {
 
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 
+import type { Confirmation } from './useConfirmation';
 import type { WellSelection } from './useWellSelection';
 import type { VesselSheet, VesselTab } from '../../../../utils/vessels/vesselTabs';
 import type { VesselMapBlock } from '@odysseus/shared-schemas';
-
-interface WellConfirmation {
-  title: string;
-  message: string;
-  confirmText: string;
-  onConfirm: () => void;
-}
 
 interface FilledCheck {
   keys: readonly string[];
@@ -41,11 +35,11 @@ export function useWellKeyboard(
   tab: VesselTab,
   sheet: VesselSheet,
   selection: WellSelection,
+  ask: (request: Confirmation) => void,
   onOpenEditor: (seedText?: string) => void
 ) {
   const updateVesselMap = useUpdateVesselMap(block);
   const clipboard = useRef<CopiedWell[]>([]);
-  const [confirmation, setConfirmation] = useState<WellConfirmation>();
   const { noun, plural } = wordsForTypes(
     tab.kind === 'plate' ? [tab.plate.vessel] : block.sets.map(set => set.vessel)
   );
@@ -54,15 +48,7 @@ export function useWellKeyboard(
   const confirmIfFilled = ({ keys, title, confirmText, describe, apply }: FilledCheck) => {
     const filled = keys.filter(key => isWellFilled(block, key)).length;
     if (!filled) return apply();
-    setConfirmation({
-      title,
-      confirmText,
-      message: describe(counted(filled)),
-      onConfirm: () => {
-        setConfirmation(undefined);
-        apply();
-      },
-    });
+    ask({ title, confirmText, message: describe(counted(filled)), onConfirm: apply });
   };
 
   const paste = () => {
@@ -118,10 +104,5 @@ export function useWellKeyboard(
     }
   };
 
-  return {
-    onKeyDown,
-    clearSelected,
-    confirmation,
-    dismissConfirmation: () => setConfirmation(undefined),
-  };
+  return { onKeyDown, clearSelected };
 }

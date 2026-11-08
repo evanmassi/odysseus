@@ -54,15 +54,16 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    dropped. **Not done:** Values-block plate rows. The client must call `normalizeVesselMap` after
    every plate edit (Agent A's well editor). Vitest reads shared-schemas from `dist`, so run
    `npm run build` in the package before client tests.
-   **Plate map in the app (2026-11-08, uncommitted):** `ui/components/blocks/vessels/` draws plates
-   and shelves (value colors, series fade, captions, sizing from card width), selects (click,
-   shift, ctrl, drag, headers, arrows), copies/pastes/clears with confirms, and edits through the
-   floating well editor (values renamed in place while typing so colors hold, amounts and units,
-   - Line as a screen-only row, Show as, remove line). Every edit runs `normalizeVesselMap`,
-     which now also drops lines and values no well uses. Series math (forward `1:N`) is in
-     `utils/vessels/plateSeries.ts`. **Next:** series editor in the well editor, Merge Replicates,
-     Add Vessel / Duplicate / remove plate, bands and header doses, legend with recolor, then
-     Dilutions.
+   **Plate map in the app (2026-11-08):** `ui/components/blocks/vessels/` covers the whole
+   vessel map inventory: drawing (value colors, series fade, captions, header doses, bands with
+   brackets/tags/rings computed from known geometry in `utils/vessels/plateGeometry.ts`), Merge
+   Replicates, selection with keyboard and clipboard, the floating well editor (values renamed in
+   place while typing so colors hold; a new line is a screen-only row until typed), the series
+   form (saves as you type, keeps prep, removal clears every well of the series), Add Vessel,
+   Duplicate, remove plate, and the legend (recolor, rename one value, insertable names). Every
+   edit runs `normalizeVesselMap`, which drops lines, values and series no well uses. **Next:**
+   Values-block plate rows, then the Dilutions block, then `renameMaterialsAfterLabels`,
+   `replaceTypedTwins`, the kDa prompt, `utils/steps/stepReadings.ts`.
 2. Agent A: plate grid, sizing, tabs/vessel picker/duplicate/remove, selection + keyboard + clipboard,
    well editor (lines, values, amounts, series editor), merging replicates.
 3. Agent B: Dilutions block (preps, pipettes, stock ask, strip SVG).
@@ -70,6 +71,21 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    `replaceTypedTwins`, the kDa prompt (`isTherapeuticAntibodyName` was removed as unused; re-add with
    its caller), one shared step reader `utils/steps/stepReadings.ts` (materials half exists in
    `utils/materials/materialReadings.ts`), Values plate rows.
+
+## Plate map polish backlog (Evan, 2026-11-08)
+
+Deferred until the rest of slice 3 lands:
+
+- Choose band colors (today they cycle through four fixed colors).
+- Organize the legend so it reads cleaner.
+- Click a selected well again to deselect it.
+- Series wells show only the number ("300", "100"…) when the series has no unit or name: show
+  the dilution's name and unit in the wells.
+- Hover text should use the app's tooltip primitive, not the browser title.
+- Buttons and titles in the vessel map are inconsistent: bring them onto the shared primitives
+  and the readability recipe.
+- Well text could be easier to read.
+- A band on the right edge gets clipped: the plate needs room for the outline past the last column.
 
 ## Vessel map feature inventory
 

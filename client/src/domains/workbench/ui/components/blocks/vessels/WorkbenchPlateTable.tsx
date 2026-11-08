@@ -1,12 +1,26 @@
 import type { CSSProperties, KeyboardEvent } from 'react';
 
+import {
+  bandShapes,
+  plateGeometry,
+  plateHeight,
+  plateWidth,
+  type PlateGeometry,
+} from '../../../../utils/vessels/plateGeometry';
+import {
+  headerNumber,
+  type DoseHeaders,
+  type PlateBand,
+} from '../../../../utils/vessels/plateLayers';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
 import { wellColor, wellDetails, wellLine } from '../../../../utils/vessels/wellContents';
+import { selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { WorkbenchPlateWellButton } from './WorkbenchPlateWellButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
 import type { WellSize } from '../../../../utils/vessels/vesselSizing';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -14,106 +28,197 @@ interface WorkbenchPlateTableProps {
   block: VesselMapBlock;
   sheet: VesselSheet;
   colorLine: PlateLine | undefined;
+  headers: DoseHeaders | undefined;
+  bands: PlateBand[];
   size: WellSize;
   calculation: BoardCalculation;
   selection: WellSelection;
+  merges: ReplicateMerges;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
 }
 
 const HEADER =
-  'grid place-items-center font-mono text-label-2xs text-muted-foreground transition-colors hover:text-primary';
+  'flex items-center justify-center gap-1 font-mono text-label-2xs text-muted-foreground transition-colors hover:text-primary';
+const DOSE = 'text-foreground';
 const SNUG_BELOW = 70;
+const TAG_TEXT = '#11141a';
+
+function BandOverlay({ bands, geometry }: { bands: PlateBand[]; geometry: PlateGeometry }) {
+  const shapes = bandShapes(bands, geometry);
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute left-0 top-0 text-label-2xs"
+      width={plateWidth(geometry)}
+      height={plateHeight(geometry)}
+    >
+      {shapes.areas.map(({ fill, edge, color }, index) => (
+        <g key={`area-${index}`}>
+          <path d={fill} fill={color} fillOpacity={0.09} />
+          <path d={edge} fill="none" stroke={color} strokeOpacity={0.75} strokeWidth={1.2} />
+        </g>
+      ))}
+      {shapes.rings.map(({ color, ...box }, index) => (
+        <rect
+          key={`ring-${index}`}
+          {...box}
+          rx={box.height / 2}
+          fill="none"
+          stroke={color}
+          strokeWidth={1.8}
+        />
+      ))}
+      {shapes.tags.map(({ x, y, width, text, color }, index) => (
+        <g key={`tag-${index}`}>
+          <rect x={x} y={y - 9} width={width} height={15} rx={3} fill={color} />
+          <text x={x + 6} y={y + 2} fill={TAG_TEXT}>
+            {text}
+          </text>
+        </g>
+      ))}
+      {shapes.topBrackets.map(({ path, x, y, text, color }, index) => (
+        <g key={`top-${index}`}>
+          <path d={path} fill="none" stroke={color} strokeWidth={1.4} />
+          <text x={x} y={y} textAnchor="middle" fill={color}>
+            {text}
+          </text>
+        </g>
+      ))}
+      {shapes.leftBrackets.map(({ path, x, y, text, color }, index) => (
+        <g key={`left-${index}`}>
+          <path d={path} fill="none" stroke={color} strokeWidth={1.4} />
+          <text transform={`translate(${x} ${y}) rotate(-90)`} textAnchor="middle" fill={color}>
+            {text}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
 
 export function WorkbenchPlateTable({
   block,
   sheet,
   colorLine,
+  headers,
+  bands,
   size,
   calculation,
   selection,
+  merges,
   onKeyDown,
   onOpenWell,
 }: WorkbenchPlateTableProps) {
+  const geometry = plateGeometry(size, sheet.rows, sheet.cols, headers, bands);
   const style = {
-    gridTemplateColumns: `16px repeat(${sheet.cols}, ${size.width}px)`,
-    gridTemplateRows: `14px repeat(${sheet.rows}, ${size.height}px)`,
+    gridTemplateColumns: `${geometry.headerWidth}px repeat(${sheet.cols}, ${size.width}px)`,
+    gridTemplateRows: `${geometry.headerHeight}px repeat(${sheet.rows}, ${size.height}px)`,
+    paddingLeft: geometry.leftPad,
+    paddingTop: geometry.topPad,
     '--well-height': `${size.height}px`,
   } as CSSProperties;
   const isSnug = !!colorLine && size.width < SNUG_BELOW;
+  const doseAt = (axis: 'col' | 'row', index: number) =>
+    headers?.axis === axis ? headers.labels.get(index) : undefined;
 
   return (
-    <div
-      role="grid"
-      aria-label="Plate wells"
-      aria-multiselectable
-      className="grid select-none justify-center gap-1 outline-none"
-      style={style}
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      onPointerDown={event => {
-        event.currentTarget.focus({ preventScroll: true });
-        if (event.target === event.currentTarget) selection.clear();
-      }}
-    >
-      <button
-        type="button"
-        aria-label="Select every well"
-        className={HEADER}
-        style={{ gridRow: 1, gridColumn: 1 }}
-        onClick={selection.selectAll}
-      />
-      {Array.from({ length: sheet.cols }, (_, col) => (
+    <div className="flex justify-center">
+      <div
+        role="grid"
+        aria-label="Plate wells"
+        aria-multiselectable
+        className="relative grid select-none gap-1 outline-none"
+        style={style}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+        onPointerDown={event => {
+          event.currentTarget.focus({ preventScroll: true });
+          if (event.target === event.currentTarget) selection.clear();
+        }}
+      >
         <button
-          key={`col-${col}`}
           type="button"
-          aria-label={`Select column ${col + 1}`}
+          aria-label="Select every well"
           className={HEADER}
-          style={{ gridRow: 1, gridColumn: col + 2 }}
-          onClick={() => selection.selectColumn(col)}
+          style={{ gridRow: 1, gridColumn: 1 }}
+          onClick={selection.selectAll}
         >
-          {col + 1}
+          {headers?.unit}
         </button>
-      ))}
-      {Array.from({ length: sheet.rows }, (_, row) => (
-        <button
-          key={`row-${row}`}
-          type="button"
-          aria-label={`Select row ${rowLetter(row)}`}
-          className={HEADER}
-          style={{ gridRow: row + 2, gridColumn: 1 }}
-          onClick={() => selection.selectRow(row)}
-        >
-          {rowLetter(row)}
-        </button>
-      ))}
-      {sheet.spots.map(spot => {
-        const details = wellDetails(block, spot.key, calculation);
-        return (
-          <WorkbenchPlateWellButton
-            key={spot.key}
-            wellKey={spot.key}
-            row={spot.row}
-            col={spot.col}
-            title={[spot.label, ...details].join('\n')}
-            shownLine={colorLine && wellLine(block, spot.key, colorLine, calculation)}
-            isFilled={details.length > 0}
-            color={wellColor(block, spot.key, colorLine)}
-            density={size.density}
-            isSnug={isSnug}
-            isSelected={selection.keys.has(spot.key)}
-            onPointerDown={event => {
-              event.preventDefault();
-              selection.press(spot, {
-                isExtending: event.shiftKey,
-                isToggling: event.ctrlKey || event.metaKey,
-              });
-            }}
-            onPointerEnter={() => selection.dragOver(spot)}
-            onDoubleClick={() => onOpenWell(spot.key)}
-          />
-        );
-      })}
+        {Array.from({ length: sheet.cols }, (_, col) => {
+          const dose = doseAt('col', col);
+          return (
+            <button
+              key={`col-${col}`}
+              type="button"
+              aria-label={`Select column ${col + 1}`}
+              title={dose?.text}
+              className={`${HEADER} ${dose ? 'flex-col justify-end gap-0.5' : ''}`}
+              style={{ gridRow: 1, gridColumn: col + 2 }}
+              onClick={() => selection.selectColumn(col)}
+            >
+              {col + 1}
+              {dose && <span className={DOSE}>{dose.short}</span>}
+            </button>
+          );
+        })}
+        {Array.from({ length: sheet.rows }, (_, row) => {
+          const dose = doseAt('row', row);
+          return (
+            <button
+              key={`row-${row}`}
+              type="button"
+              aria-label={`Select row ${rowLetter(row)}`}
+              title={dose?.text}
+              className={`${HEADER} ${dose ? 'justify-between pr-0.5' : ''}`}
+              style={{ gridRow: row + 2, gridColumn: 1 }}
+              onClick={() => selection.selectRow(row)}
+            >
+              {rowLetter(row)}
+              {dose && <span className={DOSE}>{dose.short}</span>}
+            </button>
+          );
+        })}
+        {sheet.spots.map(spot => {
+          const merged = merges.anchors.get(spot.key);
+          if (!merged && merges.covered.has(spot.key)) return null;
+          const details = wellDetails(block, spot.key, calculation);
+          const shownLine = colorLine && wellLine(block, spot.key, colorLine, calculation);
+          const where = merged
+            ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
+            : spot.label;
+          return (
+            <WorkbenchPlateWellButton
+              key={spot.key}
+              wellKey={spot.key}
+              row={spot.row}
+              col={spot.col}
+              merged={merged}
+              title={[where, ...details].join('\n')}
+              shownLine={shownLine}
+              shortAmount={
+                headers?.unit && shownLine ? headerNumber(shownLine.amount) : shownLine?.amount
+              }
+              isFilled={details.length > 0}
+              color={wellColor(block, spot.key, colorLine)}
+              density={size.density}
+              isSnug={isSnug}
+              isSelected={selection.keys.has(spot.key)}
+              onPointerDown={event => {
+                event.preventDefault();
+                selection.press(spot, {
+                  isExtending: event.shiftKey,
+                  isToggling: event.ctrlKey || event.metaKey,
+                });
+              }}
+              onPointerEnter={() => selection.dragOver(spot)}
+              onDoubleClick={() => onOpenWell(spot.key)}
+            />
+          );
+        })}
+        {bands.length > 0 && <BandOverlay bands={bands} geometry={geometry} />}
+      </div>
     </div>
   );
 }

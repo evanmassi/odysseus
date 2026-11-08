@@ -19,7 +19,12 @@ const EMPTY: SelectionState = { keys: new Set() };
 
 export type WellSelection = ReturnType<typeof useWellSelection>;
 
-export function useWellSelection(sheet: VesselSheet, tabId: string, onDragEnd: () => void) {
+export function useWellSelection(
+  sheet: VesselSheet,
+  tabId: string,
+  expand: (keys: ReadonlySet<string>) => ReadonlySet<string>,
+  onDragEnd: () => void
+) {
   const [selection, setSelection] = useState<SelectionState>(EMPTY);
   const dragStart = useRef<GridPoint>();
 
@@ -37,16 +42,19 @@ export function useWellSelection(sheet: VesselSheet, tabId: string, onDragEnd: (
 
   const selectRect = useCallback(
     (from: GridPoint, to: GridPoint, anchor = from) =>
-      setSelection({ keys: new Set(keysInRect(sheet, from, to)), anchor, cursor: to }),
-    [sheet]
+      setSelection({ keys: expand(new Set(keysInRect(sheet, from, to))), anchor, cursor: to }),
+    [sheet, expand]
   );
 
   const press = (spot: VesselSpot, { isExtending, isToggling }: PressModifiers) => {
     const point = { row: spot.row, col: spot.col };
     if (isToggling) {
+      const touched = expand(new Set([spot.key]));
       const keys = new Set(selection.keys);
-      if (keys.has(spot.key)) keys.delete(spot.key);
-      else keys.add(spot.key);
+      for (const key of touched) {
+        if (selection.keys.has(spot.key)) keys.delete(key);
+        else keys.add(key);
+      }
       setSelection({ keys, anchor: point, cursor: point });
       return;
     }
@@ -77,7 +85,7 @@ export function useWellSelection(sheet: VesselSheet, tabId: string, onDragEnd: (
     press,
     dragOver,
     move,
-    selectKeys: (keys: Iterable<string>) => setSelection({ keys: new Set(keys) }),
+    selectKeys: (keys: Iterable<string>) => setSelection({ keys: expand(new Set(keys)) }),
     selectRow: (row: number) => selectRect({ row, col: 0 }, { row, col: lastCol }),
     selectColumn: (col: number) => selectRect({ row: 0, col }, { row: lastRow, col }),
     selectAll: () => selectRect({ row: 0, col: 0 }, { row: lastRow, col: lastCol }),
