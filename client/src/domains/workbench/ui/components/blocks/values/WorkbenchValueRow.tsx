@@ -105,6 +105,8 @@ export function WorkbenchValueRow({
           <WorkbenchValueAmountField
             value={row.value}
             unit={row.unit}
+            placeholder="0"
+            isFocusedOnMount
             units={row.units}
             isInvalid={isInvalid}
             onValueChange={onValueChange}

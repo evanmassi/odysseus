@@ -12,6 +12,8 @@ interface WorkbenchValueAmountFieldProps {
   unit: string;
   units: readonly string[] | undefined;
   isInvalid: boolean;
+  placeholder: string;
+  isFocusedOnMount: boolean;
   onValueChange: (value: string) => void;
   onUnitChange: (unit: string) => void;
 }
@@ -21,19 +23,22 @@ export function WorkbenchValueAmountField({
   unit,
   units,
   isInvalid,
+  placeholder,
+  isFocusedOnMount,
   onValueChange,
   onUnitChange,
 }: WorkbenchValueAmountFieldProps) {
   const invalidClass = isInvalid ? ' text-danger-text' : '';
   const [first, second = ''] = value.split(':');
   const unitOptions = units ? unitChoices(units) : [...VALUE_UNIT_OPTIONS];
+  const focusRef = isFocusedOnMount ? focusOnMount : undefined;
 
   return (
     <span className="flex items-center justify-end gap-1">
       {unit === PAIR_NOTATION ? (
         <>
           <input
-            ref={focusOnMount}
+            ref={focusRef}
             value={first}
             placeholder="10"
             aria-label="Ratio, first part"
@@ -55,9 +60,9 @@ export function WorkbenchValueAmountField({
             <span className="font-mono text-data-sm text-muted-foreground">1:</span>
           )}
           <input
-            ref={focusOnMount}
+            ref={focusRef}
             value={value}
-            placeholder="0"
+            placeholder={placeholder}
             aria-label="Value"
             className={AMOUNT_INPUT + invalidClass}
             onFocus={event => event.currentTarget.select()}

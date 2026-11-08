@@ -106,6 +106,12 @@ export function displayValue(value: string, unit: string): string {
   return unit ? `${text} ${unit}` : text;
 }
 
+export function readableAmount(value: string, unit: string): string {
+  const scales = AUTO_DISPLAY_UNITS.some(units => units.includes(unit));
+  const quantity = scales ? quantityOf(value, unit) : undefined;
+  return quantity ? autoFormat(quantity) : displayValue(value, unit);
+}
+
 export function autoFormat(quantity: Quantity): string {
   const key = dimensionKey(quantity.dimension);
   const candidates = AUTO_DISPLAY_UNITS.find(

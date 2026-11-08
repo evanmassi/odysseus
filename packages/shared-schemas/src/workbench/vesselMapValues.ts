@@ -116,6 +116,15 @@ function mergeLineInto(block: VesselMapBlock, from: PlateLine, into: PlateLine):
   block.lines.splice(block.lines.indexOf(from), 1);
 }
 
+export function pruneUnused(block: VesselMapBlock): void {
+  const cellLines = Object.values(block.cells).flatMap(lines => Object.entries(lines));
+  const usedLines = new Set(cellLines.map(([lineId]) => lineId));
+  const usedValues = new Set(cellLines.map(([, cell]) => cell.valueId));
+  block.lines = block.lines.filter(line => usedLines.has(line.id));
+  for (const line of block.lines)
+    line.values = line.values.filter(value => usedValues.has(value.id));
+}
+
 export function unifyPlateValues(block: VesselMapBlock): void {
   for (let twins = findTwinLines(block); twins; twins = findTwinLines(block)) {
     mergeLineInto(block, twins[1], twins[0]);
@@ -135,6 +144,7 @@ function nextValueColor(block: VesselMapBlock, text: string): string {
 }
 
 export function normalizeVesselMap(block: VesselMapBlock): void {
+  pruneUnused(block);
   unifyPlateValues(block);
   const line = colorLineOf(block);
   if (!line) return;

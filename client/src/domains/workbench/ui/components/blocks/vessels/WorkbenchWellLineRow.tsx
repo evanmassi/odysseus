@@ -1,0 +1,135 @@
+import type { Ref } from 'react';
+
+import { plateValueKey, type PlateLine } from '@odysseus/shared-schemas';
+import { X } from 'lucide-react';
+
+import { Input, Select } from '@shared/ui';
+
+import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
+
+import type { ShownRole } from '../../../../utils/vessels/plateLayers';
+import type { WellRow } from '../../../../utils/vessels/wellEdits';
+
+interface WorkbenchWellLineRowProps {
+  row: WellRow;
+  textPlaceholder: string;
+  seriesText: string | undefined;
+  autoRole: ShownRole | undefined;
+  showsRole: boolean;
+  canRemove: boolean;
+  inputRef: Ref<HTMLInputElement> | undefined;
+  onTextChange: (text: string) => void;
+  onAmountChange: (amount: string) => void;
+  onUnitChange: (unit: string) => void;
+  onRoleChange: (role: PlateLine['role']) => void;
+  onRemove: () => void;
+}
+
+const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
+  auto: 'Auto',
+  color: 'Color',
+  band: 'Band',
+  caption: 'Caption',
+  hover: 'Hover only',
+};
+const SUGGESTION_LIMIT = 6;
+
+export function WorkbenchWellLineRow({
+  row,
+  textPlaceholder,
+  seriesText,
+  autoRole,
+  showsRole,
+  canRemove,
+  inputRef,
+  onTextChange,
+  onAmountChange,
+  onUnitChange,
+  onRoleChange,
+  onRemove,
+}: WorkbenchWellLineRowProps) {
+  const typed = plateValueKey(row.text);
+  const suggestions = typed
+    ? (row.line?.values ?? [])
+        .filter(value => {
+          const key = plateValueKey(value.text);
+          return key.includes(typed) && key !== typed;
+        })
+        .slice(0, SUGGESTION_LIMIT)
+    : [];
+  const roleOptions = Object.entries(ROLE_LABELS).map(([value, label]) => ({
+    value,
+    label: value === 'auto' && autoRole ? `Auto: ${ROLE_LABELS[autoRole].toLowerCase()}` : label,
+  }));
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1">
+          <Input
+            ref={inputRef}
+            size="sm"
+            fullWidth
+            value={row.text}
+            placeholder={row.isTextMixed ? 'Mixed. Typing replaces all' : textPlaceholder}
+            aria-label="What is in these wells"
+            spellCheck={false}
+            autoComplete="off"
+            onValueChange={onTextChange}
+          />
+        </span>
+        {seriesText ? (
+          <span className="whitespace-nowrap font-mono text-data-sm text-foreground">
+            {seriesText}
+          </span>
+        ) : (
+          <WorkbenchValueAmountField
+            value={row.amount}
+            unit={row.unit}
+            units={undefined}
+            isInvalid={false}
+            placeholder={row.isAmountMixed ? 'Mixed' : 'Amount'}
+            isFocusedOnMount={false}
+            onValueChange={onAmountChange}
+            onUnitChange={onUnitChange}
+          />
+        )}
+        {showsRole && row.line && (
+          <Select
+            size="xs"
+            isQuiet
+            options={roleOptions}
+            value={row.line.role}
+            aria-label="How this line shows on the plate"
+            onChange={next => onRoleChange(String(next) as PlateLine['role'])}
+            className="w-32"
+          />
+        )}
+        {canRemove && (
+          <button
+            type="button"
+            aria-label="Remove this line from these wells"
+            className="inline-flex h-6 w-6 flex-none items-center justify-center text-muted-foreground hover:text-danger-text"
+            onClick={onRemove}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {suggestions.map(value => (
+            <button
+              key={value.id}
+              type="button"
+              className="border border-line-soft px-2 py-0.5 text-caption text-foreground hover:border-primary/60"
+              onClick={() => onTextChange(value.text)}
+            >
+              {value.text}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
