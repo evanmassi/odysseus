@@ -1,9 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button, Select } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
+import { displayValue } from '../../../../utils/formulas/quantities';
+import {
+  canRemovePlateRow,
+  labelInSection,
+  plateValueRows,
+  removePlateRow,
+  renamePlateRow,
+  setPlateRowUnit,
+  setPlateRowValue,
+  type PlateValueRow,
+} from '../../../../utils/values/plateValueRows';
 import {
   addSuggestedValue,
   addValueLines,
@@ -43,6 +55,19 @@ const GENERAL_SECTION = '';
 const MIX_CHOICE = 'mix';
 const TITLE_INPUT =
   '[field-sizing:content] min-w-[4ch] bg-transparent type-label text-label-md font-semibold text-foreground outline-none placeholder:text-muted-foreground';
+
+function plateRemovalMessage(row: PlateValueRow): string {
+  const { source } = row;
+  if (source.kind === 'count') {
+    return `Clear “${row.name}” from the plate? Its ${source.count.tally} wells keep anything else in them.`;
+  }
+  const { subject, value, unit, source: from } = source.amount;
+  if (from.kind === 'wells') {
+    const wells = from.keys.length === 1 ? 'well' : `${from.keys.length} wells`;
+    return `Remove ${displayValue(value, unit)} of ${subject} from its ${wells}?`;
+  }
+  return `Remove the ${subject} dilution? Its wells keep the ${subject} label.`;
+}
 
 export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   const protocol = useWorkbenchStore(state => state.protocol);
@@ -85,7 +110,9 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
               value: linked ? linked.value : 'value' in item ? item.value : '',
               unit: linked ? linked.unit : 'unit' in item ? item.unit : '',
               units: linked ? linked.units : undefined,
-              isLinked: !!linked,
+              tag: linked ? 'in Materials' : undefined,
+              isValueEditable: true,
+              canRemove: true,
               isDuplicate: calculation.duplicateIds.has(item.id),
               usage: usageOfItem ? usageSummary(usageOfItem) : '',
             },
@@ -94,6 +121,21 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       })
     );
   }, [block, calculation, materials, protocol]);
+
+  const plateRows = useMemo(
+    () => plateValueRows(protocol, block, materials),
+    [protocol, block, materials]
+  );
+  const plateUsage = useMemo(
+    () =>
+      nameUsage(
+        protocol,
+        calculation,
+        plateRows.map(row => row.id)
+      ),
+    [protocol, calculation, plateRows]
+  );
+  const [removingPlateRow, setRemovingPlateRow] = useState<PlateValueRow>();
 
   const takenNames = useMemo(() => new Set(calculation.names.keys()), [calculation]);
 
@@ -135,6 +177,61 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     if (removed?.kind !== 'item' || (removed.item.section ?? '') !== sectionId) return undefined;
     return removed.label;
   };
+
+  const plateRowData = (row: PlateValueRow, ownerName: string): ValueRowData => {
+    const { source } = row;
+    const usageOfRow = plateUsage.get(row.id);
+    const shared = {
+      id: row.id,
+      label: labelInSection(row.name, ownerName),
+      fullName: row.name,
+      isDuplicate: calculation.duplicateIds.has(row.id),
+      usage: usageOfRow ? usageSummary(usageOfRow) : '',
+      canRemove: canRemovePlateRow(row),
+    };
+    if (source.kind === 'count') {
+      const { count } = source;
+      return {
+        ...shared,
+        value: String(count.count),
+        unit: '',
+        units: [],
+        tag: count.count === count.tally ? 'on the plate' : `map has ${count.tally}`,
+        isValueEditable: count.kind !== 'total',
+      };
+    }
+    const from = source.amount.source;
+    return {
+      ...shared,
+      value: source.amount.value,
+      unit: source.amount.unit,
+      units:
+        from.kind === 'points'
+          ? []
+          : from.kind === 'series' && from.field === 'fold'
+            ? ['X']
+            : undefined,
+      tag: 'on the plate',
+      isValueEditable: from.kind !== 'points',
+    };
+  };
+
+  const renderPlateRows = (sectionId: string, ownerName: string) =>
+    plateRows
+      .filter(row => row.sectionId === sectionId)
+      .map(row => (
+        <WorkbenchValueRow
+          key={row.id}
+          row={plateRowData(row, ownerName)}
+          editingCell={editing?.itemId === row.id ? editing.cell : undefined}
+          onEdit={cell => setEditing(cell ? { itemId: row.id, cell } : undefined)}
+          onMoveEdit={() => setEditing(undefined)}
+          onRename={name => edit(draft => renamePlateRow(draft, row, name, ownerName))}
+          onValueChange={value => edit(draft => setPlateRowValue(draft, row, value))}
+          onUnitChange={unit => edit(draft => setPlateRowUnit(draft, row, unit))}
+          onRemove={() => setRemovingPlateRow(row)}
+        />
+      ));
 
   const renderRows = (sectionId: string) =>
     sectionPeers(block, sectionId).flatMap(item => {
@@ -186,10 +283,14 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           addPlaceholder="Add: Incubation 24 h"
           takenNames={takenNames}
           undoLabel={undoLabelFor(GENERAL_SECTION)}
-          isEmpty={!sectionPeers(block, GENERAL_SECTION).length}
+          isEmpty={
+            !sectionPeers(block, GENERAL_SECTION).length &&
+            !plateRows.some(row => row.sectionId === GENERAL_SECTION)
+          }
           onAddLines={lines => addLines(GENERAL_SECTION, lines)}
           onUndo={undo}
         >
+          {renderPlateRows(GENERAL_SECTION, '')}
           {renderRows(GENERAL_SECTION)}
         </WorkbenchValueSection>
         {block.sections.map(section => {
@@ -232,7 +333,10 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
               suggestions={valueSuggestions(protocol, block, section, material)}
               takenNames={takenNames}
               undoLabel={undoLabelFor(section.id)}
-              isEmpty={!sectionPeers(block, section.id).length}
+              isEmpty={
+                !sectionPeers(block, section.id).length &&
+                !plateRows.some(row => row.sectionId === section.id)
+              }
               onAddLines={lines => addLines(section.id, lines)}
               onSuggest={suggestion => {
                 let added: string | undefined;
@@ -246,6 +350,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
               }
               onUndo={undo}
             >
+              {renderPlateRows(section.id, name)}
               {renderRows(section.id)}
             </WorkbenchValueSection>
           );
@@ -274,6 +379,19 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           }}
         />
       </div>
+      <ConfirmDialog
+        isOpen={!!removingPlateRow}
+        variant="danger"
+        title="Remove from the plate"
+        message={removingPlateRow ? plateRemovalMessage(removingPlateRow) : ''}
+        confirmText="Remove"
+        onConfirm={() => {
+          const row = removingPlateRow;
+          setRemovingPlateRow(undefined);
+          if (row) edit(draft => removePlateRow(draft, row));
+        }}
+        onCancel={() => setRemovingPlateRow(undefined)}
+      />
     </div>
   );
 }

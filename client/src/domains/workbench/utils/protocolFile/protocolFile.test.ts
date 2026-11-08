@@ -218,7 +218,6 @@ describe('upgrading older files', () => {
       )
     );
     expect(plate.cells).toEqual({
-      'p1:A1': {},
       'p1:A2': { f1: { valueId: 'v1', amount: '5', unit: 'X' } },
     });
   });

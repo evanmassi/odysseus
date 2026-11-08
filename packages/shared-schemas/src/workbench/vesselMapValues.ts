@@ -117,6 +117,13 @@ function mergeLineInto(block: VesselMapBlock, from: PlateLine, into: PlateLine):
 }
 
 export function pruneUnused(block: VesselMapBlock): void {
+  for (const [key, lines] of Object.entries(block.cells)) {
+    for (const [lineId, cell] of Object.entries(lines)) {
+      const { unit } = cell;
+      if (!isFilledCell(cell) && !unit) delete lines[lineId];
+    }
+    if (!Object.keys(lines).length) delete block.cells[key];
+  }
   const cellLines = Object.values(block.cells).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(cellLines.map(([lineId]) => lineId));
   const usedValues = new Set(cellLines.map(([, cell]) => cell.valueId));
