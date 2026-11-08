@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { PAINTED_GROUPS_FILE_VERSION, paintedGroupsFileSchema } from './paintedGroupUpgrade';
 import {
   LINE_ROLES,
   PLATE_FORMATS,
@@ -10,13 +11,12 @@ import {
   type CellLine,
   type PlateSeries,
 } from './protocolFileSchemas';
+import { newProtocolId } from './protocolIds';
 
 const text = z.string().catch('');
 const textMap = z.record(z.string(), z.string()).catch({});
 const list = <T extends z.ZodType>(item: T) => z.array(item).catch([]);
 const loose = z.record(z.string(), z.unknown());
-
-const newId = () => crypto.randomUUID().slice(0, 8);
 
 const RENAMED_MATERIAL_FIELDS: Record<string, string> = {
   concentration: 'stock-concentration',
@@ -65,7 +65,7 @@ const legacyFieldDefinition = z
 
 const legacyStep = z
   .object({
-    id: z.string().catch(() => newId()),
+    id: z.string().catch(() => newProtocolId()),
     kind: z.enum(['step', 'section']).catch('step'),
     level: z.union([z.literal(1), z.literal(2)]).catch(1),
     text,
@@ -197,7 +197,7 @@ type LegacyLine = z.infer<typeof legacyLine>;
 function valueIdFor(line: LegacyLine, valueText: string): string {
   const existing = line.values.find(value => value.text === valueText);
   if (existing) return existing.id;
-  const created = { id: newId(), text: valueText };
+  const created = { id: newProtocolId(), text: valueText };
   line.values.push(created);
   return created.id;
 }
@@ -250,7 +250,7 @@ const legacyVesselMap = z
     if (!sets) {
       sets = [];
       if (block.vessel && !isPlateVessel) {
-        const setId = newId();
+        const setId = newProtocolId();
         sets = [{ id: setId, vessel: block.vessel, count: block.count ?? 1 }];
         const rename = (key: string) => key.replace(/^(\d+):1$/, `${setId}#$1:1`);
         wells = renameKeys(wells, rename);
@@ -262,7 +262,7 @@ const legacyVesselMap = z
       plates =
         block.vessel && isPlateVessel
           ? Array.from({ length: block.count ?? 1 }, (_, index) => ({
-              id: newId(),
+              id: newProtocolId(),
               vessel: block.vessel as string,
               name: block.names[index] ?? '',
             }))
@@ -422,7 +422,7 @@ const legacyProtocol = z
   .transform(legacy => {
     const pages = legacy.pages?.length
       ? legacy.pages
-      : [{ id: newId(), name: 'Setup', steps: legacy.steps }];
+      : [{ id: newProtocolId(), name: 'Setup', steps: legacy.steps }];
     const fallbackPage = pages[0].id;
     const lotMemory = Object.fromEntries(
       Object.entries(legacy.lotMemory).map(([itemId, lots]) => [
@@ -451,12 +451,14 @@ const legacyProtocolFile = z
     savedAt: text,
     protocol: legacyProtocol,
   })
-  .transform(file => ({ ...file, version: PROTOCOL_FILE_VERSION }));
+  .transform(file => ({ ...file, version: PAINTED_GROUPS_FILE_VERSION }));
 
-const isCurrentVersion = (raw: unknown) =>
-  loose.safeParse(raw).data?.['version'] === PROTOCOL_FILE_VERSION;
+function upgradeFile(raw: unknown): unknown {
+  const version = loose.safeParse(raw).data?.['version'];
+  if (version === PROTOCOL_FILE_VERSION) return raw;
+  const paintedGroupsFile =
+    version === PAINTED_GROUPS_FILE_VERSION ? raw : legacyProtocolFile.parse(raw);
+  return paintedGroupsFileSchema.parse(paintedGroupsFile);
+}
 
-export const protocolFileInputSchema = z.preprocess(
-  raw => (isCurrentVersion(raw) ? raw : legacyProtocolFile.parse(raw)),
-  protocolFileSchema
-);
+export const protocolFileInputSchema = z.preprocess(upgradeFile, protocolFileSchema);

@@ -12,7 +12,10 @@ export {
   type MaterialsBlock,
   type ValuesBlock,
   type VesselMapBlock,
+  type PlateLine,
   type ProtocolFile,
 } from './protocolFileSchemas';
+
+export { colorLineOf, isFilledCell, lineValueOf } from './vesselMapValues';
 
 export { protocolFileInputSchema } from './legacyProtocolSchemas';

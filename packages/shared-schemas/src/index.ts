@@ -662,6 +662,9 @@ export {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
   protocolFileInputSchema,
+  colorLineOf,
+  isFilledCell,
+  lineValueOf,
   type FieldDefinition,
   type MaterialItem,
   type Protocol,
@@ -673,5 +676,6 @@ export {
   type MaterialsBlock,
   type ValuesBlock,
   type VesselMapBlock,
+  type PlateLine,
   type ProtocolFile,
 } from './workbench';
