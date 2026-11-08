@@ -1,0 +1,1145 @@
+{
+  "format": "odysseus-workbench-protocol",
+  "version": 1,
+  "savedAt": "2026-11-08T00:00:00.000Z",
+  "protocol": {
+    "title": "IL-6 sandwich ELISA",
+    "lotMemory": {
+      "kavz434": {
+        "B271834": {
+          "stock-concentration": "500"
+        }
+      }
+    },
+    "blocks": [
+      {
+        "id": "c4wnnas",
+        "type": "materials",
+        "title": "Materials",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 13,
+        "folded": [],
+        "customGroups": [],
+        "items": [
+          {
+            "id": "kavz434",
+            "group": "ab",
+            "type": "Antibody",
+            "name": "Capture Ab",
+            "on": [
+              "vendor",
+              "catalog",
+              "lot",
+              "storage",
+              "target",
+              "amount",
+              "stock-concentration"
+            ],
+            "values": {
+              "storage": "4 °C",
+              "vendor": "BioLegend",
+              "target": "human IL-6",
+              "amount": "200"
+            },
+            "units": {
+              "amount": "1:N"
+            },
+            "custom": []
+          },
+          {
+            "id": "8ah0oau",
+            "group": "ab",
+            "type": "Antibody",
+            "name": "Detection Ab",
+            "on": ["vendor", "catalog", "lot", "storage", "target", "conjugate", "amount"],
+            "values": {
+              "storage": "4 °C",
+              "vendor": "BioLegend",
+              "target": "human IL-6",
+              "conjugate": "Biotin",
+              "amount": "200"
+            },
+            "units": {
+              "amount": "1:N"
+            },
+            "custom": []
+          },
+          {
+            "id": "a8ipuce",
+            "group": "ab",
+            "type": "Secondary reagent",
+            "name": "Streptavidin-HRP",
+            "on": ["vendor", "catalog", "lot", "storage", "conjugate", "dilution"],
+            "values": {
+              "storage": "4 °C",
+              "vendor": "BioLegend",
+              "conjugate": "HRP",
+              "dilution": "1000"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "3w7le63",
+            "group": "chem",
+            "type": "Standard",
+            "name": "IL-6 standard",
+            "on": ["vendor", "catalog", "lot", "storage"],
+            "values": {
+              "storage": "−80 °C",
+              "vendor": "BioLegend"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "s65fo7l",
+            "group": "chem",
+            "type": "Detection reagent",
+            "name": "TMB substrate",
+            "on": ["vendor", "catalog", "lot", "storage", "detection", "read-wavelength"],
+            "values": {
+              "storage": "4 °C",
+              "vendor": "Thermo Fisher",
+              "detection": "Colorimetric",
+              "read-wavelength": "450 nm"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "web1ydc",
+            "group": "media",
+            "type": "Buffer",
+            "name": "Coating buffer",
+            "on": ["vendor", "catalog", "lot", "storage", "recipe", "ph", "made-on"],
+            "values": {
+              "storage": "RT",
+              "recipe": "carbonate-bicarbonate",
+              "ph": "9.5"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "1fbhk03",
+            "group": "media",
+            "type": "Buffer",
+            "name": "Wash buffer",
+            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "values": {
+              "storage": "RT",
+              "recipe": "PBS + 0.05% Tween-20"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "f6b9fmv",
+            "group": "media",
+            "type": "Buffer",
+            "name": "Blocking buffer",
+            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "values": {
+              "storage": "4 °C",
+              "recipe": "1% BSA in PBS"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "2ykvvxv",
+            "group": "media",
+            "type": "Buffer",
+            "name": "Stop solution",
+            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "values": {
+              "storage": "RT",
+              "recipe": "2 N sulfuric acid"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "md02vz0",
+            "group": "supplies",
+            "type": "Plate",
+            "name": "ELISA plate",
+            "on": ["vendor", "catalog", "lot", "storage", "format", "surface", "color"],
+            "values": {
+              "storage": "Shelf",
+              "vendor": "Corning",
+              "format": "96-well",
+              "surface": "High-binding",
+              "color": "Clear"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "1udeltb",
+            "group": "equip",
+            "type": "Instrument",
+            "name": "Plate reader",
+            "on": ["model", "settings"],
+            "values": {
+              "settings": "absorbance 450 nm, reference 570 nm"
+            },
+            "units": {},
+            "custom": []
+          }
+        ],
+        "page": "mqd21pe"
+      },
+      {
+        "id": "cj5twwa",
+        "type": "values",
+        "title": "Values",
+        "x": 0,
+        "y": 33,
+        "w": 4,
+        "h": 20,
+        "items": [
+          {
+            "id": "nlg73cs",
+            "name": "Samples",
+            "value": "24",
+            "unit": ""
+          },
+          {
+            "id": "hsl5nyw",
+            "name": "Replicates",
+            "value": "2",
+            "unit": ""
+          },
+          {
+            "id": "p4dj201",
+            "name": "Std points",
+            "value": "8",
+            "unit": ""
+          },
+          {
+            "id": "pbku7xy",
+            "name": "Blanks",
+            "value": "2",
+            "unit": ""
+          },
+          {
+            "id": "in9kwwl",
+            "name": "Overage",
+            "value": "10",
+            "unit": "%"
+          },
+          {
+            "id": "4z3ai8z",
+            "name": "Vol per well",
+            "value": "100",
+            "unit": "µL"
+          },
+          {
+            "id": "3dn1f1y",
+            "name": "Top std",
+            "value": "500",
+            "unit": "pg/mL"
+          },
+          {
+            "id": "l4nssv5",
+            "name": "Std diluent",
+            "value": "150",
+            "unit": "µL"
+          },
+          {
+            "id": "jvips96",
+            "name": "Fold",
+            "value": "2",
+            "unit": "x"
+          }
+        ],
+        "page": "mqd21pe",
+        "sections": []
+      },
+      {
+        "id": "kokto6p",
+        "type": "plate",
+        "title": "Vessel map",
+        "x": 4,
+        "y": 33,
+        "w": 4,
+        "h": 13,
+        "active": 0,
+        "groups": [
+          {
+            "id": "cwqcxqi",
+            "label": "Standard",
+            "color": "#f0b35b"
+          },
+          {
+            "id": "a5izkbq",
+            "label": "Sample",
+            "color": "#8fd3e8"
+          },
+          {
+            "id": "srutxri",
+            "label": "Blank",
+            "color": "#6fbf73"
+          }
+        ],
+        "wells": {
+          "6ub86x9:A1": "cwqcxqi",
+          "6ub86x9:A2": "cwqcxqi",
+          "6ub86x9:B1": "cwqcxqi",
+          "6ub86x9:B2": "cwqcxqi",
+          "6ub86x9:C1": "cwqcxqi",
+          "6ub86x9:C2": "cwqcxqi",
+          "6ub86x9:D1": "cwqcxqi",
+          "6ub86x9:D2": "cwqcxqi",
+          "6ub86x9:E1": "cwqcxqi",
+          "6ub86x9:E2": "cwqcxqi",
+          "6ub86x9:F1": "cwqcxqi",
+          "6ub86x9:F2": "cwqcxqi",
+          "6ub86x9:G1": "cwqcxqi",
+          "6ub86x9:G2": "cwqcxqi",
+          "6ub86x9:H1": "cwqcxqi",
+          "6ub86x9:H2": "cwqcxqi",
+          "6ub86x9:A3": "srutxri",
+          "6ub86x9:B3": "srutxri",
+          "6ub86x9:C3": "a5izkbq",
+          "6ub86x9:D3": "a5izkbq",
+          "6ub86x9:E3": "a5izkbq",
+          "6ub86x9:F3": "a5izkbq",
+          "6ub86x9:G3": "a5izkbq",
+          "6ub86x9:H3": "a5izkbq",
+          "6ub86x9:A4": "a5izkbq",
+          "6ub86x9:B4": "a5izkbq",
+          "6ub86x9:C4": "a5izkbq",
+          "6ub86x9:D4": "a5izkbq",
+          "6ub86x9:E4": "a5izkbq",
+          "6ub86x9:F4": "a5izkbq",
+          "6ub86x9:G4": "a5izkbq",
+          "6ub86x9:H4": "a5izkbq",
+          "6ub86x9:A5": "a5izkbq",
+          "6ub86x9:B5": "a5izkbq",
+          "6ub86x9:C5": "a5izkbq",
+          "6ub86x9:D5": "a5izkbq",
+          "6ub86x9:E5": "a5izkbq",
+          "6ub86x9:F5": "a5izkbq",
+          "6ub86x9:G5": "a5izkbq",
+          "6ub86x9:H5": "a5izkbq",
+          "6ub86x9:A6": "a5izkbq",
+          "6ub86x9:B6": "a5izkbq",
+          "6ub86x9:C6": "a5izkbq",
+          "6ub86x9:D6": "a5izkbq",
+          "6ub86x9:E6": "a5izkbq",
+          "6ub86x9:F6": "a5izkbq",
+          "6ub86x9:G6": "a5izkbq",
+          "6ub86x9:H6": "a5izkbq",
+          "6ub86x9:A7": "a5izkbq",
+          "6ub86x9:B7": "a5izkbq",
+          "6ub86x9:C7": "a5izkbq",
+          "6ub86x9:D7": "a5izkbq",
+          "6ub86x9:E7": "a5izkbq",
+          "6ub86x9:F7": "a5izkbq",
+          "6ub86x9:G7": "a5izkbq",
+          "6ub86x9:H7": "a5izkbq",
+          "6ub86x9:A8": "a5izkbq",
+          "6ub86x9:B8": "a5izkbq",
+          "6ub86x9:C8": "a5izkbq",
+          "6ub86x9:D8": "a5izkbq",
+          "6ub86x9:E8": "a5izkbq",
+          "6ub86x9:F8": "a5izkbq",
+          "6ub86x9:G8": "a5izkbq",
+          "6ub86x9:H8": "a5izkbq",
+          "6ub86x9:A9": "a5izkbq",
+          "6ub86x9:B9": "a5izkbq"
+        },
+        "page": "mqd21pe",
+        "sets": [],
+        "cells": {},
+        "fields": [],
+        "series": {},
+        "plates": [
+          {
+            "id": "6ub86x9",
+            "vessel": "96",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "id": "pf5sqja",
+        "type": "formula",
+        "title": "Calculations",
+        "x": 8,
+        "y": 33,
+        "w": 4,
+        "h": 20,
+        "items": [
+          {
+            "id": "yf21f8w",
+            "name": "Wells",
+            "expr": "Samples × Replicates + Std points × 2 + Blanks",
+            "unit": "auto"
+          },
+          {
+            "id": "6hlizim",
+            "name": "Coating mix",
+            "expr": "Wells × Vol per well × (1 + Overage)",
+            "unit": "mL"
+          },
+          {
+            "id": "e8pm2mt",
+            "name": "Capture Ab volume",
+            "expr": "Coating mix × Capture Ab dilution",
+            "unit": "µL"
+          },
+          {
+            "id": "d5d3ncl",
+            "name": "Coating buffer volume",
+            "expr": "Coating mix − Capture Ab volume",
+            "unit": "mL"
+          },
+          {
+            "id": "lyc2o84",
+            "name": "Std transfer",
+            "expr": "Std diluent ÷ (Fold − 1)",
+            "unit": "µL"
+          },
+          {
+            "id": "u41kack",
+            "name": "Unplaced wells",
+            "expr": "Wells − Wells used",
+            "unit": "auto"
+          }
+        ],
+        "page": "mqd21pe",
+        "sections": []
+      },
+      {
+        "id": "uec3wqr",
+        "type": "steps",
+        "title": "Steps",
+        "x": 0,
+        "y": 22,
+        "w": 5,
+        "h": 13,
+        "page": "mqd21pe"
+      },
+      {
+        "id": "gg706j5",
+        "type": "sketch",
+        "title": "Sketch",
+        "x": 5,
+        "y": 22,
+        "w": 3,
+        "h": 13,
+        "strokes": [
+          {
+            "kind": "text",
+            "color": "#8fd3e8",
+            "x": 40,
+            "y": 110,
+            "text": "std curve, 2-fold",
+            "size": 64
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [50, 300],
+              [50, 480],
+              [57, 505],
+              [75, 515],
+              [93, 505],
+              [100, 480],
+              [100, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 49,
+            "y": 590,
+            "text": "500",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [83, 285],
+              [93.4, 259.8],
+              [103.8, 240.2],
+              [114.2, 226.2],
+              [124.6, 217.8],
+              [135, 215],
+              [145.4, 217.8],
+              [155.8, 226.2],
+              [166.2, 240.2],
+              [176.6, 259.79999999999995],
+              [187, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [169, 262],
+              [187, 285],
+              [163, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [170, 300],
+              [170, 480],
+              [177, 505],
+              [195, 515],
+              [213, 505],
+              [220, 480],
+              [220, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 169,
+            "y": 590,
+            "text": "250",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [203, 285],
+              [213.4, 259.8],
+              [223.8, 240.2],
+              [234.2, 226.2],
+              [244.6, 217.8],
+              [255, 215],
+              [265.4, 217.8],
+              [275.8, 226.2],
+              [286.2, 240.2],
+              [296.6, 259.79999999999995],
+              [307, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [289, 262],
+              [307, 285],
+              [283, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [290, 300],
+              [290, 480],
+              [297, 505],
+              [315, 515],
+              [333, 505],
+              [340, 480],
+              [340, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 289,
+            "y": 590,
+            "text": "125",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [323, 285],
+              [333.4, 259.8],
+              [343.8, 240.2],
+              [354.2, 226.2],
+              [364.6, 217.8],
+              [375, 215],
+              [385.4, 217.8],
+              [395.8, 226.2],
+              [406.2, 240.2],
+              [416.6, 259.79999999999995],
+              [427, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [409, 262],
+              [427, 285],
+              [403, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [410, 300],
+              [410, 480],
+              [417, 505],
+              [435, 515],
+              [453, 505],
+              [460, 480],
+              [460, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 409,
+            "y": 590,
+            "text": "62.5",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [443, 285],
+              [453.4, 259.8],
+              [463.8, 240.2],
+              [474.2, 226.2],
+              [484.6, 217.8],
+              [495, 215],
+              [505.4, 217.8],
+              [515.8, 226.2],
+              [526.2, 240.2],
+              [536.6, 259.79999999999995],
+              [547, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [529, 262],
+              [547, 285],
+              [523, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [530, 300],
+              [530, 480],
+              [537, 505],
+              [555, 515],
+              [573, 505],
+              [580, 480],
+              [580, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 529,
+            "y": 590,
+            "text": "31",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [563, 285],
+              [573.4, 259.8],
+              [583.8, 240.2],
+              [594.2, 226.2],
+              [604.6, 217.8],
+              [615, 215],
+              [625.4, 217.8],
+              [635.8, 226.2],
+              [646.2, 240.2],
+              [656.6, 259.79999999999995],
+              [667, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [649, 262],
+              [667, 285],
+              [643, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [650, 300],
+              [650, 480],
+              [657, 505],
+              [675, 515],
+              [693, 505],
+              [700, 480],
+              [700, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 649,
+            "y": 590,
+            "text": "16",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [683, 285],
+              [693.4, 259.8],
+              [703.8, 240.2],
+              [714.2, 226.2],
+              [724.6, 217.8],
+              [735, 215],
+              [745.4, 217.8],
+              [755.8, 226.2],
+              [766.2, 240.2],
+              [776.6, 259.79999999999995],
+              [787, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [769, 262],
+              [787, 285],
+              [763, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [770, 300],
+              [770, 480],
+              [777, 505],
+              [795, 515],
+              [813, 505],
+              [820, 480],
+              [820, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 769,
+            "y": 590,
+            "text": "7.8",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [803, 285],
+              [813.4, 259.8],
+              [823.8, 240.2],
+              [834.2, 226.2],
+              [844.6, 217.8],
+              [855, 215],
+              [865.4, 217.8],
+              [875.8, 226.2],
+              [886.2, 240.2],
+              [896.6, 259.79999999999995],
+              [907, 284.99999999999994]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#8fd3e8",
+            "pts": [
+              [889, 262],
+              [907, 285],
+              [883, 284]
+            ]
+          },
+          {
+            "kind": "line",
+            "color": "#e3dccb",
+            "pts": [
+              [890, 300],
+              [890, 480],
+              [897, 505],
+              [915, 515],
+              [933, 505],
+              [940, 480],
+              [940, 300]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 889,
+            "y": 590,
+            "text": "0",
+            "size": 40
+          },
+          {
+            "kind": "line",
+            "color": "#d97a7a",
+            "pts": [
+              [977, 450],
+              [975.7641278261569, 484.7671328891357],
+              [972.1057816281789, 518.1482099040138],
+              [966.1708081244001, 548.8124328441312],
+              [958.1958159795242, 575.5373159074165],
+              [948.4987429638247, 597.2574223413819],
+              [937.4661807775537, 613.1068400442646],
+              [925.5379628598149, 622.4537027479805],
+              [913.1896296173201, 624.9253805322634],
+              [900.9134701290286, 620.4233354036842],
+              [889.1988961340771, 609.1270496944943],
+              [878.5129307301686, 591.4868706684283],
+              [869.2815896364427, 568.2060565964514],
+              [861.8728972911252, 540.2127400687563],
+              [856.5822148785431, 508.62292627728334],
+              [853.6204652107724, 474.6960014104767],
+              [853.1057239007254, 439.7845249001734],
+              [855.0585120600734, 405.2803071453044],
+              [859.4009781872829, 372.5589224234007],
+              [865.9600018613062, 342.924869085024],
+              [874.4740955064561, 317.5595633211125],
+              [884.6038290768767, 297.474239827622],
+              [895.9453620613381, 283.4696370693347],
+              [908.0465433300267, 276.1040743641437],
+              [920.4249369732457, 275.67119345372794],
+              [932.5870554987201, 282.1882519339508],
+              [944.0480336206235, 295.39543524897334],
+              [954.3509583084434, 314.76621467770246],
+              [963.0850844676356, 339.5283383723441],
+              [969.9022100503619, 368.69461860259287],
+              [974.5305577723227, 401.10228781518845],
+              [976.7856100154395, 435.4593545069386],
+              [976.577464963008, 470.3961108488368],
+              [973.9144207014288, 504.5197386148417]
+            ]
+          },
+          {
+            "kind": "text",
+            "color": "#d97a7a",
+            "x": 760,
+            "y": 700,
+            "text": "blank!",
+            "size": 48
+          },
+          {
+            "kind": "text",
+            "color": "#f0b35b",
+            "x": 40,
+            "y": 820,
+            "text": "pre-wet tips, mix 5×",
+            "size": 56
+          },
+          {
+            "kind": "text",
+            "color": "#e3dccb",
+            "x": 40,
+            "y": 900,
+            "text": "pg/mL",
+            "size": 40
+          }
+        ],
+        "page": "mqd21pe"
+      },
+      {
+        "id": "zuykfvr",
+        "type": "list",
+        "title": "Standard curve",
+        "x": 8,
+        "y": 25,
+        "w": 4,
+        "h": 10,
+        "named": false,
+        "columns": [
+          {
+            "id": "lnox9b3",
+            "name": "Point",
+            "kind": "text",
+            "unit": "",
+            "options": [],
+            "hidden": false,
+            "warnPast": false
+          },
+          {
+            "id": "k8lj63i",
+            "name": "pg/mL",
+            "kind": "number",
+            "unit": "pg/mL",
+            "options": [],
+            "hidden": false,
+            "warnPast": false
+          },
+          {
+            "id": "192pn7z",
+            "name": "Transfer",
+            "kind": "text",
+            "unit": "",
+            "options": [],
+            "hidden": false,
+            "warnPast": false
+          },
+          {
+            "id": "m9n0pof",
+            "name": "Diluent",
+            "kind": "text",
+            "unit": "",
+            "options": [],
+            "hidden": false,
+            "warnPast": false
+          }
+        ],
+        "items": [
+          {
+            "id": "apt9opx",
+            "cells": {
+              "lnox9b3": "S1",
+              "k8lj63i": "500",
+              "192pn7z": "from stock"
+            },
+            "units": {}
+          },
+          {
+            "id": "idach4j",
+            "cells": {
+              "lnox9b3": "S2",
+              "k8lj63i": "250",
+              "192pn7z": "150 µL",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          },
+          {
+            "id": "j6kw9pm",
+            "cells": {
+              "lnox9b3": "S3",
+              "k8lj63i": "125",
+              "192pn7z": "150 µL",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          },
+          {
+            "id": "ti5pau1",
+            "cells": {
+              "lnox9b3": "S4",
+              "k8lj63i": "62.5",
+              "192pn7z": "150 µL",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          },
+          {
+            "id": "dl90157",
+            "cells": {
+              "lnox9b3": "S5",
+              "k8lj63i": "31.3",
+              "192pn7z": "150 µL",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          },
+          {
+            "id": "znodhqq",
+            "cells": {
+              "lnox9b3": "S6",
+              "k8lj63i": "15.6",
+              "192pn7z": "150 µL",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          },
+          {
+            "id": "7biypqy",
+            "cells": {
+              "lnox9b3": "S7",
+              "k8lj63i": "7.8",
+              "192pn7z": "150 µL",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          },
+          {
+            "id": "qx1fa2x",
+            "cells": {
+              "lnox9b3": "S8",
+              "k8lj63i": "0",
+              "m9n0pof": "150 µL"
+            },
+            "units": {}
+          }
+        ],
+        "page": "mqd21pe"
+      },
+      {
+        "id": "7w7pao1",
+        "type": "flow",
+        "title": "Flow diagram",
+        "x": 0,
+        "y": 35,
+        "w": 12,
+        "h": 7,
+        "page": "mqd21pe"
+      }
+    ],
+    "pages": [
+      {
+        "id": "mqd21pe",
+        "name": "Setup",
+        "steps": [
+          {
+            "id": "5g6ltd4",
+            "kind": "section",
+            "text": "Coat"
+          },
+          {
+            "id": "sj8vybv",
+            "kind": "step",
+            "level": 1,
+            "text": "Make the coating mix.",
+            "meanwhile": false
+          },
+          {
+            "id": "wwkhgsb",
+            "kind": "step",
+            "level": 2,
+            "text": "Dilute {Capture Ab} {Capture Ab dilution} in {Coating buffer}: {Capture Ab volume} into {Coating buffer volume}.",
+            "meanwhile": false
+          },
+          {
+            "id": "5cnnfzh",
+            "kind": "step",
+            "level": 2,
+            "text": "Mix by inversion. Keep on ice.",
+            "meanwhile": false
+          },
+          {
+            "id": "z7gl596",
+            "kind": "step",
+            "level": 1,
+            "text": "Add {Vol per well} per well to the {ELISA plate}. Seal and incubate overnight at 4 °C.",
+            "meanwhile": false
+          },
+          {
+            "id": "hdczedw",
+            "kind": "section",
+            "text": "Block"
+          },
+          {
+            "id": "6xa33z4",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3× with 300 µL {Wash buffer} per well.",
+            "meanwhile": false
+          },
+          {
+            "id": "anchtd7",
+            "kind": "step",
+            "level": 1,
+            "text": "Add 200 µL {Blocking buffer} per well. Incubate 1 h at room temperature.",
+            "meanwhile": false
+          },
+          {
+            "id": "x75xfnn",
+            "kind": "step",
+            "level": 1,
+            "text": "Prepare the {IL-6 standard}: 2-fold series from {Top std}, {Std transfer} into {Std diluent}.",
+            "meanwhile": true
+          },
+          {
+            "id": "vz9482n",
+            "kind": "section",
+            "text": "Standards and samples"
+          },
+          {
+            "id": "3w7rlio",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3× with 300 µL {Wash buffer} per well.",
+            "meanwhile": false
+          },
+          {
+            "id": "5y0cowk",
+            "kind": "step",
+            "level": 1,
+            "text": "Add {Vol per well} of standards and samples per the plate map. Incubate 2 h at room temperature.",
+            "meanwhile": false
+          },
+          {
+            "id": "g2p74bd",
+            "kind": "section",
+            "text": "Detect"
+          },
+          {
+            "id": "zt1fk5j",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3×, then add {Detection Ab} at {Detection Ab dilution}. Incubate 1 h at room temperature.",
+            "meanwhile": false
+          },
+          {
+            "id": "g40mt2b",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3×, then add {Streptavidin-HRP} at {Streptavidin-HRP dilution}. Incubate 20 min at room temperature, protected from light.",
+            "meanwhile": false
+          },
+          {
+            "id": "vbgdrr7",
+            "kind": "step",
+            "level": 1,
+            "text": "Develop and read.",
+            "meanwhile": false
+          },
+          {
+            "id": "abww967",
+            "kind": "step",
+            "level": 2,
+            "text": "Add 100 µL {TMB substrate} per well. Incubate 20 min, protected from light.",
+            "meanwhile": false
+          },
+          {
+            "id": "8bxdxw7",
+            "kind": "step",
+            "level": 2,
+            "text": "Add 50 µL {Stop solution} per well.",
+            "meanwhile": false
+          },
+          {
+            "id": "16n157d",
+            "kind": "step",
+            "level": 2,
+            "text": "Read at 450 nm on the {Plate reader} within 30 min.",
+            "meanwhile": false
+          }
+        ]
+      }
+    ],
+    "keptBoth": [],
+    "runOn": {
+      "from": "",
+      "to": ""
+    },
+    "descriptor": "",
+    "runNumber": "",
+    "ignoredReadings": []
+  }
+}

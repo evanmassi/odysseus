@@ -1,10 +1,3 @@
-/**
- * App Dashboard
- *
- * Routing shell that directs to Biobank, Lab Management, or System Admin
- * based on user context and URL path.
- */
-
 import { lazy, type ReactNode } from 'react';
 
 import { Routes, Route } from 'react-router-dom';
@@ -24,6 +17,10 @@ const SystemAdminDashboard = lazy(() =>
 
 const LabManagementPage = lazy(() =>
   import('./LabManagementPage').then(m => ({ default: m.LabManagementPage }))
+);
+
+const WorkbenchPage = lazy(() =>
+  import('@domains/workbench').then(m => ({ default: m.WorkbenchPage }))
 );
 
 function DashboardChrome({ children }: { children: ReactNode }) {
@@ -65,6 +62,16 @@ export function AppDashboard() {
           >
             <LabManagementPage />
           </SuspenseBoundary>
+        }
+      />
+      <Route
+        path="/workbench/*"
+        element={
+          <DashboardChrome>
+            <SuspenseBoundary fallback={<DashboardLoading />} name="Workbench">
+              <WorkbenchPage />
+            </SuspenseBoundary>
+          </DashboardChrome>
         }
       />
       <Route path="/*" element={<BiobankDashboard isSynced={isSynced} />} />

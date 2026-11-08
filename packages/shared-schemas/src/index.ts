@@ -57,9 +57,10 @@ export {
 } from './tubes';
 
 export {
-  UNIT_KINDS,
   UNIT_REGISTRY,
   formatQuantity,
+  unitScale,
+  parseNumberInput,
   pluralizeUnit,
   unitKindSchema,
   customUnitSchema,
@@ -68,6 +69,7 @@ export {
   updateCustomUnitRequestSchema,
   customUnitResponseSchema,
   customUnitListResponseSchema,
+  type UnitDimension,
   type UnitKind,
   type UnitRegistryEntry,
   type UnitKindValue,
@@ -655,3 +657,21 @@ export {
   getPersonDisplayName,
   getPersonSortName,
 } from './persons/personFormatters';
+
+export {
+  PROTOCOL_FILE_FORMAT,
+  PROTOCOL_FILE_VERSION,
+  protocolFileInputSchema,
+  type FieldDefinition,
+  type MaterialItem,
+  type Protocol,
+  type ProtocolBlock,
+  type ProtocolBlockType,
+  type ProtocolPage,
+  type ProtocolStep,
+  type FormulaBlock,
+  type MaterialsBlock,
+  type ValuesBlock,
+  type VesselMapBlock,
+  type ProtocolFile,
+} from './workbench';

@@ -14,6 +14,7 @@ import {
   BookUser,
   ChevronDown,
   ChevronRight,
+  NotebookPen,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -55,6 +56,7 @@ const DonorRegistryModal = lazy(() =>
 );
 
 const SUBMENU_CLOSE_DELAY_MS = 150;
+const NON_BIOBANK_ROUTES = ['/lab', '/workbench'];
 
 const ROLE_LABELS: Record<string, string> = {
   system_admin: 'System Admin',
@@ -84,7 +86,7 @@ export function AppHeader({
   const { currentLab } = useStorageData({ enabled: hasLab });
   const location = useLocation();
   const navigate = useNavigate();
-  const isBiobankRoute = !location.pathname.startsWith('/lab');
+  const isBiobankRoute = !NON_BIOBANK_ROUTES.some(prefix => location.pathname.startsWith(prefix));
   const [showSuiteDropdown, setShowSuiteDropdown] = useState(false);
   const [showLabSubmenu, setShowLabSubmenu] = useState(false);
   const suiteButtonRef = useRef<HTMLButtonElement>(null);
@@ -257,6 +259,15 @@ export function AppHeader({
                 </div>
               </DropdownMenu>
             </div>
+
+            <MenuItem
+              icon={NotebookPen}
+              label="Workbench"
+              onClick={() => {
+                void navigate('/workbench');
+                setShowSuiteDropdown(false);
+              }}
+            />
           </div>
         </DropdownMenu>
       </div>

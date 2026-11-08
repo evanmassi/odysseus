@@ -1,17 +1,9 @@
-/**
- * Custom Unit Schemas
- *
- * Lab-scoped supplement to the fixed unit registry: units a lab adds for the
- * oddball tail (e.g. `beads/50 µL`) the registry does not enumerate. Rendered
- * verbatim, never auto-converted.
- */
-
 import { z } from 'zod';
 
 import { dateField } from '../utils/dateFields';
-import { UNIT_KINDS } from './unitRegistry';
+import { INVENTORY_UNIT_KINDS } from './unitRegistry';
 
-export const unitKindSchema = z.enum(UNIT_KINDS);
+export const unitKindSchema = z.enum(INVENTORY_UNIT_KINDS);
 
 export const customUnitSchema = z.object({
   id: z.string(),
@@ -23,8 +15,7 @@ export const customUnitSchema = z.object({
   updatedAt: dateField,
 });
 
-// A unit is referenced by label across every column that stores one, so the count gates
-// deletion: dropping a unit in use would leave a label no dropdown offers.
+// PITFALL: units are stored by label in every column that holds one, so deleting a unit in use strands that label.
 export const customUnitWithUsageSchema = customUnitSchema.extend({
   usageCount: z.number().int().min(0),
 });
@@ -34,9 +25,7 @@ export const createCustomUnitRequestSchema = z.object({
   kind: unitKindSchema,
 });
 
-// A rename cascades to every column holding the label, so it is safe at any time. Changing
-// the dimension is not: it re-points the unit at different fields, stranding the label on
-// items whose field would no longer offer it. The server allows that only while unused.
+// PITFALL: changing kind re-points the unit at other fields; the server allows it only while the unit is unused.
 export const updateCustomUnitRequestSchema = z
   .object({
     label: z.string().min(1, 'Unit label is required').max(50).optional(),

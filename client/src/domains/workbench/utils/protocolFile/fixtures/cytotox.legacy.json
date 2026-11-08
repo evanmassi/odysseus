@@ -1,0 +1,793 @@
+{
+  "format": "odysseus-workbench-protocol",
+  "version": 1,
+  "savedAt": "2026-11-08T00:00:00.000Z",
+  "protocol": {
+    "title": "T cell killing assay",
+    "lotMemory": {},
+    "steps": [
+      {
+        "id": "gqfe3vb",
+        "kind": "section",
+        "text": "Targets"
+      },
+      {
+        "id": "v1pf96q",
+        "kind": "step",
+        "level": 1,
+        "text": "Count {Raji-Luc}: {Raji-Luc count} at {Raji-Luc viability} viable.",
+        "meanwhile": false
+      },
+      {
+        "id": "j9uqua0",
+        "kind": "step",
+        "level": 1,
+        "text": "Take {Raji-Luc to take} of cells and bring to {Raji-Luc mix} with {Complete RPMI}.",
+        "meanwhile": false
+      },
+      {
+        "id": "18zdsg7",
+        "kind": "step",
+        "level": 1,
+        "text": "Plate {Raji-Luc volume per well} per well into the {Assay plate}, {Raji-Luc per well} per well.",
+        "meanwhile": false
+      },
+      {
+        "id": "lpxd5ze",
+        "kind": "section",
+        "text": "Compound"
+      },
+      {
+        "id": "mnzx1eg",
+        "kind": "step",
+        "level": 1,
+        "text": "Top tube: {Compound X stock to add} of {Compound X} stock in {Compound X top tube} {Complete RPMI}, for {Compound X top working} ({Compound X added at} the top dose).",
+        "meanwhile": false
+      },
+      {
+        "id": "189jtwl",
+        "kind": "step",
+        "level": 1,
+        "text": "Make a {Compound X fold} series over {Compound X points} points, moving {Compound X transfer} each time.",
+        "meanwhile": false
+      },
+      {
+        "id": "1m4dl0r",
+        "kind": "step",
+        "level": 1,
+        "text": "Add {Compound X volume per well} per well per the plate map, and {DMSO} vehicle to the T cells only wells.",
+        "meanwhile": false
+      },
+      {
+        "id": "eodjt8n",
+        "kind": "section",
+        "text": "Effectors"
+      },
+      {
+        "id": "jee66m0",
+        "kind": "step",
+        "level": 1,
+        "text": "Count {T cells}: {T cells count} at {T cells viability} viable.",
+        "meanwhile": false
+      },
+      {
+        "id": "rnxxq5t",
+        "kind": "step",
+        "level": 1,
+        "text": "Take {T cells to take} and bring to {T cells mix} with {Complete RPMI}.",
+        "meanwhile": false
+      },
+      {
+        "id": "l5af6cl",
+        "kind": "step",
+        "level": 1,
+        "text": "Add {T cells volume per well} per well: {T cells per well}, E:T {T cells E:T}.",
+        "meanwhile": false
+      },
+      {
+        "id": "hjohk18",
+        "kind": "step",
+        "level": 1,
+        "text": "Incubate {Incubation} at 37 °C, 5% CO₂.",
+        "meanwhile": false
+      },
+      {
+        "id": "0fyovpz",
+        "kind": "section",
+        "text": "Read"
+      },
+      {
+        "id": "ghu1hse",
+        "kind": "step",
+        "level": 1,
+        "text": "Add {Bright-Glo volume per well} of {Bright-Glo} per well ({Bright-Glo needed} in all) and wait 5 min.",
+        "meanwhile": false
+      },
+      {
+        "id": "qpb622o",
+        "kind": "step",
+        "level": 1,
+        "text": "Read luminescence on the {Plate reader}.",
+        "meanwhile": false
+      }
+    ],
+    "blocks": [
+      {
+        "id": "85fqukl",
+        "type": "materials",
+        "title": "Materials",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 12,
+        "folded": [],
+        "customGroups": [],
+        "items": [
+          {
+            "id": "mqtbxit",
+            "group": "bio",
+            "type": "Cell line",
+            "name": "Raji-Luc",
+            "on": [
+              "vendor",
+              "catalog",
+              "lot",
+              "storage",
+              "genetic-modification",
+              "count",
+              "viability",
+              "passage"
+            ],
+            "values": {
+              "storage": "37 °C incubator",
+              "vendor": "ATCC",
+              "catalog": "CCL-86",
+              "genetic-modification": "Firefly luciferase",
+              "count": "1.2M",
+              "viability": "96"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "vugju7i",
+            "group": "bio",
+            "type": "Primary cells",
+            "name": "T cells",
+            "on": [
+              "vendor",
+              "catalog",
+              "lot",
+              "storage",
+              "donor-id",
+              "isolation-method",
+              "count",
+              "viability"
+            ],
+            "values": {
+              "storage": "LN2",
+              "donor-id": "D-104",
+              "isolation-method": "Negative selection",
+              "count": "2.5M",
+              "viability": "90"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "di0t2ra",
+            "group": "media",
+            "type": "Medium",
+            "name": "Complete RPMI",
+            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "values": {
+              "storage": "4 °C",
+              "recipe": "RPMI 1640 + 10% FBS + 1% pen/strep"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "1bfkegd",
+            "group": "chem",
+            "type": "Drug or inhibitor",
+            "name": "Compound X",
+            "on": ["vendor", "catalog", "lot", "storage", "stock-concentration", "vehicle"],
+            "values": {
+              "storage": "−20 °C",
+              "stock-concentration": "10",
+              "vehicle": "DMSO"
+            },
+            "units": {
+              "stock-concentration": "mM"
+            },
+            "custom": []
+          },
+          {
+            "id": "gtshkqg",
+            "group": "chem",
+            "type": "Solvent",
+            "name": "DMSO",
+            "on": ["vendor", "catalog", "lot", "storage", "grade"],
+            "values": {
+              "storage": "RT",
+              "grade": "Cell culture"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "pw4coxa",
+            "group": "kits",
+            "type": "Kit",
+            "name": "Bright-Glo",
+            "on": ["vendor", "catalog", "lot", "storage"],
+            "values": {
+              "storage": "−20 °C",
+              "vendor": "Promega",
+              "catalog": "E2610"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "156r45r",
+            "group": "supplies",
+            "type": "Plate",
+            "name": "Assay plate",
+            "on": ["vendor", "catalog", "lot", "storage", "format", "surface", "color", "bottom"],
+            "values": {
+              "storage": "Shelf",
+              "vendor": "Corning",
+              "format": "96-well",
+              "surface": "TC-treated",
+              "color": "White",
+              "bottom": "Round"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "xnb4lot",
+            "group": "equip",
+            "type": "Instrument",
+            "name": "Plate reader",
+            "on": ["model", "settings"],
+            "values": {
+              "settings": "luminescence, 1 s integration"
+            },
+            "units": {},
+            "custom": []
+          }
+        ]
+      },
+      {
+        "id": "c3std70",
+        "type": "values",
+        "title": "Values",
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 10,
+        "sections": [
+          {
+            "id": "78z7xs1",
+            "of": "156r45r"
+          },
+          {
+            "id": "5m0vihy",
+            "of": "mqtbxit"
+          },
+          {
+            "id": "7t7j8wx",
+            "of": "vugju7i"
+          },
+          {
+            "id": "2sqbzla",
+            "of": "1bfkegd"
+          },
+          {
+            "id": "3l5nhqj",
+            "of": "pw4coxa"
+          }
+        ],
+        "items": [
+          {
+            "id": "q6lk86k",
+            "name": "Replicates",
+            "value": "3",
+            "unit": ""
+          },
+          {
+            "id": "4c3venz",
+            "name": "Overage",
+            "value": "10",
+            "unit": "%"
+          },
+          {
+            "id": "dfw0bqs",
+            "name": "Incubation",
+            "value": "24",
+            "unit": "h"
+          },
+          {
+            "id": "wk65x9t",
+            "name": "Per well",
+            "value": "10000",
+            "unit": "cells",
+            "section": "5m0vihy"
+          },
+          {
+            "id": "388w18n",
+            "name": "Volume per well",
+            "value": "50",
+            "unit": "µL",
+            "section": "5m0vihy"
+          },
+          {
+            "id": "zcg347r",
+            "section": "5m0vihy",
+            "link": "count"
+          },
+          {
+            "id": "byedu0z",
+            "section": "5m0vihy",
+            "link": "viability"
+          },
+          {
+            "id": "129ck9f",
+            "name": "E:T",
+            "value": "5:1",
+            "unit": "N:N",
+            "section": "7t7j8wx"
+          },
+          {
+            "id": "60jz98r",
+            "name": "Volume per well",
+            "value": "100",
+            "unit": "µL",
+            "section": "7t7j8wx"
+          },
+          {
+            "id": "2oioggh",
+            "section": "7t7j8wx",
+            "link": "count"
+          },
+          {
+            "id": "cn5tp26",
+            "section": "7t7j8wx",
+            "link": "viability"
+          },
+          {
+            "id": "5b5f5wz",
+            "section": "2sqbzla",
+            "link": "stock-concentration"
+          },
+          {
+            "id": "n86bhyd",
+            "name": "Volume per well",
+            "value": "50",
+            "unit": "µL",
+            "section": "2sqbzla"
+          },
+          {
+            "id": "9nlh7ts",
+            "name": "Volume per well",
+            "value": "100",
+            "unit": "µL",
+            "section": "3l5nhqj"
+          }
+        ]
+      },
+      {
+        "id": "y6sx73w",
+        "type": "plate",
+        "title": "Vessel map",
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 15,
+        "vessel": "96",
+        "count": 1,
+        "active": 0,
+        "groups": [
+          {
+            "id": "b01fg6o",
+            "label": "Compound X",
+            "color": "#f0b35b"
+          },
+          {
+            "id": "u9q4z53",
+            "label": "T cells only",
+            "color": "#8fd3e8"
+          },
+          {
+            "id": "suss2ua",
+            "label": "Targets only",
+            "color": "#6fbf73"
+          },
+          {
+            "id": "dzoh7of",
+            "label": "Medium only",
+            "color": "#d97a7a"
+          }
+        ],
+        "wells": {
+          "0:B2": "b01fg6o",
+          "0:B3": "b01fg6o",
+          "0:B4": "b01fg6o",
+          "0:B5": "b01fg6o",
+          "0:B6": "b01fg6o",
+          "0:B7": "b01fg6o",
+          "0:B8": "b01fg6o",
+          "0:B9": "b01fg6o",
+          "0:B10": "u9q4z53",
+          "0:B11": "suss2ua",
+          "0:B12": "dzoh7of",
+          "0:C2": "b01fg6o",
+          "0:C3": "b01fg6o",
+          "0:C4": "b01fg6o",
+          "0:C5": "b01fg6o",
+          "0:C6": "b01fg6o",
+          "0:C7": "b01fg6o",
+          "0:C8": "b01fg6o",
+          "0:C9": "b01fg6o",
+          "0:C10": "u9q4z53",
+          "0:C11": "suss2ua",
+          "0:C12": "dzoh7of",
+          "0:D2": "b01fg6o",
+          "0:D3": "b01fg6o",
+          "0:D4": "b01fg6o",
+          "0:D5": "b01fg6o",
+          "0:D6": "b01fg6o",
+          "0:D7": "b01fg6o",
+          "0:D8": "b01fg6o",
+          "0:D9": "b01fg6o",
+          "0:D10": "u9q4z53",
+          "0:D11": "suss2ua",
+          "0:D12": "dzoh7of"
+        },
+        "fields": [
+          {
+            "id": "jpuxn9p",
+            "name": "Cells",
+            "values": []
+          },
+          {
+            "id": "0eqn3yg",
+            "name": "Compound X",
+            "values": []
+          }
+        ],
+        "cells": {
+          "0:B2": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 0
+            }
+          },
+          "0:B3": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 1
+            }
+          },
+          "0:B4": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 2
+            }
+          },
+          "0:B5": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 3
+            }
+          },
+          "0:B6": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 4
+            }
+          },
+          "0:B7": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 5
+            }
+          },
+          "0:B8": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 6
+            }
+          },
+          "0:B9": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 7
+            }
+          },
+          "0:B10": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": "DMSO"
+          },
+          "0:B11": {
+            "jpuxn9p": "Raji-Luc only"
+          },
+          "0:B12": {
+            "jpuxn9p": "Medium only"
+          },
+          "0:C2": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 0
+            }
+          },
+          "0:C3": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 1
+            }
+          },
+          "0:C4": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 2
+            }
+          },
+          "0:C5": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 3
+            }
+          },
+          "0:C6": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 4
+            }
+          },
+          "0:C7": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 5
+            }
+          },
+          "0:C8": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 6
+            }
+          },
+          "0:C9": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 7
+            }
+          },
+          "0:C10": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": "DMSO"
+          },
+          "0:C11": {
+            "jpuxn9p": "Raji-Luc only"
+          },
+          "0:C12": {
+            "jpuxn9p": "Medium only"
+          },
+          "0:D2": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 0
+            }
+          },
+          "0:D3": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 1
+            }
+          },
+          "0:D4": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 2
+            }
+          },
+          "0:D5": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 3
+            }
+          },
+          "0:D6": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 4
+            }
+          },
+          "0:D7": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 5
+            }
+          },
+          "0:D8": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 6
+            }
+          },
+          "0:D9": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": {
+              "s": "c61a7yx",
+              "step": 7
+            }
+          },
+          "0:D10": {
+            "jpuxn9p": "Raji-Luc + T cells",
+            "0eqn3yg": "DMSO"
+          },
+          "0:D11": {
+            "jpuxn9p": "Raji-Luc only"
+          },
+          "0:D12": {
+            "jpuxn9p": "Medium only"
+          }
+        },
+        "series": {
+          "c61a7yx": {
+            "start": "10",
+            "unit": "µM",
+            "fold": "3",
+            "op": "divide"
+          }
+        },
+        "names": ["Killing plate"]
+      },
+      {
+        "id": "4md9dro",
+        "type": "formula",
+        "title": "Calculations",
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 12,
+        "items": [
+          {
+            "id": "ms37qq1",
+            "name": "Well volume",
+            "expr": "Raji-Luc volume per well + T cells volume per well + Compound X volume per well",
+            "unit": "µL"
+          },
+          {
+            "id": "hjulnjx",
+            "name": "Raji-Luc needed",
+            "expr": "Raji-Luc per well × Raji-Luc wells × (1 + Overage)",
+            "unit": "auto"
+          },
+          {
+            "id": "w109bw4",
+            "name": "Raji-Luc to take",
+            "expr": "Raji-Luc needed ÷ (Raji-Luc count × Raji-Luc viability)",
+            "unit": "µL"
+          },
+          {
+            "id": "ta0nb4a",
+            "name": "Raji-Luc mix",
+            "expr": "Raji-Luc wells × Raji-Luc volume per well × (1 + Overage)",
+            "unit": "mL"
+          },
+          {
+            "id": "oszkn2x",
+            "name": "T cells per well",
+            "expr": "Raji-Luc per well × T cells E:T",
+            "unit": "auto"
+          },
+          {
+            "id": "0y7whbx",
+            "name": "T cells needed",
+            "expr": "T cells per well × T cells wells × (1 + Overage)",
+            "unit": "auto"
+          },
+          {
+            "id": "mxe6s45",
+            "name": "T cells to take",
+            "expr": "T cells needed ÷ (T cells count × T cells viability)",
+            "unit": "mL"
+          },
+          {
+            "id": "2nkriy2",
+            "name": "T cells mix",
+            "expr": "T cells wells × T cells volume per well × (1 + Overage)",
+            "unit": "mL"
+          },
+          {
+            "id": "1s14its",
+            "name": "Compound X added at",
+            "expr": "Well volume ÷ Compound X volume per well",
+            "unit": "x"
+          },
+          {
+            "id": "2klkvux",
+            "name": "Compound X top working",
+            "expr": "Compound X top dose × Compound X added at",
+            "unit": "µM"
+          },
+          {
+            "id": "eld0zec",
+            "name": "Compound X per point",
+            "expr": "Replicates × Compound X volume per well × (1 + Overage)",
+            "unit": "µL"
+          },
+          {
+            "id": "mfnprm5",
+            "name": "Compound X transfer",
+            "expr": "Compound X per point ÷ (Compound X fold − 1)",
+            "unit": "µL"
+          },
+          {
+            "id": "heykmeh",
+            "name": "Compound X top tube",
+            "expr": "Compound X per point + Compound X transfer",
+            "unit": "µL"
+          },
+          {
+            "id": "y4fkg98",
+            "name": "Compound X stock to add",
+            "expr": "Compound X top tube × Compound X top working ÷ Compound X stock concentration",
+            "unit": "µL"
+          },
+          {
+            "id": "kd7mp4v",
+            "name": "Bright-Glo needed",
+            "expr": "Bright-Glo volume per well × Wells used × (1 + Overage)",
+            "unit": "mL"
+          }
+        ]
+      },
+      {
+        "id": "nm7d852",
+        "type": "steps",
+        "title": "Steps",
+        "x": 0,
+        "y": 49,
+        "w": 8,
+        "h": 15
+      },
+      {
+        "id": "tk16ubj",
+        "type": "flow",
+        "title": "Flow diagram",
+        "x": 0,
+        "y": 64,
+        "w": 12,
+        "h": 8
+      }
+    ]
+  }
+}

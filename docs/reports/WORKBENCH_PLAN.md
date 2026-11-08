@@ -10,6 +10,33 @@ is built. Branch `feature/workbench` (has `main` merged in; pushed).
 
 ### Resume here (read this first)
 
+**The in-app port (2026-11-08) supersedes the mockup as the place to build.** The mockup is frozen: it
+is the approved spec and Evan's interim tool, and gets no new features. The workbench now lives in
+`client/src/domains/workbench/` at `/workbench` (suite switcher entry), built to AGENTS.md and the
+audit prompt. Protocols are saved to local files only (File System Access in Edge/Chrome, download
+fallback elsewhere); nothing reaches the server, by Evan's choice, because protocols hold company
+detail. Server storage gets built only if a real need appears.
+
+- **File format v2** (`packages/shared-schemas/src/workbench/`): Zod schema with readable field names;
+  `protocolFileInputSchema` upgrades every older mockup file (pre-pages, old plate fields, string
+  cells, `concentration` renames, `x` → `X`) before validating. Fixtures are the mockup's three
+  examples (synthetic); Evan's real files are never committed and are checked from temp copies only.
+- **One unit table:** `UNIT_REGISTRY` carries conversion factors and the workbench kinds (time,
+  temperature, × g, rpm, cells, molar mass); `INVENTORY_UNIT_KINDS` stays the custom-unit/DB set.
+  One number parser (`parseNumberInput`) serves concentrations and workbench values.
+- **Ported with parity tests against the mockup:** formula engine, material guesser, catalog, plate
+  naming (painted groups kept as a baseline for slice 3), rename carrying (fixed: a new name
+  containing the old one was renamed repeatedly).
+- **Slices:** 1 foundation ✓ · 2 shell, pages, board, file open/save, Materials, Steps + name tray,
+  Values, Formulas ✓ · **3 next: vessel map + Dilutions** with the plate consolidation below, plate
+  rows in Values, step/value readings moved to one `utils/steps/stepReadings.ts`, the kDa prompt ·
+  4 export for Benchling · 5 Table, Flow, Sketch, Text, offline single-file build if wanted.
+- **Plate consolidation (do in slice 3):** one color system owned by the treatment value (retire
+  painted groups, migrate on open), no composite names on rename (repair polluted names on open),
+  names match ignoring case and spacing (merge duplicate lines on open), clean legend.
+- Testing: Vitest beside the code; live checks drive the dev client headlessly over CDP (demo
+  login → `/workbench`, board loaded through the `odysseus-workbench-recovery` localStorage copy).
+
 **What the workbench is now.** A protocol builder: a snapping board of blocks (materials, steps,
 values, formulas, vessel map, tables, flow diagram, sketch, text). Values and formulas share names
 like spreadsheet cells, show their working, and check units; steps quote them live. There are no

@@ -1,0 +1,546 @@
+{
+  "format": "odysseus-workbench-protocol",
+  "version": 1,
+  "savedAt": "2026-11-08T00:00:00.000Z",
+  "protocol": {
+    "title": "Cell viability dose response",
+    "lotMemory": {},
+    "blocks": [
+      {
+        "id": "bw90g70",
+        "type": "materials",
+        "title": "Materials",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 13,
+        "folded": [],
+        "customGroups": [],
+        "items": [
+          {
+            "id": "2c17wpm",
+            "group": "bio",
+            "type": "Cell line",
+            "name": "HeLa",
+            "on": [
+              "vendor",
+              "catalog",
+              "lot",
+              "storage",
+              "count",
+              "viability",
+              "passage",
+              "mycoplasma-test-date"
+            ],
+            "values": {
+              "storage": "37 °C incubator",
+              "vendor": "ATCC",
+              "catalog": "CCL-2",
+              "count": "1e6",
+              "viability": "95"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "kxevs55",
+            "group": "media",
+            "type": "Medium",
+            "name": "Complete DMEM",
+            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "values": {
+              "storage": "4 °C",
+              "recipe": "DMEM + 10% FBS + 1% pen/strep"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "dwun4dt",
+            "group": "media",
+            "type": "Buffer",
+            "name": "PBS",
+            "on": ["vendor", "catalog", "lot", "storage", "strength", "calcium-and-magnesium"],
+            "values": {
+              "storage": "RT",
+              "strength": "1×",
+              "calcium-and-magnesium": "Without"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "aaw10cx",
+            "group": "chem",
+            "type": "Enzyme",
+            "name": "Trypsin-EDTA",
+            "on": ["vendor", "catalog", "lot", "storage", "notes"],
+            "values": {
+              "storage": "−20 °C",
+              "notes": "0.25%"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "ytkblu3",
+            "group": "chem",
+            "type": "Drug or inhibitor",
+            "name": "Compound X",
+            "on": ["vendor", "catalog", "lot", "storage", "stock-concentration", "vehicle"],
+            "values": {
+              "storage": "−20 °C",
+              "stock-concentration": "10",
+              "vehicle": "DMSO"
+            },
+            "units": {
+              "stock-concentration": "mM"
+            },
+            "custom": []
+          },
+          {
+            "id": "ihm3znb",
+            "group": "kits",
+            "type": "Kit",
+            "name": "CellTiter-Glo",
+            "on": ["vendor", "catalog", "lot", "storage"],
+            "values": {
+              "storage": "−20 °C",
+              "vendor": "Promega"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "bzdkqm5",
+            "group": "supplies",
+            "type": "Plate",
+            "name": "Assay plate",
+            "on": ["vendor", "catalog", "lot", "storage", "format", "surface", "color"],
+            "values": {
+              "storage": "Shelf",
+              "vendor": "Corning",
+              "format": "96-well",
+              "surface": "TC-treated",
+              "color": "White"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "5qem2k3",
+            "group": "equip",
+            "type": "Instrument",
+            "name": "Centrifuge",
+            "on": ["model", "settings"],
+            "values": {
+              "settings": "300 × g, 5 min, RT"
+            },
+            "units": {},
+            "custom": []
+          },
+          {
+            "id": "6kb5rka",
+            "group": "equip",
+            "type": "Instrument",
+            "name": "Plate reader",
+            "on": ["model", "settings"],
+            "values": {
+              "settings": "luminescence, 1 s integration"
+            },
+            "units": {},
+            "custom": []
+          }
+        ],
+        "page": "v2i5v7f"
+      },
+      {
+        "id": "vd9y6g4",
+        "type": "values",
+        "title": "Values",
+        "x": 0,
+        "y": 50,
+        "w": 4,
+        "h": 16,
+        "items": [
+          {
+            "id": "gx8xelk",
+            "name": "Cells per well",
+            "value": "5000",
+            "unit": "cells"
+          },
+          {
+            "id": "6e8nyrc",
+            "name": "Vol per well",
+            "value": "100",
+            "unit": "µL"
+          },
+          {
+            "id": "gefx27z",
+            "name": "Overage",
+            "value": "10",
+            "unit": "%"
+          },
+          {
+            "id": "d05kn7e",
+            "name": "Top dose",
+            "value": "10",
+            "unit": "µM"
+          },
+          {
+            "id": "w8gptu3",
+            "name": "Fold",
+            "value": "3",
+            "unit": "x"
+          }
+        ],
+        "page": "v2i5v7f",
+        "sections": []
+      },
+      {
+        "id": "vp955u6",
+        "type": "plate",
+        "title": "Vessel map",
+        "x": 4,
+        "y": 13,
+        "w": 4,
+        "h": 13,
+        "active": 0,
+        "groups": [
+          {
+            "id": "901p644",
+            "label": "Sample",
+            "color": "#f0b35b"
+          },
+          {
+            "id": "2pm3lel",
+            "label": "Control",
+            "color": "#8fd3e8"
+          },
+          {
+            "id": "brkx8a2",
+            "label": "Edge",
+            "color": "#6fbf73"
+          }
+        ],
+        "wells": {
+          "f70z5q2:A1": "brkx8a2",
+          "f70z5q2:A2": "brkx8a2",
+          "f70z5q2:A3": "brkx8a2",
+          "f70z5q2:A4": "brkx8a2",
+          "f70z5q2:A5": "brkx8a2",
+          "f70z5q2:A6": "brkx8a2",
+          "f70z5q2:A7": "brkx8a2",
+          "f70z5q2:A8": "brkx8a2",
+          "f70z5q2:A9": "brkx8a2",
+          "f70z5q2:A10": "brkx8a2",
+          "f70z5q2:A11": "brkx8a2",
+          "f70z5q2:A12": "brkx8a2",
+          "f70z5q2:B1": "brkx8a2",
+          "f70z5q2:B2": "901p644",
+          "f70z5q2:B3": "901p644",
+          "f70z5q2:B4": "901p644",
+          "f70z5q2:B5": "901p644",
+          "f70z5q2:B6": "901p644",
+          "f70z5q2:B7": "901p644",
+          "f70z5q2:B8": "901p644",
+          "f70z5q2:B9": "901p644",
+          "f70z5q2:B10": "901p644",
+          "f70z5q2:B11": "2pm3lel",
+          "f70z5q2:B12": "brkx8a2",
+          "f70z5q2:C1": "brkx8a2",
+          "f70z5q2:C2": "901p644",
+          "f70z5q2:C3": "901p644",
+          "f70z5q2:C4": "901p644",
+          "f70z5q2:C5": "901p644",
+          "f70z5q2:C6": "901p644",
+          "f70z5q2:C7": "901p644",
+          "f70z5q2:C8": "901p644",
+          "f70z5q2:C9": "901p644",
+          "f70z5q2:C10": "901p644",
+          "f70z5q2:C11": "2pm3lel",
+          "f70z5q2:C12": "brkx8a2",
+          "f70z5q2:D1": "brkx8a2",
+          "f70z5q2:D2": "901p644",
+          "f70z5q2:D3": "901p644",
+          "f70z5q2:D4": "901p644",
+          "f70z5q2:D5": "901p644",
+          "f70z5q2:D6": "901p644",
+          "f70z5q2:D7": "901p644",
+          "f70z5q2:D8": "901p644",
+          "f70z5q2:D9": "901p644",
+          "f70z5q2:D10": "901p644",
+          "f70z5q2:D11": "2pm3lel",
+          "f70z5q2:D12": "brkx8a2",
+          "f70z5q2:E1": "brkx8a2",
+          "f70z5q2:E2": "901p644",
+          "f70z5q2:E3": "901p644",
+          "f70z5q2:E4": "901p644",
+          "f70z5q2:E5": "901p644",
+          "f70z5q2:E6": "901p644",
+          "f70z5q2:E7": "901p644",
+          "f70z5q2:E8": "901p644",
+          "f70z5q2:E9": "901p644",
+          "f70z5q2:E10": "901p644",
+          "f70z5q2:E11": "2pm3lel",
+          "f70z5q2:E12": "brkx8a2",
+          "f70z5q2:F1": "brkx8a2",
+          "f70z5q2:F2": "901p644",
+          "f70z5q2:F3": "901p644",
+          "f70z5q2:F4": "901p644",
+          "f70z5q2:F5": "901p644",
+          "f70z5q2:F6": "901p644",
+          "f70z5q2:F7": "901p644",
+          "f70z5q2:F8": "901p644",
+          "f70z5q2:F9": "901p644",
+          "f70z5q2:F10": "901p644",
+          "f70z5q2:F11": "2pm3lel",
+          "f70z5q2:F12": "brkx8a2",
+          "f70z5q2:G1": "brkx8a2",
+          "f70z5q2:G2": "901p644",
+          "f70z5q2:G3": "901p644",
+          "f70z5q2:G4": "901p644",
+          "f70z5q2:G5": "901p644",
+          "f70z5q2:G6": "901p644",
+          "f70z5q2:G7": "901p644",
+          "f70z5q2:G8": "901p644",
+          "f70z5q2:G9": "901p644",
+          "f70z5q2:G10": "901p644",
+          "f70z5q2:G11": "2pm3lel",
+          "f70z5q2:G12": "brkx8a2",
+          "f70z5q2:H1": "brkx8a2",
+          "f70z5q2:H2": "brkx8a2",
+          "f70z5q2:H3": "brkx8a2",
+          "f70z5q2:H4": "brkx8a2",
+          "f70z5q2:H5": "brkx8a2",
+          "f70z5q2:H6": "brkx8a2",
+          "f70z5q2:H7": "brkx8a2",
+          "f70z5q2:H8": "brkx8a2",
+          "f70z5q2:H9": "brkx8a2",
+          "f70z5q2:H10": "brkx8a2",
+          "f70z5q2:H11": "brkx8a2",
+          "f70z5q2:H12": "brkx8a2"
+        },
+        "page": "v2i5v7f",
+        "sets": [],
+        "cells": {},
+        "fields": [],
+        "series": {},
+        "plates": [
+          {
+            "id": "f70z5q2",
+            "vessel": "96",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "id": "qlt5lkt",
+        "type": "formula",
+        "title": "Calculations",
+        "x": 8,
+        "y": 13,
+        "w": 4,
+        "h": 15,
+        "items": [
+          {
+            "id": "mw4s4i2",
+            "name": "Cell wells",
+            "expr": "Sample wells + Control wells",
+            "unit": "auto"
+          },
+          {
+            "id": "g64zzfl",
+            "name": "Cells needed",
+            "expr": "Cells per well × Cell wells × (1 + Overage)",
+            "unit": "auto"
+          },
+          {
+            "id": "mc4gorp",
+            "name": "Live cell conc",
+            "expr": "HeLa count × HeLa viability",
+            "unit": "auto"
+          },
+          {
+            "id": "y4o0rlx",
+            "name": "Cell suspension",
+            "expr": "Cells needed ÷ Live cell conc",
+            "unit": "mL"
+          },
+          {
+            "id": "poq6m7o",
+            "name": "Seeding volume",
+            "expr": "Cell wells × Vol per well × (1 + Overage)",
+            "unit": "mL"
+          },
+          {
+            "id": "7kuyix2",
+            "name": "Media to add",
+            "expr": "Seeding volume − Cell suspension",
+            "unit": "mL"
+          }
+        ],
+        "page": "v2i5v7f",
+        "sections": []
+      },
+      {
+        "id": "31np0ed",
+        "type": "steps",
+        "title": "Steps",
+        "x": 0,
+        "y": 26,
+        "w": 7,
+        "h": 14,
+        "page": "v2i5v7f"
+      },
+      {
+        "id": "ikj1u8c",
+        "type": "sketch",
+        "title": "Sketch",
+        "x": 7,
+        "y": 28,
+        "w": 5,
+        "h": 14,
+        "strokes": [],
+        "page": "v2i5v7f"
+      },
+      {
+        "id": "snkgxdt",
+        "type": "flow",
+        "title": "Flow diagram",
+        "x": 0,
+        "y": 42,
+        "w": 12,
+        "h": 8,
+        "page": "v2i5v7f"
+      }
+    ],
+    "pages": [
+      {
+        "id": "v2i5v7f",
+        "name": "Setup",
+        "steps": [
+          {
+            "id": "5fz1mwf",
+            "kind": "section",
+            "text": "Prepare cells"
+          },
+          {
+            "id": "vmxtj81",
+            "kind": "step",
+            "level": 1,
+            "text": "Warm {Complete DMEM} and {Trypsin-EDTA} to 37 °C for 15 min.",
+            "meanwhile": false
+          },
+          {
+            "id": "lw8cvkg",
+            "kind": "step",
+            "level": 1,
+            "text": "Detach {HeLa}: rinse with {PBS}, add 2 mL {Trypsin-EDTA}, and incubate 3–5 min at 37 °C.",
+            "meanwhile": false
+          },
+          {
+            "id": "f93klwz",
+            "kind": "step",
+            "level": 2,
+            "text": "Neutralize with 8 mL {Complete DMEM} and spin in the {Centrifuge}.",
+            "meanwhile": false
+          },
+          {
+            "id": "azg0ynh",
+            "kind": "step",
+            "level": 2,
+            "text": "Resuspend and count. Live cells: {Live cell conc}.",
+            "meanwhile": false
+          },
+          {
+            "id": "i9v3m93",
+            "kind": "section",
+            "text": "Seed"
+          },
+          {
+            "id": "k1yhcpf",
+            "kind": "step",
+            "level": 1,
+            "text": "Mix {Cell suspension} of cells into {Media to add} {Complete DMEM}.",
+            "meanwhile": false
+          },
+          {
+            "id": "1rdyiis",
+            "kind": "step",
+            "level": 1,
+            "text": "Seed {Vol per well} per well of the {Assay plate}: {Cells per well} per well.",
+            "meanwhile": false
+          },
+          {
+            "id": "rb01q8d",
+            "kind": "step",
+            "level": 2,
+            "text": "Fill the outer wells with {Vol per well} {PBS}.",
+            "meanwhile": false
+          },
+          {
+            "id": "v9igc97",
+            "kind": "step",
+            "level": 1,
+            "text": "Incubate overnight at 37 °C, 5% CO₂.",
+            "meanwhile": false
+          },
+          {
+            "id": "de3ye6p",
+            "kind": "section",
+            "text": "Treat"
+          },
+          {
+            "id": "9sprfzj",
+            "kind": "step",
+            "level": 1,
+            "text": "Make a 3-fold series of {Compound X} from {Top dose}.",
+            "meanwhile": false
+          },
+          {
+            "id": "hmcc830",
+            "kind": "step",
+            "level": 1,
+            "text": "Add compound per the plate map, vehicle to control wells. Incubate 72 h at 37 °C.",
+            "meanwhile": false
+          },
+          {
+            "id": "xthzyeb",
+            "kind": "section",
+            "text": "Read"
+          },
+          {
+            "id": "e1tqrj5",
+            "kind": "step",
+            "level": 1,
+            "text": "Bring the plate and {CellTiter-Glo} to room temperature for 30 min.",
+            "meanwhile": false
+          },
+          {
+            "id": "y0zwtv0",
+            "kind": "step",
+            "level": 1,
+            "text": "Add 100 µL {CellTiter-Glo} per well, shake 2 min, then incubate 10 min at room temperature.",
+            "meanwhile": false
+          },
+          {
+            "id": "pmp9w3p",
+            "kind": "step",
+            "level": 1,
+            "text": "Read luminescence on the {Plate reader}.",
+            "meanwhile": false
+          }
+        ]
+      }
+    ],
+    "keptBoth": [],
+    "runOn": {
+      "from": "",
+      "to": ""
+    },
+    "descriptor": "",
+    "runNumber": "",
+    "ignoredReadings": []
+  }
+}

@@ -7,6 +7,7 @@ import { Checkbox } from '../checkbox/Checkbox';
 import { PanelEmptyState } from '../panel-empty-state/PanelEmptyState';
 
 import { ROW_DARK_SELECTED, ROW_HOVER_GLOW, ROW_TONE, type RowTone } from './rowGlow';
+import { TABLE_HEADER_BAND, TABLE_HEADER_RULE } from './tableHeaderStyles';
 import { defaultTableProps } from './types';
 
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
@@ -23,12 +24,6 @@ const SELECTED_ROW = [
 ].join(' ');
 
 const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
-
-const HEADER_BAND =
-  '[background:linear-gradient(0deg,hsl(var(--primary)/0.07),hsl(var(--primary)/0.07)),color-mix(in_srgb,hsl(var(--card))_96%,black)] dark:[background:color-mix(in_srgb,hsl(var(--card))_72%,black)]';
-
-const HEADER_RULE =
-  "after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.22)_12%,hsl(var(--foreground)/0.22)_88%,transparent_100%)]";
 
 const TableContext = createContext<TableContextValue | null>(null);
 
@@ -182,7 +177,7 @@ const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
 
   return (
     <thead>
-      <tr className={`relative z-10 ${HEADER_BAND} ${HEADER_RULE}`}>
+      <tr className={`relative z-10 ${TABLE_HEADER_BAND} ${TABLE_HEADER_RULE}`}>
         {selectable && (
           <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (

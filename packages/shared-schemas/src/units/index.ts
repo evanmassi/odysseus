@@ -1,18 +1,17 @@
-/**
- * Units Barrel
- */
-
 export {
   CELL_CONCENTRATION_UNITS,
-  UNIT_KINDS,
   UNIT_REGISTRY,
   formatQuantity,
   formatScientific,
+  unitScale,
+  type UnitDimension,
   type UnitKind,
   type UnitRegistryEntry,
 } from './unitRegistry';
 
 export { pluralizeUnit } from './pluralizeUnit';
+
+export { parseNumberInput } from './numberInput';
 
 export {
   concentrationPreprocessor,
