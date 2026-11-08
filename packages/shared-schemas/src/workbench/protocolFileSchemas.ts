@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 2;
+export const PROTOCOL_FILE_VERSION = 3;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -158,7 +158,7 @@ export const LINE_ROLES = ['auto', 'color', 'band', 'caption', 'hover'] as const
 const plateLineSchema = z.object({
   id,
   name: z.string(),
-  values: z.array(z.object({ id, text: z.string() })),
+  values: z.array(z.object({ id, text: z.string(), color: z.string().optional() })),
   role: z.enum(LINE_ROLES).default('auto'),
 });
 
@@ -174,14 +174,12 @@ export const LOOSE_VESSELS = [
   'tube50',
 ] as const;
 
-const vesselMapBlockSchema = z.object({
+export const vesselMapBlockSchema = z.object({
   ...blockBase,
   type: z.literal('plate'),
   plates: z.array(z.object({ id, vessel: z.enum(PLATE_FORMATS), name: z.string() })),
   sets: z.array(z.object({ id, vessel: z.enum(LOOSE_VESSELS), count: z.number().int().min(1) })),
   activeTab: z.number().int().min(0),
-  groups: z.array(z.object({ id, label: z.string(), color: z.string() })),
-  wells: textMap,
   lines: z.array(plateLineSchema),
   cells: z.record(z.string(), z.record(z.string(), cellLineSchema)),
   series: z.record(z.string(), seriesSchema),
@@ -249,6 +247,7 @@ export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
 export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
 export type FormulaBlock = z.infer<typeof formulaBlockSchema>;
 export type VesselMapBlock = z.infer<typeof vesselMapBlockSchema>;
+export type PlateLine = z.infer<typeof plateLineSchema>;
 export type PlateSeries = z.infer<typeof seriesSchema>;
 export type CellLine = z.infer<typeof cellLineSchema>;
 export type Protocol = z.infer<typeof protocolSchema>;

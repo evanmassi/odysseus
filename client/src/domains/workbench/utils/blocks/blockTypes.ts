@@ -63,8 +63,6 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       plates: [{ id: createId(), vessel: '96' as const, name: '' }],
       sets: [],
       activeTab: 0,
-      groups: [],
-      wells: {},
       lines: [],
       cells: {},
       series: {},

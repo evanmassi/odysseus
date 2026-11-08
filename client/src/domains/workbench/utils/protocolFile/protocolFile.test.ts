@@ -170,7 +170,10 @@ describe('upgrading older files', () => {
     );
     const plate = plateOf(protocol);
     expect(plate.plates.map(({ name }) => name)).toEqual(['Day 1', '']);
-    expect(Object.keys(plate.wells)).toEqual([`${plate.plates[1].id}:B2`]);
+    expect(Object.keys(plate.cells)).toEqual([
+      `${plate.plates[0].id}:A1`,
+      `${plate.plates[1].id}:B2`,
+    ]);
     const [aspirin] = plate.lines[0].values;
     expect(aspirin.text).toBe('Aspirin');
     expect(plate.cells[`${plate.plates[0].id}:A1`]).toEqual({ f1: { valueId: aspirin.id } });
@@ -180,13 +183,20 @@ describe('upgrading older files', () => {
     const plate = plateOf(
       read(
         legacyFile({
-          blocks: [block('plate', { vessel: 'T75', count: 3, wells: { '2:1': 'g1' } })],
+          blocks: [
+            block('plate', {
+              vessel: 'T75',
+              count: 3,
+              wells: { '2:1': 'g1' },
+              groups: [{ id: 'g1', label: 'Fed', color: '#fff' }],
+            }),
+          ],
         })
       )
     );
     expect(plate.plates).toEqual([]);
     expect(plate.sets).toEqual([{ id: expect.any(String), vessel: 'T75', count: 3 }]);
-    expect(Object.keys(plate.wells)).toEqual([`${plate.sets[0].id}#2:1`]);
+    expect(Object.keys(plate.cells)).toEqual([`${plate.sets[0].id}#2:1`]);
   });
 
   it('drops cell lines the mockup would have crashed on', () => {
@@ -282,5 +292,250 @@ describe('readProtocolFile errors', () => {
     expect(() => read(legacyFile({ blocks: [block('hologram')] }))).toThrow(
       'Unknown block type “hologram”'
     );
+  });
+});
+
+describe('retiring painted colors', () => {
+  const RED = '#d97a7a';
+  const GREEN = '#6fbf73';
+
+  const paintedPlate = (fields: Record<string, unknown>) =>
+    plateOf(
+      read(
+        legacyFile({
+          blocks: [
+            block('plate', { plates: [{ id: 'p1', vessel: '96', name: '' }], sets: [], ...fields }),
+          ],
+        })
+      )
+    );
+
+  const drugLine = (values: Record<string, string>) => ({
+    id: 'drug',
+    name: 'Drug',
+    values: Object.entries(values).map(([id, text]) => ({ id, text })),
+  });
+
+  it('gives each painted color to the value its wells share, the first color winning', () => {
+    const plate = paintedPlate({
+      fields: [drugLine({ a: 'Aspirin', b: 'Brufen' })],
+      cells: { 'p1:A1': { drug: { v: 'a' } }, 'p1:A2': { drug: { v: 'b' } } },
+      groups: [
+        { id: 'g1', label: 'Low', color: RED },
+        { id: 'g2', label: 'High', color: GREEN },
+        { id: 'g3', label: 'Again', color: '#fff' },
+      ],
+      wells: { 'p1:A1': 'g1', 'p1:A2': 'g2', 'p1:B2': 'g3' },
+      counts: { g1: '12', g2: '5', used: '40' },
+      amountNames: { 'a:drug:aspirin-concentration:g1': 'Aspirin low dose' },
+    });
+    expect(plate.lines[0].values).toEqual([
+      { id: 'a', text: 'Aspirin', color: RED },
+      { id: 'b', text: 'Brufen', color: GREEN },
+      { id: expect.any(String), text: 'Again', color: '#fff' },
+    ]);
+    expect(plate.counts).toEqual({ a: '12', b: '5', used: '40' });
+    expect(plate.amountNames).toEqual({ 'a:drug:aspirin-concentration:a': 'Aspirin low dose' });
+    expect(plate).not.toHaveProperty('groups');
+    expect(plate).not.toHaveProperty('wells');
+  });
+
+  it('lets the first painted color win when two colors share one value', () => {
+    const plate = paintedPlate({
+      fields: [drugLine({ a: 'Aspirin', b: 'Brufen' })],
+      cells: {
+        'p1:A1': { drug: { v: 'a' } },
+        'p1:A2': { drug: { v: 'a' } },
+        'p1:A3': { drug: { v: 'b' } },
+      },
+      groups: [
+        { id: 'g1', label: '', color: RED },
+        { id: 'g2', label: '', color: GREEN },
+      ],
+      wells: { 'p1:A1': 'g1', 'p1:A2': 'g2' },
+      counts: { g2: '7' },
+    });
+    expect(plate.lines[0].values.map(({ text, color }) => [text, color])).toEqual([
+      ['Aspirin', RED],
+      ['Brufen', '#6fa8e8'],
+    ]);
+    expect(plate.counts).toEqual({ a: '7' });
+  });
+
+  it('keeps the colors on the line that tells the most of them apart', () => {
+    const plate = paintedPlate({
+      fields: [
+        {
+          id: 'cells',
+          name: 'Cells',
+          values: [
+            { id: 'both', text: 'Targets + T cells' },
+            { id: 'raji', text: 'Targets only' },
+          ],
+        },
+        drugLine({ x: 'Compound X', d: 'DMSO' }),
+      ],
+      cells: {
+        'p1:A1': { cells: { v: 'both' }, drug: { v: 'x' } },
+        'p1:A2': { cells: { v: 'both' }, drug: { v: 'd' } },
+        'p1:A3': { cells: { v: 'raji' } },
+      },
+      groups: [
+        { id: 'g1', label: 'Compound X', color: RED },
+        { id: 'g2', label: 'T cells only', color: GREEN },
+        { id: 'g3', label: 'Targets only', color: '#fff' },
+      ],
+      wells: { 'p1:A1': 'g1', 'p1:A2': 'g2', 'p1:A3': 'g3' },
+      counts: { g2: '3' },
+    });
+    const drug = plate.lines.find(candidate => candidate.id === 'drug');
+    expect(drug?.role).toBe('color');
+    expect(drug?.values.map(({ text, color }) => [text, color])).toEqual([
+      ['Compound X', RED],
+      ['DMSO', GREEN],
+      ['Targets only', '#fff'],
+    ]);
+    expect(plate.counts).toEqual({ d: '3' });
+  });
+
+  it('leaves a color whose wells all hold different values to those values', () => {
+    const plate = paintedPlate({
+      fields: [drugLine({ a: 'Aspirin', b: 'Brufen' })],
+      cells: { 'p1:A1': { drug: { v: 'a' } }, 'p1:A2': { drug: { v: 'b' } } },
+      groups: [{ id: 'g1', label: 'Both', color: RED }],
+      wells: { 'p1:A1': 'g1', 'p1:A2': 'g1' },
+      counts: { g1: '2' },
+    });
+    expect(plate.lines[0].values.map(({ text }) => text)).toEqual(['Aspirin', 'Brufen']);
+    expect(plate.counts).toEqual({});
+  });
+
+  it('writes the painted label onto wells without a value, naming blank labels by color number', () => {
+    const plate = paintedPlate({
+      fields: [drugLine({ a: 'Aspirin', b: 'Brufen' })],
+      cells: { 'p1:A1': { drug: { v: 'a', amt: '5', unit: 'µM' } }, 'p1:A2': { drug: { v: 'b' } } },
+      groups: [
+        { id: 'g1', label: 'Standard', color: RED },
+        { id: 'g2', label: ' ', color: GREEN },
+      ],
+      wells: { 'p1:A1': 'g1', 'p1:B1': 'g1', 'p1:B2': 'g2' },
+    });
+    const valueId = (text: string) => plate.lines[0].values.find(value => value.text === text)?.id;
+    expect(plate.cells['p1:A1']).toEqual({ drug: { valueId: 'a', amount: '5', unit: 'µM' } });
+    expect(plate.cells['p1:B1']).toEqual({ drug: { valueId: valueId('Standard') } });
+    expect(plate.cells['p1:B2']).toEqual({ drug: { valueId: valueId('Color 2') } });
+    expect(plate.lines[0].values.map(({ text, color }) => [text, color])).toEqual([
+      ['Aspirin', '#6fa8e8'],
+      ['Brufen', '#5cc8bd'],
+      ['Standard', RED],
+      ['Color 2', GREEN],
+    ]);
+  });
+
+  it('adds a color line when no line varies, keeping painted colors on neutral names', () => {
+    const plate = paintedPlate({
+      groups: [{ id: 'g1', label: 'Blank', color: RED }],
+      wells: { 'p1:A1': 'g1', 'p1:A2': 'g1' },
+    });
+    expect(plate.lines).toEqual([
+      {
+        id: expect.any(String),
+        name: '',
+        role: 'color',
+        values: [{ id: expect.any(String), text: 'Blank', color: RED }],
+      },
+    ]);
+    expect(Object.keys(plate.cells)).toEqual(['p1:A1', 'p1:A2']);
+  });
+
+  it('colors unpainted values from the free palette, and neutral ones grey', () => {
+    const plate = paintedPlate({
+      fields: [drugLine({ a: 'Aspirin', v: 'vehicle (DMSO)', c: 'Celecoxib' })],
+      cells: {
+        'p1:A1': { drug: { v: 'a' } },
+        'p1:A2': { drug: { v: 'v' } },
+        'p1:A3': { drug: { v: 'c' } },
+      },
+      groups: [{ id: 'g1', label: '', color: '#6fa8e8' }],
+      wells: { 'p1:A1': 'g1' },
+    });
+    expect(plate.lines[0].values.map(({ color }) => color)).toEqual([
+      '#6fa8e8',
+      '#7d8494',
+      '#5cc8bd',
+    ]);
+  });
+
+  it('treats values that differ only in case or spacing as one, and merges lines sharing one', () => {
+    const plate = paintedPlate({
+      fields: [
+        { id: 'l1', name: 'Drug', values: [{ id: 'h1', text: 'HCKA' }] },
+        {
+          id: 'l2',
+          name: '',
+          values: [
+            { id: 'h2', text: ' hcka ' },
+            { id: 'z', text: 'Zeta' },
+            { id: 'unused', text: 'Gone' },
+          ],
+        },
+      ],
+      cells: {
+        'p1:A1': { l1: { v: 'h1', amt: '1', unit: 'µM' } },
+        'p1:A2': { l2: { v: 'h2' } },
+        'p1:A3': { l2: { v: 'z' } },
+      },
+      amountNames: { 'a:l2:zeta-concentration': 'Zeta dose' },
+    });
+    expect(plate.lines.map(({ id, name, values }) => [id, name, values.map(v => v.text)])).toEqual([
+      ['l1', 'Drug', ['HCKA', 'Zeta']],
+    ]);
+    expect(plate.cells['p1:A2']).toEqual({ l1: { valueId: 'h1' } });
+    expect(plate.amountNames).toEqual({ 'a:l1:zeta-concentration': 'Zeta dose' });
+  });
+
+  it('keeps lines apart when a well holds both', () => {
+    const plate = paintedPlate({
+      fields: [
+        { id: 'l1', name: 'Drug', values: [{ id: 'h1', text: 'HCKA' }] },
+        { id: 'l2', name: 'Other', values: [{ id: 'h2', text: 'HCKA' }] },
+      ],
+      cells: { 'p1:A1': { l1: { v: 'h1' }, l2: { v: 'h2' } } },
+    });
+    expect(plate.lines.map(({ id }) => id)).toEqual(['l1', 'l2']);
+  });
+
+  it('upgrades a version 2 file', () => {
+    const protocol = read({
+      format: 'odysseus-workbench-protocol',
+      version: 2,
+      savedAt: '',
+      protocol: {
+        title: 'Test',
+        descriptor: '',
+        runNumber: '',
+        runOn: { from: '', to: '' },
+        pages: [{ id: 'page', name: 'Setup', steps: [] }],
+        blocks: [
+          {
+            ...block('plate'),
+            page: 'page',
+            plates: [{ id: 'p1', vessel: '96', name: '' }],
+            sets: [],
+            activeTab: 0,
+            groups: [{ id: 'g1', label: 'Treated', color: RED }],
+            wells: { 'p1:A1': 'g1' },
+            lines: [],
+            cells: {},
+            series: {},
+          },
+        ],
+        lotMemory: {},
+        keptBoth: [],
+      },
+    });
+    expect(plateOf(protocol).lines[0].values).toEqual([
+      { id: expect.any(String), text: 'Treated', color: RED },
+    ]);
   });
 });

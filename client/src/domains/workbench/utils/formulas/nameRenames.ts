@@ -79,7 +79,6 @@ export function applyRenames(
         line.name = renamed(line.name) ?? line.name;
         for (const value of line.values) value.text = renamed(value.text) ?? value.text;
       }
-      for (const group of block.groups) group.label = renamed(group.label) ?? group.label;
       for (const series of Object.values(block.series)) {
         if (!('start' in series)) continue;
         series.start = renamed(series.start) ?? series.start;

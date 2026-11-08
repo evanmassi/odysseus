@@ -1,4 +1,12 @@
-import { unitScale, type MaterialItem, type VesselMapBlock } from '@odysseus/shared-schemas';
+import {
+  colorLineOf,
+  isFilledCell,
+  lineValueOf,
+  unitScale,
+  type MaterialItem,
+  type PlateLine,
+  type VesselMapBlock,
+} from '@odysseus/shared-schemas';
 
 import { dimensionKey, PAIR_NOTATION, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { normalizeMaterialKey } from '../materials/materialGuesser';
@@ -11,14 +19,12 @@ import {
   type VesselType,
 } from './vesselCatalog';
 
-type PaintGroup = VesselMapBlock['groups'][number];
-type PlateLine = VesselMapBlock['lines'][number];
+type LineValue = PlateLine['values'][number];
 
 interface VesselCount {
   name: string;
   count: number;
   key: string;
-  kind: 'group' | 'used' | 'total';
 }
 
 interface PlateAmount {
@@ -57,74 +63,46 @@ function foldOf(text: string): number {
 
 const typedCount = (block: VesselMapBlock, key: string) => readNumber(block.counts[key] ?? '');
 
-const lineValueText = (line: PlateLine, valueId: string | undefined) =>
-  valueId ? (line.values.find(value => value.id === valueId)?.text ?? '') : '';
-
-const keysPaintedWith = (block: VesselMapBlock, group: PaintGroup) =>
-  Object.keys(block.wells).filter(key => block.wells[key] === group.id);
-
-function sharedLeadingWords(texts: string[]): string {
-  const words = texts.map(text => text.split(/\s+/));
-  const common: string[] = [];
-  for (
-    let index = 0;
-    index < words[0].length && words.every(list => list[index] === words[0][index]);
-    index++
-  ) {
-    common.push(words[0][index]);
-  }
-  return common.join(' ').replace(/[\s+,;:·-]+$/, '');
-}
-
-function groupName(block: VesselMapBlock, group: PaintGroup): string {
-  if (group.label.trim()) return group.label.trim();
-  const keys = keysPaintedWith(block, group);
-  const named = block.lines
-    .map(line => {
-      const texts = [
-        ...new Set(
-          keys
-            .map(key => lineValueText(line, block.cells[key]?.[line.id]?.valueId).trim())
-            .filter(Boolean)
-        ),
-      ];
-      return texts.length ? sharedLeadingWords(texts) : '';
-    })
-    .filter(Boolean);
-  return named.join(' and ') || `Color ${block.groups.indexOf(group) + 1}`;
-}
+const keysHolding = (block: VesselMapBlock, line: PlateLine, value: LineValue) =>
+  Object.keys(block.cells).filter(key => block.cells[key][line.id]?.valueId === value.id);
 
 const allVesselTypes = (block: VesselMapBlock): VesselType[] => [
   ...block.plates.map(candidate => candidate.vessel),
   ...block.sets.map(set => set.vessel),
 ];
 
+function valueCounts(block: VesselMapBlock): VesselCount[] {
+  const line = colorLineOf(block);
+  if (!line) return [];
+  return line.values.flatMap(value => {
+    const keys = keysHolding(block, line, value);
+    const text = value.text.trim();
+    if (!keys.length || !text) return [];
+    const { plural } = wordsForTypes(keys.map(key => vesselTypeAt(block, key)));
+    return [
+      {
+        name: `${text} ${plural}`,
+        count: typedCount(block, value.id) ?? keys.length,
+        key: value.id,
+      },
+    ];
+  });
+}
+
 export function vesselCounts(block: VesselMapBlock): VesselCount[] {
-  const paintedCount = (group: PaintGroup) => keysPaintedWith(block, group).length;
-  const usedKeys = new Set([
-    ...Object.keys(block.wells),
-    ...Object.keys(block.cells).filter(key => Object.keys(block.cells[key]).length),
-  ]);
-  const groups = block.groups.map(
-    (group): VesselCount => ({
-      name: `${groupName(block, group)} ${wordsForTypes(keysPaintedWith(block, group).map(key => vesselTypeAt(block, key))).plural}`,
-      count: typedCount(block, group.id) ?? paintedCount(group),
-      key: group.id,
-      kind: 'group',
-    })
+  const usedKeys = Object.keys(block.cells).filter(key =>
+    Object.values(block.cells[key]).some(isFilledCell)
   );
   const used: VesselCount = {
     name: `${capitalize(wordsForTypes(allVesselTypes(block)).plural)} used`,
-    count: typedCount(block, 'used') ?? usedKeys.size,
+    count: typedCount(block, 'used') ?? usedKeys.length,
     key: 'used',
-    kind: 'used',
   };
   const plateTotals = [...new Set(block.plates.map(candidate => candidate.vessel))].map(
     (type): VesselCount => ({
       name: `${vesselOf(type).label}s`,
       count: block.plates.filter(candidate => candidate.vessel === type).length,
       key: `count:${type}`,
-      kind: 'total',
     })
   );
   const setTotals = [...new Set(block.sets.map(set => set.vessel))].map((type): VesselCount => {
@@ -133,10 +111,9 @@ export function vesselCounts(block: VesselMapBlock): VesselCount[] {
       name: `${vessel.label.replace(/ (flask|dish|tube)$/, '')} ${VESSEL_PLURALS[vessel.noun]}`,
       count: block.sets.filter(set => set.vessel === type).reduce((sum, set) => sum + set.count, 0),
       key: `count:${type}`,
-      kind: 'total',
     };
   });
-  return [...groups, used, ...plateTotals, ...setTotals];
+  return [...valueCounts(block), used, ...plateTotals, ...setTotals];
 }
 
 function amountNoun(unit: string, vesselNoun: string): string {
@@ -166,13 +143,20 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
       value,
       unit,
     });
+  const colorLine = colorLineOf(block);
+  const colorValueAt = (key: string) =>
+    colorLine ? lineValueOf(colorLine, block.cells[key]?.[colorLine.id]) : undefined;
+  const soleColorValue = (keys: string[]) => {
+    const values = new Set(keys.map(colorValueAt));
+    return values.size === 1 ? [...values][0] : undefined;
+  };
 
   for (const line of block.lines) {
     const plain = new Map<string, { subject: string; noun: string; cells: PlainCell[] }>();
     const runs = new Map<string, { subject: string; keys: string[]; steps: Set<number> }>();
     for (const [key, lines] of Object.entries(block.cells)) {
       const cell = lines[line.id];
-      const subject = cell ? lineValueText(line, cell.valueId).trim() : '';
+      const subject = lineValueOf(line, cell)?.text.trim() ?? '';
       if (!cell || !subject) continue;
       if (cell.seriesId !== undefined) {
         const run = runs.get(cell.seriesId) ?? { subject, keys: [], steps: new Set<number>() };
@@ -195,15 +179,15 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
         add(base, `${subject} ${noun}`, subject, cells[0].amount, cells[0].unit);
         continue;
       }
-      for (const group of block.groups) {
-        const inGroup = cells.filter(cell => block.wells[cell.key] === group.id);
-        if (inGroup.length && isSameAmount(inGroup)) {
+      for (const value of colorLine?.values ?? []) {
+        const inValue = cells.filter(cell => colorValueAt(cell.key) === value);
+        if (inValue.length && isSameAmount(inValue)) {
           add(
-            `${base}:${group.id}`,
-            `${subject} ${noun} in ${groupName(block, group)}`,
+            `${base}:${value.id}`,
+            `${subject} ${noun} in ${value.text.trim()}`,
             subject,
-            inGroup[0].amount,
-            inGroup[0].unit
+            inValue[0].amount,
+            inValue[0].unit
           );
         }
       }
@@ -213,19 +197,22 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
       const series = block.series[seriesId];
       return series && 'start' in series ? [{ seriesId, series, ...run }] : [];
     });
-    for (const { seriesId, series, subject, keys, steps } of dilutionRuns) {
+    for (const run of dilutionRuns) {
+      const { seriesId, series, subject, steps } = run;
       const twins = dilutionRuns.filter(
         other => normalizeMaterialKey(other.subject) === normalizeMaterialKey(subject)
       );
-      const colors = new Set(keys.map(key => block.wells[key]));
-      const color =
-        colors.size === 1 ? block.groups.find(group => group.id === [...colors][0]) : undefined;
+      const twinValues = twins.map(twin => soleColorValue(twin.keys));
+      const index = twins.indexOf(run);
+      const value = twinValues[index];
+      const tellsTwinsApart =
+        twinValues.every(Boolean) && new Set(twinValues).size === twins.length;
       const tag =
         twins.length < 2
           ? ''
-          : color
-            ? ` in ${groupName(block, color)}`
-            : ` ${twins.findIndex(other => other.seriesId === seriesId) + 1}`;
+          : value && tellsTwinsApart
+            ? ` in ${value.text.trim()}`
+            : ` ${index + 1}`;
       const startWord = series.unit === RATIO_NOTATION ? 'dilution' : 'dose';
       if (STARTS_WITH_NUMBER.test(series.start)) {
         add(
@@ -265,13 +252,11 @@ export function materialWellCounts(
 ): Map<MaterialItem, number> {
   const counts = new Map<MaterialItem, number>();
   for (const block of blocks) {
-    for (const key of new Set([...Object.keys(block.wells), ...Object.keys(block.cells)])) {
-      const group = block.groups.find(candidate => candidate.id === block.wells[key]);
-      const lineTexts = Object.entries(block.cells[key] ?? {}).map(([lineId, cell]) => {
-        const line = block.lines.find(candidate => candidate.id === lineId);
-        return line ? lineValueText(line, cell.valueId) : '';
-      });
-      const text = [group?.label ?? '', ...lineTexts].join(' | ').toLowerCase();
+    for (const lines of Object.values(block.cells)) {
+      const text = block.lines
+        .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
+        .join(' | ')
+        .toLowerCase();
       for (const material of materials) {
         if (mentions(text, material.name)) counts.set(material, (counts.get(material) ?? 0) + 1);
       }

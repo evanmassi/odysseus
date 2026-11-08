@@ -31,9 +31,10 @@ detail. Server storage gets built only if a real need appears.
   Values, Formulas ✓ · **3 next: vessel map + Dilutions** with the plate consolidation below, plate
   rows in Values, step/value readings moved to one `utils/steps/stepReadings.ts`, the kDa prompt ·
   4 export for Benchling · 5 Table, Flow, Sketch, Text, offline single-file build if wanted.
-- **Plate consolidation (do in slice 3):** one color system owned by the treatment value (retire
-  painted groups, migrate on open), no composite names on rename (repair polluted names on open),
-  names match ignoring case and spacing (merge duplicate lines on open), clean legend.
+- **Plate consolidation (slice 3, decided 2026-11-08):** full spec, migration rules, build split and
+  the mockup code map are in `docs/reports/WORKBENCH_PLATE_SPEC.md`. One color system owned by the
+  value (painted groups retired, file format v3 upgrade); colors stick once assigned; same name same
+  thing; legend rename changes only the clicked value. Open question: fix backwards `1:N` series.
 - Testing: Vitest beside the code; live checks drive the dev client headlessly over CDP (demo
   login → `/workbench`, board loaded through the `odysseus-workbench-recovery` localStorage copy).
 
