@@ -2,6 +2,7 @@ import { Button, Chip, DatePicker, Input } from '@shared/ui';
 
 import { selectIsDirty, useWorkbenchStore } from '../../../stores/workbenchStore';
 import { experimentId } from '../../../utils/protocolFile/experimentId';
+import { META_LABEL } from '../board/metaLabelClass';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -9,7 +10,6 @@ interface WorkbenchTitleBarProps {
   onSaveUnderId: () => void;
 }
 
-const FIELD_LABEL = 'font-mono text-label-2xs uppercase tracking-meta text-muted-foreground';
 const FILE_EXTENSION = '.json';
 
 export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
@@ -68,7 +68,7 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
       </div>
       <div className="grid max-w-6xl grid-cols-[auto_minmax(14rem,1fr)_auto] items-end gap-x-7 gap-y-3">
         <div className="flex flex-col gap-1">
-          <span className={FIELD_LABEL}>Assay dates</span>
+          <span className={META_LABEL}>Assay dates</span>
           <span className="flex items-center gap-2">
             <DatePicker
               size="sm"
@@ -88,7 +88,7 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
           </span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className={FIELD_LABEL}>Descriptor</span>
+          <span className={META_LABEL}>Descriptor</span>
           <Input
             size="sm"
             fullWidth
@@ -101,7 +101,7 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className={FIELD_LABEL}>Run</span>
+          <span className={META_LABEL}>Run</span>
           <span className="w-12">
             <Input
               size="sm"

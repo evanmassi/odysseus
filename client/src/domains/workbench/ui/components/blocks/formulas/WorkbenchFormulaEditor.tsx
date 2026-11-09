@@ -16,10 +16,12 @@ import { FORMULA_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 import { useInsertTarget } from '../../tray/useInsertTarget';
 import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton';
 
+import { WorkbenchFormulaBoardNumberList } from './WorkbenchFormulaBoardNumberList';
 import { WorkbenchFormulaCompletionList } from './WorkbenchFormulaCompletionList';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SectionNumber } from '../../../../utils/formulas/calculationSections';
 import type { TrayInsertion } from '../../tray/insertTrayStore';
 import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -29,6 +31,7 @@ interface WorkbenchFormulaEditorProps {
   formula: FormulaItem;
   material: MaterialItem | undefined;
   calculation: BoardCalculation;
+  boardNumbers: readonly SectionNumber[];
   onChange: (change: Partial<Omit<FormulaItem, 'id'>>) => void;
   onAddMissing: (name: string) => void;
   onRemove: () => void;
@@ -42,6 +45,7 @@ export function WorkbenchFormulaEditor({
   formula,
   material,
   calculation,
+  boardNumbers,
   onChange,
   onAddMissing,
   onRemove,
@@ -143,6 +147,7 @@ export function WorkbenchFormulaEditor({
           className="w-28"
         />
       </div>
+      <WorkbenchFormulaBoardNumberList numbers={boardNumbers} />
       <div className="flex items-center gap-2">
         <span className="font-mono text-data-sm text-muted-foreground">=</span>
         <input

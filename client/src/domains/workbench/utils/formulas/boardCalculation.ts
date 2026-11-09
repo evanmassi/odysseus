@@ -22,19 +22,33 @@ import {
   type Quantity,
 } from './quantities';
 
-export type BoardName =
-  | { kind: 'value'; id: string; name: string; value: string; unit: string; isDropped?: boolean }
-  | { kind: 'count'; id: string; name: string; count: number }
-  | {
-      kind: 'item';
-      id: string;
-      name: string;
-      groupTitle: string;
-      hint: string;
-      label: string;
-      isDropped?: boolean;
-    }
-  | { kind: 'formula'; id: string; name: string; expr: string; unit: string };
+export interface WorkedOutGroup {
+  key: string;
+  subject: string;
+  title: string;
+  settingsBlockId: string | undefined;
+}
+
+interface NameSource {
+  sourceBlockId?: string;
+  workedOut?: WorkedOutGroup;
+}
+
+export type BoardName = NameSource &
+  (
+    | { kind: 'value'; id: string; name: string; value: string; unit: string; isDropped?: boolean }
+    | { kind: 'count'; id: string; name: string; count: number }
+    | {
+        kind: 'item';
+        id: string;
+        name: string;
+        groupTitle: string;
+        hint: string;
+        label: string;
+        isDropped?: boolean;
+      }
+    | { kind: 'formula'; id: string; name: string; expr: string; unit: string; problem?: string }
+  );
 
 type FormulaName = Extract<BoardName, { kind: 'formula' }>;
 
@@ -72,9 +86,12 @@ interface Evaluated {
   terms: WorkingTerm[];
 }
 
+const FLOAT_TOLERANCE = 1e-9;
+
+// PITFALL: 35 µL ÷ 5 µL can come out as 7.0000000001 in floating point, which a plain ceil turns into 8.
 const ROUNDING: Record<Exclude<FormulaFunction, 'at least'>, (value: number) => number> = {
-  'round up': Math.ceil,
-  'round down': Math.floor,
+  'round up': value => Math.ceil(value - FLOAT_TOLERANCE),
+  'round down': value => Math.floor(value + FLOAT_TOLERANCE),
   round: Math.round,
 };
 
@@ -276,6 +293,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
       if (duplicateIds.has(formula.id)) {
         throw new FormulaError('Another value or formula already has this name');
       }
+      if (formula.problem) throw new FormulaError(formula.problem);
       if (!formula.expr.trim()) {
         result = { status: 'empty', message: 'Type a formula using the names on this board' };
       } else {

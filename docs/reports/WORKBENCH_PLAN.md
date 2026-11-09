@@ -75,7 +75,8 @@ detail. Server storage gets built only if a real need appears.
         Volume made, Made on, Made by — are now available to every physical material; the old text
         recipe stays as the note). Ingredients say "in Th17 cocktail" under Used in. Values shows
         the ingredients as rows under the material with In the mix and Final in the well, worked
-        out from the row's Volume per well ÷ the board's Well volume (`mixShares.ts`); a stock in X
+        out from the row's Volume per well ÷ the board's Well volume (`materialRecipeFormulas.ts`,
+        calculations in the engine since 2026-11-09); a stock in X
         gets the same check on its own row (4X × 20 µL ÷ 80 µL = 1X). Day-of master mixes stay as
         Values mixes.
   - [x] Band colors: plate and Values share one rule (`bandColorOf` in shared-schemas): a picked
@@ -114,6 +115,27 @@ detail. Server storage gets built only if a real need appears.
         holds only New / Open / Save beside the title; fields sit in one labeled row (Assay dates
         from – to, a wide Descriptor, a small Run); placeholders read as hints. The Inputs rail is
         a full-height sidebar, so the header lines up with the Setup tabs and the board.
+  - [ ] Calculations shows all the math (being designed, 2026-11-09): the numbers already on the
+        board (Materials, plate map, Values), the math the app works out without showing it
+        (Dilutions: working strength, volume needed, transfer, diluent, stock to take, mass ↔ molar,
+        dose per point; recipe finals), and the scientist's own calculations. The working is shown
+        in the Calculations card only; Dilutions and Values stay uncluttered (Evan). The app's own
+        math is read-only: a result changes only through its inputs (extra %, round to, volume
+        added), and clicking an input goes to where it is set (Evan). The scientist's own
+        calculations show their working; the app's are folded to name and answer until clicked
+        (mock C, Evan). A section's numbers already on the board show only while a calculation is
+        being written in it, above the box, ready to click in (Evan). The app's results are names
+        like any other ("Compound X stock to take"), usable in steps and in the scientist's own
+        calculations, still read-only; in the insert list they sit under their material (Evan).
+        Settled without asking: a material with a series or a recipe gets its section on its own;
+        one group per prep, titled like Dilutions (pooled series stay one group); a warning sits on
+        the line it comes from; a missing input shows in place of the answer and links to Dilutions.
+        Built as generated calculations in the one formula engine (not saved in the file), so the
+        working shown is the math that ran. The math is exact: no pipette snapping and no pipette
+        settings in the card; pipettes only drive the warnings and the Dilutions strip, as before
+        (Evan). A user name that clashes with a generated one stops that prep and asks for a rename,
+        shown once per group. No "use the app's" button: clashes come from files that hand-built
+        the prep before the app did it, a one-time cleanup (Evan, 2026-11-09).
   - [ ] An empty Assay date makes the id use today's date, so an undated plan's id changes daily.
   - [ ] Dilutions series keep their own Well volume box; consider defaulting a blank one to the
         experiment's Well volume so the number is typed once.

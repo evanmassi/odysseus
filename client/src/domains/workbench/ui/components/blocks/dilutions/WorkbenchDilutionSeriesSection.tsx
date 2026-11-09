@@ -1,9 +1,12 @@
 import { Input } from '@shared/ui';
 
+import { META_LABEL } from '../../board/metaLabelClass';
+
 import { WorkbenchDilutionStockField } from './WorkbenchDilutionStockField';
 import { WorkbenchDilutionStripPreview } from './WorkbenchDilutionStripPreview';
 
-import type { DilutionPrep, PrepSettings } from '../../../../utils/dilutions/dilutionPrep';
+import type { PrepSettings } from '../../../../utils/dilutions/dilutionFormulas';
+import type { DilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 
 interface WorkbenchDilutionSeriesSectionProps {
   id: string;
@@ -15,7 +18,6 @@ interface WorkbenchDilutionSeriesSectionProps {
   onStockSave: (value: string, unit: string) => void;
 }
 
-const LABEL = 'font-mono text-label-2xs uppercase tracking-meta text-muted-foreground';
 const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [
   ['wellVolume', 'Well volume', 'µL'],
   ['volumeAdded', 'Volume added', 'µL'],
@@ -37,7 +39,7 @@ export function WorkbenchDilutionSeriesSection({
 
   const settingField = ([key, label, unit]: (typeof SETTINGS)[number]) => (
     <div key={key} className="flex flex-col gap-1">
-      <span className={LABEL}>{label}</span>
+      <span className={META_LABEL}>{label}</span>
       <span className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
         <span className="w-16">
           <Input
@@ -81,7 +83,7 @@ export function WorkbenchDilutionSeriesSection({
       <div className="flex flex-wrap gap-x-7 gap-y-2">
         {SETTINGS.slice(0, 2).map(settingField)}
         <div className="flex flex-col gap-1">
-          <span className={LABEL}>Factor</span>
+          <span className={META_LABEL}>Factor</span>
           <b className="flex h-7 items-center font-mono text-data text-primary">
             {prep.kind === 'ready' ? prep.strength : '–'}
           </b>
@@ -106,13 +108,13 @@ export function WorkbenchDilutionSeriesSection({
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-foreground">
             {prep.notes.map(([label, value]) => (
               <span key={label}>
-                <span className={`${LABEL} mr-1`}>{label}</span> {value}
+                <span className={`${META_LABEL} mr-1`}>{label}</span> {value}
               </span>
             ))}
           </div>
           {prep.warnings.map(warning => (
-            <p key={warning} className="text-body-sm text-warning-text">
-              {warning}
+            <p key={warning.text} className="text-body-sm text-warning-text">
+              {warning.text}
             </p>
           ))}
         </>

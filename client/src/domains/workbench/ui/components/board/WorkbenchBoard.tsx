@@ -6,6 +6,7 @@ import ReactGridLayout, {
   type Layout,
 } from 'react-grid-layout';
 
+import { BLOCK_ID_ATTRIBUTE } from '../../../hooks/useShowBlock';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BOARD_COLUMNS, BOARD_MARGIN, BOARD_ROW_HEIGHT } from '../../../utils/blocks/boardGeometry';
 
@@ -80,7 +81,7 @@ export function WorkbenchBoard() {
           onResizeStop={commitLayout}
         >
           {pageBlocks.map(block => (
-            <div key={block.id}>
+            <div key={block.id} {...{ [BLOCK_ID_ATTRIBUTE]: block.id }}>
               <WorkbenchBlockShell block={block} />
             </div>
           ))}

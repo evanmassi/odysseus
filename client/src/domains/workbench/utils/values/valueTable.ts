@@ -8,17 +8,20 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
-import { displayValue, FOLD_UNIT } from '../formulas/quantities';
+import {
+  formulaAnswerText,
+  type BoardCalculation,
+  type FormulaResult,
+} from '../formulas/boardCalculation';
+import { FOLD_UNIT } from '../formulas/quantities';
 import { MATERIAL_GROUPS, materialGroup } from '../materials/materialCatalog';
 import { normalizeMaterialKey } from '../materials/materialGuesser';
 import { findNamed } from '../materials/materialLookup';
+import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
 
-import { scaledAmount, wellShareOf, type WellShare } from './mixShares';
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, sectionName } from './valueEdits';
 import { columnKey, joinValueName } from './valueNames';
-
-import type { BoardCalculation } from '../formulas/boardCalculation';
 
 type ValueSection = ValuesBlock['sections'][number];
 
@@ -154,25 +157,25 @@ function plateCellFields(row: PlateValueRow) {
 function workedCell(
   id: string,
   fullName: string,
-  amount: string,
-  unit: string,
-  share: WellShare
+  result: FormulaResult | undefined,
+  wellTotal: string | undefined
 ): ValueTableCell {
-  const value = 'share' in share ? (scaledAmount(amount, unit, share.share) ?? '') : '';
-  const note =
-    'share' in share ? `Worked out: ${displayValue(amount, unit)} ${share.working}` : share.missing;
+  const isReady = result?.status === 'ok';
+  const working = isReady ? result.terms.map(term => term.text).join(' ') : '';
   return {
     id,
     nameId: id,
     columnKey: columnKey(FINAL_IN_THE_WELL),
     label: FINAL_IN_THE_WELL,
     fullName,
-    value,
+    value: isReady ? formulaAnswerText(result) : '',
     unit: '',
     units: [],
     isEditable: false,
     canRemove: false,
-    note,
+    note: isReady
+      ? `Worked out: ${working}${wellTotal ? ` (${wellTotal})` : ''}`
+      : (result?.message ?? ''),
     origin: 'worked',
     source: { kind: 'worked' },
   };
@@ -437,14 +440,19 @@ export function buildValueTable(
   for (const material of listedMaterials) {
     if (material.recipe.length) rowForMaterial(material);
   }
+  const wellTotal = wellTotalName(calculation.names);
   for (const row of [...rows]) {
     const { material } = row;
     if (!material?.recipe.length) continue;
-    const share = wellShareOf(row.cells, calculation);
     const stockAmount = material.values[STOCK_FIELD] ?? '';
     if (material.units[STOCK_FIELD] === FOLD_UNIT && stockAmount.trim()) {
       row.cells.push(
-        workedCell(`${row.id}:final`, `${row.name} in the well`, stockAmount, FOLD_UNIT, share)
+        workedCell(
+          `${row.id}:final`,
+          `${row.name} in the well`,
+          calculation.results.get(mixFinalId(material.id)),
+          wellTotal
+        )
       );
     }
     for (const entry of material.recipe) {
@@ -470,9 +478,8 @@ export function buildValueTable(
         workedCell(
           `${row.id}:recipe:${entry.id}:final`,
           `${ingredientName} in the well`,
-          entry.amount,
-          entry.unit,
-          share
+          calculation.results.get(recipeFinalId(material.id, entry.id)),
+          wellTotal
         )
       );
     }

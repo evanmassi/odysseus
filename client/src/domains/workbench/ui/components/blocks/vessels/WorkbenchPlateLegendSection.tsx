@@ -5,6 +5,7 @@ import { Tooltip } from '@shared/ui';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { recolorValue, renameValue } from '../../../../utils/vessels/wellEdits';
+import { META_LABEL } from '../../board/metaLabelClass';
 import { PICK_NAME_ATTRIBUTE } from '../../tray/useTrayPickDrag';
 
 import { useUpdateVesselMap } from './useUpdateVesselMap';
@@ -23,7 +24,7 @@ interface WorkbenchPlateLegendSectionProps {
 
 const SHADE_STEPS = [100, 60, 30] as const;
 const SEPARATOR = 'text-muted-foreground/60';
-const ROW_LABEL = 'pt-0.5 font-mono text-label-2xs uppercase tracking-meta text-muted-foreground';
+const ROW_LABEL = `pt-0.5 ${META_LABEL}`;
 const ITEM = 'inline-flex items-center gap-1.5 text-body-sm text-foreground';
 const SWATCH_BUTTON =
   'flex-none hover:outline hover:outline-2 hover:outline-offset-1 hover:outline-foreground/50';

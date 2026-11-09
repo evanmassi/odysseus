@@ -1,7 +1,9 @@
 import { calculateBoard } from '../formulas/boardCalculation';
+import { collectBoardNames } from '../formulas/boardNames';
 
 import { recordOnMaterial, setPrepSetting } from './dilutionEdits';
-import { dilutionPrep, dilutionRuns } from './dilutionPrep';
+import { dilutionPrep } from './dilutionPrep';
+import { dilutionRuns } from './dilutionRuns';
 import { stockFor } from './dilutionStock';
 
 import type { MaterialItem, PlateSeries, Protocol } from '@odysseus/shared-schemas';
@@ -12,7 +14,7 @@ const material = (name: string, values: Record<string, string>, units: Record<st
     group: 'chem',
     type: 'Drug or inhibitor',
     name,
-    shownFields: [],
+    shownFields: Object.keys(values),
     values,
     units,
     customFields: [],
@@ -53,6 +55,9 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
         lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
         cells,
         series: { s: series },
+        sets: [],
+        counts: {},
+        amountNames: {},
       },
     ],
   } as unknown as Protocol;
@@ -65,9 +70,8 @@ const drugStock = material(
   { 'stock-concentration': '10' },
   { 'stock-concentration': 'µM' }
 );
-const empty = calculateBoard([]);
-
-const prepFor = (protocol: Protocol) => dilutionPrep(dilutionRuns(protocol)[0], protocol, empty);
+const prepFor = (protocol: Protocol) =>
+  dilutionPrep(dilutionRuns(protocol)[0], protocol, calculateBoard(collectBoardNames(protocol)));
 
 describe('dilution prep', () => {
   it('pools identical series from copied plates into one prep sized for all their wells', () => {
@@ -123,7 +127,10 @@ describe('dilution prep', () => {
     );
     const result = prepFor(protocolWith(doseSeries, [strong]));
     expect(result.kind === 'ready' && result.warnings).toEqual([
-      "0.0144 µL of stock is below a P2's range. Make an intermediate dilution first.",
+      {
+        line: 'stock',
+        text: "0.0144 µL of stock is below a P2's range. Make an intermediate dilution first.",
+      },
     ]);
   });
 
@@ -142,6 +149,48 @@ describe('dilution prep', () => {
     expect(result.points.map(({ final }) => final)).toEqual(['1:100', '1:200', '1:400', '1:800']);
     expect(result.points[0].working).toBe('1:25');
     expect(result.stockShown).toBe('undiluted');
+  });
+});
+
+describe('dilution prep as calculations', () => {
+  it('writes each prep line as a read-only calculation with its working', () => {
+    const protocol = protocolWith(doseSeries, [drugStock]);
+    const calculation = calculateBoard(collectBoardNames(protocol));
+    const stock = calculation.names.get('drug x stock to take');
+    expect(stock).toMatchObject({
+      kind: 'formula',
+      expr: 'Drug X top well volume × Drug X top working ÷ Drug X stock concentration',
+      workedOut: { key: 'map:s', subject: 'Drug X' },
+    });
+    const result = stock && calculation.results.get(stock.id);
+    expect(result?.status === 'ok' && result.output).toEqual({ text: '14.4 µL' });
+  });
+
+  it('crosses mass and molar through the molecular weight', () => {
+    const weighed = material(
+      'Drug X',
+      { 'stock-concentration': '10', 'molecular-weight': '150' },
+      { 'stock-concentration': 'mg/mL', 'molecular-weight': 'kDa' }
+    );
+    weighed.group = 'ab';
+    weighed.type = 'Antibody';
+    const result = prepFor(protocolWith(doseSeries, [weighed]));
+    expect(result.kind === 'ready' && result.stockText).toBe('2.16 µL');
+  });
+
+  it('stops a prep whose name is already taken, instead of reading the wrong number', () => {
+    const protocol = protocolWith(doseSeries, [drugStock]);
+    protocol.blocks.push({
+      id: 'values',
+      type: 'values',
+      page: 'page',
+      sections: [],
+      items: [{ id: 'mine', name: 'Drug X volume added', value: '50', unit: 'µL' }],
+    } as unknown as Protocol['blocks'][number]);
+    expect(prepFor(protocol)).toMatchObject({
+      kind: 'problem',
+      problem: 'Rename “Drug X volume added”: the Drug X dilution prep needs that name.',
+    });
   });
 });
 
