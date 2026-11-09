@@ -663,6 +663,7 @@ export {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
   protocolFileInputSchema,
+  bandColorOf,
   colorLineOf,
   isFilledCell,
   lineValueOf,

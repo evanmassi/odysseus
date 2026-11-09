@@ -3,3 +3,5 @@ const lowerLead = (label: string) =>
 
 export const joinValueName = (owner: string, label: string): string =>
   owner ? `${owner} ${lowerLead(label.trim())}` : label;
+
+export const columnKey = (label: string): string => label.trim().toLowerCase().replace(/\s+/g, ' ');

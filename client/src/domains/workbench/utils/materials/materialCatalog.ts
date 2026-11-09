@@ -92,6 +92,7 @@ const PHYSICAL_CORE = [
   field('Notes'),
   stockField('µM'),
   molarMassField('g/mol'),
+  ...MADE_HERE,
 ];
 const EQUIPMENT_CORE = [field('Model'), field('Manufacturer'), field('Notes')];
 const SOFTWARE_CORE = [field('Source'), field('Notes')];

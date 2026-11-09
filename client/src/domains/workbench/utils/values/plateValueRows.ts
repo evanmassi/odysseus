@@ -1,12 +1,5 @@
-import {
-  normalizeVesselMap,
-  type MaterialItem,
-  type Protocol,
-  type ValuesBlock,
-  type VesselMapBlock,
-} from '@odysseus/shared-schemas';
+import { normalizeVesselMap, type Protocol, type VesselMapBlock } from '@odysseus/shared-schemas';
 
-import { normalizeMaterialKey } from '../materials/materialGuesser';
 import { removeSeries } from '../vessels/seriesEdits';
 import {
   plateAmounts,
@@ -15,8 +8,6 @@ import {
   type VesselCount,
 } from '../vessels/vesselMapNames';
 
-import { joinValueName } from './valueNames';
-
 export type PlateRowSource =
   | { kind: 'count'; count: VesselCount }
   | { kind: 'amount'; amount: PlateAmount };
@@ -24,88 +15,35 @@ export type PlateRowSource =
 export interface PlateValueRow {
   id: string;
   plateId: string;
-  sectionId: string;
   name: string;
   source: PlateRowSource;
 }
 
-const VESSEL_PLURAL_ENDING = /\s+(?:wells|flasks|dishes|tubes|vessels)$/i;
-
-const isVesselMap = (block: Protocol['blocks'][number]): block is VesselMapBlock =>
-  block.type === 'plate';
-
-function plateFor(protocol: Protocol, material: MaterialItem): VesselMapBlock | undefined {
-  const plates = protocol.blocks.filter(isVesselMap);
-  const key = normalizeMaterialKey(material.name);
-  return (
-    plates.find(plate => key && normalizeMaterialKey(plate.title).includes(key)) ??
-    (plates.length === 1 ? plates[0] : undefined)
-  );
-}
-
-export function plateValueRows(
-  protocol: Protocol,
-  block: ValuesBlock,
-  materials: ReadonlyMap<string, MaterialItem>
-): PlateValueRow[] {
-  const valuesBlocks = protocol.blocks.filter(
-    (candidate): candidate is ValuesBlock => candidate.type === 'values'
-  );
-  const materialSections = valuesBlocks.flatMap(values =>
-    values.sections.flatMap(section => {
-      const material = 'materialId' in section ? materials.get(section.materialId) : undefined;
-      return material ? [{ values, section, material }] : [];
+export function plateValueRows(plate: VesselMapBlock): PlateValueRow[] {
+  const counts = vesselCounts(plate)
+    .filter(count => count.kind !== 'total' || count.count > 1)
+    .map(
+      (count): PlateValueRow => ({
+        id: `${plate.id}:${count.key}`,
+        plateId: plate.id,
+        name: count.name,
+        source: { kind: 'count', count },
+      })
+    );
+  const amounts = plateAmounts(plate).map(
+    (amount): PlateValueRow => ({
+      id: `${plate.id}:${amount.key}`,
+      plateId: plate.id,
+      name: amount.name,
+      source: { kind: 'amount', amount },
     })
   );
-  return protocol.blocks.filter(isVesselMap).flatMap(plate => {
-    const plateSections = materialSections.filter(
-      ({ material }) => material.type === 'Plate' && plateFor(protocol, material) === plate
-    );
-    const counts = plateSections
-      .filter(({ values }) => values.id === block.id)
-      .flatMap(({ section }) =>
-        vesselCounts(plate)
-          .filter(count => count.kind !== 'total' || count.count > 1)
-          .map(
-            (count): PlateValueRow => ({
-              id: `${plate.id}:${count.key}`,
-              plateId: plate.id,
-              sectionId: section.id,
-              name: count.name,
-              source: { kind: 'count', count },
-            })
-          )
-      );
-    const amounts = plateAmounts(plate).flatMap((amount): PlateValueRow[] => {
-      const subject = normalizeMaterialKey(amount.subject);
-      const home =
-        materialSections.find(({ material }) => normalizeMaterialKey(material.name) === subject) ??
-        plateSections[0];
-      if ((home?.values.id ?? valuesBlocks[0]?.id) !== block.id) return [];
-      return [
-        {
-          id: `${plate.id}:${amount.key}`,
-          plateId: plate.id,
-          sectionId: home?.section.id ?? '',
-          name: amount.name,
-          source: { kind: 'amount', amount },
-        },
-      ];
-    });
-    return [...counts, ...amounts];
-  });
-}
-
-export function labelInSection(name: string, ownerName: string): string {
-  const prefix = `${ownerName.toLowerCase()} `;
-  if (!ownerName || !name.toLowerCase().startsWith(prefix)) return name;
-  const rest = name.slice(prefix.length);
-  return rest.charAt(0).toUpperCase() + rest.slice(1);
+  return [...counts, ...amounts];
 }
 
 function plateOf(draft: Protocol, plateId: string): VesselMapBlock | undefined {
   const plate = draft.blocks.find(candidate => candidate.id === plateId);
-  return plate && isVesselMap(plate) ? plate : undefined;
+  return plate?.type === 'plate' ? plate : undefined;
 }
 
 function editPlate(draft: Protocol, plateId: string, change: (plate: VesselMapBlock) => void) {
@@ -113,28 +51,6 @@ function editPlate(draft: Protocol, plateId: string, change: (plate: VesselMapBl
   if (!plate) return;
   change(plate);
   normalizeVesselMap(plate);
-}
-
-export function renamePlateRow(
-  draft: Protocol,
-  row: PlateValueRow,
-  typed: string,
-  ownerName: string
-): void {
-  editPlate(draft, row.plateId, plate => {
-    const { source } = row;
-    if (source.kind === 'amount') {
-      const full = typed.trim() && joinValueName(ownerName, typed.trim());
-      if (full && full !== source.amount.automaticName) plate.amountNames[source.amount.key] = full;
-      else delete plate.amountNames[source.amount.key];
-      return;
-    }
-    const text = typed.replace(VESSEL_PLURAL_ENDING, '').trim();
-    const value = plate.lines
-      .flatMap(line => line.values)
-      .find(candidate => candidate.id === source.count.key);
-    if (value && text) value.text = text;
-  });
 }
 
 export function setPlateRowValue(draft: Protocol, row: PlateValueRow, typed: string): void {

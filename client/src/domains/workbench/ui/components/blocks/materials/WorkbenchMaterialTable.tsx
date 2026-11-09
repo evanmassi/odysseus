@@ -21,6 +21,7 @@ import type { MaterialCellEditing } from './useMaterialCellEditing';
 import type { RemovedMaterial } from './useMaterialRemoval';
 import type { NameUsage } from '../../../../utils/formulas/nameUsage';
 import type { ConjugateClash } from '../../../../utils/materials/materialClashes';
+import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
 import type { FieldChoice } from '../../../../utils/materials/materialSectionFields';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -41,6 +42,9 @@ interface WorkbenchMaterialTableProps {
   clashes: readonly ConjugateClash[];
   customGroups: readonly string[];
   usage: ReadonlyMap<string, NameUsage>;
+  recipeOf: (item: MaterialItem) => readonly RecipeLine[];
+  recipeUsers: ReadonlyMap<string, readonly string[]>;
+  plateWells: ReadonlyMap<string, number>;
   duplicateIds: ReadonlySet<string>;
   fresh: { ids: ReadonlySet<string>; stamp: number };
   removed: RemovedMaterial | undefined;
@@ -62,6 +66,9 @@ export function WorkbenchMaterialTable({
   clashes,
   customGroups,
   usage,
+  recipeOf,
+  recipeUsers,
+  plateWells,
   duplicateIds,
   fresh,
   removed,
@@ -82,6 +89,9 @@ export function WorkbenchMaterialTable({
       columns={columns}
       customGroups={customGroups}
       usage={usage.get(item.id)}
+      recipe={recipeOf(item)}
+      recipeUsers={recipeUsers.get(item.id) ?? []}
+      plateWellCount={plateWells.get(item.id) ?? 0}
       isClashing={clashingIds.has(item.id)}
       isDuplicateName={duplicateIds.has(item.id)}
       freshStamp={fresh.ids.has(item.id) ? fresh.stamp : undefined}

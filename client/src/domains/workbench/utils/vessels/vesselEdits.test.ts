@@ -1,5 +1,6 @@
 import {
   applyVessels,
+  copyPlateIntoCard,
   duplicateOfTab,
   hasAnyVessel,
   vesselCountOf,
@@ -68,5 +69,21 @@ describe('vessel edits', () => {
     expect(Object.keys(copy.cells).sort()).toEqual([`${plate.id}:A1`, `${plate.id}:H12`]);
     expect(copy.counts).toEqual({});
     expect(copy).toMatchObject({ x: 6, y: 0, activeTab: 0 });
+  });
+
+  it('copy a plate into a new tab of the same card with series of its own', () => {
+    const block = vesselMap();
+    block.cells['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesStep: 0 } };
+    block.series = { ser: { start: '10', unit: 'µM', fold: '3', direction: 'right' } };
+    copyPlateIntoCard(block, block.plates[0]);
+    const [original, copy] = block.plates;
+    expect(original.id).toBe('p');
+    expect(copy).toMatchObject({ vessel: '96', name: 'Day 1 copy' });
+    expect(block.activeTab).toBe(1);
+    expect(block.cells[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
+    const copiedSeriesId = block.cells[`${copy.id}:B1`]['l'].seriesId;
+    expect(copiedSeriesId).not.toBe('ser');
+    expect(block.series[copiedSeriesId ?? '']).toEqual(block.series['ser']);
+    expect(block.cells['s#2:1']).toEqual({ l: { valueId: 'v' } });
   });
 });

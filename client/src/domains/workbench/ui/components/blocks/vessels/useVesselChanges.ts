@@ -3,6 +3,7 @@ import { normalizeVesselMap, type VesselMapBlock } from '@odysseus/shared-schema
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import {
   applyVessels,
+  copyPlateIntoCard,
   duplicateOfTab,
   hasAnyVessel,
   wellsLostTo,
@@ -14,6 +15,7 @@ import {
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 
 import type { Confirmation } from './useConfirmation';
+import type { CopyPlace } from './WorkbenchVesselMapControls';
 import type { VesselType } from '../../../../utils/vessels/vesselCatalog';
 import type { VesselTab } from '../../../../utils/vessels/vesselTabs';
 
@@ -42,11 +44,20 @@ export function useVesselChanges(
     setCount: (type: VesselType, count: number) =>
       changeVessels(withVesselCount(block, type, count)),
     removePlate: (plateId: string) => changeVessels(withoutPlate(block, plateId)),
-    duplicateTab: () =>
+    duplicateTab: (place: CopyPlace) => {
+      if (place === 'tab' && tab.kind === 'plate') {
+        const { plate } = tab;
+        updateVesselMap(draft => {
+          const original = draft.plates.find(candidate => candidate.id === plate.id);
+          if (original) copyPlateIntoCard(draft, original);
+        });
+        return;
+      }
       updateProtocol(draft => {
         const copy = duplicateOfTab(block, tab);
         normalizeVesselMap(copy);
         draft.blocks.push(copy);
-      }),
+      });
+    },
   };
 }

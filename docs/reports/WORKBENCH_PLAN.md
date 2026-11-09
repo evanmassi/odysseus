@@ -5,8 +5,7 @@ Living plan for the scientist-facing side of Odysseus. Everything built so far i
 flow cytometry panels first, general protocols and calculators after. This doc is the shared source
 of truth; we iterate on it until it is right, then build.
 
-**Status:** draft 12 (2026-10-07). Design phase, working panel by panel in the builder mockup. Nothing
-is built. Branch `feature/workbench` (has `main` merged in; pushed).
+**Status:** slices 1–3 built in the app (2026-11-08); the mockup is frozen as the spec. Branch `feature/workbench` (has `main` merged in; pushed).
 
 ### Resume here (read this first)
 
@@ -17,27 +16,112 @@ audit prompt. Protocols are saved to local files only (File System Access in Edg
 fallback elsewhere); nothing reaches the server, by Evan's choice, because protocols hold company
 detail. Server storage gets built only if a real need appears.
 
-- **File format v2** (`packages/shared-schemas/src/workbench/`): Zod schema with readable field names;
-  `protocolFileInputSchema` upgrades every older mockup file (pre-pages, old plate fields, string
-  cells, `concentration` renames, `x` → `X`) before validating. Fixtures are the mockup's three
-  examples (synthetic); Evan's real files are never committed and are checked from temp copies only.
-- **One unit table:** `UNIT_REGISTRY` carries conversion factors and the workbench kinds (time,
-  temperature, × g, rpm, cells, molar mass); `INVENTORY_UNIT_KINDS` stays the custom-unit/DB set.
-  One number parser (`parseNumberInput`) serves concentrations and workbench values.
-- **Ported with parity tests against the mockup:** formula engine, material guesser, catalog, plate
-  naming (painted groups kept as a baseline for slice 3), rename carrying (fixed: a new name
-  containing the old one was renamed repeatedly).
-- **Slices:** 1 foundation ✓ · 2 shell, pages, board, file open/save, Materials, Steps + name tray,
-  Values, Formulas ✓ · 3 vessel map + Dilutions with the plate consolidation, plate rows in Values,
-  step/value readings in one `utils/steps/stepReadings.ts`, the kDa prompt ✓ (polish backlog in the
-  plate spec) · **4 next: export for Benchling** · 5 Table, Flow, Sketch, Text, offline single-file
-  build if wanted.
-- **Plate consolidation (slice 3, decided 2026-11-08):** full spec, migration rules, build split and
-  the mockup code map are in `docs/reports/WORKBENCH_PLATE_SPEC.md`. One color system owned by the
-  value (painted groups retired, file format v3 upgrade); colors stick once assigned; same name same
-  thing; legend rename changes only the clicked value. Open question: fix backwards `1:N` series.
-- Testing: Vitest beside the code; live checks drive the dev client headlessly over CDP (demo
-  login → `/workbench`, board loaded through the `odysseus-workbench-recovery` localStorage copy).
+- **Where things stand (2026-11-08, last commit `46d67c4d`):** slices 1–3 are done, plus the plate
+  map polish Evan asked for (list and decisions in `docs/reports/WORKBENCH_PLATE_SPEC.md`). Every
+  block except Table, Flow, Sketch and Text works in the app: Materials, Steps + name tray, Values
+  (with plate rows and "From your steps"), Formulas, Vessel map, Dilutions.
+- **Next: slice 4, the export for Benchling** (decision W98; status row "Export" in the table below).
+  One read-only layout from the Export button serves the bench copy (write-in lines for blanks, tick
+  boxes, materials grouped by storage) and, after tidying, the final record (PDF). Header: title,
+  `YYYYMMDD_Assay_Descriptor_R#` id, "Run on …" or "Planned · not yet run". Pages print in order;
+  the record must let someone repeat the experiment without Evan. The mockup's export is the spec:
+  `docs/mockups/workbench-builder-study.html` `exportHtml` (line ~4572) and its parts
+  `exportMaterials` / `exportValues` / `exportFormulas` / `exportSteps` / `exportTables` /
+  `exportNotes` / `exportDilutions` (lines ~4463–4570). Not in the mockup yet and wanted: the plate
+  map in the export (reuse the in-app plate drawing: round wells, name + dose, bands, legend), each
+  page's own series only (the mockup printed every plate's series on every page, a listed bug), the
+  Dilutions table per series, and recipes: each in-house reagent's ingredients with their amount
+  in the mix, final in the well, and each ingredient's source and lot from Materials. What goes to Benchling is chosen at export (not designed yet:
+  ask Evan before building that part).
+- **Polish pass (before the export, started 2026-11-08):** Evan gives the list; keep it here.
+  - [x] Values is one row per material, grouped like Materials (`utils/values/valueTable.ts`):
+        every number about a material sits on its row as a column, whether typed, read from the
+        plate map (wells, top dose, dilution, points, per-well amounts) or from Materials; column
+        headings carry the source icon instead of "on the plate" / "in Materials" tags; unused
+        numbers are dimmer. Columns appear only when used, ordered typed → plate → Materials, and
+        match ignoring case and spacing; renaming a typed heading renames it on every row (steps
+        and formulas follow). Extra rows sit under their main row: the same drug in two series
+        ("in Raji", or "series 2") or on two plates (plate title), and plate names that are not
+        materials (under the plate). Materials with plate numbers but no values get a row in the
+        first Values card. Add with + at the row end (same one-line box) or by clicking a blank
+        cell under a typed column. "Whole experiment" stays a list. No file format change.
+  - [x] The fold reads as a dilution, "1:3", in Values and steps (unit `DILUTION_FACTOR_NOTATION`:
+        counts as 3 in formulas, whose working shows the plain 3). Formula names are unchanged
+        ("Compound X fold"), so saved formulas keep working.
+  - [x] A plate no longer offers "Stock concentration" and "Molecular weight" as Often added.
+  - [x] Grouping has one rule: a row sits in its material's Materials category (mixes in Mixes, a
+        removed material in Unsorted). A plate not listed in Materials goes under Supplies too; there
+        is no separate Plates group. "-mab" names now guess as Antibody (lab memory still wins).
+  - [x] Values hover: an outline on numbers you can change (none on counted ones); the hover says
+        the formula name, where it's used, and where an edit goes ("changes the plate map",
+        "changes Materials", "Counted from the plate map").
+  - [x] One name lookup (`findNamed` in `materialLookup.ts`): a plate name matches a material whose
+        name only adds a note in parentheses ("HCKA" ↔ "HCKA (heat-killed Candida albicans)"), in
+        Values, Dilutions and material well counts alike; plate numbers also land on mix rows.
+        Rows take band colors too (outlined square, like the legend).
+  - [x] "From your plate" in Materials, beside "From your steps": plate names with no material, mix,
+        or condition wording (… only, No …, or just Sample/Control/Blank/Edge), each with Add
+        (guessed kind), Same as… (renames the picked material "HCKA (its name)") and Ignore (kept in
+        `ignoredReadings` as `plate:<name>`).
+  - [x] Recipes: an in-house reagent (e.g. the Th17 cocktail) is a material whose `recipe` lists
+        other materials with their amount in the mix (`materialRecipe.ts`; file field `recipe`,
+        default empty). Edited from the Recipe cell in Materials (the made-here fields — Recipe,
+        Volume made, Made on, Made by — are now available to every physical material; the old text
+        recipe stays as the note). Ingredients say "in Th17 cocktail" under Used in. Values shows
+        the ingredients as rows under the material with In the mix and Final in the well, worked
+        out from the row's Volume per well ÷ the board's Well volume (`mixShares.ts`); a stock in X
+        gets the same check on its own row (4X × 20 µL ÷ 80 µL = 1X). Day-of master mixes stay as
+        Values mixes.
+  - [x] Band colors: plate and Values share one rule (`bandColorOf` in shared-schemas): a picked
+        color, else a stand-in by the band's place; nothing is saved, so a line that becomes the
+        treatment line still gets treatment colors.
+  - [x] Materials "Used in" counts the plate ("Plate: 16 wells"), so a material only on the plate
+        no longer says "Not used".
+  - [x] Unit pickers in Values cells closed before a choice landed (the list is portaled, so
+        picking counted as leaving the cell). Values cells, Whole experiment rows and Materials
+        cells now share `hooks/useFocusLeave.ts`.
+  - [x] Copy a plate: the copy button offers "Copy as a new tab" (same card, `copyPlateIntoCard`,
+        its series copied fresh so editing one never changes the other) or "Copy to a new card";
+        a shelf always goes to a new card. Twin series on different tabs are named by the tab
+        ("Compound X top dose on Plate 2").
+  - [x] Dilutions pools series from the same source (same drug, top, unit and 1:N; points may
+        differ) into one prep sized for all their wells, "for Plate 1, Plate 1 copy"; a setting
+        change applies to every pooled series.
+  - [x] `WorkbenchTabStrip` (board/): one-line tabs that scroll (wheel, drag, hidden scrollbar), keep
+        the selected tab in view, and step with ‹ ›; used by the plate tabs and the Dilutions tabs,
+        and meant for any card with tabs.
+  - [x] The well total for finals can be named "Well volume", "Final well volume" or "Total well
+        volume"; the hover names the one used, or says to add "Well volume 80 µL".
+  - [x] Values rows attached to a main row (series per plate, recipe ingredients, plate-only
+        names) hang off a line in the main row's color, with an elbow into each.
+  - [ ] Dilutions series keep their own Well volume box; consider defaulting a blank one to the
+        experiment's Well volume so the number is typed once.
+  - [ ] Typed values named "Fold" still show "2×" (the user picked the × unit); decide whether they
+        should read 1:N too.
+- **File format v3** (`packages/shared-schemas/src/workbench/`): readable field names; values on a
+  plate line carry their own `color`; `protocolFileInputSchema` upgrades every older mockup file
+  (legacy → v2 in `legacyProtocolSchemas.ts`, v2 → v3 in `paintedGroupUpgrade.ts`). Fixtures are the
+  mockup's three examples (synthetic); Evan's real files are never committed and are checked from
+  temp copies only.
+- **Plate rules shared by upgrade and editor** (`shared-schemas/src/workbench/vesselMapValues.ts`):
+  same name = same value (case and spaces ignored), lines sharing a value merge, colors stick once
+  given; every plate edit runs `normalizeVesselMap`, which also drops unused lines, values, series
+  and empty well entries.
+- **One unit table:** `UNIT_REGISTRY` carries conversion factors and the workbench kinds;
+  `parseNumberInput` is the one number parser; large and tiny numbers display through the app's
+  `formatScientific` ("4.00E+4", from 10,000 up); ratios stay plain.
+- **UI conventions settled this session:** the app `Tooltip` everywhere (no `title=` hovers); square
+  corners for markers, boxes and dilution wells, round wells on plate maps; plain-language
+  questions to Evan, with mockups (HTML in the Armada panel) for anything that is a matter of taste.
+- **Slices:** 1 foundation ✓ · 2 shell, pages, board, files, Materials, Steps, Values, Formulas ✓ ·
+  3 vessel map, Dilutions, plate rows, step readings, kDa prompt ✓ · **4 export for Benchling (next)**
+  · 5 Table, Flow, Sketch, Text, offline single-file build if wanted.
+- **Testing:** Vitest beside the code. Client tests read shared-schemas from its `dist`, so run
+  `npm run build` in `packages/shared-schemas` after changing it. Live checks drive headless Edge over
+  the debugging protocol (demo login button → `/workbench`, board loaded through the
+  `odysseus-workbench-recovery` localStorage copy); no script is checked in, write a throwaway one in
+  a temp folder. If the running dev server serves a half-saved file (page crash, "does not provide an
+  export named"), touch the files to make Vite re-read them.
 
 **What the workbench is now.** A protocol builder: a snapping board of blocks (materials, steps,
 values, formulas, vessel map, tables, flow diagram, sketch, text). Values and formulas share names
@@ -80,7 +164,8 @@ series reads as: drug · top · fold · points; a row of settings (well volume, 
 extra, round to); one line of wells drawn as a scaling SVG so 12 points stay on one row on a laptop
 (well 1 shows its starting volume, the rest their diluent, arrows carry the transfer, in-well and N×
 concentration under each); and a one-line footnote ending in the recommended plate (no plate picker).
-The export prints the same line as a 4-row table. INN names ending in -mab guess as Drug or inhibitor.
+The export prints the same line as a 4-row table. INN names ending in -mab guess as an Antibody
+(changed 2026-11-08 from Drug or inhibitor, so Values groups them with the antibodies).
 Volumes are pipette-aware: each is given the smallest pipette whose recommended range covers it and
 rounded to that pipette's setting increment (stock: Rainin Pipet-Lite XLS singles P2 to P1000; series:
 Rainin 12-channels 10 to 1200 µL; plating: Eppendorf Research plus 24-channel 1–20 µL in 0.02 and
@@ -91,7 +176,7 @@ A series works for any material, not just drugs: every physical material type ca
 concentration (any concentration unit) and a Molecular weight (g/mol or kDa). When a series has no
 stock, or needs a molecular weight to cross mass and molar, the Dilutions block asks inline and saves
 the answer onto the material, adding the material if it is not listed. Treatments match materials by
-name, ignoring a description in parentheses; any INN name ending in -mab guesses as Drug or inhibitor.
+name, ignoring a description in parentheses; any INN name ending in -mab guesses as an Antibody.
 The plate map's series editor saves as you type (no Apply; Done closes it), and rewriting a series keeps
 its prep settings, so changing nM to µM or the fold never resets the Dilutions card. A series is a start
 and a 1:X dilution with a direction (shown as "300 nM, 1:3, ↓"); multiply was dropped because the

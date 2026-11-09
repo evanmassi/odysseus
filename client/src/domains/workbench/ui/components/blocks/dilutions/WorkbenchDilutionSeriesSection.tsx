@@ -8,6 +8,7 @@ import type { DilutionPrep, PrepSettings } from '../../../../utils/dilutions/dil
 interface WorkbenchDilutionSeriesSectionProps {
   id: string;
   subject: string;
+  places: readonly string[];
   color: string | undefined;
   prep: DilutionPrep;
   onSettingChange: (key: keyof PrepSettings, value: string) => void;
@@ -26,6 +27,7 @@ const PLAIN_RAIL = 'hsl(var(--muted-foreground))';
 export function WorkbenchDilutionSeriesSection({
   id,
   subject,
+  places,
   color,
   prep,
   onSettingChange,
@@ -72,6 +74,9 @@ export function WorkbenchDilutionSeriesSection({
           {subject || 'Unnamed treatment'}
         </span>
         <span className="font-mono text-data-sm text-muted-foreground">{prep.summary}</span>
+        {places.length > 0 && (
+          <span className="text-body-sm text-muted-foreground">for {places.join(', ')}</span>
+        )}
       </div>
       <div className="flex flex-wrap gap-x-7 gap-y-2">
         {SETTINGS.slice(0, 2).map(settingField)}

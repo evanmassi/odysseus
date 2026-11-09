@@ -2,10 +2,15 @@ import { useEffect, useRef, type ReactNode } from 'react';
 
 import { Button, Input } from '@shared/ui';
 
+import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
 import { materialFields } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/materialClashes';
-import { UNSORTED_GROUP, materialText } from '../../../../utils/materials/materialItems';
+import {
+  RECIPE_FIELD,
+  UNSORTED_GROUP,
+  materialText,
+} from '../../../../utils/materials/materialItems';
 import { localToday } from '../../../../utils/protocolFile/experimentId';
 
 import {
@@ -20,8 +25,10 @@ import {
 import { isSameCell, type MaterialCell, type MaterialCellEditing } from './useMaterialCellEditing';
 import { WorkbenchMaterialCellField } from './WorkbenchMaterialCellField';
 import { WorkbenchMaterialKindSelector } from './WorkbenchMaterialKindSelector';
+import { WorkbenchMaterialRecipeEditor } from './WorkbenchMaterialRecipeEditor';
 
 import type { MaterialKind } from './materialSelectOptions';
+import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 export interface MaterialRowActions {
@@ -34,6 +41,13 @@ export interface MaterialRowActions {
   suggest: (itemId: string, key: string, typed: string) => string[];
   drop: (item: MaterialItem) => void;
   remove: (item: MaterialItem) => void;
+  addRecipeLine: (itemId: string, text: string) => void;
+  editRecipeEntry: (
+    itemId: string,
+    entryId: string,
+    change: { amount?: string; unit?: string }
+  ) => void;
+  removeRecipeEntry: (itemId: string, entryId: string) => void;
 }
 
 interface WorkbenchMaterialRowProps {
@@ -43,6 +57,9 @@ interface WorkbenchMaterialRowProps {
   columns: readonly FieldDefinition[];
   customGroups: readonly string[];
   usage: NameUsage | undefined;
+  recipe: readonly RecipeLine[];
+  recipeUsers: readonly string[];
+  plateWellCount: number;
   isClashing: boolean;
   isDuplicateName: boolean;
   freshStamp: number | undefined;
@@ -78,7 +95,7 @@ function EditableCell({
 }: EditableCellProps) {
   const isEditing = isSameCell(editing.cell, cell);
   const cellRef = useRef<HTMLTableCellElement>(null);
-  const blurTimer = useRef<ReturnType<typeof setTimeout>>();
+  const leave = useFocusLeave(() => editing.finish(cell));
 
   useEffect(() => {
     if (!isEditing) return;
@@ -86,8 +103,6 @@ function EditableCell({
     control?.focus();
     if (control instanceof HTMLInputElement) control.select();
   }, [isEditing]);
-
-  useEffect(() => () => clearTimeout(blurTimer.current), []);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.defaultPrevented) return;
@@ -115,11 +130,8 @@ function EditableCell({
         editing.start(cell);
       }}
       onKeyDown={isEditing ? handleKeyDown : undefined}
-      onBlur={() => {
-        // PITFALL: focus can hop into a portaled dropdown; its onFocus bubbles here through React and cancels the stop.
-        if (isEditing) blurTimer.current = setTimeout(() => editing.finish(cell));
-      }}
-      onFocus={() => clearTimeout(blurTimer.current)}
+      onBlur={isEditing ? leave.onBlur : undefined}
+      onFocus={leave.onFocus}
     >
       {isEditing ? editor() : display}
     </td>
@@ -133,6 +145,9 @@ export function WorkbenchMaterialRow({
   columns,
   customGroups,
   usage,
+  recipe,
+  recipeUsers,
+  plateWellCount,
   isClashing,
   isDuplicateName,
   freshStamp,
@@ -141,7 +156,13 @@ export function WorkbenchMaterialRow({
 }: WorkbenchMaterialRowProps) {
   const rowRef = useRef<HTMLTableRowElement>(null);
   const fields = materialFields(item);
-  const summary = usage ? usageSummary(usage) : '';
+  const summary = [
+    plateWellCount ? `Plate: ${plateWellCount} ${plateWellCount === 1 ? 'well' : 'wells'}` : '',
+    usage ? usageSummary(usage) : '',
+    ...recipeUsers.map(user => `in ${user}`),
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const fillDown = (key: string) => () => {
     if (previous && key !== 'name') actions.fillDown(item, previous, key);
   };
@@ -198,6 +219,36 @@ export function WorkbenchMaterialRow({
       />
       {columns.map(column => {
         const definition = fields.find(own => own.key === column.key) ?? column;
+        if (definition.key === RECIPE_FIELD) {
+          const ingredients = recipe
+            .map(({ ingredient }) => ingredient?.name.trim())
+            .filter(Boolean)
+            .join(', ');
+          return (
+            <EditableCell
+              key={definition.key}
+              cell={{ itemId: item.id, key: definition.key }}
+              editing={editing}
+              display={ingredients || materialText(item, definition)}
+              editor={() => (
+                <WorkbenchMaterialRecipeEditor
+                  lines={recipe}
+                  note={item.values[RECIPE_FIELD] ?? ''}
+                  onAdd={text => actions.addRecipeLine(item.id, text)}
+                  onAmountChange={(entryId, amount) =>
+                    actions.editRecipeEntry(item.id, entryId, { amount })
+                  }
+                  onUnitChange={(entryId, unit) =>
+                    actions.editRecipeEntry(item.id, entryId, { unit })
+                  }
+                  onRemove={entryId => actions.removeRecipeEntry(item.id, entryId)}
+                  onNoteChange={note => actions.writeField(item.id, definition, note)}
+                />
+              )}
+              onFillDown={fillDown(definition.key)}
+            />
+          );
+        }
         const isShown = item.shownFields.includes(definition.key);
         const shown = isShown ? materialText(item, definition) : '';
         const isExpired = !!definition.warnsWhenPast && isPastDate(shown);

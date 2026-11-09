@@ -1,7 +1,7 @@
 import { Select } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { PAIR_NOTATION, RATIO_NOTATION } from '../../../../utils/formulas/quantities';
+import { PAIR_NOTATION, showsOneToPrefix } from '../../../../utils/formulas/quantities';
 import { unitChoices, VALUE_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 
 const AMOUNT_INPUT =
@@ -32,6 +32,7 @@ export function WorkbenchValueAmountField({
   const [first, second = ''] = value.split(':');
   const unitOptions = units ? unitChoices(units) : [...VALUE_UNIT_OPTIONS];
   const focusRef = isFocusedOnMount ? focusOnMount : undefined;
+  const hasOneToPrefix = showsOneToPrefix(unit);
 
   return (
     <span className="flex items-center justify-end gap-1">
@@ -56,7 +57,7 @@ export function WorkbenchValueAmountField({
         </>
       ) : (
         <>
-          {unit === RATIO_NOTATION && (
+          {hasOneToPrefix && (
             <span className="font-mono text-data-sm text-muted-foreground">1:</span>
           )}
           <input
@@ -81,7 +82,10 @@ export function WorkbenchValueAmountField({
           className="w-28"
         />
       ) : (
-        unit && <span className="font-mono text-data-sm text-muted-foreground">{unit}</span>
+        unit &&
+        !hasOneToPrefix && (
+          <span className="font-mono text-data-sm text-muted-foreground">{unit}</span>
+        )
       )}
     </span>
   );

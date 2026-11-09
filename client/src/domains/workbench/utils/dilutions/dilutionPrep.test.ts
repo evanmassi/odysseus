@@ -18,6 +18,7 @@ const material = (name: string, values: Record<string, string>, units: Record<st
     customFields: [],
     fieldLabels: {},
     isDropped: false,
+    recipe: [],
   }) as MaterialItem;
 
 function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol {
@@ -47,6 +48,8 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
         id: 'map',
         type: 'plate',
         page: 'page',
+        title: 'Assay plate',
+        plates: [{ id: 'p', vessel: '96', name: '' }],
         lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
         cells,
         series: { s: series },
@@ -67,9 +70,26 @@ const empty = calculateBoard([]);
 const prepFor = (protocol: Protocol) => dilutionPrep(dilutionRuns(protocol)[0], protocol, empty);
 
 describe('dilution prep', () => {
+  it('pools identical series from copied plates into one prep sized for all their wells', () => {
+    const protocol = protocolWith(doseSeries, []);
+    const [plate] = protocol.blocks.filter(block => block.type === 'plate');
+    const copy = structuredClone(plate);
+    if (copy.type !== 'plate') return;
+    copy.id = 'copy';
+    copy.title = 'Assay plate copy';
+    copy.series = { other: copy.series['s'] };
+    for (const lines of Object.values(copy.cells)) lines['drug'].seriesId = 'other';
+    protocol.blocks.push(copy);
+    const runs = dilutionRuns(protocol);
+    expect(runs).toHaveLength(1);
+    expect(runs[0].members.map(member => member.plateId)).toEqual(['map', 'copy']);
+    expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
+    expect(runs[0].wellsPerPoint.get(0)).toBe(6);
+  });
+
   it('finds each step series on the plates with its busiest point', () => {
     const [run] = dilutionRuns(protocolWith(doseSeries, []));
-    expect(run).toMatchObject({ plateId: 'map', seriesId: 's', subject: 'Drug X' });
+    expect(run).toMatchObject({ members: [{ plateId: 'map', seriesId: 's' }], subject: 'Drug X' });
     expect([...run.wellsPerPoint.values()]).toEqual([3, 3, 3, 3]);
   });
 

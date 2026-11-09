@@ -61,6 +61,9 @@ const materialItemSchema = z.object({
   customFields: z.array(fieldDefinitionSchema),
   fieldLabels: textMap.default({}),
   isDropped: z.boolean().default(false),
+  recipe: z
+    .array(z.object({ id, materialId: z.string(), amount: z.string(), unit: z.string() }))
+    .default([]),
 });
 
 const materialsBlockSchema = z.object({

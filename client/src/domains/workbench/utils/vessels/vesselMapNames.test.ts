@@ -1,6 +1,6 @@
-import { plateAmounts, vesselCounts } from './vesselMapNames';
+import { materialWellCounts, plateAmounts, vesselCounts } from './vesselMapNames';
 
-import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
+import type { MaterialItem, PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
 const vesselMap = (content: Partial<VesselMapBlock>): VesselMapBlock => ({
   id: 'map',
@@ -105,5 +105,44 @@ describe('plate amounts', () => {
     const names = plateAmounts(twinSeries(['Jurkat', 'Jurkat'])).map(({ name }) => name);
     expect(names).toContain('Drug X top dose 1');
     expect(names).toContain('Drug X top dose 2');
+  });
+});
+
+describe('twin series on different plates', () => {
+  it('are told apart by the plate they sit on', () => {
+    const block = vesselMap({
+      plates: [
+        { id: 'p1', vessel: '96', name: '' },
+        { id: 'p2', vessel: '96', name: 'Copy' },
+      ],
+      lines: [line('drug', ['Drug X', 'DMSO'])],
+      cells: {
+        'p1:A1': { drug: { valueId: 'Drug X', seriesId: 's1', seriesStep: 0 } },
+        'p1:A2': { drug: { valueId: 'DMSO' } },
+        'p2:A1': { drug: { valueId: 'Drug X', seriesId: 's2', seriesStep: 0 } },
+      },
+      series: {
+        s1: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
+        s2: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
+      },
+    });
+    const names = plateAmounts(block).map(({ name }) => name);
+    expect(names).toContain('Drug X top dose on Plate 1');
+    expect(names).toContain('Drug X top dose on Copy');
+  });
+});
+
+describe('material well counts', () => {
+  it('count wells by the short name in front of a note in parentheses', () => {
+    const block = vesselMap({
+      lines: [line('stim', ['HCKA', 'None'])],
+      cells: {
+        'p1:A1': { stim: { valueId: 'HCKA' } },
+        'p1:A2': { stim: { valueId: 'HCKA' } },
+        'p1:A3': { stim: { valueId: 'None' } },
+      },
+    });
+    const candida = { name: 'HCKA (heat-killed Candida albicans)' } as MaterialItem;
+    expect(materialWellCounts([block], [candida]).get(candida)).toBe(2);
   });
 });

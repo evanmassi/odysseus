@@ -1030,11 +1030,11 @@ function guessFromText(raw: string, context: MaterialGuessContext): MaterialGues
 
 function withTherapeuticAntibody(guess: MaterialGuess): MaterialGuess {
   const antibody = guess.name.match(THERAPEUTIC_ANTIBODY)?.[0];
-  if (!antibody || guess.type === 'Drug or inhibitor') return guess;
+  if (!antibody || guess.group === 'ab') return guess;
   return {
     ...guess,
-    group: 'chem',
-    type: 'Drug or inhibitor',
+    group: 'ab',
+    type: 'Antibody',
     why: `${antibody} is a therapeutic antibody`,
   };
 }

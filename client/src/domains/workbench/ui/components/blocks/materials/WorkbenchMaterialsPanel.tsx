@@ -4,7 +4,7 @@ import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
-import { materialGroupsOf } from '../../../../utils/materials/materialCatalog';
+import { materialGroup, materialGroupsOf } from '../../../../utils/materials/materialCatalog';
 import { conjugateClashes } from '../../../../utils/materials/materialClashes';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import {
@@ -16,12 +16,20 @@ import {
   materialFromGuess,
   writeMaterialField,
 } from '../../../../utils/materials/materialItems';
+import { ensureMaterial, listedMaterials } from '../../../../utils/materials/materialLookup';
 import {
   LOT_FIELD,
   fillFromLotMemory,
   rememberLotValue,
 } from '../../../../utils/materials/materialLots';
 import { rememberedKinds } from '../../../../utils/materials/materialMemory';
+import {
+  addRecipeLine,
+  editRecipeEntry,
+  recipeLines,
+  recipesUsing,
+  removeRecipeEntry,
+} from '../../../../utils/materials/materialRecipe';
 import {
   addCustomSectionField,
   fieldChoices,
@@ -30,10 +38,17 @@ import {
 } from '../../../../utils/materials/materialSectionFields';
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
 import {
+  linkPlateName,
+  plateNameOffers,
+  type PlateNameOffer,
+} from '../../../../utils/materials/plateNameOffers';
+import {
   acceptStepReadings,
   readStepReadings,
   type MaterialReading,
 } from '../../../../utils/steps/stepReadings';
+import { materialsById } from '../../../../utils/values/valueEdits';
+import { materialWellCounts } from '../../../../utils/vessels/vesselMapNames';
 
 import { useMaterialAdding } from './useMaterialAdding';
 import { useMaterialCellEditing, type MaterialCell } from './useMaterialCellEditing';
@@ -41,6 +56,7 @@ import { useMaterialRemoval } from './useMaterialRemoval';
 import { WorkbenchMaterialAddBar, type NewGroupTarget } from './WorkbenchMaterialAddBar';
 import { WorkbenchMaterialDroppedSection } from './WorkbenchMaterialDroppedSection';
 import { WorkbenchMaterialGroupDialog } from './WorkbenchMaterialGroupDialog';
+import { WorkbenchMaterialPlateNamesSection } from './WorkbenchMaterialPlateNamesSection';
 import { WorkbenchMaterialReadingsSection } from './WorkbenchMaterialReadingsSection';
 import { WorkbenchMaterialSection } from './WorkbenchMaterialSection';
 import { WorkbenchMaterialTable } from './WorkbenchMaterialTable';
@@ -130,6 +146,26 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     () => (isFirstMaterialsBlock ? readStepReadings(protocol, calculation).materials : []),
     [isFirstMaterialsBlock, protocol, calculation]
   );
+  const allMaterials = useMemo(() => materialsById(protocol), [protocol]);
+  const recipeUsers = useMemo(() => recipesUsing([...allMaterials.values()]), [allMaterials]);
+  const plateWells = useMemo(() => {
+    const vesselMaps = protocol.blocks.filter(candidate => candidate.type === 'plate');
+    const counts = materialWellCounts(vesselMaps, [...allMaterials.values()]);
+    return new Map([...counts].map(([material, count]) => [material.id, count]));
+  }, [protocol, allMaterials]);
+  const plateOffers = useMemo(
+    () => (isFirstMaterialsBlock ? plateNameOffers(protocol) : []),
+    [isFirstMaterialsBlock, protocol]
+  );
+  const linkChoices = useMemo(
+    () =>
+      listedMaterials(protocol).map(item => ({
+        value: item.id,
+        label: item.name,
+        group: materialGroup(item.group).label,
+      })),
+    [protocol]
+  );
   const cellOrder = useMemo(
     () =>
       sections
@@ -208,6 +244,16 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       editing.stop();
       removal.remove(item);
     },
+    addRecipeLine: (itemId, text) =>
+      updateProtocol(draft =>
+        addRecipeLine(draft, itemId, text, name =>
+          materialFromGuess(guessMaterial(name, remembered), memory.materials)
+        )
+      ),
+    editRecipeEntry: (itemId, entryId, change) =>
+      updateProtocol(draft => editRecipeEntry(draft, itemId, entryId, change)),
+    removeRecipeEntry: (itemId, entryId) =>
+      updateProtocol(draft => removeRecipeEntry(draft, itemId, entryId)),
   };
 
   const updateGroupItems = (group: string, recipe: (items: MaterialItem[]) => void) =>
@@ -226,6 +272,15 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         materialFromGuess(guessMaterial(name, remembered), memory.materials)
       )
     );
+
+  const addPlateNames = (offers: readonly PlateNameOffer[]) =>
+    updateProtocol(draft => {
+      for (const offer of offers) {
+        ensureMaterial(draft, offer.name, name =>
+          materialFromGuess(guessMaterial(name, remembered), memory.materials)
+        );
+      }
+    });
 
   const createGroup = (label: string) => {
     const target = groupDialogTarget;
@@ -274,6 +329,9 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   clashes={section.clashes}
                   customGroups={block.customGroups}
                   usage={usage}
+                  recipeOf={item => recipeLines(item, allMaterials)}
+                  recipeUsers={recipeUsers}
+                  plateWells={plateWells}
                   duplicateIds={calculation.duplicateIds}
                   fresh={fresh}
                   removed={section.removed}
@@ -322,6 +380,22 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
             onIgnore={reading =>
               updateProtocol(draft => {
                 draft.ignoredReadings.push(reading.key);
+              })
+            }
+          />
+        )}
+        {plateOffers.length > 0 && (
+          <WorkbenchMaterialPlateNamesSection
+            offers={plateOffers}
+            materialChoices={linkChoices}
+            guessType={name => guessMaterial(name, remembered).type}
+            onAdd={addPlateNames}
+            onLink={(offer, materialId) =>
+              updateProtocol(draft => linkPlateName(draft, offer.name, materialId))
+            }
+            onIgnore={offer =>
+              updateProtocol(draft => {
+                draft.ignoredReadings.push(offer.key);
               })
             }
           />

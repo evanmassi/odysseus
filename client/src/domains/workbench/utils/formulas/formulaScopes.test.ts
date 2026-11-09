@@ -23,6 +23,7 @@ const material = (name: string): MaterialItem => ({
   customFields: [],
   fieldLabels: {},
   isDropped: false,
+  recipe: [],
 });
 
 const value = (name: string, amount = '1', unit = ''): BoardName => ({
