@@ -11,6 +11,7 @@ import { createId } from '../ids/createId';
 
 export interface WellRow {
   line: PlateLine | undefined;
+  value: PlateLine['values'][number] | undefined;
   text: string;
   isTextMixed: boolean;
   amount: string;
@@ -33,10 +34,13 @@ export function wellRows(
   const lines = onWells.length ? onWells : [colorLine ?? block.lines[0]];
   return lines.map(line => {
     const cells = keys.map(key => (line ? block.cells[key]?.[line.id] : undefined));
-    const text = sharedOf(cells.map(cell => (line && lineValueOf(line, cell)?.text) ?? ''));
+    const values = cells.map(cell => (line ? lineValueOf(line, cell) : undefined));
+    const text = sharedOf(values.map(value => value?.text ?? ''));
+    const [firstValue] = values;
     const amount = sharedOf(cells.map(cell => cell?.amount ?? ''));
     return {
       line,
+      value: firstValue && values.every(value => value === firstValue) ? firstValue : undefined,
       text: text.shared,
       isTextMixed: text.isMixed,
       amount: amount.shared,
@@ -148,4 +152,18 @@ export function removeLineFromWells(
     delete lines[lineId];
     if (!Object.keys(lines).length) delete block.cells[key];
   }
+}
+
+export function recolorValue(block: VesselMapBlock, valueId: string, color: string): void {
+  const value = block.lines
+    .flatMap(line => line.values)
+    .find(candidate => candidate.id === valueId);
+  if (value) value.color = color;
+}
+
+export function renameValue(block: VesselMapBlock, valueId: string, text: string): void {
+  const value = block.lines
+    .flatMap(line => line.values)
+    .find(candidate => candidate.id === valueId);
+  if (value && text.trim()) value.text = text.trim();
 }

@@ -82,20 +82,18 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    its caller), one shared step reader `utils/steps/stepReadings.ts` (materials half exists in
    `utils/materials/materialReadings.ts`), Values plate rows.
 
-## Plate map polish backlog (Evan, 2026-11-08)
+## Plate map polish (Evan, 2026-11-08)
 
-Deferred until the rest of slice 3 lands:
-
-- Choose band colors (today they cycle through four fixed colors).
-- Organize the legend so it reads cleaner.
-- Click a selected well again to deselect it.
-- Series wells show only the number ("300", "100"…) when the series has no unit or name: show
-  the dilution's name and unit in the wells.
-- Hover text should use the app's tooltip primitive, not the browser title.
-- Buttons and titles in the vessel map are inconsistent: bring them onto the shared primitives
-  and the readability recipe.
-- Well text could be easier to read.
-- A band on the right edge gets clipped: the plate needs room for the outline past the last column.
+Done: click a selected well to deselect it; room past the last column and row for band outlines;
+the app tooltip on wells and vessels; the series form defaults its unit to one already on the line
+and warns when there is no unit or no name; band colors picked from the legend (full palette) and
+a color dot on every well editor line (both recolor the name everywhere it appears; bands use the
+name's stored color); legend in labeled rows (Treatments, Conditions) with the dose shading and
+Wells used in a footer; wells always show name and dose (header doses and the bare-number mode
+were removed; narrow wells put the dose with its unit first, grow taller to fit, and shorten the
+name); the toolbar is icon buttons with tooltips beside the tabs, and plates are renamed by
+double-clicking their tab; bracket labels shorten to fit their bracket. Mockup the choices came
+from: `plate-polish-options.html` (Armada panel, temporary).
 
 ## Vessel map feature inventory
 

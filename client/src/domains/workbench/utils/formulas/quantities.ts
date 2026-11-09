@@ -1,5 +1,6 @@
 import {
   UNIT_REGISTRY,
+  formatScientific,
   parseNumberInput,
   unitScale,
   type UnitDimension,
@@ -62,12 +63,25 @@ export function describeDimension(dimension: UnitDimension): string {
   return DIMENSION_WORDS.get(key) ?? `mixed unit (${key.replace(/\|/g, ' · ')})`;
 }
 
+const SCIENTIFIC_FROM = 1e4;
+const SCIENTIFIC_BELOW = 1e-3;
+const PLAIN_NUMBER = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?$/;
+
+const plainNumber = (value: number) => String(Number(value.toPrecision(3)));
+
+const isScientificSize = (size: number) => size >= SCIENTIFIC_FROM || size < SCIENTIFIC_BELOW;
+
+function readableNumberText(text: string): string {
+  if (!PLAIN_NUMBER.test(text)) return text;
+  const value = Number(text);
+  return value !== 0 && isScientificSize(Math.abs(value)) ? formatScientific(value) : text;
+}
+
 export function formatNumber(value: number): string {
   if (!Number.isFinite(value)) return '?';
   const size = Math.abs(value);
   if (size === 0) return '0';
-  if (size >= 1e5 || size < 1e-3)
-    return value.toExponential(2).replace('e+', 'E+').replace('e-', 'E-');
+  if (isScientificSize(size)) return formatScientific(value);
   if (Number.isInteger(value)) return String(value);
   return String(parseFloat(value.toPrecision(3)));
 }
@@ -102,8 +116,9 @@ export function displayValue(value: string, unit: string): string {
   const text = value.trim();
   if (unit === RATIO_NOTATION) return `1:${text}`;
   if (unit === PAIR_NOTATION) return text.replace(/\s*:\s*/, ':');
-  if (unit === FOLD_UNIT) return `${text}×`;
-  return unit ? `${text} ${unit}` : text;
+  const readable = readableNumberText(text);
+  if (unit === FOLD_UNIT) return `${readable}×`;
+  return unit ? `${readable} ${unit}` : readable;
 }
 
 export function readableAmount(value: string, unit: string): string {
@@ -142,10 +157,10 @@ export function formatQuantityIn(quantity: Quantity, unit: string): FormattedQua
     };
   }
   const { magnitude } = quantity;
-  if (unit === RATIO_NOTATION) return { text: `1:${formatNumber(1 / magnitude)}` };
+  if (unit === RATIO_NOTATION) return { text: `1:${plainNumber(1 / magnitude)}` };
   if (unit === PAIR_NOTATION) {
     return {
-      text: magnitude >= 1 ? `${formatNumber(magnitude)}:1` : `1:${formatNumber(1 / magnitude)}`,
+      text: magnitude >= 1 ? `${plainNumber(magnitude)}:1` : `1:${plainNumber(1 / magnitude)}`,
     };
   }
   if (unit === FOLD_UNIT) return { text: `${formatNumber(magnitude)}×` };

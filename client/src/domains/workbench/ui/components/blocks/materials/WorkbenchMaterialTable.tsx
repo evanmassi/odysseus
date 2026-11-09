@@ -2,7 +2,7 @@ import { useRef } from 'react';
 
 import { X } from 'lucide-react';
 
-import { ScrollArea } from '@shared/ui';
+import { ScrollArea, Tooltip } from '@shared/ui';
 
 import { listWithAnd } from '../../../../utils/materials/materialGuesser';
 
@@ -132,15 +132,16 @@ export function WorkbenchMaterialTable({
                 {columns.map(column => (
                   <th key={column.key} className={MATERIAL_HEAD_CELL}>
                     {column.label}
-                    <button
-                      type="button"
-                      className="ml-1.5 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity hover:text-danger-text focus-visible:opacity-100 group-hover/head:opacity-100"
-                      aria-label={`Hide ${column.label}`}
-                      title="Hide this column"
-                      onClick={() => onHideColumn(column.key)}
-                    >
-                      <X aria-hidden className="h-3 w-3" />
-                    </button>
+                    <Tooltip content="Hide this column">
+                      <button
+                        type="button"
+                        className="ml-1.5 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity hover:text-danger-text focus-visible:opacity-100 group-hover/head:opacity-100"
+                        aria-label={`Hide ${column.label}`}
+                        onClick={() => onHideColumn(column.key)}
+                      >
+                        <X aria-hidden className="h-3 w-3" />
+                      </button>
+                    </Tooltip>
                   </th>
                 ))}
                 <th className={MATERIAL_HEAD_CELL}>Used in</th>

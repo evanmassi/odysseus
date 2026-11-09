@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 
 import { materialCount, reviewActionLabel } from '../../../../utils/materials/materialReview';
 
@@ -71,16 +71,17 @@ export function WorkbenchMaterialPastePanel({
                 )}
               </td>
               <td className="w-px px-2 text-right">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  aria-label={`Leave ${row.item.name} out`}
-                  title="Leave this one out"
-                  onClick={() => onDropRow(index)}
-                >
-                  <X aria-hidden className="h-3.5 w-3.5" />
-                </Button>
+                <Tooltip content="Leave this one out">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    iconOnly
+                    aria-label={`Leave ${row.item.name} out`}
+                    onClick={() => onDropRow(index)}
+                  >
+                    <X aria-hidden className="h-3.5 w-3.5" />
+                  </Button>
+                </Tooltip>
               </td>
             </tr>
           ))}

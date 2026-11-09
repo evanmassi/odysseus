@@ -36,6 +36,7 @@ export function WorkbenchVesselShelfList({
     <div
       role="grid"
       aria-label="Vessels"
+      data-focus="wells"
       aria-multiselectable
       className="flex select-none flex-wrap items-end gap-x-8 gap-y-5 outline-none"
       tabIndex={0}
@@ -59,7 +60,7 @@ export function WorkbenchVesselShelfList({
                   shape={vessel.shape}
                   width={width}
                   sizeLabel={vessel.short}
-                  title={[vessel.label, ...wellDetails(block, spot.key, calculation)].join('\n')}
+                  tooltipLines={[vessel.label, ...wellDetails(block, spot.key, calculation)]}
                   lines={block.lines.flatMap(line => {
                     const shown = wellLine(block, spot.key, line, calculation);
                     return shown ? [shown] : [];

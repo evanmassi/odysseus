@@ -8,6 +8,7 @@ import type { DilutionPrep, PrepSettings } from '../../../../utils/dilutions/dil
 interface WorkbenchDilutionSeriesSectionProps {
   id: string;
   subject: string;
+  color: string | undefined;
   prep: DilutionPrep;
   onSettingChange: (key: keyof PrepSettings, value: string) => void;
   onStockSave: (value: string, unit: string) => void;
@@ -20,14 +21,18 @@ const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [
   ['extraPercent', 'Extra (dead vol.)', '%'],
   ['roundTo', 'Round to', 'µL'],
 ];
+const PLAIN_RAIL = 'hsl(var(--muted-foreground))';
 
 export function WorkbenchDilutionSeriesSection({
   id,
   subject,
+  color,
   prep,
   onSettingChange,
   onStockSave,
 }: WorkbenchDilutionSeriesSectionProps) {
+  const rail = color ?? PLAIN_RAIL;
+
   const settingField = ([key, label, unit]: (typeof SETTINGS)[number]) => (
     <div key={key} className="flex flex-col gap-1">
       <span className={LABEL}>{label}</span>
@@ -48,8 +53,21 @@ export function WorkbenchDilutionSeriesSection({
   );
 
   return (
-    <section className="flex flex-col gap-2 border-b border-foreground/10 pb-4 pt-3 last:border-b-0">
-      <div className="flex items-baseline gap-3">
+    <section
+      className="flex flex-col gap-2 border-l-[3px] pb-1 pl-3"
+      style={{ borderLeftColor: rail }}
+    >
+      <div
+        className="-ml-3 flex items-baseline gap-3 py-1 pl-3"
+        style={{
+          backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${rail} 15%, transparent), transparent 70%)`,
+        }}
+      >
+        <span
+          aria-hidden
+          className="inline-block h-2.5 w-2.5 flex-none self-center"
+          style={{ backgroundColor: rail }}
+        />
         <span className="text-label-lg font-semibold text-foreground">
           {subject || 'Unnamed treatment'}
         </span>
@@ -75,7 +93,11 @@ export function WorkbenchDilutionSeriesSection({
           {prep.stock.kind === 'problem' && (
             <p className="text-body-sm text-warning-text">{prep.stock.issue}</p>
           )}
-          <WorkbenchDilutionStripPreview prep={prep} markerId={`dilution-arrow-${id}`} />
+          <WorkbenchDilutionStripPreview
+            prep={prep}
+            markerId={`dilution-arrow-${id}`}
+            color={color}
+          />
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-foreground">
             {prep.notes.map(([label, value]) => (
               <span key={label}>

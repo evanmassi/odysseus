@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import type { Ref } from 'react';
 
 import { plateValueKey, type PlateLine } from '@odysseus/shared-schemas';
 import { X } from 'lucide-react';
 
-import { Input, Select } from '@shared/ui';
+import { Input, Select, Tooltip } from '@shared/ui';
 
 import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
+
+import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
 import type { WellRow } from '../../../../utils/vessels/wellEdits';
@@ -24,6 +27,7 @@ interface WorkbenchWellLineRowProps {
   onRoleChange: (role: PlateLine['role']) => void;
   onRemove: () => void;
   onOpenSeries: () => void;
+  onPickColor: (color: string) => void;
 }
 
 const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
@@ -49,7 +53,9 @@ export function WorkbenchWellLineRow({
   onRoleChange,
   onRemove,
   onOpenSeries,
+  onPickColor,
 }: WorkbenchWellLineRowProps) {
+  const [isPickingColor, setIsPickingColor] = useState(false);
   const typed = plateValueKey(row.text);
   const suggestions = typed
     ? (row.line?.values ?? [])
@@ -67,6 +73,17 @@ export function WorkbenchWellLineRow({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={!row.value}
+          aria-label={
+            row.value ? `Change the color of ${row.value.text}` : 'Name it to pick a color'
+          }
+          aria-expanded={isPickingColor}
+          className="h-4 w-4 flex-none border border-foreground/30 disabled:opacity-30"
+          style={{ backgroundColor: row.value?.color }}
+          onClick={() => setIsPickingColor(!isPickingColor)}
+        />
         <span className="min-w-0 flex-1">
           <Input
             ref={inputRef}
@@ -81,14 +98,15 @@ export function WorkbenchWellLineRow({
           />
         </span>
         {seriesText ? (
-          <button
-            type="button"
-            title="Change this dilution"
-            className="whitespace-nowrap border border-line-soft px-2 py-1 font-mono text-data-sm text-foreground hover:border-primary/60"
-            onClick={onOpenSeries}
-          >
-            {seriesText}
-          </button>
+          <Tooltip content="Change this dilution">
+            <button
+              type="button"
+              className="whitespace-nowrap border border-line-soft px-2 py-1 font-mono text-data-sm text-foreground hover:border-primary/60"
+              onClick={onOpenSeries}
+            >
+              {seriesText}
+            </button>
+          </Tooltip>
         ) : (
           <>
             <WorkbenchValueAmountField
@@ -101,14 +119,15 @@ export function WorkbenchWellLineRow({
               onValueChange={onAmountChange}
               onUnitChange={onUnitChange}
             />
-            <button
-              type="button"
-              title="Fill these wells with a dilution or any stepped series"
-              className="text-caption text-primary hover:underline"
-              onClick={onOpenSeries}
-            >
-              Dilution
-            </button>
+            <Tooltip content="Fill these wells with a dilution or any stepped series">
+              <button
+                type="button"
+                className="text-caption text-primary hover:underline"
+                onClick={onOpenSeries}
+              >
+                Dilution
+              </button>
+            </Tooltip>
           </>
         )}
         {showsRole && row.line && (
@@ -133,6 +152,15 @@ export function WorkbenchWellLineRow({
           </button>
         )}
       </div>
+      {isPickingColor && row.value && (
+        <WorkbenchColorSwatchList
+          current={row.value.color}
+          onPick={color => {
+            onPickColor(color);
+            setIsPickingColor(false);
+          }}
+        />
+      )}
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {suggestions.map(value => (

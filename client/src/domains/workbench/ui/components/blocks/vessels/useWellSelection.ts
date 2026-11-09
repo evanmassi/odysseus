@@ -58,6 +58,15 @@ export function useWellSelection(
       setSelection({ keys, anchor: point, cursor: point });
       return;
     }
+    const own = expand(new Set([spot.key]));
+    const isAlreadyAlone =
+      !isExtending &&
+      selection.keys.size === own.size &&
+      [...own].every(key => selection.keys.has(key));
+    if (isAlreadyAlone) {
+      setSelection(EMPTY);
+      return;
+    }
     const start = isExtending && selection.anchor ? selection.anchor : point;
     dragStart.current = start;
     selectRect(start, point);

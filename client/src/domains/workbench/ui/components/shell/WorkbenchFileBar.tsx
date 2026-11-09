@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 
 import { ChevronDown, FilePlus, FolderOpen, Save } from 'lucide-react';
 
-import { Button, Chip, DropdownMenu, MenuDivider, MenuItem } from '@shared/ui';
+import { Button, Chip, DropdownMenu, MenuDivider, MenuItem, Tooltip } from '@shared/ui';
 
 import {
   ProtocolFileService,
@@ -50,9 +50,9 @@ export function WorkbenchFileBar({
 
   return (
     <div className="flex items-center gap-3">
-      <span className="min-w-0 truncate font-mono text-data-sm text-foreground" title={fileName}>
-        {fileName}
-      </span>
+      <Tooltip content={fileName}>
+        <span className="min-w-0 truncate font-mono text-data-sm text-foreground">{fileName}</span>
+      </Tooltip>
       {isDirty ? (
         <Chip color="warning" lit>
           Unsaved changes
@@ -63,14 +63,11 @@ export function WorkbenchFileBar({
         <Chip color="outlined">Not saved to a file</Chip>
       )}
       {isNamedDifferently && (
-        <Button
-          variant="ghost"
-          size="xs"
-          title={`Save as ${suggestedName}`}
-          onClick={() => onSave(true)}
-        >
-          Save as new name
-        </Button>
+        <Tooltip content={`Save as ${suggestedName}`}>
+          <Button variant="ghost" size="xs" onClick={() => onSave(true)}>
+            Save as new name
+          </Button>
+        </Tooltip>
       )}
       <span className="ml-auto flex items-center gap-1">
         <Button
@@ -93,15 +90,16 @@ export function WorkbenchFileBar({
         >
           Open
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          leftIcon={<Save className="h-4 w-4" />}
-          title="Ctrl+S · Ctrl+Shift+S to save as"
-          onClick={() => onSave(false)}
-        >
-          Save
-        </Button>
+        <Tooltip content="Ctrl+S · Ctrl+Shift+S to save as">
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Save className="h-4 w-4" />}
+            onClick={() => onSave(false)}
+          >
+            Save
+          </Button>
+        </Tooltip>
       </span>
       <DropdownMenu
         isOpen={isOpenMenuShown}

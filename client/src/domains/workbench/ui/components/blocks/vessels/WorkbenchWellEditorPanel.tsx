@@ -8,6 +8,7 @@ import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
 import { seriesSummary } from '../../../../utils/vessels/plateSeries';
 import {
+  lineUnitOf,
   removeSeries,
   seriesFormFor,
   seriesPreview,
@@ -16,6 +17,7 @@ import {
 } from '../../../../utils/vessels/seriesEdits';
 import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
+  recolorValue,
   removeLineFromWells,
   setWellsAmount,
   setWellsText,
@@ -55,6 +57,7 @@ interface WorkbenchWellEditorPanelProps {
 
 const BLANK_ROW: WellRow = {
   line: undefined,
+  value: undefined,
   text: '',
   isTextMixed: false,
   amount: '',
@@ -221,16 +224,24 @@ export function WorkbenchWellEditorPanel({
               onRemove={() =>
                 lineId && updateVesselMap(draft => removeLineFromWells(draft, keyList, lineId))
               }
+              onPickColor={color => {
+                const valueId = row.value?.id;
+                if (valueId) updateVesselMap(draft => recolorValue(draft, valueId, color));
+              }}
               onOpenSeries={() =>
                 setOpenSeries({
                   rowIndex: index,
-                  form: seriesFormFor(lineId ?? createId(), row.seriesId, series, row),
+                  form: seriesFormFor(lineId ?? createId(), row.seriesId, series, {
+                    amount: row.amount,
+                    unit: row.unit || (lineId ? lineUnitOf(block, lineId) : ''),
+                  }),
                 })
               }
             />
             {form && (
               <WorkbenchWellSeriesForm
                 form={form}
+                isUnnamed={!row.text.trim() && !row.isTextMixed}
                 preview={seriesPreview(block, sheet, keys, form, calculation)}
                 calculation={calculation}
                 startRef={focusOnMount}

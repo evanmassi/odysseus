@@ -37,6 +37,7 @@ const WELL_GAP = 5;
 const TINY_BELOW = 30;
 const NARROW_BELOW = 70;
 const SHORTEST_LABELED_WELL = 30;
+const SHORTEST_NARROW_WELL = 44;
 const SHELF_PADDING = 24;
 const SHELF_SCALE_RANGE = [0.5, 1.25] as const;
 
@@ -58,12 +59,10 @@ export function wellSizeFor(format: PlateFormat, roomWidth: number, cols: number
   const { min, max, heightRatio } = PLATE_SIZING[format];
   const width = clamp(Math.floor((roomWidth - GRID_CHROME) / cols - WELL_GAP), [min, max]);
   const scaled = Math.round(width * heightRatio);
-  const isTiny = width < TINY_BELOW;
-  return {
-    width,
-    height: isTiny ? scaled : Math.max(SHORTEST_LABELED_WELL, scaled),
-    density: isTiny ? 'tiny' : width < NARROW_BELOW ? 'narrow' : 'roomy',
-  };
+  const density: WellDensity =
+    width < TINY_BELOW ? 'tiny' : width < NARROW_BELOW ? 'narrow' : 'roomy';
+  const shortest = { tiny: 0, narrow: SHORTEST_NARROW_WELL, roomy: SHORTEST_LABELED_WELL }[density];
+  return { width, height: Math.max(shortest, scaled), density };
 }
 
 export function shelfScaleFor(block: VesselMapBlock, roomWidth: number): number {

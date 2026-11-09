@@ -59,6 +59,7 @@ export {
 export {
   UNIT_REGISTRY,
   formatQuantity,
+  formatScientific,
   unitScale,
   parseNumberInput,
   pluralizeUnit,

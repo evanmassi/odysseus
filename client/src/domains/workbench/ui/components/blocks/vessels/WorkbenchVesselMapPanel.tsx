@@ -1,20 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { colorLineOf, type VesselMapBlock } from '@odysseus/shared-schemas';
-import { X } from 'lucide-react';
 
-import { Tab, Tabs } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import {
-  doseHeaders,
-  lineLayers,
-  plateBands,
-  plateCaptions,
-} from '../../../../utils/vessels/plateLayers';
+import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
+import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
 import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
 import { vesselOf } from '../../../../utils/vessels/vesselCatalog';
 import { vesselCounts } from '../../../../utils/vessels/vesselMapNames';
@@ -26,7 +20,6 @@ import {
   shelfKinds,
   shelfNameOf,
   vesselTabs,
-  type VesselTab,
 } from '../../../../utils/vessels/vesselTabs';
 import { setWellsText, wellRows } from '../../../../utils/vessels/wellEdits';
 
@@ -37,7 +30,7 @@ import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
 import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
-import { WorkbenchVesselMapControls } from './WorkbenchVesselMapControls';
+import { WorkbenchVesselMapControls, type VesselTabLabel } from './WorkbenchVesselMapControls';
 import { WorkbenchVesselShelfList } from './WorkbenchVesselShelfList';
 import { WorkbenchWellEditorPanel } from './WorkbenchWellEditorPanel';
 
@@ -61,7 +54,6 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const colorLine = colorLineOf(block);
   const layers = lineLayers(block, colorLine, calculation);
   const captions = plateCaptions(layers);
-  const headers = doseHeaders(block, sheet, colorLine, calculation);
   const bands = sheet.isPlate ? plateBands(block, sheet, layers, calculation) : [];
   const updateVesselMap = useUpdateVesselMap(block);
   const [editor, setEditor] = useState<EditorOpening>();
@@ -103,28 +95,45 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
     if (!selection.keys.size) setEditor(undefined);
   }, [selection.keys.size]);
 
-  const tabLabel = (candidate: VesselTab) =>
-    candidate.kind === 'plate'
-      ? [
-          plateNameOf(block, candidate.plate),
-          vesselOf(candidate.plate.vessel).label.replace(' plate', ''),
-        ]
-      : [shelfNameOf(block), shelfKinds(block)];
+  const tabLabels = tabs.map(
+    (candidate): VesselTabLabel =>
+      candidate.kind === 'plate'
+        ? {
+            id: candidate.id,
+            name: plateNameOf(block, candidate.plate),
+            kind: vesselOf(candidate.plate.vessel).label.replace(' plate', ''),
+            ownName: candidate.plate.name,
+            isPlate: true,
+          }
+        : {
+            id: candidate.id,
+            name: shelfNameOf(block),
+            kind: shelfKinds(block),
+            ownName: block.shelfName ?? '',
+            isPlate: false,
+          }
+  );
 
-  const rename = (name: string) =>
+  const renameTab = (tabId: string, name: string) =>
     updateBlock(draft => {
-      const plate = tab.kind === 'plate' && draft.plates.find(({ id }) => id === tab.id);
+      const plate = draft.plates.find(({ id }) => id === tabId);
       if (plate) plate.name = name.trim();
-      else if (tab.kind === 'shelf') draft.shelfName = name.trim() || undefined;
+      else draft.shelfName = name.trim() || undefined;
     });
 
   return (
-    <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-3">
+    <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-1">
       <WorkbenchVesselMapControls
         block={block}
-        tab={tab}
-        namePlaceholder={tabLabel(tab)[0]}
-        onRename={rename}
+        tabs={tabLabels}
+        activeId={tab.id}
+        onShowTab={id =>
+          updateBlock(draft => {
+            draft.activeTab = tabs.findIndex(candidate => candidate.id === id);
+          })
+        }
+        onRenameTab={renameTab}
+        onRemovePlate={vesselChanges.removePlate}
         onToggleMerge={() =>
           updateBlock(draft => {
             draft.mergesReplicates = !draft.mergesReplicates;
@@ -133,43 +142,6 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
         onSetCount={vesselChanges.setCount}
         onDuplicate={vesselChanges.duplicateTab}
       />
-      <Tabs
-        value={tab.id}
-        onChange={id =>
-          updateBlock(draft => {
-            draft.activeTab = tabs.findIndex(candidate => candidate.id === id);
-          })
-        }
-        size="sm"
-        orientation="horizontal"
-      >
-        {tabs.map(candidate => {
-          const [name, kind] = tabLabel(candidate);
-          return (
-            <Tab key={candidate.id} id={candidate.id}>
-              {name}
-              <span className="ml-1.5 text-label-2xs opacity-65">{kind}</span>
-              {candidate.kind === 'plate' && tabs.length > 1 && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Remove ${name}`}
-                  className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
-                  onClick={event => {
-                    event.stopPropagation();
-                    vesselChanges.removePlate(candidate.id);
-                  }}
-                  onKeyDown={event => {
-                    if (event.key === 'Enter') vesselChanges.removePlate(candidate.id);
-                  }}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </span>
-              )}
-            </Tab>
-          );
-        })}
-      </Tabs>
       {captions.length > 0 && (
         <p className="text-body-sm text-muted-foreground">
           Every well: <b className="text-foreground">{captions.join(' · ')}</b>
@@ -181,9 +153,8 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             block={block}
             sheet={sheet}
             colorLine={colorLine}
-            headers={headers}
             bands={bands}
-            size={wellSizeFor(tab.plate.vessel, roomWidth, sheet.cols)}
+            size={wellSizeFor(tab.plate.vessel, roomWidth - bandWidthPad(bands), sheet.cols)}
             calculation={calculation}
             selection={selection}
             merges={merges}
@@ -207,7 +178,6 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
         colorLine={colorLine}
         counts={vesselCounts(block)}
         bands={bands}
-        headers={headers}
       />
       {editor && selection.keys.size > 0 && (
         <WorkbenchWellEditorPanel

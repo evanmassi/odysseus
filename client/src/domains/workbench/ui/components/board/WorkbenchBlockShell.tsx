@@ -2,7 +2,7 @@ import { useRef, useState, type ComponentType } from 'react';
 
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
-import { ConsolePanel } from '@shared/ui';
+import { ConsolePanel, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useFitBlockHeight } from '../../../hooks/useFitBlockHeight';
@@ -97,16 +97,17 @@ export function WorkbenchBlockShell({ block }: WorkbenchBlockShellProps) {
               }}
             />
           ) : (
-            <span
-              className="min-w-0 flex-1 truncate type-label text-label-md font-semibold text-foreground"
-              title="Double-click to rename"
-              onDoubleClick={() => setIsRenaming(true)}
-            >
-              {block.title}
-              {hasOwnTitle && (
-                <span className="ml-2 font-normal text-muted-foreground">{blockType.label}</span>
-              )}
-            </span>
+            <Tooltip content="Double-click to rename">
+              <span
+                className="min-w-0 flex-1 truncate type-label text-label-md font-semibold text-foreground"
+                onDoubleClick={() => setIsRenaming(true)}
+              >
+                {block.title}
+                {hasOwnTitle && (
+                  <span className="ml-2 font-normal text-muted-foreground">{blockType.label}</span>
+                )}
+              </span>
+            </Tooltip>
           )}
           <button
             type="button"
