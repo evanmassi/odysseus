@@ -1,3 +1,5 @@
+import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
+
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 interface MaterialGroup {
@@ -46,28 +48,16 @@ const LASERS = [
   'Red 640',
   'Near-IR 808',
 ];
-export const CONCENTRATION_UNITS = [
-  'mM',
-  'µM',
-  'nM',
-  'pM',
-  'mg/mL',
-  'µg/mL',
-  'ng/mL',
-  'ng/µL',
-  '%',
-  'X',
-];
 export const MOLAR_MASS_UNITS = ['g/mol', 'kDa'];
 
 const stockField = (defaultUnit: string, extras: FieldExtras = {}) =>
   numberField('Stock concentration', UNIT_PER_ITEM, {
     defaultUnit,
-    units: CONCENTRATION_UNITS,
+    units: CONCENTRATION_UNIT_IDS,
     ...extras,
   });
 const finalField = (defaultUnit: string) =>
-  numberField('Final concentration', UNIT_PER_ITEM, { defaultUnit, units: CONCENTRATION_UNITS });
+  numberField('Final concentration', UNIT_PER_ITEM, { defaultUnit, units: CONCENTRATION_UNIT_IDS });
 const molarMassField = (defaultUnit: string) =>
   numberField('Molecular weight', UNIT_PER_ITEM, {
     defaultUnit,

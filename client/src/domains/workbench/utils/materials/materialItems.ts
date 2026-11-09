@@ -2,10 +2,10 @@ import { displayValue } from '../formulas/quantities';
 import { createId } from '../ids/createId';
 
 import { withGreekLetters } from './greekLetters';
-import { UNIT_PER_ITEM, fieldUnit, materialFields } from './materialCatalog';
+import { UNIT_PER_ITEM, fieldUnit, materialFields, materialGroup } from './materialCatalog';
 import { normalizeMaterialKey, type MaterialAmount, type MaterialGuess } from './materialGuesser';
 
-import type { RememberedMaterial } from './materialMemory';
+import type { LabMemory, RememberedMaterial } from './materialMemory';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 export const UNSORTED_GROUP = 'unsorted';
@@ -15,11 +15,12 @@ const GROUP_DEFAULT_FIELDS: Readonly<Record<string, readonly string[]>> = {
   equip: ['model'],
   soft: ['source'],
 };
+const PHYSICAL_DEFAULT_FIELDS = ['vendor', 'catalog', 'lot'];
 const TYPE_DEFAULT_FIELDS: Readonly<Record<string, readonly string[]>> = {
+  Antibody: [...PHYSICAL_DEFAULT_FIELDS, 'isotype'],
   Software: ['version'],
   Dataset: ['repository', 'accession-number'],
 };
-const PHYSICAL_DEFAULT_FIELDS = ['vendor', 'catalog', 'lot'];
 const AMOUNT_FIELDS = [
   'amount',
   'dilution',
@@ -37,11 +38,35 @@ const hasText = (value: string | undefined): value is string => !!value?.trim();
 const materialDefaultFields = (group: string, type: string): readonly string[] =>
   TYPE_DEFAULT_FIELDS[type] ?? GROUP_DEFAULT_FIELDS[group] ?? PHYSICAL_DEFAULT_FIELDS;
 
+export const groupStartingFields = (memory: LabMemory, group: string): readonly string[] =>
+  memory.startingFields[group] ?? [
+    ...new Set(
+      Object.keys(materialGroup(group).types).flatMap(type => materialDefaultFields(group, type))
+    ),
+  ];
+
+const learnedFieldInGroup = (memory: LabMemory, group: string, key: string) =>
+  Object.entries(memory.fields)
+    .filter(([kind]) => kind.startsWith(`${group}|`))
+    .flatMap(([, definitions]) => definitions)
+    .find(definition => definition.key === key);
+
+function addStartingFields(item: MaterialItem, memory: LabMemory): readonly string[] {
+  const pinned = memory.startingFields[item.group];
+  if (!pinned) return materialDefaultFields(item.group, item.type);
+  for (const key of pinned) {
+    if (materialFields(item).some(definition => definition.key === key)) continue;
+    const learned = learnedFieldInGroup(memory, item.group, key);
+    if (learned) item.customFields.push({ ...learned });
+  }
+  return pinned;
+}
+
 export function showMaterialField(item: MaterialItem, key: string): void {
   if (!item.shownFields.includes(key)) item.shownFields.push(key);
 }
 
-function newMaterial(group: string, type: string, name: string): MaterialItem {
+function newMaterial(group: string, type: string, name: string, memory: LabMemory): MaterialItem {
   const item: MaterialItem = {
     id: createId(),
     group,
@@ -55,8 +80,9 @@ function newMaterial(group: string, type: string, name: string): MaterialItem {
     isDropped: false,
     recipe: [],
   };
+  const starting = addStartingFields(item, memory);
   const keys = new Set(materialFields(item).map(definition => definition.key));
-  item.shownFields = materialDefaultFields(group, type).filter(key => keys.has(key));
+  item.shownFields = starting.filter(key => keys.has(key));
   return item;
 }
 
@@ -67,19 +93,23 @@ function showMadeHereFields(item: MaterialItem): void {
   if (isMadeHere) showMaterialField(item, MADE_ON_FIELD);
 }
 
-export function applyMaterialKind(item: MaterialItem, group: string, type: string): void {
+export function applyMaterialKind(
+  item: MaterialItem,
+  group: string,
+  type: string,
+  memory: LabMemory
+): void {
   item.group = group;
   item.type = type;
+  const starting = addStartingFields(item, memory);
   const keys = new Set(materialFields(item).map(definition => definition.key));
-  item.shownFields = [
-    ...new Set([...item.shownFields, ...materialDefaultFields(group, type)]),
-  ].filter(key => keys.has(key));
+  item.shownFields = [...new Set([...item.shownFields, ...starting])].filter(key => keys.has(key));
 }
 
 export function materialText(item: MaterialItem, definition: FieldDefinition): string {
   const raw = item.values[definition.key] ?? '';
   if (!raw.trim()) return '';
-  return displayValue(raw, definition.kind === 'number' ? fieldUnit(item, definition) : '');
+  return definition.kind === 'number' ? displayValue(raw, fieldUnit(item, definition)) : raw.trim();
 }
 
 export function writeMaterialField(
@@ -166,11 +196,8 @@ function recallMaterial(item: MaterialItem, recalled: RememberedMaterial | undef
   item.shownFields = [...new Set([...item.shownFields, ...recalled.shownFields])];
 }
 
-export function materialFromGuess(
-  guess: MaterialGuess,
-  rememberedMaterials: Readonly<Record<string, RememberedMaterial>>
-): MaterialItem {
-  const item = newMaterial(guess.group, guess.type, guess.name);
+export function materialFromGuess(guess: MaterialGuess, memory: LabMemory): MaterialItem {
+  const item = newMaterial(guess.group, guess.type, guess.name, memory);
   const fields = materialFields(item);
   for (const [key, value] of Object.entries(guess.values)) {
     const definition = fields.find(candidate => candidate.key === key);
@@ -181,7 +208,7 @@ export function materialFromGuess(
     showMaterialField(item, key);
   }
   if (guess.amount) placeAmount(item, guess.amount);
-  recallMaterial(item, rememberedMaterials[normalizeMaterialKey(item.name)]);
+  recallMaterial(item, memory.materials[normalizeMaterialKey(item.name)]);
   showMadeHereFields(item);
   return item;
 }

@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { groupStartingFields } from '../utils/materials/materialItems';
 import {
   EMPTY_LAB_MEMORY,
   learnFromMaterials,
   rememberKind,
+  toggleStartingField,
   type LabMemory,
 } from '../utils/materials/materialMemory';
 
@@ -16,6 +18,7 @@ interface MaterialMemoryState {
   memory: LabMemory;
   rememberKind: (name: string, group: string, type: string) => void;
   learnFromMaterials: (items: readonly MaterialItem[]) => void;
+  toggleStartingField: (group: string, key: string) => void;
 }
 
 export const useMaterialMemoryStore = create<MaterialMemoryState>()(
@@ -26,7 +29,27 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
         set(state => ({ memory: rememberKind(state.memory, name, group, type) })),
       learnFromMaterials: items =>
         set(state => ({ memory: learnFromMaterials(state.memory, items) })),
+      toggleStartingField: (group, key) =>
+        set(state => ({
+          memory: toggleStartingField(
+            state.memory,
+            group,
+            key,
+            groupStartingFields(state.memory, group)
+          ),
+        })),
     }),
-    { name: LAB_MEMORY_KEY, partialize: state => ({ memory: state.memory }) }
+    {
+      name: LAB_MEMORY_KEY,
+      partialize: state => ({ memory: state.memory }),
+      // PITFALL: memory saved before a field was added to LabMemory lacks it; fill from the empty shape.
+      merge: (persisted, current) => ({
+        ...current,
+        memory: {
+          ...EMPTY_LAB_MEMORY,
+          ...(persisted as Partial<MaterialMemoryState> | undefined)?.memory,
+        },
+      }),
+    }
   )
 );

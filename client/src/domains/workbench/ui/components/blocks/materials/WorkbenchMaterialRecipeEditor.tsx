@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 
 import { Select, Tooltip } from '@shared/ui';
+import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
-import { CONCENTRATION_UNITS } from '../../../../utils/materials/materialCatalog';
 import { unitChoices } from '../../../../utils/values/valueUnits';
 
 import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
@@ -55,7 +55,7 @@ export function WorkbenchMaterialRecipeEditor({
             size="xs"
             isQuiet
             value={entry.unit}
-            options={unitChoices(CONCENTRATION_UNITS)}
+            options={unitChoices(CONCENTRATION_UNIT_IDS)}
             aria-label="Unit"
             className="w-24"
             onChange={unit => onUnitChange(entry.id, String(unit ?? ''))}

@@ -28,10 +28,12 @@ import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 interface MaterialFieldMenu {
   isOpen: boolean;
   choices: readonly FieldChoice[];
+  pinnedKeys: ReadonlySet<string>;
   query: string;
   onToggleOpen: () => void;
   onQueryChange: (query: string) => void;
   onToggle: (key: string) => void;
+  onTogglePin: (key: string) => void;
   onAddCustom: () => void;
   onClose: () => void;
 }
@@ -127,9 +129,11 @@ export function WorkbenchMaterialTable({
           isOpen={fieldMenu.isOpen}
           triggerRef={fieldButtonRef}
           choices={fieldMenu.choices}
+          pinnedKeys={fieldMenu.pinnedKeys}
           query={fieldMenu.query}
           onQueryChange={fieldMenu.onQueryChange}
           onToggle={fieldMenu.onToggle}
+          onTogglePin={fieldMenu.onTogglePin}
           onAddCustom={fieldMenu.onAddCustom}
           onClose={fieldMenu.onClose}
         />

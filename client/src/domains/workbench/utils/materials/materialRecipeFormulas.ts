@@ -1,11 +1,17 @@
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
+  formulaAnswerText,
   nameKey,
   type BoardCalculation,
   type BoardName,
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
-import { FOLD_UNIT } from '../formulas/quantities';
+import {
+  DILUTION_FACTOR_NOTATION,
+  displayValue,
+  FOLD_UNIT,
+  quantityOf,
+} from '../formulas/quantities';
 import { joinValueName } from '../values/valueNames';
 
 import { fieldName, materialFields } from './materialCatalog';
@@ -21,17 +27,19 @@ export const recipeFinalId = (mixId: string, entryId: string): string =>
 
 export const mixFinalId = (mixId: string): string => `${mixId}:recipe:final`;
 
+const mixWorkingId = (mixId: string) => `${mixId}:recipe:working`;
+
 export const wellTotalName = (
   names: ReadonlyMap<string, BoardName> | BoardCalculation['names']
 ): string | undefined =>
   WELL_VOLUME_NAMES.map(name => names.get(nameKey(name))).find(Boolean)?.name;
 
-function perWellName(mix: MaterialItem, names: ReadonlyMap<string, BoardName>) {
+function mixValue(mix: MaterialItem, label: string, names: ReadonlyMap<string, BoardName>) {
   const owners = [mix.name.trim(), nameWithoutNotes(mix.name)];
-  return owners
-    .map(owner => names.get(nameKey(joinValueName(owner, 'Volume per well'))))
-    .find(Boolean)?.name;
+  return owners.map(owner => names.get(nameKey(joinValueName(owner, label)))).find(Boolean);
 }
+
+const isMix = (item: MaterialItem) => !!item.name.trim() && !item.isDropped && !!item.recipe.length;
 
 function stockName(mix: MaterialItem) {
   const definition = materialFields(mix).find(candidate => candidate.key === STOCK_FIELD);
@@ -45,7 +53,7 @@ function mixNames(
   names: ReadonlyMap<string, BoardName>
 ): BoardName[] {
   const mixName = mix.name.trim();
-  const perWell = perWellName(mix, names);
+  const perWell = mixValue(mix, 'Volume per well', names)?.name;
   const wellTotal = wellTotalName(names);
   const scaling = perWell && wellTotal ? ` × ${perWell} ÷ ${wellTotal}` : '';
   const missing = !perWell
@@ -61,19 +69,40 @@ function mixNames(
   };
   const inputs: BoardName[] = [];
   const finals: Array<Extract<BoardName, { kind: 'formula' }>> = [];
-
-  const stock = stockName(mix);
-  if (mix.units[STOCK_FIELD] === FOLD_UNIT && (mix.values[STOCK_FIELD] ?? '').trim() && stock) {
+  const final = (id: string, name: string, expr: string, unit: string, problem = missing) =>
     finals.push({
       kind: 'formula',
-      id: mixFinalId(mix.id),
-      name: `${mixName} in the well`,
-      expr: `${stock}${scaling}`,
-      unit: FOLD_UNIT,
+      id,
+      name,
+      expr,
+      unit,
       workedOut: group,
-      ...(missing && { problem: missing }),
+      ...(problem && { problem }),
     });
+
+  const stockField = stockName(mix);
+  const stock =
+    mix.units[STOCK_FIELD] === FOLD_UNIT && stockField && names.has(nameKey(stockField))
+      ? stockField
+      : undefined;
+  const dilution = mixValue(mix, 'Working dilution', names);
+  const concentration = mixValue(mix, 'Working concentration', names)?.name;
+  const dilutes = dilution
+    ? `${dilution.kind === 'value' && dilution.unit === DILUTION_FACTOR_NOTATION ? '÷' : '×'} ${dilution.name}`
+    : undefined;
+  const fromStock =
+    dilutes ?? (concentration && stock ? `× ${concentration} ÷ ${stock}` : undefined);
+  const working = dilutes && stock ? `${mixName} working` : concentration;
+  if (dilutes && stock) {
+    final(mixWorkingId(mix.id), `${mixName} working`, `${stock} ${dilutes}`, FOLD_UNIT, undefined);
   }
+  const strength = working ?? stock;
+  if (strength)
+    final(mixFinalId(mix.id), `${mixName} in the well`, `${strength}${scaling}`, FOLD_UNIT);
+  const cannotScale =
+    concentration && !fromStock
+      ? `Needs ${joinValueName(mixName, 'Stock concentration')} in X to scale by its working concentration`
+      : undefined;
   for (const entry of mix.recipe) {
     const ingredient = materials.get(entry.materialId)?.name.trim();
     if (!ingredient) continue;
@@ -87,15 +116,13 @@ function mixNames(
       workedOut: group,
       sourceBlockId: materialsBlockId,
     });
-    finals.push({
-      kind: 'formula',
-      id: recipeFinalId(mix.id, entry.id),
-      name: `${mixName} ${ingredient} in the well`,
-      expr: `${inMix}${scaling}`,
-      unit: entry.unit === FOLD_UNIT ? FOLD_UNIT : '',
-      workedOut: group,
-      ...(missing && { problem: missing }),
-    });
+    final(
+      recipeFinalId(mix.id, entry.id),
+      `${mixName} ${ingredient} in the well`,
+      `${inMix}${fromStock ? ` ${fromStock}` : ''}${scaling}`,
+      entry.unit === FOLD_UNIT ? FOLD_UNIT : '',
+      cannotScale ?? missing
+    );
   }
 
   const clash = [...inputs, ...finals]
@@ -117,8 +144,31 @@ export function recipeFormulaNames(protocol: Protocol, taken: readonly BoardName
     materialBlocks.flatMap(block => block.items).map(item => [item.id, item] as const)
   );
   return materialBlocks.flatMap(block =>
-    block.items
-      .filter(item => item.name.trim() && !item.isDropped && item.recipe.length)
-      .flatMap(mix => mixNames(mix, block.id, byId, names))
+    block.items.filter(isMix).flatMap(mix => mixNames(mix, block.id, byId, names))
   );
+}
+
+const AGREEMENT = 0.01;
+
+export function recipeWarnings(
+  protocol: Protocol,
+  calculation: BoardCalculation
+): Map<string, string[]> {
+  const warnings = new Map<string, string[]>();
+  const mixes = protocol.blocks
+    .flatMap(block => (block.type === 'materials' ? block.items : []))
+    .filter(isMix);
+  for (const mix of mixes) {
+    const result = calculation.results.get(mixWorkingId(mix.id));
+    const typed = mixValue(mix, 'Working concentration', calculation.names);
+    if (result?.status !== 'ok' || typed?.kind !== 'value') continue;
+    const typedQuantity = quantityOf(typed.value, typed.unit);
+    if (!typedQuantity) continue;
+    const made = result.quantity.magnitude;
+    if (Math.abs(made - typedQuantity.magnitude) <= AGREEMENT * Math.abs(made)) continue;
+    warnings.set(mixWorkingId(mix.id), [
+      `Working concentration says ${displayValue(typed.value, typed.unit)}, but the working dilution makes ${formulaAnswerText(result)}.`,
+    ]);
+  }
+  return warnings;
 }

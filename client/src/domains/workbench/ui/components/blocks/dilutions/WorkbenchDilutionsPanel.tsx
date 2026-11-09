@@ -86,7 +86,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
               const field = prep.stock.need === 'weight' ? WEIGHT_FIELD : STOCK_FIELD;
               updateProtocol(draft =>
                 recordOnMaterial(draft, run.subject, field, value, unit, name =>
-                  materialFromGuess(guessMaterial(name, remembered), memory.materials)
+                  materialFromGuess(guessMaterial(name, remembered), memory)
                 )
               );
             }}

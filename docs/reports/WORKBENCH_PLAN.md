@@ -76,7 +76,10 @@ detail. Server storage gets built only if a real need appears.
         recipe stays as the note). Ingredients say "in Th17 cocktail" under Used in. Values shows
         the ingredients as rows under the material with In the mix and Final in the well, worked
         out from the row's Volume per well ÷ the board's Well volume (`materialRecipeFormulas.ts`,
-        calculations in the engine since 2026-11-09); a stock in X
+        calculations in the engine since 2026-11-09). A mix diluted before it goes in takes a
+        "Working dilution 1:2000" or "Working concentration 4X" on its Values row, and the chain
+        reads stock 8000X → working 4X → 1X in the well, ingredients scaled the same way; both
+        typed and disagreeing gets a warning on the Working line; a stock in X
         gets the same check on its own row (4X × 20 µL ÷ 80 µL = 1X). Day-of master mixes stay as
         Values mixes.
   - [x] Band colors: plate and Values share one rule (`bandColorOf` in shared-schemas): a picked
@@ -136,6 +139,17 @@ detail. Server storage gets built only if a real need appears.
         (Evan). A user name that clashes with a generated one stops that prep and asks for a rename,
         shown once per group. No "use the app's" button: clashes come from files that hand-built
         the prep before the app did it, a one-time cleanup (Evan, 2026-11-09).
+  - [x] Stock and final concentration take every concentration unit the app has (cells/mL,
+        beads/mL, particles/mL, IU/mL, U/mL, M, g/L…): the list is `CONCENTRATION_UNIT_IDS` from
+        `@shared/utils/unitOptions`, not a hand-picked copy (HCKA at 1e9 cells/mL).
+  - [x] Text fields in Materials (catalog, lot) show as typed; only number fields are formatted
+        (a catalog number 100000 had read "1.00E+5").
+  - [x] Antibodies start with Isotype beside vendor, catalog and lot.
+  - [x] Pin the columns a group starts with: a pin icon on each row of "+ Field" (no sentence,
+        Evan). Pins are per group (the table you are in), saved in lab memory (`startingFields`,
+        this browser only); a group with no pins keeps the built-in defaults of its kinds; a new
+        material gets the pinned fields its kind has, and a pinned field of your own brings its
+        learned definition.
   - [ ] An empty Assay date makes the id use today's date, so an undated plan's id changes daily.
   - [ ] Dilutions series keep their own Well volume box; consider defaulting a blank one to the
         experiment's Well volume so the number is typed once.

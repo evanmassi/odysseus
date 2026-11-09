@@ -34,6 +34,7 @@ import {
   nameWithinOwner,
   uniqueName,
 } from '../../../../utils/formulas/formulaScopes';
+import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { META_LABEL } from '../../board/metaLabelClass';
 
@@ -89,7 +90,13 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     [block, materials, calculation, showsWorkedOut]
   );
   const warnings = useMemo(
-    () => (showsWorkedOut ? prepWarnings(protocol, calculation) : new Map<string, string[]>()),
+    () =>
+      showsWorkedOut
+        ? new Map([
+            ...prepWarnings(protocol, calculation),
+            ...recipeWarnings(protocol, calculation),
+          ])
+        : new Map<string, string[]>(),
     [protocol, calculation, showsWorkedOut]
   );
 

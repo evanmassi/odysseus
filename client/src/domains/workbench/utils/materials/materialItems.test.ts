@@ -3,15 +3,16 @@ import {
   applyMaterialKind,
   copyMaterialField,
   findDuplicateMaterial,
+  groupStartingFields,
   materialColumns,
   materialFromGuess,
   materialText,
   mergeMaterialInto,
   writeMaterialField,
 } from './materialItems';
+import { EMPTY_LAB_MEMORY, type RememberedMaterial } from './materialMemory';
 
 import type { MaterialGuess } from './materialGuesser';
-import type { RememberedMaterial } from './materialMemory';
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
 const guessOf = (overrides: Partial<MaterialGuess>): MaterialGuess => ({
@@ -27,7 +28,7 @@ const guessOf = (overrides: Partial<MaterialGuess>): MaterialGuess => ({
 const make = (
   overrides: Partial<MaterialGuess> = {},
   memory: Record<string, RememberedMaterial> = {}
-) => materialFromGuess(guessOf(overrides), memory);
+) => materialFromGuess(guessOf(overrides), { ...EMPTY_LAB_MEMORY, materials: memory });
 
 const fieldOf = (item: MaterialItem, key: string) => {
   const definition = materialFields(item).find(candidate => candidate.key === key);
@@ -39,6 +40,12 @@ describe('materialFromGuess', () => {
   it('shows the default fields for the kind', () => {
     expect(make().shownFields).toEqual(['vendor', 'catalog', 'lot']);
     expect(make({ group: 'equip', type: 'Instrument' }).shownFields).toEqual(['model']);
+    expect(make({ group: 'ab', type: 'Antibody' }).shownFields).toEqual([
+      'vendor',
+      'catalog',
+      'lot',
+      'isotype',
+    ]);
     expect(make({ group: 'soft', type: 'Dataset' }).shownFields).toEqual([
       'repository',
       'accession-number',
@@ -128,10 +135,49 @@ describe('writeMaterialField', () => {
   });
 });
 
+describe('pinned starting fields', () => {
+  const pinned = (startingFields: Record<string, string[]>, fields = {}) => ({
+    ...EMPTY_LAB_MEMORY,
+    startingFields,
+    fields,
+  });
+  const newOf = (type: string, memory: ReturnType<typeof pinned>) =>
+    materialFromGuess(guessOf({ group: 'ab', type, name: type }), memory);
+
+  it('starts a group from the built-in defaults of all its kinds until something is pinned', () => {
+    expect(groupStartingFields(EMPTY_LAB_MEMORY, 'ab')).toEqual([
+      'vendor',
+      'catalog',
+      'lot',
+      'isotype',
+    ]);
+  });
+
+  it('starts new materials with the pinned fields their kind has', () => {
+    const memory = pinned({ ab: ['vendor', 'clone', 'isotype'] });
+    expect(newOf('Antibody', memory).shownFields).toEqual(['vendor', 'clone', 'isotype']);
+    expect(newOf('Isotype control', memory).shownFields).toEqual(['vendor', 'isotype']);
+  });
+
+  it('brings a pinned field of your own along with its definition', () => {
+    const own = {
+      key: 'fc-block',
+      label: 'Fc block',
+      kind: 'text' as const,
+      scope: 'protocol' as const,
+      unit: '',
+      options: [],
+    };
+    const item = newOf('Antibody', pinned({ ab: ['fc-block'] }, { 'ab|Antibody': [own] }));
+    expect(item.shownFields).toEqual(['fc-block']);
+    expect(item.customFields).toEqual([own]);
+  });
+});
+
 describe('applyMaterialKind', () => {
   it('adds the new kind defaults and drops fields the new kind does not have', () => {
     const item = make({ group: 'supplies', type: 'Plate', values: { format: '96-well' } });
-    applyMaterialKind(item, 'equip', 'Instrument');
+    applyMaterialKind(item, 'equip', 'Instrument', EMPTY_LAB_MEMORY);
     expect(item.shownFields).toEqual(['model']);
     expect(item).toMatchObject({ group: 'equip', type: 'Instrument' });
   });
@@ -179,6 +225,19 @@ describe('materialText and materialColumns', () => {
     const item = make({ group: 'ab', type: 'Antibody', amount: { value: '200', unit: '1:N' } });
     expect(materialText(item, fieldOf(item, 'amount'))).toBe('1:200');
     expect(materialText(item, fieldOf(item, 'vendor'))).toBe('');
+    item.values['catalog'] = '100000';
+    item.values['lot'] = '20241105';
+    expect(materialText(item, fieldOf(item, 'catalog'))).toBe('100000');
+    expect(materialText(item, fieldOf(item, 'lot'))).toBe('20241105');
+  });
+
+  it('takes a stock in cells per mL, like heat-killed yeast at 1e9 cells/mL', () => {
+    const item = make({ group: 'ab', type: 'Antibody' });
+    const stock = fieldOf(item, 'stock-concentration');
+    expect(stock.units).toContain('cells/mL');
+    writeMaterialField(item, stock, '1e9');
+    item.units['stock-concentration'] = 'cells/mL';
+    expect(materialText(item, stock)).toBe('1.00E+9 cells/mL');
   });
 
   it('collects each shown field once, in first-seen order', () => {

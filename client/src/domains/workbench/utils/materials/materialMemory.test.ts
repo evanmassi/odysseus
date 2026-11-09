@@ -8,12 +8,13 @@ import {
   learnedFields,
   rememberKind,
   rememberedKinds,
+  toggleStartingField,
 } from './materialMemory';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 const material = (name: string, group = 'chem', type = 'Chemical'): MaterialItem =>
-  materialFromGuess({ group, type, name, values: {}, why: '', source: 'list' }, {});
+  materialFromGuess({ group, type, name, values: {}, why: '', source: 'list' }, EMPTY_LAB_MEMORY);
 
 const shelf = {
   key: 'custom-shelf',
@@ -91,5 +92,15 @@ describe('lot memory', () => {
     expect(reopened.values['stock-concentration']).toBe('200');
     expect(reopened.shownFields).toEqual(['stock-concentration']);
     expect(fillFromLotMemory(lotMemory, reopened)).toBe(false);
+  });
+});
+
+describe('toggleStartingField', () => {
+  it('unpins from the current list, then pins back at the end', () => {
+    const current = ['vendor', 'catalog', 'lot', 'isotype'];
+    const unpinned = toggleStartingField(EMPTY_LAB_MEMORY, 'ab', 'lot', current);
+    expect(unpinned.startingFields).toEqual({ ab: ['vendor', 'catalog', 'isotype'] });
+    const repinned = toggleStartingField(unpinned, 'ab', 'lot', unpinned.startingFields['ab']);
+    expect(repinned.startingFields['ab']).toEqual(['vendor', 'catalog', 'isotype', 'lot']);
   });
 });

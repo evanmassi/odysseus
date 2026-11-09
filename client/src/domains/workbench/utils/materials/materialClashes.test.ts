@@ -1,10 +1,11 @@
 import { conjugateClashes } from './materialClashes';
 import { materialFromGuess } from './materialItems';
+import { EMPTY_LAB_MEMORY } from './materialMemory';
 
 const antibody = (name: string, conjugate: string, panel = '') => {
   const item = materialFromGuess(
     { group: 'ab', type: 'Antibody', name, values: {}, why: '', source: 'list' },
-    {}
+    EMPTY_LAB_MEMORY
   );
   item.values['conjugate'] = conjugate;
   item.values['panel'] = panel;

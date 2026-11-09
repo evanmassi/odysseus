@@ -11,7 +11,10 @@ import {
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
 const material = (type: string, group = 'supplies'): MaterialItem =>
-  materialFromGuess({ group, type, name: type, values: {}, why: '', source: 'list' }, {});
+  materialFromGuess(
+    { group, type, name: type, values: {}, why: '', source: 'list' },
+    EMPTY_LAB_MEMORY
+  );
 
 const shelf = {
   key: 'custom-shelf',

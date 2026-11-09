@@ -6,7 +6,7 @@ import {
 } from './materialGuesser';
 import { findDuplicateMaterial, materialFromGuess, mergeMaterialInto } from './materialItems';
 
-import type { RememberedMaterial } from './materialMemory';
+import type { LabMemory } from './materialMemory';
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 export interface MaterialReviewRow {
@@ -37,11 +37,11 @@ export function pastedReviewRows(
   items: readonly MaterialItem[],
   keptBoth: readonly string[],
   remembered: ReadonlyMap<string, RememberedMaterialKind>,
-  rememberedMaterials: Readonly<Record<string, RememberedMaterial>>
+  memory: LabMemory
 ): MaterialReviewRow[] {
   return splitPastedMaterials(text).map(row => {
     const guess = guessMaterial(row.text, remembered, row.context);
-    return reviewRow(items, keptBoth, materialFromGuess(guess, rememberedMaterials), guess.why);
+    return reviewRow(items, keptBoth, materialFromGuess(guess, memory), guess.why);
   });
 }
 

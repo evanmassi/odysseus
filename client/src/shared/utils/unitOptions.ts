@@ -91,6 +91,10 @@ export const concentrationUnitOptions = (
   customUnits: ReadonlyArray<{ label: string; kind: UnitKind }>
 ): SelectOption[] => toOptions(unitsOfKind(CONCENTRATION_UNIT_KINDS, customUnits));
 
+export const CONCENTRATION_UNIT_IDS = unitsOfKind(CONCENTRATION_UNIT_KINDS, []).map(
+  unit => unit.id
+);
+
 export const amountUnitOptions = (
   customUnits: ReadonlyArray<{ label: string; kind: UnitKind }>
 ): SelectOption[] => toOptions(unitsOfKind(AMOUNT_UNIT_KINDS, customUnits));

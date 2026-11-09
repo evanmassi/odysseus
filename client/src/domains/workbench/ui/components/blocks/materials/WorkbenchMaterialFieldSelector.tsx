@@ -1,8 +1,8 @@
 import type { RefObject } from 'react';
 
-import { Check, Plus } from 'lucide-react';
+import { Check, Pin, Plus } from 'lucide-react';
 
-import { DropdownMenu, Input, ScrollArea } from '@shared/ui';
+import { DropdownMenu, Input, ScrollArea, Tooltip } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import {
@@ -14,9 +14,11 @@ interface WorkbenchMaterialFieldSelectorProps {
   isOpen: boolean;
   triggerRef: RefObject<HTMLElement>;
   choices: readonly FieldChoice[];
+  pinnedKeys: ReadonlySet<string>;
   query: string;
   onQueryChange: (query: string) => void;
   onToggle: (key: string) => void;
+  onTogglePin: (key: string) => void;
   onAddCustom: () => void;
   onClose: () => void;
 }
@@ -29,9 +31,11 @@ export function WorkbenchMaterialFieldSelector({
   isOpen,
   triggerRef,
   choices,
+  pinnedKeys,
   query,
   onQueryChange,
   onToggle,
+  onTogglePin,
   onAddCustom,
   onClose,
 }: WorkbenchMaterialFieldSelectorProps) {
@@ -73,22 +77,38 @@ export function WorkbenchMaterialFieldSelector({
         />
       </div>
       <ScrollArea className="max-h-64">
-        {visible.map(({ definition, isShown }) => (
-          <button
-            key={definition.key}
-            type="button"
-            className={`${CHOICE_ROW} ${isShown ? 'text-foreground' : ''}`}
-            onMouseDown={event => event.preventDefault()}
-            onClick={() => onToggle(definition.key)}
-          >
-            <span
-              className={`${CHECK_BOX} ${isShown ? 'border-primary bg-primary/70 text-background' : 'border-line-mid'}`}
-            >
-              {isShown && <Check aria-hidden className="h-3 w-3" />}
-            </span>
-            {definition.label}
-          </button>
-        ))}
+        {visible.map(({ definition, isShown }) => {
+          const isPinned = pinnedKeys.has(definition.key);
+          return (
+            <div key={definition.key} className="group/choice flex items-center">
+              <button
+                type="button"
+                className={`${CHOICE_ROW} ${isShown ? 'text-foreground' : ''}`}
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => onToggle(definition.key)}
+              >
+                <span
+                  className={`${CHECK_BOX} ${isShown ? 'border-primary bg-primary/70 text-background' : 'border-line-mid'}`}
+                >
+                  {isShown && <Check aria-hidden className="h-3 w-3" />}
+                </span>
+                {definition.label}
+              </button>
+              <Tooltip content={isPinned ? 'Unpin' : 'Pin'}>
+                <button
+                  type="button"
+                  aria-label={`${isPinned ? 'Unpin' : 'Pin'} ${definition.label}`}
+                  aria-pressed={isPinned}
+                  className={`flex-none px-2.5 py-1.5 ${isPinned ? 'text-primary' : 'text-muted-foreground opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover/choice:opacity-100'}`}
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => onTogglePin(definition.key)}
+                >
+                  <Pin aria-hidden className={`h-3.5 w-3.5 ${isPinned ? 'fill-current' : ''}`} />
+                </button>
+              </Tooltip>
+            </div>
+          );
+        })}
         {canAddCustom && (
           <button
             type="button"
