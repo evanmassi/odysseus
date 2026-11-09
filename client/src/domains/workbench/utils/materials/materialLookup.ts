@@ -4,18 +4,35 @@ import { normalizeMaterialKey } from './materialGuesser';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
-const withoutNotes = (name: string) => normalizeMaterialKey(name.replace(/\([^)]*\)/g, ' '));
+export const nameWithoutNotes = (name: string): string =>
+  name
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-export function materialNamed(protocol: Protocol, name: string): MaterialItem | undefined {
-  const listed = protocol.blocks
-    .flatMap(block => (block.type === 'materials' ? block.items : []))
-    .filter(item => !item.isDropped);
+const withoutNotes = (name: string) => normalizeMaterialKey(nameWithoutNotes(name));
+
+export function findNamed<Item>(
+  items: readonly Item[],
+  name: string,
+  nameOf: (item: Item) => string
+): Item | undefined {
   const key = normalizeMaterialKey(name);
+  const bare = withoutNotes(name);
+  if (!key) return undefined;
   return (
-    listed.find(item => normalizeMaterialKey(item.name) === key) ??
-    listed.find(item => withoutNotes(item.name) === withoutNotes(name))
+    items.find(item => normalizeMaterialKey(nameOf(item)) === key) ??
+    (bare ? items.find(item => withoutNotes(nameOf(item)) === bare) : undefined)
   );
 }
+
+export const listedMaterials = (protocol: Protocol): MaterialItem[] =>
+  protocol.blocks
+    .flatMap(block => (block.type === 'materials' ? block.items : []))
+    .filter(item => !item.isDropped && item.name.trim());
+
+export const materialNamed = (protocol: Protocol, name: string): MaterialItem | undefined =>
+  findNamed(listedMaterials(protocol), name, item => item.name);
 
 export function ensureMaterial(
   draft: Protocol,

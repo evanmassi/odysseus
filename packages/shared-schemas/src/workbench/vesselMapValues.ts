@@ -12,6 +12,7 @@ const VALUE_COLORS = [
   '#e8875a',
   '#8fd3e8',
 ] as const;
+const BAND_COLORS = ['#f0b35b', '#e8875a', '#6fbf73', '#c9ccd3'] as const;
 const NEUTRAL_VALUE_COLOR = '#7d8494';
 const NEUTRAL_VALUE = /^(?:no|none|vehicle|media|medium|untreated|unstim\w*|blank|empty|mock)\b/i;
 
@@ -160,4 +161,12 @@ export function normalizeVesselMap(block: VesselMapBlock): void {
   const line = colorLineOf(block);
   if (!line) return;
   for (const value of line.values) value.color ??= nextValueColor(block, value.text);
+}
+
+export function bandColorOf(block: VesselMapBlock, value: LineValue | undefined): string {
+  if (value?.color) return value.color;
+  if (!value) return BAND_COLORS[0];
+  const colorLine = colorLineOf(block);
+  const bandValues = block.lines.filter(line => line !== colorLine).flatMap(line => line.values);
+  return BAND_COLORS[Math.max(0, bandValues.indexOf(value)) % BAND_COLORS.length];
 }

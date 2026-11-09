@@ -18,7 +18,8 @@ export type FormattedQuantity = { text: string } | { error: string };
 export const AUTO_UNIT = 'auto';
 export const RATIO_NOTATION = '1:N';
 export const PAIR_NOTATION = 'N:N';
-const FOLD_UNIT = 'X';
+export const DILUTION_FACTOR_NOTATION = '1:DF';
+export const FOLD_UNIT = 'X';
 const NO_DIMENSION: UnitDimension = {};
 
 const AUTO_DISPLAY_UNITS = [
@@ -112,9 +113,21 @@ export function quantityOf(value: string, unit: string): Quantity | undefined {
   return { magnitude: number * factor, dimension };
 }
 
+export const isUnreadableAmount = (value: string, unit: string) =>
+  !!value.trim() && quantityOf(value, unit === PAIR_NOTATION ? unit : '') === undefined;
+
+export const showsOneToPrefix = (unit: string) =>
+  unit === RATIO_NOTATION || unit === DILUTION_FACTOR_NOTATION;
+
+export function workingValue(value: string, unit: string): string {
+  return unit === DILUTION_FACTOR_NOTATION
+    ? readableNumberText(value.trim())
+    : displayValue(value, unit);
+}
+
 export function displayValue(value: string, unit: string): string {
   const text = value.trim();
-  if (unit === RATIO_NOTATION) return `1:${text}`;
+  if (showsOneToPrefix(unit)) return `1:${text}`;
   if (unit === PAIR_NOTATION) return text.replace(/\s*:\s*/, ':');
   const readable = readableNumberText(text);
   if (unit === FOLD_UNIT) return `${readable}×`;

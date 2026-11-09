@@ -100,10 +100,10 @@ describe('guessMaterial antibodies and labels', () => {
     });
   });
 
-  it('files a therapeutic antibody as a drug', () => {
+  it('files a therapeutic antibody with the antibodies', () => {
     expect(guess('pembrolizumab')).toMatchObject({
-      group: 'chem',
-      type: 'Drug or inhibitor',
+      group: 'ab',
+      type: 'Antibody',
       why: 'pembrolizumab is a therapeutic antibody',
       source: 'none',
     });

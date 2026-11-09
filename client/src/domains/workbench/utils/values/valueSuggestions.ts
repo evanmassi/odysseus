@@ -50,15 +50,16 @@ export function valueSuggestions(
       'materialField' in item ? item.materialField : normalizeMaterialKey(item.name)
     )
   );
-  const ownFields: ValueSuggestion[] = material
-    ? materialFields(material)
-        .filter(definition => definition.kind === 'number' && !taken.has(definition.key))
-        .map(definition => ({
-          kind: 'field',
-          materialField: definition.key,
-          label: fieldLabel(material, definition),
-        }))
-    : [];
+  const ownFields: ValueSuggestion[] =
+    material && material.type !== 'Plate'
+      ? materialFields(material)
+          .filter(definition => definition.kind === 'number' && !taken.has(definition.key))
+          .map(definition => ({
+            kind: 'field',
+            materialField: definition.key,
+            label: fieldLabel(material, definition),
+          }))
+      : [];
   const ownLabels = new Set(ownFields.map(suggestion => normalizeMaterialKey(suggestion.label)));
   const usual: readonly SuggestionRow[] = !material
     ? USUAL_VALUES['mix']

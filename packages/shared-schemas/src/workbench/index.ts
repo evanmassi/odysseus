@@ -19,6 +19,7 @@ export {
 } from './protocolFileSchemas';
 
 export {
+  bandColorOf,
   colorLineOf,
   isFilledCell,
   lineValueOf,

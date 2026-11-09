@@ -88,6 +88,43 @@ export const withoutPlate = (vessels: Vessels, plateId: string): Vessels => ({
   sets: vessels.sets,
 });
 
+type Plate = VesselMapBlock['plates'][number];
+type Series = VesselMapBlock['series'][string];
+
+const copyOfSeries = (series: Series): Series => ({
+  ...series,
+  ...('points' in series && { points: [...series.points] }),
+  ...(series.prep && { prep: { ...series.prep } }),
+});
+
+export function copyPlateIntoCard(block: VesselMapBlock, plate: Plate): void {
+  const copy: Plate = { ...plate, id: createId(), name: plate.name ? `${plate.name} copy` : '' };
+  block.plates.splice(block.plates.indexOf(plate) + 1, 0, copy);
+  const freshSeries = new Map<string, string>();
+  const seriesCopyOf = (seriesId: string) => {
+    const known = freshSeries.get(seriesId);
+    if (known) return known;
+    const fresh = createId();
+    freshSeries.set(seriesId, fresh);
+    block.series[fresh] = copyOfSeries(block.series[seriesId]);
+    return fresh;
+  };
+  const prefix = `${plate.id}:`;
+  for (const [key, lines] of Object.entries(block.cells)) {
+    if (!key.startsWith(prefix)) continue;
+    const copied = Object.fromEntries(
+      Object.entries(lines).map(([lineId, cell]) => [
+        lineId,
+        cell.seriesId === undefined
+          ? { ...cell }
+          : { ...cell, seriesId: seriesCopyOf(cell.seriesId) },
+      ])
+    );
+    block.cells[`${copy.id}:${key.slice(prefix.length)}`] = copied;
+  }
+  block.activeTab = block.plates.indexOf(copy);
+}
+
 export function duplicateOfTab(block: VesselMapBlock, tab: VesselTab): VesselMapBlock {
   const renames = new Map<string, string>();
   const copy = structuredClone(block);

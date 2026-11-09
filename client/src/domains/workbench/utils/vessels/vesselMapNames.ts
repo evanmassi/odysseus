@@ -8,8 +8,15 @@ import {
   type VesselMapBlock,
 } from '@odysseus/shared-schemas';
 
-import { dimensionKey, PAIR_NOTATION, RATIO_NOTATION, readNumber } from '../formulas/quantities';
+import {
+  DILUTION_FACTOR_NOTATION,
+  dimensionKey,
+  PAIR_NOTATION,
+  RATIO_NOTATION,
+  readNumber,
+} from '../formulas/quantities';
 import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { nameWithoutNotes } from '../materials/materialLookup';
 
 import { foldOf } from './plateSeries';
 import {
@@ -19,11 +26,14 @@ import {
   wordsForTypes,
   type VesselType,
 } from './vesselCatalog';
+import { plateNameOf } from './vesselTabs';
 
 type LineValue = PlateLine['values'][number];
 
 export interface VesselCount {
   name: string;
+  label: string;
+  subject: string;
   count: number;
   tally: number;
   key: string;
@@ -38,14 +48,27 @@ export type PlateAmountSource =
 export interface PlateAmount {
   key: string;
   name: string;
+  label: string;
   automaticName: string;
   subject: string;
+  variant: string;
   value: string;
   unit: string;
   source: PlateAmountSource;
 }
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+function labelFromName(name: string, subject: string, variant: string): string {
+  let rest = name.trim();
+  if (rest.toLowerCase().startsWith(`${subject.toLowerCase()} `)) {
+    rest = rest.slice(subject.length + 1);
+  }
+  if (variant && rest.toLowerCase().endsWith(` ${variant.toLowerCase()}`)) {
+    rest = rest.slice(0, -(variant.length + 1));
+  }
+  return capitalize(rest);
+}
 
 const CONCENTRATION_DIMENSIONS = new Set(
   [
@@ -82,6 +105,8 @@ function valueCounts(block: VesselMapBlock): VesselCount[] {
     return [
       {
         name: `${text} ${plural}`,
+        label: capitalize(plural),
+        subject: text,
         count: typedCount(block, value.id) ?? keys.length,
         tally: keys.length,
         key: value.id,
@@ -95,8 +120,11 @@ export function vesselCounts(block: VesselMapBlock): VesselCount[] {
   const usedKeys = Object.keys(block.cells).filter(key =>
     Object.values(block.cells[key]).some(isFilledCell)
   );
+  const usedName = `${capitalize(wordsForTypes(allVesselTypes(block)).plural)} used`;
   const used: VesselCount = {
-    name: `${capitalize(wordsForTypes(allVesselTypes(block)).plural)} used`,
+    name: usedName,
+    label: usedName,
+    subject: '',
     count: typedCount(block, 'used') ?? usedKeys.length,
     tally: usedKeys.length,
     key: 'used',
@@ -105,8 +133,11 @@ export function vesselCounts(block: VesselMapBlock): VesselCount[] {
   const plateTotals = [...new Set(block.plates.map(candidate => candidate.vessel))].map(
     (type): VesselCount => {
       const count = block.plates.filter(candidate => candidate.vessel === type).length;
+      const name = `${vesselOf(type).label}s`;
       return {
-        name: `${vesselOf(type).label}s`,
+        name,
+        label: name,
+        subject: '',
         count,
         tally: count,
         key: `count:${type}`,
@@ -119,8 +150,11 @@ export function vesselCounts(block: VesselMapBlock): VesselCount[] {
     const count = block.sets
       .filter(set => set.vessel === type)
       .reduce((sum, set) => sum + set.count, 0);
+    const name = `${vessel.label.replace(/ (flask|dish|tube)$/, '')} ${VESSEL_PLURALS[vessel.noun]}`;
     return {
-      name: `${vessel.label.replace(/ (flask|dish|tube)$/, '')} ${VESSEL_PLURALS[vessel.noun]}`,
+      name,
+      label: name,
+      subject: '',
       count,
       tally: count,
       key: `count:${type}`,
@@ -149,17 +183,24 @@ const isSameAmount = (cells: PlainCell[]) =>
 
 export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
   const amounts: PlateAmount[] = [];
-  const add = (amount: Omit<PlateAmount, 'name'>) =>
+  const add = (amount: Omit<PlateAmount, 'name'>) => {
+    const typedName = block.amountNames[amount.key]?.trim();
     amounts.push({
       ...amount,
-      name: block.amountNames[amount.key]?.trim() || amount.automaticName,
+      name: typedName || amount.automaticName,
+      label: typedName ? labelFromName(typedName, amount.subject, amount.variant) : amount.label,
     });
+  };
   const colorLine = colorLineOf(block);
   const colorValueAt = (key: string) =>
     colorLine ? lineValueOf(colorLine, block.cells[key]?.[colorLine.id]) : undefined;
   const soleColorValue = (keys: string[]) => {
     const values = new Set(keys.map(colorValueAt));
     return values.size === 1 ? [...values][0] : undefined;
+  };
+  const solePlate = (keys: string[]) => {
+    const plateIds = new Set(keys.map(key => key.split(':')[0]));
+    return plateIds.size === 1 ? block.plates.find(plate => plateIds.has(plate.id)) : undefined;
   };
 
   for (const line of block.lines) {
@@ -188,12 +229,13 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
       const base = `a:${line.id}:${groupKey}`;
       const fromWells = (inWells: PlainCell[]) => ({
         subject,
+        label: capitalize(noun),
         value: inWells[0].amount,
         unit: inWells[0].unit,
         source: { kind: 'wells' as const, lineId: line.id, keys: inWells.map(cell => cell.key) },
       });
       if (isSameAmount(cells)) {
-        add({ key: base, automaticName: `${subject} ${noun}`, ...fromWells(cells) });
+        add({ key: base, automaticName: `${subject} ${noun}`, variant: '', ...fromWells(cells) });
         continue;
       }
       for (const value of colorLine?.values ?? []) {
@@ -202,6 +244,7 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
           add({
             key: `${base}:${value.id}`,
             automaticName: `${subject} ${noun} in ${value.text.trim()}`,
+            variant: `in ${value.text.trim()}`,
             ...fromWells(inValue),
           });
         }
@@ -218,22 +261,28 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
         other => normalizeMaterialKey(other.subject) === normalizeMaterialKey(subject)
       );
       const twinValues = twins.map(twin => soleColorValue(twin.keys));
+      const twinPlates = twins.map(twin => solePlate(twin.keys));
       const index = twins.indexOf(run);
       const value = twinValues[index];
-      const tellsTwinsApart =
-        twinValues.every(Boolean) && new Set(twinValues).size === twins.length;
+      const plate = twinPlates[index];
+      const isApart = (marks: readonly unknown[]) =>
+        marks.every(Boolean) && new Set(marks).size === twins.length;
       const tag =
         twins.length < 2
           ? ''
-          : value && tellsTwinsApart
+          : value && isApart(twinValues)
             ? ` in ${value.text.trim()}`
-            : ` ${index + 1}`;
+            : plate && isApart(twinPlates)
+              ? ` on ${plateNameOf(block, plate)}`
+              : ` ${index + 1}`;
       const startWord = series.unit === RATIO_NOTATION ? 'dilution' : 'dose';
+      const shared = { subject, variant: tag.trim() };
       if (STARTS_WITH_NUMBER.test(series.start)) {
         add({
           key: `s:${seriesId}:start`,
           automaticName: `${subject} top ${startWord}${tag}`,
-          subject,
+          label: `Top ${startWord}`,
+          ...shared,
           value: series.start.trim(),
           unit: series.unit,
           source: { kind: 'series', seriesId, field: 'start' },
@@ -243,16 +292,18 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
         add({
           key: `s:${seriesId}:fold`,
           automaticName: `${subject} fold${tag}`,
-          subject,
+          label: 'Dilution',
+          ...shared,
           value: String(foldOf(series.fold)),
-          unit: 'X',
+          unit: DILUTION_FACTOR_NOTATION,
           source: { kind: 'series', seriesId, field: 'fold' },
         });
       }
       add({
         key: `s:${seriesId}:points`,
         automaticName: `${subject} points${tag}`,
-        subject,
+        label: 'Points',
+        ...shared,
         value: String(steps.size),
         unit: '',
         source: { kind: 'points', seriesId },
@@ -282,7 +333,9 @@ export function materialWellCounts(
         .join(' | ')
         .toLowerCase();
       for (const material of materials) {
-        if (mentions(text, material.name)) counts.set(material, (counts.get(material) ?? 0) + 1);
+        const bare = nameWithoutNotes(material.name);
+        const isMentioned = mentions(text, material.name) || (!!bare && mentions(text, bare));
+        if (isMentioned) counts.set(material, (counts.get(material) ?? 0) + 1);
       }
     }
   }

@@ -1,8 +1,11 @@
 import { Button, Tooltip } from '@shared/ui';
 
+import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { displayValue, PAIR_NOTATION, quantityOf } from '../../../../utils/formulas/quantities';
+import { usageTitle } from '../../../../utils/formulas/nameUsage';
+import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
 
+import { EDITABLE_HOVER } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 
 export type ValueCell = 'name' | 'value';
@@ -34,9 +37,6 @@ interface WorkbenchValueRowProps {
 
 const CELL = 'px-2 py-1.5 align-middle';
 
-const isUnreadable = (value: string, unit: string) =>
-  !!value.trim() && quantityOf(value, unit === PAIR_NOTATION ? unit : '') === undefined;
-
 export function WorkbenchValueRow({
   row,
   editingCell,
@@ -47,10 +47,8 @@ export function WorkbenchValueRow({
   onUnitChange,
   onRemove,
 }: WorkbenchValueRowProps) {
-  const isInvalid = isUnreadable(row.value, row.unit);
-  const title = row.usage
-    ? `${row.fullName}: used in ${row.usage}`
-    : `${row.fullName}: not used in any step or formula`;
+  const isInvalid = isUnreadableAmount(row.value, row.unit);
+  const title = usageTitle(row.fullName, row.usage);
 
   const handleKeyDown = (cell: ValueCell) => (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === 'Escape') {
@@ -66,16 +64,19 @@ export function WorkbenchValueRow({
     }
   };
 
-  const handleBlur = (event: React.FocusEvent) => {
-    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onEdit(undefined);
-  };
+  const leave = useFocusLeave(() => onEdit(undefined));
 
   return (
     <Tooltip content={title}>
       <tr
         className={`group even:bg-foreground/[0.025] ${row.isDuplicate || isInvalid ? 'text-danger-text' : ''}`}
       >
-        <td className={CELL} onKeyDown={handleKeyDown('name')} onBlur={handleBlur}>
+        <td
+          className={CELL}
+          onKeyDown={handleKeyDown('name')}
+          onBlur={leave.onBlur}
+          onFocus={leave.onFocus}
+        >
           {editingCell === 'name' ? (
             <input
               ref={focusOnMount}
@@ -89,7 +90,7 @@ export function WorkbenchValueRow({
           ) : (
             <button
               type="button"
-              className="w-full text-left text-body-sm text-foreground"
+              className={`w-full text-left text-body-sm text-foreground ${EDITABLE_HOVER}`}
               onClick={() => onEdit('name')}
             >
               {row.label || <span className="text-muted-foreground">Unnamed</span>}
@@ -102,7 +103,12 @@ export function WorkbenchValueRow({
             </button>
           )}
         </td>
-        <td className={`${CELL} text-right`} onKeyDown={handleKeyDown('value')} onBlur={handleBlur}>
+        <td
+          className={`${CELL} text-right`}
+          onKeyDown={handleKeyDown('value')}
+          onBlur={leave.onBlur}
+          onFocus={leave.onFocus}
+        >
           {editingCell === 'value' ? (
             <WorkbenchValueAmountField
               value={row.value}
@@ -118,7 +124,7 @@ export function WorkbenchValueRow({
             <button
               type="button"
               disabled={!row.isValueEditable}
-              className="w-full text-right font-mono text-data-sm disabled:cursor-default"
+              className={`w-full text-right font-mono text-data-sm disabled:cursor-default ${EDITABLE_HOVER}`}
               onClick={() => onEdit('value')}
             >
               {row.value.trim() ? (

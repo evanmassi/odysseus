@@ -28,7 +28,7 @@ const AMOUNT_FIELDS = [
   'coating-concentration',
 ];
 const MOLAR_STOCK_UNITS = new Set(['mM', 'M']);
-const RECIPE_FIELD = 'recipe';
+export const RECIPE_FIELD = 'recipe';
 const MADE_ON_FIELD = 'made-on';
 
 const hasText = (value: string | undefined): value is string => !!value?.trim();
@@ -52,6 +52,7 @@ function newMaterial(group: string, type: string, name: string): MaterialItem {
     customFields: [],
     fieldLabels: {},
     isDropped: false,
+    recipe: [],
   };
   const keys = new Set(materialFields(item).map(definition => definition.key));
   item.shownFields = materialDefaultFields(group, type).filter(key => keys.has(key));

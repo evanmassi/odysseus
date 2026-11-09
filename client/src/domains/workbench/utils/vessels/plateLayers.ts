@@ -1,4 +1,5 @@
 import {
+  bandColorOf,
   isFilledCell,
   lineValueOf,
   type PlateLine,
@@ -75,7 +76,6 @@ export interface PlateBand {
   clusters: BandCluster[];
 }
 
-const BAND_COLORS = ['#f0b35b', '#e8875a', '#6fbf73', '#c9ccd3'] as const;
 const RING_MOST_WELLS = 2;
 
 function clustersOf(cells: BandCell[]): Array<Omit<BandCluster, 'place'>> {
@@ -154,7 +154,7 @@ export function plateBands(
       });
       bands.push({
         text,
-        color: value?.color ?? BAND_COLORS[bands.length % BAND_COLORS.length],
+        color: bandColorOf(block, value),
         valueId: value?.id,
         wells: cells.length,
         clusters,

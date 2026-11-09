@@ -13,11 +13,11 @@ import {
   combineDimensions,
   describeDimension,
   dimensionKey,
-  displayValue,
   formatNumber,
   formatQuantityIn,
   isSameDimension,
   quantityOf,
+  workingValue,
   type FormattedQuantity,
   type Quantity,
 } from './quantities';
@@ -110,7 +110,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
     if (entry.kind === 'value') {
       const quantity = quantityOf(entry.value, entry.unit);
       if (!quantity) throw new FormulaError(`${entry.name} has no number yet`);
-      const text = displayValue(entry.value, entry.unit);
+      const text = workingValue(entry.value, entry.unit);
       return {
         quantity,
         terms: [

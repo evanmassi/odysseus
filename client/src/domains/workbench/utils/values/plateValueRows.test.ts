@@ -1,28 +1,8 @@
-import {
-  labelInSection,
-  plateValueRows,
-  removePlateRow,
-  renamePlateRow,
-  setPlateRowValue,
-} from './plateValueRows';
-import { materialsById } from './valueEdits';
+import { plateValueRows, removePlateRow, setPlateRowValue } from './plateValueRows';
 
-import type { Protocol, ValuesBlock, VesselMapBlock } from '@odysseus/shared-schemas';
+import type { Protocol, VesselMapBlock } from '@odysseus/shared-schemas';
 
-const material = (id: string, name: string, type: string) => ({
-  id,
-  group: 'other',
-  type,
-  name,
-  shownFields: [],
-  values: {},
-  units: {},
-  customFields: [],
-  fieldLabels: {},
-  isDropped: false,
-});
-
-function protocolWith(sections: ValuesBlock['sections'], extraValues = false): Protocol {
+function protocolWithPlate(): Protocol {
   const plate = {
     id: 'map',
     type: 'plate',
@@ -56,83 +36,42 @@ function protocolWith(sections: ValuesBlock['sections'], extraValues = false): P
     counts: {},
     amountNames: {},
   } as unknown as VesselMapBlock;
-  const values = (id: string, blockSections: ValuesBlock['sections']) =>
-    ({ id, type: 'values', items: [], sections: blockSections }) as unknown as ValuesBlock;
-  return {
-    blocks: [
-      {
-        id: 'materials',
-        type: 'materials',
-        items: [
-          material('m-plate', 'Assay plate', 'Plate'),
-          material('m-drug', 'Drug X', 'Drug or inhibitor'),
-        ],
-      },
-      plate,
-      values('values', sections),
-      ...(extraValues ? [values('more', [])] : []),
-    ],
-  } as unknown as Protocol;
+  return { blocks: [plate] } as unknown as Protocol;
 }
-
-const rowsOf = (protocol: Protocol, blockId = 'values') => {
-  const block = protocol.blocks.find(candidate => candidate.id === blockId) as ValuesBlock;
-  return plateValueRows(protocol, block, materialsById(protocol));
-};
 
 const plateIn = (protocol: Protocol) =>
   protocol.blocks.find(block => block.type === 'plate') as VesselMapBlock;
 
-describe('plate rows in Values', () => {
-  const sections = [
-    { id: 'sec-plate', materialId: 'm-plate' },
-    { id: 'sec-drug', materialId: 'm-drug' },
-  ];
+const rowNamed = (protocol: Protocol, name: string) =>
+  plateValueRows(plateIn(protocol)).find(row => row.name === name)!;
 
-  it('put counts under the plate material and amounts under their own material', () => {
-    const rows = rowsOf(protocolWith(sections));
-    expect(rows.map(({ sectionId, name }) => [sectionId, name])).toEqual([
-      ['sec-plate', 'Drug X wells'],
-      ['sec-plate', 'Vehicle wells'],
-      ['sec-plate', 'Wells used'],
-      ['sec-drug', 'Drug X top dose'],
-      ['sec-drug', 'Drug X fold'],
-      ['sec-drug', 'Drug X points'],
-      ['sec-plate', 'Anti-CD3 concentration'],
+describe('plate rows', () => {
+  it('list the counts and amounts a plate holds', () => {
+    expect(plateValueRows(plateIn(protocolWithPlate())).map(row => row.name)).toEqual([
+      'Drug X wells',
+      'Vehicle wells',
+      'Wells used',
+      'Drug X top dose',
+      'Drug X fold',
+      'Drug X points',
+      'Anti-CD3 concentration',
     ]);
   });
 
-  it('show plate amounts once, in the first Values card, when no section claims them', () => {
-    const protocol = protocolWith([], true);
-    expect(rowsOf(protocol).map(row => row.sectionId)).toEqual(['', '', '', '']);
-    expect(rowsOf(protocol, 'more')).toEqual([]);
-  });
-
-  it('drop the owner from a label inside its section', () => {
-    expect(labelInSection('Drug X top dose', 'Drug X')).toBe('Top dose');
-    expect(labelInSection('Wells used', 'Assay plate')).toBe('Wells used');
-  });
-
   it('write edits back to the plate', () => {
-    const protocol = protocolWith(sections);
-    const rows = rowsOf(protocol);
-    const row = (name: string) => rows.find(candidate => candidate.name === name)!;
-    setPlateRowValue(protocol, row('Drug X top dose'), '30');
-    setPlateRowValue(protocol, row('Anti-CD3 concentration'), '2');
-    setPlateRowValue(protocol, row('Vehicle wells'), '4');
-    renamePlateRow(protocol, row('Drug X top dose'), 'Highest dose', 'Drug X');
-    renamePlateRow(protocol, row('Vehicle wells'), 'DMSO wells', '');
+    const protocol = protocolWithPlate();
+    setPlateRowValue(protocol, rowNamed(protocol, 'Drug X top dose'), '30');
+    setPlateRowValue(protocol, rowNamed(protocol, 'Anti-CD3 concentration'), '2');
+    setPlateRowValue(protocol, rowNamed(protocol, 'Vehicle wells'), '4');
     const plate = plateIn(protocol);
     expect(plate.series['s']).toMatchObject({ start: '30' });
     expect(plate.cells['p:A3']['stim']).toMatchObject({ amount: '2' });
     expect(plate.counts).toEqual({ v: '4' });
-    expect(plate.amountNames).toEqual({ 's:s:start': 'Drug X highest dose' });
-    expect(plate.lines[0].values[1].text).toBe('DMSO');
   });
 
   it('remove a value from its wells, an amount from its wells, or a whole dilution', () => {
-    const protocol = protocolWith(sections);
-    const rows = rowsOf(protocol);
+    const protocol = protocolWithPlate();
+    const rows = plateValueRows(plateIn(protocol));
     const row = (name: string) => rows.find(candidate => candidate.name === name)!;
     removePlateRow(protocol, row('Vehicle wells'));
     removePlateRow(protocol, row('Anti-CD3 concentration'));

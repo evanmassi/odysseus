@@ -29,6 +29,7 @@ function boardWith(): Protocol {
           customFields: [],
           fieldLabels: {},
           isDropped: false,
+          recipe: [],
         },
       ];
     }
