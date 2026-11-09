@@ -38,7 +38,7 @@ const VALUE_UNIT_WORDS: ReadonlyArray<[RegExp, string]> = [
 const RATIO_LINE = /^(.*?)[\s:=]+(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/;
 const NUMBER_WITH_UNIT = /^([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?[kKM]?)(\D.*)$/;
 
-const valueUnitOf = (word: string): string | undefined =>
+export const valueUnitOf = (word: string): string | undefined =>
   VALUE_UNIT_WORDS.find(([pattern]) => pattern.test(word))?.[1];
 
 const cleanName = (name: string) => name.replace(/[\s:=]+$/, '').trim();

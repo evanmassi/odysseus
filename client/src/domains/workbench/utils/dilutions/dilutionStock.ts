@@ -1,7 +1,8 @@
 import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-schemas';
 
 import { dimensionKey, readableAmount, readNumber } from '../formulas/quantities';
-import { isTherapeuticAntibodyName, normalizeMaterialKey } from '../materials/materialGuesser';
+import { isTherapeuticAntibodyName } from '../materials/materialGuesser';
+import { materialNamed } from '../materials/materialLookup';
 
 export const STOCK_FIELD = 'stock-concentration';
 export const WEIGHT_FIELD = 'molecular-weight';
@@ -15,19 +16,6 @@ export type StockReading =
 const MOLAR = dimensionKey({ amount: 1, volume: -1 });
 const MASS_CONCENTRATION = dimensionKey({ mass: 1, volume: -1 });
 const LARGE_MOLECULE_TYPE = /protein|antibod|isotype/i;
-
-const withoutNotes = (name: string) => normalizeMaterialKey(name.replace(/\([^)]*\)/g, ' '));
-
-export function materialNamed(protocol: Protocol, name: string): MaterialItem | undefined {
-  const listed = protocol.blocks
-    .flatMap(block => (block.type === 'materials' ? block.items : []))
-    .filter(item => !item.isDropped);
-  const key = normalizeMaterialKey(name);
-  return (
-    listed.find(item => normalizeMaterialKey(item.name) === key) ??
-    listed.find(item => withoutNotes(item.name) === withoutNotes(name))
-  );
-}
 
 function materialNumber(item: MaterialItem, key: string) {
   const value = readNumber(item.values[key] ?? '');

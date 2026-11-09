@@ -1,9 +1,6 @@
 import { Button, ScrollArea } from '@shared/ui';
 
-import {
-  readingStepsText,
-  type MaterialReading,
-} from '../../../../utils/materials/materialReadings';
+import { readingStepsText, type MaterialReading } from '../../../../utils/steps/stepReadings';
 
 import {
   MATERIAL_ACTIONS_CELL,

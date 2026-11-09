@@ -23,17 +23,17 @@ import {
 } from '../../../../utils/materials/materialLots';
 import { rememberedKinds } from '../../../../utils/materials/materialMemory';
 import {
-  acceptMaterialReadings,
-  readMaterialReadings,
-  type MaterialReading,
-} from '../../../../utils/materials/materialReadings';
-import {
   addCustomSectionField,
   fieldChoices,
   hideSectionField,
   toggleSectionField,
 } from '../../../../utils/materials/materialSectionFields';
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
+import {
+  acceptStepReadings,
+  readStepReadings,
+  type MaterialReading,
+} from '../../../../utils/steps/stepReadings';
 
 import { useMaterialAdding } from './useMaterialAdding';
 import { useMaterialCellEditing, type MaterialCell } from './useMaterialCellEditing';
@@ -127,7 +127,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const isFirstMaterialsBlock =
     protocol.blocks.find(candidate => candidate.type === 'materials')?.id === block.id;
   const readings = useMemo(
-    () => (isFirstMaterialsBlock ? readMaterialReadings(protocol, calculation) : []),
+    () => (isFirstMaterialsBlock ? readStepReadings(protocol, calculation).materials : []),
     [isFirstMaterialsBlock, protocol, calculation]
   );
   const cellOrder = useMemo(
@@ -222,7 +222,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
 
   const acceptReadings = (accepted: readonly MaterialReading[]) =>
     updateProtocol(draft =>
-      acceptMaterialReadings(draft, block.id, accepted, name =>
+      acceptStepReadings(draft, { materials: accepted }, name =>
         materialFromGuess(guessMaterial(name, remembered), memory.materials)
       )
     );

@@ -28,9 +28,10 @@ detail. Server storage gets built only if a real need appears.
   naming (painted groups kept as a baseline for slice 3), rename carrying (fixed: a new name
   containing the old one was renamed repeatedly).
 - **Slices:** 1 foundation ✓ · 2 shell, pages, board, file open/save, Materials, Steps + name tray,
-  Values, Formulas ✓ · **3 next: vessel map + Dilutions** with the plate consolidation below, plate
-  rows in Values, step/value readings moved to one `utils/steps/stepReadings.ts`, the kDa prompt ·
-  4 export for Benchling · 5 Table, Flow, Sketch, Text, offline single-file build if wanted.
+  Values, Formulas ✓ · 3 vessel map + Dilutions with the plate consolidation, plate rows in Values,
+  step/value readings in one `utils/steps/stepReadings.ts`, the kDa prompt ✓ (polish backlog in the
+  plate spec) · **4 next: export for Benchling** · 5 Table, Flow, Sketch, Text, offline single-file
+  build if wanted.
 - **Plate consolidation (slice 3, decided 2026-11-08):** full spec, migration rules, build split and
   the mockup code map are in `docs/reports/WORKBENCH_PLATE_SPEC.md`. One color system owned by the
   value (painted groups retired, file format v3 upgrade); colors stick once assigned; same name same

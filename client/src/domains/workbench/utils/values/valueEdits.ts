@@ -87,7 +87,7 @@ function editTarget(draft: Protocol, blockId: string, itemId: string) {
   return { block, item, linked: linkedValueOf(block, item, materialsById(draft)) };
 }
 
-function insertAfterPeers(block: ValuesBlock, sectionId: string, added: ValueItem[]) {
+export function insertAfterPeers(block: ValuesBlock, sectionId: string, added: ValueItem[]) {
   const last = sectionPeers(block, sectionId).at(-1);
   block.items.splice(last ? block.items.indexOf(last) + 1 : block.items.length, 0, ...added);
 }
