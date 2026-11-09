@@ -69,8 +69,11 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    `utils/dilutions/` (pipettes, stock lookup with mass↔molar through molecular weight, prep math
    with forward `1:N`, edits) and `ui/components/blocks/dilutions/`; the stock ask saves onto the
    material (creating it, and a Materials card, if needed) and suggests kDa for antibodies and
-   `-mab` names. Fitted cards now shrink as well as grow. **Next:** `renameMaterialsAfterLabels`,
-   `replaceTypedTwins`, `utils/steps/stepReadings.ts`.
+   `-mab` names. Fitted cards now shrink as well as grow. **Follow-ons (done):** the store runs
+   `utils/vessels/plateEditEffects.ts` on every edit (renaming a plate name that matched a material
+   renames the material; a new plate amount drops a typed Values item with the same name), and
+   `utils/steps/stepReadings.ts` reads materials and values from steps in one pass, offered in
+   Materials and Values as "From your steps". **Slice 3 is complete** apart from the polish backlog.
 2. Agent A: plate grid, sizing, tabs/vessel picker/duplicate/remove, selection + keyboard + clipboard,
    well editor (lines, values, amounts, series editor), merging replicates.
 3. Agent B: Dilutions block (preps, pipettes, stock ask, strip SVG).

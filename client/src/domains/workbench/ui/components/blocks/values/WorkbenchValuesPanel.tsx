@@ -3,9 +3,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Select } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
+import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
+import { guessMaterial } from '../../../../utils/materials/materialGuesser';
+import { materialFromGuess } from '../../../../utils/materials/materialItems';
+import { rememberedKinds } from '../../../../utils/materials/materialMemory';
+import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
 import {
   canRemovePlateRow,
   labelInSection,
@@ -36,6 +41,7 @@ import {
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { valueSectionChoices, valueSuggestions } from '../../../../utils/values/valueSuggestions';
 
+import { WorkbenchValueReadingsSection } from './WorkbenchValueReadingsSection';
 import { WorkbenchValueRow, type ValueCell, type ValueRowData } from './WorkbenchValueRow';
 import { WorkbenchValueSection } from './WorkbenchValueSection';
 
@@ -136,6 +142,14 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     [protocol, calculation, plateRows]
   );
   const [removingPlateRow, setRemovingPlateRow] = useState<PlateValueRow>();
+  const memory = useMaterialMemoryStore(state => state.memory);
+  const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
+  const isFirstValuesBlock =
+    protocol.blocks.find(candidate => candidate.type === 'values')?.id === block.id;
+  const readings = useMemo(
+    () => (isFirstValuesBlock ? readStepReadings(protocol, calculation).values : []),
+    [isFirstValuesBlock, protocol, calculation]
+  );
 
   const takenNames = useMemo(() => new Set(calculation.names.keys()), [calculation]);
 
@@ -355,6 +369,23 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             </WorkbenchValueSection>
           );
         })}
+        {readings.length > 0 && (
+          <WorkbenchValueReadingsSection
+            readings={readings}
+            onAccept={accepted =>
+              edit(draft =>
+                acceptStepReadings(draft, { values: accepted }, name =>
+                  materialFromGuess(guessMaterial(name, remembered), memory.materials)
+                )
+              )
+            }
+            onIgnore={reading =>
+              edit(draft => {
+                draft.ignoredReadings.push(reading.key);
+              })
+            }
+          />
+        )}
         {removed?.kind === 'section' && (
           <p className="flex items-center gap-2 px-2 text-body-sm text-muted-foreground">
             Removed {removed.label}

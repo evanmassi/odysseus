@@ -1,11 +1,9 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { materialFromGuess } from '../materials/materialItems';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
-import { conjugateClashes } from './materialClashes';
-import { materialFromGuess } from './materialItems';
-import { acceptMaterialReadings, readMaterialReadings, readingStepsText } from './materialReadings';
-import { fieldSuggestions } from './materialSuggestions';
+import { acceptStepReadings, readingStepsText, readStepReadings } from './stepReadings';
 
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
@@ -29,10 +27,11 @@ function protocolWith(stepTexts: string[], items: MaterialItem[] = []) {
   return { protocol, block };
 }
 
-const read = (protocol: Protocol) =>
-  readMaterialReadings(protocol, calculateBoard(collectBoardNames(protocol)));
+const readAll = (protocol: Protocol) =>
+  readStepReadings(protocol, calculateBoard(collectBoardNames(protocol)));
+const read = (protocol: Protocol) => readAll(protocol).materials;
 
-describe('readMaterialReadings', () => {
+describe('material readings', () => {
   it('finds materials after amounts and after cue words, with the steps that use them', () => {
     const { protocol } = protocolWith([
       'Add 50 µL of Bright-Glo to each well.',
@@ -62,14 +61,14 @@ describe('readMaterialReadings', () => {
   });
 });
 
-describe('acceptMaterialReadings', () => {
+describe('accepting readings', () => {
   it('adds new materials, links existing ones and rewrites the steps as references', () => {
     const { protocol, block } = protocolWith(
       ['Wash with Pbs, then add 50 µL of Bright-Glo.', 'Wash again with Pbs.'],
       [material('PBS', 'media', 'Buffer')]
     );
     block.foldedGroups = ['chem'];
-    acceptMaterialReadings(protocol, block.id, read(protocol), name => material(name));
+    acceptStepReadings(protocol, { materials: read(protocol) }, name => material(name));
     expect(protocol.pages[0].steps.map(step => step.text)).toEqual([
       'Wash with {PBS}, then add 50 µL of {Bright-Glo}.',
       'Wash again with {PBS}.',
@@ -78,40 +77,44 @@ describe('acceptMaterialReadings', () => {
     expect(block.foldedGroups).toEqual([]);
     expect(read(protocol)).toEqual([]);
   });
-});
 
-describe('conjugateClashes', () => {
-  const antibody = (name: string, conjugate: string, panel = '') => {
-    const item = material(name, 'ab', 'Antibody');
-    item.values['conjugate'] = conjugate;
-    item.values['panel'] = panel;
-    return item;
-  };
-
-  it('flags two antibodies sharing a fluorochrome in the same panel', () => {
-    const clashes = conjugateClashes([
-      antibody('CD4', 'BV421'),
-      antibody('CD8', 'Brilliant Violet 421'),
-      antibody('CD3', 'BV421', 'Tube 2'),
-      antibody('CD19', 'Biotin'),
-      antibody('CD20', 'Biotin'),
-    ]);
-    expect(clashes).toHaveLength(1);
-    expect(clashes[0].items.map(item => item.name)).toEqual(['CD4', 'CD8']);
-    expect(clashes[0].panel).toBe('');
+  it('adds a read value under its material and rewrites both names as references', () => {
+    const { protocol, block } = protocolWith(['Add 50 µL of Bright-Glo per well.']);
+    acceptStepReadings(protocol, { values: readAll(protocol).values }, name => material(name));
+    expect(protocol.pages[0].steps[0].text).toBe(
+      'Add {Bright-Glo volume per well} of {Bright-Glo} per well.'
+    );
+    expect(block.items.map(item => item.name)).toEqual(['Bright-Glo']);
+    const values = protocol.blocks.find(candidate => candidate.type === 'values');
+    expect(values?.type === 'values' && values.items.at(-1)).toMatchObject({
+      name: 'Volume per well',
+      value: '50',
+      unit: 'µL',
+    });
   });
 });
 
-describe('fieldSuggestions', () => {
-  it('offers values used elsewhere first, then the built-in vendor list', () => {
-    const a = material('A');
-    a.values['vendor'] = 'Acme Bio';
-    const b = material('B');
-    b.values['vendor'] = 'Acme Bio';
-    const { protocol } = protocolWith([], [a, b]);
-    const suggestions = fieldSuggestions(protocol, 'vendor', 'ac', 'other');
-    expect(suggestions[0]).toBe('Acme Bio');
-    expect(suggestions.length).toBeLessThanOrEqual(8);
-    expect(fieldSuggestions(protocol, 'vendor', 'acme bio', 'other')).not.toContain('Acme Bio');
+describe('value readings', () => {
+  it('names amounts after the material they measure', () => {
+    const { protocol } = protocolWith(
+      ['Add 50 µL of Bright-Glo per well.', 'Treat with 10 µM {PBS}.'],
+      [material('PBS', 'media', 'Buffer')]
+    );
+    expect(readAll(protocol).values.map(({ name, value, unit }) => [name, value, unit])).toEqual([
+      ['Bright-Glo volume per well', '50', 'µL'],
+      ['PBS concentration', '10', 'µM'],
+    ]);
+  });
+
+  it('offers a condition once it repeats across steps, and skips conflicting amounts', () => {
+    const once = protocolWith(['Incubate 30 min at 37 °C.']).protocol;
+    expect(readAll(once).values).toEqual([]);
+    const twice = protocolWith(['Incubate 30 min at 37 °C.', 'Incubate 30 min again.']).protocol;
+    expect(readAll(twice).values.map(({ name }) => name)).toEqual(['Incubation time']);
+    const conflict = protocolWith([
+      'Add 50 µL of Bright-Glo.',
+      'Add 20 µL of Bright-Glo.',
+    ]).protocol;
+    expect(readAll(conflict).values).toEqual([]);
   });
 });

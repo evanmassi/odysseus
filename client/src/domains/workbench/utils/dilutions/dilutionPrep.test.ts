@@ -41,6 +41,7 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
         w: 12,
         h: 4,
         items: materials,
+        foldedGroups: [],
       },
       {
         id: 'map',

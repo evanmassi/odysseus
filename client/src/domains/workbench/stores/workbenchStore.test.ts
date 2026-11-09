@@ -1,3 +1,4 @@
+import { createBlock } from '../utils/blocks/createBlock';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 
 import { selectIsDirty, useWorkbenchStore } from './workbenchStore';
@@ -107,5 +108,42 @@ describe('workbenchStore', () => {
     getState().markSaved('renamed.json');
     expect(selectIsDirty(getState())).toBe(false);
     expect(getState().fileName).toBe('renamed.json');
+  });
+
+  describe('plate edits', () => {
+    const addPlate = (cells: Record<string, Record<string, object>>) =>
+      getState().updateProtocol(draft => {
+        const plate = createBlock('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
+        if (plate.type !== 'plate') return;
+        plate.lines = [{ id: 'l', name: '', role: 'auto', values: [{ id: 'd', text: 'Drug' }] }];
+        plate.cells = cells;
+        draft.blocks.push(plate);
+      });
+
+    const editPlate = (
+      change: (plate: Extract<Protocol['blocks'][number], { type: 'plate' }>) => void
+    ) =>
+      getState().updateProtocol(draft => {
+        const plate = draft.blocks.find(block => block.type === 'plate');
+        if (plate?.type === 'plate') change(plate);
+      });
+
+    it('renames a material when the plate name it matched is renamed', () => {
+      addPlate({ 'p:A1': { l: { valueId: 'd' } } });
+      editPlate(plate => {
+        plate.lines[0].values[0].text = 'Drug X';
+      });
+      expect(blockOf('materials').items[0].name).toBe('Drug X');
+    });
+
+    it('drops a typed value once the plate provides the same name', () => {
+      getState().updateProtocol(draft => {
+        const values = draft.blocks.find(block => block.type === 'values');
+        if (values?.type === 'values')
+          values.items.push({ id: 'v2', name: 'Drug concentration', value: '5', unit: 'µM' });
+      });
+      addPlate({ 'p:A1': { l: { valueId: 'd', amount: '5', unit: 'µM' } } });
+      expect(blockOf('values').items.map(item => item.id)).toEqual(['v1']);
+    });
   });
 });

@@ -5,6 +5,10 @@ import { calculateBoard, type BoardCalculation } from '../utils/formulas/boardCa
 import { collectBoardNames } from '../utils/formulas/boardNames';
 import { applyRenames, findRenames } from '../utils/formulas/nameRenames';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
+import {
+  dropValuesTwinnedByPlate,
+  renameMaterialsAfterPlateValues,
+} from '../utils/vessels/plateEditEffects';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -77,7 +81,11 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
 
   updateProtocol: recipe =>
     set(state => {
-      const changed = produce(state.protocol, recipe);
+      const changed = produce(state.protocol, draft => {
+        recipe(draft);
+        renameMaterialsAfterPlateValues(state.protocol, draft);
+        dropValuesTwinnedByPlate(draft, state.knownNames);
+      });
       if (changed === state.protocol) return {};
       const reconciled = reconcile(changed, state.knownNames);
       const pageStillExists = reconciled.protocol.pages.some(
