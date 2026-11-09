@@ -103,6 +103,12 @@ detail. Server storage gets built only if a real need appears.
         well-editor names and legend renames, step text, Values labels, row and column renames,
         formula names and formulas. Name matching treats "IL-1beta" and "IL-1β" as the same.
         Table and Text cards get it when they are built.
+  - [x] Header: the experiment id is the one name (under the title, with Saved / Unsaved and, if the
+        file on disk differs, "the file is still called … · Save under this name"); the file bar
+        holds only New / Open / Save beside the title; fields sit in one labeled row (Assay dates
+        from – to, a wide Descriptor, a small Run); placeholders read as hints. The Inputs rail is
+        a full-height sidebar, so the header lines up with the Setup tabs and the board.
+  - [ ] An empty Assay date makes the id use today's date, so an undated plan's id changes daily.
   - [ ] Dilutions series keep their own Well volume box; consider defaulting a blank one to the
         experiment's Well volume so the number is typed once.
   - [ ] Typed values named "Fold" still show "2×" (the user picked the × unit); decide whether they
