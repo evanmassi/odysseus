@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Tooltip } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { recolorValue, renameValue } from '../../../../utils/vessels/wellEdits';
 import { PICK_NAME_ATTRIBUTE } from '../../tray/useTrayPickDrag';
 
@@ -60,7 +61,7 @@ export function WorkbenchPlateLegendSection({
         onBlur={event => {
           const next = event.currentTarget.value;
           setRenamingId(undefined);
-          updateVesselMap(draft => renameValue(draft, valueId, next));
+          updateVesselMap(draft => renameValue(draft, valueId, withGreekLetters(next)));
         }}
         onKeyDown={event => {
           if (event.key === 'Enter') event.currentTarget.blur();

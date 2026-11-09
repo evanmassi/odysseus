@@ -10,6 +10,7 @@ import {
   nameWithin,
   type FormulaCompletion,
 } from '../../../../utils/formulas/formulaScopes';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { FORMULA_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 import { useInsertTarget } from '../../tray/useInsertTarget';
@@ -125,6 +126,12 @@ export function WorkbenchFormulaEditor({
             setName(event.target.value);
             onChange({ name: joinValueName(material?.name.trim() ?? '', event.target.value) });
           }}
+          onBlur={() => {
+            const converted = withGreekLetters(name);
+            if (converted === name) return;
+            setName(converted);
+            onChange({ name: joinValueName(material?.name.trim() ?? '', converted) });
+          }}
         />
         <Select
           size="xs"
@@ -155,6 +162,10 @@ export function WorkbenchFormulaEditor({
           onBlur={event => {
             setCompletions([]);
             trayTarget.onBlur(event);
+            const converted = withGreekLetters(expression);
+            if (converted === expression) return;
+            setExpression(converted);
+            onChange({ expr: namesInFull(converted, calculation, material) });
           }}
           onKeyDown={event => {
             if (!completions.length) {

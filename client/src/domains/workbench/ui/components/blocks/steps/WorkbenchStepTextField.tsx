@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, RefObject } from 'react';
 
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { blankOptions, type BlankOption } from '../../../../utils/steps/stepPresets';
 import { useInsertTarget } from '../../tray/useInsertTarget';
 
@@ -159,6 +160,13 @@ export function WorkbenchStepTextField({
         onBlur={event => {
           setSuggestions(undefined);
           onBlur(event);
+          const editor = editorRef.current;
+          if (!editor) return;
+          const typed = readEditor(editor);
+          const converted = withGreekLetters(typed);
+          if (converted === typed) return;
+          fillEditor(editor, converted, calculation);
+          onTextChange(converted);
         }}
       />
       {suggestions && (

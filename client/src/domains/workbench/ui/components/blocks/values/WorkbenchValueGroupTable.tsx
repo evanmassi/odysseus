@@ -7,6 +7,7 @@ import {
 } from '@shared/ui/primitives/table/tableHeaderStyles';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { HORIZONTAL_SCROLL } from '../materials/materialTableStyles';
 import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
@@ -61,7 +62,11 @@ function ColumnHeading({
         spellCheck={false}
         className="w-32 border-b border-line-soft bg-transparent text-right outline-none focus:border-primary"
         onChange={event => event.target.value.trim() && onRename(event.target.value)}
-        onBlur={() => onEdit(undefined)}
+        onBlur={event => {
+          const converted = withGreekLetters(event.target.value);
+          if (converted.trim() && converted !== event.target.value) onRename(converted);
+          onEdit(undefined);
+        }}
         onKeyDown={event => {
           if (event.key === 'Enter' || event.key === 'Escape') onEdit(undefined);
         }}

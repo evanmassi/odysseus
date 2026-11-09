@@ -1,9 +1,10 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
-import { Button, Input } from '@shared/ui';
+import { Button, Input, Tooltip } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
+import { displayValue } from '../../../../utils/formulas/quantities';
 import { materialFields } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/materialClashes';
 import {
@@ -224,12 +225,35 @@ export function WorkbenchMaterialRow({
             .map(({ ingredient }) => ingredient?.name.trim())
             .filter(Boolean)
             .join(', ');
+          const note = (item.values[RECIPE_FIELD] ?? '').trim();
+          const recipeTooltip = (
+            <div className="flex flex-col gap-0.5">
+              <b className="text-foreground">{item.name.trim()}:</b>
+              {recipe.map(({ entry, ingredient }) => (
+                <span key={entry.id} className="pl-3">
+                  {ingredient?.name.trim() ?? 'No longer in Materials'} ·{' '}
+                  {entry.amount.trim() ? displayValue(entry.amount, entry.unit) : 'amount not set'}
+                </span>
+              ))}
+              {note && <span className="pt-1 text-muted-foreground">{note}</span>}
+            </div>
+          );
           return (
             <EditableCell
               key={definition.key}
               cell={{ itemId: item.id, key: definition.key }}
               editing={editing}
-              display={ingredients || materialText(item, definition)}
+              display={
+                ingredients ? (
+                  <Tooltip content={recipeTooltip}>
+                    <span className="cursor-pointer border-b border-dotted border-primary/50 text-primary">
+                      {ingredients}
+                    </span>
+                  </Tooltip>
+                ) : (
+                  materialText(item, definition)
+                )
+              }
               editor={() => (
                 <WorkbenchMaterialRecipeEditor
                   lines={recipe}

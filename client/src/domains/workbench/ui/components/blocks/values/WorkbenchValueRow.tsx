@@ -4,6 +4,7 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 
 import { EDITABLE_HOVER } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
@@ -86,6 +87,10 @@ export function WorkbenchValueRow({
               spellCheck={false}
               className="w-full border-b border-line-soft bg-transparent text-body-sm text-foreground outline-none focus:border-primary"
               onChange={event => onRename(event.target.value)}
+              onBlur={event => {
+                const converted = withGreekLetters(event.target.value);
+                if (converted !== event.target.value) onRename(converted);
+              }}
             />
           ) : (
             <button
