@@ -1,3 +1,5 @@
+import { Tooltip } from '@shared/ui';
+
 import {
   formulaAnswerText,
   type FormulaResult,
@@ -10,6 +12,7 @@ interface WorkbenchFormulaWorkingProps {
   isCompact: boolean;
   shortName: (name: string) => string;
   onAddMissing?: (name: string) => void;
+  linkFor?: (name: string) => (() => void) | undefined;
 }
 
 const TERM_SOURCE_CLASS: Record<Extract<WorkingTerm, { kind: 'ref' }>['source'], string> = {
@@ -21,9 +24,11 @@ const TERM_SOURCE_CLASS: Record<Extract<WorkingTerm, { kind: 'ref' }>['source'],
 function TermStack({
   term,
   shortName,
+  linkFor,
 }: {
   term: WorkingTerm;
   shortName: (name: string) => string;
+  linkFor: WorkbenchFormulaWorkingProps['linkFor'];
 }) {
   if (term.kind === 'symbol' || term.kind === 'operator') {
     return (
@@ -34,13 +39,25 @@ function TermStack({
   }
   const name = term.kind === 'ref' ? shortName(term.name) : term.text;
   const numberClass = term.kind === 'ref' ? TERM_SOURCE_CLASS[term.source] : 'text-foreground';
-  return (
-    <span
-      className={`inline-flex flex-col items-center ${term.kind === 'ref' && term.isDropped ? 'line-through' : ''}`}
-    >
+  const stackClass = `inline-flex flex-col items-center ${term.kind === 'ref' && term.isDropped ? 'line-through' : ''}`;
+  const content = (
+    <>
       <span className="text-label-2xs text-muted-foreground">{name}</span>
       <span className={`font-mono text-data-sm ${numberClass}`}>{term.text}</span>
-    </span>
+    </>
+  );
+  const link = term.kind === 'ref' ? linkFor?.(term.name) : undefined;
+  if (!link) return <span className={stackClass}>{content}</span>;
+  return (
+    <Tooltip content="Go to where this is set">
+      <button
+        type="button"
+        className={`${stackClass} hover:underline hover:decoration-dotted`}
+        onClick={link}
+      >
+        {content}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -49,6 +66,7 @@ export function WorkbenchFormulaWorking({
   isCompact,
   shortName,
   onAddMissing,
+  linkFor,
 }: WorkbenchFormulaWorkingProps) {
   if (!result) return null;
   if (result.status === 'empty')
@@ -75,7 +93,7 @@ export function WorkbenchFormulaWorking({
   const working = result.showsWorking && (
     <div className="flex flex-wrap items-end gap-x-1 gap-y-1">
       {result.terms.map((term, index) => (
-        <TermStack key={index} term={term} shortName={shortName} />
+        <TermStack key={index} term={term} shortName={shortName} linkFor={linkFor} />
       ))}
     </div>
   );

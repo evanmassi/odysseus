@@ -42,7 +42,9 @@ function nameGroups(calculation: BoardCalculation, target: InsertTarget) {
   const groups = new Map<string, NameRow[]>();
   for (const entry of calculation.names.values()) {
     if (target.mode === 'formula' && entry.kind === 'item') continue;
-    const title = entry.kind === 'item' ? entry.groupTitle : KIND_GROUP_TITLES[entry.kind];
+    const title =
+      entry.workedOut?.subject ??
+      (entry.kind === 'item' ? entry.groupTitle : KIND_GROUP_TITLES[entry.kind]);
     const shown = describeName(calculation, entry.name).text;
     const row = { name: entry.name, value: shown === entry.name ? undefined : shown };
     groups.set(title, [...(groups.get(title) ?? []), row]);

@@ -1,3 +1,4 @@
+import { dilutionFormulaNames } from '../dilutions/dilutionFormulas';
 import {
   fieldName,
   fieldUnit,
@@ -5,6 +6,7 @@ import {
   materialGroup,
   materialLabel,
 } from '../materials/materialCatalog';
+import { recipeFormulaNames } from '../materials/materialRecipeFormulas';
 import { joinValueName } from '../values/valueNames';
 import { materialWellCounts, plateAmounts, vesselCounts } from '../vessels/vesselMapNames';
 
@@ -161,7 +163,7 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     .flatMap(block => (block.type === 'materials' ? block.items : []))
     .filter(item => item.name.trim());
   const materialsById = new Map(materials.map(item => [item.id, item]));
-  const blockNames = protocol.blocks.flatMap(block => {
+  const namesOf = (block: ProtocolBlock): BoardName[] => {
     switch (block.type) {
       case 'list':
         return tableNames(block);
@@ -176,6 +178,14 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
       default:
         return [];
     }
-  });
-  return [...blockNames, ...wellCountNames(protocol, blockNames, materials)];
+  };
+  const blockNames = protocol.blocks.flatMap(block =>
+    namesOf(block).map(entry => ({ ...entry, sourceBlockId: block.id }))
+  );
+  const ownNames = [...blockNames, ...wellCountNames(protocol, blockNames, materials)];
+  return [
+    ...ownNames,
+    ...recipeFormulaNames(protocol, ownNames),
+    ...dilutionFormulaNames(protocol, ownNames),
+  ];
 }

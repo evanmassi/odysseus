@@ -2,7 +2,7 @@ import { materialFields } from '../materials/materialCatalog';
 import { showMaterialField, writeMaterialField } from '../materials/materialItems';
 import { ensureMaterial } from '../materials/materialLookup';
 
-import type { PrepSettings } from './dilutionPrep';
+import type { PrepSettings } from './dilutionFormulas';
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 export function setPrepSetting(

@@ -111,6 +111,11 @@ describe('calculateBoard', () => {
     expect(answerOf(board, 'Make')).toBe('10 mL');
   });
 
+  it('leaves an exact multiple of the step where it is', () => {
+    const board = [value('Need', '36', 'µL'), formula('Make', 'round up(Need, 1.2 µL)')];
+    expect(answerOf(board, 'Make')).toBe('36 µL');
+  });
+
   it('keeps at least a minimum', () => {
     const board = [value('Need', '40', 'µL'), formula('Make', 'at least(Need, 100 µL)')];
     expect(answerOf(board, 'Make')).toBe('100 µL');

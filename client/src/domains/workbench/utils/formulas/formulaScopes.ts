@@ -40,8 +40,11 @@ export function formulaMaterial(
     .sort((a, b) => b.name.trim().length - a.name.trim().length)[0];
 }
 
-export function nameWithin(name: string, material: MaterialItem | undefined): string {
-  const prefix = ownerPrefix(material);
+export const nameWithin = (name: string, material: MaterialItem | undefined): string =>
+  nameWithinOwner(name, material?.name ?? '');
+
+export function nameWithinOwner(name: string, owner: string): string {
+  const prefix = owner.trim() ? `${nameKey(owner)} ` : '';
   const trimmed = name.trim();
   if (!prefix || !trimmed.toLowerCase().startsWith(prefix)) return trimmed;
   const rest = trimmed.slice(prefix.length);
