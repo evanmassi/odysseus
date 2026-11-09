@@ -5,7 +5,7 @@ Living plan for the scientist-facing side of Odysseus. Everything built so far i
 flow cytometry panels first, general protocols and calculators after. This doc is the shared source
 of truth; we iterate on it until it is right, then build.
 
-**Status:** slices 1–3 built in the app (2026-11-08); the mockup is frozen as the spec. Branch `feature/workbench` (has `main` merged in; pushed).
+**Status:** slices 1–3 built in the app, plus polish pass round 1 (2026-11-08); the mockup is frozen as the spec. Branch `feature/workbench` (has `main` merged in).
 
 ### Resume here (read this first)
 
@@ -16,11 +16,17 @@ audit prompt. Protocols are saved to local files only (File System Access in Edg
 fallback elsewhere); nothing reaches the server, by Evan's choice, because protocols hold company
 detail. Server storage gets built only if a real need appears.
 
-- **Where things stand (2026-11-08, last commit `46d67c4d`):** slices 1–3 are done, plus the plate
-  map polish Evan asked for (list and decisions in `docs/reports/WORKBENCH_PLATE_SPEC.md`). Every
-  block except Table, Flow, Sketch and Text works in the app: Materials, Steps + name tray, Values
-  (with plate rows and "From your steps"), Formulas, Vessel map, Dilutions.
-- **Next: slice 4, the export for Benchling** (decision W98; status row "Export" in the table below).
+- **Where things stand (2026-11-08, last commit `80140f9b`):** slices 1–3 are done, plus the plate
+  map polish (list and decisions in `docs/reports/WORKBENCH_PLATE_SPEC.md`) and polish pass round 1
+  (the checked list below: Values as one row per material, recipes, "From your plate", plate copies
+  and pooled dilutions, scrolling tabs, Greek letters, the header). Every block except Table, Flow,
+  Sketch and Text works in the app: Materials, Steps + name tray, Values, Formulas, Vessel map,
+  Dilutions.
+- **Next: more polish before the export.** Evan expects fixes in the blocks not yet reviewed in the
+  app (Steps, Calculations/Formulas, the vessel map editor, Dilutions). He brings the list; add each
+  item to the polish list below, ask plain questions, mock anything that is a matter of taste, and
+  commit when he says. The three open items at the end of the list are candidates.
+- **Then: slice 4, the export for Benchling** (decision W98; status row "Export" in the table below).
   One read-only layout from the Export button serves the bench copy (write-in lines for blanks, tick
   boxes, materials grouped by storage) and, after tidying, the final record (PDF). Header: title,
   `YYYYMMDD_Assay_Descriptor_R#` id, "Run on …" or "Planned · not yet run". Pages print in order;
@@ -33,7 +39,7 @@ detail. Server storage gets built only if a real need appears.
   Dilutions table per series, and recipes: each in-house reagent's ingredients with their amount
   in the mix, final in the well, and each ingredient's source and lot from Materials. What goes to Benchling is chosen at export (not designed yet:
   ask Evan before building that part).
-- **Polish pass (before the export, started 2026-11-08):** Evan gives the list; keep it here.
+- **Polish pass (before the export; round 1 done 2026-11-08):** Evan gives the list; keep it here.
   - [x] Values is one row per material, grouped like Materials (`utils/values/valueTable.ts`):
         every number about a material sits on its row as a column, whether typed, read from the
         plate map (wells, top dose, dilution, points, per-well amounts) or from Materials; column
@@ -136,7 +142,12 @@ detail. Server storage gets built only if a real need appears.
   the debugging protocol (demo login button → `/workbench`, board loaded through the
   `odysseus-workbench-recovery` localStorage copy); no script is checked in, write a throwaway one in
   a temp folder. If the running dev server serves a half-saved file (page crash, "does not provide an
-  export named"), touch the files to make Vite re-read them.
+  export named"), touch the files to make Vite re-read them. Lessons from round 1: drive clicks and
+  hovers with real mouse events (`Input.dispatchMouseEvent`), since script `.click()` skips the focus
+  changes that broke portaled pickers; a screenshot with `captureBeyondViewport` blurs the focused
+  field; `structuredClone` throws on Immer drafts (copy edits by hand); to load a current-format test
+  file, run a fixture through `protocolFileInputSchema` from `packages/shared-schemas/dist` and edit
+  the result.
 
 **What the workbench is now.** A protocol builder: a snapping board of blocks (materials, steps,
 values, formulas, vessel map, tables, flow diagram, sketch, text). Values and formulas share names
@@ -224,15 +235,15 @@ is the notebook record: it must let someone repeat the experiment without Evan t
 
 | Block        | Status                                                                                                                                                                                                                   |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Materials    | Done for function (W83, W84, W90 to W96): type-anything adding, cell editing, field checklist, helpers, Drop and Remove, lab memory. Visual pass deferred: blocks are still hard to tell apart.                          |
+| Materials    | Done for function (W83, W84, W90 to W96), plus round 1: recipes, "From your plate", Used in counts the plate, Greek letters. Visual pass deferred.                                                                       |
 | Steps        | Reviewed twice. Sentences with times written in, plain live values, drag or click to insert, drag to reorder, common-step presets, smart paste, "During step N:" (W85 to W89). Liked; refine later.                      |
-| Values       | In review (W97, W99): sections per material with suggestions, plate counts (W100), one-line adding, cell editing, Undo in place.                                                                                         |
+| Values       | Reworked in round 1: one row per material grouped like Materials, source icons, attached rows on a colored line, recipe rows with finals in the well.                                                                    |
 | Formulas     | Calmed (name, answer, one line of working). Not yet reviewed on its own.                                                                                                                                                 |
 | Vessel map   | Done for function (W100 to W110): readable wells, the editor beside the selection, lines with amounts and dilutions, labware tabs with names, automatic card titles, merging, sizing. Plate map still to go into Export. |
 | Table        | Calmed (plain text rows, columns editor). Not reviewed.                                                                                                                                                                  |
 | Flow diagram | Not reviewed. Draws from the steps; meanwhile branch kept here only.                                                                                                                                                     |
 | Sketch, Text | Not reviewed.                                                                                                                                                                                                            |
-| Export       | Mocked (W98): one layout for bench and record, from the Export button. Plate map not in it yet.                                                                                                                          |
+| Export       | Mocked (W98): one layout for bench and record, from the Export button. Wanted in the build: plate map, series per page, recipes.                                                                                         |
 
 **Not mocked yet:** the library (protocols and experiments, with Copy and an on-request comparison).
 
