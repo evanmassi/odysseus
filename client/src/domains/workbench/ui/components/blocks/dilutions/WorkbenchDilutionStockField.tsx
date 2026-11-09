@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
 import { Input, Select } from '@shared/ui';
+import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
 import { readNumber } from '../../../../utils/formulas/quantities';
-import { CONCENTRATION_UNITS, MOLAR_MASS_UNITS } from '../../../../utils/materials/materialCatalog';
+import { MOLAR_MASS_UNITS } from '../../../../utils/materials/materialCatalog';
 import { unitChoices } from '../../../../utils/values/valueUnits';
 
 import type { StockReading } from '../../../../utils/dilutions/dilutionStock';
@@ -14,7 +15,7 @@ interface WorkbenchDilutionStockFieldProps {
 }
 
 export function WorkbenchDilutionStockField({ ask, onSave }: WorkbenchDilutionStockFieldProps) {
-  const units = ask.need === 'weight' ? MOLAR_MASS_UNITS : CONCENTRATION_UNITS;
+  const units = ask.need === 'weight' ? MOLAR_MASS_UNITS : CONCENTRATION_UNIT_IDS;
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState(units.includes(ask.unit) ? ask.unit : units[0]);
   const save = () => {

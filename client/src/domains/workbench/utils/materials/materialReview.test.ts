@@ -1,6 +1,7 @@
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
 import { materialFromGuess } from './materialItems';
+import { EMPTY_LAB_MEMORY } from './materialMemory';
 import {
   commitReviewRows,
   hasMultipleLines,
@@ -15,7 +16,7 @@ import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-sc
 const material = (name: string): MaterialItem =>
   materialFromGuess(
     { group: 'chem', type: 'Chemical', name, values: {}, why: '', source: 'list' },
-    {}
+    EMPTY_LAB_MEMORY
   );
 
 function setup(items: MaterialItem[]): { protocol: Protocol; block: MaterialsBlock } {
@@ -31,7 +32,13 @@ function setup(items: MaterialItem[]): { protocol: Protocol; block: MaterialsBlo
 describe('pastedReviewRows', () => {
   it('guesses each pasted line and notes which ones are already listed', () => {
     const existing = material('DMSO');
-    const rows = pastedReviewRows('DMSO\nHeLa\n\n- 96-well plate', [existing], [], new Map(), {});
+    const rows = pastedReviewRows(
+      'DMSO\nHeLa\n\n- 96-well plate',
+      [existing],
+      [],
+      new Map(),
+      EMPTY_LAB_MEMORY
+    );
     expect(rows.map(row => row.item.name)).toEqual(['DMSO', 'HeLa', '96-well plate']);
     expect(rows.map(row => row.duplicateId)).toEqual([existing.id, undefined, undefined]);
     expect(rows[1].item.type).toBe('Cell line');

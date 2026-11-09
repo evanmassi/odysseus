@@ -48,7 +48,7 @@ export function useMaterialAdding(
   const keptBoth = useWorkbenchStore(state => state.protocol.keptBoth);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const updateBlock = useUpdateBlock(block);
-  const rememberedMaterials = useMaterialMemoryStore(state => state.memory.materials);
+  const memory = useMaterialMemoryStore(state => state.memory);
   const rememberKind = useMaterialMemoryStore(state => state.rememberKind);
   const [text, setText] = useState('');
   const [chosenKind, setChosenKind] = useState<MaterialKind>();
@@ -60,9 +60,9 @@ export function useMaterialAdding(
     if (!text.trim()) return undefined;
     const guessed = guessMaterial(text, remembered);
     const guess = chosenKind ? { ...guessed, ...chosenKind, why: SET_BY_YOU } : guessed;
-    const item = materialFromGuess(guess, rememberedMaterials);
+    const item = materialFromGuess(guess, memory);
     return { guess, item, duplicate: findDuplicateMaterial(block.items, item, keptBoth) };
-  }, [text, chosenKind, remembered, rememberedMaterials, block.items, keptBoth]);
+  }, [text, chosenKind, remembered, memory, block.items, keptBoth]);
 
   const finishAdding = (freshIds: readonly string[]) => {
     setText('');
@@ -116,7 +116,7 @@ export function useMaterialAdding(
 
   const pasteText = (pasted: string): boolean => {
     if (!hasMultipleLines(pasted)) return false;
-    const rows = pastedReviewRows(pasted, block.items, keptBoth, remembered, rememberedMaterials);
+    const rows = pastedReviewRows(pasted, block.items, keptBoth, remembered, memory);
     if (rows.length) setPaste({ source: PASTE_SOURCE, rows });
     return true;
   };
@@ -134,7 +134,7 @@ export function useMaterialAdding(
         at === index
           ? {
               ...row,
-              item: produce(row.item, draft => applyMaterialKind(draft, group, type)),
+              item: produce(row.item, draft => applyMaterialKind(draft, group, type, memory)),
               why: SET_BY_YOU,
               isCorrected: true,
             }

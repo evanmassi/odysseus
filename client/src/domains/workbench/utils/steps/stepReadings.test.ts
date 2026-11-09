@@ -1,6 +1,7 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { materialFromGuess } from '../materials/materialItems';
+import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
 import { acceptStepReadings, readingStepsText, readStepReadings } from './stepReadings';
@@ -8,7 +9,7 @@ import { acceptStepReadings, readingStepsText, readStepReadings } from './stepRe
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
 const material = (name: string, group = 'chem', type = 'Chemical'): MaterialItem =>
-  materialFromGuess({ group, type, name, values: {}, why: '', source: 'list' }, {});
+  materialFromGuess({ group, type, name, values: {}, why: '', source: 'list' }, EMPTY_LAB_MEMORY);
 
 function protocolWith(stepTexts: string[], items: MaterialItem[] = []) {
   const protocol: Protocol = blankProtocol();

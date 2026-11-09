@@ -425,7 +425,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             onAccept={accepted =>
               edit(draft =>
                 acceptStepReadings(draft, { values: accepted }, name =>
-                  materialFromGuess(guessMaterial(name, remembered), memory.materials)
+                  materialFromGuess(guessMaterial(name, remembered), memory)
                 )
               )
             }

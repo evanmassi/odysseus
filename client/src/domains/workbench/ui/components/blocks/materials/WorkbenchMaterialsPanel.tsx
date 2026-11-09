@@ -13,6 +13,7 @@ import {
 import { conjugateClashes } from '../../../../utils/materials/materialClashes';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import {
+  groupStartingFields,
   OTHER_TYPE,
   UNSORTED_GROUP,
   applyMaterialKind,
@@ -95,6 +96,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const memory = useMaterialMemoryStore(state => state.memory);
   const rememberKind = useMaterialMemoryStore(state => state.rememberKind);
   const learnFromMaterials = useMaterialMemoryStore(state => state.learnFromMaterials);
+  const toggleStartingField = useMaterialMemoryStore(state => state.toggleStartingField);
   const [fresh, setFresh] = useState({ ids: new Set<string>(), stamp: 0 });
   const [fieldMenu, setFieldMenu] = useState<FieldMenuState>();
   const [groupDialogTarget, setGroupDialogTarget] = useState<GroupDialogTarget>();
@@ -221,7 +223,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
 
   const setItemKind = (itemId: string, { group, type }: MaterialKind) => {
     const name = block.items.find(item => item.id === itemId)?.name ?? '';
-    updateItem(itemId, item => applyMaterialKind(item, group, type));
+    updateItem(itemId, item => applyMaterialKind(item, group, type, memory));
     rememberKind(name, group, type);
     editing.stop();
   };
@@ -246,7 +248,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     requestNewGroup: itemId => setGroupDialogTarget({ place: 'item', itemId }),
     fillDown: (item, source, key) => {
       if (key === 'type') {
-        updateItem(item.id, draft => applyMaterialKind(draft, source.group, source.type));
+        updateItem(item.id, draft => applyMaterialKind(draft, source.group, source.type, memory));
         rememberKind(item.name, source.group, source.type);
       } else {
         updateItem(item.id, draft => copyMaterialField(draft, source, key));
@@ -264,7 +266,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     addRecipeLine: (itemId, text) =>
       updateProtocol(draft =>
         addRecipeLine(draft, itemId, text, name =>
-          materialFromGuess(guessMaterial(name, remembered), memory.materials)
+          materialFromGuess(guessMaterial(name, remembered), memory)
         )
       ),
     editRecipeEntry: (itemId, entryId, change) =>
@@ -286,7 +288,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const acceptReadings = (accepted: readonly MaterialReading[]) =>
     updateProtocol(draft =>
       acceptStepReadings(draft, { materials: accepted }, name =>
-        materialFromGuess(guessMaterial(name, remembered), memory.materials)
+        materialFromGuess(guessMaterial(name, remembered), memory)
       )
     );
 
@@ -294,7 +296,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     updateProtocol(draft => {
       for (const offer of offers) {
         ensureMaterial(draft, offer.name, name =>
-          materialFromGuess(guessMaterial(name, remembered), memory.materials)
+          materialFromGuess(guessMaterial(name, remembered), memory)
         );
       }
     });
@@ -361,6 +363,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                       new Set(section.columns.map(column => column.key)),
                       memory
                     ),
+                    pinnedKeys: new Set(groupStartingFields(memory, key)),
                     query,
                     onToggleOpen: () =>
                       setFieldMenu(current =>
@@ -369,6 +372,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                     onQueryChange: next => setFieldMenu({ group: key, query: next }),
                     onToggle: fieldKey =>
                       updateGroupItems(key, items => toggleSectionField(items, fieldKey, memory)),
+                    onTogglePin: fieldKey => toggleStartingField(key, fieldKey),
                     onAddCustom: () => {
                       if (!query.trim()) return;
                       updateGroupItems(key, items => addCustomSectionField(items, query.trim()));

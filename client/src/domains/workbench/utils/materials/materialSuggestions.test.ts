@@ -1,12 +1,13 @@
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
 import { materialFromGuess } from './materialItems';
+import { EMPTY_LAB_MEMORY } from './materialMemory';
 import { fieldSuggestions } from './materialSuggestions';
 
 const material = (name: string, vendor: string) => {
   const item = materialFromGuess(
     { group: 'chem', type: 'Chemical', name, values: {}, why: '', source: 'list' },
-    {}
+    EMPTY_LAB_MEMORY
   );
   item.values['vendor'] = vendor;
   return item;

@@ -16,9 +16,15 @@ export interface LabMemory {
   kinds: Record<string, RememberedMaterialKind>;
   materials: Record<string, RememberedMaterial>;
   fields: Record<string, FieldDefinition[]>;
+  startingFields: Record<string, string[]>;
 }
 
-export const EMPTY_LAB_MEMORY: LabMemory = { kinds: {}, materials: {}, fields: {} };
+export const EMPTY_LAB_MEMORY: LabMemory = {
+  kinds: {},
+  materials: {},
+  fields: {},
+  startingFields: {},
+};
 
 const kindKey = (group: string, type: string) => `${group}|${type}`;
 
@@ -26,6 +32,16 @@ export const learnedFields = (
   memory: LabMemory,
   item: Pick<MaterialItem, 'group' | 'type'>
 ): readonly FieldDefinition[] => memory.fields[kindKey(item.group, item.type)] ?? [];
+
+export function toggleStartingField(
+  memory: LabMemory,
+  group: string,
+  key: string,
+  current: readonly string[]
+): LabMemory {
+  const next = current.includes(key) ? current.filter(each => each !== key) : [...current, key];
+  return { ...memory, startingFields: { ...memory.startingFields, [group]: next } };
+}
 
 export function rememberKind(
   memory: LabMemory,
