@@ -94,6 +94,15 @@ detail. Server storage gets built only if a real need appears.
         volume"; the hover names the one used, or says to add "Well volume 80 µL".
   - [x] Values rows attached to a main row (series per plate, recipe ingredients, plate-only
         names) hang off a line in the main row's color, with an elbow into each.
+  - [x] Materials Recipe cell: ingredient names in blue with a dotted underline (it opens to edit);
+        hovering shows "Th17 cocktail:" with each ingredient and its amount indented below, and the note.
+  - [x] Spelled-out Greek letters become symbols when a name is finished (`greekLetters.ts`):
+        attached forms (IL-1beta, TNF-alpha, TGF-beta1, IFNgamma) and lowercase leading forms
+        (beta-actin); standalone words and capitalized leading words (Delta-like) stay. Applies
+        wherever text is typed, on leaving the field: new materials, every Materials text cell,
+        well-editor names and legend renames, step text, Values labels, row and column renames,
+        formula names and formulas. Name matching treats "IL-1beta" and "IL-1β" as the same.
+        Table and Text cards get it when they are built.
   - [ ] Dilutions series keep their own Well volume box; consider defaulting a blank one to the
         experiment's Well volume so the number is typed once.
   - [ ] Typed values named "Fold" still show "2×" (the user picked the × unit); decide whether they

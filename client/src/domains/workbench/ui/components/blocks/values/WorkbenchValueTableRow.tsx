@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react';
 import { Button, Tooltip } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 
 import { EDITABLE_HOVER, stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 import { WorkbenchValueTableCell, type ValueCellView } from './WorkbenchValueTableCell';
@@ -99,7 +100,11 @@ export function WorkbenchValueTableRow({
       spellCheck={false}
       className="w-40 border-b border-line-soft bg-transparent font-semibold text-foreground outline-none focus:border-primary"
       onChange={event => actions.onRename(row, event.target.value)}
-      onBlur={() => actions.onEditName(undefined)}
+      onBlur={event => {
+        const converted = withGreekLetters(event.target.value);
+        if (converted !== event.target.value) actions.onRename(row, converted);
+        actions.onEditName(undefined);
+      }}
       onKeyDown={event => {
         if (event.key === 'Enter' || event.key === 'Escape') actions.onEditName(undefined);
       }}

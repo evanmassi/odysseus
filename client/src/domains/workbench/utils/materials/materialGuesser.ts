@@ -1,3 +1,4 @@
+import { withGreekLetters } from './greekLetters';
 import {
   ANTIBODY_STOP_WORDS,
   DECISIVE_KEYWORD_TYPES,
@@ -134,7 +135,7 @@ const NON_KEY_CHARACTERS = /[^a-z0-9]/g;
 export const normalizeMaterialKey = (text: string): string =>
   LATIN_FOR_GREEK.reduce(
     (key, [letter, latin]) => key.replace(letter, latin),
-    text.toLowerCase()
+    withGreekLetters(text).toLowerCase()
   ).replace(NON_KEY_CHARACTERS, '');
 
 const LIST_SEPARATOR = '|';

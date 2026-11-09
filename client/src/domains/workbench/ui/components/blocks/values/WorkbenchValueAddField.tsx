@@ -4,6 +4,7 @@ import { Button } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { displayValue } from '../../../../utils/formulas/quantities';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { parseValueLine } from '../../../../utils/values/valueLines';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { valueUnitLabel } from '../../../../utils/values/valueUnits';
@@ -44,7 +45,7 @@ export function WorkbenchValueAddField({
   const guess = draft.trim() ? guessLine(draft, ownerName, takenNames) : undefined;
 
   const submit = (lines: string[]) => {
-    onAddLines(lines);
+    onAddLines(lines.map(withGreekLetters));
     setDraft('');
   };
 

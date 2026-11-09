@@ -4,7 +4,12 @@ import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
-import { materialGroup, materialGroupsOf } from '../../../../utils/materials/materialCatalog';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
+import {
+  materialFields,
+  materialGroup,
+  materialGroupsOf,
+} from '../../../../utils/materials/materialCatalog';
 import { conjugateClashes } from '../../../../utils/materials/materialClashes';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import {
@@ -79,6 +84,8 @@ interface FieldMenuState {
 const LEARN_DELAY_MS = 250;
 const ANTIBODY_GROUP = 'ab';
 const FIXED_CELLS = ['name', 'type'];
+
+const NAME_CELL = 'name';
 
 export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps) {
   const protocol = useWorkbenchStore(state => state.protocol);
@@ -192,15 +199,25 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     [block.id, updateProtocol]
   );
 
-  const fillLot = useCallback(
+  const finishCell = useCallback(
     (cell: MaterialCell) => {
       if (cell.key === LOT_FIELD) {
         updateItem(cell.itemId, (item, draft) => fillFromLotMemory(draft.lotMemory, item));
+      } else if (cell.key === NAME_CELL) {
+        updateItem(cell.itemId, item => {
+          item.name = withGreekLetters(item.name);
+        });
+      } else {
+        updateItem(cell.itemId, item => {
+          const definition = materialFields(item).find(field => field.key === cell.key);
+          const text = item.values[cell.key];
+          if (definition?.kind === 'text' && text) item.values[cell.key] = withGreekLetters(text);
+        });
       }
     },
     [updateItem]
   );
-  const editing = useMaterialCellEditing(cellOrder, fillLot);
+  const editing = useMaterialCellEditing(cellOrder, finishCell);
 
   const setItemKind = (itemId: string, { group, type }: MaterialKind) => {
     const name = block.items.find(item => item.id === itemId)?.name ?? '';

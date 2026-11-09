@@ -1,6 +1,7 @@
 import { displayValue } from '../formulas/quantities';
 import { createId } from '../ids/createId';
 
+import { withGreekLetters } from './greekLetters';
 import { UNIT_PER_ITEM, fieldUnit, materialFields } from './materialCatalog';
 import { normalizeMaterialKey, type MaterialAmount, type MaterialGuess } from './materialGuesser';
 
@@ -45,7 +46,7 @@ function newMaterial(group: string, type: string, name: string): MaterialItem {
     id: createId(),
     group,
     type,
-    name,
+    name: withGreekLetters(name),
     shownFields: [],
     values: {},
     units: {},

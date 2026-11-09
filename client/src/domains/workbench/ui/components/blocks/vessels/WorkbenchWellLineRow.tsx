@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 
 import { Input, Select, Tooltip } from '@shared/ui';
 
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
 
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
@@ -95,6 +96,11 @@ export function WorkbenchWellLineRow({
             spellCheck={false}
             autoComplete="off"
             onValueChange={onTextChange}
+            onBlur={event => {
+              const typed = event.currentTarget.value;
+              const converted = withGreekLetters(typed);
+              if (converted !== typed) onTextChange(converted);
+            }}
           />
         </span>
         {seriesText ? (
