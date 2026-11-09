@@ -2,14 +2,12 @@ import { useRef, useState } from 'react';
 
 import { ChevronDown, FilePlus, FolderOpen, Save } from 'lucide-react';
 
-import { Button, Chip, DropdownMenu, MenuDivider, MenuItem, Tooltip } from '@shared/ui';
+import { Button, DropdownMenu, MenuDivider, MenuItem, Tooltip } from '@shared/ui';
 
 import {
   ProtocolFileService,
   type ProtocolFileHandle,
 } from '../../../services/ProtocolFileService';
-import { selectIsDirty, useWorkbenchStore } from '../../../stores/workbenchStore';
-import { experimentId } from '../../../utils/protocolFile/experimentId';
 
 interface WorkbenchFileBarProps {
   recentFiles: readonly ProtocolFileHandle[];
@@ -28,15 +26,9 @@ export function WorkbenchFileBar({
   onOpenUpload,
   onSave,
 }: WorkbenchFileBarProps) {
-  const fileName = useWorkbenchStore(state => state.fileName);
-  const isDirty = useWorkbenchStore(selectIsDirty);
-  const identifier = useWorkbenchStore(state => experimentId(state.protocol));
   const [isOpenMenuShown, setIsOpenMenuShown] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
-
-  const suggestedName = `${identifier}.json`;
-  const isNamedDifferently = !!fileName && fileName !== suggestedName;
 
   const openMenuChoice = (act: () => void) => {
     setIsOpenMenuShown(false);
@@ -49,27 +41,8 @@ export function WorkbenchFileBar({
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <Tooltip content={fileName}>
-        <span className="min-w-0 truncate font-mono text-data-sm text-foreground">{fileName}</span>
-      </Tooltip>
-      {isDirty ? (
-        <Chip color="warning" lit>
-          Unsaved changes
-        </Chip>
-      ) : fileName ? (
-        <Chip color="success">Saved</Chip>
-      ) : (
-        <Chip color="outlined">Not saved to a file</Chip>
-      )}
-      {isNamedDifferently && (
-        <Tooltip content={`Save as ${suggestedName}`}>
-          <Button variant="ghost" size="xs" onClick={() => onSave(true)}>
-            Save as new name
-          </Button>
-        </Tooltip>
-      )}
-      <span className="ml-auto flex items-center gap-1">
+    <div className="flex flex-none items-center">
+      <span className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="sm"

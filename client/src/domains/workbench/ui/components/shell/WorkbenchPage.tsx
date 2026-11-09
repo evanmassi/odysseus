@@ -29,29 +29,33 @@ export function WorkbenchPage() {
     useProtocolFileActions(confirmDiscard);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-3">
-      <WorkbenchFileBar
-        recentFiles={recentFiles}
-        onNew={() => void startNew()}
-        onOpenPicker={() => void openFromPicker()}
-        onOpenRecent={handle => void openHandle(handle)}
-        onOpenUpload={file => void openUpload(file)}
-        onSave={asNewFile => void save(asNewFile)}
-      />
-      <WorkbenchTitleBar />
-      <div className="flex min-h-0 flex-1 gap-4">
-        <ScrollArea className="w-56 flex-none">
-          <ConsolePanel intensity="soft" className="py-3">
-            <WorkbenchBlockRail />
-          </ConsolePanel>
-        </ScrollArea>
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+    <div className="flex min-h-0 flex-1 gap-4 px-4 pb-4 pt-3">
+      <ScrollArea className="w-56 flex-none">
+        <ConsolePanel intensity="soft" className="py-3">
+          <WorkbenchBlockRail />
+        </ConsolePanel>
+      </ScrollArea>
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+        <div className="flex items-start gap-4">
+          <div className="min-w-0 flex-1">
+            <WorkbenchTitleBar onSaveUnderId={() => void save(true)} />
+          </div>
+          <WorkbenchFileBar
+            recentFiles={recentFiles}
+            onNew={() => void startNew()}
+            onOpenPicker={() => void openFromPicker()}
+            onOpenRecent={handle => void openHandle(handle)}
+            onOpenUpload={file => void openUpload(file)}
+            onSave={asNewFile => void save(asNewFile)}
+          />
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
           <WorkbenchPageTabs />
           <ScrollArea className="min-h-0 flex-1 pr-2">
             <WorkbenchBoard />
           </ScrollArea>
-        </main>
-      </div>
+        </div>
+      </main>
       <WorkbenchNameTray />
       <ConfirmDialog
         isOpen={!!resolveDiscard}
