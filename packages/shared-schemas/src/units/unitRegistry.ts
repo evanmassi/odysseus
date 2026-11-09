@@ -130,10 +130,14 @@ export function unitScale(unitId: string): UnitScale | undefined {
 export function formatScientific(value: number | undefined | null): string {
   if (value === undefined || value === null) return '';
   if (value === 0) return '0';
-  const exponent = Math.floor(Math.log10(Math.abs(value)));
-  const mantissa = value / Math.pow(10, exponent);
+  let exponent = Math.floor(Math.log10(Math.abs(value)));
+  let mantissa = (value / Math.pow(10, exponent)).toFixed(2);
+  if (Math.abs(Number(mantissa)) >= 10) {
+    exponent += 1;
+    mantissa = (value / Math.pow(10, exponent)).toFixed(2);
+  }
   const exponentFormatted = exponent >= 0 ? `+${exponent}` : `${exponent}`;
-  return `${mantissa.toFixed(2)}E${exponentFormatted}`;
+  return `${mantissa}E${exponentFormatted}`;
 }
 
 function formatDecimal(value: number): string {

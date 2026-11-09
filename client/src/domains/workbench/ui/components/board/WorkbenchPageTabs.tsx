@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { Plus, X } from 'lucide-react';
 
-import { Button, Tab, Tabs } from '@shared/ui';
+import { Button, Tab, Tabs, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
@@ -79,36 +79,36 @@ export function WorkbenchPageTabs() {
               }}
             />
           ) : (
-            <span
-              key={page.id}
-              role="presentation"
-              title="Double-click or F2 to rename"
-              onDoubleClick={() => setRenamingPageId(page.id)}
-              onKeyDown={event => {
-                if (event.key === 'F2') setRenamingPageId(page.id);
-              }}
-            >
-              <Tab id={page.id}>
-                {page.name || 'Untitled page'}
-                {canDelete && page.id === activePageId && (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Delete the ${page.name} page`}
-                    className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
-                    onClick={event => {
-                      event.stopPropagation();
-                      requestDelete(page.id);
-                    }}
-                    onKeyDown={event => {
-                      if (event.key === 'Enter') requestDelete(page.id);
-                    }}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </span>
-                )}
-              </Tab>
-            </span>
+            <Tooltip content="Double-click or F2 to rename" key={page.id}>
+              <span
+                role="presentation"
+                onDoubleClick={() => setRenamingPageId(page.id)}
+                onKeyDown={event => {
+                  if (event.key === 'F2') setRenamingPageId(page.id);
+                }}
+              >
+                <Tab id={page.id}>
+                  {page.name || 'Untitled page'}
+                  {canDelete && page.id === activePageId && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Delete the ${page.name} page`}
+                      className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
+                      onClick={event => {
+                        event.stopPropagation();
+                        requestDelete(page.id);
+                      }}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') requestDelete(page.id);
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                </Tab>
+              </span>
+            </Tooltip>
           )
         )}
       </Tabs>

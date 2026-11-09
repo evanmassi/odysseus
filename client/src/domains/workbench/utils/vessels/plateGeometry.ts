@@ -1,9 +1,10 @@
-import type { DoseHeaders, PlateBand } from './plateLayers';
+import type { PlateBand } from './plateLayers';
 import type { WellSize } from './vesselSizing';
 
 export interface PlateGeometry {
   leftPad: number;
   topPad: number;
+  edgePad: number;
   headerWidth: number;
   headerHeight: number;
   cellWidth: number;
@@ -37,12 +38,18 @@ export interface BandShapes {
 const GAP = 4;
 const HALF_GAP = GAP / 2;
 const LANE = 16;
-const PLAIN_HEADER_WIDTH = 16;
-const DOSED_HEADER_WIDTH = 44;
-const PLAIN_HEADER_HEIGHT = 14;
-const DOSED_HEADER_HEIGHT = 28;
+const OUTLINE_ROOM = HALF_GAP + 2;
+const HEADER_WIDTH = 16;
+const HEADER_HEIGHT = 14;
 const TAG_CHARACTER_WIDTH = 6.2;
 const TAG_PADDING = 12;
+
+const LABEL_CHARACTER_WIDTH = 6.5;
+
+function fitLabel(text: string, room: number): string {
+  const fits = Math.max(1, Math.floor(room / LABEL_CHARACTER_WIDTH));
+  return text.length <= fits ? text : `${text.slice(0, Math.max(1, fits - 1)).trimEnd()}…`;
+}
 
 function assignLanes(spans: Array<Omit<Bracket, 'lane'>>): { lanes: number; brackets: Bracket[] } {
   const laneEnds: number[] = [];
@@ -71,19 +78,25 @@ function bracketsOf(bands: readonly PlateBand[]) {
   return { top: assignLanes(spansAt('top')), left: assignLanes(spansAt('left')) };
 }
 
+const lanePad = (lanes: number) => (lanes ? lanes * LANE + HALF_GAP : 0);
+
+export function bandWidthPad(bands: readonly PlateBand[]): number {
+  return lanePad(bracketsOf(bands).left.lanes) + (bands.length ? OUTLINE_ROOM : 0);
+}
+
 export function plateGeometry(
   size: WellSize,
   rows: number,
   cols: number,
-  headers: DoseHeaders | undefined,
   bands: readonly PlateBand[]
 ): PlateGeometry {
   const { top, left } = bracketsOf(bands);
   return {
-    leftPad: left.lanes ? left.lanes * LANE + HALF_GAP : 0,
-    topPad: top.lanes ? top.lanes * LANE + HALF_GAP : 0,
-    headerWidth: headers?.axis === 'row' ? DOSED_HEADER_WIDTH : PLAIN_HEADER_WIDTH,
-    headerHeight: headers?.axis === 'col' ? DOSED_HEADER_HEIGHT : PLAIN_HEADER_HEIGHT,
+    leftPad: lanePad(left.lanes),
+    topPad: lanePad(top.lanes),
+    edgePad: bands.length ? OUTLINE_ROOM : 0,
+    headerWidth: HEADER_WIDTH,
+    headerHeight: HEADER_HEIGHT,
     cellWidth: size.width,
     cellHeight: size.height,
     rows,
@@ -92,10 +105,16 @@ export function plateGeometry(
 }
 
 export const plateWidth = (geometry: PlateGeometry) =>
-  geometry.leftPad + geometry.headerWidth + geometry.cols * (geometry.cellWidth + GAP);
+  geometry.leftPad +
+  geometry.headerWidth +
+  geometry.cols * (geometry.cellWidth + GAP) +
+  geometry.edgePad;
 
 export const plateHeight = (geometry: PlateGeometry) =>
-  geometry.topPad + geometry.headerHeight + geometry.rows * (geometry.cellHeight + GAP);
+  geometry.topPad +
+  geometry.headerHeight +
+  geometry.rows * (geometry.cellHeight + GAP) +
+  geometry.edgePad;
 
 const cellLeft = (geometry: PlateGeometry, col: number) =>
   geometry.leftPad + geometry.headerWidth + GAP + col * (geometry.cellWidth + GAP);
@@ -164,7 +183,7 @@ export function bandShapes(bands: readonly PlateBand[], geometry: PlateGeometry)
       path: `M${x1} ${y + 4}v-4H${x2}v4`,
       x: (x1 + x2) / 2,
       y: y - 2,
-      text: band.text,
+      text: fitLabel(band.text, x2 - x1),
       color: band.color,
     });
   }
@@ -176,7 +195,7 @@ export function bandShapes(bands: readonly PlateBand[], geometry: PlateGeometry)
       path: `M${x + 4} ${y1}h-4V${y2}h4`,
       x: x - 3,
       y: (y1 + y2) / 2,
-      text: band.text,
+      text: fitLabel(band.text, y2 - y1),
       color: band.color,
     });
   }

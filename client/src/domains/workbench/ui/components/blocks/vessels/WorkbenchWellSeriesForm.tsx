@@ -1,6 +1,6 @@
 import type { Ref } from 'react';
 
-import { Button, Input, Select } from '@shared/ui';
+import { Button, Input, Select, Tooltip } from '@shared/ui';
 
 import { nameKey, type BoardCalculation } from '../../../../utils/formulas/boardCalculation';
 import { describeName } from '../../../../utils/formulas/nameDisplay';
@@ -10,6 +10,7 @@ import type { SeriesForm } from '../../../../utils/vessels/seriesEdits';
 
 interface WorkbenchWellSeriesFormProps {
   form: SeriesForm;
+  isUnnamed: boolean;
   preview: string;
   calculation: BoardCalculation;
   startRef: Ref<HTMLInputElement>;
@@ -47,6 +48,7 @@ function linkedText(calculation: BoardCalculation, text: string) {
 
 export function WorkbenchWellSeriesForm({
   form,
+  isUnnamed,
   preview,
   calculation,
   startRef,
@@ -163,24 +165,35 @@ export function WorkbenchWellSeriesForm({
       <div className="flex items-center gap-2">
         <span className={LABEL}>Direction</span>
         {DIRECTIONS.map(([direction, arrow, label]) => (
-          <button
-            key={direction}
-            type="button"
-            title={label}
-            aria-label={label}
-            aria-pressed={form.direction === direction}
-            className={`h-7 w-8 border text-body-sm ${
-              form.direction === direction
-                ? 'border-primary/60 bg-primary/15 text-foreground'
-                : 'border-line-soft text-muted-foreground hover:text-foreground'
-            }`}
-            onClick={() => onChange({ direction })}
-          >
-            {arrow}
-          </button>
+          <Tooltip content={label} key={direction}>
+            <button
+              type="button"
+              aria-label={label}
+              aria-pressed={form.direction === direction}
+              className={`h-7 w-8 border text-body-sm ${
+                form.direction === direction
+                  ? 'border-primary/60 bg-primary/15 text-foreground'
+                  : 'border-line-soft text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => onChange({ direction })}
+            >
+              {arrow}
+            </button>
+          </Tooltip>
         ))}
       </div>
       <p className="text-caption text-muted-foreground">{preview}</p>
+      {!form.isList && !form.unit && !startLink && (
+        <p className="text-caption text-warning-text">
+          No unit yet, so the wells will show bare numbers. Pick one next to Start.
+        </p>
+      )}
+      {isUnnamed && (
+        <p className="text-caption text-warning-text">
+          Name what is being diluted in the box above, so the wells and the Dilutions card can say
+          what it is.
+        </p>
+      )}
       <div className="flex gap-2">
         <Button type="submit" variant="ghost" size="sm">
           Done

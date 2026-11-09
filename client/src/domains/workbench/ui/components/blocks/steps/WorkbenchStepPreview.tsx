@@ -1,3 +1,5 @@
+import { Tooltip } from '@shared/ui';
+
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { describeName } from '../../../../utils/formulas/nameDisplay';
 import { parseStepTemplate, splitProse } from '../../../../utils/steps/stepTemplate';
@@ -22,13 +24,9 @@ export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
         if (part.kind === 'reference') {
           const display = describeName(calculation, part.name);
           return (
-            <span
-              key={partIndex}
-              title={display.label}
-              className={`cursor-help ${referenceToneClass(display)}`}
-            >
-              {display.text}
-            </span>
+            <Tooltip content={display.label} key={partIndex}>
+              <span className={`cursor-help ${referenceToneClass(display)}`}>{display.text}</span>
+            </Tooltip>
           );
         }
         if (part.kind === 'blank') {

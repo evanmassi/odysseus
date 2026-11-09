@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { Button, Select } from '@shared/ui';
+import { Button, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
@@ -324,19 +324,20 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
               key={section.id}
               title={
                 isEditableName ? (
-                  <input
-                    value={'mixName' in section ? section.mixName : (material?.name ?? '')}
-                    placeholder={'mixName' in section ? 'Name this mix' : 'Name'}
-                    title={material ? 'Renames it in Materials too' : undefined}
-                    aria-label="Section name"
-                    spellCheck={false}
-                    className={TITLE_INPUT}
-                    onChange={event =>
-                      edit(draft =>
-                        renameValueSection(draft, block.id, section.id, event.target.value)
-                      )
-                    }
-                  />
+                  <Tooltip content={material ? 'Renames it in Materials too' : undefined}>
+                    <input
+                      value={'mixName' in section ? section.mixName : (material?.name ?? '')}
+                      placeholder={'mixName' in section ? 'Name this mix' : 'Name'}
+                      aria-label="Section name"
+                      spellCheck={false}
+                      className={TITLE_INPUT}
+                      onChange={event =>
+                        edit(draft =>
+                          renameValueSection(draft, block.id, section.id, event.target.value)
+                        )
+                      }
+                    />
+                  </Tooltip>
                 ) : (
                   name
                 )

@@ -103,7 +103,7 @@ describe('calculateBoard', () => {
       value('Cells per well', '5000'),
       formula('Total', 'cells per WELL * Cells'),
     ];
-    expect(answerOf(board, 'Total')).toBe('10000');
+    expect(answerOf(board, 'Total')).toBe('1.00E+4');
   });
 
   it('rounds up to a step of the same kind', () => {

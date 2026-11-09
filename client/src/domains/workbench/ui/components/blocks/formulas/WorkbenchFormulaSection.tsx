@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 
-import { Button } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
 
@@ -54,39 +54,40 @@ export function WorkbenchFormulaSection({
         </header>
       )}
       <div className="flex flex-col">{children}</div>
-      <input
-        value={draft}
-        placeholder={addPlaceholder}
-        title="Name it, or type Name = formula"
-        aria-label={addPlaceholder}
-        spellCheck={false}
-        autoComplete="off"
-        className="mx-2 mt-1 w-[calc(100%-1rem)] bg-transparent py-1 text-body-sm text-foreground outline-none placeholder:text-muted-foreground"
-        onChange={event => setDraft(event.target.value)}
-        onKeyDown={event => {
-          if (event.key === 'Escape') setDraft('');
-          if (event.key !== 'Enter' || !draft.trim()) return;
-          event.preventDefault();
-          onAdd(draft);
-          setDraft('');
-        }}
-      />
+      <Tooltip content="Name it, or type Name = formula">
+        <input
+          value={draft}
+          placeholder={addPlaceholder}
+          aria-label={addPlaceholder}
+          spellCheck={false}
+          autoComplete="off"
+          className="mx-2 mt-1 w-[calc(100%-1rem)] bg-transparent py-1 text-body-sm text-foreground outline-none placeholder:text-muted-foreground"
+          onChange={event => setDraft(event.target.value)}
+          onKeyDown={event => {
+            if (event.key === 'Escape') setDraft('');
+            if (event.key !== 'Enter' || !draft.trim()) return;
+            event.preventDefault();
+            onAdd(draft);
+            setDraft('');
+          }}
+        />
+      </Tooltip>
       {suggestions.length > 0 && (
         <p
           className={`${isEmpty ? 'flex' : 'hidden group-focus-within/section:flex'} flex-wrap items-center gap-x-1 px-2 pb-1 text-label-xs text-muted-foreground`}
         >
           Often added:
           {suggestions.map(suggestion => (
-            <Button
-              key={suggestion.name}
-              variant="ghost-primary"
-              size="xs"
-              title={suggestionTitle(suggestion)}
-              onMouseDown={event => event.preventDefault()}
-              onClick={() => onSuggest(suggestion)}
-            >
-              {suggestion.label}
-            </Button>
+            <Tooltip content={suggestionTitle(suggestion)} key={suggestion.name}>
+              <Button
+                variant="ghost-primary"
+                size="xs"
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => onSuggest(suggestion)}
+              >
+                {suggestion.label}
+              </Button>
+            </Tooltip>
           ))}
         </p>
       )}

@@ -1,4 +1,4 @@
-import { Button } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { displayValue, PAIR_NOTATION, quantityOf } from '../../../../utils/formulas/quantities';
@@ -71,74 +71,77 @@ export function WorkbenchValueRow({
   };
 
   return (
-    <tr
-      title={title}
-      className={`group even:bg-foreground/[0.025] ${row.isDuplicate || isInvalid ? 'text-danger-text' : ''}`}
-    >
-      <td className={CELL} onKeyDown={handleKeyDown('name')} onBlur={handleBlur}>
-        {editingCell === 'name' ? (
-          <input
-            ref={focusOnMount}
-            defaultValue={row.label}
-            placeholder="Name"
-            aria-label="Value name"
-            spellCheck={false}
-            className="w-full border-b border-line-soft bg-transparent text-body-sm text-foreground outline-none focus:border-primary"
-            onChange={event => onRename(event.target.value)}
-          />
-        ) : (
-          <button
-            type="button"
-            className="w-full text-left text-body-sm text-foreground"
-            onClick={() => onEdit('name')}
-          >
-            {row.label || <span className="text-muted-foreground">Unnamed</span>}
-            {row.tag && <span className="ml-2 text-label-xs text-muted-foreground">{row.tag}</span>}
-            {!row.usage && (
-              <span className="ml-2 text-label-xs text-muted-foreground/70">unused</span>
-            )}
-          </button>
-        )}
-      </td>
-      <td className={`${CELL} text-right`} onKeyDown={handleKeyDown('value')} onBlur={handleBlur}>
-        {editingCell === 'value' ? (
-          <WorkbenchValueAmountField
-            value={row.value}
-            unit={row.unit}
-            placeholder="0"
-            isFocusedOnMount
-            units={row.units}
-            isInvalid={isInvalid}
-            onValueChange={onValueChange}
-            onUnitChange={onUnitChange}
-          />
-        ) : (
-          <button
-            type="button"
-            disabled={!row.isValueEditable}
-            className="w-full text-right font-mono text-data-sm disabled:cursor-default"
-            onClick={() => onEdit('value')}
-          >
-            {row.value.trim() ? (
-              displayValue(row.value, row.unit)
-            ) : (
-              <span className="font-sans text-label-xs text-muted-foreground">to fill in</span>
-            )}
-          </button>
-        )}
-      </td>
-      <td className="w-px px-1 text-right">
-        {row.canRemove && (
-          <Button
-            variant="ghost-danger"
-            size="xs"
-            className="opacity-0 group-hover:opacity-100"
-            onClick={onRemove}
-          >
-            Remove
-          </Button>
-        )}
-      </td>
-    </tr>
+    <Tooltip content={title}>
+      <tr
+        className={`group even:bg-foreground/[0.025] ${row.isDuplicate || isInvalid ? 'text-danger-text' : ''}`}
+      >
+        <td className={CELL} onKeyDown={handleKeyDown('name')} onBlur={handleBlur}>
+          {editingCell === 'name' ? (
+            <input
+              ref={focusOnMount}
+              defaultValue={row.label}
+              placeholder="Name"
+              aria-label="Value name"
+              spellCheck={false}
+              className="w-full border-b border-line-soft bg-transparent text-body-sm text-foreground outline-none focus:border-primary"
+              onChange={event => onRename(event.target.value)}
+            />
+          ) : (
+            <button
+              type="button"
+              className="w-full text-left text-body-sm text-foreground"
+              onClick={() => onEdit('name')}
+            >
+              {row.label || <span className="text-muted-foreground">Unnamed</span>}
+              {row.tag && (
+                <span className="ml-2 text-label-xs text-muted-foreground">{row.tag}</span>
+              )}
+              {!row.usage && (
+                <span className="ml-2 text-label-xs text-muted-foreground/70">unused</span>
+              )}
+            </button>
+          )}
+        </td>
+        <td className={`${CELL} text-right`} onKeyDown={handleKeyDown('value')} onBlur={handleBlur}>
+          {editingCell === 'value' ? (
+            <WorkbenchValueAmountField
+              value={row.value}
+              unit={row.unit}
+              placeholder="0"
+              isFocusedOnMount
+              units={row.units}
+              isInvalid={isInvalid}
+              onValueChange={onValueChange}
+              onUnitChange={onUnitChange}
+            />
+          ) : (
+            <button
+              type="button"
+              disabled={!row.isValueEditable}
+              className="w-full text-right font-mono text-data-sm disabled:cursor-default"
+              onClick={() => onEdit('value')}
+            >
+              {row.value.trim() ? (
+                displayValue(row.value, row.unit)
+              ) : (
+                <span className="font-sans text-label-xs text-muted-foreground">to fill in</span>
+              )}
+            </button>
+          )}
+        </td>
+        <td className="w-px px-1 text-right">
+          {row.canRemove && (
+            <Button
+              variant="ghost-danger"
+              size="xs"
+              className="opacity-0 group-hover:opacity-100"
+              onClick={onRemove}
+            >
+              Remove
+            </Button>
+          )}
+        </td>
+      </tr>
+    </Tooltip>
   );
 }

@@ -1,6 +1,10 @@
 import type { CSSProperties, PointerEvent } from 'react';
 
+import { Tooltip } from '@shared/ui';
+
 import { SHAPE_METRICS, type VesselShape } from '../../../../utils/vessels/vesselSizing';
+
+import { wellTooltipContent } from './wellTooltipContent';
 
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
 
@@ -63,7 +67,7 @@ interface WorkbenchShelfVesselButtonProps {
   shape: VesselShape;
   width: number;
   sizeLabel: string;
-  title: string;
+  tooltipLines: string[];
   lines: WellLine[];
   color: WellColor | undefined;
   isSelected: boolean;
@@ -109,7 +113,7 @@ export function WorkbenchShelfVesselButton({
   shape,
   width,
   sizeLabel,
-  title,
+  tooltipLines,
   lines,
   color,
   isSelected,
@@ -120,63 +124,66 @@ export function WorkbenchShelfVesselButton({
   const metrics = SHAPE_METRICS[shape];
   const [left, top, boxWidth, boxHeight] = metrics.textBox;
   return (
-    <div
-      role="gridcell"
-      data-well-key={wellKey}
-      tabIndex={-1}
-      aria-selected={isSelected}
-      title={title}
-      onPointerDown={onPointerDown}
-      onPointerEnter={onPointerEnter}
-      onDoubleClick={onDoubleClick}
-      className={`group relative flex cursor-pointer flex-col items-center gap-1 ${metrics.isVertical ? 'min-w-16' : ''}`}
-    >
-      <div className="relative">
-        <svg
-          viewBox={`0 0 ${metrics.width} ${metrics.height}`}
-          className="block h-auto overflow-visible"
-          style={{ width }}
-          aria-hidden
-        >
-          {SHAPE_PARTS[shape].map((part, index) => (
-            <ShapePartElement key={index} part={part} color={color} isSelected={isSelected} />
-          ))}
-        </svg>
-        <div
-          className={`absolute flex flex-col items-center justify-center gap-[3px] overflow-hidden text-center text-foreground ${
-            metrics.isVertical
-              ? 'rotate-180 text-label-2xs leading-[13px] [writing-mode:vertical-rl]'
-              : 'text-label-2xs leading-[14px]'
-          }`}
-          style={{
-            left: `${left}%`,
-            top: `${top}%`,
-            width: `${boxWidth}%`,
-            height: `${boxHeight}%`,
-          }}
-        >
-          {lines.map((line, index) => (
-            <span
-              key={index}
-              className={
-                metrics.isVertical
-                  ? 'block truncate'
-                  : 'flex flex-wrap justify-center gap-x-1.5 gap-y-px'
-              }
-            >
-              {line.label && <span>{line.label}</span>}
-              {line.readable && (
-                <span className={metrics.isVertical ? 'ms-[.55em] font-semibold' : 'font-semibold'}>
-                  {line.readable}
-                </span>
-              )}
-            </span>
-          ))}
+    <Tooltip content={wellTooltipContent(tooltipLines)} delayDuration={300}>
+      <div
+        role="gridcell"
+        data-well-key={wellKey}
+        tabIndex={-1}
+        aria-selected={isSelected}
+        onPointerDown={onPointerDown}
+        onPointerEnter={onPointerEnter}
+        onDoubleClick={onDoubleClick}
+        className={`group relative flex cursor-pointer flex-col items-center gap-1 ${metrics.isVertical ? 'min-w-16' : ''}`}
+      >
+        <div className="relative">
+          <svg
+            viewBox={`0 0 ${metrics.width} ${metrics.height}`}
+            className="block h-auto overflow-visible"
+            style={{ width }}
+            aria-hidden
+          >
+            {SHAPE_PARTS[shape].map((part, index) => (
+              <ShapePartElement key={index} part={part} color={color} isSelected={isSelected} />
+            ))}
+          </svg>
+          <div
+            className={`absolute flex flex-col items-center justify-center gap-[3px] overflow-hidden text-center text-foreground ${
+              metrics.isVertical
+                ? 'rotate-180 text-label-2xs leading-[13px] [writing-mode:vertical-rl]'
+                : 'text-label-2xs leading-[14px]'
+            }`}
+            style={{
+              left: `${left}%`,
+              top: `${top}%`,
+              width: `${boxWidth}%`,
+              height: `${boxHeight}%`,
+            }}
+          >
+            {lines.map((line, index) => (
+              <span
+                key={index}
+                className={
+                  metrics.isVertical
+                    ? 'block truncate'
+                    : 'flex flex-wrap justify-center gap-x-1.5 gap-y-px'
+                }
+              >
+                {line.label && <span>{line.label}</span>}
+                {line.readable && (
+                  <span
+                    className={metrics.isVertical ? 'ms-[.55em] font-semibold' : 'font-semibold'}
+                  >
+                    {line.readable}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
         </div>
+        <span className="font-mono text-label-2xs tracking-wide text-muted-foreground/80">
+          {sizeLabel}
+        </span>
       </div>
-      <span className="font-mono text-label-2xs tracking-wide text-muted-foreground/80">
-        {sizeLabel}
-      </span>
-    </div>
+    </Tooltip>
   );
 }

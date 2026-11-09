@@ -1,4 +1,11 @@
-import { isFilledCell, type PlateLine, type VesselMapBlock } from '@odysseus/shared-schemas';
+import {
+  isFilledCell,
+  lineValueOf,
+  type PlateLine,
+  type VesselMapBlock,
+} from '@odysseus/shared-schemas';
+
+type LineValue = PlateLine['values'][number];
 
 import { wellLine, wellLineText } from './wellContents';
 
@@ -63,26 +70,13 @@ export interface BandCluster {
 export interface PlateBand {
   text: string;
   color: string;
+  valueId: string | undefined;
+  wells: number;
   clusters: BandCluster[];
-}
-
-export interface DoseHeaders {
-  axis: 'col' | 'row';
-  unit: string;
-  labels: ReadonlyMap<number, { text: string; short: string }>;
 }
 
 const BAND_COLORS = ['#f0b35b', '#e8875a', '#6fbf73', '#c9ccd3'] as const;
 const RING_MOST_WELLS = 2;
-const FIRST_NUMBER = /[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/;
-
-export function headerNumber(text: string): string {
-  const number = parseFloat(FIRST_NUMBER.exec(text)?.[0] ?? '');
-  if (Number.isNaN(number)) return text;
-  if (Math.abs(number) >= 100) return String(Math.round(number));
-  const short = String(Number(number.toPrecision(2)));
-  return short.startsWith('0.') ? short.slice(1) : short;
-}
 
 function clustersOf(cells: BandCell[]): Array<Omit<BandCluster, 'place'>> {
   const left = new Map(cells.map(cell => [`${cell.row},${cell.col}`, cell]));
@@ -132,13 +126,19 @@ export function plateBands(
   const usedBottom = Math.max(...usedSpots.map(spot => spot.row));
   const bands: PlateBand[] = [];
   for (const { line } of layers.filter(layer => layer.role === 'band')) {
-    const byText = new Map<string, BandCell[]>();
+    const byText = new Map<string, { cells: BandCell[]; value: LineValue | undefined }>();
     for (const spot of usedSpots) {
       const shown = wellLine(block, spot.key, line, calculation);
       const text = shown && wellLineText(shown);
-      if (text) byText.set(text, [...(byText.get(text) ?? []), spot]);
+      if (!text) continue;
+      const group = byText.get(text) ?? {
+        cells: [],
+        value: lineValueOf(line, block.cells[spot.key]?.[line.id]),
+      };
+      group.cells.push(spot);
+      byText.set(text, group);
     }
-    for (const [text, cells] of byText) {
+    for (const [text, { cells, value }] of byText) {
       const clusters = clustersOf(cells).map((cluster): BandCluster => {
         const area = (cluster.bottom - cluster.top + 1) * (cluster.right - cluster.left + 1);
         const spansUsedRows = cluster.top === usedTop && cluster.bottom === usedBottom;
@@ -152,42 +152,14 @@ export function plateBands(
                 : 'left';
         return { ...cluster, place };
       });
-      bands.push({ text, color: BAND_COLORS[bands.length % BAND_COLORS.length], clusters });
+      bands.push({
+        text,
+        color: value?.color ?? BAND_COLORS[bands.length % BAND_COLORS.length],
+        valueId: value?.id,
+        wells: cells.length,
+        clusters,
+      });
     }
   }
   return bands;
-}
-
-export function doseHeaders(
-  block: VesselMapBlock,
-  sheet: VesselSheet,
-  colorLine: PlateLine | undefined,
-  calculation: BoardCalculation
-): DoseHeaders | undefined {
-  if (!colorLine || !sheet.isPlate) return undefined;
-  for (const axis of ['col', 'row'] as const) {
-    const amountsAt = new Map<number, Set<string>>();
-    for (const spot of sheet.spots) {
-      const amount = wellLine(block, spot.key, colorLine, calculation)?.amount;
-      if (!amount) continue;
-      const index = axis === 'col' ? spot.col : spot.row;
-      amountsAt.set(index, (amountsAt.get(index) ?? new Set()).add(amount));
-    }
-    if (amountsAt.size < 2 || ![...amountsAt.values()].every(amounts => amounts.size === 1))
-      continue;
-    const texts = new Map([...amountsAt].map(([index, amounts]) => [index, [...amounts][0]]));
-    const units = new Set([...texts.values()].map(text => text.replace(FIRST_NUMBER, '').trim()));
-    const unit = units.size === 1 ? [...units][0] : '';
-    return {
-      axis,
-      unit,
-      labels: new Map(
-        [...texts].map(([index, text]) => [
-          index,
-          { text, short: unit ? headerNumber(text) : text },
-        ])
-      ),
-    };
-  }
-  return undefined;
 }

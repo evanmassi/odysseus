@@ -56,6 +56,17 @@ export function seriesFormFor(
   return { ...blank, isList: false, start, unit, fold, direction };
 }
 
+export function lineUnitOf(block: VesselMapBlock, lineId: string): string {
+  const cells = Object.values(block.cells).flatMap(lines => (lines[lineId] ? [lines[lineId]] : []));
+  const typed = cells.find(cell => cell.unit)?.unit;
+  if (typed) return typed;
+  for (const cell of cells) {
+    const series = cell.seriesId === undefined ? undefined : block.series[cell.seriesId];
+    if (series && 'start' in series && series.unit) return series.unit;
+  }
+  return '';
+}
+
 export function seriesTargets(
   block: VesselMapBlock,
   sheet: VesselSheet,

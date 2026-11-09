@@ -7,11 +7,6 @@ import {
   plateWidth,
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
-import {
-  headerNumber,
-  type DoseHeaders,
-  type PlateBand,
-} from '../../../../utils/vessels/plateLayers';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
 import { wellColor, wellDetails, wellLine } from '../../../../utils/vessels/wellContents';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
@@ -20,6 +15,7 @@ import { WorkbenchPlateWellButton } from './WorkbenchPlateWellButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { PlateBand } from '../../../../utils/vessels/plateLayers';
 import type { ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
 import type { WellSize } from '../../../../utils/vessels/vesselSizing';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
@@ -28,7 +24,6 @@ interface WorkbenchPlateTableProps {
   block: VesselMapBlock;
   sheet: VesselSheet;
   colorLine: PlateLine | undefined;
-  headers: DoseHeaders | undefined;
   bands: PlateBand[];
   size: WellSize;
   calculation: BoardCalculation;
@@ -40,8 +35,6 @@ interface WorkbenchPlateTableProps {
 
 const HEADER =
   'flex items-center justify-center gap-1 font-mono text-label-2xs text-muted-foreground transition-colors hover:text-primary';
-const DOSE = 'text-foreground';
-const SNUG_BELOW = 70;
 const TAG_TEXT = '#11141a';
 
 function BandOverlay({ bands, geometry }: { bands: PlateBand[]; geometry: PlateGeometry }) {
@@ -71,7 +64,7 @@ function BandOverlay({ bands, geometry }: { bands: PlateBand[]; geometry: PlateG
       ))}
       {shapes.tags.map(({ x, y, width, text, color }, index) => (
         <g key={`tag-${index}`}>
-          <rect x={x} y={y - 9} width={width} height={15} rx={3} fill={color} />
+          <rect x={x} y={y - 9} width={width} height={15} fill={color} />
           <text x={x + 6} y={y + 2} fill={TAG_TEXT}>
             {text}
           </text>
@@ -101,7 +94,6 @@ export function WorkbenchPlateTable({
   block,
   sheet,
   colorLine,
-  headers,
   bands,
   size,
   calculation,
@@ -110,23 +102,22 @@ export function WorkbenchPlateTable({
   onKeyDown,
   onOpenWell,
 }: WorkbenchPlateTableProps) {
-  const geometry = plateGeometry(size, sheet.rows, sheet.cols, headers, bands);
+  const geometry = plateGeometry(size, sheet.rows, sheet.cols, bands);
   const style = {
     gridTemplateColumns: `${geometry.headerWidth}px repeat(${sheet.cols}, ${size.width}px)`,
     gridTemplateRows: `${geometry.headerHeight}px repeat(${sheet.rows}, ${size.height}px)`,
     paddingLeft: geometry.leftPad,
     paddingTop: geometry.topPad,
-    '--well-height': `${size.height}px`,
+    paddingRight: geometry.edgePad,
+    paddingBottom: geometry.edgePad,
   } as CSSProperties;
-  const isSnug = !!colorLine && size.width < SNUG_BELOW;
-  const doseAt = (axis: 'col' | 'row', index: number) =>
-    headers?.axis === axis ? headers.labels.get(index) : undefined;
 
   return (
     <div className="flex justify-center">
       <div
         role="grid"
         aria-label="Plate wells"
+        data-focus="wells"
         aria-multiselectable
         className="relative grid select-none gap-1 outline-none"
         style={style}
@@ -143,43 +134,31 @@ export function WorkbenchPlateTable({
           className={HEADER}
           style={{ gridRow: 1, gridColumn: 1 }}
           onClick={selection.selectAll}
-        >
-          {headers?.unit}
-        </button>
-        {Array.from({ length: sheet.cols }, (_, col) => {
-          const dose = doseAt('col', col);
-          return (
-            <button
-              key={`col-${col}`}
-              type="button"
-              aria-label={`Select column ${col + 1}`}
-              title={dose?.text}
-              className={`${HEADER} ${dose ? 'flex-col justify-end gap-0.5' : ''}`}
-              style={{ gridRow: 1, gridColumn: col + 2 }}
-              onClick={() => selection.selectColumn(col)}
-            >
-              {col + 1}
-              {dose && <span className={DOSE}>{dose.short}</span>}
-            </button>
-          );
-        })}
-        {Array.from({ length: sheet.rows }, (_, row) => {
-          const dose = doseAt('row', row);
-          return (
-            <button
-              key={`row-${row}`}
-              type="button"
-              aria-label={`Select row ${rowLetter(row)}`}
-              title={dose?.text}
-              className={`${HEADER} ${dose ? 'justify-between pr-0.5' : ''}`}
-              style={{ gridRow: row + 2, gridColumn: 1 }}
-              onClick={() => selection.selectRow(row)}
-            >
-              {rowLetter(row)}
-              {dose && <span className={DOSE}>{dose.short}</span>}
-            </button>
-          );
-        })}
+        />
+        {Array.from({ length: sheet.cols }, (_, col) => (
+          <button
+            key={`col-${col}`}
+            type="button"
+            aria-label={`Select column ${col + 1}`}
+            className={HEADER}
+            style={{ gridRow: 1, gridColumn: col + 2 }}
+            onClick={() => selection.selectColumn(col)}
+          >
+            {col + 1}
+          </button>
+        ))}
+        {Array.from({ length: sheet.rows }, (_, row) => (
+          <button
+            key={`row-${row}`}
+            type="button"
+            aria-label={`Select row ${rowLetter(row)}`}
+            className={HEADER}
+            style={{ gridRow: row + 2, gridColumn: 1 }}
+            onClick={() => selection.selectRow(row)}
+          >
+            {rowLetter(row)}
+          </button>
+        ))}
         {sheet.spots.map(spot => {
           const merged = merges.anchors.get(spot.key);
           if (!merged && merges.covered.has(spot.key)) return null;
@@ -195,15 +174,11 @@ export function WorkbenchPlateTable({
               row={spot.row}
               col={spot.col}
               merged={merged}
-              title={[where, ...details].join('\n')}
+              tooltipLines={[where, ...details]}
               shownLine={shownLine}
-              shortAmount={
-                headers?.unit && shownLine ? headerNumber(shownLine.amount) : shownLine?.amount
-              }
               isFilled={details.length > 0}
               color={wellColor(block, spot.key, colorLine)}
               density={size.density}
-              isSnug={isSnug}
               isSelected={selection.keys.has(spot.key)}
               onPointerDown={event => {
                 event.preventDefault();

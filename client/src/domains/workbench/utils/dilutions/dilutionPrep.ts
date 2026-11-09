@@ -21,6 +21,7 @@ export interface DilutionRun {
   seriesId: string;
   series: StepSeries;
   subject: string;
+  color: string | undefined;
   wellsPerPoint: Map<number, number>;
 }
 
@@ -87,11 +88,13 @@ export function dilutionRuns(protocol: Protocol): DilutionRun[] {
           const cell = lines[line.id];
           const series = cell?.seriesId === undefined ? undefined : plate.series[cell.seriesId];
           if (!cell?.seriesId || !series || !('start' in series)) continue;
+          const value = lineValueOf(line, cell);
           const run = runs.get(cell.seriesId) ?? {
             plateId: plate.id,
             seriesId: cell.seriesId,
             series,
-            subject: lineValueOf(line, cell)?.text.trim() ?? '',
+            subject: value?.text.trim() ?? '',
+            color: value?.color,
             wellsPerPoint: new Map<number, number>(),
           };
           runs.set(cell.seriesId, run);

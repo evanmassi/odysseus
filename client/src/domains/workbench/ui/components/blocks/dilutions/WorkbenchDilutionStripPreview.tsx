@@ -5,6 +5,7 @@ type ReadyPrep = Extract<DilutionPrep, { kind: 'ready' }>;
 interface WorkbenchDilutionStripPreviewProps {
   prep: ReadyPrep;
   markerId: string;
+  color: string | undefined;
 }
 
 const LEFT = 100;
@@ -19,6 +20,7 @@ const BRIGHT = 'fill-foreground';
 export function WorkbenchDilutionStripPreview({
   prep,
   markerId,
+  color,
 }: WorkbenchDilutionStripPreviewProps) {
   const width = LEFT + prep.points.length * COLUMN;
   const height = prep.isUneven ? 104 : 90;
@@ -76,7 +78,6 @@ export function WorkbenchDilutionStripPreview({
         y={CENTER_Y - 17}
         width={58}
         height={34}
-        rx={3}
         fill="none"
         strokeDasharray="3 3"
         className={hasStockIssue ? 'stroke-warning-text' : 'stroke-foreground/35'}
@@ -119,7 +120,18 @@ export function WorkbenchDilutionStripPreview({
                 {prep.stockPipette}
               </text>
             )}
-            <circle cx={x} cy={CENTER_Y} r={RADIUS} className="fill-primary/10 stroke-primary/55" />
+            <rect
+              x={x - RADIUS}
+              y={CENTER_Y - RADIUS}
+              width={RADIUS * 2}
+              height={RADIUS * 2}
+              className={color ? undefined : 'fill-primary/10 stroke-primary/55'}
+              style={
+                color
+                  ? { fill: `color-mix(in srgb, ${color} 20%, transparent)`, stroke: color }
+                  : undefined
+              }
+            />
             <text x={x} y={CENTER_Y + 1} fontSize={11} className={`${MONO} ${BRIGHT}`}>
               {point.volume}
             </text>
