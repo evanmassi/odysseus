@@ -1,19 +1,11 @@
-/**
- * Integration Test Database Harness
- *
- * Boots a real Postgres (odysseus_test) so repository-level tests exercise the actual
- * SQL that enforces lab isolation. Repositories query the pool directly, so per-test
- * cleanup is TRUNCATE — a wrapping transaction would not capture their connections.
- */
-
 import { Client } from 'pg';
 
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const TEST_DB_NAME = 'odysseus_test';
-const DEFAULT_HOST = 'postgres://postgres:devpassword@localhost:5432';
+// PITFALL: not localhost — Node tries ::1 first, and Docker's WSL relay on ::1:5432 can hang until timeout.
+const DEFAULT_HOST = 'postgres://postgres:devpassword@127.0.0.1:5432';
 
-/** Connection to the maintenance DB, used only to CREATE the test DB if missing. */
 function adminConnectionString(): string {
   return process.env.TEST_ADMIN_DATABASE_URL ?? `${DEFAULT_HOST}/postgres`;
 }
@@ -45,7 +37,6 @@ export function createTestContext(): PostgresContext {
   });
 }
 
-/** Creates the test DB if needed and runs migrations (idempotent). Returns a ready context. */
 export async function setupTestDatabase(): Promise<PostgresContext> {
   await ensureTestDatabase();
   const context = createTestContext();
@@ -53,7 +44,7 @@ export async function setupTestDatabase(): Promise<PostgresContext> {
   return context;
 }
 
-/** Wipes every application table between tests, preserving the schema and migration ledger. */
+// PITFALL: repositories query the pool directly, so a wrapping transaction would miss their connections; cleanup must TRUNCATE.
 export async function truncateAll(context: PostgresContext): Promise<void> {
   const tables = await context.queryMany<{ tablename: string }>(
     `SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> 'schema_migrations'`
