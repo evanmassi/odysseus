@@ -32,7 +32,7 @@ export function WorkbenchFormulaSection({
   const [draft, setDraft] = useState('');
 
   return (
-    <section className="group/section min-w-0">
+    <section className="group/section min-w-0 break-inside-avoid">
       {title !== undefined && (
         <header className="group flex items-center gap-2 px-2 pb-1.5">
           <span className="min-w-0 truncate type-label text-label-md font-semibold text-foreground">

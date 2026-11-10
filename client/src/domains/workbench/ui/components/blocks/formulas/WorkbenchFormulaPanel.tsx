@@ -177,7 +177,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
 
   return (
     <div className="px-2 pb-3 pt-1">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-x-6 gap-y-5">
+      <div className="columns-[20rem] gap-x-6 space-y-5">
         {sections.map(section => {
           const { material, items, groups } = section;
           const title = material ? material.name.trim() : section.owner || 'Whole experiment';
@@ -221,6 +221,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
                       name: line.name,
                       result: calculation.results.get(line.id),
                       warnings: warnings.get(line.id) ?? [],
+                      isIntermediate: !!line.isIntermediate,
                     }))}
                     settingsLabel={settingsBlock && SETTINGS_LABELS[settingsBlock.type]}
                     shortName={full => nameWithinOwner(full, group.subject)}

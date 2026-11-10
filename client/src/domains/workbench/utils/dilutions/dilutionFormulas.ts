@@ -50,6 +50,13 @@ export const PREP_LINES = {
 
 export type PrepLine = keyof typeof PREP_LINES;
 
+const INTERMEDIATE_LINES: ReadonlySet<PrepLine> = new Set([
+  'strength',
+  'needed',
+  'topVolume',
+  'topWorking',
+]);
+
 export const prepLineId = (run: DilutionRun, line: PrepLine): string => `${run.key}:prep:${line}`;
 
 const MASS_CONCENTRATION = dimensionKey({ mass: 1, volume: -1 });
@@ -185,6 +192,7 @@ function runNames(
         expr: exprs[key],
         unit: units[key] ?? '',
         workedOut: group,
+        ...(INTERMEDIATE_LINES.has(key) && { isIntermediate: true }),
         ...(clash
           ? { problem: `Rename “${clash}”: the ${subject} dilution prep needs that name.` }
           : key === 'stock' && !hasStock && { problem: stock.problem }),
