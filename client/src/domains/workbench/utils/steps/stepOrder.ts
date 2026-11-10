@@ -1,22 +1,21 @@
+import type { OutlineStep } from './stepOutline';
 import type { ProtocolStep } from '@odysseus/shared-schemas';
 
-const isSubStep = (step: ProtocolStep) => step.kind === 'step' && step.level === 2;
+type StepLevel = OutlineStep['level'];
+
+export const DEEPEST_STEP_LEVEL: StepLevel = 3;
+
+const depthOf = (step: ProtocolStep) => (step.kind === 'section' ? 0 : step.level);
 
 function blockEnd(steps: readonly ProtocolStep[], index: number): number {
-  const head = steps[index];
-  const belongs = (candidate: ProtocolStep) =>
-    head.kind === 'section'
-      ? candidate.kind !== 'section'
-      : !isSubStep(head) && isSubStep(candidate);
+  const depth = depthOf(steps[index]);
   let end = index + 1;
-  while (end < steps.length && belongs(steps[end])) end++;
+  while (end < steps.length && depthOf(steps[end]) > depth) end++;
   return end;
 }
 
 const isSameRank = (candidate: ProtocolStep, moving: ProtocolStep) =>
-  moving.kind === 'section'
-    ? candidate.kind === 'section'
-    : isSubStep(moving) || !isSubStep(candidate);
+  depthOf(candidate) <= depthOf(moving);
 
 export function moveStepBlock(
   steps: ProtocolStep[],
@@ -59,4 +58,49 @@ export function moveStepDown(steps: ProtocolStep[], id: string): ProtocolStep[] 
     }
   }
   return steps;
+}
+
+export function insertSubStep(steps: ProtocolStep[], parentId: string, id: string): ProtocolStep[] {
+  const index = steps.findIndex(step => step.id === parentId);
+  const parent = steps[index];
+  if (parent?.kind !== 'step' || parent.level >= DEEPEST_STEP_LEVEL) return steps;
+  const subStep: OutlineStep = {
+    id,
+    kind: 'step',
+    level: (parent.level + 1) as StepLevel,
+    text: '',
+    isMeanwhile: false,
+  };
+  const end = blockEnd(steps, index);
+  return [...steps.slice(0, end), subStep, ...steps.slice(end)];
+}
+
+export function levelShifts(
+  steps: readonly ProtocolStep[],
+  id: string
+): { canMoveIn: boolean; canMoveOut: boolean } {
+  const index = steps.findIndex(step => step.id === id);
+  const step = steps[index];
+  if (step?.kind !== 'step') return { canMoveIn: false, canMoveOut: false };
+  const block = steps.slice(index, blockEnd(steps, index));
+  const previous = steps[index - 1];
+  return {
+    canMoveIn:
+      previous?.kind === 'step' &&
+      previous.level >= step.level &&
+      block.every(member => depthOf(member) < DEEPEST_STEP_LEVEL),
+    canMoveOut: step.level > 1,
+  };
+}
+
+export function shiftStepLevel(steps: ProtocolStep[], id: string, shift: 1 | -1): ProtocolStep[] {
+  const { canMoveIn, canMoveOut } = levelShifts(steps, id);
+  if (!(shift > 0 ? canMoveIn : canMoveOut)) return steps;
+  const index = steps.findIndex(step => step.id === id);
+  const end = blockEnd(steps, index);
+  return steps.map((step, at) =>
+    at >= index && at < end && step.kind === 'step'
+      ? { ...step, level: (step.level + shift) as StepLevel }
+      : step
+  );
 }

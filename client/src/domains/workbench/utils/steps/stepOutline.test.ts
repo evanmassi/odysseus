@@ -3,7 +3,7 @@ import { groupStepsBySection, precedingMainSteps } from './stepOutline';
 
 import type { ProtocolStep } from '@odysseus/shared-schemas';
 
-const step = (id: string, level: 1 | 2 = 1, isMeanwhile = false): ProtocolStep => ({
+const step = (id: string, level: 1 | 2 | 3 = 1, isMeanwhile = false): ProtocolStep => ({
   id,
   kind: 'step',
   level,
@@ -48,6 +48,29 @@ describe('stepNumbers', () => {
     expect(labels.get('c1')).toBe('4a');
     expect(labels.get('d')).toBe('1');
     expect(labels.has('s1')).toBe(false);
+  });
+
+  it('numbers sub-sub-steps in small roman under their sub-step, restarting for each', () => {
+    const nested = [
+      step('a'),
+      step('a1', 2),
+      step('x', 3),
+      step('y', 3),
+      step('a2', 2),
+      step('z', 3),
+    ];
+    expect(Object.fromEntries(stepNumbers(nested))).toEqual({
+      a: '1.',
+      a1: 'a.',
+      x: 'i.',
+      y: 'ii.',
+      a2: 'b.',
+      z: 'i.',
+    });
+    const labels = stepLabels([{ id: 'p1', name: 'One', steps: nested }]);
+    expect(labels.get('y')).toBe('1a.ii');
+    expect(labels.get('z')).toBe('1b.i');
+    expect(labels.get('a2')).toBe('1b');
   });
 });
 

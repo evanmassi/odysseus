@@ -1,8 +1,15 @@
-import { moveStepBlock, moveStepDown, moveStepUp } from './stepOrder';
+import {
+  insertSubStep,
+  levelShifts,
+  moveStepBlock,
+  moveStepDown,
+  moveStepUp,
+  shiftStepLevel,
+} from './stepOrder';
 
 import type { ProtocolStep } from '@odysseus/shared-schemas';
 
-const step = (id: string, level: 1 | 2 = 1): ProtocolStep => ({
+const step = (id: string, level: 1 | 2 | 3 = 1): ProtocolStep => ({
   id,
   kind: 'step',
   level,
@@ -73,5 +80,42 @@ describe('moveStepUp and moveStepDown', () => {
   it('do nothing at the ends', () => {
     expect(moveStepUp(steps, 'S1')).toBe(steps);
     expect(moveStepDown(steps, 'c2')).toBe(steps);
+  });
+});
+
+const nested = [step('a'), step('a1', 2), step('a1x', 3), step('a2', 2), step('b')];
+const levels = (list: readonly ProtocolStep[]) =>
+  list.map(item => (item.kind === 'step' ? `${item.id}:${item.level}` : item.id)).join(' ');
+
+describe('sub-sub-steps', () => {
+  it('move with their sub-step, and both move with the step', () => {
+    expect(ids(moveStepDown(nested, 'a1'))).toBe('a a2 a1 a1x b');
+    expect(ids(moveStepBlock(nested, 'a', 'b', true))).toBe('b a a1 a1x a2');
+  });
+});
+
+describe('insertSubStep', () => {
+  it('adds the sub-step after everything already under its parent', () => {
+    expect(levels(insertSubStep(nested, 'a', 'new'))).toBe('a:1 a1:2 a1x:3 a2:2 new:2 b:1');
+    expect(levels(insertSubStep(nested, 'a1', 'new'))).toBe('a:1 a1:2 a1x:3 new:3 a2:2 b:1');
+  });
+
+  it('adds nothing under the deepest level', () => {
+    expect(insertSubStep(nested, 'a1x', 'new')).toBe(nested);
+  });
+});
+
+describe('shiftStepLevel', () => {
+  it('moves a step in or out with everything under it', () => {
+    expect(levels(shiftStepLevel(nested, 'b', 1))).toBe('a:1 a1:2 a1x:3 a2:2 b:2');
+    expect(levels(shiftStepLevel(nested, 'a1', -1))).toBe('a:1 a1:1 a1x:2 a2:2 b:1');
+  });
+
+  it('only moves in under a step that can hold it, and keeps within three levels', () => {
+    expect(levelShifts(nested, 'a')).toEqual({ canMoveIn: false, canMoveOut: false });
+    expect(levelShifts(nested, 'a1')).toEqual({ canMoveIn: false, canMoveOut: true });
+    expect(levelShifts(nested, 'a2')).toEqual({ canMoveIn: true, canMoveOut: true });
+    expect(levelShifts(nested, 'a1x')).toEqual({ canMoveIn: false, canMoveOut: true });
+    expect(shiftStepLevel(nested, 'a1', 1)).toBe(nested);
   });
 });

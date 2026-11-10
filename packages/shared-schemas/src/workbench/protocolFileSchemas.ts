@@ -25,7 +25,7 @@ const stepSchema = z.discriminatedUnion('kind', [
   z.object({
     id,
     kind: z.literal('step'),
-    level: z.union([z.literal(1), z.literal(2)]),
+    level: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     text: z.string(),
     isMeanwhile: z.boolean(),
   }),
