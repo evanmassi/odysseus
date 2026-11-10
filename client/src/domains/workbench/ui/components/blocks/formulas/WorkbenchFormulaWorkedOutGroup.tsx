@@ -5,6 +5,7 @@ import { Button } from '@shared/ui';
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
 import { META_LABEL } from '../../board/metaLabelClass';
 
+import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
 export interface WorkedOutLine {
@@ -25,7 +26,6 @@ interface WorkbenchFormulaWorkedOutGroupProps {
 }
 
 const LINE_HEAD = 'flex w-full items-baseline gap-2 text-left';
-const LEADER = 'flex-1 border-b border-dashed border-line-soft';
 
 export function WorkbenchFormulaWorkedOutGroup({
   title,
@@ -90,7 +90,7 @@ export function WorkbenchFormulaWorkedOutGroup({
                   onClick={() => toggle(line.id)}
                 >
                   {label}
-                  <span aria-hidden className={LEADER} />
+                  <span aria-hidden className={FORMULA_LEADER} />
                   <span className="font-mono text-data-sm text-foreground">
                     {formulaAnswerText(result)}
                   </span>
@@ -98,7 +98,7 @@ export function WorkbenchFormulaWorkedOutGroup({
               ) : (
                 <div className={LINE_HEAD}>
                   {label}
-                  <span aria-hidden className={LEADER} />
+                  <span aria-hidden className={FORMULA_LEADER} />
                   <span className="max-w-[60%] text-right text-label-xs text-muted-foreground">
                     {result?.message}
                   </span>
@@ -110,7 +110,7 @@ export function WorkbenchFormulaWorkedOutGroup({
                 </p>
               ))}
               {openIds.has(line.id) && (
-                <div className="pl-3 pt-1">
+                <div className={`${FORMULA_WORKING_INDENT} pt-1`}>
                   <WorkbenchFormulaWorking
                     result={result}
                     isCompact
