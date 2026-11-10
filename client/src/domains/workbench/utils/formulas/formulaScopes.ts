@@ -1,5 +1,6 @@
 import { nameKey, type BoardCalculation } from './boardCalculation';
 import { FORMULA_FUNCTIONS, type FormulaFunction } from './formulaParser';
+import { matchesWordStarts } from './nameMatching';
 
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
@@ -192,10 +193,7 @@ export function formulaCompletions(
     +option.label.toLowerCase().startsWith(words[0]);
   return [...names, ...functions]
     .filter(option => option.label.toLowerCase() !== typed.toLowerCase())
-    .filter(option => {
-      const parts = option.name.toLowerCase().split(/[\s-]+/);
-      return words.every(word => parts.some(part => part.startsWith(word)));
-    })
+    .filter(option => matchesWordStarts(option.name, typed))
     .sort((a, b) => +b.isLocal - +a.isLocal || startsWithFirst(b) - startsWithFirst(a))
     .slice(0, COMPLETION_LIMIT);
 }

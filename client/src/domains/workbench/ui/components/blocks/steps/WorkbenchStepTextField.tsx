@@ -3,12 +3,17 @@ import type { KeyboardEvent, RefObject } from 'react';
 
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
-import { blankOptions, type BlankOption } from '../../../../utils/steps/stepPresets';
+import {
+  blankOptions,
+  referenceOptions,
+  type BlankOption,
+} from '../../../../utils/steps/stepPresets';
 import { useInsertTarget } from '../../tray/useInsertTarget';
 
 import {
   blankAtCaret,
   blankLabel,
+  caretInside,
   fillBlank,
   fillEditor,
   hasBlanks,
@@ -18,8 +23,11 @@ import {
   placeCaretAtEnd,
   placeCaretAtPoint,
   readEditor,
+  replaceTypedReference,
+  restoreCaret,
+  typedReferenceAtCaret,
 } from './stepEditorContent';
-import { WorkbenchStepBlankList } from './WorkbenchStepBlankList';
+import { WorkbenchStepSuggestionList } from './WorkbenchStepSuggestionList';
 
 import type { TrayInsertion } from '../../tray/insertTrayStore';
 
@@ -27,10 +35,12 @@ interface WorkbenchStepTextFieldProps {
   text: string;
   rowRef: RefObject<HTMLElement>;
   onTextChange: (text: string) => void;
+  onLeave: () => void;
 }
 
-interface BlankSuggestions {
-  blank: HTMLElement;
+interface Suggestions {
+  kind: 'blank' | 'reference';
+  anchor: HTMLElement;
   options: BlankOption[];
   activeIndex: number;
 }
@@ -39,13 +49,15 @@ export function WorkbenchStepTextField({
   text,
   rowRef,
   onTextChange,
+  onLeave,
 }: WorkbenchStepTextFieldProps) {
   const calculation = useWorkbenchStore(state => state.calculation);
   const editorRef = useRef<HTMLDivElement>(null);
   const initialText = useRef(text);
   const latestCalculation = useRef(calculation);
   latestCalculation.current = calculation;
-  const [suggestions, setSuggestions] = useState<BlankSuggestions>();
+  const lastCaret = useRef<Range>();
+  const [suggestions, setSuggestions] = useState<Suggestions>();
 
   const commit = () => {
     if (editorRef.current) onTextChange(readEditor(editorRef.current));
@@ -54,6 +66,7 @@ export function WorkbenchStepTextField({
   const insert = (insertion: TrayInsertion) => {
     const editor = editorRef.current;
     if (!editor) return;
+    if (document.activeElement !== editor) restoreCaret(editor, lastCaret.current);
     if (insertion.kind === 'name') insertReference(editor, insertion.name, calculation);
     else if (insertion.kind === 'preset') insertTemplate(editor, insertion.text, calculation);
     else return;
@@ -67,6 +80,7 @@ export function WorkbenchStepTextField({
     placeCaretAt: (x, y) => {
       if (editorRef.current) placeCaretAtPoint(editorRef.current, x, y);
     },
+    onLeave,
   });
 
   useLayoutEffect(() => {
@@ -77,32 +91,47 @@ export function WorkbenchStepTextField({
   }, []);
 
   useEffect(() => {
-    const showBlankSuggestions = () => {
+    const showSuggestions = () => {
       const editor = editorRef.current;
-      const blank = editor && document.activeElement === editor ? blankAtCaret(editor) : undefined;
-      if (!blank) {
+      if (!editor || document.activeElement !== editor) {
         setSuggestions(undefined);
         return;
       }
-      const label = blankLabel(blank);
-      const typed = blank.textContent ?? '';
-      const options = blankOptions(latestCalculation.current, label, typed);
-      const isTyped = typed.trim() !== label;
+      lastCaret.current = caretInside(editor) ?? lastCaret.current;
+      const blank = blankAtCaret(editor);
+      if (blank) {
+        const label = blankLabel(blank);
+        const typed = blank.textContent ?? '';
+        const options = blankOptions(latestCalculation.current, label, typed);
+        const isTyped = typed.trim() !== label;
+        setSuggestions(
+          options.length
+            ? { kind: 'blank', anchor: blank, options, activeIndex: isTyped ? 0 : -1 }
+            : undefined
+        );
+        return;
+      }
+      const typedReference = typedReferenceAtCaret(editor);
+      const options =
+        typedReference === undefined
+          ? []
+          : referenceOptions(latestCalculation.current, typedReference);
       setSuggestions(
-        options.length ? { blank, options, activeIndex: isTyped ? 0 : -1 } : undefined
+        options.length ? { kind: 'reference', anchor: editor, options, activeIndex: 0 } : undefined
       );
     };
-    document.addEventListener('selectionchange', showBlankSuggestions);
-    return () => document.removeEventListener('selectionchange', showBlankSuggestions);
+    document.addEventListener('selectionchange', showSuggestions);
+    return () => document.removeEventListener('selectionchange', showSuggestions);
   }, []);
 
-  const pickBlankOption = (option: BlankOption) => {
+  const pickOption = (option: BlankOption) => {
     const editor = editorRef.current;
     if (!editor || !suggestions) return;
-    fillBlank(suggestions.blank, option, calculation);
+    if (suggestions.kind === 'blank') fillBlank(suggestions.anchor, option, calculation);
+    else if (option.name) replaceTypedReference(editor, option.name, calculation);
     setSuggestions(undefined);
     commit();
-    if (hasBlanks(editor)) jumpToBlank(editor, false);
+    if (suggestions.kind === 'blank' && hasBlanks(editor)) jumpToBlank(editor, false);
   };
 
   const steerSuggestions = (event: KeyboardEvent<HTMLDivElement>): boolean => {
@@ -115,7 +144,7 @@ export function WorkbenchStepTextField({
       return true;
     }
     if ((event.key === 'Enter' || event.key === 'Tab') && activeIndex >= 0) {
-      pickBlankOption(options[activeIndex]);
+      pickOption(options[activeIndex]);
       return true;
     }
     if (event.key === 'Escape') {
@@ -170,11 +199,11 @@ export function WorkbenchStepTextField({
         }}
       />
       {suggestions && (
-        <WorkbenchStepBlankList
-          anchor={suggestions.blank}
+        <WorkbenchStepSuggestionList
+          anchor={suggestions.anchor}
           options={suggestions.options}
           activeIndex={suggestions.activeIndex}
-          onPick={pickBlankOption}
+          onPick={pickOption}
         />
       )}
     </>

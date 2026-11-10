@@ -105,7 +105,10 @@ export function WorkbenchFormulaEditor({
     const caret = start + inserted.length;
     changeExpression(expression.slice(0, start) + inserted + expression.slice(end), caret);
     setCompletions([]);
-    requestAnimationFrame(() => input.setSelectionRange(caret, caret));
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(caret, caret);
+    });
   };
 
   const trayTarget = useInsertTarget({

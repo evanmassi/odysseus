@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { createPortal } from 'react-dom';
@@ -8,10 +8,12 @@ import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { FORMULA_FUNCTIONS } from '../../../utils/formulas/formulaParser';
 import { describeName } from '../../../utils/formulas/nameDisplay';
+import { matchesWordStarts } from '../../../utils/formulas/nameMatching';
 import { STEP_PRESETS } from '../../../utils/steps/stepPresets';
 import { templateText } from '../../../utils/steps/stepTemplate';
 
 import { useInsertTrayStore, type InsertTarget } from './insertTrayStore';
+import { INSERT_TRAY_ATTRIBUTE, isInInsertTray } from './trayFocus';
 import { PICK_NAME_ATTRIBUTE, PICK_OPERATOR_ATTRIBUTE, useTrayPickDrag } from './useTrayPickDrag';
 
 import type { BoardCalculation, BoardName } from '../../../utils/formulas/boardCalculation';
@@ -30,6 +32,8 @@ const MAX_WIDTH_PX = 420;
 const GROUP_TITLE = 'px-3 pb-1 pt-2.5 type-label text-label-2xs font-semibold text-foreground/40';
 const TRAY_ROW = `flex cursor-pointer items-baseline gap-3 px-3 py-1 text-body-sm text-foreground ${ROW_HOVER_GLOW.primary}`;
 const ROW_VALUE = 'ml-auto max-w-[55%] truncate font-mono text-data-sm text-muted-foreground';
+const SEARCH_INPUT =
+  'w-full border-b border-line-faint bg-transparent px-3 py-2 text-body-sm text-foreground outline-none placeholder:text-muted-foreground';
 const OPERATOR_BUTTON =
   'min-w-7 cursor-pointer border border-line-mid px-2 py-px font-mono text-data-sm text-foreground hover:border-primary/60';
 
@@ -71,12 +75,31 @@ export function WorkbenchNameTray() {
   const ghost = useTrayPickDrag();
   const trayRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<CSSProperties>();
+  const [query, setQuery] = useState('');
   const isShown = !!target && isOpen;
+  const targetElement = target?.element;
+
+  useEffect(() => setQuery(''), [targetElement]);
 
   const groups = useMemo(
-    () => (target ? nameGroups(calculation, target) : []),
-    [calculation, target]
+    () =>
+      (target ? nameGroups(calculation, target) : [])
+        .map(([title, rows]): [string, NameRow[]] => [
+          title,
+          rows.filter(row => matchesWordStarts(`${title} ${row.name} ${row.value ?? ''}`, query)),
+        ])
+        .filter(([, rows]) => rows.length),
+    [calculation, target, query]
   );
+  const presets = useMemo(
+    () =>
+      STEP_PRESETS.map(preset => ({
+        ...preset,
+        shown: templateText(preset.text, calculation),
+      })).filter(preset => matchesWordStarts(`${preset.label} ${preset.shown}`, query)),
+    [calculation, query]
+  );
+  const functions = FORMULA_FUNCTIONS.filter(name => matchesWordStarts(name, query));
 
   useLayoutEffect(() => {
     if (!isShown) return;
@@ -97,6 +120,14 @@ export function WorkbenchNameTray() {
 
   const insertPreset = (text: string) => target?.insert({ kind: 'preset', text });
 
+  const insertTopMatch = () => {
+    const [firstPreset] = target?.mode === 'step' ? presets : [];
+    const [firstGroup] = groups;
+    if (firstPreset) insertPreset(firstPreset.text);
+    else if (firstGroup) target?.insert({ kind: 'name', name: firstGroup[1][0].name });
+  };
+  const hasMatches = groups.length > 0 || (target?.mode === 'step' && presets.length > 0);
+
   return createPortal(
     <>
       {isShown && (
@@ -105,8 +136,34 @@ export function WorkbenchNameTray() {
           role="presentation"
           className="fixed z-50 border border-line-mid bg-popover shadow-[var(--popup-shadow)]"
           style={position ?? { visibility: 'hidden' }}
-          onMouseDown={event => event.preventDefault()}
+          {...{ [INSERT_TRAY_ATTRIBUTE]: '' }}
+          onMouseDown={event => {
+            if (!(event.target instanceof HTMLInputElement)) event.preventDefault();
+          }}
         >
+          <input
+            value={query}
+            placeholder={target.mode === 'step' ? 'Search steps and names' : 'Search names'}
+            aria-label="Search the insert list"
+            spellCheck={false}
+            autoComplete="off"
+            className={SEARCH_INPUT}
+            onChange={event => setQuery(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                insertTopMatch();
+              } else if (event.key === 'Escape') {
+                event.preventDefault();
+                if (query) setQuery('');
+                else target.element.focus();
+              }
+            }}
+            onBlur={event => {
+              const isBackAtTarget = event.relatedTarget === target.element;
+              if (!isBackAtTarget && !isInInsertTray(event.relatedTarget)) target.leave();
+            }}
+          />
           <div className="max-h-72 overflow-auto pb-1.5 pt-0.5">
             {target.mode === 'formula' && (
               <>
@@ -123,7 +180,7 @@ export function WorkbenchNameTray() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-1 px-3 pb-0.5 pt-1">
-                  {FORMULA_FUNCTIONS.map(name => (
+                  {functions.map(name => (
                     <button
                       key={name}
                       type="button"
@@ -138,8 +195,8 @@ export function WorkbenchNameTray() {
             )}
             {target.mode === 'step' && (
               <>
-                <div className={GROUP_TITLE}>Common steps</div>
-                {STEP_PRESETS.map(preset => (
+                {presets.length > 0 && <div className={GROUP_TITLE}>Common steps</div>}
+                {presets.map(preset => (
                   <div
                     key={preset.label}
                     role="button"
@@ -151,10 +208,15 @@ export function WorkbenchNameTray() {
                     }}
                   >
                     <span>{preset.label}</span>
-                    <span className={ROW_VALUE}>{templateText(preset.text, calculation)}</span>
+                    <span className={ROW_VALUE}>{preset.shown}</span>
                   </div>
                 ))}
               </>
+            )}
+            {!hasMatches && (
+              <p className="px-3 py-3 text-body-sm text-muted-foreground">
+                Nothing matches “{query}”.
+              </p>
             )}
             {groups.map(([title, rows]) => (
               <div key={title}>

@@ -9,6 +9,7 @@ import type { BlankOption } from '../../../../utils/steps/stepPresets';
 const REFERENCE_ATTRIBUTE = 'data-ref';
 const BLANK_ATTRIBUTE = 'data-blank';
 const NO_BREAK_SPACES = new RegExp(String.fromCharCode(0xa0), 'g');
+const TYPED_REFERENCE = /\{([^{}]*)$/;
 
 const CHIP = 'cursor-default select-all border-b border-dotted border-primary/70';
 const BLANK_SLOT = 'border-b border-dashed border-warning-text/75 bg-warning-text/[0.12] px-0.5';
@@ -168,3 +169,45 @@ export function fillBlank(blank: HTMLElement, option: BlankOption, calculation: 
 export const blankLabel = (blank: HTMLElement): string => blank.getAttribute(BLANK_ATTRIBUTE) ?? '';
 
 export const hasBlanks = (editor: HTMLElement): boolean => blanksIn(editor).length > 0;
+
+export function caretInside(editor: HTMLElement): Range | undefined {
+  const selection = getSelection();
+  if (!selection?.rangeCount) return undefined;
+  const range = selection.getRangeAt(0);
+  return editor.contains(range.startContainer) ? range.cloneRange() : undefined;
+}
+
+export function restoreCaret(editor: HTMLElement, range: Range | undefined) {
+  editor.focus();
+  if (range && editor.contains(range.startContainer)) select(range);
+}
+
+function typedReferenceRange(editor: HTMLElement): Range | undefined {
+  const selection = getSelection();
+  const node = selection?.anchorNode;
+  if (!selection?.isCollapsed || node?.nodeType !== Node.TEXT_NODE || !editor.contains(node)) {
+    return undefined;
+  }
+  if (blankAtCaret(editor)) return undefined;
+  const offset = selection.anchorOffset;
+  const typed = TYPED_REFERENCE.exec((node.textContent ?? '').slice(0, offset));
+  if (!typed) return undefined;
+  const range = document.createRange();
+  range.setStart(node, offset - typed[0].length);
+  range.setEnd(node, offset);
+  return range;
+}
+
+export const typedReferenceAtCaret = (editor: HTMLElement): string | undefined =>
+  typedReferenceRange(editor)?.toString().slice(1);
+
+export function replaceTypedReference(
+  editor: HTMLElement,
+  name: string,
+  calculation: BoardCalculation
+) {
+  const range = typedReferenceRange(editor);
+  if (!range) return;
+  select(range);
+  insertReference(editor, name, calculation);
+}

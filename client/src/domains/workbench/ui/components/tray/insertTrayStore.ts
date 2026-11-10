@@ -13,6 +13,7 @@ export interface InsertTarget {
   mode: TrayMode;
   insert: (insertion: TrayInsertion) => void;
   placeCaretAt: (x: number, y: number) => void;
+  leave: () => void;
 }
 
 interface InsertTrayState {
