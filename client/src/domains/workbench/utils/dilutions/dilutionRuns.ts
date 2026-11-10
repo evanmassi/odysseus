@@ -64,7 +64,7 @@ function placedRuns(plates: readonly VesselMapBlock[]): PlacedRun[] {
 const sameSourceKey = ({ subject, series }: PlacedRun) =>
   [normalizeMaterialKey(subject), series.start.trim(), series.unit, foldOf(series.fold)].join('|');
 
-export function dilutionRuns(protocol: Protocol): DilutionRun[] {
+export function dilutionRuns(protocol: Pick<Protocol, 'blocks'>): DilutionRun[] {
   const plates = protocol.blocks.filter((block): block is VesselMapBlock => block.type === 'plate');
   const pooled = new Map<string, DilutionRun>();
   for (const placed of placedRuns(plates)) {

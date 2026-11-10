@@ -80,7 +80,7 @@ export function learnFromMaterials(memory: LabMemory, items: readonly MaterialIt
 
 export function rememberedKinds(
   memory: LabMemory,
-  protocol: Protocol
+  protocol: Pick<Protocol, 'blocks'>
 ): Map<string, RememberedMaterialKind> {
   const known = new Map<string, RememberedMaterialKind>();
   for (const [key, material] of Object.entries(memory.materials)) {

@@ -29,7 +29,14 @@ interface WorkbenchState {
   markSaved: (fileName: string) => void;
 }
 
-const calculate = (protocol: Protocol) => calculateBoard(collectBoardNames(protocol));
+let lastBoard: { inputs: string; calculation: BoardCalculation } | undefined;
+
+function calculate(protocol: Protocol): BoardCalculation {
+  const names = collectBoardNames(protocol);
+  const inputs = JSON.stringify(names);
+  if (lastBoard?.inputs !== inputs) lastBoard = { inputs, calculation: calculateBoard(names) };
+  return lastBoard.calculation;
+}
 
 const namesById = (
   calculation: BoardCalculation,

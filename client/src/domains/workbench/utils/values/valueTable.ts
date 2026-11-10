@@ -214,7 +214,7 @@ function groupLabel(key: string): string {
 }
 
 export function buildValueTable(
-  protocol: Protocol,
+  protocol: Pick<Protocol, 'blocks'>,
   block: ValuesBlock,
   materials: ReadonlyMap<string, MaterialItem>,
   calculation: BoardCalculation

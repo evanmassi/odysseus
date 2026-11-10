@@ -55,7 +55,7 @@ const isLargeMolecule = (item: MaterialItem) =>
   isTherapeuticAntibodyName(item.name);
 
 export function stockFor(
-  protocol: Protocol,
+  protocol: Pick<Protocol, 'blocks'>,
   subject: string,
   seriesUnit: string,
   isRatio: boolean

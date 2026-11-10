@@ -70,7 +70,7 @@ const inMicroliters = (answer: LineAnswer) =>
 
 export function dilutionPrep(
   run: DilutionRun,
-  protocol: Protocol,
+  protocol: Pick<Protocol, 'blocks'>,
   calculation: BoardCalculation
 ): DilutionPrep {
   const settings = prepSettingsOf(run);

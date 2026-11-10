@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import type { MouseEvent } from 'react';
 
 import { STEP_ROW_ATTRIBUTE } from './useStepDrag';
@@ -16,10 +16,10 @@ interface WorkbenchStepSectionRowProps {
   shouldFocus: boolean;
   dragStyle: string;
   onFocused: () => void;
-  onGrab: (event: MouseEvent) => void;
+  onGrab: (stepId: string, event: MouseEvent) => void;
 }
 
-export function WorkbenchStepSectionRow({
+export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
   section,
   pageId,
   numeral,
@@ -44,7 +44,7 @@ export function WorkbenchStepSectionRow({
       {...{ [STEP_ROW_ATTRIBUTE]: section.id }}
       className={`group/step row-tools-host -ml-1.5 mb-1.5 flex items-center gap-3 px-1 pb-2 pt-1 ${dragStyle}`}
     >
-      <WorkbenchStepGripButton onGrab={onGrab} />
+      <WorkbenchStepGripButton onGrab={event => onGrab(section.id, event)} />
       <span className="min-w-9 text-right text-title-lg font-extralight leading-none text-foreground/30">
         {numeral}
       </span>
@@ -73,4 +73,4 @@ export function WorkbenchStepSectionRow({
       <WorkbenchStepRowControls pageId={pageId} stepId={section.id} />
     </div>
   );
-}
+});

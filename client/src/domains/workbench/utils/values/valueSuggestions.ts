@@ -28,7 +28,7 @@ const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
 
 const SKIPPED_GROUPS = new Set(['equip', 'soft']);
 
-function hasVesselMapFor(protocol: Protocol, material: MaterialItem) {
+function hasVesselMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {
   const vesselMaps = protocol.blocks.filter(block => block.type === 'plate');
   const key = normalizeMaterialKey(material.name);
   return (
@@ -38,7 +38,7 @@ function hasVesselMapFor(protocol: Protocol, material: MaterialItem) {
 }
 
 export function valueSuggestions(
-  protocol: Protocol,
+  protocol: Pick<Protocol, 'blocks'>,
   block: ValuesBlock,
   section: ValueSection,
   material: MaterialItem | undefined
@@ -87,7 +87,10 @@ export function valueSuggestions(
   ];
 }
 
-export function valueSectionChoices(protocol: Protocol, block: ValuesBlock): SelectOption[] {
+export function valueSectionChoices(
+  protocol: Pick<Protocol, 'blocks'>,
+  block: ValuesBlock
+): SelectOption[] {
   const sectioned = new Set(
     block.sections.flatMap(section => ('materialId' in section ? [section.materialId] : []))
   );

@@ -10,7 +10,7 @@ const BUILT_IN_SUGGESTIONS: Readonly<Record<string, readonly string[]>> = {
 };
 
 export function fieldSuggestions(
-  protocol: Protocol,
+  protocol: Pick<Protocol, 'blocks'>,
   key: string,
   typed: string,
   exceptItemId: string

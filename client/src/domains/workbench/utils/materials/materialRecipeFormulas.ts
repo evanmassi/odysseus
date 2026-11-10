@@ -151,7 +151,7 @@ export function recipeFormulaNames(protocol: Protocol, taken: readonly BoardName
 const AGREEMENT = 0.01;
 
 export function recipeWarnings(
-  protocol: Protocol,
+  protocol: Pick<Protocol, 'blocks'>,
   calculation: BoardCalculation
 ): Map<string, string[]> {
   const warnings = new Map<string, string[]>();

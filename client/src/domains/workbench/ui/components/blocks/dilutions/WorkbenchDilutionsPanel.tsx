@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { Tab } from '@shared/ui';
 
+import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { recordOnMaterial, setPrepSetting } from '../../../../utils/dilutions/dilutionEdits';
@@ -24,7 +25,7 @@ interface WorkbenchDilutionsPanelProps {
 }
 
 export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps) {
-  const protocol = useWorkbenchStore(state => state.protocol);
+  const protocol = useProtocolOutsidePages();
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);

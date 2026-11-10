@@ -46,6 +46,7 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
   );
   const { draggingId, drop, startDrag } = useStepDrag(containerRef, dropStep);
   const clearFreshSection = useCallback(() => setFreshSectionId(undefined), []);
+  const endEdit = useCallback(() => setEditingStepId(undefined), []);
 
   const addStep = () => {
     const id = createId();
@@ -77,7 +78,7 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
               shouldFocus={freshSectionId === section.id}
               dragStyle={stepRowDragStyle(section.id, draggingId, drop)}
               onFocused={clearFreshSection}
-              onGrab={event => startDrag(section.id, event)}
+              onGrab={startDrag}
             />
           )}
           <div className={section ? 'ml-[22px] border-l border-line-mid pl-2.5' : ''}>
@@ -90,9 +91,9 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
                 duringStep={step.level === 2 ? undefined : preceding.get(step.id)}
                 isEditing={editingStepId === step.id}
                 dragStyle={stepRowDragStyle(step.id, draggingId, drop)}
-                onStartEdit={() => setEditingStepId(step.id)}
-                onEndEdit={() => setEditingStepId(undefined)}
-                onGrab={event => startDrag(step.id, event)}
+                onStartEdit={setEditingStepId}
+                onEndEdit={endEdit}
+                onGrab={startDrag}
               />
             ))}
           </div>

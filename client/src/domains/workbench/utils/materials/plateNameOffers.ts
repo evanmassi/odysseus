@@ -16,7 +16,7 @@ const SHORTEST_MENTION = 3;
 
 export const plateOfferKey = (name: string): string => `plate:${normalizeMaterialKey(name)}`;
 
-function mixNames(protocol: Protocol): string[] {
+function mixNames(protocol: Pick<Protocol, 'blocks'>): string[] {
   return protocol.blocks.flatMap(block =>
     block.type === 'values'
       ? block.sections.flatMap(section => ('mixName' in section ? [section.mixName] : []))
@@ -24,7 +24,9 @@ function mixNames(protocol: Protocol): string[] {
   );
 }
 
-export function plateNameOffers(protocol: Protocol): PlateNameOffer[] {
+export function plateNameOffers(
+  protocol: Pick<Protocol, 'blocks' | 'ignoredReadings'>
+): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);
   const materialKeys = materials
