@@ -12,6 +12,7 @@ export interface WorkedOutLine {
   name: string;
   result: FormulaResult | undefined;
   warnings: readonly string[];
+  isIntermediate: boolean;
 }
 
 interface WorkbenchFormulaWorkedOutGroupProps {
@@ -35,6 +36,7 @@ export function WorkbenchFormulaWorkedOutGroup({
   onShowSettings,
 }: WorkbenchFormulaWorkedOutGroupProps) {
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
+  const [isShowingWorking, setIsShowingWorking] = useState(false);
 
   const toggle = (id: string) =>
     setOpenIds(ids => {
@@ -46,6 +48,18 @@ export function WorkbenchFormulaWorkedOutGroup({
     lines.map(line => (line.result?.status === 'ok' ? undefined : line.result?.message))
   );
   const [sharedProblem] = messages.size === 1 ? [...messages] : [];
+  const checkedLines = lines.map(line => ({
+    ...line,
+    warnings: line.warnings.filter(
+      warning => line.result?.status === 'ok' || warning !== line.result?.message
+    ),
+  }));
+  const isTucked = (line: WorkedOutLine) =>
+    line.isIntermediate && line.result?.status === 'ok' && !line.warnings.length;
+  const tuckedCount = checkedLines.filter(isTucked).length;
+  const visibleLines = isShowingWorking
+    ? checkedLines
+    : checkedLines.filter(line => !isTucked(line));
 
   return (
     <div className="flex flex-col">
@@ -61,13 +75,10 @@ export function WorkbenchFormulaWorkedOutGroup({
         <p className="px-2 py-1 text-label-xs text-muted-foreground">{sharedProblem}</p>
       )}
       {!sharedProblem &&
-        lines.map(line => {
-          const { result } = line;
+        visibleLines.map(line => {
+          const { result, warnings } = line;
           const label = (
             <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
-          );
-          const warnings = line.warnings.filter(
-            warning => result?.status === 'ok' || warning !== result?.message
           );
           return (
             <div key={line.id} className="px-2 py-1 even:bg-foreground/[0.025]">
@@ -111,6 +122,17 @@ export function WorkbenchFormulaWorkedOutGroup({
             </div>
           );
         })}
+      {!sharedProblem && tuckedCount > 0 && (
+        <Button
+          variant="ghost-primary"
+          size="xs"
+          className="mx-1 self-start"
+          aria-expanded={isShowingWorking}
+          onClick={() => setIsShowingWorking(isShown => !isShown)}
+        >
+          {isShowingWorking ? 'Hide working' : `Show working (${tuckedCount})`}
+        </Button>
+      )}
     </div>
   );
 }

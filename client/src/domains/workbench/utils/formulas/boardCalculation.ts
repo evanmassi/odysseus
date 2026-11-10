@@ -47,7 +47,15 @@ export type BoardName = NameSource &
         label: string;
         isDropped?: boolean;
       }
-    | { kind: 'formula'; id: string; name: string; expr: string; unit: string; problem?: string }
+    | {
+        kind: 'formula';
+        id: string;
+        name: string;
+        expr: string;
+        unit: string;
+        problem?: string;
+        isIntermediate?: boolean;
+      }
   );
 
 type FormulaName = Extract<BoardName, { kind: 'formula' }>;
