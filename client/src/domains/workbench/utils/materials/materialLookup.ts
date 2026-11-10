@@ -26,13 +26,15 @@ export function findNamed<Item>(
   );
 }
 
-export const listedMaterials = (protocol: Protocol): MaterialItem[] =>
+export const listedMaterials = (protocol: Pick<Protocol, 'blocks'>): MaterialItem[] =>
   protocol.blocks
     .flatMap(block => (block.type === 'materials' ? block.items : []))
     .filter(item => !item.isDropped && item.name.trim());
 
-export const materialNamed = (protocol: Protocol, name: string): MaterialItem | undefined =>
-  findNamed(listedMaterials(protocol), name, item => item.name);
+export const materialNamed = (
+  protocol: Pick<Protocol, 'blocks'>,
+  name: string
+): MaterialItem | undefined => findNamed(listedMaterials(protocol), name, item => item.name);
 
 export function ensureMaterial(
   draft: Protocol,

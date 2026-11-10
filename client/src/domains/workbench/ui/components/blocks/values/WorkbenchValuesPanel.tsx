@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Select } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
+import { useProtocolOutsidePages, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
@@ -113,7 +114,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
 });
 
 export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
-  const protocol = useWorkbenchStore(state => state.protocol);
+  const protocol = useProtocolOutsidePages();
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
@@ -141,20 +142,22 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       sectionPeers(block, GENERAL_SECTION).flatMap(item => ('materialField' in item ? [] : [item])),
     [block]
   );
-  const usage = useMemo(
-    () =>
-      nameUsage(protocol, calculation, [
-        ...generalItems.map(item => item.id),
-        ...groups.flatMap(group => cellsOf(group).map(cell => cell.nameId)),
-      ]),
-    [protocol, calculation, generalItems, groups]
+  const usageIds = useMemo(
+    () => [
+      ...generalItems.map(item => item.id),
+      ...groups.flatMap(group => cellsOf(group).map(cell => cell.nameId)),
+    ],
+    [generalItems, groups]
   );
+  const usageEntries = useWorkbenchData(state => [
+    ...nameUsage(state.protocol, state.calculation, usageIds),
+  ]);
+  const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
   const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
   const isFirstValuesBlock =
     protocol.blocks.find(candidate => candidate.type === 'values')?.id === block.id;
-  const readings = useMemo(
-    () => (isFirstValuesBlock ? readStepReadings(protocol, calculation).values : []),
-    [isFirstValuesBlock, protocol, calculation]
+  const readings = useWorkbenchData(state =>
+    isFirstValuesBlock ? readStepReadings(state.protocol, state.calculation).values : []
   );
   const takenNames = useMemo(() => new Set(calculation.names.keys()), [calculation]);
   const namedIds = useMemo(

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Select } from '@shared/ui';
 
 import { useShowBlock } from '../../../../hooks/useShowBlock';
+import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { prepLineId } from '../../../../utils/dilutions/dilutionFormulas';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
@@ -55,7 +56,7 @@ const SETTINGS_LABELS: Partial<Record<ProtocolBlock['type'], string>> = {
   materials: 'Materials',
 };
 
-function prepWarnings(protocol: Protocol, calculation: BoardCalculation) {
+function prepWarnings(protocol: Pick<Protocol, 'blocks'>, calculation: BoardCalculation) {
   const byLine = new Map<string, string[]>();
   for (const run of dilutionRuns(protocol)) {
     const prep = dilutionPrep(run, protocol, calculation);
@@ -69,7 +70,7 @@ function prepWarnings(protocol: Protocol, calculation: BoardCalculation) {
 }
 
 export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
-  const protocol = useWorkbenchStore(state => state.protocol);
+  const protocol = useProtocolOutsidePages();
   const calculation = useWorkbenchStore(state => state.calculation);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);

@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { memo, useId, useRef } from 'react';
 import type { MouseEvent } from 'react';
 
 import { Checkbox } from '@shared/ui';
@@ -21,14 +21,14 @@ interface WorkbenchStepRowProps {
   duringStep?: string;
   isEditing: boolean;
   dragStyle: string;
-  onStartEdit: () => void;
+  onStartEdit: (stepId: string) => void;
   onEndEdit: () => void;
-  onGrab: (event: MouseEvent) => void;
+  onGrab: (stepId: string, event: MouseEvent) => void;
 }
 
 const OPTION_LABEL = 'flex items-center gap-1.5 text-label-2xs text-muted-foreground';
 
-export function WorkbenchStepRow({
+export const WorkbenchStepRow = memo(function WorkbenchStepRow({
   step,
   pageId,
   number,
@@ -64,7 +64,7 @@ export function WorkbenchStepRow({
         if (isEditing && !event.currentTarget.contains(event.relatedTarget)) onEndEdit();
       }}
     >
-      {!isEditing && <WorkbenchStepGripButton onGrab={onGrab} />}
+      {!isEditing && <WorkbenchStepGripButton onGrab={event => onGrab(step.id, event)} />}
       <span
         className={`flex-none text-right font-mono text-muted-foreground ${isSubStep ? 'min-w-3.5 text-label-2xs' : 'min-w-[22px] text-data-sm'}`}
       >
@@ -125,10 +125,10 @@ export function WorkbenchStepRow({
             onMouseDown={event => {
               if (event.button !== 0) return;
               event.preventDefault();
-              onStartEdit();
+              onStartEdit(step.id);
             }}
             onKeyDown={event => {
-              if (event.key === 'Enter') onStartEdit();
+              if (event.key === 'Enter') onStartEdit(step.id);
             }}
           >
             {step.isMeanwhile && duringStep && (
@@ -145,4 +145,4 @@ export function WorkbenchStepRow({
       {!isEditing && <WorkbenchStepRowControls pageId={pageId} stepId={step.id} />}
     </div>
   );
-}
+});

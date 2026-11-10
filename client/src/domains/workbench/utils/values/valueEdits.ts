@@ -34,7 +34,7 @@ export type RemovedValues =
   | { kind: 'item'; item: ValueItem; index: number; label: string }
   | { kind: 'section'; section: ValueSection; items: ValueItem[]; index: number; label: string };
 
-export const materialsById = (protocol: Protocol): Map<string, MaterialItem> =>
+export const materialsById = (protocol: Pick<Protocol, 'blocks'>): Map<string, MaterialItem> =>
   new Map(
     protocol.blocks
       .flatMap(block => (block.type === 'materials' ? block.items : []))

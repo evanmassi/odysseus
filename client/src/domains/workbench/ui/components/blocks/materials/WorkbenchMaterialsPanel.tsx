@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
+import { useProtocolOutsidePages, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
@@ -89,7 +90,7 @@ const FIXED_CELLS = ['name', 'type'];
 const NAME_CELL = 'name';
 
 export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps) {
-  const protocol = useWorkbenchStore(state => state.protocol);
+  const protocol = useProtocolOutsidePages();
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const updateBlock = useUpdateBlock(block);
@@ -140,20 +141,15 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     [block.items, block.customGroups, block.foldedGroups, removed]
   );
   const droppedItems = block.items.filter(item => item.isDropped);
-  const usage = useMemo(
-    () =>
-      nameUsage(
-        protocol,
-        calculation,
-        block.items.map(item => item.id)
-      ),
-    [protocol, calculation, block.items]
-  );
+  const itemIds = useMemo(() => block.items.map(item => item.id), [block.items]);
+  const usageEntries = useWorkbenchData(state => [
+    ...nameUsage(state.protocol, state.calculation, itemIds),
+  ]);
+  const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
   const isFirstMaterialsBlock =
     protocol.blocks.find(candidate => candidate.type === 'materials')?.id === block.id;
-  const readings = useMemo(
-    () => (isFirstMaterialsBlock ? readStepReadings(protocol, calculation).materials : []),
-    [isFirstMaterialsBlock, protocol, calculation]
+  const readings = useWorkbenchData(state =>
+    isFirstMaterialsBlock ? readStepReadings(state.protocol, state.calculation).materials : []
   );
   const allMaterials = useMemo(() => materialsById(protocol), [protocol]);
   const recipeUsers = useMemo(() => recipesUsing([...allMaterials.values()]), [allMaterials]);
