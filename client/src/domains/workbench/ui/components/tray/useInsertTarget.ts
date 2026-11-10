@@ -2,19 +2,27 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { FocusEvent, RefObject } from 'react';
 
 import { useInsertTrayStore, type InsertTarget, type TrayMode } from './insertTrayStore';
+import { isInInsertTray } from './trayFocus';
 
 interface InsertTargetOptions {
   mode: TrayMode;
   anchorRef: RefObject<HTMLElement>;
   insert: InsertTarget['insert'];
   placeCaretAt?: InsertTarget['placeCaretAt'];
+  onLeave?: () => void;
 }
 
-export function useInsertTarget({ mode, anchorRef, insert, placeCaretAt }: InsertTargetOptions) {
+export function useInsertTarget({
+  mode,
+  anchorRef,
+  insert,
+  placeCaretAt,
+  onLeave,
+}: InsertTargetOptions) {
   const focusTarget = useInsertTrayStore(state => state.focusTarget);
   const releaseTarget = useInsertTrayStore(state => state.releaseTarget);
-  const latest = useRef({ insert, placeCaretAt });
-  latest.current = { insert, placeCaretAt };
+  const latest = useRef({ insert, placeCaretAt, onLeave });
+  latest.current = { insert, placeCaretAt, onLeave };
   const focusedElement = useRef<HTMLElement>();
 
   useEffect(
@@ -36,13 +44,18 @@ export function useInsertTarget({ mode, anchorRef, insert, placeCaretAt }: Inser
         mode,
         insert: insertion => latest.current.insert(insertion),
         placeCaretAt: (x, y) => latest.current.placeCaretAt?.(x, y),
+        leave: () => {
+          releaseTarget(element);
+          latest.current.onLeave?.();
+        },
       });
     },
-    [anchorRef, focusTarget, mode]
+    [anchorRef, focusTarget, mode, releaseTarget]
   );
 
   const onBlur = useCallback(
     (event: FocusEvent<HTMLElement>) => {
+      if (isInInsertTray(event.relatedTarget)) return;
       focusedElement.current = undefined;
       releaseTarget(event.currentTarget);
     },

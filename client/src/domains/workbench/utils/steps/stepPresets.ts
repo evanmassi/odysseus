@@ -1,4 +1,5 @@
 import { describeName } from '../formulas/nameDisplay';
+import { matchesWordStarts } from '../formulas/nameMatching';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
 
@@ -64,4 +65,15 @@ export function blankOptions(
     ? []
     : (choices?.common ?? []).filter(text => text.includes(query)).map(text => ({ text }));
   return [...typedWithUnits, ...common, ...fromBoard].slice(0, MAX_BLANK_OPTIONS);
+}
+
+export function referenceOptions(calculation: BoardCalculation, typed: string): BlankOption[] {
+  const [firstWord = ''] = typed.toLowerCase().split(/\s+/).filter(Boolean);
+  const startsWithFirst = (name: string) => +name.toLowerCase().startsWith(firstWord);
+  return [...calculation.names.values()]
+    .map(entry => entry.name)
+    .filter(name => matchesWordStarts(name, typed))
+    .sort((a, b) => startsWithFirst(b) - startsWithFirst(a))
+    .slice(0, MAX_BLANK_OPTIONS)
+    .map(name => ({ text: name, name }));
 }

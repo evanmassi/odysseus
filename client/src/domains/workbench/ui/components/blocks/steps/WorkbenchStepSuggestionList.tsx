@@ -8,7 +8,7 @@ import { describeName } from '../../../../utils/formulas/nameDisplay';
 
 import type { BlankOption } from '../../../../utils/steps/stepPresets';
 
-interface WorkbenchStepBlankListProps {
+interface WorkbenchStepSuggestionListProps {
   anchor: HTMLElement;
   options: readonly BlankOption[];
   activeIndex: number;
@@ -18,12 +18,12 @@ interface WorkbenchStepBlankListProps {
 const LIST_GAP_PX = 4;
 const MIN_WIDTH_PX = 180;
 
-export function WorkbenchStepBlankList({
+export function WorkbenchStepSuggestionList({
   anchor,
   options,
   activeIndex,
   onPick,
-}: WorkbenchStepBlankListProps) {
+}: WorkbenchStepSuggestionListProps) {
   const calculation = useWorkbenchStore(state => state.calculation);
   const [position, setPosition] = useState<CSSProperties>();
 

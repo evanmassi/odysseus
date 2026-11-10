@@ -6,6 +6,7 @@ import { IndentDecrease, IndentIncrease } from 'lucide-react';
 import { Checkbox } from '@shared/ui';
 
 import { DEEPEST_STEP_LEVEL, shiftStepLevel } from '../../../../utils/steps/stepOrder';
+import { isInInsertTray } from '../../tray/trayFocus';
 import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton';
 
 import { STEP_ROW_ATTRIBUTE } from './useStepDrag';
@@ -76,7 +77,9 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
       {...{ [STEP_ROW_ATTRIBUTE]: step.id }}
       className={`group/step row-tools-host flex items-baseline gap-2.5 px-1.5 ${LEVEL_SIZING[step.level]} ${isEditing ? 'bg-primary/[0.04]' : ''} ${dragStyle}`}
       onBlur={event => {
-        if (isEditing && !event.currentTarget.contains(event.relatedTarget)) onEndEdit();
+        const isStillHere =
+          event.currentTarget.contains(event.relatedTarget) || isInInsertTray(event.relatedTarget);
+        if (isEditing && !isStillHere) onEndEdit();
       }}
     >
       {!isEditing && <WorkbenchStepGripButton onGrab={event => onGrab(step.id, event)} />}
@@ -96,6 +99,7 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
                   draft.text = text;
                 })
               }
+              onLeave={onEndEdit}
             />
             {/* PITFALL: mousedown here would blur the editor and end editing before the checkbox click lands. */}
             <div

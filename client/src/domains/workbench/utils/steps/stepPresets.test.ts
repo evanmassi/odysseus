@@ -1,6 +1,6 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 
-import { blankOptions } from './stepPresets';
+import { blankOptions, referenceOptions } from './stepPresets';
 
 const calculation = calculateBoard([
   { kind: 'value', id: 'v1', name: 'Spin time', value: '5', unit: 'min' },
@@ -40,5 +40,16 @@ describe('blankOptions', () => {
 
   it('offers board materials for blanks it has no choices for', () => {
     expect(blankOptions(calculation, 'buffer', 'buffer')).toEqual([{ text: 'PBS', name: 'PBS' }]);
+  });
+});
+
+describe('referenceOptions', () => {
+  const names = (typed: string) => referenceOptions(calculation, typed).map(option => option.name);
+
+  it('offers every board name whose words start with what was typed, best starts first', () => {
+    expect(names('vol')).toEqual(['Wash volume']);
+    expect(names('p')).toEqual(['PBS']);
+    expect(names('')).toEqual(['Spin time', 'Wash volume', 'PBS']);
+    expect(names('x')).toEqual([]);
   });
 });
