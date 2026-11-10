@@ -45,6 +45,11 @@ describe('material readings', () => {
     expect(readingStepsText(readings[0].uses)).toBe('step 1');
   });
 
+  it('reads steps written in the past tense', () => {
+    const { protocol } = protocolWith(['Added Trypsin to the flask.', 'Took Supernatant.']);
+    expect(read(protocol).map(reading => reading.name)).toEqual(['Trypsin', 'Supernatant']);
+  });
+
   it('skips referenced names, blanks, lowercase words after bare amounts and non-materials', () => {
     const { protocol } = protocolWith([
       'Add 50 µL {Bright-Glo} and 20 µL ‹Reagent›.',
@@ -112,6 +117,8 @@ describe('value readings', () => {
     expect(readAll(once).values).toEqual([]);
     const twice = protocolWith(['Incubate 30 min at 37 °C.', 'Incubate 30 min again.']).protocol;
     expect(readAll(twice).values.map(({ name }) => name)).toEqual(['Incubation time']);
+    const past = protocolWith(['Spun 5 min at 4 °C.', 'Centrifuged 5 min again.']).protocol;
+    expect(readAll(past).values.map(({ name }) => name)).toEqual(['Spin time']);
     const conflict = protocolWith([
       'Add 50 µL of Bright-Glo.',
       'Add 20 µL of Bright-Glo.',

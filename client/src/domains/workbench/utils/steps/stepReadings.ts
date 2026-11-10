@@ -10,7 +10,7 @@ import { valueUnitOf } from '../values/valueLines';
 import { joinValueName } from '../values/valueNames';
 
 import { stepNumbers } from './stepNumbering';
-import { STEP_VERBS } from './stepVerbs';
+import { stepVerbBase } from './stepVerbs';
 
 interface ReadingUse {
   stepId: string;
@@ -172,8 +172,8 @@ const boardMaterials = (protocol: Protocol): MaterialItem[] =>
 
 function conditionNoun(textBefore: string): string | undefined {
   const sentence = textBefore.split(SENTENCE_BREAK).pop() ?? '';
-  const verbs = (sentence.match(WORD) ?? []).map(word => word.toLowerCase());
-  const verb = [...verbs].reverse().find(word => CONDITION_NOUNS[word]);
+  const bases = (sentence.match(WORD) ?? []).map(word => stepVerbBase(word));
+  const verb = bases.reverse().find(base => base && CONDITION_NOUNS[base]);
   return verb && CONDITION_NOUNS[verb];
 }
 
@@ -284,7 +284,7 @@ export function readStepReadings(protocol: Protocol, calculation: BoardCalculati
       }
 
       for (const match of text.matchAll(MATERIAL_CUE)) {
-        if (match[1] && !STEP_VERBS.has(match[1].toLowerCase())) continue;
+        if (match[1] && !stepVerbBase(match[1])) continue;
         const phrase = phraseAt(text, (match.index ?? 0) + match[0].length);
         if (!phrase || isLocked(phrase.start) || isNotMaterial(phrase)) continue;
         const known = calculation.names.get(nameKey(phrase.name));

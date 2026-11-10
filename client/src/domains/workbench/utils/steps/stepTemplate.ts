@@ -1,6 +1,6 @@
 import { describeName } from '../formulas/nameDisplay';
 
-import { STEP_VERBS } from './stepVerbs';
+import { stepVerbBase } from './stepVerbs';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
 
@@ -38,7 +38,7 @@ function verbPieces(text: string, isStepStart: boolean): ProsePiece[] {
   let consumed = 0;
   for (const match of text.matchAll(SENTENCE_LEAD)) {
     const [, lead, word] = match;
-    if (!STEP_VERBS.has(word.toLowerCase()) || !(lead.trim() || isStepStart)) continue;
+    if (!stepVerbBase(word) || !(lead.trim() || isStepStart)) continue;
     const start = (match.index ?? 0) + lead.length;
     if (start > consumed) pieces.push({ kind: 'plain', text: text.slice(consumed, start) });
     pieces.push({ kind: 'verb', text: word });
