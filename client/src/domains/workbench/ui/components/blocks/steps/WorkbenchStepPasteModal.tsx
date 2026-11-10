@@ -92,7 +92,7 @@ export function WorkbenchStepPasteModal({ isOpen, onClose, onAdd }: WorkbenchSte
               ) : (
                 <div
                   key={index}
-                  className={`flex gap-2.5 py-1 leading-normal ${item.level === 2 ? 'pl-12 text-caption text-foreground/90' : 'pl-[18px] text-body-sm'}`}
+                  className={`flex gap-2.5 py-1 leading-normal ${item.level > 1 ? 'pl-12 text-caption text-foreground/90' : 'pl-[18px] text-body-sm'}`}
                 >
                   <span className={PREVIEW_NUMBER}>{numbers.get(String(index))}</span>
                   {item.text}

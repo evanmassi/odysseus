@@ -25,7 +25,7 @@ export function precedingMainSteps(
   const preceding = new Map<string, string>();
   let lastMain: string | undefined;
   for (const step of steps) {
-    if (step.kind !== 'step' || step.level === 2) continue;
+    if (step.kind !== 'step' || step.level > 1) continue;
     if (lastMain) preceding.set(step.id, lastMain);
     if (!step.isMeanwhile) lastMain = (numbers.get(step.id) ?? '').replace('.', '');
   }

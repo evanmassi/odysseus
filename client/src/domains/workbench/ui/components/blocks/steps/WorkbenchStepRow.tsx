@@ -1,8 +1,11 @@
 import { memo, useId, useRef } from 'react';
 import type { MouseEvent } from 'react';
 
+import { IndentDecrease, IndentIncrease } from 'lucide-react';
+
 import { Checkbox } from '@shared/ui';
 
+import { DEEPEST_STEP_LEVEL, shiftStepLevel } from '../../../../utils/steps/stepOrder';
 import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton';
 
 import { STEP_ROW_ATTRIBUTE } from './useStepDrag';
@@ -21,12 +24,21 @@ interface WorkbenchStepRowProps {
   duringStep?: string;
   isEditing: boolean;
   dragStyle: string;
+  canMoveIn: boolean;
+  canMoveOut: boolean;
   onStartEdit: (stepId: string) => void;
   onEndEdit: () => void;
   onGrab: (stepId: string, event: MouseEvent) => void;
+  onAddSubStep: (stepId: string) => void;
 }
 
 const OPTION_LABEL = 'flex items-center gap-1.5 text-label-2xs text-muted-foreground';
+const LEVEL_BUTTON = `${OPTION_LABEL} transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40`;
+const LEVEL_SIZING: Record<OutlineStep['level'], string> = {
+  1: 'py-1.5 text-body-sm text-foreground',
+  2: 'ml-8 py-0.5 text-caption text-foreground/90',
+  3: 'ml-16 py-0.5 text-caption text-foreground/90',
+};
 
 export const WorkbenchStepRow = memo(function WorkbenchStepRow({
   step,
@@ -35,15 +47,17 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
   duringStep,
   isEditing,
   dragStyle,
+  canMoveIn,
+  canMoveOut,
   onStartEdit,
   onEndEdit,
   onGrab,
+  onAddSubStep,
 }: WorkbenchStepRowProps) {
   const updatePage = useUpdateStepPage(pageId);
   const rowRef = useRef<HTMLDivElement>(null);
-  const subStepId = useId();
   const meanwhileId = useId();
-  const isSubStep = step.level === 2;
+  const isSubStep = step.level > 1;
 
   const updateStep = (recipe: (draft: OutlineStep) => void) =>
     updatePage(page => {
@@ -51,15 +65,16 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
       if (draft?.kind === 'step') recipe(draft);
     });
 
-  const sizing = isSubStep
-    ? 'ml-8 py-0.5 text-caption text-foreground/90'
-    : 'py-1.5 text-body-sm text-foreground';
+  const shiftLevel = (shift: 1 | -1) =>
+    updatePage(page => {
+      page.steps = shiftStepLevel(page.steps, step.id, shift);
+    });
 
   return (
     <div
       ref={rowRef}
       {...{ [STEP_ROW_ATTRIBUTE]: step.id }}
-      className={`group/step row-tools-host flex items-baseline gap-2.5 px-1.5 ${sizing} ${isEditing ? 'bg-primary/[0.04]' : ''} ${dragStyle}`}
+      className={`group/step row-tools-host flex items-baseline gap-2.5 px-1.5 ${LEVEL_SIZING[step.level]} ${isEditing ? 'bg-primary/[0.04]' : ''} ${dragStyle}`}
       onBlur={event => {
         if (isEditing && !event.currentTarget.contains(event.relatedTarget)) onEndEdit();
       }}
@@ -88,18 +103,24 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
               className="mt-1.5 flex flex-wrap items-center gap-3.5"
               onMouseDown={event => event.preventDefault()}
             >
-              <span className={OPTION_LABEL}>
-                <Checkbox
-                  id={subStepId}
-                  checked={isSubStep}
-                  onChange={isChecked =>
-                    updateStep(draft => {
-                      draft.level = isChecked ? 2 : 1;
-                    })
-                  }
-                />
-                <label htmlFor={subStepId}>sub-step</label>
-              </span>
+              <button
+                type="button"
+                className={LEVEL_BUTTON}
+                disabled={!canMoveOut}
+                onClick={() => shiftLevel(-1)}
+              >
+                <IndentDecrease aria-hidden className="h-3.5 w-3.5" />
+                Move out
+              </button>
+              <button
+                type="button"
+                className={LEVEL_BUTTON}
+                disabled={!canMoveIn}
+                onClick={() => shiftLevel(1)}
+              >
+                <IndentIncrease aria-hidden className="h-3.5 w-3.5" />
+                Move in
+              </button>
               {duringStep && (
                 <span className={OPTION_LABEL}>
                   <Checkbox
@@ -142,7 +163,13 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
           </div>
         )}
       </div>
-      {!isEditing && <WorkbenchStepRowControls pageId={pageId} stepId={step.id} />}
+      {!isEditing && (
+        <WorkbenchStepRowControls
+          pageId={pageId}
+          stepId={step.id}
+          onAddSubStep={step.level < DEEPEST_STEP_LEVEL ? () => onAddSubStep(step.id) : undefined}
+        />
+      )}
     </div>
   );
 });

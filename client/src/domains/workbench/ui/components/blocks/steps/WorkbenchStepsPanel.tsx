@@ -5,7 +5,7 @@ import { Button } from '@shared/ui';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { createId } from '../../../../utils/ids/createId';
 import { stepNumbers } from '../../../../utils/steps/stepNumbering';
-import { moveStepBlock } from '../../../../utils/steps/stepOrder';
+import { insertSubStep, levelShifts, moveStepBlock } from '../../../../utils/steps/stepOrder';
 import { groupStepsBySection, precedingMainSteps } from '../../../../utils/steps/stepOutline';
 
 import { stepRowDragStyle } from './stepRowDragStyle';
@@ -47,6 +47,17 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
   const { draggingId, drop, startDrag } = useStepDrag(containerRef, dropStep);
   const clearFreshSection = useCallback(() => setFreshSectionId(undefined), []);
   const endEdit = useCallback(() => setEditingStepId(undefined), []);
+  const addSubStep = useCallback(
+    (parentId: string) => {
+      const id = createId();
+      updatePage(page => {
+        page.steps = insertSubStep(page.steps, parentId, id);
+      });
+      setEditingStepId(id);
+    },
+    [updatePage]
+  );
+  const editingShifts = editingStepId ? levelShifts(steps, editingStepId) : undefined;
 
   const addStep = () => {
     const id = createId();
@@ -88,12 +99,15 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
                 step={step}
                 pageId={block.page}
                 number={numbers.get(step.id) ?? ''}
-                duringStep={step.level === 2 ? undefined : preceding.get(step.id)}
+                duringStep={step.level > 1 ? undefined : preceding.get(step.id)}
                 isEditing={editingStepId === step.id}
                 dragStyle={stepRowDragStyle(step.id, draggingId, drop)}
                 onStartEdit={setEditingStepId}
                 onEndEdit={endEdit}
+                canMoveIn={step.id === editingStepId && !!editingShifts?.canMoveIn}
+                canMoveOut={step.id === editingStepId && !!editingShifts?.canMoveOut}
                 onGrab={startDrag}
+                onAddSubStep={addSubStep}
               />
             ))}
           </div>
