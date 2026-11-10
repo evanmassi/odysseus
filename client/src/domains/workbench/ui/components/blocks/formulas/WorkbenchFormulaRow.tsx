@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
+
 interface WorkbenchFormulaRowProps {
   name: string;
   answer: string;
@@ -18,10 +20,10 @@ export function WorkbenchFormulaRow({ name, answer, onOpen, children }: Workbenc
         <span className="text-body-sm text-foreground">
           {name || <span className="text-muted-foreground">Unnamed</span>}
         </span>
-        <span aria-hidden className="flex-1 border-b border-dashed border-line-soft" />
+        <span aria-hidden className={FORMULA_LEADER} />
         <span className="font-mono text-data-sm text-action">{answer}</span>
       </span>
-      {children}
+      <span className={`${FORMULA_WORKING_INDENT} block empty:hidden`}>{children}</span>
     </button>
   );
 }
