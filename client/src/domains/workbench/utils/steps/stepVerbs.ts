@@ -1,4 +1,4 @@
-export const STEP_VERBS = new Set([
+const STEP_VERBS = [
   'add',
   'adjust',
   'aliquot',
@@ -59,4 +59,31 @@ export const STEP_VERBS = new Set([
   'warm',
   'wash',
   'weigh',
-]);
+];
+
+const IRREGULAR_PAST: Readonly<Record<string, readonly string[]>> = {
+  aliquot: ['aliquoted', 'aliquotted'],
+  bring: ['brought'],
+  freeze: ['froze'],
+  keep: ['kept'],
+  label: ['labeled', 'labelled'],
+  read: ['read'],
+  run: ['ran'],
+  shake: ['shook'],
+  spin: ['spun'],
+  split: ['split'],
+  stop: ['stopped'],
+  take: ['took'],
+  transfer: ['transferred'],
+};
+
+const regularPast = (verb: string) => (verb.endsWith('e') ? `${verb}d` : `${verb}ed`);
+
+const VERB_BASES = new Map(
+  STEP_VERBS.flatMap(verb =>
+    [verb, ...(IRREGULAR_PAST[verb] ?? [regularPast(verb)])].map(form => [form, verb] as const)
+  )
+);
+
+export const stepVerbBase = (word: string): string | undefined =>
+  VERB_BASES.get(word.toLowerCase());

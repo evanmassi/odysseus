@@ -59,6 +59,19 @@ describe('splitProse', () => {
     ]);
   });
 
+  it('marks past-tense verbs, regular and irregular', () => {
+    const verbs = (text: string) =>
+      splitProse(text, true)
+        .filter(piece => piece.kind === 'verb')
+        .map(piece => piece.text);
+    expect(verbs('Centrifuged 5 min. Spun again; pipetted off. Transferred it')).toEqual([
+      'Centrifuged',
+      'Spun',
+      'pipetted',
+      'Transferred',
+    ]);
+  });
+
   it('only treats a leading verb as one at the start of the step', () => {
     expect(splitProse('Add more', false)).toEqual([{ kind: 'plain', text: 'Add more' }]);
   });
