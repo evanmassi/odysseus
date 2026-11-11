@@ -30,7 +30,7 @@ export interface SectionNumber {
 
 export const WHOLE_EXPERIMENT = '';
 
-function sectionKeyOf(
+export function sectionKeyOf(
   name: string,
   workedOut: WorkedOutGroup | undefined,
   materials: readonly MaterialItem[]
