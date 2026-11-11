@@ -5,56 +5,35 @@ import { createPortal } from 'react-dom';
 
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
+import { useProtocolOutsidePages } from '../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { FORMULA_FUNCTIONS } from '../../../utils/formulas/formulaParser';
-import { describeName } from '../../../utils/formulas/nameDisplay';
+import { insertListGroups } from '../../../utils/formulas/insertListGroups';
 import { matchesWordStarts } from '../../../utils/formulas/nameMatching';
+import { listedMaterials } from '../../../utils/materials/materialLookup';
 import { STEP_PRESETS } from '../../../utils/steps/stepPresets';
 import { templateText } from '../../../utils/steps/stepTemplate';
 
-import { useInsertTrayStore, type InsertTarget } from './insertTrayStore';
+import { useInsertTrayStore } from './insertTrayStore';
 import { INSERT_TRAY_ATTRIBUTE, isInInsertTray } from './trayFocus';
 import { PICK_NAME_ATTRIBUTE, PICK_OPERATOR_ATTRIBUTE, useTrayPickDrag } from './useTrayPickDrag';
 
-import type { BoardCalculation, BoardName } from '../../../utils/formulas/boardCalculation';
-
 const FORMULA_OPERATORS = ['+', '−', '×', '÷', '(', ')', ','] as const;
-const KIND_GROUP_TITLES: Record<Exclude<BoardName['kind'], 'item'>, string> = {
-  value: 'Values',
-  formula: 'Formulas',
-  count: 'Vessel counts',
-};
+const NO_CUSTOM_GROUPS: readonly string[] = [];
 const TRAY_GAP_PX = 6;
 const VIEWPORT_MARGIN_PX = 8;
 const MIN_WIDTH_PX = 320;
 const MAX_WIDTH_PX = 420;
 
 const GROUP_TITLE = 'px-3 pb-1 pt-2.5 type-label text-label-2xs font-semibold text-foreground/40';
+const STICKY_HEADING = 'sticky top-0 z-10 bg-popover';
 const TRAY_ROW = `flex cursor-pointer items-baseline gap-3 px-3 py-1 text-body-sm text-foreground ${ROW_HOVER_GLOW.primary}`;
 const ROW_VALUE = 'ml-auto max-w-[55%] truncate font-mono text-data-sm text-muted-foreground';
+const HEADING_KIND = 'ml-auto text-label-2xs text-muted-foreground';
 const SEARCH_INPUT =
   'w-full border-b border-line-faint bg-transparent px-3 py-2 text-body-sm text-foreground outline-none placeholder:text-muted-foreground';
 const OPERATOR_BUTTON =
   'min-w-7 cursor-pointer border border-line-mid px-2 py-px font-mono text-data-sm text-foreground hover:border-primary/60';
-
-interface NameRow {
-  name: string;
-  value?: string;
-}
-
-function nameGroups(calculation: BoardCalculation, target: InsertTarget) {
-  const groups = new Map<string, NameRow[]>();
-  for (const entry of calculation.names.values()) {
-    if (target.mode === 'formula' && entry.kind === 'item') continue;
-    const title =
-      entry.workedOut?.subject ??
-      (entry.kind === 'item' ? entry.groupTitle : KIND_GROUP_TITLES[entry.kind]);
-    const shown = describeName(calculation, entry.name).text;
-    const row = { name: entry.name, value: shown === entry.name ? undefined : shown };
-    groups.set(title, [...(groups.get(title) ?? []), row]);
-  }
-  return [...groups];
-}
 
 function trayPosition(anchor: HTMLElement, trayHeight: number): CSSProperties {
   const rect = anchor.getBoundingClientRect();
@@ -72,6 +51,7 @@ export function WorkbenchNameTray() {
   const target = useInsertTrayStore(state => state.target);
   const isOpen = useInsertTrayStore(state => state.isOpen);
   const calculation = useWorkbenchStore(state => state.calculation);
+  const protocol = useProtocolOutsidePages();
   const ghost = useTrayPickDrag();
   const trayRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<CSSProperties>();
@@ -81,15 +61,26 @@ export function WorkbenchNameTray() {
 
   useEffect(() => setQuery(''), [targetElement]);
 
+  const mode = target?.mode;
+  const materials = useMemo(() => listedMaterials(protocol), [protocol]);
+  const customGroups =
+    protocol.blocks.find(block => block.type === 'materials')?.customGroups ?? NO_CUSTOM_GROUPS;
+  const allGroups = useMemo(
+    () => (mode ? insertListGroups(calculation, materials, customGroups, mode === 'formula') : []),
+    [calculation, materials, customGroups, mode]
+  );
   const groups = useMemo(
     () =>
-      (target ? nameGroups(calculation, target) : [])
-        .map(([title, rows]): [string, NameRow[]] => [
-          title,
-          rows.filter(row => matchesWordStarts(`${title} ${row.name} ${row.value ?? ''}`, query)),
-        ])
-        .filter(([, rows]) => rows.length),
-    [calculation, target, query]
+      allGroups
+        .map(group => ({
+          ...group,
+          isHeadingMatch: matchesWordStarts(`${group.title} ${group.kind}`, query),
+          rows: group.rows.filter(row =>
+            matchesWordStarts(`${group.title} ${row.name} ${row.value ?? ''}`, query)
+          ),
+        }))
+        .filter(group => group.rows.length || (group.headingName && group.isHeadingMatch)),
+    [allGroups, query]
   );
   const presets = useMemo(
     () =>
@@ -123,8 +114,12 @@ export function WorkbenchNameTray() {
   const insertTopMatch = () => {
     const [firstPreset] = target?.mode === 'step' ? presets : [];
     const [firstGroup] = groups;
+    const firstName =
+      firstGroup?.headingName && firstGroup.isHeadingMatch
+        ? firstGroup.headingName
+        : firstGroup?.rows[0]?.name;
     if (firstPreset) insertPreset(firstPreset.text);
-    else if (firstGroup) target?.insert({ kind: 'name', name: firstGroup[1][0].name });
+    else if (firstName) target?.insert({ kind: 'name', name: firstName });
   };
   const hasMatches = groups.length > 0 || (target?.mode === 'step' && presets.length > 0);
 
@@ -195,7 +190,9 @@ export function WorkbenchNameTray() {
             )}
             {target.mode === 'step' && (
               <>
-                {presets.length > 0 && <div className={GROUP_TITLE}>Common steps</div>}
+                {presets.length > 0 && (
+                  <div className={`${GROUP_TITLE} ${STICKY_HEADING}`}>Common steps</div>
+                )}
                 {presets.map(preset => (
                   <div
                     key={preset.label}
@@ -218,12 +215,26 @@ export function WorkbenchNameTray() {
                 Nothing matches “{query}”.
               </p>
             )}
-            {groups.map(([title, rows]) => (
-              <div key={title}>
-                <div className={GROUP_TITLE}>{title}</div>
-                {rows.map(row => (
-                  <div key={row.name} className={TRAY_ROW} {...{ [PICK_NAME_ATTRIBUTE]: row.name }}>
-                    <span>{row.name}</span>
+            {groups.map(group => (
+              <div key={group.key}>
+                {group.headingName ? (
+                  <div
+                    className={`${TRAY_ROW} ${STICKY_HEADING} pt-2 font-semibold`}
+                    {...{ [PICK_NAME_ATTRIBUTE]: group.headingName }}
+                  >
+                    <span>{group.title}</span>
+                    {group.kind && <span className={HEADING_KIND}>{group.kind}</span>}
+                  </div>
+                ) : (
+                  <div className={`${GROUP_TITLE} ${STICKY_HEADING}`}>{group.title}</div>
+                )}
+                {group.rows.map(row => (
+                  <div
+                    key={row.name}
+                    className={`${TRAY_ROW} pl-6`}
+                    {...{ [PICK_NAME_ATTRIBUTE]: row.name }}
+                  >
+                    <span>{row.label}</span>
                     {row.value && <span className={ROW_VALUE}>{row.value}</span>}
                   </div>
                 ))}
