@@ -1,19 +1,15 @@
 import { useRef } from 'react';
 
-import { X } from 'lucide-react';
-
-import { ScrollArea, Tooltip } from '@shared/ui';
+import { ScrollArea } from '@shared/ui';
 
 import { listWithAnd } from '../../../../utils/materials/materialGuesser';
 
-import {
-  MATERIAL_HEAD_CELL,
-  MATERIAL_HEAD_ROW,
-  MATERIAL_TABLE,
-  MATERIAL_WARNING_TEXT,
-  HORIZONTAL_SCROLL,
-} from './materialTableStyles';
+import { MATERIAL_TABLE, MATERIAL_WARNING_TEXT, HORIZONTAL_SCROLL } from './materialTableStyles';
 import { WorkbenchMaterialFieldSelector } from './WorkbenchMaterialFieldSelector';
+import {
+  WorkbenchMaterialHeaderRow,
+  type MaterialSectionActions,
+} from './WorkbenchMaterialHeaderRow';
 import { WorkbenchMaterialRow, type MaterialRowActions } from './WorkbenchMaterialRow';
 import { WorkbenchMaterialUndoRow } from './WorkbenchMaterialUndoRow';
 
@@ -30,7 +26,6 @@ interface MaterialFieldMenu {
   choices: readonly FieldChoice[];
   pinnedKeys: ReadonlySet<string>;
   query: string;
-  onToggleOpen: () => void;
   onQueryChange: (query: string) => void;
   onToggle: (key: string) => void;
   onTogglePin: (key: string) => void;
@@ -39,6 +34,7 @@ interface MaterialFieldMenu {
 }
 
 interface WorkbenchMaterialTableProps {
+  group: string;
   items: readonly MaterialItem[];
   columns: readonly FieldDefinition[];
   clashes: readonly ConjugateClash[];
@@ -53,7 +49,7 @@ interface WorkbenchMaterialTableProps {
   editing: MaterialCellEditing;
   actions: MaterialRowActions;
   fieldMenu: MaterialFieldMenu;
-  onHideColumn: (key: string) => void;
+  sectionActions: MaterialSectionActions;
   onUndo: () => void;
 }
 
@@ -63,6 +59,7 @@ const clashNote = ({ color, panel, items }: ConjugateClash) =>
   }`;
 
 export function WorkbenchMaterialTable({
+  group,
   items,
   columns,
   clashes,
@@ -77,7 +74,7 @@ export function WorkbenchMaterialTable({
   editing,
   actions,
   fieldMenu,
-  onHideColumn,
+  sectionActions,
   onUndo,
 }: WorkbenchMaterialTableProps) {
   const fieldButtonRef = useRef<HTMLButtonElement>(null);
@@ -139,41 +136,13 @@ export function WorkbenchMaterialTable({
         />
         <ScrollArea options={HORIZONTAL_SCROLL}>
           <table className={MATERIAL_TABLE}>
-            <thead>
-              <tr className={MATERIAL_HEAD_ROW}>
-                <th className={MATERIAL_HEAD_CELL}>Name</th>
-                <th className={MATERIAL_HEAD_CELL}>Type</th>
-                {columns.map(column => (
-                  <th key={column.key} className={MATERIAL_HEAD_CELL}>
-                    {column.label}
-                    <Tooltip content="Hide this column">
-                      <button
-                        type="button"
-                        className="ml-1.5 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity hover:text-danger-text focus-visible:opacity-100 group-hover/head:opacity-100"
-                        aria-label={`Hide ${column.label}`}
-                        onClick={() => onHideColumn(column.key)}
-                      >
-                        <X aria-hidden className="h-3 w-3" />
-                      </button>
-                    </Tooltip>
-                  </th>
-                ))}
-                <th className={MATERIAL_HEAD_CELL}>Used in</th>
-                <th className={`${MATERIAL_HEAD_CELL} w-px text-right`}>
-                  <button
-                    ref={fieldButtonRef}
-                    type="button"
-                    className={`type-label transition-colors hover:text-foreground ${
-                      fieldMenu.isOpen ? 'text-foreground' : 'text-foreground/55'
-                    }`}
-                    aria-expanded={fieldMenu.isOpen}
-                    onClick={fieldMenu.onToggleOpen}
-                  >
-                    + Field
-                  </button>
-                </th>
-              </tr>
-            </thead>
+            <WorkbenchMaterialHeaderRow
+              group={group}
+              columns={columns}
+              isFieldMenuOpen={fieldMenu.isOpen}
+              fieldButtonRef={fieldButtonRef}
+              actions={sectionActions}
+            />
             <tbody>{rows}</tbody>
           </table>
         </ScrollArea>

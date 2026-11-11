@@ -8,6 +8,7 @@ import {
   type VesselMapBlock,
 } from '@odysseus/shared-schemas';
 
+import { cachedPerBlock } from '../blocks/cachedPerBlock';
 import {
   DILUTION_FACTOR_NOTATION,
   dimensionKey,
@@ -116,7 +117,7 @@ function valueCounts(block: VesselMapBlock): VesselCount[] {
   });
 }
 
-export function vesselCounts(block: VesselMapBlock): VesselCount[] {
+function countVessels(block: VesselMapBlock): VesselCount[] {
   const usedKeys = Object.keys(block.cells).filter(key =>
     Object.values(block.cells[key]).some(isFilledCell)
   );
@@ -181,7 +182,7 @@ interface PlainCell {
 const isSameAmount = (cells: PlainCell[]) =>
   new Set(cells.map(cell => `${cell.amount}|${cell.unit}`)).size === 1;
 
-export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
+function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
   const amounts: PlateAmount[] = [];
   const add = (amount: Omit<PlateAmount, 'name'>) => {
     const typedName = block.amountNames[amount.key]?.trim();
@@ -313,12 +314,27 @@ export function plateAmounts(block: VesselMapBlock): PlateAmount[] {
   return amounts;
 }
 
-function mentions(text: string, name: string): boolean {
+export const vesselCounts: (block: VesselMapBlock) => readonly VesselCount[] =
+  cachedPerBlock(countVessels);
+
+export const plateAmounts: (block: VesselMapBlock) => readonly PlateAmount[] =
+  cachedPerBlock(amountsOnPlate);
+
+const wellTexts = cachedPerBlock((block: VesselMapBlock): string[] =>
+  Object.values(block.cells).map(lines =>
+    block.lines
+      .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
+      .join(' | ')
+      .toLowerCase()
+  )
+);
+
+function mentionPattern(name: string): RegExp {
   const escaped = name
     .trim()
     .toLowerCase()
     .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`).test(text);
+  return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`);
 }
 
 export function materialWellCounts(
@@ -326,16 +342,16 @@ export function materialWellCounts(
   materials: readonly MaterialItem[]
 ): Map<MaterialItem, number> {
   const counts = new Map<MaterialItem, number>();
+  const patterns = materials.map(material => {
+    const bare = nameWithoutNotes(material.name);
+    return { material, full: mentionPattern(material.name), bare: bare && mentionPattern(bare) };
+  });
   for (const block of blocks) {
-    for (const lines of Object.values(block.cells)) {
-      const text = block.lines
-        .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
-        .join(' | ')
-        .toLowerCase();
-      for (const material of materials) {
-        const bare = nameWithoutNotes(material.name);
-        const isMentioned = mentions(text, material.name) || (!!bare && mentions(text, bare));
-        if (isMentioned) counts.set(material, (counts.get(material) ?? 0) + 1);
+    for (const text of wellTexts(block)) {
+      for (const { material, full, bare } of patterns) {
+        if (full.test(text) || (bare && bare.test(text))) {
+          counts.set(material, (counts.get(material) ?? 0) + 1);
+        }
       }
     }
   }

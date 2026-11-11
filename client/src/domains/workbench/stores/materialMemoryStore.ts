@@ -28,7 +28,10 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
       rememberKind: (name, group, type) =>
         set(state => ({ memory: rememberKind(state.memory, name, group, type) })),
       learnFromMaterials: items =>
-        set(state => ({ memory: learnFromMaterials(state.memory, items) })),
+        set(state => {
+          const memory = learnFromMaterials(state.memory, items);
+          return memory === state.memory ? state : { memory };
+        }),
       toggleStartingField: (group, key) =>
         set(state => ({
           memory: toggleStartingField(

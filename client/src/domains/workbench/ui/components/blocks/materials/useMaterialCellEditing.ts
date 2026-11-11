@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 export interface MaterialCell {
   itemId: string;
@@ -22,6 +22,8 @@ export function useMaterialCellEditing(
 ): MaterialCellEditing {
   const [cell, setCell] = useState<MaterialCell>();
   const current = useRef<MaterialCell>();
+  const latestOrder = useRef(order);
+  latestOrder.current = order;
 
   const show = useCallback(
     (next: MaterialCell | undefined) => {
@@ -42,13 +44,17 @@ export function useMaterialCellEditing(
 
   const move = useCallback(
     (from: MaterialCell, step: 1 | -1) => {
-      const at = order.findIndex(candidate => isSameCell(candidate, from));
-      show(at < 0 ? undefined : order[at + step]);
+      const cells = latestOrder.current;
+      const at = cells.findIndex(candidate => isSameCell(candidate, from));
+      show(at < 0 ? undefined : cells[at + step]);
     },
-    [order, show]
+    [show]
   );
 
   const stop = useCallback(() => show(undefined), [show]);
 
-  return { cell, start: show, finish, move, stop };
+  return useMemo(
+    () => ({ cell, start: show, finish, move, stop }),
+    [cell, show, finish, move, stop]
+  );
 }
