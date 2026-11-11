@@ -56,9 +56,11 @@ export function rememberKind(
 export function learnFromMaterials(memory: LabMemory, items: readonly MaterialItem[]): LabMemory {
   const materials = { ...memory.materials };
   const fields = { ...memory.fields };
+  let hasLearned = false;
   for (const item of items) {
     if (!item.name.trim() || item.isDropped || item.group === UNSORTED_GROUP) continue;
-    materials[normalizeMaterialKey(item.name)] = {
+    const key = normalizeMaterialKey(item.name);
+    const learned = {
       group: item.group,
       type: item.type,
       values: { ...item.values },
@@ -66,16 +68,23 @@ export function learnFromMaterials(memory: LabMemory, items: readonly MaterialIt
       customFields: item.customFields.map(definition => ({ ...definition })),
       shownFields: [...item.shownFields],
     };
-    const key = kindKey(item.group, item.type);
-    const known = fields[key] ?? [];
+    if (JSON.stringify(materials[key]) !== JSON.stringify(learned)) {
+      materials[key] = learned;
+      hasLearned = true;
+    }
+    const kind = kindKey(item.group, item.type);
+    const known = fields[kind] ?? [];
     const fresh = item.customFields.filter(
       definition =>
         item.shownFields.includes(definition.key) &&
         !known.some(learned => learned.key === definition.key)
     );
-    if (fresh.length) fields[key] = [...known, ...fresh.map(definition => ({ ...definition }))];
+    if (fresh.length) {
+      fields[kind] = [...known, ...fresh.map(definition => ({ ...definition }))];
+      hasLearned = true;
+    }
   }
-  return { ...memory, materials, fields };
+  return hasLearned ? { ...memory, materials, fields } : memory;
 }
 
 export function rememberedKinds(

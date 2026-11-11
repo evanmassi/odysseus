@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { memo, useEffect, useRef, type ReactNode } from 'react';
 
 import { Button, Tooltip } from '@shared/ui';
 
@@ -67,6 +67,25 @@ interface WorkbenchMaterialRowProps {
   editing: MaterialCellEditing;
   actions: MaterialRowActions;
 }
+
+const LIST_PROPS = new Set<keyof WorkbenchMaterialRowProps>(['columns', 'recipe', 'recipeUsers']);
+
+const isSameList = <Entry,>(
+  a: readonly Entry[],
+  b: readonly Entry[],
+  isSame: (x: Entry, y: Entry) => boolean = (x, y) => x === y
+) => a.length === b.length && a.every((entry, index) => isSame(entry, b[index]));
+
+const isSameRecipeLine = (a: RecipeLine, b: RecipeLine) =>
+  a.entry === b.entry && a.ingredient === b.ingredient;
+
+const isSameRow = (a: WorkbenchMaterialRowProps, b: WorkbenchMaterialRowProps) =>
+  isSameList(a.columns, b.columns) &&
+  isSameList(a.recipeUsers, b.recipeUsers) &&
+  isSameList(a.recipe, b.recipe, isSameRecipeLine) &&
+  (Object.keys(a) as Array<keyof WorkbenchMaterialRowProps>).every(
+    key => LIST_PROPS.has(key) || a[key] === b[key]
+  );
 
 const FOCUSABLE = 'input, [tabindex="0"]';
 const FRESH_FLASH_MS = 1800;
@@ -139,7 +158,7 @@ function EditableCell({
   );
 }
 
-export function WorkbenchMaterialRow({
+export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   item,
   index,
   previous,
@@ -319,4 +338,4 @@ export function WorkbenchMaterialRow({
       </td>
     </tr>
   );
-}
+}, isSameRow);

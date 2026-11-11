@@ -31,6 +31,14 @@ interface WorkbenchState {
 
 let lastBoard: { inputs: string; calculation: BoardCalculation } | undefined;
 
+const vesselMapsOf = (protocol: Protocol) =>
+  protocol.blocks.filter(block => block.type === 'plate');
+
+function haveSameVesselMaps(before: Protocol, after: Protocol): boolean {
+  const [was, now] = [vesselMapsOf(before), vesselMapsOf(after)];
+  return was.length === now.length && was.every((block, index) => block === now[index]);
+}
+
 function calculate(protocol: Protocol): BoardCalculation {
   const names = collectBoardNames(protocol);
   const inputs = JSON.stringify(names);
@@ -88,12 +96,14 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
 
   updateProtocol: recipe =>
     set(state => {
-      const changed = produce(state.protocol, draft => {
-        recipe(draft);
-        renameMaterialsAfterPlateValues(state.protocol, draft);
-        dropValuesTwinnedByPlate(draft, state.knownNames);
-      });
-      if (changed === state.protocol) return {};
+      const edited = produce(state.protocol, recipe);
+      if (edited === state.protocol) return {};
+      const changed = haveSameVesselMaps(state.protocol, edited)
+        ? edited
+        : produce(edited, draft => {
+            renameMaterialsAfterPlateValues(state.protocol, draft);
+            dropValuesTwinnedByPlate(draft, state.knownNames);
+          });
       const reconciled = reconcile(changed, state.knownNames);
       const pageStillExists = reconciled.protocol.pages.some(
         page => page.id === state.activePageId

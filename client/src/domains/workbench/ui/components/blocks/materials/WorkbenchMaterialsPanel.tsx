@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useStableActions } from '../../../../hooks/useStableActions';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
-import { useProtocolOutsidePages, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
@@ -63,6 +64,7 @@ import { useMaterialRemoval } from './useMaterialRemoval';
 import { WorkbenchMaterialAddBar, type NewGroupTarget } from './WorkbenchMaterialAddBar';
 import { WorkbenchMaterialDroppedSection } from './WorkbenchMaterialDroppedSection';
 import { WorkbenchMaterialGroupDialog } from './WorkbenchMaterialGroupDialog';
+import { type MaterialSectionActions } from './WorkbenchMaterialHeaderRow';
 import { WorkbenchMaterialPlateNamesSection } from './WorkbenchMaterialPlateNamesSection';
 import { WorkbenchMaterialReadingsSection } from './WorkbenchMaterialReadingsSection';
 import { WorkbenchMaterialSection } from './WorkbenchMaterialSection';
@@ -90,8 +92,11 @@ const FIXED_CELLS = ['name', 'type'];
 const NAME_CELL = 'name';
 
 export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps) {
-  const protocol = useProtocolOutsidePages();
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const materialBlocks = useBlocksOf('materials');
+  const plateBlocks = useBlocksOf('plate');
+  const materialsOnly = useMemo(() => ({ blocks: materialBlocks }), [materialBlocks]);
+  const duplicateIdList = useWorkbenchData(state => [...state.calculation.duplicateIds]);
+  const duplicateIds = useMemo(() => new Set(duplicateIdList), [duplicateIdList]);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const updateBlock = useUpdateBlock(block);
   const memory = useMaterialMemoryStore(state => state.memory);
@@ -107,15 +112,10 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       setFresh(current => ({ ids: new Set(ids), stamp: current.stamp + 1 })),
     []
   );
-  const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
+  const remembered = useMemo(() => rememberedKinds(memory, materialsOnly), [memory, materialsOnly]);
   const adding = useMaterialAdding(block, remembered, markFresh);
   const removal = useMaterialRemoval(block, id => markFresh([id]));
   const { removed } = removal;
-
-  useEffect(() => {
-    const timer = setTimeout(() => learnFromMaterials(block.items), LEARN_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [block.items, learnFromMaterials]);
 
   const sections = useMemo(
     () =>
@@ -146,30 +146,27 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     ...nameUsage(state.protocol, state.calculation, itemIds),
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
-  const isFirstMaterialsBlock =
-    protocol.blocks.find(candidate => candidate.type === 'materials')?.id === block.id;
+  const isFirstMaterialsBlock = materialBlocks[0]?.id === block.id;
   const readings = useWorkbenchData(state =>
     isFirstMaterialsBlock ? readStepReadings(state.protocol, state.calculation).materials : []
   );
-  const allMaterials = useMemo(() => materialsById(protocol), [protocol]);
+  const allMaterials = useMemo(() => materialsById(materialsOnly), [materialsOnly]);
   const recipeUsers = useMemo(() => recipesUsing([...allMaterials.values()]), [allMaterials]);
   const plateWells = useMemo(() => {
-    const vesselMaps = protocol.blocks.filter(candidate => candidate.type === 'plate');
-    const counts = materialWellCounts(vesselMaps, [...allMaterials.values()]);
+    const counts = materialWellCounts(plateBlocks, [...allMaterials.values()]);
     return new Map([...counts].map(([material, count]) => [material.id, count]));
-  }, [protocol, allMaterials]);
-  const plateOffers = useMemo(
-    () => (isFirstMaterialsBlock ? plateNameOffers(protocol) : []),
-    [isFirstMaterialsBlock, protocol]
+  }, [plateBlocks, allMaterials]);
+  const plateOffers = useWorkbenchData(state =>
+    isFirstMaterialsBlock ? plateNameOffers(state.protocol) : []
   );
   const linkChoices = useMemo(
     () =>
-      listedMaterials(protocol).map(item => ({
+      listedMaterials(materialsOnly).map(item => ({
         value: item.id,
         label: item.name,
         group: materialGroup(item.group).label,
       })),
-    [protocol]
+    [materialsOnly]
   );
   const cellOrder = useMemo(
     () =>
@@ -216,6 +213,13 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     [updateItem]
   );
   const editing = useMaterialCellEditing(cellOrder, finishCell);
+  const isEditingCell = editing.cell !== undefined;
+
+  useEffect(() => {
+    if (isEditingCell) return;
+    const timer = setTimeout(() => learnFromMaterials(block.items), LEARN_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [block.items, isEditingCell, learnFromMaterials]);
 
   const setItemKind = (itemId: string, { group, type }: MaterialKind) => {
     const name = block.items.find(item => item.id === itemId)?.name ?? '';
@@ -224,7 +228,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     editing.stop();
   };
 
-  const rowActions: MaterialRowActions = {
+  const rowActions = useStableActions<MaterialRowActions>({
     rename: (itemId, name) =>
       updateItem(itemId, item => {
         item.name = name;
@@ -250,7 +254,8 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         updateItem(item.id, draft => copyMaterialField(draft, source, key));
       }
     },
-    suggest: (itemId, key, typed) => fieldSuggestions(protocol, key, typed, itemId),
+    suggest: (itemId, key, typed) =>
+      fieldSuggestions(useWorkbenchStore.getState().protocol, key, typed, itemId),
     drop: item => {
       editing.stop();
       removal.drop(item);
@@ -269,10 +274,17 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       updateProtocol(draft => editRecipeEntry(draft, itemId, entryId, change)),
     removeRecipeEntry: (itemId, entryId) =>
       updateProtocol(draft => removeRecipeEntry(draft, itemId, entryId)),
-  };
+  });
 
   const updateGroupItems = (group: string, recipe: (items: MaterialItem[]) => void) =>
     updateBlock(draft => recipe(draft.items.filter(item => item.group === group)));
+
+  const sectionActions = useStableActions<MaterialSectionActions>({
+    hideColumn: (group, fieldKey) =>
+      updateGroupItems(group, items => hideSectionField(items, fieldKey)),
+    toggleFieldMenu: group =>
+      setFieldMenu(current => (current?.group === group ? undefined : { group, query: '' })),
+  });
 
   const toggleFold = (group: string) =>
     updateBlock(draft => {
@@ -329,7 +341,8 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         {sections.length ? (
           sections.map(section => {
             const { key } = section.group;
-            const query = fieldMenu?.group === key ? fieldMenu.query : '';
+            const isFieldMenuOpen = fieldMenu?.group === key;
+            const query = isFieldMenuOpen ? fieldMenu.query : '';
             return (
               <WorkbenchMaterialSection
                 key={key}
@@ -339,6 +352,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                 onToggleFold={() => toggleFold(key)}
               >
                 <WorkbenchMaterialTable
+                  group={key}
                   items={section.items}
                   columns={section.columns}
                   clashes={section.clashes}
@@ -347,24 +361,22 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   recipeOf={item => recipeLines(item, allMaterials)}
                   recipeUsers={recipeUsers}
                   plateWells={plateWells}
-                  duplicateIds={calculation.duplicateIds}
+                  duplicateIds={duplicateIds}
                   fresh={fresh}
                   removed={section.removed}
                   editing={editing}
                   actions={rowActions}
                   fieldMenu={{
-                    isOpen: fieldMenu?.group === key,
-                    choices: fieldChoices(
-                      section.items,
-                      new Set(section.columns.map(column => column.key)),
-                      memory
-                    ),
+                    isOpen: isFieldMenuOpen,
+                    choices: isFieldMenuOpen
+                      ? fieldChoices(
+                          section.items,
+                          new Set(section.columns.map(column => column.key)),
+                          memory
+                        )
+                      : [],
                     pinnedKeys: new Set(groupStartingFields(memory, key)),
                     query,
-                    onToggleOpen: () =>
-                      setFieldMenu(current =>
-                        current?.group === key ? undefined : { group: key, query: '' }
-                      ),
                     onQueryChange: next => setFieldMenu({ group: key, query: next }),
                     onToggle: fieldKey =>
                       updateGroupItems(key, items => toggleSectionField(items, fieldKey, memory)),
@@ -376,9 +388,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                     },
                     onClose: () => setFieldMenu(undefined),
                   }}
-                  onHideColumn={fieldKey =>
-                    updateGroupItems(key, items => hideSectionField(items, fieldKey))
-                  }
+                  sectionActions={sectionActions}
                   onUndo={removal.undo}
                 />
               </WorkbenchMaterialSection>

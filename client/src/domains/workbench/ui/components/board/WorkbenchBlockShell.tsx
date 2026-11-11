@@ -1,4 +1,4 @@
-import { useRef, useState, type ComponentType } from 'react';
+import { memo, useRef, useState, type ComponentType } from 'react';
 
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
@@ -26,7 +26,9 @@ interface WorkbenchBlockShellProps {
 const HEADER_BUTTON =
   'inline-flex h-6 w-6 flex-none items-center justify-center text-muted-foreground transition-colors hover:text-foreground';
 
-export function WorkbenchBlockShell({ block }: WorkbenchBlockShellProps) {
+export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
+  block,
+}: WorkbenchBlockShellProps) {
   const updateBlock = useUpdateBlock(block);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -135,4 +137,4 @@ export function WorkbenchBlockShell({ block }: WorkbenchBlockShellProps) {
       </ConsolePanel>
     </div>
   );
-}
+});
