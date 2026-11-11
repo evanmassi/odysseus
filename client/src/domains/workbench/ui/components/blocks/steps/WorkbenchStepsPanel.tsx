@@ -113,8 +113,8 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
               onAddStepBelow={addStepBelow}
             />
           )}
-          {/* PITFALL: ml-10 puts the step numbers under the section title; change it with the section row's spacing. */}
-          <div className={section ? 'ml-10' : ''}>
+          {/* PITFALL: ml-8 puts the step numbers under the section title; change it with the section row's spacing. */}
+          <div className={section ? 'ml-8' : ''}>
             {groupSteps.map(step => (
               <WorkbenchStepRow
                 key={step.id}

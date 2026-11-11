@@ -4,6 +4,7 @@ import type { MouseEvent } from 'react';
 import { IndentDecrease, IndentIncrease, ListPlus } from 'lucide-react';
 
 import { Checkbox } from '@shared/ui';
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { DEEPEST_STEP_LEVEL, shiftStepLevel } from '../../../../utils/steps/stepOrder';
 import { isInInsertTray } from '../../tray/trayFocus';
@@ -88,7 +89,7 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
     <div
       ref={rowRef}
       {...{ [STEP_ROW_ATTRIBUTE]: step.id }}
-      className={`group/step row-tools-host relative flex items-baseline gap-2.5 px-1.5 ${LEVEL_SIZING[step.level]} ${isEditing ? 'bg-primary/[0.04]' : ''} ${dragStyle}`}
+      className={`group/step row-tools-host relative flex items-baseline gap-2.5 px-1.5 ${LEVEL_SIZING[step.level]} ${isEditing ? 'bg-primary/[0.04]' : ''} ${dragStyle || ROW_HOVER_GLOW.primary}`}
       onBlur={event => {
         const isStillHere =
           event.currentTarget.contains(event.relatedTarget) || isInInsertTray(event.relatedTarget);
@@ -170,7 +171,7 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
           <div
             role="button"
             tabIndex={0}
-            className="cursor-text leading-normal"
+            className="inline-edit-host cursor-text leading-normal"
             onMouseDown={event => {
               if (event.button !== 0) return;
               event.preventDefault();
@@ -180,14 +181,16 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
               if (event.key === 'Enter') onStartEdit(step.id);
             }}
           >
-            {step.isMeanwhile && duringStep && (
-              <span className="mr-1 italic text-muted-foreground">During step {duringStep}:</span>
-            )}
-            {step.text ? (
-              <WorkbenchStepPreview text={step.text} />
-            ) : (
-              <span className="italic text-muted-foreground">Click to write this step</span>
-            )}
+            <span className="inline-edit">
+              {step.isMeanwhile && duringStep && (
+                <span className="mr-1 italic text-muted-foreground">During step {duringStep}:</span>
+              )}
+              {step.text ? (
+                <WorkbenchStepPreview text={step.text} />
+              ) : (
+                <span className="italic text-muted-foreground">Click to write this step</span>
+              )}
+            </span>
           </div>
         )}
       </div>

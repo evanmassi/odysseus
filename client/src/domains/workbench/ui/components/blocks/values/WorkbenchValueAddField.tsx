@@ -51,32 +51,34 @@ export function WorkbenchValueAddField({
 
   return (
     <div>
-      <input
-        ref={isFocusedOnMount ? focusOnMount : undefined}
-        value={draft}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        spellCheck={false}
-        autoComplete="off"
-        className="w-full bg-transparent py-1 text-body-sm text-foreground outline-none placeholder:text-muted-foreground"
-        onChange={event => setDraft(event.target.value)}
-        onKeyDown={event => {
-          if (event.key === 'Escape') {
-            if (draft) setDraft('');
-            else onClose?.();
-          }
-          if (event.key === 'Enter' && draft.trim()) {
+      <span className="inline-edit">
+        <input
+          ref={isFocusedOnMount ? focusOnMount : undefined}
+          value={draft}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          spellCheck={false}
+          autoComplete="off"
+          className="py-px text-body-sm text-foreground placeholder:text-muted-foreground"
+          onChange={event => setDraft(event.target.value)}
+          onKeyDown={event => {
+            if (event.key === 'Escape') {
+              if (draft) setDraft('');
+              else onClose?.();
+            }
+            if (event.key === 'Enter' && draft.trim()) {
+              event.preventDefault();
+              submit([draft]);
+            }
+          }}
+          onPaste={event => {
+            const text = event.clipboardData.getData('text');
+            if (!/\n/.test(text.trim())) return;
             event.preventDefault();
-            submit([draft]);
-          }
-        }}
-        onPaste={event => {
-          const text = event.clipboardData.getData('text');
-          if (!/\n/.test(text.trim())) return;
-          event.preventDefault();
-          submit(text.split(/\r?\n/).filter(line => line.trim()));
-        }}
-      />
+            submit(text.split(/\r?\n/).filter(line => line.trim()));
+          }}
+        />
+      </span>
       {guess && (
         <p className="pb-1 text-label-xs text-muted-foreground">
           <b className="font-semibold text-foreground">{guess.full}</b> · {guess.shown}

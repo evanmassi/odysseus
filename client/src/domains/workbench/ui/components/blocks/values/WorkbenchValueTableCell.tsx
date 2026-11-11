@@ -6,7 +6,7 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
 import { wellTooltipContent } from '../vessels/wellTooltipContent';
 
-import { EDITABLE_HOVER, VALUE_CELL } from './valueTableStyles';
+import { VALUE_CELL } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 
 export interface ValueCellView {
@@ -99,7 +99,8 @@ export function WorkbenchValueTableCell({
           <button
             type="button"
             disabled={!view.isEditable}
-            className={`w-full text-right font-mono text-data-sm disabled:cursor-default ${EDITABLE_HOVER}`}
+            data-align="end"
+            className="inline-edit font-mono text-data-sm"
             onClick={() => onEdit(true)}
           >
             {view.value.trim() ? (

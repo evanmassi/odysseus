@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-type SelectSize = 'xs' | 'sm' | 'md';
+type SelectSize = 'inline' | 'xs' | 'sm' | 'md';
 
 type SelectState = 'default' | 'error' | 'warning' | 'success';
 

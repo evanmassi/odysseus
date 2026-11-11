@@ -71,7 +71,7 @@ const UNDO_MS = 8000;
 const GENERAL_SECTION = '';
 const MIX_CHOICE = 'mix';
 const TITLE_INPUT =
-  '[field-sizing:content] min-w-[4ch] bg-transparent type-label text-label-md font-semibold text-foreground outline-none placeholder:text-muted-foreground';
+  'type-label text-label-md font-semibold text-foreground placeholder:text-muted-foreground';
 
 function plateRemovalMessage(row: PlateValueRow): string {
   const { source } = row;
@@ -343,19 +343,21 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       <WorkbenchValueSection
         title={
           groups.length > 0 ? (
-            <input
-              value={block.generalTitle ?? 'Whole experiment'}
-              placeholder="Name this group"
-              aria-label="Group name"
-              spellCheck={false}
-              className={TITLE_INPUT}
-              onChange={event =>
-                edit(draft => {
-                  const target = draft.blocks.find(candidate => candidate.id === block.id);
-                  if (target?.type === 'values') target.generalTitle = event.target.value;
-                })
-              }
-            />
+            <span className="inline-edit">
+              <input
+                value={block.generalTitle ?? 'Whole experiment'}
+                placeholder="Name this group"
+                aria-label="Group name"
+                spellCheck={false}
+                className={TITLE_INPUT}
+                onChange={event =>
+                  edit(draft => {
+                    const target = draft.blocks.find(candidate => candidate.id === block.id);
+                    if (target?.type === 'values') target.generalTitle = event.target.value;
+                  })
+                }
+              />
+            </span>
           ) : (
             ''
           )

@@ -1,11 +1,4 @@
-import {
-  Autocomplete,
-  DatePicker,
-  INPUT_WELL_BASE,
-  INPUT_WELL_BORDER_DEFAULT,
-  Input,
-  Select,
-} from '@shared/ui';
+import { Autocomplete, DatePicker, Input, Select } from '@shared/ui';
 
 import { RATIO_NOTATION } from '../../../../utils/formulas/quantities';
 import { UNIT_PER_ITEM, fieldUnit } from '../../../../utils/materials/materialCatalog';
@@ -23,7 +16,6 @@ interface WorkbenchMaterialCellFieldProps {
   onUnitChange: (unit: string) => void;
 }
 
-const TEXT_FIELD = `h-7 w-full min-w-32 px-2 text-body-sm ${INPUT_WELL_BASE} ${INPUT_WELL_BORDER_DEFAULT}`;
 const SHORT_UNITS: Readonly<Record<string, string>> = { X: '×', [RATIO_NOTATION]: '' };
 
 const shortUnit = (unit: string) => SHORT_UNITS[unit] ?? unit;
@@ -101,7 +93,7 @@ export function WorkbenchMaterialCellField({
       value={value}
       options={suggestions(value).map(suggestion => ({ value: suggestion, label: suggestion }))}
       aria-label={label}
-      inputClassName={TEXT_FIELD}
+      inputClassName="inline-edit-field text-body-sm text-foreground"
       onChange={onValueChange}
     />
   );

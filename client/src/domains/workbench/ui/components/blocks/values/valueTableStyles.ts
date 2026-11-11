@@ -10,6 +10,3 @@ export const ZEBRA_TINT = 'hsl(var(--foreground) / var(--alpha-zebra))';
 
 export const stickyBackground = (isZebra: boolean): string =>
   isZebra ? `linear-gradient(${ZEBRA_TINT}, ${ZEBRA_TINT}), hsl(var(--card))` : 'hsl(var(--card))';
-
-export const EDITABLE_HOVER =
-  'enabled:hover:outline enabled:hover:outline-1 enabled:hover:outline-offset-4 enabled:hover:outline-primary/40';

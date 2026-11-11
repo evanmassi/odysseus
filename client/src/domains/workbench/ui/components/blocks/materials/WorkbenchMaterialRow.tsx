@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
-import { Button, Input, Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
@@ -123,7 +123,7 @@ function EditableCell({
     <td
       ref={cellRef}
       className={`${MATERIAL_CELL} ${className} ${
-        isEditing ? '!py-1' : 'cursor-text hover:shadow-[inset_0_-1px_0_hsl(var(--primary)/0.55)]'
+        isEditing ? '!py-1' : 'inline-edit-host cursor-text'
       }`}
       onMouseDown={event => {
         if (isEditing || event.button !== 0) return;
@@ -134,7 +134,7 @@ function EditableCell({
       onBlur={isEditing ? leave.onBlur : undefined}
       onFocus={leave.onFocus}
     >
-      {isEditing ? editor() : display}
+      {isEditing ? editor() : <span className="inline-edit">{display}</span>}
     </td>
   );
 }
@@ -183,16 +183,14 @@ export function WorkbenchMaterialRow({
           item.name || <span className="font-normal italic text-muted-foreground">Unnamed</span>
         }
         editor={() => (
-          <Input
-            size="xs"
-            fullWidth
+          <input
             value={item.name}
-            state={isDuplicateName ? 'error' : 'default'}
+            aria-invalid={isDuplicateName}
             placeholder="Name"
             aria-label="Material name"
             spellCheck={false}
-            inputClassName="min-w-32 font-semibold"
-            onValueChange={name => actions.rename(item.id, name)}
+            className="inline-edit-field font-semibold"
+            onChange={event => actions.rename(item.id, event.target.value)}
           />
         )}
         onFillDown={fillDown('name')}

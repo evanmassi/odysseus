@@ -1,4 +1,5 @@
 import { Button, Tooltip } from '@shared/ui';
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
@@ -6,7 +7,6 @@ import { usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 
-import { EDITABLE_HOVER } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 
 export type ValueCell = 'name' | 'value';
@@ -70,7 +70,7 @@ export function WorkbenchValueRow({
   return (
     <Tooltip content={title}>
       <tr
-        className={`group even:bg-foreground/[0.025] ${row.isDuplicate || isInvalid ? 'text-danger-text' : ''}`}
+        className={`group ${ROW_HOVER_GLOW.primary} even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${row.isDuplicate || isInvalid ? 'text-danger-text' : ''}`}
       >
         <td
           className={CELL}
@@ -85,7 +85,7 @@ export function WorkbenchValueRow({
               placeholder="Name"
               aria-label="Value name"
               spellCheck={false}
-              className="w-full border-b border-line-soft bg-transparent text-body-sm text-foreground outline-none focus:border-primary"
+              className="inline-edit-field text-body-sm text-foreground"
               onChange={event => onRename(event.target.value)}
               onBlur={event => {
                 const converted = withGreekLetters(event.target.value);
@@ -95,7 +95,7 @@ export function WorkbenchValueRow({
           ) : (
             <button
               type="button"
-              className={`w-full text-left text-body-sm text-foreground ${EDITABLE_HOVER}`}
+              className="inline-edit text-left text-body-sm text-foreground"
               onClick={() => onEdit('name')}
             >
               {row.label || <span className="text-muted-foreground">Unnamed</span>}
@@ -129,7 +129,8 @@ export function WorkbenchValueRow({
             <button
               type="button"
               disabled={!row.isValueEditable}
-              className={`w-full text-right font-mono text-data-sm disabled:cursor-default ${EDITABLE_HOVER}`}
+              data-align="end"
+              className="inline-edit font-mono text-data-sm"
               onClick={() => onEdit('value')}
             >
               {row.value.trim() ? (

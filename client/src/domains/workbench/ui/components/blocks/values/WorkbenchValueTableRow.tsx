@@ -1,11 +1,12 @@
 import { Plus } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 
-import { EDITABLE_HOVER, stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
+import { stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 import { WorkbenchValueTableCell, type ValueCellView } from './WorkbenchValueTableCell';
 
 import type {
@@ -91,25 +92,7 @@ export function WorkbenchValueTableRow({
   const isNameEditable = row.section !== undefined && row.status !== 'missing';
   const note = STATUS_NOTE[row.status];
 
-  const nameContent = isEditingName ? (
-    <input
-      ref={focusOnMount}
-      defaultValue={row.name}
-      placeholder={row.material ? 'Name' : 'Name this mix'}
-      aria-label="Row name"
-      spellCheck={false}
-      className="w-40 border-b border-line-soft bg-transparent font-semibold text-foreground outline-none focus:border-primary"
-      onChange={event => actions.onRename(row, event.target.value)}
-      onBlur={event => {
-        const converted = withGreekLetters(event.target.value);
-        if (converted !== event.target.value) actions.onRename(row, converted);
-        actions.onEditName(undefined);
-      }}
-      onKeyDown={event => {
-        if (event.key === 'Enter' || event.key === 'Escape') actions.onEditName(undefined);
-      }}
-    />
-  ) : (
+  const nameContent = (
     <span className="flex items-center gap-2">
       {row.swatch && (
         <span
@@ -125,11 +108,29 @@ export function WorkbenchValueTableRow({
           }
         />
       )}
-      {isNameEditable ? (
+      {isEditingName ? (
+        <input
+          ref={focusOnMount}
+          defaultValue={row.name}
+          placeholder={row.material ? 'Name' : 'Name this mix'}
+          aria-label="Row name"
+          spellCheck={false}
+          className="inline-edit-field font-semibold text-foreground"
+          onChange={event => actions.onRename(row, event.target.value)}
+          onBlur={event => {
+            const converted = withGreekLetters(event.target.value);
+            if (converted !== event.target.value) actions.onRename(row, converted);
+            actions.onEditName(undefined);
+          }}
+          onKeyDown={event => {
+            if (event.key === 'Enter' || event.key === 'Escape') actions.onEditName(undefined);
+          }}
+        />
+      ) : isNameEditable ? (
         <Tooltip content={row.material ? 'Renames it in Materials too' : undefined}>
           <button
             type="button"
-            className={`text-left font-semibold text-foreground ${EDITABLE_HOVER}`}
+            className="inline-edit text-left font-semibold text-foreground"
             onClick={() => actions.onEditName(row.id)}
           >
             {row.name || <span className="font-normal text-muted-foreground">Name this mix</span>}
@@ -145,7 +146,9 @@ export function WorkbenchValueTableRow({
   );
 
   return (
-    <tr className={`group ${isZebra ? 'bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : ''}`}>
+    <tr
+      className={`group ${ROW_HOVER_GLOW.primary} ${isZebra ? 'bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : ''}`}
+    >
       <td
         className={`${VALUE_NAME_CELL} ${row.isSubRow ? 'pl-10' : 'pl-5'}`}
         style={isNameCovering ? { background: stickyBackground(isZebra) } : undefined}
