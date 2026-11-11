@@ -28,6 +28,22 @@ function readPart(calculation: BoardCalculation, text: string) {
   return { text: isName ? shown.text : text.trim(), isName };
 }
 
+export const readsSeriesAlike = (
+  seriesList: readonly PlateSeries[],
+  a: BoardCalculation,
+  b: BoardCalculation
+): boolean =>
+  a === b ||
+  seriesList.every(
+    series =>
+      'points' in series ||
+      [series.start, series.fold].every(text => {
+        const before = readPart(a, text);
+        const after = readPart(b, text);
+        return before.text === after.text && before.isName === after.isName;
+      })
+  );
+
 const DIRECTION_ARROWS: Readonly<Record<PlateSeries['direction'], string>> = {
   right: '→',
   down: '↓',

@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { Select } from '@shared/ui';
 
 import { useShowBlock } from '../../../../hooks/useShowBlock';
-import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
+import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
+import { useProtocolWith } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { prepLineId } from '../../../../utils/dilutions/dilutionFormulas';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
@@ -31,8 +32,6 @@ import {
   formulaMaterial,
   namesInFull,
   namesWithin,
-  nameWithin,
-  nameWithinOwner,
   uniqueName,
 } from '../../../../utils/formulas/formulaScopes';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
@@ -42,8 +41,10 @@ import { META_LABEL } from '../../board/metaLabelClass';
 import { WorkbenchFormulaEditor } from './WorkbenchFormulaEditor';
 import { WorkbenchFormulaRow } from './WorkbenchFormulaRow';
 import { WorkbenchFormulaSection } from './WorkbenchFormulaSection';
-import { WorkbenchFormulaWorkedOutGroup } from './WorkbenchFormulaWorkedOutGroup';
-import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
+import {
+  WorkbenchFormulaWorkedOutGroup,
+  type WorkedOutLine,
+} from './WorkbenchFormulaWorkedOutGroup';
 
 import type { FormulaBlock, MaterialItem, Protocol, ProtocolBlock } from '@odysseus/shared-schemas';
 
@@ -55,6 +56,23 @@ const SETTINGS_LABELS: Partial<Record<ProtocolBlock['type'], string>> = {
   dilutions: 'Dilutions',
   materials: 'Materials',
 };
+
+const workedOutKey = (section: CalculationSection, groupKey: string) =>
+  `${section.key}/${groupKey}`;
+
+function linksOf(
+  calculation: BoardCalculation,
+  result: FormulaResult | undefined
+): Readonly<Record<string, string>> {
+  if (result?.status !== 'ok') return {};
+  return Object.fromEntries(
+    result.terms.flatMap(term => {
+      if (term.kind !== 'ref') return [];
+      const sourceId = calculation.names.get(nameKey(term.name))?.sourceBlockId;
+      return sourceId ? [[term.name, sourceId]] : [];
+    })
+  );
+}
 
 function prepWarnings(protocol: Pick<Protocol, 'blocks'>, calculation: BoardCalculation) {
   const byLine = new Map<string, string[]>();
@@ -70,7 +88,7 @@ function prepWarnings(protocol: Pick<Protocol, 'blocks'>, calculation: BoardCalc
 }
 
 export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
-  const protocol = useProtocolOutsidePages();
+  const protocol = useProtocolWith('materials', 'plate', 'formula', 'dilutions');
   const calculation = useWorkbenchStore(state => state.calculation);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -100,13 +118,48 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         : new Map<string, string[]>(),
     [protocol, calculation, showsWorkedOut]
   );
+  const results = useStructuralSharing(
+    useMemo(
+      (): Partial<Record<string, FormulaResult>> => Object.fromEntries(calculation.results),
+      [calculation]
+    )
+  );
+  const workedOut = useStructuralSharing(
+    useMemo(
+      () =>
+        Object.fromEntries(
+          sections.flatMap(section =>
+            section.groups.map(({ group, lines }) => {
+              const settingsBlock = protocol.blocks.find(
+                candidate => candidate.id === group.settingsBlockId
+              );
+              const label = settingsBlock && SETTINGS_LABELS[settingsBlock.type];
+              return [
+                workedOutKey(section, group.key),
+                {
+                  lines: lines.map(
+                    (line): WorkedOutLine => ({
+                      id: line.id,
+                      name: line.name,
+                      result: calculation.results.get(line.id),
+                      links: linksOf(calculation, calculation.results.get(line.id)),
+                      warnings: warnings.get(line.id) ?? [],
+                      isIntermediate: !!line.isIntermediate,
+                    })
+                  ),
+                  settings:
+                    settingsBlock && label ? { label, blockId: settingsBlock.id } : undefined,
+                },
+              ];
+            })
+          )
+        ),
+      [sections, protocol, calculation, warnings]
+    )
+  );
 
   const sectionOf = (name: string) => formulaMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
-  const linkFor = (name: string) => {
-    const sourceId = calculation.names.get(nameKey(name))?.sourceBlockId;
-    return sourceId ? () => showBlock(sourceId) : undefined;
-  };
 
   const addFormula = (material: MaterialItem | undefined, text: string) => {
     const [label, ...rest] = text.split('=');
@@ -125,20 +178,23 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     setOpenId(added);
   };
 
-  const shownMaterials = new Set(
-    sections.flatMap(({ material }) => (material ? [material.id] : []))
-  );
-  const choices = materials.filter(item => !shownMaterials.has(item.id));
-  const hasValues = (item: MaterialItem) =>
-    [...calculation.names.keys()].some(key => key.startsWith(`${nameKey(item.name)} `));
-  const choiceOptions = [
-    ...choices
-      .filter(hasValues)
-      .map(item => ({ value: item.id, label: item.name.trim(), group: 'With values' })),
-    ...choices
-      .filter(item => !hasValues(item))
-      .map(item => ({ value: item.id, label: item.name.trim(), group: 'No values yet' })),
-  ];
+  const choiceOptions = useMemo(() => {
+    const shownMaterials = new Set(
+      sections.flatMap(({ material }) => (material ? [material.id] : []))
+    );
+    const choices = materials.filter(item => !shownMaterials.has(item.id));
+    const nameKeys = [...calculation.names.keys()];
+    const hasValues = (item: MaterialItem) =>
+      nameKeys.some(key => key.startsWith(`${nameKey(item.name)} `));
+    return [
+      ...choices
+        .filter(hasValues)
+        .map(item => ({ value: item.id, label: item.name.trim(), group: 'With values' })),
+      ...choices
+        .filter(item => !hasValues(item))
+        .map(item => ({ value: item.id, label: item.name.trim(), group: 'No values yet' })),
+    ];
+  }, [sections, materials, calculation]);
   const isTitled = sections.length > 1;
 
   const ownItems = (section: CalculationSection) =>
@@ -163,16 +219,12 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       ) : (
         <WorkbenchFormulaRow
           key={formula.id}
-          name={nameWithin(formula.name, section.material)}
-          answer={answerOf(calculation.results.get(formula.id))}
-          onOpen={() => setOpenId(formula.id)}
-        >
-          <WorkbenchFormulaWorking
-            result={calculation.results.get(formula.id)}
-            isCompact
-            shortName={full => nameWithin(full, section.material)}
-          />
-        </WorkbenchFormulaRow>
+          formulaId={formula.id}
+          name={formula.name}
+          result={results[formula.id]}
+          material={section.material}
+          onOpen={setOpenId}
+        />
       )
     );
 
@@ -209,25 +261,16 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
                   : undefined
               }
             >
-              {groups.map(({ group, lines }) => {
-                const settingsBlock = protocol.blocks.find(
-                  candidate => candidate.id === group.settingsBlockId
-                );
+              {groups.map(({ group }) => {
+                const view = workedOut[workedOutKey(section, group.key)];
                 return (
                   <WorkbenchFormulaWorkedOutGroup
                     key={group.key}
                     title={group.title}
-                    lines={lines.map(line => ({
-                      id: line.id,
-                      name: line.name,
-                      result: calculation.results.get(line.id),
-                      warnings: warnings.get(line.id) ?? [],
-                      isIntermediate: !!line.isIntermediate,
-                    }))}
-                    settingsLabel={settingsBlock && SETTINGS_LABELS[settingsBlock.type]}
-                    shortName={full => nameWithinOwner(full, group.subject)}
-                    linkFor={linkFor}
-                    onShowSettings={() => settingsBlock && showBlock(settingsBlock.id)}
+                    lines={view.lines}
+                    subject={group.subject}
+                    settings={view.settings}
+                    onShowBlock={showBlock}
                   />
                 );
               })}
@@ -257,6 +300,3 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     </div>
   );
 }
-
-const answerOf = (result: FormulaResult | undefined) =>
-  result?.status === 'ok' && 'text' in result.output ? result.output.text : '?';

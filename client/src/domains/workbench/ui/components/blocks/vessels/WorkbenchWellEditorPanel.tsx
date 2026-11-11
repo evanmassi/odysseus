@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 
 import { Button } from '@shared/ui';
 
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
 import { seriesSummary } from '../../../../utils/vessels/plateSeries';
@@ -31,7 +32,6 @@ import { useUpdateVesselMap } from './useUpdateVesselMap';
 import { WorkbenchWellLineRow } from './WorkbenchWellLineRow';
 import { WorkbenchWellSeriesForm } from './WorkbenchWellSeriesForm';
 
-import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
 import type { lineLayers } from '../../../../utils/vessels/plateLayers';
 import type { VesselSheet, VesselTab } from '../../../../utils/vessels/vesselTabs';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
@@ -48,7 +48,6 @@ interface WorkbenchWellEditorPanelProps {
   keys: ReadonlySet<string>;
   colorLine: PlateLine | undefined;
   layers: ReturnType<typeof lineLayers>;
-  calculation: BoardCalculation;
   wellsRef: RefObject<HTMLElement>;
   focusesFirstRow: boolean;
   onClear: () => void;
@@ -104,12 +103,12 @@ export function WorkbenchWellEditorPanel({
   keys,
   colorLine,
   layers,
-  calculation,
   wellsRef,
   focusesFirstRow,
   onClear,
   onClose,
 }: WorkbenchWellEditorPanelProps) {
+  const calculation = useWorkbenchStore(state => state.calculation);
   const updateVesselMap = useUpdateVesselMap(block);
   const editorRef = useRef<HTMLDivElement>(null);
   const [blankRows, setBlankRows] = useState(0);

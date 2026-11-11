@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { Plus } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
@@ -17,7 +19,6 @@ import type {
 } from '../../../../utils/values/valueTable';
 
 export interface ValueRowActions {
-  viewOf: (cell: ValueTableCell) => ValueCellView;
   onEditCell: (cellId: string | undefined) => void;
   onEditName: (rowId: string | undefined) => void;
   onRename: (row: ValueTableRow, name: string) => void;
@@ -32,6 +33,7 @@ export interface ValueRowActions {
 interface WorkbenchValueTableRowProps {
   row: ValueTableRow;
   columns: readonly ValueTableColumn[];
+  views: Readonly<Record<string, ValueCellView>>;
   isZebra: boolean;
   isNameCovering: boolean;
   editingCellId: string | undefined;
@@ -71,9 +73,10 @@ function RailMark({ rail }: { rail: ValueRowRail }) {
   );
 }
 
-export function WorkbenchValueTableRow({
+export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
   row,
   columns,
+  views,
   isZebra,
   isNameCovering,
   editingCellId,
@@ -84,7 +87,7 @@ export function WorkbenchValueTableRow({
   const cellByColumn = new Map(row.cells.map(cell => [cell.columnKey, cell]));
   const editableIds = columns.flatMap(column => {
     const cell = cellByColumn.get(column.key);
-    return cell && actions.viewOf(cell).isEditable ? [cell.id] : [];
+    return cell && views[cell.id].isEditable ? [cell.id] : [];
   });
   const moveEdit = (cellId: string, step: 1 | -1) =>
     actions.onEditCell(editableIds[editableIds.indexOf(cellId) + step]);
@@ -162,7 +165,7 @@ export function WorkbenchValueTableRow({
           return (
             <WorkbenchValueTableCell
               key={column.key}
-              view={actions.viewOf(cell)}
+              view={views[cell.id]}
               isEditing={editingCellId === cell.id}
               onEdit={isEditing => actions.onEditCell(isEditing ? cell.id : undefined)}
               onMoveEdit={step => moveEdit(cell.id, step)}
@@ -225,4 +228,4 @@ export function WorkbenchValueTableRow({
       </td>
     </tr>
   );
-}
+});

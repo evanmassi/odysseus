@@ -1,113 +1,38 @@
 import { useState, type ReactNode } from 'react';
 
-import { ScrollArea, Tooltip } from '@shared/ui';
-import {
-  TABLE_HEADER_BAND,
-  TABLE_HEADER_RULE,
-} from '@shared/ui/primitives/table/tableHeaderStyles';
+import { ScrollArea } from '@shared/ui';
 
-import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
-import { BLOCK_ICONS } from '../../board/blockIcons';
 import { HORIZONTAL_SCROLL } from '../materials/materialTableStyles';
 import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
 
-import { VALUE_HEAD_CELL, VALUE_NAME_CELL } from './valueTableStyles';
+import { WorkbenchValueHeaderRow, type ValueColumnActions } from './WorkbenchValueHeaderRow';
 import { WorkbenchValueTableRow, type ValueRowActions } from './WorkbenchValueTableRow';
 
-import type {
-  ValueOrigin,
-  ValueTableColumn,
-  ValueTableGroup,
-  ValueTableRow,
-} from '../../../../utils/values/valueTable';
+import type { ValueCellView } from './WorkbenchValueTableCell';
+import type { ValueTableGroup, ValueTableRow } from '../../../../utils/values/valueTable';
 
 interface WorkbenchValueGroupTableProps {
   group: ValueTableGroup;
+  viewsByRow: Readonly<Record<string, Readonly<Record<string, ValueCellView>>>>;
   editingCellId: string | undefined;
   editingNameRowId: string | undefined;
   editingColumnKey: string | undefined;
   addingRowId: string | undefined;
   actions: ValueRowActions;
+  columnActions: ValueColumnActions;
   renderAdder: (row: ValueTableRow) => ReactNode;
-  onEditColumn: (column: ValueTableColumn | undefined) => void;
-  onRenameColumn: (name: string) => void;
-}
-
-const ORIGIN_MARK: Partial<Record<ValueOrigin, { icon: typeof BLOCK_ICONS.plate; note: string }>> =
-  {
-    plate: { icon: BLOCK_ICONS.plate, note: 'Read from the plate map' },
-    materials: { icon: BLOCK_ICONS.materials, note: 'Read from Materials' },
-  };
-
-function ColumnHeading({
-  column,
-  isEditing,
-  onEdit,
-  onRename,
-}: {
-  column: ValueTableColumn;
-  isEditing: boolean;
-  onEdit: (column: ValueTableColumn | undefined) => void;
-  onRename: (name: string) => void;
-}) {
-  const mark = ORIGIN_MARK[column.origin];
-  if (column.origin === 'worked') return <span>{column.label}</span>;
-  if (isEditing) {
-    return (
-      <input
-        ref={focusOnMount}
-        defaultValue={column.label}
-        aria-label="Column name"
-        spellCheck={false}
-        className="inline-edit-field text-right"
-        onChange={event => event.target.value.trim() && onRename(event.target.value)}
-        onBlur={event => {
-          const converted = withGreekLetters(event.target.value);
-          if (converted.trim() && converted !== event.target.value) onRename(converted);
-          onEdit(undefined);
-        }}
-        onKeyDown={event => {
-          if (event.key === 'Enter' || event.key === 'Escape') onEdit(undefined);
-        }}
-      />
-    );
-  }
-  if (mark) {
-    const Icon = mark.icon;
-    return (
-      <Tooltip content={mark.note}>
-        <span className="inline-flex items-center gap-1.5">
-          <Icon aria-hidden className="h-3 w-3 text-muted-foreground" />
-          {column.label}
-        </span>
-      </Tooltip>
-    );
-  }
-  return (
-    <Tooltip content="Rename this value on every row">
-      <button
-        type="button"
-        data-align="end"
-        className="inline-edit type-label"
-        onClick={() => onEdit(column)}
-      >
-        {column.label}
-      </button>
-    </Tooltip>
-  );
 }
 
 export function WorkbenchValueGroupTable({
   group,
+  viewsByRow,
   editingCellId,
   editingNameRowId,
   editingColumnKey,
   addingRowId,
   actions,
+  columnActions,
   renderAdder,
-  onEditColumn,
-  onRenameColumn,
 }: WorkbenchValueGroupTableProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const mainRowCount = group.rows.filter(row => !row.isSubRow).length;
@@ -123,24 +48,12 @@ export function WorkbenchValueGroupTable({
       >
         <table className="border-collapse">
           <thead>
-            <tr className={`relative ${TABLE_HEADER_BAND} ${TABLE_HEADER_RULE} after:z-[2]`}>
-              <th
-                className={`${VALUE_NAME_CELL} ${TABLE_HEADER_BAND} pl-5 type-label text-label-2xs font-semibold text-primary/80 dark:text-foreground/80`}
-              >
-                Name
-              </th>
-              {group.columns.map(column => (
-                <th key={column.key} className={VALUE_HEAD_CELL}>
-                  <ColumnHeading
-                    column={column}
-                    isEditing={editingColumnKey === column.key}
-                    onEdit={onEditColumn}
-                    onRename={onRenameColumn}
-                  />
-                </th>
-              ))}
-              <th className="w-px" />
-            </tr>
+            <WorkbenchValueHeaderRow
+              groupKey={group.key}
+              columns={group.columns}
+              editingColumnKey={editingColumnKey}
+              actions={columnActions}
+            />
           </thead>
           <tbody>
             {group.rows.flatMap((row, index) => [
@@ -148,9 +61,12 @@ export function WorkbenchValueGroupTable({
                 key={row.id}
                 row={row}
                 columns={group.columns}
+                views={viewsByRow[row.id]}
                 isZebra={index % 2 === 1}
                 isNameCovering={isScrolled}
-                editingCellId={editingCellId}
+                editingCellId={
+                  row.cells.some(cell => cell.id === editingCellId) ? editingCellId : undefined
+                }
                 isEditingName={editingNameRowId === row.id}
                 isAdding={addingRowId === row.id}
                 actions={actions}

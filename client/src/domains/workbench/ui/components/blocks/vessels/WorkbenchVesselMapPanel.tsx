@@ -6,7 +6,6 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
-import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
 import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
 import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
@@ -26,6 +25,7 @@ import { setWellsText, wellRows } from '../../../../utils/vessels/wellEdits';
 import { useConfirmation } from './useConfirmation';
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 import { useVesselChanges } from './useVesselChanges';
+import { useVesselMapCalculation } from './useVesselMapCalculation';
 import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
 import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
@@ -44,7 +44,7 @@ interface EditorOpening {
 }
 
 export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps) {
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const calculation = useVesselMapCalculation(block);
   const updateBlock = useUpdateBlock(block);
   const bodyRef = useRef<HTMLDivElement>(null);
   const roomWidth = useElementWidth(bodyRef);
@@ -188,7 +188,6 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           keys={selection.keys}
           colorLine={colorLine}
           layers={layers}
-          calculation={calculation}
           wellsRef={bodyRef}
           focusesFirstRow={editor.focusesFirstRow}
           onClear={clearSelected}

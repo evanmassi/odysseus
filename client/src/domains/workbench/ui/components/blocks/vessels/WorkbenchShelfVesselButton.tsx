@@ -1,4 +1,4 @@
-import type { CSSProperties, PointerEvent } from 'react';
+import { memo, type CSSProperties } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
@@ -6,6 +6,7 @@ import { SHAPE_METRICS, type VesselShape } from '../../../../utils/vessels/vesse
 
 import { wellTooltipContent } from './wellTooltipContent';
 
+import type { WellPointerActions } from './useWellPointerActions';
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
 
 type PartRole = 'cap' | 'body' | 'rim';
@@ -62,18 +63,20 @@ const PART_CLASSES: Readonly<Record<PartRole, string>> = {
   rim: 'fill-none stroke-foreground/20 [stroke-dasharray:3_3] [stroke-width:1]',
 };
 
-interface WorkbenchShelfVesselButtonProps {
-  wellKey: string;
+export interface ShelfVesselView {
+  key: string;
   shape: VesselShape;
   width: number;
   sizeLabel: string;
   tooltipLines: string[];
   lines: WellLine[];
   color: WellColor | undefined;
+}
+
+interface WorkbenchShelfVesselButtonProps {
+  view: ShelfVesselView;
   isSelected: boolean;
-  onPointerDown: (event: PointerEvent) => void;
-  onPointerEnter: () => void;
-  onDoubleClick: () => void;
+  actions: WellPointerActions;
 }
 
 interface ShapePartElementProps {
@@ -108,19 +111,12 @@ function ShapePartElement({ part, color, isSelected }: ShapePartElementProps) {
   return <path {...shared} d={part.path} />;
 }
 
-export function WorkbenchShelfVesselButton({
-  wellKey,
-  shape,
-  width,
-  sizeLabel,
-  tooltipLines,
-  lines,
-  color,
+export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButton({
+  view,
   isSelected,
-  onPointerDown,
-  onPointerEnter,
-  onDoubleClick,
+  actions,
 }: WorkbenchShelfVesselButtonProps) {
+  const { key: wellKey, shape, width, sizeLabel, tooltipLines, lines, color } = view;
   const metrics = SHAPE_METRICS[shape];
   const [left, top, boxWidth, boxHeight] = metrics.textBox;
   return (
@@ -130,9 +126,9 @@ export function WorkbenchShelfVesselButton({
         data-well-key={wellKey}
         tabIndex={-1}
         aria-selected={isSelected}
-        onPointerDown={onPointerDown}
-        onPointerEnter={onPointerEnter}
-        onDoubleClick={onDoubleClick}
+        onPointerDown={event => actions.onPointerDown(wellKey, event)}
+        onPointerEnter={() => actions.onPointerEnter(wellKey)}
+        onDoubleClick={() => actions.onDoubleClick(wellKey)}
         className={`group relative flex cursor-pointer flex-col items-center gap-1 ${metrics.isVertical ? 'min-w-16' : ''}`}
       >
         <div className="relative">
@@ -186,4 +182,4 @@ export function WorkbenchShelfVesselButton({
       </div>
     </Tooltip>
   );
-}
+});

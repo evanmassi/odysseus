@@ -1,5 +1,6 @@
 import type { CSSProperties, KeyboardEvent } from 'react';
 
+import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import {
   bandShapes,
   plateGeometry,
@@ -11,7 +12,8 @@ import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTab
 import { wellColor, wellDetails, wellLine } from '../../../../utils/vessels/wellContents';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
 
-import { WorkbenchPlateWellButton } from './WorkbenchPlateWellButton';
+import { useWellPointerActions } from './useWellPointerActions';
+import { WorkbenchPlateWellButton, type PlateWellView } from './WorkbenchPlateWellButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
@@ -102,6 +104,29 @@ export function WorkbenchPlateTable({
   onKeyDown,
   onOpenWell,
 }: WorkbenchPlateTableProps) {
+  const actions = useWellPointerActions(sheet, selection, onOpenWell);
+  const wells = useStructuralSharing(
+    sheet.spots.flatMap((spot): PlateWellView[] => {
+      const merged = merges.anchors.get(spot.key);
+      if (!merged && merges.covered.has(spot.key)) return [];
+      const details = wellDetails(block, spot.key, calculation);
+      const where = merged
+        ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
+        : spot.label;
+      return [
+        {
+          key: spot.key,
+          row: spot.row,
+          col: spot.col,
+          merged,
+          tooltipLines: [where, ...details],
+          shownLine: colorLine && wellLine(block, spot.key, colorLine, calculation),
+          isFilled: details.length > 0,
+          color: wellColor(block, spot.key, colorLine),
+        },
+      ];
+    })
+  );
   const geometry = plateGeometry(size, sheet.rows, sheet.cols, bands);
   const style = {
     gridTemplateColumns: `${geometry.headerWidth}px repeat(${sheet.cols}, ${size.width}px)`,
@@ -159,39 +184,15 @@ export function WorkbenchPlateTable({
             {rowLetter(row)}
           </button>
         ))}
-        {sheet.spots.map(spot => {
-          const merged = merges.anchors.get(spot.key);
-          if (!merged && merges.covered.has(spot.key)) return null;
-          const details = wellDetails(block, spot.key, calculation);
-          const shownLine = colorLine && wellLine(block, spot.key, colorLine, calculation);
-          const where = merged
-            ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
-            : spot.label;
-          return (
-            <WorkbenchPlateWellButton
-              key={spot.key}
-              wellKey={spot.key}
-              row={spot.row}
-              col={spot.col}
-              merged={merged}
-              tooltipLines={[where, ...details]}
-              shownLine={shownLine}
-              isFilled={details.length > 0}
-              color={wellColor(block, spot.key, colorLine)}
-              density={size.density}
-              isSelected={selection.keys.has(spot.key)}
-              onPointerDown={event => {
-                event.preventDefault();
-                selection.press(spot, {
-                  isExtending: event.shiftKey,
-                  isToggling: event.ctrlKey || event.metaKey,
-                });
-              }}
-              onPointerEnter={() => selection.dragOver(spot)}
-              onDoubleClick={() => onOpenWell(spot.key)}
-            />
-          );
-        })}
+        {wells.map(view => (
+          <WorkbenchPlateWellButton
+            key={view.key}
+            view={view}
+            density={size.density}
+            isSelected={selection.keys.has(view.key)}
+            actions={actions}
+          />
+        ))}
         {bands.length > 0 && <BandOverlay bands={bands} geometry={geometry} />}
       </div>
     </div>

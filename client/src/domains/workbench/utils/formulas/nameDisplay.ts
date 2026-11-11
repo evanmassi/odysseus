@@ -45,3 +45,13 @@ export function describeName(calculation: BoardCalculation, name: string): NameD
     }
   }
 }
+
+const isSameDisplay = (a: NameDisplay, b: NameDisplay) =>
+  a.text === b.text && a.label === b.label && a.kind === b.kind && a.isDropped === b.isDropped;
+
+export const readsNamesAlike = (
+  names: readonly string[],
+  a: BoardCalculation,
+  b: BoardCalculation
+): boolean =>
+  a === b || names.every(name => isSameDisplay(describeName(a, name), describeName(b, name)));

@@ -9,7 +9,7 @@ const AMOUNT_INPUT = 'text-right font-mono text-data-sm text-foreground';
 interface WorkbenchValueAmountFieldProps {
   value: string;
   unit: string;
-  units: readonly string[] | undefined;
+  units?: readonly string[];
   isInvalid: boolean;
   placeholder: string;
   isFocusedOnMount: boolean;
