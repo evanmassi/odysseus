@@ -1,4 +1,6 @@
 import {
+  insertSection,
+  insertStepBelow,
   insertSubStep,
   levelShifts,
   moveStepBlock,
@@ -102,6 +104,41 @@ describe('insertSubStep', () => {
 
   it('adds nothing under the deepest level', () => {
     expect(insertSubStep(nested, 'a1x', 'new')).toBe(nested);
+  });
+});
+
+describe('insertStepBelow', () => {
+  it('adds a step at the same level after everything under it', () => {
+    expect(levels(insertStepBelow(nested, 'a', 'new'))).toBe('a:1 a1:2 a1x:3 a2:2 new:1 b:1');
+    expect(levels(insertStepBelow(nested, 'a1', 'new'))).toBe('a:1 a1:2 a1x:3 new:2 a2:2 b:1');
+    expect(levels(insertStepBelow(nested, 'b', 'new'))).toBe('a:1 a1:2 a1x:3 a2:2 b:1 new:1');
+  });
+
+  it('keeps a step added below the last step of a section inside that section', () => {
+    expect(ids(insertStepBelow(steps, 'b', 'new'))).toBe('S1 a a1 b new S2 c c1 c2');
+  });
+
+  it('adds a step at the top of a section when added below its heading', () => {
+    expect(levels(insertStepBelow(steps, 'S2', 'new'))).toBe(
+      'S1 a:1 a1:2 b:1 S2 new:1 c:1 c1:2 c2:2'
+    );
+  });
+});
+
+describe('insertSection', () => {
+  it('adds a section below a main step and everything under it', () => {
+    expect(ids(insertSection(steps, 'a', 'new', true))).toBe('S1 a a1 new b S2 c c1 c2');
+    expect(ids(insertSection(nested, 'a', 'new', true))).toBe('a a1 a1x a2 new b');
+  });
+
+  it('adds a section above the first step', () => {
+    expect(ids(insertSection(nested, 'a', 'new', false))).toBe('new a a1 a1x a2 b');
+  });
+
+  it('adds no section at a sub-step, a heading, or above a section’s first step', () => {
+    expect(insertSection(steps, 'a1', 'new', true)).toBe(steps);
+    expect(insertSection(steps, 'S2', 'new', true)).toBe(steps);
+    expect(insertSection(steps, 'c', 'new', false)).toBe(steps);
   });
 });
 

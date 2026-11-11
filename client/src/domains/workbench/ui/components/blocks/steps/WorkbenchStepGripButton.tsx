@@ -15,7 +15,7 @@ export function WorkbenchStepGripButton({ onGrab }: WorkbenchStepGripButtonProps
         type="button"
         tabIndex={-1}
         aria-label="Drag to move"
-        className="flex w-3 flex-none cursor-grab select-none self-center text-foreground/25 opacity-0 transition-opacity hover:text-primary group-hover/step:opacity-100"
+        className="absolute -left-3 top-1/2 flex w-3 -translate-y-1/2 cursor-grab select-none text-foreground/25 opacity-0 transition-opacity hover:text-primary group-hover/step:opacity-100"
         onMouseDown={event => {
           if (event.button === 0) onGrab(event);
         }}
