@@ -48,7 +48,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
     createContent: () => ({ items: [], sections: [] }),
   },
   formula: {
-    label: 'Formula',
+    label: 'Calculations',
     hint: 'Math over your values, shown with its working',
     size: [4, 6],
     fitsContent: true,
@@ -72,7 +72,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
     }),
   },
   steps: {
-    label: 'Steps',
+    label: 'Procedure',
     hint: 'The outline of what you do',
     size: [5, 8],
     createContent: () => ({}),

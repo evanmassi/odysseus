@@ -17,6 +17,7 @@ interface WorkbenchStepSectionRowProps {
   dragStyle: string;
   onFocused: () => void;
   onGrab: (stepId: string, event: MouseEvent) => void;
+  onAddStepBelow: (stepId: string) => void;
 }
 
 export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
@@ -28,6 +29,7 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
   dragStyle,
   onFocused,
   onGrab,
+  onAddStepBelow,
 }: WorkbenchStepSectionRowProps) {
   const updatePage = useUpdateStepPage(pageId);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -42,10 +44,10 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
   return (
     <div
       {...{ [STEP_ROW_ATTRIBUTE]: section.id }}
-      className={`group/step row-tools-host -ml-1.5 mb-1.5 flex items-center gap-3 px-1 pb-2 pt-1 ${dragStyle}`}
+      className={`group/step row-tools-host relative mb-1.5 flex items-center gap-3 px-1.5 pb-2 pt-1 ${dragStyle}`}
     >
       <WorkbenchStepGripButton onGrab={event => onGrab(section.id, event)} />
-      <span className="min-w-9 text-right text-title-lg font-extralight leading-none text-foreground/30">
+      <span className="min-w-5 text-title-lg font-extralight leading-none text-foreground/30">
         {numeral}
       </span>
       <input
@@ -63,14 +65,20 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
           });
         }}
         onKeyDown={event => {
-          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key !== 'Enter') return;
+          if (event.shiftKey) onAddStepBelow(section.id);
+          else event.currentTarget.blur();
         }}
       />
       <span className="h-px flex-1 bg-gradient-to-r from-foreground/20 via-foreground/10 to-foreground/5" />
       <span className="whitespace-nowrap font-mono text-label-2xs text-foreground/35">
         {stepCount} step{stepCount === 1 ? '' : 's'}
       </span>
-      <WorkbenchStepRowControls pageId={pageId} stepId={section.id} />
+      <WorkbenchStepRowControls
+        pageId={pageId}
+        stepId={section.id}
+        onAddStepBelow={() => onAddStepBelow(section.id)}
+      />
     </div>
   );
 });

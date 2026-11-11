@@ -132,20 +132,14 @@ export function insertTemplate(editor: HTMLElement, text: string, calculation: B
   if (firstBlank) selectContents(firstBlank);
 }
 
-export function jumpToBlank(editor: HTMLElement, isBackwards: boolean): boolean {
+export function jumpToNextBlank(editor: HTMLElement) {
   const blanks = blanksIn(editor);
-  if (!blanks.length) return false;
+  if (!blanks.length) return;
   const selection = getSelection();
   const caret = selection?.rangeCount ? selection.getRangeAt(0) : undefined;
-  const isAtCaret = (blank: HTMLElement) => !!caret && blank.contains(caret.startContainer);
-  const others = blanks.filter(blank => !isAtCaret(blank));
-  const ahead = others.filter(blank => !caret || caret.comparePoint(blank, 0) === 1);
-  const behind = others.filter(blank => caret && caret.comparePoint(blank, 0) === -1);
-  const next = isBackwards
-    ? (behind[behind.length - 1] ?? blanks[blanks.length - 1])
-    : (ahead[0] ?? blanks[0]);
-  selectContents(next);
-  return true;
+  const isAhead = (blank: HTMLElement) =>
+    !caret || (!blank.contains(caret.startContainer) && caret.comparePoint(blank, 0) === 1);
+  selectContents(blanks.find(isAhead) ?? blanks[0]);
 }
 
 export function blankAtCaret(editor: HTMLElement): HTMLElement | undefined {
@@ -167,8 +161,6 @@ export function fillBlank(blank: HTMLElement, option: BlankOption, calculation: 
 }
 
 export const blankLabel = (blank: HTMLElement): string => blank.getAttribute(BLANK_ATTRIBUTE) ?? '';
-
-export const hasBlanks = (editor: HTMLElement): boolean => blanksIn(editor).length > 0;
 
 export function caretInside(editor: HTMLElement): Range | undefined {
   const selection = getSelection();

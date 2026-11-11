@@ -5,7 +5,14 @@ import { Button } from '@shared/ui';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { createId } from '../../../../utils/ids/createId';
 import { stepNumbers } from '../../../../utils/steps/stepNumbering';
-import { insertSubStep, levelShifts, moveStepBlock } from '../../../../utils/steps/stepOrder';
+import {
+  NEW_SECTION_TITLE,
+  insertSection,
+  insertStepBelow,
+  insertSubStep,
+  levelShifts,
+  moveStepBlock,
+} from '../../../../utils/steps/stepOrder';
 import { groupStepsBySection, precedingMainSteps } from '../../../../utils/steps/stepOutline';
 
 import { stepRowDragStyle } from './stepRowDragStyle';
@@ -47,13 +54,26 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
   const { draggingId, drop, startDrag } = useStepDrag(containerRef, dropStep);
   const clearFreshSection = useCallback(() => setFreshSectionId(undefined), []);
   const endEdit = useCallback(() => setEditingStepId(undefined), []);
-  const addSubStep = useCallback(
-    (parentId: string) => {
+  const addStepWith = useCallback(
+    (insert: typeof insertSubStep) => (stepId: string) => {
       const id = createId();
       updatePage(page => {
-        page.steps = insertSubStep(page.steps, parentId, id);
+        page.steps = insert(page.steps, stepId, id);
       });
       setEditingStepId(id);
+    },
+    [updatePage]
+  );
+  const addSubStep = useMemo(() => addStepWith(insertSubStep), [addStepWith]);
+  const addStepBelow = useMemo(() => addStepWith(insertStepBelow), [addStepWith]);
+  const addSectionAt = useCallback(
+    (stepId: string, isBelow: boolean) => {
+      const id = createId();
+      updatePage(page => {
+        page.steps = insertSection(page.steps, stepId, id, isBelow);
+      });
+      setEditingStepId(undefined);
+      setFreshSectionId(id);
     },
     [updatePage]
   );
@@ -70,14 +90,14 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
   const addSection = () => {
     const id = createId();
     updatePage(page => {
-      page.steps.push({ id, kind: 'section', text: 'New section' });
+      page.steps.push({ id, kind: 'section', text: NEW_SECTION_TITLE });
     });
     setEditingStepId(undefined);
     setFreshSectionId(id);
   };
 
   return (
-    <div ref={containerRef} className="px-4 pb-4 pt-2">
+    <div ref={containerRef} className="px-4 pb-4 pt-5">
       {groups.map(({ section, steps: groupSteps }) => (
         <section key={section?.id ?? 'loose'} className="mb-4">
           {section && (
@@ -90,9 +110,11 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
               dragStyle={stepRowDragStyle(section.id, draggingId, drop)}
               onFocused={clearFreshSection}
               onGrab={startDrag}
+              onAddStepBelow={addStepBelow}
             />
           )}
-          <div className={section ? 'ml-[22px] border-l border-line-mid pl-2.5' : ''}>
+          {/* PITFALL: ml-10 puts the step numbers under the section title; change it with the section row's spacing. */}
+          <div className={section ? 'ml-10' : ''}>
             {groupSteps.map(step => (
               <WorkbenchStepRow
                 key={step.id}
@@ -108,12 +130,15 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
                 canMoveOut={step.id === editingStepId && !!editingShifts?.canMoveOut}
                 onGrab={startDrag}
                 onAddSubStep={addSubStep}
+                onAddStepBelow={addStepBelow}
+                isFirstOnPage={steps[0]?.id === step.id}
+                onAddSection={addSectionAt}
               />
             ))}
           </div>
         </section>
       ))}
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex justify-end gap-2">
         <Button
           variant="ghost"
           size="xs"

@@ -4,6 +4,7 @@ import type { ProtocolStep } from '@odysseus/shared-schemas';
 type StepLevel = OutlineStep['level'];
 
 export const DEEPEST_STEP_LEVEL: StepLevel = 3;
+export const NEW_SECTION_TITLE = 'New section';
 
 const depthOf = (step: ProtocolStep) => (step.kind === 'section' ? 0 : step.level);
 
@@ -60,19 +61,44 @@ export function moveStepDown(steps: ProtocolStep[], id: string): ProtocolStep[] 
   return steps;
 }
 
+function insertBlankStep(
+  steps: ProtocolStep[],
+  at: number,
+  level: StepLevel,
+  id: string
+): ProtocolStep[] {
+  const blank: OutlineStep = { id, kind: 'step', level, text: '', isMeanwhile: false };
+  return [...steps.slice(0, at), blank, ...steps.slice(at)];
+}
+
 export function insertSubStep(steps: ProtocolStep[], parentId: string, id: string): ProtocolStep[] {
   const index = steps.findIndex(step => step.id === parentId);
   const parent = steps[index];
   if (parent?.kind !== 'step' || parent.level >= DEEPEST_STEP_LEVEL) return steps;
-  const subStep: OutlineStep = {
-    id,
-    kind: 'step',
-    level: (parent.level + 1) as StepLevel,
-    text: '',
-    isMeanwhile: false,
-  };
-  const end = blockEnd(steps, index);
-  return [...steps.slice(0, end), subStep, ...steps.slice(end)];
+  return insertBlankStep(steps, blockEnd(steps, index), (parent.level + 1) as StepLevel, id);
+}
+
+export function insertStepBelow(steps: ProtocolStep[], stepId: string, id: string): ProtocolStep[] {
+  const index = steps.findIndex(step => step.id === stepId);
+  const step = steps[index];
+  if (!step) return steps;
+  if (step.kind === 'section') return insertBlankStep(steps, index + 1, 1, id);
+  return insertBlankStep(steps, blockEnd(steps, index), step.level, id);
+}
+
+export function insertSection(
+  steps: ProtocolStep[],
+  stepId: string,
+  id: string,
+  isBelow: boolean
+): ProtocolStep[] {
+  const index = steps.findIndex(step => step.id === stepId);
+  const step = steps[index];
+  if (step?.kind !== 'step' || step.level !== 1) return steps;
+  if (!isBelow && steps[index - 1]?.kind === 'section') return steps;
+  const at = isBelow ? blockEnd(steps, index) : index;
+  const section: ProtocolStep = { id, kind: 'section', text: NEW_SECTION_TITLE };
+  return [...steps.slice(0, at), section, ...steps.slice(at)];
 }
 
 export function levelShifts(

@@ -16,10 +16,9 @@ import {
   caretInside,
   fillBlank,
   fillEditor,
-  hasBlanks,
   insertReference,
   insertTemplate,
-  jumpToBlank,
+  jumpToNextBlank,
   placeCaretAtEnd,
   placeCaretAtPoint,
   readEditor,
@@ -35,6 +34,8 @@ interface WorkbenchStepTextFieldProps {
   text: string;
   rowRef: RefObject<HTMLElement>;
   onTextChange: (text: string) => void;
+  onShiftLevel: (shift: 1 | -1) => void;
+  onAddStepBelow: () => void;
   onLeave: () => void;
 }
 
@@ -49,6 +50,8 @@ export function WorkbenchStepTextField({
   text,
   rowRef,
   onTextChange,
+  onShiftLevel,
+  onAddStepBelow,
   onLeave,
 }: WorkbenchStepTextFieldProps) {
   const calculation = useWorkbenchStore(state => state.calculation);
@@ -131,7 +134,7 @@ export function WorkbenchStepTextField({
     else if (option.name) replaceTypedReference(editor, option.name, calculation);
     setSuggestions(undefined);
     commit();
-    if (suggestions.kind === 'blank' && hasBlanks(editor)) jumpToBlank(editor, false);
+    if (suggestions.kind === 'blank') jumpToNextBlank(editor);
   };
 
   const steerSuggestions = (event: KeyboardEvent<HTMLDivElement>): boolean => {
@@ -159,13 +162,15 @@ export function WorkbenchStepTextField({
       event.preventDefault();
       return;
     }
-    if (event.key === 'Tab' && jumpToBlank(event.currentTarget, event.shiftKey)) {
+    if (event.key === 'Tab') {
       event.preventDefault();
+      onShiftLevel(event.shiftKey ? -1 : 1);
       return;
     }
     if (event.key === 'Enter') {
       event.preventDefault();
-      event.currentTarget.blur();
+      if (event.shiftKey) onAddStepBelow();
+      else event.currentTarget.blur();
     }
   };
 
