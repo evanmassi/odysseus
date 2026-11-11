@@ -1,10 +1,12 @@
 import type { KeyboardEvent } from 'react';
 
+import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import { LOOSE_VESSELS } from '../../../../utils/vessels/vesselCatalog';
 import { SHAPE_METRICS } from '../../../../utils/vessels/vesselSizing';
 import { wellColor, wellDetails, wellLine } from '../../../../utils/vessels/wellContents';
 
-import { WorkbenchShelfVesselButton } from './WorkbenchShelfVesselButton';
+import { useWellPointerActions } from './useWellPointerActions';
+import { WorkbenchShelfVesselButton, type ShelfVesselView } from './WorkbenchShelfVesselButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
@@ -32,6 +34,33 @@ export function WorkbenchVesselShelfList({
   onKeyDown,
   onOpenWell,
 }: WorkbenchVesselShelfListProps) {
+  const actions = useWellPointerActions(sheet, selection, onOpenWell);
+  const shelves = useStructuralSharing(
+    block.sets.map((set, row) => {
+      const vessel = LOOSE_VESSELS[set.vessel];
+      const width = SHAPE_METRICS[vessel.shape].width * vessel.scale * scale;
+      return {
+        id: set.id,
+        vessels: sheet.spots
+          .filter(spot => spot.row === row)
+          .map(
+            (spot): ShelfVesselView => ({
+              key: spot.key,
+              shape: vessel.shape,
+              width,
+              sizeLabel: vessel.short,
+              tooltipLines: [vessel.label, ...wellDetails(block, spot.key, calculation)],
+              lines: block.lines.flatMap(line => {
+                const shown = wellLine(block, spot.key, line, calculation);
+                return shown ? [shown] : [];
+              }),
+              color: wellColor(block, spot.key, colorLine),
+            })
+          ),
+      };
+    })
+  );
+
   return (
     <div
       role="grid"
@@ -46,41 +75,18 @@ export function WorkbenchVesselShelfList({
         if (event.target === event.currentTarget) selection.clear();
       }}
     >
-      {block.sets.map((set, row) => {
-        const vessel = LOOSE_VESSELS[set.vessel];
-        const width = SHAPE_METRICS[vessel.shape].width * vessel.scale * scale;
-        return (
-          <div key={set.id} role="row" className="flex flex-wrap items-end gap-x-3.5 gap-y-4">
-            {sheet.spots
-              .filter(spot => spot.row === row)
-              .map(spot => (
-                <WorkbenchShelfVesselButton
-                  key={spot.key}
-                  wellKey={spot.key}
-                  shape={vessel.shape}
-                  width={width}
-                  sizeLabel={vessel.short}
-                  tooltipLines={[vessel.label, ...wellDetails(block, spot.key, calculation)]}
-                  lines={block.lines.flatMap(line => {
-                    const shown = wellLine(block, spot.key, line, calculation);
-                    return shown ? [shown] : [];
-                  })}
-                  color={wellColor(block, spot.key, colorLine)}
-                  isSelected={selection.keys.has(spot.key)}
-                  onPointerDown={event => {
-                    event.preventDefault();
-                    selection.press(spot, {
-                      isExtending: event.shiftKey,
-                      isToggling: event.ctrlKey || event.metaKey,
-                    });
-                  }}
-                  onPointerEnter={() => selection.dragOver(spot)}
-                  onDoubleClick={() => onOpenWell(spot.key)}
-                />
-              ))}
-          </div>
-        );
-      })}
+      {shelves.map(shelf => (
+        <div key={shelf.id} role="row" className="flex flex-wrap items-end gap-x-3.5 gap-y-4">
+          {shelf.vessels.map(view => (
+            <WorkbenchShelfVesselButton
+              key={view.key}
+              view={view}
+              isSelected={selection.keys.has(view.key)}
+              actions={actions}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

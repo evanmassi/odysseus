@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import { Button, Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
@@ -17,36 +19,31 @@ export interface ValueRowData {
   fullName: string;
   value: string;
   unit: string;
-  units: readonly string[] | undefined;
-  tag: string | undefined;
-  isValueEditable: boolean;
-  canRemove: boolean;
   isDuplicate: boolean;
   usage: string;
+}
+
+export interface GeneralValueActions {
+  onEdit: (itemId: string, cell: ValueCell | undefined) => void;
+  onMoveEdit: (itemId: string, cell: ValueCell, step: 1 | -1) => void;
+  onRename: (itemId: string, name: string) => void;
+  onValueChange: (itemId: string, value: string) => void;
+  onUnitChange: (itemId: string, unit: string) => void;
+  onRemove: (itemId: string) => void;
 }
 
 interface WorkbenchValueRowProps {
   row: ValueRowData;
   editingCell: ValueCell | undefined;
-  onEdit: (cell: ValueCell | undefined) => void;
-  onMoveEdit: (cell: ValueCell, step: 1 | -1) => void;
-  onRename: (name: string) => void;
-  onValueChange: (value: string) => void;
-  onUnitChange: (unit: string) => void;
-  onRemove: () => void;
+  actions: GeneralValueActions;
 }
 
 const CELL = 'px-2 py-1.5 align-middle';
 
-export function WorkbenchValueRow({
+export const WorkbenchValueRow = memo(function WorkbenchValueRow({
   row,
   editingCell,
-  onEdit,
-  onMoveEdit,
-  onRename,
-  onValueChange,
-  onUnitChange,
-  onRemove,
+  actions,
 }: WorkbenchValueRowProps) {
   const isInvalid = isUnreadableAmount(row.value, row.unit);
   const title = usageTitle(row.fullName, row.usage);
@@ -54,18 +51,18 @@ export function WorkbenchValueRow({
   const handleKeyDown = (cell: ValueCell) => (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === 'Escape') {
       event.preventDefault();
-      onEdit(undefined);
+      actions.onEdit(row.id, undefined);
     } else if (event.key === 'Tab' && (event.target as HTMLElement).tagName === 'INPUT') {
       const inputs = [...(event.currentTarget as HTMLElement).querySelectorAll('input')];
       const at = inputs.indexOf(event.target as HTMLInputElement);
       const isEdge = event.shiftKey ? at <= 0 : at >= inputs.length - 1;
       if (!isEdge) return;
       event.preventDefault();
-      onMoveEdit(cell, event.shiftKey ? -1 : 1);
+      actions.onMoveEdit(row.id, cell, event.shiftKey ? -1 : 1);
     }
   };
 
-  const leave = useFocusLeave(() => onEdit(undefined));
+  const leave = useFocusLeave(() => actions.onEdit(row.id, undefined));
 
   return (
     <Tooltip content={title}>
@@ -86,22 +83,19 @@ export function WorkbenchValueRow({
               aria-label="Value name"
               spellCheck={false}
               className="inline-edit-field text-body-sm text-foreground"
-              onChange={event => onRename(event.target.value)}
+              onChange={event => actions.onRename(row.id, event.target.value)}
               onBlur={event => {
                 const converted = withGreekLetters(event.target.value);
-                if (converted !== event.target.value) onRename(converted);
+                if (converted !== event.target.value) actions.onRename(row.id, converted);
               }}
             />
           ) : (
             <button
               type="button"
               className="inline-edit text-left text-body-sm text-foreground"
-              onClick={() => onEdit('name')}
+              onClick={() => actions.onEdit(row.id, 'name')}
             >
               {row.label || <span className="text-muted-foreground">Unnamed</span>}
-              {row.tag && (
-                <span className="ml-2 text-label-xs text-muted-foreground">{row.tag}</span>
-              )}
               {!row.usage && (
                 <span className="ml-2 text-label-xs text-muted-foreground/70">unused</span>
               )}
@@ -120,18 +114,16 @@ export function WorkbenchValueRow({
               unit={row.unit}
               placeholder="0"
               isFocusedOnMount
-              units={row.units}
               isInvalid={isInvalid}
-              onValueChange={onValueChange}
-              onUnitChange={onUnitChange}
+              onValueChange={value => actions.onValueChange(row.id, value)}
+              onUnitChange={unit => actions.onUnitChange(row.id, unit)}
             />
           ) : (
             <button
               type="button"
-              disabled={!row.isValueEditable}
               data-align="end"
               className="inline-edit font-mono text-data-sm"
-              onClick={() => onEdit('value')}
+              onClick={() => actions.onEdit(row.id, 'value')}
             >
               {row.value.trim() ? (
                 displayValue(row.value, row.unit)
@@ -142,18 +134,16 @@ export function WorkbenchValueRow({
           )}
         </td>
         <td className="w-px px-1 text-right">
-          {row.canRemove && (
-            <Button
-              variant="ghost-danger"
-              size="xs"
-              className="opacity-0 group-hover:opacity-100"
-              onClick={onRemove}
-            >
-              Remove
-            </Button>
-          )}
+          <Button
+            variant="ghost-danger"
+            size="xs"
+            className="opacity-0 group-hover:opacity-100"
+            onClick={() => actions.onRemove(row.id)}
+          >
+            Remove
+          </Button>
         </td>
       </tr>
     </Tooltip>
   );
-}
+});

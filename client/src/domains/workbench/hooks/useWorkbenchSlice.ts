@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 
 import { useWorkbenchStore } from '../stores/workbenchStore';
@@ -21,6 +23,15 @@ export const useProtocolOutsidePages = (): ProtocolOutsidePages =>
 
 export const useWorkbenchData = <Value>(select: (state: WorkbenchState) => Value): Value =>
   useStoreWithEqualityFn(useWorkbenchStore, select, isSameData);
+
+export function useProtocolWith(...types: ProtocolBlock['type'][]): Pick<Protocol, 'blocks'> {
+  const blocks = useStoreWithEqualityFn(
+    useWorkbenchStore,
+    state => state.protocol.blocks.filter(block => types.includes(block.type)),
+    isSameEntries
+  );
+  return useMemo(() => ({ blocks }), [blocks]);
+}
 
 export const useBlocksOf = <Type extends ProtocolBlock['type']>(
   type: Type

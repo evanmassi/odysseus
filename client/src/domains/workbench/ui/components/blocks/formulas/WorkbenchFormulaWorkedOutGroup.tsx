@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 import { Button } from '@shared/ui';
 
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
+import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
 import { META_LABEL } from '../../board/metaLabelClass';
 
 import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
@@ -12,6 +13,7 @@ export interface WorkedOutLine {
   id: string;
   name: string;
   result: FormulaResult | undefined;
+  links: Readonly<Record<string, string>>;
   warnings: readonly string[];
   isIntermediate: boolean;
 }
@@ -19,25 +21,24 @@ export interface WorkedOutLine {
 interface WorkbenchFormulaWorkedOutGroupProps {
   title: string;
   lines: readonly WorkedOutLine[];
-  settingsLabel: string | undefined;
-  shortName: (name: string) => string;
-  linkFor: (name: string) => (() => void) | undefined;
-  onShowSettings: () => void;
+  subject: string;
+  settings: { label: string; blockId: string } | undefined;
+  onShowBlock: (blockId: string) => void;
 }
 
 const LINE_HEAD = 'flex w-full items-baseline gap-2 text-left';
 
-export function WorkbenchFormulaWorkedOutGroup({
+export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWorkedOutGroup({
   title,
   lines,
-  settingsLabel,
-  shortName,
-  linkFor,
-  onShowSettings,
+  subject,
+  settings,
+  onShowBlock,
 }: WorkbenchFormulaWorkedOutGroupProps) {
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const [isShowingWorking, setIsShowingWorking] = useState(false);
 
+  const shortName = (name: string) => nameWithinOwner(name, subject);
   const toggle = (id: string) =>
     setOpenIds(ids => {
       const next = new Set(ids);
@@ -65,9 +66,14 @@ export function WorkbenchFormulaWorkedOutGroup({
     <div className="flex flex-col">
       <div className="flex items-baseline gap-2 px-2 pb-0.5 pt-1">
         <span className={`${META_LABEL} min-w-0 truncate`}>{title}</span>
-        {settingsLabel && (
-          <Button variant="ghost-primary" size="xs" className="ml-auto" onClick={onShowSettings}>
-            Set in {settingsLabel}
+        {settings && (
+          <Button
+            variant="ghost-primary"
+            size="xs"
+            className="ml-auto"
+            onClick={() => onShowBlock(settings.blockId)}
+          >
+            Set in {settings.label}
           </Button>
         )}
       </div>
@@ -76,7 +82,7 @@ export function WorkbenchFormulaWorkedOutGroup({
       )}
       {!sharedProblem &&
         visibleLines.map(line => {
-          const { result, warnings } = line;
+          const { result, links, warnings } = line;
           const label = (
             <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
           );
@@ -118,7 +124,10 @@ export function WorkbenchFormulaWorkedOutGroup({
                     result={result}
                     isCompact
                     shortName={shortName}
-                    linkFor={linkFor}
+                    linkFor={name => {
+                      const blockId = links[name];
+                      return blockId ? () => onShowBlock(blockId) : undefined;
+                    }}
                   />
                 </div>
               )}
@@ -138,4 +147,4 @@ export function WorkbenchFormulaWorkedOutGroup({
       )}
     </div>
   );
-}
+});

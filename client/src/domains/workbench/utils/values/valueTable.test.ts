@@ -1,4 +1,5 @@
 import { bandColorOf } from '@odysseus/shared-schemas';
+import { replaceEqualDeep } from '@tanstack/react-query';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
@@ -365,5 +366,21 @@ describe('the values table', () => {
     });
     const groupsOfSecond = tableFor([killingPlate, mainValues, second], 'second');
     expect(groupsOfSecond.flatMap(group => group.rows.map(row => row.name))).toEqual(['Jurkat']);
+  });
+
+  it('keeps every row an edit did not touch when the rebuilt table is shared with the last one', () => {
+    const edited = valuesBlock('values', {
+      sections: mainValues.sections,
+      items: mainValues.items.map(item =>
+        item.id === 'raji-per' ? { ...item, value: '20000' } : item
+      ),
+    });
+    const shared = replaceEqualDeep(groups, tableFor([killingPlate, edited]));
+    const rowsBefore = new Map(groups.flatMap(group => group.rows).map(row => [row.id, row]));
+    const changed = shared
+      .flatMap(group => group.rows)
+      .filter(row => row !== rowsBefore.get(row.id))
+      .map(row => row.name);
+    expect(changed).toEqual(['Raji']);
   });
 });

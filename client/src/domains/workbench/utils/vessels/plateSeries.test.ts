@@ -1,6 +1,6 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 
-import { seriesPoint } from './plateSeries';
+import { readsSeriesAlike, seriesPoint } from './plateSeries';
 
 const empty = calculateBoard([]);
 const points = (series: Parameters<typeof seriesPoint>[0], calculation = empty) =>
@@ -49,5 +49,22 @@ describe('series points', () => {
     expect(seriesPoint({ start: '5', unit: 'nM', fold: '', direction: 'right' }, 2, empty)).toEqual(
       { amount: '5', unit: 'nM' }
     );
+  });
+});
+
+describe('a vessel map reading the board', () => {
+  const board = (topDose: string, other: string) =>
+    calculateBoard([
+      { kind: 'value', id: 'top', name: 'Top dose', value: topDose, unit: 'µM' },
+      { kind: 'value', id: 'other', name: 'Other volume', value: other, unit: 'µL' },
+    ]);
+  const series = [{ start: 'Top dose', unit: 'µM', fold: '3', direction: 'right' as const }];
+
+  it('ignores board changes its series do not read', () => {
+    expect(readsSeriesAlike(series, board('10', '50'), board('10', '80'))).toBe(true);
+  });
+
+  it('notices when a name its series reads changes', () => {
+    expect(readsSeriesAlike(series, board('10', '50'), board('20', '50'))).toBe(false);
   });
 });

@@ -89,6 +89,8 @@ describe('dilution prep', () => {
     expect(runs[0].members.map(member => member.plateId)).toEqual(['map', 'copy']);
     expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
     expect(runs[0].wellsPerPoint.get(0)).toBe(6);
+    expect(dilutionRuns(protocol)[0].wellsPerPoint.get(0)).toBe(6);
+    expect(dilutionRuns({ blocks: [plate] })[0].places).toEqual(['Plate 1']);
   });
 
   it('finds each step series on the plates with its busiest point', () => {

@@ -1,5 +1,6 @@
 import { lineValueOf, type Protocol, type VesselMapBlock } from '@odysseus/shared-schemas';
 
+import { cachedPerBlock } from '../blocks/cachedPerBlock';
 import { normalizeMaterialKey } from '../materials/materialGuesser';
 import { foldOf, type StepSeries } from '../vessels/plateSeries';
 import { plateNameOf } from '../vessels/vesselTabs';
@@ -24,39 +25,48 @@ interface PlacedRun extends Omit<DilutionRun, 'key' | 'members' | 'places'> {
   place: string;
 }
 
+interface PlateRun extends Omit<PlacedRun, 'place'> {
+  tabNames: string[];
+}
+
+const runsOnPlate = cachedPerBlock((plate: VesselMapBlock): PlateRun[] =>
+  plate.lines.flatMap(line => {
+    const runs = new Map<string, Omit<PlateRun, 'tabNames'> & { plateIds: Set<string> }>();
+    for (const [key, lines] of Object.entries(plate.cells)) {
+      const cell = lines[line.id];
+      const series = cell?.seriesId === undefined ? undefined : plate.series[cell.seriesId];
+      if (!cell?.seriesId || !series || !('start' in series)) continue;
+      const value = lineValueOf(line, cell);
+      const run = runs.get(cell.seriesId) ?? {
+        ref: { plateId: plate.id, seriesId: cell.seriesId },
+        plateIds: new Set<string>(),
+        series,
+        subject: value?.text.trim() ?? '',
+        color: value?.color,
+        wellsPerPoint: new Map<number, number>(),
+      };
+      runs.set(cell.seriesId, run);
+      run.plateIds.add(key.split(':')[0]);
+      const step = cell.seriesStep ?? 0;
+      run.wellsPerPoint.set(step, (run.wellsPerPoint.get(step) ?? 0) + 1);
+    }
+    return [...runs.values()].map(({ plateIds, ...run }) => ({
+      ...run,
+      tabNames: plate.plates
+        .filter(candidate => plateIds.has(candidate.id))
+        .map(candidate => plateNameOf(plate, candidate)),
+    }));
+  })
+);
+
 function placedRuns(plates: readonly VesselMapBlock[]): PlacedRun[] {
   return plates.flatMap(plate =>
-    plate.lines.flatMap(line => {
-      const runs = new Map<string, PlacedRun & { plateIds: Set<string> }>();
-      for (const [key, lines] of Object.entries(plate.cells)) {
-        const cell = lines[line.id];
-        const series = cell?.seriesId === undefined ? undefined : plate.series[cell.seriesId];
-        if (!cell?.seriesId || !series || !('start' in series)) continue;
-        const value = lineValueOf(line, cell);
-        const run = runs.get(cell.seriesId) ?? {
-          ref: { plateId: plate.id, seriesId: cell.seriesId },
-          place: '',
-          plateIds: new Set<string>(),
-          series,
-          subject: value?.text.trim() ?? '',
-          color: value?.color,
-          wellsPerPoint: new Map<number, number>(),
-        };
-        runs.set(cell.seriesId, run);
-        run.plateIds.add(key.split(':')[0]);
-        const step = cell.seriesStep ?? 0;
-        run.wellsPerPoint.set(step, (run.wellsPerPoint.get(step) ?? 0) + 1);
-      }
-      return [...runs.values()].map(({ plateIds, ...run }) => {
-        const tabNames = plate.plates
-          .filter(candidate => plateIds.has(candidate.id))
-          .map(candidate => plateNameOf(plate, candidate));
-        const showsCard = plates.length > 1 || !tabNames.length;
-        return {
-          ...run,
-          place: [showsCard ? plate.title.trim() : '', ...tabNames].filter(Boolean).join(' · '),
-        };
-      });
+    runsOnPlate(plate).map(({ tabNames, ...run }) => {
+      const showsCard = plates.length > 1 || !tabNames.length;
+      return {
+        ...run,
+        place: [showsCard ? plate.title.trim() : '', ...tabNames].filter(Boolean).join(' · '),
+      };
     })
   );
 }

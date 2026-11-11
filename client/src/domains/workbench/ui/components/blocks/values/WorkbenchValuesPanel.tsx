@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button, Select } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
-import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useStableActions } from '../../../../hooks/useStableActions';
+import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
+import { useProtocolWith, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
@@ -46,9 +48,16 @@ import {
 import { WorkbenchValueAddField } from './WorkbenchValueAddField';
 import { WorkbenchValueGroupTable } from './WorkbenchValueGroupTable';
 import { WorkbenchValueReadingsSection } from './WorkbenchValueReadingsSection';
-import { WorkbenchValueRow, type ValueCell, type ValueRowData } from './WorkbenchValueRow';
+import {
+  WorkbenchValueRow,
+  type GeneralValueActions,
+  type ValueCell,
+  type ValueRowData,
+} from './WorkbenchValueRow';
 import { WorkbenchValueSection } from './WorkbenchValueSection';
 
+import type { ValueColumnActions } from './WorkbenchValueHeaderRow';
+import type { ValueCellView } from './WorkbenchValueTableCell';
 import type { ValueRowActions } from './WorkbenchValueTableRow';
 import type { ValueSuggestion } from '../../../../utils/values/valueSuggestions';
 import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
@@ -105,6 +114,31 @@ const typedItemIds = (cells: readonly ValueTableCell[]) =>
 const unitOfColumn = (group: ValueTableGroup, column: ValueTableColumn) =>
   cellsOf(group).find(cell => cell.columnKey === column.key)?.unit ?? '';
 
+function cellViewOf(
+  cell: ValueTableCell,
+  used: string,
+  isNamed: boolean,
+  isDuplicate: boolean
+): ValueCellView {
+  const usageLine = used ? `Used in ${used}` : 'Not used in any step or formula';
+  return {
+    value: cell.value,
+    unit: cell.unit,
+    units: cell.units,
+    hoverLines: [
+      cell.fullName,
+      ...(isNamed ? [usageLine] : []),
+      ...(cell.note ? [cell.note] : []),
+      ...sourceLines(cell),
+    ],
+    isEditable: cell.isEditable,
+    canRemove: cell.canRemove,
+    isDuplicate,
+    isUsed: !!used || !isNamed,
+    isWorked: cell.origin === 'worked',
+  };
+}
+
 const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): ValueSuggestion => ({
   kind: 'value',
   name: column.label,
@@ -114,13 +148,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
 });
 
 export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
-  const valuesBlocks = useBlocksOf('values');
-  const plateBlocks = useBlocksOf('plate');
-  const materialBlocks = useBlocksOf('materials');
-  const protocol = useMemo(
-    () => ({ blocks: [...valuesBlocks, ...plateBlocks, ...materialBlocks] }),
-    [valuesBlocks, plateBlocks, materialBlocks]
-  );
+  const protocol = useProtocolWith('values', 'plate', 'materials');
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
@@ -139,9 +167,11 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   }, [removed]);
 
   const materials = useMemo(() => materialsById(protocol), [protocol]);
-  const groups = useMemo(
-    () => buildValueTable(protocol, block, materials, calculation),
-    [protocol, block, materials, calculation]
+  const groups = useStructuralSharing(
+    useMemo(
+      () => buildValueTable(protocol, block, materials, calculation),
+      [protocol, block, materials, calculation]
+    )
   );
   const generalItems = useMemo(
     () =>
@@ -160,7 +190,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
   const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
-  const isFirstValuesBlock = valuesBlocks[0]?.id === block.id;
+  const isFirstValuesBlock =
+    protocol.blocks.find(candidate => candidate.type === 'values')?.id === block.id;
   const readings = useWorkbenchData(state =>
     isFirstValuesBlock ? readStepReadings(state.protocol, state.calculation).values : []
   );
@@ -170,11 +201,56 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     [calculation]
   );
 
+  const usageText = useCallback(
+    (nameId: string) => {
+      const found = usage.get(nameId);
+      return found ? usageSummary(found) : '';
+    },
+    [usage]
+  );
+  const viewsByRow = useStructuralSharing(
+    useMemo(
+      () =>
+        Object.fromEntries(
+          groups.flatMap(group =>
+            group.rows.map(row => [
+              row.id,
+              Object.fromEntries(
+                row.cells.map(cell => [
+                  cell.id,
+                  cellViewOf(
+                    cell,
+                    usageText(cell.nameId),
+                    namedIds.has(cell.nameId),
+                    calculation.duplicateIds.has(cell.nameId)
+                  ),
+                ])
+              ),
+            ])
+          )
+        ),
+      [groups, usageText, namedIds, calculation.duplicateIds]
+    )
+  );
+  const generalRows = useStructuralSharing(
+    useMemo(
+      () =>
+        generalItems.map(
+          (item): ValueRowData => ({
+            id: item.id,
+            label: item.name,
+            fullName: item.name,
+            value: item.value,
+            unit: item.unit,
+            isDuplicate: calculation.duplicateIds.has(item.id),
+            usage: usageText(item.id),
+          })
+        ),
+      [generalItems, usageText, calculation.duplicateIds]
+    )
+  );
+
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
-  const usageText = (nameId: string) => {
-    const found = usage.get(nameId);
-    return found ? usageSummary(found) : '';
-  };
 
   const remove = (mutate: (draft: Protocol) => RemovedValues | undefined) => {
     let entry: RemovedValues | undefined;
@@ -222,28 +298,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     ];
   };
 
-  const actionsFor = (group: ValueTableGroup): ValueRowActions => ({
-    viewOf: cell => {
-      const isNamed = namedIds.has(cell.nameId);
-      const used = usageText(cell.nameId);
-      const usageLine = used ? `Used in ${used}` : 'Not used in any step or formula';
-      return {
-        value: cell.value,
-        unit: cell.unit,
-        units: cell.units,
-        hoverLines: [
-          cell.fullName,
-          ...(isNamed ? [usageLine] : []),
-          ...(cell.note ? [cell.note] : []),
-          ...sourceLines(cell),
-        ],
-        isEditable: cell.isEditable,
-        canRemove: cell.canRemove,
-        isDuplicate: calculation.duplicateIds.has(cell.nameId),
-        isUsed: !!used || !isNamed,
-        isWorked: cell.origin === 'worked',
-      };
-    },
+  const rowActions = useStableActions<ValueRowActions>({
     onEditCell: setEditingCellId,
     onEditName: setEditingNameRowId,
     onRename: (row, name) => {
@@ -252,6 +307,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     },
     onToggleAdd: rowId => setAddingRowId(current => (current === rowId ? undefined : rowId)),
     onFillColumn: (row, column) => {
+      const group = groups.find(candidate => candidate.rows.some(({ id }) => id === row.id));
+      if (!group) return;
       const { added } = addToRow(row, (draft, sectionId) =>
         addSuggestedValue(draft, block.id, sectionId, columnSuggestion(group, column))
       );
@@ -290,6 +347,25 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     },
   });
 
+  const columnActions = useStableActions<ValueColumnActions>({
+    onEditColumn: (groupKey, column) => {
+      const group = groups.find(candidate => candidate.key === groupKey);
+      setColumnEdit(
+        column &&
+          group && {
+            groupKey,
+            itemIds: typedItemIds(cellsOf(group).filter(cell => cell.columnKey === column.key)),
+          }
+      );
+    },
+    onRenameColumn: name => {
+      const itemIds = columnEdit?.itemIds ?? [];
+      edit(draft => {
+        for (const itemId of itemIds) renameValue(draft, block.id, itemId, name);
+      });
+    },
+  });
+
   const renderAdder = (group: ValueTableGroup, row: ValueTableRow) => (
     <WorkbenchValueAddField
       ownerName={row.name}
@@ -321,27 +397,22 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     return cellsOf(group).find(cell => cell.id === firstId)?.columnKey;
   };
 
-  const generalRow = (item: (typeof generalItems)[number]): ValueRowData => ({
-    id: item.id,
-    label: item.name,
-    fullName: item.name,
-    value: item.value,
-    unit: item.unit,
-    units: undefined,
-    tag: undefined,
-    isValueEditable: true,
-    canRemove: true,
-    isDuplicate: calculation.duplicateIds.has(item.id),
-    usage: usageText(item.id),
+  const generalActions = useStableActions<GeneralValueActions>({
+    onEdit: (itemId, cell) => setGeneralEdit(cell ? { itemId, cell } : undefined),
+    onMoveEdit: (itemId, cell, step) => {
+      const cells = generalItems.flatMap(item =>
+        (['name', 'value'] as const).map(next => ({ itemId: item.id, cell: next }))
+      );
+      const at = cells.findIndex(
+        candidate => candidate.itemId === itemId && candidate.cell === cell
+      );
+      setGeneralEdit(cells[at + step]);
+    },
+    onRename: (itemId, name) => edit(draft => renameValue(draft, block.id, itemId, name)),
+    onValueChange: (itemId, value) => edit(draft => setValueAmount(draft, block.id, itemId, value)),
+    onUnitChange: (itemId, unit) => edit(draft => setValueUnit(draft, block.id, itemId, unit)),
+    onRemove: itemId => remove(draft => removeValue(draft, block.id, itemId)),
   });
-
-  const moveGeneralEdit = (itemId: string, cell: ValueCell, step: 1 | -1) => {
-    const cells = generalItems.flatMap(item =>
-      (['name', 'value'] as const).map(next => ({ itemId: item.id, cell: next }))
-    );
-    const at = cells.findIndex(candidate => candidate.itemId === itemId && candidate.cell === cell);
-    setGeneralEdit(cells[at + step]);
-  };
 
   return (
     <div className="px-2 pb-3 pt-1">
@@ -376,17 +447,12 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           if (needsNumber) setGeneralEdit({ itemId: needsNumber, cell: 'value' });
         }}
       >
-        {generalItems.map(item => (
+        {generalRows.map(row => (
           <WorkbenchValueRow
-            key={item.id}
-            row={generalRow(item)}
-            editingCell={generalEdit?.itemId === item.id ? generalEdit.cell : undefined}
-            onEdit={cell => setGeneralEdit(cell ? { itemId: item.id, cell } : undefined)}
-            onMoveEdit={(cell, step) => moveGeneralEdit(item.id, cell, step)}
-            onRename={name => edit(draft => renameValue(draft, block.id, item.id, name))}
-            onValueChange={value => edit(draft => setValueAmount(draft, block.id, item.id, value))}
-            onUnitChange={unit => edit(draft => setValueUnit(draft, block.id, item.id, unit))}
-            onRemove={() => remove(draft => removeValue(draft, block.id, item.id))}
+            key={row.id}
+            row={row}
+            editingCell={generalEdit?.itemId === row.id ? generalEdit.cell : undefined}
+            actions={generalActions}
           />
         ))}
       </WorkbenchValueSection>
@@ -395,28 +461,14 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           <WorkbenchValueGroupTable
             key={group.key}
             group={group}
+            viewsByRow={viewsByRow}
             editingCellId={editingCellId}
             editingNameRowId={editingNameRowId}
             editingColumnKey={editingColumnKey(group)}
             addingRowId={addingRowId}
-            actions={actionsFor(group)}
+            actions={rowActions}
+            columnActions={columnActions}
             renderAdder={row => renderAdder(group, row)}
-            onEditColumn={column =>
-              setColumnEdit(
-                column && {
-                  groupKey: group.key,
-                  itemIds: typedItemIds(
-                    cellsOf(group).filter(cell => cell.columnKey === column.key)
-                  ),
-                }
-              )
-            }
-            onRenameColumn={name => {
-              const itemIds = columnEdit?.itemIds ?? [];
-              edit(draft => {
-                for (const itemId of itemIds) renameValue(draft, block.id, itemId, name);
-              });
-            }}
           />
         ))}
       </div>

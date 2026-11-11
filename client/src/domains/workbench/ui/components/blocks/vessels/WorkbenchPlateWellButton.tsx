@@ -1,15 +1,16 @@
-import type { CSSProperties, PointerEvent } from 'react';
+import { memo, type CSSProperties } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
 import { wellTooltipContent } from './wellTooltipContent';
 
+import type { WellPointerActions } from './useWellPointerActions';
 import type { MergedWells } from '../../../../utils/vessels/replicateMerges';
 import type { WellDensity } from '../../../../utils/vessels/vesselSizing';
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
 
-interface WorkbenchPlateWellButtonProps {
-  wellKey: string;
+export interface PlateWellView {
+  key: string;
   row: number;
   col: number;
   merged: MergedWells | undefined;
@@ -17,11 +18,13 @@ interface WorkbenchPlateWellButtonProps {
   shownLine: WellLine | undefined;
   isFilled: boolean;
   color: WellColor | undefined;
+}
+
+interface WorkbenchPlateWellButtonProps {
+  view: PlateWellView;
   density: WellDensity;
   isSelected: boolean;
-  onPointerDown: (event: PointerEvent) => void;
-  onPointerEnter: () => void;
-  onDoubleClick: () => void;
+  actions: WellPointerActions;
 }
 
 const DENSITY_CLASSES: Readonly<Record<WellDensity, string>> = {
@@ -38,21 +41,13 @@ const colorStyle = (color: WellColor | undefined): CSSProperties =>
       }
     : {};
 
-export function WorkbenchPlateWellButton({
-  wellKey,
-  row,
-  col,
-  merged,
-  tooltipLines,
-  shownLine,
-  isFilled,
-  color,
+export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
+  view,
   density,
   isSelected,
-  onPointerDown,
-  onPointerEnter,
-  onDoubleClick,
+  actions,
 }: WorkbenchPlateWellButtonProps) {
+  const { key: wellKey, row, col, merged, tooltipLines, shownLine, isFilled, color } = view;
   const isNarrow = density === 'narrow';
   return (
     <Tooltip content={wellTooltipContent(tooltipLines)} delayDuration={300}>
@@ -61,9 +56,9 @@ export function WorkbenchPlateWellButton({
         data-well-key={wellKey}
         tabIndex={-1}
         aria-selected={isSelected}
-        onPointerDown={onPointerDown}
-        onPointerEnter={onPointerEnter}
-        onDoubleClick={onDoubleClick}
+        onPointerDown={event => actions.onPointerDown(wellKey, event)}
+        onPointerEnter={() => actions.onPointerEnter(wellKey)}
+        onDoubleClick={() => actions.onDoubleClick(wellKey)}
         className={`relative flex cursor-pointer items-center justify-center overflow-hidden border py-0.5 text-foreground ${merged ? '' : 'rounded-full'} ${
           isFilled ? 'border-foreground/45' : 'border-foreground/15'
         } ${isSelected ? 'shadow-[0_0_0_2px_hsl(var(--primary))]' : ''} ${DENSITY_CLASSES[density]}`}
@@ -107,4 +102,4 @@ export function WorkbenchPlateWellButton({
       </div>
     </Tooltip>
   );
-}
+});
