@@ -1,4 +1,5 @@
 import { Button } from '@shared/ui';
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { displayValue } from '../../../../utils/formulas/quantities';
 import { readingStepsText, type ValueReading } from '../../../../utils/steps/stepReadings';
@@ -31,7 +32,10 @@ export function WorkbenchValueReadingsSection({
       <table className="w-full border-collapse">
         <tbody>
           {readings.map(reading => (
-            <tr key={reading.key} className="group italic even:bg-foreground/[0.025]">
+            <tr
+              key={reading.key}
+              className={`group italic ${ROW_HOVER_GLOW.primary} even:bg-[hsl(var(--foreground)/var(--alpha-zebra))]`}
+            >
               <td className={`${CELL} text-body-sm text-muted-foreground`}>
                 {reading.name}
                 <span className="ml-2 text-label-xs not-italic text-muted-foreground/70">

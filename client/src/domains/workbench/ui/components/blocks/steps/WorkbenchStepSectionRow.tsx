@@ -50,26 +50,27 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
       <span className="min-w-5 text-title-lg font-extralight leading-none text-foreground/30">
         {numeral}
       </span>
-      <input
-        ref={titleRef}
-        value={section.text}
-        aria-label="Section title"
-        data-focus="border"
-        spellCheck={false}
-        className="min-w-[60px] max-w-[70%] border border-transparent bg-transparent px-1.5 py-0.5 type-label text-label-md font-semibold tracking-label-wide text-foreground outline-none [field-sizing:content] hover:border-line-mid focus:border-line-mid"
-        onChange={event => {
-          const text = event.currentTarget.value;
-          updatePage(page => {
-            const draft = page.steps.find(candidate => candidate.id === section.id);
-            if (draft) draft.text = text;
-          });
-        }}
-        onKeyDown={event => {
-          if (event.key !== 'Enter') return;
-          if (event.shiftKey) onAddStepBelow(section.id);
-          else event.currentTarget.blur();
-        }}
-      />
+      <span className="inline-edit">
+        <input
+          ref={titleRef}
+          value={section.text}
+          aria-label="Section title"
+          spellCheck={false}
+          className="min-w-[60px] py-px type-label text-label-md font-semibold tracking-label-wide text-foreground"
+          onChange={event => {
+            const text = event.currentTarget.value;
+            updatePage(page => {
+              const draft = page.steps.find(candidate => candidate.id === section.id);
+              if (draft) draft.text = text;
+            });
+          }}
+          onKeyDown={event => {
+            if (event.key !== 'Enter') return;
+            if (event.shiftKey) onAddStepBelow(section.id);
+            else event.currentTarget.blur();
+          }}
+        />
+      </span>
       <span className="h-px flex-1 bg-gradient-to-r from-foreground/20 via-foreground/10 to-foreground/5" />
       <span className="whitespace-nowrap font-mono text-label-2xs text-foreground/35">
         {stepCount} step{stepCount === 1 ? '' : 's'}

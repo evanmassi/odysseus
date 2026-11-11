@@ -48,6 +48,7 @@ const selectVariants = cva(
   {
     variants: {
       size: {
+        inline: 'h-5 px-2 font-mono text-data-sm',
         xs: 'h-7 px-2 text-body-sm',
         sm: 'h-8 px-3 text-body',
         md: 'h-9 px-3 text-body',

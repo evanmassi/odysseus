@@ -4,8 +4,7 @@ import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { PAIR_NOTATION, showsOneToPrefix } from '../../../../utils/formulas/quantities';
 import { unitChoices, VALUE_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 
-const AMOUNT_INPUT =
-  'w-20 min-w-0 border-b border-line-soft bg-transparent px-1 py-0.5 text-right font-mono text-data-sm text-foreground outline-none focus:border-primary';
+const AMOUNT_INPUT = 'text-right font-mono text-data-sm text-foreground';
 
 interface WorkbenchValueAmountFieldProps {
   value: string;
@@ -35,7 +34,7 @@ export function WorkbenchValueAmountField({
   const hasOneToPrefix = showsOneToPrefix(unit);
 
   return (
-    <span className="flex items-center justify-end gap-1">
+    <span className="inline-edit inline-flex items-center">
       {unit === PAIR_NOTATION ? (
         <>
           <input
@@ -46,7 +45,7 @@ export function WorkbenchValueAmountField({
             className={AMOUNT_INPUT + invalidClass}
             onChange={event => onValueChange(`${event.target.value}:${second}`)}
           />
-          <span className="font-mono text-data-sm text-muted-foreground">:</span>
+          <span className="mx-0.5 font-mono text-data-sm text-muted-foreground">:</span>
           <input
             value={second}
             placeholder="1"
@@ -58,7 +57,7 @@ export function WorkbenchValueAmountField({
       ) : (
         <>
           {hasOneToPrefix && (
-            <span className="font-mono text-data-sm text-muted-foreground">1:</span>
+            <span className="mr-0.5 font-mono text-data-sm text-muted-foreground">1:</span>
           )}
           <input
             ref={focusRef}
@@ -72,19 +71,20 @@ export function WorkbenchValueAmountField({
         </>
       )}
       {unitOptions.length > 0 ? (
-        <Select
-          size="xs"
-          isQuiet
-          options={unitOptions}
-          value={unit}
-          aria-label="Unit"
-          onChange={next => onUnitChange(String(next ?? ''))}
-          className="w-28"
-        />
+        <span className="-mr-[9px]">
+          <Select
+            size="inline"
+            isQuiet
+            options={unitOptions}
+            value={unit}
+            aria-label="Unit"
+            onChange={next => onUnitChange(String(next ?? ''))}
+          />
+        </span>
       ) : (
         unit &&
         !hasOneToPrefix && (
-          <span className="font-mono text-data-sm text-muted-foreground">{unit}</span>
+          <span className="ml-2 font-mono text-data-sm text-muted-foreground">{unit}</span>
         )
       )}
     </span>

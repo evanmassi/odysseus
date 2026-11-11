@@ -1,0 +1,87 @@
+@layer components {
+  .inline-edit,
+  .inline-edit-field {
+    position: relative;
+    display: inline-block;
+    max-width: calc(100% + 12px);
+    padding: 1px 5px;
+    margin: -2px -6px;
+    border: 1px solid transparent;
+    cursor: text;
+    transition:
+      background-color 0.18s,
+      border-color 0.18s,
+      box-shadow 0.18s;
+  }
+
+  .inline-edit:disabled {
+    cursor: default;
+  }
+
+  .inline-edit::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    width: 11px;
+    height: 11px;
+    transform: translateY(-50%);
+    background-color: hsl(var(--primary) / 0.9);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s;
+  }
+
+  .inline-edit[data-align='end']::after {
+    right: auto;
+    left: 5px;
+  }
+
+  .inline-edit:not(:disabled):not(:has(:focus)):hover,
+  .inline-edit-host:hover .inline-edit:not(:disabled):not(:has(:focus)) {
+    background-color: hsl(var(--input-well));
+    border-color: hsl(var(--line-faint));
+    box-shadow: inset 0 1px 2px hsl(var(--shade) / 0.3);
+    padding-inline-end: 21px;
+    margin-inline-end: -22px;
+  }
+
+  .inline-edit[data-align='end']:not(:disabled):not(:has(:focus)):hover,
+  .inline-edit-host:hover .inline-edit[data-align='end']:not(:disabled):not(:has(:focus)) {
+    padding-inline: 21px 5px;
+    margin-inline: -22px -6px;
+  }
+
+  .inline-edit:not(:disabled):not(:has(:focus)):hover::after,
+  .inline-edit-host:hover .inline-edit:not(:disabled):not(:has(:focus))::after {
+    opacity: 1;
+  }
+
+  .inline-edit-field,
+  .inline-edit:has(:focus) {
+    background:
+      linear-gradient(hsl(var(--primary) / 0.04), hsl(var(--primary) / 0.04)),
+      hsl(var(--input-well));
+    border-color: hsl(var(--primary) / 0.7);
+    box-shadow: var(--input-focus-shadow);
+    outline: none;
+  }
+
+  .inline-edit-field {
+    min-width: 3ch;
+    field-sizing: content;
+  }
+
+  .inline-edit > input {
+    min-width: 3ch;
+    background: transparent;
+    outline: none;
+    field-sizing: content;
+  }
+
+  .inline-edit-field[aria-invalid='true'] {
+    border-color: hsl(var(--color-danger-border));
+  }
+}

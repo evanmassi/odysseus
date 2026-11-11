@@ -6,18 +6,20 @@
 
 @layer components {
   /* data-focus (any value) opts an element out of the global ring — it provides its
-     own focus feedback (e.g. grid cells/tubes). .input-field-error is excluded so its
-     own error styling shows through. */
+     own focus feedback (e.g. grid cells/tubes). .input-field-error and the inline-edit
+     fields are excluded so their own error or editing styling shows through. */
 
   /* Contrast ring + colored outer ring + neon glow */
   button:not([data-focus]):focus-visible,
   a:not([data-focus]):focus-visible,
-  input:not([data-focus]):not(.input-field-error):focus-visible,
+  input:not([data-focus]):not(.input-field-error):not(.inline-edit-field):not(
+      .inline-edit > input
+    ):focus-visible,
   select:not([data-focus]):not(.input-field-error):focus-visible,
   textarea:not([data-focus]):not(.input-field-error):focus-visible,
   [role='button']:not([data-focus]):focus-visible,
   [role='menuitem']:not([data-focus]):focus-visible,
-  [tabindex]:not([tabindex='-1']):not([data-focus]):focus-visible {
+  [tabindex]:not([tabindex='-1']):not([data-focus]):not(.inline-edit-field):focus-visible {
     outline: 1px solid hsl(var(--focus-ring-contrast));
     outline-offset: var(--focus-ring-offset);
     box-shadow: var(--focus-ring-shadow);

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
+
 import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
 
 interface WorkbenchFormulaRowProps {
@@ -14,7 +16,7 @@ export function WorkbenchFormulaRow({ name, answer, onOpen, children }: Workbenc
     <button
       type="button"
       onClick={onOpen}
-      className="flex w-full flex-col gap-1 px-2 py-1.5 text-left even:bg-foreground/[0.025] hover:bg-foreground/[0.05]"
+      className={`flex w-full flex-col gap-1 px-2 py-1.5 text-left even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${ROW_HOVER_GLOW.primary}`}
     >
       <span className="flex w-full items-baseline gap-2">
         <span className="text-body-sm text-foreground">

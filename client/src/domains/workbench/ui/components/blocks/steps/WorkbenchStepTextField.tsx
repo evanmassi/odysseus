@@ -186,8 +186,7 @@ export function WorkbenchStepTextField({
         suppressContentEditableWarning
         spellCheck={false}
         data-placeholder="Write the step"
-        data-focus="underline"
-        className="min-h-[21px] cursor-text whitespace-pre-wrap px-0.5 pb-0.5 leading-normal shadow-[inset_0_-1px_0_hsl(var(--primary)/0.6)] outline-none empty:before:italic empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)] data-[drop-ok]:shadow-[var(--input-focus-shadow),0_0_0_2px_hsl(var(--primary)/0.55)]"
+        className="inline-edit-field min-h-[21px] whitespace-pre-wrap leading-normal empty:before:italic empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)] data-[drop-ok]:shadow-[var(--input-focus-shadow),0_0_0_2px_hsl(var(--primary)/0.55)]"
         onInput={commit}
         onKeyDown={handleKeyDown}
         onFocus={onFocus}

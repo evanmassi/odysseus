@@ -23,6 +23,7 @@
 @import './shared/styles/components/session-timer.css';
 @import './shared/styles/components/scrollbars.css';
 @import './shared/styles/components/row-glow.css';
+@import './shared/styles/components/inline-edit.css';
 @import './shared/styles/components/nav-tree.css';
 @import './shared/styles/components/led-cell.css';
 

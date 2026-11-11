@@ -38,8 +38,7 @@ interface WorkbenchFormulaEditorProps {
   onClose: () => void;
 }
 
-const LINE_INPUT =
-  'min-w-0 flex-1 border-b border-line-soft bg-transparent py-0.5 text-body-sm text-foreground outline-none focus:border-primary placeholder:text-muted-foreground';
+const LINE_INPUT = 'w-full text-body-sm text-foreground placeholder:text-muted-foreground';
 
 export function WorkbenchFormulaEditor({
   formula,
@@ -123,23 +122,25 @@ export function WorkbenchFormulaEditor({
       className="flex flex-col gap-2 border-l-2 border-primary/60 bg-foreground/[0.025] px-3 py-2"
     >
       <div className="flex items-center gap-2">
-        <input
-          value={name}
-          placeholder="Name"
-          aria-label="Formula name"
-          spellCheck={false}
-          className={`${LINE_INPUT} ${isDuplicate ? 'text-danger-text' : ''}`}
-          onChange={event => {
-            setName(event.target.value);
-            onChange({ name: joinValueName(material?.name.trim() ?? '', event.target.value) });
-          }}
-          onBlur={() => {
-            const converted = withGreekLetters(name);
-            if (converted === name) return;
-            setName(converted);
-            onChange({ name: joinValueName(material?.name.trim() ?? '', converted) });
-          }}
-        />
+        <span className="inline-edit min-w-0 flex-1">
+          <input
+            value={name}
+            placeholder="Name"
+            aria-label="Formula name"
+            spellCheck={false}
+            className={`${LINE_INPUT} ${isDuplicate ? 'text-danger-text' : ''}`}
+            onChange={event => {
+              setName(event.target.value);
+              onChange({ name: joinValueName(material?.name.trim() ?? '', event.target.value) });
+            }}
+            onBlur={() => {
+              const converted = withGreekLetters(name);
+              if (converted === name) return;
+              setName(converted);
+              onChange({ name: joinValueName(material?.name.trim() ?? '', converted) });
+            }}
+          />
+        </span>
         <Select
           size="xs"
           isQuiet
@@ -153,45 +154,49 @@ export function WorkbenchFormulaEditor({
       <WorkbenchFormulaBoardNumberList numbers={boardNumbers} />
       <div className="flex items-center gap-2">
         <span className="font-mono text-data-sm text-muted-foreground">=</span>
-        <input
-          ref={expressionRef}
-          value={expression}
-          placeholder="click names, or type"
-          aria-label="Formula"
-          spellCheck={false}
-          className={`${LINE_INPUT} font-mono`}
-          onChange={event =>
-            changeExpression(
-              event.target.value,
-              event.target.selectionStart ?? event.target.value.length
-            )
-          }
-          onFocus={trayTarget.onFocus}
-          onBlur={event => {
-            setCompletions([]);
-            trayTarget.onBlur(event);
-            const converted = withGreekLetters(expression);
-            if (converted === expression) return;
-            setExpression(converted);
-            onChange({ expr: namesInFull(converted, calculation, material) });
-          }}
-          onKeyDown={event => {
-            if (!completions.length) {
-              if (event.key === 'Escape') onClose();
-              return;
+        <span className="inline-edit min-w-0 flex-1">
+          <input
+            ref={expressionRef}
+            value={expression}
+            placeholder="click names, or type"
+            aria-label="Formula"
+            spellCheck={false}
+            className={`${LINE_INPUT} font-mono`}
+            onChange={event =>
+              changeExpression(
+                event.target.value,
+                event.target.selectionStart ?? event.target.value.length
+              )
             }
-            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-              event.preventDefault();
-              const step = event.key === 'ArrowDown' ? 1 : -1;
-              setHighlighted(index => Math.max(0, Math.min(completions.length - 1, index + step)));
-            } else if (event.key === 'Enter' || event.key === 'Tab') {
-              event.preventDefault();
-              accept(completions[highlighted]);
-            } else if (event.key === 'Escape') {
+            onFocus={trayTarget.onFocus}
+            onBlur={event => {
               setCompletions([]);
-            }
-          }}
-        />
+              trayTarget.onBlur(event);
+              const converted = withGreekLetters(expression);
+              if (converted === expression) return;
+              setExpression(converted);
+              onChange({ expr: namesInFull(converted, calculation, material) });
+            }}
+            onKeyDown={event => {
+              if (!completions.length) {
+                if (event.key === 'Escape') onClose();
+                return;
+              }
+              if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                const step = event.key === 'ArrowDown' ? 1 : -1;
+                setHighlighted(index =>
+                  Math.max(0, Math.min(completions.length - 1, index + step))
+                );
+              } else if (event.key === 'Enter' || event.key === 'Tab') {
+                event.preventDefault();
+                accept(completions[highlighted]);
+              } else if (event.key === 'Escape') {
+                setCompletions([]);
+              }
+            }}
+          />
+        </span>
       </div>
       <WorkbenchTrayToggleButton mode="formula" />
       <WorkbenchFormulaWorking

@@ -12,7 +12,7 @@ import { BLOCK_ICONS } from '../../board/blockIcons';
 import { HORIZONTAL_SCROLL } from '../materials/materialTableStyles';
 import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
 
-import { EDITABLE_HOVER, VALUE_HEAD_CELL, VALUE_NAME_CELL } from './valueTableStyles';
+import { VALUE_HEAD_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 import { WorkbenchValueTableRow, type ValueRowActions } from './WorkbenchValueTableRow';
 
 import type {
@@ -60,7 +60,7 @@ function ColumnHeading({
         defaultValue={column.label}
         aria-label="Column name"
         spellCheck={false}
-        className="w-32 border-b border-line-soft bg-transparent text-right outline-none focus:border-primary"
+        className="inline-edit-field text-right"
         onChange={event => event.target.value.trim() && onRename(event.target.value)}
         onBlur={event => {
           const converted = withGreekLetters(event.target.value);
@@ -88,7 +88,8 @@ function ColumnHeading({
     <Tooltip content="Rename this value on every row">
       <button
         type="button"
-        className={`type-label ${EDITABLE_HOVER}`}
+        data-align="end"
+        className="inline-edit type-label"
         onClick={() => onEdit(column)}
       >
         {column.label}

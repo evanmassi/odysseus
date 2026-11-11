@@ -81,7 +81,10 @@ export function WorkbenchFormulaWorkedOutGroup({
             <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
           );
           return (
-            <div key={line.id} className="px-2 py-1 even:bg-foreground/[0.025]">
+            <div
+              key={line.id}
+              className="px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))]"
+            >
               {result?.status === 'ok' ? (
                 <button
                   type="button"

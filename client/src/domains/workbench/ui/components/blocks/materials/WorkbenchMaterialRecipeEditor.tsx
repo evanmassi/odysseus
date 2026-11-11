@@ -19,8 +19,7 @@ interface WorkbenchMaterialRecipeEditorProps {
   onNoteChange: (note: string) => void;
 }
 
-const FIELD =
-  'border-b border-line-soft bg-transparent text-body-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary';
+const FIELD = 'text-body-sm text-foreground placeholder:text-muted-foreground';
 
 export function WorkbenchMaterialRecipeEditor({
   lines,
@@ -44,13 +43,15 @@ export function WorkbenchMaterialRecipeEditor({
               <span className="italic text-muted-foreground">no longer in Materials</span>
             )}
           </span>
-          <input
-            value={entry.amount}
-            placeholder="0"
-            aria-label={`Amount of ${ingredient?.name ?? 'ingredient'} in the mix`}
-            className={`${FIELD} w-16 text-right font-mono`}
-            onChange={event => onAmountChange(entry.id, event.target.value)}
-          />
+          <span className="inline-edit" data-align="end">
+            <input
+              value={entry.amount}
+              placeholder="0"
+              aria-label={`Amount of ${ingredient?.name ?? 'ingredient'} in the mix`}
+              className={`${FIELD} text-right font-mono`}
+              onChange={event => onAmountChange(entry.id, event.target.value)}
+            />
+          </span>
           <Select
             size="xs"
             isQuiet
@@ -72,28 +73,32 @@ export function WorkbenchMaterialRecipeEditor({
           </Tooltip>
         </div>
       ))}
-      <input
-        value={draft}
-        placeholder="Add an ingredient: IL-6 20 µg/mL"
-        aria-label="Add an ingredient"
-        spellCheck={false}
-        autoComplete="off"
-        className={FIELD}
-        onChange={event => setDraft(event.target.value)}
-        onKeyDown={event => {
-          if (event.key !== 'Enter' || !draft.trim()) return;
-          event.preventDefault();
-          onAdd(draft);
-          setDraft('');
-        }}
-      />
-      <input
-        value={note}
-        placeholder="Note (optional)"
-        aria-label="Recipe note"
-        className={`${FIELD} text-muted-foreground`}
-        onChange={event => onNoteChange(event.target.value)}
-      />
+      <span className="inline-edit">
+        <input
+          value={draft}
+          placeholder="Add an ingredient: IL-6 20 µg/mL"
+          aria-label="Add an ingredient"
+          spellCheck={false}
+          autoComplete="off"
+          className={`${FIELD} w-full`}
+          onChange={event => setDraft(event.target.value)}
+          onKeyDown={event => {
+            if (event.key !== 'Enter' || !draft.trim()) return;
+            event.preventDefault();
+            onAdd(draft);
+            setDraft('');
+          }}
+        />
+      </span>
+      <span className="inline-edit">
+        <input
+          value={note}
+          placeholder="Note (optional)"
+          aria-label="Recipe note"
+          className={`${FIELD} w-full text-muted-foreground`}
+          onChange={event => onNoteChange(event.target.value)}
+        />
+      </span>
     </div>
   );
 }
