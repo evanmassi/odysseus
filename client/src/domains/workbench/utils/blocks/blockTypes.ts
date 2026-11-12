@@ -86,8 +86,9 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   },
   flow: {
     label: 'Flow diagram',
-    hint: 'The steps drawn as boxes and arrows',
+    hint: 'The steps drawn as pictures and arrows',
     size: [12, 6],
+    fitsContent: true,
     createContent: () => ({}),
   },
   sketch: {
