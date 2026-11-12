@@ -1,0 +1,625 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg: #080a0f;
+        --card: #0f131b;
+        --line: #1e2430;
+        --text: #d7dbe2;
+        --dim: #7f8794;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          13px/1.4 system-ui,
+          sans-serif;
+        padding: 12px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      }
+      .head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 16px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .title {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .machine {
+        color: var(--dim);
+        font-size: 12px;
+        border: 1px solid var(--line);
+        padding: 1px 7px;
+        border-radius: 3px;
+      }
+      .stats {
+        color: var(--dim);
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .stats b {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .controls {
+        margin-left: auto;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--dim);
+      }
+      input.num {
+        width: 56px;
+        background: #141924;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 1px 4px;
+        font: inherit;
+        text-align: right;
+      }
+      .seg {
+        display: flex;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .seg button {
+        background: none;
+        border: 0;
+        color: var(--dim);
+        padding: 3px 8px;
+        cursor: pointer;
+        font: inherit;
+      }
+      .seg button.on {
+        background: #1c2433;
+        color: var(--text);
+      }
+
+      .body {
+        display: grid;
+        gap: 14px;
+        padding: 12px;
+        grid-template-columns: minmax(0, 1.6fr) minmax(270px, 1fr);
+        align-items: start;
+      }
+      .body.below,
+      .narrow .body {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th {
+        text-align: left;
+        color: var(--dim);
+        font-weight: 500;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+      }
+      td {
+        padding: 4px 6px;
+        border-bottom: 1px solid #161b25;
+        vertical-align: middle;
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      tbody.grp {
+        outline: 1px solid color-mix(in srgb, var(--lc) 40%, transparent);
+        outline-offset: -1px;
+      }
+      tbody.grp td {
+        background: color-mix(in srgb, var(--lc) 5%, transparent);
+        border-bottom-color: color-mix(in srgb, var(--lc) 14%, transparent);
+      }
+      tbody.grp tr:last-child td {
+        border-bottom: 0;
+      }
+      tbody.grp td.lasercell {
+        width: 84px;
+        vertical-align: top;
+        padding: 8px 10px;
+        border-left: 3px solid var(--lc);
+        border-bottom: 0;
+        background: color-mix(in srgb, var(--lc) 16%, transparent);
+      }
+      .lname {
+        font-weight: 600;
+        color: color-mix(in srgb, var(--lc) 60%, white);
+      }
+      .lnm,
+      .lcount {
+        color: var(--dim);
+        font-size: 12px;
+      }
+      .lcount {
+        font-size: 11px;
+        margin-top: 4px;
+      }
+      tbody.gap td {
+        height: 6px;
+        padding: 0;
+        border: 0;
+      }
+
+      .det {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .filter {
+        color: var(--dim);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .fluor {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+      }
+      .sw {
+        width: 11px;
+        height: 11px;
+        display: inline-block;
+        flex: none;
+      }
+      .marker {
+        font-weight: 600;
+      }
+      .dim {
+        color: var(--dim);
+      }
+      tr.open td {
+        color: #4d5562;
+      }
+      tr.open .sw {
+        outline: 1px dashed #4d5562;
+        outline-offset: -1px;
+        background: none !important;
+      }
+      tr.open .add {
+        color: #5b6575;
+        font-style: italic;
+      }
+      .chip {
+        font-size: 11px;
+        padding: 1px 7px;
+        border-radius: 2px;
+        white-space: nowrap;
+        font-weight: 600;
+      }
+      .chip.surface {
+        background: #16283a;
+        color: #86b6dc;
+      }
+      .chip.ics {
+        background: #2e2416;
+        color: #d6aa64;
+      }
+
+      .prep {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .below .prep {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      .box {
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 8px 10px;
+      }
+      .box h4 {
+        margin: 0 0 2px;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .box .sub {
+        color: var(--dim);
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .nm {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        font-size: 12px;
+        margin: 4px 0 6px;
+        color: var(--dim);
+      }
+      .nm b {
+        color: var(--text);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .box table td {
+        padding: 2px 0;
+        border: 0;
+      }
+      .box table tr.fill td {
+        border-top: 1px solid var(--line);
+        padding-top: 4px;
+        color: var(--dim);
+      }
+      .share {
+        color: var(--dim);
+        font-size: 11px;
+        margin-left: 4px;
+      }
+      .section-label {
+        color: var(--dim);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: -4px;
+      }
+      .foot {
+        color: var(--dim);
+        font-size: 11px;
+        padding: 0 12px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="card">
+      <div class="head">
+        <div class="title">Example T-cell panel</div>
+        <div class="machine">iQue · VBR</div>
+        <div class="stats" id="stats"></div>
+        <div class="controls">
+          <label>Wells <input class="num" id="wells" type="number" min="1" value="96" /></label>
+          <label
+            >Extra
+            <input
+              class="num"
+              id="extra"
+              type="number"
+              min="0"
+              value="5"
+              style="width: 40px"
+            />%</label
+          >
+          <div class="seg">
+            <button id="beside" class="on">Prep beside</button
+            ><button id="below">Prep below</button>
+          </div>
+        </div>
+      </div>
+      <div class="body" id="body">
+        <table id="panel">
+          <thead>
+            <tr>
+              <th>Laser</th>
+              <th>Detector</th>
+              <th>Filter</th>
+              <th>Fluorochrome</th>
+              <th>Marker</th>
+              <th>Clone</th>
+              <th>Cat#</th>
+              <th>Stain</th>
+              <th class="num">Dilution factor</th>
+            </tr>
+          </thead>
+        </table>
+        <div class="prep" id="prep"></div>
+      </div>
+      <div class="foot">
+        Sketch. Fluorochrome colors are rough, not from spectra data. Made-up panel on the iQue
+        layout. Cat# reads from Materials. The prep column stands in for the Values and Calculations
+        cards placed beside the panel; the panel itself holds no prep.
+      </div>
+    </div>
+
+    <script>
+      const IQUE = [
+        {
+          name: 'Violet',
+          nm: 405,
+          color: '#8b6cf0',
+          detectors: [
+            { id: 'VL1', filter: '445/45', usual: 'BV421' },
+            { id: 'VL2', filter: '530/30', usual: 'BV510' },
+            { id: 'VL3', filter: '572/30', usual: 'BV570' },
+            { id: 'VL4', filter: '615/24', usual: 'BV605' },
+            { id: 'VL5', filter: '675/30', usual: 'BV650' },
+            { id: 'VL6', filter: '780/60', usual: 'BV785' },
+          ],
+        },
+        {
+          name: 'Blue',
+          nm: 488,
+          color: '#3fa9e8',
+          detectors: [
+            { id: 'BL1', filter: '530/30', usual: 'FITC, GFP' },
+            { id: 'BL2', filter: '572/28', usual: 'PE, PI' },
+            { id: 'BL3', filter: '615/24', usual: 'PE-TxRed' },
+            { id: 'BL4', filter: '675/30', usual: 'PerCP-Cy5.5' },
+            { id: 'BL5', filter: '780/60', usual: 'PE-Cy7' },
+          ],
+        },
+        {
+          name: 'Red',
+          nm: 640,
+          color: '#e05050',
+          detectors: [
+            { id: 'RL1', filter: '675/30', usual: 'AF647, APC' },
+            { id: 'RL2', filter: '780/60', usual: 'APC-Cy7' },
+          ],
+        },
+      ];
+      const PANEL = {
+        VL1: {
+          fluor: 'BV421',
+          color: '#7b6cff',
+          marker: 'CD4',
+          clone: 'RPA-T4',
+          stain: 'surface',
+          dil: 200,
+        },
+        VL2: {
+          fluor: 'BV510',
+          color: '#3fc1c9',
+          marker: 'CD8',
+          clone: 'SK1',
+          stain: 'surface',
+          dil: 100,
+        },
+        VL4: {
+          fluor: 'BV605',
+          color: '#f39c34',
+          marker: 'CD25',
+          clone: 'BC96',
+          stain: 'surface',
+          dil: 200,
+        },
+        BL1: {
+          fluor: 'FITC',
+          color: '#5fd35f',
+          marker: 'CD3',
+          clone: 'UCHT1',
+          stain: 'surface',
+          dil: 100,
+        },
+        BL2: {
+          fluor: 'PE',
+          color: '#f5c542',
+          marker: 'Foxp3',
+          clone: '236A/E7',
+          stain: 'ics',
+          dil: 50,
+        },
+        BL5: {
+          fluor: 'PE-Cy7',
+          color: '#9b2c6a',
+          marker: 'CD127',
+          clone: 'A019D5',
+          stain: 'surface',
+          dil: 100,
+        },
+        RL1: {
+          fluor: 'APC',
+          color: '#e8453c',
+          marker: 'IFN-γ',
+          clone: '4S.B3',
+          stain: 'ics',
+          dil: 100,
+        },
+        RL2: {
+          fluor: 'APC-Cy7',
+          color: '#7a3b3b',
+          marker: 'Live/Dead',
+          clone: '',
+          stain: 'surface',
+          dil: 2000,
+        },
+      };
+      const STAINS = {
+        surface: {
+          label: 'Surface',
+          fill: 'Staining buffer',
+          shares: [
+            { name: 'Brilliant Stain Buffer', pct: 10 },
+            { name: 'Fc block', pct: 1 },
+          ],
+        },
+        ics: {
+          label: 'ICS',
+          fill: '1X Perm buffer',
+          shares: [{ name: 'Brilliant Stain Buffer', pct: 10 }],
+        },
+      };
+      const STAIN_UL_PER_WELL = 30;
+      const make = {};
+
+      const vol = ul =>
+        ul >= 1000
+          ? `${+(ul / 1000).toFixed(2)} mL`
+          : `${ul >= 100 ? ul.toFixed(0) : +ul.toFixed(1)} µL`;
+      const roundUpHalfMl = ul => Math.ceil(ul / 500) * 500;
+
+      function makeBox(key, title, sub, neededUl, defaultUl, parts) {
+        const makeUl = (make[key] ?? defaultUl / 1000) * 1000;
+        return `<div class="box">
+    <h4>${title}</h4>${sub ? `<div class="sub">${sub}</div>` : ''}
+    <div class="nm"><span>Needed <b>${vol(neededUl)}</b></span><span>Make <input class="num" data-make="${key}" type="number" step="0.5" value="${makeUl / 1000}"> mL</span></div>
+    <table>${parts(makeUl)}</table>
+  </div>`;
+      }
+      const partRow = (label, ul, color, cls = '') =>
+        `<tr class="${cls}"><td>${color ? `<span class="sw" style="background:${color};margin-right:6px;vertical-align:-1px"></span>` : ''}${label}</td><td class="num">${vol(ul)}</td></tr>`;
+
+      function render() {
+        const wells = Math.max(1, +document.getElementById('wells').value || 1);
+        const extra = Math.max(0, +document.getElementById('extra').value || 0);
+        const withExtra = ul => ul * (1 + extra / 100);
+        const rows = Object.values(PANEL);
+        const detectorCount = IQUE.reduce((n, l) => n + l.detectors.length, 0);
+
+        document.getElementById('stats').innerHTML =
+          `<span><b>${rows.length}</b> of ${detectorCount} detectors</span>` +
+          `<span><b>${rows.filter(r => r.stain === 'surface').length}</b> surface · <b>${rows.filter(r => r.stain === 'ics').length}</b> ICS</span>`;
+
+        const table = document.getElementById('panel');
+        table.querySelectorAll('tbody').forEach(b => b.remove());
+        table.insertAdjacentHTML(
+          'beforeend',
+          IQUE.map(l => {
+            const used = l.detectors.filter(d => PANEL[d.id]).length;
+            return (
+              `<tbody class="grp" style="--lc:${l.color}">` +
+              l.detectors
+                .map((d, i) => {
+                  const r = PANEL[d.id];
+                  const lead =
+                    i === 0
+                      ? `<td class="lasercell" rowspan="${l.detectors.length}"><div class="lname">${l.name}</div><div class="lnm">${l.nm} nm</div><div class="lcount">${used} of ${l.detectors.length} used</div></td>`
+                      : '';
+                  return r
+                    ? `<tr>${lead}<td class="det">${d.id}</td><td class="filter">${d.filter}</td>
+            <td><div class="fluor"><span class="sw" style="background:${r.color}"></span>${r.fluor}</div></td>
+            <td class="marker">${r.marker}</td><td class="dim">${r.clone || '—'}</td><td class="dim">—</td>
+            <td><span class="chip ${r.stain}">${STAINS[r.stain].label}</span></td><td class="num">1:${r.dil}</td></tr>`
+                    : `<tr class="open">${lead}<td class="det">${d.id}</td><td class="filter">${d.filter}</td>
+            <td><div class="fluor"><span class="sw"></span>${d.usual}</div></td>
+            <td colspan="5" class="add">open</td></tr>`;
+                })
+                .join('') +
+              `</tbody>`
+            );
+          }).join('<tbody class="gap"><tr><td colspan="9"></td></tr></tbody>')
+        );
+
+        const stainNeeded = withExtra(wells * STAIN_UL_PER_WELL);
+        const mixes = Object.entries(STAINS)
+          .map(([key, s]) =>
+            makeBox(
+              key,
+              `<span class="chip ${key}">${s.label}</span> mix`,
+              `${STAIN_UL_PER_WELL} µL per well · ${wells} wells + ${extra}%`,
+              stainNeeded,
+              roundUpHalfMl(stainNeeded),
+              total => {
+                const abs = Object.values(PANEL)
+                  .filter(r => r.stain === key)
+                  .map(r => ({
+                    label: `${r.marker} ${r.fluor}`,
+                    color: r.color,
+                    ul: total / r.dil,
+                    note: `1:${r.dil}`,
+                  }));
+                const shares = s.shares.map(x => ({
+                  label: x.name,
+                  ul: (total * x.pct) / 100,
+                  note: `${x.pct}%`,
+                }));
+                const parts = [...abs, ...shares];
+                const used = parts.reduce((sum, p) => sum + p.ul, 0);
+                return (
+                  parts
+                    .map(p =>
+                      partRow(`${p.label}<span class="share">${p.note}</span>`, p.ul, p.color)
+                    )
+                    .join('') +
+                  partRow(`${s.fill} to ${vol(total)}`, total - used, undefined, 'fill')
+                );
+              }
+            )
+          )
+          .join('');
+
+        const fixPerm = makeBox(
+          'fixperm',
+          'Fix/Perm working solution',
+          'Concentrate 1 : 3 diluent · 30 µL per well',
+          wells * 30,
+          roundUpHalfMl(wells * 30),
+          total =>
+            partRow('Fixation concentrate', total / 4) +
+            partRow('Fix/Perm diluent', (total * 3) / 4)
+        );
+        const perm = makeBox(
+          'perm',
+          '1X Perm buffer',
+          'From 10X · 150 µL per well',
+          wells * 150,
+          roundUpHalfMl(wells * 150),
+          total => partRow('10X Perm buffer', total / 10) + partRow('Water', (total * 9) / 10)
+        );
+
+        const stimWells = wells,
+          stimPerWell = 25,
+          stimFold = 500,
+          deadUl = 5000;
+        const stimNeeded = stimWells * stimPerWell + deadUl;
+        const stim = makeBox(
+          'stim',
+          'Stim cocktail (Well Jet)',
+          `${stimWells} wells · ${stimPerWell} µL of 2X onto ${stimPerWell} µL · eBio Stim ${stimFold}X · ${vol(deadUl)} dead volume`,
+          stimNeeded,
+          stimNeeded,
+          total =>
+            partRow(`eBio Stim ${stimFold}X`, (total * 2) / stimFold) +
+            partRow('Medium', total - (total * 2) / stimFold)
+        );
+
+        document.getElementById('prep').innerHTML =
+          `<div class="section-label">Stain mixes</div>${mixes}` +
+          `<div class="section-label">Buffers</div>${fixPerm}${perm}` +
+          `<div class="section-label">Before staining</div>${stim}`;
+        document.querySelectorAll('[data-make]').forEach(
+          input =>
+            (input.onchange = () => {
+              make[input.dataset.make] = Math.max(0, +input.value || 0);
+              render();
+            })
+        );
+      }
+
+      const setLayout = mode => {
+        document.getElementById('body').classList.toggle('below', mode === 'below');
+        document.getElementById('beside').classList.toggle('on', mode === 'beside');
+        document.getElementById('below').classList.toggle('on', mode === 'below');
+      };
+      document.getElementById('beside').onclick = () => setLayout('beside');
+      document.getElementById('below').onclick = () => setLayout('below');
+      document.getElementById('wells').oninput = render;
+      document.getElementById('extra').oninput = render;
+      new ResizeObserver(([e]) =>
+        document.getElementById('card').classList.toggle('narrow', e.contentRect.width < 760)
+      ).observe(document.body);
+      render();
+    </script>
+  </body>
+</html>
