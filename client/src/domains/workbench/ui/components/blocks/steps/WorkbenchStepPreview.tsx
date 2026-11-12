@@ -8,6 +8,7 @@ import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { describeName, readsNamesAlike } from '../../../../utils/formulas/nameDisplay';
 import { parseStepTemplate, splitProse } from '../../../../utils/steps/stepTemplate';
 
+import { STEP_PROSE_CLASSES } from './stepProseClasses';
 import { referenceToneClass } from './stepReferenceTone';
 
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
@@ -15,12 +16,6 @@ import type { BoardCalculation } from '../../../../utils/formulas/boardCalculati
 interface WorkbenchStepPreviewProps {
   text: string;
 }
-
-const PROSE_CLASSES = {
-  plain: undefined,
-  quantity: 'text-primary',
-  verb: 'text-label-2xs font-bold uppercase tracking-meta text-foreground',
-} as const;
 
 export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
   const parts = useMemo(() => parseStepTemplate(text), [text]);
@@ -60,7 +55,7 @@ export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
           );
         }
         return splitProse(part.text, partIndex === 0).map((piece, pieceIndex) => (
-          <span key={`${partIndex}-${pieceIndex}`} className={PROSE_CLASSES[piece.kind]}>
+          <span key={`${partIndex}-${pieceIndex}`} className={STEP_PROSE_CLASSES[piece.kind]}>
             {piece.text}
           </span>
         ));

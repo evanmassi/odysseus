@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@shared/ui';
 
+import { useStepEditingStore } from '../../../../stores/stepEditingStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { createId } from '../../../../utils/ids/createId';
 import { stepNumbers } from '../../../../utils/steps/stepNumbering';
@@ -35,7 +36,8 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
     state => state.protocol.pages.find(page => page.id === block.page)?.steps ?? NO_STEPS
   );
   const updatePage = useUpdateStepPage(block.page);
-  const [editingStepId, setEditingStepId] = useState<string>();
+  const editingStepId = useStepEditingStore(state => state.editingStepId);
+  const setEditingStepId = useStepEditingStore(state => state.editStep);
   const [freshSectionId, setFreshSectionId] = useState<string>();
   const [isPasting, setIsPasting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,7 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
   );
   const { draggingId, drop, startDrag } = useStepDrag(containerRef, dropStep);
   const clearFreshSection = useCallback(() => setFreshSectionId(undefined), []);
-  const endEdit = useCallback(() => setEditingStepId(undefined), []);
+  const endEdit = useCallback(() => setEditingStepId(undefined), [setEditingStepId]);
   const addStepWith = useCallback(
     (insert: typeof insertSubStep) => (stepId: string) => {
       const id = createId();
@@ -62,7 +64,7 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
       });
       setEditingStepId(id);
     },
-    [updatePage]
+    [setEditingStepId, updatePage]
   );
   const addSubStep = useMemo(() => addStepWith(insertSubStep), [addStepWith]);
   const addStepBelow = useMemo(() => addStepWith(insertStepBelow), [addStepWith]);
@@ -75,7 +77,7 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
       setEditingStepId(undefined);
       setFreshSectionId(id);
     },
-    [updatePage]
+    [setEditingStepId, updatePage]
   );
   const editingShifts = editingStepId ? levelShifts(steps, editingStepId) : undefined;
 
