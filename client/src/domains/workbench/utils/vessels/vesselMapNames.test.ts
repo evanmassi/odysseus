@@ -1,4 +1,4 @@
-import { materialWellCounts, plateAmounts, vesselCounts } from './vesselMapNames';
+import { materialWellCounts, plateAmounts, vesselCounts, wellsNamed } from './vesselMapNames';
 
 import type { MaterialItem, PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -144,5 +144,24 @@ describe('material well counts', () => {
     });
     const candida = { name: 'HCKA (heat-killed Candida albicans)' } as MaterialItem;
     expect(materialWellCounts([block], [candida]).get(candida)).toBe(2);
+  });
+});
+
+describe('wells named', () => {
+  it('counts wells holding a name on any line, ignoring case', () => {
+    const block = vesselMap({
+      lines: [line('drug', ['Aspirin']), line('stain', ['Full stain', 'FMO CD25'], 'band')],
+      cells: {
+        'p1:A1': { drug: { valueId: 'Aspirin' }, stain: { valueId: 'Full stain' } },
+        'p1:A2': { drug: { valueId: 'Aspirin' }, stain: { valueId: 'Full stain' } },
+        'p1:A3': { stain: { valueId: 'FMO CD25' } },
+      },
+    });
+    const counts = wellsNamed([block], [' full STAIN', 'FMO CD25', 'Unstained']);
+    expect([...counts]).toEqual([
+      [' full STAIN', 2],
+      ['FMO CD25', 1],
+      ['Unstained', 0],
+    ]);
   });
 });

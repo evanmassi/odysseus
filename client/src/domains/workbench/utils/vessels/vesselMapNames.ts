@@ -2,6 +2,7 @@ import {
   colorLineOf,
   isFilledCell,
   lineValueOf,
+  plateValueKey,
   unitScale,
   type MaterialItem,
   type PlateLine,
@@ -352,6 +353,26 @@ export function materialWellCounts(
         if (full.test(text) || (bare && bare.test(text))) {
           counts.set(material, (counts.get(material) ?? 0) + 1);
         }
+      }
+    }
+  }
+  return counts;
+}
+
+export function wellsNamed(
+  blocks: readonly VesselMapBlock[],
+  names: readonly string[]
+): Map<string, number> {
+  const nameByKey = new Map(names.map(name => [plateValueKey(name), name]));
+  const counts = new Map(names.map(name => [name, 0]));
+  for (const block of blocks) {
+    for (const lines of Object.values(block.cells)) {
+      const held = new Set(
+        block.lines.map(line => plateValueKey(lineValueOf(line, lines[line.id])?.text ?? ''))
+      );
+      for (const key of held) {
+        const name = nameByKey.get(key);
+        if (name !== undefined) counts.set(name, (counts.get(name) ?? 0) + 1);
       }
     }
   }

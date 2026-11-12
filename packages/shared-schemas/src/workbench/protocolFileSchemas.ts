@@ -237,6 +237,16 @@ const cytometerBlockSchema = z.object({
       dilution: z.string(),
     })
   ),
+  mixes: z
+    .array(
+      z.object({
+        id,
+        name: z.string(),
+        rowIds: z.array(z.string()),
+        plus: z.array(z.object({ id, materialId: z.string(), stain: z.string() })),
+      })
+    )
+    .default([]),
 });
 
 const protocolBlockSchema = z.discriminatedUnion('type', [

@@ -45,6 +45,7 @@ const panel = (
     stain,
     dilution: '200',
   })),
+  mixes: [],
 });
 
 const cd4 = material('Antibody', 'CD4 BV421', {
