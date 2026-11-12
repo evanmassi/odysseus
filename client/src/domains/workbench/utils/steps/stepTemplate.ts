@@ -9,7 +9,7 @@ type TemplatePart =
   | { kind: 'reference'; name: string }
   | { kind: 'blank'; label: string };
 
-interface ProsePiece {
+export interface ProsePiece {
   kind: 'plain' | 'quantity' | 'verb';
   text: string;
 }

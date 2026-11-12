@@ -15,3 +15,6 @@ export const FLOW_KIND_LABELS: Readonly<Record<StepKind, string>> = {
   wait: 'Waiting',
   other: 'Other',
 };
+
+export const FLOW_PLACE_CLASSES = 'z-10 selection-glow';
+export const FLOW_DONE_CLASSES = 'opacity-45';

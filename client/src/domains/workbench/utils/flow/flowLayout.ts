@@ -1,11 +1,13 @@
-import type { FlowBox, FlowModel, FlowStep, FlowWait } from './flowModel';
+import type { FlowBox, FlowModel, FlowStep, FlowSubStep, FlowWait } from './flowModel';
 
 export const FLOW_METRICS = {
   boxWidth: 236,
   minBoxWidth: 180,
-  extraPicture: 56,
+  maxBoxWidth: 340,
   boxHeight: 70,
-  subStepLine: 16,
+  actionRow: 60,
+  subStepLine: 20,
+  boxChrome: 14,
   columnGap: 30,
   waitGap: 120,
   stackGap: 26,
@@ -64,52 +66,70 @@ export interface FlowLayout {
 interface Row {
   sectionIndex: number;
   incoming: FlowWait[];
-  items: Array<{ box: FlowBox; x: number }>;
+  items: FlowBox[];
 }
 
 const M = FLOW_METRICS;
 
-const heightOf = (step: FlowStep) => M.boxHeight + (step.subSteps.length ? M.subStepLine : 0);
+const lineCount = (subSteps: readonly FlowSubStep[]): number =>
+  subSteps.reduce((count, sub) => count + 1 + lineCount(sub.subSteps), 0);
 
-const widthFor = (boxWidth: number, width: number) => (step: FlowStep) =>
-  step.pictures.length > 1
-    ? Math.min(boxWidth + M.extraPicture, Math.max(boxWidth, width - M.lead - M.framePad))
-    : boxWidth;
+const estimatedHeight = (step: FlowStep) =>
+  M.boxHeight + (step.actions.length - 1) * M.actionRow + lineCount(step.subSteps) * M.subStepLine;
+const gapAfter = (box: FlowBox) => (box.waitsAfter.length ? M.waitGap : M.columnGap);
 const gapBefore = (incoming: readonly FlowWait[] | undefined) =>
   incoming?.length ? M.waitRowGap : M.rowGap;
 
 function rowsOf(
   boxes: readonly FlowBox[],
   width: number,
-  widthOf: (step: FlowStep) => number,
+  boxWidth: number,
   isStacked: boolean
 ): Row[] {
   const rows: Row[] = [];
+  let x = 0;
   boxes.forEach((box, index) => {
     const row = rows[rows.length - 1];
     const last = row?.items[row.items.length - 1];
-    const x = last
-      ? last.x + widthOf(last.box.step) + (last.box.waitsAfter.length ? M.waitGap : M.columnGap)
-      : 0;
-    const fits = isStacked || x + widthOf(box.step) <= width;
-    if (row && last && row.sectionIndex === box.sectionIndex && fits) {
-      row.items.push({ box, x: isStacked ? M.lead : x });
-      return;
+    if (row && last && row.sectionIndex === box.sectionIndex) {
+      const nextX = x + boxWidth + gapAfter(last);
+      if (isStacked || nextX + boxWidth <= width) {
+        row.items.push(box);
+        x = nextX;
+        return;
+      }
     }
     rows.push({
       sectionIndex: box.sectionIndex,
       incoming: index > 0 ? boxes[index - 1].waitsAfter : [],
-      items: [{ box, x: M.lead }],
+      items: [box],
     });
+    x = M.lead;
   });
   return rows;
 }
 
-export function flowLayout(model: FlowModel, width: number): FlowLayout {
-  const boxWidth = Math.max(M.minBoxWidth, Math.min(M.boxWidth, width - M.lead - M.framePad));
-  const widthOf = widthFor(boxWidth, width);
-  const isStacked = M.lead + 2 * boxWidth + M.columnGap > width;
-  const rows = rowsOf(model.boxes, width, widthOf, isStacked);
+function sharedBoxWidth(rows: readonly Row[], width: number, isStacked: boolean): number {
+  const room = width - M.lead - M.framePad;
+  const roomPerBox = (row: Row) =>
+    (room - row.items.slice(0, -1).reduce((sum, box) => sum + gapAfter(box), 0)) / row.items.length;
+  const widest = isStacked ? room : Math.min(...rows.map(roomPerBox));
+  return Math.floor(Math.min(M.maxBoxWidth, widest));
+}
+
+export function flowLayout(
+  model: FlowModel,
+  width: number,
+  contentHeights: ReadonlyMap<string, number>
+): FlowLayout {
+  const heightOf = (step: FlowStep) => {
+    const measured = contentHeights.get(step.id);
+    return measured === undefined ? estimatedHeight(step) : measured + M.boxChrome;
+  };
+  const baseWidth = Math.max(M.minBoxWidth, Math.min(M.boxWidth, width - M.lead - M.framePad));
+  const isStacked = M.lead + 2 * baseWidth + M.columnGap > width;
+  const rows = rowsOf(model.boxes, width, baseWidth, isStacked);
+  const boxWidth = Math.max(baseWidth, sharedBoxWidth(rows, width, isStacked));
   const frames: FlowFrame[] = [];
   const steps: PlacedStep[] = [];
   const arrows: FlowArrow[] = [];
@@ -117,9 +137,8 @@ export function flowLayout(model: FlowModel, width: number): FlowLayout {
   const seenSections = new Set<number>();
   const headerOf = (row: Row) => (model.sections[row.sectionIndex].numeral ? M.header : 0);
 
-  const placeBox = (box: FlowBox, x: number, y: number): number => {
-    const height = heightOf(box.step);
-    steps.push({ step: box.step, x, y, width: widthOf(box.step), height, duringOf: undefined });
+  const placeBox = (box: FlowBox, x: number, y: number, height = heightOf(box.step)): number => {
+    steps.push({ step: box.step, x, y, width: boxWidth, height, duringOf: undefined });
     if (!box.step.during.length) return y + height;
     let duringY = y + height + M.duringGap;
     links.push({ x: x + 28, y1: y + height, y2: duringY });
@@ -129,7 +148,7 @@ export function flowLayout(model: FlowModel, width: number): FlowLayout {
         step: during,
         x,
         y: duringY,
-        width: widthOf(during),
+        width: boxWidth,
         height: duringHeight,
         duringOf: box.step.number,
       });
@@ -147,9 +166,9 @@ export function flowLayout(model: FlowModel, width: number): FlowLayout {
 
     if (isStacked) {
       let cursor = top;
-      row.items.forEach(({ box, x }, itemIndex) => {
-        const boxBottom = placeBox(box, x, cursor);
-        const centerX = x + boxWidth / 2;
+      row.items.forEach((box, itemIndex) => {
+        const boxBottom = placeBox(box, M.lead, cursor);
+        const centerX = M.lead + boxWidth / 2;
         bottom = boxBottom;
         exit = { path: `M${centerX} ${boxBottom + 3}`, labelX: M.lead - M.framePad };
         if (itemIndex === row.items.length - 1) return;
@@ -165,22 +184,25 @@ export function flowLayout(model: FlowModel, width: number): FlowLayout {
       });
     } else {
       const arrowY = top + M.arrowY;
-      row.items.forEach(({ box, x }, itemIndex) => {
-        bottom = Math.max(bottom, placeBox(box, x, top));
+      const rowHeight = Math.max(...row.items.map(box => heightOf(box.step)));
+      let x = M.lead;
+      row.items.forEach((box, itemIndex) => {
         const previous = row.items[itemIndex - 1];
-        if (!previous) return;
-        const x1 = previous.x + widthOf(previous.box.step) + 3;
-        const x2 = x - 5;
-        arrows.push({
-          path: `M${x1} ${arrowY} H${x2}`,
-          waits: previous.box.waitsAfter,
-          labelX: (x1 + x2) / 2,
-          labelY: arrowY,
-          labelAnchor: 'middle',
-        });
+        if (previous) {
+          const x1 = x - gapAfter(previous) + 3;
+          const x2 = x - 5;
+          arrows.push({
+            path: `M${x1} ${arrowY} H${x2}`,
+            waits: previous.waitsAfter,
+            labelX: (x1 + x2) / 2,
+            labelY: arrowY,
+            labelAnchor: 'middle',
+          });
+        }
+        bottom = Math.max(bottom, placeBox(box, x, top, rowHeight));
+        x += boxWidth + gapAfter(box);
       });
-      const last = row.items[row.items.length - 1];
-      const lastRight = last.x + widthOf(last.box.step);
+      const lastRight = x - gapAfter(row.items[row.items.length - 1]);
       const turnX = Math.min(width + 6, lastRight + M.turnOut);
       exit = { path: `M${lastRight + 3} ${arrowY} H${turnX}`, labelX: (turnX + 6) / 2 };
     }

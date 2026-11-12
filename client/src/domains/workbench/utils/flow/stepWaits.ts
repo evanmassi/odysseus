@@ -1,4 +1,4 @@
-import { leadVerb } from './stepKinds';
+import { actionProse, leadVerb } from './stepKinds';
 
 export interface StepTime {
   label: string;
@@ -110,20 +110,26 @@ export function splitStepWait(text: string): StepWaitSplit {
       wait: { time: joinedTime, conditions: conditionsOf(joined[3]) },
     };
   }
-  if (REAGENT_VERBS.has(verb)) {
+  const lead = leadAction(text);
+  const leadTime = stepTime(lead);
+  if (REAGENT_VERBS.has(verb) && leadTime) {
+    const rest = text.slice(lead.length);
     return {
-      action: sentence(withoutWaitPhrases(text)),
-      wait: { time, conditions: conditionsOf(text) },
+      action: rest ? withoutWaitPhrases(lead) + rest : sentence(withoutWaitPhrases(lead)),
+      wait: { time: leadTime, conditions: conditionsOf(lead) },
     };
   }
   return { action: text, wait: undefined };
 }
 
-const escapeForPattern = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-export function withoutTime(text: string, time: StepTime): string {
-  const phrase = new RegExp(`(^|\\s+)(?:for\\s+)?${escapeForPattern(time.label)}`, 'i');
-  return text.replace(phrase, '').trim();
+function leadAction(text: string): string {
+  let length = 0;
+  let verbCount = 0;
+  for (const piece of actionProse(text, true)) {
+    if (piece.kind === 'verb' && verbCount++ > 0) return text.slice(0, length);
+    length += piece.text.length;
+  }
+  return text;
 }
 
 export function durationText(minutes: number): string {
