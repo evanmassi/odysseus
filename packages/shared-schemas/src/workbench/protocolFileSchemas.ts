@@ -208,12 +208,44 @@ const sketchStrokeSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
+export const INSTRUMENT_KINDS = ['conventional', 'spectral'] as const;
+
+const instrumentSchema = z.object({
+  name: z.string(),
+  kind: z.enum(INSTRUMENT_KINDS),
+  lasers: z
+    .array(
+      z.object({
+        name: z.string(),
+        nm: z.number().positive(),
+        detectors: z.array(z.object({ id, filter: z.string(), usual: z.string().default('') })),
+      })
+    )
+    .min(1),
+});
+
+const cytometerBlockSchema = z.object({
+  ...blockBase,
+  type: z.literal('cytometer'),
+  instrument: instrumentSchema.optional(),
+  rows: z.array(
+    z.object({
+      id,
+      materialId: z.string(),
+      detectorId: z.string(),
+      stain: z.string(),
+      dilution: z.string(),
+    })
+  ),
+});
+
 const protocolBlockSchema = z.discriminatedUnion('type', [
   materialsBlockSchema,
   tableBlockSchema,
   valuesBlockSchema,
   formulaBlockSchema,
   vesselMapBlockSchema,
+  cytometerBlockSchema,
   z.object({ ...blockBase, type: z.literal('steps') }),
   z.object({ ...blockBase, type: z.literal('dilutions') }),
   z.object({ ...blockBase, type: z.literal('flow') }),
@@ -250,6 +282,8 @@ export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
 export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
 export type FormulaBlock = z.infer<typeof formulaBlockSchema>;
 export type VesselMapBlock = z.infer<typeof vesselMapBlockSchema>;
+export type CytometerBlock = z.infer<typeof cytometerBlockSchema>;
+export type Instrument = z.infer<typeof instrumentSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;
 export type PlateSeries = z.infer<typeof seriesSchema>;
 export type CellLine = z.infer<typeof cellLineSchema>;

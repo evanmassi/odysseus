@@ -1,0 +1,658 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg: #080a0f;
+        --card: #0f131b;
+        --line: #1e2430;
+        --text: #d7dbe2;
+        --dim: #7f8794;
+        --faint: #4d5562;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          13px/1.4 system-ui,
+          sans-serif;
+        padding: 12px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      }
+      .head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 14px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .title {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .tabs {
+        display: flex;
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .tabs span {
+        padding: 3px 10px;
+        color: var(--dim);
+      }
+      .tabs span.on {
+        background: #1c2433;
+        color: var(--text);
+      }
+      .adds {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px 12px 4px;
+        align-items: center;
+      }
+      .adds .lbl {
+        color: var(--dim);
+        font-size: 12px;
+        margin-right: 2px;
+      }
+      button {
+        background: #141924;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 3px 9px;
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: #33405a;
+      }
+      .pick {
+        display: none;
+        flex-wrap: wrap;
+        gap: 5px;
+        padding: 4px 12px 6px;
+        align-items: center;
+      }
+      .pick.on {
+        display: flex;
+      }
+      .pick .lbl {
+        color: var(--dim);
+        font-size: 12px;
+      }
+      .wrap {
+        overflow-x: auto;
+        padding: 6px 12px 10px;
+      }
+      table {
+        border-collapse: collapse;
+        min-width: 100%;
+      }
+      th {
+        color: var(--dim);
+        font-weight: 500;
+        font-size: 11px;
+        padding: 4px 4px 6px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+        vertical-align: bottom;
+      }
+      th.ab {
+        width: 54px;
+        text-align: center;
+        border-top: 3px solid var(--lc);
+        background: color-mix(in srgb, var(--lc) 7%, transparent);
+      }
+      th.ab .m {
+        color: var(--text);
+        font-weight: 600;
+        font-size: 12px;
+        display: block;
+      }
+      th.ab .f {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      th.left {
+        text-align: left;
+      }
+      td {
+        padding: 3px 4px;
+        border-bottom: 1px solid #161b25;
+        vertical-align: middle;
+      }
+      td.tick {
+        text-align: center;
+        background: color-mix(in srgb, var(--lc) 4%, transparent);
+        cursor: pointer;
+      }
+      td.tick:hover {
+        background: color-mix(in srgb, var(--lc) 14%, transparent);
+      }
+      td.tick:focus-visible {
+        outline: 1px solid #86b6dc;
+        outline-offset: -2px;
+      }
+      .sq {
+        width: 13px;
+        height: 13px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .sq.off {
+        outline: 1px solid #2a3140;
+        outline-offset: -1px;
+      }
+      .sw {
+        width: 9px;
+        height: 9px;
+        display: inline-block;
+      }
+      input.name {
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        color: var(--text);
+        font: inherit;
+        font-weight: 600;
+        padding: 2px 4px;
+        width: 150px;
+      }
+      input.name:hover {
+        border-color: var(--line);
+      }
+      input.name:focus {
+        border-color: #33405a;
+        background: #141924;
+        outline: none;
+      }
+      .plus {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+        min-width: 150px;
+      }
+      .chip {
+        font-size: 11px;
+        padding: 1px 6px;
+        border-radius: 2px;
+        background: #1a2130;
+        color: #b9c2cf;
+        white-space: nowrap;
+      }
+      .chip i {
+        font-style: normal;
+        color: var(--dim);
+        margin-left: 4px;
+        cursor: pointer;
+      }
+      .addm {
+        color: var(--faint);
+        font-size: 12px;
+        cursor: pointer;
+        padding: 0 3px;
+        position: relative;
+      }
+      .addm:hover {
+        color: var(--dim);
+      }
+      .menu {
+        position: absolute;
+        z-index: 5;
+        top: 18px;
+        left: 0;
+        background: #141924;
+        border: 1px solid #33405a;
+        border-radius: 3px;
+        padding: 4px 0;
+        min-width: 190px;
+        color: var(--text);
+      }
+      .menu div {
+        padding: 3px 10px;
+        white-space: nowrap;
+      }
+      .menu div:hover {
+        background: #1c2433;
+      }
+      .menu .h {
+        color: var(--dim);
+        font-size: 11px;
+        cursor: default;
+      }
+      .menu .h:hover {
+        background: none;
+      }
+      td.wells {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      td.wells .none {
+        color: #d6aa64;
+        font-size: 12px;
+      }
+      td.count {
+        color: var(--dim);
+        font-size: 12px;
+        text-align: right;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      td.x {
+        color: var(--faint);
+        cursor: pointer;
+        text-align: center;
+        width: 20px;
+      }
+      td.x:hover {
+        color: #d98880;
+      }
+      tr.sel td {
+        background-color: rgba(134, 182, 220, 0.06);
+      }
+      .names {
+        border-top: 1px solid var(--line);
+        padding: 8px 12px 10px;
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .names b {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .names code {
+        font-family: inherit;
+        background: #16202e;
+        color: #86b6dc;
+        padding: 0 5px;
+        border-radius: 2px;
+        margin: 0 3px 3px 0;
+        display: inline-block;
+      }
+      .make {
+        border-top: 1px solid var(--line);
+        padding: 8px 12px 4px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 10px 16px;
+      }
+      .stt {
+        font-size: 12px;
+        color: var(--dim);
+        margin-bottom: 6px;
+      }
+      .skip {
+        color: var(--faint);
+      }
+      .st {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 0 5px;
+        border-radius: 2px;
+        margin-right: 5px;
+        cursor: pointer;
+      }
+      .st.surface {
+        background: #16283a;
+        color: #86b6dc;
+      }
+      .st.ics {
+        background: #2e2416;
+        color: #d6aa64;
+      }
+      .ck {
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 6px 8px;
+        margin-bottom: 6px;
+      }
+      .ckh {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      .lt {
+        font-weight: 600;
+      }
+      .for {
+        color: var(--dim);
+        font-size: 12px;
+        flex: 1;
+      }
+      .cw {
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+      }
+      .none {
+        color: #d6aa64;
+        font-size: 12px;
+      }
+      .ckb {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px 10px;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #b9c2cf;
+      }
+      .ing {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .plusing {
+        color: var(--dim);
+        font-style: italic;
+      }
+      .foot {
+        color: var(--faint);
+        font-size: 11px;
+        padding: 0 12px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="head">
+        <div class="title">Example T-cell panel</div>
+        <div class="tabs"><span>Panel</span><span class="on">Mixes</span></div>
+      </div>
+      <div class="adds">
+        <span class="lbl">Add</span>
+        <button id="addUnstained">Unstained</button>
+        <button id="addSingles">Single stains, one per antibody</button>
+        <button id="addFmo">FMO…</button>
+        <button id="addBlank">Empty mix</button>
+      </div>
+      <div class="pick" id="fmoPick"><span class="lbl">FMO leaving out:</span></div>
+      <div class="wrap"><table id="t"></table></div>
+      <div class="names" id="names"></div>
+      <div class="make" id="make"></div>
+      <div class="foot">
+        Sketch. Same made-up panel as workbench-flow-panel-study.html. Click a square to put an
+        antibody in or take it out; the shortcuts only fill in squares and everything stays
+        editable. Click a stain tag on a Plus material to move it between steps. Wells are counted
+        from the plate map by name (made-up plate here); cocktails pool mixes that are identical
+        within a stain step.
+      </div>
+    </div>
+
+    <script>
+      const LASER = { Violet: '#8b6cf0', Blue: '#3fa9e8', Red: '#e05050' };
+      const PANEL = [
+        {
+          id: 'a1',
+          stain: 'surface',
+          marker: 'CD4',
+          fluor: 'BV421',
+          color: '#7b6cff',
+          laser: 'Violet',
+        },
+        {
+          id: 'a2',
+          stain: 'surface',
+          marker: 'CD8',
+          fluor: 'BV510',
+          color: '#3fc1c9',
+          laser: 'Violet',
+        },
+        {
+          id: 'a3',
+          stain: 'surface',
+          marker: 'CD25',
+          fluor: 'BV605',
+          color: '#f39c34',
+          laser: 'Violet',
+        },
+        {
+          id: 'a4',
+          stain: 'surface',
+          marker: 'CD3',
+          fluor: 'FITC',
+          color: '#5fd35f',
+          laser: 'Blue',
+        },
+        { id: 'a5', stain: 'ics', marker: 'Foxp3', fluor: 'PE', color: '#f5c542', laser: 'Blue' },
+        {
+          id: 'a6',
+          stain: 'surface',
+          marker: 'CD127',
+          fluor: 'PE-Cy7',
+          color: '#9b2c6a',
+          laser: 'Blue',
+        },
+        { id: 'a7', stain: 'ics', marker: 'IFN-γ', fluor: 'APC', color: '#e8453c', laser: 'Red' },
+        {
+          id: 'a8',
+          stain: 'surface',
+          marker: 'Live/Dead',
+          fluor: 'APC-Cy7',
+          color: '#7a3b3b',
+          laser: 'Red',
+        },
+      ];
+      const MATERIALS = [
+        'UltraComp eBeads',
+        'Heat-killed cells',
+        'Mouse IgG1 κ isotype PE',
+        'Mouse IgG1 κ isotype APC',
+        'Fc block',
+      ];
+      const PLATE_WELLS = {
+        'full stain': 60,
+        unstained: 2,
+        'fmo cd25': 2,
+        'fmo foxp3': 2,
+        'single cd4 bv421': 1,
+        'single cd3 fitc': 1,
+      };
+      const all = PANEL.map(a => a.id);
+      let n = 0;
+      const mix = (name, ids, plus = []) => ({ key: ++n, name, ids: new Set(ids), plus });
+      let mixes = [
+        mix('Full stain', all),
+        mix('Unstained', []),
+        mix(
+          'FMO CD25',
+          all.filter(id => id !== 'a3')
+        ),
+        mix(
+          'FMO Foxp3',
+          all.filter(id => id !== 'a5'),
+          [{ name: 'Mouse IgG1 κ isotype PE', stain: 'ics' }]
+        ),
+      ];
+      let menuFor = null;
+      let selected = 1;
+
+      const STAIN = { surface: 'Surface', ics: 'ICS' };
+      const label = a => `${a.marker} ${a.fluor}`;
+      const wellsOf = m => PLATE_WELLS[m.name.trim().toLowerCase()];
+
+      function render() {
+        const head =
+          `<tr><th class="left">Mix</th>` +
+          PANEL.map(
+            a =>
+              `<th class="ab" style="--lc:${LASER[a.laser]}"><span class="m">${a.marker}</span><span class="f"><span class="sw" style="background:${a.color}"></span>${a.fluor}</span></th>`
+          ).join('') +
+          `<th class="left">Plus</th><th class="left" style="text-align:right">On the plate</th><th></th></tr>`;
+
+        const body = mixes
+          .map(m => {
+            const ticks = PANEL.map(a => {
+              const on = m.ids.has(a.id);
+              return `<td class="tick" tabindex="0" role="checkbox" aria-checked="${on}" data-m="${m.key}" data-a="${a.id}" style="--lc:${LASER[a.laser]}"><span class="sq ${on ? '' : 'off'}" style="${on ? `background:${a.color}` : ''}"></span></td>`;
+            }).join('');
+            const plus =
+              m.plus
+                .map(
+                  (p, i) =>
+                    `<span class="chip"><b class="st ${p.stain}" data-cyc="${m.key}:${i}">${STAIN[p.stain]}</b>${p.name}<i data-rm="${m.key}:${i}">×</i></span>`
+                )
+                .join('') +
+              `<span class="addm" data-menu="${m.key}">+ material${
+                menuFor === m.key
+                  ? `<div class="menu"><div class="h">From Materials</div>${MATERIALS.filter(
+                      x => !m.plus.some(p => p.name === x)
+                    )
+                      .map(x => `<div data-addp="${m.key}" data-v="${x}">${x}</div>`)
+                      .join('')}</div>`
+                  : ''
+              }</span>`;
+            const w = wellsOf(m);
+            return `<tr class="${selected === m.key ? 'sel' : ''}" data-row="${m.key}">
+              <td><input class="name" value="${m.name}" data-name="${m.key}"></td>${ticks}
+              <td><div class="plus">${plus}</div></td>
+              <td class="wells">${w ? `${w} well${w > 1 ? 's' : ''}` : '<span class="none">not placed</span>'}</td>
+              <td class="x" data-del="${m.key}" title="">×</td></tr>`;
+          })
+          .join('');
+        document.getElementById('t').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+
+        const s = mixes.find(m => m.key === selected) ?? mixes[0];
+        if (s) {
+          const abs = PANEL.filter(a => s.ids.has(a.id));
+          document.getElementById('names').innerHTML =
+            `<b>${s.name}</b> gives Calculations: ` +
+            `<code>${s.name} wells</code>` +
+            `<code>${s.name} antibodies</code>` +
+            abs.map(a => `<code>${s.name} ${label(a)}</code>`).join('') +
+            s.plus.map(p => `<code>${s.name} ${p.name}</code>`).join('') +
+            `<div style="margin-top:4px;color:var(--faint)">Click a row to see its names. "antibodies" is the total share of every antibody in the mix, so the buffer that fills it up stays right as you tick.</div>`;
+        }
+
+        document.getElementById('make').innerHTML = Object.entries(STAIN)
+          .map(([st, title]) => {
+            const groups = new Map();
+            const skip = [];
+            mixes.forEach(m => {
+              const abs = PANEL.filter(a => a.stain === st && m.ids.has(a.id));
+              const plus = m.plus.filter(p => p.stain === st);
+              if (!abs.length && !plus.length) return skip.push(m.name);
+              const key = [...abs.map(a => a.id), ...plus.map(p => p.name)].join('|');
+              if (!groups.has(key))
+                groups.set(key, { abs, plus, mixes: [], wells: 0, unplaced: false });
+              const g = groups.get(key);
+              g.mixes.push(m.name);
+              const w = wellsOf(m);
+              w ? (g.wells += w) : (g.unplaced = true);
+            });
+            const items = [...groups.values()]
+              .map(
+                (
+                  g,
+                  i
+                ) => `<div class="ck"><div class="ckh"><span class="lt">${title} ${String.fromCharCode(65 + i)}</span>
+                <span class="for">for ${g.mixes.join(', ')}</span><span class="cw">${g.wells} wells${g.unplaced ? ' <span class="none">+ not placed</span>' : ''}</span></div>
+                <div class="ckb">${g.abs.map(a => `<span class="ing"><span class="sw" style="background:${a.color}"></span>${label(a)}</span>`).join('')}${g.plus.map(p => `<span class="ing plusing">${p.name}</span>`).join('')}</div></div>`
+              )
+              .join('');
+            return `<div class="stp"><div class="stt"><span class="chip st ${st}">${title}</span> ${groups.size} cocktail${groups.size === 1 ? '' : 's'} to make${skip.length ? `<span class="skip"> · no ${title} stain: ${skip.join(', ')}</span>` : ''}</div>${items}</div>`;
+          })
+          .join('');
+
+        const pick = document.getElementById('fmoPick');
+        pick.innerHTML =
+          `<span class="lbl">FMO leaving out:</span>` +
+          PANEL.map(
+            a =>
+              `<button data-fmo="${a.id}"><span class="sw" style="background:${a.color};margin-right:5px"></span>${a.marker}</button>`
+          ).join('');
+      }
+
+      const toggle = (key, id) => {
+        const m = mixes.find(x => x.key === key);
+        m.ids.has(id) ? m.ids.delete(id) : m.ids.add(id);
+        render();
+      };
+
+      document.addEventListener('click', e => {
+        const t = e.target.closest(
+          '[data-m],[data-del],[data-menu],[data-addp],[data-rm],[data-cyc],[data-fmo],[data-row]'
+        );
+        if (!t) {
+          if (menuFor) ((menuFor = null), render());
+          return;
+        }
+        if (t.dataset.addp) {
+          mixes
+            .find(x => x.key === +t.dataset.addp)
+            .plus.push({ name: t.dataset.v, stain: 'surface' });
+          menuFor = null;
+        } else if (t.dataset.m) toggle(+t.dataset.m, t.dataset.a);
+        else if (t.dataset.del) mixes = mixes.filter(x => x.key !== +t.dataset.del);
+        else if (t.dataset.rm) {
+          const [k, i] = t.dataset.rm.split(':');
+          mixes.find(x => x.key === +k).plus.splice(+i, 1);
+        } else if (t.dataset.cyc) {
+          const [k, i] = t.dataset.cyc.split(':');
+          const p = mixes.find(x => x.key === +k).plus[+i];
+          p.stain = p.stain === 'surface' ? 'ics' : 'surface';
+        } else if (t.dataset.menu) menuFor = menuFor === +t.dataset.menu ? null : +t.dataset.menu;
+        else if (t.dataset.fmo) {
+          const a = PANEL.find(x => x.id === t.dataset.fmo);
+          mixes.push(
+            mix(
+              `FMO ${a.marker}`,
+              all.filter(id => id !== a.id)
+            )
+          );
+          selected = n;
+        }
+        const row = e.target.closest('[data-row]');
+        if (row && !t.dataset.del) selected = +row.dataset.row;
+        render();
+      });
+      document.addEventListener('keydown', e => {
+        const t = e.target.closest('[data-m]');
+        if (t && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          toggle(+t.dataset.m, t.dataset.a);
+        }
+      });
+      document.addEventListener('change', e => {
+        if (e.target.dataset.name) {
+          mixes.find(x => x.key === +e.target.dataset.name).name = e.target.value;
+          render();
+        }
+      });
+      document.getElementById('addUnstained').onclick = () => {
+        mixes.push(mix('Unstained', []));
+        selected = n;
+        render();
+      };
+      document.getElementById('addSingles').onclick = () => {
+        PANEL.forEach(a => mixes.push(mix(`Single ${label(a)}`, [a.id])));
+        selected = n;
+        render();
+      };
+      document.getElementById('addBlank').onclick = () => {
+        mixes.push(mix('New mix', []));
+        selected = n;
+        render();
+      };
+      document.getElementById('addFmo').onclick = () => {
+        document.getElementById('fmoPick').classList.toggle('on');
+      };
+      render();
+    </script>
+  </body>
+</html>

@@ -71,6 +71,13 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       amountNames: {},
     }),
   },
+  cytometer: {
+    label: 'Flow panel',
+    hint: 'Stains by laser and detector on your cytometer',
+    size: [12, 10],
+    fitsContent: true,
+    createContent: () => ({ rows: [] }),
+  },
   steps: {
     label: 'Procedure',
     hint: 'The outline of what you do',

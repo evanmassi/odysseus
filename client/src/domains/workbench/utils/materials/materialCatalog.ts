@@ -37,6 +37,7 @@ const choiceField = (label: string, options: string[], extras: FieldExtras = {})
   field(label, 'choice', { options, ...extras });
 
 export const UNIT_PER_ITEM = '*';
+export const ANTIBODY_GROUP = 'ab';
 const LOT_SCOPED: FieldExtras = { scope: 'lot' };
 const YES_NO = ['Yes', 'No'];
 const LASERS = [
@@ -177,7 +178,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
     },
   },
   {
-    key: 'ab',
+    key: ANTIBODY_GROUP,
     label: 'Antibodies & Stains',
     core: PHYSICAL_CORE,
     types: {

@@ -43,6 +43,7 @@ interface WorkbenchMaterialTableProps {
   recipeOf: (item: MaterialItem) => readonly RecipeLine[];
   recipeUsers: ReadonlyMap<string, readonly string[]>;
   plateWells: ReadonlyMap<string, number>;
+  panelDetectors: ReadonlyMap<string, string>;
   duplicateIds: ReadonlySet<string>;
   fresh: { ids: ReadonlySet<string>; stamp: number };
   removed: RemovedMaterial | undefined;
@@ -68,6 +69,7 @@ export function WorkbenchMaterialTable({
   recipeOf,
   recipeUsers,
   plateWells,
+  panelDetectors,
   duplicateIds,
   fresh,
   removed,
@@ -91,6 +93,7 @@ export function WorkbenchMaterialTable({
       recipe={recipeOf(item)}
       recipeUsers={recipeUsers.get(item.id) ?? []}
       plateWellCount={plateWells.get(item.id) ?? 0}
+      panelDetectors={panelDetectors.get(item.id) ?? ''}
       isClashing={clashingIds.has(item.id)}
       isDuplicateName={duplicateIds.has(item.id)}
       freshStamp={fresh.ids.has(item.id) ? fresh.stamp : undefined}
