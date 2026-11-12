@@ -1,3 +1,4 @@
+import { cytometerFormulaNames } from '../cytometer/cytometerNames';
 import { dilutionFormulaNames } from '../dilutions/dilutionFormulas';
 import {
   fieldName,
@@ -183,9 +184,10 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     namesOf(block).map(entry => ({ ...entry, sourceBlockId: block.id }))
   );
   const ownNames = [...blockNames, ...wellCountNames(protocol, blockNames, materials)];
-  return [
+  const generated = [
     ...ownNames,
     ...recipeFormulaNames(protocol, ownNames),
     ...dilutionFormulaNames(protocol, ownNames),
   ];
+  return [...generated, ...cytometerFormulaNames(protocol, generated)];
 }

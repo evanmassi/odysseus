@@ -11,6 +11,7 @@ import { writeMaterialField } from '../../../../utils/materials/materialItems';
 import type { CytometerBlock, FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 type PanelRow = CytometerBlock['rows'][number];
+type Mix = CytometerBlock['mixes'][number];
 
 export interface CytometerActions {
   pickInstrument: (name: string) => void;
@@ -19,6 +20,13 @@ export interface CytometerActions {
   setDilution: (rowId: string, typed: string) => void;
   removeStain: (rowId: string) => void;
   writeMaterial: (materialId: string, key: string, value: string) => void;
+  addMixes: (mixes: Mix[]) => void;
+  renameMix: (mixId: string, name: string) => void;
+  toggleMixStain: (mixId: string, rowId: string) => void;
+  removeMix: (mixId: string) => void;
+  addPlus: (mixId: string, materialId: string, stain: string) => void;
+  setPlusStain: (mixId: string, plusId: string, stain: string) => void;
+  removePlus: (mixId: string, plusId: string) => void;
 }
 
 const fieldFor = (item: MaterialItem, key: string): FieldDefinition =>
@@ -41,6 +49,11 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
         const row = draft.rows.find(candidate => candidate.id === rowId);
         if (row) recipe(row);
       });
+    const updateMix = (mixId: string, recipe: (mix: Mix) => void) =>
+      updateBlock(draft => {
+        const mix = draft.mixes.find(candidate => candidate.id === mixId);
+        if (mix) recipe(mix);
+      });
     return {
       pickInstrument: name =>
         updateBlock(draft => {
@@ -59,6 +72,9 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
       removeStain: rowId =>
         updateBlock(draft => {
           draft.rows = draft.rows.filter(row => row.id !== rowId);
+          draft.mixes.forEach(mix => {
+            mix.rowIds = mix.rowIds.filter(id => id !== rowId);
+          });
         }),
       writeMaterial: (materialId, key, value) =>
         updateProtocol(draft => {
@@ -66,6 +82,37 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
             .flatMap(candidate => (candidate.type === 'materials' ? candidate.items : []))
             .find(candidate => candidate.id === materialId);
           if (item) writeMaterialField(item, fieldFor(item, key), value);
+        }),
+      addMixes: mixes =>
+        updateBlock(draft => {
+          draft.mixes.push(...mixes);
+        }),
+      renameMix: (mixId, name) =>
+        updateMix(mixId, mix => {
+          mix.name = name;
+        }),
+      toggleMixStain: (mixId, rowId) =>
+        updateMix(mixId, mix => {
+          mix.rowIds = mix.rowIds.includes(rowId)
+            ? mix.rowIds.filter(id => id !== rowId)
+            : [...mix.rowIds, rowId];
+        }),
+      removeMix: mixId =>
+        updateBlock(draft => {
+          draft.mixes = draft.mixes.filter(mix => mix.id !== mixId);
+        }),
+      addPlus: (mixId, materialId, stain) =>
+        updateMix(mixId, mix => {
+          mix.plus.push({ id: createId(), materialId, stain });
+        }),
+      setPlusStain: (mixId, plusId, stain) =>
+        updateMix(mixId, mix => {
+          const plus = mix.plus.find(candidate => candidate.id === plusId);
+          if (plus) plus.stain = stain;
+        }),
+      removePlus: (mixId, plusId) =>
+        updateMix(mixId, mix => {
+          mix.plus = mix.plus.filter(candidate => candidate.id !== plusId);
         }),
     };
   }, [updateBlock, updateProtocol]);

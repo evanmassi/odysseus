@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { Select } from '@shared/ui';
 
-import { useProtocolWith } from '../../../../hooks/useWorkbenchSlice';
+import { useBlocksOf, useProtocolWith } from '../../../../hooks/useWorkbenchSlice';
 import {
   panelLayout,
   stainCandidates,
@@ -10,10 +10,13 @@ import {
 } from '../../../../utils/cytometer/cytometerPanel';
 import { BUILT_IN_INSTRUMENTS } from '../../../../utils/cytometer/instrumentCatalog';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
+import { wellsNamed } from '../../../../utils/vessels/vesselMapNames';
 
 import { CYTOMETER_CELL } from './cytometerTableStyles';
 import { useCytometerActions } from './useCytometerActions';
+import { WorkbenchCytometerCocktails } from './WorkbenchCytometerCocktails';
 import { WorkbenchCytometerLaserGroup } from './WorkbenchCytometerLaserGroup';
+import { WorkbenchCytometerMixes } from './WorkbenchCytometerMixes';
 import { WorkbenchCytometerPeakMap } from './WorkbenchCytometerPeakMap';
 import { WorkbenchCytometerStainRow } from './WorkbenchCytometerStainRow';
 
@@ -33,6 +36,19 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
   const materials = useMemo(() => listedMaterials({ blocks }), [blocks]);
   const layout = useMemo(() => panelLayout(block, materials), [block, materials]);
   const steps = useMemo(() => stainSteps(block), [block]);
+  const plateBlocks = useBlocksOf('plate');
+  const mixWells = useMemo(
+    () =>
+      wellsNamed(
+        plateBlocks,
+        block.mixes.map(mix => mix.name)
+      ),
+    [plateBlocks, block.mixes]
+  );
+  const materialNames = useMemo(
+    () => new Map(materials.map(item => [item.id, item.name.trim()])),
+    [materials]
+  );
   const stainOptions = useMemo(
     () => stainCandidates(block, materials).map(item => ({ value: item.id, label: item.name })),
     [block, materials]
@@ -174,6 +190,21 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
               )}
             </table>
           </div>
+          <WorkbenchCytometerMixes
+            block={block}
+            layout={layout}
+            materials={materials}
+            materialNames={materialNames}
+            mixWells={mixWells}
+            steps={steps}
+            actions={actions}
+          />
+          <WorkbenchCytometerCocktails
+            block={block}
+            layout={layout}
+            mixWells={mixWells}
+            materialNames={materialNames}
+          />
         </>
       )}
     </div>
