@@ -680,6 +680,8 @@ export {
   type MaterialsBlock,
   type ValuesBlock,
   type VesselMapBlock,
+  type CytometerBlock,
+  type Instrument,
   type CellLine,
   type PlateLine,
   type PlateSeries,

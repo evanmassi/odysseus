@@ -61,6 +61,7 @@ interface WorkbenchMaterialRowProps {
   recipe: readonly RecipeLine[];
   recipeUsers: readonly string[];
   plateWellCount: number;
+  panelDetectors: string;
   isClashing: boolean;
   isDuplicateName: boolean;
   freshStamp: number | undefined;
@@ -168,6 +169,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   recipe,
   recipeUsers,
   plateWellCount,
+  panelDetectors,
   isClashing,
   isDuplicateName,
   freshStamp,
@@ -178,6 +180,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   const fields = materialFields(item);
   const summary = [
     plateWellCount ? `Plate: ${plateWellCount} ${plateWellCount === 1 ? 'well' : 'wells'}` : '',
+    panelDetectors ? `Panel: ${panelDetectors}` : '',
     usage ? usageSummary(usage) : '',
     ...recipeUsers.map(user => `in ${user}`),
   ]

@@ -1,0 +1,539 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg: #080a0f;
+        --card: #0f131b;
+        --line: #1e2430;
+        --text: #d7dbe2;
+        --dim: #7f8794;
+        --faint: #4d5562;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          13px/1.4 system-ui,
+          sans-serif;
+        padding: 12px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+      }
+      .head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 16px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .title {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .machine {
+        color: var(--dim);
+        font-size: 12px;
+        border: 1px solid var(--line);
+        padding: 1px 7px;
+        border-radius: 3px;
+      }
+      .stats {
+        color: var(--dim);
+        display: flex;
+        gap: 14px;
+      }
+      .stats b {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .warn {
+        color: #d6aa64;
+      }
+      .section {
+        padding: 10px 12px;
+      }
+      .label {
+        color: var(--dim);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .map {
+        overflow-x: auto;
+      }
+      .map table {
+        border-collapse: separate;
+        border-spacing: 2px;
+      }
+      .map th {
+        color: var(--faint);
+        font-weight: 400;
+        font-size: 10px;
+        padding: 0 0 2px;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        height: 30px;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+      }
+      .map td.ln {
+        font-size: 11px;
+        font-weight: 600;
+        padding-right: 6px;
+        white-space: nowrap;
+        color: color-mix(in srgb, var(--lc) 70%, white);
+      }
+      .map td.c {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        background: color-mix(in srgb, var(--lc) 12%, transparent);
+        position: relative;
+      }
+      .map td.none {
+        background: none;
+      }
+      .map td.dye {
+        cursor: pointer;
+      }
+      .map td.clash {
+        outline: 2px solid #d98880;
+        outline-offset: -1px;
+      }
+      .map td.clash::after {
+        content: '2';
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .map td.hot {
+        outline: 2px solid #fff;
+        outline-offset: -1px;
+      }
+      .axis {
+        color: var(--faint);
+        font-size: 10px;
+        margin-top: 2px;
+      }
+      table.panel {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .panel th {
+        text-align: left;
+        color: var(--dim);
+        font-weight: 500;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+      }
+      .panel td {
+        padding: 4px 6px;
+        border-bottom: 1px solid #161b25;
+        vertical-align: middle;
+      }
+      .panel td.num,
+      .panel th.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      tbody.grp {
+        outline: 1px solid color-mix(in srgb, var(--lc) 40%, transparent);
+        outline-offset: -1px;
+      }
+      tbody.grp td {
+        background: color-mix(in srgb, var(--lc) 5%, transparent);
+        border-bottom-color: color-mix(in srgb, var(--lc) 14%, transparent);
+      }
+      tbody.grp td.lasercell {
+        width: 96px;
+        vertical-align: top;
+        padding: 8px 10px;
+        border-left: 3px solid var(--lc);
+        border-bottom: 0;
+        background: color-mix(in srgb, var(--lc) 16%, transparent);
+      }
+      .lname {
+        font-weight: 600;
+        color: color-mix(in srgb, var(--lc) 60%, white);
+      }
+      .lnm,
+      .lcount {
+        color: var(--dim);
+        font-size: 12px;
+      }
+      .lcount {
+        font-size: 11px;
+        margin-top: 4px;
+      }
+      tbody.gap td {
+        height: 6px;
+        padding: 0;
+        border: 0;
+      }
+      tr.addrow td {
+        color: var(--faint);
+        font-style: italic;
+        font-size: 12px;
+      }
+      tr.hot td:not(.lasercell) {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .peak {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .peak span {
+        color: var(--dim);
+        font-weight: 400;
+        margin-left: 4px;
+      }
+      .fluor {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+      }
+      .sw {
+        width: 11px;
+        height: 11px;
+        display: inline-block;
+        flex: none;
+      }
+      .marker {
+        font-weight: 600;
+      }
+      .dim {
+        color: var(--dim);
+      }
+      .clashnote {
+        color: #d98880;
+        font-size: 11px;
+        display: block;
+      }
+      .chip {
+        font-size: 11px;
+        padding: 1px 7px;
+        border-radius: 2px;
+        white-space: nowrap;
+        font-weight: 600;
+      }
+      .chip.Surface {
+        background: #16283a;
+        color: #86b6dc;
+      }
+      .chip.ICS {
+        background: #2e2416;
+        color: #d6aa64;
+      }
+      .chip.Viability {
+        background: #1d2a1d;
+        color: #92bf86;
+      }
+      .foot {
+        color: var(--faint);
+        font-size: 11px;
+        padding: 0 12px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="head">
+        <div class="title">Example spectral T-cell panel</div>
+        <div class="machine">BD FACSDiscover A8 · UV V B YG R</div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="section">
+        <div class="label">Where each dye peaks</div>
+        <div class="map" id="map"></div>
+        <div class="axis">
+          Detector band center, nm. Tinted cells are the detectors each laser has.
+        </div>
+      </div>
+      <div class="section" style="padding-top: 0">
+        <table class="panel" id="panel">
+          <thead>
+            <tr>
+              <th>Laser</th>
+              <th>Peak detector</th>
+              <th>Fluorochrome</th>
+              <th>Marker</th>
+              <th>Clone</th>
+              <th>Cat#</th>
+              <th>Stain</th>
+              <th class="num">Dilution factor</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="foot">
+        Sketch. Made-up panel; peak detectors and colors are rough, not from spectra data. Hover a
+        row or a square to find its partner. Mixes and cocktails are unchanged from the iQue design.
+      </div>
+    </div>
+
+    <script>
+      const BANDS = [
+        [375, '375/20'],
+        [390, '392/14'],
+        [420, '420/20'],
+        [440, '440/20'],
+        [460, '459/18'],
+        [475, '476/16'],
+        [500, '501/16'],
+        [515, '517/16'],
+        [530, '532/16'],
+        [545, '547/16'],
+        [575, '574/16'],
+        [590, '590/16'],
+        [605, '607/18'],
+        [625, '625/18'],
+        [655, '655/20'],
+        [675, '675/20'],
+        [700, '698/26'],
+        [725, '724/26'],
+        [750, '752/30'],
+        [780, '782/30'],
+        [810, '812/30'],
+        [845, '844/34'],
+      ];
+      const LASERS = [
+        { name: 'UV', prefix: 'UV', nm: 349, from: 375, color: '#a99ad6' },
+        { name: 'Violet', prefix: 'V', nm: 405, from: 420, color: '#8b6cf0' },
+        { name: 'Blue', prefix: 'B', nm: 488, from: 500, color: '#3fa9e8' },
+        { name: 'YellowGreen', prefix: 'YG', nm: 561, from: 575, color: '#b5c94a' },
+        { name: 'Red', prefix: 'R', nm: 637, from: 655, color: '#e05050' },
+      ];
+      const detectorsOf = laser =>
+        BANDS.filter(([center]) => center >= laser.from).map(([center, filter], i) => ({
+          id: `${laser.prefix}${i + 1}`,
+          center,
+          filter,
+        }));
+
+      const PANEL = [
+        {
+          laser: 'UV',
+          peak: 390,
+          fluor: 'BUV395',
+          color: '#9a8cff',
+          marker: 'CD45',
+          clone: 'HI30',
+          stain: 'Surface',
+          dil: 100,
+        },
+        {
+          laser: 'UV',
+          peak: 500,
+          fluor: 'BUV496',
+          color: '#5fb0d6',
+          marker: 'CD4',
+          clone: 'SK3',
+          stain: 'Surface',
+          dil: 200,
+        },
+        {
+          laser: 'UV',
+          peak: 725,
+          fluor: 'BUV737',
+          color: '#b04a7a',
+          marker: 'CD8',
+          clone: 'SK1',
+          stain: 'Surface',
+          dil: 200,
+        },
+        {
+          laser: 'Violet',
+          peak: 420,
+          fluor: 'BV421',
+          color: '#7b6cff',
+          marker: 'CD3',
+          clone: 'UCHT1',
+          stain: 'Surface',
+          dil: 100,
+        },
+        {
+          laser: 'Violet',
+          peak: 605,
+          fluor: 'BV605',
+          color: '#f39c34',
+          marker: 'CD25',
+          clone: 'BC96',
+          stain: 'Surface',
+          dil: 200,
+        },
+        {
+          laser: 'Violet',
+          peak: 780,
+          fluor: 'BV786',
+          color: '#8a3050',
+          marker: 'CD127',
+          clone: 'A019D5',
+          stain: 'Surface',
+          dil: 100,
+        },
+        {
+          laser: 'Blue',
+          peak: 515,
+          fluor: 'BB515',
+          color: '#5fd35f',
+          marker: 'CD45RA',
+          clone: 'HI100',
+          stain: 'Surface',
+          dil: 100,
+        },
+        {
+          laser: 'Blue',
+          peak: 700,
+          fluor: 'PerCP-Cy5.5',
+          color: '#c0504d',
+          marker: 'CCR7',
+          clone: 'G043H7',
+          stain: 'Surface',
+          dil: 50,
+        },
+        {
+          laser: 'YellowGreen',
+          peak: 575,
+          fluor: 'PE',
+          color: '#f5c542',
+          marker: 'Foxp3',
+          clone: '236A/E7',
+          stain: 'ICS',
+          dil: 50,
+        },
+        {
+          laser: 'YellowGreen',
+          peak: 780,
+          fluor: 'PE-Cy7',
+          color: '#9b2c6a',
+          marker: 'TNF-α',
+          clone: 'MAb11',
+          stain: 'ICS',
+          dil: 100,
+        },
+        {
+          laser: 'Red',
+          peak: 655,
+          fluor: 'APC',
+          color: '#e8453c',
+          marker: 'IFN-γ',
+          clone: '4S.B3',
+          stain: 'ICS',
+          dil: 100,
+        },
+        {
+          laser: 'Red',
+          peak: 750,
+          fluor: 'APC-Fire 750',
+          color: '#7a3b3b',
+          marker: 'CD69',
+          clone: 'FN50',
+          stain: 'Surface',
+          dil: 100,
+        },
+        {
+          laser: 'Red',
+          peak: 750,
+          fluor: 'Zombie NIR',
+          color: '#5a3030',
+          marker: 'Live/Dead',
+          clone: '',
+          stain: 'Viability',
+          dil: 1000,
+        },
+      ].map((row, i) => ({ ...row, key: i }));
+
+      const cellKey = row => `${row.laser}:${row.peak}`;
+      const byCell = new Map();
+      PANEL.forEach(row => byCell.set(cellKey(row), [...(byCell.get(cellKey(row)) ?? []), row]));
+      const detectorAt = row => {
+        const laser = LASERS.find(l => l.name === row.laser);
+        return detectorsOf(laser).find(d => d.center === row.peak);
+      };
+      let hot;
+
+      function render() {
+        const clashes = [...byCell.values()].filter(rows => rows.length > 1);
+        const total = LASERS.reduce((n, l) => n + detectorsOf(l).length, 0);
+        document.getElementById('stats').innerHTML =
+          `<span><b>${PANEL.length}</b> dyes on ${LASERS.length} lasers · ${total} detectors</span>` +
+          (clashes.length
+            ? `<span class="warn">${clashes.length} pair peaks in the same detector</span>`
+            : '');
+
+        document.getElementById('map').innerHTML =
+          `<table><tr><th></th>${BANDS.map(([c]) => `<th>${c}</th>`).join('')}</tr>` +
+          LASERS.map(
+            l =>
+              `<tr style="--lc:${l.color}"><td class="ln">${l.name}</td>` +
+              BANDS.map(([center]) => {
+                if (center < l.from) return `<td class="c none"></td>`;
+                const rows = byCell.get(`${l.name}:${center}`) ?? [];
+                if (!rows.length) return `<td class="c"></td>`;
+                const isHot = rows.some(r => r.key === hot);
+                return `<td class="c dye ${rows.length > 1 ? 'clash' : ''} ${isHot ? 'hot' : ''}" data-key="${rows[0].key}" style="background:${rows[0].color}"></td>`;
+              }).join('') +
+              `</tr>`
+          ).join('') +
+          `</table>`;
+
+        const table = document.getElementById('panel');
+        table.querySelectorAll('tbody').forEach(b => b.remove());
+        table.insertAdjacentHTML(
+          'beforeend',
+          LASERS.map(l => {
+            const rows = PANEL.filter(r => r.laser === l.name);
+            const span = rows.length + 1;
+            const lead = `<td class="lasercell" rowspan="${span}"><div class="lname">${l.name}</div><div class="lnm">${l.nm} nm</div><div class="lcount">${rows.length} dye${rows.length === 1 ? '' : 's'} · ${detectorsOf(l).length} detectors</div></td>`;
+            const body = rows
+              .map((r, i) => {
+                const d = detectorAt(r);
+                const partner = byCell.get(cellKey(r)).filter(x => x !== r)[0];
+                const isHot = hot === r.key || (partner && hot === partner.key);
+                return `<tr class="${isHot ? 'hot' : ''}" data-key="${r.key}">${i === 0 ? lead : ''}
+                  <td class="peak">${d.id}<span>${d.filter}</span></td>
+                  <td><div class="fluor"><span class="sw" style="background:${r.color}"></span>${r.fluor}</div>${partner ? `<span class="clashnote">Same peak as ${partner.fluor}</span>` : ''}</td>
+                  <td class="marker">${r.marker}</td><td class="dim">${r.clone || '—'}</td><td class="dim">—</td>
+                  <td><span class="chip ${r.stain}">${r.stain}</span></td><td class="num">1:${r.dil}</td></tr>`;
+              })
+              .join('');
+            const add = `<tr class="addrow">${rows.length ? '' : lead}<td colspan="7">+ Add a dye on ${l.name}</td></tr>`;
+            return `<tbody class="grp" style="--lc:${l.color}">${body}${add}</tbody>`;
+          }).join('<tbody class="gap"><tr><td colspan="8"></td></tr></tbody>')
+        );
+      }
+
+      document.addEventListener('mouseover', e => {
+        const el = e.target.closest('[data-key]');
+        const next = el ? +el.dataset.key : undefined;
+        if (next !== hot) {
+          hot = next;
+          render();
+        }
+      });
+      render();
+    </script>
+  </body>
+</html>

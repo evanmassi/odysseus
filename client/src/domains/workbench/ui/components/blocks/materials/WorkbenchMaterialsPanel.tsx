@@ -5,9 +5,11 @@ import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { panelDetectorLabels } from '../../../../utils/cytometer/cytometerPanel';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import {
+  ANTIBODY_GROUP,
   materialFields,
   materialGroup,
   materialGroupsOf,
@@ -86,7 +88,6 @@ interface FieldMenuState {
 }
 
 const LEARN_DELAY_MS = 250;
-const ANTIBODY_GROUP = 'ab';
 const FIXED_CELLS = ['name', 'type'];
 
 const NAME_CELL = 'name';
@@ -94,6 +95,7 @@ const NAME_CELL = 'name';
 export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps) {
   const materialBlocks = useBlocksOf('materials');
   const plateBlocks = useBlocksOf('plate');
+  const cytometerBlocks = useBlocksOf('cytometer');
   const materialsOnly = useMemo(() => ({ blocks: materialBlocks }), [materialBlocks]);
   const duplicateIdList = useWorkbenchData(state => [...state.calculation.duplicateIds]);
   const duplicateIds = useMemo(() => new Set(duplicateIdList), [duplicateIdList]);
@@ -156,6 +158,10 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     const counts = materialWellCounts(plateBlocks, [...allMaterials.values()]);
     return new Map([...counts].map(([material, count]) => [material.id, count]));
   }, [plateBlocks, allMaterials]);
+  const panelDetectors = useMemo(
+    () => panelDetectorLabels({ blocks: cytometerBlocks }),
+    [cytometerBlocks]
+  );
   const plateOffers = useWorkbenchData(state =>
     isFirstMaterialsBlock ? plateNameOffers(state.protocol) : []
   );
@@ -361,6 +367,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   recipeOf={item => recipeLines(item, allMaterials)}
                   recipeUsers={recipeUsers}
                   plateWells={plateWells}
+                  panelDetectors={panelDetectors}
                   duplicateIds={duplicateIds}
                   fresh={fresh}
                   removed={section.removed}
