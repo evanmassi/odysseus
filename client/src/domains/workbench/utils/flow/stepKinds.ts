@@ -1,3 +1,4 @@
+import { splitProse, type ProsePiece } from '../steps/stepTemplate';
 import { stepVerbBase } from '../steps/stepVerbs';
 
 export type StepKind = 'handle' | 'clean' | 'measure' | 'wait' | 'other';
@@ -112,3 +113,26 @@ export function stepLook(verb: string | undefined, text: string): StepLook {
   const forWait = found.kind === 'wait' ? waitPicture(text) : undefined;
   return forWait ? { ...found, picture: forWait } : found;
 }
+
+const JOINED_ACTION = /(\b(?:and|then)\s+)([A-Za-z]+)/g;
+
+function joinedActions(text: string): ProsePiece[] {
+  const pieces: ProsePiece[] = [];
+  let consumed = 0;
+  for (const match of text.matchAll(JOINED_ACTION)) {
+    const [, joiner, word] = match;
+    const base = stepVerbBase(word);
+    if (!base || !isFlowVerb(base) || stepLook(base, '').kind === 'wait') continue;
+    const start = (match.index ?? 0) + joiner.length;
+    if (start > consumed) pieces.push({ kind: 'plain', text: text.slice(consumed, start) });
+    pieces.push({ kind: 'verb', text: word });
+    consumed = start + word.length;
+  }
+  if (consumed < text.length) pieces.push({ kind: 'plain', text: text.slice(consumed) });
+  return pieces;
+}
+
+export const actionProse = (text: string, isStepStart: boolean): ProsePiece[] =>
+  splitProse(text, isStepStart).flatMap(piece =>
+    piece.kind === 'plain' ? joinedActions(piece.text) : [piece]
+  );

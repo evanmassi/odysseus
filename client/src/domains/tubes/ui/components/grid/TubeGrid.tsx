@@ -268,7 +268,7 @@ export function TubeGrid({
           )}
           <div
             ref={gridRef}
-            className="tube-grid select-none focus:outline-none"
+            className="tube-grid selection-pulse select-none focus:outline-none"
             style={{
               ...gridStyle,
               outline: 'none !important',

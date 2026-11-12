@@ -1,7 +1,9 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 
+import { useContentHeights } from '../../../../hooks/useContentHeights';
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useShowBlock } from '../../../../hooks/useShowBlock';
+import { useFlowPlaceStore } from '../../../../stores/flowPlaceStore';
 import { useStepEditingStore } from '../../../../stores/stepEditingStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { flowLayout } from '../../../../utils/flow/flowLayout';
@@ -21,6 +23,12 @@ interface WorkbenchFlowPanelProps {
 }
 
 const NO_STEPS: ProtocolStep[] = [];
+const STEP_KEYS: Readonly<Record<string, number>> = {
+  ArrowRight: 1,
+  ArrowDown: 1,
+  ArrowLeft: -1,
+  ArrowUp: -1,
+};
 const PLAIN_LINE = 'hsl(var(--muted-foreground) / 0.7)';
 const WAIT_LINE = FLOW_KIND_COLORS.wait;
 
@@ -41,16 +49,54 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
   const width = useElementWidth(stageRef);
 
   const model = useMemo(() => flowModel(steps, calculation), [steps, calculation]);
-  const layout = useMemo(() => flowLayout(model, width), [model, width]);
+  const contentHeights = useContentHeights(stageRef, width > 0 ? model : undefined);
+  const layout = useMemo(
+    () => flowLayout(model, width, contentHeights),
+    [model, width, contentHeights]
+  );
   const kinds = useMemo(
     () =>
       (Object.keys(FLOW_KIND_LABELS) as StepKind[]).filter(kind =>
         model.boxes.some(({ step }) =>
-          [step, ...step.during].some(shown => shown.pictures.some(look => look.kind === kind))
+          [step, ...step.during].some(shown =>
+            shown.actions.some(action => action.look.kind === kind)
+          )
         )
       ),
     [model]
   );
+
+  const placeId = useFlowPlaceStore(state => state.placeByBlock[block.id]);
+  const setPlace = useFlowPlaceStore(state => state.setPlace);
+  const orderOf = useMemo(
+    () => new Map(model.stepOrder.map((stepId, index) => [stepId, index])),
+    [model]
+  );
+  const placeIndex = placeId === undefined ? -1 : (orderOf.get(placeId) ?? -1);
+  const isDone = (stepId: string) => placeIndex >= 0 && (orderOf.get(stepId) ?? -1) < placeIndex;
+  const selectStep = (stepId: string) => setPlace(block.id, stepId);
+
+  useEffect(() => {
+    if (placeId === undefined) return;
+    const element = stageRef.current?.querySelector<HTMLElement>(
+      `[data-flow-step="${CSS.escape(placeId)}"]`
+    );
+    element?.focus({ preventScroll: true });
+    element?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [placeId]);
+
+  const moveThroughSteps = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      setPlace(block.id, undefined);
+      return;
+    }
+    const direction = STEP_KEYS[event.key];
+    if (!direction || !model.stepOrder.length) return;
+    event.preventDefault();
+    const next = placeIndex < 0 ? 0 : placeIndex + direction;
+    const clamped = Math.min(model.stepOrder.length - 1, Math.max(0, next));
+    setPlace(block.id, model.stepOrder[clamped]);
+  };
 
   const openStep = stepsBlockId
     ? (stepId: string) => {
@@ -86,7 +132,10 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
       )}
       <div
         ref={stageRef}
-        className="relative"
+        role="toolbar"
+        aria-label="Flow diagram steps"
+        onKeyDown={moveThroughSteps}
+        className="selection-pulse relative"
         style={model.boxes.length ? { height: layout.height } : undefined}
       >
         {model.boxes.length === 0 ? (
@@ -160,10 +209,20 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
                     x={arrow.labelX}
                     y={arrow.labelY}
                     anchor={arrow.labelAnchor}
+                    placeId={placeId}
+                    isDone={isDone}
+                    onSelect={selectStep}
                   />
                 ))}
               {layout.steps.map(placed => (
-                <WorkbenchFlowStepBox key={placed.step.id} placed={placed} onOpen={openStep} />
+                <WorkbenchFlowStepBox
+                  key={placed.step.id}
+                  placed={placed}
+                  isPlace={placed.step.id === placeId}
+                  isDone={isDone(placed.step.id)}
+                  onSelect={selectStep}
+                  onOpen={openStep}
+                />
               ))}
             </>
           )

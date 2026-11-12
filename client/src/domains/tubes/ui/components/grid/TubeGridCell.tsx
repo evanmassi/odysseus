@@ -158,7 +158,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
         className={`
         tube-position relative group cursor-pointer
         ${tube ? 'occupied' : 'empty'}
-        ${selected ? 'selected' : ''}
+        ${selected ? 'selected selection-glow' : ''}
         ${freshlySelected ? 'freshly-selected' : ''}
         ${isDragPreview ? 'drag-preview' : ''}
         ${isCut ? 'cut-tube' : ''}

@@ -1,9 +1,16 @@
 import { stepNumbers } from '../steps/stepNumbering';
-import { splitProse, templateText } from '../steps/stepTemplate';
+import { templateText } from '../steps/stepTemplate';
 import { stepVerbBase } from '../steps/stepVerbs';
 
-import { isFlowVerb, leadVerb, stepLook, type StepKind, type StepLook } from './stepKinds';
-import { splitStepWait, stepTime, withoutTime, type StepTime, type StepWait } from './stepWaits';
+import {
+  actionProse,
+  isFlowVerb,
+  leadVerb,
+  stepLook,
+  type StepKind,
+  type StepLook,
+} from './stepKinds';
+import { splitStepWait, stepTime, type StepTime, type StepWait } from './stepWaits';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
 import type { ProtocolStep } from '@odysseus/shared-schemas';
@@ -11,18 +18,24 @@ import type { ProtocolStep } from '@odysseus/shared-schemas';
 export interface FlowSubStep {
   id: string;
   number: string;
+  verb: string | undefined;
   text: string;
+  kind: StepKind;
+  subSteps: FlowSubStep[];
+}
+
+export interface FlowAction {
+  verb: string | undefined;
+  text: string;
+  look: StepLook;
 }
 
 export interface FlowStep {
   id: string;
   number: string;
   fullText: string;
-  verbs: string[];
-  text: string;
-  timeInBox: StepTime | undefined;
+  actions: FlowAction[];
   kind: StepKind;
-  pictures: StepLook[];
   subSteps: FlowSubStep[];
   during: FlowStep[];
 }
@@ -50,6 +63,7 @@ export interface FlowBox {
 export interface FlowModel {
   sections: FlowSection[];
   boxes: FlowBox[];
+  stepOrder: string[];
   minutes: number;
   isOvernight: boolean;
 }
@@ -71,57 +85,55 @@ function headline(text: string): { verb: string | undefined; base: string; text:
   };
 }
 
-const MAX_PICTURES = 2;
+const MAX_ACTIONS = 2;
 
-interface StepAction {
-  base: string;
-  shown: string;
-  look: StepLook;
+const pictureLook = (verb: string) => stepLook(stepVerbBase(verb) ?? verb.toLowerCase(), '');
+
+const clauseEnd = (text: string) => text.trim().replace(/(?:[\s,;.]|\band\b|\bthen\b)+$/, '');
+
+function flowActions(shownText: string, fullText: string): FlowAction[] {
+  const { verb, base, text } = headline(shownText);
+  if (!verb) {
+    const later = actionProse(shownText, false).find(
+      piece => piece.kind === 'verb' && pictureLook(piece.text).kind !== 'wait'
+    );
+    const look = later ? pictureLook(later.text) : stepLook(undefined, fullText);
+    return [{ verb: undefined, text: shownText, look }];
+  }
+  const actions: FlowAction[] = [{ verb, text: '', look: stepLook(base, fullText) }];
+  let clause = '';
+  for (const piece of actionProse(text, false)) {
+    const look = piece.kind === 'verb' ? pictureLook(piece.text) : undefined;
+    const startsAction =
+      look &&
+      look.kind !== 'wait' &&
+      actions.length < MAX_ACTIONS &&
+      !actions.some(action => action.look.picture === look.picture);
+    if (!startsAction) {
+      clause += piece.text;
+      continue;
+    }
+    actions[actions.length - 1].text = clauseEnd(clause);
+    actions.push({ verb: piece.text, text: '', look });
+    clause = '';
+  }
+  actions[actions.length - 1].text = clause.trim();
+  return actions;
 }
 
-function laterActions(text: string): StepAction[] {
-  return splitProse(text, false).flatMap(piece => {
-    if (piece.kind !== 'verb') return [];
-    const base = stepVerbBase(piece.text) ?? piece.text.toLowerCase();
-    const look = stepLook(base, '');
-    return look.kind === 'wait' ? [] : [{ base, shown: piece.text, look }];
-  });
+function flowSubStep(id: string, number: string, fullText: string): FlowSubStep {
+  const { verb, base, text } = headline(fullText);
+  return { id, number, verb, text, kind: stepLook(verb && base, fullText).kind, subSteps: [] };
 }
-
-function withoutVerbs(text: string, verbs: ReadonlySet<string>): string {
-  return splitProse(text, false)
-    .filter(piece => piece.kind !== 'verb' || !verbs.has(piece.text))
-    .map(piece => piece.text)
-    .join('')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-}
-
-const firstOfEach = <Item>(items: readonly Item[], keyOf: (item: Item) => string) =>
-  items.filter((item, index) => items.findIndex(other => keyOf(other) === keyOf(item)) === index);
 
 function flowStep(id: string, number: string, fullText: string, shownText: string): FlowStep {
-  const { verb, base, text } = headline(shownText);
-  const lead = stepLook(verb && base, fullText);
-  const later = laterActions(text);
-  const actions = [...(verb ? [{ base, shown: verb, look: lead }] : []), ...later];
-  const timeInBox = stepTime(shownText);
-  const remaining = withoutVerbs(text, new Set(later.map(action => action.shown)));
-  const pictures = actions.length
-    ? firstOfEach(
-        actions.map(action => action.look),
-        look => look.picture
-      ).slice(0, MAX_PICTURES)
-    : [lead];
+  const actions = flowActions(shownText, fullText);
   return {
     id,
     number,
     fullText,
-    verbs: firstOfEach(actions, action => action.base).map(action => action.shown),
-    text: timeInBox ? withoutTime(remaining, timeInBox) : remaining,
-    timeInBox,
-    kind: pictures[0].kind,
-    pictures,
+    actions,
+    kind: actions[0].look.kind,
     subSteps: [],
     during: [],
   };
@@ -171,7 +183,9 @@ export function flowModel(
     }
     const text = templateText(step.text, calculation).trim();
     if (step.level > 1) {
-      lastMain?.subSteps.push({ id: step.id, number: numberOf(step.id), text });
+      const parent = lastMain?.subSteps[lastMain.subSteps.length - 1];
+      const siblings = step.level === 3 && parent ? parent.subSteps : lastMain?.subSteps;
+      siblings?.push(flowSubStep(step.id, numberOf(step.id), text));
       continue;
     }
     if (step.isMeanwhile && lastOnTrack) {
@@ -202,7 +216,7 @@ export function flowModel(
     const { step, split } = main;
     if (split.wait && ridesArrow(main, index, mains.length)) {
       riding.push({
-        step: { id: step.id, number: step.number, verb: step.verbs[0] ?? '' },
+        step: { id: step.id, number: step.number, verb: step.actions[0].verb ?? '' },
         ...split.wait,
       });
       return;
@@ -219,13 +233,14 @@ export function flowModel(
   });
 
   const last = boxed[boxed.length - 1];
-  if (last?.split.action && last.split.wait && !last.step.timeInBox) {
-    last.step.timeInBox = last.split.wait.time;
+  if (last?.split.action && last.split.wait) {
+    last.step.actions = flowActions(last.step.fullText, last.step.fullText);
   }
 
   return {
     sections,
     boxes,
+    stepOrder: steps.flatMap(step => (step.kind === 'step' && step.level === 1 ? [step.id] : [])),
     minutes: sections.reduce((sum, section) => sum + section.minutes, 0),
     isOvernight: sections.some(section => section.isOvernight),
   };
