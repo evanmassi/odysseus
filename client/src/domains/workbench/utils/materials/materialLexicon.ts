@@ -604,7 +604,7 @@ export const FLUOROCHROMES_BY_LASER: readonly FluorochromeLaserGroup[] = [
   {
     laser: '',
     names:
-      'PE=R-PE|PE-Cy5=PE/Cyanine5=PE/Cy5|PE-Cy5.5=PE/Cyanine5.5|PE-Cy7=PE/Cyanine7=PE/Cy7|PE-CF594|PE-Dazzle 594=PE/Dazzle 594=PE Dazzle|PE-Texas Red=PE-TR|PE-eFluor 610=PE-eF610|PE-Fire 640=PE/Fire 640|PE-Fire 700=PE/Fire 700|PE-Fire 744=PE/Fire 744|PE-Fire 780=PE/Fire 780|PE-Fire 810=PE/Fire 810|PE-Vio770|PE-Vio615|PE-Alexa Fluor 610|PE-Alexa Fluor 700|Alexa Fluor 555=AF555|Alexa Fluor 568=AF568|Alexa Fluor 594=AF594|Texas Red|Cy3|Cy3.5|DyLight 550|DyLight 594|Spark YG 570|Spark YG 581|Spark YG 593|cFluor YG584|RY586|RY610|RY703|RY775|BYG584|tdTomato|mCherry|RFP|DsRed|mKate2|mScarlet',
+      'PE=R-PE|PE-Cy5=PE/Cyanine5=PE/Cy5|PE-Cy5.5=PE/Cyanine5.5|PE-Cy7=PE/Cyanine7=PE/Cy7|PE-CF594|PE-Dazzle 594=PE/Dazzle 594=PE Dazzle|PE-Texas Red=PE-TR=PE-TxRed|PE-eFluor 610=PE-eF610|PE-Fire 640=PE/Fire 640|PE-Fire 700=PE/Fire 700|PE-Fire 744=PE/Fire 744|PE-Fire 780=PE/Fire 780|PE-Fire 810=PE/Fire 810|PE-Vio770|PE-Vio615|PE-Alexa Fluor 610|PE-Alexa Fluor 700|Alexa Fluor 555=AF555|Alexa Fluor 568=AF568|Alexa Fluor 594=AF594|Texas Red|Cy3|Cy3.5|DyLight 550|DyLight 594|Spark YG 570|Spark YG 581|Spark YG 593|cFluor YG584|RY586|RY610|RY703|RY775|BYG584|tdTomato|mCherry|RFP|DsRed|mKate2|mScarlet',
   },
   {
     laser: 'Red 640',

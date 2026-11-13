@@ -121,4 +121,24 @@ describe('flow panel names', () => {
     expect(calculation.names.get(nameKey('Full stain Surface antibodies'))?.id).toBe('mine');
     expect(calculation.duplicateIds.size).toBe(0);
   });
+
+  it('works out each stain’s amount per well from its step’s stain volume', () => {
+    const values: ProtocolBlock = {
+      ...placement,
+      id: 'values',
+      type: 'values',
+      title: 'Values',
+      items: [{ id: 'volume', name: 'Surface stain volume', value: '50', unit: 'µL' }],
+      sections: [],
+    };
+    expect(
+      answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 amount per well')
+    ).toBe('0.5 µL');
+    const missing = calculateBoard(collectBoardNames(protocol()));
+    const entry = missing.names.get(nameKey('CD3 BV421 amount per well'));
+    expect(entry && missing.results.get(entry.id)).toMatchObject({
+      status: 'error',
+      message: 'Needs “Surface stain volume” or “Stain volume” in Values',
+    });
+  });
 });

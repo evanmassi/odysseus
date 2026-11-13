@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
+import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { dilutionFactor } from '../../../../utils/cytometer/cytometerPanel';
+import { dilutionFactor, newStainMaterial } from '../../../../utils/cytometer/cytometerPanel';
 import { BUILT_IN_INSTRUMENTS } from '../../../../utils/cytometer/instrumentCatalog';
 import { createId } from '../../../../utils/ids/createId';
 import { materialFields } from '../../../../utils/materials/materialCatalog';
 import { writeMaterialField } from '../../../../utils/materials/materialItems';
+import { ensureMaterial } from '../../../../utils/materials/materialLookup';
 
 import type { CytometerBlock, FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -16,6 +18,7 @@ type Mix = CytometerBlock['mixes'][number];
 export interface CytometerActions {
   pickInstrument: (name: string) => void;
   addStain: (materialId: string, detectorId: string) => void;
+  createStain: (text: string, detectorId: string) => void;
   changeRow: (rowId: string, change: Partial<Omit<PanelRow, 'id' | 'materialId'>>) => void;
   setDilution: (rowId: string, typed: string) => void;
   removeStain: (rowId: string) => void;
@@ -42,6 +45,7 @@ const fieldFor = (item: MaterialItem, key: string): FieldDefinition =>
 export function useCytometerActions(block: CytometerBlock): CytometerActions {
   const updateBlock = useUpdateBlock(block);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
+  const memory = useMaterialMemoryStore(state => state.memory);
 
   return useMemo(() => {
     const updateRow = (rowId: string, recipe: (row: PanelRow) => void) =>
@@ -63,6 +67,20 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
       addStain: (materialId, detectorId) =>
         updateBlock(draft => {
           draft.rows.push({ id: createId(), materialId, detectorId, stain: '', dilution: '' });
+        }),
+      createStain: (text, detectorId) =>
+        updateProtocol(draft => {
+          const created = newStainMaterial(text, memory, draft);
+          const material = ensureMaterial(draft, created.name, () => created);
+          const panel = draft.blocks.find(candidate => candidate.id === block.id);
+          if (panel?.type !== 'cytometer') return;
+          panel.rows.push({
+            id: createId(),
+            materialId: material.id,
+            detectorId,
+            stain: '',
+            dilution: '',
+          });
         }),
       changeRow: (rowId, change) => updateRow(rowId, row => Object.assign(row, change)),
       setDilution: (rowId, typed) =>
@@ -115,5 +133,5 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
           mix.plus = mix.plus.filter(candidate => candidate.id !== plusId);
         }),
     };
-  }, [updateBlock, updateProtocol]);
+  }, [block.id, memory, updateBlock, updateProtocol]);
 }

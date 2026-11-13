@@ -21,11 +21,13 @@ function hueAt(nm: number): number {
   return fromHue + ((nm - fromNm) / (toNm - fromNm)) * (toHue - fromHue);
 }
 
-export function wavelengthColor(nm: number): string {
-  if (nm < UV_EDGE) return 'hsl(268 40% 74%)';
+export function wavelengthTone(nm: number): string {
+  if (nm < UV_EDGE) return '268 40% 74%';
   const pastVisible = Math.min(1, Math.max(0, (nm - NEAR_IR_EDGE) / (FARTHEST_NM - NEAR_IR_EDGE)));
   const lightness = 62 - pastVisible * 30;
-  return `hsl(${Math.round(hueAt(nm))} 72% ${Math.round(lightness)}%)`;
+  return `${Math.round(hueAt(nm))} 72% ${Math.round(lightness)}%`;
 }
+
+export const wavelengthColor = (nm: number): string => `hsl(${wavelengthTone(nm)})`;
 
 export const filterCenter = (filter: string): number => Number.parseFloat(filter);

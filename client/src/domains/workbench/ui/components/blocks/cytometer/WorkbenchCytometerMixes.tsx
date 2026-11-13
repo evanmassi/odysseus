@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
-import { Button, Select } from '@shared/ui';
+import { Button, DropdownMenu, MenuItem, SubsectionHeader } from '@shared/ui';
 
 import {
   emptyMix,
@@ -47,51 +47,79 @@ export function WorkbenchCytometerMixes({
     [materials]
   );
   const stepOptions = steps.map(step => ({ value: step, label: step }));
-  const fmoOptions = columns.map(column => ({ value: column.stain.row.id, label: column.label }));
+  const [fmoMenuAt, setFmoMenuAt] = useState<CSSProperties>();
+  const fmoRef = useRef<HTMLSpanElement>(null);
 
   return (
-    <section aria-label="Mixes" className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <h4 className="mr-2 type-label text-label-xs font-semibold text-muted-foreground">Mixes</h4>
+    <section aria-label="Mixes" className="flex flex-col gap-2.5">
+      <SubsectionHeader title="Mixes" meta={block.mixes.length || undefined} />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <Button size="xs" variant="ghost" onClick={() => actions.addMixes([fullStainMix(columns)])}>
-          Full stain
+          Full Stain
         </Button>
-        <Button size="xs" variant="ghost" onClick={() => actions.addMixes([unstainedMix()])}>
-          Unstained
-        </Button>
-        <Button
-          size="xs"
-          variant="ghost"
-          disabled={!columns.length}
-          onClick={() => actions.addMixes(singleStainMixes(columns))}
+        <span
+          role="group"
+          aria-label="Controls"
+          className="inline-flex items-center gap-1 border border-line-faint px-1 py-0.5"
         >
-          Single stains, one per antibody
-        </Button>
-        <Select
-          size="xs"
-          isQuiet
-          value={null}
-          placeholder="FMO leaving out…"
-          options={fmoOptions}
-          disabled={!columns.length}
-          aria-label="Add an FMO leaving out"
-          className="w-48"
-          onChange={rowId => {
-            const mix = fmoMix(columns, String(rowId));
-            if (mix) actions.addMixes([mix]);
-          }}
-        />
+          <Button size="xs" variant="ghost" onClick={() => actions.addMixes([unstainedMix()])}>
+            Unstained
+          </Button>
+          <Button
+            size="xs"
+            variant="ghost"
+            disabled={!columns.length}
+            onClick={() => actions.addMixes(singleStainMixes(columns))}
+          >
+            Single Stain
+          </Button>
+          <span ref={fmoRef} className="inline-flex">
+            <Button
+              size="xs"
+              variant="ghost"
+              disabled={!columns.length}
+              aria-haspopup="menu"
+              aria-expanded={!!fmoMenuAt}
+              onClick={() => {
+                const trigger = fmoRef.current?.getBoundingClientRect();
+                const isOpening = !fmoMenuAt && trigger;
+                setFmoMenuAt(
+                  isOpening ? { left: trigger.left, top: trigger.bottom + 4 } : undefined
+                );
+              }}
+            >
+              FMO
+            </Button>
+          </span>
+          <DropdownMenu
+            isOpen={!!fmoMenuAt}
+            onClose={() => setFmoMenuAt(undefined)}
+            triggerRef={fmoRef}
+            portal
+            align="start"
+            aria-label="Leave out"
+            className="min-w-48 py-1"
+            style={fmoMenuAt}
+          >
+            {columns.map(column => (
+              <MenuItem
+                key={column.stain.row.id}
+                label={column.label}
+                onClick={() => {
+                  setFmoMenuAt(undefined);
+                  const mix = fmoMix(columns, column.stain.row.id);
+                  if (mix) actions.addMixes([mix]);
+                }}
+              />
+            ))}
+          </DropdownMenu>
+        </span>
         <Button size="xs" variant="ghost" onClick={() => actions.addMixes([emptyMix()])}>
-          Empty mix
+          Empty Mix
         </Button>
       </div>
 
-      {block.mixes.length === 0 ? (
-        <p className="text-body-sm italic text-muted-foreground">
-          A mix is a name and the panel stains it gets: the full stain, an unstained control, single
-          stains, FMOs or any set you tick. Its name is what you put on the wells.
-        </p>
-      ) : (
+      {block.mixes.length > 0 && (
         <div className="overflow-x-auto">
           <table className="border-separate border-spacing-y-0.5">
             <thead>

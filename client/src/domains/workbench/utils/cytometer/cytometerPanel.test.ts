@@ -4,6 +4,7 @@ import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 import {
   dilutionFactor,
   firstOpenDetector,
+  newStainMaterial,
   panelDetectorLabels,
   panelLayout,
   stainCandidates,
@@ -151,5 +152,21 @@ describe('panelDetectorLabels', () => {
       ],
     });
     expect(uses.get(cd4.id)).toBe('VL1, VL4');
+  });
+});
+
+describe('newStainMaterial', () => {
+  it('reads a typed stain the way Materials does', () => {
+    const item = newStainMaterial('IFN-gamma APC 4S.B3', EMPTY_LAB_MEMORY, { blocks: [] });
+    expect(item).toMatchObject({ group: 'ab', type: 'Antibody', name: 'IFN-γ APC 4S.B3' });
+    expect(item.values).toMatchObject({ conjugate: 'APC', clone: '4S.B3' });
+    expect(newStainMaterial('Zombie NIR', EMPTY_LAB_MEMORY, { blocks: [] }).type).toBe('Dye');
+  });
+
+  it('files anything it cannot place as an antibody', () => {
+    expect(newStainMaterial('Mystery reagent 7', EMPTY_LAB_MEMORY, { blocks: [] })).toMatchObject({
+      group: 'ab',
+      type: 'Antibody',
+    });
   });
 });

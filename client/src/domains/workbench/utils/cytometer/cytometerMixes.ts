@@ -21,7 +21,7 @@ export const mixColumns = (layout: PanelLayout): MixColumn[] =>
     laser.slots.flatMap(slot =>
       slot.stains.map(stain => ({
         stain,
-        color: slot.color,
+        color: stain.dyeColor ?? slot.color,
         laserColor: laser.color,
         label: stainLabel(stain),
       }))
@@ -38,7 +38,7 @@ const newMix = (name: string, rowIds: string[]): Mix => ({
 const rowIdsOf = (columns: readonly MixColumn[]) => columns.map(column => column.stain.row.id);
 
 export const fullStainMix = (columns: readonly MixColumn[]): Mix =>
-  newMix('Full stain', rowIdsOf(columns));
+  newMix('Full Stain', rowIdsOf(columns));
 
 export const unstainedMix = (): Mix => newMix('Unstained', []);
 

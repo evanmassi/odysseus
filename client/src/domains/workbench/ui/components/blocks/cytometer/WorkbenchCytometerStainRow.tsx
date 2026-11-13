@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 import { X } from 'lucide-react';
 
-import { Autocomplete, Tooltip } from '@shared/ui';
+import { Autocomplete, Button, Tooltip } from '@shared/ui';
 
 import { CONJUGATE_KEY } from '../../../../utils/cytometer/cytometerPanel';
 
@@ -10,7 +10,7 @@ import {
   CYTOMETER_CELL,
   CYTOMETER_FIELD,
   FLUOROCHROME_SQUARE,
-  LASER_WASH,
+  LIT_ROW,
 } from './cytometerTableStyles';
 import { WorkbenchCytometerTextCell } from './WorkbenchCytometerTextCell';
 
@@ -20,20 +20,29 @@ import type { PanelStain } from '../../../../utils/cytometer/cytometerPanel';
 interface WorkbenchCytometerStainRowProps {
   stain: PanelStain;
   color: string | undefined;
+  tone?: string;
   lead?: ReactNode;
-  detectorCells: ReactNode;
+  detectorCell: ReactNode;
   clashWording: string;
   steps: readonly string[];
+  amount: StainAmount;
   actions: CytometerActions;
+}
+
+export interface StainAmount {
+  text?: string;
+  problem?: string;
 }
 
 export function WorkbenchCytometerStainRow({
   stain,
   color,
+  tone,
   lead,
-  detectorCells,
+  detectorCell,
   clashWording,
   steps,
+  amount,
   actions,
 }: WorkbenchCytometerStainRowProps) {
   const { row, material } = stain;
@@ -42,9 +51,12 @@ export function WorkbenchCytometerStainRow({
     material && actions.writeMaterial(material.id, key, value);
 
   return (
-    <tr className={`group ${LASER_WASH}`}>
+    <tr
+      className={tone ? `group ${LIT_ROW}` : 'group'}
+      style={tone ? ({ '--row-tone': tone } as CSSProperties) : undefined}
+    >
       {lead}
-      {detectorCells}
+      {detectorCell}
       <td className={CYTOMETER_CELL}>
         <span className="flex items-center gap-2">
           <span
@@ -63,6 +75,24 @@ export function WorkbenchCytometerStainRow({
             <span>{stain.fluorochrome}</span>
           )}
         </span>
+        {stain.misplacement && (
+          <span className="flex items-center gap-2 text-label-xs text-warning-text">
+            <Tooltip content={stain.misplacement.text}>
+              <span>Works best on {stain.misplacement.detectorId}</span>
+            </Tooltip>
+            <Button
+              size="xs"
+              variant="ghost"
+              aria-label={`Move ${name} to ${stain.misplacement.detectorId}`}
+              onClick={() =>
+                stain.misplacement &&
+                actions.changeRow(row.id, { detectorId: stain.misplacement.detectorId })
+              }
+            >
+              Move
+            </Button>
+          </span>
+        )}
         {stain.sharesDetectorWith.length > 0 && (
           <span className="block text-label-xs text-danger-text">
             {clashWording} {stain.sharesDetectorWith.join(', ')}
@@ -92,7 +122,16 @@ export function WorkbenchCytometerStainRow({
           />
         )}
       </td>
-      <td className={`${CYTOMETER_CELL} text-muted-foreground`}>{stain.catalog || '—'}</td>
+      <td className={CYTOMETER_CELL}>
+        {material && (
+          <WorkbenchCytometerTextCell
+            value={stain.isotype}
+            label={`Isotype of ${name}`}
+            placeholder="—"
+            onChange={writeMaterial('isotype')}
+          />
+        )}
+      </td>
       <td className={CYTOMETER_CELL}>
         <span className="inline-edit">
           <Autocomplete
@@ -100,7 +139,7 @@ export function WorkbenchCytometerStainRow({
             placeholder="Stain step"
             options={steps.map(step => ({ value: step, label: step }))}
             aria-label={`Stain step of ${name}`}
-            inputClassName={`${CYTOMETER_FIELD} w-24 bg-transparent outline-none`}
+            inputClassName={`${CYTOMETER_FIELD} w-20 bg-transparent outline-none`}
             onChange={stainStep => actions.changeRow(row.id, { stain: stainStep })}
           />
         </span>
@@ -120,6 +159,13 @@ export function WorkbenchCytometerStainRow({
             />
           </span>
         </span>
+      </td>
+      <td className={`${CYTOMETER_CELL} text-right`}>
+        {amount.text ?? (
+          <Tooltip content={amount.problem ?? 'Set a dilution factor'}>
+            <span className="text-muted-foreground">—</span>
+          </Tooltip>
+        )}
       </td>
       <td className={`${CYTOMETER_CELL} w-px px-2`}>
         <Tooltip content="Take it off the panel">

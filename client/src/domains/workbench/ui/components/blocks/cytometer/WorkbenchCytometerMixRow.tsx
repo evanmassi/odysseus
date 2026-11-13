@@ -109,7 +109,6 @@ export function WorkbenchCytometerMixRow({
             placeholder="+ Material"
             options={materialOptions.filter(option => !plusIds.has(String(option.value)))}
             aria-label={`Add a material to ${mixName}`}
-            className="w-36"
             onChange={materialId =>
               actions.addPlus(mix.id, String(materialId), String(stepOptions[0]?.value ?? ''))
             }
