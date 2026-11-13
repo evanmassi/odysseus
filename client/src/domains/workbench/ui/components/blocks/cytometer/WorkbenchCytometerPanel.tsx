@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { Select } from '@shared/ui';
 
+import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import {
   useBlocksOf,
   useProtocolWith,
@@ -46,7 +47,8 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
   const actions = useCytometerActions(block);
   const { blocks } = useProtocolWith('materials');
   const materials = useMemo(() => listedMaterials({ blocks }), [blocks]);
-  const layout = useMemo(() => panelLayout(block, materials), [block, materials]);
+  const catalog = useDyeCatalog();
+  const layout = useMemo(() => panelLayout(block, materials, catalog), [block, materials, catalog]);
   const steps = useMemo(() => stainSteps(block), [block]);
   const amountEntries = useWorkbenchData(state =>
     block.rows.map((row): [string, StainAmount] => {
@@ -74,6 +76,7 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
       block.instrument
         ? stainCandidatesOn(
             block.instrument,
+            catalog,
             stainCandidates(block, materials).map(item => ({
               materialId: item.id,
               name: item.name.trim(),
@@ -81,7 +84,7 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
             }))
           )
         : [],
-    [block, materials]
+    [block, materials, catalog]
   );
   const detectorOptions = useMemo(
     () =>

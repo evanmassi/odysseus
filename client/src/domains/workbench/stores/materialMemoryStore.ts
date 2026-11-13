@@ -5,12 +5,13 @@ import { groupStartingFields } from '../utils/materials/materialItems';
 import {
   EMPTY_LAB_MEMORY,
   learnFromMaterials,
+  rememberDyes,
   rememberKind,
   toggleStartingField,
   type LabMemory,
 } from '../utils/materials/materialMemory';
 
-import type { MaterialItem } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolDye } from '@odysseus/shared-schemas';
 
 const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory';
 
@@ -18,6 +19,7 @@ interface MaterialMemoryState {
   memory: LabMemory;
   rememberKind: (name: string, group: string, type: string) => void;
   learnFromMaterials: (items: readonly MaterialItem[]) => void;
+  rememberDyes: (dyes: readonly ProtocolDye[]) => void;
   toggleStartingField: (group: string, key: string) => void;
 }
 
@@ -30,6 +32,11 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
       learnFromMaterials: items =>
         set(state => {
           const memory = learnFromMaterials(state.memory, items);
+          return memory === state.memory ? state : { memory };
+        }),
+      rememberDyes: dyes =>
+        set(state => {
+          const memory = rememberDyes(state.memory, dyes);
           return memory === state.memory ? state : { memory };
         }),
       toggleStartingField: (group, key) =>

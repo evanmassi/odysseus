@@ -1,4 +1,4 @@
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 import { findNamed } from '../materials/materialLookup';
 
 import { type BoardCalculation, type BoardName, type WorkedOutGroup } from './boardCalculation';

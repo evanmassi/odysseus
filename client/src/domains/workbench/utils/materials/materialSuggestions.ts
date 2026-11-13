@@ -1,4 +1,4 @@
-import { CONJUGATE_NAMES, VENDOR_NAMES } from './materialGuesser';
+import { VENDOR_NAMES } from './materialGuesser';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -6,7 +6,6 @@ const SUGGESTION_LIMIT = 8;
 const BUILT_IN_SUGGESTIONS: Readonly<Record<string, readonly string[]>> = {
   vendor: VENDOR_NAMES,
   manufacturer: VENDOR_NAMES,
-  conjugate: CONJUGATE_NAMES,
 };
 
 export function fieldSuggestions(

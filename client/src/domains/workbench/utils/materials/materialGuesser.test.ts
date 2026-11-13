@@ -1,15 +1,14 @@
 import {
-  CONJUGATE_NAMES,
   VENDOR_NAMES,
   findFluorochromeName,
   guessMaterial,
   isNonFluorochromeConjugate,
   listWithAnd,
-  normalizeMaterialKey,
   splitPastedMaterials,
   type MaterialGuess,
   type RememberedMaterialKind,
 } from './materialGuesser';
+import { normalizeMaterialKey } from './materialKey';
 
 const nothingRemembered = new Map<string, RememberedMaterialKind>();
 const guess = (text: string): MaterialGuess => guessMaterial(text, nothingRemembered);
@@ -53,6 +52,7 @@ describe('guessMaterial antibodies and labels', () => {
         clone: '53-6.7',
         reactivity: 'Mouse',
         conjugate: 'PE-Cy7',
+        laser: 'Yellow-green 561 or Blue 488',
       },
       why: 'PE-Cy7 is a fluorochrome',
       source: 'list',
@@ -347,13 +347,6 @@ describe('lookup lists and helpers', () => {
     expect(VENDOR_NAMES).toContain('Thermo Fisher');
     expect(VENDOR_NAMES).toContain('BioLegend');
     expect(VENDOR_NAMES).not.toContain('ThermoFisher');
-  });
-
-  it('suggests fluorochromes and chemical conjugates but not fluorescent proteins', () => {
-    expect(CONJUGATE_NAMES).toContain('BV421');
-    expect(CONJUGATE_NAMES).toContain('PE-Cy7');
-    expect(CONJUGATE_NAMES.slice(-3)).toEqual(['HRP', 'Biotin', 'AP']);
-    expect(CONJUGATE_NAMES).not.toContain('GFP');
   });
 
   it('tells chemical conjugates apart from fluorochromes', () => {

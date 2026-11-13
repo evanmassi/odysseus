@@ -3,7 +3,8 @@ import { createId } from '../ids/createId';
 
 import { withGreekLetters } from './greekLetters';
 import { UNIT_PER_ITEM, fieldUnit, materialFields, materialGroup } from './materialCatalog';
-import { normalizeMaterialKey, type MaterialAmount, type MaterialGuess } from './materialGuesser';
+import { type MaterialAmount, type MaterialGuess } from './materialGuesser';
+import { normalizeMaterialKey } from './materialKey';
 
 import type { LabMemory, RememberedMaterial } from './materialMemory';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';

@@ -67,6 +67,7 @@ const protocol = (extra: ProtocolBlock[] = []): Protocol => ({
   runNumber: '',
   runOn: { from: '', to: '' },
   pages: [{ id: 'page', name: 'Flow', steps: [] }],
+  dyes: [],
   blocks: [
     {
       ...placement,

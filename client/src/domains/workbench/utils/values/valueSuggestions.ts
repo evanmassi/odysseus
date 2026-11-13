@@ -1,5 +1,5 @@
 import { MATERIAL_GROUPS, fieldLabel, materialFields } from '../materials/materialCatalog';
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 
 import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui';

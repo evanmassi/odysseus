@@ -20,7 +20,7 @@ import type { AutocompleteProps, AutocompleteRef, AutocompleteOption } from './t
 
 const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
 
-const MIN_CHARS = 2;
+const DEFAULT_MIN_CHARS = 2;
 const BLUR_CLOSE_DELAY_MS = 150;
 
 export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
@@ -36,6 +36,8 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       fullWidth = false,
       'aria-label': ariaLabel,
       inputClassName,
+      minChars = DEFAULT_MIN_CHARS,
+      onBlur,
     },
     ref
   ) => {
@@ -51,7 +53,8 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
 
     const combinedRef = useMergedRef(ref, inputRef);
 
-    const shouldShow = isOpen && value.length >= MIN_CHARS && options.length > 0;
+    const isLongEnough = value.length >= minChars;
+    const shouldShow = isOpen && isLongEnough && options.length > 0;
 
     const updateDropdownPosition = useCallback(() => {
       if (!containerRef.current) return;
@@ -60,7 +63,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
         position: 'fixed',
         top: rect.bottom + 4,
         left: rect.left,
-        width: rect.width,
+        minWidth: rect.width,
         zIndex: 9999,
       });
     }, []);
@@ -112,7 +115,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (!shouldShow) {
-          if (e.key === 'ArrowDown' && value.length >= MIN_CHARS && options.length > 0) {
+          if (e.key === 'ArrowDown' && isLongEnough && options.length > 0) {
             e.preventDefault();
             setIsOpen(true);
           }
@@ -149,21 +152,25 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
             break;
         }
       },
-      [shouldShow, highlightedIndex, options, handleSelect, value.length]
+      [shouldShow, highlightedIndex, options, handleSelect, isLongEnough]
     );
 
     const handleFocus = useCallback(() => {
       clearTimeout(blurTimerRef.current);
-      if (value.length >= MIN_CHARS && options.length > 0) {
+      if (isLongEnough && options.length > 0) {
         setIsOpen(true);
       }
-    }, [value.length, options.length]);
+    }, [isLongEnough, options.length]);
 
-    const handleBlur = useCallback((e: React.FocusEvent) => {
-      const relatedTarget = e.relatedTarget as Node | null;
-      if (containerRef.current?.contains(relatedTarget)) return;
-      blurTimerRef.current = setTimeout(() => setIsOpen(false), BLUR_CLOSE_DELAY_MS);
-    }, []);
+    const handleBlur = useCallback(
+      (e: React.FocusEvent) => {
+        const relatedTarget = e.relatedTarget as Node | null;
+        if (containerRef.current?.contains(relatedTarget)) return;
+        blurTimerRef.current = setTimeout(() => setIsOpen(false), BLUR_CLOSE_DELAY_MS);
+        onBlur?.();
+      },
+      [onBlur]
+    );
 
     const stateBorder =
       state === 'error'
@@ -179,33 +186,44 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
               <div className="py-1">
                 {options.map((option, index) => {
                   const isHighlighted = index === highlightedIndex;
+                  const startsGroup =
+                    option.group !== undefined && option.group !== options[index - 1]?.group;
 
                   return (
-                    <div
-                      key={option.value}
-                      id={`${listboxId}-option-${index}`}
-                      ref={el => {
-                        optionRefs.current[index] = el;
-                      }}
-                      role="option"
-                      tabIndex={-1}
-                      aria-selected={isHighlighted}
-                      className={`px-3 py-1.5 cursor-pointer text-body transition-[background-image,box-shadow,color] duration-150 ${ROW_TONE.primary} ${
-                        isHighlighted ? `${ROW_LIT_HOVER} text-foreground` : 'text-foreground/75'
-                      }`}
-                      onMouseDown={e => {
-                        e.preventDefault();
-                        handleSelect(option);
-                      }}
-                      onMouseEnter={() => setHighlightedIndex(index)}
-                    >
-                      <span className="font-medium">{option.label}</span>
-                      {option.secondary && (
-                        <span className="text-foreground/50 ml-2 text-caption">
-                          ({option.secondary})
-                        </span>
+                    <React.Fragment key={`${option.group ?? ''}|${option.value}`}>
+                      {startsGroup && (
+                        <div
+                          role="presentation"
+                          className="px-3 pb-1 pt-2 type-label text-label-2xs font-semibold text-muted-foreground"
+                        >
+                          {option.group}
+                        </div>
                       )}
-                    </div>
+                      <div
+                        id={`${listboxId}-option-${index}`}
+                        ref={el => {
+                          optionRefs.current[index] = el;
+                        }}
+                        role="option"
+                        tabIndex={-1}
+                        aria-selected={isHighlighted}
+                        className={`whitespace-nowrap px-3 py-1.5 cursor-pointer text-body transition-[background-image,box-shadow,color] duration-150 ${ROW_TONE.primary} ${
+                          isHighlighted ? `${ROW_LIT_HOVER} text-foreground` : 'text-foreground/75'
+                        }`}
+                        onMouseDown={e => {
+                          e.preventDefault();
+                          handleSelect(option);
+                        }}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                      >
+                        <span className="font-medium">{option.label}</span>
+                        {option.secondary && (
+                          <span className="text-foreground/50 ml-2 text-caption">
+                            ({option.secondary})
+                          </span>
+                        )}
+                      </div>
+                    </React.Fragment>
                   );
                 })}
               </div>
@@ -235,6 +253,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
+          onClick={handleFocus}
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}

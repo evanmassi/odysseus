@@ -1,4 +1,5 @@
-import { withGreekLetters } from './greekLetters';
+import { BUILT_IN_CATALOG, dyeLaserLabel } from '../dyes/dyeCatalog';
+
 import {
   ANTIBODY_STOP_WORDS,
   DECISIVE_KEYWORD_TYPES,
@@ -9,11 +10,10 @@ import {
   type KeywordRule,
 } from './materialGuessRules';
 import { guessSupplyShape, pickFirst, type PickTable } from './materialGuessSupplyShape';
+import { normalizeMaterialKey } from './materialKey';
 import {
   CONJUGATE_LEXICON,
   CYTOKINE_LEXICON,
-  FLUORESCENT_PROTEIN_KEYS,
-  FLUOROCHROMES_BY_LASER,
   MATERIAL_LEXICON,
   TARGET_LEXICON,
   VENDOR_LEXICON,
@@ -120,24 +120,6 @@ interface AntibodyLabel {
   conjugateName?: string;
 }
 
-const LATIN_FOR_GREEK: readonly (readonly [RegExp, string])[] = [
-  [/α/g, 'a'],
-  [/β/g, 'b'],
-  [/γ/g, 'g'],
-  [/δ/g, 'd'],
-  [/κ/g, 'k'],
-  [/λ/g, 'l'],
-  [/ε/g, 'e'],
-  [/[µμ]/g, 'u'],
-];
-const NON_KEY_CHARACTERS = /[^a-z0-9]/g;
-
-export const normalizeMaterialKey = (text: string): string =>
-  LATIN_FOR_GREEK.reduce(
-    (key, [letter, latin]) => key.replace(letter, latin),
-    withGreekLetters(text).toLowerCase()
-  ).replace(NON_KEY_CHARACTERS, '');
-
 const LIST_SEPARATOR = '|';
 const ALIAS_SEPARATOR = '=';
 const splitList = (list: string): string[] => list.split(LIST_SEPARATOR);
@@ -156,16 +138,15 @@ function indexLexicon(): ReadonlyMap<string, LexiconHit> {
 
 function indexFluorochromes(): ReadonlyMap<string, Fluorochrome> {
   const index = new Map<string, Fluorochrome>();
-  for (const { laser, names } of FLUOROCHROMES_BY_LASER) {
-    for (const chain of splitList(names)) {
-      const aliases = splitAliases(chain).map(alias => alias.trim());
-      const name = aliases[0];
-      const fluorochrome = {
-        name,
-        laser,
-        isProtein: FLUORESCENT_PROTEIN_KEYS.has(normalizeMaterialKey(name)),
-      };
-      for (const alias of aliases) index.set(normalizeMaterialKey(alias), fluorochrome);
+  for (const dye of BUILT_IN_CATALOG.dyes) {
+    if (dye.kind !== 'conjugate' && dye.kind !== 'protein') continue;
+    const fluorochrome = {
+      name: dye.name,
+      laser: dyeLaserLabel(dye),
+      isProtein: dye.kind === 'protein',
+    };
+    for (const spelling of [dye.name, ...dye.aliases]) {
+      index.set(normalizeMaterialKey(spelling), fluorochrome);
     }
   }
   return index;
@@ -203,33 +184,11 @@ export const VENDOR_NAMES: readonly string[] = splitList(VENDOR_LEXICON).map(
   chain => splitAliases(chain)[0]
 );
 
-export const CONJUGATE_NAMES: readonly string[] = [
-  ...FLUOROCHROMES_BY_LASER.flatMap(({ names }) =>
-    splitList(names).map(chain => splitAliases(chain)[0].trim())
-  ).filter(name => !FLUORESCENT_PROTEIN_KEYS.has(normalizeMaterialKey(name))),
-  'HRP',
-  'Biotin',
-  'AP',
-];
-
 export const isNonFluorochromeConjugate = (name: string): boolean =>
   conjugateByKey.has(normalizeMaterialKey(name));
 
 export const findFluorochromeName = (name: string): string | undefined =>
   fluorochromeByKey.get(normalizeMaterialKey(name))?.name;
-
-export interface DyeLaser {
-  name: string;
-  laser: string;
-}
-
-export function findDyeLaser(name: string): DyeLaser | undefined {
-  const key = normalizeMaterialKey(name);
-  const fluorochrome = fluorochromeByKey.get(key);
-  if (fluorochrome) return { name: fluorochrome.name, laser: fluorochrome.laser };
-  const laser = lexiconByKey.get(key)?.values['laser'];
-  return laser === undefined ? undefined : { name: name.trim(), laser };
-}
 
 const THERAPEUTIC_ANTIBODY = /\b[a-z]{3,}mab\b/i;
 
@@ -649,7 +608,7 @@ function readsAsAntibody({
     const isPlainMarker =
       !target.hit.isCytokine &&
       !lexiconHit &&
-      !FLUORESCENT_PROTEIN_KEYS.has(normalizeMaterialKey(target.text));
+      BUILT_IN_CATALOG.find(target.text)?.kind !== 'protein';
     if (isPlainMarker) return true;
   }
   return (fluorochrome !== undefined || hasAnti) && !lexiconHit;

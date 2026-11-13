@@ -1,10 +1,10 @@
 import {
   guessMaterial,
-  normalizeMaterialKey,
   splitPastedMaterials,
   type RememberedMaterialKind,
 } from './materialGuesser';
 import { findDuplicateMaterial, materialFromGuess, mergeMaterialInto } from './materialItems';
+import { normalizeMaterialKey } from './materialKey';
 
 import type { LabMemory } from './materialMemory';
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';

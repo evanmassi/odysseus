@@ -1,9 +1,11 @@
+import { type DyeCatalog } from '../dyes/dyeCatalog';
 import { ANTIBODY_GROUP, materialFields } from '../materials/materialCatalog';
-import { guessMaterial, normalizeMaterialKey } from '../materials/materialGuesser';
+import { guessMaterial } from '../materials/materialGuesser';
 import { applyMaterialKind, materialFromGuess } from '../materials/materialItems';
+import { normalizeMaterialKey } from '../materials/materialKey';
 import { rememberedKinds, type LabMemory } from '../materials/materialMemory';
 
-import { dyeFacts, misplacementText, type Misplacement } from './stainPlacement';
+import { misplacementText, type Misplacement } from './stainPlacement';
 import { filterCenter, wavelengthColor, wavelengthTone } from './wavelengthColor';
 
 import type { CytometerBlock, Instrument, MaterialItem, Protocol } from '@odysseus/shared-schemas';
@@ -55,9 +57,9 @@ const STARTING_STAINS = ['Viability', 'Surface', 'ICS'];
 const hasField = (item: MaterialItem, key: string) =>
   materialFields(item).some(definition => definition.key === key);
 
-const dyeEmissionColor = (fluorochrome: string): string | undefined => {
-  const facts = dyeFacts(fluorochrome);
-  return facts && wavelengthColor(facts.emission);
+const dyeEmissionColor = (catalog: DyeCatalog, fluorochrome: string): string | undefined => {
+  const dye = catalog.find(fluorochrome);
+  return dye && wavelengthColor(dye.peak);
 };
 
 export const stainFluorochrome = (item: MaterialItem): string =>
@@ -66,7 +68,8 @@ export const stainFluorochrome = (item: MaterialItem): string =>
 function readStain(
   row: PanelRow,
   material: MaterialItem | undefined,
-  instrument: Instrument | undefined
+  instrument: Instrument | undefined,
+  catalog: DyeCatalog
 ): PanelStain {
   const value = (key: string) => (material?.values[key] ?? '').trim();
   const markerKey =
@@ -83,8 +86,8 @@ function readStain(
     clone: value('clone'),
     isotype: value('isotype'),
     sharesDetectorWith: [],
-    misplacement: instrument && misplacementText(instrument, fluorochrome, row.detectorId),
-    dyeColor: dyeEmissionColor(fluorochrome),
+    misplacement: instrument && misplacementText(instrument, catalog, fluorochrome, row.detectorId),
+    dyeColor: dyeEmissionColor(catalog, fluorochrome),
   };
 }
 
@@ -93,10 +96,13 @@ const stainLabel = (stain: PanelStain) =>
 
 export function panelLayout(
   block: CytometerBlock,
-  materials: readonly MaterialItem[]
+  materials: readonly MaterialItem[],
+  catalog: DyeCatalog
 ): PanelLayout {
   const byId = new Map(materials.map(item => [item.id, item]));
-  const stains = block.rows.map(row => readStain(row, byId.get(row.materialId), block.instrument));
+  const stains = block.rows.map(row =>
+    readStain(row, byId.get(row.materialId), block.instrument, catalog)
+  );
   const placed = new Set<PanelStain>();
   const lasers = (block.instrument?.lasers ?? []).map(laser => ({
     name: laser.name,

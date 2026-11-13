@@ -1,5 +1,5 @@
 import { withGreekLetters } from './greekLetters';
-import { normalizeMaterialKey } from './materialGuesser';
+import { normalizeMaterialKey } from './materialKey';
 
 describe('spelled-out Greek letters', () => {
   it('turn into the letter when attached to a name', () => {

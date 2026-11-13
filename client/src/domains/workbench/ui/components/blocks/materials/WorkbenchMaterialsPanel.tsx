@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import { useStableActions } from '../../../../hooks/useStableActions';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { panelDetectorLabels } from '../../../../utils/cytometer/cytometerPanel';
+import { resolveDye } from '../../../../utils/dyes/dyePicks';
+import { keepDyeInFile } from '../../../../utils/dyes/fileDyes';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import {
@@ -14,7 +17,7 @@ import {
   materialGroup,
   materialGroupsOf,
 } from '../../../../utils/materials/materialCatalog';
-import { conjugateClashes } from '../../../../utils/materials/materialClashes';
+import { CONJUGATE_FIELD, conjugateClashes } from '../../../../utils/materials/materialClashes';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import {
   groupStartingFields,
@@ -102,6 +105,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const updateBlock = useUpdateBlock(block);
   const memory = useMaterialMemoryStore(state => state.memory);
+  const catalog = useDyeCatalog();
   const rememberKind = useMaterialMemoryStore(state => state.rememberKind);
   const learnFromMaterials = useMaterialMemoryStore(state => state.learnFromMaterials);
   const toggleStartingField = useMaterialMemoryStore(state => state.toggleStartingField);
@@ -204,6 +208,13 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     (cell: MaterialCell) => {
       if (cell.key === LOT_FIELD) {
         updateItem(cell.itemId, (item, draft) => fillFromLotMemory(draft.lotMemory, item));
+      } else if (cell.key === CONJUGATE_FIELD) {
+        updateItem(cell.itemId, (item, draft) => {
+          const typed = item.values[cell.key] ?? '';
+          const { name, toKeep } = resolveDye(catalog, Object.values(memory.dyes), typed);
+          if (toKeep) keepDyeInFile(draft, toKeep);
+          if (name !== typed) item.values[cell.key] = name;
+        });
       } else if (cell.key === NAME_CELL) {
         updateItem(cell.itemId, item => {
           item.name = withGreekLetters(item.name);
@@ -216,7 +227,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         });
       }
     },
-    [updateItem]
+    [updateItem, catalog, memory.dyes]
   );
   const editing = useMaterialCellEditing(cellOrder, finishCell);
   const isEditingCell = editing.cell !== undefined;

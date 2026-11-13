@@ -249,6 +249,12 @@ const cytometerBlockSchema = z.object({
     .default([]),
 });
 
+const protocolDyeSchema = z.object({
+  name: z.string().min(1),
+  lasers: z.array(z.number().positive()).min(1),
+  peak: z.number().positive(),
+});
+
 const protocolBlockSchema = z.discriminatedUnion('type', [
   materialsBlockSchema,
   tableBlockSchema,
@@ -273,6 +279,7 @@ const protocolSchema = z.object({
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
   ignoredReadings: z.array(z.string()).default([]),
+  dyes: z.array(protocolDyeSchema).default([]),
 });
 
 export const protocolFileSchema = z.object({
@@ -294,6 +301,7 @@ export type FormulaBlock = z.infer<typeof formulaBlockSchema>;
 export type VesselMapBlock = z.infer<typeof vesselMapBlockSchema>;
 export type CytometerBlock = z.infer<typeof cytometerBlockSchema>;
 export type Instrument = z.infer<typeof instrumentSchema>;
+export type ProtocolDye = z.infer<typeof protocolDyeSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;
 export type PlateSeries = z.infer<typeof seriesSchema>;
 export type CellLine = z.infer<typeof cellLineSchema>;

@@ -1,3 +1,7 @@
+import { BUILT_IN_CATALOG, dyeLaserLabel } from '../dyes/dyeCatalog';
+
+import type { DyeKind } from '../dyes/dyeList';
+
 export type MaterialLexiconGroup =
   | 'bio'
   | 'ab'
@@ -17,10 +21,23 @@ interface MaterialLexiconEntry {
   isGeneric?: boolean;
 }
 
-interface FluorochromeLaserGroup {
-  laser: string;
-  names: string;
-}
+const DYE_MATERIAL_TARGETS: Readonly<Partial<Record<DyeKind, string>>> = {
+  viability: 'Viability',
+  dna: 'DNA',
+};
+
+const DYE_MATERIAL_ENTRIES: readonly MaterialLexiconEntry[] = BUILT_IN_CATALOG.dyes.flatMap(dye => {
+  const target = DYE_MATERIAL_TARGETS[dye.kind];
+  if (!target) return [];
+  const values: Record<string, string> = { target, laser: dyeLaserLabel(dye) };
+  if (dye.kind === 'viability') values['fixable'] = dye.isFixable ? 'Yes' : 'No';
+  return {
+    group: 'ab',
+    type: 'Dye',
+    values,
+    names: [dye.name, ...dye.aliases].join('|'),
+  };
+});
 
 export const MATERIAL_LEXICON: readonly MaterialLexiconEntry[] = [
   {
@@ -188,61 +205,12 @@ export const MATERIAL_LEXICON: readonly MaterialLexiconEntry[] = [
     values: { target: 'Viability', fixable: 'Yes' },
     names: 'LIVE/DEAD|Fixable Viability Dye|FVD|FVS|Ghost Dye|viability dye|live/dead stain',
   },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'Yes', laser: 'UV 355' },
-    names: 'Zombie UV|LIVE/DEAD Fixable Blue',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'Yes', laser: 'Violet 405' },
-    names:
-      'Zombie Aqua|Zombie Violet|Zombie Yellow|LIVE/DEAD Fixable Aqua|LIVE/DEAD Fixable Violet|LIVE/DEAD Fixable Yellow|Fixable Viability Dye eFluor 450|Fixable Viability Dye eFluor 506|Fixable Viability Stain 510|Fixable Viability Stain 575V|Ghost Dye Violet 510',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'Yes', laser: 'Blue 488' },
-    names: 'Zombie Green|LIVE/DEAD Fixable Green',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'Yes', laser: 'Yellow-green 561' },
-    names: 'Zombie Red',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'Yes', laser: 'Red 640' },
-    names:
-      'Zombie NIR|LIVE/DEAD Fixable Near-IR|Fixable Viability Dye eFluor 780|Fixable Viability Stain 780|Ghost Dye Red 780',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'No', laser: 'Violet 405' },
-    names: 'SYTOX Blue|DAPI viability',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'No', laser: 'Blue 488' },
-    names: '7-AAD|propidium iodide|PI|SYTOX Green',
-  },
-  {
-    group: 'ab',
-    type: 'Dye',
-    values: { target: 'Viability', fixable: 'No', laser: 'Red 640' },
-    names: 'DRAQ7|SYTOX Red|TO-PRO-3',
-  },
+  ...DYE_MATERIAL_ENTRIES,
   {
     group: 'ab',
     type: 'Dye',
     values: { target: 'DNA' },
-    names: 'DAPI|Hoechst|Hoechst 33342|Hoechst 33258|DRAQ5|SYBR Green I|EdU|BrdU',
+    names: 'SYBR Green I|EdU|BrdU',
   },
   {
     group: 'ab',
@@ -584,52 +552,6 @@ export const MATERIAL_LEXICON: readonly MaterialLexiconEntry[] = [
       'GEO|SRA|ArrayExpress|PRIDE|Zenodo|figshare|Dryad|Mendeley Data|ImmPort|dbGaP|EGA|PDB|EMDB|FlowRepository|Cytobank dataset|ProteomeXchange|MassIVE|BioStudies|Single Cell Portal|CELLxGENE|Human Cell Atlas|deposited data|raw data|dataset|source data',
   },
 ];
-
-export const FLUOROCHROMES_BY_LASER: readonly FluorochromeLaserGroup[] = [
-  {
-    laser: 'UV 355',
-    names:
-      'BUV395=Brilliant Ultraviolet 395|BUV496=Brilliant Ultraviolet 496|BUV563=Brilliant Ultraviolet 563|BUV615=Brilliant Ultraviolet 615|BUV661=Brilliant Ultraviolet 661|BUV737=Brilliant Ultraviolet 737|BUV805=Brilliant Ultraviolet 805|Spark UV 387',
-  },
-  {
-    laser: 'Violet 405',
-    names:
-      'BV421=Brilliant Violet 421|BV480=Brilliant Violet 480|BV510=Brilliant Violet 510|BV570=Brilliant Violet 570|BV605=Brilliant Violet 605|BV650=Brilliant Violet 650|BV711=Brilliant Violet 711|BV750=Brilliant Violet 750|BV785=Brilliant Violet 785|BV786=Brilliant Violet 786|Pacific Blue=PB|Pacific Orange|Pacific Green|eFluor 450=eF450|eFluor 506=eF506|Super Bright 436=SB436|Super Bright 600=SB600|Super Bright 645=SB645|Super Bright 702=SB702|Super Bright 780=SB780|V450=Horizon V450|V500=Horizon V500|V500-C|Alexa Fluor 405=AF405|Spark Violet 500|Spark Violet 538|Krome Orange|cFluor V420|cFluor V450|cFluor V547|DyLight 405|VioBlue|VioGreen|Qdot 605|Qdot 655|Qdot 705|Qdot 800',
-  },
-  {
-    laser: 'Blue 488',
-    names:
-      'FITC=fluorescein|Alexa Fluor 488=AF488=A488|BB515|BB630|BB660|BB700|BB755|BB790|Spark Blue 550|Spark Blue 574|PerCP|PerCP-Cy5.5=PerCP/Cyanine5.5=PerCP Cy5.5|PerCP-eFluor 710=PerCP-eF710|PerCP-Vio700|PerCP-Fire 806|Alexa Fluor 532=AF532|DyLight 488|VioBright FITC|VioBright 515|cFluor B515|cFluor B532|NovaFluor Blue 510|NovaFluor Blue 530|NovaFluor Blue 555|NovaFluor Blue 585|NovaFluor Blue 610|NovaFluor Blue 660|NovaFluor Blue 690|RB545|RB613|RB705|RB744|RB780|GFP|EGFP|mNeonGreen|YFP',
-  },
-  {
-    laser: '',
-    names:
-      'PE=R-PE|PE-Cy5=PE/Cyanine5=PE/Cy5|PE-Cy5.5=PE/Cyanine5.5|PE-Cy7=PE/Cyanine7=PE/Cy7|PE-CF594|PE-Dazzle 594=PE/Dazzle 594=PE Dazzle|PE-Texas Red=PE-TR=PE-TxRed|PE-eFluor 610=PE-eF610|PE-Fire 640=PE/Fire 640|PE-Fire 700=PE/Fire 700|PE-Fire 744=PE/Fire 744|PE-Fire 780=PE/Fire 780|PE-Fire 810=PE/Fire 810|PE-Vio770|PE-Vio615|PE-Alexa Fluor 610|PE-Alexa Fluor 700|Alexa Fluor 555=AF555|Alexa Fluor 568=AF568|Alexa Fluor 594=AF594|Texas Red|Cy3|Cy3.5|DyLight 550|DyLight 594|Spark YG 570|Spark YG 581|Spark YG 593|cFluor YG584|RY586|RY610|RY703|RY775|BYG584|tdTomato|mCherry|RFP|DsRed|mKate2|mScarlet',
-  },
-  {
-    laser: 'Red 640',
-    names:
-      'APC|APC-Cy7=APC/Cyanine7=APC/Cy7|APC-H7|APC-Fire 750=APC/Fire 750|APC-Fire 810=APC/Fire 810|APC-R700|APC-eFluor 780=APC-eF780|APC-Vio770|APC-Alexa Fluor 750|APC-Cy5.5|Alexa Fluor 647=AF647=A647|Alexa Fluor 660=AF660|Alexa Fluor 680=AF680|Alexa Fluor 700=AF700|eFluor 660=eF660|Cy5|Cy5.5|Cy7|DyLight 649|DyLight 650|Spark NIR 685|Spark Red 718|NovaFluor Red 660|NovaFluor Red 685|NovaFluor Red 700|NovaFluor Red 710|NovaFluor Red 720|NovaFluor Red 787|Vio667|R718|iFluor 647|CF647|iRFP',
-  },
-  {
-    laser: 'Near-IR 808',
-    names: 'Alexa Fluor 790=AF790|IRDye 800CW|IRDye 800|IRDye 680RD|IRDye 680',
-  },
-];
-
-export const FLUORESCENT_PROTEIN_KEYS: ReadonlySet<string> = new Set([
-  'gfp',
-  'egfp',
-  'mneongreen',
-  'yfp',
-  'tdtomato',
-  'mcherry',
-  'rfp',
-  'dsred',
-  'mkate2',
-  'mscarlet',
-  'irfp',
-]);
 
 export const CONJUGATE_LEXICON =
   'HRP|horseradish peroxidase|AP|biotin|biotinylated|digoxigenin|DIG|Ultra-LEAF|LEAF';
