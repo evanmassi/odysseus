@@ -167,3 +167,49 @@ export function renameValue(block: VesselMapBlock, valueId: string, text: string
     .find(candidate => candidate.id === valueId);
   if (value && text.trim()) value.text = text.trim();
 }
+
+export interface HeldName {
+  valueId: string;
+  text: string;
+}
+
+export function heldNames(block: VesselMapBlock, keys: readonly string[]): Map<string, HeldName> {
+  const held = new Map<string, HeldName>();
+  for (const row of wellRows(block, keys, undefined)) {
+    if (row.line && row.value)
+      held.set(row.line.id, { valueId: row.value.id, text: row.value.text });
+  }
+  return held;
+}
+
+export interface NameElsewhere {
+  text: string;
+  wellCount: number;
+  vesselName: string | undefined;
+}
+
+const VESSEL_OF_KEY = /^[^:#]+/;
+
+export function nameElsewhere(
+  block: VesselMapBlock,
+  lineId: string,
+  valueId: string,
+  keys: readonly string[]
+): NameElsewhere | undefined {
+  const value = block.lines
+    .find(line => line.id === lineId)
+    ?.values.find(candidate => candidate.id === valueId);
+  const selected = new Set(keys);
+  const outside = Object.entries(block.cells)
+    .filter(([key, lines]) => !selected.has(key) && lines[lineId]?.valueId === valueId)
+    .map(([key]) => key.match(VESSEL_OF_KEY)?.[0]);
+  if (!value || !outside.length) return undefined;
+  const vessels = new Set(outside);
+  const [onlyVessel] = vessels;
+  return {
+    text: value.text,
+    wellCount: outside.length,
+    vesselName:
+      vessels.size === 1 ? block.plates.find(plate => plate.id === onlyVessel)?.name : undefined,
+  };
+}

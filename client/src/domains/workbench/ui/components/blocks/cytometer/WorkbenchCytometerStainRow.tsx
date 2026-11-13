@@ -12,6 +12,7 @@ import {
   CYTOMETER_FIELD,
   CYTOMETER_PICK_FIELD,
   FLUOROCHROME_SQUARE,
+  HOVER_ROW,
   LIT_ROW,
 } from './cytometerTableStyles';
 import { WorkbenchCytometerTextCell } from './WorkbenchCytometerTextCell';
@@ -54,7 +55,7 @@ export function WorkbenchCytometerStainRow({
 
   return (
     <tr
-      className={tone ? `group ${LIT_ROW}` : 'group'}
+      className={tone ? `group ${LIT_ROW}` : HOVER_ROW}
       style={tone ? ({ '--row-tone': tone } as CSSProperties) : undefined}
     >
       {lead}

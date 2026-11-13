@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 
 import { Select, Tooltip, type SelectOption } from '@shared/ui';
 
-import { CYTOMETER_CELL, FLUOROCHROME_SQUARE } from './cytometerTableStyles';
+import { CYTOMETER_CELL, FLUOROCHROME_SQUARE, HOVER_ROW } from './cytometerTableStyles';
 import { WorkbenchCytometerTextCell } from './WorkbenchCytometerTextCell';
 
 import type { CytometerActions } from './useCytometerActions';
@@ -36,7 +36,7 @@ export function WorkbenchCytometerMixRow({
   const plusIds = new Set(mix.plus.map(plus => plus.materialId));
 
   return (
-    <tr className="group">
+    <tr className={HOVER_ROW}>
       <td className={CYTOMETER_CELL}>
         <WorkbenchCytometerTextCell
           value={mix.name}

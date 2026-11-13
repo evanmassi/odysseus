@@ -1,5 +1,5 @@
 import { normalizeMaterialKey } from './materialKey';
-import { findNamed, listedMaterials } from './materialLookup';
+import { findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -68,5 +68,10 @@ export function plateNameOffers(
 
 export function linkPlateName(draft: Protocol, name: string, materialId: string): void {
   const material = listedMaterials(draft).find(candidate => candidate.id === materialId);
-  if (material) material.name = `${name.trim()} (${material.name.trim()})`;
+  if (!material) return;
+  const oldName = material.name.trim();
+  const notesAt = oldName.indexOf('(');
+  const notes = notesAt < 0 ? '' : oldName.slice(notesAt + 1, oldName.lastIndexOf(')')).trim();
+  const kept = [nameWithoutNotes(oldName), notes].filter(Boolean).join(', ');
+  material.name = `${name.trim()} (${kept})`;
 }

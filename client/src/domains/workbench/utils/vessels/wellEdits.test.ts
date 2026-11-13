@@ -1,6 +1,8 @@
 import { normalizeVesselMap, type VesselMapBlock } from '@odysseus/shared-schemas';
 
 import {
+  heldNames,
+  nameElsewhere,
   removeLineFromWells,
   setWellsAmount,
   setWellsText,
@@ -87,5 +89,36 @@ describe('editing wells', () => {
     edit(block, draft => removeLineFromWells(draft, ['p:A1'], block.lines[0].id));
     expect(block.lines).toEqual([]);
     expect(block.cells).toEqual({});
+  });
+});
+
+describe('names shared across the selection', () => {
+  const twoPlates = () =>
+    vesselMap({
+      plates: [
+        { id: 'p1', vessel: '384', name: 'P1 - Flat bottom' },
+        { id: 'p2', vessel: '384', name: 'P2 - V-bottom' },
+      ],
+      lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'v', text: 'HCKA' }] }],
+      cells: {
+        'p1:A1': { l: { valueId: 'v' } },
+        'p1:A2': { l: { valueId: 'v' } },
+        'p2:A1': { l: { valueId: 'v' } },
+      },
+    });
+
+  it('reads what the selected wells hold on each line', () => {
+    expect(heldNames(twoPlates(), ['p2:A1'])).toEqual(
+      new Map([['l', { valueId: 'v', text: 'HCKA' }]])
+    );
+  });
+
+  it('counts the other wells with the name and names their plate', () => {
+    expect(nameElsewhere(twoPlates(), 'l', 'v', ['p2:A1'])).toEqual({
+      text: 'HCKA',
+      wellCount: 2,
+      vesselName: 'P1 - Flat bottom',
+    });
+    expect(nameElsewhere(twoPlates(), 'l', 'v', ['p1:A1', 'p1:A2', 'p2:A1'])).toBeUndefined();
   });
 });

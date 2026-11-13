@@ -12,7 +12,7 @@ import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
-import type { WellRow } from '../../../../utils/vessels/wellEdits';
+import type { NameElsewhere, WellRow } from '../../../../utils/vessels/wellEdits';
 
 interface WorkbenchWellLineRowProps {
   row: WellRow;
@@ -22,7 +22,9 @@ interface WorkbenchWellLineRowProps {
   showsRole: boolean;
   canRemove: boolean;
   inputRef: Ref<HTMLInputElement> | undefined;
+  sharedName: NameElsewhere | undefined;
   onTextChange: (text: string) => void;
+  onRenameEverywhere: () => void;
   onAmountChange: (amount: string) => void;
   onUnitChange: (unit: string) => void;
   onRoleChange: (role: PlateLine['role']) => void;
@@ -48,7 +50,9 @@ export function WorkbenchWellLineRow({
   showsRole,
   canRemove,
   inputRef,
+  sharedName,
   onTextChange,
+  onRenameEverywhere,
   onAmountChange,
   onUnitChange,
   onRoleChange,
@@ -158,6 +162,20 @@ export function WorkbenchWellLineRow({
           </button>
         )}
       </div>
+      {sharedName && (
+        <p className="pl-6 text-caption text-muted-foreground">
+          {sharedName.text} is also on {sharedName.wellCount}{' '}
+          {sharedName.wellCount === 1 ? 'well' : 'wells'}
+          {sharedName.vesselName && ` on ${sharedName.vesselName}`} ·{' '}
+          <button
+            type="button"
+            className="text-primary hover:underline"
+            onClick={onRenameEverywhere}
+          >
+            Rename everywhere
+          </button>
+        </p>
+      )}
       {isPickingColor && row.value && (
         <WorkbenchColorSwatchList
           current={row.value.color}

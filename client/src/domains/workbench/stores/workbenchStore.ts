@@ -5,10 +5,7 @@ import { calculateBoard, type BoardCalculation } from '../utils/formulas/boardCa
 import { collectBoardNames } from '../utils/formulas/boardNames';
 import { applyRenames, findRenames } from '../utils/formulas/nameRenames';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
-import {
-  dropValuesTwinnedByPlate,
-  renameMaterialsAfterPlateValues,
-} from '../utils/vessels/plateEditEffects';
+import { dropValuesTwinnedByPlate } from '../utils/vessels/plateEditEffects';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -101,7 +98,6 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
       const changed = haveSameVesselMaps(state.protocol, edited)
         ? edited
         : produce(edited, draft => {
-            renameMaterialsAfterPlateValues(state.protocol, draft);
             dropValuesTwinnedByPlate(draft, state.knownNames);
           });
       const reconciled = reconcile(changed, state.knownNames);

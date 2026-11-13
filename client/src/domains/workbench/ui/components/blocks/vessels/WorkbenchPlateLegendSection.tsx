@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from 'react';
 
-import { Tooltip } from '@shared/ui';
-
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
-import { recolorValue, renameValue } from '../../../../utils/vessels/wellEdits';
+import { renamePlateValue } from '../../../../utils/materials/renameFollowing';
+import { recolorValue } from '../../../../utils/vessels/wellEdits';
 import { META_LABEL } from '../../board/metaLabelClass';
 import { PICK_NAME_ATTRIBUTE } from '../../tray/useTrayPickDrag';
 
@@ -24,6 +24,9 @@ interface WorkbenchPlateLegendSectionProps {
 
 const SHADE_STEPS = [100, 60, 30] as const;
 const SEPARATOR = 'text-muted-foreground/60';
+const AFTER_RENAMABLE = `${SEPARATOR} ml-4`;
+const MIN_NAME_FIELD_CH = 14;
+const NAME_FIELD_ROOM_CH = 4;
 const ROW_LABEL = `pt-0.5 ${META_LABEL}`;
 const ITEM = 'inline-flex items-center gap-1.5 text-body-sm text-foreground';
 const SWATCH_BUTTON =
@@ -36,9 +39,13 @@ export function WorkbenchPlateLegendSection({
   bands,
 }: WorkbenchPlateLegendSectionProps) {
   const updateVesselMap = useUpdateVesselMap(block);
+  const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [recoloringId, setRecoloringId] = useState<string>();
   const [renamingId, setRenamingId] = useState<string>();
   const countOf = new Map(counts.map(count => [count.key, count]));
+  const valueTexts = new Map(
+    block.lines.flatMap(line => line.values.map(value => [value.id, value.text] as const))
+  );
   const treatments = (colorLine?.values ?? []).filter(value => countOf.has(value.id));
   const used = countOf.get('used');
   const hasSeries =
@@ -51,18 +58,21 @@ export function WorkbenchPlateLegendSection({
   const toggleRecolor = (valueId: string | undefined) =>
     valueId && setRecoloringId(recoloringId === valueId ? undefined : valueId);
 
-  const nameOf = (valueId: string, text: string): ReactNode =>
+  const nameOf = (valueId: string, text: string, shown = text): ReactNode =>
     renamingId === valueId ? (
       <input
         ref={focusOnMount}
         defaultValue={text}
         aria-label={`Rename ${text}`}
         spellCheck={false}
-        className="w-32 border-b border-primary bg-transparent text-body-sm text-foreground outline-none"
+        className="inline-edit-field max-w-none text-body-sm text-foreground"
+        style={{ width: `${Math.max(MIN_NAME_FIELD_CH, text.length + NAME_FIELD_ROOM_CH)}ch` }}
         onBlur={event => {
           const next = event.currentTarget.value;
           setRenamingId(undefined);
-          updateVesselMap(draft => renameValue(draft, valueId, withGreekLetters(next)));
+          updateProtocol(draft =>
+            renamePlateValue(draft, block.id, valueId, withGreekLetters(next))
+          );
         }}
         onKeyDown={event => {
           if (event.key === 'Enter') event.currentTarget.blur();
@@ -70,11 +80,13 @@ export function WorkbenchPlateLegendSection({
         }}
       />
     ) : (
-      <Tooltip content="Rename">
-        <button type="button" className="hover:underline" onClick={() => setRenamingId(valueId)}>
-          {text}
-        </button>
-      </Tooltip>
+      <button
+        type="button"
+        className="inline-edit text-left text-body-sm text-foreground"
+        onClick={() => setRenamingId(valueId)}
+      >
+        {shown}
+      </button>
     );
 
   if (!treatments.length && !bands.length && !used) return null;
@@ -98,7 +110,7 @@ export function WorkbenchPlateLegendSection({
                       onClick={() => toggleRecolor(value.id)}
                     />
                     {nameOf(value.id, value.text)}
-                    <span className={SEPARATOR}>·</span>
+                    <span className={AFTER_RENAMABLE}>·</span>
                     <b className="font-mono text-data-sm">{count?.count}</b>
                   </span>
                 );
@@ -123,9 +135,11 @@ export function WorkbenchPlateLegendSection({
                     }}
                     onClick={() => toggleRecolor(band.valueId)}
                   />
-                  {band.text}
-                  <span className={SEPARATOR}>·</span>
-                  <b className="font-mono text-data-sm">{band.wells}</b>
+                  {band.valueId
+                    ? nameOf(band.valueId, valueTexts.get(band.valueId) ?? band.text, band.text)
+                    : band.text}
+                  <span className={band.valueId ? AFTER_RENAMABLE : SEPARATOR}>·</span>
+                  <b className="font-mono text-data-sm">{band.wellsInMap}</b>
                 </span>
               ))}
             </div>

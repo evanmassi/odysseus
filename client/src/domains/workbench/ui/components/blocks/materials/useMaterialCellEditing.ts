@@ -18,6 +18,7 @@ export const isSameCell = (a: MaterialCell | undefined, b: MaterialCell | undefi
 
 export function useMaterialCellEditing(
   order: readonly MaterialCell[],
+  onEnter: (cell: MaterialCell) => void,
   onLeave: (cell: MaterialCell) => void
 ): MaterialCellEditing {
   const [cell, setCell] = useState<MaterialCell>();
@@ -31,8 +32,9 @@ export function useMaterialCellEditing(
       current.current = next;
       setCell(next);
       if (left && !isSameCell(left, next)) onLeave(left);
+      if (next && !isSameCell(left, next)) onEnter(next);
     },
-    [onLeave]
+    [onEnter, onLeave]
   );
 
   const finish = useCallback(

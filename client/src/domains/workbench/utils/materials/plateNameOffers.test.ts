@@ -85,4 +85,11 @@ describe('plate names offered to Materials', () => {
     expect(materialNamed(protocol, 'HCKA')?.name).toBe('HCKA (Heat-killed Candida albicans)');
     expect(plateNameOffers(protocol)).toEqual([]);
   });
+
+  it('links without wrapping a name inside another', () => {
+    const protocol = protocolWith(['HKCA']);
+    linkPlateName(protocol, 'HCKA', 'm-candida');
+    linkPlateName(protocol, 'HKCA', 'm-candida');
+    expect(materialNamed(protocol, 'HKCA')?.name).toBe('HKCA (HCKA, Heat-killed Candida albicans)');
+  });
 });
