@@ -85,4 +85,11 @@ describe('plate names offered to Materials', () => {
     expect(materialNamed(protocol, 'STX')?.name).toBe('STX (Stim X description)');
     expect(plateNameOffers(protocol)).toEqual([]);
   });
+
+  it('links without wrapping a name inside another', () => {
+    const protocol = protocolWith(['SXT']);
+    linkPlateName(protocol, 'STX', 'm-stim');
+    linkPlateName(protocol, 'SXT', 'm-stim');
+    expect(materialNamed(protocol, 'SXT')?.name).toBe('SXT (STX, Stim X description)');
+  });
 });

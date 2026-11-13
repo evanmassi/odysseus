@@ -115,7 +115,11 @@ export function WorkbenchCytometerLaserGroup({
       {shownSlots.map(slot => {
         if (!slot.stains.length) {
           return (
-            <tr key={slot.detector.id} className={OPEN_ROW}>
+            <tr
+              key={slot.detector.id}
+              className={OPEN_ROW}
+              style={{ '--row-tone': laser.tone } as CSSProperties}
+            >
               {leadOnce()}
               <WorkbenchCytometerDetectorCells detector={slot.detector} />
               <td colSpan={COLUMNS_AFTER_FILTER} className={CYTOMETER_CELL}>

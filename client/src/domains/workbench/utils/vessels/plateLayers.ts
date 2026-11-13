@@ -72,7 +72,7 @@ export interface PlateBand {
   text: string;
   color: string;
   valueId: string | undefined;
-  wells: number;
+  wellsInMap: number;
   clusters: BandCluster[];
 }
 
@@ -138,6 +138,12 @@ export function plateBands(
       group.cells.push(spot);
       byText.set(text, group);
     }
+    const wellsInMap = new Map<string, number>();
+    for (const key of Object.keys(block.cells)) {
+      const shown = wellLine(block, key, line, calculation);
+      const text = shown && wellLineText(shown);
+      if (text) wellsInMap.set(text, (wellsInMap.get(text) ?? 0) + 1);
+    }
     for (const [text, { cells, value }] of byText) {
       const clusters = clustersOf(cells).map((cluster): BandCluster => {
         const area = (cluster.bottom - cluster.top + 1) * (cluster.right - cluster.left + 1);
@@ -156,7 +162,7 @@ export function plateBands(
         text,
         color: bandColorOf(block, value),
         valueId: value?.id,
-        wells: cells.length,
+        wellsInMap: wellsInMap.get(text) ?? cells.length,
         clusters,
       });
     }

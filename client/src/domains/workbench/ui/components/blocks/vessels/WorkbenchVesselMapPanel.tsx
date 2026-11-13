@@ -26,6 +26,7 @@ import { useConfirmation } from './useConfirmation';
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 import { useVesselChanges } from './useVesselChanges';
 import { useVesselMapCalculation } from './useVesselMapCalculation';
+import { useWellEditSession } from './useWellEditSession';
 import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
 import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
@@ -66,6 +67,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const merges = replicateMerges(block, sheet, calculation);
   const expandToMerges = (keys: ReadonlySet<string>) => withMergedWells(merges, keys);
   const selection = useWellSelection(sheet, tab.id, expandToMerges, openEditor);
+  const startedNames = useWellEditSession(block.id, selection.keys, editor !== undefined);
 
   const openEditorWith = (seedText?: string) => {
     if (seedText === undefined) return openEditor();
@@ -186,6 +188,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           tab={tab}
           sheet={sheet}
           keys={selection.keys}
+          startedNames={startedNames}
           colorLine={colorLine}
           layers={layers}
           wellsRef={bodyRef}

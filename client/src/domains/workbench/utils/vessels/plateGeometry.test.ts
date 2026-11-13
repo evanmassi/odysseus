@@ -7,7 +7,7 @@ const band: PlateBand = {
   text: 'Cells',
   color: '#6fbf73',
   valueId: undefined,
-  wells: 2,
+  wellsInMap: 2,
   clusters: [
     {
       cells: [

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import { useStableActions } from '../../../../hooks/useStableActions';
@@ -55,6 +55,7 @@ import {
   plateNameOffers,
   type PlateNameOffer,
 } from '../../../../utils/materials/plateNameOffers';
+import { plateFollowsMaterialRename } from '../../../../utils/materials/renameFollowing';
 import {
   acceptStepReadings,
   readStepReadings,
@@ -204,6 +205,13 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     [block.id, updateProtocol]
   );
 
+  const nameAtStart = useRef<{ itemId: string; name: string }>();
+  const enterCell = useCallback((cell: MaterialCell) => {
+    if (cell.key !== NAME_CELL) return;
+    const item = materialsById(useWorkbenchStore.getState().protocol).get(cell.itemId);
+    nameAtStart.current = item && { itemId: cell.itemId, name: item.name };
+  }, []);
+
   const finishCell = useCallback(
     (cell: MaterialCell) => {
       if (cell.key === LOT_FIELD) {
@@ -216,8 +224,11 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
           if (name !== typed) item.values[cell.key] = name;
         });
       } else if (cell.key === NAME_CELL) {
-        updateItem(cell.itemId, item => {
+        const started =
+          nameAtStart.current?.itemId === cell.itemId ? nameAtStart.current : undefined;
+        updateItem(cell.itemId, (item, draft) => {
           item.name = withGreekLetters(item.name);
+          if (started) plateFollowsMaterialRename(draft, started.name, item.name);
         });
       } else {
         updateItem(cell.itemId, item => {
@@ -229,7 +240,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     },
     [updateItem, catalog, memory.dyes]
   );
-  const editing = useMaterialCellEditing(cellOrder, finishCell);
+  const editing = useMaterialCellEditing(cellOrder, enterCell, finishCell);
   const isEditingCell = editing.cell !== undefined;
 
   useEffect(() => {

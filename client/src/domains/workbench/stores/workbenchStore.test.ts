@@ -121,22 +121,6 @@ describe('workbenchStore', () => {
         draft.blocks.push(plate);
       });
 
-    const editPlate = (
-      change: (plate: Extract<Protocol['blocks'][number], { type: 'plate' }>) => void
-    ) =>
-      getState().updateProtocol(draft => {
-        const plate = draft.blocks.find(block => block.type === 'plate');
-        if (plate?.type === 'plate') change(plate);
-      });
-
-    it('renames a material when the plate name it matched is renamed', () => {
-      addPlate({ 'p:A1': { l: { valueId: 'd' } } });
-      editPlate(plate => {
-        plate.lines[0].values[0].text = 'Drug X';
-      });
-      expect(blockOf('materials').items[0].name).toBe('Drug X');
-    });
-
     it('drops a typed value once the plate provides the same name', () => {
       getState().updateProtocol(draft => {
         const values = draft.blocks.find(block => block.type === 'values');

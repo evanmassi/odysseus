@@ -7,6 +7,7 @@ import { Button } from '@shared/ui';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
+import { isSameBareName } from '../../../../utils/materials/renameFollowing';
 import { seriesSummary } from '../../../../utils/vessels/plateSeries';
 import {
   lineUnitOf,
@@ -19,11 +20,14 @@ import {
 import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
   recolorValue,
+  nameElsewhere,
   removeLineFromWells,
+  renameValue,
   setWellsAmount,
   setWellsText,
   setWellsUnit,
   wellRows,
+  type HeldName,
   type WellRow,
 } from '../../../../utils/vessels/wellEdits';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
@@ -46,6 +50,7 @@ interface WorkbenchWellEditorPanelProps {
   tab: VesselTab;
   sheet: VesselSheet;
   keys: ReadonlySet<string>;
+  startedNames: ReadonlyMap<string, HeldName>;
   colorLine: PlateLine | undefined;
   layers: ReturnType<typeof lineLayers>;
   wellsRef: RefObject<HTMLElement>;
@@ -101,6 +106,7 @@ export function WorkbenchWellEditorPanel({
   tab,
   sheet,
   keys,
+  startedNames,
   colorLine,
   layers,
   wellsRef,
@@ -195,6 +201,13 @@ export function WorkbenchWellEditorPanel({
           if (!lineId && blankRows) setBlankRows(blankRows - 1);
         };
         const form = openSeries?.rowIndex === index ? openSeries.form : undefined;
+        const started = lineId ? startedNames.get(lineId) : undefined;
+        const elsewhere =
+          lineId && started && row.text && !isSameBareName(started.text, row.text)
+            ? nameElsewhere(block, lineId, started.valueId, keyList)
+            : undefined;
+        const sharedName =
+          elsewhere && !isSameBareName(elsewhere.text, row.text) ? elsewhere : undefined;
         return (
           <div key={`row-${index}`} className="flex flex-col gap-2">
             <WorkbenchWellLineRow
@@ -209,7 +222,11 @@ export function WorkbenchWellEditorPanel({
               showsRole={sheet.isPlate}
               canRemove={!!lineId && rows.length > 1}
               inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
+              sharedName={sharedName}
               onTextChange={text => edit(draft => setWellsText(draft, keyList, lineId, text))}
+              onRenameEverywhere={() =>
+                started && updateVesselMap(draft => renameValue(draft, started.valueId, row.text))
+              }
               onAmountChange={amount =>
                 edit(draft => setWellsAmount(draft, keyList, lineId, amount))
               }
