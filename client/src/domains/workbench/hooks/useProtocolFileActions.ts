@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { notifications } from '@shared/utils/notifications';
 
 import { ProtocolFileService, type ProtocolFileHandle } from '../services/ProtocolFileService';
+import { useMaterialMemoryStore } from '../stores/materialMemoryStore';
 import { selectIsDirty, useWorkbenchStore } from '../stores/workbenchStore';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 import { experimentId } from '../utils/protocolFile/experimentId';
@@ -32,6 +33,16 @@ function restoreRecoveryCopy() {
 
 export function useProtocolFileActions(confirmDiscard: () => Promise<boolean>) {
   const [recentFiles, setRecentFiles] = useState<ProtocolFileHandle[]>([]);
+
+  useEffect(
+    () =>
+      useWorkbenchStore.subscribe((state, previous) => {
+        if (state.protocol.dyes !== previous.protocol.dyes) {
+          useMaterialMemoryStore.getState().rememberDyes(state.protocol.dyes);
+        }
+      }),
+    []
+  );
 
   useEffect(() => {
     restoreRecoveryCopy();

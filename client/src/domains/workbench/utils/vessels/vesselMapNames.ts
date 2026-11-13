@@ -17,7 +17,7 @@ import {
   RATIO_NOTATION,
   readNumber,
 } from '../formulas/quantities';
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 import { nameWithoutNotes } from '../materials/materialLookup';
 
 import { foldOf } from './plateSeries';

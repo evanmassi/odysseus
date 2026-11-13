@@ -2,6 +2,8 @@ import { Autocomplete, DatePicker, Input, Select } from '@shared/ui';
 
 import { RATIO_NOTATION } from '../../../../utils/formulas/quantities';
 import { UNIT_PER_ITEM, fieldUnit } from '../../../../utils/materials/materialCatalog';
+import { CONJUGATE_FIELD } from '../../../../utils/materials/materialClashes';
+import { WorkbenchDyeField } from '../../dyes/WorkbenchDyeField';
 
 import { choiceOptions, unitOptions } from './materialSelectOptions';
 
@@ -19,6 +21,7 @@ interface WorkbenchMaterialCellFieldProps {
 const SHORT_UNITS: Readonly<Record<string, string>> = { X: '×', [RATIO_NOTATION]: '' };
 
 const shortUnit = (unit: string) => SHORT_UNITS[unit] ?? unit;
+const MATERIAL_TEXT_FIELD = 'inline-edit-field text-body-sm text-foreground';
 
 export function WorkbenchMaterialCellField({
   item,
@@ -88,12 +91,24 @@ export function WorkbenchMaterialCellField({
     );
   }
 
+  if (definition.key === CONJUGATE_FIELD) {
+    return (
+      <WorkbenchDyeField
+        value={value}
+        label={label}
+        includesOtherConjugates
+        inputClassName={MATERIAL_TEXT_FIELD}
+        onChange={onValueChange}
+      />
+    );
+  }
+
   return (
     <Autocomplete
       value={value}
       options={suggestions(value).map(suggestion => ({ value: suggestion, label: suggestion }))}
       aria-label={label}
-      inputClassName="inline-edit-field text-body-sm text-foreground"
+      inputClassName={MATERIAL_TEXT_FIELD}
       onChange={onValueChange}
     />
   );

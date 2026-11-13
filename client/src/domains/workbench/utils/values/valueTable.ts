@@ -15,7 +15,7 @@ import {
 } from '../formulas/boardCalculation';
 import { FOLD_UNIT } from '../formulas/quantities';
 import { MATERIAL_GROUPS, materialGroup } from '../materials/materialCatalog';
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 import { findNamed } from '../materials/materialLookup';
 import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
 

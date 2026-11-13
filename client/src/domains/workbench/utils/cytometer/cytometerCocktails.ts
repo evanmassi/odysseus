@@ -1,4 +1,4 @@
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 
 import type { CytometerBlock } from '@odysseus/shared-schemas';
 

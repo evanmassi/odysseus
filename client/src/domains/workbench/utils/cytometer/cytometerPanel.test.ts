@@ -1,3 +1,4 @@
+import { BUILT_IN_CATALOG } from '../dyes/dyeCatalog';
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
@@ -60,7 +61,7 @@ const fcBlock = material('Fc block', 'Human TruStain FcX');
 
 describe('panelLayout', () => {
   it('puts every detector of the instrument under its laser, with its stains', () => {
-    const layout = panelLayout(panel([[cd4, 'VL1']]), [cd4]);
+    const layout = panelLayout(panel([[cd4, 'VL1']]), [cd4], BUILT_IN_CATALOG);
     expect(layout.lasers.map(laser => laser.name)).toEqual(['Violet', 'Blue', 'Red']);
     expect(layout.lasers[0].slots).toHaveLength(6);
     const [stain] = layout.lasers[0].slots[0].stains;
@@ -74,7 +75,8 @@ describe('panelLayout', () => {
         [cd4, 'VL1'],
         [cd8, 'VL1'],
       ]),
-      [cd4, cd8]
+      [cd4, cd8],
+      BUILT_IN_CATALOG
     );
     const [first, second] = layout.lasers[0].slots[0].stains;
     expect(layout.clashCount).toBe(1);
@@ -83,13 +85,14 @@ describe('panelLayout', () => {
   });
 
   it('reads a dye with no conjugate field by its own name', () => {
-    const [stain] = panelLayout(panel([[zombie, 'R5']], A8), [zombie]).lasers[4].slots[4].stains;
+    const [stain] = panelLayout(panel([[zombie, 'R5']], A8), [zombie], BUILT_IN_CATALOG).lasers[4]
+      .slots[4].stains;
     expect(stain).toMatchObject({ marker: 'Live/Dead', fluorochrome: 'Zombie NIR' });
     expect(stain.isFluorochromeEditable).toBe(false);
   });
 
   it('keeps stains whose detector the instrument lacks, to be placed again', () => {
-    const layout = panelLayout(panel([[cd4, 'VL1']], A8), [cd4]);
+    const layout = panelLayout(panel([[cd4, 'VL1']], A8), [cd4], BUILT_IN_CATALOG);
     expect(layout.unplaced.map(stain => stain.marker)).toEqual(['CD4']);
   });
 });
@@ -135,7 +138,7 @@ describe('dilutionFactor', () => {
 
 describe('firstOpenDetector', () => {
   it('picks the laser’s first free detector', () => {
-    const red = panelLayout(panel([[cd4, 'R1']], A8), [cd4]).lasers[4];
+    const red = panelLayout(panel([[cd4, 'R1']], A8), [cd4], BUILT_IN_CATALOG).lasers[4];
     expect(firstOpenDetector(red)).toBe('R2');
   });
 });

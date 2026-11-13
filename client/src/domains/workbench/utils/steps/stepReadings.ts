@@ -3,7 +3,7 @@ import { UNIT_REGISTRY, type MaterialItem, type Protocol } from '@odysseus/share
 import { firstBlockOrNew } from '../blocks/createBlock';
 import { nameKey, type BoardCalculation } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 import { ensureMaterial } from '../materials/materialLookup';
 import { insertAfterPeers } from '../values/valueEdits';
 import { valueUnitOf } from '../values/valueLines';

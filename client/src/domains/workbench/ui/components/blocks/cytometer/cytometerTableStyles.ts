@@ -3,6 +3,8 @@ export const CYTOMETER_CELL =
 
 export const CYTOMETER_FIELD = 'text-body-sm text-foreground placeholder:text-muted-foreground';
 
+export const CYTOMETER_PICK_FIELD = `${CYTOMETER_FIELD} bg-transparent outline-none`;
+
 export const LIT_ROW =
   'row-glow [background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.1),hsl(var(--row-tone)/0.1))] dark:[background-image:var(--row-selected-bg)] dark:[box-shadow:var(--row-selected-shadow)]';
 

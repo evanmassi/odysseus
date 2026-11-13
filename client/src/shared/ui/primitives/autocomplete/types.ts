@@ -1,13 +1,10 @@
-/**
- * Autocomplete Component Types
- */
-
 import type { InputState } from '../input/types';
 
 export interface AutocompleteOption {
   value: string;
   label: string;
   secondary?: string;
+  group?: string;
 }
 
 export interface AutocompleteProps {
@@ -21,6 +18,8 @@ export interface AutocompleteProps {
   fullWidth?: boolean;
   'aria-label'?: string;
   inputClassName?: string;
+  minChars?: number;
+  onBlur?: () => void;
 }
 
 export type AutocompleteRef = HTMLInputElement;

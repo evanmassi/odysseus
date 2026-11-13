@@ -1,3 +1,4 @@
+import { BUILT_IN_CATALOG } from '../dyes/dyeCatalog';
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
@@ -46,7 +47,7 @@ const block: CytometerBlock = {
   mixes: [],
 };
 
-const columns = mixColumns(panelLayout(block, [cd4, cd3, foxp3]));
+const columns = mixColumns(panelLayout(block, [cd4, cd3, foxp3], BUILT_IN_CATALOG));
 
 describe('mixColumns', () => {
   it('lists the panel’s placed stains in laser and detector order', () => {

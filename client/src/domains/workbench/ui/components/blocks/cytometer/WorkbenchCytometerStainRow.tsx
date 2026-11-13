@@ -5,10 +5,12 @@ import { X } from 'lucide-react';
 import { Autocomplete, Button, Tooltip } from '@shared/ui';
 
 import { CONJUGATE_KEY } from '../../../../utils/cytometer/cytometerPanel';
+import { WorkbenchDyeField } from '../../dyes/WorkbenchDyeField';
 
 import {
   CYTOMETER_CELL,
   CYTOMETER_FIELD,
+  CYTOMETER_PICK_FIELD,
   FLUOROCHROME_SQUARE,
   LIT_ROW,
 } from './cytometerTableStyles';
@@ -65,12 +67,16 @@ export function WorkbenchCytometerStainRow({
             style={{ backgroundColor: color ?? 'hsl(var(--muted-foreground))' }}
           />
           {material && stain.isFluorochromeEditable ? (
-            <WorkbenchCytometerTextCell
-              value={stain.fluorochrome}
-              label={`Fluorochrome of ${name}`}
-              placeholder="Fluorochrome"
-              onChange={writeMaterial(CONJUGATE_KEY)}
-            />
+            <span className="inline-edit">
+              <WorkbenchDyeField
+                value={stain.fluorochrome}
+                label={`Fluorochrome of ${name}`}
+                placeholder="Fluorochrome"
+                includesOtherConjugates={false}
+                inputClassName={`${CYTOMETER_PICK_FIELD} w-28`}
+                onChange={writeMaterial(CONJUGATE_KEY)}
+              />
+            </span>
           ) : (
             <span>{stain.fluorochrome}</span>
           )}
@@ -139,7 +145,7 @@ export function WorkbenchCytometerStainRow({
             placeholder="Stain step"
             options={steps.map(step => ({ value: step, label: step }))}
             aria-label={`Stain step of ${name}`}
-            inputClassName={`${CYTOMETER_FIELD} w-20 bg-transparent outline-none`}
+            inputClassName={`${CYTOMETER_PICK_FIELD} w-20`}
             onChange={stainStep => actions.changeRow(row.id, { stain: stainStep })}
           />
         </span>

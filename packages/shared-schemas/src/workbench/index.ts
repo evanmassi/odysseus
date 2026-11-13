@@ -14,6 +14,7 @@ export {
   type VesselMapBlock,
   type CytometerBlock,
   type Instrument,
+  type ProtocolDye,
   type CellLine,
   type PlateLine,
   type PlateSeries,

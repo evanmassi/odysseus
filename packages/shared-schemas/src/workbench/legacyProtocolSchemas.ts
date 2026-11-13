@@ -442,6 +442,7 @@ const legacyProtocol = z
       lotMemory,
       keptBoth: legacy.keptBoth,
       ignoredReadings: legacy.ignoredReadings,
+      dyes: [],
     };
   });
 

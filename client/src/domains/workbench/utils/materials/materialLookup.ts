@@ -1,6 +1,6 @@
 import { firstBlockOrNew } from '../blocks/createBlock';
 
-import { normalizeMaterialKey } from './materialGuesser';
+import { normalizeMaterialKey } from './materialKey';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 

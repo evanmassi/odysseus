@@ -1,7 +1,13 @@
-import { normalizeMaterialKey, type RememberedMaterialKind } from './materialGuesser';
+import { type RememberedMaterialKind } from './materialGuesser';
 import { UNSORTED_GROUP } from './materialItems';
+import { normalizeMaterialKey } from './materialKey';
 
-import type { FieldDefinition, MaterialItem, Protocol } from '@odysseus/shared-schemas';
+import type {
+  FieldDefinition,
+  MaterialItem,
+  Protocol,
+  ProtocolDye,
+} from '@odysseus/shared-schemas';
 
 export interface RememberedMaterial {
   group: string;
@@ -17,6 +23,7 @@ export interface LabMemory {
   materials: Record<string, RememberedMaterial>;
   fields: Record<string, FieldDefinition[]>;
   startingFields: Record<string, string[]>;
+  dyes: Record<string, ProtocolDye>;
 }
 
 export const EMPTY_LAB_MEMORY: LabMemory = {
@@ -24,6 +31,7 @@ export const EMPTY_LAB_MEMORY: LabMemory = {
   materials: {},
   fields: {},
   startingFields: {},
+  dyes: {},
 };
 
 const kindKey = (group: string, type: string) => `${group}|${type}`;
@@ -85,6 +93,19 @@ export function learnFromMaterials(memory: LabMemory, items: readonly MaterialIt
     }
   }
   return hasLearned ? { ...memory, materials, fields } : memory;
+}
+
+export function rememberDyes(memory: LabMemory, dyes: readonly ProtocolDye[]): LabMemory {
+  const remembered = { ...memory.dyes };
+  let hasLearned = false;
+  for (const dye of dyes) {
+    const key = normalizeMaterialKey(dye.name);
+    if (JSON.stringify(remembered[key]) !== JSON.stringify(dye)) {
+      remembered[key] = dye;
+      hasLearned = true;
+    }
+  }
+  return hasLearned ? { ...memory, dyes: remembered } : memory;
 }
 
 export function rememberedKinds(

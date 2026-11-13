@@ -1,7 +1,7 @@
 import { lineValueOf, type Protocol, type VesselMapBlock } from '@odysseus/shared-schemas';
 
 import { cachedPerBlock } from '../blocks/cachedPerBlock';
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { normalizeMaterialKey } from '../materials/materialKey';
 import { foldOf, type StepSeries } from '../vessels/plateSeries';
 import { plateNameOf } from '../vessels/vesselTabs';
 

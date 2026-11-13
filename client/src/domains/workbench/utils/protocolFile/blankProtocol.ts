@@ -24,5 +24,6 @@ export function blankProtocol(): Protocol {
     lotMemory: {},
     keptBoth: [],
     ignoredReadings: [],
+    dyes: [],
   };
 }

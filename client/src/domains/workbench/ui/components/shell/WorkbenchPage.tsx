@@ -7,6 +7,7 @@ import { useProtocolFileActions } from '../../../hooks/useProtocolFileActions';
 import { WorkbenchBlockRail } from '../board/WorkbenchBlockRail';
 import { WorkbenchBoard } from '../board/WorkbenchBoard';
 import { WorkbenchPageTabs } from '../board/WorkbenchPageTabs';
+import { WorkbenchDyeAddDialog } from '../dyes/WorkbenchDyeAddDialog';
 import { WorkbenchNameTray } from '../tray/WorkbenchNameTray';
 
 import { WorkbenchFileBar } from './WorkbenchFileBar';
@@ -57,6 +58,7 @@ export function WorkbenchPage() {
         </div>
       </main>
       <WorkbenchNameTray />
+      <WorkbenchDyeAddDialog />
       <ConfirmDialog
         isOpen={!!resolveDiscard}
         variant="warning"
