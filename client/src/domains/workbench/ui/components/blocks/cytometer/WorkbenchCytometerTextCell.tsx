@@ -25,7 +25,7 @@ export function WorkbenchCytometerTextCell({
         aria-label={label}
         spellCheck={false}
         autoComplete="off"
-        className={`${CYTOMETER_FIELD} w-28 ${className}`}
+        className={`${CYTOMETER_FIELD} w-24 ${className}`}
         onChange={event => onChange(event.target.value)}
         onBlur={() => {
           const finished = withGreekLetters(value);

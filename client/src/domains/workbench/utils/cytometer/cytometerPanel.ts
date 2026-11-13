@@ -1,7 +1,10 @@
 import { ANTIBODY_GROUP, materialFields } from '../materials/materialCatalog';
-import { normalizeMaterialKey } from '../materials/materialGuesser';
+import { guessMaterial, normalizeMaterialKey } from '../materials/materialGuesser';
+import { applyMaterialKind, materialFromGuess } from '../materials/materialItems';
+import { rememberedKinds, type LabMemory } from '../materials/materialMemory';
 
-import { filterCenter, wavelengthColor } from './wavelengthColor';
+import { dyeFacts, misplacementText, type Misplacement } from './stainPlacement';
+import { filterCenter, wavelengthColor, wavelengthTone } from './wavelengthColor';
 
 import type { CytometerBlock, Instrument, MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
@@ -16,8 +19,10 @@ export interface PanelStain {
   fluorochrome: string;
   isFluorochromeEditable: boolean;
   clone: string;
-  catalog: string;
+  isotype: string;
   sharesDetectorWith: string[];
+  misplacement: Misplacement | undefined;
+  dyeColor: string | undefined;
 }
 
 export interface DetectorSlot {
@@ -30,6 +35,7 @@ export interface LaserGroup {
   name: string;
   nm: number;
   color: string;
+  tone: string;
   slots: DetectorSlot[];
 }
 
@@ -37,31 +43,48 @@ export interface PanelLayout {
   lasers: LaserGroup[];
   unplaced: PanelStain[];
   clashCount: number;
+  misplacedCount: number;
 }
 
 export const CONJUGATE_KEY = 'conjugate';
 const MARKER_KEYS = ['target', 'specificity', 'target-species-and-isotype'];
 const NON_STAIN_TYPES = new Set(['Fc block', 'Beads']);
+const STAIN_FALLBACK_TYPE = 'Antibody';
 const STARTING_STAINS = ['Viability', 'Surface', 'ICS'];
 
 const hasField = (item: MaterialItem, key: string) =>
   materialFields(item).some(definition => definition.key === key);
 
-function readStain(row: PanelRow, material: MaterialItem | undefined): PanelStain {
+const dyeEmissionColor = (fluorochrome: string): string | undefined => {
+  const facts = dyeFacts(fluorochrome);
+  return facts && wavelengthColor(facts.emission);
+};
+
+export const stainFluorochrome = (item: MaterialItem): string =>
+  hasField(item, CONJUGATE_KEY) ? (item.values[CONJUGATE_KEY] ?? '').trim() : item.name.trim();
+
+function readStain(
+  row: PanelRow,
+  material: MaterialItem | undefined,
+  instrument: Instrument | undefined
+): PanelStain {
   const value = (key: string) => (material?.values[key] ?? '').trim();
   const markerKey =
     (material && MARKER_KEYS.find(key => hasField(material, key))) ?? MARKER_KEYS[0];
   const isFluorochromeEditable = !material || hasField(material, CONJUGATE_KEY);
+  const fluorochrome = material ? stainFluorochrome(material) : '';
   return {
     row,
     material,
     markerKey,
     marker: value(markerKey),
-    fluorochrome: isFluorochromeEditable ? value(CONJUGATE_KEY) : (material?.name.trim() ?? ''),
+    fluorochrome,
     isFluorochromeEditable,
     clone: value('clone'),
-    catalog: value('catalog'),
+    isotype: value('isotype'),
     sharesDetectorWith: [],
+    misplacement: instrument && misplacementText(instrument, fluorochrome, row.detectorId),
+    dyeColor: dyeEmissionColor(fluorochrome),
   };
 }
 
@@ -73,12 +96,13 @@ export function panelLayout(
   materials: readonly MaterialItem[]
 ): PanelLayout {
   const byId = new Map(materials.map(item => [item.id, item]));
-  const stains = block.rows.map(row => readStain(row, byId.get(row.materialId)));
+  const stains = block.rows.map(row => readStain(row, byId.get(row.materialId), block.instrument));
   const placed = new Set<PanelStain>();
   const lasers = (block.instrument?.lasers ?? []).map(laser => ({
     name: laser.name,
     nm: laser.nm,
     color: wavelengthColor(laser.nm),
+    tone: wavelengthTone(laser.nm),
     slots: laser.detectors.map(detector => {
       const inSlot = stains.filter(stain => stain.row.detectorId === detector.id);
       inSlot.forEach(stain => {
@@ -91,7 +115,12 @@ export function panelLayout(
   const clashCount = lasers
     .flatMap(laser => laser.slots)
     .filter(slot => slot.stains.length > 1).length;
-  return { lasers, unplaced: stains.filter(stain => !placed.has(stain)), clashCount };
+  return {
+    lasers,
+    unplaced: stains.filter(stain => !placed.has(stain)),
+    clashCount,
+    misplacedCount: stains.filter(stain => stain.misplacement).length,
+  };
 }
 
 export const stainCandidates = (
@@ -128,4 +157,16 @@ export function panelDetectorLabels(protocol: Pick<Protocol, 'blocks'>): Map<str
     }
   }
   return new Map([...detectors].map(([materialId, ids]) => [materialId, ids.join(', ')]));
+}
+
+export function newStainMaterial(
+  text: string,
+  memory: LabMemory,
+  protocol: Pick<Protocol, 'blocks'>
+): MaterialItem {
+  const item = materialFromGuess(guessMaterial(text, rememberedKinds(memory, protocol)), memory);
+  if (item.group !== ANTIBODY_GROUP || NON_STAIN_TYPES.has(item.type)) {
+    applyMaterialKind(item, ANTIBODY_GROUP, STAIN_FALLBACK_TYPE, memory);
+  }
+  return item;
 }

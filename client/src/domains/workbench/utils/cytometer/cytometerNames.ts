@@ -7,9 +7,14 @@ import { panelCocktails } from './cytometerCocktails';
 import type { CytometerBlock, Protocol, VesselMapBlock } from '@odysseus/shared-schemas';
 
 const SHARE_UNIT = '%';
+const PIPETTED_UNIT = 'µL';
 
 export const dilutionFactorName = (materialName: string): string =>
   `${materialName.trim()} dilution factor`;
+
+export const stainAmountId = (rowId: string): string => `${rowId}:amount`;
+
+const STAIN_VOLUME = 'Stain volume';
 
 export const cocktailWellsId = (blockId: string, cocktailKey: string): string =>
   `${blockId}:${cocktailKey}:wells`;
@@ -21,7 +26,8 @@ function blockNames(
   block: CytometerBlock,
   materialNames: ReadonlyMap<string, string>,
   plates: readonly VesselMapBlock[],
-  taken: Set<string>
+  taken: Set<string>,
+  ownNames: ReadonlyMap<string, string>
 ): BoardName[] {
   const claim = (name: string) => {
     const isFree = !taken.has(nameKey(name));
@@ -91,7 +97,40 @@ function blockNames(
       ];
     })
   );
-  return [...factors, ...cocktails];
+  const amounts = block.rows.flatMap((row): BoardName[] => {
+    const material = materialNames.get(row.materialId);
+    const factor = factorNames.get(row.id);
+    if (!material || !factor) return [];
+    const name = `${material} amount per well`;
+    if (!claim(name)) return [];
+    const step = row.stain.trim();
+    const volume = [`${step} ${STAIN_VOLUME.toLowerCase()}`, STAIN_VOLUME]
+      .map(candidate => ownNames.get(nameKey(candidate)))
+      .find(Boolean);
+    const problem = !step
+      ? 'Needs a stain step'
+      : !volume
+        ? `Needs “${step} stain volume” or “${STAIN_VOLUME}” in Values`
+        : undefined;
+    return [
+      {
+        kind: 'formula',
+        id: stainAmountId(row.id),
+        name,
+        expr: volume ? `${volume} × ${factor}` : '',
+        unit: PIPETTED_UNIT,
+        workedOut: {
+          key: `amount:${row.id}`,
+          subject: material,
+          title: 'Amount per well',
+          settingsBlockId: block.id,
+        },
+        sourceBlockId: block.id,
+        ...(problem && { problem }),
+      },
+    ];
+  });
+  return [...factors, ...cocktails, ...amounts];
 }
 
 export function cytometerFormulaNames(
@@ -106,7 +145,8 @@ export function cytometerFormulaNames(
   );
   const plates = protocol.blocks.filter((block): block is VesselMapBlock => block.type === 'plate');
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
+  const ownNames = new Map(taken.map(entry => [nameKey(entry.name), entry.name.trim()]));
   return protocol.blocks.flatMap(block =>
-    block.type === 'cytometer' ? blockNames(block, materialNames, plates, takenKeys) : []
+    block.type === 'cytometer' ? blockNames(block, materialNames, plates, takenKeys, ownNames) : []
   );
 }

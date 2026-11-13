@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { SubsectionHeader } from '@shared/ui';
+
 import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { panelCocktails } from '../../../../utils/cytometer/cytometerCocktails';
 import { cocktailAntibodiesId } from '../../../../utils/cytometer/cytometerNames';
@@ -49,7 +51,7 @@ export function WorkbenchCytometerCocktails({
             slot.stains.map(stain => [
               stain.row.id,
               {
-                color: slot.color,
+                color: stain.dyeColor ?? slot.color,
                 label: [stain.marker, stain.fluorochrome].filter(Boolean).join(' '),
               },
             ])
@@ -62,10 +64,8 @@ export function WorkbenchCytometerCocktails({
   const shareOf = (key: string) => shares[cocktails.findIndex(cocktail => cocktail.key === key)];
 
   return (
-    <section aria-label="Cocktails to make" className="flex flex-col gap-2">
-      <h4 className="type-label text-label-xs font-semibold text-muted-foreground">
-        Cocktails to make
-      </h4>
+    <section aria-label="Cocktails to make" className="flex flex-col gap-2.5">
+      <SubsectionHeader title="Cocktails to make" meta={cocktails.length} />
       {rowsWithoutStep.length > 0 && (
         <p className="text-body-sm text-warning-text">
           No stain step yet, so in no cocktail:{' '}

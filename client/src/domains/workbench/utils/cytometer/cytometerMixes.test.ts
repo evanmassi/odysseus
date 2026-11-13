@@ -57,7 +57,7 @@ describe('mixColumns', () => {
 describe('mix shortcuts', () => {
   it('ticks every stain for the full stain and none for unstained or an empty mix', () => {
     expect(fullStainMix(columns)).toMatchObject({
-      name: 'Full stain',
+      name: 'Full Stain',
       rowIds: ['cd4', 'cd3', 'foxp3'],
     });
     expect(unstainedMix()).toMatchObject({ name: 'Unstained', rowIds: [] });

@@ -18,7 +18,7 @@ const conventionalLaser = (
 });
 
 const IQUE: Instrument = {
-  name: 'Sartorius iQue (Violet, Blue, Red)',
+  name: 'Sartorius iQue',
   kind: 'conventional',
   lasers: [
     conventionalLaser('Violet', 405, 'VL', [
@@ -79,7 +79,7 @@ const spectralLaser = (name: string, nm: number, prefix: string, firstBand: stri
 });
 
 const FACSDISCOVER_A8: Instrument = {
-  name: 'BD FACSDiscover A8 (UV, Violet, Blue, Yellow-green, Red)',
+  name: 'BD FACSDiscover A8',
   kind: 'spectral',
   lasers: [
     spectralLaser('UV', 349, 'UV', '375/20'),

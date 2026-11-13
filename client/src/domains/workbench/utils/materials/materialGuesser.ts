@@ -218,6 +218,19 @@ export const isNonFluorochromeConjugate = (name: string): boolean =>
 export const findFluorochromeName = (name: string): string | undefined =>
   fluorochromeByKey.get(normalizeMaterialKey(name))?.name;
 
+export interface DyeLaser {
+  name: string;
+  laser: string;
+}
+
+export function findDyeLaser(name: string): DyeLaser | undefined {
+  const key = normalizeMaterialKey(name);
+  const fluorochrome = fluorochromeByKey.get(key);
+  if (fluorochrome) return { name: fluorochrome.name, laser: fluorochrome.laser };
+  const laser = lexiconByKey.get(key)?.values['laser'];
+  return laser === undefined ? undefined : { name: name.trim(), laser };
+}
+
 const THERAPEUTIC_ANTIBODY = /\b[a-z]{3,}mab\b/i;
 
 export const isTherapeuticAntibodyName = (name: string): boolean => THERAPEUTIC_ANTIBODY.test(name);
