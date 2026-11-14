@@ -45,14 +45,7 @@ function PreviewLine({
       </>
     );
   }
-  if (!preview) {
-    return (
-      <span className="italic">
-        Anything works: CD4 BV421, HeLa, DMEM + 10% FBS, 96-well plate, FlowJo 10.9. Paste a list to
-        add many.
-      </span>
-    );
-  }
+  if (!preview) return null;
   const { guess, item, duplicate } = preview;
   const filled = materialFields(item).filter(
     definition => item.shownFields.includes(definition.key) && item.values[definition.key]?.trim()

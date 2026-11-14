@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { FlaskConical } from 'lucide-react';
+
+import { PanelEmptyState } from '@shared/ui';
+
 import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import { useStableActions } from '../../../../hooks/useStableActions';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
@@ -340,7 +344,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const createGroup = (label: string) => {
     const target = groupDialogTarget;
     setGroupDialogTarget(undefined);
-    const trimmed = label.trim();
+    const trimmed = withGreekLetters(label.trim());
     if (!target || !trimmed) return;
     const sameLabel = (candidate: { label: string }) =>
       candidate.label.toLowerCase() === trimmed.toLowerCase();
@@ -411,8 +415,9 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                       updateGroupItems(key, items => toggleSectionField(items, fieldKey, memory)),
                     onTogglePin: fieldKey => toggleStartingField(key, fieldKey),
                     onAddCustom: () => {
-                      if (!query.trim()) return;
-                      updateGroupItems(key, items => addCustomSectionField(items, query.trim()));
+                      const label = withGreekLetters(query.trim());
+                      if (!label) return;
+                      updateGroupItems(key, items => addCustomSectionField(items, label));
                       setFieldMenu({ group: key, query: '' });
                     },
                     onClose: () => setFieldMenu(undefined),
@@ -424,9 +429,11 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
             );
           })
         ) : (
-          <p className="text-body-sm italic text-muted-foreground">
-            Nothing yet. Type a material above; a name is enough.
-          </p>
+          <PanelEmptyState
+            icon={FlaskConical}
+            message="Add materials above"
+            description="Type a name, or paste a list"
+          />
         )}
         {readings.length > 0 && (
           <WorkbenchMaterialReadingsSection

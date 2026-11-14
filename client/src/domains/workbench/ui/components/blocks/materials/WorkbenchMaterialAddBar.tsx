@@ -1,4 +1,6 @@
-import { Input } from '@shared/ui';
+import { Plus } from 'lucide-react';
+
+import { Button, Input } from '@shared/ui';
 
 import { WorkbenchMaterialGuessPreview } from './WorkbenchMaterialGuessPreview';
 import { WorkbenchMaterialPastePanel } from './WorkbenchMaterialPastePanel';
@@ -23,31 +25,45 @@ export function WorkbenchMaterialAddBar({
 }: WorkbenchMaterialAddBarProps) {
   const pendingDuplicate = items.find(item => item.id === adding.pendingDuplicate?.duplicateId);
 
+  const hasText = !!adding.text.trim();
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') adding.clear();
-    if (event.key !== 'Enter' || !adding.text.trim()) return;
+    if (event.key !== 'Enter' || !hasText) return;
     event.preventDefault();
     adding.submit();
   };
 
   return (
     <div className="mb-6">
-      <div className="max-w-[38.75rem]">
-        <Input
-          ref={adding.inputRef}
+      <div className="flex max-w-[38.75rem] items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <Input
+            ref={adding.inputRef}
+            size="md"
+            fullWidth
+            value={adding.text}
+            placeholder="e.g. RPMI 1640, or paste a list"
+            aria-label="Add a material"
+            spellCheck={false}
+            autoComplete="off"
+            inputClassName="placeholder:italic"
+            onValueChange={adding.changeText}
+            onKeyDown={handleKeyDown}
+            onPaste={event => {
+              if (adding.pasteText(event.clipboardData.getData('text'))) event.preventDefault();
+            }}
+          />
+        </div>
+        <Button
+          variant="primary"
           size="md"
-          fullWidth
-          value={adding.text}
-          placeholder="Add a material: type a name and press Enter, or paste a list"
-          aria-label="Add a material"
-          spellCheck={false}
-          autoComplete="off"
-          onValueChange={adding.changeText}
-          onKeyDown={handleKeyDown}
-          onPaste={event => {
-            if (adding.pasteText(event.clipboardData.getData('text'))) event.preventDefault();
-          }}
-        />
+          leftIcon={<Plus className="h-4 w-4" />}
+          disabled={!hasText}
+          onClick={adding.submit}
+        >
+          Add Material
+        </Button>
       </div>
       <WorkbenchMaterialGuessPreview
         typed={adding.text}

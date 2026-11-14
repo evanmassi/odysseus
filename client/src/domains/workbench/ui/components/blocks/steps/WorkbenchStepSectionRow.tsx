@@ -1,6 +1,8 @@
 import { memo, useEffect, useRef } from 'react';
 import type { MouseEvent } from 'react';
 
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
+
 import { STEP_ROW_ATTRIBUTE } from './useStepDrag';
 import { useUpdateStepPage } from './useUpdateStepPage';
 import { WorkbenchStepGripButton } from './WorkbenchStepGripButton';
@@ -34,6 +36,12 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
   const updatePage = useUpdateStepPage(pageId);
   const titleRef = useRef<HTMLInputElement>(null);
 
+  const setTitle = (text: string) =>
+    updatePage(page => {
+      const draft = page.steps.find(candidate => candidate.id === section.id);
+      if (draft) draft.text = text;
+    });
+
   useEffect(() => {
     if (!shouldFocus || !titleRef.current) return;
     titleRef.current.focus();
@@ -57,12 +65,10 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
           aria-label="Section title"
           spellCheck={false}
           className="min-w-[60px] py-px type-label text-label-md font-semibold tracking-label-wide text-foreground"
-          onChange={event => {
-            const text = event.currentTarget.value;
-            updatePage(page => {
-              const draft = page.steps.find(candidate => candidate.id === section.id);
-              if (draft) draft.text = text;
-            });
+          onChange={event => setTitle(event.currentTarget.value)}
+          onBlur={event => {
+            const converted = withGreekLetters(event.currentTarget.value);
+            if (converted !== event.currentTarget.value) setTitle(converted);
           }}
           onKeyDown={event => {
             if (event.key !== 'Enter') return;

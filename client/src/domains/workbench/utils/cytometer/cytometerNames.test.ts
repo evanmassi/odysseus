@@ -64,6 +64,7 @@ const plate: ProtocolBlock = {
 const protocol = (extra: ProtocolBlock[] = []): Protocol => ({
   title: 'Panel',
   descriptor: '',
+  purpose: '',
   runNumber: '',
   runOn: { from: '', to: '' },
   pages: [{ id: 'page', name: 'Flow', steps: [] }],

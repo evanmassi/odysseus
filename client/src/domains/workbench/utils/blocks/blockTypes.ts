@@ -7,9 +7,15 @@ type BlockContent<Type extends ProtocolBlockType> = Omit<
   'id' | 'type' | 'title' | 'page' | 'x' | 'y' | 'w' | 'h' | 'isCollapsed' | 'expandedHeight'
 >;
 
+interface BlockUsageTip {
+  heading: string;
+  points: readonly string[];
+}
+
 interface BlockType<Type extends ProtocolBlockType> {
   label: string;
   hint: string;
+  usageTip?: BlockUsageTip;
   size: readonly [number, number];
   fitsContent?: boolean;
   createContent: () => BlockContent<Type>;
@@ -19,6 +25,13 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   materials: {
     label: 'Materials',
     hint: 'Everything the experiment uses, grouped',
+    usageTip: {
+      heading: 'Add each material your experiment uses',
+      points: [
+        'Type a name and press Enter, or paste a list',
+        'Add vendor, lot # and other details as you go',
+      ],
+    },
     size: [12, 10],
     createContent: () => ({ foldedGroups: [], customGroups: [], isDroppedOpen: false, items: [] }),
   },

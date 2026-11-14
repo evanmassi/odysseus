@@ -1,8 +1,8 @@
 import { memo, useRef, useState, type ComponentType } from 'react';
 
-import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Info, X } from 'lucide-react';
 
-import { ConsolePanel, Tooltip } from '@shared/ui';
+import { ConsolePanel, Tooltip, TooltipPlaque } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useFitBlockHeight } from '../../../hooks/useFitBlockHeight';
@@ -10,6 +10,7 @@ import { useUpdateBlock } from '../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BLOCK_TYPES } from '../../../utils/blocks/blockTypes';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
+import { withGreekLetters } from '../../../utils/materials/greekLetters';
 
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_PANELS } from './blockPanels';
@@ -56,7 +57,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const finishRename = (title: string) => {
     setIsRenaming(false);
     updateBlock(draft => {
-      draft.title = title.trim() || blockType.label;
+      draft.title = withGreekLetters(title.trim()) || blockType.label;
     });
   };
 
@@ -99,17 +100,56 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
               }}
             />
           ) : (
-            <Tooltip content="Double-click to rename">
-              <span
-                className="min-w-0 flex-1 truncate type-label text-label-md font-semibold text-foreground"
-                onDoubleClick={() => setIsRenaming(true)}
-              >
-                {block.title}
-                {hasOwnTitle && (
-                  <span className="ml-2 font-normal text-muted-foreground">{blockType.label}</span>
-                )}
-              </span>
-            </Tooltip>
+            <span className="flex min-w-0 flex-1 items-center gap-2">
+              <Tooltip content="Double-click to rename">
+                <span
+                  className="min-w-0 truncate type-label text-label-md font-semibold text-foreground"
+                  onDoubleClick={() => setIsRenaming(true)}
+                >
+                  {block.title}
+                  {hasOwnTitle && (
+                    <span className="ml-2 font-normal text-muted-foreground">
+                      {blockType.label}
+                    </span>
+                  )}
+                </span>
+              </Tooltip>
+              {blockType.usageTip && (
+                <Tooltip
+                  bare
+                  className="group"
+                  content={
+                    <TooltipPlaque className="max-w-[300px]">
+                      <p className="mb-2 text-body font-semibold leading-tight text-tooltip-foreground">
+                        {blockType.usageTip.heading}
+                      </p>
+                      <ul className="flex flex-col gap-1">
+                        {blockType.usageTip.points.map(point => (
+                          <li
+                            key={point}
+                            className="flex items-baseline gap-2 text-body-sm text-tooltip-foreground"
+                          >
+                            <span
+                              aria-hidden
+                              className="h-1 w-1 flex-none -translate-y-0.5 bg-tooltip-muted"
+                            />
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </TooltipPlaque>
+                  }
+                >
+                  <button
+                    type="button"
+                    aria-label={`About the ${blockType.label} block`}
+                    className="flex flex-none cursor-help text-muted-foreground hover:text-foreground"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+              )}
+            </span>
           )}
           <button
             type="button"

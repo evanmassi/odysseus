@@ -10,6 +10,7 @@ import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
 import { normalizeMaterialKey } from '../../../../utils/materials/materialKey';
@@ -253,6 +254,12 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
 
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
 
+  const setGeneralTitle = (title: string) =>
+    edit(draft => {
+      const target = draft.blocks.find(candidate => candidate.id === block.id);
+      if (target?.type === 'values') target.generalTitle = title;
+    });
+
   const remove = (mutate: (draft: Protocol) => RemovedValues | undefined) => {
     let entry: RemovedValues | undefined;
     edit(draft => {
@@ -427,12 +434,11 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
                 aria-label="Group name"
                 spellCheck={false}
                 className={TITLE_INPUT}
-                onChange={event =>
-                  edit(draft => {
-                    const target = draft.blocks.find(candidate => candidate.id === block.id);
-                    if (target?.type === 'values') target.generalTitle = event.target.value;
-                  })
-                }
+                onChange={event => setGeneralTitle(event.target.value)}
+                onBlur={event => {
+                  const converted = withGreekLetters(event.target.value);
+                  if (converted !== event.target.value) setGeneralTitle(converted);
+                }}
               />
             </span>
           ) : (

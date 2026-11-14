@@ -435,6 +435,7 @@ const legacyProtocol = z
     return {
       title: legacy.title,
       descriptor: legacy.descriptor,
+      purpose: '',
       runNumber: legacy.runNumber,
       runOn: legacy.runOn,
       pages,

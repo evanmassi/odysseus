@@ -34,6 +34,7 @@ import {
   namesWithin,
   uniqueName,
 } from '../../../../utils/formulas/formulaScopes';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { META_LABEL } from '../../board/metaLabelClass';
@@ -163,8 +164,11 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
 
   const addFormula = (material: MaterialItem | undefined, text: string) => {
     const [label, ...rest] = text.split('=');
-    const name = uniqueName(calculation, joinValueName(material?.name.trim() ?? '', label.trim()));
-    const expr = namesInFull(rest.join('=').trim(), calculation, material);
+    const name = uniqueName(
+      calculation,
+      joinValueName(material?.name.trim() ?? '', withGreekLetters(label.trim()))
+    );
+    const expr = namesInFull(withGreekLetters(rest.join('=').trim()), calculation, material);
     let added: string | undefined;
     edit(draft => {
       added = insertFormula(

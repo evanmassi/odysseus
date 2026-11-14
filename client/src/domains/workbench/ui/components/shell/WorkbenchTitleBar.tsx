@@ -1,6 +1,9 @@
-import { Button, Chip, DatePicker, Input } from '@shared/ui';
+import { CircleCheckBig, CircleDashed, TriangleAlert } from 'lucide-react';
+
+import { Button, DatePicker, Divider, Input, Textarea } from '@shared/ui';
 
 import { selectIsDirty, useWorkbenchStore } from '../../../stores/workbenchStore';
+import { withGreekLetters } from '../../../utils/materials/greekLetters';
 import { experimentId } from '../../../utils/protocolFile/experimentId';
 import { META_LABEL } from '../board/metaLabelClass';
 
@@ -11,6 +14,7 @@ interface WorkbenchTitleBarProps {
 }
 
 const FILE_EXTENSION = '.json';
+const STATUS_ICON = 'h-3.5 w-3.5';
 
 export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
   const protocol = useWorkbenchStore(state => state.protocol);
@@ -20,7 +24,7 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
   const identifier = experimentId(protocol);
   const isNamedDifferently = !!fileName && fileName !== `${identifier}${FILE_EXTENSION}`;
 
-  const setField = <Key extends 'title' | 'descriptor' | 'runNumber'>(
+  const setField = <Key extends 'title' | 'descriptor' | 'purpose' | 'runNumber'>(
     key: Key,
     value: Protocol[Key]
   ) =>
@@ -46,13 +50,20 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="font-mono text-data-sm text-secondary-foreground">{identifier}</span>
           {isDirty ? (
-            <Chip color="warning" lit>
+            <span className="flex items-center gap-1 text-body-sm text-warning-text">
+              <TriangleAlert className={STATUS_ICON} />
               Unsaved changes
-            </Chip>
+            </span>
           ) : fileName ? (
-            <Chip color="success">Saved</Chip>
+            <span className="flex items-center gap-1 text-body-sm text-success-text">
+              <CircleCheckBig className={STATUS_ICON} />
+              Saved
+            </span>
           ) : (
-            <Chip color="outlined">Not saved to a file</Chip>
+            <span className="flex items-center gap-1 text-body-sm text-muted-foreground">
+              <CircleDashed className={STATUS_ICON} />
+              Not saved to a file
+            </span>
           )}
           {isNamedDifferently && (
             <>
@@ -66,6 +77,7 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
           )}
         </div>
       </div>
+      <Divider tone="neutral" className="max-w-6xl" />
       <div className="grid max-w-6xl grid-cols-[auto_minmax(14rem,1fr)_auto] items-end gap-x-7 gap-y-3">
         <div className="flex flex-col gap-1">
           <span className={META_LABEL}>Assay dates</span>
@@ -88,13 +100,13 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
           </span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className={META_LABEL}>Descriptor</span>
+          <span className={META_LABEL}>Description</span>
           <Input
             size="sm"
             fullWidth
             value={protocol.descriptor}
             placeholder="e.g. donor, cell line or condition"
-            aria-label="Descriptor"
+            aria-label="Description"
             spellCheck={false}
             inputClassName="placeholder:italic"
             onChange={event => setField('descriptor', event.target.value)}
@@ -114,6 +126,22 @@ export function WorkbenchTitleBar({ onSaveUnderId }: WorkbenchTitleBarProps) {
               onChange={event => setField('runNumber', event.target.value)}
             />
           </span>
+        </div>
+        <div className="col-span-3 flex flex-col gap-1">
+          <span className={META_LABEL}>Purpose</span>
+          <Textarea
+            rows={2}
+            resize="vertical"
+            value={protocol.purpose}
+            placeholder="e.g. aim and hypothesis"
+            aria-label="Purpose"
+            className="text-body-sm placeholder:italic"
+            onValueChange={value => setField('purpose', value)}
+            onBlur={event => {
+              const converted = withGreekLetters(event.target.value);
+              if (converted !== event.target.value) setField('purpose', converted);
+            }}
+          />
         </div>
       </div>
     </div>

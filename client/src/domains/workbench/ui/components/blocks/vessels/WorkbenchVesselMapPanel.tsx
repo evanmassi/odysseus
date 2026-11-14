@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
+import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
 import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
 import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
@@ -116,12 +117,14 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           }
   );
 
-  const renameTab = (tabId: string, name: string) =>
+  const renameTab = (tabId: string, typed: string) => {
+    const name = withGreekLetters(typed.trim());
     updateBlock(draft => {
       const plate = draft.plates.find(({ id }) => id === tabId);
-      if (plate) plate.name = name.trim();
-      else draft.shelfName = name.trim() || undefined;
+      if (plate) plate.name = name;
+      else draft.shelfName = name || undefined;
     });
+  };
 
   return (
     <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-1">

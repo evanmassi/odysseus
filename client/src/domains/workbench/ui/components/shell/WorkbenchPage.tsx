@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import { ConsolePanel, ScrollArea } from '@shared/ui';
+import { ConsolePanel, Divider, ScrollArea } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useProtocolFileActions } from '../../../hooks/useProtocolFileActions';
@@ -50,6 +50,7 @@ export function WorkbenchPage() {
             onSave={asNewFile => void save(asNewFile)}
           />
         </div>
+        <Divider tone="neutral" className="my-1" />
         <div className="flex min-h-0 flex-1 flex-col gap-2">
           <WorkbenchPageTabs />
           <ScrollArea className="min-h-0 flex-1 pr-2">

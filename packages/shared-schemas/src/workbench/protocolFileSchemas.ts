@@ -272,6 +272,7 @@ const protocolBlockSchema = z.discriminatedUnion('type', [
 const protocolSchema = z.object({
   title: z.string(),
   descriptor: z.string(),
+  purpose: z.string().default(''),
   runNumber: z.string(),
   runOn: z.object({ from: z.string(), to: z.string() }),
   pages: z.array(pageSchema).min(1),

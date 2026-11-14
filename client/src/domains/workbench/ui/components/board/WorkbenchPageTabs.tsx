@@ -9,6 +9,15 @@ import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 import { createId } from '../../../utils/ids/createId';
 
+const LABEL_TRACKING = '0.08em';
+const FIELD_CHROME_PX = 12;
+const CARET_ROOM_PX = 2;
+
+function labelFieldWidth(name: string) {
+  const chars = Math.max(1, name.length);
+  return `calc(${chars} * (1ch + ${LABEL_TRACKING}) + ${FIELD_CHROME_PX + CARET_ROOM_PX}px)`;
+}
+
 export function WorkbenchPageTabs() {
   const pages = useWorkbenchStore(state => state.protocol.pages);
   const blocks = useWorkbenchStore(state => state.protocol.blocks);
@@ -16,7 +25,13 @@ export function WorkbenchPageTabs() {
   const showPage = useWorkbenchStore(state => state.showPage);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [renamingPageId, setRenamingPageId] = useState<string>();
+  const [draftName, setDraftName] = useState('');
   const [deletingPageId, setDeletingPageId] = useState<string>();
+
+  const startRename = (pageId: string, name: string) => {
+    setDraftName(name);
+    setRenamingPageId(pageId);
+  };
 
   const deletingPage = pages.find(page => page.id === deletingPageId);
   const deletingBlockCount = blocks.filter(block => block.page === deletingPageId).length;
@@ -27,7 +42,7 @@ export function WorkbenchPageTabs() {
       draft.pages.push(page);
     });
     showPage(page.id);
-    setRenamingPageId(page.id);
+    startRename(page.id, page.name);
   };
 
   const finishRename = (pageId: string, name: string) => {
@@ -65,26 +80,30 @@ export function WorkbenchPageTabs() {
       <Tabs value={activePageId} onChange={showPage} size="sm" orientation="horizontal">
         {pages.map(page =>
           page.id === renamingPageId ? (
-            <input
-              key={page.id}
-              ref={focusOnMount}
-              defaultValue={page.name}
-              aria-label="Page name"
-              className="w-40 bg-transparent px-3 py-2 type-label text-label-sm text-foreground outline-none"
-              onFocus={event => event.currentTarget.select()}
-              onBlur={event => finishRename(page.id, event.currentTarget.value)}
-              onKeyDown={event => {
-                if (event.key === 'Enter') event.currentTarget.blur();
-                if (event.key === 'Escape') setRenamingPageId(undefined);
-              }}
-            />
+            <span key={page.id} className="flex items-center px-3 py-2">
+              <input
+                ref={focusOnMount}
+                defaultValue={page.name}
+                aria-label="Page name"
+                spellCheck={false}
+                className="inline-edit-field max-w-none type-label text-label-sm text-foreground"
+                style={{ width: labelFieldWidth(draftName) }}
+                onChange={event => setDraftName(event.currentTarget.value)}
+                onFocus={event => event.currentTarget.select()}
+                onBlur={event => finishRename(page.id, event.currentTarget.value)}
+                onKeyDown={event => {
+                  if (event.key === 'Enter') event.currentTarget.blur();
+                  if (event.key === 'Escape') setRenamingPageId(undefined);
+                }}
+              />
+            </span>
           ) : (
             <Tooltip content="Double-click or F2 to rename" key={page.id}>
               <span
                 role="presentation"
-                onDoubleClick={() => setRenamingPageId(page.id)}
+                onDoubleClick={() => startRename(page.id, page.name)}
                 onKeyDown={event => {
-                  if (event.key === 'F2') setRenamingPageId(page.id);
+                  if (event.key === 'F2') startRename(page.id, page.name);
                 }}
               >
                 <Tab id={page.id}>

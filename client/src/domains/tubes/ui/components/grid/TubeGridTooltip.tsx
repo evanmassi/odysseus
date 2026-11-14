@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { Divider, ScrimHalo, Tooltip } from '@shared/ui';
+import { Divider, Tooltip, TooltipPlaque } from '@shared/ui';
 
 import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
@@ -31,13 +31,6 @@ const lockLabels: Record<LockVariant, (name: string) => string> = {
   'admin-override': name => `Locked by ${name} (admin override)`,
   other: name => `Locked by ${name}`,
 };
-
-const CORNER_PINS = [
-  'left-2 top-2',
-  'right-2 top-2',
-  'bottom-2 left-2',
-  'bottom-2 right-2',
-] as const;
 
 function LedgerRow({ label, value }: { label: string; value: string }) {
   return (
@@ -90,20 +83,7 @@ export function TubeGridTooltip({
   const isLockedOut = lockVariant === 'other';
 
   const tooltipContent = (
-    <div className="relative isolate min-w-[172px] max-w-[260px] px-4 py-3.5">
-      <ScrimHalo />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground dark:shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"
-      />
-      {CORNER_PINS.map(pos => (
-        <span
-          key={pos}
-          aria-hidden
-          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground dark:shadow-[0_0_5px_hsl(var(--foreground)/0.8)] ${pos}`}
-        />
-      ))}
-
+    <TooltipPlaque className="min-w-[172px] max-w-[260px]">
       <div className="mb-2 flex items-baseline gap-1.5">
         <span className="text-body font-semibold leading-tight text-tooltip-foreground">
           {cellType}
@@ -143,7 +123,7 @@ export function TubeGridTooltip({
           )}
         </>
       )}
-    </div>
+    </TooltipPlaque>
   );
 
   return createPortal(

@@ -1,3 +1,5 @@
+import { withGreekLetters } from '../materials/greekLetters';
+
 import type { ProtocolStep } from '@odysseus/shared-schemas';
 
 type WithoutId<Step> = Step extends unknown ? Omit<Step, 'id'> : never;
@@ -85,5 +87,5 @@ export function parseProtocolText(raw: string): ParsedProtocolStep[] {
     isAfterGap = false;
     bulletLevel = 0;
   }
-  return parsed.map(item => ({ ...item, text: item.text.trim() }));
+  return parsed.map(item => ({ ...item, text: withGreekLetters(item.text.trim()) }));
 }

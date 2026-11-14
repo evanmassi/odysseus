@@ -12,6 +12,7 @@ export function blankProtocol(): Protocol {
   return {
     title: 'Untitled protocol',
     descriptor: '',
+    purpose: '',
     runNumber: '',
     runOn: { from: '', to: '' },
     pages: [setup, plates, takedown],
