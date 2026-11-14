@@ -15,12 +15,12 @@ export function WorkbenchStepGripButton({ onGrab }: WorkbenchStepGripButtonProps
         type="button"
         tabIndex={-1}
         aria-label="Drag to move"
-        className="absolute -left-3 top-1/2 flex w-3 -translate-y-1/2 cursor-grab select-none text-foreground/25 opacity-0 transition-opacity hover:text-primary group-hover/step:opacity-100"
+        className="absolute inset-y-0 -left-4 flex w-5 cursor-grab select-none items-center justify-center text-foreground/25 opacity-0 transition-opacity hover:bg-primary/10 hover:text-primary group-hover/step:opacity-100"
         onMouseDown={event => {
           if (event.button === 0) onGrab(event);
         }}
       >
-        <GripVertical aria-hidden className="h-3.5 w-3.5" />
+        <GripVertical aria-hidden className="h-4 w-4" />
       </button>
     </Tooltip>
   );

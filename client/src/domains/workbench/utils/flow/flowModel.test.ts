@@ -43,7 +43,8 @@ describe('the flow diagram model', () => {
     expect(model.boxes.map(box => box.step.number)).toEqual(['1', '2', '4', '6', '7', '8', '9']);
     expect(boxNamed('2').waitsAfter).toEqual([
       {
-        step: { id: STAINING[3].id, number: '3', verb: 'Rest' },
+        step: { id: STAINING[3].id, verb: 'Rest' },
+        number: '3',
         time: { label: '1 h', minutes: 60, isOvernight: false },
         conditions: ['37 °C'],
       },
@@ -55,6 +56,7 @@ describe('the flow diagram model', () => {
     expect(rowsOf(add.step)).toEqual([['Add', '50 µL surface cocktail.']]);
     expect(add.waitsAfter[0]).toMatchObject({
       step: undefined,
+      number: '7',
       time: { label: '30 min' },
       conditions: ['4 °C', 'dark'],
     });
@@ -228,10 +230,12 @@ describe('the flow diagram layout', () => {
   it('widens every box alike to fill the fullest row, up to a cap', () => {
     const wide = flowLayout(model, 2000, NOT_MEASURED);
     expect(new Set(wide.steps.map(placed => placed.width))).toEqual(new Set([340]));
-    const snug = flowLayout(model, 1000, NOT_MEASURED);
+    const snug = flowLayout(model, 1100, NOT_MEASURED);
     const [snugWidth] = new Set(snug.steps.map(placed => placed.width));
     expect(snugWidth).toBeGreaterThan(236);
-    expect(Math.max(...snug.steps.map(placed => placed.x + placed.width))).toBeLessThanOrEqual(990);
+    expect(Math.max(...snug.steps.map(placed => placed.x + placed.width))).toBeLessThanOrEqual(
+      1090
+    );
   });
 
   it('starts every section on its own row', () => {

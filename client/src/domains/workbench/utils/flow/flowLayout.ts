@@ -9,16 +9,16 @@ export const FLOW_METRICS = {
   subStepLine: 20,
   boxChrome: 14,
   columnGap: 30,
-  waitGap: 120,
+  waitGap: 230,
   stackGap: 26,
-  stackWaitGap: 62,
+  stackWaitGap: 86,
   lead: 26,
   framePad: 10,
   header: 30,
   duringGap: 22,
   duringSpacing: 10,
   rowGap: 30,
-  waitRowGap: 50,
+  waitRowGap: 62,
   arrowY: 32,
   turnOut: 14,
 } as const;
@@ -47,6 +47,8 @@ export interface FlowArrow {
   labelX: number;
   labelY: number;
   labelAnchor: 'middle' | 'start';
+  direction: 'right' | 'down';
+  isStraight: boolean;
 }
 
 export interface FlowLink {
@@ -177,8 +179,10 @@ export function flowLayout(
           path: `M${centerX} ${boxBottom + 3} V${boxBottom + gap - 5}`,
           waits: box.waitsAfter,
           labelX: centerX,
-          labelY: boxBottom + gap / 2 - 6,
+          labelY: boxBottom + gap / 2,
           labelAnchor: 'middle',
+          direction: 'down',
+          isStraight: true,
         });
         cursor = boxBottom + gap;
       });
@@ -197,6 +201,8 @@ export function flowLayout(
             labelX: (x1 + x2) / 2,
             labelY: arrowY,
             labelAnchor: 'middle',
+            direction: 'right',
+            isStraight: true,
           });
         }
         bottom = Math.max(bottom, placeBox(box, x, top, rowHeight));
@@ -228,6 +234,8 @@ export function flowLayout(
         labelX: exit.labelX,
         labelY: midY,
         labelAnchor: returnAnchor,
+        direction: 'down',
+        isStraight: false,
       });
     }
     y = bottom + M.framePad + gapBefore(next?.incoming);

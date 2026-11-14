@@ -41,7 +41,8 @@ export interface FlowStep {
 }
 
 export interface FlowWait {
-  step: { id: string; number: string; verb: string } | undefined;
+  step: { id: string; verb: string } | undefined;
+  number: string;
   time: StepTime;
   conditions: string[];
 }
@@ -216,7 +217,8 @@ export function flowModel(
     const { step, split } = main;
     if (split.wait && ridesArrow(main, index, mains.length)) {
       riding.push({
-        step: { id: step.id, number: step.number, verb: step.actions[0].verb ?? '' },
+        step: { id: step.id, verb: step.actions[0].verb ?? '' },
+        number: step.number,
         ...split.wait,
       });
       return;
@@ -224,7 +226,10 @@ export function flowModel(
     const previous = boxed[boxed.length - 1];
     if (previous) {
       const own = previous.split;
-      const carried = own.action && own.wait ? [{ step: undefined, ...own.wait }] : [];
+      const carried =
+        own.action && own.wait
+          ? [{ step: undefined, number: previous.step.number, ...own.wait }]
+          : [];
       boxes[boxes.length - 1].waitsAfter = [...carried, ...riding];
     }
     riding = [];

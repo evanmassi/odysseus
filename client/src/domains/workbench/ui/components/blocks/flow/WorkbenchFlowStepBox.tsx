@@ -1,7 +1,8 @@
-import { splitProse } from '../../../../utils/steps/stepTemplate';
+import { stepTime } from '../../../../utils/flow/stepWaits';
+import { splitProse, type ProsePiece } from '../../../../utils/steps/stepTemplate';
 import { STEP_PROSE_CLASSES } from '../steps/stepProseClasses';
 
-import { FLOW_DONE_CLASSES, FLOW_KIND_COLORS, FLOW_PLACE_CLASSES } from './flowKindStyles';
+import { FLOW_DONE_CLASSES, FLOW_PLACE_CLASSES, flowKindColor } from './flowKindStyles';
 import { WorkbenchFlowPicture } from './WorkbenchFlowPicture';
 
 import type { PlacedStep } from '../../../../utils/flow/flowLayout';
@@ -16,6 +17,13 @@ interface WorkbenchFlowStepBoxProps {
 }
 
 const BLANK = /(\[[^\]]+\])/;
+const PICTURE_COLOR = 'hsl(var(--foreground) / 0.55)';
+const STRIPE_COLOR = 'hsl(var(--foreground) / 0.3)';
+
+function flowProseClass(piece: ProsePiece): string | undefined {
+  if (piece.kind !== 'quantity') return STEP_PROSE_CLASSES[piece.kind];
+  return stepTime(piece.text) ? 'font-medium text-warning-text' : 'font-medium text-foreground';
+}
 
 function StepText({ text }: { text: string }) {
   return (
@@ -30,7 +38,7 @@ function StepText({ text }: { text: string }) {
           </span>
         ) : (
           splitProse(part, false).map((piece, pieceIndex) => (
-            <span key={`${partIndex}-${pieceIndex}`} className={STEP_PROSE_CLASSES[piece.kind]}>
+            <span key={`${partIndex}-${pieceIndex}`} className={flowProseClass(piece)}>
               {piece.text}
             </span>
           ))
@@ -53,7 +61,7 @@ function SubStepLine({ sub, isNested }: { sub: FlowSubStep; isNested: boolean })
           {sub.verb && (
             <span
               className="mr-1 text-label-2xs font-bold uppercase tracking-meta"
-              style={{ color: FLOW_KIND_COLORS[sub.kind] }}
+              style={{ color: flowKindColor(sub.kind) }}
             >
               {sub.verb}
             </span>
@@ -90,7 +98,6 @@ export function WorkbenchFlowStepBox({
   onOpen,
 }: WorkbenchFlowStepBoxProps) {
   const { step, duringOf } = placed;
-  const color = FLOW_KIND_COLORS[step.kind];
 
   return (
     <button
@@ -107,23 +114,20 @@ export function WorkbenchFlowStepBox({
         top: placed.y,
         width: placed.width,
         height: placed.height,
-        borderLeftColor: color,
+        borderLeftColor: STRIPE_COLOR,
         borderLeftStyle: 'solid',
       }}
     >
-      <span
-        className="absolute left-0 top-0 flex h-5 min-w-[22px] items-center justify-center px-1 font-mono text-data-sm font-bold text-foreground"
-        style={{ backgroundColor: `color-mix(in srgb, ${color} 38%, hsl(var(--card)))` }}
-      >
+      <span className="absolute left-0 top-0 flex h-5 min-w-[22px] items-center justify-center bg-foreground/10 px-1 font-mono text-data-sm font-bold text-foreground">
         {step.number}
       </span>
       <span data-measure-id={step.id} className="flex flex-col gap-1">
         {step.actions.map((action, index) => {
-          const actionColor = FLOW_KIND_COLORS[action.look.kind];
+          const actionColor = flowKindColor(action.look.kind);
           const hasHeading = !!action.verb || (index === 0 && !!duringOf);
           return (
             <span key={index} className="flex items-start gap-x-2.5">
-              <WorkbenchFlowPicture picture={action.look.picture} color={actionColor} />
+              <WorkbenchFlowPicture picture={action.look.picture} color={PICTURE_COLOR} />
               <span className="min-w-0 flex-1">
                 {hasHeading && (
                   <span className="flex h-[18px] items-center gap-1.5 whitespace-nowrap">

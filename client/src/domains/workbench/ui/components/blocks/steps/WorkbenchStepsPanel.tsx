@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { Button } from '@shared/ui';
+import { ListOrdered } from 'lucide-react';
+
+import { Button, PanelEmptyState } from '@shared/ui';
 
 import { useStepEditingStore } from '../../../../stores/stepEditingStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
@@ -98,8 +100,30 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
     setFreshSectionId(id);
   };
 
+  const addButtons = (
+    <>
+      <Button
+        variant="ghost"
+        size="xs"
+        onMouseDown={event => event.preventDefault()}
+        onClick={addStep}
+      >
+        + Step
+      </Button>
+      <Button variant="ghost" size="xs" onClick={addSection}>
+        + Section
+      </Button>
+      <Button variant="ghost" size="xs" onClick={() => setIsPasting(true)}>
+        Paste protocol
+      </Button>
+    </>
+  );
+
   return (
     <div ref={containerRef} className="px-4 pb-4 pt-5">
+      {!steps.length && (
+        <PanelEmptyState icon={ListOrdered} message="Add the first step" actions={addButtons} />
+      )}
       {groups.map(({ section, steps: groupSteps }) => (
         <section key={section?.id ?? 'loose'} className="mb-4">
           {section && (
@@ -140,22 +164,7 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
           </div>
         </section>
       ))}
-      <div className="mt-3 flex justify-end gap-2">
-        <Button
-          variant="ghost"
-          size="xs"
-          onMouseDown={event => event.preventDefault()}
-          onClick={addStep}
-        >
-          + Step
-        </Button>
-        <Button variant="ghost" size="xs" onClick={addSection}>
-          + Section
-        </Button>
-        <Button variant="ghost" size="xs" onClick={() => setIsPasting(true)}>
-          Paste protocol
-        </Button>
-      </div>
+      {steps.length > 0 && <div className="mt-3 flex justify-end gap-2">{addButtons}</div>}
       <WorkbenchStepPasteModal
         isOpen={isPasting}
         onClose={() => setIsPasting(false)}

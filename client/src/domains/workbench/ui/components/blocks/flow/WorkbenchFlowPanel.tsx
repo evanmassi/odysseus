@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 
+import { Workflow } from 'lucide-react';
+
+import { PanelEmptyState } from '@shared/ui';
+
 import { useContentHeights } from '../../../../hooks/useContentHeights';
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useShowBlock } from '../../../../hooks/useShowBlock';
@@ -10,12 +14,11 @@ import { flowLayout } from '../../../../utils/flow/flowLayout';
 import { flowModel } from '../../../../utils/flow/flowModel';
 import { durationText } from '../../../../utils/flow/stepWaits';
 
-import { FLOW_KIND_COLORS, FLOW_KIND_LABELS } from './flowKindStyles';
+import { FLOW_HANDS_OFF_COLOR, FLOW_HANDS_ON_COLOR } from './flowKindStyles';
 import { WorkbenchFlowSectionFrame } from './WorkbenchFlowSectionFrame';
 import { WorkbenchFlowStepBox } from './WorkbenchFlowStepBox';
 import { WorkbenchFlowWaitLabel } from './WorkbenchFlowWaitLabel';
 
-import type { StepKind } from '../../../../utils/flow/stepKinds';
 import type { ProtocolBlock, ProtocolStep } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowPanelProps {
@@ -30,7 +33,7 @@ const STEP_KEYS: Readonly<Record<string, number>> = {
   ArrowUp: -1,
 };
 const PLAIN_LINE = 'hsl(var(--muted-foreground) / 0.7)';
-const WAIT_LINE = FLOW_KIND_COLORS.wait;
+const WAIT_LINE = FLOW_HANDS_OFF_COLOR;
 
 export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
   const steps = useWorkbenchStore(
@@ -54,17 +57,24 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
     () => flowLayout(model, width, contentHeights),
     [model, width, contentHeights]
   );
-  const kinds = useMemo(
-    () =>
-      (Object.keys(FLOW_KIND_LABELS) as StepKind[]).filter(kind =>
-        model.boxes.some(({ step }) =>
-          [step, ...step.during].some(shown =>
-            shown.actions.some(action => action.look.kind === kind)
-          )
-        )
-      ),
-    [model]
-  );
+  const legend = useMemo(() => {
+    const kinds = model.boxes.flatMap(({ step }) =>
+      [step, ...step.during].flatMap(shown => shown.actions.map(action => action.look.kind))
+    );
+    const hasWaitArrow = layout.arrows.some(arrow => arrow.waits.length > 0);
+    return [
+      {
+        label: 'Hands-on',
+        color: FLOW_HANDS_ON_COLOR,
+        isShown: kinds.some(kind => kind !== 'wait'),
+      },
+      {
+        label: 'Hands-off',
+        color: FLOW_HANDS_OFF_COLOR,
+        isShown: hasWaitArrow || kinds.includes('wait'),
+      },
+    ].filter(entry => entry.isShown);
+  }, [model, layout]);
 
   const placeId = useFlowPlaceStore(state => state.placeByBlock[block.id]);
   const setPlace = useFlowPlaceStore(state => state.setPlace);
@@ -117,14 +127,10 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
     <div className="px-3 pb-3 pt-2">
       {model.boxes.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-label-xs text-muted-foreground">
-          {kinds.map(kind => (
-            <span key={kind} className="inline-flex items-center gap-1.5">
-              <span
-                aria-hidden
-                className="h-2 w-2"
-                style={{ backgroundColor: FLOW_KIND_COLORS[kind] }}
-              />
-              {FLOW_KIND_LABELS[kind]}
+          {legend.map(entry => (
+            <span key={entry.label} className="inline-flex items-center gap-1.5">
+              <span aria-hidden className="h-2 w-2" style={{ backgroundColor: entry.color }} />
+              {entry.label}
             </span>
           ))}
           {total && <span className="ml-auto font-mono text-data-sm text-foreground">{total}</span>}
@@ -139,9 +145,11 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
         style={model.boxes.length ? { height: layout.height } : undefined}
       >
         {model.boxes.length === 0 ? (
-          <p className="text-body-sm italic text-muted-foreground">
-            Add steps in Procedure and they are drawn here.
-          </p>
+          <PanelEmptyState
+            icon={Workflow}
+            message="Add steps in Procedure"
+            description="Each step is drawn here as it's written"
+          />
         ) : (
           width > 0 && (
             <>
@@ -179,6 +187,7 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
                 </defs>
                 {layout.arrows.map(arrow => {
                   const isWait = arrow.waits.length > 0;
+                  if (isWait && arrow.isStraight) return null;
                   return (
                     <path
                       key={arrow.path}
@@ -209,6 +218,7 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
                     x={arrow.labelX}
                     y={arrow.labelY}
                     anchor={arrow.labelAnchor}
+                    direction={arrow.direction}
                     placeId={placeId}
                     isDone={isDone}
                     onSelect={selectStep}

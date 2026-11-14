@@ -7,7 +7,7 @@ type BlockContent<Type extends ProtocolBlockType> = Omit<
   'id' | 'type' | 'title' | 'page' | 'x' | 'y' | 'w' | 'h' | 'isCollapsed' | 'expandedHeight'
 >;
 
-interface BlockUsageTip {
+export interface BlockUsageTip {
   heading: string;
   points: readonly string[];
 }
@@ -28,11 +28,12 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
     usageTip: {
       heading: 'Add each material your experiment uses',
       points: [
-        'Type a name and press Enter, or paste a list',
-        'Add vendor, lot # and other details as you go',
+        'Type a name and press [Enter], or paste a list',
+        '*Add* vendor, lot # and other details as you go',
       ],
     },
     size: [12, 10],
+    fitsContent: true,
     createContent: () => ({ foldedGroups: [], customGroups: [], isDroppedOpen: false, items: [] }),
   },
   list: {
@@ -94,7 +95,17 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   steps: {
     label: 'Procedure',
     hint: 'The outline of what you do',
+    usageTip: {
+      heading: 'Write out what you do, step by step',
+      points: [
+        '[Shift+Enter] starts the next step',
+        '[Tab] indents, [Shift+Tab] outdents',
+        'Type [{] to drop in a <values> or <materials> name',
+        '*Drag* to reorder',
+      ],
+    },
     size: [5, 8],
+    fitsContent: true,
     createContent: () => ({}),
   },
   dilutions: {
@@ -107,6 +118,14 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   flow: {
     label: 'Flow diagram',
     hint: 'The steps drawn as pictures and arrows',
+    usageTip: {
+      heading: 'Follow the procedure at the bench',
+      points: [
+        '*Click* a step to mark your place',
+        '[←] or [→] moves your place, [Esc] clears it',
+        '*Double-click* a step to edit it in <steps>',
+      ],
+    },
     size: [12, 6],
     fitsContent: true,
     createContent: () => ({}),

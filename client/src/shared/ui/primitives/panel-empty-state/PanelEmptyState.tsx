@@ -1,9 +1,12 @@
+import type { ReactNode } from 'react';
+
 import type { LucideIcon } from 'lucide-react';
 
 interface PanelEmptyStateProps {
   icon: LucideIcon;
   message: string;
   description?: string;
+  actions?: ReactNode;
   className?: string;
 }
 
@@ -11,6 +14,7 @@ export function PanelEmptyState({
   icon: Icon,
   message,
   description,
+  actions,
   className,
 }: PanelEmptyStateProps) {
   return (
@@ -23,6 +27,7 @@ export function PanelEmptyState({
       />
       <p className="text-body-sm text-card-foreground/40">{message}</p>
       {description && <p className="mt-1 text-caption text-card-foreground/30">{description}</p>}
+      {actions && <div className="mt-3 flex items-center gap-2">{actions}</div>}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { memo, useRef, useState, type ComponentType } from 'react';
 
-import { ChevronDown, ChevronRight, Info, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
-import { ConsolePanel, Tooltip, TooltipPlaque } from '@shared/ui';
+import { ConsolePanel, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useFitBlockHeight } from '../../../hooks/useFitBlockHeight';
@@ -15,6 +15,7 @@ import { withGreekLetters } from '../../../utils/materials/greekLetters';
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_PANELS } from './blockPanels';
 import { WorkbenchBlockPendingPanel } from './WorkbenchBlockPendingPanel';
+import { WorkbenchBlockUsageTip } from './WorkbenchBlockUsageTip';
 
 import type { ProtocolBlock } from '@odysseus/shared-schemas';
 
@@ -115,39 +116,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
                 </span>
               </Tooltip>
               {blockType.usageTip && (
-                <Tooltip
-                  bare
-                  className="group"
-                  content={
-                    <TooltipPlaque className="max-w-[300px]">
-                      <p className="mb-2 text-body font-semibold leading-tight text-tooltip-foreground">
-                        {blockType.usageTip.heading}
-                      </p>
-                      <ul className="flex flex-col gap-1">
-                        {blockType.usageTip.points.map(point => (
-                          <li
-                            key={point}
-                            className="flex items-baseline gap-2 text-body-sm text-tooltip-foreground"
-                          >
-                            <span
-                              aria-hidden
-                              className="h-1 w-1 flex-none -translate-y-0.5 bg-tooltip-muted"
-                            />
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </TooltipPlaque>
-                  }
-                >
-                  <button
-                    type="button"
-                    aria-label={`About the ${blockType.label} block`}
-                    className="flex flex-none cursor-help text-muted-foreground hover:text-foreground"
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
+                <WorkbenchBlockUsageTip tip={blockType.usageTip} blockLabel={blockType.label} />
               )}
             </span>
           )}

@@ -28,7 +28,7 @@ export function TooltipPlaque({ children, className = '' }: TooltipPlaqueProps) 
         <span
           key={position}
           aria-hidden
-          className={`pointer-events-none absolute h-0.5 w-1.5 ${PIN_GLOW} ${position}`}
+          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground/35 ${position}`}
         />
       ))}
       {children}
