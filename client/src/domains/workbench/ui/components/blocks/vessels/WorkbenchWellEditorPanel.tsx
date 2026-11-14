@@ -22,6 +22,7 @@ import {
   recolorValue,
   nameElsewhere,
   removeLineFromWells,
+  renameLine,
   renameValue,
   setWellsAmount,
   setWellsText,
@@ -224,6 +225,9 @@ export function WorkbenchWellEditorPanel({
               inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
               sharedName={sharedName}
               onTextChange={text => edit(draft => setWellsText(draft, keyList, lineId, text))}
+              onRenameLine={name =>
+                lineId && updateVesselMap(draft => renameLine(draft, lineId, name))
+              }
               onRenameEverywhere={() =>
                 started && updateVesselMap(draft => renameValue(draft, started.valueId, row.text))
               }

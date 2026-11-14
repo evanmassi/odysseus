@@ -4,6 +4,7 @@ import {
   heldNames,
   nameElsewhere,
   removeLineFromWells,
+  renameLine,
   setWellsAmount,
   setWellsText,
   setWellsUnit,
@@ -120,5 +121,15 @@ describe('names shared across the selection', () => {
       vesselName: 'P1 - Flat bottom',
     });
     expect(nameElsewhere(twoPlates(), 'l', 'v', ['p1:A1', 'p1:A2', 'p2:A1'])).toBeUndefined();
+  });
+});
+
+describe('renameLine', () => {
+  it('names a line, and clearing the name falls back to none', () => {
+    const block = vesselMap({ lines: [{ id: 'l', name: '', role: 'auto', values: [] }] });
+    renameLine(block, 'l', '  Stimulus ');
+    expect(block.lines[0].name).toBe('Stimulus');
+    renameLine(block, 'l', '');
+    expect(block.lines[0].name).toBe('');
   });
 });
