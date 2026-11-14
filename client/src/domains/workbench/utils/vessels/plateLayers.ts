@@ -69,6 +69,7 @@ export interface BandCluster {
 }
 
 export interface PlateBand {
+  lineId: string;
   text: string;
   color: string;
   valueId: string | undefined;
@@ -159,6 +160,7 @@ export function plateBands(
         return { ...cluster, place };
       });
       bands.push({
+        lineId: line.id,
         text,
         color: bandColorOf(block, value),
         valueId: value?.id,

@@ -161,6 +161,11 @@ export function recolorValue(block: VesselMapBlock, valueId: string, color: stri
   if (value) value.color = color;
 }
 
+export function renameLine(block: VesselMapBlock, lineId: string, name: string): void {
+  const line = block.lines.find(candidate => candidate.id === lineId);
+  if (line) line.name = name.trim();
+}
+
 export function renameValue(block: VesselMapBlock, valueId: string, text: string): void {
   const value = block.lines
     .flatMap(line => line.values)

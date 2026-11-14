@@ -4,6 +4,7 @@ import type { PlateBand } from './plateLayers';
 
 const size = { width: 40, height: 30, density: 'narrow' as const };
 const band: PlateBand = {
+  lineId: 'cells',
   text: 'Cells',
   color: '#6fbf73',
   valueId: undefined,

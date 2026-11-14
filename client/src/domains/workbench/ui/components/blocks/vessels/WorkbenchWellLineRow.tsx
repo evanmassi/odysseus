@@ -10,6 +10,7 @@ import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
 
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
+import { WorkbenchPlateNameField } from './WorkbenchPlateNameField';
 
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
 import type { NameElsewhere, WellRow } from '../../../../utils/vessels/wellEdits';
@@ -25,6 +26,7 @@ interface WorkbenchWellLineRowProps {
   sharedName: NameElsewhere | undefined;
   onTextChange: (text: string) => void;
   onRenameEverywhere: () => void;
+  onRenameLine: (name: string) => void;
   onAmountChange: (amount: string) => void;
   onUnitChange: (unit: string) => void;
   onRoleChange: (role: PlateLine['role']) => void;
@@ -53,6 +55,7 @@ export function WorkbenchWellLineRow({
   sharedName,
   onTextChange,
   onRenameEverywhere,
+  onRenameLine,
   onAmountChange,
   onUnitChange,
   onRoleChange,
@@ -77,6 +80,18 @@ export function WorkbenchWellLineRow({
 
   return (
     <div className="flex flex-col gap-1">
+      {row.line && (
+        <span className="pl-6">
+          <WorkbenchPlateNameField
+            name={row.line.name}
+            shown={row.line.name || <span className="italic">Name this line</span>}
+            label="Line name"
+            placeholder="Name this line"
+            className="text-label-xs text-muted-foreground"
+            onRename={onRenameLine}
+          />
+        </span>
+      )}
       <div className="flex items-center gap-2">
         <button
           type="button"
