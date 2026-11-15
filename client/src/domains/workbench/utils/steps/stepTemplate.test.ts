@@ -42,9 +42,9 @@ describe('splitProse', () => {
     expect(splitProse('Incubate for 30 min at 37 °C.', true)).toEqual([
       { kind: 'verb', text: 'Incubate' },
       { kind: 'plain', text: ' for ' },
-      { kind: 'quantity', text: '30 min' },
+      { kind: 'quantity', text: '30 min', unitKind: 'time' },
       { kind: 'plain', text: ' at ' },
-      { kind: 'quantity', text: '37 °C' },
+      { kind: 'quantity', text: '37 °C', unitKind: 'temperature' },
       { kind: 'plain', text: '.' },
     ]);
   });
@@ -81,6 +81,19 @@ describe('splitProse', () => {
       .filter(piece => piece.kind === 'quantity')
       .map(piece => piece.text);
     expect(quantities).toEqual(['1:1000', 'overnight', 'on ice']);
+  });
+
+  it('knows what kind each amount is, whatever the spelling', () => {
+    const kinds = splitProse('Spin 300 rcf 5 mins at 4C; add 10 ug/ml in 2 days.', true).flatMap(
+      piece => (piece.kind === 'quantity' ? [[piece.text, piece.unitKind]] : [])
+    );
+    expect(kinds).toEqual([
+      ['300 rcf', 'g-force'],
+      ['5 mins', 'time'],
+      ['4C', 'temperature'],
+      ['10 ug/ml', 'mass-conc'],
+      ['2 days', 'time'],
+    ]);
   });
 });
 

@@ -5,7 +5,6 @@ import { seriesFold, seriesTop } from '../vessels/plateSeries';
 
 import { prepLineId, prepSettingsOf, type PrepLine, type PrepSettings } from './dilutionFormulas';
 import { stockFor, type StockReading } from './dilutionStock';
-import { dialNumber, PIPETTES, pipetteFor, shortNumber, type Pipette } from './pipettes';
 
 import type { DilutionRun } from './dilutionRuns';
 import type { BoardCalculation } from '../formulas/boardCalculation';
@@ -37,22 +36,18 @@ export type DilutionPrep =
       isUneven: boolean;
       transferText: string;
       stockText: string | undefined;
-      stockPipette: string | undefined;
       stockShown: string | undefined;
       stock: StockReading;
       notes: Array<[label: string, value: string]>;
       warnings: PrepWarning[];
     });
 
-const PREP_PLATES = [
-  { label: '500 µL deep-well plate', fill: 450 },
-  { label: '1 mL deep-well plate', fill: 900 },
-  { label: '2 mL deep-well plate', fill: 1800 },
-];
 const MICROLITER = unitScale('µL')?.factor ?? 1;
 
-const dialText = (pipette: Pipette | undefined, volume: number) =>
-  `${dialNumber(pipette, volume)} µL`;
+const shortNumber = (value: number) => String(Number(value.toPrecision(3)));
+const volumeNumber = (volume: number) =>
+  String(Number(volume.toFixed(volume < 1 ? 3 : volume < 10 ? 2 : 1)));
+const volumeText = (volume: number) => `${volumeNumber(volume)} µL`;
 const microliters = (volume: number) => readableAmount(String(volume), 'µL');
 
 type LineAnswer = { magnitude: number } | { problem: string };
@@ -133,35 +128,10 @@ export function dilutionPrep(
     );
     rawStock = undefined;
   }
-  const stockPipette = rawStock === undefined ? undefined : pipetteFor('stock', rawStock);
-  if (rawStock !== undefined && !stockPipette) {
-    const [smallest] = PIPETTES.stock;
-    const largest = PIPETTES.stock[PIPETTES.stock.length - 1];
-    warn(
-      'stock',
-      rawStock < smallest.min
-        ? `${shortNumber(rawStock)} µL of stock is below a ${smallest.name}'s range. Make an intermediate dilution first.`
-        : `${shortNumber(rawStock)} µL of stock is more than a ${largest.name} takes in one go.`
-    );
-  }
-  const transferPipette = pipetteFor('series', transfer);
-  if (!transferPipette)
-    warn('transfer', `No 12-channel covers a ${shortNumber(transfer)} µL transfer.`);
-  if (!pipetteFor('plating', added)) {
-    warn('needed', `No 24-channel covers adding ${shortNumber(added)} µL per well.`);
-  }
-  const plate = PREP_PLATES.find(candidate => candidate.fill >= total);
-  if (!plate) {
-    warn(
-      'topVolume',
-      `${microliters(total)} per well is more than a 2 mL deep-well plate holds comfortably. Use tubes.`
-    );
-  }
-  const diluentPipette = pipetteFor('series', diluent);
   const points = Array.from({ length: pointCount }, (_, point) => ({
     point: point + 1,
     wells: run.wellsPerPoint.get(point) ?? 0,
-    volume: dialNumber(diluentPipette, point ? diluent : total),
+    volume: volumeNumber(point ? diluent : total),
     final: show(inWell(point)),
     working: show(working(point)),
   }));
@@ -169,24 +139,19 @@ export function dilutionPrep(
   const diluentTotal = inMicroliters(lineAnswer(calculation, run, 'diluentTotal'));
   const notes: Array<[string, string]> = [];
   if (rawStock !== undefined && topDiluent !== undefined) {
-    notes.push([
-      'Well 1',
-      `${dialText(stockPipette, rawStock)} stock + ${dialText(pipetteFor('stock', topDiluent), topDiluent)} diluent`,
-    ]);
+    notes.push(['Well 1', `${volumeText(rawStock)} stock + ${volumeText(topDiluent)} diluent`]);
     if (diluentTotal !== undefined) notes.push(['Diluent total', microliters(diluentTotal)]);
   } else {
     notes.push(['Diluent total', `about ${microliters(diluent * pointCount)}`]);
   }
-  if (plate) notes.push(['Recommended', plate.label]);
   return {
     ...base,
     kind: 'ready',
     strength: `${shortNumber(strength)}×`,
     points,
     isUneven: new Set(run.wellsPerPoint.values()).size > 1,
-    transferText: dialText(transferPipette, transfer),
-    stockText: rawStock === undefined ? undefined : dialText(stockPipette, rawStock),
-    stockPipette: stockPipette?.name,
+    transferText: volumeText(transfer),
+    stockText: rawStock === undefined ? undefined : volumeText(rawStock),
     stockShown:
       stock.kind === 'ready' ? stock.shown : stock.kind === 'undiluted' ? 'undiluted' : undefined,
     stock,

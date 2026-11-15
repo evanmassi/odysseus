@@ -2,14 +2,15 @@ import { materialFields } from '../materials/materialCatalog';
 import { showMaterialField, writeMaterialField } from '../materials/materialItems';
 import { ensureMaterial } from '../materials/materialLookup';
 
-import type { PrepSettings } from './dilutionFormulas';
-import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, PlateSeries, Protocol } from '@odysseus/shared-schemas';
+
+export type SeriesPrepKey = keyof NonNullable<PlateSeries['prep']>;
 
 export function setPrepSetting(
   draft: Protocol,
   plateId: string,
   seriesId: string,
-  key: keyof PrepSettings,
+  key: SeriesPrepKey,
   value: string
 ): void {
   const plate = draft.blocks.find(block => block.id === plateId);

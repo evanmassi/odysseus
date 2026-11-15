@@ -113,6 +113,8 @@ export const UNIT_REGISTRY: readonly UnitRegistryEntry[] = [
   { id: 's', label: 's', kind: 'time', factor: 1 },
   { id: 'min', label: 'min', kind: 'time', factor: 60 },
   { id: 'h', label: 'h', kind: 'time', factor: 3600 },
+  { id: 'd', label: 'd', kind: 'time', factor: 86400 },
+  { id: 'wk', label: 'wk', kind: 'time', factor: 604800 },
   { id: '°C', label: '°C', kind: 'temperature', factor: 1 },
   { id: '× g', label: '× g', kind: 'g-force', factor: 1 },
   { id: 'rpm', label: 'rpm', kind: 'rotor-speed', factor: 1 },

@@ -29,6 +29,7 @@ import { WorkbenchMaterialKindSelector } from './WorkbenchMaterialKindSelector';
 import { WorkbenchMaterialRecipeEditor } from './WorkbenchMaterialRecipeEditor';
 
 import type { MaterialKind } from './materialSelectOptions';
+import type { DiluentUse } from '../../../../utils/dilutions/dilutionDiluents';
 import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -61,6 +62,7 @@ interface WorkbenchMaterialRowProps {
   recipe: readonly RecipeLine[];
   recipeUsers: readonly string[];
   plateWellCount: number;
+  diluentUse: DiluentUse | undefined;
   panelDetectors: string;
   isClashing: boolean;
   isDuplicateName: boolean;
@@ -169,6 +171,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   recipe,
   recipeUsers,
   plateWellCount,
+  diluentUse,
   panelDetectors,
   isClashing,
   isDuplicateName,
@@ -181,6 +184,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   const summary = [
     plateWellCount ? `Plate: ${plateWellCount} ${plateWellCount === 1 ? 'well' : 'wells'}` : '',
     panelDetectors ? `Panel: ${panelDetectors}` : '',
+    diluentUse?.subjects.length ? `Diluent for ${diluentUse.subjects.join(', ')}` : '',
     usage ? usageSummary(usage) : '',
     ...recipeUsers.map(user => `in ${user}`),
   ]
@@ -324,7 +328,16 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
         );
       })}
       <td className={`${MATERIAL_CELL} ${MATERIAL_MUTED}`}>
-        {summary || <span className={`italic ${MATERIAL_WARNING_TEXT}`}>Not used</span>}
+        {diluentUse?.need && (
+          <span className="font-semibold text-foreground">
+            Need ≈ {diluentUse.need}
+            {summary && <span className="font-normal text-muted-foreground"> · </span>}
+          </span>
+        )}
+        {summary ||
+          (!diluentUse?.need && (
+            <span className={`italic ${MATERIAL_WARNING_TEXT}`}>Not used</span>
+          ))}
       </td>
       <td className={MATERIAL_ACTIONS_CELL}>
         <Button variant="ghost" size="xs" className={ROW_ACTION} onClick={() => actions.drop(item)}>

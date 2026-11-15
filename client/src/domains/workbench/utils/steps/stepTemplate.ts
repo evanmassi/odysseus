@@ -1,25 +1,24 @@
 import { describeName } from '../formulas/nameDisplay';
+import { findAmounts } from '../units/textAmounts';
 
 import { stepVerbBase } from './stepVerbs';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
+import type { UnitKind } from '@odysseus/shared-schemas';
 
 type TemplatePart =
   | { kind: 'text'; text: string }
   | { kind: 'reference'; name: string }
   | { kind: 'blank'; label: string };
 
-export interface ProsePiece {
-  kind: 'plain' | 'quantity' | 'verb';
-  text: string;
-}
+export type ProsePiece =
+  | { kind: 'plain' | 'verb'; text: string }
+  | { kind: 'quantity'; text: string; unitKind: UnitKind | undefined };
 
 const TEMPLATE_TOKEN = /(\{[^}]+\}|‹[^›]*›)/;
 const REFERENCE_TOKEN = /^\{([^}]+)\}$/;
 const BLANK_TOKEN = /^‹([^›]*)›$/;
 
-const QUANTITY_PATTERN =
-  /((?<![A-Za-z\d.-])\d[\d,.]*\s?(?:×\s?g|x\s?g|rpm|°C|µL|uL|mL|nL|L|µM|nM|mM|M|mg|µg|ng|g|min|hr|h|s|days?|weeks?|%|×)(?![A-Za-zµ])|(?<![A-Za-z\d])\d+:\d+|overnight|room temperature|on ice)/;
 const SENTENCE_LEAD = /(^\s*|[.;]\s+)([A-Za-z]+)/g;
 
 export function parseStepTemplate(text: string): TemplatePart[] {
@@ -49,13 +48,19 @@ function verbPieces(text: string, isStepStart: boolean): ProsePiece[] {
 }
 
 export function splitProse(text: string, isStepStart: boolean): ProsePiece[] {
-  return text
-    .split(QUANTITY_PATTERN)
-    .flatMap((piece, index) =>
-      index % 2
-        ? [{ kind: 'quantity' as const, text: piece }]
-        : verbPieces(piece, isStepStart && index === 0)
-    );
+  const pieces: ProsePiece[] = [];
+  let consumed = 0;
+  for (const amount of findAmounts(text)) {
+    if (amount.start > consumed) {
+      pieces.push(...verbPieces(text.slice(consumed, amount.start), isStepStart && consumed === 0));
+    }
+    pieces.push({ kind: 'quantity', text: amount.text, unitKind: amount.kind });
+    consumed = amount.end;
+  }
+  if (consumed < text.length) {
+    pieces.push(...verbPieces(text.slice(consumed), isStepStart && consumed === 0));
+  }
+  return pieces;
 }
 
 export function templateText(text: string, calculation: BoardCalculation): string {

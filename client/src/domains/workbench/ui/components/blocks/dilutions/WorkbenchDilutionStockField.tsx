@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Input, Select } from '@shared/ui';
+import { Button, Input, Select } from '@shared/ui';
 import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
 import { readNumber } from '../../../../utils/formulas/quantities';
@@ -18,9 +18,10 @@ export function WorkbenchDilutionStockField({ ask, onSave }: WorkbenchDilutionSt
   const units = ask.need === 'weight' ? MOLAR_MASS_UNITS : CONCENTRATION_UNIT_IDS;
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState(units.includes(ask.unit) ? ask.unit : units[0]);
-  const save = () => {
-    const number = readNumber(value);
-    if (number !== undefined && number > 0) onSave(String(number), unit);
+  const number = readNumber(value);
+  const isReady = number !== undefined && number > 0;
+  const save = (withUnit: string) => {
+    if (isReady) onSave(String(number), withUnit);
   };
 
   return (
@@ -37,9 +38,8 @@ export function WorkbenchDilutionStockField({ ask, onSave }: WorkbenchDilutionSt
             aria-label={ask.need === 'weight' ? 'Molecular weight' : 'Stock concentration'}
             inputClassName="text-right font-mono"
             onValueChange={setValue}
-            onBlur={save}
             onKeyDown={event => {
-              if (event.key === 'Enter') save();
+              if (event.key === 'Enter') save(unit);
             }}
           />
         </span>
@@ -52,7 +52,9 @@ export function WorkbenchDilutionStockField({ ask, onSave }: WorkbenchDilutionSt
           className="w-24"
         />
       </span>
-      <span className="text-caption text-muted-foreground">saved to Materials</span>
+      <Button variant="ghost-primary" size="xs" disabled={!isReady} onClick={() => save(unit)}>
+        Save to Materials
+      </Button>
     </div>
   );
 }

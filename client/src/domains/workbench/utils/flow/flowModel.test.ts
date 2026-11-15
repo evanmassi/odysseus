@@ -37,6 +37,8 @@ const model = flowModel(STAINING, calculation);
 const boxNamed = (number: string) => model.boxes.find(box => box.step.number === number)!;
 const NOT_MEASURED = new Map<string, number>();
 const rowsOf = (shown: FlowStep) => shown.actions.map(action => [action.verb, action.text]);
+const settingsOf = (shown: FlowStep) =>
+  shown.actions.map(action => action.settings.map(setting => setting.label));
 
 describe('the flow diagram model', () => {
   it('draws a step that only waits on the arrow, keeping its number', () => {
@@ -64,18 +66,18 @@ describe('the flow diagram model', () => {
 
   it('keeps a last wait as a box, since nothing follows it', () => {
     const leave = boxNamed('9');
-    expect(rowsOf(leave.step)).toEqual([['Leave', 'the plate at 4 °C overnight.']]);
+    expect(rowsOf(leave.step)).toEqual([['Leave', 'the plate.']]);
+    expect(settingsOf(leave.step)).toEqual([['overnight', '4 °C']]);
     expect(leave.step.actions[0].look.picture).toBe('fridge');
   });
 
-  it('keeps the wait in the sentence of a last step that acts and then waits', () => {
+  it('keeps the wait in the box of a last step that acts and then waits', () => {
     const ending = flowModel(
       [step('Spin at 300 ×g for 5 min.'), step('Add 50 µL stain and incubate 30 min at 4 °C.')],
       calculateBoard([])
     );
-    expect(rowsOf(ending.boxes[1].step)).toEqual([
-      ['Add', '50 µL stain and incubate 30 min at 4 °C.'],
-    ]);
+    expect(rowsOf(ending.boxes[1].step)).toEqual([['Add', '50 µL stain and incubate.']]);
+    expect(settingsOf(ending.boxes[1].step)).toEqual([['30 min', '4 °C']]);
   });
 
   it('folds sub-steps and hangs steps that run during another under it', () => {
@@ -166,8 +168,9 @@ describe('steps with more than one action', () => {
     ).boxes.map(box => box.step);
     expect(rowsOf(wash)).toEqual([
       ['Wash', 'in 10 mL R10'],
-      ['centrifuge', 'at 300 ×g, 5 min, 4 °C.'],
+      ['centrifuge', ''],
     ]);
+    expect(settingsOf(wash)).toEqual([[], ['300 × g', '5 min', '4 °C']]);
     expect(rowsOf(add)).toEqual([
       ['Add', 'PBS and medium'],
       ['vortex', 'briefly.'],
@@ -194,8 +197,9 @@ describe('steps with more than one action', () => {
     expect(thaw.actions[0].look.picture).toBe('waterBath');
   });
 
-  it('keeps a time in the text as typed', () => {
-    expect(rowsOf(spin)).toEqual([['Spin', 'at 300 ×g for 5 min and pour off the medium.']]);
+  it('lifts a spin’s speed and time onto its settings line', () => {
+    expect(rowsOf(spin)).toEqual([['Spin', 'and pour off the medium.']]);
+    expect(settingsOf(spin)).toEqual([['300 × g', '5 min']]);
   });
 
   it('keeps the time of an action when its wait moves to the arrow', () => {

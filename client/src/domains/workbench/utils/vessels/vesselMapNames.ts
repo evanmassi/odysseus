@@ -19,8 +19,9 @@ import {
 } from '../formulas/quantities';
 import { normalizeMaterialKey } from '../materials/materialKey';
 import { nameWithoutNotes } from '../materials/materialLookup';
+import { readTypedAmount } from '../units/textAmounts';
 
-import { foldOf } from './plateSeries';
+import { foldOf, stepSeriesUnit } from './plateSeries';
 import {
   VESSEL_PLURALS,
   vesselOf,
@@ -285,8 +286,8 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
           automaticName: `${subject} top ${startWord}${tag}`,
           label: `Top ${startWord}`,
           ...shared,
-          value: series.start.trim(),
-          unit: series.unit,
+          value: readTypedAmount(series.start)?.value ?? series.start.trim(),
+          unit: stepSeriesUnit(series),
           source: { kind: 'series', seriesId, field: 'start' },
         });
       }

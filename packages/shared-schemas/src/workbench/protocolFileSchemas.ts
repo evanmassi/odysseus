@@ -131,6 +131,7 @@ const seriesPrepSchema = z.object({
   wellVolume: z.string().optional(),
   extraPercent: z.string().optional(),
   roundTo: z.string().optional(),
+  diluent: z.string().optional(),
 });
 
 const seriesSchema = z.union([

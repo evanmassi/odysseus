@@ -1,3 +1,7 @@
+import { unitScale } from '@odysseus/shared-schemas';
+
+import { amountLabel, findAmounts, type TextAmount } from '../units/textAmounts';
+
 import { actionProse, leadVerb } from './stepKinds';
 
 export interface StepTime {
@@ -16,23 +20,21 @@ export interface StepWaitSplit {
   wait: StepWait | undefined;
 }
 
-const TIME_PATTERN =
-  /(\d+(?:\.\d+)?)(?:\s?[-–]\s?\d+(?:\.\d+)?)?\s?(seconds?|secs?|s|minutes?|mins?|hours?|hrs?|h|days?)\b|overnight/i;
-const TIME_PHRASE = new RegExp(`(?:\\s+for)?\\s+(?:${TIME_PATTERN.source})`, 'gi');
-
-const CONDITIONS: ReadonlyArray<[pattern: RegExp, label: (match: string) => string]> = [
-  [/-?\d+(?:\.\d+)?\s?°C/i, match => match.replace(/\s?°C/, ' °C')],
-  [/room temperature/i, () => 'RT'],
-  [/\bRT\b/, () => 'RT'],
-  [/\bon ice\b/i, () => 'on ice'],
+const OTHER_CONDITIONS: ReadonlyArray<[pattern: RegExp, label: (match: string) => string]> = [
   [/in the dark|protected from light/i, () => 'dark'],
   [/\bshaking\b|on a shaker|\brocking\b/i, () => 'shaking'],
   [/\d+(?:\.\d+)?\s?%\s?CO2/i, match => match],
 ];
-const CONDITION_PHRASES = CONDITIONS.map(
+const OTHER_CONDITION_PHRASES = OTHER_CONDITIONS.map(
   ([pattern]) =>
     new RegExp(`\\s+(?:at\\s+|in\\s+|with\\s+)?(?:${pattern.source})`, `g${pattern.flags}`)
 );
+const WAIT_PHRASE_LEAD = /\s+(?:(?:for|at|in|with)\s+)?$/;
+const OVERNIGHT = /^overnight$/i;
+const SECONDS_PER_MINUTE = 60;
+
+const isWaitAmount = (amount: TextAmount) =>
+  amount.kind === 'time' || amount.kind === 'temperature';
 
 const WAIT_VERBS = new Set([
   'incubate',
@@ -61,38 +63,42 @@ const REAGENT_VERBS = new Set([
 const JOINED_WAIT =
   /^(.*?)(?:[,;]\s*(?:then\s+)?|\s+(?:and|then)\s+)(incubate|rest|leave|wait|stand|sit|keep)\b(.*)$/i;
 
-const MINUTES_PER_UNIT: ReadonlyArray<[prefix: string, minutes: number]> = [
-  ['mi', 1],
-  ['s', 1 / 60],
-  ['h', 60],
-  ['d', 24 * 60],
-];
-
 const verbOf = (text: string): string => leadVerb(text).base;
 
 export function stepTime(text: string): StepTime | undefined {
-  const match = TIME_PATTERN.exec(text);
-  if (!match) return undefined;
-  if (!match[1]) return { label: 'overnight', minutes: 0, isOvernight: true };
-  const unit = match[2].toLowerCase();
-  const perUnit = MINUTES_PER_UNIT.find(([prefix]) => unit.startsWith(prefix))?.[1] ?? 1;
-  return { label: match[0], minutes: parseFloat(match[1]) * perUnit, isOvernight: false };
+  const time = findAmounts(text).find(amount => amount.kind === 'time');
+  if (!time) return undefined;
+  if (OVERNIGHT.test(time.text)) return { label: 'overnight', minutes: 0, isOvernight: true };
+  const seconds = unitScale(time.unit ?? '')?.factor ?? SECONDS_PER_MINUTE;
+  return {
+    label: amountLabel(time),
+    minutes: ((time.value ?? 0) * seconds) / SECONDS_PER_MINUTE,
+    isOvernight: false,
+  };
 }
 
 function conditionsOf(text: string): string[] {
-  return CONDITIONS.flatMap(([pattern, label]) => {
+  const temperatures = findAmounts(text)
+    .filter(amount => amount.kind === 'temperature')
+    .map(amountLabel);
+  const others = OTHER_CONDITIONS.flatMap(([pattern, label]) => {
     const match = pattern.exec(text);
     return match ? [label(match[0])] : [];
   });
+  return [...new Set([...temperatures, ...others])];
 }
 
 const sentence = (text: string) => `${text.trim().replace(/[\s,;.]+$/, '')}.`;
 
 function withoutWaitPhrases(text: string): string {
-  return CONDITION_PHRASES.reduce(
-    (remaining, phrase) => remaining.replace(phrase, ''),
-    text.replace(TIME_PHRASE, '')
-  );
+  let remaining = text;
+  for (const amount of findAmounts(text).filter(isWaitAmount).reverse()) {
+    const before = remaining.slice(0, amount.start);
+    const lead = WAIT_PHRASE_LEAD.exec(before);
+    const cutFrom = lead ? before.length - lead[0].length : amount.start;
+    remaining = remaining.slice(0, cutFrom) + remaining.slice(amount.end);
+  }
+  return OTHER_CONDITION_PHRASES.reduce((rest, phrase) => rest.replace(phrase, ''), remaining);
 }
 
 export function splitStepWait(text: string): StepWaitSplit {

@@ -1,5 +1,6 @@
 import { displayValue } from '../formulas/quantities';
 import { createId } from '../ids/createId';
+import { readTypedAmount } from '../units/textAmounts';
 
 import { seriesPoint } from './plateSeries';
 
@@ -91,15 +92,16 @@ export function seriesSteps(
   return new Map(spots.map(spot => [spot.key, positions.indexOf(axisOf(spot))]));
 }
 
-const seriesShape = (form: SeriesForm): PlateSeries =>
-  form.isList
-    ? { points: splitPoints(form.points), direction: form.direction }
-    : {
-        start: form.start.trim(),
-        unit: form.unit,
-        fold: form.fold.trim(),
-        direction: form.direction,
-      };
+function seriesShape(form: SeriesForm): PlateSeries {
+  if (form.isList) return { points: splitPoints(form.points), direction: form.direction };
+  const typed = readTypedAmount(form.start);
+  return {
+    start: typed?.value ?? form.start.trim(),
+    unit: typed?.unit ?? form.unit,
+    fold: form.fold.trim(),
+    direction: form.direction,
+  };
+}
 
 export function writeSeries(
   block: VesselMapBlock,

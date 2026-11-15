@@ -15,6 +15,7 @@ import { WorkbenchMaterialUndoRow } from './WorkbenchMaterialUndoRow';
 
 import type { MaterialCellEditing } from './useMaterialCellEditing';
 import type { RemovedMaterial } from './useMaterialRemoval';
+import type { DiluentUse } from '../../../../utils/dilutions/dilutionDiluents';
 import type { NameUsage } from '../../../../utils/formulas/nameUsage';
 import type { ConjugateClash } from '../../../../utils/materials/materialClashes';
 import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
@@ -43,6 +44,7 @@ interface WorkbenchMaterialTableProps {
   recipeOf: (item: MaterialItem) => readonly RecipeLine[];
   recipeUsers: ReadonlyMap<string, readonly string[]>;
   plateWells: ReadonlyMap<string, number>;
+  diluentUses: ReadonlyMap<string, DiluentUse>;
   panelDetectors: ReadonlyMap<string, string>;
   duplicateIds: ReadonlySet<string>;
   fresh: { ids: ReadonlySet<string>; stamp: number };
@@ -69,6 +71,7 @@ export function WorkbenchMaterialTable({
   recipeOf,
   recipeUsers,
   plateWells,
+  diluentUses,
   panelDetectors,
   duplicateIds,
   fresh,
@@ -93,6 +96,7 @@ export function WorkbenchMaterialTable({
       recipe={recipeOf(item)}
       recipeUsers={recipeUsers.get(item.id) ?? []}
       plateWellCount={plateWells.get(item.id) ?? 0}
+      diluentUse={diluentUses.get(item.id)}
       panelDetectors={panelDetectors.get(item.id) ?? ''}
       isClashing={clashingIds.has(item.id)}
       isDuplicateName={duplicateIds.has(item.id)}

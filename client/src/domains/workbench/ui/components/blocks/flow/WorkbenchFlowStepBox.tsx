@@ -1,6 +1,7 @@
-import { stepTime } from '../../../../utils/flow/stepWaits';
-import { splitProse, type ProsePiece } from '../../../../utils/steps/stepTemplate';
-import { STEP_PROSE_CLASSES } from '../steps/stepProseClasses';
+import { Fragment } from 'react';
+
+import { splitProse } from '../../../../utils/steps/stepTemplate';
+import { amountKindClass, proseClass } from '../steps/stepProseClasses';
 
 import { FLOW_DONE_CLASSES, FLOW_PLACE_CLASSES, flowKindColor } from './flowKindStyles';
 import { WorkbenchFlowPicture } from './WorkbenchFlowPicture';
@@ -20,10 +21,7 @@ const BLANK = /(\[[^\]]+\])/;
 const PICTURE_COLOR = 'hsl(var(--foreground) / 0.55)';
 const STRIPE_COLOR = 'hsl(var(--foreground) / 0.3)';
 
-function flowProseClass(piece: ProsePiece): string | undefined {
-  if (piece.kind !== 'quantity') return STEP_PROSE_CLASSES[piece.kind];
-  return stepTime(piece.text) ? 'font-medium text-warning-text' : 'font-medium text-foreground';
-}
+const FLOW_QUANTITY = 'font-medium text-foreground';
 
 function StepText({ text }: { text: string }) {
   return (
@@ -38,7 +36,7 @@ function StepText({ text }: { text: string }) {
           </span>
         ) : (
           splitProse(part, false).map((piece, pieceIndex) => (
-            <span key={`${partIndex}-${pieceIndex}`} className={flowProseClass(piece)}>
+            <span key={`${partIndex}-${pieceIndex}`} className={proseClass(piece, FLOW_QUANTITY)}>
               {piece.text}
             </span>
           ))
@@ -146,9 +144,23 @@ export function WorkbenchFlowStepBox({
                     )}
                   </span>
                 )}
-                <span className="mt-0.5 block text-body-sm leading-snug text-foreground/90">
-                  <StepText text={action.text} />
-                </span>
+                {action.settings.length > 0 && (
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 font-mono text-data-sm font-semibold">
+                    {action.settings.map((setting, settingIndex) => (
+                      <Fragment key={setting.label}>
+                        {settingIndex > 0 && <span className="text-muted-foreground">·</span>}
+                        <span className={amountKindClass(setting.kind, 'text-foreground')}>
+                          {setting.label}
+                        </span>
+                      </Fragment>
+                    ))}
+                  </span>
+                )}
+                {action.text && (
+                  <span className="mt-0.5 block text-body-sm leading-snug text-foreground/90">
+                    <StepText text={action.text} />
+                  </span>
+                )}
               </span>
             </span>
           );

@@ -11,6 +11,7 @@ import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSli
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { panelDetectorLabels } from '../../../../utils/cytometer/cytometerPanel';
+import { diluentUses } from '../../../../utils/dilutions/dilutionDiluents';
 import { resolveDye } from '../../../../utils/dyes/dyePicks';
 import { keepDyeInFile } from '../../../../utils/dyes/fileDyes';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
@@ -157,6 +158,11 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     ...nameUsage(state.protocol, state.calculation, itemIds),
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
+  const diluentUseList = useWorkbenchData(state => diluentUses(state.protocol, state.calculation));
+  const diluentUseById = useMemo(
+    () => new Map(diluentUseList.map(use => [use.materialId, use])),
+    [diluentUseList]
+  );
   const isFirstMaterialsBlock = materialBlocks[0]?.id === block.id;
   const readings = useWorkbenchData(state =>
     isFirstMaterialsBlock ? readStepReadings(state.protocol, state.calculation).materials : []
@@ -393,6 +399,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   recipeOf={item => recipeLines(item, allMaterials)}
                   recipeUsers={recipeUsers}
                   plateWells={plateWells}
+                  diluentUses={diluentUseById}
                   panelDetectors={panelDetectors}
                   duplicateIds={duplicateIds}
                   fresh={fresh}

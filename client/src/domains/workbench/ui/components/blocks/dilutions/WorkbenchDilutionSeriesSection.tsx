@@ -1,4 +1,10 @@
-import { Input } from '@shared/ui';
+import {
+  Autocomplete,
+  INPUT_WELL_BASE,
+  INPUT_WELL_BORDER_DEFAULT,
+  Input,
+  type AutocompleteOption,
+} from '@shared/ui';
 
 import { META_LABEL } from '../../board/metaLabelClass';
 
@@ -14,9 +20,20 @@ interface WorkbenchDilutionSeriesSectionProps {
   places: readonly string[];
   color: string | undefined;
   prep: DilutionPrep;
+  diluent: string;
+  diluentChoices: readonly AutocompleteOption[];
   onSettingChange: (key: keyof PrepSettings, value: string) => void;
+  onDiluentChange: (diluent: string) => void;
+  onDiluentDone: () => void;
   onStockSave: (value: string, unit: string) => void;
 }
+
+const matchingChoices = (choices: readonly AutocompleteOption[], typed: string) => {
+  const query = typed.trim().toLowerCase();
+  return choices.filter(
+    choice => choice.label.toLowerCase().includes(query) && choice.label.toLowerCase() !== query
+  );
+};
 
 const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [
   ['wellVolume', 'Well volume', 'µL'],
@@ -25,6 +42,7 @@ const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [
   ['roundTo', 'Round to', 'µL'],
 ];
 const PLAIN_RAIL = 'hsl(var(--muted-foreground))';
+const DILUENT_INPUT = `w-full h-7 px-2 text-body-sm placeholder:italic ${INPUT_WELL_BASE} ${INPUT_WELL_BORDER_DEFAULT}`;
 
 export function WorkbenchDilutionSeriesSection({
   id,
@@ -32,7 +50,11 @@ export function WorkbenchDilutionSeriesSection({
   places,
   color,
   prep,
+  diluent,
+  diluentChoices,
   onSettingChange,
+  onDiluentChange,
+  onDiluentDone,
   onStockSave,
 }: WorkbenchDilutionSeriesSectionProps) {
   const rail = color ?? PLAIN_RAIL;
@@ -89,6 +111,23 @@ export function WorkbenchDilutionSeriesSection({
           </b>
         </div>
         {SETTINGS.slice(2).map(settingField)}
+        <div className="flex flex-col gap-1">
+          <span className={META_LABEL}>Diluent</span>
+          <span className="w-44">
+            <Autocomplete
+              value={diluent}
+              options={matchingChoices(diluentChoices, diluent)}
+              minChars={0}
+              fullWidth
+              placeholder="e.g. medium"
+              aria-label="Diluent"
+              inputClassName={DILUENT_INPUT}
+              onChange={onDiluentChange}
+              onSelect={option => onDiluentChange(option.value)}
+              onBlur={onDiluentDone}
+            />
+          </span>
+        </div>
       </div>
       {prep.kind === 'problem' ? (
         <p className="text-body-sm text-muted-foreground">{prep.problem}</p>

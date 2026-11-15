@@ -110,16 +110,6 @@ export function WorkbenchDilutionStripPreview({
             {index
               ? arrow(centerX(index - 1) + RADIUS + 3, arrowEnd, prep.transferText, false)
               : arrow(SOURCE_RIGHT, arrowEnd, prep.stockText ?? '?', true)}
-            {!index && prep.stockPipette && (
-              <text
-                x={(SOURCE_RIGHT + arrowEnd) / 2}
-                y={CENTER_Y + 14}
-                fontSize={9}
-                className={`${MONO} ${MUTED}`}
-              >
-                {prep.stockPipette}
-              </text>
-            )}
             <rect
               x={x - RADIUS}
               y={CENTER_Y - RADIUS}

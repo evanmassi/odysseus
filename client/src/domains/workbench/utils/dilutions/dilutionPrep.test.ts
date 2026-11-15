@@ -1,9 +1,10 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 
+import { diluentUses, runDiluents } from './dilutionDiluents';
 import { recordOnMaterial, setPrepSetting } from './dilutionEdits';
 import { dilutionPrep } from './dilutionPrep';
-import { dilutionRuns } from './dilutionRuns';
+import { dilutionRuns, type DilutionRun } from './dilutionRuns';
 import { stockFor } from './dilutionStock';
 
 import type { MaterialItem, PlateSeries, Protocol } from '@odysseus/shared-schemas';
@@ -99,14 +100,13 @@ describe('dilution prep', () => {
     expect([...run.wellsPerPoint.values()]).toEqual([3, 3, 3, 3]);
   });
 
-  it('sizes the transfers to the pipettes and makes the top point from stock', () => {
+  it('works out the transfers and makes the top point from stock', () => {
     const result = prepFor(protocolWith(doseSeries, [drugStock]));
     if (result.kind !== 'ready') throw new Error(result.problem);
     expect(result.summary).toBe('300 nM · 1:3 · 4 points');
     expect(result.strength).toBe('4×');
     expect(result.transferText).toBe('40 µL');
     expect(result.stockText).toBe('14.4 µL');
-    expect(result.stockPipette).toBe('P20');
     expect(result.points.map(({ volume, final, working }) => [volume, final, working])).toEqual([
       ['120', '300 nM', '1.2 µM'],
       ['80', '100 nM', '400 nM'],
@@ -116,24 +116,20 @@ describe('dilution prep', () => {
     expect(result.notes).toEqual([
       ['Well 1', '14.4 µL stock + 105.6 µL diluent'],
       ['Diluent total', '346 µL'],
-      ['Recommended', '500 µL deep-well plate'],
     ]);
     expect(result.warnings).toEqual([]);
   });
 
-  it('warns when the stock needs an intermediate dilution', () => {
+  it('shows a tiny stock volume as it is, without telling the scientist what to pipette with', () => {
     const strong = material(
       'Drug X',
       { 'stock-concentration': '10' },
       { 'stock-concentration': 'mM' }
     );
     const result = prepFor(protocolWith(doseSeries, [strong]));
-    expect(result.kind === 'ready' && result.warnings).toEqual([
-      {
-        line: 'stock',
-        text: "0.0144 µL of stock is below a P2's range. Make an intermediate dilution first.",
-      },
-    ]);
+    if (result.kind !== 'ready') throw new Error(result.problem);
+    expect(result.stockText).toBe('0.014 µL');
+    expect(result.warnings).toEqual([]);
   });
 
   it('asks for the volumes before working anything out', () => {
@@ -151,6 +147,39 @@ describe('dilution prep', () => {
     expect(result.points.map(({ final }) => final)).toEqual(['1:100', '1:200', '1:400', '1:800']);
     expect(result.points[0].working).toBe('1:25');
     expect(result.stockShown).toBe('undiluted');
+  });
+});
+
+describe('diluents', () => {
+  const medium = { ...material('RPMI', {}, {}), group: 'media', type: 'Medium' };
+
+  it('totals the diluent a series needs and shows it on the material', () => {
+    const protocol = protocolWith({ ...doseSeries, prep: { ...prep, diluent: 'RPMI' } }, [
+      drugStock,
+      medium,
+    ]);
+    const calculation = calculateBoard(collectBoardNames(protocol));
+    const need = calculation.names.get('rpmi needed for dilutions');
+    expect(need).toMatchObject({ kind: 'formula', expr: 'Drug X diluent total' });
+    const result = need && calculation.results.get(need.id);
+    expect(result?.status === 'ok' && result.output).toEqual({ text: '346 µL' });
+    expect(diluentUses(protocol, calculation)).toEqual([
+      { materialId: 'RPMI', need: '346 µL', subjects: ['Drug X'] },
+    ]);
+  });
+
+  it('carries the last chosen diluent to a series that has none, but not past a cleared one', () => {
+    const runs = (diluents: Array<string | undefined>) =>
+      diluents.map((diluent, index) => ({
+        key: String(index),
+        series: { ...doseSeries, prep: diluent === undefined ? prep : { ...prep, diluent } },
+      })) as unknown as DilutionRun[];
+    expect([...runDiluents(runs(['RPMI', undefined, '', undefined])).values()]).toEqual([
+      'RPMI',
+      'RPMI',
+      '',
+      'RPMI',
+    ]);
   });
 });
 

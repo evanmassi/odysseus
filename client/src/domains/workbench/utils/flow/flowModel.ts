@@ -10,6 +10,7 @@ import {
   type StepKind,
   type StepLook,
 } from './stepKinds';
+import { splitStepSettings, type StepSetting } from './stepSettings';
 import { splitStepWait, stepTime, type StepTime, type StepWait } from './stepWaits';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
@@ -27,6 +28,7 @@ export interface FlowSubStep {
 export interface FlowAction {
   verb: string | undefined;
   text: string;
+  settings: StepSetting[];
   look: StepLook;
 }
 
@@ -92,7 +94,18 @@ const pictureLook = (verb: string) => stepLook(stepVerbBase(verb) ?? verb.toLowe
 
 const clauseEnd = (text: string) => text.trim().replace(/(?:[\s,;.]|\band\b|\bthen\b)+$/, '');
 
+type UnsetAction = Omit<FlowAction, 'settings'>;
+
+const withSettings = (action: UnsetAction): FlowAction => ({
+  ...action,
+  ...splitStepSettings(action.text),
+});
+
 function flowActions(shownText: string, fullText: string): FlowAction[] {
+  return actionsOf(shownText, fullText).map(withSettings);
+}
+
+function actionsOf(shownText: string, fullText: string): UnsetAction[] {
   const { verb, base, text } = headline(shownText);
   if (!verb) {
     const later = actionProse(shownText, false).find(
@@ -101,7 +114,7 @@ function flowActions(shownText: string, fullText: string): FlowAction[] {
     const look = later ? pictureLook(later.text) : stepLook(undefined, fullText);
     return [{ verb: undefined, text: shownText, look }];
   }
-  const actions: FlowAction[] = [{ verb, text: '', look: stepLook(base, fullText) }];
+  const actions: UnsetAction[] = [{ verb, text: '', look: stepLook(base, fullText) }];
   let clause = '';
   for (const piece of actionProse(text, false)) {
     const look = piece.kind === 'verb' ? pictureLook(piece.text) : undefined;

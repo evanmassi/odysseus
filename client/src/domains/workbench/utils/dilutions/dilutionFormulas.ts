@@ -5,8 +5,10 @@ import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas
 import { fieldName, materialFields } from '../materials/materialCatalog';
 import { normalizeMaterialKey } from '../materials/materialKey';
 import { materialNamed } from '../materials/materialLookup';
+import { stepSeriesUnit } from '../vessels/plateSeries';
 import { plateAmounts } from '../vessels/vesselMapNames';
 
+import { diluentNeedId, runDiluents } from './dilutionDiluents';
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';
 import { STOCK_FIELD, stockFor, WEIGHT_FIELD } from './dilutionStock';
 
@@ -92,8 +94,9 @@ function stockSource(
   run: DilutionRun,
   takenKeys: ReadonlySet<string>
 ): StockSource {
-  const isRatio = run.series.unit === RATIO_NOTATION;
-  const reading = stockFor(protocol, run.subject, run.series.unit, isRatio);
+  const seriesUnit = stepSeriesUnit(run.series);
+  const isRatio = seriesUnit === RATIO_NOTATION;
+  const reading = stockFor(protocol, run.subject, seriesUnit, isRatio);
   if (reading.kind === 'undiluted') return { expr: (volume, working) => `${volume} × ${working}` };
   if (reading.kind !== 'ready') return { problem: reading.issue };
   const material = materialNamed(protocol, run.subject);
@@ -102,7 +105,7 @@ function stockSource(
     return { problem: `${reading.material}'s stock concentration isn't shown in Materials.` };
   }
   const stockKind = dimensionOf(material.units[STOCK_FIELD] ?? '');
-  const seriesKind = dimensionOf(run.series.unit);
+  const seriesKind = dimensionOf(seriesUnit);
   if (stockKind === seriesKind)
     return { expr: (volume, working) => `${volume} × ${working} ÷ ${stock}` };
   const weight = fieldNameOf(material, WEIGHT_FIELD);
@@ -201,15 +204,59 @@ function runNames(
   return clash ? lines : [...inputs, ...lines];
 }
 
+interface DiluentUse {
+  name: string;
+  totals: string[];
+}
+
+function diluentNeedNames(
+  protocol: Protocol,
+  uses: ReadonlyMap<string, DiluentUse>,
+  takenKeys: ReadonlySet<string>,
+  dilutionsBlockId: string | undefined
+): BoardName[] {
+  return [...uses.values()].map(({ name, totals }) => {
+    const shownName = materialNamed(protocol, name)?.name.trim() ?? name;
+    const needName = `${shownName} needed for dilutions`;
+    return {
+      kind: 'formula',
+      id: diluentNeedId(name),
+      name: needName,
+      expr: totals.join(' + '),
+      unit: '',
+      workedOut: {
+        key: diluentNeedId(name),
+        subject: shownName,
+        title: `${shownName} for dilutions`,
+        settingsBlockId: dilutionsBlockId,
+      },
+      ...(takenKeys.has(nameKey(needName)) && {
+        problem: `Rename “${needName}”: the dilution prep needs that name.`,
+      }),
+    };
+  });
+}
+
 export function dilutionFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const dilutionsBlockId = protocol.blocks.find(block => block.type === 'dilutions')?.id;
+  const runs = dilutionRuns(protocol);
+  const diluents = runDiluents(runs);
+  const uses = new Map<string, DiluentUse>();
   const seen = new Map<string, number>();
-  return dilutionRuns(protocol).flatMap(run => {
+  const names = runs.flatMap(run => {
     if (!run.subject) return [];
     const subjectKey = normalizeMaterialKey(run.subject);
     const index = seen.get(subjectKey) ?? 0;
     seen.set(subjectKey, index + 1);
-    return runNames(protocol, run, index ? ` ${index + 1}` : '', takenKeys, dilutionsBlockId);
+    const tag = index ? ` ${index + 1}` : '';
+    const diluent = diluents.get(run.key);
+    if (diluent) {
+      const use = uses.get(normalizeMaterialKey(diluent)) ?? { name: diluent, totals: [] };
+      use.totals.push(`${run.subject} ${PREP_LINES.diluentTotal}${tag}`);
+      uses.set(normalizeMaterialKey(diluent), use);
+    }
+    return runNames(protocol, run, tag, takenKeys, dilutionsBlockId);
   });
+  return [...names, ...diluentNeedNames(protocol, uses, takenKeys, dilutionsBlockId)];
 }

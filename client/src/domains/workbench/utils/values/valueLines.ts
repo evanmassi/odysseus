@@ -1,4 +1,5 @@
 import { readNumber } from '../formulas/quantities';
+import { amountUnit } from '../units/textAmounts';
 
 interface ParsedValueLine {
   name: string;
@@ -6,40 +7,8 @@ interface ParsedValueLine {
   unit: string;
 }
 
-const VALUE_UNIT_WORDS: ReadonlyArray<[RegExp, string]> = [
-  [/^(?:%|percent)$/i, '%'],
-  [/^(?:x|×|fold)$/i, 'X'],
-  [/^nl$/i, 'nL'],
-  [/^[uµμ]l$/i, 'µL'],
-  [/^ml$/i, 'mL'],
-  [/^l$/i, 'L'],
-  [/^pg$/i, 'pg'],
-  [/^ng$/i, 'ng'],
-  [/^[uµμ]g$/i, 'µg'],
-  [/^mg$/i, 'mg'],
-  [/^cells?$/i, 'cells'],
-  [/^cells?\/ml$/i, 'cells/mL'],
-  [/^pg\/ml$/i, 'pg/mL'],
-  [/^ng\/ml$/i, 'ng/mL'],
-  [/^[uµμ]g\/ml$/i, 'µg/mL'],
-  [/^mg\/ml$/i, 'mg/mL'],
-  [/^ng\/[uµμ]l$/i, 'ng/µL'],
-  [/^nM$/, 'nM'],
-  [/^[uµμ]M$/, 'µM'],
-  [/^mM$/, 'mM'],
-  [/^(?:min|mins|minutes?)$/i, 'min'],
-  [/^(?:h|hr|hrs|hours?)$/i, 'h'],
-  [/^(?:s|sec|secs|seconds?)$/i, 's'],
-  [/^°?C$/, '°C'],
-  [/^(?:[x×]g|rcf)$/i, '× g'],
-  [/^rpm$/i, 'rpm'],
-];
-
 const RATIO_LINE = /^(.*?)[\s:=]+(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/;
 const NUMBER_WITH_UNIT = /^([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?[kKM]?)(\D.*)$/;
-
-export const valueUnitOf = (word: string): string | undefined =>
-  VALUE_UNIT_WORDS.find(([pattern]) => pattern.test(word))?.[1];
 
 const cleanName = (name: string) => name.replace(/[\s:=]+$/, '').trim();
 
@@ -56,13 +25,14 @@ export function parseValueLine(line: string): ParsedValueLine | undefined {
   let unit = '';
   let value = '';
   const attached = NUMBER_WITH_UNIT.exec(words[words.length - 1]);
-  const attachedUnit = attached && valueUnitOf(attached[2]);
+  const attachedUnit = attached && amountUnit(attached[2], readNumber(attached[1]));
   if (words.length > 1 && attached && attachedUnit) {
     words.pop();
     value = attached[1];
     unit = attachedUnit;
   } else {
-    const trailingUnit = words.length > 1 ? valueUnitOf(words[words.length - 1]) : undefined;
+    const before = words.length > 2 ? readNumber(words[words.length - 2]) : undefined;
+    const trailingUnit = words.length > 1 ? amountUnit(words[words.length - 1], before) : undefined;
     if (trailingUnit) {
       words.pop();
       unit = trailingUnit;

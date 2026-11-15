@@ -1,16 +1,16 @@
-import { UNIT_REGISTRY, type MaterialItem, type Protocol } from '@odysseus/shared-schemas';
-
 import { firstBlockOrNew } from '../blocks/createBlock';
 import { nameKey, type BoardCalculation } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
 import { normalizeMaterialKey } from '../materials/materialKey';
 import { ensureMaterial } from '../materials/materialLookup';
+import { findAmounts } from '../units/textAmounts';
 import { insertAfterPeers } from '../values/valueEdits';
-import { valueUnitOf } from '../values/valueLines';
 import { joinValueName } from '../values/valueNames';
 
 import { stepNumbers } from './stepNumbering';
 import { stepVerbBase } from './stepVerbs';
+
+import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 interface ReadingUse {
   stepId: string;
@@ -125,8 +125,6 @@ const CONDITION_NOUNS: Readonly<Record<string, string>> = {
   lyse: 'Lysis',
 };
 const PHRASE_WORD_LIMIT = 4;
-const STEP_QUANTITY =
-  /(?<![\w.-])(\d+(?:[.,]\d+)*)\s?(pg\/mL|ng\/mL|µg\/mL|mg\/mL|µL|uL|ul|mL|ml|nL|L|pg|ng|µg|ug|mg|cells|nM|µM|uM|mM|minutes?|mins?|hours?|hrs?|h|seconds?|secs?|s|°C|[×x]\s?g|rpm)(?![\w/µ])/g;
 const AMOUNT_LEAD = /^\s+(of\s+)?(the\s+)?/;
 const PER_WELL = /^\s+per\s+well\b/i;
 const SENTENCE_BREAK = /[.;]\s/;
@@ -136,8 +134,6 @@ const MATERIAL_CUE =
 const LOCKED_SPANS = /\{[^}]+\}|‹[^›]*›/g;
 const STARTS_UPPERCASE = /^[A-Z]/;
 const STARTS_DIGIT = /^\d/;
-
-const unitKind = (unit: string) => UNIT_REGISTRY.find(entry => entry.id === unit)?.kind ?? '';
 
 function phraseAt(text: string, start: number): Phrase | undefined {
   if (text[start] === '{') {
@@ -233,14 +229,13 @@ export function readStepReadings(protocol: Protocol, calculation: BoardCalculati
       const isLocked = (index: number) => locked.some(([from, to]) => index >= from && index < to);
       const at = { stepId: step.id, stepNumber: (numbers.get(step.id) ?? '').replace('.', '') };
 
-      for (const match of text.matchAll(STEP_QUANTITY)) {
-        const index = match.index ?? 0;
-        const unit = valueUnitOf(match[2].replace(/\s/g, ''));
-        if (isLocked(index) || !unit) continue;
-        const end = index + match[0].length;
+      for (const amount of findAmounts(text)) {
+        const { start: index, end, unit, kind } = amount;
+        if (isLocked(index) || !unit || !kind || amount.value === undefined || amount.isRange) {
+          continue;
+        }
         const use = { ...at, start: index, end };
-        const value = match[1].replace(/,/g, '');
-        const kind = unitKind(unit);
+        const value = String(amount.value);
         const amountNoun = AMOUNT_LABELS[kind];
         if (amountNoun) {
           const lead = AMOUNT_LEAD.exec(text.slice(end));

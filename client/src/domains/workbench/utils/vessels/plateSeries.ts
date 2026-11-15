@@ -1,5 +1,6 @@
 import { describeName } from '../formulas/nameDisplay';
 import { displayValue, RATIO_NOTATION } from '../formulas/quantities';
+import { amountUnit, readTypedAmount } from '../units/textAmounts';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
 import type { PlateSeries } from '@odysseus/shared-schemas';
@@ -94,6 +95,9 @@ export const seriesFold = (series: StepSeries, calculation: BoardCalculation) =>
 
 const AMOUNT_WITH_UNIT = /^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(.*)$/;
 
+export const stepSeriesUnit = (series: StepSeries): string =>
+  series.unit || (readTypedAmount(series.start)?.unit ?? '');
+
 export function seriesTop(
   series: StepSeries,
   calculation: BoardCalculation
@@ -102,5 +106,7 @@ export function seriesTop(
   const match = AMOUNT_WITH_UNIT.exec(amount);
   if (!match) return undefined;
   const value = parseFloat(match[1]);
-  return Number.isNaN(value) ? undefined : { value, unit: unit || match[2].trim() };
+  if (Number.isNaN(value)) return undefined;
+  const typedUnit = match[2].trim();
+  return { value, unit: unit || (amountUnit(typedUnit, value) ?? typedUnit) };
 }
