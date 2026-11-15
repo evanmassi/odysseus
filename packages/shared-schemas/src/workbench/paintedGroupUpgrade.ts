@@ -1,12 +1,8 @@
 import { z } from 'zod';
 
 import { newProtocolId } from './protocolIds';
-import {
-  PROTOCOL_FILE_VERSION,
-  vesselMapBlockSchema,
-  type PlateLine,
-  type VesselMapBlock,
-} from './protocolFileSchemas';
+import { vesselMapBlockSchema, type PlateLine, type VesselMapBlock } from './protocolFileSchemas';
+import { SERIES_DILUENT_FILE_VERSION } from './seriesDiluentUpgrade';
 import {
   lineValueOf,
   moveValueKeys,
@@ -134,7 +130,7 @@ export const paintedGroupsFileSchema = z
   })
   .transform(file => ({
     ...file,
-    version: PROTOCOL_FILE_VERSION,
+    version: SERIES_DILUENT_FILE_VERSION,
     protocol: {
       ...file.protocol,
       blocks: file.protocol.blocks.map(block =>

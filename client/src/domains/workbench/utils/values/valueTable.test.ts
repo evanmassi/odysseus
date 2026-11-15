@@ -114,6 +114,7 @@ const mainValues = valuesBlock('values', {
 function tableFor(blocks: Protocol['blocks'], valuesId = 'values'): ValueTableGroup[] {
   const protocol = {
     blocks: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...blocks],
+    diluent: '',
   } as unknown as Protocol;
   const block = protocol.blocks.find(candidate => candidate.id === valuesId) as ValuesBlock;
   return buildValueTable(

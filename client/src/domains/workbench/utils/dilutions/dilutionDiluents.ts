@@ -11,16 +11,13 @@ export interface DiluentUse {
   need: string;
 }
 
-export function runDiluents(runs: readonly DilutionRun[]): Map<string, string> {
-  const diluents = new Map<string, string>();
-  let lastChosen = '';
-  for (const run of runs) {
-    const own = run.series.prep?.diluent?.trim();
-    if (own) lastChosen = own;
-    diluents.set(run.key, own ?? lastChosen);
-  }
-  return diluents;
-}
+export const ownDiluent = (run: DilutionRun): string => run.series.prep?.diluent ?? '';
+
+export const runDiluents = (
+  runs: readonly DilutionRun[],
+  protocolDiluent: string
+): Map<string, string> =>
+  new Map(runs.map(run => [run.key, ownDiluent(run).trim() || protocolDiluent.trim()]));
 
 export const diluentNeedId = (material: string): string =>
   `dilutions:diluent:${normalizeMaterialKey(material)}`;
@@ -31,11 +28,11 @@ function needText(calculation: BoardCalculation, diluent: string): string {
 }
 
 export function diluentUses(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'blocks' | 'diluent'>,
   calculation: BoardCalculation
 ): DiluentUse[] {
   const runs = dilutionRuns(protocol);
-  const diluents = runDiluents(runs);
+  const diluents = runDiluents(runs, protocol.diluent);
   const byMaterial = new Map<string, DiluentUse>();
   for (const run of runs) {
     const diluent = diluents.get(run.key);

@@ -538,3 +538,28 @@ describe('retiring painted colors', () => {
     ]);
   });
 });
+
+describe('the protocol diluent', () => {
+  const versionThree = (diluent: string | undefined) => {
+    const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
+    file.version = 3;
+    delete file.protocol.diluent;
+    const plates = file.protocol.blocks.filter((item: { type: string }) => item.type === 'plate');
+    const [series] = plates.flatMap((plate: { series: Record<string, object> }) =>
+      Object.values(plate.series)
+    );
+    if (diluent !== undefined) series.prep = { ...series.prep, diluent };
+    return file;
+  };
+
+  it('upgrades an older file with the first diluent one of its series chose', () => {
+    expect(read(versionThree('Complete RPMI')).diluent).toBe('Complete RPMI');
+    expect(read(versionThree(undefined)).diluent).toBe('');
+    expect(read(cytotoxLegacy).diluent).toBe('');
+  });
+
+  it('survives a save and reopen', () => {
+    const protocol = { ...read(cytotoxMockup), diluent: 'PBS' };
+    expect(read(JSON.parse(writeProtocolFile(protocol))).diluent).toBe('PBS');
+  });
+});

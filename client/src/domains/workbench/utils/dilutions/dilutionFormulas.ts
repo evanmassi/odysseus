@@ -241,7 +241,7 @@ export function dilutionFormulaNames(protocol: Protocol, taken: readonly BoardNa
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const dilutionsBlockId = protocol.blocks.find(block => block.type === 'dilutions')?.id;
   const runs = dilutionRuns(protocol);
-  const diluents = runDiluents(runs);
+  const diluents = runDiluents(runs, protocol.diluent);
   const uses = new Map<string, DiluentUse>();
   const seen = new Map<string, number>();
   const names = runs.flatMap(run => {

@@ -61,6 +61,7 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
         amountNames: {},
       },
     ],
+    diluent: '',
   } as unknown as Protocol;
 }
 
@@ -199,18 +200,21 @@ describe('diluents', () => {
     expect(diluentUses(protocol, calculation)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
   });
 
-  it('carries the last chosen diluent to a series that has none, but not past a cleared one', () => {
+  it("totals the protocol's diluent for a series that has none of its own", () => {
+    const protocol = { ...protocolWith(doseSeries, [drugStock, medium]), diluent: 'RPMI' };
+    const calculation = calculateBoard(collectBoardNames(protocol));
+    expect(diluentUses(protocol, calculation)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
+  });
+
+  it("gives a series its own diluent, or the protocol's when it has none or it was cleared", () => {
     const runs = (diluents: Array<string | undefined>) =>
       diluents.map((diluent, index) => ({
         key: String(index),
         series: { ...doseSeries, prep: diluent === undefined ? prep : { ...prep, diluent } },
       })) as unknown as DilutionRun[];
-    expect([...runDiluents(runs(['RPMI', undefined, '', undefined])).values()]).toEqual([
-      'RPMI',
-      'RPMI',
-      '',
-      'RPMI',
-    ]);
+    const chosen = runs([undefined, 'PBS', '', ' ']);
+    expect([...runDiluents(chosen, 'RPMI').values()]).toEqual(['RPMI', 'PBS', 'RPMI', 'RPMI']);
+    expect([...runDiluents(chosen, '').values()]).toEqual(['', 'PBS', '', '']);
   });
 });
 

@@ -5,7 +5,7 @@ import { Tab } from '@shared/ui';
 import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { runDiluents } from '../../../../utils/dilutions/dilutionDiluents';
+import { ownDiluent, runDiluents } from '../../../../utils/dilutions/dilutionDiluents';
 import {
   recordOnMaterial,
   setPrepSetting,
@@ -25,12 +25,14 @@ import {
 import { rememberedKinds } from '../../../../utils/materials/materialMemory';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 
+import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
 import { WorkbenchDilutionSeriesSection } from './WorkbenchDilutionSeriesSection';
 
 import type { ProtocolBlock } from '@odysseus/shared-schemas';
 
 const ALL_SERIES = 'all';
 const DILUENT_GROUPS: ReadonlySet<string> = new Set(['media']);
+const DILUENT_HINT = 'e.g. medium';
 
 interface WorkbenchDilutionsPanelProps {
   block: Extract<ProtocolBlock, { type: 'dilutions' }>;
@@ -43,7 +45,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
   const memory = useMaterialMemoryStore(state => state.memory);
   const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
   const runs = dilutionRuns(protocol);
-  const diluents = runDiluents(runs);
+  const diluents = runDiluents(runs, protocol.diluent);
   const diluentChoices = useMemo(
     () =>
       listedMaterials(protocol)
@@ -62,6 +64,13 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
   const shown = runs.find(run => run.key === shownKey);
   const isShowingAll = !shown;
 
+  const listDiluent = (name: string) => {
+    if (!name.trim()) return;
+    updateProtocol(draft => {
+      ensureMaterial(draft, name.trim(), createMaterial);
+    });
+  };
+
   const setOnMembers = (run: DilutionRun, key: SeriesPrepKey, value: string) =>
     updateProtocol(draft => {
       for (const member of run.members) {
@@ -79,6 +88,17 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-3 pt-1">
+      <WorkbenchDilutionDiluentField
+        value={protocol.diluent}
+        placeholder={DILUENT_HINT}
+        choices={diluentChoices}
+        onChange={diluent =>
+          updateProtocol(draft => {
+            draft.diluent = diluent;
+          })
+        }
+        onDone={() => listDiluent(protocol.diluent)}
+      />
       {runs.length > 1 && (
         <WorkbenchTabStrip
           value={isShowingAll ? ALL_SERIES : shownKey}
@@ -109,17 +129,12 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
             places={run.places.length > 1 ? run.places : []}
             color={run.color}
             prep={prep}
-            diluent={diluents.get(run.key) ?? ''}
+            diluent={ownDiluent(run)}
+            diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}
             diluentChoices={diluentChoices}
             onSettingChange={(key, value) => setOnMembers(run, key, value)}
             onDiluentChange={diluent => setOnMembers(run, 'diluent', diluent)}
-            onDiluentDone={() => {
-              const diluent = diluents.get(run.key)?.trim();
-              if (!diluent) return;
-              updateProtocol(draft => {
-                ensureMaterial(draft, diluent, createMaterial);
-              });
-            }}
+            onDiluentDone={() => listDiluent(ownDiluent(run))}
             onStockSave={(value, unit) => {
               if (prep.kind !== 'ready' || prep.stock.kind !== 'ask') return;
               const field = prep.stock.need === 'weight' ? WEIGHT_FIELD : STOCK_FIELD;

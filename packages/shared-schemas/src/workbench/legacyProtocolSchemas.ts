@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { PAINTED_GROUPS_FILE_VERSION, paintedGroupsFileSchema } from './paintedGroupUpgrade';
+import { SERIES_DILUENT_FILE_VERSION, seriesDiluentFileSchema } from './seriesDiluentUpgrade';
 import {
   LINE_ROLES,
   PLATE_FORMATS,
@@ -458,9 +459,10 @@ const legacyProtocolFile = z
 function upgradeFile(raw: unknown): unknown {
   const version = loose.safeParse(raw).data?.['version'];
   if (version === PROTOCOL_FILE_VERSION) return raw;
+  if (version === SERIES_DILUENT_FILE_VERSION) return seriesDiluentFileSchema.parse(raw);
   const paintedGroupsFile =
     version === PAINTED_GROUPS_FILE_VERSION ? raw : legacyProtocolFile.parse(raw);
-  return paintedGroupsFileSchema.parse(paintedGroupsFile);
+  return seriesDiluentFileSchema.parse(paintedGroupsFileSchema.parse(paintedGroupsFile));
 }
 
 export const protocolFileInputSchema = z.preprocess(upgradeFile, protocolFileSchema);

@@ -26,5 +26,6 @@ export function blankProtocol(): Protocol {
     keptBoth: [],
     ignoredReadings: [],
     dyes: [],
+    diluent: '',
   };
 }

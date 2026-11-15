@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 3;
+export const PROTOCOL_FILE_VERSION = 4;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -282,6 +282,7 @@ const protocolSchema = z.object({
   keptBoth: z.array(z.string()),
   ignoredReadings: z.array(z.string()).default([]),
   dyes: z.array(protocolDyeSchema).default([]),
+  diluent: z.string(),
 });
 
 export const protocolFileSchema = z.object({
