@@ -384,3 +384,22 @@ describe('the values table', () => {
     expect(changed).toEqual(['Raji']);
   });
 });
+
+describe('short names in the values table', () => {
+  it('heads a material row with its short name and keeps the full name in its value names', () => {
+    const medium = material('m-med', 'ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium', {
+      'short-name': 'ImmunoCult XF',
+    });
+    const values = valuesBlock('values', {
+      sections: [{ id: 'sec-med', materialId: 'm-med' }],
+      items: [
+        { id: 'med-vol', section: 'sec-med', name: 'Volume per well', value: '100', unit: 'µL' },
+      ],
+    });
+    const moreMaterials = { id: 'more', type: 'materials', items: [medium] };
+    const groups = tableFor([moreMaterials as unknown as Protocol['blocks'][number], values]);
+    const [row] = groupNamed(groups, 'Media, Buffers, & Solutions').rows;
+    expect(row).toMatchObject({ name: medium.name, shownName: 'ImmunoCult XF' });
+    expect(row.cells[0].fullName.startsWith(medium.name)).toBe(true);
+  });
+});

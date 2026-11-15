@@ -35,6 +35,7 @@ import {
   uniqueName,
 } from '../../../../utils/formulas/formulaScopes';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
+import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { META_LABEL } from '../../board/metaLabelClass';
@@ -237,7 +238,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       <div className="columns-[20rem] gap-x-6 space-y-5">
         {sections.map(section => {
           const { material, items, groups } = section;
-          const title = material ? material.name.trim() : section.owner || 'Whole experiment';
+          const title = material ? displayNameOf(material) : section.owner || 'Whole experiment';
           return (
             <WorkbenchFormulaSection
               key={section.key}

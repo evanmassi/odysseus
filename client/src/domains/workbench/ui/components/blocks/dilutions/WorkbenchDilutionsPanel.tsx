@@ -17,7 +17,11 @@ import { STOCK_FIELD, WEIGHT_FIELD } from '../../../../utils/dilutions/dilutionS
 import { materialGroup } from '../../../../utils/materials/materialCatalog';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
-import { ensureMaterial, listedMaterials } from '../../../../utils/materials/materialLookup';
+import {
+  ensureMaterial,
+  listedMaterials,
+  shortNameOf,
+} from '../../../../utils/materials/materialLookup';
 import { rememberedKinds } from '../../../../utils/materials/materialMemory';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 
@@ -47,6 +51,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
         .map(item => ({
           value: item.name.trim(),
           label: item.name.trim(),
+          secondary: shortNameOf(item) || undefined,
           group: materialGroup(item.group).label,
         })),
     [protocol]

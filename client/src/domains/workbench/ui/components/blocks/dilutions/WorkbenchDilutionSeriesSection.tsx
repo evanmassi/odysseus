@@ -30,9 +30,12 @@ interface WorkbenchDilutionSeriesSectionProps {
 
 const matchingChoices = (choices: readonly AutocompleteOption[], typed: string) => {
   const query = typed.trim().toLowerCase();
-  return choices.filter(
-    choice => choice.label.toLowerCase().includes(query) && choice.label.toLowerCase() !== query
-  );
+  return choices.filter(choice => {
+    const names = [choice.label, choice.secondary].flatMap(name =>
+      name ? [name.toLowerCase()] : []
+    );
+    return names.some(name => name.includes(query)) && !names.includes(query);
+  });
 };
 
 const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [

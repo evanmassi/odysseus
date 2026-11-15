@@ -16,7 +16,7 @@ import {
 import { FOLD_UNIT } from '../formulas/quantities';
 import { MATERIAL_GROUPS, materialGroup } from '../materials/materialCatalog';
 import { normalizeMaterialKey } from '../materials/materialKey';
-import { findNamed } from '../materials/materialLookup';
+import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
 import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
@@ -64,6 +64,7 @@ export type ValueRowRail =
 export interface ValueTableRow {
   id: string;
   name: string;
+  shownName: string;
   section: ValueSection | undefined;
   material: MaterialItem | undefined;
   status: ValueRowStatus;
@@ -262,6 +263,7 @@ export function buildValueTable(
     const row: RowDraft = {
       id,
       name,
+      shownName: fields.material ? displayNameOf(fields.material) : name,
       groupKey,
       swatch: swatchOf(name),
       rail: { place: 'none' },
@@ -357,13 +359,14 @@ export function buildValueTable(
     return { plate, plateRows };
   });
 
-  const subRowOf = (parent: RowDraft, name: string): ValueTableRow => {
+  const subRowOf = (parent: RowDraft, name: string, shownName = name): ValueTableRow => {
     const key = normalizeMaterialKey(name);
     const existing = parent.subRows.get(key);
     if (existing) return existing;
     const row: ValueTableRow = {
       id: `${parent.id}|${key}`,
       name,
+      shownName,
       section: undefined,
       material: undefined,
       status: 'current',
@@ -389,7 +392,7 @@ export function buildValueTable(
         : undefined;
     for (const row of plateRows) {
       const { subject, variant, label } = plateSubject(row);
-      const material = findNamed(listedMaterials, subject, candidate => candidate.name);
+      const material = findMaterial(listedMaterials, subject);
       const owner = material
         ? rowForMaterial(material)
         : findNamed(mixRows, subject, candidate => candidate.name);
@@ -458,7 +461,7 @@ export function buildValueTable(
     for (const entry of material.recipe) {
       const ingredient = materials.get(entry.materialId);
       const ingredientName = ingredient?.name.trim() ?? 'No longer in Materials';
-      const subRow = subRowOf(row, ingredientName);
+      const subRow = subRowOf(row, ingredientName, ingredient && displayNameOf(ingredient));
       subRow.cells.push(
         {
           id: `${row.id}:recipe:${entry.id}`,

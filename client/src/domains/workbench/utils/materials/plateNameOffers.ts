@@ -1,5 +1,5 @@
 import { normalizeMaterialKey } from './materialKey';
-import { findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
+import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -49,7 +49,7 @@ export function plateNameOffers(
           !wellCount ||
           ignored.has(key) ||
           CONDITION_WORDS.test(name) ||
-          findNamed(materials, name, material => material.name) !== undefined ||
+          findMaterial(materials, name) !== undefined ||
           findNamed(mixes, name, mix => mix) !== undefined ||
           materialKeys.some(materialKey => nameKey.includes(materialKey));
         if (isSkipped) continue;

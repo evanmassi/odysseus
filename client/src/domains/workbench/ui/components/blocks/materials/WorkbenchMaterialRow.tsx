@@ -12,6 +12,7 @@ import {
   UNSORTED_GROUP,
   materialText,
 } from '../../../../utils/materials/materialItems';
+import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { localToday } from '../../../../utils/protocolFile/experimentId';
 
 import {
@@ -184,7 +185,6 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   const summary = [
     plateWellCount ? `Plate: ${plateWellCount} ${plateWellCount === 1 ? 'well' : 'wells'}` : '',
     panelDetectors ? `Panel: ${panelDetectors}` : '',
-    diluentUse?.subjects.length ? `Diluent for ${diluentUse.subjects.join(', ')}` : '',
     usage ? usageSummary(usage) : '',
     ...recipeUsers.map(user => `in ${user}`),
   ]
@@ -246,7 +246,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
         const definition = fields.find(own => own.key === column.key) ?? column;
         if (definition.key === RECIPE_FIELD) {
           const ingredients = recipe
-            .map(({ ingredient }) => ingredient?.name.trim())
+            .map(({ ingredient }) => ingredient && displayNameOf(ingredient))
             .filter(Boolean)
             .join(', ');
           const note = (item.values[RECIPE_FIELD] ?? '').trim();
@@ -335,9 +335,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
           </span>
         )}
         {summary ||
-          (!diluentUse?.need && (
-            <span className={`italic ${MATERIAL_WARNING_TEXT}`}>Not used</span>
-          ))}
+          (!diluentUse && <span className={`italic ${MATERIAL_WARNING_TEXT}`}>Not used</span>)}
       </td>
       <td className={MATERIAL_ACTIONS_CELL}>
         <Button variant="ghost" size="xs" className={ROW_ACTION} onClick={() => actions.drop(item)}>

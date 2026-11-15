@@ -3,7 +3,7 @@ import { normalizeVesselMap, type Protocol, type VesselMapBlock } from '@odysseu
 import { heldNames, renameValue, type HeldName } from '../vessels/wellEdits';
 
 import { normalizeMaterialKey } from './materialKey';
-import { findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
+import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 const NOTES_START = '(';
 
@@ -33,7 +33,7 @@ export function materialFollowsPlateRename(draft: Protocol, from: string, to: st
   const toName = nameWithoutNotes(to);
   if (!bareKey(to) || isSameBareName(from, to) || isNameOnAnyWell(draft, from)) return;
   const materials = listedMaterials(draft);
-  if (findNamed(materials, toName, material => material.name)) return;
+  if (findMaterial(materials, toName)) return;
   const material = findNamed(materials, from, candidate => candidate.name);
   if (material) material.name = withLeadingName(material.name, toName);
 }

@@ -7,6 +7,7 @@ import {
   materialGroup,
   materialLabel,
 } from '../materials/materialCatalog';
+import { shortNameOf } from '../materials/materialLookup';
 import { recipeFormulaNames } from '../materials/materialRecipeFormulas';
 import { joinValueName } from '../values/valueNames';
 import { materialWellCounts, plateAmounts, vesselCounts } from '../vessels/vesselMapNames';
@@ -62,10 +63,12 @@ function materialNames(block: BlockOf<'materials'>): BoardName[] {
       const numbers = materialFields(item).filter(
         definition => definition.kind === 'number' && item.shownFields.includes(definition.key)
       );
+      const shownName = shortNameOf(item);
       const entry: BoardName = {
         kind: 'item',
         id: item.id,
         name: item.name,
+        ...(shownName && { shownName }),
         groupTitle: materialGroup(item.group).label,
         hint: numbers[0] ? fieldName(item, numbers[0]) : '',
         label: materialLabel(item),

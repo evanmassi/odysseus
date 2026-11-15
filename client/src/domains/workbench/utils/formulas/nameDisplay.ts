@@ -14,9 +14,12 @@ export function describeName(calculation: BoardCalculation, name: string): NameD
   switch (entry.kind) {
     case 'item': {
       const isDropped = !!entry.isDropped;
+      const fullName = entry.shownName ? entry.name.trim() : '';
       return {
-        text: entry.name,
-        label: isDropped ? 'Dropped from Materials' : entry.label,
+        text: entry.shownName ?? entry.name,
+        label: isDropped
+          ? 'Dropped from Materials'
+          : [fullName, entry.label].filter(Boolean).join(' · '),
         kind: 'item',
         isDropped,
       };

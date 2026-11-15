@@ -1,5 +1,5 @@
 import { normalizeMaterialKey } from '../materials/materialKey';
-import { findNamed } from '../materials/materialLookup';
+import { findMaterial } from '../materials/materialLookup';
 
 import { type BoardCalculation, type BoardName, type WorkedOutGroup } from './boardCalculation';
 import { formulaMaterial, nameWithinOwner } from './formulaScopes';
@@ -37,7 +37,7 @@ export function sectionKeyOf(
 ): string {
   if (!workedOut) return formulaMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
   return (
-    findNamed(materials, workedOut.subject, item => item.name)?.id ??
+    findMaterial(materials, workedOut.subject)?.id ??
     `subject:${normalizeMaterialKey(workedOut.subject)}`
   );
 }

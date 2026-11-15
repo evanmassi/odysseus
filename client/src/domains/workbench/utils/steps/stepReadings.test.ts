@@ -5,6 +5,7 @@ import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
 import { acceptStepReadings, readingStepsText, readStepReadings } from './stepReadings';
+import { templateText } from './stepTemplate';
 
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
@@ -82,6 +83,20 @@ describe('accepting readings', () => {
     expect(block.items.map(item => item.name)).toEqual(['PBS', 'Bright-Glo']);
     expect(block.foldedGroups).toEqual([]);
     expect(read(protocol)).toEqual([]);
+  });
+
+  it('reads a material by its short name, links it by its full name and shows the short name', () => {
+    const medium = material('ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium');
+    medium.shownFields.push('short-name');
+    medium.values['short-name'] = 'ImmunoCult XF';
+    const { protocol } = protocolWith(['Resuspend in ImmunoCult XF.'], [medium]);
+    expect(read(protocol)).toMatchObject([{ name: medium.name, isOnBoard: true }]);
+    acceptStepReadings(protocol, { materials: read(protocol) }, name => material(name));
+    const [step] = protocol.pages[0].steps;
+    expect(step.text).toBe(`Resuspend in {${medium.name}}.`);
+    expect(templateText(step.text, calculateBoard(collectBoardNames(protocol)))).toBe(
+      'Resuspend in ImmunoCult XF.'
+    );
   });
 
   it('adds a read value under its material and rewrites both names as references', () => {

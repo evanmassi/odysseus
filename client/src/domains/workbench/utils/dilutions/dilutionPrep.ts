@@ -1,6 +1,7 @@
 import { unitScale, type Protocol } from '@odysseus/shared-schemas';
 
 import { RATIO_NOTATION, readableAmount, readNumber } from '../formulas/quantities';
+import { displayNameOf, materialNamed } from '../materials/materialLookup';
 import { seriesFold, seriesTop } from '../vessels/plateSeries';
 
 import { prepLineId, prepSettingsOf, type PrepLine, type PrepSettings } from './dilutionFormulas';
@@ -70,7 +71,7 @@ export function dilutionPrep(
   run: DilutionRun,
   protocol: Pick<Protocol, 'blocks'>,
   calculation: BoardCalculation,
-  diluentLabel: string
+  chosenDiluent: string
 ): DilutionPrep {
   const settings = prepSettingsOf(run);
   const fold = seriesFold(run.series, calculation);
@@ -141,6 +142,8 @@ export function dilutionPrep(
   }));
   const topDiluent = inMicroliters(lineAnswer(calculation, run, 'topDiluent'));
   const diluentTotal = inMicroliters(lineAnswer(calculation, run, 'diluentTotal'));
+  const diluentMaterial = materialNamed(protocol, chosenDiluent);
+  const diluentLabel = diluentMaterial ? displayNameOf(diluentMaterial) : chosenDiluent.trim();
   const diluentName = diluentLabel || 'diluent';
   const restWells = pointCount > 2 ? `Wells 2–${pointCount}` : 'Well 2';
   const totalLabel = `${diluentLabel || 'Diluent'} total`;

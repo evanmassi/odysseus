@@ -136,12 +136,14 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
             className="inline-edit text-left font-semibold text-foreground"
             onClick={() => actions.onEditName(row.id)}
           >
-            {row.name || <span className="font-normal text-muted-foreground">Name this mix</span>}
+            {row.shownName || (
+              <span className="font-normal text-muted-foreground">Name this mix</span>
+            )}
           </button>
         </Tooltip>
       ) : (
         <span className={row.isSubRow ? 'text-muted-foreground' : 'font-semibold text-foreground'}>
-          {row.name}
+          {row.shownName}
         </span>
       )}
       {note && <span className="text-label-xs text-muted-foreground">{note}</span>}
@@ -179,10 +181,10 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
         return (
           <td key={column.key} className={`${VALUE_CELL} text-muted-foreground/40`}>
             {canFill ? (
-              <Tooltip content={`Add ${column.label} for ${row.name}`}>
+              <Tooltip content={`Add ${column.label} for ${row.shownName}`}>
                 <button
                   type="button"
-                  aria-label={`Add ${column.label} for ${row.name}`}
+                  aria-label={`Add ${column.label} for ${row.shownName}`}
                   className="font-mono text-data-sm hover:text-primary"
                   onClick={() => actions.onFillColumn(row, column)}
                 >
@@ -198,10 +200,10 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
       <td className="w-px whitespace-nowrap px-2 text-right">
         <span className="inline-flex items-center gap-1">
           {canAdd && (
-            <Tooltip content={`Add a value to ${row.name || 'this mix'}`}>
+            <Tooltip content={`Add a value to ${row.shownName || 'this mix'}`}>
               <button
                 type="button"
-                aria-label={`Add a value to ${row.name || 'this mix'}`}
+                aria-label={`Add a value to ${row.shownName || 'this mix'}`}
                 aria-expanded={isAdding}
                 className={`p-1 text-muted-foreground hover:text-primary ${
                   isAdding

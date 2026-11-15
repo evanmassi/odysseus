@@ -377,7 +377,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   const renderAdder = (group: ValueTableGroup, row: ValueTableRow) => (
     <WorkbenchValueAddField
       ownerName={row.name}
-      placeholder={`Add to ${row.name || 'this mix'}: Volume per well 50 µL`}
+      placeholder={`Add to ${row.shownName || 'this mix'}: Volume per well 50 µL`}
       takenNames={takenNames}
       suggestions={rowSuggestions(group, row)}
       isFocusedOnMount

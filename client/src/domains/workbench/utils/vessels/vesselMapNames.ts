@@ -18,7 +18,7 @@ import {
   readNumber,
 } from '../formulas/quantities';
 import { normalizeMaterialKey } from '../materials/materialKey';
-import { nameWithoutNotes } from '../materials/materialLookup';
+import { nameWithoutNotes, shortNameOf } from '../materials/materialLookup';
 import { readTypedAmount } from '../units/textAmounts';
 
 import { foldOf, stepSeriesUnit } from './plateSeries';
@@ -344,14 +344,16 @@ export function materialWellCounts(
   materials: readonly MaterialItem[]
 ): Map<MaterialItem, number> {
   const counts = new Map<MaterialItem, number>();
-  const patterns = materials.map(material => {
-    const bare = nameWithoutNotes(material.name);
-    return { material, full: mentionPattern(material.name), bare: bare && mentionPattern(bare) };
-  });
+  const patterns = materials.map(material => ({
+    material,
+    names: [material.name, nameWithoutNotes(material.name), shortNameOf(material)]
+      .filter(Boolean)
+      .map(mentionPattern),
+  }));
   for (const block of blocks) {
     for (const text of wellTexts(block)) {
-      for (const { material, full, bare } of patterns) {
-        if (full.test(text) || (bare && bare.test(text))) {
+      for (const { material, names } of patterns) {
+        if (names.some(name => name.test(text))) {
           counts.set(material, (counts.get(material) ?? 0) + 1);
         }
       }

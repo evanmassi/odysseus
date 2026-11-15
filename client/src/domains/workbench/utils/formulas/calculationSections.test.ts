@@ -3,7 +3,13 @@ import { calculationSections, sectionNumbers, WHOLE_EXPERIMENT } from './calcula
 
 import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
 
-const drug = { id: 'm-drug', name: 'Drug X (Sigma)', type: 'Drug or inhibitor' } as MaterialItem;
+const drug = {
+  id: 'm-drug',
+  name: 'Drug X (Sigma)',
+  type: 'Drug or inhibitor',
+  shownFields: [],
+  values: {},
+} as unknown as MaterialItem;
 
 const prepGroup = (subject: string): WorkedOutGroup => ({
   key: `prep:${subject}`,

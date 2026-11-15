@@ -1,7 +1,7 @@
 import { createId } from '../ids/createId';
 import { parseValueLine } from '../values/valueLines';
 
-import { ensureMaterial } from './materialLookup';
+import { displayNameOf, ensureMaterial } from './materialLookup';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
@@ -68,7 +68,7 @@ export function recipesUsing(materials: readonly MaterialItem[]): Map<string, st
   const usedIn = new Map<string, string[]>();
   for (const item of materials) {
     for (const { materialId } of item.recipe) {
-      usedIn.set(materialId, [...(usedIn.get(materialId) ?? []), item.name.trim()]);
+      usedIn.set(materialId, [...(usedIn.get(materialId) ?? []), displayNameOf(item)]);
     }
   }
   return usedIn;

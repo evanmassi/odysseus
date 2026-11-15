@@ -142,8 +142,25 @@ describe('material well counts', () => {
         'p1:A3': { stim: { valueId: 'None' } },
       },
     });
-    const stimMaterial = { name: 'STX (stim X description)' } as MaterialItem;
+    const stimMaterial = {
+      name: 'STX (stim X description)',
+      shownFields: [],
+      values: {},
+    } as unknown as MaterialItem;
     expect(materialWellCounts([block], [stimMaterial]).get(stimMaterial)).toBe(2);
+  });
+
+  it('count wells by the material short name', () => {
+    const block = vesselMap({
+      lines: [line('media', ['ImmunoCult XF'])],
+      cells: { 'p1:A1': { media: { valueId: 'ImmunoCult XF' } } },
+    });
+    const medium = {
+      name: 'ImmunoCult™-XF T Cell Expansion Medium',
+      shownFields: ['short-name'],
+      values: { 'short-name': 'ImmunoCult XF' },
+    } as unknown as MaterialItem;
+    expect(materialWellCounts([block], [medium]).get(medium)).toBe(1);
   });
 });
 

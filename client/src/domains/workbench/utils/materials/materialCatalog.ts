@@ -65,6 +65,9 @@ const molarMassField = (defaultUnit: string) =>
     units: defaultUnit === 'kDa' ? ['kDa', 'g/mol'] : MOLAR_MASS_UNITS,
   });
 
+const shortName = field('Short name');
+export const SHORT_NAME_FIELD = shortName.key;
+
 const consent = field('Consent or IRB reference');
 const MADE_HERE = [
   field('Recipe'),
@@ -74,6 +77,7 @@ const MADE_HERE = [
   choiceField('Sterile-filtered', YES_NO),
 ];
 const PHYSICAL_CORE = [
+  shortName,
   field('Vendor or source', 'text', { key: 'vendor' }),
   field('Catalog #', 'text', { key: 'catalog' }),
   field('Lot'),
@@ -85,8 +89,8 @@ const PHYSICAL_CORE = [
   molarMassField('g/mol'),
   ...MADE_HERE,
 ];
-const EQUIPMENT_CORE = [field('Model'), field('Manufacturer'), field('Notes')];
-const SOFTWARE_CORE = [field('Source'), field('Notes')];
+const EQUIPMENT_CORE = [shortName, field('Model'), field('Manufacturer'), field('Notes')];
+const SOFTWARE_CORE = [shortName, field('Source'), field('Notes')];
 
 export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   {

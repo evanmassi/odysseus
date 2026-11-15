@@ -126,6 +126,33 @@ describe('dilution prep', () => {
     expect(result.warnings).toEqual([]);
   });
 
+  it("names the diluent in the recipe by its material's short name, typed either way", () => {
+    const medium = material(
+      'ImmunoCult™-XF T Cell Expansion Medium',
+      { 'short-name': 'ImmunoCult XF' },
+      {}
+    );
+    const protocol = protocolWith(doseSeries, [drugStock, medium]);
+    const notesFor = (chosen: string) => {
+      const result = dilutionPrep(
+        dilutionRuns(protocol)[0],
+        protocol,
+        calculateBoard(collectBoardNames(protocol)),
+        chosen
+      );
+      return result.kind === 'ready' ? result.notes : [];
+    };
+    const expected = [
+      ['Well 1', '120 µL (14.4 µL stock + 105.6 µL ImmunoCult XF)'],
+      ['Wells 2–4', '80 µL ImmunoCult XF each'],
+      ['ImmunoCult XF total', '346 µL'],
+    ];
+    expect(notesFor(medium.name)).toEqual(expected);
+    expect(notesFor('immunocult xf')).toEqual(expected);
+    medium.shownFields = [];
+    expect(notesFor(medium.name)[1]).toEqual(['Wells 2–4', `80 µL ${medium.name} each`]);
+  });
+
   it('shows a tiny stock volume as it is, without telling the scientist what to pipette with', () => {
     const strong = material(
       'Drug X',
@@ -169,9 +196,7 @@ describe('diluents', () => {
     expect(need).toMatchObject({ kind: 'formula', expr: 'Drug X diluent total' });
     const result = need && calculation.results.get(need.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '346 µL' });
-    expect(diluentUses(protocol, calculation)).toEqual([
-      { materialId: 'RPMI', need: '346 µL', subjects: ['Drug X'] },
-    ]);
+    expect(diluentUses(protocol, calculation)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
   });
 
   it('carries the last chosen diluent to a series that has none, but not past a cleared one', () => {

@@ -9,7 +9,6 @@ import type { Protocol } from '@odysseus/shared-schemas';
 export interface DiluentUse {
   materialId: string;
   need: string;
-  subjects: string[];
 }
 
 export function runDiluents(runs: readonly DilutionRun[]): Map<string, string> {
@@ -41,14 +40,8 @@ export function diluentUses(
   for (const run of runs) {
     const diluent = diluents.get(run.key);
     const material = diluent ? materialNamed(protocol, diluent) : undefined;
-    if (!diluent || !material) continue;
-    const use = byMaterial.get(material.id) ?? {
-      materialId: material.id,
-      need: needText(calculation, diluent),
-      subjects: [],
-    };
-    if (run.subject && !use.subjects.includes(run.subject)) use.subjects.push(run.subject);
-    byMaterial.set(material.id, use);
+    if (!diluent || !material || byMaterial.has(material.id)) continue;
+    byMaterial.set(material.id, { materialId: material.id, need: needText(calculation, diluent) });
   }
   return [...byMaterial.values()];
 }

@@ -2,7 +2,7 @@ import { firstBlockOrNew } from '../blocks/createBlock';
 import { nameKey, type BoardCalculation } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
 import { normalizeMaterialKey } from '../materials/materialKey';
-import { ensureMaterial } from '../materials/materialLookup';
+import { ensureMaterial, shortNameOf } from '../materials/materialLookup';
 import { findAmounts } from '../units/textAmounts';
 import { insertAfterPeers } from '../values/valueEdits';
 import { joinValueName } from '../values/valueNames';
@@ -174,15 +174,19 @@ function conditionNoun(textBefore: string): string | undefined {
 }
 
 export function readStepReadings(protocol: Protocol, calculation: BoardCalculation): StepReadings {
-  const onBoard = new Map(
-    boardMaterials(protocol).map(item => [normalizeMaterialKey(item.name), item])
-  );
+  const listed = boardMaterials(protocol);
+  const onBoard = new Map([
+    ...listed
+      .filter(shortNameOf)
+      .map(item => [normalizeMaterialKey(shortNameOf(item)), item] as const),
+    ...listed.map(item => [normalizeMaterialKey(item.name), item] as const),
+  ]);
   const materials = new Map<string, MaterialReading>();
   const values = new Map<string, ValueDraft>();
 
   const noteMaterial = (name: string, use: ReadingUse) => {
     const material = onBoard.get(normalizeMaterialKey(name));
-    const key = `material:${normalizeMaterialKey(name)}`;
+    const key = `material:${normalizeMaterialKey(material?.name ?? name)}`;
     const reading = materials.get(key) ?? {
       key,
       name: material?.name.trim() ?? name,

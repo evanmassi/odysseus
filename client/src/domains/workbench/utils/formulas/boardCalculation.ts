@@ -42,6 +42,7 @@ export type BoardName = NameSource &
         kind: 'item';
         id: string;
         name: string;
+        shownName?: string;
         groupTitle: string;
         hint: string;
         label: string;

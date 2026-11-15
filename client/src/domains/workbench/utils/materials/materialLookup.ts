@@ -1,5 +1,6 @@
 import { firstBlockOrNew } from '../blocks/createBlock';
 
+import { SHORT_NAME_FIELD } from './materialCatalog';
 import { normalizeMaterialKey } from './materialKey';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
@@ -26,6 +27,18 @@ export function findNamed<Item>(
   );
 }
 
+export const shortNameOf = (item: MaterialItem): string =>
+  item.shownFields.includes(SHORT_NAME_FIELD) ? (item.values[SHORT_NAME_FIELD] ?? '').trim() : '';
+
+export const displayNameOf = (item: MaterialItem): string => shortNameOf(item) || item.name.trim();
+
+export const findMaterial = (
+  materials: readonly MaterialItem[],
+  name: string
+): MaterialItem | undefined =>
+  findNamed(materials, name, item => item.name) ??
+  findNamed(materials.filter(shortNameOf), name, shortNameOf);
+
 export const listedMaterials = (protocol: Pick<Protocol, 'blocks'>): MaterialItem[] =>
   protocol.blocks
     .flatMap(block => (block.type === 'materials' ? block.items : []))
@@ -34,7 +47,7 @@ export const listedMaterials = (protocol: Pick<Protocol, 'blocks'>): MaterialIte
 export const materialNamed = (
   protocol: Pick<Protocol, 'blocks'>,
   name: string
-): MaterialItem | undefined => findNamed(listedMaterials(protocol), name, item => item.name);
+): MaterialItem | undefined => findMaterial(listedMaterials(protocol), name);
 
 export function ensureMaterial(
   draft: Protocol,

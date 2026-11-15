@@ -2,7 +2,7 @@ import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-sc
 
 import { dimensionKey, readableAmount, readNumber } from '../formulas/quantities';
 import { isTherapeuticAntibodyName } from '../materials/materialGuesser';
-import { materialNamed } from '../materials/materialLookup';
+import { displayNameOf, materialNamed } from '../materials/materialLookup';
 
 export const STOCK_FIELD = 'stock-concentration';
 export const WEIGHT_FIELD = 'molecular-weight';
@@ -69,7 +69,7 @@ export function stockFor(
       need: 'stock',
       unit: seriesUnit,
       issue: material
-        ? `${material.name} has no stock concentration yet.`
+        ? `${displayNameOf(material)} has no stock concentration yet.`
         : `${subject || 'This treatment'} is not in Materials yet.`,
     };
   }
@@ -92,5 +92,10 @@ export function stockFor(
       issue: `This series cannot be made from the stock: ${conversion.error}.`,
     };
   }
-  return { kind: 'ready', inSeriesUnit: conversion.value, shown, material: material.name };
+  return {
+    kind: 'ready',
+    inSeriesUnit: conversion.value,
+    shown,
+    material: displayNameOf(material),
+  };
 }
