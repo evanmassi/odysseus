@@ -1,8 +1,7 @@
-import { MATERIAL_GROUPS, fieldLabel, materialFields } from '../materials/materialCatalog';
+import { fieldLabel, materialFields } from '../materials/materialCatalog';
 import { normalizeMaterialKey } from '../materials/materialKey';
 
 import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui';
 
 type ValueSection = ValuesBlock['sections'][number];
 
@@ -25,8 +24,6 @@ const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
   ],
   other: [['Volume per well', 'µL']],
 };
-
-const SKIPPED_GROUPS = new Set(['equip', 'soft']);
 
 function hasVesselMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {
   const vesselMaps = protocol.blocks.filter(block => block.type === 'plate');
@@ -85,36 +82,4 @@ export function valueSuggestions(
         })
       ),
   ];
-}
-
-export function valueSectionChoices(
-  protocol: Pick<Protocol, 'blocks'>,
-  block: ValuesBlock
-): SelectOption[] {
-  const sectioned = new Set(
-    block.sections.flatMap(section => ('materialId' in section ? [section.materialId] : []))
-  );
-  const materials = protocol.blocks.flatMap(candidate =>
-    candidate.type === 'materials' ? candidate.items : []
-  );
-  const customGroups = [
-    ...new Set(materials.map(item => item.group).filter(group => group.startsWith('custom:'))),
-  ];
-  const groups = [
-    ...MATERIAL_GROUPS.map(group => ({ key: group.key, label: group.label })),
-    ...customGroups.map(key => ({ key, label: key.slice('custom:'.length) })),
-  ];
-  return groups
-    .filter(group => !SKIPPED_GROUPS.has(group.key))
-    .flatMap(group =>
-      materials
-        .filter(
-          item =>
-            item.group === group.key &&
-            item.name.trim() &&
-            !item.isDropped &&
-            !sectioned.has(item.id)
-        )
-        .map(item => ({ value: item.id, label: item.name, group: group.label }))
-    );
 }

@@ -1,20 +1,19 @@
 import { useState } from 'react';
 
-import { Button } from '@shared/ui';
+import { Plus } from 'lucide-react';
+
+import { Button, Input } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { displayValue } from '../../../../utils/formulas/quantities';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
-import { parseValueLine } from '../../../../utils/values/valueLines';
-import { joinValueName } from '../../../../utils/values/valueNames';
-import { valueUnitLabel } from '../../../../utils/values/valueUnits';
 
+import type { ValueLineGuess } from '../../../../utils/values/valueRouting';
 import type { ValueSuggestion } from '../../../../utils/values/valueSuggestions';
 
 interface WorkbenchValueAddFieldProps {
-  ownerName: string;
+  variant?: 'line' | 'bar';
   placeholder: string;
-  takenNames: ReadonlySet<string>;
+  guessFor: (text: string) => ValueLineGuess | undefined;
   suggestions?: readonly ValueSuggestion[];
   isFocusedOnMount?: boolean;
   onAddLines: (lines: string[]) => void;
@@ -22,19 +21,10 @@ interface WorkbenchValueAddFieldProps {
   onClose?: () => void;
 }
 
-function guessLine(text: string, ownerName: string, takenNames: ReadonlySet<string>) {
-  const parsed = parseValueLine(text);
-  if (!parsed) return undefined;
-  const full = ownerName ? joinValueName(ownerName, parsed.name) : parsed.name;
-  const shown = parsed.value ? displayValue(parsed.value, parsed.unit) : 'to fill in';
-  const unitHint = parsed.unit && !parsed.value ? ` (${valueUnitLabel(parsed.unit)})` : '';
-  return { full, shown: `${shown}${unitHint}`, isTaken: takenNames.has(full.trim().toLowerCase()) };
-}
-
 export function WorkbenchValueAddField({
-  ownerName,
+  variant = 'line',
   placeholder,
-  takenNames,
+  guessFor,
   suggestions = [],
   isFocusedOnMount = false,
   onAddLines,
@@ -42,46 +32,83 @@ export function WorkbenchValueAddField({
   onClose,
 }: WorkbenchValueAddFieldProps) {
   const [draft, setDraft] = useState('');
-  const guess = draft.trim() ? guessLine(draft, ownerName, takenNames) : undefined;
+  const hasText = !!draft.trim();
+  const guess = hasText ? guessFor(draft) : undefined;
 
   const submit = (lines: string[]) => {
     onAddLines(lines.map(withGreekLetters));
     setDraft('');
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      if (draft) setDraft('');
+      else onClose?.();
+    }
+    if (event.key === 'Enter' && hasText) {
+      event.preventDefault();
+      submit([draft]);
+    }
+  };
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = event.clipboardData.getData('text');
+    if (!/\n/.test(text.trim())) return;
+    event.preventDefault();
+    submit(text.split(/\r?\n/).filter(line => line.trim()));
+  };
+
   return (
     <div>
-      <span className="inline-edit">
-        <input
-          ref={isFocusedOnMount ? focusOnMount : undefined}
-          value={draft}
-          placeholder={placeholder}
-          aria-label={placeholder}
-          spellCheck={false}
-          autoComplete="off"
-          className="py-px text-body-sm text-foreground placeholder:text-muted-foreground"
-          onChange={event => setDraft(event.target.value)}
-          onKeyDown={event => {
-            if (event.key === 'Escape') {
-              if (draft) setDraft('');
-              else onClose?.();
-            }
-            if (event.key === 'Enter' && draft.trim()) {
-              event.preventDefault();
-              submit([draft]);
-            }
-          }}
-          onPaste={event => {
-            const text = event.clipboardData.getData('text');
-            if (!/\n/.test(text.trim())) return;
-            event.preventDefault();
-            submit(text.split(/\r?\n/).filter(line => line.trim()));
-          }}
-        />
-      </span>
+      {variant === 'bar' ? (
+        <div className="flex max-w-[38.75rem] items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <Input
+              size="md"
+              fullWidth
+              value={draft}
+              placeholder={placeholder}
+              aria-label="Add a value"
+              spellCheck={false}
+              autoComplete="off"
+              inputClassName="placeholder:italic"
+              onValueChange={setDraft}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+            />
+          </div>
+          <Button
+            variant="primary"
+            size="md"
+            leftIcon={<Plus className="h-4 w-4" />}
+            disabled={!hasText}
+            onClick={() => submit([draft])}
+          >
+            Add Value
+          </Button>
+        </div>
+      ) : (
+        <span className="inline-edit">
+          <input
+            ref={isFocusedOnMount ? focusOnMount : undefined}
+            value={draft}
+            placeholder={placeholder}
+            aria-label={placeholder}
+            spellCheck={false}
+            autoComplete="off"
+            className="py-px text-body-sm text-foreground placeholder:text-muted-foreground"
+            onChange={event => setDraft(event.target.value)}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+          />
+        </span>
+      )}
       {guess && (
-        <p className="pb-1 text-label-xs text-muted-foreground">
+        <p
+          className={`pb-1 text-label-xs text-muted-foreground ${variant === 'bar' ? 'pt-1.5' : ''}`}
+        >
           <b className="font-semibold text-foreground">{guess.full}</b> · {guess.shown}
+          {guess.place && ` · ${guess.place}`}
           {guess.isTaken && <span className="text-warning-text"> · name already used</span>}
         </p>
       )}

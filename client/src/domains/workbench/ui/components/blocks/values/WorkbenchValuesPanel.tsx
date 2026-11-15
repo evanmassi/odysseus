@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button, Select } from '@shared/ui';
+import { Button, PanelEmptyState } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useStableActions } from '../../../../hooks/useStableActions';
@@ -24,6 +24,7 @@ import {
   type PlateValueRow,
 } from '../../../../utils/values/plateValueRows';
 import {
+  addRoutedValue,
   addSuggestedValue,
   addValueLines,
   addValueSection,
@@ -38,7 +39,12 @@ import {
   setValueUnit,
   type RemovedValues,
 } from '../../../../utils/values/valueEdits';
-import { valueSectionChoices, valueSuggestions } from '../../../../utils/values/valueSuggestions';
+import {
+  routeValueLine,
+  routedValueGuess,
+  rowValueGuess,
+} from '../../../../utils/values/valueRouting';
+import { valueSuggestions } from '../../../../utils/values/valueSuggestions';
 import {
   buildValueTable,
   type ValueTableCell,
@@ -46,6 +52,7 @@ import {
   type ValueTableGroup,
   type ValueTableRow,
 } from '../../../../utils/values/valueTable';
+import { BLOCK_ICONS } from '../../board/blockIcons';
 
 import { WorkbenchValueAddField } from './WorkbenchValueAddField';
 import { WorkbenchValueGroupTable } from './WorkbenchValueGroupTable';
@@ -80,7 +87,6 @@ interface ColumnEdit {
 
 const UNDO_MS = 8000;
 const GENERAL_SECTION = '';
-const MIX_CHOICE = 'mix';
 const TITLE_INPUT =
   'type-name text-label-md font-semibold text-foreground placeholder:text-muted-foreground';
 
@@ -376,9 +382,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
 
   const renderAdder = (group: ValueTableGroup, row: ValueTableRow) => (
     <WorkbenchValueAddField
-      ownerName={row.name}
       placeholder={`Add to ${row.shownName || 'this mix'}: Volume per well 50 µL`}
-      takenNames={takenNames}
+      guessFor={text => rowValueGuess(text, row.name, takenNames)}
       suggestions={rowSuggestions(group, row)}
       isFocusedOnMount
       onAddLines={lines => {
@@ -424,6 +429,28 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
 
   return (
     <div className="px-2 pb-3 pt-1">
+      <div className="mb-6 px-2 pt-2">
+        <WorkbenchValueAddField
+          variant="bar"
+          placeholder="e.g. Well volume 80 µL, or paste a list"
+          guessFor={text => {
+            const routed = routeValueLine(protocol, block, text);
+            return routed && routedValueGuess(routed, takenNames);
+          }}
+          onAddLines={lines => {
+            const routed = lines.flatMap(line => routeValueLine(protocol, block, line) ?? []);
+            let added: string | undefined;
+            edit(draft => {
+              for (const value of routed) added = addRoutedValue(draft, block.id, value);
+            });
+            const [only] = routed;
+            if (routed.length !== 1 || only.line.value || !added) return;
+            if (only.destination.kind === 'general')
+              setGeneralEdit({ itemId: added, cell: 'value' });
+            else setEditingCellId(added);
+          }}
+        />
+      </div>
       <WorkbenchValueSection
         title={
           groups.length > 0 ? (
@@ -445,14 +472,6 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             ''
           )
         }
-        takenNames={takenNames}
-        onAddLines={lines => {
-          let needsNumber: string | undefined;
-          edit(draft => {
-            needsNumber = addValueLines(draft, block.id, lines, GENERAL_SECTION);
-          });
-          if (needsNumber) setGeneralEdit({ itemId: needsNumber, cell: 'value' });
-        }}
       >
         {generalRows.map(row => (
           <WorkbenchValueRow
@@ -463,6 +482,13 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           />
         ))}
       </WorkbenchValueSection>
+      {!generalRows.length && !groups.length && (
+        <PanelEmptyState
+          icon={BLOCK_ICONS.values}
+          message="Add values above"
+          description="Type a name and amount, or paste a list"
+        />
+      )}
       <div className="mt-5 flex flex-col gap-5">
         {groups.map(group => (
           <WorkbenchValueGroupTable
@@ -506,30 +532,20 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           />
         </div>
       )}
-      <div className="mt-4 max-w-xs px-2">
-        <Select
-          size="sm"
-          value=""
-          placeholder="+ Values for…"
-          aria-label="Add values for a material or mix"
-          options={[
-            ...valueSectionChoices(protocol, block),
-            { value: MIX_CHOICE, label: 'A mix or cocktail' },
-          ]}
-          onChange={choice => {
-            if (choice === null || choice === '') return;
+      <div className="mt-4 px-2">
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={() => {
             let added: string | undefined;
             edit(draft => {
-              added = addValueSection(
-                draft,
-                block.id,
-                choice === MIX_CHOICE ? undefined : String(choice)
-              );
+              added = addValueSection(draft, block.id, undefined);
             });
-            if (choice === MIX_CHOICE) setEditingNameRowId(added);
-            else setAddingRowId(added);
+            setEditingNameRowId(added);
           }}
-        />
+        >
+          + Mix or cocktail
+        </Button>
       </div>
       <ConfirmDialog
         isOpen={!!removingPlateRow}

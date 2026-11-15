@@ -6,9 +6,11 @@ import {
   materialFields,
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
+import { writeMaterialField } from '../materials/materialItems';
 
 import { parseValueLine } from './valueLines';
 
+import type { RoutedValue } from './valueRouting';
 import type { ValueSuggestion } from './valueSuggestions';
 import type {
   FieldDefinition,
@@ -173,6 +175,60 @@ export function addValueSection(
   const id = createId();
   block.sections.push(materialId ? { id, materialId } : { id, mixName: '' });
   return id;
+}
+
+function materialSectionId(draft: Protocol, blockId: string, materialId: string) {
+  const existing = valuesBlock(draft, blockId)?.sections.find(
+    section => 'materialId' in section && section.materialId === materialId
+  );
+  return existing?.id ?? addValueSection(draft, blockId, materialId);
+}
+
+export function addRoutedValue(
+  draft: Protocol,
+  blockId: string,
+  { line, destination }: RoutedValue
+): string | undefined {
+  const block = valuesBlock(draft, blockId);
+  if (!block) return undefined;
+  if (destination.kind === 'general') {
+    const id = createId();
+    insertAfterPeers(block, '', [{ id, ...line }]);
+    return id;
+  }
+  const { materialId } = destination;
+  const mixSectionId = destination.kind === 'row' ? destination.sectionId : undefined;
+  const sectionId = materialId ? materialSectionId(draft, blockId, materialId) : mixSectionId;
+  if (!sectionId) return undefined;
+  if (destination.kind === 'row') {
+    const { label } = destination;
+    return addSuggestedValue(draft, blockId, sectionId, {
+      kind: 'value',
+      name: label,
+      value: line.value,
+      unit: line.unit,
+      label,
+    });
+  }
+  const material = materialsById(draft).get(destination.materialId);
+  if (!material) return undefined;
+  const { field } = destination;
+  if (line.value) {
+    writeMaterialField(material, field, line.value);
+    if (line.unit && field.unit === UNIT_PER_ITEM) material.units[field.key] = line.unit;
+  }
+  const linked = block.items.find(
+    item =>
+      'materialField' in item && item.section === sectionId && item.materialField === field.key
+  );
+  return (
+    linked?.id ??
+    addSuggestedValue(draft, blockId, sectionId, {
+      kind: 'field',
+      materialField: field.key,
+      label: field.label,
+    })
+  );
 }
 
 export function renameValueSection(

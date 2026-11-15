@@ -57,6 +57,16 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   values: {
     label: 'Values',
     hint: 'Named numbers you set',
+    usageTip: {
+      heading: 'Name the numbers your experiment uses',
+      points: [
+        'Type a name and amount and press [Enter], or paste a list',
+        'Start with a material or mix to put it on that row, e.g. Raji per well 10000 cells',
+        'A field the material has, e.g. Raji count, fills it in <materials>',
+        'Numbers from the <plate> and <materials> show up on their own',
+        'Use them by name in <formula> and <steps>',
+      ],
+    },
     size: [4, 6],
     fitsContent: true,
     createContent: () => ({ items: [], sections: [] }),

@@ -1,0 +1,145 @@
+import { addRoutedValue } from './valueEdits';
+import { routedValueGuess, routeValueLine, rowValueGuess } from './valueRouting';
+
+import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+
+const material = (
+  id: string,
+  name: string,
+  group: string,
+  type: string,
+  values: Record<string, string> = {}
+): MaterialItem => ({
+  id,
+  group,
+  type,
+  name,
+  shownFields: Object.keys(values),
+  values,
+  units: {},
+  customFields: [],
+  fieldLabels: {},
+  isDropped: false,
+  recipe: [],
+});
+
+function protocolWith(): { protocol: Protocol; block: ValuesBlock } {
+  const block = {
+    id: 'values',
+    type: 'values',
+    items: [],
+    sections: [{ id: 'mix', mixName: 'Th17 cocktail' }],
+  } as unknown as ValuesBlock;
+  const protocol = {
+    blocks: [
+      {
+        id: 'materials',
+        type: 'materials',
+        items: [
+          material('raji', 'Raji', 'bio', 'Cell line'),
+          material('luc', 'Raji Luc', 'bio', 'Cell line'),
+          material('medium', 'ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium', {
+            'short-name': 'ImmunoCult XF',
+          }),
+          material('spinner', 'Centrifuge', 'equip', 'Instrument'),
+        ],
+      },
+      block,
+    ],
+    diluent: '',
+  } as unknown as Protocol;
+  return { protocol, block };
+}
+
+const routed = (text: string) => {
+  const { protocol, block } = protocolWith();
+  return routeValueLine(protocol, block, text);
+};
+
+describe('routing a typed value', () => {
+  it('keeps a line that starts with no material or mix for the whole experiment', () => {
+    expect(routed('Well volume 80 µL')).toMatchObject({
+      destination: { kind: 'general' },
+      fullName: 'Well volume',
+    });
+    expect(routed('Centrifuge speed 300 g')?.destination.kind).toBe('general');
+  });
+
+  it("puts a line that starts with a material on that material's row, the longest name winning", () => {
+    expect(routed('Raji per well 10000 cells')).toMatchObject({
+      destination: { kind: 'row', materialId: 'raji', label: 'Per well' },
+      fullName: 'Raji per well',
+    });
+    expect(routed('raji luc per well 5000 cells')?.destination).toMatchObject({
+      materialId: 'luc',
+    });
+  });
+
+  it('knows a material by its short name and names the value by its full name', () => {
+    expect(routed('ImmunoCult XF volume per well 50 µL')).toMatchObject({
+      destination: { kind: 'row', materialId: 'medium', shownOwner: 'ImmunoCult XF' },
+      fullName: 'ImmunoCult™-XF T Cell Expansion Medium volume per well',
+    });
+  });
+
+  it('fills in a field the material has instead of making a second value', () => {
+    expect(routed('Raji count 1e6 cells/mL')).toMatchObject({
+      destination: { kind: 'field', materialId: 'raji', field: { key: 'count' } },
+    });
+  });
+
+  it("puts a line that starts with a mix on the mix's row", () => {
+    expect(routed('Th17 cocktail volume 50 µL')?.destination).toMatchObject({
+      kind: 'row',
+      materialId: undefined,
+      sectionId: 'mix',
+      label: 'Volume',
+    });
+  });
+
+  it('says where the value will go', () => {
+    const taken = new Set(['raji per well']);
+    const onRow = routed('Raji per well 10000 cells');
+    expect(onRow && routedValueGuess(onRow, taken)).toMatchObject({
+      place: 'on the Raji row',
+      isTaken: true,
+    });
+    const inMaterials = routed('Raji count 1e6 cells/mL');
+    expect(inMaterials && routedValueGuess(inMaterials, taken).place).toBe('in Materials');
+    expect(rowValueGuess('Volume per well 50 µL', 'Raji', taken)).toMatchObject({
+      full: 'Raji volume per well',
+      place: '',
+    });
+  });
+});
+
+describe('adding routed values', () => {
+  it('makes one row for a material however many of its values arrive together', () => {
+    const { protocol, block } = protocolWith();
+    for (const text of ['Raji per well 10000 cells', 'Raji volume per well 50 µL']) {
+      const value = routeValueLine(protocol, block, text);
+      if (value) addRoutedValue(protocol, 'values', value);
+    }
+    const rajiSections = block.sections.filter(
+      section => 'materialId' in section && section.materialId === 'raji'
+    );
+    expect(rajiSections).toHaveLength(1);
+    expect(block.items.map(item => ('name' in item ? item.name : ''))).toEqual([
+      'Per well',
+      'Volume per well',
+    ]);
+  });
+
+  it('writes a field on the material and links it on the row once', () => {
+    const { protocol, block } = protocolWith();
+    for (const text of ['Raji count 1e6 cells/mL', 'Raji count 2e6 cells/mL']) {
+      const value = routeValueLine(protocol, block, text);
+      if (value) addRoutedValue(protocol, 'values', value);
+    }
+    const [materials] = protocol.blocks;
+    const raji = materials.type === 'materials' ? materials.items[0] : undefined;
+    expect(raji?.values['count']).toBe('2e6');
+    expect(raji?.shownFields).toContain('count');
+    expect(block.items.filter(item => 'materialField' in item)).toHaveLength(1);
+  });
+});

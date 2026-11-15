@@ -1,7 +1,7 @@
 import { readNumber } from '../formulas/quantities';
 import { amountUnit } from '../units/textAmounts';
 
-interface ParsedValueLine {
+export interface ParsedValueLine {
   name: string;
   value: string;
   unit: string;
