@@ -14,7 +14,7 @@ import { flowLayout } from '../../../../utils/flow/flowLayout';
 import { flowModel } from '../../../../utils/flow/flowModel';
 import { durationText } from '../../../../utils/flow/stepWaits';
 
-import { FLOW_HANDS_OFF_COLOR, FLOW_HANDS_ON_COLOR } from './flowKindStyles';
+import { FLOW_HANDS_OFF_COLOR, FLOW_PICTURE_COLOR } from './flowKindStyles';
 import { WorkbenchFlowSectionFrame } from './WorkbenchFlowSectionFrame';
 import { WorkbenchFlowStepBox } from './WorkbenchFlowStepBox';
 import { WorkbenchFlowWaitLabel } from './WorkbenchFlowWaitLabel';
@@ -65,7 +65,7 @@ export function WorkbenchFlowPanel({ block }: WorkbenchFlowPanelProps) {
     return [
       {
         label: 'Hands-on',
-        color: FLOW_HANDS_ON_COLOR,
+        color: FLOW_PICTURE_COLOR,
         isShown: kinds.some(kind => kind !== 'wait'),
       },
       {

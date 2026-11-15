@@ -5,6 +5,7 @@ import { seriesFold, seriesTop } from '../vessels/plateSeries';
 
 import { prepLineId, prepSettingsOf, type PrepLine, type PrepSettings } from './dilutionFormulas';
 import { stockFor, type StockReading } from './dilutionStock';
+import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 
 import type { DilutionRun } from './dilutionRuns';
 import type { BoardCalculation } from '../formulas/boardCalculation';
@@ -44,11 +45,13 @@ export type DilutionPrep =
 
 const MICROLITER = unitScale('µL')?.factor ?? 1;
 
-const shortNumber = (value: number) => String(Number(value.toPrecision(3)));
-const volumeNumber = (volume: number) =>
-  String(Number(volume.toFixed(volume < 1 ? 3 : volume < 10 ? 2 : 1)));
-const volumeText = (volume: number) => `${volumeNumber(volume)} µL`;
+const MICROLITERS_PER_MILLILITER = 1000;
+
 const microliters = (volume: number) => readableAmount(String(volume), 'µL');
+const dialed = (use: PipetteUse, volume: number) =>
+  volume >= MICROLITERS_PER_MILLILITER
+    ? microliters(volume)
+    : `${dialNumber(pipetteFor(use, volume), volume)} µL`;
 
 type LineAnswer = { magnitude: number } | { problem: string };
 
@@ -66,7 +69,8 @@ const inMicroliters = (answer: LineAnswer) =>
 export function dilutionPrep(
   run: DilutionRun,
   protocol: Pick<Protocol, 'blocks'>,
-  calculation: BoardCalculation
+  calculation: BoardCalculation,
+  diluentLabel: string
 ): DilutionPrep {
   const settings = prepSettingsOf(run);
   const fold = seriesFold(run.series, calculation);
@@ -131,18 +135,32 @@ export function dilutionPrep(
   const points = Array.from({ length: pointCount }, (_, point) => ({
     point: point + 1,
     wells: run.wellsPerPoint.get(point) ?? 0,
-    volume: volumeNumber(point ? diluent : total),
+    volume: dialNumber(pipetteFor('series', diluent), point ? diluent : total),
     final: show(inWell(point)),
     working: show(working(point)),
   }));
   const topDiluent = inMicroliters(lineAnswer(calculation, run, 'topDiluent'));
   const diluentTotal = inMicroliters(lineAnswer(calculation, run, 'diluentTotal'));
+  const diluentName = diluentLabel || 'diluent';
+  const restWells = pointCount > 2 ? `Wells 2–${pointCount}` : 'Well 2';
+  const totalLabel = `${diluentLabel || 'Diluent'} total`;
   const notes: Array<[string, string]> = [];
   if (rawStock !== undefined && topDiluent !== undefined) {
-    notes.push(['Well 1', `${volumeText(rawStock)} stock + ${volumeText(topDiluent)} diluent`]);
-    if (diluentTotal !== undefined) notes.push(['Diluent total', microliters(diluentTotal)]);
+    notes.push([
+      'Well 1',
+      `${dialed('series', total)} (${dialed('stock', rawStock)} stock + ${dialed('stock', topDiluent)} ${diluentName})`,
+    ]);
+  }
+  if (pointCount > 1) {
+    notes.push([
+      restWells,
+      `${dialed('series', diluent)} ${diluentName}${pointCount > 2 ? ' each' : ''}`,
+    ]);
+  }
+  if (rawStock !== undefined && diluentTotal !== undefined) {
+    notes.push([totalLabel, microliters(diluentTotal)]);
   } else {
-    notes.push(['Diluent total', `about ${microliters(diluent * pointCount)}`]);
+    notes.push([totalLabel, `about ${microliters(diluent * pointCount)}`]);
   }
   return {
     ...base,
@@ -150,8 +168,8 @@ export function dilutionPrep(
     strength: `${shortNumber(strength)}×`,
     points,
     isUneven: new Set(run.wellsPerPoint.values()).size > 1,
-    transferText: volumeText(transfer),
-    stockText: rawStock === undefined ? undefined : volumeText(rawStock),
+    transferText: dialed('series', transfer),
+    stockText: rawStock === undefined ? undefined : dialed('stock', rawStock),
     stockShown:
       stock.kind === 'ready' ? stock.shown : stock.kind === 'undiluted' ? 'undiluted' : undefined,
     stock,

@@ -3,7 +3,12 @@ import { Fragment } from 'react';
 import { splitProse } from '../../../../utils/steps/stepTemplate';
 import { amountKindClass, proseClass } from '../steps/stepProseClasses';
 
-import { FLOW_DONE_CLASSES, FLOW_PLACE_CLASSES, flowKindColor } from './flowKindStyles';
+import {
+  FLOW_DONE_CLASSES,
+  FLOW_PLACE_CLASSES,
+  flowKindColor,
+  flowPictureColor,
+} from './flowKindStyles';
 import { WorkbenchFlowPicture } from './WorkbenchFlowPicture';
 
 import type { PlacedStep } from '../../../../utils/flow/flowLayout';
@@ -18,8 +23,6 @@ interface WorkbenchFlowStepBoxProps {
 }
 
 const BLANK = /(\[[^\]]+\])/;
-const PICTURE_COLOR = 'hsl(var(--foreground) / 0.55)';
-const STRIPE_COLOR = 'hsl(var(--foreground) / 0.3)';
 
 const FLOW_QUANTITY = 'font-medium text-foreground';
 
@@ -96,6 +99,7 @@ export function WorkbenchFlowStepBox({
   onOpen,
 }: WorkbenchFlowStepBoxProps) {
   const { step, duringOf } = placed;
+  const tone = flowPictureColor(step.kind);
 
   return (
     <button
@@ -104,7 +108,9 @@ export function WorkbenchFlowStepBox({
       aria-current={isPlace ? 'step' : undefined}
       onClick={() => onSelect(step.id)}
       onDoubleClick={() => onOpen?.(step.id)}
-      className={`absolute flex flex-col border border-l-[3px] border-foreground/20 bg-card py-1.5 pl-[30px] pr-2 text-left transition-[border-color,opacity] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      className={`absolute flex flex-col border border-l-[3px] ${
+        step.kind === 'wait' ? 'border-warning-text/30' : 'border-primary/30'
+      } bg-card py-1.5 pl-[30px] pr-2 text-left transition-[border-color,opacity] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
         duringOf ? 'border-dashed bg-card/60' : ''
       } ${isPlace ? FLOW_PLACE_CLASSES : ''} ${isDone ? FLOW_DONE_CLASSES : ''}`}
       style={{
@@ -112,7 +118,7 @@ export function WorkbenchFlowStepBox({
         top: placed.y,
         width: placed.width,
         height: placed.height,
-        borderLeftColor: STRIPE_COLOR,
+        borderLeftColor: tone,
         borderLeftStyle: 'solid',
       }}
     >
@@ -125,7 +131,10 @@ export function WorkbenchFlowStepBox({
           const hasHeading = !!action.verb || (index === 0 && !!duringOf);
           return (
             <span key={index} className="flex items-start gap-x-2.5">
-              <WorkbenchFlowPicture picture={action.look.picture} color={PICTURE_COLOR} />
+              <WorkbenchFlowPicture
+                picture={action.look.picture}
+                color={flowPictureColor(action.look.kind)}
+              />
               <span className="min-w-0 flex-1">
                 {hasHeading && (
                   <span className="flex h-[18px] items-center gap-1.5 whitespace-nowrap">

@@ -72,7 +72,12 @@ const drugStock = material(
   { 'stock-concentration': 'µM' }
 );
 const prepFor = (protocol: Protocol) =>
-  dilutionPrep(dilutionRuns(protocol)[0], protocol, calculateBoard(collectBoardNames(protocol)));
+  dilutionPrep(
+    dilutionRuns(protocol)[0],
+    protocol,
+    calculateBoard(collectBoardNames(protocol)),
+    'RPMI'
+  );
 
 describe('dilution prep', () => {
   it('pools identical series from copied plates into one prep sized for all their wells', () => {
@@ -100,7 +105,7 @@ describe('dilution prep', () => {
     expect([...run.wellsPerPoint.values()]).toEqual([3, 3, 3, 3]);
   });
 
-  it('works out the transfers and makes the top point from stock', () => {
+  it('rounds volumes to the pipettes without naming them and makes the top point from stock', () => {
     const result = prepFor(protocolWith(doseSeries, [drugStock]));
     if (result.kind !== 'ready') throw new Error(result.problem);
     expect(result.summary).toBe('300 nM · 1:3 · 4 points');
@@ -114,8 +119,9 @@ describe('dilution prep', () => {
       ['80', '11.1 nM', '44.4 nM'],
     ]);
     expect(result.notes).toEqual([
-      ['Well 1', '14.4 µL stock + 105.6 µL diluent'],
-      ['Diluent total', '346 µL'],
+      ['Well 1', '120 µL (14.4 µL stock + 105.6 µL RPMI)'],
+      ['Wells 2–4', '80 µL RPMI each'],
+      ['RPMI total', '346 µL'],
     ]);
     expect(result.warnings).toEqual([]);
   });
@@ -128,7 +134,7 @@ describe('dilution prep', () => {
     );
     const result = prepFor(protocolWith(doseSeries, [strong]));
     if (result.kind !== 'ready') throw new Error(result.problem);
-    expect(result.stockText).toBe('0.014 µL');
+    expect(result.stockText).toBe('0.0144 µL');
     expect(result.warnings).toEqual([]);
   });
 

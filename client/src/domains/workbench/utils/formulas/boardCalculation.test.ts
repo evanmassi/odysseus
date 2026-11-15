@@ -77,7 +77,7 @@ describe('calculateBoard', () => {
       value('Volume', '50', 'µL'),
       formula('Ab', 'Volume * Ab dilution'),
     ];
-    expect(answerOf(board, 'Ab')).toBe('250 nL');
+    expect(answerOf(board, 'Ab')).toBe('0.25 µL');
   });
 
   it('reads literal units typed into a formula, including uL for µL', () => {

@@ -199,7 +199,7 @@ export function flowLayout(
             path: `M${x1} ${arrowY} H${x2}`,
             waits: previous.waitsAfter,
             labelX: (x1 + x2) / 2,
-            labelY: arrowY,
+            labelY: previous.waitsAfter.length ? top + rowHeight / 2 : arrowY,
             labelAnchor: 'middle',
             direction: 'right',
             isStraight: true,

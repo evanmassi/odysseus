@@ -23,7 +23,7 @@ export const FOLD_UNIT = 'X';
 const NO_DIMENSION: UnitDimension = {};
 
 const AUTO_DISPLAY_UNITS = [
-  ['L', 'mL', 'µL', 'nL'],
+  ['mL', 'µL'],
   ['mg', 'µg', 'ng', 'pg'],
   ['mg/mL', 'µg/mL', 'ng/mL', 'pg/mL'],
   ['mM', 'µM', 'nM', 'pM'],

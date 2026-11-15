@@ -95,7 +95,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
       )}
       {runs.map(run => {
         if (!isShowingAll && run !== shown) return null;
-        const prep = dilutionPrep(run, protocol, calculation);
+        const prep = dilutionPrep(run, protocol, calculation, diluents.get(run.key) ?? '');
         return (
           <WorkbenchDilutionSeriesSection
             key={run.key}

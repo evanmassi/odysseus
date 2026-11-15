@@ -78,7 +78,7 @@ function linksOf(
 function prepWarnings(protocol: Pick<Protocol, 'blocks'>, calculation: BoardCalculation) {
   const byLine = new Map<string, string[]>();
   for (const run of dilutionRuns(protocol)) {
-    const prep = dilutionPrep(run, protocol, calculation);
+    const prep = dilutionPrep(run, protocol, calculation, '');
     if (prep.kind !== 'ready') continue;
     for (const warning of prep.warnings) {
       const id = prepLineId(run, warning.line);
