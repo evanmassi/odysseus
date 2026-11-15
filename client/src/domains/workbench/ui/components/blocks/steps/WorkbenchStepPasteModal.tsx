@@ -84,7 +84,7 @@ export function WorkbenchStepPasteModal({ isOpen, onClose, onAdd }: WorkbenchSte
               item.kind === 'section' ? (
                 <div
                   key={index}
-                  className="mb-1.5 mt-3.5 flex gap-2.5 border-b border-foreground/10 pb-1.5 type-label text-label-sm font-semibold tracking-label-wide first:mt-0"
+                  className="mb-1.5 mt-3.5 flex gap-2.5 border-b border-foreground/10 pb-1.5 type-name text-label-sm font-semibold tracking-label-wide first:mt-0"
                 >
                   <span className="text-primary">{numbers.get(String(index))}</span>
                   {item.text}

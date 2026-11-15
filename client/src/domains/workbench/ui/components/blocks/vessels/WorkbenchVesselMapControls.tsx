@@ -73,7 +73,7 @@ export function WorkbenchVesselMapControls({
               placeholder={tab.name}
               aria-label={tab.isPlate ? 'Plate name' : 'Vessel group name'}
               spellCheck={false}
-              className="w-40 bg-transparent px-3 py-2 type-label text-label-sm text-foreground outline-none"
+              className="w-40 bg-transparent px-3 py-2 type-name text-label-sm text-foreground outline-none"
               onFocus={event => event.currentTarget.select()}
               onBlur={event => finishRename(tab.id, event.currentTarget.value)}
               onKeyDown={event => {

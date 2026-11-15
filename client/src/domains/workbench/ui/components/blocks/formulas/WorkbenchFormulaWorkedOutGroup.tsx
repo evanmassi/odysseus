@@ -4,6 +4,7 @@ import { Button } from '@shared/ui';
 
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
+import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { META_LABEL } from '../../board/metaLabelClass';
 
 import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
@@ -65,7 +66,7 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
   return (
     <div className="flex flex-col">
       <div className="flex items-baseline gap-2 px-2 pb-0.5 pt-1">
-        <span className={`${META_LABEL} min-w-0 truncate`}>{title}</span>
+        <span className={`${META_LABEL} min-w-0 truncate`}>{capsKeepingGreek(title)}</span>
         {settings && (
           <Button
             variant="ghost-primary"

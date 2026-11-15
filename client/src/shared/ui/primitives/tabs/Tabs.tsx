@@ -17,12 +17,15 @@ export type TabOrientation = 'horizontal' | 'vertical';
 
 export type TabSize = 'md' | 'sm';
 
+type TabTextStyle = 'label' | 'name';
+
 interface TabsProps {
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
   orientation?: TabOrientation;
   size?: TabSize;
+  textStyle?: TabTextStyle;
   className?: string;
 }
 
@@ -42,6 +45,7 @@ interface TabsContextValue {
   onChange: (value: string) => void;
   orientation: TabOrientation;
   size: TabSize;
+  textStyle: TabTextStyle;
 }
 
 const TabsContext = createContext<TabsContextValue | null>(null);
@@ -55,8 +59,12 @@ function useTabsContext() {
 }
 
 const BASE =
-  'type-label font-medium relative z-10 ' +
-  'transition-colors duration-150 focus:outline-none cursor-pointer';
+  'font-medium relative z-10 transition-colors duration-150 focus:outline-none cursor-pointer';
+
+const TEXT_STYLE: Record<TabTextStyle, string> = {
+  label: 'type-label',
+  name: 'type-name',
+};
 
 const SIZE_TEXT: Record<TabSize, string> = {
   md: 'text-label-lg',
@@ -85,7 +93,7 @@ const INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
 
 export function Tab({ id, icon, children }: TabProps) {
-  const { value, onChange, orientation, size } = useTabsContext();
+  const { value, onChange, orientation, size, textStyle } = useTabsContext();
   const isActive = value === id;
   const isVertical = orientation === 'vertical';
 
@@ -101,7 +109,7 @@ export function Tab({ id, icon, children }: TabProps) {
     ? `w-full flex items-center gap-2 ${padding} text-left min-w-0`
     : `flex items-center gap-2 ${padding}`;
 
-  const className = `${BASE} ${SIZE_TEXT[size]} ${orientationClasses} ${
+  const className = `${BASE} ${TEXT_STYLE[textStyle]} ${SIZE_TEXT[size]} ${orientationClasses} ${
     isActive ? ACTIVE_STATE : INACTIVE_STATE
   }`;
 
@@ -146,14 +154,15 @@ export function Tabs({
   children,
   orientation,
   size = 'md',
+  textStyle = 'label',
   className = '',
 }: TabsProps) {
   const tabCount = Children.count(children);
   const resolvedOrientation = orientation ?? (tabCount <= 2 ? 'horizontal' : 'vertical');
 
   const contextValue = useMemo(
-    () => ({ value, onChange, orientation: resolvedOrientation, size }),
-    [value, onChange, resolvedOrientation, size]
+    () => ({ value, onChange, orientation: resolvedOrientation, size, textStyle }),
+    [value, onChange, resolvedOrientation, size, textStyle]
   );
 
   const listRef = useRef<HTMLDivElement>(null);

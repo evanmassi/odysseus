@@ -37,7 +37,7 @@ export function WorkbenchPageTabs() {
   const deletingBlockCount = blocks.filter(block => block.page === deletingPageId).length;
 
   const addPage = () => {
-    const page = { id: createId(), name: `Page ${pages.length + 1}`, steps: [] };
+    const page = { id: createId(), name: `PAGE ${pages.length + 1}`, steps: [] };
     updateProtocol(draft => {
       draft.pages.push(page);
     });
@@ -77,7 +77,13 @@ export function WorkbenchPageTabs() {
 
   return (
     <div className="flex items-center gap-2">
-      <Tabs value={activePageId} onChange={showPage} size="sm" orientation="horizontal">
+      <Tabs
+        value={activePageId}
+        onChange={showPage}
+        size="sm"
+        orientation="horizontal"
+        textStyle="name"
+      >
         {pages.map(page =>
           page.id === renamingPageId ? (
             <span key={page.id} className="flex items-center px-3 py-2">
@@ -86,7 +92,7 @@ export function WorkbenchPageTabs() {
                 defaultValue={page.name}
                 aria-label="Page name"
                 spellCheck={false}
-                className="inline-edit-field max-w-none type-label text-label-sm text-foreground"
+                className="inline-edit-field max-w-none type-name text-label-sm text-foreground"
                 style={{ width: labelFieldWidth(draftName) }}
                 onChange={event => setDraftName(event.currentTarget.value)}
                 onFocus={event => event.currentTarget.select()}

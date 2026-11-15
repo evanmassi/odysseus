@@ -19,7 +19,7 @@ export function WorkbenchValueSection({
     <section className="min-w-0 max-w-md">
       {title && (
         <header className="px-2 pb-1.5">
-          <span className="min-w-0 truncate type-label text-label-md font-semibold normal-case text-foreground">
+          <span className="min-w-0 truncate type-name text-label-md font-semibold text-foreground">
             {title}
           </span>
         </header>

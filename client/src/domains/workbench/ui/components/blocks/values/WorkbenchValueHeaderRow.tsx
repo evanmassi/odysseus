@@ -9,6 +9,7 @@ import {
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { BLOCK_ICONS } from '../../board/blockIcons';
+import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 
 import { VALUE_HEAD_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 
@@ -44,7 +45,7 @@ function ColumnHeading({
   onRename: (name: string) => void;
 }) {
   const mark = ORIGIN_MARK[column.origin];
-  if (column.origin === 'worked') return <span>{column.label}</span>;
+  if (column.origin === 'worked') return <span>{capsKeepingGreek(column.label)}</span>;
   if (isEditing) {
     return (
       <input
@@ -71,7 +72,7 @@ function ColumnHeading({
       <Tooltip content={mark.note}>
         <span className="inline-flex items-center gap-1.5">
           <Icon aria-hidden className="h-3 w-3 text-muted-foreground" />
-          {column.label}
+          {capsKeepingGreek(column.label)}
         </span>
       </Tooltip>
     );
@@ -84,7 +85,7 @@ function ColumnHeading({
         className="inline-edit type-label"
         onClick={() => onEdit(column)}
       >
-        {column.label}
+        {capsKeepingGreek(column.label)}
       </button>
     </Tooltip>
   );

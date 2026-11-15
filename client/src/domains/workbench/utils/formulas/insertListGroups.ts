@@ -22,7 +22,7 @@ export interface InsertListGroup {
   rows: InsertListRow[];
 }
 
-const WHOLE_EXPERIMENT_TITLE = 'Whole experiment';
+const WHOLE_EXPERIMENT_TITLE = 'WHOLE EXPERIMENT';
 
 function inCardOrder(materials: readonly MaterialItem[], customGroups: readonly string[]) {
   const order = materialGroupsOf(customGroups).map(group => group.key);

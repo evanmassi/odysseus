@@ -138,3 +138,6 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   },
   text: { label: 'Text', hint: 'Free notes', size: [4, 3], createContent: () => ({ html: '' }) },
 };
+
+export const defaultBlockTitle = (type: ProtocolBlockType): string =>
+  BLOCK_TYPES[type].label.toUpperCase();

@@ -25,7 +25,7 @@ const VIEWPORT_MARGIN_PX = 8;
 const MIN_WIDTH_PX = 320;
 const MAX_WIDTH_PX = 420;
 
-const GROUP_TITLE = 'px-3 pb-1 pt-2.5 type-label text-label-2xs font-semibold text-foreground/40';
+const GROUP_TITLE = 'px-3 pb-1 pt-2.5 text-label-2xs font-semibold text-foreground/40';
 const STICKY_HEADING = 'sticky top-0 z-10 bg-popover';
 const TRAY_ROW = `flex cursor-pointer items-baseline gap-3 px-3 py-1 text-body-sm text-foreground ${ROW_HOVER_GLOW.primary}`;
 const ROW_VALUE = 'ml-auto max-w-[55%] truncate font-mono text-data-sm text-muted-foreground';
@@ -191,7 +191,7 @@ export function WorkbenchNameTray() {
             {target.mode === 'step' && (
               <>
                 {presets.length > 0 && (
-                  <div className={`${GROUP_TITLE} ${STICKY_HEADING}`}>Common steps</div>
+                  <div className={`${GROUP_TITLE} ${STICKY_HEADING} type-label`}>Common steps</div>
                 )}
                 {presets.map(preset => (
                   <div
@@ -226,9 +226,7 @@ export function WorkbenchNameTray() {
                     {group.kind && <span className={HEADING_KIND}>{group.kind}</span>}
                   </div>
                 ) : (
-                  <div className={`${GROUP_TITLE} ${STICKY_HEADING} normal-case`}>
-                    {group.title}
-                  </div>
+                  <div className={`${GROUP_TITLE} ${STICKY_HEADING} type-name`}>{group.title}</div>
                 )}
                 {group.rows.map(row => (
                   <div

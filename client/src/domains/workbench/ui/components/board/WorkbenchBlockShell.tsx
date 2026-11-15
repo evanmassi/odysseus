@@ -8,7 +8,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { useFitBlockHeight } from '../../../hooks/useFitBlockHeight';
 import { useUpdateBlock } from '../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
-import { BLOCK_TYPES } from '../../../utils/blocks/blockTypes';
+import { BLOCK_TYPES, defaultBlockTitle } from '../../../utils/blocks/blockTypes';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 import { withGreekLetters } from '../../../utils/materials/greekLetters';
 
@@ -41,7 +41,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const blockType = BLOCK_TYPES[block.type];
   const Icon = BLOCK_ICONS[block.type];
   const Panel = BLOCK_PANELS[block.type] as ComponentType<{ block: ProtocolBlock }> | undefined;
-  const hasOwnTitle = block.title !== blockType.label;
+  const hasOwnTitle = block.title.trim().toLowerCase() !== blockType.label.toLowerCase();
 
   const toggleFold = () =>
     updateBlock(draft => {
@@ -58,7 +58,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const finishRename = (title: string) => {
     setIsRenaming(false);
     updateBlock(draft => {
-      draft.title = withGreekLetters(title.trim()) || blockType.label;
+      draft.title = withGreekLetters(title.trim()) || defaultBlockTitle(block.type);
     });
   };
 
@@ -93,7 +93,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
               ref={focusOnMount}
               defaultValue={block.title}
               aria-label="Block title"
-              className="min-w-0 flex-1 bg-transparent type-label text-label-md font-semibold text-foreground outline-none"
+              className="min-w-0 flex-1 bg-transparent type-name text-label-md font-semibold text-foreground outline-none"
               onBlur={event => finishRename(event.currentTarget.value)}
               onKeyDown={event => {
                 if (event.key === 'Enter') event.currentTarget.blur();
@@ -104,7 +104,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
             <span className="flex min-w-0 flex-1 items-center gap-2">
               <Tooltip content="Double-click to rename">
                 <span
-                  className="min-w-0 truncate type-label text-label-md font-semibold text-foreground"
+                  className="min-w-0 truncate type-name text-label-md font-semibold text-foreground"
                   onDoubleClick={() => setIsRenaming(true)}
                 >
                   {block.title}

@@ -76,7 +76,7 @@ export function WorkbenchTabStrip({ value, ids, onChange, children }: WorkbenchT
           event.stopPropagation();
         }}
       >
-        <Tabs value={value} onChange={onChange} size="sm" orientation="horizontal">
+        <Tabs value={value} onChange={onChange} size="sm" orientation="horizontal" textStyle="name">
           {children}
         </Tabs>
       </div>

@@ -4,6 +4,8 @@ import { X } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
+import { capsKeepingGreek } from '../../board/capsKeepingGreek';
+
 import { MATERIAL_HEAD_CELL, MATERIAL_HEAD_ROW } from './materialTableStyles';
 
 import type { FieldDefinition } from '@odysseus/shared-schemas';
@@ -43,7 +45,7 @@ export const WorkbenchMaterialHeaderRow = memo(function WorkbenchMaterialHeaderR
         <th className={MATERIAL_HEAD_CELL}>Type</th>
         {columns.map(column => (
           <th key={column.key} className={MATERIAL_HEAD_CELL}>
-            {column.label}
+            {capsKeepingGreek(column.label)}
             <Tooltip content="Hide this column">
               <button
                 type="button"

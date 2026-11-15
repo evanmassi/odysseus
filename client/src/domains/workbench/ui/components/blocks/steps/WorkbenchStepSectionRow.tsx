@@ -64,7 +64,7 @@ export const WorkbenchStepSectionRow = memo(function WorkbenchStepSectionRow({
           value={section.text}
           aria-label="Section title"
           spellCheck={false}
-          className="min-w-[60px] py-px type-label text-label-md font-semibold tracking-label-wide text-foreground"
+          className="min-w-[60px] py-px type-name text-label-md font-semibold tracking-label-wide text-foreground"
           onChange={event => setTitle(event.currentTarget.value)}
           onBlur={event => {
             const converted = withGreekLetters(event.currentTarget.value);

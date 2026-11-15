@@ -54,14 +54,14 @@ describe('insertListGroups', () => {
         rows: ['Stock concentration', 'Wells', 'Stock to take'],
       },
       { title: 'PBS', kind: 'Buffer', headingName: 'PBS', rows: [] },
-      { title: 'Whole experiment', kind: '', headingName: undefined, rows: ['Total volume'] },
+      { title: 'WHOLE EXPERIMENT', kind: '', headingName: undefined, rows: ['Total volume'] },
     ]);
   });
 
   it('leaves materials out of a formula, keeping only their numbers', () => {
     expect(outline(true).map(group => [group.title, group.headingName])).toEqual([
       ['Drug X', undefined],
-      ['Whole experiment', undefined],
+      ['WHOLE EXPERIMENT', undefined],
     ]);
   });
 });

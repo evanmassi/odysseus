@@ -1,6 +1,6 @@
 import { createId } from '../ids/createId';
 
-import { BLOCK_TYPES } from './blockTypes';
+import { BLOCK_TYPES, defaultBlockTitle } from './blockTypes';
 
 import type { Protocol, ProtocolBlock, ProtocolBlockType } from '@odysseus/shared-schemas';
 
@@ -20,7 +20,7 @@ export function createBlock<Type extends ProtocolBlockType>(
   return {
     id: createId(),
     type,
-    title: blockType.label,
+    title: defaultBlockTitle(type),
     isCollapsed: false,
     ...placement,
     ...blockType.createContent(),

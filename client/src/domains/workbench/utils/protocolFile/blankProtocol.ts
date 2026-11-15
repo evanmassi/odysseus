@@ -4,7 +4,7 @@ import { createId } from '../ids/createId';
 import type { Protocol } from '@odysseus/shared-schemas';
 
 export function blankProtocol(): Protocol {
-  const [setup, plates, takedown] = ['Setup', 'Plates & calculations', 'Takedown'].map(name => ({
+  const [setup, plates, takedown] = ['SETUP', 'PLATES & CALCULATIONS', 'TAKEDOWN'].map(name => ({
     id: createId(),
     name,
     steps: [],

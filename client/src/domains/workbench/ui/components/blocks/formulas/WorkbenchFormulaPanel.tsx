@@ -238,7 +238,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       <div className="columns-[20rem] gap-x-6 space-y-5">
         {sections.map(section => {
           const { material, items, groups } = section;
-          const title = material ? displayNameOf(material) : section.owner || 'Whole experiment';
+          const title = material ? displayNameOf(material) : section.owner || 'WHOLE EXPERIMENT';
           return (
             <WorkbenchFormulaSection
               key={section.key}
