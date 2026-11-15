@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { PanelEmptyState, Select } from '@shared/ui';
+import { PanelEmptyState } from '@shared/ui';
 
 import { useShowBlock } from '../../../../hooks/useShowBlock';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
@@ -20,6 +20,7 @@ import {
   WHOLE_EXPERIMENT,
   type CalculationSection,
 } from '../../../../utils/formulas/calculationSections';
+import { checkFormulaDraft, readFormulaDraft } from '../../../../utils/formulas/formulaDraft';
 import {
   addNamedValue,
   insertFormula,
@@ -100,7 +101,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const showBlock = useShowBlock();
   const [openId, setOpenId] = useState<string>();
-  const [draft, setDraft] = useState('');
+  const [typed, setTyped] = useState('');
 
   const materials = useMemo(
     () =>
@@ -188,28 +189,36 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     setOpenId(added);
   };
 
-  const choiceOptions = useMemo(() => {
-    const shownMaterials = new Set(
-      sections.flatMap(({ material }) => (material ? [material.id] : []))
-    );
-    const choices = materials.filter(item => !shownMaterials.has(item.id));
-    const nameKeys = [...calculation.names.keys()];
-    const hasValues = (item: MaterialItem) =>
-      nameKeys.some(key => key.startsWith(`${nameKey(item.name)} `));
-    return [
-      ...choices
-        .filter(hasValues)
-        .map(item => ({ value: item.id, label: item.name.trim(), group: 'With values' })),
-      ...choices
-        .filter(item => !hasValues(item))
-        .map(item => ({ value: item.id, label: item.name.trim(), group: 'No values yet' })),
-    ];
-  }, [sections, materials, calculation]);
+  const typedDraft = useMemo(
+    () => readFormulaDraft(typed, calculation, materials),
+    [typed, calculation, materials]
+  );
+  const typedCheck = useMemo(
+    () => typedDraft && checkFormulaDraft(typedDraft, calculation),
+    [typedDraft, calculation]
+  );
   const isTitled = sections.length > 1;
   const isEmpty = sections.every(section => !section.items.length && !section.groups.length);
   const shownSections = sections.filter(
     section => !!section.material || section.items.length > 0 || section.groups.length > 0
   );
+
+  const addTyped = () => {
+    if (!typedDraft) return;
+    const { savedName, expr, material } = typedDraft;
+    let added: string | undefined;
+    edit(draft => {
+      added = insertFormula(
+        draft,
+        block.id,
+        { name: savedName, expr },
+        item => sectionOf(item.name),
+        material?.id ?? WHOLE_EXPERIMENT
+      );
+    });
+    if (!expr || typedCheck?.problem) setOpenId(added);
+    setTyped('');
+  };
 
   const addSuggestion = (material: MaterialItem | undefined, suggestion: CalculationSuggestion) =>
     edit(draft => {
@@ -257,22 +266,45 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     <div className="px-2 pb-3 pt-1">
       <div className="mb-6 px-2 pt-2">
         <WorkbenchAddBar
-          value={draft}
+          value={typed}
           placeholder="e.g. Total volume = Wells used × Well volume"
           itemLabel="Calculation"
-          onValueChange={setDraft}
-          onSubmit={() => {
-            addFormula(undefined, draft);
-            setDraft('');
-          }}
-          onEscape={() => setDraft('')}
+          onValueChange={setTyped}
+          onSubmit={addTyped}
+          onEscape={() => setTyped('')}
         />
-        <WorkbenchFormulaSuggestionList
-          suggestions={calculationSuggestions(calculation, undefined)}
-          suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, undefined)}
-          className="flex pt-1.5"
-          onSuggest={suggestion => addSuggestion(undefined, suggestion)}
-        />
+        {typedDraft && (
+          <p className="pb-1 pt-1.5 text-label-xs text-muted-foreground">
+            <b className="font-semibold text-foreground">{typedDraft.savedName}</b>
+            {typedCheck?.answer && (
+              <>
+                {' = '}
+                <span className="font-mono text-action">{typedCheck.answer}</span>
+              </>
+            )}
+            {typedDraft.material && ` · under ${displayNameOf(typedDraft.material)}`}
+            {typedDraft.savedName !== typedDraft.name && (
+              <span className="text-warning-text"> · {typedDraft.name} is already used</span>
+            )}
+            {typedCheck?.problem && (
+              <span className="text-warning-text"> · {typedCheck.problem}</span>
+            )}
+            {!typedDraft.expr && ' · press Enter to write its formula'}
+          </p>
+        )}
+        {typedDraft?.material && (
+          <WorkbenchFormulaSuggestionList
+            suggestions={calculationSuggestions(calculation, typedDraft.material)}
+            suggestionTitle={suggestion =>
+              namesWithin(suggestion.expr, calculation, typedDraft.material)
+            }
+            className="flex"
+            onSuggest={suggestion => {
+              addSuggestion(typedDraft.material, suggestion);
+              setTyped('');
+            }}
+          />
+        )}
       </div>
       {isEmpty && (
         <PanelEmptyState
@@ -323,21 +355,6 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           );
         })}
       </div>
-      {choiceOptions.length > 0 && (
-        <div className="mt-4 max-w-xs px-2">
-          <Select
-            size="sm"
-            value=""
-            placeholder="+ Calculations for…"
-            aria-label="Add calculations for a material"
-            options={choiceOptions}
-            onChange={choice => {
-              if (choice === null || choice === '') return;
-              edit(draft => setFormulaSection(draft, block.id, String(choice), true));
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
