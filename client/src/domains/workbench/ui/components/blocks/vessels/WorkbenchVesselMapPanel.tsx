@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { colorLineOf, type VesselMapBlock } from '@odysseus/shared-schemas';
 
+import { RestingTooltipProvider } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
@@ -127,88 +128,90 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   };
 
   return (
-    <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-1">
-      <WorkbenchVesselMapControls
-        block={block}
-        tabs={tabLabels}
-        activeId={tab.id}
-        onShowTab={id =>
-          updateBlock(draft => {
-            draft.activeTab = tabs.findIndex(candidate => candidate.id === id);
-          })
-        }
-        onRenameTab={renameTab}
-        onRemovePlate={vesselChanges.removePlate}
-        onToggleMerge={() =>
-          updateBlock(draft => {
-            draft.mergesReplicates = !draft.mergesReplicates;
-          })
-        }
-        onSetCount={vesselChanges.setCount}
-        onDuplicate={vesselChanges.duplicateTab}
-      />
-      {captions.length > 0 && (
-        <p className="text-body-sm text-muted-foreground">
-          Every well: <b className="text-foreground">{captions.join(' · ')}</b>
-        </p>
-      )}
-      {roomWidth > 0 &&
-        (tab.kind === 'plate' ? (
-          <WorkbenchPlateTable
-            block={block}
-            sheet={sheet}
-            colorLine={colorLine}
-            bands={bands}
-            size={wellSizeFor(tab.plate.vessel, roomWidth - bandWidthPad(bands), sheet.cols)}
-            calculation={calculation}
-            selection={selection}
-            merges={merges}
-            onKeyDown={onKeyDown}
-            onOpenWell={openWell}
-          />
-        ) : (
-          <WorkbenchVesselShelfList
-            block={block}
-            sheet={sheet}
-            colorLine={colorLine}
-            scale={shelfScaleFor(block, roomWidth)}
-            calculation={calculation}
-            selection={selection}
-            onKeyDown={onKeyDown}
-            onOpenWell={openWell}
-          />
-        ))}
-      <WorkbenchPlateLegendSection
-        block={block}
-        colorLine={colorLine}
-        counts={vesselCounts(block)}
-        bands={bands}
-      />
-      {editor && selection.keys.size > 0 && (
-        <WorkbenchWellEditorPanel
-          key={editor.generation}
+    <RestingTooltipProvider>
+      <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-1">
+        <WorkbenchVesselMapControls
           block={block}
-          tab={tab}
-          sheet={sheet}
-          keys={selection.keys}
-          startedNames={startedNames}
-          colorLine={colorLine}
-          layers={layers}
-          wellsRef={bodyRef}
-          focusesFirstRow={editor.focusesFirstRow}
-          onClear={clearSelected}
-          onClose={() => setEditor(undefined)}
+          tabs={tabLabels}
+          activeId={tab.id}
+          onShowTab={id =>
+            updateBlock(draft => {
+              draft.activeTab = tabs.findIndex(candidate => candidate.id === id);
+            })
+          }
+          onRenameTab={renameTab}
+          onRemovePlate={vesselChanges.removePlate}
+          onToggleMerge={() =>
+            updateBlock(draft => {
+              draft.mergesReplicates = !draft.mergesReplicates;
+            })
+          }
+          onSetCount={vesselChanges.setCount}
+          onDuplicate={vesselChanges.duplicateTab}
         />
-      )}
-      <ConfirmDialog
-        isOpen={!!confirmation}
-        variant="danger"
-        title={confirmation?.title ?? ''}
-        message={confirmation?.message ?? ''}
-        confirmText={confirmation?.confirmText}
-        onConfirm={() => confirmation?.onConfirm()}
-        onCancel={dismiss}
-      />
-    </div>
+        {captions.length > 0 && (
+          <p className="text-body-sm text-muted-foreground">
+            Every well: <b className="text-foreground">{captions.join(' · ')}</b>
+          </p>
+        )}
+        {roomWidth > 0 &&
+          (tab.kind === 'plate' ? (
+            <WorkbenchPlateTable
+              block={block}
+              sheet={sheet}
+              colorLine={colorLine}
+              bands={bands}
+              size={wellSizeFor(tab.plate.vessel, roomWidth - bandWidthPad(bands), sheet.cols)}
+              calculation={calculation}
+              selection={selection}
+              merges={merges}
+              onKeyDown={onKeyDown}
+              onOpenWell={openWell}
+            />
+          ) : (
+            <WorkbenchVesselShelfList
+              block={block}
+              sheet={sheet}
+              colorLine={colorLine}
+              scale={shelfScaleFor(block, roomWidth)}
+              calculation={calculation}
+              selection={selection}
+              onKeyDown={onKeyDown}
+              onOpenWell={openWell}
+            />
+          ))}
+        <WorkbenchPlateLegendSection
+          block={block}
+          colorLine={colorLine}
+          counts={vesselCounts(block)}
+          bands={bands}
+        />
+        {editor && selection.keys.size > 0 && (
+          <WorkbenchWellEditorPanel
+            key={editor.generation}
+            block={block}
+            tab={tab}
+            sheet={sheet}
+            keys={selection.keys}
+            startedNames={startedNames}
+            colorLine={colorLine}
+            layers={layers}
+            wellsRef={bodyRef}
+            focusesFirstRow={editor.focusesFirstRow}
+            onClear={clearSelected}
+            onClose={() => setEditor(undefined)}
+          />
+        )}
+        <ConfirmDialog
+          isOpen={!!confirmation}
+          variant="danger"
+          title={confirmation?.title ?? ''}
+          message={confirmation?.message ?? ''}
+          confirmText={confirmation?.confirmText}
+          onConfirm={() => confirmation?.onConfirm()}
+          onCancel={dismiss}
+        />
+      </div>
+    </RestingTooltipProvider>
   );
 }

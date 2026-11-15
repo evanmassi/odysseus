@@ -82,37 +82,36 @@ export function WorkbenchVesselMapControls({
               }}
             />
           ) : (
-            <Tooltip content="Double-click or F2 to rename" key={tab.id}>
-              <span
-                role="presentation"
-                onDoubleClick={() => setRenamingId(tab.id)}
-                onKeyDown={event => {
-                  if (event.key === 'F2') setRenamingId(tab.id);
-                }}
-              >
-                <Tab id={tab.id}>
-                  {tab.name}
-                  <span className="ml-1.5 text-label-2xs opacity-65">{tab.kind}</span>
-                  {tab.isPlate && canRemovePlates && tab.id === activeId && (
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Remove ${tab.name}`}
-                      className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
-                      onClick={event => {
-                        event.stopPropagation();
-                        onRemovePlate(tab.id);
-                      }}
-                      onKeyDown={event => {
-                        if (event.key === 'Enter') onRemovePlate(tab.id);
-                      }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </span>
-                  )}
-                </Tab>
-              </span>
-            </Tooltip>
+            <span
+              key={tab.id}
+              role="presentation"
+              onDoubleClick={() => setRenamingId(tab.id)}
+              onKeyDown={event => {
+                if (event.key === 'F2') setRenamingId(tab.id);
+              }}
+            >
+              <Tab id={tab.id}>
+                {tab.name}
+                <span className="ml-1.5 text-label-2xs opacity-65">{tab.kind}</span>
+                {tab.isPlate && canRemovePlates && tab.id === activeId && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Remove ${tab.name}`}
+                    className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
+                    onClick={event => {
+                      event.stopPropagation();
+                      onRemovePlate(tab.id);
+                    }}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter') onRemovePlate(tab.id);
+                    }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </Tab>
+            </span>
           )
         )}
       </WorkbenchTabStrip>

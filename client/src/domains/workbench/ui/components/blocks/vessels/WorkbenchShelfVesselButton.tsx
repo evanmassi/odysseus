@@ -120,7 +120,7 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
   const metrics = SHAPE_METRICS[shape];
   const [left, top, boxWidth, boxHeight] = metrics.textBox;
   return (
-    <Tooltip content={wellTooltipContent(tooltipLines)} delayDuration={300}>
+    <Tooltip content={wellTooltipContent(tooltipLines)}>
       <div
         role="gridcell"
         data-well-key={wellKey}

@@ -50,7 +50,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
   const { key: wellKey, row, col, merged, tooltipLines, shownLine, isFilled, color } = view;
   const isNarrow = density === 'narrow';
   return (
-    <Tooltip content={wellTooltipContent(tooltipLines)} delayDuration={300}>
+    <Tooltip content={wellTooltipContent(tooltipLines)}>
       <div
         role="gridcell"
         data-well-key={wellKey}
