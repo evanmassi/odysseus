@@ -74,6 +74,15 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   formula: {
     label: 'Calculations',
     hint: 'Math over your values, shown with its working',
+    usageTip: {
+      heading: 'Work out numbers from your values',
+      points: [
+        'Type a name and press [Enter], or type Name = formula',
+        'Start with a material, e.g. Raji cells needed, to put it under that material',
+        'Names from <values>, <materials> and the <plate> are offered as you type, [Tab] picks one',
+        '*Click* a calculation to edit it and see its working',
+      ],
+    },
     size: [4, 6],
     fitsContent: true,
     createContent: () => ({ items: [], materialSections: [] }),

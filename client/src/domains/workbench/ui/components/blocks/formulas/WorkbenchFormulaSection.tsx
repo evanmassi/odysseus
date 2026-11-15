@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react';
 
 import { Button, Tooltip } from '@shared/ui';
 
+import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
+
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
 
 interface WorkbenchFormulaSectionProps {
@@ -74,25 +76,12 @@ export function WorkbenchFormulaSection({
           />
         </Tooltip>
       )}
-      {suggestions.length > 0 && (
-        <p
-          className={`${isEmpty ? 'flex' : 'hidden group-focus-within/section:flex'} flex-wrap items-center gap-x-1 px-2 pb-1 text-label-xs text-muted-foreground`}
-        >
-          Often added:
-          {suggestions.map(suggestion => (
-            <Tooltip content={suggestionTitle(suggestion)} key={suggestion.name}>
-              <Button
-                variant="ghost-primary"
-                size="xs"
-                onMouseDown={event => event.preventDefault()}
-                onClick={() => onSuggest(suggestion)}
-              >
-                {suggestion.label}
-              </Button>
-            </Tooltip>
-          ))}
-        </p>
-      )}
+      <WorkbenchFormulaSuggestionList
+        suggestions={suggestions}
+        suggestionTitle={suggestionTitle}
+        className={`px-2 ${isEmpty ? 'flex' : 'hidden group-focus-within/section:flex'}`}
+        onSuggest={onSuggest}
+      />
     </section>
   );
 }

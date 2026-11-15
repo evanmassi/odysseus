@@ -1,11 +1,10 @@
 import { useState } from 'react';
 
-import { Plus } from 'lucide-react';
-
-import { Button, Input } from '@shared/ui';
+import { Button } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
+import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
 import type { ValueLineGuess } from '../../../../utils/values/valueRouting';
 import type { ValueSuggestion } from '../../../../utils/values/valueSuggestions';
@@ -40,11 +39,13 @@ export function WorkbenchValueAddField({
     setDraft('');
   };
 
+  const escape = () => {
+    if (draft) setDraft('');
+    else onClose?.();
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      if (draft) setDraft('');
-      else onClose?.();
-    }
+    if (event.key === 'Escape') escape();
     if (event.key === 'Enter' && hasText) {
       event.preventDefault();
       submit([draft]);
@@ -61,32 +62,15 @@ export function WorkbenchValueAddField({
   return (
     <div>
       {variant === 'bar' ? (
-        <div className="flex max-w-[38.75rem] items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <Input
-              size="md"
-              fullWidth
-              value={draft}
-              placeholder={placeholder}
-              aria-label="Add a value"
-              spellCheck={false}
-              autoComplete="off"
-              inputClassName="placeholder:italic"
-              onValueChange={setDraft}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-            />
-          </div>
-          <Button
-            variant="primary"
-            size="md"
-            leftIcon={<Plus className="h-4 w-4" />}
-            disabled={!hasText}
-            onClick={() => submit([draft])}
-          >
-            Add Value
-          </Button>
-        </div>
+        <WorkbenchAddBar
+          value={draft}
+          placeholder={placeholder}
+          itemLabel="Value"
+          onValueChange={setDraft}
+          onSubmit={() => submit([draft])}
+          onEscape={escape}
+          onPaste={handlePaste}
+        />
       ) : (
         <span className="inline-edit">
           <input

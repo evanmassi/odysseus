@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { Select } from '@shared/ui';
+import { PanelEmptyState, Select } from '@shared/ui';
 
 import { useShowBlock } from '../../../../hooks/useShowBlock';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
@@ -33,16 +33,20 @@ import {
   namesInFull,
   namesWithin,
   uniqueName,
+  type CalculationSuggestion,
 } from '../../../../utils/formulas/formulaScopes';
 import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';
+import { BLOCK_ICONS } from '../../board/blockIcons';
 import { META_LABEL } from '../../board/metaLabelClass';
+import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
 import { WorkbenchFormulaEditor } from './WorkbenchFormulaEditor';
 import { WorkbenchFormulaRow } from './WorkbenchFormulaRow';
 import { WorkbenchFormulaSection } from './WorkbenchFormulaSection';
+import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
 import {
   WorkbenchFormulaWorkedOutGroup,
   type WorkedOutLine,
@@ -96,6 +100,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const showBlock = useShowBlock();
   const [openId, setOpenId] = useState<string>();
+  const [draft, setDraft] = useState('');
 
   const materials = useMemo(
     () =>
@@ -201,6 +206,21 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     ];
   }, [sections, materials, calculation]);
   const isTitled = sections.length > 1;
+  const isEmpty = sections.every(section => !section.items.length && !section.groups.length);
+  const shownSections = sections.filter(
+    section => !!section.material || section.items.length > 0 || section.groups.length > 0
+  );
+
+  const addSuggestion = (material: MaterialItem | undefined, suggestion: CalculationSuggestion) =>
+    edit(draft => {
+      insertFormula(
+        draft,
+        block.id,
+        { name: suggestion.name, expr: suggestion.expr },
+        item => sectionOf(item.name),
+        material?.id ?? WHOLE_EXPERIMENT
+      );
+    });
 
   const ownItems = (section: CalculationSection) =>
     section.items.map(formula =>
@@ -235,8 +255,34 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
 
   return (
     <div className="px-2 pb-3 pt-1">
+      <div className="mb-6 px-2 pt-2">
+        <WorkbenchAddBar
+          value={draft}
+          placeholder="e.g. Total volume = Wells used × Well volume"
+          itemLabel="Calculation"
+          onValueChange={setDraft}
+          onSubmit={() => {
+            addFormula(undefined, draft);
+            setDraft('');
+          }}
+          onEscape={() => setDraft('')}
+        />
+        <WorkbenchFormulaSuggestionList
+          suggestions={calculationSuggestions(calculation, undefined)}
+          suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, undefined)}
+          className="flex pt-1.5"
+          onSuggest={suggestion => addSuggestion(undefined, suggestion)}
+        />
+      </div>
+      {isEmpty && (
+        <PanelEmptyState
+          icon={BLOCK_ICONS.formula}
+          message="Add a calculation above"
+          description="Name it, or type Name = formula"
+        />
+      )}
       <div className="columns-[20rem] gap-x-6 space-y-5">
-        {sections.map(section => {
+        {shownSections.map(section => {
           const { material, items, groups } = section;
           const title = material ? displayNameOf(material) : section.owner || 'WHOLE EXPERIMENT';
           return (
@@ -245,21 +291,11 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
               title={isTitled ? title : undefined}
               kind={material?.type ?? ''}
               addPlaceholder={material ? `Add to ${title}` : 'Add: Total volume'}
-              suggestions={calculationSuggestions(calculation, material)}
+              suggestions={material ? calculationSuggestions(calculation, material) : []}
               suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, material)}
               isEmpty={!items.length && !groups.length}
-              onAdd={section.owner && !material ? undefined : text => addFormula(material, text)}
-              onSuggest={suggestion =>
-                edit(draft => {
-                  insertFormula(
-                    draft,
-                    block.id,
-                    { name: suggestion.name, expr: suggestion.expr },
-                    item => sectionOf(item.name),
-                    material?.id ?? WHOLE_EXPERIMENT
-                  );
-                })
-              }
+              onAdd={material ? text => addFormula(material, text) : undefined}
+              onSuggest={suggestion => addSuggestion(material, suggestion)}
               onRemoveSection={
                 material && !items.length && !groups.length
                   ? () => edit(draft => setFormulaSection(draft, block.id, material.id, false))

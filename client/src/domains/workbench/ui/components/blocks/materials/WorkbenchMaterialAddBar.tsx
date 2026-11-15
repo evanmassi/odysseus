@@ -1,6 +1,4 @@
-import { Plus } from 'lucide-react';
-
-import { Button, Input } from '@shared/ui';
+import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
 import { WorkbenchMaterialGuessPreview } from './WorkbenchMaterialGuessPreview';
 import { WorkbenchMaterialPastePanel } from './WorkbenchMaterialPastePanel';
@@ -25,46 +23,20 @@ export function WorkbenchMaterialAddBar({
 }: WorkbenchMaterialAddBarProps) {
   const pendingDuplicate = items.find(item => item.id === adding.pendingDuplicate?.duplicateId);
 
-  const hasText = !!adding.text.trim();
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') adding.clear();
-    if (event.key !== 'Enter' || !hasText) return;
-    event.preventDefault();
-    adding.submit();
-  };
-
   return (
     <div className="mb-6">
-      <div className="flex max-w-[38.75rem] items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <Input
-            ref={adding.inputRef}
-            size="md"
-            fullWidth
-            value={adding.text}
-            placeholder="e.g. RPMI 1640, or paste a list"
-            aria-label="Add a material"
-            spellCheck={false}
-            autoComplete="off"
-            inputClassName="placeholder:italic"
-            onValueChange={adding.changeText}
-            onKeyDown={handleKeyDown}
-            onPaste={event => {
-              if (adding.pasteText(event.clipboardData.getData('text'))) event.preventDefault();
-            }}
-          />
-        </div>
-        <Button
-          variant="primary"
-          size="md"
-          leftIcon={<Plus className="h-4 w-4" />}
-          disabled={!hasText}
-          onClick={adding.submit}
-        >
-          Add Material
-        </Button>
-      </div>
+      <WorkbenchAddBar
+        value={adding.text}
+        placeholder="e.g. RPMI 1640, or paste a list"
+        itemLabel="Material"
+        inputRef={adding.inputRef}
+        onValueChange={adding.changeText}
+        onSubmit={adding.submit}
+        onEscape={adding.clear}
+        onPaste={event => {
+          if (adding.pasteText(event.clipboardData.getData('text'))) event.preventDefault();
+        }}
+      />
       <WorkbenchMaterialGuessPreview
         typed={adding.text}
         preview={adding.preview}
