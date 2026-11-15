@@ -1,5 +1,7 @@
 import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
+import { upperLead } from '../values/valueNames';
+
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 interface MaterialGroup {
@@ -462,7 +464,7 @@ export function fieldLabel(item: MaterialItem, definition: FieldDefinition): str
     item.fieldLabels[definition.key] ??
     definition.nameByUnit?.[fieldUnit(item, definition)] ??
     definition.label;
-  return label.charAt(0).toUpperCase() + label.slice(1);
+  return upperLead(label);
 }
 
 export function fieldName(item: MaterialItem, definition: FieldDefinition): string {

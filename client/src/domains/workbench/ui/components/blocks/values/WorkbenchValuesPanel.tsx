@@ -82,7 +82,7 @@ const UNDO_MS = 8000;
 const GENERAL_SECTION = '';
 const MIX_CHOICE = 'mix';
 const TITLE_INPUT =
-  'type-label text-label-md font-semibold text-foreground placeholder:text-muted-foreground';
+  'type-label text-label-md font-semibold normal-case text-foreground placeholder:text-muted-foreground';
 
 function plateRemovalMessage(row: PlateValueRow): string {
   const { source } = row;

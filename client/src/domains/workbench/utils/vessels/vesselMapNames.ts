@@ -20,6 +20,7 @@ import {
 import { normalizeMaterialKey } from '../materials/materialKey';
 import { nameWithoutNotes, shortNameOf } from '../materials/materialLookup';
 import { readTypedAmount } from '../units/textAmounts';
+import { upperLead } from '../values/valueNames';
 
 import { foldOf, stepSeriesUnit } from './plateSeries';
 import {
@@ -60,8 +61,6 @@ export interface PlateAmount {
   source: PlateAmountSource;
 }
 
-const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-
 function labelFromName(name: string, subject: string, variant: string): string {
   let rest = name.trim();
   if (rest.toLowerCase().startsWith(`${subject.toLowerCase()} `)) {
@@ -70,7 +69,7 @@ function labelFromName(name: string, subject: string, variant: string): string {
   if (variant && rest.toLowerCase().endsWith(` ${variant.toLowerCase()}`)) {
     rest = rest.slice(0, -(variant.length + 1));
   }
-  return capitalize(rest);
+  return upperLead(rest);
 }
 
 const CONCENTRATION_DIMENSIONS = new Set(
@@ -108,7 +107,7 @@ function valueCounts(block: VesselMapBlock): VesselCount[] {
     return [
       {
         name: `${text} ${plural}`,
-        label: capitalize(plural),
+        label: upperLead(plural),
         subject: text,
         count: typedCount(block, value.id) ?? keys.length,
         tally: keys.length,
@@ -123,7 +122,7 @@ function countVessels(block: VesselMapBlock): VesselCount[] {
   const usedKeys = Object.keys(block.cells).filter(key =>
     Object.values(block.cells[key]).some(isFilledCell)
   );
-  const usedName = `${capitalize(wordsForTypes(allVesselTypes(block)).plural)} used`;
+  const usedName = `${upperLead(wordsForTypes(allVesselTypes(block)).plural)} used`;
   const used: VesselCount = {
     name: usedName,
     label: usedName,
@@ -232,7 +231,7 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
       const base = `a:${line.id}:${groupKey}`;
       const fromWells = (inWells: PlainCell[]) => ({
         subject,
-        label: capitalize(noun),
+        label: upperLead(noun),
         value: inWells[0].amount,
         unit: inWells[0].unit,
         source: { kind: 'wells' as const, lineId: line.id, keys: inWells.map(cell => cell.key) },

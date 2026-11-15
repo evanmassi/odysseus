@@ -139,7 +139,7 @@ export function WorkbenchFlowStepBox({
                 {hasHeading && (
                   <span className="flex h-[18px] items-center gap-1.5 whitespace-nowrap">
                     {index === 0 && duringOf && (
-                      <span className="type-label text-label-2xs font-semibold text-muted-foreground">
+                      <span className="type-label text-label-2xs font-semibold normal-case text-muted-foreground">
                         During {duringOf}
                       </span>
                     )}

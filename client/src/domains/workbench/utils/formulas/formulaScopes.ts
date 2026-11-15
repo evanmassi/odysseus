@@ -1,3 +1,5 @@
+import { upperLead } from '../values/valueNames';
+
 import { nameKey, type BoardCalculation } from './boardCalculation';
 import { FORMULA_FUNCTIONS, type FormulaFunction } from './formulaParser';
 import { matchesWordStarts } from './nameMatching';
@@ -49,7 +51,7 @@ export function nameWithinOwner(name: string, owner: string): string {
   const trimmed = name.trim();
   if (!prefix || !trimmed.toLowerCase().startsWith(prefix)) return trimmed;
   const rest = trimmed.slice(prefix.length);
-  return rest.charAt(0).toUpperCase() + rest.slice(1);
+  return upperLead(rest);
 }
 
 function scopedNames(calculation: BoardCalculation, material: MaterialItem | undefined) {

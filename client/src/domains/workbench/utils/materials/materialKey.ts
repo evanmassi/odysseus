@@ -8,6 +8,9 @@ const LATIN_FOR_GREEK: readonly (readonly [RegExp, string])[] = [
   [/κ/g, 'k'],
   [/λ/g, 'l'],
   [/ε/g, 'e'],
+  [/ζ/g, 'z'],
+  [/θ/g, 'th'],
+  [/ω/g, 'w'],
   [/[µμ]/g, 'u'],
 ];
 const NON_KEY_CHARACTERS = /[^a-z0-9]/g;

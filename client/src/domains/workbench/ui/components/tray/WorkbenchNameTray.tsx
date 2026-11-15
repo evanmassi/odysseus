@@ -226,7 +226,9 @@ export function WorkbenchNameTray() {
                     {group.kind && <span className={HEADING_KIND}>{group.kind}</span>}
                   </div>
                 ) : (
-                  <div className={`${GROUP_TITLE} ${STICKY_HEADING}`}>{group.title}</div>
+                  <div className={`${GROUP_TITLE} ${STICKY_HEADING} normal-case`}>
+                    {group.title}
+                  </div>
                 )}
                 {group.rows.map(row => (
                   <div

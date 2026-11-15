@@ -55,6 +55,13 @@ describe('formula scopes', () => {
     expect(nameWithin('Wells used', raji)).toBe('Wells used');
   });
 
+  it('leaves a leading Greek letter or a lowercase-first term like pH as it was written', () => {
+    expect(nameWithin('Raji γδ fraction', raji)).toBe('γδ fraction');
+    expect(nameWithin('Raji β-ME per well', raji)).toBe('β-ME per well');
+    expect(nameWithin('Raji pH', raji)).toBe('pH');
+    expect(nameWithin('Raji mRNA yield', raji)).toBe('mRNA yield');
+  });
+
   it('round-trips an expression between short and full names', () => {
     const short = namesWithin('Raji per well × Wells used', board, raji);
     expect(short).toBe('Per well × Wells used');
