@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { PanelEmptyState } from '@shared/ui';
 
 import { useShowBlock } from '../../../../hooks/useShowBlock';
@@ -36,7 +38,6 @@ import {
   uniqueName,
   type CalculationSuggestion,
 } from '../../../../utils/formulas/formulaScopes';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';

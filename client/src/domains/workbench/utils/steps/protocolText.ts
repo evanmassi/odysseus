@@ -1,4 +1,4 @@
-import { withGreekLetters } from '../materials/greekLetters';
+import { withGreekLetters } from '@odysseus/shared-schemas';
 
 import type { ProtocolStep } from '@odysseus/shared-schemas';
 

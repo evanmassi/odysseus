@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { Button, Select } from '@shared/ui';
 
 import {
@@ -10,7 +12,6 @@ import {
   nameWithin,
   type FormulaCompletion,
 } from '../../../../utils/formulas/formulaScopes';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { FORMULA_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 import { useInsertTarget } from '../../tray/useInsertTarget';

@@ -59,7 +59,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
         onPointerDown={event => actions.onPointerDown(wellKey, event)}
         onPointerEnter={() => actions.onPointerEnter(wellKey)}
         onDoubleClick={() => actions.onDoubleClick(wellKey)}
-        className={`relative flex cursor-pointer items-center justify-center overflow-hidden border py-0.5 text-foreground ${merged ? '' : 'rounded-full'} ${
+        className={`relative flex cursor-pointer items-center justify-center overflow-hidden border py-0.5 text-foreground ${
           isFilled ? 'border-foreground/45' : 'border-foreground/15'
         } ${isSelected ? 'shadow-[0_0_0_2px_hsl(var(--primary))]' : ''} ${DENSITY_CLASSES[density]}`}
         style={{
@@ -75,7 +75,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
             style={{ gridTemplate: `repeat(${merged.height}, 1fr) / repeat(${merged.width}, 1fr)` }}
           >
             {merged.keys.map(key => (
-              <i key={key} className="rounded-full border border-dashed border-foreground/20" />
+              <i key={key} className="border border-dashed border-foreground/20" />
             ))}
           </span>
         )}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
 
 import { PanelEmptyState } from '@shared/ui';
@@ -15,7 +16,6 @@ import { diluentUses } from '../../../../utils/dilutions/dilutionDiluents';
 import { resolveDye } from '../../../../utils/dyes/dyePicks';
 import { keepDyeInFile } from '../../../../utils/dyes/fileDyes';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import {
   ANTIBODY_GROUP,
   materialFields,

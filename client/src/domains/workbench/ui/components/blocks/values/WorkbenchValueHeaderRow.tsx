@@ -1,5 +1,7 @@
 import { memo } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { Tooltip } from '@shared/ui';
 import {
   TABLE_HEADER_BAND,
@@ -7,7 +9,6 @@ import {
 } from '@shared/ui/primitives/table/tableHeaderStyles';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 

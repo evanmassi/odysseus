@@ -2,12 +2,15 @@ import { normalizeVesselMap, type VesselMapBlock } from '@odysseus/shared-schema
 
 import {
   heldNames,
+  lineNamed,
+  moveWellsToLine,
   nameElsewhere,
   removeLineFromWells,
   renameLine,
   setWellsAmount,
   setWellsText,
   setWellsUnit,
+  startingLineId,
   wellRows,
 } from './wellEdits';
 
@@ -80,7 +83,7 @@ describe('editing wells', () => {
     const lineId = block.lines[0].id;
     edit(block, draft => setWellsText(draft, ['p:A2'], lineId, 'Brufen'));
     edit(block, draft => setWellsAmount(draft, ['p:A1', 'p:A2'], lineId, '5'));
-    expect(wellRows(block, ['p:A1', 'p:A2'], block.lines[0])).toMatchObject([
+    expect(wellRows(block, ['p:A1', 'p:A2'])).toMatchObject([
       { text: '', isTextMixed: true, amount: '5', isAmountMixed: false },
     ]);
   });
@@ -131,5 +134,109 @@ describe('renameLine', () => {
     expect(block.lines[0].name).toBe('Stimulus');
     renameLine(block, 'l', '');
     expect(block.lines[0].name).toBe('');
+  });
+});
+
+describe('one line per name', () => {
+  const donorLine = (index: number) => ({
+    id: `d${index}`,
+    name: index === 1 ? 'Donors' : ' donors ',
+    role: 'auto' as const,
+    values: [{ id: `v${index}`, text: `Donor ${index}` }],
+  });
+
+  it('merges same-named lines that share no well into one line with every value', () => {
+    const block = edit(
+      vesselMap({
+        lines: [1, 2, 3, 4, 5].map(donorLine),
+        cells: Object.fromEntries(
+          [1, 2, 3, 4, 5].map(index => [`p:A${index}`, { [`d${index}`]: { valueId: `v${index}` } }])
+        ),
+      }),
+      () => undefined
+    );
+    expect(block.lines).toHaveLength(1);
+    expect(block.lines[0].name).toBe('Donors');
+    expect(block.lines[0].values.map(value => value.text)).toEqual([
+      'Donor 1',
+      'Donor 2',
+      'Donor 3',
+      'Donor 4',
+      'Donor 5',
+    ]);
+    expect(block.cells['p:A5']).toEqual({ d1: { valueId: 'v5' } });
+  });
+
+  it('keeps same-named lines apart when a well holds both, and never merges unnamed lines', () => {
+    const block = edit(
+      vesselMap({
+        lines: [
+          donorLine(1),
+          donorLine(2),
+          { id: 'u1', name: '', role: 'auto', values: [{ id: 'x', text: 'Heat' }] },
+          { id: 'u2', name: '', role: 'auto', values: [{ id: 'y', text: 'Cold' }] },
+        ],
+        cells: {
+          'p:A1': { d1: { valueId: 'v1' }, d2: { valueId: 'v2' } },
+          'p:A2': { u1: { valueId: 'x' } },
+          'p:A3': { u2: { valueId: 'y' } },
+        },
+      }),
+      () => undefined
+    );
+    expect(block.lines.map(line => line.id)).toEqual(['d1', 'd2', 'u1', 'u2']);
+  });
+});
+
+describe('putting wells on another line', () => {
+  const stimulated = () =>
+    vesselMap({
+      lines: [
+        { id: 's', name: 'Stimulations', role: 'auto', values: [{ id: 'lps', text: 'LPS' }] },
+        {
+          id: 'n',
+          name: '',
+          role: 'auto',
+          values: [{ id: 'none', text: 'Unstimulated', color: '#7d8494' }],
+        },
+      ],
+      cells: {
+        'p:B1': { s: { valueId: 'lps', amount: '10', unit: 'ng/mL' } },
+        'p:N1': { n: { valueId: 'none', amount: '2', unit: 'µL' } },
+        'p:O1': { n: { valueId: 'none', amount: '2', unit: 'µL' } },
+      },
+      amountNames: { 'a:n:unstimulated-perwell': 'Medium per well' },
+    });
+
+  it('moves the label, amount and color, and carries a typed amount name', () => {
+    const block = edit(stimulated(), draft => moveWellsToLine(draft, ['p:N1', 'p:O1'], 'n', 's'));
+    expect(block.lines.map(line => line.name)).toEqual(['Stimulations']);
+    const unstimulated = block.lines[0].values.find(value => value.text === 'Unstimulated');
+    expect(unstimulated?.color).toBe('#7d8494');
+    expect(block.cells['p:N1']).toEqual({
+      s: { valueId: unstimulated?.id, amount: '2', unit: 'µL' },
+    });
+    expect(block.amountNames).toEqual({ 'a:s:unstimulated-perwell': 'Medium per well' });
+  });
+
+  it('leaves the amount name behind while other wells still hold the label there', () => {
+    const block = stimulated();
+    block.cells['p:O1']['s'] = { valueId: 'lps' };
+    edit(block, draft => moveWellsToLine(draft, ['p:N1'], 'n', 's'));
+    expect(block.lines).toHaveLength(2);
+    expect(block.amountNames).toEqual({ 'a:n:unstimulated-perwell': 'Medium per well' });
+  });
+
+  it('finds a line by name, ignoring lines the selected wells are already on', () => {
+    expect(lineNamed(stimulated(), ['p:N1'], 'stimulations ')?.id).toBe('s');
+    expect(lineNamed(stimulated(), ['p:B1'], 'Stimulations')).toBeUndefined();
+    expect(lineNamed(stimulated(), ['p:N1'], '')).toBeUndefined();
+  });
+
+  it('starts empty wells on the color line, or the first line without one', () => {
+    const block = stimulated();
+    expect(startingLineId(block, ['p:A1'], block.lines[1])).toBe('n');
+    expect(startingLineId(block, ['p:A1'], undefined)).toBe('s');
+    expect(startingLineId(block, ['p:N1'], block.lines[0])).toBe('n');
   });
 });

@@ -1,4 +1,4 @@
-import { normalizeMaterialKey } from '../materials/materialKey';
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { BUILT_IN_DYE_GROUPS, type DyeKind } from './dyeList';
 

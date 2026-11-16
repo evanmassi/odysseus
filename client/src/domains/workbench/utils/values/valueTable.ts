@@ -5,6 +5,7 @@ import {
   type Protocol,
   type ValuesBlock,
   type VesselMapBlock,
+  normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
@@ -15,7 +16,6 @@ import {
 } from '../formulas/boardCalculation';
 import { FOLD_UNIT } from '../formulas/quantities';
 import { MATERIAL_GROUPS, materialGroup } from '../materials/materialCatalog';
-import { normalizeMaterialKey } from '../materials/materialKey';
 import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
 import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
 

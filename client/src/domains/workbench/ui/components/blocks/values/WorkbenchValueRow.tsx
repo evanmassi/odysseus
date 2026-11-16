@@ -1,5 +1,7 @@
 import { memo } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { Button, Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
@@ -7,7 +9,6 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 

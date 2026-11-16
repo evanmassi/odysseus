@@ -19,6 +19,9 @@ import {
 } from '../../../../utils/vessels/seriesEdits';
 import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
+  lineNamed,
+  linesOffWells,
+  moveWellsToLine,
   recolorValue,
   nameElsewhere,
   removeLineFromWells,
@@ -27,6 +30,7 @@ import {
   setWellsAmount,
   setWellsText,
   setWellsUnit,
+  startingLineId,
   wellRows,
   type HeldName,
   type WellRow,
@@ -41,9 +45,15 @@ import type { lineLayers } from '../../../../utils/vessels/plateLayers';
 import type { VesselSheet, VesselTab } from '../../../../utils/vessels/vesselTabs';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
-interface OpenSeries {
-  form: SeriesForm;
-  rowIndex: number;
+interface DraftLine {
+  lineId: string;
+  name: string;
+}
+
+interface EditorRow {
+  row: WellRow;
+  lineId: string;
+  draft: DraftLine | undefined;
 }
 
 interface WorkbenchWellEditorPanelProps {
@@ -118,13 +128,32 @@ export function WorkbenchWellEditorPanel({
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateVesselMap = useUpdateVesselMap(block);
   const editorRef = useRef<HTMLDivElement>(null);
-  const [blankRows, setBlankRows] = useState(0);
+  const [drafts, setDrafts] = useState<DraftLine[]>([]);
+  const [freshLineId] = useState(createId);
   const [position, setPosition] = useState({ left: -9999, top: 0 });
-  const [openSeries, setOpenSeries] = useState<OpenSeries>();
+  const [openSeries, setOpenSeries] = useState<SeriesForm>();
   const keyList = [...keys];
-  const rows = [
-    ...wellRows(block, keyList, colorLine),
-    ...Array.from({ length: blankRows }, () => BLANK_ROW),
+  const onWells = wellRows(block, keyList).flatMap(row =>
+    row.line ? [{ row, lineId: row.line.id, draft: undefined }] : []
+  );
+  const shownDrafts: DraftLine[] =
+    onWells.length || drafts.length
+      ? drafts
+      : [{ lineId: startingLineId(block, keyList, colorLine) ?? freshLineId, name: '' }];
+  const rows: EditorRow[] = [
+    ...onWells,
+    ...shownDrafts.map(draft => ({
+      row: { ...BLANK_ROW, line: block.lines.find(line => line.id === draft.lineId) },
+      lineId: draft.lineId,
+      draft,
+    })),
+  ];
+  const offeredNames = (lineId: string) => [
+    ...new Set(
+      linesOffWells(block, keyList)
+        .filter(line => line.id !== lineId && !shownDrafts.some(draft => draft.lineId === line.id))
+        .map(line => line.name)
+    ),
   ];
   const { noun, plural } = wordsForTypes(
     tab.kind === 'plate' ? [tab.plate.vessel] : block.sets.map(set => set.vessel)
@@ -132,18 +161,45 @@ export function WorkbenchWellEditorPanel({
   const where = selectionName(sheet, keys);
   const count = `${keys.size} ${keys.size === 1 ? noun : plural}`;
 
-  useEffect(() => setOpenSeries(undefined), [keys]);
+  useEffect(() => {
+    setOpenSeries(undefined);
+    setDrafts([]);
+  }, [keys]);
+
+  const writeRow = (target: EditorRow, change: (draft: VesselMapBlock) => void) => {
+    const pending = target.draft;
+    updateVesselMap(draft => {
+      change(draft);
+      if (pending?.name) renameLine(draft, target.lineId, pending.name);
+    });
+    if (pending) setDrafts(shownDrafts.filter(draft => draft !== pending));
+  };
+
+  const nameRow = (target: EditorRow, name: string) => {
+    const existing = lineNamed(block, keyList, name);
+    if (target.draft) {
+      const next = existing ? { lineId: existing.id, name: '' } : { lineId: createId(), name };
+      setDrafts(shownDrafts.map(draft => (draft === target.draft ? next : draft)));
+      return;
+    }
+    updateVesselMap(draft =>
+      existing
+        ? moveWellsToLine(draft, keyList, target.lineId, existing.id)
+        : renameLine(draft, target.lineId, name)
+    );
+  };
 
   const changeSeries = (change: Partial<SeriesForm>) => {
     if (!openSeries) return;
-    const next = { ...openSeries.form, ...change };
-    const isNewLine = !block.lines.some(line => line.id === next.lineId);
+    const next = { ...openSeries, ...change };
     let { seriesId } = next;
-    updateVesselMap(draft => {
+    const write = (draft: VesselMapBlock) => {
       seriesId = writeSeries(draft, sheet, keys, next);
-    });
-    setOpenSeries({ ...openSeries, form: { ...next, seriesId } });
-    if (isNewLine && blankRows) setBlankRows(blankRows - 1);
+    };
+    const target = rows.find(candidate => candidate.lineId === next.lineId);
+    if (target) writeRow(target, write);
+    else updateVesselMap(write);
+    setOpenSeries({ ...next, seriesId });
   };
 
   const removeOpenSeries = (seriesId: string) => {
@@ -173,7 +229,7 @@ export function WorkbenchWellEditorPanel({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [keys, wellsRef, rows.length, openSeries?.rowIndex]);
+  }, [keys, wellsRef, rows.length, openSeries?.lineId]);
 
   return createPortal(
     <div
@@ -194,25 +250,24 @@ export function WorkbenchWellEditorPanel({
           Done
         </Button>
       </div>
-      {rows.map((row, index) => {
+      {rows.map((target, index) => {
+        const { row, lineId, draft } = target;
         const series = row.seriesId === undefined ? undefined : block.series[row.seriesId];
-        const lineId = row.line?.id;
-        const edit = (change: (draft: VesselMapBlock) => void) => {
-          updateVesselMap(change);
-          if (!lineId && blankRows) setBlankRows(blankRows - 1);
-        };
-        const form = openSeries?.rowIndex === index ? openSeries.form : undefined;
-        const started = lineId ? startedNames.get(lineId) : undefined;
+        const edit = (change: (draft: VesselMapBlock) => void) => writeRow(target, change);
+        const form = openSeries?.lineId === lineId ? openSeries : undefined;
+        const started = draft ? undefined : startedNames.get(lineId);
         const elsewhere =
-          lineId && started && row.text && !isSameBareName(started.text, row.text)
+          started && row.text && !isSameBareName(started.text, row.text)
             ? nameElsewhere(block, lineId, started.valueId, keyList)
             : undefined;
         const sharedName =
           elsewhere && !isSameBareName(elsewhere.text, row.text) ? elsewhere : undefined;
         return (
-          <div key={`row-${index}`} className="flex flex-col gap-2">
+          <div key={`row-${lineId}`} className="flex flex-col gap-2">
             <WorkbenchWellLineRow
               row={row}
+              lineName={draft?.name ? draft.name : (row.line?.name ?? '')}
+              lineOffers={offeredNames(lineId)}
               textPlaceholder={
                 index === 0
                   ? `What’s in ${keys.size === 1 ? `this ${noun}` : `these ${plural}`}`
@@ -221,41 +276,38 @@ export function WorkbenchWellEditorPanel({
               seriesText={series && seriesSummary(series, calculation)}
               autoRole={layers.find(layer => layer.line.id === lineId)?.role}
               showsRole={sheet.isPlate}
-              canRemove={!!lineId && rows.length > 1}
+              canRemove={!draft && rows.length > 1}
               inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
               sharedName={sharedName}
-              onTextChange={text => edit(draft => setWellsText(draft, keyList, lineId, text))}
-              onRenameLine={name =>
-                lineId && updateVesselMap(draft => renameLine(draft, lineId, name))
-              }
+              onTextChange={text => edit(change => setWellsText(change, keyList, lineId, text))}
+              onRenameLine={name => nameRow(target, name)}
               onRenameEverywhere={() =>
-                started && updateVesselMap(draft => renameValue(draft, started.valueId, row.text))
+                started && updateVesselMap(change => renameValue(change, started.valueId, row.text))
               }
               onAmountChange={amount =>
-                edit(draft => setWellsAmount(draft, keyList, lineId, amount))
+                edit(change => setWellsAmount(change, keyList, lineId, amount))
               }
-              onUnitChange={unit => edit(draft => setWellsUnit(draft, keyList, lineId, unit))}
+              onUnitChange={unit => edit(change => setWellsUnit(change, keyList, lineId, unit))}
               onRoleChange={role =>
-                updateVesselMap(draft => {
-                  const line = draft.lines.find(candidate => candidate.id === lineId);
+                updateVesselMap(change => {
+                  const line = change.lines.find(candidate => candidate.id === lineId);
                   if (line) line.role = role;
                 })
               }
               onRemove={() =>
-                lineId && updateVesselMap(draft => removeLineFromWells(draft, keyList, lineId))
+                updateVesselMap(change => removeLineFromWells(change, keyList, lineId))
               }
               onPickColor={color => {
                 const valueId = row.value?.id;
-                if (valueId) updateVesselMap(draft => recolorValue(draft, valueId, color));
+                if (valueId) updateVesselMap(change => recolorValue(change, valueId, color));
               }}
               onOpenSeries={() =>
-                setOpenSeries({
-                  rowIndex: index,
-                  form: seriesFormFor(lineId ?? createId(), row.seriesId, series, {
+                setOpenSeries(
+                  seriesFormFor(lineId, row.seriesId, series, {
                     amount: row.amount,
-                    unit: row.unit || (lineId ? lineUnitOf(block, lineId) : ''),
-                  }),
-                })
+                    unit: row.unit || lineUnitOf(block, lineId),
+                  })
+                )
               }
             />
             {form && (
@@ -280,7 +332,7 @@ export function WorkbenchWellEditorPanel({
       <button
         type="button"
         className="self-start text-body-sm text-primary hover:underline"
-        onClick={() => setBlankRows(blankRows + 1)}
+        onClick={() => setDrafts([...shownDrafts, { lineId: createId(), name: '' }])}
       >
         + Line
       </button>

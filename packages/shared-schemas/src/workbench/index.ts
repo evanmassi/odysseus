@@ -26,8 +26,11 @@ export {
   colorLineOf,
   isFilledCell,
   lineValueOf,
+  moveValueKeys,
   normalizeVesselMap,
   plateValueKey,
 } from './vesselMapValues';
 
+export { withGreekLetters } from './greekLetters';
+export { normalizeMaterialKey } from './materialKey';
 export { protocolFileInputSchema } from './legacyProtocolSchemas';

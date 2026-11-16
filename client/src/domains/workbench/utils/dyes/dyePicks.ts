@@ -1,4 +1,4 @@
-import { normalizeMaterialKey } from '../materials/materialKey';
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { laserLabel, yourDye, type Dye, type DyeCatalog } from './dyeCatalog';
 

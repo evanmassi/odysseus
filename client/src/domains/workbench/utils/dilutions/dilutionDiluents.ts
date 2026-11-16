@@ -1,4 +1,5 @@
-import { normalizeMaterialKey } from '../materials/materialKey';
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { materialNamed } from '../materials/materialLookup';
 
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';

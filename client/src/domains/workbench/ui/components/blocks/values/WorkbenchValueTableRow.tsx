@@ -1,12 +1,12 @@
 import { memo } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
 import { Plus } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 
 import { stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 import { WorkbenchValueTableCell, type ValueCellView } from './WorkbenchValueTableCell';

@@ -55,14 +55,7 @@ function BandOverlay({ bands, geometry }: { bands: PlateBand[]; geometry: PlateG
         </g>
       ))}
       {shapes.rings.map(({ color, ...box }, index) => (
-        <rect
-          key={`ring-${index}`}
-          {...box}
-          rx={box.height / 2}
-          fill="none"
-          stroke={color}
-          strokeWidth={1.8}
-        />
+        <rect key={`ring-${index}`} {...box} fill="none" stroke={color} strokeWidth={1.8} />
       ))}
       {shapes.tags.map(({ x, y, width, text, color }, index) => (
         <g key={`tag-${index}`}>

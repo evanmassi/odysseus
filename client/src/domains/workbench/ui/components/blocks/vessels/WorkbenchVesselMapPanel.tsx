@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { colorLineOf, type VesselMapBlock } from '@odysseus/shared-schemas';
+import { colorLineOf, type VesselMapBlock, withGreekLetters } from '@odysseus/shared-schemas';
 
 import { RestingTooltipProvider } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
 import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
 import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
@@ -22,7 +21,7 @@ import {
   shelfNameOf,
   vesselTabs,
 } from '../../../../utils/vessels/vesselTabs';
-import { setWellsText, wellRows } from '../../../../utils/vessels/wellEdits';
+import { setWellsText, startingLineId } from '../../../../utils/vessels/wellEdits';
 
 import { useConfirmation } from './useConfirmation';
 import { useUpdateVesselMap } from './useUpdateVesselMap';
@@ -74,7 +73,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const openEditorWith = (seedText?: string) => {
     if (seedText === undefined) return openEditor();
     const keys = [...selection.keys];
-    const firstLineId = wellRows(block, keys, colorLine)[0]?.line?.id;
+    const firstLineId = startingLineId(block, keys, colorLine);
     updateVesselMap(draft => setWellsText(draft, keys, firstLineId, seedText));
     focusEditor();
   };

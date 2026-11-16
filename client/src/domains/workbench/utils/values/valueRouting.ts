@@ -1,6 +1,7 @@
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { nameKey } from '../formulas/boardCalculation';
 import { displayValue } from '../formulas/quantities';
-import { withGreekLetters } from '../materials/greekLetters';
 import { fieldLabel, fieldName, materialFields } from '../materials/materialCatalog';
 import { materialText } from '../materials/materialItems';
 import {

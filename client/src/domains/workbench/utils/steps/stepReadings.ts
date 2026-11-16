@@ -1,7 +1,8 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { firstBlockOrNew } from '../blocks/createBlock';
 import { nameKey, type BoardCalculation } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
-import { normalizeMaterialKey } from '../materials/materialKey';
 import { ensureMaterial, shortNameOf } from '../materials/materialLookup';
 import { findAmounts } from '../units/textAmounts';
 import { insertAfterPeers } from '../values/valueEdits';

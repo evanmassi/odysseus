@@ -1,5 +1,6 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { findFluorochromeName, isNonFluorochromeConjugate } from './materialGuesser';
-import { normalizeMaterialKey } from './materialKey';
 
 import type { MaterialItem } from '@odysseus/shared-schemas';
 

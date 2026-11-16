@@ -1,3 +1,5 @@
+import { normalizeMaterialKey } from './materialKey';
+
 import type { CellLine, PlateLine, VesselMapBlock } from './protocolFileSchemas';
 
 type LineValue = PlateLine['values'][number];
@@ -88,6 +90,11 @@ const sharesValue = (a: PlateLine, b: PlateLine) => {
   return b.values.some(value => keys.has(plateValueKey(value.text)));
 };
 
+const sharesName = (a: PlateLine, b: PlateLine) => {
+  const key = normalizeMaterialKey(a.name);
+  return !!key && key === normalizeMaterialKey(b.name);
+};
+
 const holdsBoth = (block: VesselMapBlock, a: PlateLine, b: PlateLine) =>
   Object.values(block.cells).some(lines => lines[a.id] && lines[b.id]);
 
@@ -95,7 +102,10 @@ function findTwinLines(block: VesselMapBlock): [PlateLine, PlateLine] | undefine
   for (const [index, kept] of block.lines.entries()) {
     const twin = block.lines
       .slice(index + 1)
-      .find(other => sharesValue(kept, other) && !holdsBoth(block, kept, other));
+      .find(
+        other =>
+          (sharesName(kept, other) || sharesValue(kept, other)) && !holdsBoth(block, kept, other)
+      );
     if (twin) return [kept, twin];
   }
   return undefined;

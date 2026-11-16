@@ -7,6 +7,7 @@ import {
   type MaterialItem,
   type PlateLine,
   type VesselMapBlock,
+  normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
 import { cachedPerBlock } from '../blocks/cachedPerBlock';
@@ -17,7 +18,6 @@ import {
   RATIO_NOTATION,
   readNumber,
 } from '../formulas/quantities';
-import { normalizeMaterialKey } from '../materials/materialKey';
 import { nameWithoutNotes, shortNameOf } from '../materials/materialLookup';
 import { readTypedAmount } from '../units/textAmounts';
 import { upperLead } from '../values/valueNames';

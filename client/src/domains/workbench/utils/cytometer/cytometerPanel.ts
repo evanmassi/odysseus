@@ -1,8 +1,9 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { type DyeCatalog } from '../dyes/dyeCatalog';
 import { ANTIBODY_GROUP, materialFields } from '../materials/materialCatalog';
 import { guessMaterial } from '../materials/materialGuesser';
 import { applyMaterialKind, materialFromGuess } from '../materials/materialItems';
-import { normalizeMaterialKey } from '../materials/materialKey';
 import { rememberedKinds, type LabMemory } from '../materials/materialMemory';
 
 import { misplacementText, type Misplacement } from './stainPlacement';

@@ -1,4 +1,5 @@
-import { normalizeMaterialKey } from '../materials/materialKey';
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { findMaterial } from '../materials/materialLookup';
 
 import { type BoardCalculation, type BoardName, type WorkedOutGroup } from './boardCalculation';

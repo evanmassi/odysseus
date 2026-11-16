@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, RefObject } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import {
   blankOptions,
   referenceOptions,

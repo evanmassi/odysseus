@@ -1,9 +1,10 @@
 import { useState } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
+
 import { Button } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
 import type { ValueLineGuess } from '../../../../utils/values/valueRouting';

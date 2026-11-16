@@ -1,6 +1,7 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { type RememberedMaterialKind } from './materialGuesser';
 import { UNSORTED_GROUP } from './materialItems';
-import { normalizeMaterialKey } from './materialKey';
 
 import type {
   FieldDefinition,

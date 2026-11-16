@@ -1,5 +1,6 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { fieldLabel, materialFields } from '../materials/materialCatalog';
-import { normalizeMaterialKey } from '../materials/materialKey';
 
 import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 

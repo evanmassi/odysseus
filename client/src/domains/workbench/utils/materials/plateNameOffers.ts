@@ -1,4 +1,5 @@
-import { normalizeMaterialKey } from './materialKey';
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 import type { Protocol } from '@odysseus/shared-schemas';

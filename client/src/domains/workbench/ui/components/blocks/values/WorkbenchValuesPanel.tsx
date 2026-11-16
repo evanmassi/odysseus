@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { withGreekLetters, normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { Button, PanelEmptyState } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
@@ -10,10 +12,8 @@ import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
-import { normalizeMaterialKey } from '../../../../utils/materials/materialKey';
 import { rememberedKinds } from '../../../../utils/materials/materialMemory';
 import { editRecipeEntry } from '../../../../utils/materials/materialRecipe';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';

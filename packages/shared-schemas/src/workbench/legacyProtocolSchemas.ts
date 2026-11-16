@@ -13,6 +13,7 @@ import {
   type PlateSeries,
 } from './protocolFileSchemas';
 import { newProtocolId } from './protocolIds';
+import { normalizeVesselMap } from './vesselMapValues';
 
 const text = z.string().catch('');
 const textMap = z.record(z.string(), z.string()).catch({});
@@ -465,4 +466,9 @@ function upgradeFile(raw: unknown): unknown {
   return seriesDiluentFileSchema.parse(paintedGroupsFileSchema.parse(paintedGroupsFile));
 }
 
-export const protocolFileInputSchema = z.preprocess(upgradeFile, protocolFileSchema);
+export const protocolFileInputSchema = z
+  .preprocess(upgradeFile, protocolFileSchema)
+  .transform(file => {
+    for (const block of file.protocol.blocks) if (block.type === 'plate') normalizeVesselMap(block);
+    return file;
+  });

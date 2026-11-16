@@ -1,4 +1,4 @@
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
+import { withGreekLetters } from '@odysseus/shared-schemas';
 
 import { CYTOMETER_FIELD } from './cytometerTableStyles';
 

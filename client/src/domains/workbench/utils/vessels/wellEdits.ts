@@ -1,6 +1,8 @@
 import {
   isFilledCell,
   lineValueOf,
+  moveValueKeys,
+  normalizeMaterialKey,
   plateValueKey,
   type CellLine,
   type PlateLine,
@@ -25,30 +27,106 @@ const sharedOf = (texts: readonly string[]) => {
   return { shared: distinct.size === 1 ? [...distinct][0] : '', isMixed: distinct.size > 1 };
 };
 
-export function wellRows(
+const isOnWells = (block: VesselMapBlock, keys: readonly string[], line: PlateLine) =>
+  keys.some(key => block.cells[key]?.[line.id]);
+
+export function wellRows(block: VesselMapBlock, keys: readonly string[]): WellRow[] {
+  return block.lines
+    .filter(line => isOnWells(block, keys, line))
+    .map(line => {
+      const cells = keys.map(key => block.cells[key]?.[line.id]);
+      const values = cells.map(cell => lineValueOf(line, cell));
+      const text = sharedOf(values.map(value => value?.text ?? ''));
+      const [firstValue] = values;
+      const amount = sharedOf(cells.map(cell => cell?.amount ?? ''));
+      return {
+        line,
+        value: firstValue && values.every(value => value === firstValue) ? firstValue : undefined,
+        text: text.shared,
+        isTextMixed: text.isMixed,
+        amount: amount.shared,
+        isAmountMixed: amount.isMixed,
+        unit: sharedOf(cells.map(cell => cell?.unit ?? '')).shared,
+        seriesId: cells.find(cell => cell?.seriesId !== undefined)?.seriesId,
+      };
+    });
+}
+
+export const startingLineId = (
   block: VesselMapBlock,
   keys: readonly string[],
   colorLine: PlateLine | undefined
-): WellRow[] {
-  const onWells = block.lines.filter(line => keys.some(key => block.cells[key]?.[line.id]));
-  const lines = onWells.length ? onWells : [colorLine ?? block.lines[0]];
-  return lines.map(line => {
-    const cells = keys.map(key => (line ? block.cells[key]?.[line.id] : undefined));
-    const values = cells.map(cell => (line ? lineValueOf(line, cell) : undefined));
-    const text = sharedOf(values.map(value => value?.text ?? ''));
-    const [firstValue] = values;
-    const amount = sharedOf(cells.map(cell => cell?.amount ?? ''));
-    return {
-      line,
-      value: firstValue && values.every(value => value === firstValue) ? firstValue : undefined,
-      text: text.shared,
-      isTextMixed: text.isMixed,
-      amount: amount.shared,
-      isAmountMixed: amount.isMixed,
-      unit: sharedOf(cells.map(cell => cell?.unit ?? '')).shared,
-      seriesId: cells.find(cell => cell?.seriesId !== undefined)?.seriesId,
-    };
-  });
+): string | undefined => wellRows(block, keys)[0]?.line?.id ?? colorLine?.id ?? block.lines[0]?.id;
+
+export const linesOffWells = (block: VesselMapBlock, keys: readonly string[]): PlateLine[] =>
+  block.lines.filter(line => line.name.trim() && !isOnWells(block, keys, line));
+
+export function lineNamed(
+  block: VesselMapBlock,
+  keys: readonly string[],
+  name: string
+): PlateLine | undefined {
+  const key = normalizeMaterialKey(name);
+  return key
+    ? linesOffWells(block, keys).find(line => normalizeMaterialKey(line.name) === key)
+    : undefined;
+}
+
+function valueOnLine(line: PlateLine, moved: PlateLine['values'][number]) {
+  const found = line.values.find(value => plateValueKey(value.text) === plateValueKey(moved.text));
+  if (found) return found;
+  const created = { id: createId(), text: moved.text, color: moved.color };
+  line.values.push(created);
+  return created;
+}
+
+function subjectsOn(block: VesselMapBlock, line: PlateLine): Set<string> {
+  const texts = Object.values(block.cells).map(lines => lineValueOf(line, lines[line.id])?.text);
+  return new Set(texts.filter(text => text !== undefined).map(normalizeMaterialKey));
+}
+
+function moveAmountNames(block: VesselMapBlock, from: PlateLine, toId: string, moved: Set<string>) {
+  const kept = subjectsOn(block, from);
+  const prefix = `a:${from.id}:`;
+  for (const key of Object.keys(block.amountNames)) {
+    if (!key.startsWith(prefix)) continue;
+    const rest = key.slice(prefix.length);
+    const [subject] = rest.split('-');
+    if (!moved.has(subject) || kept.has(subject)) continue;
+    block.amountNames[`a:${toId}:${rest}`] ??= block.amountNames[key];
+    delete block.amountNames[key];
+  }
+}
+
+export function moveWellsToLine(
+  block: VesselMapBlock,
+  keys: readonly string[],
+  fromId: string,
+  toId: string
+): void {
+  const from = block.lines.find(line => line.id === fromId);
+  const to = block.lines.find(line => line.id === toId);
+  if (!from || !to) return;
+  const movedValues = new Map<string, string>();
+  const movedSubjects = new Set<string>();
+  for (const key of keys) {
+    const lines = block.cells[key];
+    const cell = lines?.[fromId];
+    if (!lines || !cell) continue;
+    const value = lineValueOf(from, cell);
+    const target = value && valueOnLine(to, value);
+    if (value && target) {
+      movedValues.set(value.id, target.id);
+      movedSubjects.add(normalizeMaterialKey(value.text));
+    }
+    lines[toId] = target ? { ...cell, valueId: target.id } : cell;
+    delete lines[fromId];
+  }
+  const stillHeld = new Set(Object.values(block.cells).map(lines => lines[fromId]?.valueId));
+  for (const [fromValueId, toValueId] of movedValues) {
+    if (!stillHeld.has(fromValueId)) moveValueKeys(block, fromValueId, toValueId);
+  }
+  moveAmountNames(block, from, toId, movedSubjects);
 }
 
 function writeCells(
@@ -72,7 +150,7 @@ function writeCells(
 function lineFor(block: VesselMapBlock, lineId: string | undefined): PlateLine {
   const existing = block.lines.find(line => line.id === lineId);
   if (existing) return existing;
-  const created: PlateLine = { id: createId(), name: '', values: [], role: 'auto' };
+  const created: PlateLine = { id: lineId ?? createId(), name: '', values: [], role: 'auto' };
   block.lines.push(created);
   return created;
 }
@@ -180,7 +258,7 @@ export interface HeldName {
 
 export function heldNames(block: VesselMapBlock, keys: readonly string[]): Map<string, HeldName> {
   const held = new Map<string, HeldName>();
-  for (const row of wellRows(block, keys, undefined)) {
+  for (const row of wellRows(block, keys)) {
     if (row.line && row.value)
       held.set(row.line.id, { valueId: row.value.id, text: row.value.text });
   }

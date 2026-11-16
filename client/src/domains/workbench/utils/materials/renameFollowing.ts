@@ -1,8 +1,12 @@
-import { normalizeVesselMap, type Protocol, type VesselMapBlock } from '@odysseus/shared-schemas';
+import {
+  normalizeVesselMap,
+  type Protocol,
+  type VesselMapBlock,
+  normalizeMaterialKey,
+} from '@odysseus/shared-schemas';
 
 import { heldNames, renameValue, type HeldName } from '../vessels/wellEdits';
 
-import { normalizeMaterialKey } from './materialKey';
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 const NOTES_START = '(';

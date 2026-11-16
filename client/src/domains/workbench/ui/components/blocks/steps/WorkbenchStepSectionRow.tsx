@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import type { MouseEvent } from 'react';
 
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
+import { withGreekLetters } from '@odysseus/shared-schemas';
 
 import { STEP_ROW_ATTRIBUTE } from './useStepDrag';
 import { useUpdateStepPage } from './useUpdateStepPage';

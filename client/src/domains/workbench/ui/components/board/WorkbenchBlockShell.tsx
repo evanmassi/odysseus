@@ -1,5 +1,6 @@
 import { memo, useRef, useState, type ComponentType } from 'react';
 
+import { withGreekLetters } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
 import { ConsolePanel, Tooltip } from '@shared/ui';
@@ -10,7 +11,6 @@ import { useUpdateBlock } from '../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BLOCK_TYPES, defaultBlockTitle } from '../../../utils/blocks/blockTypes';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
-import { withGreekLetters } from '../../../utils/materials/greekLetters';
 
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_PANELS } from './blockPanels';

@@ -1,3 +1,5 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import {
   VENDOR_NAMES,
   findFluorochromeName,
@@ -8,7 +10,6 @@ import {
   type MaterialGuess,
   type RememberedMaterialKind,
 } from './materialGuesser';
-import { normalizeMaterialKey } from './materialKey';
 
 const nothingRemembered = new Map<string, RememberedMaterialKind>();
 const guess = (text: string): MaterialGuess => guessMaterial(text, nothingRemembered);

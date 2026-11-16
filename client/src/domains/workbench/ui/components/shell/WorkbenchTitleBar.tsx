@@ -1,9 +1,9 @@
+import { withGreekLetters } from '@odysseus/shared-schemas';
 import { CircleCheckBig, CircleDashed, TriangleAlert } from 'lucide-react';
 
 import { Button, DatePicker, Divider, Input, Textarea } from '@shared/ui';
 
 import { selectIsDirty, useWorkbenchStore } from '../../../stores/workbenchStore';
-import { withGreekLetters } from '../../../utils/materials/greekLetters';
 import { experimentId } from '../../../utils/protocolFile/experimentId';
 import { META_LABEL } from '../board/metaLabelClass';
 

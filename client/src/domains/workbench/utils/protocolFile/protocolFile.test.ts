@@ -563,3 +563,21 @@ describe('the protocol diluent', () => {
     expect(read(JSON.parse(writeProtocolFile(protocol))).diluent).toBe('PBS');
   });
 });
+
+describe('opening a current file', () => {
+  it('merges plate lines that share a name and no well', () => {
+    const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
+    const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');
+    plate.lines = [1, 2].map(index => ({
+      id: `d${index}`,
+      name: 'Donors',
+      role: 'auto',
+      values: [{ id: `v${index}`, text: `Donor ${index}` }],
+    }));
+    plate.cells = { 'p:A1': { d1: { valueId: 'v1' } }, 'p:A2': { d2: { valueId: 'v2' } } };
+    plate.series = {};
+    const { lines } = plateOf(read(file));
+    expect(lines).toHaveLength(1);
+    expect(lines[0].values.map(value => value.text)).toEqual(['Donor 1', 'Donor 2']);
+  });
+});

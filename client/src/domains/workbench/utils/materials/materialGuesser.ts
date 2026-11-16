@@ -1,3 +1,5 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { BUILT_IN_CATALOG, dyeLaserLabel } from '../dyes/dyeCatalog';
 
 import {
@@ -10,7 +12,6 @@ import {
   type KeywordRule,
 } from './materialGuessRules';
 import { guessSupplyShape, pickFirst, type PickTable } from './materialGuessSupplyShape';
-import { normalizeMaterialKey } from './materialKey';
 import {
   CONJUGATE_LEXICON,
   CYTOKINE_LEXICON,

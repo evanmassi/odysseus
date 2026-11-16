@@ -1,7 +1,8 @@
 import { Fragment, useState } from 'react';
 
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { normalizeMaterialKey } from '../../../../utils/materials/materialKey';
 import { renamePlateValue } from '../../../../utils/materials/renameFollowing';
 import { recolorValue, renameLine } from '../../../../utils/vessels/wellEdits';
 import { META_LABEL } from '../../board/metaLabelClass';

@@ -1,7 +1,8 @@
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+
 import { firstBlockOrNew } from '../blocks/createBlock';
 
 import { SHORT_NAME_FIELD } from './materialCatalog';
-import { normalizeMaterialKey } from './materialKey';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 

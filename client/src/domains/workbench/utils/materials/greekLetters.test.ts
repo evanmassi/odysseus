@@ -1,5 +1,4 @@
-import { withGreekLetters } from './greekLetters';
-import { normalizeMaterialKey } from './materialKey';
+import { withGreekLetters, normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 describe('spelled-out Greek letters', () => {
   it('turn into the letter when attached to a name', () => {

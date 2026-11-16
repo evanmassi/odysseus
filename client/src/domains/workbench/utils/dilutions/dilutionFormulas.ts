@@ -1,9 +1,13 @@
-import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-schemas';
+import {
+  unitScale,
+  type MaterialItem,
+  type Protocol,
+  normalizeMaterialKey,
+} from '@odysseus/shared-schemas';
 
 import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardCalculation';
 import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { fieldName, materialFields } from '../materials/materialCatalog';
-import { normalizeMaterialKey } from '../materials/materialKey';
 import { materialNamed } from '../materials/materialLookup';
 import { stepSeriesUnit } from '../vessels/plateSeries';
 import { plateAmounts } from '../vessels/vesselMapNames';

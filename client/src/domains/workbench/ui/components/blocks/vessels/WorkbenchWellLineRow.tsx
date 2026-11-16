@@ -1,22 +1,24 @@
 import { useState } from 'react';
 import type { Ref } from 'react';
 
-import { plateValueKey, type PlateLine } from '@odysseus/shared-schemas';
+import { plateValueKey, type PlateLine, withGreekLetters } from '@odysseus/shared-schemas';
 import { X } from 'lucide-react';
 
 import { Input, Select, Tooltip } from '@shared/ui';
 
-import { withGreekLetters } from '../../../../utils/materials/greekLetters';
 import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
 
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 import { WorkbenchPlateNameField } from './WorkbenchPlateNameField';
+import { WorkbenchPlateSuggestionList } from './WorkbenchPlateSuggestionList';
 
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
 import type { NameElsewhere, WellRow } from '../../../../utils/vessels/wellEdits';
 
 interface WorkbenchWellLineRowProps {
   row: WellRow;
+  lineName: string;
+  lineOffers: readonly string[];
   textPlaceholder: string;
   seriesText: string | undefined;
   autoRole: ShownRole | undefined;
@@ -46,6 +48,8 @@ const SUGGESTION_LIMIT = 6;
 
 export function WorkbenchWellLineRow({
   row,
+  lineName,
+  lineOffers,
   textPlaceholder,
   seriesText,
   autoRole,
@@ -80,18 +84,18 @@ export function WorkbenchWellLineRow({
 
   return (
     <div className="flex flex-col gap-1">
-      {row.line && (
-        <span className="pl-6">
-          <WorkbenchPlateNameField
-            name={row.line.name}
-            shown={row.line.name || <span className="italic">Name this line</span>}
-            label="Line name"
-            placeholder="Name this line"
-            className="text-label-xs text-muted-foreground"
-            onRename={onRenameLine}
-          />
-        </span>
-      )}
+      <span className="pl-6">
+        <WorkbenchPlateNameField
+          name={lineName}
+          shown={lineName || <span className="italic">Name this line</span>}
+          label="Line name"
+          placeholder="Name this line"
+          className="text-label-xs text-muted-foreground"
+          offers={lineOffers}
+          offersLabel="Put these wells on"
+          onRename={onRenameLine}
+        />
+      </span>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -200,20 +204,10 @@ export function WorkbenchWellLineRow({
           }}
         />
       )}
-      {suggestions.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {suggestions.map(value => (
-            <button
-              key={value.id}
-              type="button"
-              className="border border-line-soft px-2 py-0.5 text-caption text-foreground hover:border-primary/60"
-              onClick={() => onTextChange(value.text)}
-            >
-              {value.text}
-            </button>
-          ))}
-        </div>
-      )}
+      <WorkbenchPlateSuggestionList
+        suggestions={suggestions.map(value => ({ key: value.id, text: value.text }))}
+        onPick={onTextChange}
+      />
     </div>
   );
 }
