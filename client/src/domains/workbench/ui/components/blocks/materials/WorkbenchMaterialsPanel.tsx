@@ -34,13 +34,21 @@ import {
   materialFromGuess,
   writeMaterialField,
 } from '../../../../utils/materials/materialItems';
-import { ensureMaterial, listedMaterials } from '../../../../utils/materials/materialLookup';
+import {
+  ensureMaterial,
+  findNamed,
+  listedMaterials,
+} from '../../../../utils/materials/materialLookup';
 import {
   LOT_FIELD,
   fillFromLotMemory,
   rememberLotValue,
 } from '../../../../utils/materials/materialLots';
-import { rememberedKinds } from '../../../../utils/materials/materialMemory';
+import {
+  knownSources,
+  rememberedKinds,
+  startingSourceFieldsOf,
+} from '../../../../utils/materials/materialMemory';
 import {
   addRecipeLine,
   editRecipeEntry,
@@ -54,13 +62,24 @@ import {
   hideSectionField,
   toggleSectionField,
 } from '../../../../utils/materials/materialSectionFields';
+import {
+  SOURCES_LABEL,
+  addCustomSourceField,
+  addSource,
+  sourceFieldChoices,
+  startSources,
+  toggleSourceField,
+} from '../../../../utils/materials/materialSources';
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
 import {
   linkPlateName,
   plateNameOffers,
   type PlateNameOffer,
 } from '../../../../utils/materials/plateNameOffers';
-import { plateFollowsMaterialRename } from '../../../../utils/materials/renameFollowing';
+import {
+  plateFollowsMaterialRename,
+  plateFollowsSourceRename,
+} from '../../../../utils/materials/renameFollowing';
 import {
   acceptStepReadings,
   readStepReadings,
@@ -79,11 +98,17 @@ import { type MaterialSectionActions } from './WorkbenchMaterialHeaderRow';
 import { WorkbenchMaterialPlateNamesSection } from './WorkbenchMaterialPlateNamesSection';
 import { WorkbenchMaterialReadingsSection } from './WorkbenchMaterialReadingsSection';
 import { WorkbenchMaterialSection } from './WorkbenchMaterialSection';
+import { type MaterialSourceActions } from './WorkbenchMaterialSourceTable';
 import { WorkbenchMaterialTable } from './WorkbenchMaterialTable';
 
 import type { MaterialKind } from './materialSelectOptions';
 import type { MaterialRowActions } from './WorkbenchMaterialRow';
-import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
+import type {
+  MaterialItem,
+  MaterialSource,
+  MaterialsBlock,
+  Protocol,
+} from '@odysseus/shared-schemas';
 
 interface WorkbenchMaterialsPanelProps {
   block: MaterialsBlock;
@@ -118,6 +143,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const [fresh, setFresh] = useState({ ids: new Set<string>(), stamp: 0 });
   const [fieldMenu, setFieldMenu] = useState<FieldMenuState>();
   const [groupDialogTarget, setGroupDialogTarget] = useState<GroupDialogTarget>();
+  const [openedSourcesId, setOpenedSourcesId] = useState<string>();
 
   const markFresh = useCallback(
     (ids: readonly string[]) =>
@@ -312,7 +338,83 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       updateProtocol(draft => editRecipeEntry(draft, itemId, entryId, change)),
     removeRecipeEntry: (itemId, entryId) =>
       updateProtocol(draft => removeRecipeEntry(draft, itemId, entryId)),
+    startSources: itemId => {
+      updateItem(itemId, item =>
+        startSources(item, startingSourceFieldsOf(memory, item.group), memory.sourceFields)
+      );
+      setOpenedSourcesId(itemId);
+    },
   });
+
+  useEffect(() => {
+    if (openedSourcesId) setOpenedSourcesId(undefined);
+  }, [openedSourcesId]);
+
+  const updateSource = (
+    itemId: string,
+    sourceId: string,
+    change: (source: MaterialSource, draft: Protocol) => void
+  ) =>
+    updateItem(itemId, (item, draft) => {
+      const source = item.sources?.rows.find(row => row.id === sourceId);
+      if (source) change(source, draft);
+    });
+
+  const sourceActions = useStableActions<MaterialSourceActions>({
+    renameList: (itemId, label) =>
+      updateItem(itemId, item => {
+        if (item.sources) item.sources.label = label || SOURCES_LABEL;
+      }),
+    removeList: itemId =>
+      updateItem(itemId, item => {
+        delete item.sources;
+      }),
+    add: (itemId, names) =>
+      updateItem(itemId, item => {
+        const { sources } = item;
+        if (!sources) return;
+        for (const name of names) {
+          if (name.trim() && !findNamed(sources.rows, name, row => row.name)) {
+            addSource(sources, name);
+          }
+        }
+      }),
+    recall: (itemId, remembered) =>
+      updateItem(itemId, item => {
+        if (item.sources) addSource(item.sources, remembered.name, remembered);
+      }),
+    rename: (itemId, sourceId, name) =>
+      updateSource(itemId, sourceId, source => {
+        source.name = name;
+      }),
+    finishRename: (itemId, sourceId, from) =>
+      updateSource(itemId, sourceId, (source, draft) => {
+        source.name = withGreekLetters(source.name.trim());
+        plateFollowsSourceRename(draft, from, source.name);
+      }),
+    write: (itemId, sourceId, key, value) =>
+      updateSource(itemId, sourceId, source => {
+        if (value.trim()) source.values[key] = value;
+        else delete source.values[key];
+      }),
+    remove: (itemId, sourceId) =>
+      updateItem(itemId, item => {
+        if (item.sources) item.sources.rows = item.sources.rows.filter(row => row.id !== sourceId);
+      }),
+    toggleField: (itemId, key) =>
+      updateItem(itemId, item => {
+        if (item.sources) toggleSourceField(item.sources, key, memory.sourceFields);
+      }),
+    addCustomField: (itemId, label) =>
+      updateItem(itemId, item => {
+        if (item.sources) addCustomSourceField(item.sources, label);
+      }),
+    togglePin: (group, key) => toggleStartingField('startingSourceFields', group, key),
+    known: (typed, rows) => knownSources(memory, typed, rows),
+    fieldChoices: sources => sourceFieldChoices(sources, memory.sourceFields),
+    pinnedKeys: group => new Set(startingSourceFieldsOf(memory, group)),
+  });
+  const plateNames = useMemo(() => plateOffers.map(offer => offer.name), [plateOffers]);
 
   const updateGroupItems = (group: string, recipe: (items: MaterialItem[]) => void) =>
     updateBlock(draft => recipe(draft.items.filter(item => item.group === group)));
@@ -406,6 +508,9 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   removed={section.removed}
                   editing={editing}
                   actions={rowActions}
+                  sourceActions={sourceActions}
+                  plateNames={plateNames}
+                  openedSourcesId={openedSourcesId}
                   fieldMenu={{
                     isOpen: isFieldMenuOpen,
                     choices: isFieldMenuOpen
@@ -420,7 +525,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                     onQueryChange: next => setFieldMenu({ group: key, query: next }),
                     onToggle: fieldKey =>
                       updateGroupItems(key, items => toggleSectionField(items, fieldKey, memory)),
-                    onTogglePin: fieldKey => toggleStartingField(key, fieldKey),
+                    onTogglePin: fieldKey => toggleStartingField('startingFields', key, fieldKey),
                     onAddCustom: () => {
                       const label = withGreekLetters(query.trim());
                       if (!label) return;

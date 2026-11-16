@@ -345,7 +345,12 @@ export function materialWellCounts(
   const counts = new Map<MaterialItem, number>();
   const patterns = materials.map(material => ({
     material,
-    names: [material.name, nameWithoutNotes(material.name), shortNameOf(material)]
+    names: [
+      material.name,
+      nameWithoutNotes(material.name),
+      shortNameOf(material),
+      ...(material.sources?.rows.map(source => source.name) ?? []),
+    ]
       .filter(Boolean)
       .map(mentionPattern),
   }));

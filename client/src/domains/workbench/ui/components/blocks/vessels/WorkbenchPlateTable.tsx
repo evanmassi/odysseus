@@ -9,7 +9,7 @@ import {
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
-import { wellColor, wellDetails, wellLine } from '../../../../utils/vessels/wellContents';
+import { wellColor, wellLine, wellTooltipDetails } from '../../../../utils/vessels/wellContents';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { useWellPointerActions } from './useWellPointerActions';
@@ -17,6 +17,7 @@ import { WorkbenchPlateWellButton, type PlateWellView } from './WorkbenchPlateWe
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SourceSummary } from '../../../../utils/materials/materialSources';
 import type { PlateBand } from '../../../../utils/vessels/plateLayers';
 import type { ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
 import type { WellSize } from '../../../../utils/vessels/vesselSizing';
@@ -29,6 +30,7 @@ interface WorkbenchPlateTableProps {
   bands: PlateBand[];
   size: WellSize;
   calculation: BoardCalculation;
+  sources: readonly SourceSummary[];
   selection: WellSelection;
   merges: ReplicateMerges;
   onKeyDown: (event: KeyboardEvent) => void;
@@ -92,6 +94,7 @@ export function WorkbenchPlateTable({
   bands,
   size,
   calculation,
+  sources,
   selection,
   merges,
   onKeyDown,
@@ -102,7 +105,7 @@ export function WorkbenchPlateTable({
     sheet.spots.flatMap((spot): PlateWellView[] => {
       const merged = merges.anchors.get(spot.key);
       if (!merged && merges.covered.has(spot.key)) return [];
-      const details = wellDetails(block, spot.key, calculation);
+      const details = wellTooltipDetails(block, spot.key, calculation, sources);
       const where = merged
         ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
         : spot.label;

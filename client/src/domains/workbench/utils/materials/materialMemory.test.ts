@@ -98,9 +98,15 @@ describe('lot memory', () => {
 describe('toggleStartingField', () => {
   it('unpins from the current list, then pins back at the end', () => {
     const current = ['vendor', 'catalog', 'lot', 'isotype'];
-    const unpinned = toggleStartingField(EMPTY_LAB_MEMORY, 'ab', 'lot', current);
+    const unpinned = toggleStartingField(EMPTY_LAB_MEMORY, 'startingFields', 'ab', 'lot', current);
     expect(unpinned.startingFields).toEqual({ ab: ['vendor', 'catalog', 'isotype'] });
-    const repinned = toggleStartingField(unpinned, 'ab', 'lot', unpinned.startingFields['ab']);
+    const repinned = toggleStartingField(
+      unpinned,
+      'startingFields',
+      'ab',
+      'lot',
+      unpinned.startingFields['ab']
+    );
     expect(repinned.startingFields['ab']).toEqual(['vendor', 'catalog', 'isotype', 'lot']);
   });
 });

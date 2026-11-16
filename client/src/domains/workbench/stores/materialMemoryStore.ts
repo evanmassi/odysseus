@@ -7,8 +7,10 @@ import {
   learnFromMaterials,
   rememberDyes,
   rememberKind,
+  startingSourceFieldsOf,
   toggleStartingField,
   type LabMemory,
+  type PinnedFields,
 } from '../utils/materials/materialMemory';
 
 import type { MaterialItem, ProtocolDye } from '@odysseus/shared-schemas';
@@ -20,7 +22,7 @@ interface MaterialMemoryState {
   rememberKind: (name: string, group: string, type: string) => void;
   learnFromMaterials: (items: readonly MaterialItem[]) => void;
   rememberDyes: (dyes: readonly ProtocolDye[]) => void;
-  toggleStartingField: (group: string, key: string) => void;
+  toggleStartingField: (pins: PinnedFields, group: string, key: string) => void;
 }
 
 export const useMaterialMemoryStore = create<MaterialMemoryState>()(
@@ -39,13 +41,16 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
           const memory = rememberDyes(state.memory, dyes);
           return memory === state.memory ? state : { memory };
         }),
-      toggleStartingField: (group, key) =>
+      toggleStartingField: (pins, group, key) =>
         set(state => ({
           memory: toggleStartingField(
             state.memory,
+            pins,
             group,
             key,
-            groupStartingFields(state.memory, group)
+            pins === 'startingFields'
+              ? groupStartingFields(state.memory, group)
+              : startingSourceFieldsOf(state.memory, group)
           ),
         })),
     }),

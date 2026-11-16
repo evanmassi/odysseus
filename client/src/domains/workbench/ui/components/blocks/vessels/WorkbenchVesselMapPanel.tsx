@@ -7,6 +7,8 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
+import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { sourceSummaries } from '../../../../utils/materials/materialSources';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
 import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
 import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
@@ -47,6 +49,7 @@ interface EditorOpening {
 
 export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps) {
   const calculation = useVesselMapCalculation(block);
+  const sources = useWorkbenchData(state => sourceSummaries(state.protocol));
   const updateBlock = useUpdateBlock(block);
   const bodyRef = useRef<HTMLDivElement>(null);
   const roomWidth = useElementWidth(bodyRef);
@@ -162,6 +165,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               bands={bands}
               size={wellSizeFor(tab.plate.vessel, roomWidth - bandWidthPad(bands), sheet.cols)}
               calculation={calculation}
+              sources={sources}
               selection={selection}
               merges={merges}
               onKeyDown={onKeyDown}
@@ -174,6 +178,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               colorLine={colorLine}
               scale={shelfScaleFor(block, roomWidth)}
               calculation={calculation}
+              sources={sources}
               selection={selection}
               onKeyDown={onKeyDown}
               onOpenWell={openWell}

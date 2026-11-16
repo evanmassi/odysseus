@@ -3,13 +3,14 @@ import type { KeyboardEvent } from 'react';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import { LOOSE_VESSELS } from '../../../../utils/vessels/vesselCatalog';
 import { SHAPE_METRICS } from '../../../../utils/vessels/vesselSizing';
-import { wellColor, wellDetails, wellLine } from '../../../../utils/vessels/wellContents';
+import { wellColor, wellLine, wellTooltipDetails } from '../../../../utils/vessels/wellContents';
 
 import { useWellPointerActions } from './useWellPointerActions';
 import { WorkbenchShelfVesselButton, type ShelfVesselView } from './WorkbenchShelfVesselButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SourceSummary } from '../../../../utils/materials/materialSources';
 import type { VesselSheet } from '../../../../utils/vessels/vesselTabs';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -19,6 +20,7 @@ interface WorkbenchVesselShelfListProps {
   colorLine: PlateLine | undefined;
   scale: number;
   calculation: BoardCalculation;
+  sources: readonly SourceSummary[];
   selection: WellSelection;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
@@ -30,6 +32,7 @@ export function WorkbenchVesselShelfList({
   colorLine,
   scale,
   calculation,
+  sources,
   selection,
   onKeyDown,
   onOpenWell,
@@ -49,7 +52,10 @@ export function WorkbenchVesselShelfList({
               shape: vessel.shape,
               width,
               sizeLabel: vessel.short,
-              tooltipLines: [vessel.label, ...wellDetails(block, spot.key, calculation)],
+              tooltipLines: [
+                vessel.label,
+                ...wellTooltipDetails(block, spot.key, calculation, sources),
+              ],
               lines: block.lines.flatMap(line => {
                 const shown = wellLine(block, spot.key, line, calculation);
                 return shown ? [shown] : [];

@@ -40,6 +40,7 @@ const choiceField = (label: string, options: string[], extras: FieldExtras = {})
 
 export const UNIT_PER_ITEM = '*';
 export const ANTIBODY_GROUP = 'ab';
+export const BIO_GROUP = 'bio';
 const LOT_SCOPED: FieldExtras = { scope: 'lot' };
 const YES_NO = ['Yes', 'No'];
 const LASERS = [
@@ -94,9 +95,19 @@ const PHYSICAL_CORE = [
 const EQUIPMENT_CORE = [shortName, field('Model'), field('Manufacturer'), field('Notes')];
 const SOFTWARE_CORE = [shortName, field('Source'), field('Notes')];
 
+export const SOURCE_FIELDS: readonly FieldDefinition[] = [
+  field('Donor ID'),
+  field('Source'),
+  field('Lot / vial', 'text', { key: 'lot-vial' }),
+  numberField('Cells per vial', 'cells'),
+  numberField('Total count', 'cells'),
+  numberField('Viability', '%'),
+  numberField('Live count', 'cells'),
+];
+
 export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   {
-    key: 'bio',
+    key: BIO_GROUP,
     label: 'Biological Material',
     core: PHYSICAL_CORE,
     types: {

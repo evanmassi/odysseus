@@ -11,6 +11,10 @@ import {
   type MaterialSectionActions,
 } from './WorkbenchMaterialHeaderRow';
 import { WorkbenchMaterialRow, type MaterialRowActions } from './WorkbenchMaterialRow';
+import {
+  WorkbenchMaterialSourceTable,
+  type MaterialSourceActions,
+} from './WorkbenchMaterialSourceTable';
 import { WorkbenchMaterialUndoRow } from './WorkbenchMaterialUndoRow';
 
 import type { MaterialCellEditing } from './useMaterialCellEditing';
@@ -51,6 +55,9 @@ interface WorkbenchMaterialTableProps {
   removed: RemovedMaterial | undefined;
   editing: MaterialCellEditing;
   actions: MaterialRowActions;
+  sourceActions: MaterialSourceActions;
+  plateNames: readonly string[];
+  openedSourcesId: string | undefined;
   fieldMenu: MaterialFieldMenu;
   sectionActions: MaterialSectionActions;
   onUndo: () => void;
@@ -78,13 +85,16 @@ export function WorkbenchMaterialTable({
   removed,
   editing,
   actions,
+  sourceActions,
+  plateNames,
+  openedSourcesId,
   fieldMenu,
   sectionActions,
   onUndo,
 }: WorkbenchMaterialTableProps) {
   const fieldButtonRef = useRef<HTMLButtonElement>(null);
   const clashingIds = new Set(clashes.flatMap(clash => clash.items.map(item => item.id)));
-  const rows = items.map((item, index) => (
+  const rows = items.map((item, index) => [
     <WorkbenchMaterialRow
       key={item.id}
       item={item}
@@ -103,19 +113,28 @@ export function WorkbenchMaterialTable({
       freshStamp={fresh.ids.has(item.id) ? fresh.stamp : undefined}
       editing={editing}
       actions={actions}
-    />
-  ));
+    />,
+    item.sources && (
+      <WorkbenchMaterialSourceTable
+        key={`${item.id}-sources`}
+        item={item}
+        sources={item.sources}
+        span={columns.length + 4}
+        plateNames={plateNames}
+        isJustOpened={item.id === openedSourcesId}
+        actions={sourceActions}
+      />
+    ),
+  ]);
   if (removed) {
-    rows.splice(
-      Math.min(removed.placeIndex, rows.length),
-      0,
+    rows.splice(Math.min(removed.placeIndex, rows.length), 0, [
       <WorkbenchMaterialUndoRow
         key="undo"
         removed={removed}
         span={columns.length + 3}
         onUndo={onUndo}
-      />
-    );
+      />,
+    ]);
   }
 
   return (

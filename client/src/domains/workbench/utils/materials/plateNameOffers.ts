@@ -1,6 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
+import { findSource, sourcesIn } from './materialSources';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -30,6 +31,7 @@ export function plateNameOffers(
 ): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);
+  const sources = sourcesIn(protocol);
   const materialKeys = materials
     .map(material => normalizeMaterialKey(material.name))
     .filter(key => key.length >= SHORTEST_MENTION);
@@ -51,6 +53,7 @@ export function plateNameOffers(
           ignored.has(key) ||
           CONDITION_WORDS.test(name) ||
           findMaterial(materials, name) !== undefined ||
+          findSource(sources, name) !== undefined ||
           findNamed(mixes, name, mix => mix) !== undefined ||
           materialKeys.some(materialKey => nameKey.includes(materialKey));
         if (isSkipped) continue;

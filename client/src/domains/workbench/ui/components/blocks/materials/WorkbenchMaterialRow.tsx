@@ -5,7 +5,7 @@ import { Button, Tooltip } from '@shared/ui';
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
-import { materialFields } from '../../../../utils/materials/materialCatalog';
+import { BIO_GROUP, materialFields } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/materialClashes';
 import {
   RECIPE_FIELD,
@@ -13,6 +13,7 @@ import {
   materialText,
 } from '../../../../utils/materials/materialItems';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
+import { SOURCES_LABEL } from '../../../../utils/materials/materialSources';
 import { localToday } from '../../../../utils/protocolFile/experimentId';
 
 import {
@@ -51,6 +52,7 @@ export interface MaterialRowActions {
     change: { amount?: string; unit?: string }
   ) => void;
   removeRecipeEntry: (itemId: string, entryId: string) => void;
+  startSources: (itemId: string) => void;
 }
 
 interface WorkbenchMaterialRowProps {
@@ -338,6 +340,18 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
           (!diluentUse && <span className={`italic ${MATERIAL_WARNING_TEXT}`}>Not used</span>)}
       </td>
       <td className={MATERIAL_ACTIONS_CELL}>
+        {item.group === BIO_GROUP && !item.sources && (
+          <Tooltip content="List the donors this material came from, one row each">
+            <Button
+              variant="ghost"
+              size="xs"
+              className={ROW_ACTION}
+              onClick={() => actions.startSources(item.id)}
+            >
+              + {SOURCES_LABEL}
+            </Button>
+          </Tooltip>
+        )}
         <Button variant="ghost" size="xs" className={ROW_ACTION} onClick={() => actions.drop(item)}>
           Drop
         </Button>

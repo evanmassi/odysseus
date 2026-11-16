@@ -674,6 +674,8 @@ export {
   withGreekLetters,
   type FieldDefinition,
   type MaterialItem,
+  type MaterialSource,
+  type MaterialSources,
   type Protocol,
   type ProtocolBlock,
   type ProtocolBlockType,

@@ -3,6 +3,8 @@ export {
   PROTOCOL_FILE_VERSION,
   type FieldDefinition,
   type MaterialItem,
+  type MaterialSource,
+  type MaterialSources,
   type Protocol,
   type ProtocolBlock,
   type ProtocolBlockType,

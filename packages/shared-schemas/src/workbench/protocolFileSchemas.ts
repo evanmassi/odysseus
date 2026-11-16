@@ -50,6 +50,13 @@ const blockBase = {
   expandedHeight: z.number().int().min(1).optional(),
 };
 
+const materialSourcesSchema = z.object({
+  label: z.string(),
+  shownFields: z.array(z.string()),
+  customFields: z.array(fieldDefinitionSchema).default([]),
+  rows: z.array(z.object({ id, name: z.string(), values: textMap, units: textMap.default({}) })),
+});
+
 const materialItemSchema = z.object({
   id,
   group: z.string(),
@@ -64,6 +71,7 @@ const materialItemSchema = z.object({
   recipe: z
     .array(z.object({ id, materialId: z.string(), amount: z.string(), unit: z.string() }))
     .default([]),
+  sources: materialSourcesSchema.optional(),
 });
 
 const materialsBlockSchema = z.object({
@@ -298,6 +306,8 @@ export type ProtocolPage = z.infer<typeof pageSchema>;
 export type ProtocolBlock = z.infer<typeof protocolBlockSchema>;
 export type ProtocolBlockType = ProtocolBlock['type'];
 export type MaterialItem = z.infer<typeof materialItemSchema>;
+export type MaterialSources = z.infer<typeof materialSourcesSchema>;
+export type MaterialSource = MaterialSources['rows'][number];
 export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
 export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
 export type FormulaBlock = z.infer<typeof formulaBlockSchema>;

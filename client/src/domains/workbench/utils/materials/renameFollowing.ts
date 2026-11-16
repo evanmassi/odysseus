@@ -8,6 +8,7 @@ import {
 import { heldNames, renameValue, type HeldName } from '../vessels/wellEdits';
 
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
+import { findSource, sourcesIn } from './materialSources';
 
 const NOTES_START = '(';
 
@@ -37,15 +38,29 @@ export function materialFollowsPlateRename(draft: Protocol, from: string, to: st
   const toName = nameWithoutNotes(to);
   if (!bareKey(to) || isSameBareName(from, to) || isNameOnAnyWell(draft, from)) return;
   const materials = listedMaterials(draft);
-  if (findMaterial(materials, toName)) return;
   const material = findNamed(materials, from, candidate => candidate.name);
-  if (material) material.name = withLeadingName(material.name, toName);
+  if (material && !findMaterial(materials, toName)) {
+    material.name = withLeadingName(material.name, toName);
+  }
+  const sources = sourcesIn(draft);
+  const match = findSource(sources, from);
+  if (match && !findSource(sources, toName)) {
+    match.source.name = withLeadingName(match.source.name, toName);
+  }
 }
 
 export function plateFollowsMaterialRename(draft: Protocol, from: string, to: string): void {
-  const toName = nameWithoutNotes(to);
   const isStillListed = findNamed(listedMaterials(draft), from, item => item.name) !== undefined;
-  if (!bareKey(to) || isSameBareName(from, to) || isStillListed) return;
+  if (!isStillListed) renamePlateValues(draft, from, to);
+}
+
+export function plateFollowsSourceRename(draft: Protocol, from: string, to: string): void {
+  if (!findSource(sourcesIn(draft), from)) renamePlateValues(draft, from, to);
+}
+
+function renamePlateValues(draft: Protocol, from: string, to: string): void {
+  const toName = nameWithoutNotes(to);
+  if (!bareKey(to) || isSameBareName(from, to)) return;
   for (const plate of vesselMaps(draft)) {
     const values = plate.lines.flatMap(line => line.values);
     const renamed = values.filter(value => isSameBareName(value.text, from));

@@ -6,10 +6,12 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { displayValue, readableAmount } from '../formulas/quantities';
+import { findNamed } from '../materials/materialLookup';
 
 import { seriesPoint } from './plateSeries';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
+import type { SourceSummary } from '../materials/materialSources';
 
 export interface WellLine {
   label: string;
@@ -48,11 +50,34 @@ export function wellLine(
 export const wellLineText = ({ label, readable }: WellLine) =>
   [label, readable].filter(Boolean).join(' · ');
 
+const lineDetail = (
+  block: VesselMapBlock,
+  key: string,
+  line: PlateLine,
+  calculation: BoardCalculation
+) => {
+  const shown = wellLine(block, key, line, calculation);
+  return shown && wellLineText(shown);
+};
+
 export const wellDetails = (block: VesselMapBlock, key: string, calculation: BoardCalculation) =>
   block.lines.flatMap(line => {
-    const shown = wellLine(block, key, line, calculation);
-    const text = shown && wellLineText(shown);
+    const text = lineDetail(block, key, line, calculation);
     return text ? [text] : [];
+  });
+
+export const wellTooltipDetails = (
+  block: VesselMapBlock,
+  key: string,
+  calculation: BoardCalculation,
+  sources: readonly SourceSummary[]
+): string[] =>
+  block.lines.flatMap(line => {
+    const text = lineDetail(block, key, line, calculation);
+    if (!text) return [];
+    const name = lineValueOf(line, block.cells[key]?.[line.id])?.text;
+    const found = name ? findNamed(sources, name, source => source.name) : undefined;
+    return found ? [text, found.summary] : [text];
   });
 
 export function wellColor(
