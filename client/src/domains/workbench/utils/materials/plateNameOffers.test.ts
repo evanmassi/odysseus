@@ -23,10 +23,7 @@ function protocolWith(names: string[], ignored: string[] = []): Protocol {
       {
         id: 'materials',
         type: 'materials',
-        items: [
-          material('m-raji', 'Raji-Luc'),
-          material('m-stim', 'Stim X description'),
-        ],
+        items: [material('m-raji', 'Raji-Luc'), material('m-stim', 'Stim X description')],
       },
       {
         id: 'values',

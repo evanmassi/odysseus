@@ -205,10 +205,7 @@ describe('the values table', () => {
     const withNote = {
       id: 'materials',
       type: 'materials',
-      items: [
-        ...MATERIALS,
-        material('m-stx', 'STX (stim X description)', 'bio', 'Other'),
-      ],
+      items: [...MATERIALS, material('m-stx', 'STX (stim X description)', 'bio', 'Other')],
     };
     const mix = valuesBlock('values', {
       sections: [...mainValues.sections, { id: 'sec-mix', mixName: 'Th17 cocktail' }],

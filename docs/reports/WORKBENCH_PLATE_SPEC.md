@@ -27,7 +27,7 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
   - mixed → only the empty wells get the label value.
     Then drop `groups`/`wells`; re-key `counts[groupId]` → `counts[valueId]` and `amountNames` keys
     ending `:<groupId>` → `:<valueId>`; merge duplicate lines as above. Evan's real file maps cleanly
-    (4 painted colors = 4 drug values; two disjoint STX lines merge). The polluted joined name the old
+    (painted colors become drug values; two disjoint lines with the same values merge). The polluted joined name the old
     handoff described is not in his saved file, so no repair step is needed.
 - **Also fix:** shelf vessels (flasks/tubes) get value colors; legend count and formula count agree
   (both card-wide with overrides); deleting a plate prunes orphan values/lines/series; well-editor

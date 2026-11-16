@@ -66,9 +66,7 @@ const typeIntoWells = (protocol: Protocol, keys: string[], text: string) =>
 
 describe('withLeadingName', () => {
   it('swaps the name and keeps the description', () => {
-    expect(withLeadingName(STIM_NAME, 'SXT')).toBe(
-      'SXT (Stim X Description (receptor agonist))'
-    );
+    expect(withLeadingName(STIM_NAME, 'SXT')).toBe('SXT (Stim X Description (receptor agonist))');
     expect(withLeadingName('STX', 'SXT')).toBe('SXT');
   });
 });
