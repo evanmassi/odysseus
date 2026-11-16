@@ -120,6 +120,11 @@ function mergeLineInto(block: VesselMapBlock, from: PlateLine, into: PlateLine):
   into.values.push(...from.values);
   into.name ||= from.name;
   if (into.role === 'auto') into.role = from.role;
+  into.ratioTo ??= from.ratioTo;
+  for (const line of block.lines) {
+    if (line.ratioTo === from.id) line.ratioTo = into.id;
+  }
+  if (into.ratioTo === into.id) delete into.ratioTo;
   const prefix = `a:${from.id}:`;
   renameKeys(block.amountNames, key =>
     key.startsWith(prefix) ? `a:${into.id}:${key.slice(prefix.length)}` : key
@@ -143,6 +148,9 @@ export function pruneUnused(block: VesselMapBlock): void {
     if (!usedSeries.has(seriesId)) delete block.series[seriesId];
   }
   block.lines = block.lines.filter(line => usedLines.has(line.id));
+  for (const line of block.lines) {
+    if (line.ratioTo && !usedLines.has(line.ratioTo)) delete line.ratioTo;
+  }
   for (const line of block.lines)
     line.values = line.values.filter(value => usedValues.has(value.id));
 }

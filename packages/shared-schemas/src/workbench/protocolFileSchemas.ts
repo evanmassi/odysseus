@@ -172,6 +172,7 @@ const plateLineSchema = z.object({
   name: z.string(),
   values: z.array(z.object({ id, text: z.string(), color: z.string().optional() })),
   role: z.enum(LINE_ROLES).default('auto'),
+  ratioTo: z.string().optional(),
 });
 
 export const PLATE_FORMATS = ['6', '12', '24', '48', '96', '384'] as const;

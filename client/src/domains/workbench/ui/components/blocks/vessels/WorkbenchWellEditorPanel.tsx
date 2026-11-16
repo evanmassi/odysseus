@@ -8,6 +8,7 @@ import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
 import { isSameBareName } from '../../../../utils/materials/renameFollowing';
+import { ratioRow } from '../../../../utils/vessels/cellRatios';
 import { seriesSummary } from '../../../../utils/vessels/plateSeries';
 import {
   lineUnitOf,
@@ -27,6 +28,7 @@ import {
   removeLineFromWells,
   renameLine,
   renameValue,
+  setRatioPartner,
   setWellsAmount,
   setWellsText,
   setWellsUnit,
@@ -279,8 +281,12 @@ export function WorkbenchWellEditorPanel({
               canRemove={!draft && rows.length > 1}
               inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
               sharedName={sharedName}
+              ratio={row.line && ratioRow(block, keyList, row.line, calculation)}
               onTextChange={text => edit(change => setWellsText(change, keyList, lineId, text))}
               onRenameLine={name => nameRow(target, name)}
+              onPartnerChange={partnerId =>
+                updateVesselMap(change => setRatioPartner(change, lineId, partnerId))
+              }
               onRenameEverywhere={() =>
                 started && updateVesselMap(change => renameValue(change, started.valueId, row.text))
               }

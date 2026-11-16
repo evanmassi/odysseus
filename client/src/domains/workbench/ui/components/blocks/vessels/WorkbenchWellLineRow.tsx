@@ -12,6 +12,7 @@ import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 import { WorkbenchPlateNameField } from './WorkbenchPlateNameField';
 import { WorkbenchPlateSuggestionList } from './WorkbenchPlateSuggestionList';
 
+import type { RatioRow } from '../../../../utils/vessels/cellRatios';
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
 import type { NameElsewhere, WellRow } from '../../../../utils/vessels/wellEdits';
 
@@ -26,9 +27,11 @@ interface WorkbenchWellLineRowProps {
   canRemove: boolean;
   inputRef: Ref<HTMLInputElement> | undefined;
   sharedName: NameElsewhere | undefined;
+  ratio: RatioRow | undefined;
   onTextChange: (text: string) => void;
   onRenameEverywhere: () => void;
   onRenameLine: (name: string) => void;
+  onPartnerChange: (lineId: string) => void;
   onAmountChange: (amount: string) => void;
   onUnitChange: (unit: string) => void;
   onRoleChange: (role: PlateLine['role']) => void;
@@ -57,9 +60,11 @@ export function WorkbenchWellLineRow({
   canRemove,
   inputRef,
   sharedName,
+  ratio,
   onTextChange,
   onRenameEverywhere,
   onRenameLine,
+  onPartnerChange,
   onAmountChange,
   onUnitChange,
   onRoleChange,
@@ -181,6 +186,27 @@ export function WorkbenchWellLineRow({
           </button>
         )}
       </div>
+      {ratio && (
+        <p className="flex items-center gap-1.5 pl-6 text-caption text-muted-foreground">
+          to
+          <Select
+            size="xs"
+            isQuiet
+            value={ratio.chosenId}
+            options={[
+              {
+                value: '',
+                label: ratio.autoLabel ? `Auto: ${ratio.autoLabel}` : 'Pick the other cells',
+              },
+              ...ratio.choices.map(choice => ({ value: choice.lineId, label: choice.label })),
+            ]}
+            aria-label="The cells this ratio is to"
+            className="w-40"
+            onChange={choice => onPartnerChange(String(choice ?? ''))}
+          />
+          {ratio.workedOut && <span className="text-foreground">{ratio.workedOut}</span>}
+        </p>
+      )}
       {sharedName && (
         <p className="pl-6 text-caption text-muted-foreground">
           {sharedName.text} is also on {sharedName.wellCount}{' '}

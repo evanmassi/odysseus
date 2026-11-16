@@ -8,7 +8,8 @@ import {
 import { displayValue, readableAmount } from '../formulas/quantities';
 import { findNamed } from '../materials/materialLookup';
 
-import { seriesPoint } from './plateSeries';
+import { ratioNote } from './cellRatios';
+import { wellAmount } from './plateSeries';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
 import type { SourceSummary } from '../materials/materialSources';
@@ -35,11 +36,9 @@ export function wellLine(
   calculation: BoardCalculation
 ): WellLine | undefined {
   const cell = block.cells[key]?.[line.id];
-  if (!isFilledCell(cell)) return undefined;
-  const series = cell.seriesId === undefined ? undefined : block.series[cell.seriesId];
-  const { amount, unit } = series
-    ? seriesPoint(series, cell.seriesStep ?? 0, calculation)
-    : { amount: cell.amount?.trim() ?? '', unit: cell.unit ?? '' };
+  const point = wellAmount(block, key, line, calculation);
+  if (!isFilledCell(cell) || !point) return undefined;
+  const { amount, unit } = point;
   return {
     label: lineValueOf(line, cell)?.text.trim() ?? '',
     amount: amount ? displayValue(amount, unit) : '',
@@ -73,8 +72,10 @@ export const wellTooltipDetails = (
   sources: readonly SourceSummary[]
 ): string[] =>
   block.lines.flatMap(line => {
-    const text = lineDetail(block, key, line, calculation);
-    if (!text) return [];
+    const detail = lineDetail(block, key, line, calculation);
+    if (!detail) return [];
+    const note = ratioNote(block, key, line, calculation);
+    const text = note ? `${detail} ${note}` : detail;
     const name = lineValueOf(line, block.cells[key]?.[line.id])?.text;
     const found = name ? findNamed(sources, name, source => source.name) : undefined;
     return found ? [text, found.summary] : [text];

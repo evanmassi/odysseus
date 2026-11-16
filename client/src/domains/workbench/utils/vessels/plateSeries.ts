@@ -1,9 +1,15 @@
 import { describeName } from '../formulas/nameDisplay';
-import { displayValue, RATIO_NOTATION } from '../formulas/quantities';
+import {
+  displayValue,
+  formatRatio,
+  PAIR_NOTATION,
+  RATIO_NOTATION,
+  readPair,
+} from '../formulas/quantities';
 import { amountUnit, readTypedAmount } from '../units/textAmounts';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
-import type { PlateSeries } from '@odysseus/shared-schemas';
+import type { PlateLine, PlateSeries, VesselMapBlock } from '@odysseus/shared-schemas';
 
 export type StepSeries = Extract<PlateSeries, { start: string }>;
 
@@ -62,6 +68,12 @@ export function seriesPoint(
   if ('points' in series) return { amount: series.points[step] ?? '', unit: '' };
   const start = readPart(calculation, series.start);
   const fold = foldOf(readPart(calculation, series.fold).text);
+  if (series.unit === PAIR_NOTATION) {
+    const ratio = readPair(start.text);
+    return ratio && fold > 0
+      ? { amount: formatRatio(ratio / fold ** step), unit: series.unit }
+      : { amount: start.text, unit: series.unit };
+  }
   const isRatio = series.unit === RATIO_NOTATION;
   const unit = start.isName && !isRatio ? '' : series.unit;
   const numbers = [...start.text.matchAll(NUMBERS_IN_TEXT)];
@@ -76,11 +88,28 @@ export function seriesPoint(
   return { amount, unit };
 }
 
+export function wellAmount(
+  block: VesselMapBlock,
+  key: string,
+  line: PlateLine,
+  calculation: BoardCalculation
+): SeriesPoint | undefined {
+  const cell = block.cells[key]?.[line.id];
+  if (!cell) return undefined;
+  const series = cell.seriesId === undefined ? undefined : block.series[cell.seriesId];
+  return series
+    ? seriesPoint(series, cell.seriesStep ?? 0, calculation)
+    : { amount: cell.amount?.trim() ?? '', unit: cell.unit ?? '' };
+}
+
 export function seriesSummary(series: PlateSeries, calculation: BoardCalculation): string {
   const arrow = DIRECTION_ARROWS[series.direction];
   if ('points' in series) return [series.points.join(', '), arrow].filter(Boolean).join(' ');
   const start = seriesPoint(series, 0, calculation);
   const fold = readPart(calculation, series.fold).text;
+  if (series.unit === PAIR_NOTATION) {
+    return [start.amount, fold && `÷${foldOf(fold) || fold}`, arrow].filter(Boolean).join(' ');
+  }
   return [
     start.amount && displayValue(start.amount, start.unit),
     fold && `1:${foldOf(fold) || fold}`,

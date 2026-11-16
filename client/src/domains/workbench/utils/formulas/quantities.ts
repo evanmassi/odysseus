@@ -70,6 +70,16 @@ const PLAIN_NUMBER = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?$/;
 
 const plainNumber = (value: number) => String(Number(value.toPrecision(3)));
 
+const FLOAT_NOISE_DIGITS = 12;
+
+function ratioPart(value: number): string {
+  const settled = Number(value.toPrecision(FLOAT_NOISE_DIGITS));
+  return Number.isInteger(settled) ? String(settled) : plainNumber(value);
+}
+
+export const formatRatio = (value: number): string =>
+  value >= 1 ? `${ratioPart(value)}:1` : `1:${ratioPart(1 / value)}`;
+
 const isScientificSize = (size: number) => size >= SCIENTIFIC_FROM || size < SCIENTIFIC_BELOW;
 
 function readableNumberText(text: string): string {
@@ -92,7 +102,7 @@ export function readNumber(text: string): number | undefined {
   return parsed.success ? parsed.value : undefined;
 }
 
-function readPair(text: string): number | undefined {
+export function readPair(text: string): number | undefined {
   const [first, second] = text.split(':').map(readNumber);
   return first !== undefined && second !== undefined && second > 0 ? first / second : undefined;
 }

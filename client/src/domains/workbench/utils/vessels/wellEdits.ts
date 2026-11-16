@@ -244,6 +244,13 @@ export function renameLine(block: VesselMapBlock, lineId: string, name: string):
   if (line) line.name = name.trim();
 }
 
+export function setRatioPartner(block: VesselMapBlock, lineId: string, partnerId: string): void {
+  const line = block.lines.find(candidate => candidate.id === lineId);
+  if (!line) return;
+  if (partnerId) line.ratioTo = partnerId;
+  else delete line.ratioTo;
+}
+
 export function renameValue(block: VesselMapBlock, valueId: string, text: string): void {
   const value = block.lines
     .flatMap(line => line.values)
