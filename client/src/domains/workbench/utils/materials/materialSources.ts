@@ -4,7 +4,7 @@ import { formatNumber, readNumber } from '../formulas/quantities';
 import { createId } from '../ids/createId';
 
 import { SOURCE_FIELDS, fieldKey } from './materialCatalog';
-import { findNamed, listedMaterials } from './materialLookup';
+import { findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 import type { FieldChoice } from './materialSectionFields';
 import type {
@@ -22,6 +22,10 @@ const TOTAL_FIELD = 'total-count';
 const VIABILITY_FIELD = 'viability';
 const LIVE_FIELD = 'live-count';
 const PERCENT = 100;
+const DONOR_KEY_OF_MATERIAL_KEY: Readonly<Record<string, string>> = {
+  lot: LOT_FIELD,
+  vendor: 'source',
+};
 
 export const STARTING_SOURCE_FIELDS: readonly string[] = SOURCE_FIELDS.map(
   definition => definition.key
@@ -170,3 +174,26 @@ export interface SourceSummary {
 
 export const sourceSummaries = (protocol: Pick<Protocol, 'blocks'>): SourceSummary[] =>
   sourcesIn(protocol).map(match => ({ name: match.source.name, summary: sourceSummary(match) }));
+
+export function moveIntoSources(draft: Protocol, itemId: string, targetId: string): void {
+  const target = listedMaterials(draft).find(candidate => candidate.id === targetId);
+  const block = draft.blocks.find(
+    candidate => candidate.type === 'materials' && candidate.items.some(item => item.id === itemId)
+  );
+  if (!target?.sources || block?.type !== 'materials' || itemId === targetId) return;
+  const item = block.items.find(candidate => candidate.id === itemId);
+  if (!item) return;
+  const donorKeys = new Set(sourceFields(target.sources).map(field => field.key));
+  const carried = Object.entries(item.values).flatMap(([key, value]) => {
+    const donorKey = DONOR_KEY_OF_MATERIAL_KEY[key] ?? key;
+    return value.trim() && donorKeys.has(donorKey) ? [[key, donorKey] as const] : [];
+  });
+  block.items = block.items.filter(candidate => candidate.id !== itemId);
+  if (findNamed(target.sources.rows, item.name, row => row.name)) return;
+  addSource(target.sources, nameWithoutNotes(item.name), {
+    values: Object.fromEntries(carried.map(([key, donorKey]) => [donorKey, item.values[key]])),
+    units: Object.fromEntries(
+      carried.flatMap(([key, donorKey]) => (item.units[key] ? [[donorKey, item.units[key]]] : []))
+    ),
+  });
+}

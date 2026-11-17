@@ -130,6 +130,7 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
         onPointerDown={event => actions.onPointerDown(wellKey, event)}
         onPointerEnter={() => actions.onPointerEnter(wellKey)}
         onDoubleClick={() => actions.onDoubleClick(wellKey)}
+        onContextMenu={event => actions.onContextMenu(wellKey, event)}
         className={`group relative flex cursor-pointer flex-col items-center gap-1 ${metrics.isVertical ? 'min-w-16' : ''}`}
       >
         <div className="relative">

@@ -27,6 +27,7 @@ interface WorkbenchVesselShelfListProps {
   selection: WellSelection;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
+  onOpenMenu: (key: string, at: { x: number; y: number }) => void;
 }
 
 export function WorkbenchVesselShelfList({
@@ -40,8 +41,9 @@ export function WorkbenchVesselShelfList({
   selection,
   onKeyDown,
   onOpenWell,
+  onOpenMenu,
 }: WorkbenchVesselShelfListProps) {
-  const actions = useWellPointerActions(sheet, selection, onOpenWell);
+  const actions = useWellPointerActions(sheet, selection, onOpenWell, onOpenMenu);
   const shelves = useStructuralSharing(
     block.sets.map((set, row) => {
       const vessel = LOOSE_VESSELS[set.vessel];

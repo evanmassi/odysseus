@@ -16,8 +16,10 @@ import type { PlateNameOffer } from '../../../../utils/materials/plateNameOffers
 interface WorkbenchMaterialPlateNamesSectionProps {
   offers: readonly PlateNameOffer[];
   materialChoices: SelectOption[];
+  donorTargets: readonly SelectOption[];
   guessType: (name: string) => string;
   onAdd: (offers: readonly PlateNameOffer[]) => void;
+  onAddAsDonors: (offers: readonly PlateNameOffer[], materialId: string) => void;
   onLink: (offer: PlateNameOffer, materialId: string) => void;
   onIgnore: (offer: PlateNameOffer) => void;
 }
@@ -25,8 +27,10 @@ interface WorkbenchMaterialPlateNamesSectionProps {
 export function WorkbenchMaterialPlateNamesSection({
   offers,
   materialChoices,
+  donorTargets,
   guessType,
   onAdd,
+  onAddAsDonors,
   onLink,
   onIgnore,
 }: WorkbenchMaterialPlateNamesSectionProps) {
@@ -35,9 +39,24 @@ export function WorkbenchMaterialPlateNamesSection({
       title="From your plate"
       count={offers.length}
       action={
-        <Button variant="ghost" size="xs" onClick={() => onAdd(offers)}>
-          Add all
-        </Button>
+        <span className="inline-flex items-center gap-1">
+          <Button variant="ghost" size="xs" onClick={() => onAdd(offers)}>
+            Add all
+          </Button>
+          {donorTargets.length > 0 && (
+            <span className="w-44">
+              <Select
+                size="xs"
+                isQuiet
+                value=""
+                placeholder="All as donors of…"
+                aria-label="Add them all as donors of"
+                options={[...donorTargets]}
+                onChange={choice => choice && onAddAsDonors(offers, String(choice))}
+              />
+            </span>
+          )}
+        </span>
       }
     >
       <ScrollArea options={HORIZONTAL_SCROLL}>
@@ -66,6 +85,21 @@ export function WorkbenchMaterialPlateNamesSection({
                     <Button variant="ghost" size="xs" onClick={() => onAdd([offer])}>
                       Add
                     </Button>
+                    {donorTargets.length > 0 && (
+                      <Tooltip content="Add it as a donor of a cell material, listed under that material">
+                        <span className="w-36">
+                          <Select
+                            size="xs"
+                            isQuiet
+                            value=""
+                            placeholder="Donor of…"
+                            aria-label={`${offer.name} is a donor of`}
+                            options={[...donorTargets]}
+                            onChange={choice => choice && onAddAsDonors([offer], String(choice))}
+                          />
+                        </span>
+                      </Tooltip>
+                    )}
                     {materialChoices.length > 0 && (
                       <Tooltip
                         content={`Link it to a material you already listed; that material is renamed “${offer.name} (its name)”`}

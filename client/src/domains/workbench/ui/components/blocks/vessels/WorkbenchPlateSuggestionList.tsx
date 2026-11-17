@@ -1,6 +1,7 @@
 interface PlateSuggestion {
   key: string;
   text: string;
+  hint?: string;
 }
 
 interface WorkbenchPlateSuggestionListProps {
@@ -18,7 +19,7 @@ export function WorkbenchPlateSuggestionList({
   return (
     <div className="flex flex-wrap items-center gap-1">
       {label && <span className="text-caption text-muted-foreground">{label}</span>}
-      {suggestions.map(({ key, text }) => (
+      {suggestions.map(({ key, text, hint }) => (
         <button
           key={key}
           type="button"
@@ -27,6 +28,7 @@ export function WorkbenchPlateSuggestionList({
           onClick={() => onPick(text)}
         >
           {text}
+          {hint && <span className="ml-1.5 text-muted-foreground">{hint}</span>}
         </button>
       ))}
     </div>

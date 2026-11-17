@@ -74,11 +74,3 @@ export function replicateMerges(
   }
   return { anchors, covered };
 }
-
-export function withMergedWells(merges: ReplicateMerges, keys: ReadonlySet<string>): Set<string> {
-  const expanded = new Set(keys);
-  for (const merged of merges.anchors.values()) {
-    if (merged.keys.some(key => keys.has(key))) merged.keys.forEach(key => expanded.add(key));
-  }
-  return expanded;
-}

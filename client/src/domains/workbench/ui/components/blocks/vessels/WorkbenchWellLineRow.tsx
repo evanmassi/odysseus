@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import type { Ref } from 'react';
 
-import { plateValueKey, type PlateLine, withGreekLetters } from '@odysseus/shared-schemas';
+import { type PlateLine, withGreekLetters } from '@odysseus/shared-schemas';
 import { X } from 'lucide-react';
 
 import { Input, Select, Tooltip } from '@shared/ui';
 
+import { wellValueSuggestions } from '../../../../utils/vessels/wellValueSuggestions';
 import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
 
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
@@ -15,8 +16,10 @@ import { WorkbenchPlateSuggestionList } from './WorkbenchPlateSuggestionList';
 import type { RatioRow } from '../../../../utils/vessels/cellRatios';
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
 import type { NameElsewhere, WellRow } from '../../../../utils/vessels/wellEdits';
+import type { KnownName } from '../../../../utils/vessels/wellValueSuggestions';
 
 interface WorkbenchWellLineRowProps {
+  knownNames: readonly KnownName[];
   row: WellRow;
   lineName: string;
   lineOffers: readonly string[];
@@ -48,9 +51,9 @@ const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
   caption: 'Caption',
   hover: 'Hover only',
 };
-const SUGGESTION_LIMIT = 6;
 
 export function WorkbenchWellLineRow({
+  knownNames,
   row,
   lineName,
   lineOffers,
@@ -74,15 +77,7 @@ export function WorkbenchWellLineRow({
   onPickColor,
 }: WorkbenchWellLineRowProps) {
   const [isPickingColor, setIsPickingColor] = useState(false);
-  const typed = plateValueKey(row.text);
-  const suggestions = typed
-    ? (row.line?.values ?? [])
-        .filter(value => {
-          const key = plateValueKey(value.text);
-          return key.includes(typed) && key !== typed;
-        })
-        .slice(0, SUGGESTION_LIMIT)
-    : [];
+  const suggestions = wellValueSuggestions(row.text, row.line?.values ?? [], knownNames);
   const roleOptions = Object.entries(ROLE_LABELS).map(([value, label]) => ({
     value,
     label: value === 'auto' && autoRole ? `Auto: ${ROLE_LABELS[autoRole].toLowerCase()}` : label,
@@ -231,10 +226,7 @@ export function WorkbenchWellLineRow({
           }}
         />
       )}
-      <WorkbenchPlateSuggestionList
-        suggestions={suggestions.map(value => ({ key: value.id, text: value.text }))}
-        onPick={onTextChange}
-      />
+      <WorkbenchPlateSuggestionList suggestions={suggestions} onPick={onTextChange} />
     </div>
   );
 }

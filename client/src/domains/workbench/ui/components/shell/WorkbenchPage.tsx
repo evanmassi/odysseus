@@ -4,6 +4,7 @@ import { ConsolePanel, Divider, ScrollArea } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useProtocolFileActions } from '../../../hooks/useProtocolFileActions';
+import { useUndoShortcuts } from '../../../hooks/useUndoShortcuts';
 import { WorkbenchBlockRail } from '../board/WorkbenchBlockRail';
 import { WorkbenchBoard } from '../board/WorkbenchBoard';
 import { WorkbenchPageTabs } from '../board/WorkbenchPageTabs';
@@ -28,6 +29,7 @@ export function WorkbenchPage() {
 
   const { recentFiles, openFromPicker, openHandle, openUpload, startNew, save } =
     useProtocolFileActions(confirmDiscard);
+  useUndoShortcuts();
 
   return (
     <div className="flex min-h-0 flex-1 gap-4 px-4 pb-4 pt-3">

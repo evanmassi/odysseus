@@ -25,6 +25,7 @@ export type { InputState } from './input';
 
 export { ConsolePanel } from './console-panel/ConsolePanel';
 
+export { ContextMenu } from './menus/ContextMenu';
 export { DropdownMenu } from './menus/DropdownMenu';
 export { MenuItem } from './menus/MenuItem';
 export { MenuDivider } from './menus/MenuDivider';

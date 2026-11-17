@@ -26,8 +26,16 @@ interface WorkbenchPlateWellButtonProps {
   view: PlateWellView;
   density: WellDensity;
   isSelected: boolean;
+  selectedParts: string | undefined;
   actions: WellPointerActions;
 }
+
+export const PART_SEPARATOR = '|';
+
+const keyUnder = (target: EventTarget, fallback: string) =>
+  target instanceof Element
+    ? (target.closest<HTMLElement>('[data-well-key]')?.dataset['wellKey'] ?? fallback)
+    : fallback;
 
 const DENSITY_CLASSES: Readonly<Record<WellDensity, string>> = {
   tiny: '',
@@ -47,6 +55,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
   view,
   density,
   isSelected,
+  selectedParts,
   actions,
 }: WorkbenchPlateWellButtonProps) {
   const { key: wellKey, row, col, merged, tooltip, shownLine, isFilled, color, stripes } = view;
@@ -58,9 +67,13 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
         data-well-key={wellKey}
         tabIndex={-1}
         aria-selected={isSelected}
-        onPointerDown={event => actions.onPointerDown(wellKey, event)}
-        onPointerEnter={() => actions.onPointerEnter(wellKey)}
-        onDoubleClick={() => actions.onDoubleClick(wellKey)}
+        onPointerDown={event => actions.onPointerDown(keyUnder(event.target, wellKey), event)}
+        onPointerOver={event => {
+          const isGapInMerge = merged && event.target === event.currentTarget;
+          if (!isGapInMerge) actions.onPointerEnter(keyUnder(event.target, wellKey));
+        }}
+        onDoubleClick={event => actions.onDoubleClick(keyUnder(event.target, wellKey))}
+        onContextMenu={event => actions.onContextMenu(keyUnder(event.target, wellKey), event)}
         className={`relative flex cursor-pointer items-center justify-center border py-0.5 text-foreground ${
           isFilled ? 'border-foreground/45' : 'border-foreground/15'
         } ${isSelected ? 'z-10 selection-glow' : ''} ${DENSITY_CLASSES[density]}`}
@@ -91,13 +104,19 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
             style={{ gridTemplate: `repeat(${merged.height}, 1fr) / repeat(${merged.width}, 1fr)` }}
           >
             {merged.keys.map(key => (
-              <i key={key} className="border border-dashed border-foreground/20" />
+              <i
+                key={key}
+                data-well-key={key}
+                className={`pointer-events-auto relative border border-dashed border-foreground/20 ${
+                  selectedParts?.split(PART_SEPARATOR).includes(key) ? 'z-10 selection-glow' : ''
+                }`}
+              />
             ))}
           </span>
         )}
         {shownLine && density !== 'tiny' && (
           <span
-            className={`relative flex max-h-full w-full items-center overflow-hidden text-center ${
+            className={`pointer-events-none relative flex max-h-full w-full items-center overflow-hidden text-center ${
               isNarrow ? 'flex-col-reverse' : 'flex-col'
             }`}
           >

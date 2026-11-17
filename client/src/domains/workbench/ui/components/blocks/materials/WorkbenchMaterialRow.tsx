@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef, type ReactNode } from 'react';
 
-import { Button, Tooltip } from '@shared/ui';
+import { Button, Select, Tooltip, type SelectOption } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
@@ -36,6 +36,7 @@ import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 export interface MaterialRowActions {
+  makeDonorOf: (itemId: string, targetId: string) => void;
   rename: (itemId: string, name: string) => void;
   writeField: (itemId: string, definition: FieldDefinition, value: string) => void;
   setUnit: (itemId: string, key: string, unit: string) => void;
@@ -72,6 +73,7 @@ interface WorkbenchMaterialRowProps {
   freshStamp: number | undefined;
   editing: MaterialCellEditing;
   actions: MaterialRowActions;
+  donorTargets: readonly SelectOption[];
 }
 
 const LIST_PROPS = new Set<keyof WorkbenchMaterialRowProps>(['columns', 'recipe', 'recipeUsers']);
@@ -181,7 +183,10 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   freshStamp,
   editing,
   actions,
+  donorTargets,
 }: WorkbenchMaterialRowProps) {
+  const donorChoices = donorTargets.filter(target => target.value !== item.id);
+  const canBeDonor = donorChoices.length > 0 && !item.sources?.rows.length;
   const rowRef = useRef<HTMLTableRowElement>(null);
   const fields = materialFields(item);
   const summary = [
@@ -350,6 +355,21 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
             >
               + {SOURCES_LABEL}
             </Button>
+          </Tooltip>
+        )}
+        {canBeDonor && (
+          <Tooltip content="Move it under a cell material as one of its donors; matching fields come along">
+            <span className={`${ROW_ACTION} inline-flex w-36`}>
+              <Select
+                size="xs"
+                isQuiet
+                value=""
+                placeholder="Make a donor of…"
+                aria-label={`Make ${item.name} a donor of`}
+                options={donorChoices}
+                onChange={choice => choice && actions.makeDonorOf(item.id, String(choice))}
+              />
+            </span>
           </Tooltip>
         )}
         <Button variant="ghost" size="xs" className={ROW_ACTION} onClick={() => actions.drop(item)}>

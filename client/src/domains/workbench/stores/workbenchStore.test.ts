@@ -132,3 +132,54 @@ describe('workbenchStore', () => {
     });
   });
 });
+
+describe('undo and redo', () => {
+  const titleNow = () => getState().protocol.title;
+  const retitle = (title: string) =>
+    getState().updateProtocol(draft => {
+      draft.title = title;
+    });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    getState().openProtocol(blankProtocol(), 'plate.json');
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('steps back and forward, joining edits that come close together', () => {
+    retitle('A');
+    vi.advanceTimersByTime(2000);
+    retitle('AB');
+    vi.advanceTimersByTime(200);
+    retitle('ABC');
+    getState().undo();
+    expect(titleNow()).toBe('A');
+    getState().undo();
+    expect(titleNow()).toBe(blankProtocol().title);
+    getState().redo();
+    getState().redo();
+    expect(titleNow()).toBe('ABC');
+  });
+
+  it('is clean again back at the save, and a new edit after an undo is unsaved', () => {
+    retitle('Saved');
+    getState().markSaved('plate.json');
+    vi.advanceTimersByTime(2000);
+    retitle('Later');
+    getState().undo();
+    expect(selectIsDirty(getState())).toBe(false);
+    getState().undo();
+    vi.advanceTimersByTime(2000);
+    retitle('Other');
+    expect(selectIsDirty(getState())).toBe(true);
+    expect(getState().future).toHaveLength(0);
+  });
+
+  it('starts over when a file opens', () => {
+    retitle('A');
+    getState().openProtocol(blankProtocol(), 'other.json');
+    getState().undo();
+    expect(getState().past).toHaveLength(0);
+    expect(titleNow()).toBe(blankProtocol().title);
+  });
+});

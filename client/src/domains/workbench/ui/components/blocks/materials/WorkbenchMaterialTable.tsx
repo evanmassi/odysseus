@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-import { ScrollArea } from '@shared/ui';
+import { ScrollArea, type SelectOption } from '@shared/ui';
 
 import { listWithAnd } from '../../../../utils/materials/materialGuesser';
 
@@ -39,6 +39,7 @@ interface MaterialFieldMenu {
 }
 
 interface WorkbenchMaterialTableProps {
+  donorTargets: readonly SelectOption[];
   group: string;
   items: readonly MaterialItem[];
   columns: readonly FieldDefinition[];
@@ -85,6 +86,7 @@ export function WorkbenchMaterialTable({
   removed,
   editing,
   actions,
+  donorTargets,
   sourceActions,
   plateNames,
   openedSourcesId,
@@ -113,6 +115,7 @@ export function WorkbenchMaterialTable({
       freshStamp={fresh.ids.has(item.id) ? fresh.stamp : undefined}
       editing={editing}
       actions={actions}
+      donorTargets={donorTargets}
     />,
     item.sources && (
       <WorkbenchMaterialSourceTable

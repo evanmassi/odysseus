@@ -68,17 +68,28 @@ export function useWellKeyboard(
     });
   };
 
+  const copySelected = () => {
+    clipboard.current = copyWells(block, sheet, selection.keys);
+  };
+
+  const clearWells = () =>
+    updateVesselMap(draft => {
+      for (const key of selection.keys) delete draft.cells[key];
+    });
+
   const clearSelected = () =>
     confirmIfFilled({
       keys: [...selection.keys],
       title: 'Clear wells',
       confirmText: 'Clear',
       describe: filled => `Clear everything in ${filled}?`,
-      apply: () =>
-        updateVesselMap(draft => {
-          for (const key of selection.keys) delete draft.cells[key];
-        }),
+      apply: clearWells,
     });
+
+  const cutSelected = () => {
+    copySelected();
+    clearWells();
+  };
 
   const onKeyDown = (event: KeyboardEvent) => {
     const step = ARROW_STEPS[event.key];
@@ -93,7 +104,10 @@ export function useWellKeyboard(
       selection.clear();
     } else if (isCommand && event.key === 'c' && selection.keys.size) {
       event.preventDefault();
-      clipboard.current = copyWells(block, sheet, selection.keys);
+      copySelected();
+    } else if (isCommand && event.key === 'x' && selection.keys.size) {
+      event.preventDefault();
+      cutSelected();
     } else if (isCommand && event.key === 'v' && selection.keys.size) {
       event.preventDefault();
       paste();
@@ -106,5 +120,12 @@ export function useWellKeyboard(
     }
   };
 
-  return { onKeyDown, clearSelected };
+  return {
+    onKeyDown,
+    clearSelected,
+    copySelected,
+    cutSelected,
+    paste,
+    canPaste: () => clipboard.current.length > 0,
+  };
 }

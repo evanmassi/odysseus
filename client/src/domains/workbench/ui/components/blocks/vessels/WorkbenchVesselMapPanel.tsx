@@ -16,7 +16,7 @@ import {
   plateBands,
   plateCaptions,
 } from '../../../../utils/vessels/plateLayers';
-import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
+import { replicateMerges } from '../../../../utils/vessels/replicateMerges';
 import { vesselOf } from '../../../../utils/vessels/vesselCatalog';
 import { vesselCounts } from '../../../../utils/vessels/vesselMapNames';
 import { shelfScaleFor, wellSizeFor } from '../../../../utils/vessels/vesselSizing';
@@ -29,7 +29,7 @@ import {
   vesselTabs,
 } from '../../../../utils/vessels/vesselTabs';
 import { setWellsText, startingLineId } from '../../../../utils/vessels/wellEdits';
-import { selectionName } from '../../../../utils/vessels/wellSelection';
+import { isWellFilled, selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { useConfirmation } from './useConfirmation';
 import { useUpdateVesselMap } from './useUpdateVesselMap';
@@ -38,6 +38,7 @@ import { useVesselMapCalculation } from './useVesselMapCalculation';
 import { useWellEditSession } from './useWellEditSession';
 import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
+import { WorkbenchPlateContextMenu } from './WorkbenchPlateContextMenu';
 import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
 import { WorkbenchVesselMapControls, type VesselTabLabel } from './WorkbenchVesselMapControls';
@@ -72,8 +73,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const focusEditor = () =>
     setEditor(current => ({ focusesFirstRow: true, generation: (current?.generation ?? 0) + 1 }));
   const merges = replicateMerges(block, sheet, calculation);
-  const expandToMerges = (keys: ReadonlySet<string>) => withMergedWells(merges, keys);
-  const selection = useWellSelection(sheet, tab.id, expandToMerges, closeEditor);
+  const selection = useWellSelection(sheet, tab.id, closeEditor);
   const startedNames = useWellEditSession(block.id, selection.keys, editor !== undefined);
 
   const openEditorWith = (seedText?: string) => {
@@ -85,7 +85,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   };
 
   const { confirmation, ask, dismiss } = useConfirmation();
-  const { onKeyDown, clearSelected } = useWellKeyboard(
+  const { onKeyDown, clearSelected, copySelected, cutSelected, paste, canPaste } = useWellKeyboard(
     block,
     tab,
     sheet,
@@ -95,8 +95,16 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   );
   const vesselChanges = useVesselChanges(block, tab, ask);
 
+  const [menuAt, setMenuAt] = useState<{ x: number; y: number }>();
+  const openMenu = (key: string, at: { x: number; y: number }) => {
+    const spot = sheet.spots.find(candidate => candidate.key === key);
+    if (spot) selection.openAt(spot);
+    setMenuAt(at);
+  };
+
   const openWell = (key: string) => {
-    selection.selectKeys([key]);
+    const spot = sheet.spots.find(candidate => candidate.key === key);
+    if (spot) selection.openAt(spot);
     focusEditor();
   };
 
@@ -180,6 +188,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               merges={merges}
               onKeyDown={onKeyDown}
               onOpenWell={openWell}
+              onOpenMenu={openMenu}
             />
           ) : (
             <WorkbenchVesselShelfList
@@ -193,6 +202,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               selection={selection}
               onKeyDown={onKeyDown}
               onOpenWell={openWell}
+              onOpenMenu={openMenu}
             />
           ))}
         <WorkbenchPlateLegendSection
@@ -218,6 +228,17 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             onClose={closeEditor}
           />
         )}
+        <WorkbenchPlateContextMenu
+          position={menuAt}
+          hasFilledSelection={[...selection.keys].some(key => isWellFilled(block, key))}
+          canPaste={!!menuAt && canPaste()}
+          onClose={() => setMenuAt(undefined)}
+          onEdit={focusEditor}
+          onCopy={copySelected}
+          onCut={cutSelected}
+          onPaste={paste}
+          onClear={clearSelected}
+        />
         <ConfirmDialog
           isOpen={!!confirmation}
           variant="danger"

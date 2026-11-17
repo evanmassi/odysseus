@@ -10,6 +10,14 @@ import { dropValuesTwinnedByPlate } from '../utils/vessels/plateEditEffects';
 import type { Protocol } from '@odysseus/shared-schemas';
 
 const RENAME_PASSES = 3;
+const MOST_UNDO_STEPS = 100;
+const SAME_STEP_WITHIN_MS = 1000;
+
+interface Snapshot {
+  protocol: Protocol;
+  knownNames: ReadonlyMap<string, string>;
+  revision: number;
+}
 
 interface WorkbenchState {
   protocol: Protocol;
@@ -18,15 +26,21 @@ interface WorkbenchState {
   activePageId: string;
   fileName: string;
   revision: number;
+  newestRevision: number;
   savedRevision: number;
+  past: readonly Snapshot[];
+  future: readonly Snapshot[];
   openProtocol: (protocol: Protocol, fileName: string, isSaved?: boolean) => void;
   updateProtocol: (recipe: (draft: Protocol) => void) => void;
   fitBlockHeight: (blockId: string, height: number) => void;
   showPage: (pageId: string) => void;
   markSaved: (fileName: string) => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 let lastBoard: { inputs: string; calculation: BoardCalculation } | undefined;
+let lastEditAt = 0;
 
 const vesselMapsOf = (protocol: Protocol) =>
   protocol.blocks.filter(block => block.type === 'plate');
@@ -77,19 +91,46 @@ function freshDocument(protocol: Protocol) {
   };
 }
 
+const snapshotOf = (state: WorkbenchState): Snapshot => ({
+  protocol: state.protocol,
+  knownNames: state.knownNames,
+  revision: state.revision,
+});
+
+function restored(snapshot: Snapshot, state: WorkbenchState) {
+  const pageStillExists = snapshot.protocol.pages.some(page => page.id === state.activePageId);
+  return {
+    protocol: snapshot.protocol,
+    knownNames: snapshot.knownNames,
+    calculation: calculate(snapshot.protocol),
+    revision: snapshot.revision,
+    activePageId: pageStillExists ? state.activePageId : snapshot.protocol.pages[0].id,
+  };
+}
+
 export const useWorkbenchStore = create<WorkbenchState>(set => ({
   ...freshDocument(blankProtocol()),
   fileName: '',
   revision: 0,
+  newestRevision: 0,
   savedRevision: 0,
+  past: [],
+  future: [],
 
   openProtocol: (protocol, fileName, isSaved = true) =>
-    set(state => ({
-      ...freshDocument(protocol),
-      fileName,
-      revision: state.revision + 1,
-      savedRevision: isSaved ? state.revision + 1 : state.revision,
-    })),
+    set(state => {
+      lastEditAt = 0;
+      const revision = state.newestRevision + 1;
+      return {
+        ...freshDocument(protocol),
+        fileName,
+        revision,
+        newestRevision: revision,
+        savedRevision: isSaved ? revision : state.savedRevision,
+        past: [],
+        future: [],
+      };
+    }),
 
   updateProtocol: recipe =>
     set(state => {
@@ -101,13 +142,20 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
             dropValuesTwinnedByPlate(draft, state.knownNames);
           });
       const reconciled = reconcile(changed, state.knownNames);
+      const now = Date.now();
+      const isSameStep = now - lastEditAt < SAME_STEP_WITHIN_MS && state.past.length > 0;
+      lastEditAt = now;
+      const revision = state.newestRevision + 1;
       const pageStillExists = reconciled.protocol.pages.some(
         page => page.id === state.activePageId
       );
       return {
         ...reconciled,
         activePageId: pageStillExists ? state.activePageId : reconciled.protocol.pages[0].id,
-        revision: state.revision + 1,
+        revision,
+        newestRevision: revision,
+        past: isSameStep ? state.past : [...state.past, snapshotOf(state)].slice(-MOST_UNDO_STEPS),
+        future: [],
       };
     }),
 
@@ -122,6 +170,30 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
   showPage: pageId => set({ activePageId: pageId }),
 
   markSaved: fileName => set(state => ({ fileName, savedRevision: state.revision })),
+
+  undo: () =>
+    set(state => {
+      const previous = state.past.at(-1);
+      if (!previous) return {};
+      lastEditAt = 0;
+      return {
+        ...restored(previous, state),
+        past: state.past.slice(0, -1),
+        future: [snapshotOf(state), ...state.future],
+      };
+    }),
+
+  redo: () =>
+    set(state => {
+      const [next, ...later] = state.future;
+      if (!next) return {};
+      lastEditAt = 0;
+      return {
+        ...restored(next, state),
+        past: [...state.past, snapshotOf(state)],
+        future: later,
+      };
+    }),
 }));
 
 export const selectIsDirty = (state: WorkbenchState): boolean =>

@@ -7,6 +7,7 @@ import {
   addCustomSourceField,
   addSource,
   findSource,
+  moveIntoSources,
   sourceColumns,
   sourceFieldChoices,
   sourceSummaries,
@@ -180,5 +181,34 @@ describe('remembered donors', () => {
     addCustomSourceField(listOf(item), 'Freezer box');
     const memory = learnFromMaterials(EMPTY_LAB_MEMORY, [item]);
     expect(memory.sourceFields.map(field => field.label)).toEqual(['Freezer box']);
+  });
+});
+
+describe('making a material a donor', () => {
+  it('moves it under the cell material, carrying the fields a donor has', () => {
+    const stray = materialFromGuess(
+      { group: 'unsorted', type: '', name: 'Donor 1 (spare)', values: {}, why: '', source: 'list' },
+      EMPTY_LAB_MEMORY
+    );
+    Object.assign(stray.values, {
+      lot: 'L7',
+      vendor: 'Blood bank',
+      'donor-id': 'D-101',
+      viability: '92',
+      count: '1e6',
+    });
+    const host = pbmc();
+    const protocol = withMaterials(host, stray);
+    moveIntoSources(protocol, stray.id, host.id);
+    const [donor] = listOf(host).rows;
+    expect(donor).toMatchObject({
+      name: 'Donor 1',
+      values: { 'lot-vial': 'L7', source: 'Blood bank', 'donor-id': 'D-101', viability: '92' },
+    });
+    expect(donor.values['count']).toBeUndefined();
+    expect(sourcesIn(protocol)).toHaveLength(1);
+    expect(
+      protocol.blocks.flatMap(block => (block.type === 'materials' ? block.items : []))
+    ).toEqual([host]);
   });
 });

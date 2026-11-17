@@ -16,7 +16,11 @@ import { wellTooltipRows } from '../../../../utils/vessels/wellTooltip';
 
 import { useWellPointerActions } from './useWellPointerActions';
 import { pressModifiers } from './useWellSelection';
-import { WorkbenchPlateWellButton, type PlateWellView } from './WorkbenchPlateWellButton';
+import {
+  PART_SEPARATOR,
+  WorkbenchPlateWellButton,
+  type PlateWellView,
+} from './WorkbenchPlateWellButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
@@ -39,7 +43,15 @@ interface WorkbenchPlateTableProps {
   merges: ReplicateMerges;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
+  onOpenMenu: (key: string, at: { x: number; y: number }) => void;
 }
+
+const selectedPartsOf = (view: PlateWellView, keys: ReadonlySet<string>) => {
+  const parts = view.merged?.keys.filter(key => keys.has(key)) ?? [];
+  return parts.length && parts.length < (view.merged?.keys.length ?? 0)
+    ? parts.join(PART_SEPARATOR)
+    : undefined;
+};
 
 const HEADER =
   'flex items-center justify-center gap-1 font-mono text-label-2xs text-muted-foreground transition-colors hover:text-primary';
@@ -104,8 +116,9 @@ export function WorkbenchPlateTable({
   merges,
   onKeyDown,
   onOpenWell,
+  onOpenMenu,
 }: WorkbenchPlateTableProps) {
-  const actions = useWellPointerActions(sheet, selection, onOpenWell);
+  const actions = useWellPointerActions(sheet, selection, onOpenWell, onOpenMenu);
   const wells = useStructuralSharing(
     sheet.spots.flatMap((spot): PlateWellView[] => {
       const merged = merges.anchors.get(spot.key);
@@ -191,7 +204,8 @@ export function WorkbenchPlateTable({
             key={view.key}
             view={view}
             density={size.density}
-            isSelected={selection.keys.has(view.key)}
+            isSelected={(view.merged?.keys ?? [view.key]).every(key => selection.keys.has(key))}
+            selectedParts={selectedPartsOf(view, selection.keys)}
             actions={actions}
           />
         ))}

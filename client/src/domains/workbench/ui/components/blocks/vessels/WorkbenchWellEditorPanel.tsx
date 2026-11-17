@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 
 import { Button } from '@shared/ui';
 
+import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
@@ -38,6 +39,7 @@ import {
   type WellRow,
 } from '../../../../utils/vessels/wellEdits';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
+import { knownNamesIn } from '../../../../utils/vessels/wellValueSuggestions';
 
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 import { WorkbenchWellLineRow } from './WorkbenchWellLineRow';
@@ -128,6 +130,7 @@ export function WorkbenchWellEditorPanel({
   onClose,
 }: WorkbenchWellEditorPanelProps) {
   const calculation = useWorkbenchStore(state => state.calculation);
+  const knownNames = useWorkbenchData(state => knownNamesIn(state.protocol));
   const updateVesselMap = useUpdateVesselMap(block);
   const editorRef = useRef<HTMLDivElement>(null);
   const [drafts, setDrafts] = useState<DraftLine[]>([]);
@@ -238,7 +241,7 @@ export function WorkbenchWellEditorPanel({
       ref={editorRef}
       role="dialog"
       aria-label={`Edit ${where || count}`}
-      className="fixed z-50 flex w-[420px] max-w-[calc(100vw-16px)] flex-col gap-2 border border-line-mid bg-card p-3 shadow-lg"
+      className="fixed z-40 flex w-[420px] max-w-[calc(100vw-16px)] flex-col gap-2 border border-line-mid bg-card p-3 shadow-lg"
       style={position}
     >
       <div className="flex items-center gap-2">
@@ -267,6 +270,7 @@ export function WorkbenchWellEditorPanel({
         return (
           <div key={`row-${lineId}`} className="flex flex-col gap-2">
             <WorkbenchWellLineRow
+              knownNames={knownNames}
               row={row}
               lineName={draft?.name ? draft.name : (row.line?.name ?? '')}
               lineOffers={offeredNames(lineId)}

@@ -21,6 +21,7 @@ import {
   materialFields,
   materialGroup,
   materialGroupsOf,
+  BIO_GROUP,
 } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD, conjugateClashes } from '../../../../utils/materials/materialClashes';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
@@ -66,6 +67,7 @@ import {
   SOURCES_LABEL,
   addCustomSourceField,
   addSource,
+  moveIntoSources,
   sourceFieldChoices,
   startSources,
   toggleSourceField,
@@ -206,6 +208,13 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const plateOffers = useWorkbenchData(state =>
     isFirstMaterialsBlock ? plateNameOffers(state.protocol) : []
   );
+  const donorTargets = useMemo(
+    () =>
+      listedMaterials(materialsOnly)
+        .filter(item => item.group === BIO_GROUP)
+        .map(item => ({ value: item.id, label: item.name })),
+    [materialsOnly]
+  );
   const linkChoices = useMemo(
     () =>
       listedMaterials(materialsOnly).map(item => ({
@@ -338,6 +347,13 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       updateProtocol(draft => editRecipeEntry(draft, itemId, entryId, change)),
     removeRecipeEntry: (itemId, entryId) =>
       updateProtocol(draft => removeRecipeEntry(draft, itemId, entryId)),
+    makeDonorOf: (itemId, targetId) =>
+      updateProtocol(draft => {
+        const target = listedMaterials(draft).find(candidate => candidate.id === targetId);
+        if (!target) return;
+        startSources(target, startingSourceFieldsOf(memory, target.group), memory.sourceFields);
+        moveIntoSources(draft, itemId, targetId);
+      }),
     startSources: itemId => {
       updateItem(itemId, item =>
         startSources(item, startingSourceFieldsOf(memory, item.group), memory.sourceFields)
@@ -371,6 +387,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       }),
     add: (itemId, names) =>
       updateItem(itemId, item => {
+        startSources(item, startingSourceFieldsOf(memory, item.group), memory.sourceFields);
         const { sources } = item;
         if (!sources) return;
         for (const name of names) {
@@ -508,6 +525,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   removed={section.removed}
                   editing={editing}
                   actions={rowActions}
+                  donorTargets={donorTargets}
                   sourceActions={sourceActions}
                   plateNames={plateNames}
                   openedSourcesId={openedSourcesId}
@@ -563,8 +581,15 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
           <WorkbenchMaterialPlateNamesSection
             offers={plateOffers}
             materialChoices={linkChoices}
+            donorTargets={donorTargets}
             guessType={name => guessMaterial(name, remembered).type}
             onAdd={addPlateNames}
+            onAddAsDonors={(offers, materialId) =>
+              sourceActions.add(
+                materialId,
+                offers.map(offer => offer.name)
+              )
+            }
             onLink={(offer, materialId) =>
               updateProtocol(draft => linkPlateName(draft, offer.name, materialId))
             }
