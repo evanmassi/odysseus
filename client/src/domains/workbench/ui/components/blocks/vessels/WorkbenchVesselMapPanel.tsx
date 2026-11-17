@@ -10,7 +10,12 @@ import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { sourceSummaries } from '../../../../utils/materials/materialSources';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
-import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
+import {
+  fillAmounts,
+  lineLayers,
+  plateBands,
+  plateCaptions,
+} from '../../../../utils/vessels/plateLayers';
 import { replicateMerges, withMergedWells } from '../../../../utils/vessels/replicateMerges';
 import { vesselOf } from '../../../../utils/vessels/vesselCatalog';
 import { vesselCounts } from '../../../../utils/vessels/vesselMapNames';
@@ -24,6 +29,7 @@ import {
   vesselTabs,
 } from '../../../../utils/vessels/vesselTabs';
 import { setWellsText, startingLineId } from '../../../../utils/vessels/wellEdits';
+import { selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { useConfirmation } from './useConfirmation';
 import { useUpdateVesselMap } from './useUpdateVesselMap';
@@ -62,19 +68,16 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const bands = sheet.isPlate ? plateBands(block, sheet, layers, calculation) : [];
   const updateVesselMap = useUpdateVesselMap(block);
   const [editor, setEditor] = useState<EditorOpening>();
-  const openEditor = useCallback(
-    () => setEditor(current => current ?? { focusesFirstRow: false, generation: 0 }),
-    []
-  );
+  const closeEditor = useCallback(() => setEditor(undefined), []);
   const focusEditor = () =>
     setEditor(current => ({ focusesFirstRow: true, generation: (current?.generation ?? 0) + 1 }));
   const merges = replicateMerges(block, sheet, calculation);
   const expandToMerges = (keys: ReadonlySet<string>) => withMergedWells(merges, keys);
-  const selection = useWellSelection(sheet, tab.id, expandToMerges, openEditor);
+  const selection = useWellSelection(sheet, tab.id, expandToMerges, closeEditor);
   const startedNames = useWellEditSession(block.id, selection.keys, editor !== undefined);
 
   const openEditorWith = (seedText?: string) => {
-    if (seedText === undefined) return openEditor();
+    if (seedText === undefined) return focusEditor();
     const keys = [...selection.keys];
     const firstLineId = startingLineId(block, keys, colorLine);
     updateVesselMap(draft => setWellsText(draft, keys, firstLineId, seedText));
@@ -150,6 +153,12 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           }
           onSetCount={vesselChanges.setCount}
           onDuplicate={vesselChanges.duplicateTab}
+          editLabel={
+            selection.keys.size && !editor
+              ? selectionName(sheet, selection.keys) || `${selection.keys.size} selected`
+              : undefined
+          }
+          onEdit={focusEditor}
         />
         {captions.length > 0 && (
           <p className="text-body-sm text-muted-foreground">
@@ -162,6 +171,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               block={block}
               sheet={sheet}
               colorLine={colorLine}
+              layers={layers}
               bands={bands}
               size={wellSizeFor(tab.plate.vessel, roomWidth - bandWidthPad(bands), sheet.cols)}
               calculation={calculation}
@@ -176,6 +186,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               block={block}
               sheet={sheet}
               colorLine={colorLine}
+              layers={layers}
               scale={shelfScaleFor(block, roomWidth)}
               calculation={calculation}
               sources={sources}
@@ -189,6 +200,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           colorLine={colorLine}
           counts={vesselCounts(block)}
           bands={bands}
+          fillAmounts={fillAmounts(block, colorLine, calculation)}
         />
         {editor && selection.keys.size > 0 && (
           <WorkbenchWellEditorPanel
@@ -203,7 +215,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             wellsRef={bodyRef}
             focusesFirstRow={editor.focusesFirstRow}
             onClear={clearSelected}
-            onClose={() => setEditor(undefined)}
+            onClose={closeEditor}
           />
         )}
         <ConfirmDialog

@@ -8,17 +8,20 @@ import {
   plateWidth,
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
+import { wellStripes } from '../../../../utils/vessels/plateLayers';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
-import { wellColor, wellLine, wellTooltipDetails } from '../../../../utils/vessels/wellContents';
+import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
+import { wellTooltipRows } from '../../../../utils/vessels/wellTooltip';
 
 import { useWellPointerActions } from './useWellPointerActions';
+import { pressModifiers } from './useWellSelection';
 import { WorkbenchPlateWellButton, type PlateWellView } from './WorkbenchPlateWellButton';
 
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
 import type { SourceSummary } from '../../../../utils/materials/materialSources';
-import type { PlateBand } from '../../../../utils/vessels/plateLayers';
+import type { LineLayer, PlateBand } from '../../../../utils/vessels/plateLayers';
 import type { ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
 import type { WellSize } from '../../../../utils/vessels/vesselSizing';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
@@ -27,6 +30,7 @@ interface WorkbenchPlateTableProps {
   block: VesselMapBlock;
   sheet: VesselSheet;
   colorLine: PlateLine | undefined;
+  layers: readonly LineLayer[];
   bands: PlateBand[];
   size: WellSize;
   calculation: BoardCalculation;
@@ -91,6 +95,7 @@ export function WorkbenchPlateTable({
   block,
   sheet,
   colorLine,
+  layers,
   bands,
   size,
   calculation,
@@ -105,7 +110,7 @@ export function WorkbenchPlateTable({
     sheet.spots.flatMap((spot): PlateWellView[] => {
       const merged = merges.anchors.get(spot.key);
       if (!merged && merges.covered.has(spot.key)) return [];
-      const details = wellTooltipDetails(block, spot.key, calculation, sources);
+      const rows = wellTooltipRows(block, spot.key, layers, calculation, sources);
       const where = merged
         ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
         : spot.label;
@@ -115,10 +120,11 @@ export function WorkbenchPlateTable({
           row: spot.row,
           col: spot.col,
           merged,
-          tooltipLines: [where, ...details],
+          tooltip: { heading: where, rows },
           shownLine: colorLine && wellLine(block, spot.key, colorLine, calculation),
-          isFilled: details.length > 0,
+          isFilled: rows.length > 0,
           color: wellColor(block, spot.key, colorLine),
+          stripes: wellStripes(block, spot.key, layers),
         },
       ];
     })
@@ -140,7 +146,7 @@ export function WorkbenchPlateTable({
         aria-label="Plate wells"
         data-focus="wells"
         aria-multiselectable
-        className="relative grid select-none gap-1 outline-none"
+        className="selection-pulse relative grid select-none gap-1 outline-none"
         style={style}
         tabIndex={0}
         onKeyDown={onKeyDown}
@@ -163,7 +169,7 @@ export function WorkbenchPlateTable({
             aria-label={`Select column ${col + 1}`}
             className={HEADER}
             style={{ gridRow: 1, gridColumn: col + 2 }}
-            onClick={() => selection.selectColumn(col)}
+            onClick={event => selection.selectColumn(col, pressModifiers(event))}
           >
             {col + 1}
           </button>
@@ -175,7 +181,7 @@ export function WorkbenchPlateTable({
             aria-label={`Select row ${rowLetter(row)}`}
             className={HEADER}
             style={{ gridRow: row + 2, gridColumn: 1 }}
-            onClick={() => selection.selectRow(row)}
+            onClick={event => selection.selectRow(row, pressModifiers(event))}
           >
             {rowLetter(row)}
           </button>

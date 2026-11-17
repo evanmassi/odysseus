@@ -2,6 +2,8 @@ import type { PointerEvent } from 'react';
 
 import { useStableActions } from '../../../../hooks/useStableActions';
 
+import { pressModifiers } from './useWellSelection';
+
 import type { WellSelection } from './useWellSelection';
 import type { VesselSheet } from '../../../../utils/vessels/vesselTabs';
 
@@ -22,10 +24,7 @@ export function useWellPointerActions(
       event.preventDefault();
       const spot = spotOf(wellKey);
       if (spot) {
-        selection.press(spot, {
-          isExtending: event.shiftKey,
-          isToggling: event.ctrlKey || event.metaKey,
-        });
+        selection.press(spot, pressModifiers(event));
       }
     },
     onPointerEnter: wellKey => {

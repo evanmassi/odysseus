@@ -14,7 +14,16 @@ const VALUE_COLORS = [
   '#e8875a',
   '#8fd3e8',
 ] as const;
-const BAND_COLORS = ['#f0b35b', '#e8875a', '#6fbf73', '#c9ccd3'] as const;
+const BAND_COLORS = [
+  '#f0b35b',
+  '#e8875a',
+  '#6fbf73',
+  '#c9ccd3',
+  '#e07a8f',
+  '#e3d36b',
+  '#b8875a',
+  '#8fdcb0',
+] as const;
 const NEUTRAL_VALUE_COLOR = '#7d8494';
 const NEUTRAL_VALUE = /^(?:no|none|vehicle|media|medium|untreated|unstim\w*|blank|empty|mock)\b/i;
 
@@ -29,9 +38,12 @@ export const lineValueOf = (line: PlateLine, cell: CellLine | undefined): LineVa
 const cellsOn = (block: VesselMapBlock, line: PlateLine) =>
   Object.values(block.cells).map(lines => lines[line.id]);
 
+const hasSeries = (block: VesselMapBlock, line: PlateLine) =>
+  cellsOn(block, line).some(cell => cell?.seriesId !== undefined);
+
 function varies(block: VesselMapBlock, line: PlateLine): boolean {
+  if (hasSeries(block, line)) return true;
   const cells = cellsOn(block, line).filter(isFilledCell);
-  if (cells.some(cell => cell.seriesId !== undefined)) return true;
   const texts = new Set(
     cells.map(
       cell =>
@@ -43,6 +55,7 @@ function varies(block: VesselMapBlock, line: PlateLine): boolean {
 
 export const colorLineOf = (block: VesselMapBlock): PlateLine | undefined =>
   block.lines.find(line => line.role === 'color') ??
+  block.lines.find(line => line.role === 'auto' && hasSeries(block, line)) ??
   block.lines.find(line => line.role === 'auto' && varies(block, line));
 
 function renameKeys(map: Record<string, string>, rename: (key: string) => string) {

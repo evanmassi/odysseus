@@ -2,22 +2,24 @@ import { memo, type CSSProperties } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
-import { wellTooltipContent } from './wellTooltipContent';
+import { wellTooltipTable } from './wellTooltipTable';
 
 import type { WellPointerActions } from './useWellPointerActions';
 import type { MergedWells } from '../../../../utils/vessels/replicateMerges';
 import type { WellDensity } from '../../../../utils/vessels/vesselSizing';
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
+import type { WellTooltip } from '../../../../utils/vessels/wellTooltip';
 
 export interface PlateWellView {
   key: string;
   row: number;
   col: number;
   merged: MergedWells | undefined;
-  tooltipLines: string[];
+  tooltip: WellTooltip;
   shownLine: WellLine | undefined;
   isFilled: boolean;
   color: WellColor | undefined;
+  stripes: Array<WellColor | undefined>;
 }
 
 interface WorkbenchPlateWellButtonProps {
@@ -47,10 +49,10 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
   isSelected,
   actions,
 }: WorkbenchPlateWellButtonProps) {
-  const { key: wellKey, row, col, merged, tooltipLines, shownLine, isFilled, color } = view;
+  const { key: wellKey, row, col, merged, tooltip, shownLine, isFilled, color, stripes } = view;
   const isNarrow = density === 'narrow';
   return (
-    <Tooltip content={wellTooltipContent(tooltipLines)}>
+    <Tooltip content={wellTooltipTable(tooltip)}>
       <div
         role="gridcell"
         data-well-key={wellKey}
@@ -59,15 +61,29 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
         onPointerDown={event => actions.onPointerDown(wellKey, event)}
         onPointerEnter={() => actions.onPointerEnter(wellKey)}
         onDoubleClick={() => actions.onDoubleClick(wellKey)}
-        className={`relative flex cursor-pointer items-center justify-center overflow-hidden border py-0.5 text-foreground ${
+        className={`relative flex cursor-pointer items-center justify-center border py-0.5 text-foreground ${
           isFilled ? 'border-foreground/45' : 'border-foreground/15'
-        } ${isSelected ? 'shadow-[0_0_0_2px_hsl(var(--primary))]' : ''} ${DENSITY_CLASSES[density]}`}
+        } ${isSelected ? 'z-10 selection-glow' : ''} ${DENSITY_CLASSES[density]}`}
         style={{
           gridRow: `${row + 2} / span ${merged?.height ?? 1}`,
           gridColumn: `${col + 2} / span ${merged?.width ?? 1}`,
           ...colorStyle(color),
         }}
       >
+        {stripes.length > 0 && (
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 flex flex-col">
+            {stripes.map((stripe, slot) => (
+              <i
+                key={slot}
+                className="h-1"
+                style={{
+                  backgroundColor:
+                    stripe && `color-mix(in srgb, ${stripe.color} ${stripe.tint}%, transparent)`,
+                }}
+              />
+            ))}
+          </span>
+        )}
         {merged && (
           <span
             aria-hidden

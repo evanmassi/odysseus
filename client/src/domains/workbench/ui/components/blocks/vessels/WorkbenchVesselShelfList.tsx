@@ -3,7 +3,8 @@ import type { KeyboardEvent } from 'react';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import { LOOSE_VESSELS } from '../../../../utils/vessels/vesselCatalog';
 import { SHAPE_METRICS } from '../../../../utils/vessels/vesselSizing';
-import { wellColor, wellLine, wellTooltipDetails } from '../../../../utils/vessels/wellContents';
+import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
+import { wellTooltipRows } from '../../../../utils/vessels/wellTooltip';
 
 import { useWellPointerActions } from './useWellPointerActions';
 import { WorkbenchShelfVesselButton, type ShelfVesselView } from './WorkbenchShelfVesselButton';
@@ -11,6 +12,7 @@ import { WorkbenchShelfVesselButton, type ShelfVesselView } from './WorkbenchShe
 import type { WellSelection } from './useWellSelection';
 import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
 import type { SourceSummary } from '../../../../utils/materials/materialSources';
+import type { LineLayer } from '../../../../utils/vessels/plateLayers';
 import type { VesselSheet } from '../../../../utils/vessels/vesselTabs';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -18,6 +20,7 @@ interface WorkbenchVesselShelfListProps {
   block: VesselMapBlock;
   sheet: VesselSheet;
   colorLine: PlateLine | undefined;
+  layers: readonly LineLayer[];
   scale: number;
   calculation: BoardCalculation;
   sources: readonly SourceSummary[];
@@ -30,6 +33,7 @@ export function WorkbenchVesselShelfList({
   block,
   sheet,
   colorLine,
+  layers,
   scale,
   calculation,
   sources,
@@ -52,10 +56,10 @@ export function WorkbenchVesselShelfList({
               shape: vessel.shape,
               width,
               sizeLabel: vessel.short,
-              tooltipLines: [
-                vessel.label,
-                ...wellTooltipDetails(block, spot.key, calculation, sources),
-              ],
+              tooltip: {
+                heading: vessel.label,
+                rows: wellTooltipRows(block, spot.key, layers, calculation, sources),
+              },
               lines: block.lines.flatMap(line => {
                 const shown = wellLine(block, spot.key, line, calculation);
                 return shown ? [shown] : [];

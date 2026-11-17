@@ -6,20 +6,21 @@ import {
   type VesselMapBlock,
 } from '@odysseus/shared-schemas';
 
-type LineValue = PlateLine['values'][number];
-
-import { wellLine, wellLineText } from './wellContents';
+import { seriesProgress, wellLine, wellLineText, type WellColor } from './wellContents';
 
 import type { VesselSheet } from './vesselTabs';
 import type { BoardCalculation } from '../formulas/boardCalculation';
 
 export type ShownRole = Exclude<PlateLine['role'], 'auto'>;
 
-interface LineLayer {
+export interface LineLayer {
   line: PlateLine;
   role: ShownRole;
   texts: string[];
 }
+
+const SOLID_STRIPE = 100;
+const STRIPE_FADE = 70;
 
 export function lineLayers(
   block: VesselMapBlock,
@@ -46,6 +47,24 @@ export function lineLayers(
   });
 }
 
+export function wellStripes(
+  block: VesselMapBlock,
+  key: string,
+  layers: readonly LineLayer[]
+): Array<WellColor | undefined> {
+  const slots = layers
+    .filter(layer => layer.role === 'stripe')
+    .map(({ line }) => {
+      const value = lineValueOf(line, block.cells[key]?.[line.id]);
+      if (!value) return undefined;
+      const progress = seriesProgress(block, key, line);
+      const tint =
+        progress === undefined ? SOLID_STRIPE : Math.round(SOLID_STRIPE - progress * STRIPE_FADE);
+      return { color: bandColorOf(block, value), tint };
+    });
+  return slots.some(Boolean) ? slots : [];
+}
+
 export const plateCaptions = (layers: readonly LineLayer[]): string[] =>
   layers.flatMap(({ role, texts }) => {
     const text = texts.filter(Boolean).join(', ');
@@ -70,6 +89,9 @@ export interface BandCluster {
 
 export interface PlateBand {
   lineId: string;
+  isStripe: boolean;
+  label: string;
+  amount: string;
   text: string;
   color: string;
   valueId: string | undefined;
@@ -113,6 +135,50 @@ function clustersOf(cells: BandCell[]): Array<Omit<BandCluster, 'place'>> {
   return clusters;
 }
 
+export function amountSummary(
+  block: VesselMapBlock,
+  line: PlateLine,
+  keys: readonly string[],
+  calculation: BoardCalculation
+): string {
+  const readableAt = (key: string) => wellLine(block, key, line, calculation)?.readable ?? '';
+  const runs = new Map<string, string[]>();
+  const plain = new Set<string>();
+  for (const key of keys) {
+    const seriesId = block.cells[key]?.[line.id]?.seriesId;
+    if (seriesId !== undefined) runs.set(seriesId, [...(runs.get(seriesId) ?? []), key]);
+    else if (readableAt(key)) plain.add(readableAt(key));
+  }
+  const ranges = [...runs.values()].map(run => {
+    const byStep = [...run].sort(
+      (a, b) =>
+        (block.cells[a][line.id].seriesStep ?? 0) - (block.cells[b][line.id].seriesStep ?? 0)
+    );
+    const [first, last] = [readableAt(byStep[0]), readableAt(byStep[byStep.length - 1])];
+    return first === last ? first : `${first} → ${last}`;
+  });
+  return [...ranges, ...plain].join(', ');
+}
+
+export function fillAmounts(
+  block: VesselMapBlock,
+  colorLine: PlateLine | undefined,
+  calculation: BoardCalculation
+): ReadonlyMap<string, string> {
+  if (!colorLine) return new Map();
+  const keysByValue = new Map<string, string[]>();
+  for (const key of Object.keys(block.cells)) {
+    const valueId = block.cells[key][colorLine.id]?.valueId;
+    if (valueId) keysByValue.set(valueId, [...(keysByValue.get(valueId) ?? []), key]);
+  }
+  return new Map(
+    [...keysByValue].map(([valueId, keys]) => [
+      valueId,
+      amountSummary(block, colorLine, keys, calculation),
+    ])
+  );
+}
+
 export function plateBands(
   block: VesselMapBlock,
   sheet: VesselSheet,
@@ -126,26 +192,34 @@ export function plateBands(
   const usedTop = Math.min(...usedSpots.map(spot => spot.row));
   const usedBottom = Math.max(...usedSpots.map(spot => spot.row));
   const bands: PlateBand[] = [];
-  for (const { line } of layers.filter(layer => layer.role === 'band')) {
-    const byText = new Map<string, { cells: BandCell[]; value: LineValue | undefined }>();
-    for (const spot of usedSpots) {
-      const shown = wellLine(block, spot.key, line, calculation);
-      const text = shown && wellLineText(shown);
-      if (!text) continue;
-      const group = byText.get(text) ?? {
-        cells: [],
-        value: lineValueOf(line, block.cells[spot.key]?.[line.id]),
-      };
-      group.cells.push(spot);
-      byText.set(text, group);
-    }
-    const wellsInMap = new Map<string, number>();
-    for (const key of Object.keys(block.cells)) {
+  for (const { line, role } of layers.filter(
+    layer => layer.role === 'band' || layer.role === 'stripe'
+  )) {
+    const groupOf = (key: string) => {
       const shown = wellLine(block, key, line, calculation);
-      const text = shown && wellLineText(shown);
-      if (text) wellsInMap.set(text, (wellsInMap.get(text) ?? 0) + 1);
+      if (!shown || !wellLineText(shown)) return undefined;
+      const cell = block.cells[key][line.id];
+      const amountKey = cell.seriesId === undefined ? shown.readable : `series:${cell.seriesId}`;
+      return { key: `${cell.valueId ?? ''}|${amountKey}`, label: shown.label };
+    };
+    const groups = new Map<string, { label: string; mapKeys: string[]; cells: BandCell[] }>();
+    for (const key of Object.keys(block.cells)) {
+      const group = groupOf(key);
+      if (!group) continue;
+      const entry = groups.get(group.key) ?? { label: group.label, mapKeys: [], cells: [] };
+      entry.mapKeys.push(key);
+      groups.set(group.key, entry);
     }
-    for (const [text, { cells, value }] of byText) {
+    for (const spot of usedSpots) {
+      const group = groupOf(spot.key);
+      if (group) groups.get(group.key)?.cells.push(spot);
+    }
+    const shownGroups = [...groups.values()]
+      .filter(group => group.cells.length)
+      .map(group => ({ ...group, amount: amountSummary(block, line, group.mapKeys, calculation) }));
+    const isAmountShared = new Set(shownGroups.map(group => group.amount)).size <= 1;
+    for (const { label, amount, mapKeys, cells } of shownGroups) {
+      const value = lineValueOf(line, block.cells[mapKeys[0]][line.id]);
       const clusters = clustersOf(cells).map((cluster): BandCluster => {
         const area = (cluster.bottom - cluster.top + 1) * (cluster.right - cluster.left + 1);
         const spansUsedRows = cluster.top === usedTop && cluster.bottom === usedBottom;
@@ -161,10 +235,13 @@ export function plateBands(
       });
       bands.push({
         lineId: line.id,
-        text,
+        isStripe: role === 'stripe',
+        label,
+        amount,
+        text: isAmountShared ? label || amount : [label, amount].filter(Boolean).join(' · '),
         color: bandColorOf(block, value),
         valueId: value?.id,
-        wellsInMap: wellsInMap.get(text) ?? cells.length,
+        wellsInMap: mapKeys.length,
         clusters,
       });
     }

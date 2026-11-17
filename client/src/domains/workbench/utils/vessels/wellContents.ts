@@ -6,13 +6,10 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { displayValue, readableAmount } from '../formulas/quantities';
-import { findNamed } from '../materials/materialLookup';
 
-import { ratioNote } from './cellRatios';
 import { wellAmount } from './plateSeries';
 
 import type { BoardCalculation } from '../formulas/boardCalculation';
-import type { SourceSummary } from '../materials/materialSources';
 
 export interface WellLine {
   label: string;
@@ -49,37 +46,28 @@ export function wellLine(
 export const wellLineText = ({ label, readable }: WellLine) =>
   [label, readable].filter(Boolean).join(' · ');
 
-const lineDetail = (
-  block: VesselMapBlock,
-  key: string,
-  line: PlateLine,
-  calculation: BoardCalculation
-) => {
-  const shown = wellLine(block, key, line, calculation);
-  return shown && wellLineText(shown);
-};
-
 export const wellDetails = (block: VesselMapBlock, key: string, calculation: BoardCalculation) =>
   block.lines.flatMap(line => {
-    const text = lineDetail(block, key, line, calculation);
+    const shown = wellLine(block, key, line, calculation);
+    const text = shown && wellLineText(shown);
     return text ? [text] : [];
   });
 
-export const wellTooltipDetails = (
+export function seriesProgress(
   block: VesselMapBlock,
   key: string,
-  calculation: BoardCalculation,
-  sources: readonly SourceSummary[]
-): string[] =>
-  block.lines.flatMap(line => {
-    const detail = lineDetail(block, key, line, calculation);
-    if (!detail) return [];
-    const note = ratioNote(block, key, line, calculation);
-    const text = note ? `${detail} ${note}` : detail;
-    const name = lineValueOf(line, block.cells[key]?.[line.id])?.text;
-    const found = name ? findNamed(sources, name, source => source.name) : undefined;
-    return found ? [text, found.summary] : [text];
-  });
+  line: PlateLine
+): number | undefined {
+  const cell = block.cells[key]?.[line.id];
+  if (cell?.seriesId === undefined) return undefined;
+  const lastStep = Math.max(
+    ...Object.values(block.cells)
+      .map(lines => lines[line.id])
+      .filter(other => other?.seriesId === cell.seriesId)
+      .map(other => other.seriesStep ?? 0)
+  );
+  return lastStep > 0 ? (cell.seriesStep ?? 0) / lastStep : undefined;
+}
 
 export function wellColor(
   block: VesselMapBlock,
@@ -89,16 +77,9 @@ export function wellColor(
   const cell = colorLine && block.cells[key]?.[colorLine.id];
   const color = colorLine && lineValueOf(colorLine, cell)?.color;
   if (!colorLine || !cell || !color) return undefined;
-  if (cell.seriesId === undefined) return { color, tint: PLAIN_TINT };
-  const lastStep = Math.max(
-    ...Object.values(block.cells)
-      .map(lines => lines[colorLine.id])
-      .filter(other => other?.seriesId === cell.seriesId)
-      .map(other => other.seriesStep ?? 0)
-  );
-  if (lastStep <= 0) return { color, tint: PLAIN_TINT };
+  const progress = seriesProgress(block, key, colorLine);
   return {
     color,
-    tint: Math.round(STRONGEST_TINT - ((cell.seriesStep ?? 0) / lastStep) * TINT_FADE),
+    tint: progress === undefined ? PLAIN_TINT : Math.round(STRONGEST_TINT - progress * TINT_FADE),
   };
 }

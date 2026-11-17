@@ -3,7 +3,7 @@ import { normalizeVesselMap, type VesselMapBlock } from '@odysseus/shared-schema
 import { calculateBoard } from '../formulas/boardCalculation';
 import { formatRatio } from '../formulas/quantities';
 
-import { cellCount, ratioNote, ratioPartner, ratioRow } from './cellRatios';
+import { cellCount, ratioPartner, ratioRow } from './cellRatios';
 import { seriesPoint, seriesSummary } from './plateSeries';
 import { setRatioPartner } from './wellEdits';
 
@@ -75,7 +75,6 @@ describe('cells worked out from a ratio', () => {
     expect(cellCount(block, 'p:A1', tCells, empty)).toBe(4e4);
     expect(cellCount(block, 'p:A2', tCells, empty)).toBe(1e4);
     expect(cellCount(block, 'p:A1', lineOf(block, 'r'), empty)).toBe(1e4);
-    expect(ratioNote(block, 'p:A1', tCells, empty)).toBe('to Raji · 4.00E+4 cells');
   });
 
   it('asks for the other cells when more than one could be meant, and uses a picked one', () => {
@@ -83,7 +82,7 @@ describe('cells worked out from a ratio', () => {
     block.lines.push({ id: 'k', name: '', role: 'auto', values: [{ id: 'kv', text: 'K562' }] });
     block.cells['p:A1']['k'] = { valueId: 'kv', amount: '5e3', unit: 'cells' };
     const tCells = lineOf(block, 't');
-    expect(ratioNote(block, 'p:A1', tCells, empty)).toBe('pick the cells this ratio is to');
+    expect(ratioPartner(block, 'p:A1', tCells, empty)).toBeUndefined();
     setRatioPartner(block, 't', 'k');
     expect(cellCount(block, 'p:A1', tCells, empty)).toBe(2e4);
     setRatioPartner(block, 't', '');

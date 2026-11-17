@@ -134,6 +134,7 @@ export function bandShapes(bands: readonly PlateBand[], geometry: PlateGeometry)
   for (const band of bands) {
     for (const cluster of band.clusters) {
       if (cluster.place === 'ring') {
+        if (band.isStripe) continue;
         for (const { row, col } of cluster.cells) {
           shapes.rings.push({
             x: cellLeft(geometry, col) + 1,

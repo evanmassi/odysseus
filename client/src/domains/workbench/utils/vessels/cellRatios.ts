@@ -64,20 +64,6 @@ export function partnerName(block: VesselMapBlock, key: string, partner: PlateLi
   return [text, partner.name.trim()].find(Boolean) ?? 'the other cells';
 }
 
-export function ratioNote(
-  block: VesselMapBlock,
-  key: string,
-  line: PlateLine,
-  calculation: BoardCalculation
-): string | undefined {
-  if (!isRatioAt(block, key, line, calculation)) return undefined;
-  const partner = ratioPartner(block, key, line, calculation);
-  if (!partner) return 'pick the cells this ratio is to';
-  const count = cellCount(block, key, line, calculation);
-  const to = `to ${partnerName(block, key, partner)}`;
-  return count === undefined ? to : `${to} · ${formatNumber(count)} cells`;
-}
-
 export interface RatioChoice {
   lineId: string;
   label: string;

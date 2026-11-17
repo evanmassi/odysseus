@@ -165,7 +165,7 @@ const cellLineSchema = z.object({
   seriesStep: z.number().int().min(0).optional(),
 });
 
-export const LINE_ROLES = ['auto', 'color', 'band', 'caption', 'hover'] as const;
+export const LINE_ROLES = ['auto', 'color', 'band', 'stripe', 'caption', 'hover'] as const;
 
 const plateLineSchema = z.object({
   id,

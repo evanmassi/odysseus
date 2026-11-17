@@ -4,10 +4,11 @@ import { Tooltip } from '@shared/ui';
 
 import { SHAPE_METRICS, type VesselShape } from '../../../../utils/vessels/vesselSizing';
 
-import { wellTooltipContent } from './wellTooltipContent';
+import { wellTooltipTable } from './wellTooltipTable';
 
 import type { WellPointerActions } from './useWellPointerActions';
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
+import type { WellTooltip } from '../../../../utils/vessels/wellTooltip';
 
 type PartRole = 'cap' | 'body' | 'rim';
 
@@ -68,7 +69,7 @@ export interface ShelfVesselView {
   shape: VesselShape;
   width: number;
   sizeLabel: string;
-  tooltipLines: string[];
+  tooltip: WellTooltip;
   lines: WellLine[];
   color: WellColor | undefined;
 }
@@ -116,11 +117,11 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
   isSelected,
   actions,
 }: WorkbenchShelfVesselButtonProps) {
-  const { key: wellKey, shape, width, sizeLabel, tooltipLines, lines, color } = view;
+  const { key: wellKey, shape, width, sizeLabel, tooltip, lines, color } = view;
   const metrics = SHAPE_METRICS[shape];
   const [left, top, boxWidth, boxHeight] = metrics.textBox;
   return (
-    <Tooltip content={wellTooltipContent(tooltipLines)}>
+    <Tooltip content={wellTooltipTable(tooltip)}>
       <div
         role="gridcell"
         data-well-key={wellKey}

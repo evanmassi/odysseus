@@ -196,8 +196,8 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
   const colorLine = colorLineOf(block);
   const colorValueAt = (key: string) =>
     colorLine ? lineValueOf(colorLine, block.cells[key]?.[colorLine.id]) : undefined;
-  const soleColorValue = (keys: string[]) => {
-    const values = new Set(keys.map(colorValueAt));
+  const soleValueOn = (other: PlateLine, keys: string[]) => {
+    const values = new Set(keys.map(key => lineValueOf(other, block.cells[key]?.[other.id])));
     return values.size === 1 ? [...values][0] : undefined;
   };
   const solePlate = (keys: string[]) => {
@@ -262,17 +262,20 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
       const twins = dilutionRuns.filter(
         other => normalizeMaterialKey(other.subject) === normalizeMaterialKey(subject)
       );
-      const twinValues = twins.map(twin => soleColorValue(twin.keys));
-      const twinPlates = twins.map(twin => solePlate(twin.keys));
-      const index = twins.indexOf(run);
-      const value = twinValues[index];
-      const plate = twinPlates[index];
       const isApart = (marks: readonly unknown[]) =>
         marks.every(Boolean) && new Set(marks).size === twins.length;
+      const twinValues = [colorLine, ...block.lines]
+        .filter((other): other is PlateLine => !!other && other.id !== line.id)
+        .map(other => twins.map(twin => soleValueOn(other, twin.keys)))
+        .find(isApart);
+      const twinPlates = twins.map(twin => solePlate(twin.keys));
+      const index = twins.indexOf(run);
+      const value = twinValues?.[index];
+      const plate = twinPlates[index];
       const tag =
         twins.length < 2
           ? ''
-          : value && isApart(twinValues)
+          : value
             ? ` in ${value.text.trim()}`
             : plate && isApart(twinPlates)
               ? ` on ${plateNameOf(block, plate)}`

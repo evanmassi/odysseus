@@ -86,6 +86,8 @@ export function useWellKeyboard(
     if (step && sheet.isPlate) {
       event.preventDefault();
       selection.move(step[0], step[1], event.shiftKey);
+    } else if (event.key === 'Enter' && selection.keys.size) {
+      event.preventDefault();
       onOpenEditor();
     } else if (event.key === 'Escape') {
       selection.clear();

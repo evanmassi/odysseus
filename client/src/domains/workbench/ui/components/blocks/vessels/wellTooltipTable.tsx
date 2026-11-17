@@ -1,0 +1,50 @@
+import type { ReactNode } from 'react';
+
+import type { WellTooltip } from '../../../../utils/vessels/wellTooltip';
+
+export function wellTooltipTable({ heading, rows }: WellTooltip): ReactNode {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <b className="text-foreground">{heading}</b>
+      {rows.length > 0 && (
+        <table className="border-collapse">
+          <tbody>
+            {rows.map((row, index) =>
+              row.kind === 'ratio' ? (
+                <tr key={`${index}:${row.ratio}`}>
+                  <td colSpan={3} className="whitespace-nowrap pb-0.5">
+                    <b className="text-foreground dark:text-white">{row.ratio}</b>{' '}
+                    <span className="text-muted-foreground">{row.between}</span>
+                  </td>
+                </tr>
+              ) : row.kind === 'detail' ? (
+                <tr key={`${index}:${row.text}`}>
+                  <td colSpan={3} className="whitespace-nowrap pl-4 opacity-60">
+                    {row.text}
+                  </td>
+                </tr>
+              ) : (
+                <tr key={`${index}:${row.name}`} className="text-foreground">
+                  <td className="whitespace-nowrap pr-3">
+                    <span className="inline-flex items-center gap-1.5">
+                      <i
+                        aria-hidden
+                        className="inline-block h-2.5 w-2.5 flex-none"
+                        style={{ backgroundColor: row.color }}
+                      />
+                      {row.name}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap pr-1.5 text-right font-mono font-semibold dark:text-white">
+                    {row.amount}
+                  </td>
+                  <td className="whitespace-nowrap text-muted-foreground">{row.unit}</td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}

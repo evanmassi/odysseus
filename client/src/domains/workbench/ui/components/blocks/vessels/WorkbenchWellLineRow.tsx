@@ -44,6 +44,7 @@ const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
   auto: 'Auto',
   color: 'Color',
   band: 'Band',
+  stripe: 'Stripe',
   caption: 'Caption',
   hover: 'Hover only',
 };

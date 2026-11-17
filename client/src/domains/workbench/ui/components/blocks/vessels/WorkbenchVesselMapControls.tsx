@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import { Combine, Copy, Plus, X } from 'lucide-react';
+import { Combine, Copy, Pencil, Plus, X } from 'lucide-react';
 
 import { Button, DropdownMenu, Tab, Tooltip } from '@shared/ui';
 
@@ -30,6 +30,8 @@ interface WorkbenchVesselMapControlsProps {
   onToggleMerge: () => void;
   onSetCount: (type: VesselType, count: number) => void;
   onDuplicate: (place: CopyPlace) => void;
+  editLabel: string | undefined;
+  onEdit: () => void;
 }
 
 export type CopyPlace = 'tab' | 'card';
@@ -47,6 +49,8 @@ export function WorkbenchVesselMapControls({
   onToggleMerge,
   onSetCount,
   onDuplicate,
+  editLabel,
+  onEdit,
 }: WorkbenchVesselMapControlsProps) {
   const pickerAnchorRef = useRef<HTMLSpanElement>(null);
   const copyAnchorRef = useRef<HTMLSpanElement>(null);
@@ -116,6 +120,19 @@ export function WorkbenchVesselMapControls({
         )}
       </WorkbenchTabStrip>
       <span className="flex flex-none items-center gap-0.5">
+        {editLabel && (
+          <Tooltip content={`Edit ${editLabel} (Enter)`}>
+            <Button
+              variant="secondary"
+              size="sm"
+              iconOnly
+              aria-label={`Edit ${editLabel}`}
+              onClick={onEdit}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+        )}
         {active?.isPlate && (
           <Tooltip
             content={block.mergesReplicates ? 'Merge replicates: on' : 'Merge replicates: off'}
