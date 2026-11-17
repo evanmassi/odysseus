@@ -38,6 +38,7 @@ import {
   uniqueName,
   type CalculationSuggestion,
 } from '../../../../utils/formulas/formulaScopes';
+import { cellWarnings } from '../../../../utils/materials/cellFormulas';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';
@@ -123,6 +124,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         ? new Map([
             ...prepWarnings(protocol, calculation),
             ...recipeWarnings(protocol, calculation),
+            ...cellWarnings(calculation),
           ])
         : new Map<string, string[]>(),
     [protocol, calculation, showsWorkedOut]

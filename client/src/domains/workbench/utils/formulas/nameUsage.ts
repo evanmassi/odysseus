@@ -36,18 +36,19 @@ export function nameUsage(
     }
   }
   const names = [...calculation.names.values()].map(entry => entry.name);
-  for (const block of protocol.blocks) {
-    if (block.type !== 'formula') continue;
-    for (const formula of block.items) {
-      const owners = new Set(
-        formulaNameReferences(formula.expr, names).flatMap(
-          name => ownerByName.get(nameKey(name)) ?? []
-        )
-      );
-      for (const owner of owners) {
-        const use = usage.get(owner);
-        if (use) use.formulaCount += 1;
-      }
+  const typedExprs = protocol.blocks.flatMap(block =>
+    block.type === 'formula' ? block.items.map(formula => formula.expr) : []
+  );
+  const generatedExprs = [...calculation.names.values()].flatMap(entry =>
+    entry.kind === 'formula' && entry.workedOut ? [entry.expr] : []
+  );
+  for (const expr of [...typedExprs, ...generatedExprs]) {
+    const owners = new Set(
+      formulaNameReferences(expr, names).flatMap(name => ownerByName.get(nameKey(name)) ?? [])
+    );
+    for (const owner of owners) {
+      const use = usage.get(owner);
+      if (use) use.formulaCount += 1;
     }
   }
   return usage;

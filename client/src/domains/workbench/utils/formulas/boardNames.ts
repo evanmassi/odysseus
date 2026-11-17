@@ -1,5 +1,6 @@
 import { cytometerFormulaNames } from '../cytometer/cytometerNames';
 import { dilutionFormulaNames } from '../dilutions/dilutionFormulas';
+import { cellFormulaNames } from '../materials/cellFormulas';
 import {
   fieldName,
   fieldUnit,
@@ -191,6 +192,7 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     ...ownNames,
     ...recipeFormulaNames(protocol, ownNames),
     ...dilutionFormulaNames(protocol, ownNames),
+    ...cellFormulaNames(protocol, ownNames),
   ];
   return [...generated, ...cytometerFormulaNames(protocol, generated)];
 }
