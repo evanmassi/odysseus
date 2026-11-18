@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { Select } from '@shared/ui';
+import { PanelEmptyState, Select } from '@shared/ui';
 
 import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import {
@@ -20,6 +20,7 @@ import { stainCandidatesOn } from '../../../../utils/cytometer/stainPlacement';
 import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
 import { wellsNamed } from '../../../../utils/vessels/vesselMapNames';
+import { BLOCK_ICONS } from '../../board/blockIcons';
 
 import { CYTOMETER_CELL } from './cytometerTableStyles';
 import { useCytometerActions } from './useCytometerActions';
@@ -113,6 +114,7 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-muted-foreground">
         <Select
           size="xs"
+          fitsWidestOption
           value={instrument?.name ?? null}
           placeholder="Pick the cytometer"
           options={
@@ -150,9 +152,11 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
       </div>
 
       {!instrument ? (
-        <p className="text-body-sm italic text-muted-foreground">
-          Pick the cytometer and its lasers and detectors become the rows.
-        </p>
+        <PanelEmptyState
+          icon={BLOCK_ICONS.cytometer}
+          message="Pick the cytometer above"
+          description="Its lasers and detectors become the rows"
+        />
       ) : (
         <>
           {isSpectral && <WorkbenchCytometerPeakMap lasers={layout.lasers} />}

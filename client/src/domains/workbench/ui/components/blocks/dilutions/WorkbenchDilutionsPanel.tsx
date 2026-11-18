@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { Tab } from '@shared/ui';
+import { PanelEmptyState, Tab } from '@shared/ui';
 
 import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
@@ -22,7 +22,8 @@ import {
   listedMaterials,
   shortNameOf,
 } from '../../../../utils/materials/materialLookup';
-import { rememberedKinds } from '../../../../utils/materials/materialMemory';
+import { materialKnowledge } from '../../../../utils/materials/materialMemory';
+import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 
 import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
@@ -43,7 +44,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
   const calculation = useWorkbenchStore(state => state.calculation);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
-  const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
+  const known = useMemo(() => materialKnowledge(memory, protocol), [memory, protocol]);
   const runs = dilutionRuns(protocol);
   const diluents = runDiluents(runs, protocol.diluent);
   const diluentChoices = useMemo(
@@ -59,8 +60,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
     [protocol]
   );
   const [shownKey, setShownKey] = useState(ALL_SERIES);
-  const createMaterial = (name: string) =>
-    materialFromGuess(guessMaterial(name, remembered), memory);
+  const createMaterial = (name: string) => materialFromGuess(guessMaterial(name, known), memory);
   const shown = runs.find(run => run.key === shownKey);
   const isShowingAll = !shown;
 
@@ -80,9 +80,11 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
 
   if (!runs.length) {
     return (
-      <p className="px-4 py-3 text-body-sm text-muted-foreground">
-        Fill a dilution series across wells on a plate map, and how to make it shows here.
-      </p>
+      <PanelEmptyState
+        icon={BLOCK_ICONS.dilutions}
+        message="Add a dilution series on a plate"
+        description="Pick wells, type an amount and click Dilution"
+      />
     );
   }
 

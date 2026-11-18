@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { type RememberedMaterialKind } from './materialGuesser';
+import { type MaterialKnowledge, type RememberedMaterialKind } from './materialGuesser';
 import { UNSORTED_GROUP } from './materialItems';
 import { DONOR_ID_FIELD, STARTING_SOURCE_FIELDS } from './materialSources';
 
@@ -187,7 +187,18 @@ export function rememberDyes(memory: LabMemory, dyes: readonly ProtocolDye[]): L
   return hasLearned ? { ...memory, dyes: remembered } : memory;
 }
 
-export function rememberedKinds(
+export function materialKnowledge(
+  memory: LabMemory,
+  protocol: Pick<Protocol, 'blocks' | 'dyes'>
+): MaterialKnowledge {
+  const fileDyeKeys = new Set(protocol.dyes.map(dye => normalizeMaterialKey(dye.name)));
+  const rememberedDyes = Object.values(memory.dyes).filter(
+    dye => !fileDyeKeys.has(normalizeMaterialKey(dye.name))
+  );
+  return { kinds: knownKinds(memory, protocol), dyes: [...protocol.dyes, ...rememberedDyes] };
+}
+
+function knownKinds(
   memory: LabMemory,
   protocol: Pick<Protocol, 'blocks'>
 ): Map<string, RememberedMaterialKind> {

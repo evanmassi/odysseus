@@ -54,7 +54,9 @@ export function WorkbenchPage() {
         </div>
         <Divider tone="neutral" className="my-1" />
         <div className="flex min-h-0 flex-1 flex-col gap-2">
-          <WorkbenchPageTabs />
+          <div className="pr-2">
+            <WorkbenchPageTabs />
+          </div>
           <ScrollArea className="min-h-0 flex-1 pr-2">
             <WorkbenchBoard />
           </ScrollArea>

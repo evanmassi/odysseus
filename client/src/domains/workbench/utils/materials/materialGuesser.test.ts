@@ -8,10 +8,10 @@ import {
   listWithAnd,
   splitPastedMaterials,
   type MaterialGuess,
-  type RememberedMaterialKind,
+  type MaterialKnowledge,
 } from './materialGuesser';
 
-const nothingRemembered = new Map<string, RememberedMaterialKind>();
+const nothingRemembered: MaterialKnowledge = { kinds: new Map(), dyes: [] };
 const guess = (text: string): MaterialGuess => guessMaterial(text, nothingRemembered);
 
 describe('normalizeMaterialKey', () => {
@@ -258,7 +258,10 @@ describe('guessMaterial patterns', () => {
 
 describe('guessMaterial memory and context', () => {
   it('lets a remembered kind override the guess', () => {
-    const remembered = new Map([['hela', { group: 'bio', type: 'Primary cells' }]]);
+    const remembered = {
+      kinds: new Map([['hela', { group: 'bio', type: 'Primary cells' }]]),
+      dyes: [],
+    };
     expect(guessMaterial('HeLa', remembered)).toMatchObject({
       type: 'Primary cells',
       why: 'you filed it this way before',
@@ -267,13 +270,26 @@ describe('guessMaterial memory and context', () => {
   });
 
   it('keeps its own reason when memory agrees', () => {
-    const remembered = new Map([
-      ['hela', { group: 'bio', type: 'Cell line', why: 'already here' }],
-    ]);
+    const remembered = {
+      kinds: new Map([['hela', { group: 'bio', type: 'Cell line', why: 'already here' }]]),
+      dyes: [],
+    };
     expect(guessMaterial('HeLa', remembered)).toMatchObject({
       why: 'HeLa: known cell line',
       source: 'list',
     });
+  });
+
+  it('reads a dye the file or this computer added as the conjugate', () => {
+    const known = { kinds: new Map(), dyes: [{ name: 'Qx Fluor 512', lasers: [488], peak: 512 }] };
+    expect(guessMaterial('CD4 Qx Fluor 512 RPA-T4', known)).toMatchObject({
+      group: 'ab',
+      type: 'Antibody',
+      values: { target: 'CD4', conjugate: 'Qx Fluor 512', clone: 'RPA-T4' },
+    });
+    expect(guessMaterial('CD4 Qx Fluor 512 RPA-T4', nothingRemembered).values['conjugate']).toBe(
+      undefined
+    );
   });
 
   it('uses the table heading when nothing else matches', () => {

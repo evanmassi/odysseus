@@ -2,12 +2,15 @@ import { useState } from 'react';
 
 import { Plus, X } from 'lucide-react';
 
-import { Button, Tab, Tabs } from '@shared/ui';
+import { Button, ConsolePanel, Tab } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
+import { BOARD_MARGIN } from '../../../utils/blocks/boardGeometry';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 import { createId } from '../../../utils/ids/createId';
+
+import { WorkbenchTabStrip } from './WorkbenchTabStrip';
 
 const LABEL_TRACKING = '0.08em';
 const FIELD_CHROME_PX = 12;
@@ -76,87 +79,91 @@ export function WorkbenchPageTabs() {
   const blockWords = deletingBlockCount === 1 ? 'block' : 'blocks';
 
   return (
-    <div className="flex items-center gap-2">
-      <Tabs
-        value={activePageId}
-        onChange={showPage}
-        size="sm"
-        orientation="horizontal"
-        textStyle="name"
-      >
-        {pages.map(page =>
-          page.id === renamingPageId ? (
-            <span key={page.id} className="flex items-center px-3 py-2">
-              <input
-                ref={focusOnMount}
-                defaultValue={page.name}
-                aria-label="Page name"
-                spellCheck={false}
-                className="inline-edit-field max-w-none type-name text-label-sm text-foreground"
-                style={{ width: labelFieldWidth(draftName) }}
-                onChange={event => setDraftName(event.currentTarget.value)}
-                onFocus={event => event.currentTarget.select()}
-                onBlur={event => finishRename(page.id, event.currentTarget.value)}
+    <div style={{ paddingInline: BOARD_MARGIN }}>
+      <ConsolePanel className="flex items-stretch">
+        <WorkbenchTabStrip
+          value={activePageId}
+          ids={pages.map(page => page.id)}
+          onChange={showPage}
+          spacing="snug"
+        >
+          {pages.map(page =>
+            page.id === renamingPageId ? (
+              <span key={page.id} className="flex items-center px-3 py-2">
+                <input
+                  ref={focusOnMount}
+                  defaultValue={page.name}
+                  aria-label="Page name"
+                  spellCheck={false}
+                  className="inline-edit-field max-w-none type-name text-label-sm text-foreground"
+                  style={{ width: labelFieldWidth(draftName) }}
+                  onChange={event => setDraftName(event.currentTarget.value)}
+                  onFocus={event => event.currentTarget.select()}
+                  onBlur={event => finishRename(page.id, event.currentTarget.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter') event.currentTarget.blur();
+                    if (event.key === 'Escape') setRenamingPageId(undefined);
+                  }}
+                />
+              </span>
+            ) : (
+              <span
+                key={page.id}
+                role="presentation"
+                className="group flex"
+                onDoubleClick={() => startRename(page.id, page.name)}
                 onKeyDown={event => {
-                  if (event.key === 'Enter') event.currentTarget.blur();
-                  if (event.key === 'Escape') setRenamingPageId(undefined);
+                  if (event.key === 'F2') startRename(page.id, page.name);
                 }}
-              />
-            </span>
-          ) : (
-            <span
-              key={page.id}
-              role="presentation"
-              onDoubleClick={() => startRename(page.id, page.name)}
-              onKeyDown={event => {
-                if (event.key === 'F2') startRename(page.id, page.name);
-              }}
-            >
-              <Tab id={page.id}>
-                {page.name || 'Untitled page'}
-                {canDelete && page.id === activePageId && (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Delete the ${page.name} page`}
-                    className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
-                    onClick={event => {
-                      event.stopPropagation();
-                      requestDelete(page.id);
-                    }}
-                    onKeyDown={event => {
-                      if (event.key === 'Enter') requestDelete(page.id);
-                    }}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </span>
-                )}
-              </Tab>
-            </span>
-          )
-        )}
-      </Tabs>
-      <Button
-        variant="ghost"
-        size="sm"
-        leftIcon={<Plus className="h-3.5 w-3.5" />}
-        onClick={addPage}
-      >
-        Page
-      </Button>
-      <ConfirmDialog
-        isOpen={!!deletingPage}
-        variant="danger"
-        title="Delete page"
-        message={
-          deletingBlockCount
-            ? `Delete the “${deletingPage?.name}” page and the ${deletingBlockCount} ${blockWords} on it?`
-            : `Delete the “${deletingPage?.name}” page and its steps?`
-        }
-        confirmText="Delete"
-        onConfirm={() => deletingPageId && deletePage(deletingPageId)}
-        onCancel={() => setDeletingPageId(undefined)}
-      />
+              >
+                <Tab id={page.id}>
+                  {page.name || 'Untitled page'}
+                  {canDelete && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Delete the ${page.name} page`}
+                      className="invisible ml-1 inline-flex text-muted-foreground hover:text-danger-text group-focus-within:visible group-hover:visible"
+                      onClick={event => {
+                        event.stopPropagation();
+                        requestDelete(page.id);
+                      }}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') requestDelete(page.id);
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                </Tab>
+              </span>
+            )
+          )}
+        </WorkbenchTabStrip>
+        <span className="flex flex-none items-center border-l border-line-faint px-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Plus className="h-3.5 w-3.5" />}
+            onClick={addPage}
+          >
+            Page
+          </Button>
+        </span>
+        <ConfirmDialog
+          isOpen={!!deletingPage}
+          variant="danger"
+          title="Delete page"
+          message={
+            deletingBlockCount
+              ? `Delete the “${deletingPage?.name}” page and the ${deletingBlockCount} ${blockWords} on it?`
+              : `Delete the “${deletingPage?.name}” page and its steps?`
+          }
+          confirmText="Delete"
+          onConfirm={() => deletingPageId && deletePage(deletingPageId)}
+          onCancel={() => setDeletingPageId(undefined)}
+        />
+      </ConsolePanel>
     </div>
   );
 }

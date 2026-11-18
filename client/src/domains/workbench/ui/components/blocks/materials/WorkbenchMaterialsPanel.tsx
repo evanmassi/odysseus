@@ -47,7 +47,7 @@ import {
 } from '../../../../utils/materials/materialLots';
 import {
   knownSources,
-  rememberedKinds,
+  materialKnowledge,
   startingSourceFieldsOf,
 } from '../../../../utils/materials/materialMemory';
 import {
@@ -152,8 +152,12 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       setFresh(current => ({ ids: new Set(ids), stamp: current.stamp + 1 })),
     []
   );
-  const remembered = useMemo(() => rememberedKinds(memory, materialsOnly), [memory, materialsOnly]);
-  const adding = useMaterialAdding(block, remembered, markFresh);
+  const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
+  const known = useMemo(
+    () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileDyes }),
+    [memory, materialBlocks, fileDyes]
+  );
+  const adding = useMaterialAdding(block, known, markFresh);
   const removal = useMaterialRemoval(block, id => markFresh([id]));
   const { removed } = removal;
 
@@ -340,7 +344,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     addRecipeLine: (itemId, text) =>
       updateProtocol(draft =>
         addRecipeLine(draft, itemId, text, name =>
-          materialFromGuess(guessMaterial(name, remembered), memory)
+          materialFromGuess(guessMaterial(name, known), memory)
         )
       ),
     editRecipeEntry: (itemId, entryId, change) =>
@@ -453,7 +457,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const acceptReadings = (accepted: readonly MaterialReading[]) =>
     updateProtocol(draft =>
       acceptStepReadings(draft, { materials: accepted }, name =>
-        materialFromGuess(guessMaterial(name, remembered), memory)
+        materialFromGuess(guessMaterial(name, known), memory)
       )
     );
 
@@ -461,7 +465,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     updateProtocol(draft => {
       for (const offer of offers) {
         ensureMaterial(draft, offer.name, name =>
-          materialFromGuess(guessMaterial(name, remembered), memory)
+          materialFromGuess(guessMaterial(name, known), memory)
         );
       }
     });
@@ -568,7 +572,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         {readings.length > 0 && (
           <WorkbenchMaterialReadingsSection
             readings={readings}
-            guessType={name => guessMaterial(name, remembered).type}
+            guessType={name => guessMaterial(name, known).type}
             onAccept={acceptReadings}
             onIgnore={reading =>
               updateProtocol(draft => {
@@ -582,7 +586,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
             offers={plateOffers}
             materialChoices={linkChoices}
             donorTargets={donorTargets}
-            guessType={name => guessMaterial(name, remembered).type}
+            guessType={name => guessMaterial(name, known).type}
             onAdd={addPlateNames}
             onAddAsDonors={(offers, materialId) =>
               sourceActions.add(

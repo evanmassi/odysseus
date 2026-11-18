@@ -5,10 +5,11 @@ import { produce } from 'immer';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { keepDyesUsedBy } from '../../../../utils/dyes/fileDyes';
 import {
   guessMaterial,
   type MaterialGuess,
-  type RememberedMaterialKind,
+  type MaterialKnowledge,
 } from '../../../../utils/materials/materialGuesser';
 import {
   applyMaterialKind,
@@ -42,7 +43,7 @@ const SET_BY_YOU = 'set by you';
 
 export function useMaterialAdding(
   block: MaterialsBlock,
-  remembered: ReadonlyMap<string, RememberedMaterialKind>,
+  known: MaterialKnowledge,
   onAdded: (freshIds: readonly string[]) => void
 ) {
   const keptBoth = useWorkbenchStore(state => state.protocol.keptBoth);
@@ -58,11 +59,11 @@ export function useMaterialAdding(
 
   const preview = useMemo((): MaterialPreview | undefined => {
     if (!text.trim()) return undefined;
-    const guessed = guessMaterial(text, remembered);
+    const guessed = guessMaterial(text, known);
     const guess = chosenKind ? { ...guessed, ...chosenKind, why: SET_BY_YOU } : guessed;
     const item = materialFromGuess(guess, memory);
     return { guess, item, duplicate: findDuplicateMaterial(block.items, item, keptBoth) };
-  }, [text, chosenKind, remembered, memory, block.items, keptBoth]);
+  }, [text, chosenKind, known, memory, block.items, keptBoth]);
 
   const finishAdding = (freshIds: readonly string[]) => {
     setText('');
@@ -76,6 +77,11 @@ export function useMaterialAdding(
     let freshIds: string[] = [];
     updateProtocol(draft => {
       freshIds = commitReviewRows(draft, block.id, rows);
+      keepDyesUsedBy(
+        draft,
+        rows.map(row => row.item),
+        known.dyes
+      );
     });
     finishAdding(freshIds);
   };
@@ -116,7 +122,7 @@ export function useMaterialAdding(
 
   const pasteText = (pasted: string): boolean => {
     if (!hasMultipleLines(pasted)) return false;
-    const rows = pastedReviewRows(pasted, block.items, keptBoth, remembered, memory);
+    const rows = pastedReviewRows(pasted, block.items, keptBoth, known, memory);
     if (rows.length) setPaste({ source: PASTE_SOURCE, rows });
     return true;
   };

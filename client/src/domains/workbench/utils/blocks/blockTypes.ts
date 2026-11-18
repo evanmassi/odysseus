@@ -107,6 +107,17 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   cytometer: {
     label: 'Flow panel',
     hint: 'Stains by laser and detector on your cytometer',
+    usageTip: {
+      heading: 'Lay out your stains on the cytometer',
+      points: [
+        'Pick the cytometer, and each detector becomes a row under its laser',
+        '*Add a stain* on a detector picks one from <materials> or makes a new one',
+        'A stain lights amber when another detector would read it better',
+        '*Full Stain*, *Single Stain* and *FMO* make the mixes for your controls',
+        'Type a mix name on wells in the <plate> to count its wells',
+        'Amounts per well and cocktails are names you can use in <formula>',
+      ],
+    },
     size: [12, 10],
     fitsContent: true,
     createContent: () => ({ rows: [], mixes: [] }),
@@ -130,6 +141,16 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   dilutions: {
     label: 'Dilutions',
     hint: 'How to make each series on your plates',
+    usageTip: {
+      heading: 'See how to make each dilution series',
+      points: [
+        'Pick wells on the <plate>, type an amount and click *Dilution*',
+        'Set the *Diluent* once at the top, or per series',
+        '*Extra* covers dead volume, *Round to* matches your pipette',
+        'A missing stock or molecular weight is asked for here and saved in <materials>',
+        'The volumes are names you can use in <formula> and <steps>',
+      ],
+    },
     size: [12, 10],
     fitsContent: true,
     createContent: () => ({}),

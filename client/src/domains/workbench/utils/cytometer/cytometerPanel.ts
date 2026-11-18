@@ -2,9 +2,9 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { type DyeCatalog } from '../dyes/dyeCatalog';
 import { ANTIBODY_GROUP, materialFields } from '../materials/materialCatalog';
-import { guessMaterial } from '../materials/materialGuesser';
+import { guessMaterial, type MaterialKnowledge } from '../materials/materialGuesser';
 import { applyMaterialKind, materialFromGuess } from '../materials/materialItems';
-import { rememberedKinds, type LabMemory } from '../materials/materialMemory';
+import { type LabMemory } from '../materials/materialMemory';
 
 import { misplacementText, type Misplacement } from './stainPlacement';
 import { filterCenter, wavelengthColor, wavelengthTone } from './wavelengthColor';
@@ -137,7 +137,10 @@ export const stainCandidates = (
   const onPanel = new Set(block.rows.map(row => row.materialId));
   return materials.filter(
     item =>
-      item.group === ANTIBODY_GROUP && !NON_STAIN_TYPES.has(item.type) && !onPanel.has(item.id)
+      item.group === ANTIBODY_GROUP &&
+      !NON_STAIN_TYPES.has(item.type) &&
+      !onPanel.has(item.id) &&
+      Boolean(stainFluorochrome(item))
   );
 };
 
@@ -168,10 +171,10 @@ export function panelDetectorLabels(protocol: Pick<Protocol, 'blocks'>): Map<str
 
 export function newStainMaterial(
   text: string,
-  memory: LabMemory,
-  protocol: Pick<Protocol, 'blocks'>
+  known: MaterialKnowledge,
+  memory: LabMemory
 ): MaterialItem {
-  const item = materialFromGuess(guessMaterial(text, rememberedKinds(memory, protocol)), memory);
+  const item = materialFromGuess(guessMaterial(text, known), memory);
   if (item.group !== ANTIBODY_GROUP || NON_STAIN_TYPES.has(item.type)) {
     applyMaterialKind(item, ANTIBODY_GROUP, STAIN_FALLBACK_TYPE, memory);
   }

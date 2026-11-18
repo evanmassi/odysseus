@@ -5,10 +5,12 @@ import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { dilutionFactor, newStainMaterial } from '../../../../utils/cytometer/cytometerPanel';
 import { BUILT_IN_INSTRUMENTS } from '../../../../utils/cytometer/instrumentCatalog';
+import { keepDyesUsedBy } from '../../../../utils/dyes/fileDyes';
 import { createId } from '../../../../utils/ids/createId';
 import { materialFields } from '../../../../utils/materials/materialCatalog';
 import { writeMaterialField } from '../../../../utils/materials/materialItems';
 import { ensureMaterial } from '../../../../utils/materials/materialLookup';
+import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 
 import type { CytometerBlock, FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -70,8 +72,10 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
         }),
       createStain: (text, detectorId) =>
         updateProtocol(draft => {
-          const created = newStainMaterial(text, memory, draft);
+          const known = materialKnowledge(memory, draft);
+          const created = newStainMaterial(text, known, memory);
           const material = ensureMaterial(draft, created.name, () => created);
+          keepDyesUsedBy(draft, [material], known.dyes);
           const panel = draft.blocks.find(candidate => candidate.id === block.id);
           if (panel?.type !== 'cytometer') return;
           panel.rows.push({

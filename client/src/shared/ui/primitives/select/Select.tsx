@@ -36,6 +36,14 @@ const DROPDOWN_MAX_HEIGHT = 240;
 const ICON_BUTTON =
   'p-0.5 text-secondary-foreground transition-colors hover:text-foreground dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground dark:focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';
 
+const FIELD_TEXT = {
+  inline: 'px-2 font-mono text-data-sm',
+  xs: 'px-2 text-body-sm',
+  sm: 'px-3 text-body',
+  md: 'px-3 text-body',
+} as const;
+const LIST_TEXT = 'px-3 text-body';
+
 const selectVariants = cva(
   [
     'relative w-full cursor-pointer',
@@ -48,10 +56,10 @@ const selectVariants = cva(
   {
     variants: {
       size: {
-        inline: 'h-5 px-2 font-mono text-data-sm',
-        xs: 'h-7 px-2 text-body-sm',
-        sm: 'h-8 px-3 text-body',
-        md: 'h-9 px-3 text-body',
+        inline: `h-5 ${FIELD_TEXT.inline}`,
+        xs: `h-7 ${FIELD_TEXT.xs}`,
+        sm: `h-8 ${FIELD_TEXT.sm}`,
+        md: `h-9 ${FIELD_TEXT.md}`,
       },
       isOpen: {
         true: `border-primary/70 bg-primary/[0.04] ${TRIGGER_FOCUS_SHADOW}`,
@@ -107,10 +115,11 @@ const dropdownVariants = cva(
   }
 );
 
+const GHOST = 'invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap';
+
 const optionVariants = cva(
   [
-    'px-3 py-2 cursor-pointer text-body',
-    'flex items-center gap-2',
+    'flex items-center gap-2 py-2 cursor-pointer',
     'transition-[background-image,box-shadow,color] duration-150',
     ROW_TONE.primary,
   ],
@@ -153,6 +162,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       placeholder = defaultSelectProps.placeholder,
       fullWidth = defaultSelectProps.fullWidth,
       isQuiet = defaultSelectProps.isQuiet,
+      fitsWidestOption = defaultSelectProps.fitsWidestOption,
       label,
       labelClassName,
       error,
@@ -406,8 +416,32 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           tabIndex={disabled ? -1 : 0}
         >
           <div className="flex items-center justify-between h-full">
-            <div className={`flex-1 truncate ${isQuiet ? 'text-right' : ''}`}>
-              {renderDisplayValueContent()}
+            <div
+              className={`flex-1 truncate ${isQuiet ? 'text-right' : ''} ${fitsWidestOption ? 'grid' : ''}`}
+            >
+              {fitsWidestOption ? (
+                <>
+                  <span className="col-start-1 row-start-1 truncate">
+                    {renderDisplayValueContent()}
+                  </span>
+                  <span aria-hidden className={GHOST}>
+                    {placeholder}
+                  </span>
+                  {options.map(option => (
+                    <span
+                      key={option.value}
+                      aria-hidden
+                      className={`${GHOST} flex gap-2 font-semibold`}
+                    >
+                      {option.icon && <span>{option.icon}</span>}
+                      {option.label}
+                      <span />
+                    </span>
+                  ))}
+                </>
+              ) : (
+                renderDisplayValueContent()
+              )}
             </div>
 
             <div className={isQuiet ? 'select-quiet__chrome' : 'contents'}>
@@ -449,6 +483,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                 ? { bottom: window.innerHeight - dropdownPosition.top, left: dropdownPosition.left }
                 : { top: dropdownPosition.top, left: dropdownPosition.left }),
               minWidth: dropdownPosition.width,
+              ...(fitsWidestOption && { width: dropdownPosition.width }),
               maxHeight: DROPDOWN_MAX_HEIGHT,
             }}
           >
@@ -484,6 +519,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                         )}
                         <div
                           className={optionVariants({
+                            className: fitsWidestOption ? FIELD_TEXT[size] : LIST_TEXT,
                             isSelected,
                             isHighlighted,
                             isDisabled: option.disabled,

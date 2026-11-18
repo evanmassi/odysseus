@@ -19,6 +19,8 @@ export type TabSize = 'md' | 'sm';
 
 type TabTextStyle = 'label' | 'name';
 
+export type TabSpacing = 'loose' | 'snug';
+
 interface TabsProps {
   value: string;
   onChange: (value: string) => void;
@@ -26,6 +28,7 @@ interface TabsProps {
   orientation?: TabOrientation;
   size?: TabSize;
   textStyle?: TabTextStyle;
+  spacing?: TabSpacing;
   className?: string;
 }
 
@@ -46,6 +49,7 @@ interface TabsContextValue {
   orientation: TabOrientation;
   size: TabSize;
   textStyle: TabTextStyle;
+  spacing: TabSpacing;
 }
 
 const TabsContext = createContext<TabsContextValue | null>(null);
@@ -73,6 +77,13 @@ const SIZE_TEXT: Record<TabSize, string> = {
 
 const ACTIVE_STATE = 'text-foreground phosphor-text';
 
+const SNUG_HOVER = 'hover:bg-primary/5';
+
+const HORIZONTAL_LIST: Record<TabSpacing, string> = {
+  loose: 'relative flex items-center gap-6 px-4',
+  snug: 'relative flex items-stretch gap-0.5',
+};
+
 const INACTIVE_STATE =
   'text-muted-foreground ' +
   'hover:text-foreground dark:hover:[text-shadow:0_0_8px_hsl(var(--sheen)/0.7)]';
@@ -93,7 +104,7 @@ const INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
 
 export function Tab({ id, icon, children }: TabProps) {
-  const { value, onChange, orientation, size, textStyle } = useTabsContext();
+  const { value, onChange, orientation, size, textStyle, spacing } = useTabsContext();
   const isActive = value === id;
   const isVertical = orientation === 'vertical';
 
@@ -111,7 +122,7 @@ export function Tab({ id, icon, children }: TabProps) {
 
   const className = `${BASE} ${TEXT_STYLE[textStyle]} ${SIZE_TEXT[size]} ${orientationClasses} ${
     isActive ? ACTIVE_STATE : INACTIVE_STATE
-  }`;
+  } ${!isActive && spacing === 'snug' ? SNUG_HOVER : ''}`;
 
   return (
     <button
@@ -155,14 +166,15 @@ export function Tabs({
   orientation,
   size = 'md',
   textStyle = 'label',
+  spacing = 'loose',
   className = '',
 }: TabsProps) {
   const tabCount = Children.count(children);
   const resolvedOrientation = orientation ?? (tabCount <= 2 ? 'horizontal' : 'vertical');
 
   const contextValue = useMemo(
-    () => ({ value, onChange, orientation: resolvedOrientation, size, textStyle }),
-    [value, onChange, resolvedOrientation, size, textStyle]
+    () => ({ value, onChange, orientation: resolvedOrientation, size, textStyle, spacing }),
+    [value, onChange, resolvedOrientation, size, textStyle, spacing]
   );
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -195,9 +207,7 @@ export function Tabs({
   }, [recomputeIndicator]);
 
   const containerClass =
-    resolvedOrientation === 'vertical'
-      ? 'relative flex flex-col gap-1'
-      : 'relative flex items-center gap-6 px-4';
+    resolvedOrientation === 'vertical' ? 'relative flex flex-col gap-1' : HORIZONTAL_LIST[spacing];
 
   const indicatorClass = `pointer-events-none absolute top-0 left-0 before:content-[''] before:absolute before:inset-0 dark:before:bg-scanlines ${
     resolvedOrientation === 'horizontal' ? TILE_HORIZONTAL : TILE_VERTICAL

@@ -14,7 +14,7 @@ import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
-import { rememberedKinds } from '../../../../utils/materials/materialMemory';
+import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { editRecipeEntry } from '../../../../utils/materials/materialRecipe';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
 import {
@@ -197,7 +197,11 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     ...nameUsage(state.protocol, state.calculation, usageIds),
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
-  const remembered = useMemo(() => rememberedKinds(memory, protocol), [memory, protocol]);
+  const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
+  const known = useMemo(
+    () => materialKnowledge(memory, { blocks: protocol.blocks, dyes: fileDyes }),
+    [memory, protocol, fileDyes]
+  );
   const isFirstValuesBlock =
     protocol.blocks.find(candidate => candidate.type === 'values')?.id === block.id;
   const readings = useWorkbenchData(state =>
@@ -520,7 +524,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             onAccept={accepted =>
               edit(draft =>
                 acceptStepReadings(draft, { values: accepted }, name =>
-                  materialFromGuess(guessMaterial(name, remembered), memory)
+                  materialFromGuess(guessMaterial(name, known), memory)
                 )
               )
             }

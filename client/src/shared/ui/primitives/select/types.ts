@@ -25,6 +25,7 @@ export interface SelectProps {
   placeholder?: string;
   fullWidth?: boolean;
   isQuiet?: boolean;
+  fitsWidestOption?: boolean;
   label?: string;
   labelClassName?: string;
   error?: string;
@@ -48,5 +49,6 @@ export const defaultSelectProps = {
   disabled: false,
   fullWidth: false,
   isQuiet: false,
+  fitsWidestOption: false,
   placeholder: 'Select an option...',
 } satisfies Partial<SelectProps>;

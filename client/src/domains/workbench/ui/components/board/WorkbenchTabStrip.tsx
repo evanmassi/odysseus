@@ -2,19 +2,26 @@ import { useEffect, useRef, type ReactNode } from 'react';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { Button, Tabs, Tooltip } from '@shared/ui';
+import { Button, Tabs, Tooltip, type TabSpacing } from '@shared/ui';
 
 interface WorkbenchTabStripProps {
   value: string;
   ids: readonly string[];
   onChange: (id: string) => void;
+  spacing?: TabSpacing;
   children: ReactNode;
 }
 
 const DRAG_THRESHOLD = 4;
 const SCROLL_MARGIN = 8;
 
-export function WorkbenchTabStrip({ value, ids, onChange, children }: WorkbenchTabStripProps) {
+export function WorkbenchTabStrip({
+  value,
+  ids,
+  onChange,
+  spacing,
+  children,
+}: WorkbenchTabStripProps) {
   const stripRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; left: number; hasMoved: boolean }>();
 
@@ -76,7 +83,14 @@ export function WorkbenchTabStrip({ value, ids, onChange, children }: WorkbenchT
           event.stopPropagation();
         }}
       >
-        <Tabs value={value} onChange={onChange} size="sm" orientation="horizontal" textStyle="name">
+        <Tabs
+          value={value}
+          onChange={onChange}
+          size="sm"
+          orientation="horizontal"
+          textStyle="name"
+          spacing={spacing}
+        >
           {children}
         </Tabs>
       </div>

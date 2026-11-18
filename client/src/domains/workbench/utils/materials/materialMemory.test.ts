@@ -7,7 +7,7 @@ import {
   learnFromMaterials,
   learnedFields,
   rememberKind,
-  rememberedKinds,
+  materialKnowledge,
   toggleStartingField,
 } from './materialMemory';
 
@@ -61,12 +61,12 @@ describe('rememberedKinds', () => {
   it('prefers what you set by hand over this protocol over earlier protocols', () => {
     let memory = learnFromMaterials(EMPTY_LAB_MEMORY, [material('PBS', 'chem', 'Solvent')]);
     const protocol = protocolWith([material('PBS', 'media', 'Buffer')]);
-    expect(rememberedKinds(memory, protocol).get('pbs')).toMatchObject({
+    expect(materialKnowledge(memory, protocol).kinds.get('pbs')).toMatchObject({
       type: 'Buffer',
       why: 'already in this protocol',
     });
     memory = rememberKind(memory, 'PBS', 'media', 'Stock solution');
-    expect(rememberedKinds(memory, protocol).get('pbs')).toEqual({
+    expect(materialKnowledge(memory, protocol).kinds.get('pbs')).toEqual({
       group: 'media',
       type: 'Stock solution',
     });

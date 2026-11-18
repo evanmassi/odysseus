@@ -36,7 +36,7 @@ describe('pastedReviewRows', () => {
       'DMSO\nHeLa\n\n- 96-well plate',
       [existing],
       [],
-      new Map(),
+      { kinds: new Map(), dyes: [] },
       EMPTY_LAB_MEMORY
     );
     expect(rows.map(row => row.item.name)).toEqual(['DMSO', 'HeLa', '96-well plate']);

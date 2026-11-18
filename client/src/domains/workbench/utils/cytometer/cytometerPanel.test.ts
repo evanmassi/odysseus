@@ -25,6 +25,7 @@ const material = (type: string, name: string, values: Record<string, string> = {
 };
 
 const [IQUE, A8] = BUILT_IN_INSTRUMENTS;
+const NOTHING_KNOWN = { kinds: new Map(), dyes: [] };
 
 const panel = (
   rows: Array<[MaterialItem, string, string?]>,
@@ -116,6 +117,13 @@ describe('stainCandidates', () => {
     const offered = stainCandidates(panel([[cd4, 'VL1']]), [cd4, cd8, zombie, fcBlock]);
     expect(offered.map(item => item.name)).toEqual(['CD8 Pacific Blue', 'Zombie NIR']);
   });
+
+  it('leaves out antibodies with no dye, like a therapeutic drug or a purified vial', () => {
+    const drug = material('Antibody', 'Pembrolizumab');
+    const purified = material('Antibody', 'CD3 purified OKT3', { target: 'CD3', clone: 'OKT3' });
+    const offered = stainCandidates(panel([]), [drug, purified, cd8]);
+    expect(offered.map(item => item.name)).toEqual(['CD8 Pacific Blue']);
+  });
 });
 
 describe('stainSteps', () => {
@@ -160,14 +168,14 @@ describe('panelDetectorLabels', () => {
 
 describe('newStainMaterial', () => {
   it('reads a typed stain the way Materials does', () => {
-    const item = newStainMaterial('IFN-gamma APC 4S.B3', EMPTY_LAB_MEMORY, { blocks: [] });
+    const item = newStainMaterial('IFN-gamma APC 4S.B3', NOTHING_KNOWN, EMPTY_LAB_MEMORY);
     expect(item).toMatchObject({ group: 'ab', type: 'Antibody', name: 'IFN-γ APC 4S.B3' });
     expect(item.values).toMatchObject({ conjugate: 'APC', clone: '4S.B3' });
-    expect(newStainMaterial('Zombie NIR', EMPTY_LAB_MEMORY, { blocks: [] }).type).toBe('Dye');
+    expect(newStainMaterial('Zombie NIR', NOTHING_KNOWN, EMPTY_LAB_MEMORY).type).toBe('Dye');
   });
 
   it('files anything it cannot place as an antibody', () => {
-    expect(newStainMaterial('Mystery reagent 7', EMPTY_LAB_MEMORY, { blocks: [] })).toMatchObject({
+    expect(newStainMaterial('Mystery reagent 7', NOTHING_KNOWN, EMPTY_LAB_MEMORY)).toMatchObject({
       group: 'ab',
       type: 'Antibody',
     });

@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { BUILT_IN_CATALOG, dyeLaserLabel } from '../dyes/dyeCatalog';
+import { BUILT_IN_CATALOG, dyeLaserLabel, yourDye, type Dye } from '../dyes/dyeCatalog';
 
 import {
   ANTIBODY_STOP_WORDS,
@@ -20,6 +20,8 @@ import {
   VENDOR_LEXICON,
   type MaterialLexiconGroup,
 } from './materialLexicon';
+
+import type { ProtocolDye } from '@odysseus/shared-schemas';
 
 export interface MaterialAmount {
   value: string;
@@ -42,6 +44,11 @@ export interface RememberedMaterialKind {
   group: string;
   type: string;
   why?: string;
+}
+
+export interface MaterialKnowledge {
+  kinds: ReadonlyMap<string, RememberedMaterialKind>;
+  dyes: readonly ProtocolDye[];
 }
 
 interface MaterialGuessContext {
@@ -137,9 +144,9 @@ function indexLexicon(): ReadonlyMap<string, LexiconHit> {
   return index;
 }
 
-function indexFluorochromes(): ReadonlyMap<string, Fluorochrome> {
+function indexFluorochromes(dyes: readonly Dye[]): ReadonlyMap<string, Fluorochrome> {
   const index = new Map<string, Fluorochrome>();
-  for (const dye of BUILT_IN_CATALOG.dyes) {
+  for (const dye of dyes) {
     if (dye.kind !== 'conjugate' && dye.kind !== 'protein') continue;
     const fluorochrome = {
       name: dye.name,
@@ -174,7 +181,7 @@ function indexVendors(): ReadonlyMap<string, string> {
 }
 
 const lexiconByKey = indexLexicon();
-const fluorochromeByKey = indexFluorochromes();
+const fluorochromeByKey = indexFluorochromes(BUILT_IN_CATALOG.dyes);
 const conjugateByKey: ReadonlyMap<string, string> = new Map(
   splitList(CONJUGATE_LEXICON).map(name => [normalizeMaterialKey(name), name])
 );
@@ -463,10 +470,12 @@ function guessSupply(text: string): GuessOutcome | undefined {
 const ANTI_WORD = /(^|[\s(])(anti|α)\s?-?\s?(?!anti|biotic|fade|mycotic|body|bodies|oxidant|gen)/i;
 const DOUBLE_ANTI = /anti-anti/i;
 
-const findDyeFluorochrome = (key: string): Fluorochrome | undefined => {
-  const fluorochrome = fluorochromeByKey.get(key);
-  return fluorochrome?.isProtein ? undefined : fluorochrome;
-};
+const dyeFluorochromeFinder =
+  (yours: ReadonlyMap<string, Fluorochrome>) =>
+  (key: string): Fluorochrome | undefined => {
+    const fluorochrome = fluorochromeByKey.get(key) ?? yours.get(key);
+    return fluorochrome?.isProtein ? undefined : fluorochrome;
+  };
 
 const findTarget = (key: string): TargetHit | undefined =>
   isTargetKey(key) ? { isCytokine: isCytokineKey(key) } : undefined;
@@ -474,13 +483,13 @@ const findTarget = (key: string): TargetHit | undefined =>
 const longestThenLatest = <T>(first: TokenMatch<T>, second: TokenMatch<T>): number =>
   second.length - first.length || second.start - first.start;
 
-function analyzeWords(text: string): WordAnalysis {
+function analyzeWords(text: string, yours: ReadonlyMap<string, Fluorochrome>): WordAnalysis {
   const { amount, text: withoutAmount } = extractAmount(text);
   const nameText = withoutAmount.replace(WHITESPACE_RUNS, ' ').trim() || text;
   const tokens = tokenize(nameText);
   const used = new Set<number>();
   const lexiconHits = findMatches(tokens, key => lexiconByKey.get(key), used);
-  const fluorochromeHits = findMatches(tokens, findDyeFluorochrome, used);
+  const fluorochromeHits = findMatches(tokens, dyeFluorochromeFinder(yours), used);
   const conjugateHits = findMatches(
     tokens,
     key => conjugateByKey.get(key),
@@ -990,11 +999,15 @@ const assembleGuess = (
   source: outcome.source ?? 'list',
 });
 
-function guessFromText(raw: string, context: MaterialGuessContext): MaterialGuess {
+function guessFromText(
+  raw: string,
+  context: MaterialGuessContext,
+  dyes: readonly ProtocolDye[]
+): MaterialGuess {
   const { text, values } = readIdentifiers(raw, context);
   const patternOutcome = guessAccession(text) ?? guessDnaSequence(text) ?? guessSupply(text);
   if (patternOutcome) return assembleGuess(patternOutcome, text, values);
-  const words = analyzeWords(text);
+  const words = analyzeWords(text, indexFluorochromes(dyes.map(yourDye)));
   return assembleGuess(
     guessFromWords(raw, words, values, context.groupHint),
     words.nameText,
@@ -1015,12 +1028,12 @@ function withTherapeuticAntibody(guess: MaterialGuess): MaterialGuess {
 
 export function guessMaterial(
   raw: string,
-  remembered: ReadonlyMap<string, RememberedMaterialKind>,
+  { kinds, dyes }: MaterialKnowledge,
   context: MaterialGuessContext = {}
 ): MaterialGuess {
-  const guess = withTherapeuticAntibody(guessFromText(raw, context));
+  const guess = withTherapeuticAntibody(guessFromText(raw, context, dyes));
   const memory =
-    remembered.get(normalizeMaterialKey(guess.name)) ?? remembered.get(normalizeMaterialKey(raw));
+    kinds.get(normalizeMaterialKey(guess.name)) ?? kinds.get(normalizeMaterialKey(raw));
   if (!memory || (memory.group === guess.group && memory.type === guess.type)) return guess;
   return {
     ...guess,
