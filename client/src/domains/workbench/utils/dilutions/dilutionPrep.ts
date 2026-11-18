@@ -4,7 +4,13 @@ import { RATIO_NOTATION, readableAmount, readNumber } from '../formulas/quantiti
 import { displayNameOf, materialNamed } from '../materials/materialLookup';
 import { seriesFold, seriesTop } from '../vessels/plateSeries';
 
-import { prepLineId, prepSettingsOf, type PrepLine, type PrepSettings } from './dilutionFormulas';
+import {
+  prepInputId,
+  prepLineId,
+  prepSettingsOf,
+  type PrepLine,
+  type PrepSettings,
+} from './dilutionFormulas';
 import { stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 
@@ -27,6 +33,7 @@ export interface PrepWarning {
 interface PrepBase {
   settings: PrepSettings;
   summary: string;
+  inheritedWellVolume: string | undefined;
 }
 
 export type DilutionPrep =
@@ -56,13 +63,16 @@ const dialed = (use: PipetteUse, volume: number) =>
 
 type LineAnswer = { magnitude: number } | { problem: string };
 
-function lineAnswer(calculation: BoardCalculation, run: DilutionRun, line: PrepLine): LineAnswer {
-  const result = calculation.results.get(prepLineId(run, line));
+function answerOf(calculation: BoardCalculation, id: string): LineAnswer {
+  const result = calculation.results.get(id);
   if (result?.status === 'ok') return { magnitude: result.quantity.magnitude };
   return {
     problem: result?.message ?? 'Name this treatment on the plate map to work out its prep.',
   };
 }
+
+const lineAnswer = (calculation: BoardCalculation, run: DilutionRun, line: PrepLine) =>
+  answerOf(calculation, prepLineId(run, line));
 
 const inMicroliters = (answer: LineAnswer) =>
   'magnitude' in answer ? answer.magnitude / MICROLITER : undefined;
@@ -86,7 +96,16 @@ export function dilutionPrep(
     `1:${shortNumber(fold || 0)}`,
     `${pointCount} points`,
   ].join(' · ');
-  const base = { settings, summary };
+  const typedWellVolume = settings.wellVolume.trim();
+  const experimentWellVolume = typedWellVolume
+    ? undefined
+    : inMicroliters(answerOf(calculation, prepInputId(run, 'wellVolume')));
+  const base = {
+    settings,
+    summary,
+    inheritedWellVolume:
+      experimentWellVolume === undefined ? undefined : shortNumber(experimentWellVolume),
+  };
   if (!top || !(fold > 1)) {
     return {
       ...base,
@@ -95,8 +114,13 @@ export function dilutionPrep(
     };
   }
   const added = readNumber(settings.volumeAdded) ?? NaN;
-  if (!(added > 0) || !((readNumber(settings.wellVolume) ?? NaN) >= added)) {
-    return { ...base, kind: 'problem', problem: 'Set the well volume and the volume added.' };
+  const wellVolume = typedWellVolume ? readNumber(typedWellVolume) : experimentWellVolume;
+  if (!(added > 0) || !((wellVolume ?? NaN) >= added)) {
+    return {
+      ...base,
+      kind: 'problem',
+      problem: 'Set the volume added, and the well volume here or as "Well volume" in Values.',
+    };
   }
   const strengthAnswer = lineAnswer(calculation, run, 'strength');
   const volumeAnswers = (['transfer', 'diluent', 'topVolume'] as const).map(line =>

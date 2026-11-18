@@ -170,8 +170,25 @@ describe('dilution prep', () => {
     const result = prepFor(protocolWith({ ...doseSeries, prep: undefined }, [drugStock]));
     expect(result).toMatchObject({
       kind: 'problem',
-      problem: 'Set the well volume and the volume added.',
+      problem: 'Set the volume added, and the well volume here or as "Well volume" in Values.',
     });
+  });
+
+  it("takes the experiment's Well volume when the series leaves its own blank", () => {
+    const protocol = protocolWith({ ...doseSeries, prep: { volumeAdded: '20' } }, [drugStock]);
+    protocol.blocks.push({
+      id: 'values',
+      type: 'values',
+      page: 'page',
+      items: [{ id: 'well', name: 'Well volume', value: '80', unit: 'µL' }],
+      sections: [],
+    } as unknown as Protocol['blocks'][number]);
+    const inherited = prepFor(protocol);
+    const typed = prepFor(protocolWith(doseSeries, [drugStock]));
+    if (inherited.kind !== 'ready' || typed.kind !== 'ready') throw new Error('not ready');
+    expect(inherited.inheritedWellVolume).toBe('80');
+    expect(inherited.points).toEqual(typed.points);
+    expect(typed.inheritedWellVolume).toBeUndefined();
   });
 
   it('runs a 1:N series forward from undiluted stock', () => {

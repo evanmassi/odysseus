@@ -14,7 +14,6 @@ import {
 } from '../../../../utils/materials/materialItems';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { SOURCES_LABEL } from '../../../../utils/materials/materialSources';
-import { localToday } from '../../../../utils/protocolFile/experimentId';
 
 import {
   MATERIAL_ACTIONS_CELL,
@@ -102,6 +101,7 @@ const FRESH_FLASH: Keyframe[] = [
   { backgroundColor: 'transparent' },
 ];
 
+const localToday = (): string => new Date().toLocaleDateString('en-CA');
 const isPastDate = (value: string) => !!value.trim() && value < localToday();
 
 interface EditableCellProps {

@@ -1,9 +1,3 @@
-/**
- * Scroll Area
- *
- * Themed scrollbar wrapper built on OverlayScrollbars.
- */
-
 import { forwardRef } from 'react';
 
 import {
@@ -14,17 +8,24 @@ import {
 
 type ScrollAreaProps = OverlayScrollbarsComponentProps;
 
+const CONTENT_RESIZE_EVENTS: Array<[string, string]> = [
+  ['[data-state]', 'animationend transitionend'],
+];
+
 export const ScrollArea = forwardRef<OverlayScrollbarsComponentRef, ScrollAreaProps>(
   ({ options, defer = true, ...rest }, ref) => {
+    const given = options === false ? {} : (options ?? {});
     return (
       <OverlayScrollbarsComponent
         ref={ref}
         defer={defer}
         options={{
           scrollbars: { theme: 'os-theme-odysseus', autoHide: 'move', autoHideDelay: 800 },
-          // Recompute scrollbars when [data-state] elements finish animating (content resizes).
-          update: { elementEvents: [['[data-state]', 'animationend transitionend']] },
-          ...options,
+          ...given,
+          update: {
+            ...given.update,
+            elementEvents: [...CONTENT_RESIZE_EVENTS, ...(given.update?.elementEvents ?? [])],
+          },
         }}
         {...rest}
       />

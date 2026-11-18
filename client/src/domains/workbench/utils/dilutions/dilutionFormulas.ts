@@ -9,6 +9,7 @@ import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardC
 import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { fieldName, materialFields } from '../materials/materialCatalog';
 import { materialNamed } from '../materials/materialLookup';
+import { wellTotalName } from '../materials/materialRecipeFormulas';
 import { stepSeriesUnit } from '../vessels/plateSeries';
 import { plateAmounts } from '../vessels/vesselMapNames';
 
@@ -64,6 +65,9 @@ const INTERMEDIATE_LINES: ReadonlySet<PrepLine> = new Set([
 ]);
 
 export const prepLineId = (run: DilutionRun, line: PrepLine): string => `${run.key}:prep:${line}`;
+
+export const prepInputId = (run: DilutionRun, key: keyof PrepSettings): string =>
+  `${run.key}:prep:${key}`;
 
 const MASS_CONCENTRATION = dimensionKey({ mass: 1, volume: -1 });
 
@@ -126,7 +130,8 @@ function runNames(
   run: DilutionRun,
   tag: string,
   takenKeys: ReadonlySet<string>,
-  dilutionsBlockId: string | undefined
+  dilutionsBlockId: string | undefined,
+  wellTotal: string | undefined
 ): BoardName[] {
   const subject = run.subject;
   const settings = prepSettingsOf(run);
@@ -165,17 +170,19 @@ function runNames(
     settingsBlockId: dilutionsBlockId,
   };
   const inputs: BoardName[] = [
-    ...(Object.keys(PREP_INPUTS) as Array<keyof PrepSettings>).map(
-      (key): BoardName => ({
-        kind: 'value',
-        id: `${run.key}:prep:${key}`,
-        name: input(key),
-        value: settings[key],
-        unit: PREP_INPUTS[key][1],
-        workedOut: group,
-        sourceBlockId: dilutionsBlockId,
-      })
-    ),
+    ...(Object.keys(PREP_INPUTS) as Array<keyof PrepSettings>).map((key): BoardName => {
+      const source = { id: prepInputId(run, key), name: input(key), unit: PREP_INPUTS[key][1] };
+      const isFromExperiment = key === 'wellVolume' && !settings[key].trim() && wellTotal;
+      return isFromExperiment
+        ? { ...source, kind: 'formula', expr: wellTotal, workedOut: group }
+        : {
+            ...source,
+            kind: 'value',
+            value: settings[key],
+            workedOut: group,
+            sourceBlockId: dilutionsBlockId,
+          };
+    }),
     {
       kind: 'count',
       id: `${run.key}:prep:busiest`,
@@ -243,6 +250,7 @@ function diluentNeedNames(
 
 export function dilutionFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
+  const wellTotal = wellTotalName(new Map(taken.map(entry => [nameKey(entry.name), entry])));
   const dilutionsBlockId = protocol.blocks.find(block => block.type === 'dilutions')?.id;
   const runs = dilutionRuns(protocol);
   const diluents = runDiluents(runs, protocol.diluent);
@@ -260,7 +268,7 @@ export function dilutionFormulaNames(protocol: Protocol, taken: readonly BoardNa
       use.totals.push(`${run.subject} ${PREP_LINES.diluentTotal}${tag}`);
       uses.set(normalizeMaterialKey(diluent), use);
     }
-    return runNames(protocol, run, tag, takenKeys, dilutionsBlockId);
+    return runNames(protocol, run, tag, takenKeys, dilutionsBlockId, wellTotal);
   });
   return [...names, ...diluentNeedNames(protocol, uses, takenKeys, dilutionsBlockId)];
 }

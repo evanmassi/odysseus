@@ -57,6 +57,7 @@ export function WorkbenchDilutionSeriesSection({
             size="xs"
             fullWidth
             value={prep.settings[key]}
+            placeholder={key === 'wellVolume' ? prep.inheritedWellVolume : undefined}
             aria-label={label}
             inputClassName="text-right font-mono"
             onValueChange={value => onSettingChange(key, value)}

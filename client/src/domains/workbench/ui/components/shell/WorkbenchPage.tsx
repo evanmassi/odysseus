@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ComponentProps } from 'react';
 
 import { ConsolePanel, Divider, ScrollArea } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -13,6 +13,10 @@ import { WorkbenchNameTray } from '../tray/WorkbenchNameTray';
 
 import { WorkbenchFileBar } from './WorkbenchFileBar';
 import { WorkbenchTitleBar } from './WorkbenchTitleBar';
+
+const BOARD_SCROLL_OPTIONS: ComponentProps<typeof ScrollArea>['options'] = {
+  update: { elementEvents: [['.react-grid-layout', 'transitionend']] },
+};
 
 export function WorkbenchPage() {
   const [resolveDiscard, setResolveDiscard] = useState<(isConfirmed: boolean) => void>();
@@ -57,7 +61,7 @@ export function WorkbenchPage() {
           <div className="pr-2">
             <WorkbenchPageTabs />
           </div>
-          <ScrollArea className="min-h-0 flex-1 pr-2">
+          <ScrollArea className="min-h-0 flex-1 pr-2" options={BOARD_SCROLL_OPTIONS}>
             <WorkbenchBoard />
           </ScrollArea>
         </div>
