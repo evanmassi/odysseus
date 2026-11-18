@@ -165,13 +165,15 @@ const cellLineSchema = z.object({
   seriesStep: z.number().int().min(0).optional(),
 });
 
-export const LINE_ROLES = ['auto', 'color', 'band', 'stripe', 'caption', 'hover'] as const;
+export const LINE_ROLES = ['auto', 'color', 'band', 'stripe', 'tag', 'caption', 'hover'] as const;
+const LINE_MARKS = ['outline', 'bracket'] as const;
 
 const plateLineSchema = z.object({
   id,
   name: z.string(),
   values: z.array(z.object({ id, text: z.string(), color: z.string().optional() })),
   role: z.enum(LINE_ROLES).default('auto'),
+  hiddenMarks: z.array(z.enum(LINE_MARKS)).optional(),
   ratioTo: z.string().optional(),
 });
 

@@ -100,7 +100,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
         {merged && (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-[3px] grid gap-1"
+            className="pointer-events-none absolute inset-[3px] z-[5] grid gap-1"
             style={{ gridTemplate: `repeat(${merged.height}, 1fr) / repeat(${merged.width}, 1fr)` }}
           >
             {merged.keys.map(key => (

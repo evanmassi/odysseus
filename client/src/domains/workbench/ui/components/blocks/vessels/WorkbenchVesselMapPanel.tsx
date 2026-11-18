@@ -66,7 +66,9 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const colorLine = colorLineOf(block);
   const layers = lineLayers(block, colorLine, calculation);
   const captions = plateCaptions(layers);
-  const bands = sheet.isPlate ? plateBands(block, sheet, layers, calculation) : [];
+  const printsInWells =
+    tab.kind !== 'plate' || wellSizeFor(tab.plate.vessel, roomWidth, sheet.cols).density !== 'tiny';
+  const bands = sheet.isPlate ? plateBands(block, sheet, layers, calculation, printsInWells) : [];
   const updateVesselMap = useUpdateVesselMap(block);
   const [editor, setEditor] = useState<EditorOpening>();
   const closeEditor = useCallback(() => setEditor(undefined), []);
@@ -79,7 +81,7 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const openEditorWith = (seedText?: string) => {
     if (seedText === undefined) return focusEditor();
     const keys = [...selection.keys];
-    const firstLineId = startingLineId(block, keys, colorLine);
+    const firstLineId = startingLineId(block, keys);
     updateVesselMap(draft => setWellsText(draft, keys, firstLineId, seedText));
     focusEditor();
   };
@@ -220,7 +222,6 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
             sheet={sheet}
             keys={selection.keys}
             startedNames={startedNames}
-            colorLine={colorLine}
             layers={layers}
             wellsRef={bodyRef}
             focusesFirstRow={editor.focusesFirstRow}

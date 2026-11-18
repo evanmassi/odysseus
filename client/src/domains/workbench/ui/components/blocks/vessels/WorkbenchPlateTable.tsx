@@ -83,6 +83,20 @@ function BandOverlay({ bands, geometry }: { bands: PlateBand[]; geometry: PlateG
           </text>
         </g>
       ))}
+      {shapes.wellTags.map(({ x, y, text, color }, index) => (
+        <text
+          key={`well-tag-${index}`}
+          x={x}
+          y={y}
+          fill={color}
+          stroke={TAG_TEXT}
+          strokeWidth={3}
+          paintOrder="stroke"
+          className="font-semibold"
+        >
+          {text}
+        </text>
+      ))}
       {shapes.topBrackets.map(({ path, x, y, text, color }, index) => (
         <g key={`top-${index}`}>
           <path d={path} fill="none" stroke={color} strokeWidth={1.4} />

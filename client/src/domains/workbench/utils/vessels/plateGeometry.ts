@@ -1,4 +1,4 @@
-import type { PlateBand } from './plateLayers';
+import type { BandCluster, BandPlace, PlateBand } from './plateLayers';
 import type { WellSize } from './vesselSizing';
 
 export interface PlateGeometry {
@@ -20,10 +20,14 @@ interface Box {
   height: number;
 }
 
-interface Bracket {
+interface Span {
   band: PlateBand;
+  cluster: BandCluster;
   from: number;
   to: number;
+}
+
+interface Bracket extends Span {
   lane: number;
 }
 
@@ -31,6 +35,7 @@ export interface BandShapes {
   areas: Array<{ fill: string; edge: string; color: string }>;
   rings: Array<Box & { color: string }>;
   tags: Array<{ x: number; y: number; width: number; text: string; color: string }>;
+  wellTags: Array<{ x: number; y: number; text: string; color: string }>;
   topBrackets: Array<{ path: string; x: number; y: number; text: string; color: string }>;
   leftBrackets: Array<{ path: string; x: number; y: number; text: string; color: string }>;
 }
@@ -45,37 +50,54 @@ const TAG_CHARACTER_WIDTH = 6.2;
 const TAG_PADDING = 12;
 
 const LABEL_CHARACTER_WIDTH = 6.5;
+const WELL_TAG_CHARACTER_WIDTH = 5.4;
+const WELL_TAG_INSET = 3;
+const MOST_LANES_PER_SIDE = 2;
 
-function fitLabel(text: string, room: number): string {
-  const fits = Math.max(1, Math.floor(room / LABEL_CHARACTER_WIDTH));
+function fitLabel(text: string, room: number, characterWidth = LABEL_CHARACTER_WIDTH): string {
+  const fits = Math.max(1, Math.floor(room / characterWidth));
   return text.length <= fits ? text : `${text.slice(0, Math.max(1, fits - 1)).trimEnd()}…`;
 }
 
-function assignLanes(spans: Array<Omit<Bracket, 'lane'>>): { lanes: number; brackets: Bracket[] } {
-  const laneEnds: number[] = [];
-  const brackets = [...spans]
-    .sort((a, b) => a.from - b.from)
-    .map(span => {
-      const free = laneEnds.findIndex(end => end < span.from);
-      const lane = free < 0 ? laneEnds.length : free;
-      laneEnds[lane] = span.to;
-      return { ...span, lane };
-    });
-  return { lanes: laneEnds.length, brackets };
+const overlaps = (a: Span, b: Span) => a.from <= b.to && b.from <= a.to;
+
+function assignLanes(spans: Span[]): { lanes: number; brackets: Bracket[]; overflow: Span[] } {
+  const lanes: Span[][] = [];
+  const brackets: Bracket[] = [];
+  const overflow: Span[] = [];
+  const biggestFirst = [...spans].sort(
+    (a, b) => b.to - b.from - (a.to - a.from) || a.from - b.from
+  );
+  for (const span of biggestFirst) {
+    const free = lanes.findIndex(lane => !lane.some(taken => overlaps(taken, span)));
+    const lane = free >= 0 ? free : lanes.length < MOST_LANES_PER_SIDE ? lanes.length : -1;
+    if (lane < 0) {
+      overflow.push(span);
+      continue;
+    }
+    lanes[lane] = [...(lanes[lane] ?? []), span];
+    brackets.push({ ...span, lane });
+  }
+  return { lanes: lanes.length, brackets, overflow };
 }
 
 function bracketsOf(bands: readonly PlateBand[]) {
   const spansAt = (place: 'top' | 'left') =>
-    bands.flatMap(band =>
-      band.clusters
-        .filter(cluster => cluster.place === place)
-        .map(cluster =>
-          place === 'top'
-            ? { band, from: cluster.left, to: cluster.right }
-            : { band, from: cluster.top, to: cluster.bottom }
-        )
-    );
-  return { top: assignLanes(spansAt('top')), left: assignLanes(spansAt('left')) };
+    bands
+      .filter(band => band.showsBracket)
+      .flatMap(band =>
+        band.clusters
+          .filter(cluster => cluster.place === place)
+          .map(cluster =>
+            place === 'top'
+              ? { band, cluster, from: cluster.left, to: cluster.right }
+              : { band, cluster, from: cluster.top, to: cluster.bottom }
+          )
+      );
+  const top = assignLanes(spansAt('top'));
+  const left = assignLanes(spansAt('left'));
+  const crowdedOut = new Set([...top.overflow, ...left.overflow].map(span => span.cluster));
+  return { top, left, crowdedOut };
 }
 
 const lanePad = (lanes: number) => (lanes ? lanes * LANE + HALF_GAP : 0);
@@ -122,6 +144,21 @@ const cellLeft = (geometry: PlateGeometry, col: number) =>
 const cellTop = (geometry: PlateGeometry, row: number) =>
   geometry.topPad + geometry.headerHeight + GAP + row * (geometry.cellHeight + GAP);
 
+function clusterOutline(cluster: BandCluster, geometry: PlateGeometry) {
+  const inside = new Set(cluster.cells.map(({ row, col }) => `${row},${col}`));
+  let fill = '';
+  let edge = '';
+  for (const { row, col } of cluster.cells) {
+    const box = cellBox(geometry, row, col);
+    fill += `M${box.x} ${box.y}h${box.width}v${box.height}h${-box.width}Z`;
+    if (!inside.has(`${row - 1},${col}`)) edge += `M${box.x} ${box.y}h${box.width}`;
+    if (!inside.has(`${row + 1},${col}`)) edge += `M${box.x} ${box.y + box.height}h${box.width}`;
+    if (!inside.has(`${row},${col - 1}`)) edge += `M${box.x} ${box.y}v${box.height}`;
+    if (!inside.has(`${row},${col + 1}`)) edge += `M${box.x + box.width} ${box.y}v${box.height}`;
+  }
+  return { fill, edge };
+}
+
 const cellBox = (geometry: PlateGeometry, row: number, col: number): Box => ({
   x: cellLeft(geometry, col) - HALF_GAP,
   y: cellTop(geometry, row) - HALF_GAP,
@@ -130,11 +167,36 @@ const cellBox = (geometry: PlateGeometry, row: number, col: number): Box => ({
 });
 
 export function bandShapes(bands: readonly PlateBand[], geometry: PlateGeometry): BandShapes {
-  const shapes: BandShapes = { areas: [], rings: [], tags: [], topBrackets: [], leftBrackets: [] };
+  const shapes: BandShapes = {
+    areas: [],
+    rings: [],
+    tags: [],
+    wellTags: [],
+    topBrackets: [],
+    leftBrackets: [],
+  };
+  const { top, left, crowdedOut } = bracketsOf(bands);
   for (const band of bands) {
     for (const cluster of band.clusters) {
-      if (cluster.place === 'ring') {
-        if (band.isStripe) continue;
+      const isRingForText = cluster.place === 'ring' && band.kind === 'fill';
+      const place: BandPlace = crowdedOut.has(cluster) || isRingForText ? 'tag' : cluster.place;
+      if (place === 'well') {
+        for (const { row, col } of cluster.cells) {
+          shapes.wellTags.push({
+            x: cellLeft(geometry, col) + WELL_TAG_INSET,
+            y: cellTop(geometry, row) + geometry.cellHeight - WELL_TAG_INSET,
+            text: fitLabel(
+              band.label || band.text,
+              geometry.cellWidth - WELL_TAG_INSET * 2,
+              WELL_TAG_CHARACTER_WIDTH
+            ),
+            color: band.color,
+          });
+        }
+        continue;
+      }
+      if (place === 'ring') {
+        if (band.kind === 'stripe') continue;
         for (const { row, col } of cluster.cells) {
           shapes.rings.push({
             x: cellLeft(geometry, col) + 1,
@@ -146,21 +208,9 @@ export function bandShapes(bands: readonly PlateBand[], geometry: PlateGeometry)
         }
         continue;
       }
-      const inside = new Set(cluster.cells.map(({ row, col }) => `${row},${col}`));
-      let fill = '';
-      let edge = '';
-      for (const { row, col } of cluster.cells) {
-        const box = cellBox(geometry, row, col);
-        fill += `M${box.x} ${box.y}h${box.width}v${box.height}h${-box.width}Z`;
-        if (!inside.has(`${row - 1},${col}`)) edge += `M${box.x} ${box.y}h${box.width}`;
-        if (!inside.has(`${row + 1},${col}`))
-          edge += `M${box.x} ${box.y + box.height}h${box.width}`;
-        if (!inside.has(`${row},${col - 1}`)) edge += `M${box.x} ${box.y}v${box.height}`;
-        if (!inside.has(`${row},${col + 1}`))
-          edge += `M${box.x + box.width} ${box.y}v${box.height}`;
-      }
-      shapes.areas.push({ fill, edge, color: band.color });
-      if (cluster.place === 'tag') {
+      if (band.showsOutline)
+        shapes.areas.push({ ...clusterOutline(cluster, geometry), color: band.color });
+      if (place === 'tag') {
         const firstCol = Math.min(
           ...cluster.cells.filter(cell => cell.row === cluster.top).map(cell => cell.col)
         );
@@ -175,7 +225,7 @@ export function bandShapes(bands: readonly PlateBand[], geometry: PlateGeometry)
       }
     }
   }
-  const { top, left } = bracketsOf(bands);
+
   for (const { band, from, to, lane } of top.brackets) {
     const y = (top.lanes - lane - 1) * LANE + 12;
     const x1 = cellLeft(geometry, from) + HALF_GAP;

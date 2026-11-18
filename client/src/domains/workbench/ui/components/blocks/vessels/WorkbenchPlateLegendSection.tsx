@@ -111,7 +111,7 @@ export function WorkbenchPlateLegendSection({
     addToSection(colorLine, TREATMENTS_HEADING, { treatments });
   }
   for (const line of block.lines) {
-    const onLine = bands.filter(band => band.lineId === line.id);
+    const onLine = bands.filter(band => band.lineId === line.id && band.kind !== 'fill');
     if (onLine.length) addToSection(line, CONDITIONS_HEADING, { bands: onLine });
   }
 
@@ -142,7 +142,7 @@ export function WorkbenchPlateLegendSection({
     ...section.bands.map(
       (band, index): LegendEntry => ({
         key: `${band.lineId}:${band.valueId}:${index}`,
-        swatch: band.isStripe ? 'stripe' : 'band',
+        swatch: band.kind === 'stripe' ? 'stripe' : 'band',
         color: band.color,
         valueId: band.valueId,
         label: band.label || band.text,

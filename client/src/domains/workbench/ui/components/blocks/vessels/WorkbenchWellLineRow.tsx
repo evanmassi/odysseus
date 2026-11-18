@@ -38,16 +38,28 @@ interface WorkbenchWellLineRowProps {
   onAmountChange: (amount: string) => void;
   onUnitChange: (unit: string) => void;
   onRoleChange: (role: PlateLine['role']) => void;
+  onToggleMark: (mark: LineMark) => void;
   onRemove: () => void;
   onOpenSeries: () => void;
   onPickColor: (color: string) => void;
 }
+
+type LineMark = NonNullable<PlateLine['hiddenMarks']>[number];
+
+const MARKS: ReadonlyArray<{ mark: LineMark; label: string }> = [
+  { mark: 'outline', label: 'Outline' },
+  { mark: 'bracket', label: 'Bracket' },
+];
+
+const hasMarks = (role: ShownRole | PlateLine['role'] | undefined) =>
+  role === 'band' || role === 'stripe';
 
 const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
   auto: 'Auto',
   color: 'Color',
   band: 'Band',
   stripe: 'Stripe',
+  tag: 'Tag',
   caption: 'Caption',
   hover: 'Hover only',
 };
@@ -72,6 +84,7 @@ export function WorkbenchWellLineRow({
   onAmountChange,
   onUnitChange,
   onRoleChange,
+  onToggleMark,
   onRemove,
   onOpenSeries,
   onPickColor,
@@ -161,15 +174,19 @@ export function WorkbenchWellLineRow({
           </>
         )}
         {showsRole && row.line && (
-          <Select
-            size="xs"
-            isQuiet
-            options={roleOptions}
-            value={row.line.role}
-            aria-label="How this line shows on the plate"
-            onChange={next => onRoleChange(String(next) as PlateLine['role'])}
-            className="w-32"
-          />
+          <Tooltip content={`Show ${lineName || 'this line'} as… (every well on that line)`}>
+            <span className="inline-flex">
+              <Select
+                size="xs"
+                isQuiet
+                options={roleOptions}
+                value={row.line.role}
+                aria-label={`Show ${lineName || 'this line'} as`}
+                onChange={next => onRoleChange(String(next) as PlateLine['role'])}
+                className="w-32"
+              />
+            </span>
+          </Tooltip>
         )}
         {canRemove && (
           <button
@@ -182,6 +199,29 @@ export function WorkbenchWellLineRow({
           </button>
         )}
       </div>
+      {showsRole && row.line && hasMarks(row.line.role === 'auto' ? autoRole : row.line.role) && (
+        <p className="flex items-center gap-1.5 pl-6 text-caption text-muted-foreground">
+          Shows
+          {MARKS.map(({ mark, label }) => {
+            const isShown = !row.line?.hiddenMarks?.includes(mark);
+            return (
+              <button
+                key={mark}
+                type="button"
+                aria-pressed={isShown}
+                className={`border px-1.5 ${
+                  isShown
+                    ? 'border-line-mid text-foreground'
+                    : 'border-line-soft text-muted-foreground line-through'
+                } hover:border-primary/60`}
+                onClick={() => onToggleMark(mark)}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </p>
+      )}
       {ratio && (
         <p className="flex items-center gap-1.5 pl-6 text-caption text-muted-foreground">
           to

@@ -71,7 +71,9 @@ export const plateCaptions = (layers: readonly LineLayer[]): string[] =>
     return role === 'caption' && text ? [text] : [];
   });
 
-export type BandPlace = 'ring' | 'tag' | 'top' | 'left';
+export type BandPlace = 'ring' | 'tag' | 'well' | 'top' | 'left';
+
+export type BandKind = 'band' | 'stripe' | 'fill';
 
 interface BandCell {
   row: number;
@@ -89,7 +91,9 @@ export interface BandCluster {
 
 export interface PlateBand {
   lineId: string;
-  isStripe: boolean;
+  kind: BandKind;
+  showsOutline: boolean;
+  showsBracket: boolean;
   label: string;
   amount: string;
   text: string;
@@ -179,11 +183,30 @@ export function fillAmounts(
   );
 }
 
+function placeClusters(cells: BandCell[], usedTop: number, usedBottom: number): BandCluster[] {
+  return clustersOf(cells).map((cluster): BandCluster => {
+    const area = (cluster.bottom - cluster.top + 1) * (cluster.right - cluster.left + 1);
+    const spansUsedRows = cluster.top === usedTop && cluster.bottom === usedBottom;
+    const place: BandPlace =
+      cluster.cells.length <= RING_MOST_WELLS
+        ? 'ring'
+        : cluster.cells.length !== area
+          ? 'tag'
+          : spansUsedRows
+            ? 'top'
+            : 'left';
+    return { ...cluster, place };
+  });
+}
+
+const isScatteredPlace = (place: BandPlace) => place === 'ring' || place === 'tag';
+
 export function plateBands(
   block: VesselMapBlock,
   sheet: VesselSheet,
   layers: readonly LineLayer[],
-  calculation: BoardCalculation
+  calculation: BoardCalculation,
+  printsInWells: boolean
 ): PlateBand[] {
   const usedSpots = sheet.spots.filter(spot =>
     Object.values(block.cells[spot.key] ?? {}).some(isFilledCell)
@@ -192,12 +215,12 @@ export function plateBands(
   const usedTop = Math.min(...usedSpots.map(spot => spot.row));
   const usedBottom = Math.max(...usedSpots.map(spot => spot.row));
   const bands: PlateBand[] = [];
-  for (const { line, role } of layers.filter(
-    layer => layer.role === 'band' || layer.role === 'stripe'
-  )) {
+  for (const { line, role } of layers) {
+    const isLabeledFill = role === 'color' && !printsInWells;
+    if (role !== 'band' && role !== 'stripe' && role !== 'tag' && !isLabeledFill) continue;
     const groupOf = (key: string) => {
       const shown = wellLine(block, key, line, calculation);
-      if (!shown || !wellLineText(shown)) return undefined;
+      if (!shown || !wellLineText(shown) || (isLabeledFill && shown.readable)) return undefined;
       const cell = block.cells[key][line.id];
       const amountKey = cell.seriesId === undefined ? shown.readable : `series:${cell.seriesId}`;
       return { key: `${cell.valueId ?? ''}|${amountKey}`, label: shown.label };
@@ -216,33 +239,38 @@ export function plateBands(
     }
     const shownGroups = [...groups.values()]
       .filter(group => group.cells.length)
-      .map(group => ({ ...group, amount: amountSummary(block, line, group.mapKeys, calculation) }));
+      .map(group => ({
+        ...group,
+        amount: amountSummary(block, line, group.mapKeys, calculation),
+        clusters: placeClusters(group.cells, usedTop, usedBottom),
+      }));
+    const isScattered =
+      role === 'tag' ||
+      (!isLabeledFill &&
+        shownGroups.every(group =>
+          group.clusters.every(cluster => isScatteredPlace(cluster.place))
+        ));
     const isAmountShared = new Set(shownGroups.map(group => group.amount)).size <= 1;
-    for (const { label, amount, mapKeys, cells } of shownGroups) {
+    const hidden = new Set(line.hiddenMarks);
+    for (const { label, amount, mapKeys, clusters } of shownGroups) {
       const value = lineValueOf(line, block.cells[mapKeys[0]][line.id]);
-      const clusters = clustersOf(cells).map((cluster): BandCluster => {
-        const area = (cluster.bottom - cluster.top + 1) * (cluster.right - cluster.left + 1);
-        const spansUsedRows = cluster.top === usedTop && cluster.bottom === usedBottom;
-        const place: BandPlace =
-          cluster.cells.length <= RING_MOST_WELLS
-            ? 'ring'
-            : cluster.cells.length !== area
-              ? 'tag'
-              : spansUsedRows
-                ? 'top'
-                : 'left';
-        return { ...cluster, place };
-      });
       bands.push({
         lineId: line.id,
-        isStripe: role === 'stripe',
+        kind: isLabeledFill ? 'fill' : role === 'stripe' ? 'stripe' : 'band',
+        showsOutline: !isLabeledFill && !hidden.has('outline'),
+        showsBracket: !hidden.has('bracket'),
         label,
         amount,
         text: isAmountShared ? label || amount : [label, amount].filter(Boolean).join(' · '),
-        color: bandColorOf(block, value),
+        color: isLabeledFill
+          ? (value?.color ?? bandColorOf(block, value))
+          : bandColorOf(block, value),
         valueId: value?.id,
         wellsInMap: mapKeys.length,
-        clusters,
+        clusters: clusters.map(cluster => ({
+          ...cluster,
+          place: isScattered ? (printsInWells ? 'well' : 'ring') : cluster.place,
+        })),
       });
     }
   }

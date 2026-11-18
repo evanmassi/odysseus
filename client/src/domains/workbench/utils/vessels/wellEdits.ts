@@ -54,9 +54,8 @@ export function wellRows(block: VesselMapBlock, keys: readonly string[]): WellRo
 
 export const startingLineId = (
   block: VesselMapBlock,
-  keys: readonly string[],
-  colorLine: PlateLine | undefined
-): string | undefined => wellRows(block, keys)[0]?.line?.id ?? colorLine?.id ?? block.lines[0]?.id;
+  keys: readonly string[]
+): string | undefined => wellRows(block, keys)[0]?.line?.id;
 
 export const linesOffWells = (block: VesselMapBlock, keys: readonly string[]): PlateLine[] =>
   block.lines.filter(line => line.name.trim() && !isOnWells(block, keys, line));
@@ -302,4 +301,18 @@ export function nameElsewhere(
     vesselName:
       vessels.size === 1 ? block.plates.find(plate => plate.id === onlyVessel)?.name : undefined,
   };
+}
+
+export function toggleLineMark(
+  block: VesselMapBlock,
+  lineId: string,
+  mark: NonNullable<PlateLine['hiddenMarks']>[number]
+): void {
+  const line = block.lines.find(candidate => candidate.id === lineId);
+  if (!line) return;
+  const hidden = new Set(line.hiddenMarks);
+  if (hidden.has(mark)) hidden.delete(mark);
+  else hidden.add(mark);
+  if (hidden.size) line.hiddenMarks = [...hidden];
+  else delete line.hiddenMarks;
 }

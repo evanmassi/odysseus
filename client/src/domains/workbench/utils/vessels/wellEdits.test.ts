@@ -233,10 +233,9 @@ describe('putting wells on another line', () => {
     expect(lineNamed(stimulated(), ['p:N1'], '')).toBeUndefined();
   });
 
-  it('starts empty wells on the color line, or the first line without one', () => {
+  it('starts empty wells on a line of their own, and filled wells on their first line', () => {
     const block = stimulated();
-    expect(startingLineId(block, ['p:A1'], block.lines[1])).toBe('n');
-    expect(startingLineId(block, ['p:A1'], undefined)).toBe('s');
-    expect(startingLineId(block, ['p:N1'], block.lines[0])).toBe('n');
+    expect(startingLineId(block, ['p:A1'])).toBeUndefined();
+    expect(startingLineId(block, ['p:N1'])).toBe('n');
   });
 });

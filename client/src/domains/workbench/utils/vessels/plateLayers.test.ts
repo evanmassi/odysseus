@@ -57,8 +57,8 @@ describe('plate marks', () => {
 
   it('draws stripes only for the lines set to Stripe, in line order', () => {
     expect(layers.map(layer => layer.role)).toEqual(['color', 'stripe', 'stripe', 'band']);
-    const bands = plateBands(plate, sheetOf(plate, vesselTabs(plate)[0]), layers, NO_NAMES);
-    const striped = bands.filter(band => band.isStripe).map(band => band.lineId);
+    const bands = plateBands(plate, sheetOf(plate, vesselTabs(plate)[0]), layers, NO_NAMES, true);
+    const striped = bands.filter(band => band.kind === 'stripe').map(band => band.lineId);
     expect(new Set(striped)).toEqual(new Set(['donors', 'targets']));
   });
 
@@ -107,7 +107,8 @@ describe('plate marks', () => {
       titrated,
       sheetOf(titrated, vesselTabs(titrated)[0]),
       layered,
-      NO_NAMES
+      NO_NAMES,
+      true
     );
     expect(bands.map(band => [band.label, band.amount, band.text, band.wellsInMap])).toEqual([
       ['T donor A', '8:1 → 4:1', 'T donor A', 2],
@@ -125,10 +126,39 @@ describe('plate marks', () => {
       dosed,
       sheetOf(dosed, vesselTabs(dosed)[0]),
       lineLayers(dosed, undefined, NO_NAMES),
-      NO_NAMES
+      NO_NAMES,
+      true
     );
     expect(bands.map(band => band.text)).toEqual(['Drug X · 10 µM', 'Drug X · 5 µM']);
     expect(fillAmounts(dosed, dosed.lines[0], NO_NAMES).get('drug-Drug X')).toBe('10 µM, 5 µM');
+  });
+
+  it('tags each well of a scattered line, or rings it when wells print nothing', () => {
+    const scattered = plateWith({ A1: { drug: 'Drug X' }, C3: { drug: 'Drug Y' } }, [
+      line('drug', ['Drug X', 'Drug Y'], 'band'),
+    ]);
+    const sheet = sheetOf(scattered, vesselTabs(scattered)[0]);
+    const layered = lineLayers(scattered, undefined, NO_NAMES);
+    const placesWhen = (printsInWells: boolean) =>
+      plateBands(scattered, sheet, layered, NO_NAMES, printsInWells).flatMap(band =>
+        band.clusters.map(cluster => cluster.place)
+      );
+    expect(placesWhen(true)).toEqual(['well', 'well']);
+    expect(placesWhen(false)).toEqual(['ring', 'ring']);
+  });
+
+  it('labels a fill value with no dose when wells print nothing, and keeps hidden marks', () => {
+    const dosed = plateWith(
+      { A1: { stim: 'Stim X' }, A2: { stim: 'Unstim' }, B2: { stim: 'Unstim' } },
+      [line('stim', ['Stim X', 'Unstim'])]
+    );
+    Object.assign(dosed.cells['p:A1']['stim'], { amount: '10', unit: 'µM' });
+    dosed.lines[0].hiddenMarks = ['outline'];
+    const sheet = sheetOf(dosed, vesselTabs(dosed)[0]);
+    const layered = lineLayers(dosed, dosed.lines[0], NO_NAMES);
+    expect(plateBands(dosed, sheet, layered, NO_NAMES, true)).toEqual([]);
+    const [label] = plateBands(dosed, sheet, layered, NO_NAMES, false);
+    expect(label).toMatchObject({ kind: 'fill', label: 'Unstim', showsOutline: false });
   });
 
   it('fills the wells with the line that has a series', () => {

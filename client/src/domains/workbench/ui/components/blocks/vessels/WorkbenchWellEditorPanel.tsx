@@ -33,6 +33,7 @@ import {
   setWellsAmount,
   setWellsText,
   setWellsUnit,
+  toggleLineMark,
   startingLineId,
   wellRows,
   type HeldName,
@@ -47,7 +48,7 @@ import { WorkbenchWellSeriesForm } from './WorkbenchWellSeriesForm';
 
 import type { lineLayers } from '../../../../utils/vessels/plateLayers';
 import type { VesselSheet, VesselTab } from '../../../../utils/vessels/vesselTabs';
-import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
+import type { VesselMapBlock } from '@odysseus/shared-schemas';
 
 interface DraftLine {
   lineId: string;
@@ -66,7 +67,6 @@ interface WorkbenchWellEditorPanelProps {
   sheet: VesselSheet;
   keys: ReadonlySet<string>;
   startedNames: ReadonlyMap<string, HeldName>;
-  colorLine: PlateLine | undefined;
   layers: ReturnType<typeof lineLayers>;
   wellsRef: RefObject<HTMLElement>;
   focusesFirstRow: boolean;
@@ -122,7 +122,6 @@ export function WorkbenchWellEditorPanel({
   sheet,
   keys,
   startedNames,
-  colorLine,
   layers,
   wellsRef,
   focusesFirstRow,
@@ -144,7 +143,7 @@ export function WorkbenchWellEditorPanel({
   const shownDrafts: DraftLine[] =
     onWells.length || drafts.length
       ? drafts
-      : [{ lineId: startingLineId(block, keyList, colorLine) ?? freshLineId, name: '' }];
+      : [{ lineId: startingLineId(block, keyList) ?? freshLineId, name: '' }];
   const rows: EditorRow[] = [
     ...onWells,
     ...shownDrafts.map(draft => ({
@@ -304,6 +303,7 @@ export function WorkbenchWellEditorPanel({
                   if (line) line.role = role;
                 })
               }
+              onToggleMark={mark => updateVesselMap(change => toggleLineMark(change, lineId, mark))}
               onRemove={() =>
                 updateVesselMap(change => removeLineFromWells(change, keyList, lineId))
               }
