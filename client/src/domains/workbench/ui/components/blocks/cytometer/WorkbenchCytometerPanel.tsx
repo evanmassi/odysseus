@@ -19,7 +19,7 @@ import { BUILT_IN_INSTRUMENTS } from '../../../../utils/cytometer/instrumentCata
 import { stainCandidatesOn } from '../../../../utils/cytometer/stainPlacement';
 import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
-import { stainedWellCounts } from '../../../../utils/vessels/stainSide';
+import { stainedPlaces } from '../../../../utils/vessels/stainSide';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 
 import { CYTOMETER_CELL } from './cytometerTableStyles';
@@ -61,7 +61,17 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
   );
   const amounts = useMemo(() => new Map(amountEntries), [amountEntries]);
   const plateBlocks = useBlocksOf('plate');
-  const mixWells = useMemo(() => stainedWellCounts(plateBlocks), [plateBlocks]);
+  const mixPlaces = useMemo(() => stainedPlaces(plateBlocks), [plateBlocks]);
+  const mixWells = useMemo(
+    () =>
+      new Map(
+        [...mixPlaces].map(([mixId, places]) => [
+          mixId,
+          places.reduce((sum, place) => sum + place.count, 0),
+        ])
+      ),
+    [mixPlaces]
+  );
   const materialNames = useMemo(
     () => new Map(materials.map(item => [item.id, item.name.trim()])),
     [materials]
@@ -211,7 +221,7 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
             layout={layout}
             materials={materials}
             materialNames={materialNames}
-            mixWells={mixWells}
+            mixPlaces={mixPlaces}
             steps={steps}
             actions={actions}
           />

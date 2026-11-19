@@ -71,6 +71,8 @@ export interface ShelfVesselView {
   tooltipHeading: string;
   lines: WellLine[];
   color: WellColor | undefined;
+  stainLook: 'stained' | 'unstained' | undefined;
+  ringColor: string | undefined;
 }
 
 interface WorkbenchShelfVesselButtonProps {
@@ -82,10 +84,21 @@ interface WorkbenchShelfVesselButtonProps {
 interface ShapePartElementProps {
   part: ShapePart;
   color: WellColor | undefined;
+  ringColor: string | undefined;
+  isUnstained: boolean;
   isSelected: boolean;
 }
 
-function ShapePartElement({ part, color, isSelected }: ShapePartElementProps) {
+const RING_STROKE = 3;
+const UNSTAINED_DASH = '4 3';
+
+function ShapePartElement({
+  part,
+  color,
+  ringColor,
+  isUnstained,
+  isSelected,
+}: ShapePartElementProps) {
   const isBody = part.role === 'body';
   const tinted: CSSProperties = {
     ...(color &&
@@ -93,6 +106,8 @@ function ShapePartElement({ part, color, isSelected }: ShapePartElementProps) {
         fill: `color-mix(in srgb, ${color.color} ${color.tint}%, transparent)`,
         stroke: color.color,
       }),
+    ...(ringColor && isBody && { stroke: ringColor, strokeWidth: RING_STROKE }),
+    ...(isUnstained && isBody && { strokeDasharray: UNSTAINED_DASH }),
     ...(isSelected && isBody && { stroke: 'hsl(var(--primary))', strokeWidth: 2.4 }),
   };
   const shared = {
@@ -116,7 +131,17 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
   isSelected,
   actions,
 }: WorkbenchShelfVesselButtonProps) {
-  const { key: wellKey, shape, width, sizeLabel, tooltipHeading, lines, color } = view;
+  const {
+    key: wellKey,
+    shape,
+    width,
+    sizeLabel,
+    tooltipHeading,
+    lines,
+    color,
+    stainLook,
+    ringColor,
+  } = view;
   const metrics = SHAPE_METRICS[shape];
   const [left, top, boxWidth, boxHeight] = metrics.textBox;
   return (
@@ -140,11 +165,18 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
             aria-hidden
           >
             {SHAPE_PARTS[shape].map((part, index) => (
-              <ShapePartElement key={index} part={part} color={color} isSelected={isSelected} />
+              <ShapePartElement
+                key={index}
+                part={part}
+                color={color}
+                ringColor={ringColor}
+                isUnstained={stainLook === 'unstained'}
+                isSelected={isSelected}
+              />
             ))}
           </svg>
           <div
-            className={`absolute flex flex-col items-center justify-center gap-[3px] overflow-hidden text-center text-foreground ${
+            className={`absolute flex flex-col items-center justify-center gap-[3px] overflow-hidden text-center ${stainLook ? 'text-muted-foreground' : 'text-foreground'} ${
               metrics.isVertical
                 ? 'rotate-180 text-label-2xs leading-[13px] [writing-mode:vertical-rl]'
                 : 'text-label-2xs leading-[14px]'

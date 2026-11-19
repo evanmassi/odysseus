@@ -68,7 +68,6 @@ export function WorkbenchBlockRail() {
         h: BLOCK_TYPES.plateView.size[1],
       }) as PlateViewBlock;
       view.shows = source.id;
-      view.title = source.title;
       view.side = draft.blocks.some(block => block.type === 'cytometer' && block.mixes.length)
         ? 'stain'
         : 'assay';

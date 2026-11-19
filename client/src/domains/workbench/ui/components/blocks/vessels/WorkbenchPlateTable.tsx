@@ -9,8 +9,9 @@ import {
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
 import { wellStripes } from '../../../../utils/vessels/plateLayers';
+import { dimmedForStain, type StainMix } from '../../../../utils/vessels/stainSide';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
-import { wellColor, wellLine, type WellColor } from '../../../../utils/vessels/wellContents';
+import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
 import { isWellFilled, selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { useWellPointerActions } from './useWellPointerActions';
@@ -27,7 +28,6 @@ import type { BoardCalculation } from '../../../../utils/formulas/boardCalculati
 import type { SourceSummary } from '../../../../utils/materials/materialSources';
 import type { LineLayer, PlateBand } from '../../../../utils/vessels/plateLayers';
 import type { ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
-import type { StainMix } from '../../../../utils/vessels/stainSide';
 import type { WellSize } from '../../../../utils/vessels/vesselSizing';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -64,11 +64,6 @@ interface BandOverlayProps {
   geometry: PlateGeometry;
   isDimmed: boolean;
 }
-
-const STAIN_SIDE_DIM = 0.45;
-
-const dimmed = (color: WellColor | undefined): WellColor | undefined =>
-  color && { ...color, tint: Math.round(color.tint * STAIN_SIDE_DIM) };
 
 function BandOverlay({ bands, geometry, isDimmed }: BandOverlayProps) {
   const shapes = bandShapes(bands, geometry);
@@ -184,8 +179,8 @@ export function WorkbenchPlateTable({
             ...assay,
             tooltipHeading:
               mix !== undefined || isInUse ? `${where} · ${mix?.name ?? 'not stained'}` : where,
-            color: dimmed(color),
-            stripes: stripes.map(dimmed),
+            color: dimmedForStain(color),
+            stripes: stripes.map(dimmedForStain),
             stainLook: mix ? 'stained' : isInUse ? 'unstained' : undefined,
             ringColor: mix?.color,
           },

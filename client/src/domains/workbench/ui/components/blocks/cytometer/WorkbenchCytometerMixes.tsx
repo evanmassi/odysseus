@@ -18,6 +18,7 @@ import { WorkbenchCytometerMixRow } from './WorkbenchCytometerMixRow';
 
 import type { CytometerActions } from './useCytometerActions';
 import type { PanelLayout } from '../../../../utils/cytometer/cytometerPanel';
+import type { StainedPlace } from '../../../../utils/vessels/stainSide';
 import type { CytometerBlock, MaterialItem } from '@odysseus/shared-schemas';
 
 interface WorkbenchCytometerMixesProps {
@@ -25,7 +26,7 @@ interface WorkbenchCytometerMixesProps {
   layout: PanelLayout;
   materials: readonly MaterialItem[];
   materialNames: ReadonlyMap<string, string>;
-  mixWells: ReadonlyMap<string, number>;
+  mixPlaces: ReadonlyMap<string, readonly StainedPlace[]>;
   steps: readonly string[];
   actions: CytometerActions;
 }
@@ -38,7 +39,7 @@ export function WorkbenchCytometerMixes({
   layout,
   materials,
   materialNames,
-  mixWells,
+  mixPlaces,
   steps,
   actions,
 }: WorkbenchCytometerMixesProps) {
@@ -159,7 +160,7 @@ export function WorkbenchCytometerMixes({
                   key={mix.id}
                   mix={mix}
                   columns={columns}
-                  wellCount={mixWells.get(mix.id) ?? 0}
+                  places={mixPlaces.get(mix.id) ?? []}
                   materialNames={materialNames}
                   materialOptions={materialOptions}
                   stepOptions={stepOptions}

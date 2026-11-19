@@ -1,4 +1,4 @@
-import { stainedWellCounts, stainMixes, stainWells } from './stainSide';
+import { stainedPlaces, stainedWellCounts, stainMixes, stainWells } from './stainSide';
 
 import type { CytometerBlock, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -41,6 +41,26 @@ describe('stained wells', () => {
     expect([...counts]).toEqual([
       ['full', 3],
       ['fmo', 1],
+    ]);
+  });
+
+  it('lists where each mix is, by plate name, with its count', () => {
+    const block = {
+      id: 'map',
+      plates: [
+        { id: 'p', vessel: '96', name: 'P1' },
+        { id: 'q', vessel: '96', name: '' },
+      ],
+      sets: [{ id: 's', vessel: 'facs', count: 4 }],
+      stain: { 'p:A1': 'full', 'p:A2': 'full', 'q:B1': 'full', 's#0:1': 'full', 's#1:1': 'fmo' },
+    } as unknown as VesselMapBlock;
+    expect(stainedPlaces([block]).get('full')).toEqual([
+      { blockId: 'map', name: 'P1', count: 2 },
+      { blockId: 'map', name: 'Plate 2', count: 1 },
+      { blockId: 'map', name: 'Group 1', count: 1 },
+    ]);
+    expect(stainedPlaces([block]).get('fmo')).toEqual([
+      { blockId: 'map', name: 'Group 1', count: 1 },
     ]);
   });
 

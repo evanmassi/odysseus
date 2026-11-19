@@ -11,6 +11,7 @@ export interface CopiedWell {
   rowOffset: number;
   colOffset: number;
   lines: Record<string, CellLine>;
+  mixId: string | undefined;
 }
 
 const between = (value: number, a: number, b: number) =>
@@ -70,6 +71,7 @@ export function copyWells(
       rowOffset: spot.row - corner.row,
       colOffset: spot.col - corner.col,
       lines: structuredClone(block.cells[spot.key] ?? {}),
+      mixId: block.stain[spot.key],
     }));
 }
 
@@ -77,12 +79,12 @@ export function pasteTargets(
   sheet: VesselSheet,
   copied: readonly CopiedWell[],
   keys: ReadonlySet<string>
-): Array<{ key: string; lines: Record<string, CellLine> }> {
+): Array<{ key: string; lines: Record<string, CellLine>; mixId: string | undefined }> {
   const corner = cornerOf(sheet, keys);
-  return copied.flatMap(({ rowOffset, colOffset, lines }) => {
+  return copied.flatMap(({ rowOffset, colOffset, lines, mixId }) => {
     const target = sheet.spots.find(
       spot => spot.row === corner.row + rowOffset && spot.col === corner.col + colOffset
     );
-    return target ? [{ key: target.key, lines }] : [];
+    return target ? [{ key: target.key, lines, mixId }] : [];
   });
 }

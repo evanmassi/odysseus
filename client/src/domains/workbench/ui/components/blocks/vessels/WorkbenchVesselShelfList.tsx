@@ -1,9 +1,11 @@
 import { useMemo, type KeyboardEvent } from 'react';
 
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
+import { dimmedForStain, type StainMix } from '../../../../utils/vessels/stainSide';
 import { LOOSE_VESSELS } from '../../../../utils/vessels/vesselCatalog';
 import { SHAPE_METRICS } from '../../../../utils/vessels/vesselSizing';
 import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
+import { isWellFilled } from '../../../../utils/vessels/wellSelection';
 
 import { useWellPointerActions } from './useWellPointerActions';
 import { WellTooltipSourceContext } from './wellTooltipSource';
@@ -25,6 +27,7 @@ interface WorkbenchVesselShelfListProps {
   calculation: BoardCalculation;
   sources: readonly SourceSummary[];
   selection: WellSelection;
+  stainMixes: ReadonlyMap<string, StainMix> | undefined;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
   onOpenMenu: (key: string, at: { x: number; y: number }) => void;
@@ -39,6 +42,7 @@ export function WorkbenchVesselShelfList({
   calculation,
   sources,
   selection,
+  stainMixes,
   onKeyDown,
   onOpenWell,
   onOpenMenu,
@@ -53,23 +57,32 @@ export function WorkbenchVesselShelfList({
           id: set.id,
           vessels: sheet.spots
             .filter(spot => spot.row === row)
-            .map(
-              (spot): ShelfVesselView => ({
+            .map((spot): ShelfVesselView => {
+              const mix = stainMixes?.get(block.stain[spot.key] ?? '');
+              const isInUse = isWellFilled(block, spot.key);
+              const color = wellColor(block, spot.key, colorLine);
+              const stainLook = mix ? 'stained' : isInUse ? 'unstained' : undefined;
+              return {
                 key: spot.key,
                 shape: vessel.shape,
                 width,
                 sizeLabel: vessel.short,
-                tooltipHeading: vessel.label,
+                tooltipHeading:
+                  stainMixes && stainLook
+                    ? `${vessel.label} · ${mix?.name ?? 'not stained'}`
+                    : vessel.label,
                 lines: block.lines.flatMap(line => {
                   const shown = wellLine(block, spot.key, line, calculation);
                   return shown ? [shown] : [];
                 }),
-                color: wellColor(block, spot.key, colorLine),
-              })
-            ),
+                color: stainMixes ? dimmedForStain(color) : color,
+                stainLook: stainMixes ? stainLook : undefined,
+                ringColor: mix?.color,
+              };
+            }),
         };
       }),
-    [block, sheet, colorLine, scale, calculation]
+    [block, sheet, colorLine, scale, calculation, stainMixes]
   );
   const shelves = useStructuralSharing(shelfViews);
   const tooltipSource = useMemo(

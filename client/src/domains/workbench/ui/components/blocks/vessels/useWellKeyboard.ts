@@ -36,7 +36,8 @@ export function useWellKeyboard(
   sheet: VesselSheet,
   selection: WellSelection,
   ask: (request: Confirmation) => void,
-  onOpenEditor: (seedText?: string) => void
+  onOpenEditor: (seedText?: string) => void,
+  isStainSide: boolean
 ) {
   const updateVesselMap = useUpdateVesselMap(block);
   const clipboard = useRef<CopiedWell[]>([]);
@@ -54,6 +55,16 @@ export function useWellKeyboard(
   const paste = () => {
     const targets = pasteTargets(sheet, clipboard.current, selection.keys);
     if (!targets.length) return;
+    if (isStainSide) {
+      updateVesselMap(draft => {
+        for (const { key, mixId } of targets) {
+          if (mixId) draft.stain[key] = mixId;
+          else delete draft.stain[key];
+        }
+      });
+      selection.selectKeys(targets.map(target => target.key));
+      return;
+    }
     confirmIfFilled({
       keys: targets.map(target => target.key),
       title: 'Paste wells',
@@ -74,17 +85,22 @@ export function useWellKeyboard(
 
   const clearWells = () =>
     updateVesselMap(draft => {
-      for (const key of selection.keys) delete draft.cells[key];
+      for (const key of selection.keys) {
+        if (!isStainSide) delete draft.cells[key];
+        delete draft.stain[key];
+      }
     });
 
   const clearSelected = () =>
-    confirmIfFilled({
-      keys: [...selection.keys],
-      title: 'Clear wells',
-      confirmText: 'Clear',
-      describe: filled => `Clear everything in ${filled}?`,
-      apply: clearWells,
-    });
+    isStainSide
+      ? clearWells()
+      : confirmIfFilled({
+          keys: [...selection.keys],
+          title: 'Clear wells',
+          confirmText: 'Clear',
+          describe: filled => `Clear everything in ${filled}?`,
+          apply: clearWells,
+        });
 
   const cutSelected = () => {
     copySelected();
@@ -97,7 +113,7 @@ export function useWellKeyboard(
     if (step && sheet.isPlate) {
       event.preventDefault();
       selection.move(step[0], step[1], event.shiftKey);
-    } else if (event.key === 'Enter' && selection.keys.size) {
+    } else if (event.key === 'Enter' && selection.keys.size && !isStainSide) {
       event.preventDefault();
       onOpenEditor();
     } else if (event.key === 'Escape') {
@@ -114,7 +130,13 @@ export function useWellKeyboard(
     } else if ((event.key === 'Delete' || event.key === 'Backspace') && selection.keys.size) {
       event.preventDefault();
       clearSelected();
-    } else if (event.key.length === 1 && !isCommand && !event.altKey && selection.keys.size) {
+    } else if (
+      event.key.length === 1 &&
+      !isCommand &&
+      !event.altKey &&
+      selection.keys.size &&
+      !isStainSide
+    ) {
       event.preventDefault();
       onOpenEditor(event.key);
     }

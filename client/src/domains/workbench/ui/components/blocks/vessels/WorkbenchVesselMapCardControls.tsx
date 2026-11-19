@@ -2,7 +2,6 @@ import { useShowBlock } from '../../../../hooks/useShowBlock';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { viewsOf } from '../../../../utils/blocks/plateViews';
-import { activeTabOf } from '../../../../utils/vessels/vesselTabs';
 
 import { WorkbenchPlatePlaceChip } from './WorkbenchPlatePlaceChip';
 import { WorkbenchVesselSideSwitch } from './WorkbenchVesselSideSwitch';
@@ -32,7 +31,7 @@ export function WorkbenchVesselMapCardControls({ block }: WorkbenchVesselMapCard
           onShow={() => showBlock(firstViewId)}
         />
       )}
-      {activeTabOf(block).kind === 'plate' && (
+      {
         <WorkbenchVesselSideSwitch
           side={block.side}
           onShow={side =>
@@ -41,7 +40,7 @@ export function WorkbenchVesselMapCardControls({ block }: WorkbenchVesselMapCard
             })
           }
         />
-      )}
+      }
     </>
   );
 }

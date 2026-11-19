@@ -7,6 +7,7 @@ const block = {
   plates: [{ id: 'p', vessel: '6', name: '' }],
   sets: [],
   cells: { 'p:A1': { drug: { valueId: 'x' } }, 'p:A2': { drug: { valueId: 'y' } } },
+  stain: { 'p:A1': 'full' },
 } as unknown as VesselMapBlock;
 const sheet = sheetOf(block, vesselTabs(block)[0]);
 
@@ -25,12 +26,12 @@ describe('well selection', () => {
     expect(movedPoint(sheet, { row: 0, col: 0 }, 0, -1)).toEqual({ row: 0, col: 0 });
   });
 
-  it('pastes copied wells in the same layout from the top-left of the new selection', () => {
+  it('pastes copied wells and their mixes in the same layout from the top-left of the new selection', () => {
     const copied = copyWells(block, sheet, new Set(['p:A1', 'p:A2']));
     const targets = pasteTargets(sheet, copied, new Set(['p:B2']));
     expect(targets).toEqual([
-      { key: 'p:B2', lines: { drug: { valueId: 'x' } } },
-      { key: 'p:B3', lines: { drug: { valueId: 'y' } } },
+      { key: 'p:B2', lines: { drug: { valueId: 'x' } }, mixId: 'full' },
+      { key: 'p:B3', lines: { drug: { valueId: 'y' } }, mixId: undefined },
     ]);
   });
 

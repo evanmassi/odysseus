@@ -33,6 +33,13 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   block,
 }: WorkbenchBlockShellProps) {
   const updateBlock = useUpdateBlock(block);
+  const shownCard = useWorkbenchStore(state =>
+    block.type === 'plateView'
+      ? state.protocol.blocks.find(candidate => candidate.id === block.shows)
+      : undefined
+  );
+  const titled = shownCard ?? block;
+  const updateTitled = useUpdateBlock(titled);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
@@ -45,7 +52,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const HeaderControls = BLOCK_HEADER_CONTROLS[block.type] as
     | ComponentType<{ block: ProtocolBlock }>
     | undefined;
-  const hasOwnTitle = block.title.trim().toLowerCase() !== blockType.label.toLowerCase();
+  const hasOwnTitle = titled.title.trim().toLowerCase() !== blockType.label.toLowerCase();
 
   const toggleFold = () =>
     updateBlock(draft => {
@@ -61,8 +68,8 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
 
   const finishRename = (title: string) => {
     setIsRenaming(false);
-    updateBlock(draft => {
-      draft.title = withGreekLetters(title.trim()) || defaultBlockTitle(block.type);
+    updateTitled(draft => {
+      draft.title = withGreekLetters(title.trim()) || defaultBlockTitle(titled.type);
     });
   };
 
@@ -94,7 +101,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
           {isRenaming ? (
             <input
               ref={focusOnMount}
-              defaultValue={block.title}
+              defaultValue={titled.title}
               aria-label="Block title"
               className="min-w-0 flex-1 bg-transparent type-name text-label-md font-semibold text-foreground outline-none"
               onBlur={event => finishRename(event.currentTarget.value)}
@@ -110,7 +117,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
                   className="min-w-0 truncate type-name text-label-md font-semibold text-foreground"
                   onDoubleClick={() => setIsRenaming(true)}
                 >
-                  {block.title}
+                  {titled.title}
                   {hasOwnTitle && (
                     <span className="ml-2 font-normal text-muted-foreground">
                       {blockType.label}

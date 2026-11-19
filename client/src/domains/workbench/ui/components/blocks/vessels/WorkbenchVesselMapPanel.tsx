@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { colorLineOf, type VesselMapBlock, withGreekLetters } from '@odysseus/shared-schemas';
 
@@ -75,7 +75,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
   const tabs = useMemo(() => vesselTabs(block), [block]);
   const tab = useMemo(() => activeTabOf(block), [block]);
   const sheet = useMemo(() => sheetOf(block, tab), [block, tab]);
-  const isStain = tab.kind === 'plate' && block.side === 'stain';
+  const isStain = block.side === 'stain';
   const panels = useBlocksOf('cytometer');
   const mixes = useMemo(() => stainMixes(panels), [panels]);
   const mixById = useMemo(() => new Map(mixes.map(mix => [mix.id, mix])), [mixes]);
@@ -132,7 +132,8 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
     sheet,
     selection,
     ask,
-    openEditorWith
+    openEditorWith,
+    isStain
   );
   const vesselChanges = useVesselChanges(block, tab, ask);
 
@@ -140,7 +141,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
   const openMenu = (key: string, at: { x: number; y: number }) => {
     const spot = sheet.spots.find(candidate => candidate.key === key);
     if (spot) selection.openAt(spot);
-    if (!isStain) setMenuAt(at);
+    setMenuAt(at);
   };
 
   const openWell = (key: string) => {
@@ -162,15 +163,6 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
         mixId
       )
     );
-
-  const stainKeyDown = (event: KeyboardEvent) => {
-    if ((event.key === 'Delete' || event.key === 'Backspace') && selection.keys.size) {
-      event.preventDefault();
-      stainSelected(undefined);
-    } else if (event.key.startsWith('Arrow') || event.key === 'Escape') {
-      onKeyDown(event);
-    }
-  };
 
   useEffect(() => {
     if (!selection.keys.size) setEditor(undefined);
@@ -276,7 +268,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
               selection={selection}
               merges={merges}
               stainMixes={isStain ? mixById : undefined}
-              onKeyDown={isStain ? stainKeyDown : onKeyDown}
+              onKeyDown={onKeyDown}
               onOpenWell={openWell}
               onOpenMenu={openMenu}
             />
@@ -290,6 +282,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
               calculation={calculation}
               sources={sources}
               selection={selection}
+              stainMixes={isStain ? mixById : undefined}
               onKeyDown={onKeyDown}
               onOpenWell={openWell}
               onOpenMenu={openMenu}
@@ -330,10 +323,12 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
         )}
         <WorkbenchPlateContextMenu
           position={menuAt}
-          hasFilledSelection={[...selection.keys].some(key => isWellFilled(block, key))}
+          hasFilledSelection={[...selection.keys].some(key =>
+            isStain ? block.stain[key] !== undefined : isWellFilled(block, key)
+          )}
           canPaste={!!menuAt && canPaste()}
           onClose={() => setMenuAt(undefined)}
-          onEdit={focusEditor}
+          onEdit={isStain ? undefined : focusEditor}
           onCopy={copySelected}
           onCut={cutSelected}
           onPaste={paste}

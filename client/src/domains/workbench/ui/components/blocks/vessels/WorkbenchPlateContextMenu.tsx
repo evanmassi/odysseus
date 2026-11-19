@@ -7,7 +7,7 @@ interface WorkbenchPlateContextMenuProps {
   hasFilledSelection: boolean;
   canPaste: boolean;
   onClose: () => void;
-  onEdit: () => void;
+  onEdit: (() => void) | undefined;
   onCopy: () => void;
   onCut: () => void;
   onPaste: () => void;
@@ -33,10 +33,10 @@ export function WorkbenchPlateContextMenu({
 
   return (
     <ContextMenu isOpen={!!position} position={position ?? { x: 0, y: 0 }} onClose={onClose}>
-      <MenuItem icon={Pencil} label="Edit" shortcut="Enter" onClick={run(onEdit)} />
+      {onEdit && <MenuItem icon={Pencil} label="Edit" shortcut="Enter" onClick={run(onEdit)} />}
       {hasClipboardSection && (
         <>
-          <MenuDivider subtle />
+          {onEdit && <MenuDivider subtle />}
           {hasFilledSelection && (
             <>
               <MenuItem icon={Copy} label="Copy" shortcut="Ctrl+C" onClick={run(onCopy)} />

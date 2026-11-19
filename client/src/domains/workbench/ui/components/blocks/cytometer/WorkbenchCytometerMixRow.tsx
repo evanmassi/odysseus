@@ -4,17 +4,20 @@ import { X } from 'lucide-react';
 
 import { Select, Tooltip, type SelectOption } from '@shared/ui';
 
+import { useShowBlock } from '../../../../hooks/useShowBlock';
+
 import { CYTOMETER_CELL, FLUOROCHROME_SQUARE, HOVER_ROW } from './cytometerTableStyles';
 import { WorkbenchCytometerTextCell } from './WorkbenchCytometerTextCell';
 
 import type { CytometerActions } from './useCytometerActions';
 import type { MixColumn } from '../../../../utils/cytometer/cytometerMixes';
+import type { StainedPlace } from '../../../../utils/vessels/stainSide';
 import type { CytometerBlock } from '@odysseus/shared-schemas';
 
 interface WorkbenchCytometerMixRowProps {
   mix: CytometerBlock['mixes'][number];
   columns: readonly MixColumn[];
-  wellCount: number;
+  places: readonly StainedPlace[];
   materialNames: ReadonlyMap<string, string>;
   materialOptions: SelectOption[];
   stepOptions: SelectOption[];
@@ -26,12 +29,13 @@ const REMOVE_BUTTON = 'text-muted-foreground hover:text-danger-text';
 export function WorkbenchCytometerMixRow({
   mix,
   columns,
-  wellCount,
+  places,
   materialNames,
   materialOptions,
   stepOptions,
   actions,
 }: WorkbenchCytometerMixRowProps) {
+  const showBlock = useShowBlock();
   const mixName = mix.name.trim() || 'this mix';
   const plusIds = new Set(mix.plus.map(plus => plus.materialId));
 
@@ -116,8 +120,19 @@ export function WorkbenchCytometerMixRow({
         </span>
       </td>
       <td className={`${CYTOMETER_CELL} text-right`}>
-        {wellCount ? (
-          `${wellCount} ${wellCount === 1 ? 'well' : 'wells'}`
+        {places.length ? (
+          <span className="inline-flex flex-wrap justify-end gap-x-2">
+            {places.map(place => (
+              <button
+                key={`${place.blockId}:${place.name}`}
+                type="button"
+                className="whitespace-nowrap hover:text-primary"
+                onClick={() => showBlock(place.blockId)}
+              >
+                {place.name} · {place.count}
+              </button>
+            ))}
+          </span>
         ) : (
           <span className="text-warning-text">not placed</span>
         )}
