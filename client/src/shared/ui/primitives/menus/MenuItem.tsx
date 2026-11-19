@@ -33,9 +33,16 @@ const TONE_ICON: Record<MenuTone, string> = {
   default: 'text-muted-foreground group-hover:text-foreground',
 };
 
+export function useMenuItemHover(tone: MenuTone = 'default'): string {
+  const isDark = useResolvedTheme() === 'dark';
+  const hover = TONE_HOVER[tone];
+  return `${hover.base} ${isDark ? hover.darkBg : hover.lightBg}`;
+}
+
 export function MenuItem({
   icon: Icon,
   label,
+  description,
   onClick,
   danger = false,
   warning = false,
@@ -43,12 +50,9 @@ export function MenuItem({
   shortcut,
   children,
 }: MenuItemProps) {
-  const isDark = useResolvedTheme() === 'dark';
   const { isAnimating, trigger } = useIconPop();
-
   const tone: MenuTone = danger ? 'danger' : warning ? 'warning' : 'default';
-  const hover = TONE_HOVER[tone];
-  const stateClass = `${hover.base} ${isDark ? hover.darkBg : hover.lightBg}`;
+  const stateClass = useMenuItemHover(tone);
 
   return (
     <button
@@ -72,7 +76,14 @@ export function MenuItem({
             <Icon size={16} className={`transition-colors ${TONE_ICON[tone]}`} />
           </span>
         )}
-        <span>{label}</span>
+        {description ? (
+          <span className="flex flex-col items-start text-left">
+            <span>{label}</span>
+            <span className="text-data-sm text-muted-foreground">{description}</span>
+          </span>
+        ) : (
+          <span>{label}</span>
+        )}
       </div>
       {shortcut && (
         <span

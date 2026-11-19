@@ -27,7 +27,7 @@ export { ConsolePanel } from './console-panel/ConsolePanel';
 
 export { ContextMenu } from './menus/ContextMenu';
 export { DropdownMenu } from './menus/DropdownMenu';
-export { MenuItem } from './menus/MenuItem';
+export { MenuItem, useMenuItemHover } from './menus/MenuItem';
 export { MenuDivider } from './menus/MenuDivider';
 export { OverflowMenu } from './menus/OverflowMenu';
 export type { OverflowMenuItem } from './menus/types';

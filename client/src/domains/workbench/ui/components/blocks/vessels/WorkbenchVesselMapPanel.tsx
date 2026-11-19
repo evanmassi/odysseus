@@ -49,8 +49,11 @@ import { WorkbenchVesselMapControls, type VesselTabLabel } from './WorkbenchVess
 import { WorkbenchVesselShelfList } from './WorkbenchVesselShelfList';
 import { WorkbenchWellEditorPanel } from './WorkbenchWellEditorPanel';
 
+type VesselDisplay = Pick<VesselMapBlock, 'activeTab' | 'mergesReplicates'>;
+
 interface WorkbenchVesselMapPanelProps {
   block: VesselMapBlock;
+  onDisplayChange?: (recipe: (display: VesselDisplay) => void) => void;
 }
 
 // PITFALL: the well editor, menus and dialogs are portaled outside the app root, so clicks in them never count as clicking away.
@@ -62,10 +65,11 @@ interface EditorOpening {
   generation: number;
 }
 
-export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps) {
+export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVesselMapPanelProps) {
   const calculation = useVesselMapCalculation(block);
   const sources = useWorkbenchData(state => sourceSummaries(state.protocol));
   const updateBlock = useUpdateBlock(block);
+  const updateDisplay = onDisplayChange ?? updateBlock;
   const bodyRef = useRef<HTMLDivElement>(null);
   const roomWidth = useElementWidth(bodyRef);
   const tabs = useMemo(() => vesselTabs(block), [block]);
@@ -233,14 +237,14 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           tabs={tabLabels}
           activeId={tab.id}
           onShowTab={id =>
-            updateBlock(draft => {
+            updateDisplay(draft => {
               draft.activeTab = tabs.findIndex(candidate => candidate.id === id);
             })
           }
           onRenameTab={renameTab}
           onRemovePlate={vesselChanges.removePlate}
           onToggleMerge={() =>
-            updateBlock(draft => {
+            updateDisplay(draft => {
               draft.mergesReplicates = !draft.mergesReplicates;
             })
           }

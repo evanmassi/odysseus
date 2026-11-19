@@ -9,6 +9,7 @@ type MenuIconComponent = LucideIcon | React.ComponentType<{ size?: number; class
 export interface MenuItemProps {
   icon?: MenuIconComponent;
   label: string;
+  description?: string;
   onClick?: () => void;
   danger?: boolean;
   warning?: boolean;

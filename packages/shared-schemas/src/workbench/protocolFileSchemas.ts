@@ -189,6 +189,8 @@ export const LOOSE_VESSELS = [
   'tube50',
 ] as const;
 
+const VESSEL_SIDES = ['assay', 'stain'] as const;
+
 export const vesselMapBlockSchema = z.object({
   ...blockBase,
   type: z.literal('plate'),
@@ -202,8 +204,17 @@ export const vesselMapBlockSchema = z.object({
   mergesReplicates: z.boolean().default(true),
   counts: textMap.default({}),
   amountNames: textMap.default({}),
-  side: z.enum(['assay', 'stain']).default('assay'),
+  side: z.enum(VESSEL_SIDES).default('assay'),
   stain: textMap.default({}),
+});
+
+const plateViewBlockSchema = z.object({
+  ...blockBase,
+  type: z.literal('plateView'),
+  shows: id,
+  side: z.enum(VESSEL_SIDES).default('assay'),
+  activeTab: z.number().int().min(0).default(0),
+  mergesReplicates: z.boolean().default(true),
 });
 
 const sketchStrokeSchema = z.discriminatedUnion('kind', [
@@ -276,6 +287,7 @@ const protocolBlockSchema = z.discriminatedUnion('type', [
   valuesBlockSchema,
   formulaBlockSchema,
   vesselMapBlockSchema,
+  plateViewBlockSchema,
   cytometerBlockSchema,
   z.object({ ...blockBase, type: z.literal('steps') }),
   z.object({ ...blockBase, type: z.literal('dilutions') }),
@@ -318,6 +330,7 @@ export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
 export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
 export type FormulaBlock = z.infer<typeof formulaBlockSchema>;
 export type VesselMapBlock = z.infer<typeof vesselMapBlockSchema>;
+export type PlateViewBlock = z.infer<typeof plateViewBlockSchema>;
 export type CytometerBlock = z.infer<typeof cytometerBlockSchema>;
 export type Instrument = z.infer<typeof instrumentSchema>;
 export type ProtocolDye = z.infer<typeof protocolDyeSchema>;

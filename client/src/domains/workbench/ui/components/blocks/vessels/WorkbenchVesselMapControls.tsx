@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 
 import { Combine, Copy, Pencil, Plus, X } from 'lucide-react';
 
-import { Button, DropdownMenu, HeaderStrip, Tab, Tooltip } from '@shared/ui';
+import { Button, DropdownMenu, HeaderStrip, MenuItem, Tab, Tooltip } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
@@ -35,9 +35,6 @@ interface WorkbenchVesselMapControlsProps {
 }
 
 export type CopyPlace = 'tab' | 'card';
-
-const MENU_ROW =
-  'flex w-full px-3 py-1.5 text-left text-body-sm text-foreground/80 transition-colors hover:bg-[linear-gradient(90deg,hsl(var(--primary)/0.18),transparent)] hover:text-foreground';
 
 export function WorkbenchVesselMapControls({
   block,
@@ -192,18 +189,14 @@ export function WorkbenchVesselMapControls({
               className="top-9 w-48 normal-case tracking-normal"
             >
               {(['tab', 'card'] as const).map(place => (
-                <button
+                <MenuItem
                   key={place}
-                  type="button"
-                  role="menuitem"
-                  className={MENU_ROW}
+                  label={place === 'tab' ? 'Copy as a new tab' : 'Copy to a new card'}
                   onClick={() => {
                     setIsCopying(false);
                     onDuplicate(place);
                   }}
-                >
-                  {place === 'tab' ? 'Copy as a new tab' : 'Copy to a new card'}
-                </button>
+                />
               ))}
             </DropdownMenu>
           </span>

@@ -565,6 +565,30 @@ describe('the protocol diluent', () => {
 });
 
 describe('opening a current file', () => {
+  it('keeps a card that shows a plate map from another page', () => {
+    const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
+    const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');
+    file.protocol.blocks.push({
+      id: 'view',
+      type: 'plateView',
+      title: plate.title,
+      page: plate.page,
+      x: 0,
+      y: 40,
+      w: 6,
+      h: 14,
+      shows: plate.id,
+      side: 'stain',
+    });
+    const view = read(file).blocks.find(block => block.type === 'plateView');
+    expect(view).toMatchObject({
+      shows: plate.id,
+      side: 'stain',
+      activeTab: 0,
+      mergesReplicates: true,
+    });
+  });
+
   it('moves mix names typed on wells to the Stain side', () => {
     const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
     const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');

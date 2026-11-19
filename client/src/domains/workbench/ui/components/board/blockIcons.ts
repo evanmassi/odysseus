@@ -21,6 +21,7 @@ export const BLOCK_ICONS: Readonly<Record<ProtocolBlockType, LucideIcon>> = {
   values: Hash,
   formula: FunctionSquare,
   plate: Grid3x3,
+  plateView: Grid3x3,
   cytometer: Rainbow,
   steps: ListOrdered,
   dilutions: ArrowDownToLine,

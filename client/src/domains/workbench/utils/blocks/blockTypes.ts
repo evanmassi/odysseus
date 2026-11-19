@@ -106,6 +106,18 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       stain: {},
     }),
   },
+  plateView: {
+    label: 'Vessel map',
+    hint: 'A Vessel map shown from another page',
+    size: [6, 14],
+    fitsContent: true,
+    createContent: () => ({
+      shows: '',
+      side: 'assay' as const,
+      activeTab: 0,
+      mergesReplicates: true,
+    }),
+  },
   cytometer: {
     label: 'Flow panel',
     hint: 'Stains by laser and detector on your cytometer',

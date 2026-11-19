@@ -10,6 +10,7 @@ import { useFitBlockHeight } from '../../../hooks/useFitBlockHeight';
 import { useUpdateBlock } from '../../../hooks/useUpdateBlock';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BLOCK_TYPES, defaultBlockTitle } from '../../../utils/blocks/blockTypes';
+import { removalMessage, removeBlock } from '../../../utils/blocks/plateViews';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 
 import { BLOCK_ICONS } from './blockIcons';
@@ -65,12 +66,11 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
     });
   };
 
-  const removeBlock = () => {
+  const removeThisBlock = () => {
     setIsConfirmingRemove(false);
-    updateProtocol(draft => {
-      draft.blocks = draft.blocks.filter(candidate => candidate.id !== block.id);
-    });
+    updateProtocol(draft => removeBlock(draft, block.id));
   };
+  const removeMessage = useWorkbenchStore(state => removalMessage(state.protocol, block));
 
   return (
     <div ref={shellRef} className="h-full">
@@ -145,9 +145,9 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
           isOpen={isConfirmingRemove}
           variant="danger"
           title="Remove block"
-          message={`Remove the “${block.title}” block from this page?`}
+          message={removeMessage}
           confirmText="Remove"
-          onConfirm={removeBlock}
+          onConfirm={removeThisBlock}
           onCancel={() => setIsConfirmingRemove(false)}
         />
       </ConsolePanel>

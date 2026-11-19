@@ -685,6 +685,7 @@ export {
   type MaterialsBlock,
   type ValuesBlock,
   type VesselMapBlock,
+  type PlateViewBlock,
   type CytometerBlock,
   type Instrument,
   type ProtocolDye,
