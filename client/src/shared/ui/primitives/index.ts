@@ -60,13 +60,22 @@ export { StatCell, STAT_STRIP } from './stat-cell/StatCell';
 export { Table } from './table/Table';
 export type { TableColumn, SortConfig } from './table/types';
 
-export { Tabs, Tab, TabGroup, type TabSpacing } from './tabs/Tabs';
+export {
+  Tabs,
+  Tab,
+  TabGroup,
+  TAB_ACTIVE_TEXT,
+  TAB_INACTIVE_TEXT,
+  TAB_INDICATOR_TRANSITION,
+  TAB_TILE_HORIZONTAL,
+  type TabSpacing,
+} from './tabs/Tabs';
 
 export { Textarea } from './textarea/Textarea';
 
 export { Toggle } from './toggle/Toggle';
 
-export { Well } from './well/Well';
+export { Well, WELL_BASE } from './well/Well';
 
 export { UnsavedChangesIndicator } from './unsaved-changes-indicator/UnsavedChangesIndicator';
 

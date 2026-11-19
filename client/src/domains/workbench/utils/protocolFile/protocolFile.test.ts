@@ -565,6 +565,36 @@ describe('the protocol diluent', () => {
 });
 
 describe('opening a current file', () => {
+  it('moves mix names typed on wells to the Stain side', () => {
+    const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
+    const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');
+    file.protocol.blocks.push({
+      id: 'panel',
+      type: 'cytometer',
+      title: 'Flow panel',
+      page: plate.page,
+      x: 0,
+      y: 0,
+      w: 12,
+      h: 10,
+      rows: [],
+      mixes: [{ id: 'full', name: 'Full Stain', rowIds: [], plus: [] }],
+    });
+    plate.lines = [
+      { id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Compound X' }] },
+      { id: 'mix', name: 'Stain', role: 'band', values: [{ id: 'f', text: 'full stain' }] },
+    ];
+    plate.cells = {
+      'p:A1': { drug: { valueId: 'x' }, mix: { valueId: 'f' } },
+      'p:A2': { drug: { valueId: 'x' } },
+    };
+    plate.series = {};
+    const opened = plateOf(read(file));
+    expect(opened.stain).toEqual({ 'p:A1': 'full' });
+    expect(opened.lines.map(line => line.id)).toEqual(['drug']);
+    expect(Object.keys(opened.cells)).toEqual(['p:A1', 'p:A2']);
+  });
+
   it('merges plate lines that share a name and no well', () => {
     const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
     const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');

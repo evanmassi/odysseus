@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { PanelEmptyState, Tab } from '@shared/ui';
+import { HeaderStrip, PanelEmptyState, Tab } from '@shared/ui';
 
 import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
@@ -88,37 +88,46 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
     );
   }
 
+  const hasTabs = runs.length > 1;
+  const protocolDiluent = (
+    <WorkbenchDilutionDiluentField
+      value={protocol.diluent}
+      placeholder={DILUENT_HINT}
+      choices={diluentChoices}
+      isInline={hasTabs}
+      onChange={diluent =>
+        updateProtocol(draft => {
+          draft.diluent = diluent;
+        })
+      }
+      onDone={() => listDiluent(protocol.diluent)}
+    />
+  );
+
   return (
-    <div className="flex flex-col gap-4 px-4 pb-3 pt-1">
-      <WorkbenchDilutionDiluentField
-        value={protocol.diluent}
-        placeholder={DILUENT_HINT}
-        choices={diluentChoices}
-        onChange={diluent =>
-          updateProtocol(draft => {
-            draft.diluent = diluent;
-          })
-        }
-        onDone={() => listDiluent(protocol.diluent)}
-      />
-      {runs.length > 1 && (
-        <WorkbenchTabStrip
-          value={isShowingAll ? ALL_SERIES : shownKey}
-          ids={[ALL_SERIES, ...runs.map(run => run.key)]}
-          onChange={setShownKey}
-        >
-          <Tab id={ALL_SERIES}>All</Tab>
-          {runs.map(run => (
-            <Tab key={run.key} id={run.key}>
-              <span
-                aria-hidden
-                className="mr-1.5 inline-block h-2.5 w-2.5 bg-muted-foreground"
-                style={{ backgroundColor: run.color }}
-              />
-              {run.subject || 'Unnamed treatment'}
-            </Tab>
-          ))}
-        </WorkbenchTabStrip>
+    <div className={`flex flex-col gap-4 px-4 pb-3 ${hasTabs ? '' : 'pt-1'}`}>
+      {!hasTabs && protocolDiluent}
+      {hasTabs && (
+        <HeaderStrip className="-mx-4 flex items-center gap-3 px-4">
+          <WorkbenchTabStrip
+            value={isShowingAll ? ALL_SERIES : shownKey}
+            ids={[ALL_SERIES, ...runs.map(run => run.key)]}
+            onChange={setShownKey}
+          >
+            <Tab id={ALL_SERIES}>All</Tab>
+            {runs.map(run => (
+              <Tab key={run.key} id={run.key}>
+                <span
+                  aria-hidden
+                  className="mr-1.5 inline-block h-2.5 w-2.5 bg-muted-foreground"
+                  style={{ backgroundColor: run.color }}
+                />
+                {run.subject || 'Unnamed treatment'}
+              </Tab>
+            ))}
+          </WorkbenchTabStrip>
+          <span className="flex-none">{protocolDiluent}</span>
+        </HeaderStrip>
       )}
       {runs.map(run => {
         if (!isShowingAll && run !== shown) return null;

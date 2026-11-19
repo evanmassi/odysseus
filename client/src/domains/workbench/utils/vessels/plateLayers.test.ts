@@ -34,6 +34,8 @@ function plateWith(wells: Record<string, Record<string, string>>, lines: PlateLi
     series: {},
     counts: {},
     amountNames: {},
+    side: 'assay',
+    stain: {},
     mergesReplicates: false,
   } as unknown as VesselMapBlock;
 }

@@ -21,6 +21,8 @@ const vesselMap = () =>
     series: {},
     counts: {},
     amountNames: {},
+    side: 'assay',
+    stain: {},
   }) as unknown as VesselMapBlock;
 
 const sheetFor = (block: VesselMapBlock) => sheetOf(block, vesselTabs(block)[0]);

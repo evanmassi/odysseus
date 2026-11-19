@@ -1,6 +1,6 @@
 import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardCalculation';
 import { RATIO_NOTATION } from '../formulas/quantities';
-import { wellsNamed } from '../vessels/vesselMapNames';
+import { stainedWellCounts } from '../vessels/stainSide';
 
 import { panelCocktails } from './cytometerCocktails';
 
@@ -25,7 +25,7 @@ export const cocktailAntibodiesId = (blockId: string, cocktailKey: string): stri
 function blockNames(
   block: CytometerBlock,
   materialNames: ReadonlyMap<string, string>,
-  plates: readonly VesselMapBlock[],
+  wells: ReadonlyMap<string, number>,
   taken: Set<string>,
   ownNames: ReadonlyMap<string, string>
 ): BoardName[] {
@@ -53,10 +53,6 @@ function blockNames(
     ];
   });
 
-  const wells = wellsNamed(
-    plates,
-    block.mixes.map(mix => mix.name)
-  );
   const cocktails = panelCocktails(block).steps.flatMap(step =>
     step.cocktails.flatMap((cocktail): BoardName[] => {
       if (!cocktail.name) return [];
@@ -73,7 +69,7 @@ function blockNames(
               kind: 'count',
               id: cocktailWellsId(block.id, cocktail.key),
               name: wellsName,
-              count: cocktail.mixes.reduce((sum, mix) => sum + (wells.get(mix.name) ?? 0), 0),
+              count: cocktail.mixes.reduce((sum, mix) => sum + (wells.get(mix.id) ?? 0), 0),
               workedOut: group,
               sourceBlockId: block.id,
             },
@@ -143,10 +139,12 @@ export function cytometerFormulaNames(
       .filter(item => item.name.trim() && !item.isDropped)
       .map(item => [item.id, item.name.trim()])
   );
-  const plates = protocol.blocks.filter((block): block is VesselMapBlock => block.type === 'plate');
+  const wells = stainedWellCounts(
+    protocol.blocks.filter((block): block is VesselMapBlock => block.type === 'plate')
+  );
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const ownNames = new Map(taken.map(entry => [nameKey(entry.name), entry.name.trim()]));
   return protocol.blocks.flatMap(block =>
-    block.type === 'cytometer' ? blockNames(block, materialNames, plates, takenKeys, ownNames) : []
+    block.type === 'cytometer' ? blockNames(block, materialNames, wells, takenKeys, ownNames) : []
   );
 }

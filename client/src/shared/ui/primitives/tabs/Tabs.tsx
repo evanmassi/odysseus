@@ -75,7 +75,7 @@ const SIZE_TEXT: Record<TabSize, string> = {
   sm: 'text-label-sm',
 };
 
-const ACTIVE_STATE = 'text-foreground phosphor-text';
+export const TAB_ACTIVE_TEXT = 'text-foreground phosphor-text';
 
 const SNUG_HOVER = 'hover:bg-primary/5';
 
@@ -84,11 +84,11 @@ const HORIZONTAL_LIST: Record<TabSpacing, string> = {
   snug: 'relative flex items-stretch gap-0.5',
 };
 
-const INACTIVE_STATE =
+export const TAB_INACTIVE_TEXT =
   'text-muted-foreground ' +
   'hover:text-foreground dark:hover:[text-shadow:0_0_8px_hsl(var(--sheen)/0.7)]';
 
-const TILE_HORIZONTAL =
+export const TAB_TILE_HORIZONTAL =
   'bg-[linear-gradient(0deg,hsl(var(--primary)/0.1),hsl(var(--primary)/0.1))] ' +
   'shadow-[inset_0_-2px_0_0_hsl(var(--primary))] ' +
   'dark:bg-[linear-gradient(0deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
@@ -100,7 +100,7 @@ const TILE_VERTICAL =
   'dark:bg-[linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
   'dark:shadow-[inset_2px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
 
-const INDICATOR_TRANSITION =
+export const TAB_INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
 
 export function Tab({ id, icon, children }: TabProps) {
@@ -121,7 +121,7 @@ export function Tab({ id, icon, children }: TabProps) {
     : `flex items-center gap-2 ${padding}`;
 
   const className = `${BASE} ${TEXT_STYLE[textStyle]} ${SIZE_TEXT[size]} ${orientationClasses} ${
-    isActive ? ACTIVE_STATE : INACTIVE_STATE
+    isActive ? TAB_ACTIVE_TEXT : TAB_INACTIVE_TEXT
   } ${!isActive && spacing === 'snug' ? SNUG_HOVER : ''}`;
 
   return (
@@ -210,8 +210,8 @@ export function Tabs({
     resolvedOrientation === 'vertical' ? 'relative flex flex-col gap-1' : HORIZONTAL_LIST[spacing];
 
   const indicatorClass = `pointer-events-none absolute top-0 left-0 before:content-[''] before:absolute before:inset-0 dark:before:bg-scanlines ${
-    resolvedOrientation === 'horizontal' ? TILE_HORIZONTAL : TILE_VERTICAL
-  } ${hasMeasured ? INDICATOR_TRANSITION : ''}`;
+    resolvedOrientation === 'horizontal' ? TAB_TILE_HORIZONTAL : TILE_VERTICAL
+  } ${hasMeasured ? TAB_INDICATOR_TRANSITION : ''}`;
 
   return (
     <TabsContext.Provider value={contextValue}>

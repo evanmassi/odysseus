@@ -22,6 +22,8 @@ const coCulture = () =>
     series: {},
     counts: {},
     amountNames: {},
+    side: 'assay',
+    stain: {},
   }) as unknown as VesselMapBlock;
 
 const rowsAt = (block: VesselMapBlock, sources: Array<{ name: string; summary: string }> = []) =>

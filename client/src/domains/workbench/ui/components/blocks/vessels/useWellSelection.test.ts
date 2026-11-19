@@ -14,6 +14,8 @@ const block = {
   series: {},
   counts: {},
   amountNames: {},
+  side: 'assay',
+  stain: {},
 } as unknown as VesselMapBlock;
 const sheet = sheetOf(block, vesselTabs(block)[0]);
 const spot = (key: string) => sheet.spots.find(candidate => candidate.key === `p:${key}`)!;

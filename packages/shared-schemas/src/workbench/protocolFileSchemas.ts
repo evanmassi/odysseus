@@ -202,6 +202,8 @@ export const vesselMapBlockSchema = z.object({
   mergesReplicates: z.boolean().default(true),
   counts: textMap.default({}),
   amountNames: textMap.default({}),
+  side: z.enum(['assay', 'stain']).default('assay'),
+  stain: textMap.default({}),
 });
 
 const sketchStrokeSchema = z.discriminatedUnion('kind', [

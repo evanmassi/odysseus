@@ -11,6 +11,7 @@ import {
   singleStainMixes,
   unstainedMix,
 } from '../../../../utils/cytometer/cytometerMixes';
+import { SECTION_RULE } from '../../board/sectionRuleClass';
 
 import { FLUOROCHROME_SQUARE } from './cytometerTableStyles';
 import { WorkbenchCytometerMixRow } from './WorkbenchCytometerMixRow';
@@ -51,8 +52,11 @@ export function WorkbenchCytometerMixes({
   const fmoRef = useRef<HTMLSpanElement>(null);
 
   return (
-    <section aria-label="Mixes" className="flex flex-col gap-2.5">
-      <SubsectionHeader title="Mixes" meta={block.mixes.length || undefined} />
+    <section aria-label="Mixes" className="mt-4 flex flex-col gap-2.5">
+      <div className="flex items-center gap-2.5">
+        <SubsectionHeader title="Mixes" meta={block.mixes.length || undefined} />
+        <span aria-hidden className={SECTION_RULE} />
+      </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <Button size="xs" variant="ghost" onClick={() => actions.addMixes([fullStainMix(columns)])}>
           Full Stain
@@ -155,7 +159,7 @@ export function WorkbenchCytometerMixes({
                   key={mix.id}
                   mix={mix}
                   columns={columns}
-                  wellCount={mixWells.get(mix.name) ?? 0}
+                  wellCount={mixWells.get(mix.id) ?? 0}
                   materialNames={materialNames}
                   materialOptions={materialOptions}
                   stepOptions={stepOptions}

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 // Mirrors the empty grid cell exactly: --grid-empty fill + a --recess inset shadow
 // (neutral in both themes, unlike --shade which is navy in light).
-const WELL_BASE =
+export const WELL_BASE =
   'border border-line-faint bg-[hsl(var(--grid-empty))] ' +
   'shadow-[inset_0_1px_3px_hsl(var(--recess)/0.5),inset_0_0_0_1px_hsl(var(--foreground)/0.05)]';
 

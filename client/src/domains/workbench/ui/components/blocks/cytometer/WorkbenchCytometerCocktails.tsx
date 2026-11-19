@@ -6,6 +6,7 @@ import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { panelCocktails } from '../../../../utils/cytometer/cytometerCocktails';
 import { cocktailAntibodiesId } from '../../../../utils/cytometer/cytometerNames';
 import { formulaAnswerText, nameKey } from '../../../../utils/formulas/boardCalculation';
+import { SECTION_RULE } from '../../board/sectionRuleClass';
 
 import { FLUOROCHROME_SQUARE } from './cytometerTableStyles';
 
@@ -64,8 +65,11 @@ export function WorkbenchCytometerCocktails({
   const shareOf = (key: string) => shares[cocktails.findIndex(cocktail => cocktail.key === key)];
 
   return (
-    <section aria-label="Cocktails to make" className="flex flex-col gap-2.5">
-      <SubsectionHeader title="Cocktails to make" meta={cocktails.length} />
+    <section aria-label="Cocktails" className="mt-4 flex flex-col gap-2.5">
+      <div className="flex items-center gap-2.5">
+        <SubsectionHeader title="Cocktails" meta={cocktails.length} />
+        <span aria-hidden className={SECTION_RULE} />
+      </div>
       {rowsWithoutStep.length > 0 && (
         <p className="text-body-sm text-warning-text">
           No stain step yet, so in no cocktail:{' '}
@@ -86,7 +90,7 @@ export function WorkbenchCytometerCocktails({
             </span>
             {stepCocktails.map(cocktail => {
               const wells = cocktail.mixes.reduce(
-                (sum, mix) => sum + (mixWells.get(mix.name) ?? 0),
+                (sum, mix) => sum + (mixWells.get(mix.id) ?? 0),
                 0
               );
               const { share, isNameTaken } = shareOf(cocktail.key) ?? {};

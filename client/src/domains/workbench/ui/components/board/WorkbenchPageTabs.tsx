@@ -117,24 +117,26 @@ export function WorkbenchPageTabs() {
                 }}
               >
                 <Tab id={page.id}>
-                  {page.name || 'Untitled page'}
-                  {canDelete && (
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Delete the ${page.name} page`}
-                      className="invisible ml-1 inline-flex text-muted-foreground hover:text-danger-text group-focus-within:visible group-hover:visible"
-                      onClick={event => {
-                        event.stopPropagation();
-                        requestDelete(page.id);
-                      }}
-                      onKeyDown={event => {
-                        if (event.key === 'Enter') requestDelete(page.id);
-                      }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1">
+                    {page.name || 'Untitled page'}
+                    {canDelete && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Delete the ${page.name} page`}
+                        className="invisible inline-flex text-muted-foreground hover:text-danger-text group-focus-within:visible group-hover:visible"
+                        onClick={event => {
+                          event.stopPropagation();
+                          requestDelete(page.id);
+                        }}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter') requestDelete(page.id);
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </span>
+                    )}
+                  </span>
                 </Tab>
               </span>
             )

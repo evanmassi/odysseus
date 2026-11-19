@@ -54,6 +54,8 @@ function protocolWith(
         series: {},
         counts: {},
         amountNames: {},
+        side: 'assay',
+        stain: {},
       },
       {
         id: 'values',

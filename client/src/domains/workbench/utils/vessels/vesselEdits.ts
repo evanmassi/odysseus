@@ -72,6 +72,9 @@ export function applyVessels(block: VesselMapBlock, vessels: Vessels): void {
   for (const key of Object.keys(block.cells)) {
     if (!wellFits(vessels, key)) delete block.cells[key];
   }
+  for (const key of Object.keys(block.stain)) {
+    if (!wellFits(vessels, key)) delete block.stain[key];
+  }
   block.activeTab = Math.min(
     block.activeTab,
     block.plates.length + (block.sets.length ? 1 : 0) - 1
@@ -122,6 +125,9 @@ export function copyPlateIntoCard(block: VesselMapBlock, plate: Plate): void {
     );
     block.cells[`${copy.id}:${key.slice(prefix.length)}`] = copied;
   }
+  for (const [key, mixId] of Object.entries(block.stain)) {
+    if (key.startsWith(prefix)) block.stain[`${copy.id}:${key.slice(prefix.length)}`] = mixId;
+  }
   block.activeTab = block.plates.indexOf(copy);
 }
 
@@ -148,12 +154,15 @@ export function duplicateOfTab(block: VesselMapBlock, tab: VesselTab): VesselMap
       return fresh;
     });
   }
-  copy.cells = Object.fromEntries(
-    Object.entries(copy.cells).flatMap(([key, lines]) => {
-      const prefix = [...renames.keys()].find(from => key.startsWith(from));
-      return prefix ? [[`${renames.get(prefix)}${key.slice(prefix.length)}`, lines]] : [];
-    })
-  );
+  const renamed = <Value>(record: Record<string, Value>): Record<string, Value> =>
+    Object.fromEntries(
+      Object.entries(record).flatMap(([key, value]) => {
+        const prefix = [...renames.keys()].find(from => key.startsWith(from));
+        return prefix ? [[`${renames.get(prefix)}${key.slice(prefix.length)}`, value]] : [];
+      })
+    );
+  copy.cells = renamed(copy.cells);
+  copy.stain = renamed(copy.stain);
   copy.counts = {};
   copy.activeTab = 0;
   const fitsBeside = block.x + block.w * 2 <= BOARD_COLUMNS;

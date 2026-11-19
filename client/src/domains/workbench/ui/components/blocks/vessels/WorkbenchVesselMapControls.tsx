@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 
 import { Combine, Copy, Pencil, Plus, X } from 'lucide-react';
 
-import { Button, DropdownMenu, Tab, Tooltip } from '@shared/ui';
+import { Button, DropdownMenu, HeaderStrip, Tab, Tooltip } from '@shared/ui';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
@@ -66,7 +66,7 @@ export function WorkbenchVesselMapControls({
   };
 
   return (
-    <div className="flex items-center gap-2 border-b border-line-soft">
+    <HeaderStrip className="-mx-3 flex items-center gap-2 px-3">
       <WorkbenchTabStrip value={activeId} ids={tabs.map(tab => tab.id)} onChange={onShowTab}>
         {tabs.map(tab =>
           tab.id === renamingId ? (
@@ -95,25 +95,29 @@ export function WorkbenchVesselMapControls({
               }}
             >
               <Tab id={tab.id}>
-                {tab.name}
-                <span className="ml-1.5 text-label-2xs opacity-65">{tab.kind}</span>
-                {tab.isPlate && canRemovePlates && tab.id === activeId && (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Remove ${tab.name}`}
-                    className="ml-1 inline-flex text-muted-foreground hover:text-danger-text"
-                    onClick={event => {
-                      event.stopPropagation();
-                      onRemovePlate(tab.id);
-                    }}
-                    onKeyDown={event => {
-                      if (event.key === 'Enter') onRemovePlate(tab.id);
-                    }}
-                  >
-                    <X className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1">
+                  <span>
+                    {tab.name}
+                    <span className="ml-1.5 text-label-2xs opacity-65">{tab.kind}</span>
                   </span>
-                )}
+                  {tab.isPlate && canRemovePlates && tab.id === activeId && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Remove ${tab.name}`}
+                      className="inline-flex text-muted-foreground hover:text-danger-text"
+                      onClick={event => {
+                        event.stopPropagation();
+                        onRemovePlate(tab.id);
+                      }}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') onRemovePlate(tab.id);
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                </span>
               </Tab>
             </span>
           )
@@ -213,6 +217,6 @@ export function WorkbenchVesselMapControls({
           onClose={() => setIsPicking(false)}
         />
       )}
-    </div>
+    </HeaderStrip>
   );
 }

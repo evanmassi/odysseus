@@ -8,6 +8,7 @@ import { WorkbenchMaterialsPanel } from '../blocks/materials/WorkbenchMaterialsP
 import { WorkbenchStepsPanel } from '../blocks/steps/WorkbenchStepsPanel';
 import { WorkbenchValuesPanel } from '../blocks/values/WorkbenchValuesPanel';
 import { WorkbenchVesselMapPanel } from '../blocks/vessels/WorkbenchVesselMapPanel';
+import { WorkbenchVesselSideSwitch } from '../blocks/vessels/WorkbenchVesselSideSwitch';
 
 import type { ProtocolBlock, ProtocolBlockType } from '@odysseus/shared-schemas';
 
@@ -24,4 +25,8 @@ export const BLOCK_PANELS: BlockPanels = {
   cytometer: WorkbenchCytometerPanel,
   dilutions: WorkbenchDilutionsPanel,
   flow: WorkbenchFlowPanel,
+};
+
+export const BLOCK_HEADER_CONTROLS: BlockPanels = {
+  plate: WorkbenchVesselSideSwitch,
 };

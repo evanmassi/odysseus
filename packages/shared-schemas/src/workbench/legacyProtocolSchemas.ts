@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { PAINTED_GROUPS_FILE_VERSION, paintedGroupsFileSchema } from './paintedGroupUpgrade';
 import { SERIES_DILUENT_FILE_VERSION, seriesDiluentFileSchema } from './seriesDiluentUpgrade';
+import { moveMixesToStainSide } from './stainSideUpgrade';
 import {
   LINE_ROLES,
   PLATE_FORMATS,
@@ -470,5 +471,6 @@ export const protocolFileInputSchema = z
   .preprocess(upgradeFile, protocolFileSchema)
   .transform(file => {
     for (const block of file.protocol.blocks) if (block.type === 'plate') normalizeVesselMap(block);
+    moveMixesToStainSide(file.protocol);
     return file;
   });

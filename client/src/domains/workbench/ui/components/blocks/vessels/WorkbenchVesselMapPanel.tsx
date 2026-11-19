@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 
 import { colorLineOf, type VesselMapBlock, withGreekLetters } from '@odysseus/shared-schemas';
 
@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
-import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { sourceSummaries } from '../../../../utils/materials/materialSources';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
 import {
@@ -16,7 +16,8 @@ import {
   plateBands,
   plateCaptions,
 } from '../../../../utils/vessels/plateLayers';
-import { replicateMerges } from '../../../../utils/vessels/replicateMerges';
+import { replicateMerges, type ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
+import { stainedWellCounts, stainMixes, stainWells } from '../../../../utils/vessels/stainSide';
 import { vesselOf } from '../../../../utils/vessels/vesselCatalog';
 import { vesselCounts } from '../../../../utils/vessels/vesselMapNames';
 import { shelfScaleFor, wellSizeFor } from '../../../../utils/vessels/vesselSizing';
@@ -40,6 +41,7 @@ import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
 import { WorkbenchPlateContextMenu } from './WorkbenchPlateContextMenu';
 import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
+import { WorkbenchPlateStainLegend } from './WorkbenchPlateStainLegend';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
 import { WorkbenchVesselMapControls, type VesselTabLabel } from './WorkbenchVesselMapControls';
 import { WorkbenchVesselShelfList } from './WorkbenchVesselShelfList';
@@ -48,6 +50,8 @@ import { WorkbenchWellEditorPanel } from './WorkbenchWellEditorPanel';
 interface WorkbenchVesselMapPanelProps {
   block: VesselMapBlock;
 }
+
+const NO_MERGES: ReplicateMerges = { anchors: new Map(), covered: new Set() };
 
 interface EditorOpening {
   focusesFirstRow: boolean;
@@ -63,18 +67,23 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const tabs = vesselTabs(block);
   const tab = activeTabOf(block);
   const sheet = sheetOf(block, tab);
+  const isStain = tab.kind === 'plate' && block.side === 'stain';
+  const panels = useBlocksOf('cytometer');
+  const mixes = useMemo(() => stainMixes(panels), [panels]);
+  const mixById = useMemo(() => new Map(mixes.map(mix => [mix.id, mix])), [mixes]);
   const colorLine = colorLineOf(block);
   const layers = lineLayers(block, colorLine, calculation);
   const captions = plateCaptions(layers);
   const printsInWells =
     tab.kind !== 'plate' || wellSizeFor(tab.plate.vessel, roomWidth, sheet.cols).density !== 'tiny';
-  const bands = sheet.isPlate ? plateBands(block, sheet, layers, calculation, printsInWells) : [];
+  const bands =
+    sheet.isPlate && !isStain ? plateBands(block, sheet, layers, calculation, printsInWells) : [];
   const updateVesselMap = useUpdateVesselMap(block);
   const [editor, setEditor] = useState<EditorOpening>();
   const closeEditor = useCallback(() => setEditor(undefined), []);
   const focusEditor = () =>
     setEditor(current => ({ focusesFirstRow: true, generation: (current?.generation ?? 0) + 1 }));
-  const merges = replicateMerges(block, sheet, calculation);
+  const merges = isStain ? NO_MERGES : replicateMerges(block, sheet, calculation);
   const selection = useWellSelection(sheet, tab.id, closeEditor);
   const startedNames = useWellEditSession(block.id, selection.keys, editor !== undefined);
 
@@ -101,18 +110,47 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
   const openMenu = (key: string, at: { x: number; y: number }) => {
     const spot = sheet.spots.find(candidate => candidate.key === key);
     if (spot) selection.openAt(spot);
-    setMenuAt(at);
+    if (!isStain) setMenuAt(at);
   };
 
   const openWell = (key: string) => {
     const spot = sheet.spots.find(candidate => candidate.key === key);
     if (spot) selection.openAt(spot);
-    focusEditor();
+    if (!isStain) focusEditor();
+  };
+
+  const stainSelected = (mixId: string | undefined) =>
+    updateBlock(draft => stainWells(draft, selection.keys, mixId));
+
+  const fillUnstained = (mixId: string) =>
+    updateBlock(draft =>
+      stainWells(
+        draft,
+        sheet.spots
+          .map(spot => spot.key)
+          .filter(key => isWellFilled(block, key) && !block.stain[key]),
+        mixId
+      )
+    );
+
+  const stainKeyDown = (event: KeyboardEvent) => {
+    if ((event.key === 'Delete' || event.key === 'Backspace') && selection.keys.size) {
+      event.preventDefault();
+      stainSelected(undefined);
+    } else if (event.key.startsWith('Arrow') || event.key === 'Escape') {
+      onKeyDown(event);
+    }
   };
 
   useEffect(() => {
     if (!selection.keys.size) setEditor(undefined);
   }, [selection.keys.size]);
+
+  useEffect(() => {
+    if (!isStain) return;
+    setEditor(undefined);
+    setMenuAt(undefined);
+  }, [isStain]);
 
   const tabLabels = tabs.map(
     (candidate): VesselTabLabel =>
@@ -164,13 +202,13 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
           onSetCount={vesselChanges.setCount}
           onDuplicate={vesselChanges.duplicateTab}
           editLabel={
-            selection.keys.size && !editor
+            selection.keys.size && !editor && !isStain
               ? selectionName(sheet, selection.keys) || `${selection.keys.size} selected`
               : undefined
           }
           onEdit={focusEditor}
         />
-        {captions.length > 0 && (
+        {captions.length > 0 && !isStain && (
           <p className="text-body-sm text-muted-foreground">
             Every well: <b className="text-foreground">{captions.join(' · ')}</b>
           </p>
@@ -188,7 +226,8 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               sources={sources}
               selection={selection}
               merges={merges}
-              onKeyDown={onKeyDown}
+              stainMixes={isStain ? mixById : undefined}
+              onKeyDown={isStain ? stainKeyDown : onKeyDown}
               onOpenWell={openWell}
               onOpenMenu={openMenu}
             />
@@ -207,14 +246,24 @@ export function WorkbenchVesselMapPanel({ block }: WorkbenchVesselMapPanelProps)
               onOpenMenu={openMenu}
             />
           ))}
-        <WorkbenchPlateLegendSection
-          block={block}
-          colorLine={colorLine}
-          counts={vesselCounts(block)}
-          bands={bands}
-          fillAmounts={fillAmounts(block, colorLine, calculation)}
-        />
-        {editor && selection.keys.size > 0 && (
+        {isStain ? (
+          <WorkbenchPlateStainLegend
+            mixes={mixes}
+            counts={stainedWellCounts([block])}
+            hasSelection={selection.keys.size > 0}
+            onPick={stainSelected}
+            onFillUnstained={fillUnstained}
+          />
+        ) : (
+          <WorkbenchPlateLegendSection
+            block={block}
+            colorLine={colorLine}
+            counts={vesselCounts(block)}
+            bands={bands}
+            fillAmounts={fillAmounts(block, colorLine, calculation)}
+          />
+        )}
+        {editor && !isStain && selection.keys.size > 0 && (
           <WorkbenchWellEditorPanel
             key={editor.generation}
             block={block}

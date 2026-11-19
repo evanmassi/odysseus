@@ -35,6 +35,8 @@ function protocolWithPlate(): Protocol {
     series: { s: { start: '10', unit: 'µM', fold: '3', direction: 'right' } },
     counts: {},
     amountNames: {},
+    side: 'assay',
+    stain: {},
   } as unknown as VesselMapBlock;
   return { blocks: [plate] } as unknown as Protocol;
 }

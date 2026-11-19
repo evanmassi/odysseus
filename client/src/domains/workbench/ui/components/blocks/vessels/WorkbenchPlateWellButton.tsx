@@ -20,6 +20,7 @@ export interface PlateWellView {
   isFilled: boolean;
   color: WellColor | undefined;
   stripes: Array<WellColor | undefined>;
+  stainLook: 'stained' | 'unstained' | undefined;
 }
 
 interface WorkbenchPlateWellButtonProps {
@@ -58,7 +59,18 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
   selectedParts,
   actions,
 }: WorkbenchPlateWellButtonProps) {
-  const { key: wellKey, row, col, merged, tooltip, shownLine, isFilled, color, stripes } = view;
+  const {
+    key: wellKey,
+    row,
+    col,
+    merged,
+    tooltip,
+    shownLine,
+    isFilled,
+    color,
+    stripes,
+    stainLook,
+  } = view;
   const isNarrow = density === 'narrow';
   return (
     <Tooltip content={wellTooltipTable(tooltip)}>
@@ -74,8 +86,10 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
         }}
         onDoubleClick={event => actions.onDoubleClick(keyUnder(event.target, wellKey))}
         onContextMenu={event => actions.onContextMenu(keyUnder(event.target, wellKey), event)}
-        className={`relative flex cursor-pointer items-center justify-center border py-0.5 text-foreground ${
-          isFilled ? 'border-foreground/45' : 'border-foreground/15'
+        className={`relative flex cursor-pointer items-center justify-center border py-0.5 ${
+          stainLook ? 'text-muted-foreground' : 'text-foreground'
+        } ${isFilled ? 'border-foreground/45' : 'border-foreground/15'} ${
+          stainLook === 'unstained' ? 'border-dashed' : ''
         } ${isSelected ? 'z-10 selection-glow' : ''} ${DENSITY_CLASSES[density]}`}
         style={{
           gridRow: `${row + 2} / span ${merged?.height ?? 1}`,

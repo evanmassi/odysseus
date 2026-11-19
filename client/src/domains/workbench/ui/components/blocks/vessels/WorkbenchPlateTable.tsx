@@ -9,6 +9,7 @@ import {
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
 import { wellStripes } from '../../../../utils/vessels/plateLayers';
+import { MIX_TINT, type StainMix } from '../../../../utils/vessels/stainSide';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
 import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
@@ -41,6 +42,7 @@ interface WorkbenchPlateTableProps {
   sources: readonly SourceSummary[];
   selection: WellSelection;
   merges: ReplicateMerges;
+  stainMixes: ReadonlyMap<string, StainMix> | undefined;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
   onOpenMenu: (key: string, at: { x: number; y: number }) => void;
@@ -128,6 +130,7 @@ export function WorkbenchPlateTable({
   sources,
   selection,
   merges,
+  stainMixes,
   onKeyDown,
   onOpenWell,
   onOpenMenu,
@@ -141,6 +144,30 @@ export function WorkbenchPlateTable({
       const where = merged
         ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
         : spot.label;
+      if (stainMixes) {
+        const mix = stainMixes.get(block.stain[spot.key] ?? '');
+        const line = colorLine && wellLine(block, spot.key, colorLine, calculation);
+        const isInUse = rows.length > 0;
+        return [
+          {
+            key: spot.key,
+            row: spot.row,
+            col: spot.col,
+            merged: undefined,
+            tooltip: {
+              heading: isInUse
+                ? `${spot.label} · ${mix?.name ?? 'not stained'}`
+                : ((mix && `${spot.label} · ${mix.name}`) ?? spot.label),
+              rows,
+            },
+            shownLine: line && { ...line, label: '' },
+            isFilled: !!mix,
+            color: mix && { color: mix.color, tint: MIX_TINT },
+            stripes: [],
+            stainLook: mix ? 'stained' : isInUse ? 'unstained' : undefined,
+          },
+        ];
+      }
       return [
         {
           key: spot.key,
@@ -152,6 +179,7 @@ export function WorkbenchPlateTable({
           isFilled: rows.length > 0,
           color: wellColor(block, spot.key, colorLine),
           stripes: wellStripes(block, spot.key, layers),
+          stainLook: undefined,
         },
       ];
     })

@@ -4,6 +4,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { SubsectionHeader } from '@shared/ui';
 
+import { SECTION_RULE } from '../../board/sectionRuleClass';
+
 interface WorkbenchMaterialSectionProps {
   title: string;
   count: number;
@@ -12,9 +14,6 @@ interface WorkbenchMaterialSectionProps {
   action?: ReactNode;
   children: ReactNode;
 }
-
-const SECTION_RULE =
-  'h-px flex-1 bg-[linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.1)_70%,hsl(var(--foreground)/0.05)_100%)]';
 
 export function WorkbenchMaterialSection({
   title,

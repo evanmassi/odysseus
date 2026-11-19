@@ -72,6 +72,10 @@ const vesselMap = (id: string, title: string, content: Partial<VesselMapBlock>):
     series: {},
     counts: {},
     amountNames: {},
+
+    side: 'assay',
+
+    stain: {},
     ...content,
   }) as unknown as VesselMapBlock;
 

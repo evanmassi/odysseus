@@ -13,6 +13,7 @@ interface WorkbenchDilutionDiluentFieldProps {
   choices: readonly AutocompleteOption[];
   onChange: (diluent: string) => void;
   onDone: () => void;
+  isInline?: boolean;
 }
 
 const DILUENT_INPUT = `w-full h-7 px-2 text-body-sm ${INPUT_WELL_BASE} ${INPUT_WELL_BORDER_DEFAULT}`;
@@ -33,9 +34,10 @@ export function WorkbenchDilutionDiluentField({
   choices,
   onChange,
   onDone,
+  isInline = false,
 }: WorkbenchDilutionDiluentFieldProps) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className={isInline ? 'flex items-center gap-2' : 'flex flex-col gap-1'}>
       <span className={META_LABEL}>Diluent</span>
       <span className="w-44">
         <Autocomplete

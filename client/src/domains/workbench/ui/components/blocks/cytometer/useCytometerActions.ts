@@ -120,8 +120,17 @@ export function useCytometerActions(block: CytometerBlock): CytometerActions {
             : [...mix.rowIds, rowId];
         }),
       removeMix: mixId =>
-        updateBlock(draft => {
-          draft.mixes = draft.mixes.filter(mix => mix.id !== mixId);
+        updateProtocol(draft => {
+          for (const candidate of draft.blocks) {
+            if (candidate.type === 'cytometer' && candidate.id === block.id) {
+              candidate.mixes = candidate.mixes.filter(mix => mix.id !== mixId);
+            }
+            if (candidate.type === 'plate') {
+              for (const [key, stained] of Object.entries(candidate.stain)) {
+                if (stained === mixId) delete candidate.stain[key];
+              }
+            }
+          }
         }),
       addPlus: (mixId, materialId, stain) =>
         updateMix(mixId, mix => {

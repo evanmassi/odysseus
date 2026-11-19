@@ -3,7 +3,7 @@ import { memo, useRef, useState, type ComponentType } from 'react';
 import { withGreekLetters } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
-import { ConsolePanel, Tooltip } from '@shared/ui';
+import { ConsolePanel, Tooltip, WELL_BASE } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useFitBlockHeight } from '../../../hooks/useFitBlockHeight';
@@ -13,7 +13,7 @@ import { BLOCK_TYPES, defaultBlockTitle } from '../../../utils/blocks/blockTypes
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 
 import { BLOCK_ICONS } from './blockIcons';
-import { BLOCK_PANELS } from './blockPanels';
+import { BLOCK_HEADER_CONTROLS, BLOCK_PANELS } from './blockPanels';
 import { WorkbenchBlockPendingPanel } from './WorkbenchBlockPendingPanel';
 import { WorkbenchBlockUsageTip } from './WorkbenchBlockUsageTip';
 
@@ -41,6 +41,9 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const blockType = BLOCK_TYPES[block.type];
   const Icon = BLOCK_ICONS[block.type];
   const Panel = BLOCK_PANELS[block.type] as ComponentType<{ block: ProtocolBlock }> | undefined;
+  const HeaderControls = BLOCK_HEADER_CONTROLS[block.type] as
+    | ComponentType<{ block: ProtocolBlock }>
+    | undefined;
   const hasOwnTitle = block.title.trim().toLowerCase() !== blockType.label.toLowerCase();
 
   const toggleFold = () =>
@@ -120,6 +123,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
               )}
             </span>
           )}
+          {HeaderControls && !block.isCollapsed && <HeaderControls block={block} />}
           <button
             type="button"
             className={HEADER_BUTTON}
@@ -130,7 +134,10 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
           </button>
         </div>
         {!block.isCollapsed && (
-          <div ref={contentRef} className="min-h-0 flex-1 overflow-auto">
+          <div
+            ref={contentRef}
+            className={`mx-1.5 mb-1.5 min-h-0 flex-1 overflow-auto ${WELL_BASE}`}
+          >
             {Panel ? <Panel block={block} /> : <WorkbenchBlockPendingPanel block={block} />}
           </div>
         )}

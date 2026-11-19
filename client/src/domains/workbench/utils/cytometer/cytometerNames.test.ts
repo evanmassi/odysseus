@@ -39,26 +39,14 @@ const plate: ProtocolBlock = {
   plates: [{ id: 'p1', vessel: '96', name: '' }],
   sets: [],
   activeTab: 0,
-  lines: [
-    {
-      id: 'stain',
-      name: '',
-      role: 'auto',
-      values: [
-        { id: 'full', text: 'Full stain' },
-        { id: 'fmo', text: 'FMO CD3' },
-      ],
-    },
-  ],
-  cells: {
-    'p1:A1': { stain: { valueId: 'full' } },
-    'p1:A2': { stain: { valueId: 'full' } },
-    'p1:A3': { stain: { valueId: 'fmo' } },
-  },
+  lines: [],
+  cells: {},
   series: {},
   mergesReplicates: true,
   counts: {},
   amountNames: {},
+  side: 'stain',
+  stain: { 'p1:A1': 'full', 'p1:A2': 'full', 'p1:A3': 'fmo' },
 };
 
 const protocol = (extra: ProtocolBlock[] = []): Protocol => ({

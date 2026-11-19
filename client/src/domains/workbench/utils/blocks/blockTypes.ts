@@ -102,6 +102,8 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       mergesReplicates: true,
       counts: {},
       amountNames: {},
+      side: 'assay' as const,
+      stain: {},
     }),
   },
   cytometer: {

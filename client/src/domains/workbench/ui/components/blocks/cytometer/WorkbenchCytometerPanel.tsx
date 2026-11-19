@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { PanelEmptyState, Select } from '@shared/ui';
+import { HeaderStrip, PanelEmptyState, Select } from '@shared/ui';
 
 import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import {
@@ -19,7 +19,7 @@ import { BUILT_IN_INSTRUMENTS } from '../../../../utils/cytometer/instrumentCata
 import { stainCandidatesOn } from '../../../../utils/cytometer/stainPlacement';
 import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
-import { wellsNamed } from '../../../../utils/vessels/vesselMapNames';
+import { stainedWellCounts } from '../../../../utils/vessels/stainSide';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 
 import { CYTOMETER_CELL } from './cytometerTableStyles';
@@ -31,6 +31,7 @@ import { WorkbenchCytometerLaserGroup } from './WorkbenchCytometerLaserGroup';
 import { WorkbenchCytometerMixes } from './WorkbenchCytometerMixes';
 import { WorkbenchCytometerPeakMap } from './WorkbenchCytometerPeakMap';
 import { WorkbenchCytometerStainRow, type StainAmount } from './WorkbenchCytometerStainRow';
+import { WorkbenchCytometerUsageBar } from './WorkbenchCytometerUsageBar';
 
 import type { CytometerBlock } from '@odysseus/shared-schemas';
 
@@ -60,14 +61,7 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
   );
   const amounts = useMemo(() => new Map(amountEntries), [amountEntries]);
   const plateBlocks = useBlocksOf('plate');
-  const mixWells = useMemo(
-    () =>
-      wellsNamed(
-        plateBlocks,
-        block.mixes.map(mix => mix.name)
-      ),
-    [plateBlocks, block.mixes]
-  );
+  const mixWells = useMemo(() => stainedWellCounts(plateBlocks), [plateBlocks]);
   const materialNames = useMemo(
     () => new Map(materials.map(item => [item.id, item.name.trim()])),
     [materials]
@@ -104,14 +98,10 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
   }));
   const { instrument } = block;
   const isSpectral = instrument?.kind === 'spectral';
-  const detectorCount = layout.lasers.reduce((count, laser) => count + laser.slots.length, 0);
-  const usedCount = layout.lasers
-    .flatMap(laser => laser.slots)
-    .filter(slot => slot.stains.length).length;
 
   return (
-    <div className="flex flex-col gap-3 px-3 pb-3 pt-2">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-muted-foreground">
+    <div className="flex flex-col gap-3 px-3 pb-3">
+      <HeaderStrip className="-mx-3 flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-1.5 text-body-sm text-muted-foreground">
         <Select
           size="xs"
           fitsWidestOption
@@ -125,17 +115,6 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
           aria-label="Cytometer"
           onChange={name => actions.pickInstrument(String(name))}
         />
-        {instrument &&
-          (isSpectral ? (
-            <span>
-              {block.rows.length} {block.rows.length === 1 ? 'dye' : 'dyes'} on{' '}
-              {layout.lasers.length} lasers · {detectorCount} detectors
-            </span>
-          ) : (
-            <span>
-              {usedCount} of {detectorCount} detectors used
-            </span>
-          ))}
         {layout.clashCount > 0 && (
           <span className="text-danger-text">
             {layout.clashCount} {layout.clashCount === 1 ? 'detector holds' : 'detectors hold'} two
@@ -149,7 +128,8 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
             another detector
           </span>
         )}
-      </div>
+        {instrument && <WorkbenchCytometerUsageBar layout={layout} isSpectral={isSpectral} />}
+      </HeaderStrip>
 
       {!instrument ? (
         <PanelEmptyState
