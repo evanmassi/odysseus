@@ -7,7 +7,6 @@ export interface StainMix {
 }
 
 const MIX_COLORS = [
-  '#6fa8e8',
   '#f0b35b',
   '#5cc8bd',
   '#e07a8f',
@@ -15,6 +14,7 @@ const MIX_COLORS = [
   '#8fdcb0',
   '#e8875a',
   '#e3d36b',
+  '#b8d36a',
 ] as const;
 const NO_STAIN_COLOR = '#7d8494';
 export const MIX_TINT = 40;
@@ -25,11 +25,8 @@ export function stainMixes(panels: readonly CytometerBlock[]): StainMix[] {
     .flatMap(panel => panel.mixes)
     .map(mix => {
       const hasStains = mix.rowIds.length > 0 || mix.plus.length > 0;
-      return {
-        id: mix.id,
-        name: mix.name.trim() || 'Unnamed mix',
-        color: hasStains ? MIX_COLORS[colored++ % MIX_COLORS.length] : NO_STAIN_COLOR,
-      };
+      const autoColor = hasStains ? MIX_COLORS[colored++ % MIX_COLORS.length] : NO_STAIN_COLOR;
+      return { id: mix.id, name: mix.name.trim() || 'Unnamed mix', color: mix.color ?? autoColor };
     });
 }
 

@@ -1,7 +1,11 @@
+import { useState } from 'react';
+
 import { Tooltip } from '@shared/ui';
 
 import { MIX_TINT, type StainMix } from '../../../../utils/vessels/stainSide';
 import { META_LABEL } from '../../board/metaLabelClass';
+
+import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 
 interface WorkbenchPlateStainLegendProps {
   mixes: readonly StainMix[];
@@ -9,11 +13,12 @@ interface WorkbenchPlateStainLegendProps {
   hasSelection: boolean;
   onPick: (mixId: string | undefined) => void;
   onFillUnstained: (mixId: string) => void;
+  onRecolor: (mixId: string, color: string) => void;
 }
 
 const SWATCH = 'box-border h-3.5 w-3.5 flex-none border';
-const PICK =
-  'inline-flex items-center gap-1.5 whitespace-nowrap text-left enabled:hover:text-primary disabled:cursor-default';
+const SWATCH_BUTTON = `${SWATCH} hover:outline hover:outline-2 hover:outline-offset-1 hover:outline-foreground/50`;
+const PICK = 'whitespace-nowrap text-left enabled:hover:text-primary disabled:cursor-default';
 
 export function WorkbenchPlateStainLegend({
   mixes,
@@ -21,7 +26,11 @@ export function WorkbenchPlateStainLegend({
   hasSelection,
   onPick,
   onFillUnstained,
+  onRecolor,
 }: WorkbenchPlateStainLegendProps) {
+  const [recoloringId, setRecoloringId] = useState<string>();
+  const recoloring = mixes.find(mix => mix.id === recoloringId);
+
   if (!mixes.length) {
     return (
       <p className="border-t border-line-soft pt-2 text-body-sm text-muted-foreground">
@@ -38,8 +47,19 @@ export function WorkbenchPlateStainLegend({
           {hasSelection ? 'Pick a mix for the selected wells' : 'Select wells, then pick a mix'}
         </span>
       </div>
-      <div className="grid grid-cols-[max-content_max-content_max-content] items-center gap-x-4 gap-y-1 text-body-sm text-foreground">
+      <div className="grid grid-cols-[max-content_max-content_max-content_max-content] items-center gap-x-4 gap-y-1 text-body-sm text-foreground">
         {mixes.map(mix => [
+          <button
+            key={`${mix.id}:color`}
+            type="button"
+            aria-label={`Change the color of ${mix.name}`}
+            className={`${SWATCH_BUTTON} -mr-2.5`}
+            style={{
+              backgroundColor: `color-mix(in srgb, ${mix.color} ${MIX_TINT}%, transparent)`,
+              borderColor: `color-mix(in srgb, ${mix.color} 70%, transparent)`,
+            }}
+            onClick={() => setRecoloringId(recoloringId === mix.id ? undefined : mix.id)}
+          />,
           <button
             key={`${mix.id}:pick`}
             type="button"
@@ -47,14 +67,6 @@ export function WorkbenchPlateStainLegend({
             className={PICK}
             onClick={() => onPick(mix.id)}
           >
-            <i
-              aria-hidden
-              className={SWATCH}
-              style={{
-                backgroundColor: `color-mix(in srgb, ${mix.color} ${MIX_TINT}%, transparent)`,
-                borderColor: `color-mix(in srgb, ${mix.color} 70%, transparent)`,
-              }}
-            />
             {mix.name}
           </button>,
           <b key={`${mix.id}:count`} className="text-right font-mono text-data-sm text-foreground">
@@ -70,16 +82,25 @@ export function WorkbenchPlateStainLegend({
             </button>
           </Tooltip>,
         ])}
+        <i aria-hidden className={`${SWATCH} -mr-2.5 border-dashed border-foreground/40`} />
         <button
           type="button"
           disabled={!hasSelection}
           className={PICK}
           onClick={() => onPick(undefined)}
         >
-          <i aria-hidden className={`${SWATCH} border-dashed border-foreground/40`} />
           Not stained
         </button>
       </div>
+      {recoloring && (
+        <WorkbenchColorSwatchList
+          current={recoloring.color}
+          onPick={color => {
+            onRecolor(recoloring.id, color);
+            setRecoloringId(undefined);
+          }}
+        />
+      )}
     </div>
   );
 }

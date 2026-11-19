@@ -140,6 +140,8 @@ export function useWellSelection(sheet: VesselSheet, tabId: string, onReselect: 
     selectRect(start, end);
   };
 
+  const clear = useCallback(() => setSelection(EMPTY), []);
+
   return {
     keys: selection.keys,
     press,
@@ -161,6 +163,6 @@ export function useWellSelection(sheet: VesselSheet, tabId: string, onReselect: 
       onReselect();
       selectRect({ row: 0, col: 0 }, { row: lastRow, col: lastCol });
     },
-    clear: () => setSelection(EMPTY),
+    clear,
   };
 }

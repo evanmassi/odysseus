@@ -2,25 +2,25 @@ import { memo, type CSSProperties } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
-import { wellTooltipTable } from './wellTooltipTable';
+import { WorkbenchWellTooltip } from './WorkbenchWellTooltip';
 
 import type { WellPointerActions } from './useWellPointerActions';
 import type { MergedWells } from '../../../../utils/vessels/replicateMerges';
 import type { WellDensity } from '../../../../utils/vessels/vesselSizing';
 import type { WellColor, WellLine } from '../../../../utils/vessels/wellContents';
-import type { WellTooltip } from '../../../../utils/vessels/wellTooltip';
 
 export interface PlateWellView {
   key: string;
   row: number;
   col: number;
   merged: MergedWells | undefined;
-  tooltip: WellTooltip;
+  tooltipHeading: string;
   shownLine: WellLine | undefined;
   isFilled: boolean;
   color: WellColor | undefined;
   stripes: Array<WellColor | undefined>;
   stainLook: 'stained' | 'unstained' | undefined;
+  ringColor: string | undefined;
 }
 
 interface WorkbenchPlateWellButtonProps {
@@ -32,6 +32,8 @@ interface WorkbenchPlateWellButtonProps {
 }
 
 export const PART_SEPARATOR = '|';
+
+const RING_WIDTH = 3;
 
 const keyUnder = (target: EventTarget, fallback: string) =>
   target instanceof Element
@@ -64,16 +66,17 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
     row,
     col,
     merged,
-    tooltip,
+    tooltipHeading,
     shownLine,
     isFilled,
     color,
     stripes,
     stainLook,
+    ringColor,
   } = view;
   const isNarrow = density === 'narrow';
   return (
-    <Tooltip content={wellTooltipTable(tooltip)}>
+    <Tooltip content={<WorkbenchWellTooltip wellKey={wellKey} heading={tooltipHeading} />}>
       <div
         role="gridcell"
         data-well-key={wellKey}
@@ -95,6 +98,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
           gridRow: `${row + 2} / span ${merged?.height ?? 1}`,
           gridColumn: `${col + 2} / span ${merged?.width ?? 1}`,
           ...colorStyle(color),
+          ...(ringColor && { borderColor: ringColor, borderWidth: RING_WIDTH }),
         }}
       >
         {stripes.length > 0 && (

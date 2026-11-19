@@ -1,4 +1,4 @@
-import type { CSSProperties, KeyboardEvent } from 'react';
+import { useMemo, type CSSProperties, type KeyboardEvent } from 'react';
 
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import {
@@ -9,14 +9,13 @@ import {
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
 import { wellStripes } from '../../../../utils/vessels/plateLayers';
-import { MIX_TINT, type StainMix } from '../../../../utils/vessels/stainSide';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
-import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
-import { selectionName } from '../../../../utils/vessels/wellSelection';
-import { wellTooltipRows } from '../../../../utils/vessels/wellTooltip';
+import { wellColor, wellLine, type WellColor } from '../../../../utils/vessels/wellContents';
+import { isWellFilled, selectionName } from '../../../../utils/vessels/wellSelection';
 
 import { useWellPointerActions } from './useWellPointerActions';
 import { pressModifiers } from './useWellSelection';
+import { WellTooltipSourceContext } from './wellTooltipSource';
 import {
   PART_SEPARATOR,
   WorkbenchPlateWellButton,
@@ -28,6 +27,7 @@ import type { BoardCalculation } from '../../../../utils/formulas/boardCalculati
 import type { SourceSummary } from '../../../../utils/materials/materialSources';
 import type { LineLayer, PlateBand } from '../../../../utils/vessels/plateLayers';
 import type { ReplicateMerges } from '../../../../utils/vessels/replicateMerges';
+import type { StainMix } from '../../../../utils/vessels/stainSide';
 import type { WellSize } from '../../../../utils/vessels/vesselSizing';
 import type { PlateLine, VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -59,12 +59,23 @@ const HEADER =
   'flex items-center justify-center gap-1 font-mono text-label-2xs text-muted-foreground transition-colors hover:text-primary';
 const TAG_TEXT = '#11141a';
 
-function BandOverlay({ bands, geometry }: { bands: PlateBand[]; geometry: PlateGeometry }) {
+interface BandOverlayProps {
+  bands: PlateBand[];
+  geometry: PlateGeometry;
+  isDimmed: boolean;
+}
+
+const STAIN_SIDE_DIM = 0.45;
+
+const dimmed = (color: WellColor | undefined): WellColor | undefined =>
+  color && { ...color, tint: Math.round(color.tint * STAIN_SIDE_DIM) };
+
+function BandOverlay({ bands, geometry, isDimmed }: BandOverlayProps) {
   const shapes = bandShapes(bands, geometry);
   return (
     <svg
       aria-hidden
-      className="pointer-events-none absolute left-0 top-0 text-label-2xs"
+      className={`pointer-events-none absolute left-0 top-0 text-label-2xs ${isDimmed ? 'opacity-40' : ''}`}
       width={plateWidth(geometry)}
       height={plateHeight(geometry)}
     >
@@ -136,53 +147,56 @@ export function WorkbenchPlateTable({
   onOpenMenu,
 }: WorkbenchPlateTableProps) {
   const actions = useWellPointerActions(sheet, selection, onOpenWell, onOpenMenu);
-  const wells = useStructuralSharing(
-    sheet.spots.flatMap((spot): PlateWellView[] => {
-      const merged = merges.anchors.get(spot.key);
-      if (!merged && merges.covered.has(spot.key)) return [];
-      const rows = wellTooltipRows(block, spot.key, layers, calculation, sources);
-      const where = merged
-        ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
-        : spot.label;
-      if (stainMixes) {
-        const mix = stainMixes.get(block.stain[spot.key] ?? '');
-        const line = colorLine && wellLine(block, spot.key, colorLine, calculation);
-        const isInUse = rows.length > 0;
-        return [
-          {
-            key: spot.key,
-            row: spot.row,
-            col: spot.col,
-            merged: undefined,
-            tooltip: {
-              heading: isInUse
-                ? `${spot.label} · ${mix?.name ?? 'not stained'}`
-                : ((mix && `${spot.label} · ${mix.name}`) ?? spot.label),
-              rows,
-            },
-            shownLine: line && { ...line, label: '' },
-            isFilled: !!mix,
-            color: mix && { color: mix.color, tint: MIX_TINT },
-            stripes: [],
-            stainLook: mix ? 'stained' : isInUse ? 'unstained' : undefined,
-          },
-        ];
-      }
-      return [
-        {
+  const views = useMemo(
+    () =>
+      sheet.spots.flatMap((spot): PlateWellView[] => {
+        const merged = merges.anchors.get(spot.key);
+        if (!merged && merges.covered.has(spot.key)) return [];
+        const isInUse = isWellFilled(block, spot.key);
+        const where = merged
+          ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
+          : spot.label;
+        const color = wellColor(block, spot.key, colorLine);
+        const stripes = wellStripes(block, spot.key, layers);
+        const assay = {
           key: spot.key,
           row: spot.row,
           col: spot.col,
           merged,
-          tooltip: { heading: where, rows },
           shownLine: colorLine && wellLine(block, spot.key, colorLine, calculation),
-          isFilled: rows.length > 0,
-          color: wellColor(block, spot.key, colorLine),
-          stripes: wellStripes(block, spot.key, layers),
-          stainLook: undefined,
-        },
-      ];
-    })
+          isFilled: isInUse,
+        };
+        if (!stainMixes) {
+          return [
+            {
+              ...assay,
+              tooltipHeading: where,
+              color,
+              stripes,
+              stainLook: undefined,
+              ringColor: undefined,
+            },
+          ];
+        }
+        const mix = stainMixes.get(block.stain[spot.key] ?? '');
+        return [
+          {
+            ...assay,
+            tooltipHeading:
+              mix !== undefined || isInUse ? `${where} · ${mix?.name ?? 'not stained'}` : where,
+            color: dimmed(color),
+            stripes: stripes.map(dimmed),
+            stainLook: mix ? 'stained' : isInUse ? 'unstained' : undefined,
+            ringColor: mix?.color,
+          },
+        ];
+      }),
+    [block, sheet, colorLine, layers, calculation, merges, stainMixes]
+  );
+  const wells = useStructuralSharing(views);
+  const tooltipSource = useMemo(
+    () => ({ block, layers, calculation, sources }),
+    [block, layers, calculation, sources]
   );
   const geometry = plateGeometry(size, sheet.rows, sheet.cols, bands);
   const style = {
@@ -195,64 +209,68 @@ export function WorkbenchPlateTable({
   } as CSSProperties;
 
   return (
-    <div className="flex justify-center">
-      <div
-        role="grid"
-        aria-label="Plate wells"
-        data-focus="wells"
-        aria-multiselectable
-        className="selection-pulse relative grid select-none gap-1 outline-none"
-        style={style}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-        onPointerDown={event => {
-          event.currentTarget.focus({ preventScroll: true });
-          if (event.target === event.currentTarget) selection.clear();
-        }}
-      >
-        <button
-          type="button"
-          aria-label="Select every well"
-          className={HEADER}
-          style={{ gridRow: 1, gridColumn: 1 }}
-          onClick={selection.selectAll}
-        />
-        {Array.from({ length: sheet.cols }, (_, col) => (
+    <WellTooltipSourceContext.Provider value={tooltipSource}>
+      <div className="flex justify-center">
+        <div
+          role="grid"
+          aria-label="Plate wells"
+          data-focus="wells"
+          aria-multiselectable
+          className="selection-pulse relative grid select-none gap-1 outline-none"
+          style={style}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+          onPointerDown={event => {
+            event.currentTarget.focus({ preventScroll: true });
+            if (event.target === event.currentTarget) selection.clear();
+          }}
+        >
           <button
-            key={`col-${col}`}
             type="button"
-            aria-label={`Select column ${col + 1}`}
+            aria-label="Select every well"
             className={HEADER}
-            style={{ gridRow: 1, gridColumn: col + 2 }}
-            onClick={event => selection.selectColumn(col, pressModifiers(event))}
-          >
-            {col + 1}
-          </button>
-        ))}
-        {Array.from({ length: sheet.rows }, (_, row) => (
-          <button
-            key={`row-${row}`}
-            type="button"
-            aria-label={`Select row ${rowLetter(row)}`}
-            className={HEADER}
-            style={{ gridRow: row + 2, gridColumn: 1 }}
-            onClick={event => selection.selectRow(row, pressModifiers(event))}
-          >
-            {rowLetter(row)}
-          </button>
-        ))}
-        {wells.map(view => (
-          <WorkbenchPlateWellButton
-            key={view.key}
-            view={view}
-            density={size.density}
-            isSelected={(view.merged?.keys ?? [view.key]).every(key => selection.keys.has(key))}
-            selectedParts={selectedPartsOf(view, selection.keys)}
-            actions={actions}
+            style={{ gridRow: 1, gridColumn: 1 }}
+            onClick={selection.selectAll}
           />
-        ))}
-        {bands.length > 0 && <BandOverlay bands={bands} geometry={geometry} />}
+          {Array.from({ length: sheet.cols }, (_, col) => (
+            <button
+              key={`col-${col}`}
+              type="button"
+              aria-label={`Select column ${col + 1}`}
+              className={HEADER}
+              style={{ gridRow: 1, gridColumn: col + 2 }}
+              onClick={event => selection.selectColumn(col, pressModifiers(event))}
+            >
+              {col + 1}
+            </button>
+          ))}
+          {Array.from({ length: sheet.rows }, (_, row) => (
+            <button
+              key={`row-${row}`}
+              type="button"
+              aria-label={`Select row ${rowLetter(row)}`}
+              className={HEADER}
+              style={{ gridRow: row + 2, gridColumn: 1 }}
+              onClick={event => selection.selectRow(row, pressModifiers(event))}
+            >
+              {rowLetter(row)}
+            </button>
+          ))}
+          {wells.map(view => (
+            <WorkbenchPlateWellButton
+              key={view.key}
+              view={view}
+              density={size.density}
+              isSelected={(view.merged?.keys ?? [view.key]).every(key => selection.keys.has(key))}
+              selectedParts={selectedPartsOf(view, selection.keys)}
+              actions={actions}
+            />
+          ))}
+          {bands.length > 0 && (
+            <BandOverlay bands={bands} geometry={geometry} isDimmed={!!stainMixes} />
+          )}
+        </div>
       </div>
-    </div>
+    </WellTooltipSourceContext.Provider>
   );
 }

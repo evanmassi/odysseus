@@ -20,6 +20,16 @@ describe('stain mixes', () => {
     expect(mixes[1].color).toBe('#7d8494');
     expect(new Set(mixes.map(mix => mix.color)).size).toBe(3);
   });
+
+  it('keeps a color picked for a mix, the others keeping their turn in the palette', () => {
+    const mixes = stainMixes([
+      panel([
+        { id: 'full', name: 'Full Stain', color: '#d97a7a', rowIds: ['cd3'], plus: [] },
+        { id: 'fmo', name: 'FMO', rowIds: ['cd4'], plus: [] },
+      ]),
+    ]);
+    expect(mixes.map(mix => mix.color)).toEqual(['#d97a7a', '#5cc8bd']);
+  });
 });
 
 describe('stained wells', () => {

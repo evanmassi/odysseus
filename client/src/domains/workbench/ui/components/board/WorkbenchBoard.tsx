@@ -63,7 +63,11 @@ export function WorkbenchBoard() {
 
   return (
     // PITFALL: react-grid-layout types its ref for React 19; the app runs React 18, where the object is the same.
-    <div ref={containerRef as RefObject<HTMLDivElement>}>
+    // PITFALL: the grid animates its own height, and the board scroll area would measure it mid-animation and leave the bottom out of reach.
+    <div
+      ref={containerRef as RefObject<HTMLDivElement>}
+      className="[&>.react-grid-layout]:transition-none"
+    >
       {!pageBlocks.length && (
         <p className="px-2 py-6 text-body-sm text-muted-foreground">
           Nothing on this page yet. Add a block from the left.

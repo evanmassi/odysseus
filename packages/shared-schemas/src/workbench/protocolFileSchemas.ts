@@ -256,6 +256,7 @@ const cytometerBlockSchema = z.object({
       z.object({
         id,
         name: z.string(),
+        color: z.string().optional(),
         rowIds: z.array(z.string()),
         plus: z.array(z.object({ id, materialId: z.string(), stain: z.string() })),
       })

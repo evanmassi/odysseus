@@ -22,12 +22,17 @@ const NO_MERGES: ReplicateMerges = { anchors: new Map(), covered: new Set() };
 export function replicateMerges(
   block: VesselMapBlock,
   sheet: VesselSheet,
-  calculation: BoardCalculation
+  calculation: BoardCalculation,
+  isStainSide: boolean
 ): ReplicateMerges {
   if (!sheet.isPlate || !block.mergesReplicates) return NO_MERGES;
   const keyAt = new Map(sheet.spots.map(spot => [`${spot.row},${spot.col}`, spot.key]));
   const contents = new Map(
-    sheet.spots.map(spot => [spot.key, wellDetails(block, spot.key, calculation).join('|')])
+    sheet.spots.map(spot => {
+      const details = wellDetails(block, spot.key, calculation).join('|');
+      const mix = isStainSide ? block.stain[spot.key] : undefined;
+      return [spot.key, details && mix !== undefined ? `${details}|mix:${mix}` : details];
+    })
   );
   const anchors = new Map<string, MergedWells>();
   const covered = new Set<string>();
