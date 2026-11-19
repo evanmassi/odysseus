@@ -6,7 +6,7 @@ interface WorkbenchTrayToggleButtonProps {
 
 const CLOSED_LABELS: Record<TrayMode, string> = {
   step: '+ Insert a value or a common step',
-  formula: '+ Insert a name or operator',
+  formula: '+ Name or operator',
 };
 
 export function WorkbenchTrayToggleButton({ mode }: WorkbenchTrayToggleButtonProps) {
@@ -16,7 +16,7 @@ export function WorkbenchTrayToggleButton({ mode }: WorkbenchTrayToggleButtonPro
     <button
       type="button"
       tabIndex={-1}
-      className="ml-auto py-0.5 font-mono text-label-2xs text-muted-foreground transition-colors hover:text-foreground"
+      className="whitespace-nowrap py-0.5 font-mono text-label-2xs text-muted-foreground transition-colors hover:text-foreground"
       onMouseDown={event => {
         event.preventDefault();
         toggleOpen();

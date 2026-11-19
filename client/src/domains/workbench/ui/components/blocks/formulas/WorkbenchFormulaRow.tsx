@@ -1,5 +1,8 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 
+import { Pencil } from 'lucide-react';
+
+import { Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { nameWithin } from '../../../../utils/formulas/formulaScopes';
@@ -28,27 +31,51 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
   material,
   onOpen,
 }: WorkbenchFormulaRowProps) {
+  const [isShowingWorking, setIsShowingWorking] = useState(false);
   const shortName = nameWithin(name, material);
+  const isWorkingShown = isShowingWorking || result?.status !== 'ok';
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(formulaId)}
-      className={`flex w-full flex-col gap-1 px-2 py-1.5 text-left even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${ROW_HOVER_GLOW.primary}`}
+    <div
+      className={`row-tools-host px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${ROW_HOVER_GLOW.primary}`}
+      onDoubleClick={() => onOpen(formulaId)}
     >
-      <span className="flex w-full items-baseline gap-2">
-        <span className="text-body-sm text-foreground">
-          {shortName || <span className="text-muted-foreground">Unnamed</span>}
+      <span className="flex w-full items-baseline">
+        <button
+          type="button"
+          aria-expanded={isShowingWorking}
+          className="flex min-w-0 flex-1 items-baseline gap-2 text-left"
+          onClick={() => setIsShowingWorking(isShown => !isShown)}
+        >
+          <span className="text-body-sm text-foreground">
+            {shortName || <span className="text-muted-foreground">Unnamed</span>}
+          </span>
+          <span aria-hidden className={FORMULA_LEADER} />
+          <span className="font-mono text-data-sm text-action">{answerOf(result)}</span>
+        </button>
+        <span className="row-tools">
+          <span>
+            <Tooltip content="Edit">
+              <button
+                type="button"
+                aria-label={`Edit ${shortName || 'calculation'}`}
+                className="pl-2 text-primary hover:text-foreground"
+                onClick={() => onOpen(formulaId)}
+              >
+                <Pencil aria-hidden className="h-3 w-3" />
+              </button>
+            </Tooltip>
+          </span>
         </span>
-        <span aria-hidden className={FORMULA_LEADER} />
-        <span className="font-mono text-data-sm text-action">{answerOf(result)}</span>
       </span>
-      <span className={`${FORMULA_WORKING_INDENT} block empty:hidden`}>
-        <WorkbenchFormulaWorking
-          result={result}
-          isCompact
-          shortName={full => nameWithin(full, material)}
-        />
-      </span>
-    </button>
+      {isWorkingShown && (
+        <div className={`${FORMULA_WORKING_INDENT} empty:hidden`}>
+          <WorkbenchFormulaWorking
+            result={result}
+            isCompact
+            shortName={full => nameWithin(full, material)}
+          />
+        </div>
+      )}
+    </div>
   );
 });

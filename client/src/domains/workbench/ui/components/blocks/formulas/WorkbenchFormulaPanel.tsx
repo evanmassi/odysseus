@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
 
-import { PanelEmptyState } from '@shared/ui';
+import { AlertBanner, PanelEmptyState } from '@shared/ui';
 
 import { useShowBlock } from '../../../../hooks/useShowBlock';
+import { useStableColumns } from '../../../../hooks/useStableColumns';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import { useProtocolWith } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
@@ -17,9 +18,11 @@ import {
   type FormulaResult,
 } from '../../../../utils/formulas/boardCalculation';
 import {
+  calculationLayout,
   calculationSections,
-  sectionNumbers,
+  sectionTitle,
   WHOLE_EXPERIMENT,
+  type CalculationPart,
   type CalculationSection,
 } from '../../../../utils/formulas/calculationSections';
 import { checkFormulaDraft, readFormulaDraft } from '../../../../utils/formulas/formulaDraft';
@@ -38,36 +41,63 @@ import {
   uniqueName,
   type CalculationSuggestion,
 } from '../../../../utils/formulas/formulaScopes';
+import { workingRefs } from '../../../../utils/formulas/workingTree';
 import { cellWarnings } from '../../../../utils/materials/cellFormulas';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { BLOCK_ICONS } from '../../board/blockIcons';
-import { META_LABEL } from '../../board/metaLabelClass';
 import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
 import { WorkbenchFormulaEditor } from './WorkbenchFormulaEditor';
 import { WorkbenchFormulaRow } from './WorkbenchFormulaRow';
 import { WorkbenchFormulaSection } from './WorkbenchFormulaSection';
 import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
+import { WorkbenchFormulaTable } from './WorkbenchFormulaTable';
 import {
   WorkbenchFormulaWorkedOutGroup,
   type WorkedOutLine,
+  type WorkedOutSettings,
 } from './WorkbenchFormulaWorkedOutGroup';
 
+import type { FormulaTableRow } from './WorkbenchFormulaTable';
 import type { FormulaBlock, MaterialItem, Protocol, ProtocolBlock } from '@odysseus/shared-schemas';
 
 interface WorkbenchFormulaPanelProps {
   block: FormulaBlock;
 }
 
+interface GroupView {
+  settings: WorkedOutSettings | undefined;
+  lines: WorkedOutLine[];
+}
+
+interface TableView {
+  settings: WorkedOutSettings | undefined;
+  rows: FormulaTableRow[];
+}
+
+const WIDE_TABLE_COLUMNS = 3;
+const MIN_COLUMN_WIDTH = 320;
+const COLUMN_GAP = 24;
+
+const partKey = (part: CalculationPart) =>
+  part.kind === 'table' ? part.table.key : part.section.key;
+
+const partWeight = (part: CalculationPart) =>
+  part.kind === 'table'
+    ? part.table.rows.length + 2
+    : 3 +
+      part.section.items.length +
+      part.section.groups.reduce(
+        (rows, view) => rows + 1 + view.lines.filter(line => !line.isIntermediate).length,
+        0
+      );
+
 const SETTINGS_LABELS: Partial<Record<ProtocolBlock['type'], string>> = {
   dilutions: 'Dilutions',
   materials: 'Materials',
 };
-
-const workedOutKey = (section: CalculationSection, groupKey: string) =>
-  `${section.key}/${groupKey}`;
 
 function linksOf(
   calculation: BoardCalculation,
@@ -75,10 +105,9 @@ function linksOf(
 ): Readonly<Record<string, string>> {
   if (result?.status !== 'ok') return {};
   return Object.fromEntries(
-    result.terms.flatMap(term => {
-      if (term.kind !== 'ref') return [];
-      const sourceId = calculation.names.get(nameKey(term.name))?.sourceBlockId;
-      return sourceId ? [[term.name, sourceId]] : [];
+    workingRefs(result.working).flatMap(ref => {
+      const sourceId = calculation.names.get(nameKey(ref.name))?.sourceBlockId;
+      return sourceId ? [[ref.name, sourceId]] : [];
     })
   );
 }
@@ -104,6 +133,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const showBlock = useShowBlock();
   const [openId, setOpenId] = useState<string>();
   const [typed, setTyped] = useState('');
+  const columnsRef = useRef<HTMLDivElement>(null);
 
   const materials = useMemo(
     () =>
@@ -135,38 +165,54 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       [calculation]
     )
   );
+  const layout = useMemo(
+    () => calculationLayout(sections, calculation, block.materialSections),
+    [sections, calculation, block.materialSections]
+  );
   const workedOut = useStructuralSharing(
-    useMemo(
-      () =>
-        Object.fromEntries(
-          sections.flatMap(section =>
-            section.groups.map(({ group, lines }) => {
-              const settingsBlock = protocol.blocks.find(
-                candidate => candidate.id === group.settingsBlockId
-              );
-              const label = settingsBlock && SETTINGS_LABELS[settingsBlock.type];
-              return [
-                workedOutKey(section, group.key),
-                {
-                  lines: lines.map(
-                    (line): WorkedOutLine => ({
-                      id: line.id,
-                      name: line.name,
-                      result: calculation.results.get(line.id),
-                      links: linksOf(calculation, calculation.results.get(line.id)),
-                      warnings: warnings.get(line.id) ?? [],
-                      isIntermediate: !!line.isIntermediate,
-                    })
-                  ),
-                  settings:
-                    settingsBlock && label ? { label, blockId: settingsBlock.id } : undefined,
-                },
-              ];
-            })
-          )
-        ),
-      [sections, protocol, calculation, warnings]
-    )
+    useMemo(() => {
+      const settingsOf = (blockId: string | undefined): WorkedOutSettings | undefined => {
+        const settingsBlock = protocol.blocks.find(candidate => candidate.id === blockId);
+        const label = settingsBlock && SETTINGS_LABELS[settingsBlock.type];
+        return settingsBlock && label ? { label, blockId: settingsBlock.id } : undefined;
+      };
+      const lineOf = (line: {
+        id: string;
+        name: string;
+        isIntermediate?: boolean;
+      }): WorkedOutLine => ({
+        id: line.id,
+        name: line.name,
+        result: calculation.results.get(line.id),
+        links: linksOf(calculation, calculation.results.get(line.id)),
+        warnings: warnings.get(line.id) ?? [],
+        isIntermediate: !!line.isIntermediate,
+      });
+      const groups = layout.parts.flatMap(
+        (part): Array<[string, GroupView]> =>
+          part.kind === 'section'
+            ? part.section.groups.map(({ group, lines }): [string, GroupView] => [
+                `${part.section.key}/${group.key}`,
+                { settings: settingsOf(group.settingsBlockId), lines: lines.map(lineOf) },
+              ])
+            : []
+      );
+      const tables = layout.parts.flatMap(
+        (part): Array<[string, TableView]> =>
+          part.kind === 'table'
+            ? [
+                [
+                  part.table.key,
+                  {
+                    settings: settingsOf(part.table.settingsBlockId),
+                    rows: part.table.rows.map(row => ({ ...row, lines: row.lines.map(lineOf) })),
+                  },
+                ],
+              ]
+            : []
+      );
+      return { groups: Object.fromEntries(groups), tables: Object.fromEntries(tables) };
+    }, [layout, protocol, calculation, warnings])
   );
 
   const sectionOf = (name: string) => formulaMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
@@ -200,11 +246,12 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     () => typedDraft && checkFormulaDraft(typedDraft, calculation),
     [typedDraft, calculation]
   );
-  const isTitled = sections.length > 1;
-  const isEmpty = sections.every(section => !section.items.length && !section.groups.length);
-  const shownSections = sections.filter(
-    section => !!section.material || section.items.length > 0 || section.groups.length > 0
-  );
+  const [onlyPart] = layout.parts;
+  const isTitled =
+    layout.parts.length > 1 ||
+    (onlyPart?.kind === 'section' && onlyPart.section.key !== WHOLE_EXPERIMENT) ||
+    onlyPart?.kind === 'table';
+  const isEmpty = !layout.parts.length && !layout.missing.length;
 
   const addTyped = () => {
     if (!typedDraft) return;
@@ -242,7 +289,6 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           formula={formula}
           material={section.material}
           calculation={calculation}
-          boardNumbers={sectionNumbers(section, materials, calculation, formula.id)}
           onChange={change => edit(draft => updateFormula(draft, block.id, formula.id, change))}
           onAddMissing={name =>
             edit(draft => addNamedValue(draft, name, section.material, activePageId))
@@ -264,6 +310,70 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         />
       )
     );
+
+  const renderPart = (part: CalculationPart) => {
+    if (part.kind === 'table') {
+      const view = workedOut.tables[part.table.key];
+      return (
+        <WorkbenchFormulaTable
+          key={part.table.key}
+          title={part.table.title}
+          columns={part.table.columns}
+          rows={view.rows}
+          settings={view.settings}
+          onShowBlock={showBlock}
+        />
+      );
+    }
+    const { section } = part;
+    const { material, items, groups } = section;
+    const title = sectionTitle(section);
+    return (
+      <WorkbenchFormulaSection
+        key={section.key}
+        title={isTitled ? title : undefined}
+        kind={material?.type ?? ''}
+        addPlaceholder={material ? `Add to ${title}` : 'Add: Total volume'}
+        suggestions={material ? calculationSuggestions(calculation, material) : []}
+        suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, material)}
+        isEmpty={!items.length && !groups.length}
+        onAdd={material ? text => addFormula(material, text) : undefined}
+        onSuggest={suggestion => addSuggestion(material, suggestion)}
+        onRemoveSection={
+          material && !items.length && !groups.length
+            ? () => edit(draft => setFormulaSection(draft, block.id, material.id, false))
+            : undefined
+        }
+      >
+        {groups.map(({ group }) => {
+          const view = workedOut.groups[`${section.key}/${group.key}`];
+          return (
+            <WorkbenchFormulaWorkedOutGroup
+              key={group.key}
+              title={group.title}
+              lines={view.lines}
+              subject={group.subject}
+              settings={view.settings}
+              onShowBlock={showBlock}
+            />
+          );
+        })}
+        {ownItems(section)}
+      </WorkbenchFormulaSection>
+    );
+  };
+  const isWideTable = (part: CalculationPart) =>
+    part.kind === 'table' && part.table.columns.length >= WIDE_TABLE_COLUMNS;
+  const wideTables = layout.parts.filter(isWideTable);
+  const flowingParts = layout.parts.filter(part => !isWideTable(part));
+  const columns = useStableColumns({
+    containerRef: columnsRef,
+    items: flowingParts,
+    keyOf: partKey,
+    weightOf: partWeight,
+    minColumnWidth: MIN_COLUMN_WIDTH,
+    gap: COLUMN_GAP,
+  });
 
   return (
     <div className="px-2 pb-3 pt-1">
@@ -316,47 +426,33 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           description="Name it, or type Name = formula"
         />
       )}
-      <div className="columns-[20rem] gap-x-6 space-y-5">
-        {shownSections.map(section => {
-          const { material, items, groups } = section;
-          const title = material ? displayNameOf(material) : section.owner || 'WHOLE EXPERIMENT';
-          return (
-            <WorkbenchFormulaSection
-              key={section.key}
-              title={isTitled ? title : undefined}
-              kind={material?.type ?? ''}
-              addPlaceholder={material ? `Add to ${title}` : 'Add: Total volume'}
-              suggestions={material ? calculationSuggestions(calculation, material) : []}
-              suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, material)}
-              isEmpty={!items.length && !groups.length}
-              onAdd={material ? text => addFormula(material, text) : undefined}
-              onSuggest={suggestion => addSuggestion(material, suggestion)}
-              onRemoveSection={
-                material && !items.length && !groups.length
-                  ? () => edit(draft => setFormulaSection(draft, block.id, material.id, false))
-                  : undefined
-              }
-            >
-              {groups.map(({ group }) => {
-                const view = workedOut[workedOutKey(section, group.key)];
-                return (
-                  <WorkbenchFormulaWorkedOutGroup
-                    key={group.key}
-                    title={group.title}
-                    lines={view.lines}
-                    subject={group.subject}
-                    settings={view.settings}
-                    onShowBlock={showBlock}
-                  />
-                );
-              })}
-              {groups.length > 0 && items.length > 0 && (
-                <span className={`${META_LABEL} px-2 pb-0.5 pt-2`}>Yours</span>
-              )}
-              {ownItems(section)}
-            </WorkbenchFormulaSection>
-          );
-        })}
+      {layout.missing.length > 0 && (
+        <AlertBanner
+          variant="warning"
+          title={`${layout.missing.length} ${layout.missing.length === 1 ? 'thing' : 'things'} missing`}
+          animate={false}
+          spacing="lg"
+          className="mx-2"
+        >
+          <ul className="flex flex-col gap-1">
+            {layout.missing.map(note => (
+              <li key={note.message}>
+                {note.message}
+                <span className="text-muted-foreground"> · {note.subjects.join(', ')}</span>
+              </li>
+            ))}
+          </ul>
+        </AlertBanner>
+      )}
+      {wideTables.length > 0 && (
+        <div className="mb-6 flex flex-col gap-6">{wideTables.map(renderPart)}</div>
+      )}
+      <div ref={columnsRef} className="flex items-start gap-x-6">
+        {columns.map((column, index) => (
+          <div key={index} className="flex min-w-0 flex-1 flex-col gap-6">
+            {column.map(renderPart)}
+          </div>
+        ))}
       </div>
     </div>
   );

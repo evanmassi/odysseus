@@ -1,5 +1,5 @@
 import { calculateBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
-import { calculationSections, sectionNumbers, WHOLE_EXPERIMENT } from './calculationSections';
+import { calculationLayout, calculationSections, WHOLE_EXPERIMENT } from './calculationSections';
 
 import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -80,12 +80,35 @@ describe('calculation sections', () => {
     expect(sections.flatMap(section => section.groups)).toEqual([]);
   });
 
-  it('lists the numbers on the board for a section, plain numbers first, without the one being edited', () => {
-    const [, drugSection] = calculationSections(block, [drug], calculation, true);
-    expect(sectionNumbers(drugSection, [drug], calculation, 'own')).toEqual([
-      { name: 'Drug X (Sigma) stock concentration', label: 'Stock concentration', text: '10 µM' },
-      { name: 'Drug X volume added', label: 'Volume added', text: '20 µL' },
-      { name: 'Drug X transfer', label: 'Transfer', text: '40 µL' },
+  it('lays a group repeated across treatments out as one table and gathers what is missing', () => {
+    const withGaps = calculateBoard([
+      ...board,
+      {
+        kind: 'formula',
+        id: 'raji-gap',
+        name: 'Raji volume',
+        expr: '',
+        unit: '',
+        problem: 'Needs a stain step',
+        workedOut: { ...prepGroup('Raji'), key: 'stain:raji', title: 'Amount per well' },
+      },
     ]);
+    const sections = calculationSections(block, [drug], withGaps, true);
+    const { parts, missing } = calculationLayout(sections, withGaps, []);
+    expect(missing).toEqual([{ message: 'Needs a stain step', subjects: ['Raji'] }]);
+    expect(parts.map(part => part.kind)).toEqual(['table', 'section']);
+    const [table, drugPart] = parts;
+    expect(table.kind === 'table' && table.table).toMatchObject({
+      title: 'Dilution prep for Plate 1',
+      columns: ['Transfer'],
+      rows: [
+        { label: 'Drug X (Sigma)', lines: [{ id: 'transfer' }] },
+        { label: 'Raji', lines: [{ id: 'raji' }] },
+      ],
+    });
+    expect(drugPart.kind === 'section' && drugPart.section).toMatchObject({
+      key: 'm-drug',
+      groups: [],
+    });
   });
 });

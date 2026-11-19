@@ -1,7 +1,10 @@
 import { useState, type ReactNode } from 'react';
 
+import { Plus } from 'lucide-react';
+
 import { Button, Tooltip } from '@shared/ui';
 
+import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
 import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
 
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
@@ -36,45 +39,44 @@ export function WorkbenchFormulaSection({
   return (
     <section className="group/section min-w-0 break-inside-avoid">
       {title !== undefined && (
-        <header className="group flex items-center gap-2 px-2 pb-1.5">
-          <span className="min-w-0 truncate type-name text-label-md font-semibold text-foreground">
-            {title}
-          </span>
-          {kind && (
-            <span className="flex-none font-mono text-data-sm text-muted-foreground">· {kind}</span>
-          )}
+        <WorkbenchFormulaSectionHeader title={title} kind={kind}>
           {onRemoveSection && (
             <Button
               variant="ghost-danger"
               size="xs"
-              className="ml-auto opacity-0 group-hover:opacity-100"
+              className="opacity-0 group-hover:opacity-100"
               onClick={onRemoveSection}
             >
               Remove
             </Button>
           )}
-        </header>
+        </WorkbenchFormulaSectionHeader>
       )}
       <div className="flex flex-col">{children}</div>
       {onAdd && (
-        <Tooltip content="Name it, or type Name = formula">
-          <input
-            value={draft}
-            placeholder={addPlaceholder}
-            aria-label={addPlaceholder}
-            spellCheck={false}
-            autoComplete="off"
-            className="mx-2 mt-1 w-[calc(100%-1rem)] bg-transparent py-1 text-body-sm text-foreground outline-none placeholder:text-muted-foreground"
-            onChange={event => setDraft(event.target.value)}
-            onKeyDown={event => {
-              if (event.key === 'Escape') setDraft('');
-              if (event.key !== 'Enter' || !draft.trim()) return;
-              event.preventDefault();
-              onAdd(draft);
-              setDraft('');
-            }}
-          />
-        </Tooltip>
+        <div className="group/add mx-2 mt-1 flex items-center gap-2 text-muted-foreground hover:text-primary focus-within:text-primary">
+          <Plus aria-hidden className="h-3.5 w-3.5 flex-none" />
+          <Tooltip content="Name it, or type Name = formula">
+            <span className="inline-edit min-w-0 flex-1">
+              <input
+                value={draft}
+                placeholder={addPlaceholder}
+                aria-label={addPlaceholder}
+                spellCheck={false}
+                autoComplete="off"
+                className="w-full bg-transparent py-px text-body-sm text-foreground outline-none placeholder:text-muted-foreground group-hover/add:placeholder:text-foreground"
+                onChange={event => setDraft(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === 'Escape') setDraft('');
+                  if (event.key !== 'Enter' || !draft.trim()) return;
+                  event.preventDefault();
+                  onAdd(draft);
+                  setDraft('');
+                }}
+              />
+            </span>
+          </Tooltip>
+        </div>
       )}
       <WorkbenchFormulaSuggestionList
         suggestions={suggestions}

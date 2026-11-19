@@ -103,9 +103,9 @@ describe('cell math for a donor on the plate', () => {
     expect(answer(missing, 'needed')).toBe('3.00E+5 cells');
     expect(answer(missing, 'plating')).toMatchObject({
       status: 'error',
-      message: 'Needs PBMC volume per well, the volume of cells added to each well',
+      message: 'Needs “Volume per well” in Values, the volume of cells added to each well',
     });
-    expect(answer(missing, 'left-over')).toMatchObject({ message: 'Needs Donor 1 live count' });
+    expect(answer(missing, 'left-over')).toMatchObject({ message: 'Needs a live count in Donors' });
 
     const short = calculate(protocolWith({ 'live-count': '2e5' }, PLATING));
     expect(cellWarnings(short)).toEqual(
@@ -120,5 +120,68 @@ describe('cell math for a donor on the plate', () => {
     expect(answer(calculation, 'vials')).toMatchObject({
       message: 'Rename “Donor 1 cells needed”: the cell math for Donor 1 needs that name.',
     });
+  });
+});
+
+describe('cell math for cells diluted from a stock', () => {
+  const hkca = {
+    id: 'hkca',
+    group: 'bio',
+    type: 'Microbial strain',
+    name: 'Heat Killed Candida (Dectin-1 agonist)',
+    shownFields: ['stock-concentration', 'short-name'],
+    values: { 'stock-concentration': '1e9', 'short-name': 'HKCA' },
+    units: { 'stock-concentration': 'cells/mL' },
+    customFields: [],
+    fieldLabels: {},
+    isDropped: false,
+    recipe: [],
+  } as unknown as MaterialItem;
+
+  function stockProtocol(): Protocol {
+    const base = protocolWith({}, []);
+    const cells = Object.fromEntries(
+      ['A1', 'A2'].map(well => [
+        `p:${well}`,
+        { d: { valueId: 'v1', amount: '4e4', unit: 'cells' } },
+      ])
+    );
+    return {
+      ...base,
+      blocks: base.blocks.map(block => {
+        if (block.type === 'materials') return { ...block, items: [hkca] };
+        if (block.type === 'plate') {
+          return {
+            ...block,
+            cells,
+            lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
+          };
+        }
+        if (block.type === 'values') {
+          return {
+            ...block,
+            sections: [{ id: 's', materialId: 'hkca' }],
+            items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', section: 's' }],
+          };
+        }
+        return block;
+      }),
+    } as Protocol;
+  }
+
+  const stockAnswer = (calculation: BoardCalculation, part: string) => {
+    const result = calculation.results.get(`cells:heat killed candida:${part}`);
+    return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
+  };
+
+  it('reads the volume per well filed under the full name, and takes stock instead of counting', () => {
+    const calculation = calculate(stockProtocol());
+    expect(stockAnswer(calculation, 'needed')).toBe('8.00E+4 cells');
+    expect(stockAnswer(calculation, 'plating')).toBe('2.00E+6 cells/mL');
+    expect(stockAnswer(calculation, 'suspension')).toBe('40 µL');
+    expect(stockAnswer(calculation, 'stock')).toBe('0.08 µL');
+    expect(stockAnswer(calculation, 'diluent')).toBe('39.9 µL');
+    expect(calculation.results.has('cells:heat killed candida:resuspend')).toBe(false);
+    expect(calculation.results.has('cells:heat killed candida:left-over')).toBe(false);
   });
 });

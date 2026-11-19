@@ -2,7 +2,6 @@ import { unitScale } from '@odysseus/shared-schemas';
 
 import {
   FormulaError,
-  OPERATOR_SYMBOLS,
   parseFormula,
   type FormulaFunction,
   type FormulaNode,
@@ -21,6 +20,7 @@ import {
   type FormattedQuantity,
   type Quantity,
 } from './quantities';
+import { type WorkingNode } from './workingTree';
 
 export interface WorkedOutGroup {
   key: string;
@@ -61,25 +61,13 @@ export type BoardName = NameSource &
 
 type FormulaName = Extract<BoardName, { kind: 'formula' }>;
 
-export type WorkingTerm =
-  | { kind: 'symbol'; text: string }
-  | { kind: 'operator'; text: string }
-  | { kind: 'literal'; text: string }
-  | {
-      kind: 'ref';
-      name: string;
-      text: string;
-      source: 'value' | 'count' | 'formula';
-      isDropped: boolean;
-    };
-
 export type FormulaResult =
   | { status: 'empty'; message: string }
   | { status: 'error'; message: string; missingName?: string; isCycle?: boolean }
   | {
       status: 'ok';
       quantity: Quantity;
-      terms: WorkingTerm[];
+      working: WorkingNode;
       showsWorking: boolean;
       output: FormattedQuantity;
     };
@@ -92,7 +80,7 @@ export interface BoardCalculation {
 
 interface Evaluated {
   quantity: Quantity;
-  terms: WorkingTerm[];
+  working: WorkingNode;
 }
 
 const FLOAT_TOLERANCE = 1e-9;
@@ -107,8 +95,6 @@ const ROUNDING: Record<Exclude<FormulaFunction, 'at least'>, (value: number) => 
 const ROUNDABLE_WITHOUT_STEP = new Set(['', 'count:1']);
 
 export const nameKey = (name: string): string => name.trim().toLowerCase();
-
-const symbol = (text: string): WorkingTerm => ({ kind: 'symbol', text });
 
 export const formulaAnswerText = (result: Extract<FormulaResult, { status: 'ok' }>): string =>
   'text' in result.output ? result.output.text : autoFormat(result.quantity);
@@ -139,23 +125,25 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
       const text = workingValue(entry.value, entry.unit);
       return {
         quantity,
-        terms: [
-          { kind: 'ref', name: entry.name, text, source: 'value', isDropped: !!entry.isDropped },
-        ],
+        working: {
+          kind: 'ref',
+          name: entry.name,
+          text,
+          source: 'value',
+          isDropped: !!entry.isDropped,
+        },
       };
     }
     if (entry.kind === 'count') {
       return {
         quantity: { magnitude: entry.count, dimension: {} },
-        terms: [
-          {
-            kind: 'ref',
-            name: entry.name,
-            text: String(entry.count),
-            source: 'count',
-            isDropped: false,
-          },
-        ],
+        working: {
+          kind: 'ref',
+          name: entry.name,
+          text: String(entry.count),
+          source: 'count',
+          isDropped: false,
+        },
       };
     }
     if (entry.kind === 'item') {
@@ -172,15 +160,13 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
     }
     return {
       quantity: result.quantity,
-      terms: [
-        {
-          kind: 'ref',
-          name: entry.name,
-          text: formulaAnswerText(result),
-          source: 'formula',
-          isDropped: false,
-        },
-      ],
+      working: {
+        kind: 'ref',
+        name: entry.name,
+        text: formulaAnswerText(result),
+        source: 'formula',
+        isDropped: false,
+      },
     };
   };
 
@@ -191,14 +177,14 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
         const text = formatNumber(node.value) + (node.unit ? ` ${node.unit}` : '');
         return {
           quantity: { magnitude: node.value * scale.factor, dimension: scale.dimension },
-          terms: [{ kind: 'literal', text }],
+          working: { kind: 'literal', text },
         };
       }
       case 'ref':
         return resolve(node.name);
       case 'group': {
         const inner = run(node.inner);
-        return { quantity: inner.quantity, terms: [symbol('('), ...inner.terms, symbol(')')] };
+        return { quantity: inner.quantity, working: { kind: 'group', inner: inner.working } };
       }
       case 'negate': {
         const operand = run(node.operand);
@@ -207,7 +193,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
             magnitude: -operand.quantity.magnitude,
             dimension: operand.quantity.dimension,
           },
-          terms: [symbol('−'), ...operand.terms],
+          working: { kind: 'negate', operand: operand.working },
         };
       }
       case 'call':
@@ -218,12 +204,11 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
   };
 
   const runCall = (name: FormulaFunction, [value, step]: Evaluated[]): Evaluated => {
-    const terms = [
-      symbol(`${name}(`),
-      ...value.terms,
-      ...(step ? [symbol(','), ...step.terms] : []),
-      symbol(')'),
-    ];
+    const working: WorkingNode = {
+      kind: 'call',
+      name,
+      args: step ? [value.working, step.working] : [value.working],
+    };
     const { dimension } = value.quantity;
     if (step && !isSameDimension(dimension, step.quantity.dimension)) {
       throw new FormulaError(
@@ -238,7 +223,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
           magnitude: Math.max(value.quantity.magnitude, step.quantity.magnitude),
           dimension,
         },
-        terms,
+        working,
       };
     }
     if (!step && !ROUNDABLE_WITHOUT_STEP.has(dimensionKey(dimension))) {
@@ -253,15 +238,16 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
     const magnitude = step
       ? round(value.quantity.magnitude / step.quantity.magnitude) * step.quantity.magnitude
       : round(value.quantity.magnitude);
-    return { quantity: { magnitude, dimension }, terms };
+    return { quantity: { magnitude, dimension }, working };
   };
 
   const runBinary = (operator: Operator, left: Evaluated, right: Evaluated): Evaluated => {
-    const terms: WorkingTerm[] = [
-      ...left.terms,
-      { kind: 'operator', text: OPERATOR_SYMBOLS[operator] },
-      ...right.terms,
-    ];
+    const working: WorkingNode = {
+      kind: 'binary',
+      operator,
+      left: left.working,
+      right: right.working,
+    };
     const a = left.quantity;
     const b = right.quantity;
     if (operator === '+' || operator === '-') {
@@ -273,7 +259,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
         );
       }
       const magnitude = operator === '+' ? a.magnitude + b.magnitude : a.magnitude - b.magnitude;
-      return { quantity: { magnitude, dimension: a.dimension }, terms };
+      return { quantity: { magnitude, dimension: a.dimension }, working };
     }
     if (operator === '/' && b.magnitude === 0) throw new FormulaError('Divides by zero');
     return {
@@ -281,7 +267,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
         magnitude: operator === '*' ? a.magnitude * b.magnitude : a.magnitude / b.magnitude,
         dimension: combineDimensions(a.dimension, b.dimension, operator === '*' ? 1 : -1),
       },
-      terms,
+      working,
     };
   };
 
@@ -307,11 +293,11 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
         result = { status: 'empty', message: 'Type a formula using the names on this board' };
       } else {
         const tree = parseFormula(formula.expr, knownNames);
-        const { quantity, terms } = run(tree);
+        const { quantity, working } = run(tree);
         result = {
           status: 'ok',
           quantity,
-          terms,
+          working,
           showsWorking: tree.kind !== 'number' && tree.kind !== 'ref',
           output: formatQuantityIn(quantity, formula.unit),
         };

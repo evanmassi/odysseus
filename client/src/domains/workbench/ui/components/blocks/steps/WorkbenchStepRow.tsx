@@ -164,7 +164,9 @@ export const WorkbenchStepRow = memo(function WorkbenchStepRow({
                   <label htmlFor={meanwhileId}>Runs during step {duringStep}</label>
                 </span>
               )}
-              <WorkbenchTrayToggleButton mode="step" />
+              <span className="ml-auto">
+                <WorkbenchTrayToggleButton mode="step" />
+              </span>
             </div>
           </>
         ) : (

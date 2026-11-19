@@ -1,6 +1,7 @@
 import { memo, useState } from 'react';
 
 import { Button } from '@shared/ui';
+import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
@@ -8,6 +9,7 @@ import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { META_LABEL } from '../../board/metaLabelClass';
 
 import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
+import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
 export interface WorkedOutLine {
@@ -19,15 +21,18 @@ export interface WorkedOutLine {
   isIntermediate: boolean;
 }
 
+export interface WorkedOutSettings {
+  label: string;
+  blockId: string;
+}
+
 interface WorkbenchFormulaWorkedOutGroupProps {
   title: string;
   lines: readonly WorkedOutLine[];
   subject: string;
-  settings: { label: string; blockId: string } | undefined;
+  settings: WorkedOutSettings | undefined;
   onShowBlock: (blockId: string) => void;
 }
-
-const LINE_HEAD = 'flex w-full items-baseline gap-2 text-left';
 
 export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWorkedOutGroup({
   title,
@@ -46,96 +51,61 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
       if (!next.delete(id)) next.add(id);
       return next;
     });
-  const messages = new Set(
-    lines.map(line => (line.result?.status === 'ok' ? undefined : line.result?.message))
-  );
-  const [sharedProblem] = messages.size === 1 ? [...messages] : [];
-  const checkedLines = lines.map(line => ({
-    ...line,
-    warnings: line.warnings.filter(
-      warning => line.result?.status === 'ok' || warning !== line.result?.message
-    ),
-  }));
-  const isTucked = (line: WorkedOutLine) =>
-    line.isIntermediate && line.result?.status === 'ok' && !line.warnings.length;
-  const tuckedCount = checkedLines.filter(isTucked).length;
-  const visibleLines = isShowingWorking
-    ? checkedLines
-    : checkedLines.filter(line => !isTucked(line));
+  const isTucked = (line: WorkedOutLine) => line.isIntermediate && !line.warnings.length;
+  const tuckedCount = lines.filter(isTucked).length;
+  const visibleLines = isShowingWorking ? lines : lines.filter(line => !isTucked(line));
 
   return (
     <div className="flex flex-col">
       <div className="flex items-baseline gap-2 px-2 pb-0.5 pt-1">
-        <span className={`${META_LABEL} min-w-0 truncate`}>{capsKeepingGreek(title)}</span>
+        <span className={`${META_LABEL} min-w-0 flex-1 truncate`}>
+          {capsKeepingGreek(shortName(title))}
+        </span>
         {settings && (
-          <Button
-            variant="ghost-primary"
-            size="xs"
-            className="ml-auto"
-            onClick={() => onShowBlock(settings.blockId)}
-          >
-            Set in {settings.label}
-          </Button>
+          <WorkbenchFormulaSettingsButton settings={settings} onShowBlock={onShowBlock} />
         )}
       </div>
-      {sharedProblem && (
-        <p className="px-2 py-1 text-label-xs text-muted-foreground">{sharedProblem}</p>
-      )}
-      {!sharedProblem &&
-        visibleLines.map(line => {
-          const { result, links, warnings } = line;
-          const label = (
-            <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
-          );
-          return (
-            <div
-              key={line.id}
-              className="px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))]"
+      {visibleLines.map(line => {
+        const { result, links, warnings } = line;
+        return (
+          <div
+            key={line.id}
+            className={`px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${ROW_HOVER_GLOW.primary}`}
+          >
+            <button
+              type="button"
+              aria-expanded={openIds.has(line.id)}
+              className="flex w-full items-baseline gap-2 text-left"
+              onClick={() => toggle(line.id)}
             >
-              {result?.status === 'ok' ? (
-                <button
-                  type="button"
-                  aria-expanded={openIds.has(line.id)}
-                  className={`${LINE_HEAD} hover:text-action`}
-                  onClick={() => toggle(line.id)}
-                >
-                  {label}
-                  <span aria-hidden className={FORMULA_LEADER} />
-                  <span className="font-mono text-data-sm text-foreground">
-                    {formulaAnswerText(result)}
-                  </span>
-                </button>
-              ) : (
-                <div className={LINE_HEAD}>
-                  {label}
-                  <span aria-hidden className={FORMULA_LEADER} />
-                  <span className="max-w-[60%] text-right text-label-xs text-muted-foreground">
-                    {result?.message}
-                  </span>
-                </div>
-              )}
-              {warnings.map(warning => (
-                <p key={warning} className="text-label-xs text-warning-text">
-                  {warning}
-                </p>
-              ))}
-              {openIds.has(line.id) && (
-                <div className={`${FORMULA_WORKING_INDENT} pt-1`}>
-                  <WorkbenchFormulaWorking
-                    result={result}
-                    isCompact
-                    shortName={shortName}
-                    linkFor={name => {
-                      const blockId = links[name];
-                      return blockId ? () => onShowBlock(blockId) : undefined;
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      {!sharedProblem && tuckedCount > 0 && (
+              <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
+              <span aria-hidden className={FORMULA_LEADER} />
+              <span className="font-mono text-data-sm text-foreground">
+                {result?.status === 'ok' && formulaAnswerText(result)}
+              </span>
+            </button>
+            {warnings.map(warning => (
+              <p key={warning} className="text-label-xs text-warning-text">
+                {warning}
+              </p>
+            ))}
+            {openIds.has(line.id) && (
+              <div className={`${FORMULA_WORKING_INDENT} pt-1`}>
+                <WorkbenchFormulaWorking
+                  result={result}
+                  isCompact
+                  shortName={shortName}
+                  linkFor={name => {
+                    const blockId = links[name];
+                    return blockId ? () => onShowBlock(blockId) : undefined;
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {tuckedCount > 0 && (
         <Button
           variant="ghost-primary"
           size="xs"

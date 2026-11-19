@@ -15,6 +15,7 @@ import {
   type FormulaResult,
 } from '../formulas/boardCalculation';
 import { FOLD_UNIT } from '../formulas/quantities';
+import { workingText } from '../formulas/workingTree';
 import { MATERIAL_GROUPS, materialGroup } from '../materials/materialCatalog';
 import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
 import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
@@ -162,7 +163,7 @@ function workedCell(
   wellTotal: string | undefined
 ): ValueTableCell {
   const isReady = result?.status === 'ok';
-  const working = isReady ? result.terms.map(term => term.text).join(' ') : '';
+  const working = isReady ? workingText(result.working) : '';
   return {
     id,
     nameId: id,

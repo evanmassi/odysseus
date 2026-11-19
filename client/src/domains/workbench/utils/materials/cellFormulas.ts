@@ -1,4 +1,5 @@
 import {
+  UNIT_REGISTRY,
   lineValueOf,
   type MaterialItem,
   type MaterialSource,
@@ -21,6 +22,8 @@ import { findMaterial, listedMaterials, nameWithoutNotes } from './materialLooku
 import { findSource, sourcesIn, workedOutCount } from './materialSources';
 
 const NO_NAMES = calculateBoard([]);
+const isCellConcentration = (unit: string) =>
+  UNIT_REGISTRY.some(entry => entry.id === unit && entry.kind === 'count-conc');
 const CELLS = 'cells';
 const CELLS_PER_ML = 'cells/mL';
 const LIVE_FIELD = 'live-count';
@@ -82,11 +85,14 @@ function subjectNames(
   materialsBlockId: string | undefined
 ): BoardName[] {
   const { subject, material, source } = plated;
-  const owner = nameWithoutNotes(material.name);
+  const owners = [material.name.trim(), nameWithoutNotes(material.name)];
   const id = (part: string) => `cells:${nameKey(subject)}:${part}`;
-  const own = (label: string) => names.get(nameKey(joinValueName(subject, label)))?.name;
-  const ownOrMaterial = (label: string) =>
-    own(label) ?? names.get(nameKey(joinValueName(owner, label)))?.name;
+  const entryFor = (owner: string, label: string) =>
+    names.get(nameKey(joinValueName(owner, label)));
+  const own = (label: string) => entryFor(subject, label)?.name;
+  const ownOrMaterialEntry = (label: string) =>
+    [subject, ...owners].map(owner => entryFor(owner, label)).find(Boolean);
+  const ownOrMaterial = (label: string) => ownOrMaterialEntry(label)?.name;
   const group: WorkedOutGroup = {
     key: id('group'),
     subject,
@@ -139,45 +145,76 @@ function subjectNames(
     (liveValue ? input('live', `${subject} live count`, liveValue, CELLS) : undefined);
   const extra = ownOrMaterial('extra');
   const volume = ownOrMaterial('volume per well');
+  const stockEntry = source ? undefined : ownOrMaterialEntry('stock concentration');
+  const stock =
+    stockEntry?.kind === 'value' && stockEntry.value.trim() && isCellConcentration(stockEntry.unit)
+      ? stockEntry.name
+      : undefined;
 
   const needed = `${subject} cells needed`;
   formula('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
-  if (source !== undefined || perVial !== undefined) {
-    formula(
-      'vials',
-      `${subject} vials to thaw`,
-      perVial ? `round up(${needed} ÷ ${perVial})` : '',
-      '',
-      perVial ? undefined : `Needs ${subject} cells per vial in Materials`
-    );
-  }
   const plating = `${subject} plating concentration`;
+  const platingProblem = !perWell
+    ? 'Cells per well differ between wells'
+    : !volume
+      ? 'Needs “Volume per well” in Values, the volume of cells added to each well'
+      : undefined;
   formula(
     'plating',
     plating,
-    perWell && volume ? `${perWell} ÷ ${volume}` : '',
+    platingProblem ? '' : `${perWell} ÷ ${volume}`,
     CELLS_PER_ML,
-    !perWell
-      ? `${subject} cells per well differ between wells`
-      : !volume
-        ? `Needs ${joinValueName(owner, 'volume per well')}, the volume of cells added to each well`
-        : undefined
+    platingProblem
   );
-  const missingLive = live ? undefined : `Needs ${subject} live count`;
-  formula(
-    'resuspend',
-    `${subject} resuspend volume`,
-    live && perWell && volume ? `${live} ÷ ${plating}` : '',
-    '',
-    missingLive ?? (perWell && volume ? undefined : `Needs ${plating}`)
-  );
-  formula(
-    'left-over',
-    `${subject} cells left over`,
-    live ? `${live} − ${needed}` : '',
-    CELLS,
-    missingLive
-  );
+
+  if (stock) {
+    const suspension = `${subject} suspension to make`;
+    const stockToTake = `${subject} stock to take`;
+    formula(
+      'suspension',
+      suspension,
+      platingProblem ? '' : `${needed} ÷ ${plating}`,
+      '',
+      platingProblem
+    );
+    formula('stock', stockToTake, `${needed} ÷ ${stock}`, '');
+    formula(
+      'diluent',
+      `${subject} diluent to add`,
+      platingProblem ? '' : `${suspension} − ${stockToTake}`,
+      '',
+      platingProblem
+    );
+  } else {
+    if (source !== undefined || perVial !== undefined) {
+      formula(
+        'vials',
+        `${subject} vials to thaw`,
+        perVial ? `round up(${needed} ÷ ${perVial})` : '',
+        '',
+        perVial ? undefined : 'Needs cells per vial in Donors'
+      );
+    }
+    const missingLive = live
+      ? undefined
+      : source
+        ? 'Needs a live count in Donors'
+        : 'Needs a live count, or a stock concentration in cells/mL in Materials';
+    formula(
+      'resuspend',
+      `${subject} resuspend volume`,
+      live && !platingProblem ? `${live} ÷ ${plating}` : '',
+      '',
+      missingLive ?? platingProblem
+    );
+    formula(
+      'left-over',
+      `${subject} cells left over`,
+      live ? `${live} − ${needed}` : '',
+      CELLS,
+      missingLive
+    );
+  }
 
   const clash = formulas.map(entry => entry.name).find(name => names.has(nameKey(name)));
   if (!clash) return [...inputs, ...formulas];

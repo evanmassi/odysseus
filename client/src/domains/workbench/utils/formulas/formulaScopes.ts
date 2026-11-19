@@ -71,9 +71,19 @@ function scopedNames(calculation: BoardCalculation, material: MaterialItem | und
   return { full, short };
 }
 
-function swapNames(text: string, replacements: ReadonlyMap<string, string>): string {
-  const longestFirst = [...replacements.keys()].sort((a, b) => b.length - a.length);
-  let swapped = '';
+export interface FormulaTextPart {
+  text: string;
+  isName: boolean;
+}
+
+function splitNames(text: string, names: readonly string[]): FormulaTextPart[] {
+  const longestFirst = [...names].sort((a, b) => b.length - a.length);
+  const parts: FormulaTextPart[] = [];
+  const push = (part: string, isName: boolean) => {
+    const last = parts[parts.length - 1];
+    if (last && !isName && !last.isName) last.text += part;
+    else parts.push({ text: part, isName });
+  };
   let index = 0;
   while (index < text.length) {
     const hit = isWordCharacter(text[index - 1])
@@ -84,13 +94,30 @@ function swapNames(text: string, replacements: ReadonlyMap<string, string>): str
             !isWordCharacter(text[index + name.length])
         );
     if (!hit) {
-      swapped += text[index++];
+      push(text[index++], false);
       continue;
     }
-    swapped += replacements.get(hit);
+    push(text.slice(index, index + hit.length), true);
     index += hit.length;
   }
-  return swapped;
+  return parts;
+}
+
+const swapNames = (text: string, replacements: ReadonlyMap<string, string>): string =>
+  splitNames(text, [...replacements.keys()])
+    .map(part => (part.isName ? replacements.get(part.text.toLowerCase()) : part.text))
+    .join('');
+
+export function formulaTextParts(
+  text: string,
+  calculation: BoardCalculation,
+  material: MaterialItem | undefined
+): FormulaTextPart[] {
+  const { full, short } = scopedNames(calculation, material);
+  return splitNames(
+    text,
+    [...full, ...short.values()].map(name => name.toLowerCase())
+  );
 }
 
 export function namesWithin(

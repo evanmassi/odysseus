@@ -3,6 +3,7 @@ import {
   calculationSuggestions,
   formulaCompletions,
   formulaMaterial,
+  formulaTextParts,
   formulaWordAt,
   namesInFull,
   namesWithin,
@@ -93,5 +94,26 @@ describe('formula scopes', () => {
     expect(formulaCompletions(board, undefined, 'round u', '').map(option => option.label)).toEqual(
       ['round up']
     );
+  });
+});
+
+describe('formula text parts', () => {
+  it('marks names, short or full, and leaves the rest as typed', () => {
+    const calculation = calculateBoard([
+      value('Th17 cocktail volume made', '8', 'mL'),
+      value('Th17 cocktail stock concentration', '8000', '×'),
+    ]);
+    expect(
+      formulaTextParts(
+        'volume made ÷ Stock concentration × 4',
+        calculation,
+        material('Th17 cocktail')
+      )
+    ).toEqual([
+      { text: 'volume made', isName: true },
+      { text: ' ÷ ', isName: false },
+      { text: 'Stock concentration', isName: true },
+      { text: ' × 4', isName: false },
+    ]);
   });
 });
