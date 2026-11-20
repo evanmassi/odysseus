@@ -6,6 +6,7 @@ import { collectBoardNames } from '../formulas/boardNames';
 import { DILUTION_FACTOR_NOTATION } from '../formulas/quantities';
 
 import { materialsById } from './valueEdits';
+import { valueNeeds } from './valueNeeds';
 import { buildValueTable, type ValueTableGroup } from './valueTable';
 
 import type {
@@ -116,18 +117,27 @@ const mainValues = valuesBlock('values', {
   ],
 });
 
+function tableOf(
+  protocol: Protocol,
+  block: ValuesBlock,
+  unsortedNames: readonly string[] = []
+): ValueTableGroup[] {
+  const calculation = calculateBoard(collectBoardNames(protocol));
+  return buildValueTable(protocol, block, {
+    materials: materialsById(protocol),
+    calculation,
+    needs: valueNeeds(protocol, block, calculation),
+    unsortedNames,
+  });
+}
+
 function tableFor(blocks: Protocol['blocks'], valuesId = 'values'): ValueTableGroup[] {
   const protocol = {
     blocks: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...blocks],
     diluent: '',
   } as unknown as Protocol;
   const block = protocol.blocks.find(candidate => candidate.id === valuesId) as ValuesBlock;
-  return buildValueTable(
-    protocol,
-    block,
-    materialsById(protocol),
-    calculateBoard(collectBoardNames(protocol))
-  );
+  return tableOf(protocol, block);
 }
 
 const groupNamed = (groups: ValueTableGroup[], label: string) =>
@@ -190,7 +200,7 @@ describe('the values table', () => {
       ['Targets only', true],
     ]);
     expect(cellsByLabel(supplies, 'Assay plate')).toEqual({ 'Wells used': '4' });
-    expect(supplies.rows[1].swatch).toMatchObject({ isOutline: false });
+    expect(supplies.rows[1].swatch).toMatchObject({ kind: 'fill' });
   });
 
   it('links plate names to materials named with a note, and to mixes', () => {
@@ -217,16 +227,11 @@ describe('the values table', () => {
       items: mainValues.items,
     });
     const protocol = { blocks: [withNote, banded, mix] } as unknown as Protocol;
-    const table = buildValueTable(
-      protocol,
-      mix,
-      materialsById(protocol),
-      calculateBoard(collectBoardNames(protocol))
-    );
+    const table = tableOf(protocol, mix);
     const bio = groupNamed(table, 'Biological Material');
     const stx = bio.rows.find(row => row.name.startsWith('STX'))!;
     expect(stx.cells.map(cell => cell.label)).toContain('Concentration');
-    expect(stx.swatch).toMatchObject({ isOutline: true });
+    expect(stx.swatch).toMatchObject({ kind: 'band' });
     const mixes = groupNamed(table, 'Mixes');
     expect(cellsByLabel(mixes, 'Th17 cocktail')).toMatchObject({ 'Volume per well': '5 µL' });
   });
@@ -250,8 +255,22 @@ describe('the values table', () => {
     );
     expect(raji?.swatch).toEqual({
       color: bandColorOf(banded, banded.lines[1].values[0]),
-      isOutline: true,
+      kind: 'band',
     });
+  });
+
+  it('draws a striped line striped, the way the legend does', () => {
+    const striped = vesselMap('map', 'Assay plate map', {
+      lines: [line('drug', ['Drug X', 'DMSO']), { ...line('cells', ['Raji']), role: 'stripe' }],
+      cells: {
+        'p:A1': { drug: { valueId: 'Drug X' }, cells: { valueId: 'Raji' } },
+        'p:A2': { drug: { valueId: 'DMSO' } },
+      },
+    });
+    const raji = groupNamed(tableFor([striped, mainValues]), 'Biological Material').rows.find(
+      row => row.name === 'Raji'
+    );
+    expect(raji?.swatch).toMatchObject({ kind: 'stripe' });
   });
 
   it('shows a recipe under its material with each final in the well, and checks a fold stock', () => {
@@ -284,12 +303,7 @@ describe('the values table', () => {
       ],
     });
     const protocol = { blocks: [withCocktail, values] } as unknown as Protocol;
-    const table = buildValueTable(
-      protocol,
-      values,
-      materialsById(protocol),
-      calculateBoard(collectBoardNames(protocol))
-    );
+    const table = tableOf(protocol, values);
     const chem = groupNamed(table, 'Chemicals & Proteins');
     expect(chem.rows.map(row => [row.name, row.isSubRow])).toEqual([
       ['Th17 cocktail', false],
@@ -404,5 +418,91 @@ describe('short names in the values table', () => {
     const [row] = groupNamed(groups, 'Media, Buffers, & Solutions').rows;
     expect(row).toMatchObject({ name: medium.name, shownName: 'ImmunoCult XF' });
     expect(row.cells[0].fullName.startsWith(medium.name)).toBe(true);
+  });
+});
+
+describe('plate names and needed values in the values table', () => {
+  const tCellsWithDonors: MaterialItem = {
+    ...material('m-tcells', 'T cells', 'bio', 'Primary cells'),
+    sources: {
+      label: 'Donors',
+      shownFields: [],
+      customFields: [],
+      rows: [
+        { id: 'd1', name: 'D3128', values: {}, units: {} },
+        { id: 'd2', name: 'D2044', values: {}, units: {} },
+      ],
+    },
+  };
+  const donorPlate = vesselMap('map', 'Assay plate map', {
+    lines: [line('cells', ['D3128', 'D2044', 'Mystery'])],
+    cells: {
+      'p:A1': { cells: { valueId: 'D3128', amount: '1e5', unit: 'cells' } },
+      'p:A2': { cells: { valueId: 'D2044', amount: '1e5', unit: 'cells' } },
+      'p:A3': { cells: { valueId: 'Mystery' } },
+    },
+  });
+  const donorProtocol = (values: ValuesBlock) =>
+    ({
+      blocks: [
+        {
+          id: 'materials',
+          type: 'materials',
+          items: [...MATERIALS.filter(item => item.id !== 'm-tcells'), tCellsWithDonors],
+        },
+        donorPlate,
+        values,
+      ],
+    }) as unknown as Protocol;
+  const noValues = valuesBlock('values', {});
+  const rowNamed = (groups: ValueTableGroup[], label: string, name: string) =>
+    groupNamed(groups, label).rows.find(row => row.name === name)!;
+
+  it("files a donor's wells under its cell material, in the donor's color", () => {
+    const table = tableOf(donorProtocol(noValues), noValues);
+    const bio = groupNamed(table, 'Biological Material');
+    expect(bio.rows.map(row => [row.name, row.isSubRow])).toEqual(
+      expect.arrayContaining([
+        ['T cells', false],
+        ['D3128', true],
+        ['D2044', true],
+      ])
+    );
+    expect(rowNamed(table, 'Biological Material', 'D3128').swatch).toBeDefined();
+    const supplyRows = groupNamed(table, 'Supplies').rows.map(row => row.name);
+    expect(supplyRows).not.toContain('D3128');
+  });
+
+  it('leaves a name still waiting in "From your plate" out of the table', () => {
+    const supplyRows = (unsorted: string[]) =>
+      groupNamed(tableOf(donorProtocol(noValues), noValues, unsorted), 'Supplies').rows.map(
+        row => row.name
+      );
+    expect(supplyRows([])).toContain('Mystery');
+    expect(supplyRows(['Mystery'])).not.toContain('Mystery');
+  });
+
+  it('offers the volume the cell math needs on the cell row', () => {
+    const table = tableOf(donorProtocol(noValues), noValues);
+    const needed = rowNamed(table, 'Biological Material', 'T cells').cells.find(
+      cell => cell.label === 'Volume per well'
+    );
+    expect(needed).toMatchObject({ value: '', source: { kind: 'need' } });
+    expect(needed?.neededFor).toEqual(['Cells to prepare for D3128', 'Cells to prepare for D2044']);
+  });
+
+  it('marks a blank value that the math is waiting on', () => {
+    const values = valuesBlock('values', {
+      sections: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
+      items: [
+        { id: 't-vol', section: 'sec-tcells', name: 'Volume per well', value: '', unit: 'µL' },
+      ],
+    });
+    const table = tableOf(donorProtocol(values), values);
+    const cell = rowNamed(table, 'Biological Material', 'T cells').cells.find(
+      candidate => candidate.label === 'Volume per well'
+    );
+    expect(cell?.source).toEqual({ kind: 'item', itemId: 't-vol' });
+    expect(cell?.neededFor.length).toBeGreaterThan(0);
   });
 });

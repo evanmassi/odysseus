@@ -15,14 +15,9 @@ import { displayValue } from '../../../../utils/formulas/quantities';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
-import { editRecipeEntry } from '../../../../utils/materials/materialRecipe';
+import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
-import {
-  removePlateRow,
-  setPlateRowUnit,
-  setPlateRowValue,
-  type PlateValueRow,
-} from '../../../../utils/values/plateValueRows';
+import { removePlateRow, type PlateValueRow } from '../../../../utils/values/plateValueRows';
 import {
   addRoutedValue,
   addSuggestedValue,
@@ -40,6 +35,15 @@ import {
   type RemovedValues,
 } from '../../../../utils/values/valueEdits';
 import {
+  columnUnit,
+  fillBlanks,
+  fillTargets,
+  slotRoute,
+  writeCellUnit,
+  writeCellValue,
+} from '../../../../utils/values/valueFill';
+import { neededForText, valueNeeds } from '../../../../utils/values/valueNeeds';
+import {
   routeValueLine,
   routedValueGuess,
   rowValueGuess,
@@ -53,9 +57,11 @@ import {
   type ValueTableRow,
 } from '../../../../utils/values/valueTable';
 import { BLOCK_ICONS } from '../../board/blockIcons';
+import { WorkbenchMaterialPlateNamesSection } from '../materials/WorkbenchMaterialPlateNamesSection';
 
 import { WorkbenchValueAddField } from './WorkbenchValueAddField';
 import { WorkbenchValueGroupTable } from './WorkbenchValueGroupTable';
+import { WorkbenchValueNeededRow } from './WorkbenchValueNeededRow';
 import { WorkbenchValueReadingsSection } from './WorkbenchValueReadingsSection';
 import {
   WorkbenchValueRow,
@@ -67,7 +73,7 @@ import { WorkbenchValueSection } from './WorkbenchValueSection';
 
 import type { ValueColumnActions } from './WorkbenchValueHeaderRow';
 import type { ValueCellView } from './WorkbenchValueTableCell';
-import type { ValueRowActions } from './WorkbenchValueTableRow';
+import type { FillOffer, ValueRowActions } from './WorkbenchValueTableRow';
 import type { ValueSuggestion } from '../../../../utils/values/valueSuggestions';
 import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 
@@ -83,6 +89,11 @@ interface GeneralEdit {
 interface ColumnEdit {
   groupKey: string;
   itemIds: string[];
+}
+
+interface ColumnFill {
+  groupKey: string;
+  columnKey: string;
 }
 
 const UNDO_MS = 8000;
@@ -114,13 +125,13 @@ function sourceLines(cell: ValueTableCell): string[] {
 
 const cellsOf = (group: ValueTableGroup) => group.rows.flatMap(row => row.cells);
 
+const neededNoteOf = (neededFor: readonly string[]) =>
+  neededFor.length ? neededForText(neededFor) : '';
+
 const typedItemIds = (cells: readonly ValueTableCell[]) =>
   cells.flatMap(cell =>
     cell.source.kind === 'item' && cell.origin === 'typed' ? [cell.source.itemId] : []
   );
-
-const unitOfColumn = (group: ValueTableGroup, column: ValueTableColumn) =>
-  cellsOf(group).find(cell => cell.columnKey === column.key)?.unit ?? '';
 
 function cellViewOf(
   cell: ValueTableCell,
@@ -129,6 +140,7 @@ function cellViewOf(
   isDuplicate: boolean
 ): ValueCellView {
   const usageLine = used ? `Used in ${used}` : 'Not used in any step or formula';
+  const neededNote = neededNoteOf(cell.neededFor);
   return {
     value: cell.value,
     unit: cell.unit,
@@ -136,9 +148,11 @@ function cellViewOf(
     hoverLines: [
       cell.fullName,
       ...(isNamed ? [usageLine] : []),
+      ...(neededNote ? [neededNote] : []),
       ...(cell.note ? [cell.note] : []),
       ...sourceLines(cell),
     ],
+    isNeeded: !!neededNote,
     isEditable: cell.isEditable,
     canRemove: cell.canRemove,
     isDuplicate,
@@ -151,7 +165,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
   kind: 'value',
   name: column.label,
   value: '',
-  unit: unitOfColumn(group, column),
+  unit: columnUnit(group, column.key),
   label: column.label,
 });
 
@@ -164,6 +178,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   const [editingCellId, setEditingCellId] = useState<string>();
   const [editingNameRowId, setEditingNameRowId] = useState<string>();
   const [columnEdit, setColumnEdit] = useState<ColumnEdit>();
+  const [columnFill, setColumnFill] = useState<ColumnFill>();
+  const [fillOfferCellId, setFillOfferCellId] = useState<string>();
   const [addingRowId, setAddingRowId] = useState<string>();
   const [removed, setRemoved] = useState<RemovedValues>();
   const [removingPlateRow, setRemovingPlateRow] = useState<PlateValueRow>();
@@ -174,12 +190,43 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     return () => clearTimeout(timer);
   }, [removed]);
 
+  const isFirstValuesBlock =
+    protocol.blocks.find(candidate => candidate.type === 'values')?.id === block.id;
   const materials = useMemo(() => materialsById(protocol), [protocol]);
+  const plateOffers = useWorkbenchData(state =>
+    isFirstValuesBlock ? plateNameOffers(state.protocol) : []
+  );
+  const needs = useMemo(
+    () => valueNeeds(protocol, block, calculation),
+    [protocol, block, calculation]
+  );
   const groups = useStructuralSharing(
     useMemo(
-      () => buildValueTable(protocol, block, materials, calculation),
-      [protocol, block, materials, calculation]
+      () =>
+        buildValueTable(protocol, block, {
+          materials,
+          calculation,
+          needs,
+          unsortedNames: plateOffers.map(offer => offer.name),
+        }),
+      [protocol, block, materials, calculation, needs, plateOffers]
     )
+  );
+  const generalNeeds = useMemo(
+    () =>
+      isFirstValuesBlock
+        ? needs.flatMap(need =>
+            need.kind === 'absent' && need.routed.destination.kind === 'general' ? [need] : []
+          )
+        : [],
+    [needs, isFirstValuesBlock]
+  );
+  const blankNeeds = useMemo(
+    () =>
+      new Map(
+        needs.flatMap(need => (need.kind === 'blank' ? [[need.id, need.neededFor] as const] : []))
+      ),
+    [needs]
   );
   const generalItems = useMemo(
     () =>
@@ -202,8 +249,6 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     () => materialKnowledge(memory, { blocks: protocol.blocks, dyes: fileDyes }),
     [memory, protocol, fileDyes]
   );
-  const isFirstValuesBlock =
-    protocol.blocks.find(candidate => candidate.type === 'values')?.id === block.id;
   const readings = useWorkbenchData(state =>
     isFirstValuesBlock ? readStepReadings(state.protocol, state.calculation).values : []
   );
@@ -256,13 +301,32 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             unit: item.unit,
             isDuplicate: calculation.duplicateIds.has(item.id),
             usage: usageText(item.id),
+            neededNote: item.value.trim() ? '' : neededNoteOf(blankNeeds.get(item.id) ?? []),
           })
         ),
-      [generalItems, usageText, calculation.duplicateIds]
+      [generalItems, usageText, calculation.duplicateIds, blankNeeds]
     )
   );
 
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
+
+  const groupOfRow = (rowId: string) =>
+    groups.find(candidate => candidate.rows.some(({ id }) => id === rowId));
+
+  const fillOffer = useMemo(() => {
+    if (!fillOfferCellId) return undefined;
+    for (const group of groups) {
+      const cell = cellsOf(group).find(candidate => candidate.id === fillOfferCellId);
+      if (!cell) continue;
+      const targets = cell.value.trim() ? fillTargets(group, cell.columnKey) : [];
+      return targets.length ? { cell, targets } : undefined;
+    }
+    return undefined;
+  }, [fillOfferCellId, groups]);
+  const shownFillOffer: FillOffer | undefined = fillOffer && {
+    cellId: fillOffer.cell.id,
+    count: fillOffer.targets.length,
+  };
 
   const setGeneralTitle = (title: string) =>
     edit(draft => {
@@ -317,7 +381,10 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   };
 
   const rowActions = useStableActions<ValueRowActions>({
-    onEditCell: setEditingCellId,
+    onEditCell: cellId => {
+      setFillOfferCellId(cellId === undefined ? editingCellId : undefined);
+      setEditingCellId(cellId);
+    },
     onEditName: setEditingNameRowId,
     onRename: (row, name) => {
       const { section } = row;
@@ -325,31 +392,33 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     },
     onToggleAdd: rowId => setAddingRowId(current => (current === rowId ? undefined : rowId)),
     onFillColumn: (row, column) => {
-      const group = groups.find(candidate => candidate.rows.some(({ id }) => id === row.id));
+      const group = groupOfRow(row.id);
       if (!group) return;
-      const { added } = addToRow(row, (draft, sectionId) =>
-        addSuggestedValue(draft, block.id, sectionId, columnSuggestion(group, column))
-      );
+      let added: string | undefined;
+      edit(draft => {
+        added = addRoutedValue(draft, block.id, slotRoute(group, row, column));
+      });
       setEditingCellId(added);
     },
-    onValueChange: (cell, value) =>
+    onAddNeeded: (row, cell) => {
+      const group = groupOfRow(row.id);
+      if (!group || cell.source.kind !== 'need') return;
+      const { routed } = cell.source;
+      const unit = columnUnit(group, cell.columnKey);
+      let added: string | undefined;
       edit(draft => {
-        const { source } = cell;
-        if (source.kind === 'item') setValueAmount(draft, block.id, source.itemId, value);
-        else if (source.kind === 'plate') setPlateRowValue(draft, source.row, value);
-        else if (source.kind === 'recipe') {
-          editRecipeEntry(draft, source.materialId, source.entryId, { amount: value });
-        }
-      }),
-    onUnitChange: (cell, unit) =>
-      edit(draft => {
-        const { source } = cell;
-        if (source.kind === 'item') setValueUnit(draft, block.id, source.itemId, unit);
-        else if (source.kind === 'plate') setPlateRowUnit(draft, source.row, unit);
-        else if (source.kind === 'recipe') {
-          editRecipeEntry(draft, source.materialId, source.entryId, { unit });
-        }
-      }),
+        added = addRoutedValue(draft, block.id, { ...routed, line: { ...routed.line, unit } });
+      });
+      setEditingCellId(added);
+    },
+    onFillOthers: () => {
+      if (!fillOffer) return;
+      const { cell, targets } = fillOffer;
+      edit(draft => fillBlanks(draft, block.id, targets, cell.value, cell.unit));
+      setFillOfferCellId(undefined);
+    },
+    onValueChange: (cell, value) => edit(draft => writeCellValue(draft, block.id, cell, value)),
+    onUnitChange: (cell, unit) => edit(draft => writeCellUnit(draft, block.id, cell, unit)),
     onRemoveCell: cell => {
       const { source } = cell;
       if (source.kind === 'item') {
@@ -381,6 +450,13 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       edit(draft => {
         for (const itemId of itemIds) renameValue(draft, block.id, itemId, name);
       });
+    },
+    onStartFill: (groupKey, column) => setColumnFill(column && { groupKey, columnKey: column.key }),
+    onFillBlanks: (groupKey, column, value, unit) => {
+      const group = groups.find(candidate => candidate.key === groupKey);
+      setColumnFill(undefined);
+      if (!group) return;
+      edit(draft => fillBlanks(draft, block.id, fillTargets(group, column.key), value, unit));
     },
   });
 
@@ -455,6 +531,11 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           }}
         />
       </div>
+      {plateOffers.length > 0 && (
+        <div className="mb-6 px-2">
+          <WorkbenchMaterialPlateNamesSection offers={plateOffers} />
+        </div>
+      )}
       <WorkbenchValueSection
         title={
           groups.length > 0 ? (
@@ -485,8 +566,22 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             actions={generalActions}
           />
         ))}
+        {generalNeeds.map(need => (
+          <WorkbenchValueNeededRow
+            key={need.routed.fullName}
+            name={need.routed.line.name}
+            neededNote={neededForText(need.neededFor)}
+            onAdd={() => {
+              let added: string | undefined;
+              edit(draft => {
+                added = addRoutedValue(draft, block.id, need.routed);
+              });
+              if (added) setGeneralEdit({ itemId: added, cell: 'value' });
+            }}
+          />
+        ))}
       </WorkbenchValueSection>
-      {!generalRows.length && !groups.length && (
+      {!generalRows.length && !generalNeeds.length && !groups.length && (
         <PanelEmptyState
           icon={BLOCK_ICONS.values}
           message="Add values above"
@@ -502,6 +597,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             editingCellId={editingCellId}
             editingNameRowId={editingNameRowId}
             editingColumnKey={editingColumnKey(group)}
+            fillingColumnKey={columnFill?.groupKey === group.key ? columnFill.columnKey : undefined}
+            fillOffer={shownFillOffer}
             addingRowId={addingRowId}
             actions={rowActions}
             columnActions={columnActions}

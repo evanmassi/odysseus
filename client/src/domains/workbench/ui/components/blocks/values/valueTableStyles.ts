@@ -10,3 +10,5 @@ export const ZEBRA_TINT = 'hsl(var(--foreground) / var(--alpha-zebra))';
 
 export const stickyBackground = (isZebra: boolean): string =>
   isZebra ? `linear-gradient(${ZEBRA_TINT}, ${ZEBRA_TINT}), hsl(var(--card))` : 'hsl(var(--card))';
+
+export const NEEDED_TEXT = 'font-sans text-label-xs text-warning-text';

@@ -2,7 +2,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { firstBlockOrNew } from '../blocks/createBlock';
 
-import { SHORT_NAME_FIELD } from './materialCatalog';
+import { BIO_GROUP, SHORT_NAME_FIELD } from './materialCatalog';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
@@ -44,6 +44,13 @@ export const listedMaterials = (protocol: Pick<Protocol, 'blocks'>): MaterialIte
   protocol.blocks
     .flatMap(block => (block.type === 'materials' ? block.items : []))
     .filter(item => !item.isDropped && item.name.trim());
+
+export const donorTargetsOf = (
+  protocol: Pick<Protocol, 'blocks'>
+): Array<{ value: string; label: string }> =>
+  listedMaterials(protocol)
+    .filter(item => item.group === BIO_GROUP)
+    .map(item => ({ value: item.id, label: item.name }));
 
 export const materialNamed = (
   protocol: Pick<Protocol, 'blocks'>,

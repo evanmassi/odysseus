@@ -1,12 +1,17 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { ScrollArea } from '@shared/ui';
 
+import { columnUnit, fillTargets } from '../../../../utils/values/valueFill';
 import { HORIZONTAL_SCROLL } from '../materials/materialTableStyles';
 import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
 
 import { WorkbenchValueHeaderRow, type ValueColumnActions } from './WorkbenchValueHeaderRow';
-import { WorkbenchValueTableRow, type ValueRowActions } from './WorkbenchValueTableRow';
+import {
+  WorkbenchValueTableRow,
+  type FillOffer,
+  type ValueRowActions,
+} from './WorkbenchValueTableRow';
 
 import type { ValueCellView } from './WorkbenchValueTableCell';
 import type { ValueTableGroup, ValueTableRow } from '../../../../utils/values/valueTable';
@@ -17,6 +22,8 @@ interface WorkbenchValueGroupTableProps {
   editingCellId: string | undefined;
   editingNameRowId: string | undefined;
   editingColumnKey: string | undefined;
+  fillingColumnKey: string | undefined;
+  fillOffer: FillOffer | undefined;
   addingRowId: string | undefined;
   actions: ValueRowActions;
   columnActions: ValueColumnActions;
@@ -29,6 +36,8 @@ export function WorkbenchValueGroupTable({
   editingCellId,
   editingNameRowId,
   editingColumnKey,
+  fillingColumnKey,
+  fillOffer,
   addingRowId,
   actions,
   columnActions,
@@ -37,6 +46,16 @@ export function WorkbenchValueGroupTable({
   const [isScrolled, setIsScrolled] = useState(false);
   const mainRowCount = group.rows.filter(row => !row.isSubRow).length;
   const span = group.columns.length + 2;
+  const columnFills = useMemo(
+    () =>
+      Object.fromEntries(
+        group.columns.map(column => [
+          column.key,
+          { count: fillTargets(group, column.key).length, unit: columnUnit(group, column.key) },
+        ])
+      ),
+    [group]
+  );
 
   return (
     <WorkbenchMaterialSection title={group.label} count={mainRowCount}>
@@ -51,7 +70,9 @@ export function WorkbenchValueGroupTable({
             <WorkbenchValueHeaderRow
               groupKey={group.key}
               columns={group.columns}
+              columnFills={columnFills}
               editingColumnKey={editingColumnKey}
+              fillingColumnKey={fillingColumnKey}
               actions={columnActions}
             />
           </thead>
@@ -66,6 +87,9 @@ export function WorkbenchValueGroupTable({
                 isNameCovering={isScrolled}
                 editingCellId={
                   row.cells.some(cell => cell.id === editingCellId) ? editingCellId : undefined
+                }
+                fillOffer={
+                  row.cells.some(cell => cell.id === fillOffer?.cellId) ? fillOffer : undefined
                 }
                 isEditingName={editingNameRowId === row.id}
                 isAdding={addingRowId === row.id}

@@ -74,6 +74,20 @@ export function addSource(
   return source;
 }
 
+export function addSourcesNamed(
+  item: MaterialItem,
+  names: readonly string[],
+  startingFields: readonly string[],
+  learned: readonly FieldDefinition[]
+): void {
+  startSources(item, startingFields, learned);
+  const { sources } = item;
+  if (!sources) return;
+  for (const name of names) {
+    if (name.trim() && !findNamed(sources.rows, name, row => row.name)) addSource(sources, name);
+  }
+}
+
 export function sourceFieldChoices(
   sources: MaterialSources,
   learned: readonly FieldDefinition[]

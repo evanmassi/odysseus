@@ -55,15 +55,27 @@ export type BoardName = NameSource &
         expr: string;
         unit: string;
         problem?: string;
+        need?: string;
         isIntermediate?: boolean;
       }
   );
 
 type FormulaName = Extract<BoardName, { kind: 'formula' }>;
 
+export interface FormulaGap {
+  problem: string;
+  need?: string;
+}
+
 export type FormulaResult =
   | { status: 'empty'; message: string }
-  | { status: 'error'; message: string; missingName?: string; isCycle?: boolean }
+  | {
+      status: 'error';
+      message: string;
+      missingName?: string;
+      blankId?: string;
+      isCycle?: boolean;
+    }
   | {
       status: 'ok';
       quantity: Quantity;
@@ -121,7 +133,9 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
       });
     if (entry.kind === 'value') {
       const quantity = quantityOf(entry.value, entry.unit);
-      if (!quantity) throw new FormulaError(`${entry.name} has no number yet`);
+      if (!quantity) {
+        throw new FormulaError(`${entry.name} has no number yet`, { blankId: entry.id });
+      }
       const text = workingValue(entry.value, entry.unit);
       return {
         quantity,
@@ -288,7 +302,9 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
       if (duplicateIds.has(formula.id)) {
         throw new FormulaError('Another value or formula already has this name');
       }
-      if (formula.problem) throw new FormulaError(formula.problem);
+      if (formula.problem) {
+        throw new FormulaError(formula.problem, formula.need ? { missingName: formula.need } : {});
+      }
       if (!formula.expr.trim()) {
         result = { status: 'empty', message: 'Type a formula using the names on this board' };
       } else {

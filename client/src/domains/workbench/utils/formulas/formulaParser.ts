@@ -24,7 +24,7 @@ type Token =
 export class FormulaError extends Error {
   constructor(
     message: string,
-    readonly detail: { missingName?: string; isCycle?: boolean } = {}
+    readonly detail: { missingName?: string; blankId?: string; isCycle?: boolean } = {}
   ) {
     super(message);
   }

@@ -4,6 +4,7 @@ import {
   nameKey,
   type BoardCalculation,
   type BoardName,
+  type FormulaGap,
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
 import {
@@ -20,7 +21,11 @@ import { nameWithoutNotes } from './materialLookup';
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
 const WELL_VOLUME_NAMES = ['Well volume', 'Final well volume', 'Total well volume'];
-const MISSING_WELL_TOTAL = 'Needs the well total: add "Well volume 80 µL" under Whole experiment';
+const [WELL_VOLUME] = WELL_VOLUME_NAMES;
+const MISSING_WELL_TOTAL: FormulaGap = {
+  problem: 'Needs the well total: add "Well volume 80 µL" under Whole experiment',
+  need: WELL_VOLUME,
+};
 
 export const recipeFinalId = (mixId: string, entryId: string): string =>
   `${mixId}:recipe:${entryId}:final`;
@@ -56,8 +61,9 @@ function mixNames(
   const perWell = mixValue(mix, 'Volume per well', names)?.name;
   const wellTotal = wellTotalName(names);
   const scaling = perWell && wellTotal ? ` × ${perWell} ÷ ${wellTotal}` : '';
-  const missing = !perWell
-    ? `Needs ${joinValueName(mixName, 'Volume per well')}`
+  const perWellName = joinValueName(mixName, 'Volume per well');
+  const missing: FormulaGap | undefined = !perWell
+    ? { problem: `Needs ${perWellName}`, need: perWellName }
     : !wellTotal
       ? MISSING_WELL_TOTAL
       : undefined;
@@ -69,16 +75,8 @@ function mixNames(
   };
   const inputs: BoardName[] = [];
   const finals: Array<Extract<BoardName, { kind: 'formula' }>> = [];
-  const final = (id: string, name: string, expr: string, unit: string, problem = missing) =>
-    finals.push({
-      kind: 'formula',
-      id,
-      name,
-      expr,
-      unit,
-      workedOut: group,
-      ...(problem && { problem }),
-    });
+  const final = (id: string, name: string, expr: string, unit: string, gap = missing) =>
+    finals.push({ kind: 'formula', id, name, expr, unit, workedOut: group, ...gap });
 
   const stockField = stockName(mix);
   const stock =
@@ -99,9 +97,13 @@ function mixNames(
   const strength = working ?? stock;
   if (strength)
     final(mixFinalId(mix.id), `${mixName} in the well`, `${strength}${scaling}`, FOLD_UNIT);
-  const cannotScale =
+  const stockNeed = joinValueName(mixName, 'Stock concentration');
+  const cannotScale: FormulaGap | undefined =
     concentration && !fromStock
-      ? `Needs ${joinValueName(mixName, 'Stock concentration')} in X to scale by its working concentration`
+      ? {
+          problem: `Needs ${stockNeed} in X to scale by its working concentration`,
+          need: stockNeed,
+        }
       : undefined;
   for (const entry of mix.recipe) {
     const ingredient = materials.get(entry.materialId)?.name.trim();
@@ -132,7 +134,7 @@ function mixNames(
   const problem = `Rename “${clash}”: the ${mixName} recipe needs that name.`;
   return finals
     .filter(entry => !names.has(nameKey(entry.name)))
-    .map(entry => ({ ...entry, problem }));
+    .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
 }
 
 export function recipeFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {

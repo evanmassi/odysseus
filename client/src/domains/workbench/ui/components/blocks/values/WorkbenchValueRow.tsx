@@ -9,7 +9,9 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
+import { wellTooltipContent } from '../vessels/wellTooltipContent';
 
+import { NEEDED_TEXT } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 
 export type ValueCell = 'name' | 'value';
@@ -22,6 +24,7 @@ export interface ValueRowData {
   unit: string;
   isDuplicate: boolean;
   usage: string;
+  neededNote: string;
 }
 
 export interface GeneralValueActions {
@@ -47,7 +50,8 @@ export const WorkbenchValueRow = memo(function WorkbenchValueRow({
   actions,
 }: WorkbenchValueRowProps) {
   const isInvalid = isUnreadableAmount(row.value, row.unit);
-  const title = usageTitle(row.fullName, row.usage);
+  const usage = usageTitle(row.fullName, row.usage);
+  const title = row.neededNote ? wellTooltipContent([usage, row.neededNote]) : usage;
 
   const handleKeyDown = (cell: ValueCell) => (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === 'Escape') {
@@ -128,6 +132,8 @@ export const WorkbenchValueRow = memo(function WorkbenchValueRow({
             >
               {row.value.trim() ? (
                 displayValue(row.value, row.unit)
+              ) : row.neededNote ? (
+                <span className={NEEDED_TEXT}>needed</span>
               ) : (
                 <span className="font-sans text-label-xs text-muted-foreground">to fill in</span>
               )}

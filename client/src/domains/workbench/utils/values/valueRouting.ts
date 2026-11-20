@@ -109,7 +109,14 @@ export function routeValueLine(
   text: string
 ): RoutedValue | undefined {
   const line = parseValueLine(withGreekLetters(text));
-  if (!line) return undefined;
+  return line && routeParsedLine(protocol, block, line);
+}
+
+export function routeParsedLine(
+  protocol: Pick<Protocol, 'blocks'>,
+  block: ValuesBlock,
+  line: ParsedValueLine
+): RoutedValue {
   const typed = tidy(line.name);
   const best = valueOwners(protocol, block)
     .flatMap(owner => {

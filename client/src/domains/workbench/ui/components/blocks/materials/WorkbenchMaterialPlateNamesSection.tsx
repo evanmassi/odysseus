@@ -1,4 +1,24 @@
-import { Button, ScrollArea, Select, Tooltip, type SelectOption } from '@shared/ui';
+import { useMemo } from 'react';
+
+import { Button, ScrollArea, Select, Tooltip } from '@shared/ui';
+
+import { useBlocksOf } from '../../../../hooks/useWorkbenchSlice';
+import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { materialGroup } from '../../../../utils/materials/materialCatalog';
+import { guessMaterial } from '../../../../utils/materials/materialGuesser';
+import { materialFromGuess } from '../../../../utils/materials/materialItems';
+import {
+  donorTargetsOf,
+  ensureMaterial,
+  listedMaterials,
+} from '../../../../utils/materials/materialLookup';
+import {
+  materialKnowledge,
+  startingSourceFieldsOf,
+} from '../../../../utils/materials/materialMemory';
+import { addSourcesNamed } from '../../../../utils/materials/materialSources';
+import { linkPlateName } from '../../../../utils/materials/plateNameOffers';
 
 import {
   HORIZONTAL_SCROLL,
@@ -15,25 +35,58 @@ import type { PlateNameOffer } from '../../../../utils/materials/plateNameOffers
 
 interface WorkbenchMaterialPlateNamesSectionProps {
   offers: readonly PlateNameOffer[];
-  materialChoices: SelectOption[];
-  donorTargets: readonly SelectOption[];
-  guessType: (name: string) => string;
-  onAdd: (offers: readonly PlateNameOffer[]) => void;
-  onAddAsDonors: (offers: readonly PlateNameOffer[], materialId: string) => void;
-  onLink: (offer: PlateNameOffer, materialId: string) => void;
-  onIgnore: (offer: PlateNameOffer) => void;
 }
 
 export function WorkbenchMaterialPlateNamesSection({
   offers,
-  materialChoices,
-  donorTargets,
-  guessType,
-  onAdd,
-  onAddAsDonors,
-  onLink,
-  onIgnore,
 }: WorkbenchMaterialPlateNamesSectionProps) {
+  const materialBlocks = useBlocksOf('materials');
+  const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
+  const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
+  const memory = useMaterialMemoryStore(state => state.memory);
+  const known = useMemo(
+    () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileDyes }),
+    [memory, materialBlocks, fileDyes]
+  );
+  const materialsOnly = useMemo(() => ({ blocks: materialBlocks }), [materialBlocks]);
+  const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);
+  const materialChoices = useMemo(
+    () =>
+      listedMaterials(materialsOnly).map(item => ({
+        value: item.id,
+        label: item.name,
+        group: materialGroup(item.group).label,
+      })),
+    [materialsOnly]
+  );
+  const guessType = (name: string) => guessMaterial(name, known).type;
+
+  const onAdd = (added: readonly PlateNameOffer[]) =>
+    updateProtocol(draft => {
+      for (const offer of added) {
+        ensureMaterial(draft, offer.name, name =>
+          materialFromGuess(guessMaterial(name, known), memory)
+        );
+      }
+    });
+  const onAddAsDonors = (added: readonly PlateNameOffer[], materialId: string) =>
+    updateProtocol(draft => {
+      const item = listedMaterials(draft).find(candidate => candidate.id === materialId);
+      if (!item) return;
+      addSourcesNamed(
+        item,
+        added.map(offer => offer.name),
+        startingSourceFieldsOf(memory, item.group),
+        memory.sourceFields
+      );
+    });
+  const onLink = (offer: PlateNameOffer, materialId: string) =>
+    updateProtocol(draft => linkPlateName(draft, offer.name, materialId));
+  const onIgnore = (offer: PlateNameOffer) =>
+    updateProtocol(draft => {
+      draft.ignoredReadings.push(offer.key);
+    });
+
   return (
     <WorkbenchMaterialSection
       title="From your plate"

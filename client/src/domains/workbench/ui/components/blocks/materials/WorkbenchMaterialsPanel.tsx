@@ -19,9 +19,7 @@ import { nameUsage } from '../../../../utils/formulas/nameUsage';
 import {
   ANTIBODY_GROUP,
   materialFields,
-  materialGroup,
   materialGroupsOf,
-  BIO_GROUP,
 } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD, conjugateClashes } from '../../../../utils/materials/materialClashes';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
@@ -35,11 +33,7 @@ import {
   materialFromGuess,
   writeMaterialField,
 } from '../../../../utils/materials/materialItems';
-import {
-  ensureMaterial,
-  findNamed,
-  listedMaterials,
-} from '../../../../utils/materials/materialLookup';
+import { donorTargetsOf, listedMaterials } from '../../../../utils/materials/materialLookup';
 import {
   LOT_FIELD,
   fillFromLotMemory,
@@ -67,17 +61,14 @@ import {
   SOURCES_LABEL,
   addCustomSourceField,
   addSource,
+  addSourcesNamed,
   moveIntoSources,
   sourceFieldChoices,
   startSources,
   toggleSourceField,
 } from '../../../../utils/materials/materialSources';
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
-import {
-  linkPlateName,
-  plateNameOffers,
-  type PlateNameOffer,
-} from '../../../../utils/materials/plateNameOffers';
+import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { plateFollowsListRename } from '../../../../utils/materials/renameFollowing';
 import {
   acceptStepReadings,
@@ -209,22 +200,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const plateOffers = useWorkbenchData(state =>
     isFirstMaterialsBlock ? plateNameOffers(state.protocol) : []
   );
-  const donorTargets = useMemo(
-    () =>
-      listedMaterials(materialsOnly)
-        .filter(item => item.group === BIO_GROUP)
-        .map(item => ({ value: item.id, label: item.name })),
-    [materialsOnly]
-  );
-  const linkChoices = useMemo(
-    () =>
-      listedMaterials(materialsOnly).map(item => ({
-        value: item.id,
-        label: item.name,
-        group: materialGroup(item.group).label,
-      })),
-    [materialsOnly]
-  );
+  const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);
   const cellOrder = useMemo(
     () =>
       sections
@@ -387,16 +363,14 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         delete item.sources;
       }),
     add: (itemId, names) =>
-      updateItem(itemId, item => {
-        startSources(item, startingSourceFieldsOf(memory, item.group), memory.sourceFields);
-        const { sources } = item;
-        if (!sources) return;
-        for (const name of names) {
-          if (name.trim() && !findNamed(sources.rows, name, row => row.name)) {
-            addSource(sources, name);
-          }
-        }
-      }),
+      updateItem(itemId, item =>
+        addSourcesNamed(
+          item,
+          names,
+          startingSourceFieldsOf(memory, item.group),
+          memory.sourceFields
+        )
+      ),
     recall: (itemId, remembered) =>
       updateItem(itemId, item => {
         if (item.sources) addSource(item.sources, remembered.name, remembered);
@@ -457,15 +431,6 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         materialFromGuess(guessMaterial(name, known), memory)
       )
     );
-
-  const addPlateNames = (offers: readonly PlateNameOffer[]) =>
-    updateProtocol(draft => {
-      for (const offer of offers) {
-        ensureMaterial(draft, offer.name, name =>
-          materialFromGuess(guessMaterial(name, known), memory)
-        );
-      }
-    });
 
   const createGroup = (label: string) => {
     const target = groupDialogTarget;
@@ -578,29 +543,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
             }
           />
         )}
-        {plateOffers.length > 0 && (
-          <WorkbenchMaterialPlateNamesSection
-            offers={plateOffers}
-            materialChoices={linkChoices}
-            donorTargets={donorTargets}
-            guessType={name => guessMaterial(name, known).type}
-            onAdd={addPlateNames}
-            onAddAsDonors={(offers, materialId) =>
-              sourceActions.add(
-                materialId,
-                offers.map(offer => offer.name)
-              )
-            }
-            onLink={(offer, materialId) =>
-              updateProtocol(draft => linkPlateName(draft, offer.name, materialId))
-            }
-            onIgnore={offer =>
-              updateProtocol(draft => {
-                draft.ignoredReadings.push(offer.key);
-              })
-            }
-          />
-        )}
+        {plateOffers.length > 0 && <WorkbenchMaterialPlateNamesSection offers={plateOffers} />}
         {(droppedItems.length > 0 || removed?.isFromDropped) && (
           <WorkbenchMaterialDroppedSection
             items={droppedItems}

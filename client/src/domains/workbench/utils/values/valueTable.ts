@@ -16,13 +16,24 @@ import {
 } from '../formulas/boardCalculation';
 import { FOLD_UNIT } from '../formulas/quantities';
 import { workingText } from '../formulas/workingTree';
-import { MATERIAL_GROUPS, materialGroup } from '../materials/materialCatalog';
+import {
+  MATERIAL_GROUPS,
+  fieldLabel,
+  fieldUnit,
+  materialGroup,
+  UNIT_PER_ITEM,
+} from '../materials/materialCatalog';
 import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
 import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
+import { findSource, sourcesIn } from '../materials/materialSources';
+import { lineLayers, markKindOf, type BandKind } from '../vessels/plateLayers';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, sectionName } from './valueEdits';
 import { columnKey, joinValueName } from './valueNames';
+
+import type { ValueNeed } from './valueNeeds';
+import type { RoutedValue } from './valueRouting';
 
 type ValueSection = ValuesBlock['sections'][number];
 
@@ -33,6 +44,7 @@ export type ValueCellSource =
   | { kind: 'plate'; row: PlateValueRow }
   | { kind: 'wells' }
   | { kind: 'recipe'; materialId: string; entryId: string }
+  | { kind: 'need'; routed: RoutedValue }
   | { kind: 'worked' };
 
 export interface ValueTableCell {
@@ -47,6 +59,7 @@ export interface ValueTableCell {
   isEditable: boolean;
   canRemove: boolean;
   note: string;
+  neededFor: readonly string[];
   origin: ValueOrigin;
   source: ValueCellSource;
 }
@@ -55,7 +68,7 @@ export type ValueRowStatus = 'current' | 'dropped' | 'missing';
 
 export interface ValueRowSwatch {
   color: string;
-  isOutline: boolean;
+  kind: BandKind;
 }
 
 export type ValueRowRail =
@@ -88,6 +101,13 @@ export interface ValueTableGroup {
   rows: ValueTableRow[];
 }
 
+export interface ValueTableSources {
+  materials: ReadonlyMap<string, MaterialItem>;
+  calculation: BoardCalculation;
+  needs: readonly ValueNeed[];
+  unsortedNames: readonly string[];
+}
+
 interface RowDraft extends ValueTableRow {
   groupKey: string;
   subRows: Map<string, ValueTableRow>;
@@ -100,6 +120,7 @@ const ORIGIN_RANK: Record<ValueOrigin, number> = { typed: 0, plate: 1, materials
 const IN_THE_MIX = 'In the mix';
 const FINAL_IN_THE_WELL = 'Final in the well';
 const WELLS_SUFFIX = ':wells';
+const NOT_NEEDED: readonly string[] = [];
 
 const isVesselMap = (block: Protocol['blocks'][number]): block is VesselMapBlock =>
   block.type === 'plate';
@@ -178,6 +199,7 @@ function workedCell(
     note: isReady
       ? `Worked out: ${working}${wellTotal ? ` (${wellTotal})` : ''}`
       : (result?.message ?? ''),
+    neededFor: NOT_NEEDED,
     origin: 'worked',
     source: { kind: 'worked' },
   };
@@ -218,8 +240,7 @@ function groupLabel(key: string): string {
 export function buildValueTable(
   protocol: Pick<Protocol, 'blocks'>,
   block: ValuesBlock,
-  materials: ReadonlyMap<string, MaterialItem>,
-  calculation: BoardCalculation
+  { materials, calculation, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
   const valuesBlocks = protocol.blocks.filter(
     (candidate): candidate is ValuesBlock => candidate.type === 'values'
@@ -232,25 +253,24 @@ export function buildValueTable(
       .flatMap(section => ('materialId' in section ? [section.materialId] : []))
   );
   const plates = protocol.blocks.filter(isVesselMap);
+  const sources = sourcesIn(protocol);
+  const unsorted = new Set(unsortedNames.map(normalizeMaterialKey));
   const allMaterials = [...materials.values()].filter(material => material.name.trim());
   const listedMaterials = allMaterials.filter(material => !material.isDropped);
-  const swatches = plates.flatMap(plate => {
-    const colorLine = colorLineOf(plate);
-    const treatmentsFirst = [...plate.lines].sort(
-      (a, b) => Number(b === colorLine) - Number(a === colorLine)
-    );
-    return treatmentsFirst.flatMap(line =>
-      line.values.flatMap(value => {
-        const isOutline = line !== colorLine;
-        const color = isOutline ? bandColorOf(plate, value) : value.color;
-        return color ? [{ name: value.text, color, isOutline }] : [];
+  const swatches = plates
+    .flatMap(plate =>
+      lineLayers(plate, colorLineOf(plate), calculation).flatMap(({ line, role }) => {
+        const kind = markKindOf(role);
+        if (!kind) return [];
+        return line.values.flatMap(value => {
+          const color = kind === 'fill' ? value.color : bandColorOf(plate, value);
+          return color ? [{ name: value.text, swatch: { color, kind } }] : [];
+        });
       })
-    );
-  });
-  const swatchOf = (name: string): ValueRowSwatch | undefined => {
-    const found = findNamed(swatches, name, swatch => swatch.name);
-    return found && { color: found.color, isOutline: found.isOutline };
-  };
+    )
+    .sort((a, b) => Number(b.swatch.kind === 'fill') - Number(a.swatch.kind === 'fill'));
+  const swatchOf = (name: string): ValueRowSwatch | undefined =>
+    findNamed(swatches, name, swatch => swatch.name)?.swatch;
 
   const rows: RowDraft[] = [];
   const rowByMaterial = new Map<string, RowDraft>();
@@ -328,6 +348,7 @@ export function buildValueTable(
         isEditable: true,
         canRemove: true,
         note: '',
+        neededFor: NOT_NEEDED,
         origin: 'materials',
         source: { kind: 'item', itemId: item.id },
       });
@@ -345,6 +366,7 @@ export function buildValueTable(
       isEditable: true,
       canRemove: true,
       note: '',
+      neededFor: NOT_NEEDED,
       origin: 'typed',
       source: { kind: 'item', itemId: item.id },
     });
@@ -393,16 +415,23 @@ export function buildValueTable(
         : undefined;
     for (const row of plateRows) {
       const { subject, variant, label } = plateSubject(row);
-      const material = findMaterial(listedMaterials, subject);
+      if (unsorted.has(normalizeMaterialKey(subject))) continue;
+      const donor = findSource(sources, subject);
+      const material = findMaterial(listedMaterials, subject) ?? donor?.material;
       const owner = material
         ? rowForMaterial(material)
         : findNamed(mixRows, subject, candidate => candidate.name);
       const isOnSeveralPlates = (platesBySubject.get(normalizeMaterialKey(subject))?.size ?? 0) > 1;
       const variantText = /^\d+$/.test(variant) ? `series ${variant}` : variant;
-      const tags = [isOnSeveralPlates ? plate.title.trim() : '', variantText].filter(Boolean);
+      const tags = [
+        donor ? donor.source.name.trim() : '',
+        isOnSeveralPlates ? plate.title.trim() : '',
+        variantText,
+      ].filter(Boolean);
       let target: ValueTableRow | undefined;
       if (material !== undefined || owner !== undefined) {
         target = owner && tags.length ? subRowOf(owner, tags.join(' · ')) : owner;
+        if (donor && target && !target.swatch) target.swatch = swatchOf(subject);
       } else if (plateRow) {
         target = subject ? subRowOf(plateRow, [subject, ...tags].join(' · ')) : plateRow;
         if (subject && !target.swatch) target.swatch = swatchOf(subject);
@@ -414,6 +443,7 @@ export function buildValueTable(
         label,
         fullName: row.name,
         ...plateCellFields(row),
+        neededFor: NOT_NEEDED,
         origin: 'plate',
         source: { kind: 'plate', row },
       });
@@ -436,6 +466,7 @@ export function buildValueTable(
       isEditable: false,
       canRemove: false,
       note: '',
+      neededFor: NOT_NEEDED,
       origin: 'plate',
       source: { kind: 'wells' },
     });
@@ -466,7 +497,7 @@ export function buildValueTable(
       subRow.cells.push(
         {
           id: `${row.id}:recipe:${entry.id}`,
-          nameId: `${row.id}:recipe:${entry.id}`,
+          nameId: `${material.id}:recipe:${entry.id}`,
           columnKey: columnKey(IN_THE_MIX),
           label: IN_THE_MIX,
           fullName: `${ingredientName} in ${row.name}`,
@@ -476,6 +507,7 @@ export function buildValueTable(
           isEditable: true,
           canRemove: false,
           note: '',
+          neededFor: NOT_NEEDED,
           origin: 'materials',
           source: { kind: 'recipe', materialId: material.id, entryId: entry.id },
         },
@@ -487,6 +519,54 @@ export function buildValueTable(
         )
       );
     }
+  }
+
+  for (const need of needs) {
+    if (need.kind !== 'absent' || need.routed.destination.kind === 'general') continue;
+    const { destination, fullName } = need.routed;
+    const material = destination.materialId ? materials.get(destination.materialId) : undefined;
+    const row =
+      (destination.kind === 'row' && destination.sectionId
+        ? sectionRows.get(destination.sectionId)
+        : undefined) ??
+      (material && rowForMaterial(material));
+    if (!row) continue;
+    const field = destination.kind === 'field' ? destination.field : undefined;
+    const label =
+      destination.kind === 'row'
+        ? destination.label
+        : material
+          ? fieldLabel(material, destination.field)
+          : '';
+    const key = columnKey(label);
+    if (!key || row.cells.some(cell => cell.columnKey === key)) continue;
+    row.cells.push({
+      id: `need:${row.id}:${key}`,
+      nameId: `need:${row.id}:${key}`,
+      columnKey: key,
+      label,
+      fullName,
+      value: '',
+      unit: field && material ? fieldUnit(material, field) : '',
+      units: field?.unit === UNIT_PER_ITEM ? (field.units ?? []) : undefined,
+      isEditable: true,
+      canRemove: false,
+      note: '',
+      neededFor: need.neededFor,
+      origin: field ? 'materials' : 'typed',
+      source: { kind: 'need', routed: need.routed },
+    });
+  }
+
+  const blankNeeds = new Map(
+    needs.flatMap(need => (need.kind === 'blank' ? [[need.id, need.neededFor] as const] : []))
+  );
+  for (const cell of rows.flatMap(row => [
+    ...row.cells,
+    ...[...row.subRows.values()].flatMap(subRow => subRow.cells),
+  ])) {
+    const neededFor = blankNeeds.get(cell.nameId);
+    if (neededFor && cell.isEditable && !cell.value.trim()) cell.neededFor = neededFor;
   }
 
   const groupKeys = [...new Set(rows.map(row => row.groupKey))].sort(

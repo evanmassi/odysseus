@@ -6,7 +6,7 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
 import { wellTooltipContent } from '../vessels/wellTooltipContent';
 
-import { VALUE_CELL } from './valueTableStyles';
+import { NEEDED_TEXT, VALUE_CELL } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 
 export interface ValueCellView {
@@ -19,12 +19,15 @@ export interface ValueCellView {
   isDuplicate: boolean;
   isUsed: boolean;
   isWorked: boolean;
+  isNeeded: boolean;
 }
 
 interface WorkbenchValueTableCellProps {
   view: ValueCellView;
   isEditing: boolean;
+  fillCount: number;
   onEdit: (isEditing: boolean) => void;
+  onFillOthers: () => void;
   onMoveEdit: (step: 1 | -1) => void;
   onValueChange: (value: string) => void;
   onUnitChange: (unit: string) => void;
@@ -34,7 +37,9 @@ interface WorkbenchValueTableCellProps {
 export function WorkbenchValueTableCell({
   view,
   isEditing,
+  fillCount,
   onEdit,
+  onFillOthers,
   onMoveEdit,
   onValueChange,
   onUnitChange,
@@ -95,23 +100,36 @@ export function WorkbenchValueTableCell({
           )}
         </span>
       ) : (
-        <Tooltip content={wellTooltipContent(view.hoverLines)}>
-          <button
-            type="button"
-            disabled={!view.isEditable}
-            data-align="end"
-            className="inline-edit font-mono text-data-sm"
-            onClick={() => onEdit(true)}
-          >
-            {view.value.trim() ? (
-              displayValue(view.value, view.unit)
-            ) : view.isEditable ? (
-              <span className="font-sans text-label-xs text-muted-foreground">to fill in</span>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
-          </button>
-        </Tooltip>
+        <span className="inline-flex items-center justify-end gap-2">
+          {fillCount > 0 && (
+            <button
+              type="button"
+              className="whitespace-nowrap font-sans text-label-xs text-primary hover:underline"
+              onClick={onFillOthers}
+            >
+              Same for {fillCount === 1 ? '1 other' : `${fillCount} others`}
+            </button>
+          )}
+          <Tooltip content={wellTooltipContent(view.hoverLines)}>
+            <button
+              type="button"
+              disabled={!view.isEditable}
+              data-align="end"
+              className="inline-edit font-mono text-data-sm"
+              onClick={() => onEdit(true)}
+            >
+              {view.value.trim() ? (
+                displayValue(view.value, view.unit)
+              ) : view.isNeeded ? (
+                <span className={NEEDED_TEXT}>needed</span>
+              ) : view.isEditable ? (
+                <span className="font-sans text-label-xs text-muted-foreground">to fill in</span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </button>
+          </Tooltip>
+        </span>
       )}
     </td>
   );

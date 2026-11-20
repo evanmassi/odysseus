@@ -7,8 +7,11 @@ import { Button, Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { canAddToRow } from '../../../../utils/values/valueFill';
+import { markSwatchClass, markSwatchStyle } from '../vessels/markSwatch';
+import { wellTooltipContent } from '../vessels/wellTooltipContent';
 
-import { stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
+import { NEEDED_TEXT, stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 import { WorkbenchValueTableCell, type ValueCellView } from './WorkbenchValueTableCell';
 
 import type {
@@ -18,12 +21,19 @@ import type {
   ValueTableRow,
 } from '../../../../utils/values/valueTable';
 
+export interface FillOffer {
+  cellId: string;
+  count: number;
+}
+
 export interface ValueRowActions {
   onEditCell: (cellId: string | undefined) => void;
   onEditName: (rowId: string | undefined) => void;
   onRename: (row: ValueTableRow, name: string) => void;
   onToggleAdd: (rowId: string) => void;
   onFillColumn: (row: ValueTableRow, column: ValueTableColumn) => void;
+  onAddNeeded: (row: ValueTableRow, cell: ValueTableCell) => void;
+  onFillOthers: () => void;
   onValueChange: (cell: ValueTableCell, value: string) => void;
   onUnitChange: (cell: ValueTableCell, unit: string) => void;
   onRemoveCell: (cell: ValueTableCell) => void;
@@ -37,6 +47,7 @@ interface WorkbenchValueTableRowProps {
   isZebra: boolean;
   isNameCovering: boolean;
   editingCellId: string | undefined;
+  fillOffer: FillOffer | undefined;
   isEditingName: boolean;
   isAdding: boolean;
   actions: ValueRowActions;
@@ -80,6 +91,7 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
   isZebra,
   isNameCovering,
   editingCellId,
+  fillOffer,
   isEditingName,
   isAdding,
   actions,
@@ -87,11 +99,11 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
   const cellByColumn = new Map(row.cells.map(cell => [cell.columnKey, cell]));
   const editableIds = columns.flatMap(column => {
     const cell = cellByColumn.get(column.key);
-    return cell && views[cell.id].isEditable ? [cell.id] : [];
+    return cell && cell.source.kind !== 'need' && views[cell.id].isEditable ? [cell.id] : [];
   });
   const moveEdit = (cellId: string, step: 1 | -1) =>
     actions.onEditCell(editableIds[editableIds.indexOf(cellId) + step]);
-  const canAdd = !row.isSubRow && (row.section !== undefined || row.material !== undefined);
+  const canAdd = canAddToRow(row);
   const isNameEditable = row.section !== undefined && row.status !== 'missing';
   const note = STATUS_NOTE[row.status];
 
@@ -100,15 +112,8 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
       {row.swatch && (
         <span
           aria-hidden
-          className={`h-3 w-3 flex-none border ${row.swatch.isOutline ? 'border-2' : 'border-line-soft'}`}
-          style={
-            row.swatch.isOutline
-              ? {
-                  borderColor: row.swatch.color,
-                  backgroundColor: `color-mix(in srgb, ${row.swatch.color} 14%, transparent)`,
-                }
-              : { backgroundColor: row.swatch.color }
-          }
+          className={markSwatchClass(row.swatch.kind)}
+          style={markSwatchStyle(row.swatch.kind, row.swatch.color)}
         />
       )}
       {isEditingName ? (
@@ -163,12 +168,33 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
       </td>
       {columns.map(column => {
         const cell = cellByColumn.get(column.key);
+        if (cell?.source.kind === 'need') {
+          return (
+            <td key={column.key} className={VALUE_CELL}>
+              <Tooltip
+                content={wellTooltipContent([...views[cell.id].hoverLines, 'Click to add it'])}
+              >
+                <button
+                  type="button"
+                  data-align="end"
+                  aria-label={`Add ${cell.fullName}`}
+                  className={`inline-edit ${NEEDED_TEXT}`}
+                  onClick={() => actions.onAddNeeded(row, cell)}
+                >
+                  needed
+                </button>
+              </Tooltip>
+            </td>
+          );
+        }
         if (cell) {
           return (
             <WorkbenchValueTableCell
               key={column.key}
               view={views[cell.id]}
               isEditing={editingCellId === cell.id}
+              fillCount={fillOffer?.cellId === cell.id ? fillOffer.count : 0}
+              onFillOthers={actions.onFillOthers}
               onEdit={isEditing => actions.onEditCell(isEditing ? cell.id : undefined)}
               onMoveEdit={step => moveEdit(cell.id, step)}
               onValueChange={value => actions.onValueChange(cell, value)}

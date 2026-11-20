@@ -12,6 +12,7 @@ import {
   nameKey,
   type BoardCalculation,
   type BoardName,
+  type FormulaGap,
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
 import { formatNumber } from '../formulas/quantities';
@@ -105,16 +106,8 @@ function subjectNames(
     inputs.push({ kind: 'value', id: id(part), name, value, unit, workedOut: group });
     return name;
   };
-  const formula = (part: string, name: string, expr: string, unit: string, problem?: string) =>
-    formulas.push({
-      kind: 'formula',
-      id: id(part),
-      name,
-      expr,
-      unit,
-      workedOut: group,
-      ...(problem && { problem }),
-    });
+  const formula = (part: string, name: string, expr: string, unit: string, gap?: FormulaGap) =>
+    formulas.push({ kind: 'formula', id: id(part), name, expr, unit, workedOut: group, ...gap });
 
   const wellsName = `${subject} wells`;
   if (!names.has(nameKey(wellsName))) {
@@ -154,10 +147,13 @@ function subjectNames(
   const needed = `${subject} cells needed`;
   formula('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
   const plating = `${subject} plating concentration`;
-  const platingProblem = !perWell
-    ? 'Cells per well differ between wells'
+  const platingProblem: FormulaGap | undefined = !perWell
+    ? { problem: 'Cells per well differ between wells' }
     : !volume
-      ? 'Needs “Volume per well” in Values, the volume of cells added to each well'
+      ? {
+          problem: 'Needs “Volume per well” in Values, the volume of cells added to each well',
+          need: joinValueName(nameWithoutNotes(material.name), 'Volume per well'),
+        }
       : undefined;
   formula(
     'plating',
@@ -192,14 +188,16 @@ function subjectNames(
         `${subject} vials to thaw`,
         perVial ? `round up(${needed} ÷ ${perVial})` : '',
         '',
-        perVial ? undefined : 'Needs cells per vial in Donors'
+        perVial ? undefined : { problem: 'Needs cells per vial in Donors' }
       );
     }
-    const missingLive = live
+    const missingLive: FormulaGap | undefined = live
       ? undefined
-      : source
-        ? 'Needs a live count in Donors'
-        : 'Needs a live count, or a stock concentration in cells/mL in Materials';
+      : {
+          problem: source
+            ? 'Needs a live count in Donors'
+            : 'Needs a live count, or a stock concentration in cells/mL in Materials',
+        };
     formula(
       'resuspend',
       `${subject} resuspend volume`,
@@ -221,7 +219,7 @@ function subjectNames(
   const problem = `Rename “${clash}”: the cell math for ${subject} needs that name.`;
   return formulas
     .filter(entry => !names.has(nameKey(entry.name)))
-    .map(entry => ({ ...entry, problem }));
+    .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
 }
 
 export function cellFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {

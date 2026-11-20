@@ -1,6 +1,7 @@
 import { memo } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
+import { PaintBucket } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 import {
@@ -13,18 +14,28 @@ import { BLOCK_ICONS } from '../../board/blockIcons';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 
 import { VALUE_HEAD_CELL, VALUE_NAME_CELL } from './valueTableStyles';
+import { WorkbenchValueColumnFillCell } from './WorkbenchValueColumnFillCell';
 
 import type { ValueOrigin, ValueTableColumn } from '../../../../utils/values/valueTable';
 
 export interface ValueColumnActions {
   onEditColumn: (groupKey: string, column: ValueTableColumn | undefined) => void;
   onRenameColumn: (name: string) => void;
+  onStartFill: (groupKey: string, column: ValueTableColumn | undefined) => void;
+  onFillBlanks: (groupKey: string, column: ValueTableColumn, value: string, unit: string) => void;
+}
+
+interface ColumnFillInfo {
+  count: number;
+  unit: string;
 }
 
 interface WorkbenchValueHeaderRowProps {
   groupKey: string;
   columns: readonly ValueTableColumn[];
+  columnFills: Readonly<Record<string, ColumnFillInfo>>;
   editingColumnKey: string | undefined;
+  fillingColumnKey: string | undefined;
   actions: ValueColumnActions;
 }
 
@@ -92,10 +103,35 @@ function ColumnHeading({
   );
 }
 
+function ColumnFillButton({
+  column,
+  count,
+  onStart,
+}: {
+  column: ValueTableColumn;
+  count: number;
+  onStart: () => void;
+}) {
+  return (
+    <Tooltip content={`Fill the ${count} empty with one value`}>
+      <button
+        type="button"
+        aria-label={`Fill the empty ${column.label}`}
+        className="text-muted-foreground opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover/head:opacity-100"
+        onClick={onStart}
+      >
+        <PaintBucket aria-hidden className="h-3 w-3" />
+      </button>
+    </Tooltip>
+  );
+}
+
 export const WorkbenchValueHeaderRow = memo(function WorkbenchValueHeaderRow({
   groupKey,
   columns,
+  columnFills,
   editingColumnKey,
+  fillingColumnKey,
   actions,
 }: WorkbenchValueHeaderRowProps) {
   return (
@@ -105,16 +141,40 @@ export const WorkbenchValueHeaderRow = memo(function WorkbenchValueHeaderRow({
       >
         Name
       </th>
-      {columns.map(column => (
-        <th key={column.key} className={VALUE_HEAD_CELL}>
-          <ColumnHeading
-            column={column}
-            isEditing={editingColumnKey === column.key}
-            onEdit={next => actions.onEditColumn(groupKey, next)}
-            onRename={actions.onRenameColumn}
-          />
-        </th>
-      ))}
+      {columns.map(column => {
+        const fill = columnFills[column.key];
+        const canFill = column.origin !== 'worked' && fill && fill.count > 0;
+        if (canFill && fillingColumnKey === column.key) {
+          return (
+            <WorkbenchValueColumnFillCell
+              key={column.key}
+              count={fill.count}
+              unit={fill.unit}
+              onFill={(value, unit) => actions.onFillBlanks(groupKey, column, value, unit)}
+              onClose={() => actions.onStartFill(groupKey, undefined)}
+            />
+          );
+        }
+        return (
+          <th key={column.key} className={`group/head ${VALUE_HEAD_CELL}`}>
+            <span className="inline-flex items-center gap-1.5">
+              {canFill && (
+                <ColumnFillButton
+                  column={column}
+                  count={fill.count}
+                  onStart={() => actions.onStartFill(groupKey, column)}
+                />
+              )}
+              <ColumnHeading
+                column={column}
+                isEditing={editingColumnKey === column.key}
+                onEdit={next => actions.onEditColumn(groupKey, next)}
+                onRename={actions.onRenameColumn}
+              />
+            </span>
+          </th>
+        );
+      })}
       <th className="w-px" />
     </tr>
   );
