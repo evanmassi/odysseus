@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
 
@@ -50,7 +50,7 @@ import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
 import { WorkbenchFormulaEditor } from './WorkbenchFormulaEditor';
-import { WorkbenchFormulaRow } from './WorkbenchFormulaRow';
+import { FORMULA_ROW_ATTRIBUTE, WorkbenchFormulaRow } from './WorkbenchFormulaRow';
 import { WorkbenchFormulaSection } from './WorkbenchFormulaSection';
 import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
 import { WorkbenchFormulaTable } from './WorkbenchFormulaTable';
@@ -134,6 +134,13 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const [openId, setOpenId] = useState<string>();
   const [typed, setTyped] = useState('');
   const columnsRef = useRef<HTMLDivElement>(null);
+  const openRowBox = useCallback(
+    () =>
+      columnsRef.current
+        ?.querySelector(`[${FORMULA_ROW_ATTRIBUTE}="${openId}"]`)
+        ?.getBoundingClientRect(),
+    [openId]
+  );
 
   const materials = useMemo(
     () =>
@@ -282,34 +289,20 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     });
 
   const ownItems = (section: CalculationSection) =>
-    section.items.map(formula =>
-      formula.id === openId ? (
-        <WorkbenchFormulaEditor
-          key={formula.id}
-          formula={formula}
-          material={section.material}
-          calculation={calculation}
-          onChange={change => edit(draft => updateFormula(draft, block.id, formula.id, change))}
-          onAddMissing={name =>
-            edit(draft => addNamedValue(draft, name, section.material, activePageId))
-          }
-          onRemove={() => {
-            edit(draft => removeFormula(draft, block.id, formula.id));
-            setOpenId(undefined);
-          }}
-          onClose={() => setOpenId(undefined)}
-        />
-      ) : (
-        <WorkbenchFormulaRow
-          key={formula.id}
-          formulaId={formula.id}
-          name={formula.name}
-          result={results[formula.id]}
-          material={section.material}
-          onOpen={setOpenId}
-        />
-      )
-    );
+    section.items.map(formula => (
+      <WorkbenchFormulaRow
+        key={formula.id}
+        formulaId={formula.id}
+        name={formula.name}
+        result={results[formula.id]}
+        material={section.material}
+        isOpen={formula.id === openId}
+        onOpen={setOpenId}
+      />
+    ));
+  const open = sections
+    .flatMap(section => section.items.map(formula => ({ formula, material: section.material })))
+    .find(({ formula }) => formula.id === openId);
 
   const renderPart = (part: CalculationPart) => {
     if (part.kind === 'table') {
@@ -446,6 +439,26 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       )}
       {wideTables.length > 0 && (
         <div className="mb-6 flex flex-col gap-6">{wideTables.map(renderPart)}</div>
+      )}
+      {open && (
+        <WorkbenchFormulaEditor
+          key={open.formula.id}
+          formula={open.formula}
+          material={open.material}
+          calculation={calculation}
+          anchorOf={openRowBox}
+          onChange={change =>
+            edit(draft => updateFormula(draft, block.id, open.formula.id, change))
+          }
+          onAddMissing={name =>
+            edit(draft => addNamedValue(draft, name, open.material, activePageId))
+          }
+          onRemove={() => {
+            edit(draft => removeFormula(draft, block.id, open.formula.id));
+            setOpenId(undefined);
+          }}
+          onClose={() => setOpenId(undefined)}
+        />
       )}
       <div ref={columnsRef} className="flex items-start gap-x-6">
         {columns.map((column, index) => (

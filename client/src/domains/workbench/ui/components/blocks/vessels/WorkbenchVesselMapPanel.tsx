@@ -10,6 +10,7 @@ import { BLOCK_ID_ATTRIBUTE } from '../../../../hooks/useShowBlock';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { APP_ROOT_ID } from '../../../../utils/dom/appRoot';
 import { sourceSummaries } from '../../../../utils/materials/materialSources';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
 import {
@@ -57,7 +58,6 @@ interface WorkbenchVesselMapPanelProps {
 }
 
 // PITFALL: the well editor, menus and dialogs are portaled outside the app root, so clicks in them never count as clicking away.
-const APP_ROOT_ID = 'root';
 const APP_HEADER = '.app-header';
 
 interface EditorOpening {

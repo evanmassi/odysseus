@@ -3,11 +3,12 @@ import { memo, useState } from 'react';
 import { Pencil } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
-import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
+import { ROW_HOVER_GLOW, ROW_LIT_HOVER } from '@shared/ui/primitives/table/rowGlow';
 
 import { nameWithin } from '../../../../utils/formulas/formulaScopes';
+import { LEADER_LINE } from '../../board/leaderLineClass';
 
-import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
+import { FORMULA_WORKING_INDENT } from './formulaLineClasses';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
 import type { FormulaResult } from '../../../../utils/formulas/boardCalculation';
@@ -18,8 +19,11 @@ interface WorkbenchFormulaRowProps {
   name: string;
   result: FormulaResult | undefined;
   material: MaterialItem | undefined;
+  isOpen: boolean;
   onOpen: (formulaId: string) => void;
 }
+
+export const FORMULA_ROW_ATTRIBUTE = 'data-formula-row';
 
 const answerOf = (result: FormulaResult | undefined) =>
   result?.status === 'ok' && 'text' in result.output ? result.output.text : '?';
@@ -29,6 +33,7 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
   name,
   result,
   material,
+  isOpen,
   onOpen,
 }: WorkbenchFormulaRowProps) {
   const [isShowingWorking, setIsShowingWorking] = useState(false);
@@ -36,7 +41,8 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
   const isWorkingShown = isShowingWorking || result?.status !== 'ok';
   return (
     <div
-      className={`row-tools-host px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${ROW_HOVER_GLOW.primary}`}
+      {...{ [FORMULA_ROW_ATTRIBUTE]: formulaId }}
+      className={`row-tools-host px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${isOpen ? ROW_LIT_HOVER : ROW_HOVER_GLOW.primary}`}
       onDoubleClick={() => onOpen(formulaId)}
     >
       <span className="flex w-full items-baseline">
@@ -49,7 +55,7 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
           <span className="text-body-sm text-foreground">
             {shortName || <span className="text-muted-foreground">Unnamed</span>}
           </span>
-          <span aria-hidden className={FORMULA_LEADER} />
+          <span aria-hidden className={LEADER_LINE} />
           <span className="font-mono text-data-sm text-action">{answerOf(result)}</span>
         </button>
         <span className="row-tools">

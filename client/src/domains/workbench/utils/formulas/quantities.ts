@@ -150,22 +150,24 @@ export function readableAmount(value: string, unit: string): string {
   return quantity ? autoFormat(quantity) : displayValue(value, unit);
 }
 
-export function autoFormat(quantity: Quantity): string {
+export function autoUnit(quantity: Quantity): string | undefined {
   const key = dimensionKey(quantity.dimension);
   const candidates = AUTO_DISPLAY_UNITS.find(
     units => dimensionKey(scaleOf(units[0]).dimension) === key
   );
-  if (!candidates) {
-    const number = formatNumber(quantity.magnitude);
-    return key ? `${number} (${describeDimension(quantity.dimension)})` : number;
-  }
+  if (!candidates) return undefined;
   const size = Math.abs(quantity.magnitude);
-  const unit =
-    size === 0
-      ? candidates[Math.min(1, candidates.length - 1)]
-      : (candidates.find(id => size / scaleOf(id).factor >= 1) ??
-        candidates[candidates.length - 1]);
-  return `${formatNumber(quantity.magnitude / scaleOf(unit).factor)} ${unit}`;
+  return size === 0
+    ? candidates[Math.min(1, candidates.length - 1)]
+    : (candidates.find(id => size / scaleOf(id).factor >= 1) ?? candidates[candidates.length - 1]);
+}
+
+export function autoFormat(quantity: Quantity): string {
+  const unit = autoUnit(quantity);
+  if (unit) return `${formatNumber(quantity.magnitude / scaleOf(unit).factor)} ${unit}`;
+  const number = formatNumber(quantity.magnitude);
+  const key = dimensionKey(quantity.dimension);
+  return key ? `${number} (${describeDimension(quantity.dimension)})` : number;
 }
 
 const isNotation = (unit: string) => unit === RATIO_NOTATION || unit === PAIR_NOTATION;

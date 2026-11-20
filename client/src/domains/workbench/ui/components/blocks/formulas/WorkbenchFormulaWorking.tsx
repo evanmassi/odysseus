@@ -2,15 +2,13 @@ import { Fragment } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
+import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
 import { OPERATOR_SYMBOLS } from '../../../../utils/formulas/formulaParser';
-import { describeDimension } from '../../../../utils/formulas/quantities';
 import {
   workingFraction,
   type WorkingNode,
   type WorkingRef,
 } from '../../../../utils/formulas/workingTree';
-
-import type { FormulaResult } from '../../../../utils/formulas/boardCalculation';
 
 interface WorkbenchFormulaWorkingProps {
   result: FormulaResult | undefined;
@@ -174,14 +172,12 @@ export function WorkbenchFormulaWorking({
   );
   if (isCompact) return working || null;
   return (
-    <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       {working}
       {outputError ? (
         <p className="text-label-xs text-danger-text">{outputError}</p>
       ) : (
-        <span className="text-label-xs text-success-text">
-          ✓ {describeDimension(result.quantity.dimension)}
-        </span>
+        <span className="font-mono text-data-lg text-action">= {formulaAnswerText(result)}</span>
       )}
     </div>
   );

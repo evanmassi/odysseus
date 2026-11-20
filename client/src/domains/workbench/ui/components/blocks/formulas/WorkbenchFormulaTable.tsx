@@ -5,9 +5,9 @@ import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
+import { LEADER_LINE } from '../../board/leaderLineClass';
 import { META_LABEL } from '../../board/metaLabelClass';
 
-import { FORMULA_LEADER } from './formulaLineClasses';
 import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
 import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
@@ -98,7 +98,7 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                             >
                               {row.label}
                             </button>
-                            <span aria-hidden className={FORMULA_LEADER} />
+                            <span aria-hidden className={LEADER_LINE} />
                             <span className="whitespace-nowrap font-mono text-data-sm">
                               {answerOf(line)}
                             </span>

@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
 import { createPortal } from 'react-dom';
 
 import { Button } from '@shared/ui';
 
+import { usePlacedBeside } from '../../../../hooks/usePlacedBeside';
 import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
@@ -41,6 +42,7 @@ import {
 } from '../../../../utils/vessels/wellEdits';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
 import { knownNamesIn } from '../../../../utils/vessels/wellValueSuggestions';
+import { POPOUT_PANEL } from '../../board/popoutPanelClass';
 
 import { useUpdateVesselMap } from './useUpdateVesselMap';
 import { WorkbenchWellLineRow } from './WorkbenchWellLineRow';
@@ -84,23 +86,6 @@ const BLANK_ROW: WellRow = {
   unit: '',
   seriesId: undefined,
 };
-const GAP = 12;
-const MARGIN = 8;
-
-function placeBeside(anchor: DOMRect, editor: HTMLElement) {
-  const width = editor.offsetWidth;
-  const height = editor.offsetHeight;
-  const fitsRight = anchor.right + GAP + width <= window.innerWidth - MARGIN;
-  const fitsLeft = anchor.left - GAP - width >= MARGIN;
-  const left = fitsRight
-    ? anchor.right + GAP
-    : fitsLeft
-      ? anchor.left - GAP - width
-      : Math.max(MARGIN, Math.min(anchor.left, window.innerWidth - width - MARGIN));
-  const top = fitsRight || fitsLeft ? anchor.top : anchor.bottom + MARGIN;
-  return { left, top: Math.max(MARGIN, Math.min(top, window.innerHeight - height - MARGIN)) };
-}
-
 function selectionBox(root: HTMLElement, keys: ReadonlySet<string>): DOMRect | undefined {
   const rects = [...root.querySelectorAll<HTMLElement>('[data-well-key]')]
     .filter(element => keys.has(element.dataset['wellKey'] ?? ''))
@@ -132,9 +117,13 @@ export function WorkbenchWellEditorPanel({
   const knownNames = useWorkbenchData(state => knownNamesIn(state.protocol));
   const updateVesselMap = useUpdateVesselMap(block);
   const editorRef = useRef<HTMLDivElement>(null);
+  const selectionAnchor = useCallback(
+    () => (wellsRef.current ? selectionBox(wellsRef.current, keys) : undefined),
+    [wellsRef, keys]
+  );
+  const position = usePlacedBeside(editorRef, selectionAnchor);
   const [drafts, setDrafts] = useState<DraftLine[]>([]);
   const [freshLineId] = useState(createId);
-  const [position, setPosition] = useState({ left: -9999, top: 0 });
   const [openSeries, setOpenSeries] = useState<SeriesForm>();
   const keyList = [...keys];
   const onWells = wellRows(block, keyList).flatMap(row =>
@@ -219,28 +208,12 @@ export function WorkbenchWellEditorPanel({
     return () => document.removeEventListener('keydown', closeOnEscape);
   }, [onClose]);
 
-  useLayoutEffect(() => {
-    const place = () => {
-      const root = wellsRef.current;
-      const editor = editorRef.current;
-      const anchor = root && selectionBox(root, keys);
-      if (anchor && editor) setPosition(placeBeside(anchor, editor));
-    };
-    place();
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
-    return () => {
-      window.removeEventListener('resize', place);
-      window.removeEventListener('scroll', place, true);
-    };
-  }, [keys, wellsRef, rows.length, openSeries?.lineId]);
-
   return createPortal(
     <div
       ref={editorRef}
       role="dialog"
       aria-label={`Edit ${where || count}`}
-      className="fixed z-40 flex w-[420px] max-w-[calc(100vw-16px)] flex-col gap-2 border border-line-mid bg-card p-3 shadow-lg"
+      className={POPOUT_PANEL}
       style={position}
     >
       <div className="flex items-center gap-2">

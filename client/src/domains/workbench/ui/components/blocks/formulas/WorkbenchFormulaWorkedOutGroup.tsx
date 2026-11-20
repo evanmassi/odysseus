@@ -6,9 +6,10 @@ import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
+import { LEADER_LINE } from '../../board/leaderLineClass';
 import { META_LABEL } from '../../board/metaLabelClass';
 
-import { FORMULA_LEADER, FORMULA_WORKING_INDENT } from './formulaLineClasses';
+import { FORMULA_WORKING_INDENT } from './formulaLineClasses';
 import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
@@ -79,7 +80,7 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
               onClick={() => toggle(line.id)}
             >
               <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
-              <span aria-hidden className={FORMULA_LEADER} />
+              <span aria-hidden className={LEADER_LINE} />
               <span className="font-mono text-data-sm text-foreground">
                 {result?.status === 'ok' && formulaAnswerText(result)}
               </span>

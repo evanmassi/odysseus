@@ -1,8 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
+import { Info } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
+import { AccentTick, SearchInput } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { useProtocolOutsidePages } from '../../../hooks/useWorkbenchSlice';
@@ -13,6 +15,8 @@ import { matchesWordStarts } from '../../../utils/formulas/nameMatching';
 import { listedMaterials } from '../../../utils/materials/materialLookup';
 import { STEP_PRESETS } from '../../../utils/steps/stepPresets';
 import { templateText } from '../../../utils/steps/stepTemplate';
+import { LEADER_LINE } from '../board/leaderLineClass';
+import { SECTION_RULE } from '../board/sectionRuleClass';
 
 import { useInsertTrayStore } from './insertTrayStore';
 import { INSERT_TRAY_ATTRIBUTE, isInInsertTray } from './trayFocus';
@@ -25,13 +29,12 @@ const VIEWPORT_MARGIN_PX = 8;
 const MIN_WIDTH_PX = 320;
 const MAX_WIDTH_PX = 420;
 
-const GROUP_TITLE = 'px-3 pb-1 pt-2.5 text-label-2xs font-semibold text-foreground/40';
-const STICKY_HEADING = 'sticky top-0 z-10 bg-popover';
-const TRAY_ROW = `flex cursor-pointer items-baseline gap-3 px-3 py-1 text-body-sm text-foreground ${ROW_HOVER_GLOW.primary}`;
-const ROW_VALUE = 'ml-auto max-w-[55%] truncate font-mono text-data-sm text-muted-foreground';
-const HEADING_KIND = 'ml-auto text-label-2xs text-muted-foreground';
-const SEARCH_INPUT =
-  'w-full border-b border-line-faint bg-transparent px-3 py-2 text-body-sm text-foreground outline-none placeholder:text-muted-foreground';
+const GROUP_HEADING =
+  'sticky top-0 z-10 flex items-center gap-2.5 bg-popover px-3 pb-1 pt-3 text-body-sm';
+const TRAY_ROW = `flex cursor-pointer items-baseline gap-2 px-3 py-1 text-body-sm text-foreground ${ROW_HOVER_GLOW.primary}`;
+const ZEBRA = 'even:bg-[hsl(var(--foreground)/var(--alpha-zebra))]';
+const ROW_VALUE = 'max-w-[55%] flex-none truncate font-mono text-data-sm text-foreground';
+const HEADING_KIND = 'flex-none font-mono text-data-sm text-muted-foreground';
 const OPERATOR_BUTTON =
   'min-w-7 cursor-pointer border border-line-mid px-2 py-px font-mono text-data-sm text-foreground hover:border-primary/60';
 
@@ -136,33 +139,30 @@ export function WorkbenchNameTray() {
             if (!(event.target instanceof HTMLInputElement)) event.preventDefault();
           }}
         >
-          <input
-            value={query}
-            placeholder={target.mode === 'step' ? 'Search steps and names' : 'Search names'}
-            aria-label="Search the insert list"
-            spellCheck={false}
-            autoComplete="off"
-            className={SEARCH_INPUT}
-            onChange={event => setQuery(event.target.value)}
-            onKeyDown={event => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                insertTopMatch();
-              } else if (event.key === 'Escape') {
-                event.preventDefault();
-                if (query) setQuery('');
-                else target.element.focus();
-              }
-            }}
-            onBlur={event => {
-              const isBackAtTarget = event.relatedTarget === target.element;
-              if (!isBackAtTarget && !isInInsertTray(event.relatedTarget)) target.leave();
-            }}
-          />
-          <div className="max-h-72 overflow-auto pb-1.5 pt-0.5">
+          <div className="border-b border-line-faint px-3 pb-2 pt-2.5">
+            <SearchInput
+              value={query}
+              placeholder="Search…"
+              aria-label="Search the insert list"
+              onChange={setQuery}
+              onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  insertTopMatch();
+                } else if (event.key === 'Escape') {
+                  event.preventDefault();
+                  if (query) setQuery('');
+                  else target.element.focus();
+                }
+              }}
+              onBlur={event => {
+                const isBackAtTarget = event.relatedTarget === target.element;
+                if (!isBackAtTarget && !isInInsertTray(event.relatedTarget)) target.leave();
+              }}
+            />
             {target.mode === 'formula' && (
               <>
-                <div className="flex flex-wrap gap-1 px-3 pb-0.5 pt-2">
+                <div className="flex flex-wrap gap-1 pt-2">
                   {FORMULA_OPERATORS.map(operator => (
                     <button
                       key={operator}
@@ -174,7 +174,7 @@ export function WorkbenchNameTray() {
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-1 px-3 pb-0.5 pt-1">
+                <div className="flex flex-wrap gap-1 pt-1">
                   {functions.map(name => (
                     <button
                       key={name}
@@ -188,62 +188,81 @@ export function WorkbenchNameTray() {
                 </div>
               </>
             )}
+          </div>
+          <div className="max-h-72 overflow-auto pb-1.5">
             {target.mode === 'step' && (
               <>
                 {presets.length > 0 && (
-                  <div className={`${GROUP_TITLE} ${STICKY_HEADING} type-label`}>Common steps</div>
-                )}
-                {presets.map(preset => (
-                  <div
-                    key={preset.label}
-                    role="button"
-                    tabIndex={-1}
-                    className={TRAY_ROW}
-                    onClick={() => insertPreset(preset.text)}
-                    onKeyDown={event => {
-                      if (event.key === 'Enter') insertPreset(preset.text);
-                    }}
-                  >
-                    <span>{preset.label}</span>
-                    <span className={ROW_VALUE}>{preset.shown}</span>
+                  <div className={GROUP_HEADING}>
+                    <AccentTick />
+                    <span className="type-name font-semibold">Common steps</span>
+                    <span aria-hidden className={`${SECTION_RULE} min-w-0`} />
                   </div>
-                ))}
+                )}
+                <div>
+                  {presets.map(preset => (
+                    <div
+                      key={preset.label}
+                      role="button"
+                      tabIndex={-1}
+                      className={`${TRAY_ROW} ${ZEBRA}`}
+                      onClick={() => insertPreset(preset.text)}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') insertPreset(preset.text);
+                      }}
+                    >
+                      <span>{preset.label}</span>
+                      <span aria-hidden className={LEADER_LINE} />
+                      <span className={ROW_VALUE}>{preset.shown}</span>
+                    </div>
+                  ))}
+                </div>
               </>
             )}
             {!hasMatches && (
               <p className="px-3 py-3 text-body-sm text-muted-foreground">
-                Nothing matches “{query}”.
+                {query.trim()
+                  ? `Nothing matches “${query.trim()}”.`
+                  : 'No names on the board yet. Add values or materials and they show up here.'}
               </p>
             )}
             {groups.map(group => (
               <div key={group.key}>
-                {group.headingName ? (
-                  <div
-                    className={`${TRAY_ROW} ${STICKY_HEADING} pt-2 font-semibold`}
-                    {...{ [PICK_NAME_ATTRIBUTE]: group.headingName }}
-                  >
-                    <span>{group.title}</span>
-                    {group.kind && <span className={HEADING_KIND}>{group.kind}</span>}
-                  </div>
-                ) : (
-                  <div className={`${GROUP_TITLE} ${STICKY_HEADING} type-name`}>{group.title}</div>
-                )}
-                {group.rows.map(row => (
-                  <div
-                    key={row.name}
-                    className={`${TRAY_ROW} pl-6`}
-                    {...{ [PICK_NAME_ATTRIBUTE]: row.name }}
-                  >
-                    <span>{row.label}</span>
-                    {row.value && <span className={ROW_VALUE}>{row.value}</span>}
-                  </div>
-                ))}
+                <div
+                  className={`${GROUP_HEADING} ${group.headingName ? `cursor-pointer ${ROW_HOVER_GLOW.primary}` : ''}`}
+                  {...(group.headingName && { [PICK_NAME_ATTRIBUTE]: group.headingName })}
+                >
+                  <AccentTick />
+                  <span className="min-w-0 truncate type-name font-semibold text-foreground">
+                    {group.title}
+                  </span>
+                  {group.kind && <span className={HEADING_KIND}>· {group.kind}</span>}
+                  <span aria-hidden className={`${SECTION_RULE} min-w-0`} />
+                </div>
+                <div>
+                  {group.rows.map(row => (
+                    <div
+                      key={row.name}
+                      className={`${TRAY_ROW} ${ZEBRA} pl-6`}
+                      {...{ [PICK_NAME_ATTRIBUTE]: row.name }}
+                    >
+                      <span className="min-w-0">{row.label}</span>
+                      {row.value && (
+                        <>
+                          <span aria-hidden className={LEADER_LINE} />
+                          <span className={ROW_VALUE}>{row.value}</span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-          <p className="border-t border-line-faint px-3 pb-2 pt-1.5 text-caption text-muted-foreground">
-            Click to insert, or drag into place. Names on the board can be dragged in too.
-            {target.mode === 'step' && ' Tab jumps between highlighted blanks.'}
+          <p className="flex items-center gap-1.5 border-t border-line-faint px-3 py-1.5 text-label-xs text-muted-foreground">
+            <Info aria-hidden className="h-3.5 w-3.5 flex-none" />
+            Click or drag to insert.
+            {target.mode === 'step' && ' Tab jumps to the next blank.'}
           </p>
         </div>
       )}

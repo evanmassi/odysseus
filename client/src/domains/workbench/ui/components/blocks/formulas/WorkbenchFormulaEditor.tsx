@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
+import { Trash2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
-import { Button, Select } from '@shared/ui';
+import { Button, Select, Tooltip } from '@shared/ui';
 
-import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
+import { usePlacedBeside } from '../../../../hooks/usePlacedBeside';
+import { APP_ROOT_ID } from '../../../../utils/dom/appRoot';
 import {
   formulaCompletions,
   formulaTextParts,
@@ -14,8 +17,12 @@ import {
   nameWithin,
   type FormulaCompletion,
 } from '../../../../utils/formulas/formulaScopes';
+import { autoUnit, AUTO_UNIT } from '../../../../utils/formulas/quantities';
+import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { joinValueName } from '../../../../utils/values/valueNames';
 import { FORMULA_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
+import { META_LABEL } from '../../board/metaLabelClass';
+import { POPOUT_PANEL } from '../../board/popoutPanelClass';
 import { useInsertTarget } from '../../tray/useInsertTarget';
 import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton';
 
@@ -32,6 +39,7 @@ interface WorkbenchFormulaEditorProps {
   formula: FormulaItem;
   material: MaterialItem | undefined;
   calculation: BoardCalculation;
+  anchorOf: () => DOMRect | undefined;
   onChange: (change: Partial<Omit<FormulaItem, 'id'>>) => void;
   onAddMissing: (name: string) => void;
   onRemove: () => void;
@@ -46,6 +54,7 @@ export function WorkbenchFormulaEditor({
   formula,
   material,
   calculation,
+  anchorOf,
   onChange,
   onAddMissing,
   onRemove,
@@ -61,8 +70,28 @@ export function WorkbenchFormulaEditor({
   const [highlighted, setHighlighted] = useState(0);
   const isDuplicate = calculation.duplicateIds.has(formula.id);
   const result = calculation.results.get(formula.id);
+  const shownAutoUnit = result?.status === 'ok' ? autoUnit(result.quantity) : undefined;
+
+  const position = usePlacedBeside(editorRef, anchorOf);
 
   useEffect(() => expressionRef.current?.focus(), []);
+
+  useEffect(() => {
+    const appRoot = document.getElementById(APP_ROOT_ID);
+    const closeOnClickAway = (event: PointerEvent) => {
+      if (event.target instanceof Node && appRoot?.contains(event.target)) onClose();
+    };
+    document.addEventListener('pointerdown', closeOnClickAway, true);
+    return () => document.removeEventListener('pointerdown', closeOnClickAway, true);
+  }, [onClose]);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
 
   const refreshCompletions = (text: string, caret: number) => {
     setCompletions(
@@ -118,47 +147,63 @@ export function WorkbenchFormulaEditor({
     insert: insertFromTray,
   });
 
-  return (
+  return createPortal(
     <div
       ref={editorRef}
-      className="flex flex-col gap-2 border-l-2 border-primary/60 bg-foreground/[0.025] px-3 py-2"
+      role="dialog"
+      aria-label={`Edit ${name || 'calculation'}`}
+      className={POPOUT_PANEL}
+      style={position}
     >
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="inline-edit min-w-[12rem] flex-1">
-          <input
-            value={name}
-            placeholder="Name"
-            aria-label="Formula name"
-            spellCheck={false}
-            className={`${LINE_INPUT} ${isDuplicate ? 'text-danger-text' : ''}`}
-            onChange={event => {
-              setName(event.target.value);
-              onChange({ name: joinValueName(material?.name.trim() ?? '', event.target.value) });
-            }}
-            onBlur={() => {
-              const converted = withGreekLetters(name);
-              if (converted === name) return;
-              setName(converted);
-              onChange({ name: joinValueName(material?.name.trim() ?? '', converted) });
-            }}
-          />
-        </span>
-        <span className="ml-auto flex flex-none items-baseline gap-2">
-          {result?.status === 'ok' && (
-            <span className="flex-none font-mono text-data-lg text-action">
-              {formulaAnswerText(result)}
-            </span>
-          )}
-          <Select
+      <div className="flex items-start gap-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          {material && <span className={META_LABEL}>{displayNameOf(material)}</span>}
+          <span className="inline-edit">
+            <input
+              value={name}
+              placeholder="Name"
+              aria-label="Formula name"
+              spellCheck={false}
+              className={`${LINE_INPUT} ${isDuplicate ? 'text-danger-text' : ''}`}
+              onChange={event => {
+                setName(event.target.value);
+                onChange({ name: joinValueName(material?.name.trim() ?? '', event.target.value) });
+              }}
+              onKeyDown={event => {
+                if (event.key === 'Enter') onClose();
+              }}
+              onBlur={() => {
+                const converted = withGreekLetters(name);
+                if (converted === name) return;
+                setName(converted);
+                onChange({ name: joinValueName(material?.name.trim() ?? '', converted) });
+              }}
+            />
+          </span>
+        </div>
+        <Select
+          size="xs"
+          isQuiet
+          options={[...FORMULA_UNIT_OPTIONS]}
+          value={formula.unit}
+          aria-label="Show the answer in"
+          renderValue={([selected]) =>
+            selected?.value === AUTO_UNIT ? (shownAutoUnit ?? selected.label) : selected?.label
+          }
+          onChange={unit => onChange({ unit: String(unit ?? AUTO_UNIT) })}
+          className="w-28 flex-none"
+        />
+        <Tooltip content="Remove">
+          <Button
+            variant="ghost-danger"
             size="xs"
-            isQuiet
-            options={[...FORMULA_UNIT_OPTIONS]}
-            value={formula.unit}
-            aria-label="Show the answer in"
-            onChange={unit => onChange({ unit: String(unit ?? 'auto') })}
-            className="w-24 flex-none"
-          />
-        </span>
+            iconOnly
+            aria-label={`Remove ${name || 'calculation'}`}
+            onClick={onRemove}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </Tooltip>
       </div>
       <div className="grid border border-line-faint bg-[hsl(var(--input-well))] focus-within:border-primary/60">
         <div aria-hidden className={`${FORMULA_TEXT} text-transparent`}>
@@ -197,8 +242,10 @@ export function WorkbenchFormulaEditor({
           }}
           onKeyDown={event => {
             if (!completions.length) {
-              if (event.key === 'Enter') event.preventDefault();
-              if (event.key === 'Escape') onClose();
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                onClose();
+              }
               return;
             }
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -209,6 +256,7 @@ export function WorkbenchFormulaEditor({
               event.preventDefault();
               accept(completions[highlighted]);
             } else if (event.key === 'Escape') {
+              event.preventDefault();
               setCompletions([]);
             }
           }}
@@ -222,10 +270,7 @@ export function WorkbenchFormulaEditor({
       />
       <div className="flex items-center gap-1">
         <WorkbenchTrayToggleButton mode="formula" />
-        <Button variant="ghost-danger" size="xs" className="ml-auto" onClick={onRemove}>
-          Remove
-        </Button>
-        <Button variant="ghost" size="xs" onClick={onClose}>
+        <Button variant="ghost" size="xs" className="ml-auto" onClick={onClose}>
           Done
         </Button>
       </div>
@@ -239,6 +284,7 @@ export function WorkbenchFormulaEditor({
           onAccept={accept}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
