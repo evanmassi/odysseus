@@ -25,6 +25,8 @@ const TERM_SOURCE_CLASS: Record<WorkingRef['source'], string> = {
 };
 
 const SYMBOL = 'px-1 font-mono text-data-sm text-muted-foreground';
+const TERM_LABEL = 'text-label-2xs text-muted-foreground';
+const BLANK_LABEL = '\u00a0';
 
 interface WorkingViewProps {
   node: WorkingNode;
@@ -38,9 +40,7 @@ function TermStack({ node, shortName, linkFor }: WorkingViewProps) {
   const stackClass = `inline-flex flex-col items-center ${isRef && node.isDropped ? 'line-through' : ''}`;
   const content = (
     <>
-      <span className="text-label-2xs text-muted-foreground">
-        {isRef ? shortName(node.name) : ' '}
-      </span>
+      <span className={TERM_LABEL}>{isRef ? shortName(node.name) : BLANK_LABEL}</span>
       <span
         className={`font-mono text-data-sm ${isRef ? TERM_SOURCE_CLASS[node.source] : 'text-foreground'}`}
       >
@@ -60,6 +60,15 @@ function TermStack({ node, shortName, linkFor }: WorkingViewProps) {
         {content}
       </button>
     </Tooltip>
+  );
+}
+
+function OperatorMark({ symbol }: { symbol: string }) {
+  return (
+    <span className="inline-flex flex-col items-center">
+      <span className={TERM_LABEL}>{BLANK_LABEL}</span>
+      <span className={SYMBOL}>{symbol}</span>
+    </span>
   );
 }
 
@@ -106,7 +115,7 @@ function WorkingView({ node, ...rest }: WorkingViewProps) {
     case 'negate':
       return (
         <span className="inline-flex items-center">
-          <span className={SYMBOL}>−</span>
+          <OperatorMark symbol="−" />
           <WorkingView node={node.operand} {...rest} />
         </span>
       );
@@ -127,7 +136,7 @@ function WorkingView({ node, ...rest }: WorkingViewProps) {
       return (
         <span className="inline-flex flex-wrap items-center gap-y-1">
           <WorkingView node={node.left} {...rest} />
-          <span className={SYMBOL}>{OPERATOR_SYMBOLS[node.operator]}</span>
+          <OperatorMark symbol={OPERATOR_SYMBOLS[node.operator]} />
           <WorkingView node={node.right} {...rest} />
         </span>
       );

@@ -33,6 +33,7 @@ const answerOf = (line: WorkedOutLine) =>
   line.result?.status === 'ok' ? formulaAnswerText(line.result) : '';
 
 const HEAD_CELL = `${META_LABEL} px-2 pb-1 align-bottom font-normal`;
+const WORKING_ROW = 'border-t border-line-soft first:border-t-0';
 
 export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
   title,
@@ -120,22 +121,34 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                   {isOpen && (
                     <tr className={zebra}>
                       <td colSpan={columns.length} className="px-2 pb-2 pl-6">
-                        {row.lines.map(line => (
-                          <div key={line.id} className="flex flex-col gap-0.5 pt-1">
-                            <span className="text-label-xs text-muted-foreground">
-                              {shortName(line.name)}
-                            </span>
-                            <WorkbenchFormulaWorking
-                              result={line.result}
-                              isCompact
-                              shortName={shortName}
-                              linkFor={name => {
-                                const blockId = line.links[name];
-                                return blockId ? () => onShowBlock(blockId) : undefined;
-                              }}
-                            />
-                          </div>
-                        ))}
+                        <table className="w-full border-collapse">
+                          <tbody>
+                            {row.lines.map(line => {
+                              const answer = answerOf(line);
+                              return (
+                                <tr key={line.id} className={WORKING_ROW}>
+                                  <td className="whitespace-nowrap py-1.5 pr-4 align-middle text-label-xs text-muted-foreground">
+                                    {shortName(line.name)}
+                                  </td>
+                                  <td className="w-full py-1.5 align-middle">
+                                    <WorkbenchFormulaWorking
+                                      result={line.result}
+                                      isCompact
+                                      shortName={shortName}
+                                      linkFor={name => {
+                                        const blockId = line.links[name];
+                                        return blockId ? () => onShowBlock(blockId) : undefined;
+                                      }}
+                                    />
+                                  </td>
+                                  <td className="whitespace-nowrap py-1.5 pl-4 text-right align-middle font-mono text-data-sm text-action">
+                                    {answer && `= ${answer}`}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   )}
