@@ -37,6 +37,7 @@ function protocolWithPlate(): Protocol {
     amountNames: {},
     side: 'assay',
     stain: {},
+    stainedIn: {},
   } as unknown as VesselMapBlock;
   return { blocks: [plate] } as unknown as Protocol;
 }

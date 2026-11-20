@@ -56,6 +56,7 @@ function protocolWith(
         amountNames: {},
         side: 'assay',
         stain: {},
+        stainedIn: {},
       },
       {
         id: 'values',

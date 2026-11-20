@@ -78,10 +78,7 @@ import {
   plateNameOffers,
   type PlateNameOffer,
 } from '../../../../utils/materials/plateNameOffers';
-import {
-  plateFollowsMaterialRename,
-  plateFollowsSourceRename,
-} from '../../../../utils/materials/renameFollowing';
+import { plateFollowsListRename } from '../../../../utils/materials/renameFollowing';
 import {
   acceptStepReadings,
   readStepReadings,
@@ -277,7 +274,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
           nameAtStart.current?.itemId === cell.itemId ? nameAtStart.current : undefined;
         updateItem(cell.itemId, (item, draft) => {
           item.name = withGreekLetters(item.name);
-          if (started) plateFollowsMaterialRename(draft, started.name, item.name);
+          if (started) plateFollowsListRename(draft, started.name, item.name);
         });
       } else {
         updateItem(cell.itemId, item => {
@@ -411,7 +408,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     finishRename: (itemId, sourceId, from) =>
       updateSource(itemId, sourceId, (source, draft) => {
         source.name = withGreekLetters(source.name.trim());
-        plateFollowsSourceRename(draft, from, source.name);
+        plateFollowsListRename(draft, from, source.name);
       }),
     write: (itemId, sourceId, key, value) =>
       updateSource(itemId, sourceId, source => {

@@ -13,13 +13,17 @@ import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { APP_ROOT_ID } from '../../../../utils/dom/appRoot';
 import { sourceSummaries } from '../../../../utils/materials/materialSources';
 import { bandWidthPad } from '../../../../utils/vessels/plateGeometry';
-import {
-  fillAmounts,
-  lineLayers,
-  plateBands,
-  plateCaptions,
-} from '../../../../utils/vessels/plateLayers';
+import { lineLayers, plateBands, plateCaptions } from '../../../../utils/vessels/plateLayers';
 import { replicateMerges } from '../../../../utils/vessels/replicateMerges';
+import {
+  canPoolReplicates,
+  canPoolSamples,
+  canUnpool,
+  poolReplicates,
+  poolSamples,
+  stainOccupants,
+  unpool,
+} from '../../../../utils/vessels/stainLayout';
 import { stainedWellCounts, stainMixes, stainWells } from '../../../../utils/vessels/stainSide';
 import { vesselOf } from '../../../../utils/vessels/vesselCatalog';
 import { vesselCounts } from '../../../../utils/vessels/vesselMapNames';
@@ -42,7 +46,7 @@ import { useVesselMapCalculation } from './useVesselMapCalculation';
 import { useWellEditSession } from './useWellEditSession';
 import { useWellKeyboard } from './useWellKeyboard';
 import { useWellSelection } from './useWellSelection';
-import { WorkbenchPlateContextMenu } from './WorkbenchPlateContextMenu';
+import { WorkbenchPlateContextMenu, type StainPooling } from './WorkbenchPlateContextMenu';
 import { WorkbenchPlateLegendSection } from './WorkbenchPlateLegendSection';
 import { WorkbenchPlateStainLegend } from './WorkbenchPlateStainLegend';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
@@ -91,10 +95,6 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
     () => (sheet.isPlate ? plateBands(block, sheet, layers, calculation, printsInWells) : []),
     [block, sheet, layers, calculation, printsInWells]
   );
-  const legendAmounts = useMemo(
-    () => fillAmounts(block, colorLine, calculation),
-    [block, colorLine, calculation]
-  );
   const stainCounts = useMemo(() => stainedWellCounts([block]), [block]);
   const updateVesselMap = useUpdateVesselMap(block);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -110,9 +110,13 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
   const closeEditor = useCallback(() => setEditor(undefined), []);
   const focusEditor = () =>
     setEditor(current => ({ focusesFirstRow: true, generation: (current?.generation ?? 0) + 1 }));
+  const occupants = useMemo(
+    () => (isStain ? stainOccupants(block, sheet) : undefined),
+    [block, sheet, isStain]
+  );
   const merges = useMemo(
-    () => replicateMerges(block, sheet, calculation, isStain),
-    [block, sheet, calculation, isStain]
+    () => replicateMerges(block, sheet, calculation, occupants),
+    [block, sheet, calculation, occupants]
   );
   const selection = useWellSelection(sheet, tab.id, closeEditor);
   const startedNames = useWellEditSession(block.id, selection.keys, editor !== undefined);
@@ -126,15 +130,16 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
   };
 
   const { confirmation, ask, dismiss } = useConfirmation();
-  const { onKeyDown, clearSelected, copySelected, cutSelected, paste, canPaste } = useWellKeyboard(
-    block,
-    tab,
-    sheet,
-    selection,
-    ask,
-    openEditorWith,
-    isStain
-  );
+  const {
+    onKeyDown,
+    clearSelected,
+    copySelected,
+    cutSelected,
+    paste,
+    canPaste,
+    cutKeys,
+    copiedKeys,
+  } = useWellKeyboard(block, tab, sheet, selection, ask, openEditorWith, isStain);
   const vesselChanges = useVesselChanges(block, tab, ask);
 
   const [menuAt, setMenuAt] = useState<{ x: number; y: number }>();
@@ -159,10 +164,34 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
         draft,
         sheet.spots
           .map(spot => spot.key)
-          .filter(key => isWellFilled(block, key) && !block.stain[key]),
+          .filter(key => occupants?.get(key)?.length && !block.stain[key]),
         mixId
       )
     );
+
+  const regroupSelected = (edit: (draft: VesselMapBlock) => string[]) => () => {
+    let regrouped: string[] = [];
+    updateBlock(draft => {
+      regrouped = edit(draft);
+    });
+    selection.selectKeys(regrouped);
+  };
+
+  const poolingFor = (wells: NonNullable<typeof occupants>): StainPooling => {
+    const keys = selection.keys;
+    return {
+      poolCount: [...keys].filter(key => wells.get(key)?.length).length,
+      onPoolSamples: canPoolSamples(sheet, wells, keys)
+        ? regroupSelected(draft => poolSamples(draft, sheet, keys))
+        : undefined,
+      onPoolReplicates: canPoolReplicates(block, sheet, wells, keys, calculation)
+        ? regroupSelected(draft => poolReplicates(draft, sheet, keys, calculation))
+        : undefined,
+      onUnpool: canUnpool(wells, keys)
+        ? regroupSelected(draft => unpool(draft, sheet, keys))
+        : undefined,
+    };
+  };
 
   useEffect(() => {
     if (!selection.keys.size) setEditor(undefined);
@@ -267,7 +296,10 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
               sources={sources}
               selection={selection}
               merges={merges}
-              stainMixes={isStain ? mixById : undefined}
+              mixes={mixById}
+              stainOccupants={occupants}
+              cutKeys={cutKeys}
+              copiedKeys={copiedKeys}
               onKeyDown={onKeyDown}
               onOpenWell={openWell}
               onOpenMenu={openMenu}
@@ -282,7 +314,10 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
               calculation={calculation}
               sources={sources}
               selection={selection}
-              stainMixes={isStain ? mixById : undefined}
+              mixes={mixById}
+              stainOccupants={occupants}
+              cutKeys={cutKeys}
+              copiedKeys={copiedKeys}
               onKeyDown={onKeyDown}
               onOpenWell={openWell}
               onOpenMenu={openMenu}
@@ -303,7 +338,6 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
             colorLine={colorLine}
             counts={vesselCounts(block)}
             bands={bands}
-            fillAmounts={legendAmounts}
           />
         )}
         {editor && !isStain && selection.keys.size > 0 && (
@@ -324,9 +358,12 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
         <WorkbenchPlateContextMenu
           position={menuAt}
           hasFilledSelection={[...selection.keys].some(key =>
-            isStain ? block.stain[key] !== undefined : isWellFilled(block, key)
+            occupants
+              ? block.stain[key] !== undefined || !!occupants.get(key)?.length
+              : isWellFilled(block, key)
           )}
           canPaste={!!menuAt && canPaste()}
+          pooling={menuAt && occupants ? poolingFor(occupants) : undefined}
           onClose={() => setMenuAt(undefined)}
           onEdit={isStain ? undefined : focusEditor}
           onCopy={copySelected}

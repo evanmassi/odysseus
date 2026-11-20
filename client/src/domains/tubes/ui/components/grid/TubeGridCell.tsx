@@ -161,8 +161,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
         ${selected ? 'selected selection-glow' : ''}
         ${freshlySelected ? 'freshly-selected' : ''}
         ${isDragPreview ? 'drag-preview' : ''}
-        ${isCut ? 'cut-tube' : ''}
-        ${isCopied ? 'copied-tube' : ''}
+        ${isCut ? 'clipboard-cut' : ''}
         ${isLockedOut ? 'opacity-70' : ''}
       `}
         style={
@@ -181,6 +180,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
         data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}
         data-position={position}
       >
+        {isCopied && <span aria-hidden className="clipboard-ants" />}
         {tube ? (
           <>
             {lotStyle && (

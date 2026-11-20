@@ -75,6 +75,9 @@ export function applyVessels(block: VesselMapBlock, vessels: Vessels): void {
   for (const key of Object.keys(block.stain)) {
     if (!wellFits(vessels, key)) delete block.stain[key];
   }
+  for (const [key, spot] of Object.entries(block.stainedIn)) {
+    if (!wellFits(vessels, key) || !wellFits(vessels, spot)) delete block.stainedIn[key];
+  }
   block.activeTab = Math.min(
     block.activeTab,
     block.plates.length + (block.sets.length ? 1 : 0) - 1
@@ -125,8 +128,12 @@ export function copyPlateIntoCard(block: VesselMapBlock, plate: Plate): void {
     );
     block.cells[`${copy.id}:${key.slice(prefix.length)}`] = copied;
   }
+  const copied = (key: string) => `${copy.id}:${key.slice(prefix.length)}`;
   for (const [key, mixId] of Object.entries(block.stain)) {
-    if (key.startsWith(prefix)) block.stain[`${copy.id}:${key.slice(prefix.length)}`] = mixId;
+    if (key.startsWith(prefix)) block.stain[copied(key)] = mixId;
+  }
+  for (const [key, spot] of Object.entries(block.stainedIn)) {
+    if (key.startsWith(prefix)) block.stainedIn[copied(key)] = copied(spot);
   }
   block.activeTab = block.plates.indexOf(copy);
 }
@@ -154,15 +161,25 @@ export function duplicateOfTab(block: VesselMapBlock, tab: VesselTab): VesselMap
       return fresh;
     });
   }
+  const renamedKey = (key: string) => {
+    const prefix = [...renames.keys()].find(from => key.startsWith(from));
+    return prefix && `${renames.get(prefix)}${key.slice(prefix.length)}`;
+  };
   const renamed = <Value>(record: Record<string, Value>): Record<string, Value> =>
     Object.fromEntries(
       Object.entries(record).flatMap(([key, value]) => {
-        const prefix = [...renames.keys()].find(from => key.startsWith(from));
-        return prefix ? [[`${renames.get(prefix)}${key.slice(prefix.length)}`, value]] : [];
+        const fresh = renamedKey(key);
+        return fresh ? [[fresh, value]] : [];
       })
     );
   copy.cells = renamed(copy.cells);
   copy.stain = renamed(copy.stain);
+  copy.stainedIn = Object.fromEntries(
+    Object.entries(copy.stainedIn).flatMap(([key, spot]) => {
+      const [freshKey, freshSpot] = [renamedKey(key), renamedKey(spot)];
+      return freshKey && freshSpot ? [[freshKey, freshSpot]] : [];
+    })
+  );
   copy.counts = {};
   copy.activeTab = 0;
   const fitsBeside = block.x + block.w * 2 <= BOARD_COLUMNS;

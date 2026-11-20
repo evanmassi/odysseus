@@ -1,7 +1,8 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 
 import { lineLayers } from './plateLayers';
-import { wellTooltipRows } from './wellTooltip';
+import { activeTabOf, sheetOf } from './vesselTabs';
+import { stainedElsewhereRows, stainSideTooltipRows, wellTooltipRows } from './wellTooltip';
 
 import type { VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -24,6 +25,7 @@ const coCulture = () =>
     amountNames: {},
     side: 'assay',
     stain: {},
+    stainedIn: {},
   }) as unknown as VesselMapBlock;
 
 const rowsAt = (block: VesselMapBlock, sources: Array<{ name: string; summary: string }> = []) =>
@@ -56,6 +58,26 @@ describe('well tooltip rows', () => {
   it('puts a donor’s details under its row and colors each row by its mark', () => {
     const rows = rowsAt(coCulture(), [{ name: 'T donor A', summary: 'T cells · ID T-201' }]);
     expect(rows[2]).toEqual({ kind: 'detail', text: 'T cells · ID T-201' });
-    expect(rows[1]).toMatchObject({ color: expect.any(String) });
+    expect(rows[1]).toMatchObject({ mark: { kind: 'stripe', color: expect.any(String) } });
+  });
+
+  it('says what a pooled spot came from, and where a pooled-away well was stained', () => {
+    const block = {
+      ...coCulture(),
+      plates: [{ id: 'p', vessel: '96', name: '' }],
+      sets: [],
+      activeTab: 0,
+      stain: { 'p:B1': 'full' },
+      stainedIn: { 'p:A1': 'p:B1', 'p:A2': 'p:B1' },
+    } as unknown as VesselMapBlock;
+    block.cells['p:A2'] = structuredClone(block.cells['p:A1']);
+    const sheet = sheetOf(block, activeTabOf(block));
+    const layers = lineLayers(block, undefined, empty);
+    const pooled = stainSideTooltipRows(block, sheet, 'p:B1', layers, empty, []);
+    expect(pooled[0]).toEqual({ kind: 'note', text: 'Came from A1, A2' });
+    expect(pooled).toHaveLength(1 + rowsAt(block).length);
+    expect(stainedElsewhereRows(block, sheet, 'p:A2', () => 'Full Stain')).toEqual([
+      { kind: 'note', text: 'Stained pooled in B1 · Full Stain' },
+    ]);
   });
 });

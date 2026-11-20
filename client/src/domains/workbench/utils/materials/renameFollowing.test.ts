@@ -5,10 +5,11 @@ import { blankProtocol } from '../protocolFile/blankProtocol';
 import { heldNames, setWellsText } from '../vessels/wellEdits';
 
 import { listedMaterials } from './materialLookup';
+import { startSources } from './materialSources';
 import {
   followWellEdit,
   materialFollowsPlateRename,
-  plateFollowsMaterialRename,
+  plateFollowsListRename,
   renamePlateValue,
   withLeadingName,
 } from './renameFollowing';
@@ -61,6 +62,13 @@ const renameStim = (draft: Protocol, name: string) => {
   const item = listedMaterials(draft).find(candidate => candidate.id === 'stim');
   if (item) item.name = name;
 };
+const withDonor = (protocol: Protocol, name: string) =>
+  produce(protocol, draft => {
+    const item = listedMaterials(draft).find(candidate => candidate.id === 'stim');
+    if (!item) return;
+    startSources(item, [], []);
+    item.sources?.rows.push({ id: name, name, values: {}, units: {} });
+  });
 const typeIntoWells = (protocol: Protocol, keys: string[], text: string) =>
   produce(protocol, draft => setWellsText(mapOf(draft), keys, 'line', text));
 
@@ -86,14 +94,22 @@ describe('materialFollowsPlateRename', () => {
     );
     expect(stimName(renamed)).toBe(STIM_NAME);
   });
+
+  it('leaves the material when the new plate name is one of its donors', () => {
+    const renamed = produce(withDonor(twoPlateProtocol(), 'D3128'), draft =>
+      renamePlateValue(draft, 'map', 'stx', 'D3128')
+    );
+    expect(plateTexts(renamed)).toEqual(['D3128']);
+    expect(stimName(renamed)).toBe(STIM_NAME);
+  });
 });
 
-describe('plateFollowsMaterialRename', () => {
+describe('plateFollowsListRename', () => {
   it('renames the plate name on every plate and keeps its own description', () => {
     const renamed = produce(twoPlateProtocol(), draft => {
       mapOf(draft).lines[0].values[0].text = 'STX (1e6/mL)';
       renameStim(draft, 'SXT (Stim X Description)');
-      plateFollowsMaterialRename(draft, STIM_NAME, 'SXT (Stim X Description)');
+      plateFollowsListRename(draft, STIM_NAME, 'SXT (Stim X Description)');
     });
     expect(plateTexts(renamed)).toEqual(['SXT (1e6/mL)']);
   });
@@ -101,15 +117,23 @@ describe('plateFollowsMaterialRename', () => {
   it('leaves the plate alone when only the description changed', () => {
     const renamed = produce(twoPlateProtocol(), draft => {
       renameStim(draft, 'STX (lot 2)');
-      plateFollowsMaterialRename(draft, STIM_NAME, 'STX (lot 2)');
+      plateFollowsListRename(draft, STIM_NAME, 'STX (lot 2)');
     });
     expect(plateTexts(renamed)).toEqual(['STX']);
   });
 
   it('waits while another material still has the old name', () => {
     const renamed = produce(twoPlateProtocol(), draft =>
-      plateFollowsMaterialRename(draft, 'STX (another vial)', 'SXT')
+      plateFollowsListRename(draft, 'STX (another vial)', 'SXT')
     );
+    expect(plateTexts(renamed)).toEqual(['STX']);
+  });
+
+  it('leaves the plate alone when a donor still has the old name', () => {
+    const renamed = produce(withDonor(twoPlateProtocol('STX'), 'STX'), draft => {
+      renameStim(draft, 'PBMC');
+      plateFollowsListRename(draft, 'STX', 'PBMC');
+    });
     expect(plateTexts(renamed)).toEqual(['STX']);
   });
 
@@ -118,7 +142,7 @@ describe('plateFollowsMaterialRename', () => {
     expect(plateTexts(protocol)).toEqual(['STX', 'SXT']);
     protocol = produce(protocol, draft => {
       renameStim(draft, 'SXT');
-      plateFollowsMaterialRename(draft, STIM_NAME, 'SXT');
+      plateFollowsListRename(draft, STIM_NAME, 'SXT');
     });
     expect(plateTexts(protocol)).toEqual(['SXT']);
   });

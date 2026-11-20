@@ -23,6 +23,7 @@ const vesselMap = (content: Partial<VesselMapBlock>): VesselMapBlock => ({
   amountNames: {},
   side: 'assay',
   stain: {},
+  stainedIn: {},
   ...content,
 });
 

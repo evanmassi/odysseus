@@ -33,6 +33,7 @@ const vesselMap = (): VesselMapBlock =>
     amountNames: {},
     side: 'assay',
     stain: {},
+    stainedIn: {},
   }) as unknown as VesselMapBlock;
 
 describe('vessel edits', () => {

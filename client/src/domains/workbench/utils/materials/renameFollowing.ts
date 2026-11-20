@@ -34,28 +34,22 @@ const isNameOnAnyWell = (protocol: Pick<Protocol, 'blocks'>, name: string): bool
     );
   });
 
+const isNameListed = (protocol: Pick<Protocol, 'blocks'>, name: string): boolean =>
+  findMaterial(listedMaterials(protocol), name) !== undefined ||
+  findSource(sourcesIn(protocol), name) !== undefined;
+
 export function materialFollowsPlateRename(draft: Protocol, from: string, to: string): void {
   const toName = nameWithoutNotes(to);
   if (!bareKey(to) || isSameBareName(from, to) || isNameOnAnyWell(draft, from)) return;
-  const materials = listedMaterials(draft);
-  const material = findNamed(materials, from, candidate => candidate.name);
-  if (material && !findMaterial(materials, toName)) {
-    material.name = withLeadingName(material.name, toName);
-  }
-  const sources = sourcesIn(draft);
-  const match = findSource(sources, from);
-  if (match && !findSource(sources, toName)) {
-    match.source.name = withLeadingName(match.source.name, toName);
-  }
+  if (isNameListed(draft, toName)) return;
+  const material = findNamed(listedMaterials(draft), from, candidate => candidate.name);
+  if (material) material.name = withLeadingName(material.name, toName);
+  const match = findSource(sourcesIn(draft), from);
+  if (match) match.source.name = withLeadingName(match.source.name, toName);
 }
 
-export function plateFollowsMaterialRename(draft: Protocol, from: string, to: string): void {
-  const isStillListed = findNamed(listedMaterials(draft), from, item => item.name) !== undefined;
-  if (!isStillListed) renamePlateValues(draft, from, to);
-}
-
-export function plateFollowsSourceRename(draft: Protocol, from: string, to: string): void {
-  if (!findSource(sourcesIn(draft), from)) renamePlateValues(draft, from, to);
+export function plateFollowsListRename(draft: Protocol, from: string, to: string): void {
+  if (!isNameListed(draft, from)) renamePlateValues(draft, from, to);
 }
 
 function renamePlateValues(draft: Protocol, from: string, to: string): void {

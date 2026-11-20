@@ -1,10 +1,19 @@
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 
+import { notifications } from '@shared/utils/notifications';
+
+import { moveAssayWells } from '../../../../utils/vessels/assayMoves';
+import {
+  forgetStainOf,
+  moveStainSpots,
+  stainMoveTargets,
+} from '../../../../utils/vessels/stainLayout';
 import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
   copyWells,
   isWellFilled,
   pasteTargets,
+  shiftedTargets,
   type CopiedWell,
 } from '../../../../utils/vessels/wellSelection';
 
@@ -22,6 +31,22 @@ interface FilledCheck {
   describe: (filled: string) => string;
   apply: () => void;
 }
+
+type VesselSide = VesselMapBlock['side'];
+
+interface ClipboardMarks {
+  tabId: string;
+  side: VesselSide;
+  keys: ReadonlySet<string>;
+  isCut: boolean;
+}
+
+const NO_KEYS: ReadonlySet<string> = new Set();
+
+const BLOCKED_MOVES = {
+  edge: 'Those wells would land past the edge of the plate.',
+  cells: 'Some of those spots already hold cells on the Stain side. Move or pool them first.',
+} as const;
 
 const ARROW_STEPS: Readonly<Record<string, readonly [number, number]>> = {
   ArrowUp: [-1, 0],
@@ -41,6 +66,11 @@ export function useWellKeyboard(
 ) {
   const updateVesselMap = useUpdateVesselMap(block);
   const clipboard = useRef<CopiedWell[]>([]);
+  const [marks, setMarks] = useState<ClipboardMarks>();
+  const side: VesselSide = isStainSide ? 'stain' : 'assay';
+  const marksHere = marks?.tabId === tab.id ? marks : undefined;
+  const cutKeys = marksHere?.isCut && marksHere.side === side ? marksHere.keys : NO_KEYS;
+  const copiedKeys = marksHere && !marksHere.isCut ? marksHere.keys : NO_KEYS;
   const { noun, plural } = wordsForTypes(
     tab.kind === 'plate' ? [tab.plate.vessel] : block.sets.map(set => set.vessel)
   );
@@ -52,9 +82,40 @@ export function useWellKeyboard(
     ask({ title, confirmText, message: describe(counted(filled)), onConfirm: apply });
   };
 
-  const paste = () => {
+  const finishMove = (landing: string[]) => {
+    setMarks(undefined);
+    selection.selectKeys(landing);
+  };
+
+  const moveCutWells = () => {
+    if (isStainSide) {
+      const targets = stainMoveTargets(block, sheet, cutKeys, selection.keys);
+      if ('blockedBy' in targets) return notifications.warning(BLOCKED_MOVES[targets.blockedBy]);
+      updateVesselMap(draft => moveStainSpots(draft, sheet, cutKeys, targets.landing));
+      return finishMove(targets.landing);
+    }
+    const landing = shiftedTargets(sheet, cutKeys, selection.keys);
+    if (!landing) return notifications.warning(BLOCKED_MOVES.edge);
+    confirmIfFilled({
+      keys: landing.filter(key => !cutKeys.has(key)),
+      title: 'Move wells',
+      confirmText: 'Replace',
+      describe: filled => `Replace what’s in ${filled}?`,
+      apply: () => {
+        updateVesselMap(draft => moveAssayWells(draft, sheet, cutKeys, landing));
+        finishMove(landing);
+      },
+    });
+  };
+
+  const pasteCopied = () => {
     const targets = pasteTargets(sheet, clipboard.current, selection.keys);
     if (!targets.length) return;
+    const pasted = targets.map(target => target.key);
+    const finishPaste = () => {
+      setMarks(undefined);
+      selection.selectKeys(pasted);
+    };
     if (isStainSide) {
       updateVesselMap(draft => {
         for (const { key, mixId } of targets) {
@@ -62,11 +123,10 @@ export function useWellKeyboard(
           else delete draft.stain[key];
         }
       });
-      selection.selectKeys(targets.map(target => target.key));
-      return;
+      return finishPaste();
     }
     confirmIfFilled({
-      keys: targets.map(target => target.key),
+      keys: pasted,
       title: 'Paste wells',
       confirmText: 'Replace',
       describe: filled => `Replace what’s in ${filled}?`,
@@ -74,20 +134,32 @@ export function useWellKeyboard(
         updateVesselMap(draft => {
           for (const { key, lines } of targets) draft.cells[key] = structuredClone(lines);
         });
-        selection.selectKeys(targets.map(target => target.key));
+        finishPaste();
       },
     });
   };
 
+  const paste = () => (cutKeys.size ? moveCutWells() : pasteCopied());
+
+  const markSelected = (isCut: boolean) =>
+    setMarks({ tabId: tab.id, side, keys: new Set(selection.keys), isCut });
+
   const copySelected = () => {
     clipboard.current = copyWells(block, sheet, selection.keys);
+    markSelected(false);
+  };
+
+  const cutSelected = () => {
+    clipboard.current = [];
+    markSelected(true);
   };
 
   const clearWells = () =>
     updateVesselMap(draft => {
+      if (!isStainSide) forgetStainOf(draft, selection.keys);
       for (const key of selection.keys) {
-        if (!isStainSide) delete draft.cells[key];
-        delete draft.stain[key];
+        if (isStainSide) delete draft.stain[key];
+        else delete draft.cells[key];
       }
     });
 
@@ -102,11 +174,6 @@ export function useWellKeyboard(
           apply: clearWells,
         });
 
-  const cutSelected = () => {
-    copySelected();
-    clearWells();
-  };
-
   const onKeyDown = (event: KeyboardEvent) => {
     const step = ARROW_STEPS[event.key];
     const isCommand = event.ctrlKey || event.metaKey;
@@ -117,6 +184,7 @@ export function useWellKeyboard(
       event.preventDefault();
       onOpenEditor();
     } else if (event.key === 'Escape') {
+      setMarks(undefined);
       selection.clear();
     } else if (isCommand && event.key === 'c' && selection.keys.size) {
       event.preventDefault();
@@ -148,6 +216,8 @@ export function useWellKeyboard(
     copySelected,
     cutSelected,
     paste,
-    canPaste: () => clipboard.current.length > 0,
+    canPaste: () => cutKeys.size > 0 || clipboard.current.length > 0,
+    cutKeys,
+    copiedKeys,
   };
 }

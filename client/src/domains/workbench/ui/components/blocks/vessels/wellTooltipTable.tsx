@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { markSwatchClass, markSwatchStyle } from './markSwatch';
+
 import type { WellTooltip } from '../../../../utils/vessels/wellTooltip';
 
 export function wellTooltipTable({ heading, rows }: WellTooltip): ReactNode {
@@ -17,6 +19,12 @@ export function wellTooltipTable({ heading, rows }: WellTooltip): ReactNode {
                     <span className="text-muted-foreground">{row.between}</span>
                   </td>
                 </tr>
+              ) : row.kind === 'note' ? (
+                <tr key={`${index}:${row.text}`}>
+                  <td colSpan={3} className="whitespace-nowrap pb-0.5 text-muted-foreground">
+                    {row.text}
+                  </td>
+                </tr>
               ) : row.kind === 'detail' ? (
                 <tr key={`${index}:${row.text}`}>
                   <td colSpan={3} className="whitespace-nowrap pl-4 opacity-60">
@@ -27,11 +35,15 @@ export function wellTooltipTable({ heading, rows }: WellTooltip): ReactNode {
                 <tr key={`${index}:${row.name}`} className="text-foreground">
                   <td className="whitespace-nowrap pr-3">
                     <span className="inline-flex items-center gap-1.5">
-                      <i
-                        aria-hidden
-                        className="inline-block h-2.5 w-2.5 flex-none"
-                        style={{ backgroundColor: row.color }}
-                      />
+                      {row.mark ? (
+                        <i
+                          aria-hidden
+                          className={markSwatchClass(row.mark.kind)}
+                          style={markSwatchStyle(row.mark.kind, row.mark.color)}
+                        />
+                      ) : (
+                        <i aria-hidden className="inline-block h-3.5 w-3.5 flex-none" />
+                      )}
                       {row.name}
                     </span>
                   </td>

@@ -75,6 +75,12 @@ export type BandPlace = 'ring' | 'tag' | 'well' | 'top' | 'left';
 
 export type BandKind = 'band' | 'stripe' | 'fill';
 
+export function markKindOf(role: ShownRole): BandKind | undefined {
+  if (role === 'color') return 'fill';
+  if (role === 'stripe') return 'stripe';
+  return role === 'band' || role === 'tag' ? 'band' : undefined;
+}
+
 interface BandCell {
   row: number;
   col: number;
@@ -95,7 +101,6 @@ export interface PlateBand {
   showsOutline: boolean;
   showsBracket: boolean;
   label: string;
-  amount: string;
   text: string;
   color: string;
   valueId: string | undefined;
@@ -139,7 +144,7 @@ function clustersOf(cells: BandCell[]): Array<Omit<BandCluster, 'place'>> {
   return clusters;
 }
 
-export function amountSummary(
+function amountSummary(
   block: VesselMapBlock,
   line: PlateLine,
   keys: readonly string[],
@@ -162,25 +167,6 @@ export function amountSummary(
     return first === last ? first : `${first} → ${last}`;
   });
   return [...ranges, ...plain].join(', ');
-}
-
-export function fillAmounts(
-  block: VesselMapBlock,
-  colorLine: PlateLine | undefined,
-  calculation: BoardCalculation
-): ReadonlyMap<string, string> {
-  if (!colorLine) return new Map();
-  const keysByValue = new Map<string, string[]>();
-  for (const key of Object.keys(block.cells)) {
-    const valueId = block.cells[key][colorLine.id]?.valueId;
-    if (valueId) keysByValue.set(valueId, [...(keysByValue.get(valueId) ?? []), key]);
-  }
-  return new Map(
-    [...keysByValue].map(([valueId, keys]) => [
-      valueId,
-      amountSummary(block, colorLine, keys, calculation),
-    ])
-  );
 }
 
 function placeClusters(cells: BandCell[], usedTop: number, usedBottom: number): BandCluster[] {
@@ -260,7 +246,6 @@ export function plateBands(
         showsOutline: !isLabeledFill && !hidden.has('outline'),
         showsBracket: !hidden.has('bracket'),
         label,
-        amount,
         text: isAmountShared ? label || amount : [label, amount].filter(Boolean).join(' · '),
         color: isLabeledFill
           ? (value?.color ?? bandColorOf(block, value))

@@ -88,3 +88,23 @@ export function pasteTargets(
     return target ? [{ key: target.key, lines, mixId }] : [];
   });
 }
+
+export function shiftedTargets(
+  sheet: VesselSheet,
+  fromKeys: ReadonlySet<string>,
+  toKeys: ReadonlySet<string>
+): string[] | undefined {
+  const from = cornerOf(sheet, fromKeys);
+  const to = cornerOf(sheet, toKeys);
+  const landing = sheet.spots
+    .filter(spot => fromKeys.has(spot.key))
+    .map(
+      spot =>
+        sheet.spots.find(
+          candidate =>
+            candidate.row === to.row + spot.row - from.row &&
+            candidate.col === to.col + spot.col - from.col
+        )?.key
+    );
+  return landing.every((key): key is string => key !== undefined) ? landing : undefined;
+}

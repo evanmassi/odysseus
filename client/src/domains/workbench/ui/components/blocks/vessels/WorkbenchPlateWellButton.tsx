@@ -21,17 +21,22 @@ export interface PlateWellView {
   stripes: Array<WellColor | undefined>;
   stainLook: 'stained' | 'unstained' | undefined;
   ringColor: string | undefined;
+  poolSize: number | undefined;
 }
+
+export type WellMarks = string | undefined;
 
 interface WorkbenchPlateWellButtonProps {
   view: PlateWellView;
   density: WellDensity;
-  isSelected: boolean;
-  selectedParts: string | undefined;
+  selected: WellMarks;
+  cut: WellMarks;
+  copied: WellMarks;
   actions: WellPointerActions;
 }
 
 export const PART_SEPARATOR = '|';
+export const WHOLE_WELL = '*';
 
 const RING_WIDTH = 3;
 
@@ -57,8 +62,9 @@ const colorStyle = (color: WellColor | undefined): CSSProperties =>
 export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
   view,
   density,
-  isSelected,
-  selectedParts,
+  selected,
+  cut,
+  copied,
   actions,
 }: WorkbenchPlateWellButtonProps) {
   const {
@@ -73,7 +79,10 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
     stripes,
     stainLook,
     ringColor,
+    poolSize,
   } = view;
+  const isPart = (marks: WellMarks, key: string) =>
+    marks !== WHOLE_WELL && !!marks?.split(PART_SEPARATOR).includes(key);
   const isNarrow = density === 'narrow';
   return (
     <Tooltip content={<WorkbenchWellTooltip wellKey={wellKey} heading={tooltipHeading} />}>
@@ -81,7 +90,7 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
         role="gridcell"
         data-well-key={wellKey}
         tabIndex={-1}
-        aria-selected={isSelected}
+        aria-selected={selected === WHOLE_WELL}
         onPointerDown={event => actions.onPointerDown(keyUnder(event.target, wellKey), event)}
         onPointerOver={event => {
           const isGapInMerge = merged && event.target === event.currentTarget;
@@ -93,7 +102,9 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
           stainLook ? 'text-muted-foreground' : 'text-foreground'
         } ${isFilled ? 'border-foreground/45' : 'border-foreground/15'} ${
           stainLook === 'unstained' ? 'border-dashed' : ''
-        } ${isSelected ? 'z-10 selection-glow' : ''} ${DENSITY_CLASSES[density]}`}
+        } ${selected === WHOLE_WELL ? 'z-10 selection-glow' : ''} ${
+          cut === WHOLE_WELL ? 'clipboard-cut' : ''
+        } ${DENSITY_CLASSES[density]}`}
         style={{
           gridRow: `${row + 2} / span ${merged?.height ?? 1}`,
           gridColumn: `${col + 2} / span ${merged?.width ?? 1}`,
@@ -126,10 +137,18 @@ export const WorkbenchPlateWellButton = memo(function WorkbenchPlateWellButton({
                 key={key}
                 data-well-key={key}
                 className={`pointer-events-auto relative border border-dashed border-foreground/20 ${
-                  selectedParts?.split(PART_SEPARATOR).includes(key) ? 'z-10 selection-glow' : ''
-                }`}
-              />
+                  isPart(selected, key) ? 'z-10 selection-glow' : ''
+                } ${isPart(cut, key) ? 'bg-background/50' : ''}`}
+              >
+                {isPart(copied, key) && <span className="clipboard-ants" />}
+              </i>
             ))}
+          </span>
+        )}
+        {copied === WHOLE_WELL && <span aria-hidden className="clipboard-ants" />}
+        {poolSize !== undefined && (
+          <span className="pointer-events-none absolute bottom-0 right-0.5 z-[6] font-mono text-label-2xs font-semibold leading-none text-foreground [text-shadow:0_0_3px_hsl(var(--background))]">
+            ×{poolSize}
           </span>
         )}
         {shownLine && density !== 'tiny' && (

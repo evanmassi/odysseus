@@ -206,6 +206,7 @@ export const vesselMapBlockSchema = z.object({
   amountNames: textMap.default({}),
   side: z.enum(VESSEL_SIDES).default('assay'),
   stain: textMap.default({}),
+  stainedIn: textMap.default({}),
 });
 
 const plateViewBlockSchema = z.object({

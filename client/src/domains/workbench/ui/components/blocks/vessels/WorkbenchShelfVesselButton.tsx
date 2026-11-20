@@ -73,6 +73,9 @@ export interface ShelfVesselView {
   color: WellColor | undefined;
   stainLook: 'stained' | 'unstained' | undefined;
   ringColor: string | undefined;
+  poolSize: number | undefined;
+  isCut: boolean;
+  isCopied: boolean;
 }
 
 interface WorkbenchShelfVesselButtonProps {
@@ -141,6 +144,9 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
     color,
     stainLook,
     ringColor,
+    poolSize,
+    isCut,
+    isCopied,
   } = view;
   const metrics = SHAPE_METRICS[shape];
   const [left, top, boxWidth, boxHeight] = metrics.textBox;
@@ -157,7 +163,8 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
         onContextMenu={event => actions.onContextMenu(wellKey, event)}
         className={`group relative flex cursor-pointer flex-col items-center gap-1 ${metrics.isVertical ? 'min-w-16' : ''}`}
       >
-        <div className="relative">
+        <div className={`relative ${isCut ? 'clipboard-cut' : ''}`}>
+          {isCopied && <span aria-hidden className="clipboard-ants" />}
           <svg
             viewBox={`0 0 ${metrics.width} ${metrics.height}`}
             className="block h-auto overflow-visible"
@@ -211,6 +218,9 @@ export const WorkbenchShelfVesselButton = memo(function WorkbenchShelfVesselButt
         </div>
         <span className="font-mono text-label-2xs tracking-wide text-muted-foreground/80">
           {sizeLabel}
+          {poolSize !== undefined && (
+            <b className="ms-1 font-semibold text-foreground">×{poolSize}</b>
+          )}
         </span>
       </div>
     </Tooltip>

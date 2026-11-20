@@ -2,7 +2,7 @@ import { colorLineOf, type PlateLine, type VesselMapBlock } from '@odysseus/shar
 
 import { calculateBoard } from '../formulas/boardCalculation';
 
-import { fillAmounts, lineLayers, plateBands, wellStripes } from './plateLayers';
+import { lineLayers, plateBands, wellStripes } from './plateLayers';
 import { sheetOf, vesselTabs } from './vesselTabs';
 
 const NO_NAMES = calculateBoard([]);
@@ -36,6 +36,7 @@ function plateWith(wells: Record<string, Record<string, string>>, lines: PlateLi
     amountNames: {},
     side: 'assay',
     stain: {},
+    stainedIn: {},
     mergesReplicates: false,
   } as unknown as VesselMapBlock;
 }
@@ -112,9 +113,9 @@ describe('plate marks', () => {
       NO_NAMES,
       true
     );
-    expect(bands.map(band => [band.label, band.amount, band.text, band.wellsInMap])).toEqual([
-      ['T donor A', '8:1 → 4:1', 'T donor A', 2],
-      ['T donor B', '8:1 → 4:1', 'T donor B', 2],
+    expect(bands.map(band => [band.label, band.text, band.wellsInMap])).toEqual([
+      ['T donor A', 'T donor A', 2],
+      ['T donor B', 'T donor B', 2],
     ]);
   });
 
@@ -132,7 +133,6 @@ describe('plate marks', () => {
       true
     );
     expect(bands.map(band => band.text)).toEqual(['Drug X · 10 µM', 'Drug X · 5 µM']);
-    expect(fillAmounts(dosed, dosed.lines[0], NO_NAMES).get('drug-Drug X')).toBe('10 µM, 5 µM');
   });
 
   it('tags each well of a scattered line, or rings it when wells print nothing', () => {

@@ -1,11 +1,11 @@
 import { useMemo, type KeyboardEvent } from 'react';
 
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
+import { sharedByAll, type StainOccupants } from '../../../../utils/vessels/stainLayout';
 import { dimmedForStain, type StainMix } from '../../../../utils/vessels/stainSide';
 import { LOOSE_VESSELS } from '../../../../utils/vessels/vesselCatalog';
 import { SHAPE_METRICS } from '../../../../utils/vessels/vesselSizing';
 import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
-import { isWellFilled } from '../../../../utils/vessels/wellSelection';
 
 import { useWellPointerActions } from './useWellPointerActions';
 import { WellTooltipSourceContext } from './wellTooltipSource';
@@ -27,7 +27,10 @@ interface WorkbenchVesselShelfListProps {
   calculation: BoardCalculation;
   sources: readonly SourceSummary[];
   selection: WellSelection;
-  stainMixes: ReadonlyMap<string, StainMix> | undefined;
+  mixes: ReadonlyMap<string, StainMix>;
+  stainOccupants: StainOccupants | undefined;
+  cutKeys: ReadonlySet<string>;
+  copiedKeys: ReadonlySet<string>;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
   onOpenMenu: (key: string, at: { x: number; y: number }) => void;
@@ -42,7 +45,10 @@ export function WorkbenchVesselShelfList({
   calculation,
   sources,
   selection,
-  stainMixes,
+  mixes,
+  stainOccupants,
+  cutKeys,
+  copiedKeys,
   onKeyDown,
   onOpenWell,
   onOpenMenu,
@@ -58,36 +64,44 @@ export function WorkbenchVesselShelfList({
           vessels: sheet.spots
             .filter(spot => spot.row === row)
             .map((spot): ShelfVesselView => {
-              const mix = stainMixes?.get(block.stain[spot.key] ?? '');
-              const isInUse = isWellFilled(block, spot.key);
-              const color = wellColor(block, spot.key, colorLine);
-              const stainLook = mix ? 'stained' : isInUse ? 'unstained' : undefined;
+              const wells = stainOccupants?.get(spot.key) ?? [spot.key];
+              const mix = stainOccupants && mixes.get(block.stain[spot.key] ?? '');
+              const color = sharedByAll(wells, well => wellColor(block, well, colorLine));
+              const stainLook = mix ? 'stained' : wells.length ? 'unstained' : undefined;
+              const heading = [
+                vessel.label,
+                wells.length > 1 && `pooled ×${wells.length}`,
+                stainLook && (mix?.name ?? 'not stained'),
+              ];
               return {
                 key: spot.key,
                 shape: vessel.shape,
                 width,
                 sizeLabel: vessel.short,
-                tooltipHeading:
-                  stainMixes && stainLook
-                    ? `${vessel.label} · ${mix?.name ?? 'not stained'}`
-                    : vessel.label,
+                tooltipHeading: stainOccupants ? heading.filter(Boolean).join(' · ') : vessel.label,
                 lines: block.lines.flatMap(line => {
-                  const shown = wellLine(block, spot.key, line, calculation);
+                  const shown = sharedByAll(wells, well =>
+                    wellLine(block, well, line, calculation)
+                  );
                   return shown ? [shown] : [];
                 }),
-                color: stainMixes ? dimmedForStain(color) : color,
-                stainLook: stainMixes ? stainLook : undefined,
+                color: stainOccupants ? dimmedForStain(color) : color,
+                stainLook: stainOccupants ? stainLook : undefined,
                 ringColor: mix?.color,
+                poolSize: wells.length > 1 ? wells.length : undefined,
+                isCut: cutKeys.has(spot.key),
+                isCopied: copiedKeys.has(spot.key),
               };
             }),
         };
       }),
-    [block, sheet, colorLine, scale, calculation, stainMixes]
+    [block, sheet, colorLine, scale, calculation, mixes, stainOccupants, cutKeys, copiedKeys]
   );
   const shelves = useStructuralSharing(shelfViews);
+  const isStainSide = stainOccupants !== undefined;
   const tooltipSource = useMemo(
-    () => ({ block, layers, calculation, sources }),
-    [block, layers, calculation, sources]
+    () => ({ block, sheet, layers, calculation, sources, mixes, isStainSide }),
+    [block, sheet, layers, calculation, sources, mixes, isStainSide]
   );
 
   return (

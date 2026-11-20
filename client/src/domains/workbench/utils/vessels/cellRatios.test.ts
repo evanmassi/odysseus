@@ -30,6 +30,7 @@ const coCulture = (content: Partial<VesselMapBlock> = {}) =>
     amountNames: {},
     side: 'assay',
     stain: {},
+    stainedIn: {},
     ...content,
   }) as VesselMapBlock;
 

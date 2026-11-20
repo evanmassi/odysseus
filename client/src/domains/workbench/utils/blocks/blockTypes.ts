@@ -104,6 +104,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       amountNames: {},
       side: 'assay' as const,
       stain: {},
+      stainedIn: {},
     }),
   },
   plateView: {

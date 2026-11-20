@@ -1,18 +1,9 @@
-/**
- * Main Stylesheet Entry Point
- *
- * All CSS imports consolidated here for predictable cascade ordering.
- */
-
-/* Fonts */
 @import './shared/styles/fonts/fonts.css';
 
-/* Base */
 @import './shared/styles/base/tailwind.css';
 @import './shared/styles/base/variables.css';
 @import './shared/styles/base/layout.css';
 
-/* Components */
 @import './shared/styles/components/typography.css';
 @import './shared/styles/components/inputs.css';
 @import './shared/styles/components/alerts.css';
@@ -27,10 +18,10 @@
 @import './shared/styles/components/nav-tree.css';
 @import './shared/styles/components/led-cell.css';
 
-/* Utilities */
 @import './shared/styles/utilities/focus.css';
 @import './shared/styles/utilities/animations.css';
 @import './shared/styles/utilities/selection-glow.css';
+@import './shared/styles/utilities/clipboard-marks.css';
 @import './shared/styles/utilities/hud-hover.css';
 @import './shared/styles/utilities/accessibility.css';
 @import './shared/styles/utilities/text-effects.css';

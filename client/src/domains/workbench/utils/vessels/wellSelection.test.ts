@@ -8,6 +8,7 @@ const block = {
   sets: [],
   cells: { 'p:A1': { drug: { valueId: 'x' } }, 'p:A2': { drug: { valueId: 'y' } } },
   stain: { 'p:A1': 'full' },
+  stainedIn: {},
 } as unknown as VesselMapBlock;
 const sheet = sheetOf(block, vesselTabs(block)[0]);
 

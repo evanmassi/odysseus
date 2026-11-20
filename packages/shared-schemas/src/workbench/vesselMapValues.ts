@@ -153,6 +153,9 @@ export function pruneUnused(block: VesselMapBlock): void {
     }
     if (!Object.keys(lines).length) delete block.cells[key];
   }
+  for (const key of Object.keys(block.stainedIn)) {
+    if (!Object.values(block.cells[key] ?? {}).some(isFilledCell)) delete block.stainedIn[key];
+  }
   const cellLines = Object.values(block.cells).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(cellLines.map(([lineId]) => lineId));
   const usedValues = new Set(cellLines.map(([, cell]) => cell.valueId));

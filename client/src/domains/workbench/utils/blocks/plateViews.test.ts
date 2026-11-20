@@ -22,6 +22,7 @@ const original = (): VesselMapBlock =>
     amountNames: {},
     side: 'assay',
     stain: { 'p:A1': 'full' },
+    stainedIn: {},
   }) as VesselMapBlock;
 
 const view = (id: string, page: string): PlateViewBlock => ({
@@ -73,6 +74,7 @@ describe('plate views', () => {
       side: 'stain',
       mergesReplicates: false,
       stain: { 'p:A1': 'full' },
+      stainedIn: {},
     });
     expect(viewsOf(protocol.blocks, 'map').map(found => found.id)).toEqual(['v2']);
   });

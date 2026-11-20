@@ -9,6 +9,11 @@ import {
   type PlateGeometry,
 } from '../../../../utils/vessels/plateGeometry';
 import { wellStripes } from '../../../../utils/vessels/plateLayers';
+import {
+  isRearranged,
+  sharedByAll,
+  type StainOccupants,
+} from '../../../../utils/vessels/stainLayout';
 import { dimmedForStain, type StainMix } from '../../../../utils/vessels/stainSide';
 import { rowLetter, type VesselSheet } from '../../../../utils/vessels/vesselTabs';
 import { wellColor, wellLine } from '../../../../utils/vessels/wellContents';
@@ -20,7 +25,9 @@ import { WellTooltipSourceContext } from './wellTooltipSource';
 import {
   PART_SEPARATOR,
   WorkbenchPlateWellButton,
+  WHOLE_WELL,
   type PlateWellView,
+  type WellMarks,
 } from './WorkbenchPlateWellButton';
 
 import type { WellSelection } from './useWellSelection';
@@ -42,17 +49,20 @@ interface WorkbenchPlateTableProps {
   sources: readonly SourceSummary[];
   selection: WellSelection;
   merges: ReplicateMerges;
-  stainMixes: ReadonlyMap<string, StainMix> | undefined;
+  mixes: ReadonlyMap<string, StainMix>;
+  stainOccupants: StainOccupants | undefined;
+  cutKeys: ReadonlySet<string>;
+  copiedKeys: ReadonlySet<string>;
   onKeyDown: (event: KeyboardEvent) => void;
   onOpenWell: (key: string) => void;
   onOpenMenu: (key: string, at: { x: number; y: number }) => void;
 }
 
-const selectedPartsOf = (view: PlateWellView, keys: ReadonlySet<string>) => {
-  const parts = view.merged?.keys.filter(key => keys.has(key)) ?? [];
-  return parts.length && parts.length < (view.merged?.keys.length ?? 0)
-    ? parts.join(PART_SEPARATOR)
-    : undefined;
+const marksOf = (view: PlateWellView, keys: ReadonlySet<string>): WellMarks => {
+  const wellKeys = view.merged?.keys ?? [view.key];
+  const parts = wellKeys.filter(key => keys.has(key));
+  if (!parts.length) return undefined;
+  return parts.length === wellKeys.length ? WHOLE_WELL : parts.join(PART_SEPARATOR);
 };
 
 const HEADER =
@@ -136,7 +146,10 @@ export function WorkbenchPlateTable({
   sources,
   selection,
   merges,
-  stainMixes,
+  mixes,
+  stainOccupants,
+  cutKeys,
+  copiedKeys,
   onKeyDown,
   onOpenWell,
   onOpenMenu,
@@ -147,52 +160,65 @@ export function WorkbenchPlateTable({
       sheet.spots.flatMap((spot): PlateWellView[] => {
         const merged = merges.anchors.get(spot.key);
         if (!merged && merges.covered.has(spot.key)) return [];
-        const isInUse = isWellFilled(block, spot.key);
         const where = merged
           ? `${selectionName(sheet, new Set(merged.keys))} · ${merged.keys.length} wells`
           : spot.label;
-        const color = wellColor(block, spot.key, colorLine);
-        const stripes = wellStripes(block, spot.key, layers);
-        const assay = {
+        const place = {
           key: spot.key,
           row: spot.row,
           col: spot.col,
           merged,
-          shownLine: colorLine && wellLine(block, spot.key, colorLine, calculation),
-          isFilled: isInUse,
         };
-        if (!stainMixes) {
+        if (!stainOccupants) {
           return [
             {
-              ...assay,
+              ...place,
               tooltipHeading: where,
-              color,
-              stripes,
+              shownLine: colorLine && wellLine(block, spot.key, colorLine, calculation),
+              isFilled: isWellFilled(block, spot.key),
+              color: wellColor(block, spot.key, colorLine),
+              stripes: wellStripes(block, spot.key, layers),
               stainLook: undefined,
               ringColor: undefined,
+              poolSize: undefined,
             },
           ];
         }
-        const mix = stainMixes.get(block.stain[spot.key] ?? '');
+        const wells = stainOccupants.get(spot.key) ?? [];
+        const isInUse = wells.length > 0;
+        const mix = mixes.get(block.stain[spot.key] ?? '');
+        const heading = [
+          where,
+          wells.length > 1 && `pooled ×${wells.length}`,
+          (mix !== undefined || isInUse) && (mix?.name ?? 'not stained'),
+        ];
         return [
           {
-            ...assay,
-            tooltipHeading:
-              mix !== undefined || isInUse ? `${where} · ${mix?.name ?? 'not stained'}` : where,
-            color: dimmedForStain(color),
-            stripes: stripes.map(dimmedForStain),
+            ...place,
+            tooltipHeading: heading.filter(Boolean).join(' · '),
+            shownLine:
+              colorLine &&
+              sharedByAll(wells, well => wellLine(block, well, colorLine, calculation)),
+            isFilled: isInUse,
+            color: dimmedForStain(sharedByAll(wells, well => wellColor(block, well, colorLine))),
+            stripes: (sharedByAll(wells, well => wellStripes(block, well, layers)) ?? []).map(
+              dimmedForStain
+            ),
             stainLook: mix ? 'stained' : isInUse ? 'unstained' : undefined,
             ringColor: mix?.color,
+            poolSize: wells.length > 1 ? wells.length : undefined,
           },
         ];
       }),
-    [block, sheet, colorLine, layers, calculation, merges, stainMixes]
+    [block, sheet, colorLine, layers, calculation, merges, mixes, stainOccupants]
   );
   const wells = useStructuralSharing(views);
+  const isStainSide = stainOccupants !== undefined;
   const tooltipSource = useMemo(
-    () => ({ block, layers, calculation, sources }),
-    [block, layers, calculation, sources]
+    () => ({ block, sheet, layers, calculation, sources, mixes, isStainSide }),
+    [block, sheet, layers, calculation, sources, mixes, isStainSide]
   );
+  const showsAssayMarks = !isStainSide || !isRearranged(block, sheet);
   const geometry = plateGeometry(size, sheet.rows, sheet.cols, bands);
   const style = {
     gridTemplateColumns: `${geometry.headerWidth}px repeat(${sheet.cols}, ${size.width}px)`,
@@ -256,13 +282,14 @@ export function WorkbenchPlateTable({
               key={view.key}
               view={view}
               density={size.density}
-              isSelected={(view.merged?.keys ?? [view.key]).every(key => selection.keys.has(key))}
-              selectedParts={selectedPartsOf(view, selection.keys)}
+              selected={marksOf(view, selection.keys)}
+              cut={marksOf(view, cutKeys)}
+              copied={marksOf(view, copiedKeys)}
               actions={actions}
             />
           ))}
-          {bands.length > 0 && (
-            <BandOverlay bands={bands} geometry={geometry} isDimmed={!!stainMixes} />
+          {bands.length > 0 && showsAssayMarks && (
+            <BandOverlay bands={bands} geometry={geometry} isDimmed={isStainSide} />
           )}
         </div>
       </div>

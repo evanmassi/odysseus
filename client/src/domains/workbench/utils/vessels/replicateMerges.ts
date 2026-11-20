@@ -1,3 +1,4 @@
+import { isAtHome, type StainOccupants } from './stainLayout';
 import { wellDetails } from './wellContents';
 
 import type { VesselSheet } from './vesselTabs';
@@ -23,14 +24,16 @@ export function replicateMerges(
   block: VesselMapBlock,
   sheet: VesselSheet,
   calculation: BoardCalculation,
-  isStainSide: boolean
+  stainOccupants: StainOccupants | undefined
 ): ReplicateMerges {
   if (!sheet.isPlate || !block.mergesReplicates) return NO_MERGES;
   const keyAt = new Map(sheet.spots.map(spot => [`${spot.row},${spot.col}`, spot.key]));
   const contents = new Map(
     sheet.spots.map(spot => {
       const details = wellDetails(block, spot.key, calculation).join('|');
-      const mix = isStainSide ? block.stain[spot.key] : undefined;
+      if (!stainOccupants) return [spot.key, details];
+      if (!isAtHome(stainOccupants, spot.key)) return [spot.key, ''];
+      const mix = block.stain[spot.key];
       return [spot.key, details && mix !== undefined ? `${details}|mix:${mix}` : details];
     })
   );

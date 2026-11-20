@@ -47,6 +47,7 @@ const plate: ProtocolBlock = {
   amountNames: {},
   side: 'stain',
   stain: { 'p1:A1': 'full', 'p1:A2': 'full', 'p1:A3': 'fmo' },
+  stainedIn: {},
 };
 
 const protocol = (extra: ProtocolBlock[] = []): Protocol => ({

@@ -53,6 +53,7 @@ describe('stained wells', () => {
       ],
       sets: [{ id: 's', vessel: 'facs', count: 4 }],
       stain: { 'p:A1': 'full', 'p:A2': 'full', 'q:B1': 'full', 's#0:1': 'full', 's#1:1': 'fmo' },
+      stainedIn: {},
     } as unknown as VesselMapBlock;
     expect(stainedPlaces([block]).get('full')).toEqual([
       { blockId: 'map', name: 'P1', count: 2 },

@@ -20,7 +20,6 @@ const band: PlateBand = {
   showsOutline: true,
   showsBracket: true,
   label: 'Cells',
-  amount: '',
   text: 'Cells',
   color: '#6fbf73',
   valueId: undefined,

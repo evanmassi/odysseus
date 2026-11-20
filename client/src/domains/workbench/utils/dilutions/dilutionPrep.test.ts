@@ -61,6 +61,7 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
         amountNames: {},
         side: 'assay',
         stain: {},
+        stainedIn: {},
       },
     ],
     diluent: '',
