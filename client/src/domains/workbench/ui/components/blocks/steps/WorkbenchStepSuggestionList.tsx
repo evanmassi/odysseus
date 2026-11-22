@@ -24,13 +24,13 @@ export function WorkbenchStepSuggestionList({
   activeIndex,
   onPick,
 }: WorkbenchStepSuggestionListProps) {
-  const calculation = useWorkbenchStore(state => state.calculation);
-  const [position, setPosition] = useState<CSSProperties>();
+  const board = useWorkbenchStore(state => state.board);
+  const [suggestionsPosition, setSuggestionsPosition] = useState<CSSProperties>();
 
   useLayoutEffect(() => {
     const place = () => {
       const rect = anchor.getBoundingClientRect();
-      setPosition({
+      setSuggestionsPosition({
         left: rect.left,
         top: rect.bottom + LIST_GAP_PX,
         minWidth: Math.max(rect.width, MIN_WIDTH_PX),
@@ -46,11 +46,11 @@ export function WorkbenchStepSuggestionList({
       role="listbox"
       tabIndex={-1}
       className="fixed z-popover max-h-48 overflow-y-auto border border-line-mid bg-card py-1 shadow-[var(--popup-shadow)]"
-      style={position ?? { visibility: 'hidden' }}
+      style={suggestionsPosition ?? { visibility: 'hidden' }}
       onMouseDown={event => event.preventDefault()}
     >
       {options.map((option, index) => {
-        const shown = option.name ? describeName(calculation, option.name).text : option.text;
+        const shown = option.name ? describeName(board, option.name).text : option.text;
         const isActive = index === activeIndex;
         return (
           <div

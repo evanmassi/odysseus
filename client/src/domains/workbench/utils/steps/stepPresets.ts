@@ -1,7 +1,7 @@
 import { describeName } from '../formulas/nameDisplay';
 import { matchesWordStarts } from '../formulas/nameMatching';
 
-import type { BoardCalculation } from '../formulas/boardCalculation';
+import type { SolvedBoard } from '../formulas/boardCalculation';
 
 interface StepPreset {
   label: string;
@@ -42,20 +42,16 @@ const BLANK_CHOICES: Readonly<Record<string, BlankChoices>> = {
   readout: { common: ['absorbance at 450 nm', 'luminescence', 'fluorescence'] },
 };
 
-export function blankOptions(
-  calculation: BoardCalculation,
-  label: string,
-  typed: string
-): BlankOption[] {
+export function blankOptions(board: SolvedBoard, label: string, typed: string): BlankOption[] {
   const choices = BLANK_CHOICES[label];
   const query = typed.trim() === label ? '' : typed.trim().toLowerCase();
   const number = /^\d[\d,.]*$/.exec(query)?.[0];
   const units = choices?.units ?? [];
-  const fromBoard = [...calculation.names.values()]
+  const fromBoard = [...board.names.values()]
     .filter(entry =>
       choices
         ? entry.kind !== 'item' &&
-          units.some(unit => describeName(calculation, entry.name).text.endsWith(` ${unit}`))
+          units.some(unit => describeName(board, entry.name).text.endsWith(` ${unit}`))
         : entry.kind === 'item'
     )
     .filter(entry => entry.name.toLowerCase().includes(query))
@@ -67,10 +63,10 @@ export function blankOptions(
   return [...typedWithUnits, ...common, ...fromBoard].slice(0, MAX_BLANK_OPTIONS);
 }
 
-export function referenceOptions(calculation: BoardCalculation, typed: string): BlankOption[] {
+export function referenceOptions(board: SolvedBoard, typed: string): BlankOption[] {
   const [firstWord = ''] = typed.toLowerCase().split(/\s+/).filter(Boolean);
   const startsWithFirst = (name: string) => +name.toLowerCase().startsWith(firstWord);
-  return [...calculation.names.values()]
+  return [...board.names.values()]
     .map(entry => entry.name)
     .filter(name => matchesWordStarts(name, typed))
     .sort((a, b) => startsWithFirst(b) - startsWithFirst(a))

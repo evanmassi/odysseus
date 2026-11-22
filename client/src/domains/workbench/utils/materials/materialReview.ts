@@ -1,7 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { guessMaterial, splitPastedMaterials, type MaterialKnowledge } from './materialGuesser';
-import { findDuplicateMaterial, materialFromGuess, mergeMaterialInto } from './materialItems';
+import { findAlreadyListed, materialFromGuess, mergeMaterialInto } from './materialItems';
 
 import type { LabMemory } from './materialMemory';
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
@@ -9,7 +9,7 @@ import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 export interface MaterialReviewRow {
   item: MaterialItem;
   why: string;
-  duplicateId?: string;
+  alreadyListedId?: string;
   isKeptBoth: boolean;
   isCorrected: boolean;
 }
@@ -22,7 +22,7 @@ export const reviewRow = (
 ): MaterialReviewRow => ({
   item,
   why,
-  duplicateId: findDuplicateMaterial(items, item, keptBoth)?.id,
+  alreadyListedId: findAlreadyListed(items, item, keptBoth)?.id,
   isKeptBoth: false,
   isCorrected: false,
 });
@@ -46,7 +46,7 @@ export const materialCount = (count: number): string =>
   `${count} material${count === 1 ? '' : 's'}`;
 
 export function reviewActionLabel(rows: readonly MaterialReviewRow[]): string {
-  const added = rows.filter(row => !row.duplicateId || row.isKeptBoth).length;
+  const added = rows.filter(row => !row.alreadyListedId || row.isKeptBoth).length;
   const merged = rows.length - added;
   const action = [added ? `Add ${materialCount(added)}` : '', merged ? `merge ${merged}` : '']
     .filter(Boolean)
@@ -62,14 +62,14 @@ export function commitReviewRows(
   const block = protocol.blocks.find(candidate => candidate.id === blockId);
   if (block?.type !== 'materials') return [];
   const freshIds = new Set<string>();
-  for (const { item, duplicateId, isKeptBoth } of rows) {
-    const duplicate = block.items.find(candidate => candidate.id === duplicateId);
-    if (duplicate && !isKeptBoth) {
-      mergeMaterialInto(duplicate, item);
-      freshIds.add(duplicate.id);
+  for (const { item, alreadyListedId, isKeptBoth } of rows) {
+    const alreadyListed = block.items.find(candidate => candidate.id === alreadyListedId);
+    if (alreadyListed && !isKeptBoth) {
+      mergeMaterialInto(alreadyListed, item);
+      freshIds.add(alreadyListed.id);
       continue;
     }
-    if (duplicate) protocol.keptBoth.push(normalizeMaterialKey(item.name));
+    if (alreadyListed) protocol.keptBoth.push(normalizeMaterialKey(item.name));
     block.items.push(item);
     freshIds.add(item.id);
     block.foldedGroups = block.foldedGroups.filter(group => group !== item.group);

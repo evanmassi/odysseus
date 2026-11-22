@@ -9,18 +9,14 @@ import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { materialGroup } from '../../../../utils/materials/materialCatalog';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
-import {
-  donorTargetsOf,
-  ensureMaterial,
-  listedMaterials,
-} from '../../../../utils/materials/materialLookup';
+import { ensureMaterial, listedMaterials } from '../../../../utils/materials/materialLookup';
 import {
   materialKnowledge,
   startingSourceFieldsOf,
 } from '../../../../utils/materials/materialMemory';
-import { addSourcesNamed } from '../../../../utils/materials/materialSources';
+import { addSourcesNamed, donorTargetsOf } from '../../../../utils/materials/materialSources';
 import { linkPlateName } from '../../../../utils/materials/plateNameOffers';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import {
   HORIZONTAL_SCROLL,
@@ -43,13 +39,13 @@ export function WorkbenchMaterialPlateNamesSection({
   offers,
 }: WorkbenchMaterialPlateNamesSectionProps) {
   const materialBlocks = useBlocksOf('materials');
-  const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
+  const fileFluors = useWorkbenchStore(state => state.protocol.dyes);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
   const swatchOf = usePlateSwatches();
   const known = useMemo(
-    () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileDyes }),
-    [memory, materialBlocks, fileDyes]
+    () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileFluors }),
+    [memory, materialBlocks, fileFluors]
   );
   const materialsOnly = useMemo(() => ({ blocks: materialBlocks }), [materialBlocks]);
   const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);
@@ -105,8 +101,8 @@ export function WorkbenchMaterialPlateNamesSection({
                 size="xs"
                 isQuiet
                 value=""
-                placeholder="All as donors of…"
-                aria-label="Add them all as donors of"
+                placeholder="Add all to…"
+                aria-label="Add them all to a donor list"
                 options={[...donorTargets]}
                 onChange={choice => choice && onAddAsDonors(offers, String(choice))}
               />
@@ -122,7 +118,7 @@ export function WorkbenchMaterialPlateNamesSection({
               <tr key={offer.key} className={`${materialRowClass(index)} italic`}>
                 <td className={`${MATERIAL_CELL} text-muted-foreground`}>
                   <span className="flex items-center gap-2">
-                    <WorkbenchMarkSwatch swatch={swatchOf(offer.name)} />
+                    <WorkbenchIndicatorSwatch swatch={swatchOf(offer.name)} />
                     {offer.name}
                   </span>
                 </td>
@@ -142,8 +138,8 @@ export function WorkbenchMaterialPlateNamesSection({
                             size="xs"
                             isQuiet
                             value=""
-                            placeholder="Donor of…"
-                            aria-label={`${offer.name} is a donor of`}
+                            placeholder="Add to…"
+                            aria-label={`Add ${offer.name} to a donor list`}
                             options={[...donorTargets]}
                             onChange={choice => choice && onAddAsDonors([offer], String(choice))}
                           />

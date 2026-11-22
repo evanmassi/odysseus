@@ -1,9 +1,9 @@
 import { plateValueRows, removePlateRow, setPlateRowValue } from './plateValueRows';
 
-import type { Protocol, VesselMapBlock } from '@odysseus/shared-schemas';
+import type { Protocol, PlateMapBlock } from '@odysseus/shared-schemas';
 
 function protocolWithPlate(): Protocol {
-  const plate = {
+  const plateMap = {
     id: 'map',
     type: 'plate',
     title: 'Assay plate map',
@@ -38,12 +38,12 @@ function protocolWithPlate(): Protocol {
     side: 'assay',
     stain: {},
     stainedIn: {},
-  } as unknown as VesselMapBlock;
-  return { blocks: [plate] } as unknown as Protocol;
+  } as unknown as PlateMapBlock;
+  return { blocks: [plateMap] } as unknown as Protocol;
 }
 
 const plateIn = (protocol: Protocol) =>
-  protocol.blocks.find(block => block.type === 'plate') as VesselMapBlock;
+  protocol.blocks.find(block => block.type === 'plate') as PlateMapBlock;
 
 const rowNamed = (protocol: Protocol, name: string) =>
   plateValueRows(plateIn(protocol)).find(row => row.name === name)!;
@@ -66,10 +66,10 @@ describe('plate rows', () => {
     setPlateRowValue(protocol, rowNamed(protocol, 'Drug X top conc.'), '30');
     setPlateRowValue(protocol, rowNamed(protocol, 'Anti-CD3 final conc.'), '2');
     setPlateRowValue(protocol, rowNamed(protocol, 'Vehicle wells'), '4');
-    const plate = plateIn(protocol);
-    expect(plate.series['s']).toMatchObject({ start: '30' });
-    expect(plate.cells['p:A3']['stim']).toMatchObject({ amount: '2' });
-    expect(plate.counts).toEqual({ v: '4' });
+    const plateMap = plateIn(protocol);
+    expect(plateMap.series['s']).toMatchObject({ start: '30' });
+    expect(plateMap.cells['p:A3']['stim']).toMatchObject({ amount: '2' });
+    expect(plateMap.counts).toEqual({ v: '4' });
   });
 
   it('remove a value from its wells, an amount from its wells, or a whole dilution', () => {
@@ -79,9 +79,9 @@ describe('plate rows', () => {
     removePlateRow(protocol, row('Vehicle wells'));
     removePlateRow(protocol, row('Anti-CD3 final conc.'));
     removePlateRow(protocol, row('Drug X dil. factor'));
-    const plate = plateIn(protocol);
-    expect(plate.cells['p:A3']).toEqual({ stim: { valueId: 'cd3' } });
-    expect(plate.cells['p:A1']).toEqual({ drug: { valueId: 'x' }, stim: { valueId: 'cd3' } });
-    expect(plate.series).toEqual({});
+    const plateMap = plateIn(protocol);
+    expect(plateMap.cells['p:A3']).toEqual({ stim: { valueId: 'cd3' } });
+    expect(plateMap.cells['p:A1']).toEqual({ drug: { valueId: 'x' }, stim: { valueId: 'cd3' } });
+    expect(plateMap.series).toEqual({});
   });
 });

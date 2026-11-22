@@ -150,7 +150,7 @@ export function WorkbenchDilutionStripPreview({
               {point.final}
             </text>
             <text x={x} y={below(31)} fontSize={10} className={`${MONO} ${MUTED}`}>
-              {point.working}
+              {point.workingConc}
             </text>
             {prep.isUneven && (
               <text x={x} y={below(45)} fontSize={10} className={`${MONO} ${MUTED}`}>

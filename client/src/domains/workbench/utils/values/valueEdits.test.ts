@@ -18,7 +18,7 @@ import {
 
 import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 
-function board(): Protocol {
+function protocolWithValues(): Protocol {
   const protocol = blankProtocol();
   for (const block of protocol.blocks) {
     if (block.type === 'materials') {
@@ -48,7 +48,7 @@ const valuesOf = (protocol: Protocol) =>
 describe('value edits', () => {
   it('adds typed lines and asks for the number of a single empty one', () => {
     let needsNumber: string | undefined;
-    const before = board();
+    const before = protocolWithValues();
     const valuesId = valuesOf(before)?.id ?? '';
     const after = produce(before, draft => {
       needsNumber = addValueLines(draft, valuesId, ['Replicates'], '');
@@ -59,7 +59,7 @@ describe('value edits', () => {
   });
 
   it('writes a linked value, its label and its unit onto the material', () => {
-    const before = board();
+    const before = protocolWithValues();
     const valuesId = valuesOf(before)?.id ?? '';
     let sectionId = '';
     let itemId: string | undefined;
@@ -84,7 +84,7 @@ describe('value edits', () => {
   });
 
   it('renames a linked field for every material in its Materials column', () => {
-    const before = produce(board(), draft => {
+    const before = produce(protocolWithValues(), draft => {
       const materials = draft.blocks.find(block => block.type === 'materials');
       if (materials?.type !== 'materials') return;
       const [hela] = materials.items;
@@ -110,7 +110,7 @@ describe('value edits', () => {
   });
 
   it('puts a removed value back where it was', () => {
-    const before = produce(board(), draft => {
+    const before = produce(protocolWithValues(), draft => {
       addValueLines(draft, valuesOf(draft)?.id ?? '', ['A 1', 'B 2', 'C 3'], '');
     });
     const valuesId = valuesOf(before)?.id ?? '';
@@ -130,7 +130,7 @@ describe('value edits', () => {
   });
 
   it('removes and restores a whole section with its values', () => {
-    const before = board();
+    const before = protocolWithValues();
     const valuesId = valuesOf(before)?.id ?? '';
     let sectionId = '';
     const withSection = produce(before, draft => {
@@ -149,7 +149,7 @@ describe('value edits', () => {
   });
 
   it('adds a missing formula name as a value under its material', () => {
-    const before = board();
+    const before = protocolWithValues();
     const material = materialsById(before).get('m1');
     const after = produce(before, draft =>
       addNamedValue(draft, 'HeLa per well', material, draft.pages[0].id)

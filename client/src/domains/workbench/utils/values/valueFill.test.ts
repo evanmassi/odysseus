@@ -9,7 +9,7 @@ import { buildValueTable } from './valueTable';
 
 import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 
-const cellLine = (id: string, name: string) => ({
+const sampleEntry = (id: string, name: string) => ({
   id,
   group: 'bio',
   type: 'Cell line',
@@ -28,7 +28,11 @@ const protocol = {
     {
       id: 'materials',
       type: 'materials',
-      items: [cellLine('raji', 'Raji'), cellLine('jurkat', 'Jurkat'), cellLine('k562', 'K562')],
+      items: [
+        sampleEntry('raji', 'Raji'),
+        sampleEntry('jurkat', 'Jurkat'),
+        sampleEntry('k562', 'K562'),
+      ],
     },
     {
       id: 'values',
@@ -53,7 +57,7 @@ const valuesOf = (current: Protocol) =>
 function bioGroup(current: Protocol) {
   const [group] = buildValueTable(current, valuesOf(current), {
     materials: materialsById(current),
-    calculation: calculateBoard(collectBoardNames(current)),
+    board: calculateBoard(collectBoardNames(current)),
     needs: [],
     unsortedNames: [],
   });

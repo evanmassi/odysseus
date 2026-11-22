@@ -1,18 +1,21 @@
-import { labwareTitle } from '../vessels/vesselTabs';
+import { labwareTitle } from '../plateMap/plateMapTabs';
 
 import type {
-  PlateViewBlock,
+  LinkedPlateMapBlock,
   Protocol,
   ProtocolBlock,
-  VesselMapBlock,
+  PlateMapBlock,
 } from '@odysseus/shared-schemas';
 
-export const viewsOf = (blocks: readonly ProtocolBlock[], plateId: string): PlateViewBlock[] =>
+export const linkedPlateMapsOf = (
+  blocks: readonly ProtocolBlock[],
+  plateId: string
+): LinkedPlateMapBlock[] =>
   blocks.filter(
-    (block): block is PlateViewBlock => block.type === 'plateView' && block.shows === plateId
+    (block): block is LinkedPlateMapBlock => block.type === 'plateView' && block.shows === plateId
   );
 
-export const shownPlate = (source: VesselMapBlock, view: PlateViewBlock): VesselMapBlock => ({
+export const shownPlate = (source: PlateMapBlock, view: LinkedPlateMapBlock): PlateMapBlock => ({
   ...source,
   side: view.side,
   activeTab: view.activeTab,
@@ -34,7 +37,7 @@ export function removalMessage(
       ? `Remove this card? Its plates stay on ${pageName(protocol, source.page)}.`
       : asked;
   }
-  const [heir] = block.type === 'plate' ? viewsOf(protocol.blocks, block.id) : [];
+  const [heir] = block.type === 'plate' ? linkedPlateMapsOf(protocol.blocks, block.id) : [];
   return heir
     ? `${asked} Its plates move to the card on ${pageName(protocol, heir.page)}, so nothing is lost.`
     : asked;
@@ -43,7 +46,7 @@ export function removalMessage(
 export function removeBlock(draft: Protocol, blockId: string): void {
   const removed = draft.blocks.find(block => block.id === blockId);
   if (!removed) return;
-  const [heir] = removed.type === 'plate' ? viewsOf(draft.blocks, removed.id) : [];
+  const [heir] = removed.type === 'plate' ? linkedPlateMapsOf(draft.blocks, removed.id) : [];
   if (removed.type !== 'plate' || !heir) {
     draft.blocks = draft.blocks.filter(block => block !== removed);
     return;

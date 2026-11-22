@@ -29,7 +29,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       heading: 'Add each material your experiment uses',
       points: [
         'Type a name and press [Enter], or paste a list',
-        '*Add* vendor, lot # and other details as you go',
+        '*Add* source, lot # and other details as you go',
       ],
     },
     size: [12, 10],
@@ -61,8 +61,8 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       heading: 'Name the numbers your experiment uses',
       points: [
         'Type a name and amount and press [Enter], or paste a list',
-        'Start with a material or mix to put it on that row, e.g. Raji per well 10000 cells',
-        'A field the material has, e.g. Raji count, fills it in <materials>',
+        'Start with a material or mix to put it on that row, e.g. Raji Cells/well 10000',
+        'A field the material has, e.g. Raji Viability, fills it in <materials>',
         'Numbers from the <plate> and <materials> show up on their own',
         'Use them by name in <formula> and <steps>',
       ],
@@ -78,7 +78,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       heading: 'Work out numbers from your values',
       points: [
         'Type a name and press [Enter], or type Name = formula',
-        'Start with a material, e.g. Raji cells needed, to put it under that material',
+        'Start with a material, e.g. Raji Total needed, to put it under that material',
         'Names from <values>, <materials> and the <plate> are offered as you type, [Tab] picks one',
         '*Click* a calculation to edit it and see its working',
       ],
@@ -145,7 +145,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       points: [
         '[Shift+Enter] starts the next step',
         '[Tab] moves in, [Shift+Tab] moves out',
-        'Type [{] to drop in a <values> or <materials> name',
+        'Type [{] to insert a <values> or <materials> name',
         '*Drag* to reorder',
       ],
     },

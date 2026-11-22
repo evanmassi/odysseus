@@ -1,5 +1,5 @@
-import { cytometerFormulaNames } from '../cytometer/cytometerNames';
 import { dilutionFormulaNames } from '../dilutions/dilutionFormulas';
+import { flowCytometryFormulaNames } from '../flowCytometry/flowCytometryNames';
 import { cellCountNames, countSubjects } from '../materials/cellCounts';
 import { cellFormulaNames } from '../materials/cellFormulas';
 import {
@@ -12,8 +12,8 @@ import {
 } from '../materials/materialCatalog';
 import { shortNameOf } from '../materials/materialLookup';
 import { recipeFormulaNames } from '../materials/materialRecipeFormulas';
+import { materialWellCounts, plateAmounts, plateMapCounts } from '../plateMap/plateMapNames';
 import { joinValueName } from '../values/valueNames';
-import { materialWellCounts, plateAmounts, vesselCounts } from '../vessels/vesselMapNames';
 
 import { nameKey, type BoardName } from './boardCalculation';
 
@@ -124,7 +124,7 @@ function valueNames(
 }
 
 function vesselMapNames(block: BlockOf<'plate'>): BoardName[] {
-  const counts = vesselCounts(block).map(
+  const counts = plateMapCounts(block).map(
     (count): BoardName => ({
       kind: 'count',
       id: `${block.id}:${count.key}`,
@@ -159,17 +159,15 @@ function wellCountNames(
   materials: readonly MaterialItem[]
 ) {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
-  const vesselMaps = protocol.blocks.filter(
+  const plateMaps = protocol.blocks.filter(
     (block): block is BlockOf<'plate'> => block.type === 'plate'
   );
-  return [...materialWellCounts(vesselMaps, materials)].flatMap(
-    ([material, count]): BoardName[] => {
-      const name = `${material.name.trim()} wells`;
-      return takenKeys.has(nameKey(name))
-        ? []
-        : [{ kind: 'count', id: `${material.id}:wells`, name, count }];
-    }
-  );
+  return [...materialWellCounts(plateMaps, materials)].flatMap(([material, count]): BoardName[] => {
+    const name = `${material.name.trim()} wells`;
+    return takenKeys.has(nameKey(name))
+      ? []
+      : [{ kind: 'count', id: `${material.id}:wells`, name, count }];
+  });
 }
 
 export function collectBoardNames(protocol: Protocol): BoardName[] {
@@ -210,5 +208,5 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     ...dilutionFormulaNames(protocol, ownNames),
     ...cellFormulaNames(protocol, ownNames),
   ];
-  return [...generated, ...cytometerFormulaNames(protocol, generated)];
+  return [...generated, ...flowCytometryFormulaNames(protocol, generated)];
 }

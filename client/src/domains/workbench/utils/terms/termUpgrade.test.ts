@@ -56,6 +56,18 @@ describe('settling the words of an opened file', () => {
     expect(upgraded.pages[0].steps[0].text).toBe('Add {Extra (dead vol.)} on top.');
   });
 
+  it('points an old plating concentration reference at plating conc.', () => {
+    const upgraded = withSettledWords(
+      protocolWith(
+        [{ id: 'p', name: 'Raji plating conc.', value: '1e6', unit: 'cells/mL' }],
+        ['Raji plating concentration × 2'],
+        'Plate at {Raji plating concentration}.'
+      )
+    );
+    expect(exprs(upgraded)).toEqual(['Raji plating conc. × 2']);
+    expect(upgraded.pages[0].steps[0].text).toBe('Plate at {Raji plating conc.}.');
+  });
+
   it('changes nothing more when a settled file is opened again', () => {
     const once = withSettledWords(
       protocolWith([{ id: 'o', name: 'Overage', value: '10', unit: '%' }], ['1 + Overage'])

@@ -1,11 +1,6 @@
 import { withGreekLetters } from '@odysseus/shared-schemas';
 
-import {
-  calculateBoard,
-  formulaAnswerText,
-  nameKey,
-  type BoardCalculation,
-} from './boardCalculation';
+import { calculateBoard, formulaAnswerText, nameKey, type SolvedBoard } from './boardCalculation';
 import { formulaMaterial, namesInFull, uniqueName } from './formulaScopes';
 
 import type { MaterialItem } from '@odysseus/shared-schemas';
@@ -26,7 +21,7 @@ const PREVIEW_ID = 'formula-draft-preview';
 
 export function readFormulaDraft(
   text: string,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   materials: readonly MaterialItem[]
 ): FormulaDraft | undefined {
   const [label, ...rest] = text.split('=');
@@ -35,8 +30,8 @@ export function readFormulaDraft(
   const material = formulaMaterial(name, materials);
   return {
     name,
-    savedName: uniqueName(calculation, name),
-    expr: namesInFull(withGreekLetters(rest.join('=').trim()), calculation, material),
+    savedName: uniqueName(board, name),
+    expr: namesInFull(withGreekLetters(rest.join('=').trim()), board, material),
     material,
   };
 }
@@ -54,27 +49,24 @@ function editDistance(a: string, b: string): number {
   return previous[b.length];
 }
 
-function closestName(missing: string, calculation: BoardCalculation): string | undefined {
+function closestName(missing: string, board: SolvedBoard): string | undefined {
   const typed = nameKey(missing);
   const allowed = Math.max(2, Math.floor(typed.length / 4));
-  return [...calculation.names.values()]
+  return [...board.names.values()]
     .map(entry => ({ name: entry.name, distance: editDistance(typed, nameKey(entry.name)) }))
     .filter(candidate => candidate.distance <= allowed)
     .sort((a, b) => a.distance - b.distance)[0]?.name;
 }
 
-export function checkFormulaDraft(
-  draft: FormulaDraft,
-  calculation: BoardCalculation
-): FormulaDraftCheck {
+export function checkFormulaDraft(draft: FormulaDraft, board: SolvedBoard): FormulaDraftCheck {
   if (!draft.expr) return { answer: undefined, problem: undefined };
   const preview = calculateBoard([
-    ...calculation.names.values(),
+    ...board.names.values(),
     { kind: 'formula', id: PREVIEW_ID, name: draft.savedName, expr: draft.expr, unit: '' },
   ]).results.get(PREVIEW_ID);
   if (preview?.status === 'ok') return { answer: formulaAnswerText(preview), problem: undefined };
   if (preview?.status !== 'error') return { answer: undefined, problem: undefined };
-  const closest = preview.missingName && closestName(preview.missingName, calculation);
+  const closest = preview.missingName && closestName(preview.missingName, board);
   return {
     answer: undefined,
     problem: closest ? `${preview.message}. Did you mean ${closest}?` : preview.message,

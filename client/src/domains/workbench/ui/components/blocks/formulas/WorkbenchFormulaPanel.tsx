@@ -15,7 +15,7 @@ import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import { dilutionRuns } from '../../../../utils/dilutions/dilutionRuns';
 import {
   nameKey,
-  type BoardCalculation,
+  type SolvedBoard,
   type FormulaResult,
 } from '../../../../utils/formulas/boardCalculation';
 import {
@@ -101,22 +101,22 @@ const SETTINGS_LABELS: Partial<Record<ProtocolBlock['type'], string>> = {
 };
 
 function linksOf(
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   result: FormulaResult | undefined
 ): Readonly<Record<string, string>> {
   if (result?.status !== 'ok') return {};
   return Object.fromEntries(
     workingRefs(result.working).flatMap(ref => {
-      const sourceId = calculation.names.get(nameKey(ref.name))?.sourceBlockId;
+      const sourceId = board.names.get(nameKey(ref.name))?.sourceBlockId;
       return sourceId ? [[ref.name, sourceId]] : [];
     })
   );
 }
 
-function prepWarnings(protocol: Pick<Protocol, 'blocks'>, calculation: BoardCalculation) {
+function prepWarnings(protocol: Pick<Protocol, 'blocks'>, board: SolvedBoard) {
   const byLine = new Map<string, string[]>();
   for (const run of dilutionRuns(protocol)) {
-    const prep = dilutionPrep(run, protocol, calculation, '');
+    const prep = dilutionPrep(run, protocol, board, '');
     if (prep.kind !== 'ready') continue;
     for (const warning of prep.warnings) {
       const id = prepLineId(run, warning.line);
@@ -128,7 +128,7 @@ function prepWarnings(protocol: Pick<Protocol, 'blocks'>, calculation: BoardCalc
 
 export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const protocol = useProtocolWith('materials', 'plate', 'formula', 'dilutions');
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const board = useWorkbenchStore(state => state.board);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const showBlock = useShowBlock();
@@ -155,29 +155,29 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const showsWorkedOut =
     protocol.blocks.find(candidate => candidate.type === 'formula')?.id === block.id;
   const sections = useMemo(
-    () => calculationSections(block, materials, calculation, showsWorkedOut, generalTitle),
-    [block, materials, calculation, showsWorkedOut, generalTitle]
+    () => calculationSections(block, materials, board, showsWorkedOut, generalTitle),
+    [block, materials, board, showsWorkedOut, generalTitle]
   );
   const warnings = useMemo(
     () =>
       showsWorkedOut
         ? new Map([
-            ...prepWarnings(protocol, calculation),
-            ...recipeWarnings(protocol, calculation),
-            ...cellWarnings(calculation),
+            ...prepWarnings(protocol, board),
+            ...recipeWarnings(protocol, board),
+            ...cellWarnings(board),
           ])
         : new Map<string, string[]>(),
-    [protocol, calculation, showsWorkedOut]
+    [protocol, board, showsWorkedOut]
   );
   const results = useStructuralSharing(
     useMemo(
-      (): Partial<Record<string, FormulaResult>> => Object.fromEntries(calculation.results),
-      [calculation]
+      (): Partial<Record<string, FormulaResult>> => Object.fromEntries(board.results),
+      [board]
     )
   );
   const layout = useMemo(
-    () => calculationLayout(sections, calculation, block.materialSections),
-    [sections, calculation, block.materialSections]
+    () => calculationLayout(sections, board, block.materialSections),
+    [sections, board, block.materialSections]
   );
   const workedOut = useStructuralSharing(
     useMemo(() => {
@@ -193,8 +193,8 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       }): WorkedOutLine => ({
         id: line.id,
         name: line.name,
-        result: calculation.results.get(line.id),
-        links: linksOf(calculation, calculation.results.get(line.id)),
+        result: board.results.get(line.id),
+        links: linksOf(board, board.results.get(line.id)),
         warnings: warnings.get(line.id) ?? [],
         isIntermediate: !!line.isIntermediate,
       });
@@ -222,7 +222,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
             : []
       );
       return { groups: Object.fromEntries(groups), tables: Object.fromEntries(tables) };
-    }, [layout, protocol, calculation, warnings])
+    }, [layout, protocol, board, warnings])
   );
 
   const sectionOf = (name: string) => formulaMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
@@ -231,10 +231,10 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const addFormula = (material: MaterialItem | undefined, text: string) => {
     const [label, ...rest] = text.split('=');
     const name = uniqueName(
-      calculation,
+      board,
       joinValueName(material?.name.trim() ?? '', withGreekLetters(label.trim()))
     );
-    const expr = namesInFull(withGreekLetters(rest.join('=').trim()), calculation, material);
+    const expr = namesInFull(withGreekLetters(rest.join('=').trim()), board, material);
     let added: string | undefined;
     edit(draft => {
       added = insertFormula(
@@ -249,12 +249,12 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   };
 
   const typedDraft = useMemo(
-    () => readFormulaDraft(typed, calculation, materials),
-    [typed, calculation, materials]
+    () => readFormulaDraft(typed, board, materials),
+    [typed, board, materials]
   );
   const typedCheck = useMemo(
-    () => typedDraft && checkFormulaDraft(typedDraft, calculation),
-    [typedDraft, calculation]
+    () => typedDraft && checkFormulaDraft(typedDraft, board),
+    [typedDraft, board]
   );
   const [onlyPart] = layout.parts;
   const isTitled =
@@ -331,9 +331,9 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         title={isTitled ? title : undefined}
         kind={material?.type ?? ''}
         swatch={swatchOf(section.owner)}
-        addPlaceholder={material ? `Add to ${title}` : 'Add: Total volume'}
-        suggestions={material ? calculationSuggestions(calculation, material) : []}
-        suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, material)}
+        addPlaceholder={`Add to ${title}`}
+        suggestions={material ? calculationSuggestions(board, material) : []}
+        suggestionTitle={suggestion => namesWithin(suggestion.expr, board, material)}
         isEmpty={!items.length && !groups.length}
         onAdd={material ? text => addFormula(material, text) : undefined}
         onSuggest={suggestion => addSuggestion(material, suggestion)}
@@ -405,10 +405,8 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         )}
         {typedDraft?.material && (
           <WorkbenchFormulaSuggestionList
-            suggestions={calculationSuggestions(calculation, typedDraft.material)}
-            suggestionTitle={suggestion =>
-              namesWithin(suggestion.expr, calculation, typedDraft.material)
-            }
+            suggestions={calculationSuggestions(board, typedDraft.material)}
+            suggestionTitle={suggestion => namesWithin(suggestion.expr, board, typedDraft.material)}
             className="flex"
             onSuggest={suggestion => {
               addSuggestion(typedDraft.material, suggestion);
@@ -450,7 +448,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           key={open.formula.id}
           formula={open.formula}
           material={open.material}
-          calculation={calculation}
+          board={board}
           anchorOf={openRowBox}
           onChange={change =>
             edit(draft => updateFormula(draft, block.id, open.formula.id, change))

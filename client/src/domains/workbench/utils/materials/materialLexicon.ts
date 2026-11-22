@@ -1,6 +1,6 @@
-import { BUILT_IN_CATALOG, laserLabel } from '../dyes/dyeCatalog';
+import { BUILT_IN_CATALOG, laserLabel } from '../fluors/fluorCatalog';
 
-import type { DyeKind } from '../dyes/dyeList';
+import type { FluorKind } from '../fluors/fluorList';
 
 export type MaterialLexiconGroup =
   | 'bio'
@@ -21,23 +21,25 @@ interface MaterialLexiconEntry {
   isGeneric?: boolean;
 }
 
-const DYE_MATERIAL_TARGETS: Readonly<Partial<Record<DyeKind, string>>> = {
+const FLUOR_MATERIAL_TARGETS: Readonly<Partial<Record<FluorKind, string>>> = {
   viability: 'Viability',
   dna: 'DNA',
 };
 
-const DYE_MATERIAL_ENTRIES: readonly MaterialLexiconEntry[] = BUILT_IN_CATALOG.dyes.flatMap(dye => {
-  const target = DYE_MATERIAL_TARGETS[dye.kind];
-  if (!target) return [];
-  const values: Record<string, string> = { target, laser: laserLabel(dye.lasers[0]) };
-  if (dye.kind === 'viability') values['fixable'] = dye.isFixable ? 'Yes' : 'No';
-  return {
-    group: 'ab',
-    type: 'Dye',
-    values,
-    names: [dye.name, ...dye.aliases].join('|'),
-  };
-});
+const FLUOR_MATERIAL_ENTRIES: readonly MaterialLexiconEntry[] = BUILT_IN_CATALOG.fluors.flatMap(
+  fluor => {
+    const target = FLUOR_MATERIAL_TARGETS[fluor.kind];
+    if (!target) return [];
+    const values: Record<string, string> = { target, laser: laserLabel(fluor.lasers[0]) };
+    if (fluor.kind === 'viability') values['fixable'] = fluor.isFixable ? 'Yes' : 'No';
+    return {
+      group: 'ab',
+      type: 'Dye',
+      values,
+      names: [fluor.name, ...fluor.aliases].join('|'),
+    };
+  }
+);
 
 export const MATERIAL_LEXICON: readonly MaterialLexiconEntry[] = [
   {
@@ -205,7 +207,7 @@ export const MATERIAL_LEXICON: readonly MaterialLexiconEntry[] = [
     values: { target: 'Viability', fixable: 'Yes' },
     names: 'LIVE/DEAD|Fixable Viability Dye|FVD|FVS|Ghost Dye|viability dye|live/dead stain',
   },
-  ...DYE_MATERIAL_ENTRIES,
+  ...FLUOR_MATERIAL_ENTRIES,
   {
     group: 'ab',
     type: 'Dye',

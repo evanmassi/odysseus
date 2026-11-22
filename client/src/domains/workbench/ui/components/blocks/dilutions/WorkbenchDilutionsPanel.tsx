@@ -26,12 +26,12 @@ import {
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
 import { PLAIN_RAIL, WorkbenchDilutionSeriesSection } from './WorkbenchDilutionSeriesSection';
 
-import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
+import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 import type { ProtocolBlock } from '@odysseus/shared-schemas';
 
 const ALL_SERIES = 'all';
@@ -44,13 +44,13 @@ interface WorkbenchDilutionsPanelProps {
 
 export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps) {
   const protocol = useProtocolOutsidePages();
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const board = useWorkbenchStore(state => state.board);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
   const known = useMemo(() => materialKnowledge(memory, protocol), [memory, protocol]);
   const swatchOf = usePlateSwatches();
   const runs = dilutionRuns(protocol);
-  const markOf = (run: DilutionRun): PlateSwatch =>
+  const indicatorOf = (run: DilutionRun): PlateSwatch =>
     swatchOf(run.subject) ?? { color: run.color ?? PLAIN_RAIL, kind: 'fill' };
   const diluents = runDiluents(runs, protocol.diluent);
   const diluentChoices = useMemo(
@@ -124,7 +124,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
             {runs.map(run => (
               <Tab key={run.key} id={run.key}>
                 <span className="mr-1.5 inline-flex align-middle">
-                  <WorkbenchMarkSwatch swatch={markOf(run)} />
+                  <WorkbenchIndicatorSwatch swatch={indicatorOf(run)} />
                 </span>
                 {run.subject || 'Unnamed treatment'}
               </Tab>
@@ -135,7 +135,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
       )}
       {runs.map(run => {
         if (!isShowingAll && run !== shown) return null;
-        const prep = dilutionPrep(run, protocol, calculation, diluents.get(run.key) ?? '');
+        const prep = dilutionPrep(run, protocol, board, diluents.get(run.key) ?? '');
         return (
           <WorkbenchDilutionSeriesSection
             key={run.key}
@@ -143,7 +143,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
             subject={run.subject}
             places={run.places.length > 1 ? run.places : []}
             color={run.color}
-            swatch={markOf(run)}
+            swatch={indicatorOf(run)}
             prep={prep}
             diluent={ownDiluent(run)}
             diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}

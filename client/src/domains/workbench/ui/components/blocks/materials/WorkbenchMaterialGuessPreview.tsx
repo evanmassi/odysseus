@@ -12,33 +12,33 @@ import type { MaterialItem } from '@odysseus/shared-schemas';
 interface WorkbenchMaterialGuessPreviewProps {
   typed: string;
   preview: MaterialPreview | undefined;
-  pendingDuplicate: MaterialItem | undefined;
+  pendingAlreadyListed: MaterialItem | undefined;
   customGroups: readonly string[];
   onChooseKind: (kind: MaterialKind) => void;
   onNewGroup: () => void;
-  onResolveDuplicate: (isKeptBoth: boolean) => void;
+  onResolveAlreadyListed: (isKeptBoth: boolean) => void;
 }
 
-const DUPLICATE = 'font-semibold text-warning-text';
+const ALREADY_LISTED = 'font-semibold text-warning-text';
 const FILLED_VALUE = 'font-normal text-foreground';
 
 function PreviewLine({
   typed,
   preview,
-  pendingDuplicate,
+  pendingAlreadyListed,
   customGroups,
   onChooseKind,
   onNewGroup,
-  onResolveDuplicate,
+  onResolveAlreadyListed,
 }: WorkbenchMaterialGuessPreviewProps) {
-  if (pendingDuplicate) {
+  if (pendingAlreadyListed) {
     return (
       <>
-        <span className={DUPLICATE}>{pendingDuplicate.name} is already listed.</span>
-        <Button variant="ghost" size="xs" onClick={() => onResolveDuplicate(false)}>
+        <span className={ALREADY_LISTED}>{pendingAlreadyListed.name} is already listed.</span>
+        <Button variant="ghost" size="xs" onClick={() => onResolveAlreadyListed(false)}>
           Merge
         </Button>
-        <Button variant="ghost" size="xs" onClick={() => onResolveDuplicate(true)}>
+        <Button variant="ghost" size="xs" onClick={() => onResolveAlreadyListed(true)}>
           Keep both
         </Button>
         <span className="italic">Merge fills its blank fields from what you typed.</span>
@@ -46,17 +46,17 @@ function PreviewLine({
     );
   }
   if (!preview) return null;
-  const { guess, item, duplicate } = preview;
+  const { guess, item, alreadyListed } = preview;
   const filled = materialFields(item).filter(
     definition => item.shownFields.includes(definition.key) && item.values[definition.key]?.trim()
   );
   return (
     <>
-      {duplicate && (
-        <span className={DUPLICATE}>
-          {duplicate.isDropped
-            ? `${duplicate.name} was set aside. Enter restores it`
-            : `${duplicate.name} is already listed`}
+      {alreadyListed && (
+        <span className={ALREADY_LISTED}>
+          {alreadyListed.isDropped
+            ? `${alreadyListed.name} was set aside. Enter restores it`
+            : `${alreadyListed.name} is already listed`}
         </span>
       )}
       <WorkbenchMaterialKindSelector

@@ -39,7 +39,7 @@ const HEADING_KIND = 'flex-none font-mono text-data-sm text-muted-foreground';
 const OPERATOR_BUTTON =
   'min-w-7 cursor-pointer border border-line-mid px-2 py-px font-mono text-data-sm text-foreground hover:border-primary/60';
 
-function trayPosition(anchor: HTMLElement, trayHeight: number): CSSProperties {
+function trayPositionBeside(anchor: HTMLElement, trayHeight: number): CSSProperties {
   const rect = anchor.getBoundingClientRect();
   const width = Math.min(Math.max(rect.width, MIN_WIDTH_PX), MAX_WIDTH_PX);
   const left = Math.max(
@@ -54,11 +54,11 @@ function trayPosition(anchor: HTMLElement, trayHeight: number): CSSProperties {
 export function WorkbenchNameTray() {
   const target = useInsertTrayStore(state => state.target);
   const isOpen = useInsertTrayStore(state => state.isOpen);
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const board = useWorkbenchStore(state => state.board);
   const protocol = useProtocolOutsidePages();
   const ghost = useTrayPickDrag();
   const trayRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState<CSSProperties>();
+  const [trayPosition, setTrayPosition] = useState<CSSProperties>();
   const [query, setQuery] = useState('');
   const isShown = !!target && isOpen;
   const targetElement = target?.element;
@@ -73,9 +73,9 @@ export function WorkbenchNameTray() {
   const allGroups = useMemo(
     () =>
       mode
-        ? insertListGroups(calculation, materials, customGroups, mode === 'formula', generalTitle)
+        ? insertListGroups(board, materials, customGroups, mode === 'formula', generalTitle)
         : [],
-    [calculation, materials, customGroups, mode, generalTitle]
+    [board, materials, customGroups, mode, generalTitle]
   );
   const groups = useMemo(
     () =>
@@ -94,16 +94,17 @@ export function WorkbenchNameTray() {
     () =>
       STEP_PRESETS.map(preset => ({
         ...preset,
-        shown: templateText(preset.text, calculation),
+        shown: templateText(preset.text, board),
       })).filter(preset => matchesWordStarts(`${preset.label} ${preset.shown}`, query)),
-    [calculation, query]
+    [board, query]
   );
   const functions = FORMULA_FUNCTIONS.filter(name => matchesWordStarts(name, query));
 
   useLayoutEffect(() => {
     if (!isShown) return;
     const place = () => {
-      if (trayRef.current) setPosition(trayPosition(target.anchor, trayRef.current.offsetHeight));
+      if (trayRef.current)
+        setTrayPosition(trayPositionBeside(target.anchor, trayRef.current.offsetHeight));
     };
     place();
     window.addEventListener('scroll', place, true);
@@ -138,7 +139,7 @@ export function WorkbenchNameTray() {
           ref={trayRef}
           role="presentation"
           className="fixed z-50 border border-line-mid bg-popover shadow-[var(--popup-shadow)]"
-          style={position ?? { visibility: 'hidden' }}
+          style={trayPosition ?? { visibility: 'hidden' }}
           {...{ [INSERT_TRAY_ATTRIBUTE]: '' }}
           onMouseDown={event => {
             if (!(event.target instanceof HTMLInputElement)) event.preventDefault();

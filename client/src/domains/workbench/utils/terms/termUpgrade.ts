@@ -3,18 +3,18 @@ import { produce } from 'immer';
 import { calculateBoard, nameKey, type BoardName } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { applyReferenceRenames } from '../formulas/nameRenames';
-import { VESSEL_PLURALS } from '../vessels/vesselCatalog';
+import { LABWARE_KIND_PLURALS } from '../plateMap/labwareCatalog';
 
-import { PER_WELL_TERMS, perVessel, TERMS } from './termList';
+import { PER_WELL_TERMS, perLabwareKind, TERMS } from './termList';
 import { settledValue } from './termLookup';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
-const OTHER_VESSEL_NOUNS = Object.keys(VESSEL_PLURALS).filter(noun => noun !== 'well');
+const OTHER_LABWARE_KINDS = Object.keys(LABWARE_KIND_PLURALS).filter(noun => noun !== 'well');
 
-const TERMS_ON_ANY_VESSEL = [
+const TERMS_ON_ANY_LABWARE_KIND = [
   ...TERMS,
-  ...PER_WELL_TERMS.flatMap(term => OTHER_VESSEL_NOUNS.map(noun => perVessel(term, noun))),
+  ...PER_WELL_TERMS.flatMap(term => OTHER_LABWARE_KINDS.map(noun => perLabwareKind(term, noun))),
 ];
 
 function fileValuesUnderWords(draft: Protocol) {
@@ -39,7 +39,9 @@ function oldSpellings(names: ReadonlyMap<string, BoardName>): Map<string, string
   for (const entry of names.values()) {
     const name = entry.name.trim();
     const lower = name.toLowerCase();
-    for (const term of TERMS_ON_ANY_VESSEL) {
+    const former = entry.kind === 'formula' ? entry.formerName?.toLowerCase() : undefined;
+    if (former && !names.has(former) && !byOldName.has(former)) byOldName.set(former, name);
+    for (const term of TERMS_ON_ANY_LABWARE_KIND) {
       const word = term.word.toLowerCase();
       const at = lower.indexOf(word);
       const end = at + word.length;

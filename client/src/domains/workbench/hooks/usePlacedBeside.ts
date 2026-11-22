@@ -22,13 +22,13 @@ export function usePlacedBeside(
   panelRef: RefObject<HTMLElement>,
   anchorOf: () => DOMRect | undefined
 ): { left: number; top: number } {
-  const [position, setPosition] = useState(OFF_SCREEN);
+  const [panelPosition, setPanelPosition] = useState(OFF_SCREEN);
 
   useLayoutEffect(() => {
     const panel = panelRef.current;
     const place = () => {
       const anchor = anchorOf();
-      if (anchor && panel) setPosition(placeBeside(anchor, panel));
+      if (anchor && panel) setPanelPosition(placeBeside(anchor, panel));
     };
     place();
     const observer = new ResizeObserver(place);
@@ -42,5 +42,5 @@ export function usePlacedBeside(
     };
   }, [panelRef, anchorOf]);
 
-  return position;
+  return panelPosition;
 }

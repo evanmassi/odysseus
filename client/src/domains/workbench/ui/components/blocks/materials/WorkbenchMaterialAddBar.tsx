@@ -21,7 +21,9 @@ export function WorkbenchMaterialAddBar({
   customGroups,
   onNewGroup,
 }: WorkbenchMaterialAddBarProps) {
-  const pendingDuplicate = items.find(item => item.id === adding.pendingDuplicate?.duplicateId);
+  const pendingAlreadyListed = items.find(
+    item => item.id === adding.pendingAlreadyListed?.alreadyListedId
+  );
 
   return (
     <div className="mb-6">
@@ -40,11 +42,11 @@ export function WorkbenchMaterialAddBar({
       <WorkbenchMaterialGuessPreview
         typed={adding.text}
         preview={adding.preview}
-        pendingDuplicate={pendingDuplicate}
+        pendingAlreadyListed={pendingAlreadyListed}
         customGroups={customGroups}
         onChooseKind={adding.chooseKind}
         onNewGroup={() => onNewGroup({ place: 'guess' })}
-        onResolveDuplicate={adding.resolveDuplicate}
+        onResolveAlreadyListed={adding.resolveAlreadyListed}
       />
       {adding.paste && (
         <WorkbenchMaterialPastePanel

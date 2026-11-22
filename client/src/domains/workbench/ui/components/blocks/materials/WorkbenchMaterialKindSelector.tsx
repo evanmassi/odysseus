@@ -31,7 +31,7 @@ export function WorkbenchMaterialKindSelector({
       size="xs"
       options={kindOptions(customGroups)}
       value={kindValue(kind)}
-      aria-label="Kind of material"
+      aria-label="Type"
       className={`min-w-40 max-w-72 ${className}`}
       renderValue={([selected]) => (
         <span className={isUnsorted ? 'text-warning-text' : 'text-foreground'}>

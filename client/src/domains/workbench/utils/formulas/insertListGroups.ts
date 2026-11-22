@@ -5,7 +5,7 @@ import { sectionKeyOf, WHOLE_EXPERIMENT } from './calculationSections';
 import { nameWithinOwner } from './formulaScopes';
 import { describeName } from './nameDisplay';
 
-import type { BoardCalculation } from './boardCalculation';
+import type { SolvedBoard } from './boardCalculation';
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
 export interface InsertListRow {
@@ -30,13 +30,13 @@ function inCardOrder(materials: readonly MaterialItem[], customGroups: readonly 
 }
 
 export function insertListGroups(
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   materials: readonly MaterialItem[],
   customGroups: readonly string[],
   isForFormula: boolean,
   generalTitle: string
 ): InsertListGroup[] {
-  const entries = [...calculation.names.values()];
+  const entries = [...board.names.values()];
   const materialGroups = inCardOrder(materials, customGroups).map(
     (material): InsertListGroup => ({
       key: material.id,
@@ -56,7 +56,7 @@ export function insertListGroups(
 
   for (const entry of entries) {
     if ('isDropped' in entry && entry.isDropped) continue;
-    const shown = describeName(calculation, entry.name).text;
+    const shown = describeName(board, entry.name).text;
     const value = shown === entry.name ? undefined : shown;
     if (entry.kind === 'item') {
       if (isForFormula || groups.has(entry.id)) continue;

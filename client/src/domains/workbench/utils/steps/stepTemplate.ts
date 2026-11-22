@@ -3,7 +3,7 @@ import { findAmounts } from '../units/textAmounts';
 
 import { stepVerbBase } from './stepVerbs';
 
-import type { BoardCalculation } from '../formulas/boardCalculation';
+import type { SolvedBoard } from '../formulas/boardCalculation';
 import type { UnitKind } from '@odysseus/shared-schemas';
 
 type TemplatePart =
@@ -63,10 +63,10 @@ export function splitProse(text: string, isStepStart: boolean): ProsePiece[] {
   return pieces;
 }
 
-export function templateText(text: string, calculation: BoardCalculation): string {
+export function templateText(text: string, board: SolvedBoard): string {
   return parseStepTemplate(text)
     .map(part => {
-      if (part.kind === 'reference') return describeName(calculation, part.name).text;
+      if (part.kind === 'reference') return describeName(board, part.name).text;
       if (part.kind === 'blank') return `[${part.label}]`;
       return part.text;
     })

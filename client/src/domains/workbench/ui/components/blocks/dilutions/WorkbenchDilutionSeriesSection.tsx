@@ -3,7 +3,7 @@ import { Input, Tooltip, type AutocompleteOption } from '@shared/ui';
 import { EXTRA, TOTAL_WELL_VOLUME, WORKING_STRENGTH } from '../../../../utils/terms/termList';
 import { termMeaning } from '../../../../utils/terms/termLookup';
 import { META_LABEL } from '../../board/metaLabelClass';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
 import { WorkbenchDilutionStockField } from './WorkbenchDilutionStockField';
@@ -11,7 +11,7 @@ import { WorkbenchDilutionStripPreview } from './WorkbenchDilutionStripPreview';
 
 import type { PrepSettings } from '../../../../utils/dilutions/dilutionFormulas';
 import type { DilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
-import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
+import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 
 interface WorkbenchDilutionSeriesSectionProps {
   id: string;
@@ -92,7 +92,7 @@ export function WorkbenchDilutionSeriesSection({
         }}
       >
         <span className="flex self-center">
-          <WorkbenchMarkSwatch swatch={swatch} />
+          <WorkbenchIndicatorSwatch swatch={swatch} />
         </span>
         <span className="text-label-lg font-semibold text-foreground">
           {subject || 'Unnamed treatment'}

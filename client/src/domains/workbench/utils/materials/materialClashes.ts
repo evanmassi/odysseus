@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { findFluorochromeName, isNonFluorochromeConjugate } from './materialGuesser';
+import { findFluorName, isNonFluorConjugate } from './materialGuesser';
 
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
@@ -18,10 +18,10 @@ export function conjugateClashes(items: readonly MaterialItem[]): ConjugateClash
   const sharing = new Map<string, ConjugateClash>();
   for (const item of items) {
     const conjugate = (item.values[CONJUGATE_FIELD] ?? '').trim();
-    if (!conjugate || item.type === ISOTYPE_CONTROL || isNonFluorochromeConjugate(conjugate)) {
+    if (!conjugate || item.type === ISOTYPE_CONTROL || isNonFluorConjugate(conjugate)) {
       continue;
     }
-    const color = findFluorochromeName(conjugate) ?? conjugate;
+    const color = findFluorName(conjugate) ?? conjugate;
     const panel = (item.values[PANEL_FIELD] ?? '').trim();
     const key = `${normalizeMaterialKey(panel)}|${normalizeMaterialKey(color)}`;
     const clash = sharing.get(key) ?? { color, panel, items: [] };

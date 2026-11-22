@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
 import { newProtocolId } from './protocolIds';
-import { vesselMapBlockSchema, type PlateLine, type VesselMapBlock } from './protocolFileSchemas';
+import { plateMapBlockSchema, type PlateLine, type PlateMapBlock } from './protocolFileSchemas';
 import { SERIES_DILUENT_FILE_VERSION } from './seriesDiluentUpgrade';
 import {
   lineValueOf,
   moveValueKeys,
-  normalizeVesselMap,
+  normalizePlateMap,
   plateValueKey,
   pruneUnused,
   unifyPlateValues,
-} from './vesselMapValues';
+} from './plateMapValues';
 
 export const PAINTED_GROUPS_FILE_VERSION = 2;
 
@@ -21,7 +21,7 @@ const paintedGroupSchema = z.object({
 });
 type PaintedGroup = z.infer<typeof paintedGroupSchema>;
 
-function addColorLine(block: VesselMapBlock): PlateLine {
+function addColorLine(block: PlateMapBlock): PlateLine {
   const line: PlateLine = { id: newProtocolId(), name: '', values: [], role: 'color' };
   block.lines.push(line);
   return line;
@@ -33,7 +33,7 @@ interface PaintedWells {
   keys: string[];
 }
 
-const heldValues = (block: VesselMapBlock, line: PlateLine, keys: string[]) =>
+const heldValues = (block: PlateMapBlock, line: PlateLine, keys: string[]) =>
   keys.map(key => lineValueOf(line, block.cells[key]?.[line.id]));
 
 function paintedValueText(held: ReturnType<typeof heldValues>, label: string) {
@@ -42,7 +42,7 @@ function paintedValueText(held: ReturnType<typeof heldValues>, label: string) {
   return held.some(value => !value) ? label : undefined;
 }
 
-function lineForPaint(block: VesselMapBlock, painted: PaintedWells[]): PlateLine {
+function lineForPaint(block: PlateMapBlock, painted: PaintedWells[]): PlateLine {
   const explicit = block.lines.find(line => line.role === 'color');
   if (explicit) return explicit;
   let best: { line: PlateLine; kept: number; held: number } | undefined;
@@ -59,7 +59,7 @@ function lineForPaint(block: VesselMapBlock, painted: PaintedWells[]): PlateLine
   return best.line;
 }
 
-function valueForPaint(block: VesselMapBlock, line: PlateLine, { label, keys }: PaintedWells) {
+function valueForPaint(block: PlateMapBlock, line: PlateLine, { label, keys }: PaintedWells) {
   const held = heldValues(block, line, keys);
   const text = paintedValueText(held, label);
   if (text === undefined) return undefined;
@@ -77,10 +77,10 @@ function valueForPaint(block: VesselMapBlock, line: PlateLine, { label, keys }: 
 }
 
 function retirePaintedGroups(
-  block: VesselMapBlock,
+  block: PlateMapBlock,
   groups: PaintedGroup[],
   wells: Record<string, string>
-): VesselMapBlock {
+): PlateMapBlock {
   pruneUnused(block);
   unifyPlateValues(block);
   const painted = groups
@@ -112,15 +112,15 @@ function retirePaintedGroups(
       }
     }
   }
-  normalizeVesselMap(block);
+  normalizePlateMap(block);
   return block;
 }
 
-const paintedVesselMapSchema = vesselMapBlockSchema
+const paintedPlateMapSchema = plateMapBlockSchema
   .extend({ groups: z.array(paintedGroupSchema), wells: z.record(z.string(), z.string()) })
   .transform(({ groups, wells, ...block }) => retirePaintedGroups(block, groups, wells));
 
-const isVesselMap = (block: unknown) =>
+const isPlateMap = (block: unknown) =>
   typeof block === 'object' && block !== null && 'type' in block && block.type === 'plate';
 
 export const paintedGroupsFileSchema = z
@@ -134,7 +134,7 @@ export const paintedGroupsFileSchema = z
     protocol: {
       ...file.protocol,
       blocks: file.protocol.blocks.map(block =>
-        isVesselMap(block) ? paintedVesselMapSchema.parse(block) : block
+        isPlateMap(block) ? paintedPlateMapSchema.parse(block) : block
       ),
     },
   }));

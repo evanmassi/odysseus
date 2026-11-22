@@ -9,8 +9,8 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
-import { withPerVessel } from '../../../../utils/terms/termLookup';
-import { wellTooltipContent } from '../vessels/wellTooltipContent';
+import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
+import { wellTooltipContent } from '../plateMap/wellTooltipContent';
 
 import { NEEDED_TEXT } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
@@ -23,7 +23,7 @@ export interface ValueRowData {
   fullName: string;
   value: string;
   unit: string;
-  isDuplicate: boolean;
+  isNameTaken: boolean;
   usage: string;
   neededNote: string;
 }
@@ -73,7 +73,7 @@ export const WorkbenchValueRow = memo(function WorkbenchValueRow({
   return (
     <Tooltip content={title}>
       <tr
-        className={`group ${ROW_HOVER_GLOW.primary} even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${row.isDuplicate || isInvalid ? 'text-danger-text' : ''}`}
+        className={`group ${ROW_HOVER_GLOW.primary} even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${row.isNameTaken || isInvalid ? 'text-danger-text' : ''}`}
       >
         <td
           className={CELL}
@@ -132,7 +132,7 @@ export const WorkbenchValueRow = memo(function WorkbenchValueRow({
               onClick={() => actions.onEdit(row.id, 'value')}
             >
               {row.value.trim() ? (
-                withPerVessel(displayValue(row.value, row.unit), row.fullName)
+                withPerLabwareKind(displayValue(row.value, row.unit), row.fullName)
               ) : row.neededNote ? (
                 <span className={NEEDED_TEXT}>needed</span>
               ) : (

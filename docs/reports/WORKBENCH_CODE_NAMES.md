@@ -202,13 +202,63 @@ The order matters here, or new names land on names still in use.
 
 1. **A safety net first** (built 2026-11-22): `utils/protocolFile/fixtures/everyCard.v4.json` holds every card and saved feature, and `stores/fixtures/labMemory.saved.json` the lab memory. Tests check each opens exactly as saved, survives a save and reopen, and still holds the same facts (named in app words, so Phase B rewrites only how they are read, never what is expected).
 2. **Words still wrong on screen** (below), fixed on their own, since they are app changes, not code
-   names.
+   names. Done 2026-11-22.
 3. **Phase A, code-only names, one area per commit,** each green before the next. Within the
    Flow panel the order is fixed (Flow diagram, Flow panel, cytometer, marker, cocktail, stain):
    1. Clear the double meanings: `calculation` → `board`, copy → duplicate, duplicate → taken,
       Flow diagram.
+      **Done 2026-11-22.** A name used twice: `takenNameIds`, `isNameTaken`. A typed material
+      already in the list is named by its screen words, "already listed": `findAlreadyListed`,
+      `alreadyListedId`, `pendingAlreadyListed`. Duplicating a plate: `DuplicateAs`,
+      `isDuplicateMenuOpen`, `duplicateAnchorRef`, `duplicatePlateAsTab`; real copying (Ctrl+C
+      wells, `copyMaterialField`, the unsaved-changes copy) stays copy. The solved board:
+      `board`, `SolvedBoard`, `useVesselMapBoard`, `latestBoard`, renamed by type, not text; test
+      lists of names that were called `board` became `names`. Flow diagram: folders
+      `blocks/flowDiagram/`, `utils/flowDiagram/` (the step kinds, settings and waits went with
+      it, the diagram is their only user), `assets/flow-diagram-pictures/`,
+      `WorkbenchFlowDiagram*`, `FlowDiagram*` types, `flowDiagramModel`, `flowDiagramLayout`,
+      `flowDiagramPlaceStore`, `FLOW_DIAGRAM_*`, `data-flow-diagram-step`. The saved type `'flow'`
+      waits for Phase B.
    2. Flow panel, in its fixed order, then fluor.
+      **Done 2026-11-22.** Panel: folders `flowCytometry/`, `WorkbenchFlowCytometry*`,
+      `FlowCytometryPanelBlock`, `useFlowCytometryActions`, `FLOW_CYTOMETRY_*`,
+      `flowCytometryPanel` / `Names` / `Stains` / `Cocktails`. Machine: `Cytometer`,
+      `cytometerSchema`, `cytometerCatalog.ts`, `BUILT_IN_CYTOMETERS`, `pickCytometer`. Marker:
+      `PanelMarker` (`markerName`), `DetectorSlot.markers`, `readMarker`, `markerCandidates`,
+      `add`/`create`/`removeMarker`, `markerPlacement.ts`, `WorkbenchFlowCytometryMarkerRow` /
+      `AddMarker`. Staining: `panelStainings`, `STARTING_STAININGS`, `StainingCocktails`,
+      `setPlusStaining`; Cocktail still names only the tube. Stain: one shared `Stain` type
+      (shared-schemas) instead of four local `Mix` aliases, `PlateStain`, `plateStains`, `stainId`,
+      `newStain`, `fullStain`, `unstainedControl`, `MarkerColumn`, `STAIN_COLORS`,
+      `EMPTY_STAIN_COLOR`, the well look `'unassigned'`, `WorkbenchFlowCytometryStains` /
+      `StainRow`. Fluor: `Fluor`, `FluorCatalog`, `ProtocolFluor`, `fluor`, `utils/fluors/`,
+      `components/fluors/`, `WorkbenchConjugateField`, `WorkbenchFluorAddDialog`; one
+      `CONJUGATE_FIELD`. The material type Dye, Values mix rows, recipe Mix conc. and CSS
+      `color-mix` are untouched. Saved keys wait for Phase B: type `'cytometer'`, `instrument`,
+      `rows[].stain`, `plus[].stain`, `mixes`, `protocol.dyes`, lab memory `dyes`.
    3. Plate map, labware, wells, the series and the marks.
+      **Done 2026-11-22.** Grid square: `spot` → **`position`** (`PlateMapPosition`, `positions`,
+      `stainPositionOf`, `moveStainPositions`), the tube grid's own word. Card:
+      `PlateMapBlock`, folders `plateMap/`, `normalizePlateMap`, `useUpdatePlateMap`,
+      `plateMapNames`, `plateMapValues`, `WorkbenchPlateMap*`, and a variable holding the whole card
+      is `plateMap`; the card on another page is `LinkedPlateMapBlock` /
+      `WorkbenchLinkedPlateMap*`. Labware: `Labware` (a card's plates and other labware),
+      `LabwareType`, `labwareOf`, `PlateLabware` / `OtherLabware`, `labwareCatalog.ts`,
+      `labwareSizing.ts`, `plateMapEdits.ts`, `plateMapTabs.ts` (`PlateMapTab`, `PlateMapSheet`),
+      a labware's `noun` → `kind` (`LabwareKind`, `perLabwareKind`, `withPerLabwareKind`), the tab
+      kind `'otherLabware'`, `WorkbenchOtherLabwareList` / `Button`, `WorkbenchLabwarePickerPanel`,
+      `useLabwareChanges`, `PlateMapSide`. Samples: `SampleEntry`, `isFilledEntry`, an entry
+      variable is `entry`, the Stain side's `StainSamples` / `stainSamples`. Series: the form's
+      `top`, `dilutionFactor`, `typedValues`; `dilutionFactorOf`, `seriesDilutionFactor`,
+      `pointAmount` / `PointAmount` (freeing `seriesPoint` for the saved key), `wellPoints`,
+      `replicatesByPoint`, `workingConc`. Indicators: `PlateIndicator`, `IndicatorKind`,
+      `IndicatorPlacement` with `wellBorder`, `corner`, `inWell`, `bracketTop`, `bracketLeft`,
+      `IndicatorPart` (outline, bracket), `WorkbenchIndicatorSwatch`, `indicatorSwatch.ts`. Show
+      replicates as one: `ReplicateGroup`, `ReplicatesShownAsOne`, `replicatesShownAsOne.ts`. Kept:
+      the clipboard marks on wells, the filter bands, the Band role, Pool. Saved keys wait for
+      Phase B: `'plate'`, `'plateView'`, `plates[].vessel`, `sets` (its `set` locals go with it),
+      `shelfName`, `cells`, `start` / `fold` / `points` / `seriesStep`, `hiddenMarks`, the role
+      `color`, `mergesReplicates`.
    4. Calculations.
    5. Values.
    6. Materials, donors, set aside.
@@ -220,7 +270,16 @@ The order matters here, or new names land on names still in use.
 
 ## Words still wrong on screen (found by the sweep)
 
-These are app wording fixes, separate from code names:
+These are app wording fixes, separate from code names. **All fixed (2026-11-22) except 15, held
+for W114.** The calls made while fixing: 3 reads "Use Top and Dil. factor instead"; 4 is "Side";
+7's hints read "Add source", "Raji Cells/well 10000", "Raji Viability", "Raji Total needed" and
+"insert"; 8 is a new term, Plating conc., the old name followed on open; 10 is **Total medium
+needed** (Evan), the old "… needed for dilutions" followed on open; 12 is "Name this row" / "Row
+name"; 13's donor menus read "Add to…" / "Move to…" with each choice shown as "PBMC · Donors", so a
+renamed list shows; 14 reads "Detector: VL1" / "Detectors: VL1, VL4"; 16 on screen was only the
+Show as choice (Fill), the rest is code; 20's Per test is a term whose former spelling Amount is
+followed on open. Not followed: a reference to an antibody's µg/mL amount under its old name
+("CD4 dil."), since accepting Dil. as Final conc. would let the math read a 1:N as one.
 
 1. "Vessels", the screen-reader label on the tubes grid (`WorkbenchVesselShelfList.tsx:111`).
 2. "stronger color = higher amount" on the legend (C3 picked "higher conc." / "higher dil.").
@@ -340,6 +399,13 @@ standalone, CocktailTube, MaterialDonor, RememberedDonor, SavedDonor.
     only the Materials paste reader reads it, as Per test, the way it already reads "/well". The
     code word for the spot itself (`spot`, about 220 uses) is settled with the Plate map area in
     Phase A, by the same rule.
+    **Settled 2026-11-22: `position`,** as the tube grid already says (`PositionKey`,
+    `focusedPosition`). The app's pattern, followed here: plain `position` is a square in a grid,
+    and `<thing>Position` is where that thing sits on screen (the date picker's
+    `dropdownPosition`, the shared menu's `position`). So the workbench's on-screen ones are
+    `editorPosition`, `pickerPosition`, `trayPosition`, `suggestionsPosition`, `menuPosition`,
+    `panelPosition` and `caretPosition`. Evan: be "consistent in our language/vocab with things
+    we've ALREADY built in the app".
 20. **One key, `amount`, for how much of a staining reagent goes into one test:** Antibody
     (already), Secondary reagent, Dye and Multimer (`dilution` today), and Fc block. The Flow
     panel's own `rows[].dilution` copy goes in W114 step 3, which writes into `amount`. The screen

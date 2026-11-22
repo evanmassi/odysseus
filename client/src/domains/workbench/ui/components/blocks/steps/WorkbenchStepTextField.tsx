@@ -55,11 +55,11 @@ export function WorkbenchStepTextField({
   onAddStepBelow,
   onLeave,
 }: WorkbenchStepTextFieldProps) {
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const board = useWorkbenchStore(state => state.board);
   const editorRef = useRef<HTMLDivElement>(null);
   const initialText = useRef(text);
-  const latestCalculation = useRef(calculation);
-  latestCalculation.current = calculation;
+  const latestBoard = useRef(board);
+  latestBoard.current = board;
   const lastCaret = useRef<Range>();
   const [suggestions, setSuggestions] = useState<Suggestions>();
 
@@ -71,8 +71,8 @@ export function WorkbenchStepTextField({
     const editor = editorRef.current;
     if (!editor) return;
     if (document.activeElement !== editor) restoreCaret(editor, lastCaret.current);
-    if (insertion.kind === 'name') insertReference(editor, insertion.name, calculation);
-    else if (insertion.kind === 'preset') insertTemplate(editor, insertion.text, calculation);
+    if (insertion.kind === 'name') insertReference(editor, insertion.name, board);
+    else if (insertion.kind === 'preset') insertTemplate(editor, insertion.text, board);
     else return;
     commit();
   };
@@ -90,7 +90,7 @@ export function WorkbenchStepTextField({
   useLayoutEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
-    fillEditor(editor, initialText.current, latestCalculation.current);
+    fillEditor(editor, initialText.current, latestBoard.current);
     placeCaretAtEnd(editor);
   }, []);
 
@@ -106,7 +106,7 @@ export function WorkbenchStepTextField({
       if (blank) {
         const label = blankLabel(blank);
         const typed = blank.textContent ?? '';
-        const options = blankOptions(latestCalculation.current, label, typed);
+        const options = blankOptions(latestBoard.current, label, typed);
         const isTyped = typed.trim() !== label;
         setSuggestions(
           options.length
@@ -117,9 +117,7 @@ export function WorkbenchStepTextField({
       }
       const typedReference = typedReferenceAtCaret(editor);
       const options =
-        typedReference === undefined
-          ? []
-          : referenceOptions(latestCalculation.current, typedReference);
+        typedReference === undefined ? [] : referenceOptions(latestBoard.current, typedReference);
       setSuggestions(
         options.length ? { kind: 'reference', anchor: editor, options, activeIndex: 0 } : undefined
       );
@@ -131,8 +129,8 @@ export function WorkbenchStepTextField({
   const pickOption = (option: BlankOption) => {
     const editor = editorRef.current;
     if (!editor || !suggestions) return;
-    if (suggestions.kind === 'blank') fillBlank(suggestions.anchor, option, calculation);
-    else if (option.name) replaceTypedReference(editor, option.name, calculation);
+    if (suggestions.kind === 'blank') fillBlank(suggestions.anchor, option, board);
+    else if (option.name) replaceTypedReference(editor, option.name, board);
     setSuggestions(undefined);
     commit();
     if (suggestions.kind === 'blank') jumpToNextBlank(editor);
@@ -199,7 +197,7 @@ export function WorkbenchStepTextField({
           const typed = readEditor(editor);
           const converted = withGreekLetters(typed);
           if (converted === typed) return;
-          fillEditor(editor, converted, calculation);
+          fillEditor(editor, converted, board);
           onTextChange(converted);
         }}
       />

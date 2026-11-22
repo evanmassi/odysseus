@@ -1,5 +1,5 @@
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
-import { withPerVessel } from '../../../../utils/terms/termLookup';
+import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
 
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
@@ -19,7 +19,7 @@ interface WorkbenchFormulaWorkingLinesProps {
 const WORKING_ROW = 'border-t border-line-soft first:border-t-0';
 
 export const lineAnswer = (line: WorkingLine): string =>
-  line.result?.status === 'ok' ? withPerVessel(formulaAnswerText(line.result), line.name) : '';
+  line.result?.status === 'ok' ? withPerLabwareKind(formulaAnswerText(line.result), line.name) : '';
 
 export function WorkbenchFormulaWorkingLines({
   lines,

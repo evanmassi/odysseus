@@ -1,4 +1,4 @@
-import { calculateBoard, type BoardCalculation } from '../formulas/boardCalculation';
+import { calculateBoard, type SolvedBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 
 import { mixFinalId, recipeFinalId, recipeWarnings } from './materialRecipeFormulas';
@@ -59,8 +59,8 @@ function protocolWith(mixValues: Array<[name: string, value: string, unit: strin
   } as unknown as Protocol;
 }
 
-const answer = (calculation: BoardCalculation, id: string) => {
-  const result = calculation.results.get(id);
+const answer = (board: SolvedBoard, id: string) => {
+  const result = board.results.get(id);
   return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
 };
 
@@ -68,13 +68,13 @@ const calculate = (protocol: Protocol) => calculateBoard(collectBoardNames(proto
 
 describe('recipe finals in the well', () => {
   it('goes from the stock through the working dilution to the well', () => {
-    const calculation = calculate(protocolWith([['Working dilution', '2000', '1:N']]));
-    expect(calculation.names.get('th17 cocktail working strength')).toMatchObject({
+    const board = calculate(protocolWith([['Working dilution', '2000', '1:N']]));
+    expect(board.names.get('th17 cocktail working strength')).toMatchObject({
       expr: 'Th17 cocktail stock conc. × Th17 cocktail working dilution',
     });
-    expect(answer(calculation, 'mix:recipe:working')).toBe('4×');
-    expect(answer(calculation, mixFinalId('mix'))).toBe('1×');
-    expect(answer(calculation, recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
+    expect(answer(board, 'mix:recipe:working')).toBe('4×');
+    expect(answer(board, mixFinalId('mix'))).toBe('1×');
+    expect(answer(board, recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
   });
 
   it('reads the well total and the mix’s per-well volume under their other spellings', () => {
@@ -92,9 +92,9 @@ describe('recipe finals in the well', () => {
   });
 
   it('scales by a typed working concentration when there is no dilution', () => {
-    const calculation = calculate(protocolWith([['Working concentration', '4', 'X']]));
-    expect(answer(calculation, mixFinalId('mix'))).toBe('1×');
-    expect(answer(calculation, recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
+    const board = calculate(protocolWith([['Working concentration', '4', 'X']]));
+    expect(answer(board, mixFinalId('mix'))).toBe('1×');
+    expect(answer(board, recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
   });
 
   it('warns when the working dilution and working concentration disagree', () => {

@@ -2,7 +2,7 @@ import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
   formulaAnswerText,
   nameKey,
-  type BoardCalculation,
+  type SolvedBoard,
   type BoardName,
   type FormulaGap,
   type WorkedOutGroup,
@@ -25,17 +25,17 @@ import {
   type Term,
 } from '../terms/termList';
 import { findTerm } from '../terms/termLookup';
-import { joinValueName, lowerLead } from '../values/valueNames';
+import { generalTitleOf, joinValueName, lowerLead } from '../values/valueNames';
 
 import { fieldName, materialFields } from './materialCatalog';
 import { nameWithoutNotes } from './materialLookup';
 
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
-const MISSING_WELL_TOTAL: FormulaGap = {
-  problem: `Needs the well total: add "${TOTAL_WELL_VOLUME.word} 80 µL" under Whole experiment`,
+const missingWellTotal = (generalTitle: string): FormulaGap => ({
+  problem: `Needs the ${lowerLead(TOTAL_WELL_VOLUME.word)}: add "${TOTAL_WELL_VOLUME.word} 80 µL" under ${generalTitle}`,
   need: TOTAL_WELL_VOLUME.word,
-};
+});
 
 export const recipeFinalId = (mixId: string, entryId: string): string =>
   `${mixId}:recipe:${entryId}:final`;
@@ -67,7 +67,8 @@ function mixNames(
   mix: MaterialItem,
   materialsBlockId: string,
   materials: ReadonlyMap<string, MaterialItem>,
-  names: ReadonlyMap<string, BoardName>
+  names: ReadonlyMap<string, BoardName>,
+  generalTitle: string
 ): BoardName[] {
   const mixName = mix.name.trim();
   const perWell = mixValue(mix, VOLUME_PER_WELL, names)?.name;
@@ -77,7 +78,7 @@ function mixNames(
   const missing: FormulaGap | undefined = !perWell
     ? { problem: `Needs ${perWellName}`, need: perWellName }
     : !wellTotal
-      ? MISSING_WELL_TOTAL
+      ? missingWellTotal(generalTitle)
       : undefined;
   const group: WorkedOutGroup = {
     key: `recipe:${mix.id}`,
@@ -158,8 +159,9 @@ export function recipeFormulaNames(protocol: Protocol, taken: readonly BoardName
   const byId = new Map(
     materialBlocks.flatMap(block => block.items).map(item => [item.id, item] as const)
   );
+  const generalTitle = generalTitleOf(protocol.blocks);
   return materialBlocks.flatMap(block =>
-    block.items.filter(isMix).flatMap(mix => mixNames(mix, block.id, byId, names))
+    block.items.filter(isMix).flatMap(mix => mixNames(mix, block.id, byId, names, generalTitle))
   );
 }
 
@@ -167,15 +169,15 @@ const AGREEMENT = 0.01;
 
 export function recipeWarnings(
   protocol: Pick<Protocol, 'blocks'>,
-  calculation: BoardCalculation
+  board: SolvedBoard
 ): Map<string, string[]> {
   const warnings = new Map<string, string[]>();
   const mixes = protocol.blocks
     .flatMap(block => (block.type === 'materials' ? block.items : []))
     .filter(isMix);
   for (const mix of mixes) {
-    const result = calculation.results.get(mixWorkingId(mix.id));
-    const typed = mixValue(mix, WORKING_CONCENTRATION, calculation.names);
+    const result = board.results.get(mixWorkingId(mix.id));
+    const typed = mixValue(mix, WORKING_CONCENTRATION, board.names);
     if (result?.status !== 'ok' || typed?.kind !== 'value') continue;
     const typedQuantity = quantityOf(typed.value, typed.unit);
     if (!typedQuantity) continue;

@@ -1,11 +1,11 @@
 import {
   formulaAnswerText,
-  type BoardCalculation,
+  type SolvedBoard,
   type FormulaResult,
 } from '../formulas/boardCalculation';
 import { displayValue } from '../formulas/quantities';
 import { VOLUME_PER_WELL } from '../terms/termList';
-import { findTerm, withPerVessel } from '../terms/termLookup';
+import { findTerm, withPerLabwareKind } from '../terms/termLookup';
 
 import { cellPartId, type CountSubject } from './cellCounts';
 import { shortfallOf } from './cellFormulas';
@@ -39,12 +39,12 @@ const stockNoun = (subject: CountSubject, isCounted: boolean) =>
   !isCounted ? 'stock' : subject.material.type === 'Primary cells' ? 'cell suspension' : 'culture';
 
 export function cellPrep(
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   subject: CountSubject,
   isCounted: boolean,
   clashes: readonly string[]
 ): CellPrep {
-  const resultOf = (part: string) => calculation.results.get(cellPartId(subject.subject, part));
+  const resultOf = (part: string) => board.results.get(cellPartId(subject.subject, part));
   const answer = (part: string) => {
     const result = resultOf(part);
     return result?.status === 'ok' ? formulaAnswerText(result) : undefined;
@@ -56,14 +56,14 @@ export function cellPrep(
   const leftOver = resultOf('left-over');
   const shortfall = shortfallOf(leftOver);
   const { material } = subject;
-  const volume = findTerm(calculation.names, VOLUME_PER_WELL, [
+  const volume = findTerm(board.names, VOLUME_PER_WELL, [
     subject.subject,
     material.name.trim(),
     nameWithoutNotes(material.name),
   ]);
   const plated =
     volume?.kind === 'value' && volume.value.trim()
-      ? `plate ${withPerVessel(displayValue(volume.value, volume.unit), volume.name)}`
+      ? `plate ${withPerLabwareKind(displayValue(volume.value, volume.unit), volume.name)}`
       : undefined;
 
   const steps = [
@@ -86,9 +86,9 @@ export function cellPrep(
     subject: subject.subject,
     steps,
     warnings: [...new Set([...(shortfall ? [shortfall] : []), ...problems, ...clashes])],
-    lines: [...calculation.names.values()].flatMap(entry =>
+    lines: [...board.names.values()].flatMap(entry =>
       entry.kind === 'formula' && entry.workedOut?.key === groupKey
-        ? [{ id: entry.id, name: entry.name, result: calculation.results.get(entry.id) }]
+        ? [{ id: entry.id, name: entry.name, result: board.results.get(entry.id) }]
         : []
     ),
   };

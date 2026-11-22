@@ -2,9 +2,9 @@ import { unitScale, type Protocol } from '@odysseus/shared-schemas';
 
 import { RATIO_NOTATION, readableAmount, readNumber } from '../formulas/quantities';
 import { displayNameOf, materialNamed } from '../materials/materialLookup';
+import { seriesDilutionFactor, seriesTop } from '../plateMap/plateSeries';
 import { DILUTION_FACTOR, TOP_AMOUNT, TOP_POSITION, TOTAL_WELL_VOLUME } from '../terms/termList';
 import { lowerLead } from '../values/valueNames';
-import { seriesFold, seriesTop } from '../vessels/plateSeries';
 
 import {
   prepInputId,
@@ -17,14 +17,14 @@ import { stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 
 import type { DilutionRun } from './dilutionRuns';
-import type { BoardCalculation } from '../formulas/boardCalculation';
+import type { SolvedBoard } from '../formulas/boardCalculation';
 
 export interface PrepPoint {
   point: number;
   wells: number;
   volume: string;
   final: string;
-  working: string;
+  workingConc: string;
 }
 
 export interface PrepWarning {
@@ -65,16 +65,16 @@ const dialed = (use: PipetteUse, volume: number) =>
 
 type LineAnswer = { magnitude: number } | { problem: string };
 
-function answerOf(calculation: BoardCalculation, id: string): LineAnswer {
-  const result = calculation.results.get(id);
+function answerOf(board: SolvedBoard, id: string): LineAnswer {
+  const result = board.results.get(id);
   if (result?.status === 'ok') return { magnitude: result.quantity.magnitude };
   return {
     problem: result?.message ?? 'Name this treatment in its wells to work out its prep.',
   };
 }
 
-const lineAnswer = (calculation: BoardCalculation, run: DilutionRun, line: PrepLine) =>
-  answerOf(calculation, prepLineId(run, line));
+const lineAnswer = (board: SolvedBoard, run: DilutionRun, line: PrepLine) =>
+  answerOf(board, prepLineId(run, line));
 
 const inMicroliters = (answer: LineAnswer) =>
   'magnitude' in answer ? answer.magnitude / MICROLITER : undefined;
@@ -82,33 +82,33 @@ const inMicroliters = (answer: LineAnswer) =>
 export function dilutionPrep(
   run: DilutionRun,
   protocol: Pick<Protocol, 'blocks'>,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   chosenDiluent: string
 ): DilutionPrep {
   const settings = prepSettingsOf(run);
-  const fold = seriesFold(run.series, calculation);
-  const top = seriesTop(run.series, calculation);
-  const pointCount = Math.max(...run.wellsPerPoint.keys()) + 1;
+  const dilutionFactor = seriesDilutionFactor(run.series, board);
+  const top = seriesTop(run.series, board);
+  const pointCount = Math.max(...run.replicatesByPoint.keys()) + 1;
   const isRatio = run.series.unit === RATIO_NOTATION;
   const unit = top?.unit ?? '';
   const show = (value: number) =>
     isRatio ? `1:${shortNumber(value)}` : readableAmount(String(value), unit);
   const summary = [
     top ? show(top.value) : run.series.start || '?',
-    `1:${shortNumber(fold || 0)}`,
+    `1:${shortNumber(dilutionFactor || 0)}`,
     `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
   ].join(' · ');
   const typedWellVolume = settings.wellVolume.trim();
   const experimentWellVolume = typedWellVolume
     ? undefined
-    : inMicroliters(answerOf(calculation, prepInputId(run, 'wellVolume')));
+    : inMicroliters(answerOf(board, prepInputId(run, 'wellVolume')));
   const base = {
     settings,
     summary,
     inheritedWellVolume:
       experimentWellVolume === undefined ? undefined : shortNumber(experimentWellVolume),
   };
-  if (!top || !(fold > 1)) {
+  if (!top || !(dilutionFactor > 1)) {
     return {
       ...base,
       kind: 'problem',
@@ -124,9 +124,9 @@ export function dilutionPrep(
       problem: `Set the volume added, and the ${lowerLead(TOTAL_WELL_VOLUME.word)} here or as "${TOTAL_WELL_VOLUME.word}" in Values.`,
     };
   }
-  const strengthAnswer = lineAnswer(calculation, run, 'strength');
+  const strengthAnswer = lineAnswer(board, run, 'strength');
   const volumeAnswers = (['transfer', 'diluent', 'topVolume'] as const).map(line =>
-    lineAnswer(calculation, run, line)
+    lineAnswer(board, run, line)
   );
   const blocked = [strengthAnswer, ...volumeAnswers].find(answer => 'problem' in answer);
   if (blocked && 'problem' in blocked)
@@ -135,8 +135,8 @@ export function dilutionPrep(
   const [transfer, diluent, total] = volumeAnswers.map(answer => inMicroliters(answer) ?? NaN);
 
   const inWell = (point: number) =>
-    isRatio ? top.value * fold ** point : top.value / fold ** point;
-  const working = (point: number) =>
+    isRatio ? top.value * dilutionFactor ** point : top.value / dilutionFactor ** point;
+  const workingConcAt = (point: number) =>
     isRatio ? inWell(point) / strength : inWell(point) * strength;
   const stock = stockFor(protocol, run.subject, unit, isRatio);
   const warnings: PrepWarning[] = [];
@@ -147,24 +147,27 @@ export function dilutionPrep(
       `At ${shortNumber(strength)}× the top would need stock stronger than undiluted.`
     );
   }
-  const stockAnswer = lineAnswer(calculation, run, 'stock');
+  const stockAnswer = lineAnswer(board, run, 'stock');
   if (stock.kind === 'ready' && 'problem' in stockAnswer) warn('stock', stockAnswer.problem);
   let rawStock = inMicroliters(stockAnswer);
   if (rawStock !== undefined && rawStock > total) {
     const stockName =
       stock.kind === 'ready' ? `${stock.shown} ${stock.material}` : 'undiluted stock';
-    warn('stock', `The stock (${stockName}) is weaker than the top needs (${show(working(0))}).`);
+    warn(
+      'stock',
+      `The stock (${stockName}) is weaker than the top needs (${show(workingConcAt(0))}).`
+    );
     rawStock = undefined;
   }
   const points = Array.from({ length: pointCount }, (_, point) => ({
     point: point + 1,
-    wells: run.wellsPerPoint.get(point) ?? 0,
+    wells: run.replicatesByPoint.get(point) ?? 0,
     volume: dialNumber(pipetteFor('series', diluent), point ? diluent : total),
     final: show(inWell(point)),
-    working: show(working(point)),
+    workingConc: show(workingConcAt(point)),
   }));
-  const topDiluent = inMicroliters(lineAnswer(calculation, run, 'topDiluent'));
-  const diluentTotal = inMicroliters(lineAnswer(calculation, run, 'diluentTotal'));
+  const topDiluent = inMicroliters(lineAnswer(board, run, 'topDiluent'));
+  const diluentTotal = inMicroliters(lineAnswer(board, run, 'diluentTotal'));
   const diluentMaterial = materialNamed(protocol, chosenDiluent);
   const diluentLabel = diluentMaterial ? displayNameOf(diluentMaterial) : chosenDiluent.trim();
   const diluentName = diluentLabel || 'diluent';
@@ -193,7 +196,7 @@ export function dilutionPrep(
     kind: 'ready',
     strength: `${shortNumber(strength)}×`,
     points,
-    isUneven: new Set(run.wellsPerPoint.values()).size > 1,
+    isUneven: new Set(run.replicatesByPoint.values()).size > 1,
     transferText: dialed('series', transfer),
     stockText: rawStock === undefined ? undefined : dialed('stock', rawStock),
     stockShown:

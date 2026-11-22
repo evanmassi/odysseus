@@ -1,4 +1,4 @@
-import { bandColorOf } from '@odysseus/shared-schemas';
+import { indicatorColorOf } from '@odysseus/shared-schemas';
 import { replaceEqualDeep } from '@tanstack/react-query';
 import { produce } from 'immer';
 
@@ -16,7 +16,7 @@ import type {
   PlateLine,
   Protocol,
   ValuesBlock,
-  VesselMapBlock,
+  PlateMapBlock,
 } from '@odysseus/shared-schemas';
 
 const material = (
@@ -63,7 +63,7 @@ const line = (id: string, texts: string[]): PlateLine => ({
   values: texts.map(text => ({ id: text, text, color: `#${text.length}${text.length}0000` })),
 });
 
-const vesselMap = (id: string, title: string, content: Partial<VesselMapBlock>): VesselMapBlock =>
+const plateMap = (id: string, title: string, content: Partial<PlateMapBlock>): PlateMapBlock =>
   ({
     id,
     type: 'plate',
@@ -81,9 +81,9 @@ const vesselMap = (id: string, title: string, content: Partial<VesselMapBlock>):
     stain: {},
     stainedIn: {},
     ...content,
-  }) as unknown as VesselMapBlock;
+  }) as unknown as PlateMapBlock;
 
-const killingPlate = vesselMap('map', 'Assay plate map', {
+const killingPlate = plateMap('map', 'Assay plate map', {
   lines: [line('drug', ['Drug X', 'DMSO', 'Targets only']), line('cells', ['Raji'])],
   cells: {
     'p:A1': {
@@ -124,11 +124,11 @@ function tableOf(
   block: ValuesBlock,
   unsortedNames: readonly string[] = []
 ): ValueTableGroup[] {
-  const calculation = calculateBoard(collectBoardNames(protocol));
+  const board = calculateBoard(collectBoardNames(protocol));
   return buildValueTable(protocol, block, {
     materials: materialsById(protocol),
-    calculation,
-    needs: valueNeeds(protocol, block, calculation),
+    board,
+    needs: valueNeeds(protocol, block, board),
     unsortedNames,
   });
 }
@@ -215,7 +215,7 @@ describe('the values table', () => {
   });
 
   it('links plate names to materials named with a note, and to mixes', () => {
-    const banded = vesselMap('map', 'Assay plate map', {
+    const banded = plateMap('map', 'Assay plate map', {
       lines: [line('drug', ['Drug X', 'DMSO']), line('stim', ['STX', 'Th17 cocktail'])],
       cells: {
         'p:A1': {
@@ -254,7 +254,7 @@ describe('the values table', () => {
       role: 'auto',
       values: texts.map(text => ({ id: text, text })),
     });
-    const banded = vesselMap('map', 'Assay plate map', {
+    const banded = plateMap('map', 'Assay plate map', {
       lines: [line('drug', ['Drug X', 'DMSO']), plain('cells', ['Raji'])],
       cells: {
         'p:A1': { drug: { valueId: 'Drug X' }, cells: { valueId: 'Raji' } },
@@ -265,13 +265,13 @@ describe('the values table', () => {
       row => row.name === 'Raji'
     );
     expect(raji?.swatch).toEqual({
-      color: bandColorOf(banded, banded.lines[1].values[0]),
+      color: indicatorColorOf(banded, banded.lines[1].values[0]),
       kind: 'band',
     });
   });
 
   it('draws a striped line striped, the way the legend does', () => {
-    const striped = vesselMap('map', 'Assay plate map', {
+    const striped = plateMap('map', 'Assay plate map', {
       lines: [line('drug', ['Drug X', 'DMSO']), { ...line('cells', ['Raji']), role: 'stripe' }],
       cells: {
         'p:A1': { drug: { valueId: 'Drug X' }, cells: { valueId: 'Raji' } },
@@ -335,7 +335,7 @@ describe('the values table', () => {
 
   it('puts a plate that is not in Materials under Supplies too', () => {
     const killing = { ...killingPlate, title: 'Killing plate' };
-    const spare = vesselMap('spare', 'Spare plate', {});
+    const spare = plateMap('spare', 'Spare plate', {});
     const table = tableFor([killing, spare, mainValues]);
     expect(table.map(group => group.label)).not.toContain('Plates');
     expect(groupNamed(table, 'Supplies').rows.map(row => row.name)).toEqual(
@@ -344,7 +344,7 @@ describe('the values table', () => {
   });
 
   it('gives each extra series of the same drug its own row under the drug', () => {
-    const twins = vesselMap('map', 'Assay plate map', {
+    const twins = plateMap('map', 'Assay plate map', {
       lines: [line('cells', ['Raji', 'Jurkat']), line('drug', ['Drug X'])],
       cells: {
         'p:A1': {
@@ -367,11 +367,11 @@ describe('the values table', () => {
   });
 
   it('splits a drug on two plates into a row per plate', () => {
-    const plateOne = vesselMap('one', 'Plate one', {
+    const plateOne = plateMap('one', 'Plate one', {
       lines: [line('drug', ['Drug X', 'DMSO'])],
       cells: { 'p:A1': { drug: { valueId: 'Drug X' } }, 'p:A2': { drug: { valueId: 'DMSO' } } },
     });
-    const plateTwo = vesselMap('two', 'Plate two', {
+    const plateTwo = plateMap('two', 'Plate two', {
       lines: [line('drug', ['Drug X', 'DMSO'])],
       cells: {
         'p:A1': { drug: { valueId: 'Drug X' } },
@@ -445,7 +445,7 @@ describe('plate names and needed values in the values table', () => {
       ],
     },
   };
-  const donorPlate = vesselMap('map', 'Assay plate map', {
+  const donorPlate = plateMap('map', 'Assay plate map', {
     lines: [line('cells', ['D3128', 'D2044', 'Mystery'])],
     cells: {
       'p:A1': { cells: { valueId: 'D3128', amount: '1e5', unit: 'cells' } },
@@ -528,7 +528,7 @@ describe('cells on the values table', () => {
       rows: rows.map(row => ({ ...row, units: {} })),
     },
   });
-  const cellPlate = vesselMap('map', 'Assay plate map', {
+  const cellPlate = plateMap('map', 'Assay plate map', {
     lines: [line('cells', ['Raji', 'D1', 'D2', 'GFP lentivirus'])],
     cells: {
       'p:A1': { cells: { valueId: 'Raji', amount: '1e4', unit: 'cells' } },

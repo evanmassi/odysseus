@@ -1,7 +1,13 @@
 import { calculateBoard, type BoardName } from '../formulas/boardCalculation';
 
 import { CELLS_PER_WELL, EXTRA, MASS_PER_WELL, TOTAL_WELL_VOLUME } from './termList';
-import { findTerm, settledValue, termMeaning, unitMismatch, withPerVessel } from './termLookup';
+import {
+  findTerm,
+  settledValue,
+  termMeaning,
+  unitMismatch,
+  withPerLabwareKind,
+} from './termLookup';
 
 const value = (name: string, unit = ''): BoardName => ({
   kind: 'value',
@@ -51,17 +57,17 @@ describe('findTerm', () => {
     expect(findTerm(names, EXTRA, [''])?.name).toBe('Extra');
   });
 
-  it('shows a per-well number with /well after its unit, or the tab noun on a shelf', () => {
-    expect(withPerVessel('40 µL', 'Raji vol./well')).toBe('40 µL/well');
-    expect(withPerVessel('4.00E+4 cells', 'Raji cells/well')).toBe('4.00E+4 cells/well');
-    expect(withPerVessel('2 mL', 'Medium vol./tube')).toBe('2 mL/tube');
-    expect(withPerVessel('20 µL', 'Drug X volume added')).toBe('20 µL/well');
-    expect(withPerVessel('50 µL', 'Surface cocktail vol./well')).toBe('50 µL/well');
-    expect(withPerVessel('1.2 mL', 'Raji total needed')).toBe('1.2 mL');
-    expect(withPerVessel('?', 'Raji vol./well')).toBe('?');
+  it('shows a per-well number with /well after its unit, or the labware kind on another labware tab', () => {
+    expect(withPerLabwareKind('40 µL', 'Raji vol./well')).toBe('40 µL/well');
+    expect(withPerLabwareKind('4.00E+4 cells', 'Raji cells/well')).toBe('4.00E+4 cells/well');
+    expect(withPerLabwareKind('2 mL', 'Medium vol./tube')).toBe('2 mL/tube');
+    expect(withPerLabwareKind('20 µL', 'Drug X volume added')).toBe('20 µL/well');
+    expect(withPerLabwareKind('50 µL', 'Surface cocktail vol./well')).toBe('50 µL/well');
+    expect(withPerLabwareKind('1.2 mL', 'Raji total needed')).toBe('1.2 mL');
+    expect(withPerLabwareKind('?', 'Raji vol./well')).toBe('?');
   });
 
-  it('gives a word its meaning under any spelling, a shelf noun included', () => {
+  it('gives a word its meaning under any spelling, another labware kind included', () => {
     expect(termMeaning('Vol./well')).toBe('Volume of it added to each well');
     expect(termMeaning('Volume added')).toBe('Volume of it added to each well');
     expect(termMeaning('Vol./tube')).toBe('Volume of it added to each well');

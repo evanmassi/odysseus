@@ -1,4 +1,4 @@
-import { calculateBoard, type BoardCalculation } from '../formulas/boardCalculation';
+import { calculateBoard, type SolvedBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { nameUsage } from '../formulas/nameUsage';
 
@@ -69,8 +69,8 @@ function protocolWith(
   } as unknown as Protocol;
 }
 
-const answer = (calculation: BoardCalculation, part: string) => {
-  const result = calculation.results.get(`cells:donor 1:${part}`);
+const answer = (board: SolvedBoard, part: string) => {
+  const result = board.results.get(`cells:donor 1:${part}`);
   return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
 };
 
@@ -83,25 +83,25 @@ const PLATING: Array<[string, string, string]> = [
 
 describe('cell math for a donor on the plate', () => {
   it('works out cells needed, vials, plating concentration, resuspend volume and left over', () => {
-    const calculation = calculate(protocolWith({ 'total-count': '1e7', viability: '90' }, PLATING));
-    expect(answer(calculation, 'needed')).toBe('3.30E+5 cells');
-    expect(answer(calculation, 'vials')).toBe('1');
-    expect(answer(calculation, 'plating')).toBe('1.00E+6 cells/mL');
-    expect(answer(calculation, 'resuspend')).toBe('9 mL');
-    expect(answer(calculation, 'left-over')).toBe('8.67E+6 cells');
-    expect(calculation.names.get('donor 1 wells')).toMatchObject({ kind: 'count', count: 3 });
-    expect(cellWarnings(calculation).size).toBe(0);
+    const board = calculate(protocolWith({ 'total-count': '1e7', viability: '90' }, PLATING));
+    expect(answer(board, 'needed')).toBe('3.30E+5 cells');
+    expect(answer(board, 'vials')).toBe('1');
+    expect(answer(board, 'plating')).toBe('1.00E+6 cells/mL');
+    expect(answer(board, 'resuspend')).toBe('9 mL');
+    expect(answer(board, 'left-over')).toBe('8.67E+6 cells');
+    expect(board.names.get('donor 1 wells')).toMatchObject({ kind: 'count', count: 3 });
+    expect(cellWarnings(board).size).toBe(0);
   });
 
   it('reads the per-well volume and a whole-experiment extra under their other spellings', () => {
-    const calculation = calculate(
+    const board = calculate(
       protocolWith({ 'total-count': '1e7', viability: '90' }, [
         ['PBMC vol./well', '100', 'µL'],
         ['Extra (dead vol.)', '10', '%'],
       ])
     );
-    expect(answer(calculation, 'needed')).toBe('3.30E+5 cells');
-    expect(answer(calculation, 'plating')).toBe('1.00E+6 cells/mL');
+    expect(answer(board, 'needed')).toBe('3.30E+5 cells');
+    expect(answer(board, 'plating')).toBe('1.00E+6 cells/mL');
   });
 
   it('counts a value the cell math reads as used', () => {
@@ -128,10 +128,10 @@ describe('cell math for a donor on the plate', () => {
   });
 
   it('steps aside for a name the scientist already uses', () => {
-    const calculation = calculate(
+    const board = calculate(
       protocolWith({ 'live-count': '1e6' }, [['Donor 1 total needed', '5', '']])
     );
-    expect(answer(calculation, 'vials')).toMatchObject({
+    expect(answer(board, 'vials')).toMatchObject({
       message: 'Rename "Donor 1 total needed": the cell math for Donor 1 needs that name.',
     });
   });
@@ -183,20 +183,20 @@ describe('cell math for cells diluted from a stock', () => {
     } as Protocol;
   }
 
-  const stockAnswer = (calculation: BoardCalculation, part: string) => {
-    const result = calculation.results.get(`cells:heat killed candida:${part}`);
+  const stockAnswer = (board: SolvedBoard, part: string) => {
+    const result = board.results.get(`cells:heat killed candida:${part}`);
     return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
   };
 
   it('reads the volume per well filed under the full name, and takes stock instead of counting', () => {
-    const calculation = calculate(stockProtocol());
-    expect(stockAnswer(calculation, 'needed')).toBe('8.00E+4 cells');
-    expect(stockAnswer(calculation, 'plating')).toBe('2.00E+6 cells/mL');
-    expect(stockAnswer(calculation, 'suspension')).toBe('40 µL');
-    expect(stockAnswer(calculation, 'stock')).toBe('0.08 µL');
-    expect(stockAnswer(calculation, 'diluent')).toBe('39.9 µL');
-    expect(calculation.results.has('cells:heat killed candida:resuspend')).toBe(false);
-    expect(calculation.results.has('cells:heat killed candida:left-over')).toBe(false);
+    const board = calculate(stockProtocol());
+    expect(stockAnswer(board, 'needed')).toBe('8.00E+4 cells');
+    expect(stockAnswer(board, 'plating')).toBe('2.00E+6 cells/mL');
+    expect(stockAnswer(board, 'suspension')).toBe('40 µL');
+    expect(stockAnswer(board, 'stock')).toBe('0.08 µL');
+    expect(stockAnswer(board, 'diluent')).toBe('39.9 µL');
+    expect(board.results.has('cells:heat killed candida:resuspend')).toBe(false);
+    expect(board.results.has('cells:heat killed candida:left-over')).toBe(false);
   });
 });
 
@@ -250,18 +250,18 @@ describe('cell math from the counts', () => {
     } as Protocol;
   }
 
-  const rajiAnswer = (calculation: BoardCalculation, part: string) => {
-    const result = calculation.results.get(`cells:raji:${part}`);
+  const rajiAnswer = (board: SolvedBoard, part: string) => {
+    const result = board.results.get(`cells:raji:${part}`);
     return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
   };
 
   it('takes from the culture by its live cell conc., worked out from total and viability', () => {
-    const calculation = calculate(cultureProtocol({ count: '2e6', viability: '90', volume: '5' }));
-    expect(rajiAnswer(calculation, 'needed')).toBe('2.88E+5 cells');
-    expect(rajiAnswer(calculation, 'stock')).toBe('160 µL');
-    expect(rajiAnswer(calculation, 'diluent')).toBe('2.72 mL');
-    expect(rajiAnswer(calculation, 'left-over')).toBe('8.71E+6 cells');
-    expect(calculation.names.get('raji live cell conc.')).toMatchObject({
+    const board = calculate(cultureProtocol({ count: '2e6', viability: '90', volume: '5' }));
+    expect(rajiAnswer(board, 'needed')).toBe('2.88E+5 cells');
+    expect(rajiAnswer(board, 'stock')).toBe('160 µL');
+    expect(rajiAnswer(board, 'diluent')).toBe('2.72 mL');
+    expect(rajiAnswer(board, 'left-over')).toBe('8.71E+6 cells');
+    expect(board.names.get('raji live cell conc.')).toMatchObject({
       kind: 'formula',
       expr: 'Raji total cell conc. × Raji viability',
       isIntermediate: true,
@@ -270,18 +270,18 @@ describe('cell math from the counts', () => {
   });
 
   it('asks for a live count when there is none', () => {
-    const calculation = calculate(cultureProtocol({ count: '2e6' }));
-    expect(rajiAnswer(calculation, 'stock')).toMatchObject({
+    const board = calculate(cultureProtocol({ count: '2e6' }));
+    expect(rajiAnswer(board, 'stock')).toMatchObject({
       message: 'Needs a live count: Live cell conc., or Total cell conc. and Viability',
     });
-    expect(calculation.results.has('cells:raji:left-over')).toBe(false);
+    expect(board.results.has('cells:raji:left-over')).toBe(false);
   });
 
   it('resuspends a donor from its live cell conc. and vol.', () => {
-    const calculation = calculate(
+    const board = calculate(
       protocolWith({ 'live-cell-conc': '8e5', volume: '2', 'cells-per-vial': '' }, PLATING)
     );
-    expect(answer(calculation, 'resuspend')).toBe('1.6 mL');
-    expect(answer(calculation, 'left-over')).toBe('1.27E+6 cells');
+    expect(answer(board, 'resuspend')).toBe('1.6 mL');
+    expect(answer(board, 'left-over')).toBe('1.27E+6 cells');
   });
 });

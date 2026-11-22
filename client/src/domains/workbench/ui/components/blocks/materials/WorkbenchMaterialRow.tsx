@@ -18,7 +18,7 @@ import {
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { SOURCES_LABEL } from '../../../../utils/materials/materialSources';
 import { ADD_ICON } from '../../board/addIconClass';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import {
   MATERIAL_ACTIONS_CELL,
@@ -37,7 +37,7 @@ import { WorkbenchMaterialRecipeEditor } from './WorkbenchMaterialRecipeEditor';
 import type { MaterialKind } from './materialSelectOptions';
 import type { DiluentUse } from '../../../../utils/dilutions/dilutionDiluents';
 import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
-import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
+import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 export interface MaterialRowActions {
@@ -74,7 +74,7 @@ interface WorkbenchMaterialRowProps {
   diluentUse: DiluentUse | undefined;
   panelDetectors: string;
   isClashing: boolean;
-  isDuplicateName: boolean;
+  isNameTaken: boolean;
   swatch: PlateSwatch | undefined;
   freshStamp: number | undefined;
   editing: MaterialCellEditing;
@@ -195,7 +195,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   diluentUse,
   panelDetectors,
   isClashing,
-  isDuplicateName,
+  isNameTaken,
   swatch,
   freshStamp,
   editing,
@@ -209,7 +209,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   const workedCounts = workedCountsByKey(item.values);
   const summary = [
     plateWellCount ? `Plate: ${plateWellCount} ${plateWellCount === 1 ? 'well' : 'wells'}` : '',
-    panelDetectors ? `Panel: ${panelDetectors}` : '',
+    panelDetectors,
     usage ? usageSummary(usage) : '',
     ...recipeUsers.map(user => `in ${user}`),
   ]
@@ -232,14 +232,14 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
         className={MATERIAL_NAME}
         display={
           <span className="flex items-center gap-2">
-            <WorkbenchMarkSwatch swatch={swatch} />
+            <WorkbenchIndicatorSwatch swatch={swatch} />
             {item.name || <span className="font-normal italic text-muted-foreground">Unnamed</span>}
           </span>
         }
         editor={() => (
           <input
             value={item.name}
-            aria-invalid={isDuplicateName}
+            aria-invalid={isNameTaken}
             placeholder="Name"
             aria-label="Material name"
             spellCheck={false}
@@ -398,8 +398,8 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
                 size="xs"
                 isQuiet
                 value=""
-                placeholder="Make a donor of…"
-                aria-label={`Make ${item.name} a donor of`}
+                placeholder="Move to…"
+                aria-label={`Move ${item.name} to a donor list`}
                 options={donorChoices}
                 onChange={choice => choice && actions.makeDonorOf(item.id, String(choice))}
               />

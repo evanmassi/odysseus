@@ -5,7 +5,7 @@ import { groupStartingFields } from '../utils/materials/materialItems';
 import {
   EMPTY_LAB_MEMORY,
   learnFromMaterials,
-  rememberDyes,
+  rememberFluors,
   rememberKind,
   startingSourceFieldsOf,
   toggleStartingField,
@@ -13,7 +13,7 @@ import {
   type PinnedFields,
 } from '../utils/materials/materialMemory';
 
-import type { MaterialItem, ProtocolDye } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolFluor } from '@odysseus/shared-schemas';
 
 const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory';
 
@@ -21,7 +21,7 @@ interface MaterialMemoryState {
   memory: LabMemory;
   rememberKind: (name: string, group: string, type: string) => void;
   learnFromMaterials: (items: readonly MaterialItem[]) => void;
-  rememberDyes: (dyes: readonly ProtocolDye[]) => void;
+  rememberFluors: (fluors: readonly ProtocolFluor[]) => void;
   toggleStartingField: (pins: PinnedFields, group: string, key: string) => void;
 }
 
@@ -36,9 +36,9 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
           const memory = learnFromMaterials(state.memory, items);
           return memory === state.memory ? state : { memory };
         }),
-      rememberDyes: dyes =>
+      rememberFluors: fluors =>
         set(state => {
-          const memory = rememberDyes(state.memory, dyes);
+          const memory = rememberFluors(state.memory, fluors);
           return memory === state.memory ? state : { memory };
         }),
       toggleStartingField: (pins, group, key) =>

@@ -2,7 +2,7 @@ import { calculateBoard } from '../formulas/boardCalculation';
 
 import { parseStepTemplate, splitProse, templateText } from './stepTemplate';
 
-const calculation = calculateBoard([
+const board = calculateBoard([
   { kind: 'value', id: 'v1', name: 'Volume per well', value: '50', unit: 'µL' },
   {
     kind: 'item',
@@ -99,7 +99,7 @@ describe('splitProse', () => {
 
 describe('templateText', () => {
   it('shows live values, item names, missing names and blanks', () => {
-    expect(templateText('Add {volume per well} of {PBS} and {Nothing}, ‹time›.', calculation)).toBe(
+    expect(templateText('Add {volume per well} of {PBS} and {Nothing}, ‹time›.', board)).toBe(
       'Add 50 µL of PBS and Nothing, [time].'
     );
   });

@@ -1,7 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { firstBlockOrNew } from '../blocks/createBlock';
-import { nameKey, type BoardCalculation } from '../formulas/boardCalculation';
+import { nameKey, type SolvedBoard } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
 import { ensureMaterial, shortNameOf } from '../materials/materialLookup';
 import {
@@ -167,7 +167,7 @@ function conditionNoun(textBefore: string): string | undefined {
   return verb && CONDITION_NOUNS[verb];
 }
 
-export function readStepReadings(protocol: Protocol, calculation: BoardCalculation): StepReadings {
+export function readStepReadings(protocol: Protocol, board: SolvedBoard): StepReadings {
   const listed = boardMaterials(protocol);
   const onBoard = new Map([
     ...listed
@@ -275,7 +275,7 @@ export function readStepReadings(protocol: Protocol, calculation: BoardCalculati
         if (match[1] && !stepVerbBase(match[1])) continue;
         const phrase = phraseAt(text, (match.index ?? 0) + match[0].length);
         if (!phrase || isLocked(phrase.start) || isNotMaterial(phrase)) continue;
-        const known = calculation.names.get(nameKey(phrase.name));
+        const known = board.names.get(nameKey(phrase.name));
         if (known && known.kind !== 'item') continue;
         noteMaterial(phrase.name, { ...at, start: phrase.start, end: phrase.end });
       }
@@ -286,7 +286,7 @@ export function readStepReadings(protocol: Protocol, calculation: BoardCalculati
   const shownValues = [...values.values()].filter(
     ({ isConflicting, isCondition, name, uses, key }) =>
       !isConflicting &&
-      !calculation.names.has(nameKey(name)) &&
+      !board.names.has(nameKey(name)) &&
       (!isCondition || new Set(uses.map(use => use.stepId)).size > 1) &&
       !ignored.has(key)
   );

@@ -8,7 +8,7 @@ import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
 import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
 
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
-import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
+import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 
 interface WorkbenchFormulaSectionProps {
   title: string | undefined;

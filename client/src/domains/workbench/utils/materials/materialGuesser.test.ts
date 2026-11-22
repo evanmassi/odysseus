@@ -2,16 +2,16 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import {
   VENDOR_NAMES,
-  findFluorochromeName,
+  findFluorName,
   guessMaterial,
-  isNonFluorochromeConjugate,
+  isNonFluorConjugate,
   listWithAnd,
   splitPastedMaterials,
   type MaterialGuess,
   type MaterialKnowledge,
 } from './materialGuesser';
 
-const nothingRemembered: MaterialKnowledge = { kinds: new Map(), dyes: [] };
+const nothingRemembered: MaterialKnowledge = { kinds: new Map(), fluors: [] };
 const guess = (text: string): MaterialGuess => guessMaterial(text, nothingRemembered);
 
 describe('normalizeMaterialKey', () => {
@@ -30,13 +30,13 @@ describe('normalizeMaterialKey', () => {
 });
 
 describe('guessMaterial antibodies and labels', () => {
-  it('reads a marker, fluorochrome and clone as an antibody', () => {
+  it('reads a marker, fluor and clone as an antibody', () => {
     expect(guess('CD4 BV421 clone RPA-T4')).toEqual({
       group: 'ab',
       type: 'Antibody',
       name: 'CD4 BV421 clone RPA-T4',
       values: { target: 'CD4', clone: 'RPA-T4', conjugate: 'BV421', laser: 'Violet 405' },
-      why: 'BV421 is a fluorochrome',
+      why: 'BV421 is a fluor',
       source: 'list',
     });
   });
@@ -55,7 +55,7 @@ describe('guessMaterial antibodies and labels', () => {
         conjugate: 'PE-Cy7',
         laser: 'Yellow-green 561',
       },
-      why: 'PE-Cy7 is a fluorochrome',
+      why: 'PE-Cy7 is a fluor',
       source: 'list',
     });
   });
@@ -260,7 +260,7 @@ describe('guessMaterial memory and context', () => {
   it('lets a remembered kind override the guess', () => {
     const remembered = {
       kinds: new Map([['hela', { group: 'bio', type: 'Primary cells' }]]),
-      dyes: [],
+      fluors: [],
     };
     expect(guessMaterial('HeLa', remembered)).toMatchObject({
       type: 'Primary cells',
@@ -272,7 +272,7 @@ describe('guessMaterial memory and context', () => {
   it('keeps its own reason when memory agrees', () => {
     const remembered = {
       kinds: new Map([['hela', { group: 'bio', type: 'Cell line', why: 'already here' }]]),
-      dyes: [],
+      fluors: [],
     };
     expect(guessMaterial('HeLa', remembered)).toMatchObject({
       why: 'HeLa: known cell line',
@@ -280,8 +280,11 @@ describe('guessMaterial memory and context', () => {
     });
   });
 
-  it('reads a dye the file or this computer added as the conjugate', () => {
-    const known = { kinds: new Map(), dyes: [{ name: 'Qx Fluor 512', lasers: [488], peak: 512 }] };
+  it('reads a fluor the file or this computer added as the conjugate', () => {
+    const known = {
+      kinds: new Map(),
+      fluors: [{ name: 'Qx Fluor 512', lasers: [488], peak: 512 }],
+    };
     expect(guessMaterial('CD4 Qx Fluor 512 RPA-T4', known)).toMatchObject({
       group: 'ab',
       type: 'Antibody',
@@ -366,17 +369,17 @@ describe('lookup lists and helpers', () => {
     expect(VENDOR_NAMES).not.toContain('ThermoFisher');
   });
 
-  it('tells chemical conjugates apart from fluorochromes', () => {
-    expect(isNonFluorochromeConjugate('HRP')).toBe(true);
-    expect(isNonFluorochromeConjugate('biotinylated')).toBe(true);
-    expect(isNonFluorochromeConjugate('PE')).toBe(false);
+  it('tells chemical conjugates apart from fluors', () => {
+    expect(isNonFluorConjugate('HRP')).toBe(true);
+    expect(isNonFluorConjugate('biotinylated')).toBe(true);
+    expect(isNonFluorConjugate('PE')).toBe(false);
   });
 
-  it('resolves fluorochrome aliases to one name', () => {
-    expect(findFluorochromeName('AF647')).toBe('Alexa Fluor 647');
-    expect(findFluorochromeName('PE/Cyanine7')).toBe('PE-Cy7');
-    expect(findFluorochromeName('mCherry')).toBe('mCherry');
-    expect(findFluorochromeName('DMEM')).toBeUndefined();
+  it('resolves fluor aliases to one name', () => {
+    expect(findFluorName('AF647')).toBe('Alexa Fluor 647');
+    expect(findFluorName('PE/Cyanine7')).toBe('PE-Cy7');
+    expect(findFluorName('mCherry')).toBe('mCherry');
+    expect(findFluorName('DMEM')).toBeUndefined();
   });
 
   it('joins words into a readable list', () => {

@@ -11,7 +11,7 @@ import { parseStepTemplate, splitProse } from '../../../../utils/steps/stepTempl
 import { proseClass, STEP_PROSE_CLASSES } from './stepProseClasses';
 import { referenceToneClass } from './stepReferenceTone';
 
-import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 
 interface WorkbenchStepPreviewProps {
   text: string;
@@ -20,7 +20,7 @@ interface WorkbenchStepPreviewProps {
 export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
   const parts = useMemo(() => parseStepTemplate(text), [text]);
   const isAlikeForStep = useCallback(
-    (a: BoardCalculation, b: BoardCalculation) =>
+    (a: SolvedBoard, b: SolvedBoard) =>
       readsNamesAlike(
         parts.flatMap(part => (part.kind === 'reference' ? [part.name] : [])),
         a,
@@ -28,16 +28,12 @@ export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
       ),
     [parts]
   );
-  const calculation = useStoreWithEqualityFn(
-    useWorkbenchStore,
-    state => state.calculation,
-    isAlikeForStep
-  );
+  const board = useStoreWithEqualityFn(useWorkbenchStore, state => state.board, isAlikeForStep);
   return (
     <>
       {parts.map((part, partIndex) => {
         if (part.kind === 'reference') {
-          const display = describeName(calculation, part.name);
+          const display = describeName(board, part.name);
           return (
             <Tooltip content={display.label} key={partIndex}>
               <span className={`cursor-help ${referenceToneClass(display)}`}>{display.text}</span>

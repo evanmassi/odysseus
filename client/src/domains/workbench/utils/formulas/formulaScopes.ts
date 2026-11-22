@@ -13,7 +13,7 @@ import {
 import { findTerm } from '../terms/termLookup';
 import { joinValueName, upperLead } from '../values/valueNames';
 
-import { nameKey, type BoardCalculation } from './boardCalculation';
+import { nameKey, type SolvedBoard } from './boardCalculation';
 import { FORMULA_FUNCTIONS, type FormulaFunction } from './formulaParser';
 import { matchesWordStarts } from './nameMatching';
 
@@ -67,16 +67,16 @@ export function nameWithinOwner(name: string, owner: string): string {
   return upperLead(rest);
 }
 
-function scopedNames(calculation: BoardCalculation, material: MaterialItem | undefined) {
+function scopedNames(board: SolvedBoard, material: MaterialItem | undefined) {
   const prefix = ownerPrefix(material);
-  const full = [...calculation.names.values()].map(entry => entry.name);
+  const full = [...board.names.values()].map(entry => entry.name);
   const short = new Map(
     prefix
       ? full
           .filter(
             name =>
               name.toLowerCase().startsWith(prefix) &&
-              !calculation.names.has(name.slice(prefix.length).toLowerCase())
+              !board.names.has(name.slice(prefix.length).toLowerCase())
           )
           .map(name => [name, nameWithin(name, material)])
       : []
@@ -123,10 +123,10 @@ const swapNames = (text: string, replacements: ReadonlyMap<string, string>): str
 
 export function formulaTextParts(
   text: string,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   material: MaterialItem | undefined
 ): FormulaTextPart[] {
-  const { full, short } = scopedNames(calculation, material);
+  const { full, short } = scopedNames(board, material);
   return splitNames(
     text,
     [...full, ...short.values()].map(name => name.toLowerCase())
@@ -135,19 +135,19 @@ export function formulaTextParts(
 
 export function namesWithin(
   expr: string,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   material: MaterialItem | undefined
 ): string {
-  const { full, short } = scopedNames(calculation, material);
+  const { full, short } = scopedNames(board, material);
   return swapNames(expr, new Map(full.map(name => [name.toLowerCase(), short.get(name) ?? name])));
 }
 
 export function namesInFull(
   text: string,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   material: MaterialItem | undefined
 ): string {
-  const { full, short } = scopedNames(calculation, material);
+  const { full, short } = scopedNames(board, material);
   return swapNames(
     text,
     new Map([
@@ -157,22 +157,21 @@ export function namesInFull(
   );
 }
 
-export function uniqueName(calculation: BoardCalculation, base: string): string {
+export function uniqueName(board: SolvedBoard, base: string): string {
   let name = base;
-  for (let suffix = 2; calculation.names.has(nameKey(name)); suffix++) name = `${base} ${suffix}`;
+  for (let suffix = 2; board.names.has(nameKey(name)); suffix++) name = `${base} ${suffix}`;
   return name;
 }
 
 export function calculationSuggestions(
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   material: MaterialItem | undefined
 ): CalculationSuggestion[] {
   if (!material) return [];
-  const has = (name: string) => calculation.names.has(nameKey(name));
+  const has = (name: string) => board.names.has(nameKey(name));
   const owner = material.name.trim();
   const own = (label: string) => joinValueName(owner, label);
-  const find = (term: Term, owners: readonly string[]) =>
-    findTerm(calculation.names, term, owners)?.name;
+  const find = (term: Term, owners: readonly string[]) => findTerm(board.names, term, owners)?.name;
   const needed = find(TOTAL_NEEDED, [owner]);
   const wells = find(WELLS, [owner]) ?? find(WELLS_USED, ['']);
   const extra = find(EXTRA, [owner, '']);
@@ -213,15 +212,15 @@ export function formulaWordAt(value: string, caret: number) {
 }
 
 export function formulaCompletions(
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   material: MaterialItem | undefined,
   typed: string,
   ownName: string
 ): FormulaCompletion[] {
   if (!/[a-z]/i.test(typed)) return [];
   const words = typed.toLowerCase().split(/\s+/).filter(Boolean);
-  const { short } = scopedNames(calculation, material);
-  const names: FormulaCompletion[] = [...calculation.names.values()]
+  const { short } = scopedNames(board, material);
+  const names: FormulaCompletion[] = [...board.names.values()]
     .filter(entry => entry.kind !== 'item' && nameKey(entry.name) !== nameKey(ownName))
     .map(entry => ({
       name: entry.name,

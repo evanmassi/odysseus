@@ -36,11 +36,11 @@ describe('pastedReviewRows', () => {
       'DMSO\nHeLa\n\n- 96-well plate',
       [existing],
       [],
-      { kinds: new Map(), dyes: [] },
+      { kinds: new Map(), fluors: [] },
       EMPTY_LAB_MEMORY
     );
     expect(rows.map(row => row.item.name)).toEqual(['DMSO', 'HeLa', '96-well plate']);
-    expect(rows.map(row => row.duplicateId)).toEqual([existing.id, undefined, undefined]);
+    expect(rows.map(row => row.alreadyListedId)).toEqual([existing.id, undefined, undefined]);
     expect(rows[1].item.type).toBe('Cell line');
   });
 
@@ -51,10 +51,10 @@ describe('pastedReviewRows', () => {
 });
 
 describe('reviewActionLabel', () => {
-  const row = (isDuplicate: boolean, isKeptBoth = false): MaterialReviewRow => ({
+  const row = (isAlreadyListed: boolean, isKeptBoth = false): MaterialReviewRow => ({
     item: material('x'),
     why: '',
-    duplicateId: isDuplicate ? 'dupe' : undefined,
+    alreadyListedId: isAlreadyListed ? 'dupe' : undefined,
     isKeptBoth,
     isCorrected: false,
   });
@@ -69,7 +69,7 @@ describe('reviewActionLabel', () => {
 });
 
 describe('commitReviewRows', () => {
-  it('merges into the duplicate, adds the rest and unfolds their group', () => {
+  it('merges into the material already listed, adds the rest and unfolds their group', () => {
     const existing = material('DMSO');
     const { protocol, block } = setup([existing]);
     block.foldedGroups = ['chem'];
@@ -95,11 +95,11 @@ describe('commitReviewRows', () => {
     expect(block.items).toHaveLength(2);
     expect(protocol.keptBoth).toEqual(['dmso']);
     expect(
-      reviewRow(block.items, protocol.keptBoth, material('DMSO'), '').duplicateId
+      reviewRow(block.items, protocol.keptBoth, material('DMSO'), '').alreadyListedId
     ).toBeUndefined();
   });
 
-  it('adds a row whose duplicate was removed in the meantime', () => {
+  it('adds a row whose already listed match was removed in the meantime', () => {
     const existing = material('DMSO');
     const { protocol, block } = setup([existing]);
     const row = reviewRow(block.items, protocol.keptBoth, material('DMSO'), '');

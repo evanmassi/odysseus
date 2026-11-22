@@ -29,7 +29,7 @@ import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton'
 import { WorkbenchFormulaCompletionList } from './WorkbenchFormulaCompletionList';
 import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
-import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { TrayInsertion } from '../../tray/insertTrayStore';
 import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -38,7 +38,7 @@ type FormulaItem = FormulaBlock['items'][number];
 interface WorkbenchFormulaEditorProps {
   formula: FormulaItem;
   material: MaterialItem | undefined;
-  calculation: BoardCalculation;
+  board: SolvedBoard;
   anchorOf: () => DOMRect | undefined;
   onChange: (change: Partial<Omit<FormulaItem, 'id'>>) => void;
   onAddMissing: (name: string) => void;
@@ -53,7 +53,7 @@ const FORMULA_TEXT =
 export function WorkbenchFormulaEditor({
   formula,
   material,
-  calculation,
+  board,
   anchorOf,
   onChange,
   onAddMissing,
@@ -63,16 +63,14 @@ export function WorkbenchFormulaEditor({
   const expressionRef = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState(() => nameWithin(formula.name, material));
-  const [expression, setExpression] = useState(() =>
-    namesWithin(formula.expr, calculation, material)
-  );
+  const [expression, setExpression] = useState(() => namesWithin(formula.expr, board, material));
   const [completions, setCompletions] = useState<FormulaCompletion[]>([]);
   const [highlighted, setHighlighted] = useState(0);
-  const isDuplicate = calculation.duplicateIds.has(formula.id);
-  const result = calculation.results.get(formula.id);
+  const isNameTaken = board.takenNameIds.has(formula.id);
+  const result = board.results.get(formula.id);
   const shownAutoUnit = result?.status === 'ok' ? autoUnit(result.quantity) : undefined;
 
-  const position = usePlacedBeside(editorRef, anchorOf);
+  const editorPosition = usePlacedBeside(editorRef, anchorOf);
 
   useEffect(() => expressionRef.current?.focus(), []);
 
@@ -95,14 +93,14 @@ export function WorkbenchFormulaEditor({
 
   const refreshCompletions = (text: string, caret: number) => {
     setCompletions(
-      formulaCompletions(calculation, material, formulaWordAt(text, caret).text, formula.name)
+      formulaCompletions(board, material, formulaWordAt(text, caret).text, formula.name)
     );
     setHighlighted(0);
   };
 
   const changeExpression = (text: string, caret: number) => {
     setExpression(text);
-    onChange({ expr: namesInFull(text, calculation, material) });
+    onChange({ expr: namesInFull(text, board, material) });
     refreshCompletions(text, caret);
   };
 
@@ -123,9 +121,7 @@ export function WorkbenchFormulaEditor({
     const input = expressionRef.current;
     if (!input || insertion.kind === 'preset') return;
     const text =
-      insertion.kind === 'name'
-        ? namesWithin(insertion.name, calculation, material)
-        : insertion.token;
+      insertion.kind === 'name' ? namesWithin(insertion.name, board, material) : insertion.token;
     let start = input.selectionStart ?? expression.length;
     const end = input.selectionEnd ?? start;
     if (text === ')' && expression[start - 1] === ' ') start -= 1;
@@ -153,7 +149,7 @@ export function WorkbenchFormulaEditor({
       role="dialog"
       aria-label={`Edit ${name || 'calculation'}`}
       className={POPOUT_PANEL}
-      style={position}
+      style={editorPosition}
     >
       <div className="flex items-start gap-1">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -162,9 +158,9 @@ export function WorkbenchFormulaEditor({
             <input
               value={name}
               placeholder="Name"
-              aria-label="Formula name"
+              aria-label="Calculation name"
               spellCheck={false}
-              className={`${LINE_INPUT} ${isDuplicate ? 'text-danger-text' : ''}`}
+              className={`${LINE_INPUT} ${isNameTaken ? 'text-danger-text' : ''}`}
               onChange={event => {
                 setName(event.target.value);
                 onChange({ name: joinValueName(material?.name.trim() ?? '', event.target.value) });
@@ -207,7 +203,7 @@ export function WorkbenchFormulaEditor({
       </div>
       <div className="grid border border-line-faint bg-[hsl(var(--input-well))] focus-within:border-primary/60">
         <div aria-hidden className={`${FORMULA_TEXT} text-transparent`}>
-          {formulaTextParts(expression, calculation, material).map((part, index) =>
+          {formulaTextParts(expression, board, material).map((part, index) =>
             part.isName ? (
               <span key={index} className="bg-primary/20 [box-decoration-break:clone]">
                 {part.text}
@@ -238,7 +234,7 @@ export function WorkbenchFormulaEditor({
             const converted = withGreekLetters(expression);
             if (converted === expression) return;
             setExpression(converted);
-            onChange({ expr: namesInFull(converted, calculation, material) });
+            onChange({ expr: namesInFull(converted, board, material) });
           }}
           onKeyDown={event => {
             if (!completions.length) {
@@ -280,7 +276,7 @@ export function WorkbenchFormulaEditor({
           anchor={expressionRef.current}
           options={completions}
           highlighted={highlighted}
-          calculation={calculation}
+          board={board}
           onHighlight={setHighlighted}
           onAccept={accept}
         />

@@ -1,8 +1,8 @@
 import { produce } from 'immer';
 
 import { createBlock } from '../blocks/createBlock';
+import { heldNames, setWellsText } from '../plateMap/wellEdits';
 import { blankProtocol } from '../protocolFile/blankProtocol';
-import { heldNames, setWellsText } from '../vessels/wellEdits';
 
 import { listedMaterials } from './materialLookup';
 import { startSources } from './materialSources';
@@ -14,7 +14,7 @@ import {
   withLeadingName,
 } from './renameFollowing';
 
-import type { Protocol, VesselMapBlock } from '@odysseus/shared-schemas';
+import type { Protocol, PlateMapBlock } from '@odysseus/shared-schemas';
 
 const STIM_NAME = 'STX (Stim X Description (receptor agonist))';
 const P1_WELLS = ['p1:A1', 'p1:A2'];
@@ -54,7 +54,7 @@ function twoPlateProtocol(materialName = STIM_NAME): Protocol {
 }
 
 const mapOf = (protocol: Protocol) =>
-  protocol.blocks.find((block): block is VesselMapBlock => block.id === 'map')!;
+  protocol.blocks.find((block): block is PlateMapBlock => block.id === 'map')!;
 const stimName = (protocol: Protocol) =>
   listedMaterials(protocol).find(item => item.id === 'stim')?.name;
 const plateTexts = (protocol: Protocol) => mapOf(protocol).lines[0].values.map(value => value.text);

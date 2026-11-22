@@ -1,10 +1,10 @@
-import { removalMessage, removeBlock, shownPlate, viewsOf } from './plateViews';
+import { removalMessage, removeBlock, shownPlate, linkedPlateMapsOf } from './plateViews';
 
-import type { PlateViewBlock, Protocol, VesselMapBlock } from '@odysseus/shared-schemas';
+import type { LinkedPlateMapBlock, Protocol, PlateMapBlock } from '@odysseus/shared-schemas';
 
 const placed = { x: 0, y: 0, w: 6, h: 10, isCollapsed: false };
 
-const original = (): VesselMapBlock =>
+const original = (): PlateMapBlock =>
   ({
     ...placed,
     id: 'map',
@@ -23,9 +23,9 @@ const original = (): VesselMapBlock =>
     side: 'assay',
     stain: { 'p:A1': 'full' },
     stainedIn: {},
-  }) as VesselMapBlock;
+  }) as PlateMapBlock;
 
-const view = (id: string, page: string): PlateViewBlock => ({
+const view = (id: string, page: string): LinkedPlateMapBlock => ({
   ...placed,
   id,
   type: 'plateView',
@@ -51,7 +51,7 @@ describe('plate views', () => {
   it('finds the views of a plate card and shows its plates with their own side and merging', () => {
     const takedown = view('v1', 'takedown');
     const protocol = protocolWith(original(), takedown);
-    expect(viewsOf(protocol.blocks, 'map').map(found => found.id)).toEqual(['v1']);
+    expect(linkedPlateMapsOf(protocol.blocks, 'map').map(found => found.id)).toEqual(['v1']);
     const shown = shownPlate(original(), takedown);
     expect(shown).toMatchObject({ id: 'map', side: 'stain', mergesReplicates: false });
     expect(shown.stain).toEqual({ 'p:A1': 'full' });
@@ -76,7 +76,7 @@ describe('plate views', () => {
       stain: { 'p:A1': 'full' },
       stainedIn: {},
     });
-    expect(viewsOf(protocol.blocks, 'map').map(found => found.id)).toEqual(['v2']);
+    expect(linkedPlateMapsOf(protocol.blocks, 'map').map(found => found.id)).toEqual(['v2']);
   });
 
   it('says what removing will do', () => {

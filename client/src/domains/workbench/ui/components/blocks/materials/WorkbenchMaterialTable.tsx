@@ -53,7 +53,7 @@ interface WorkbenchMaterialTableProps {
   plateWells: ReadonlyMap<string, number>;
   diluentUses: ReadonlyMap<string, DiluentUse>;
   panelDetectors: ReadonlyMap<string, string>;
-  duplicateIds: ReadonlySet<string>;
+  takenNameIds: ReadonlySet<string>;
   fresh: { ids: ReadonlySet<string>; stamp: number };
   removed: RemovedMaterial | undefined;
   editing: MaterialCellEditing;
@@ -83,7 +83,7 @@ export function WorkbenchMaterialTable({
   plateWells,
   diluentUses,
   panelDetectors,
-  duplicateIds,
+  takenNameIds,
   fresh,
   removed,
   editing,
@@ -114,7 +114,7 @@ export function WorkbenchMaterialTable({
       diluentUse={diluentUses.get(item.id)}
       panelDetectors={panelDetectors.get(item.id) ?? ''}
       isClashing={clashingIds.has(item.id)}
-      isDuplicateName={duplicateIds.has(item.id)}
+      isNameTaken={takenNameIds.has(item.id)}
       swatch={swatchOf(item.name)}
       freshStamp={fresh.ids.has(item.id) ? fresh.stamp : undefined}
       editing={editing}

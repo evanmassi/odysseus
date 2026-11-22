@@ -2,7 +2,7 @@ import { withGreekLetters } from '@odysseus/shared-schemas';
 
 import { createId } from '../ids/createId';
 
-import { SOURCE_FIELDS, fieldKey } from './materialCatalog';
+import { BIO_GROUP, SOURCE_FIELDS, fieldKey } from './materialCatalog';
 import { findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 import type { FieldChoice } from './materialSectionFields';
@@ -21,6 +21,18 @@ const DONOR_KEY_OF_MATERIAL_KEY: Readonly<Record<string, string>> = {
   lot: LOT_FIELD,
   vendor: 'source',
 };
+
+export function donorListName(material: MaterialItem): string {
+  const label = material.sources?.label.trim();
+  return label ? label : SOURCES_LABEL;
+}
+
+export const donorTargetsOf = (
+  protocol: Pick<Protocol, 'blocks'>
+): Array<{ value: string; label: string }> =>
+  listedMaterials(protocol)
+    .filter(item => item.group === BIO_GROUP)
+    .map(item => ({ value: item.id, label: `${item.name} · ${donorListName(item)}` }));
 
 export const STARTING_SOURCE_FIELDS: readonly string[] = SOURCE_FIELDS.map(
   definition => definition.key

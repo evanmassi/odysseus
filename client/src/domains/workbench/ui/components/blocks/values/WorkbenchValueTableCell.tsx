@@ -4,8 +4,8 @@ import { Tooltip } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
-import { withPerVessel } from '../../../../utils/terms/termLookup';
-import { wellTooltipContent } from '../vessels/wellTooltipContent';
+import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
+import { wellTooltipContent } from '../plateMap/wellTooltipContent';
 
 import { NEEDED_TEXT, VALUE_CELL } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
@@ -18,7 +18,7 @@ export interface ValueCellView {
   hoverLines: readonly string[];
   isEditable: boolean;
   canRemove: boolean;
-  isDuplicate: boolean;
+  isNameTaken: boolean;
   isUsed: boolean;
   isWorked: boolean;
   isNeeded: boolean;
@@ -52,7 +52,7 @@ export function WorkbenchValueTableCell({
   const leave = useFocusLeave(() => onEdit(false));
   const isInvalid = view.isEditable && isUnreadableAmount(view.value, view.unit);
   const tone =
-    view.isDuplicate || isInvalid
+    view.isNameTaken || isInvalid
       ? ' text-danger-text'
       : view.isClashing
         ? ' text-warning-text'
@@ -125,7 +125,7 @@ export function WorkbenchValueTableCell({
               onClick={() => onEdit(true)}
             >
               {view.value.trim() ? (
-                withPerVessel(displayValue(view.value, view.unit), view.name)
+                withPerLabwareKind(displayValue(view.value, view.unit), view.name)
               ) : view.workedValue ? (
                 <span className="italic text-muted-foreground">
                   {displayValue(view.workedValue, view.unit)}

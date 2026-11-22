@@ -1,16 +1,16 @@
 import type { ComponentType } from 'react';
 
-import { WorkbenchCytometerPanel } from '../blocks/cytometer/WorkbenchCytometerPanel';
 import { WorkbenchDilutionsPanel } from '../blocks/dilutions/WorkbenchDilutionsPanel';
-import { WorkbenchFlowPanel } from '../blocks/flow/WorkbenchFlowPanel';
+import { WorkbenchFlowCytometryPanel } from '../blocks/flowCytometry/WorkbenchFlowCytometryPanel';
+import { WorkbenchFlowDiagramPanel } from '../blocks/flowDiagram/WorkbenchFlowDiagramPanel';
 import { WorkbenchFormulaPanel } from '../blocks/formulas/WorkbenchFormulaPanel';
 import { WorkbenchMaterialsPanel } from '../blocks/materials/WorkbenchMaterialsPanel';
+import { WorkbenchLinkedPlateMapCardControls } from '../blocks/plateMap/WorkbenchLinkedPlateMapCardControls';
+import { WorkbenchLinkedPlateMapPanel } from '../blocks/plateMap/WorkbenchLinkedPlateMapPanel';
+import { WorkbenchPlateMapCardControls } from '../blocks/plateMap/WorkbenchPlateMapCardControls';
+import { WorkbenchPlateMapPanel } from '../blocks/plateMap/WorkbenchPlateMapPanel';
 import { WorkbenchStepsPanel } from '../blocks/steps/WorkbenchStepsPanel';
 import { WorkbenchValuesPanel } from '../blocks/values/WorkbenchValuesPanel';
-import { WorkbenchPlateViewCardControls } from '../blocks/vessels/WorkbenchPlateViewCardControls';
-import { WorkbenchPlateViewPanel } from '../blocks/vessels/WorkbenchPlateViewPanel';
-import { WorkbenchVesselMapCardControls } from '../blocks/vessels/WorkbenchVesselMapCardControls';
-import { WorkbenchVesselMapPanel } from '../blocks/vessels/WorkbenchVesselMapPanel';
 
 import type { ProtocolBlock, ProtocolBlockType } from '@odysseus/shared-schemas';
 
@@ -23,14 +23,14 @@ export const BLOCK_PANELS: BlockPanels = {
   steps: WorkbenchStepsPanel,
   values: WorkbenchValuesPanel,
   formula: WorkbenchFormulaPanel,
-  plate: WorkbenchVesselMapPanel,
-  plateView: WorkbenchPlateViewPanel,
-  cytometer: WorkbenchCytometerPanel,
+  plate: WorkbenchPlateMapPanel,
+  plateView: WorkbenchLinkedPlateMapPanel,
+  cytometer: WorkbenchFlowCytometryPanel,
   dilutions: WorkbenchDilutionsPanel,
-  flow: WorkbenchFlowPanel,
+  flow: WorkbenchFlowDiagramPanel,
 };
 
 export const BLOCK_HEADER_CONTROLS: BlockPanels = {
-  plate: WorkbenchVesselMapCardControls,
-  plateView: WorkbenchPlateViewCardControls,
+  plate: WorkbenchPlateMapCardControls,
+  plateView: WorkbenchLinkedPlateMapCardControls,
 };

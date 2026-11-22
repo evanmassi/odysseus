@@ -3,7 +3,7 @@ import { parseStepTemplate } from '../../../../utils/steps/stepTemplate';
 
 import { referenceToneClass } from './stepReferenceTone';
 
-import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { BlankOption } from '../../../../utils/steps/stepPresets';
 
 const REFERENCE_ATTRIBUTE = 'data-ref';
@@ -14,8 +14,8 @@ const TYPED_REFERENCE = /\{([^{}]*)$/;
 const CHIP = 'cursor-default select-all border-b border-dotted border-primary/70';
 const BLANK_SLOT = 'border-b border-dashed border-warning-text/75 bg-warning-text/[0.12] px-0.5';
 
-function chipNode(name: string, calculation: BoardCalculation): HTMLSpanElement {
-  const display = describeName(calculation, name);
+function chipNode(name: string, board: SolvedBoard): HTMLSpanElement {
+  const display = describeName(board, name);
   const chip = document.createElement('span');
   chip.className = `${CHIP} ${referenceToneClass(display)}`;
   chip.contentEditable = 'false';
@@ -33,9 +33,9 @@ function slotNode(label: string): HTMLSpanElement {
   return slot;
 }
 
-const templateNodes = (text: string, calculation: BoardCalculation): Node[] =>
+const templateNodes = (text: string, board: SolvedBoard): Node[] =>
   parseStepTemplate(text).map(part => {
-    if (part.kind === 'reference') return chipNode(part.name, calculation);
+    if (part.kind === 'reference') return chipNode(part.name, board);
     if (part.kind === 'blank') return slotNode(part.label);
     return document.createTextNode(part.text);
   });
@@ -68,8 +68,8 @@ const blanksIn = (editor: HTMLElement) => [
   ...editor.querySelectorAll<HTMLElement>(`[${BLANK_ATTRIBUTE}]`),
 ];
 
-export function fillEditor(editor: HTMLElement, text: string, calculation: BoardCalculation) {
-  editor.replaceChildren(...templateNodes(text, calculation));
+export function fillEditor(editor: HTMLElement, text: string, board: SolvedBoard) {
+  editor.replaceChildren(...templateNodes(text, board));
 }
 
 export function readEditor(node: Node): string {
@@ -97,13 +97,13 @@ export function placeCaretAtEnd(editor: HTMLElement) {
 }
 
 export function placeCaretAtPoint(editor: HTMLElement, x: number, y: number) {
-  const position = document.caretPositionFromPoint?.(x, y);
-  const range = position ? document.createRange() : document.caretRangeFromPoint?.(x, y);
-  if (position && range) range.setStart(position.offsetNode, position.offset);
+  const caretPosition = document.caretPositionFromPoint?.(x, y);
+  const range = caretPosition ? document.createRange() : document.caretRangeFromPoint?.(x, y);
+  if (caretPosition && range) range.setStart(caretPosition.offsetNode, caretPosition.offset);
   if (range && editor.contains(range.startContainer)) select(range);
 }
 
-export function insertReference(editor: HTMLElement, name: string, calculation: BoardCalculation) {
+export function insertReference(editor: HTMLElement, name: string, board: SolvedBoard) {
   const range = caretRange(editor);
   range.deleteContents();
   const { startContainer, startOffset } = range;
@@ -113,20 +113,20 @@ export function insertReference(editor: HTMLElement, name: string, calculation: 
       : '';
   const spaceAfter = document.createTextNode(' ');
   range.insertNode(spaceAfter);
-  range.insertNode(chipNode(name, calculation));
+  range.insertNode(chipNode(name, board));
   if (charBefore && /\S/.test(charBefore)) range.insertNode(document.createTextNode(' '));
   range.setStartAfter(spaceAfter);
   range.collapse(true);
   select(range);
 }
 
-export function insertTemplate(editor: HTMLElement, text: string, calculation: BoardCalculation) {
+export function insertTemplate(editor: HTMLElement, text: string, board: SolvedBoard) {
   const range = caretRange(editor);
   range.deleteContents();
   const existing = editor.textContent ?? '';
   const fragment = document.createDocumentFragment();
   if (existing.trim() && !/\s$/.test(existing)) fragment.append(' ');
-  fragment.append(...templateNodes(text, calculation));
+  fragment.append(...templateNodes(text, board));
   range.insertNode(fragment);
   const firstBlank = blanksIn(editor)[0];
   if (firstBlank) selectContents(firstBlank);
@@ -150,10 +150,8 @@ export function blankAtCaret(editor: HTMLElement): HTMLElement | undefined {
   return blank && editor.contains(blank) ? blank : undefined;
 }
 
-export function fillBlank(blank: HTMLElement, option: BlankOption, calculation: BoardCalculation) {
-  const filled = option.name
-    ? chipNode(option.name, calculation)
-    : document.createTextNode(option.text);
+export function fillBlank(blank: HTMLElement, option: BlankOption, board: SolvedBoard) {
+  const filled = option.name ? chipNode(option.name, board) : document.createTextNode(option.text);
   blank.replaceWith(filled);
   const caret = document.createRange();
   caret.setStartAfter(filled);
@@ -193,13 +191,9 @@ function typedReferenceRange(editor: HTMLElement): Range | undefined {
 export const typedReferenceAtCaret = (editor: HTMLElement): string | undefined =>
   typedReferenceRange(editor)?.toString().slice(1);
 
-export function replaceTypedReference(
-  editor: HTMLElement,
-  name: string,
-  calculation: BoardCalculation
-) {
+export function replaceTypedReference(editor: HTMLElement, name: string, board: SolvedBoard) {
   const range = typedReferenceRange(editor);
   if (!range) return;
   select(range);
-  insertReference(editor, name, calculation);
+  insertReference(editor, name, board);
 }

@@ -57,7 +57,7 @@ export function WorkbenchMaterialPastePanel({
                 />
               </td>
               <td className={`${PASTE_CELL} text-muted-foreground`}>
-                {row.duplicateId ? (
+                {row.alreadyListedId ? (
                   <>
                     <span className="font-semibold text-warning-text">
                       Already listed: {row.isKeptBoth ? 'keeping both' : 'will merge'}

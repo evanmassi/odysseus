@@ -6,14 +6,14 @@ import {
 } from '../../../../utils/formulas/formulaScopes';
 import { describeName } from '../../../../utils/formulas/nameDisplay';
 
-import type { BoardCalculation } from '../../../../utils/formulas/boardCalculation';
+import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { FormulaFunction } from '../../../../utils/formulas/formulaParser';
 
 interface WorkbenchFormulaCompletionListProps {
   anchor: HTMLElement;
   options: readonly FormulaCompletion[];
   highlighted: number;
-  calculation: BoardCalculation;
+  board: SolvedBoard;
   onHighlight: (index: number) => void;
   onAccept: (option: FormulaCompletion) => void;
 }
@@ -22,7 +22,7 @@ export function WorkbenchFormulaCompletionList({
   anchor,
   options,
   highlighted,
-  calculation,
+  board,
   onHighlight,
   onAccept,
 }: WorkbenchFormulaCompletionListProps) {
@@ -52,7 +52,7 @@ export function WorkbenchFormulaCompletionList({
           <span className="truncate font-mono text-data-sm text-muted-foreground">
             {option.isFunction
               ? FORMULA_FUNCTION_HINTS[option.name as FormulaFunction]
-              : describeName(calculation, option.name).text}
+              : describeName(board, option.name).text}
           </span>
         </li>
       ))}

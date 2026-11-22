@@ -157,7 +157,7 @@ const seriesSchema = z.union([
   }),
 ]);
 
-const cellLineSchema = z.object({
+const sampleEntrySchema = z.object({
   valueId: z.string().optional(),
   amount: z.string().optional(),
   unit: z.string().optional(),
@@ -178,7 +178,7 @@ const plateLineSchema = z.object({
 });
 
 export const PLATE_FORMATS = ['6', '12', '24', '48', '96', '384'] as const;
-export const LOOSE_VESSELS = [
+export const OTHER_LABWARE = [
   'T25',
   'T75',
   'T175',
@@ -189,31 +189,31 @@ export const LOOSE_VESSELS = [
   'tube50',
 ] as const;
 
-const VESSEL_SIDES = ['assay', 'stain'] as const;
+const PLATE_MAP_SIDES = ['assay', 'stain'] as const;
 
-export const vesselMapBlockSchema = z.object({
+export const plateMapBlockSchema = z.object({
   ...blockBase,
   type: z.literal('plate'),
   plates: z.array(z.object({ id, vessel: z.enum(PLATE_FORMATS), name: z.string() })),
-  sets: z.array(z.object({ id, vessel: z.enum(LOOSE_VESSELS), count: z.number().int().min(1) })),
+  sets: z.array(z.object({ id, vessel: z.enum(OTHER_LABWARE), count: z.number().int().min(1) })),
   activeTab: z.number().int().min(0),
   lines: z.array(plateLineSchema),
-  cells: z.record(z.string(), z.record(z.string(), cellLineSchema)),
+  cells: z.record(z.string(), z.record(z.string(), sampleEntrySchema)),
   series: z.record(z.string(), seriesSchema),
   shelfName: z.string().optional(),
   mergesReplicates: z.boolean().default(true),
   counts: textMap.default({}),
   amountNames: textMap.default({}),
-  side: z.enum(VESSEL_SIDES).default('assay'),
+  side: z.enum(PLATE_MAP_SIDES).default('assay'),
   stain: textMap.default({}),
   stainedIn: textMap.default({}),
 });
 
-const plateViewBlockSchema = z.object({
+const linkedPlateMapBlockSchema = z.object({
   ...blockBase,
   type: z.literal('plateView'),
   shows: id,
-  side: z.enum(VESSEL_SIDES).default('assay'),
+  side: z.enum(PLATE_MAP_SIDES).default('assay'),
   activeTab: z.number().int().min(0).default(0),
   mergesReplicates: z.boolean().default(true),
 });
@@ -236,7 +236,7 @@ const sketchStrokeSchema = z.discriminatedUnion('kind', [
 
 export const INSTRUMENT_KINDS = ['conventional', 'spectral'] as const;
 
-const instrumentSchema = z.object({
+const cytometerSchema = z.object({
   name: z.string(),
   kind: z.enum(INSTRUMENT_KINDS),
   lasers: z
@@ -250,10 +250,10 @@ const instrumentSchema = z.object({
     .min(1),
 });
 
-const cytometerBlockSchema = z.object({
+const flowCytometryPanelBlockSchema = z.object({
   ...blockBase,
   type: z.literal('cytometer'),
-  instrument: instrumentSchema.optional(),
+  instrument: cytometerSchema.optional(),
   rows: z.array(
     z.object({
       id,
@@ -276,7 +276,7 @@ const cytometerBlockSchema = z.object({
     .default([]),
 });
 
-const protocolDyeSchema = z.object({
+const protocolFluorSchema = z.object({
   name: z.string().min(1),
   lasers: z.array(z.number().positive()).min(1),
   peak: z.number().positive(),
@@ -287,9 +287,9 @@ const protocolBlockSchema = z.discriminatedUnion('type', [
   tableBlockSchema,
   valuesBlockSchema,
   formulaBlockSchema,
-  vesselMapBlockSchema,
-  plateViewBlockSchema,
-  cytometerBlockSchema,
+  plateMapBlockSchema,
+  linkedPlateMapBlockSchema,
+  flowCytometryPanelBlockSchema,
   z.object({ ...blockBase, type: z.literal('steps') }),
   z.object({ ...blockBase, type: z.literal('dilutions') }),
   z.object({ ...blockBase, type: z.literal('flow') }),
@@ -308,7 +308,7 @@ const protocolSchema = z.object({
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
   ignoredReadings: z.array(z.string()).default([]),
-  dyes: z.array(protocolDyeSchema).default([]),
+  dyes: z.array(protocolFluorSchema).default([]),
   diluent: z.string(),
 });
 
@@ -330,13 +330,14 @@ export type MaterialSource = MaterialSources['rows'][number];
 export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
 export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
 export type FormulaBlock = z.infer<typeof formulaBlockSchema>;
-export type VesselMapBlock = z.infer<typeof vesselMapBlockSchema>;
-export type PlateViewBlock = z.infer<typeof plateViewBlockSchema>;
-export type CytometerBlock = z.infer<typeof cytometerBlockSchema>;
-export type Instrument = z.infer<typeof instrumentSchema>;
-export type ProtocolDye = z.infer<typeof protocolDyeSchema>;
+export type PlateMapBlock = z.infer<typeof plateMapBlockSchema>;
+export type LinkedPlateMapBlock = z.infer<typeof linkedPlateMapBlockSchema>;
+export type FlowCytometryPanelBlock = z.infer<typeof flowCytometryPanelBlockSchema>;
+export type Stain = FlowCytometryPanelBlock['mixes'][number];
+export type Cytometer = z.infer<typeof cytometerSchema>;
+export type ProtocolFluor = z.infer<typeof protocolFluorSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;
 export type PlateSeries = z.infer<typeof seriesSchema>;
-export type CellLine = z.infer<typeof cellLineSchema>;
+export type SampleEntry = z.infer<typeof sampleEntrySchema>;
 export type Protocol = z.infer<typeof protocolSchema>;
 export type ProtocolFile = z.infer<typeof protocolFileSchema>;

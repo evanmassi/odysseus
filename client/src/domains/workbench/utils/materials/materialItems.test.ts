@@ -2,7 +2,7 @@ import { materialFields } from './materialCatalog';
 import {
   applyMaterialKind,
   copyMaterialField,
-  findDuplicateMaterial,
+  findAlreadyListed,
   groupStartingFields,
   materialColumns,
   materialFromGuess,
@@ -210,13 +210,13 @@ describe('copyMaterialField and mergeMaterialInto', () => {
   });
 });
 
-describe('findDuplicateMaterial', () => {
+describe('findAlreadyListed', () => {
   it('matches names loosely unless the name was kept twice on purpose', () => {
     const existing = make({ name: 'IFN-γ' });
     const typed = make({ name: 'ifng' });
-    expect(findDuplicateMaterial([existing], typed, [])?.id).toBe(existing.id);
-    expect(findDuplicateMaterial([existing], typed, ['ifng'])).toBeUndefined();
-    expect(findDuplicateMaterial([existing], existing, [])).toBeUndefined();
+    expect(findAlreadyListed([existing], typed, [])?.id).toBe(existing.id);
+    expect(findAlreadyListed([existing], typed, ['ifng'])).toBeUndefined();
+    expect(findAlreadyListed([existing], existing, [])).toBeUndefined();
   });
 });
 

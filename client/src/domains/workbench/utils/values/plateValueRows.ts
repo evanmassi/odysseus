@@ -1,15 +1,15 @@
-import { normalizeVesselMap, type Protocol, type VesselMapBlock } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type Protocol, type PlateMapBlock } from '@odysseus/shared-schemas';
 
-import { removeSeries } from '../vessels/seriesEdits';
 import {
   plateAmounts,
-  vesselCounts,
+  plateMapCounts,
   type PlateAmount,
-  type VesselCount,
-} from '../vessels/vesselMapNames';
+  type PlateMapCount,
+} from '../plateMap/plateMapNames';
+import { removeSeries } from '../plateMap/seriesEdits';
 
 export type PlateRowSource =
-  | { kind: 'count'; count: VesselCount }
+  | { kind: 'count'; count: PlateMapCount }
   | { kind: 'amount'; amount: PlateAmount };
 
 export interface PlateValueRow {
@@ -19,21 +19,21 @@ export interface PlateValueRow {
   source: PlateRowSource;
 }
 
-export function plateValueRows(plate: VesselMapBlock): PlateValueRow[] {
-  const counts = vesselCounts(plate)
+export function plateValueRows(plateMap: PlateMapBlock): PlateValueRow[] {
+  const counts = plateMapCounts(plateMap)
     .filter(count => count.kind !== 'total' || count.count > 1)
     .map(
       (count): PlateValueRow => ({
-        id: `${plate.id}:${count.key}`,
-        plateId: plate.id,
+        id: `${plateMap.id}:${count.key}`,
+        plateId: plateMap.id,
         name: count.name,
         source: { kind: 'count', count },
       })
     );
-  const amounts = plateAmounts(plate).map(
+  const amounts = plateAmounts(plateMap).map(
     (amount): PlateValueRow => ({
-      id: `${plate.id}:${amount.key}`,
-      plateId: plate.id,
+      id: `${plateMap.id}:${amount.key}`,
+      plateId: plateMap.id,
       name: amount.name,
       source: { kind: 'amount', amount },
     })
@@ -41,35 +41,35 @@ export function plateValueRows(plate: VesselMapBlock): PlateValueRow[] {
   return [...counts, ...amounts];
 }
 
-function plateOf(draft: Protocol, plateId: string): VesselMapBlock | undefined {
-  const plate = draft.blocks.find(candidate => candidate.id === plateId);
-  return plate?.type === 'plate' ? plate : undefined;
+function plateOf(draft: Protocol, plateId: string): PlateMapBlock | undefined {
+  const plateMap = draft.blocks.find(candidate => candidate.id === plateId);
+  return plateMap?.type === 'plate' ? plateMap : undefined;
 }
 
-function editPlate(draft: Protocol, plateId: string, change: (plate: VesselMapBlock) => void) {
-  const plate = plateOf(draft, plateId);
-  if (!plate) return;
-  change(plate);
-  normalizeVesselMap(plate);
+function editPlate(draft: Protocol, plateId: string, change: (plateMap: PlateMapBlock) => void) {
+  const plateMap = plateOf(draft, plateId);
+  if (!plateMap) return;
+  change(plateMap);
+  normalizePlateMap(plateMap);
 }
 
 export function setPlateRowValue(draft: Protocol, row: PlateValueRow, typed: string): void {
-  editPlate(draft, row.plateId, plate => {
+  editPlate(draft, row.plateId, plateMap => {
     const { source } = row;
     if (source.kind === 'count') {
       const { key, tally } = source.count;
-      if (typed.trim() && typed.trim() !== String(tally)) plate.counts[key] = typed.trim();
-      else delete plate.counts[key];
+      if (typed.trim() && typed.trim() !== String(tally)) plateMap.counts[key] = typed.trim();
+      else delete plateMap.counts[key];
       return;
     }
     const from = source.amount.source;
     if (from.kind === 'wells') {
       for (const key of from.keys) {
-        const cell = plate.cells[key]?.[from.lineId];
-        if (cell) cell.amount = typed;
+        const entry = plateMap.cells[key]?.[from.lineId];
+        if (entry) entry.amount = typed;
       }
     } else if (from.kind === 'series') {
-      const series = plate.series[from.seriesId];
+      const series = plateMap.series[from.seriesId];
       if (series && 'start' in series) series[from.field] = typed;
     }
   });
@@ -78,14 +78,14 @@ export function setPlateRowValue(draft: Protocol, row: PlateValueRow, typed: str
 export function setPlateRowUnit(draft: Protocol, row: PlateValueRow, unit: string): void {
   if (row.source.kind !== 'amount') return;
   const from = row.source.amount.source;
-  editPlate(draft, row.plateId, plate => {
+  editPlate(draft, row.plateId, plateMap => {
     if (from.kind === 'wells') {
       for (const key of from.keys) {
-        const cell = plate.cells[key]?.[from.lineId];
-        if (cell) cell.unit = unit;
+        const entry = plateMap.cells[key]?.[from.lineId];
+        if (entry) entry.unit = unit;
       }
     } else if (from.kind === 'series' && from.field === 'start') {
-      const series = plate.series[from.seriesId];
+      const series = plateMap.series[from.seriesId];
       if (series && 'start' in series) series.unit = unit;
     }
   });
@@ -95,23 +95,23 @@ export const canRemovePlateRow = (row: PlateValueRow) =>
   row.source.kind === 'amount' || row.source.count.kind === 'value';
 
 export function removePlateRow(draft: Protocol, row: PlateValueRow): void {
-  editPlate(draft, row.plateId, plate => {
+  editPlate(draft, row.plateId, plateMap => {
     const { source } = row;
     if (source.kind === 'count') {
-      for (const lines of Object.values(plate.cells)) {
-        for (const cell of Object.values(lines)) {
-          if (cell.valueId === source.count.key) delete cell.valueId;
+      for (const lines of Object.values(plateMap.cells)) {
+        for (const entry of Object.values(lines)) {
+          if (entry.valueId === source.count.key) delete entry.valueId;
         }
       }
       return;
     }
     const from = source.amount.source;
-    if (from.kind !== 'wells') return removeSeries(plate, from.seriesId);
+    if (from.kind !== 'wells') return removeSeries(plateMap, from.seriesId);
     for (const key of from.keys) {
-      const cell = plate.cells[key]?.[from.lineId];
-      if (!cell) continue;
-      delete cell.amount;
-      delete cell.unit;
+      const entry = plateMap.cells[key]?.[from.lineId];
+      if (!entry) continue;
+      delete entry.amount;
+      delete entry.unit;
     }
   });
 }

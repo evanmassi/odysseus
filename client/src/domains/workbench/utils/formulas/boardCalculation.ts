@@ -57,6 +57,7 @@ export type BoardName = NameSource &
         problem?: string;
         need?: string;
         isIntermediate?: boolean;
+        formerName?: string;
       }
   );
 
@@ -84,9 +85,9 @@ export type FormulaResult =
       output: FormattedQuantity;
     };
 
-export interface BoardCalculation {
+export interface SolvedBoard {
   names: ReadonlyMap<string, BoardName>;
-  duplicateIds: ReadonlySet<string>;
+  takenNameIds: ReadonlySet<string>;
   results: ReadonlyMap<string, FormulaResult>;
 }
 
@@ -111,13 +112,13 @@ export const nameKey = (name: string): string => name.trim().toLowerCase();
 export const formulaAnswerText = (result: Extract<FormulaResult, { status: 'ok' }>): string =>
   'text' in result.output ? result.output.text : autoFormat(result.quantity);
 
-export function calculateBoard(entries: readonly BoardName[]): BoardCalculation {
+export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   const names = new Map<string, BoardName>();
-  const duplicateIds = new Set<string>();
+  const takenNameIds = new Set<string>();
   for (const entry of entries) {
     const key = nameKey(entry.name);
     if (!key) continue;
-    if (names.has(key)) duplicateIds.add(entry.id);
+    if (names.has(key)) takenNameIds.add(entry.id);
     else names.set(key, { ...entry, name: entry.name.trim() });
   }
   const formulas = entries.filter((entry): entry is FormulaName => entry.kind === 'formula');
@@ -299,7 +300,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
     inProgress.push(formula.id);
     let result: FormulaResult;
     try {
-      if (duplicateIds.has(formula.id)) {
+      if (takenNameIds.has(formula.id)) {
         throw new FormulaError(`${formula.name.trim()} is already used`);
       }
       if (formula.problem) {
@@ -328,5 +329,5 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
   };
 
   formulas.forEach(evaluate);
-  return { names, duplicateIds, results };
+  return { names, takenNameIds, results };
 }

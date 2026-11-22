@@ -36,13 +36,13 @@ export function plateNameOffers(
     .filter(key => key.length >= SHORTEST_MENTION);
   const ignored = new Set(protocol.ignoredReadings);
   const offers = new Map<string, PlateNameOffer>();
-  for (const plate of protocol.blocks) {
-    if (plate.type !== 'plate') continue;
-    for (const line of plate.lines) {
+  for (const plateMap of protocol.blocks) {
+    if (plateMap.type !== 'plate') continue;
+    for (const line of plateMap.lines) {
       for (const value of line.values) {
         const name = value.text.trim();
         const key = plateOfferKey(name);
-        const wellCount = Object.values(plate.cells).filter(
+        const wellCount = Object.values(plateMap.cells).filter(
           lines => lines[line.id]?.valueId === value.id
         ).length;
         const nameKey = normalizeMaterialKey(name);

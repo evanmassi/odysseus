@@ -10,13 +10,13 @@ const value = (name: string, amount: string, unit: string): BoardName => ({
 });
 
 const workingOf = (expr: string) => {
-  const calculation = calculateBoard([
+  const board = calculateBoard([
     value('Volume made', '8', 'mL'),
     value('Stock', '8000', '×'),
     value('Working', '4', '×'),
     { kind: 'formula', id: 'f', name: 'Needed', expr, unit: '' },
   ]);
-  const result = calculation.results.get('f');
+  const result = board.results.get('f');
   if (result?.status !== 'ok') throw new Error('expected an answer');
   return result.working;
 };

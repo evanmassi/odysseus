@@ -1,11 +1,11 @@
 import { produce } from 'immer';
 import { create } from 'zustand';
 
-import { calculateBoard, type BoardCalculation } from '../utils/formulas/boardCalculation';
+import { calculateBoard, type SolvedBoard } from '../utils/formulas/boardCalculation';
 import { collectBoardNames } from '../utils/formulas/boardNames';
 import { applyRenames, findRenames } from '../utils/formulas/nameRenames';
+import { dropValuesTwinnedByPlate } from '../utils/plateMap/plateEditEffects';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
-import { dropValuesTwinnedByPlate } from '../utils/vessels/plateEditEffects';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -21,7 +21,7 @@ interface Snapshot {
 
 interface WorkbenchState {
   protocol: Protocol;
-  calculation: BoardCalculation;
+  board: SolvedBoard;
   knownNames: ReadonlyMap<string, string>;
   activePageId: string;
   fileName: string;
@@ -39,54 +39,50 @@ interface WorkbenchState {
   redo: () => void;
 }
 
-let lastBoard: { inputs: string; calculation: BoardCalculation } | undefined;
+let lastBoard: { inputs: string; board: SolvedBoard } | undefined;
 let lastEditAt = 0;
 
-const vesselMapsOf = (protocol: Protocol) =>
-  protocol.blocks.filter(block => block.type === 'plate');
+const plateMapsOf = (protocol: Protocol) => protocol.blocks.filter(block => block.type === 'plate');
 
-function haveSameVesselMaps(before: Protocol, after: Protocol): boolean {
-  const [was, now] = [vesselMapsOf(before), vesselMapsOf(after)];
+function haveSamePlateMaps(before: Protocol, after: Protocol): boolean {
+  const [was, now] = [plateMapsOf(before), plateMapsOf(after)];
   return was.length === now.length && was.every((block, index) => block === now[index]);
 }
 
-function calculate(protocol: Protocol): BoardCalculation {
+function calculate(protocol: Protocol): SolvedBoard {
   const names = collectBoardNames(protocol);
   const inputs = JSON.stringify(names);
-  if (lastBoard?.inputs !== inputs) lastBoard = { inputs, calculation: calculateBoard(names) };
-  return lastBoard.calculation;
+  if (lastBoard?.inputs !== inputs) lastBoard = { inputs, board: calculateBoard(names) };
+  return lastBoard.board;
 }
 
-const namesById = (
-  calculation: BoardCalculation,
-  known: ReadonlyMap<string, string> = new Map()
-) => {
+const namesById = (board: SolvedBoard, known: ReadonlyMap<string, string> = new Map()) => {
   const names = new Map(known);
-  for (const entry of calculation.names.values()) names.set(entry.id, entry.name);
+  for (const entry of board.names.values()) names.set(entry.id, entry.name);
   return names;
 };
 
 function reconcile(protocol: Protocol, previousNames: ReadonlyMap<string, string>) {
   let next = protocol;
   let known = previousNames;
-  let calculation = calculate(next);
+  let board = calculate(next);
   for (let pass = 0; pass < RENAME_PASSES; pass++) {
-    const renames = findRenames(known, calculation);
+    const renames = findRenames(known, board);
     if (!renames) break;
     const namesBeforePass = known;
     next = produce(next, draft => applyRenames(draft, namesBeforePass, renames));
-    known = namesById(calculation, known);
-    calculation = calculate(next);
+    known = namesById(board, known);
+    board = calculate(next);
   }
-  return { protocol: next, calculation, knownNames: namesById(calculation, known) };
+  return { protocol: next, board, knownNames: namesById(board, known) };
 }
 
 function freshDocument(protocol: Protocol) {
-  const calculation = calculate(protocol);
+  const board = calculate(protocol);
   return {
     protocol,
-    calculation,
-    knownNames: namesById(calculation),
+    board,
+    knownNames: namesById(board),
     activePageId: protocol.pages[0].id,
   };
 }
@@ -102,7 +98,7 @@ function restored(snapshot: Snapshot, state: WorkbenchState) {
   return {
     protocol: snapshot.protocol,
     knownNames: snapshot.knownNames,
-    calculation: calculate(snapshot.protocol),
+    board: calculate(snapshot.protocol),
     revision: snapshot.revision,
     activePageId: pageStillExists ? state.activePageId : snapshot.protocol.pages[0].id,
   };
@@ -136,7 +132,7 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
     set(state => {
       const edited = produce(state.protocol, recipe);
       if (edited === state.protocol) return {};
-      const changed = haveSameVesselMaps(state.protocol, edited)
+      const changed = haveSamePlateMaps(state.protocol, edited)
         ? edited
         : produce(edited, draft => {
             dropValuesTwinnedByPlate(draft, state.knownNames);

@@ -1,4 +1,4 @@
-import { formulaAnswerText, nameKey, type BoardCalculation } from './boardCalculation';
+import { formulaAnswerText, nameKey, type SolvedBoard } from './boardCalculation';
 import { displayValue } from './quantities';
 
 export interface NameDisplay {
@@ -8,8 +8,8 @@ export interface NameDisplay {
   isDropped: boolean;
 }
 
-export function describeName(calculation: BoardCalculation, name: string): NameDisplay {
-  const entry = calculation.names.get(nameKey(name));
+export function describeName(board: SolvedBoard, name: string): NameDisplay {
+  const entry = board.names.get(nameKey(name));
   if (!entry) return { text: name, label: 'not on this board', kind: 'missing', isDropped: false };
   switch (entry.kind) {
     case 'item': {
@@ -36,7 +36,7 @@ export function describeName(calculation: BoardCalculation, name: string): NameD
     case 'count':
       return { text: String(entry.count), label: entry.name, kind: 'count', isDropped: false };
     case 'formula': {
-      const result = calculation.results.get(entry.id);
+      const result = board.results.get(entry.id);
       if (result?.status !== 'ok')
         return { text: '?', label: entry.name, kind: 'missing', isDropped: false };
       return {
@@ -54,7 +54,7 @@ const isSameDisplay = (a: NameDisplay, b: NameDisplay) =>
 
 export const readsNamesAlike = (
   names: readonly string[],
-  a: BoardCalculation,
-  b: BoardCalculation
+  a: SolvedBoard,
+  b: SolvedBoard
 ): boolean =>
   a === b || names.every(name => isSameDisplay(describeName(a, name), describeName(b, name)));

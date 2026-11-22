@@ -8,7 +8,7 @@ import type {
   FieldDefinition,
   MaterialItem,
   Protocol,
-  ProtocolDye,
+  ProtocolFluor,
 } from '@odysseus/shared-schemas';
 
 export interface RememberedMaterial {
@@ -32,7 +32,7 @@ export interface LabMemory {
   materials: Record<string, RememberedMaterial>;
   fields: Record<string, FieldDefinition[]>;
   startingFields: Record<string, string[]>;
-  dyes: Record<string, ProtocolDye>;
+  dyes: Record<string, ProtocolFluor>;
   sources: Record<string, RememberedSource>;
   sourceFields: FieldDefinition[];
   startingSourceFields: Record<string, string[]>;
@@ -174,13 +174,13 @@ export function knownSources(
     .slice(0, SOURCE_OFFER_LIMIT);
 }
 
-export function rememberDyes(memory: LabMemory, dyes: readonly ProtocolDye[]): LabMemory {
+export function rememberFluors(memory: LabMemory, fluors: readonly ProtocolFluor[]): LabMemory {
   const remembered = { ...memory.dyes };
   let hasLearned = false;
-  for (const dye of dyes) {
-    const key = normalizeMaterialKey(dye.name);
-    if (JSON.stringify(remembered[key]) !== JSON.stringify(dye)) {
-      remembered[key] = dye;
+  for (const fluor of fluors) {
+    const key = normalizeMaterialKey(fluor.name);
+    if (JSON.stringify(remembered[key]) !== JSON.stringify(fluor)) {
+      remembered[key] = fluor;
       hasLearned = true;
     }
   }
@@ -191,11 +191,11 @@ export function materialKnowledge(
   memory: LabMemory,
   protocol: Pick<Protocol, 'blocks' | 'dyes'>
 ): MaterialKnowledge {
-  const fileDyeKeys = new Set(protocol.dyes.map(dye => normalizeMaterialKey(dye.name)));
-  const rememberedDyes = Object.values(memory.dyes).filter(
-    dye => !fileDyeKeys.has(normalizeMaterialKey(dye.name))
+  const fileFluorKeys = new Set(protocol.dyes.map(fluor => normalizeMaterialKey(fluor.name)));
+  const rememberedFluors = Object.values(memory.dyes).filter(
+    fluor => !fileFluorKeys.has(normalizeMaterialKey(fluor.name))
   );
-  return { kinds: knownKinds(memory, protocol), dyes: [...protocol.dyes, ...rememberedDyes] };
+  return { kinds: knownKinds(memory, protocol), fluors: [...protocol.dyes, ...rememberedFluors] };
 }
 
 function knownKinds(

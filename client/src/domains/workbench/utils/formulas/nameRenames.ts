@@ -1,4 +1,4 @@
-import { nameKey, type BoardCalculation } from './boardCalculation';
+import { nameKey, type SolvedBoard } from './boardCalculation';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -12,16 +12,16 @@ const isWordCharacter = (character: string | undefined) => /[A-Za-z0-9_µ°]/.te
 
 export function findRenames(
   knownNames: ReadonlyMap<string, string>,
-  calculation: BoardCalculation
+  board: SolvedBoard
 ): NameRenames | undefined {
   const byOldName = new Map<string, string>();
   const byItemPrefix = new Map<string, string>();
-  for (const entry of calculation.names.values()) {
+  for (const entry of board.names.values()) {
     const previous = knownNames.get(entry.id);
     if (
       !previous ||
       nameKey(previous) === nameKey(entry.name) ||
-      calculation.names.has(nameKey(previous))
+      board.names.has(nameKey(previous))
     )
       continue;
     byOldName.set(nameKey(previous), entry.name);

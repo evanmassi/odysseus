@@ -5,7 +5,7 @@ import { produce } from 'immer';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { keepDyesUsedBy } from '../../../../utils/dyes/fileDyes';
+import { keepFluorsUsedBy } from '../../../../utils/fluors/fileFluors';
 import {
   guessMaterial,
   type MaterialGuess,
@@ -13,7 +13,7 @@ import {
 } from '../../../../utils/materials/materialGuesser';
 import {
   applyMaterialKind,
-  findDuplicateMaterial,
+  findAlreadyListed,
   materialFromGuess,
 } from '../../../../utils/materials/materialItems';
 import {
@@ -35,7 +35,7 @@ export interface PasteReview {
 export interface MaterialPreview {
   guess: MaterialGuess;
   item: MaterialItem;
-  duplicate: MaterialItem | undefined;
+  alreadyListed: MaterialItem | undefined;
 }
 
 const PASTE_SOURCE = 'the paste';
@@ -53,7 +53,7 @@ export function useMaterialAdding(
   const rememberKind = useMaterialMemoryStore(state => state.rememberKind);
   const [text, setText] = useState('');
   const [chosenKind, setChosenKind] = useState<MaterialKind>();
-  const [pendingDuplicate, setPendingDuplicate] = useState<MaterialReviewRow>();
+  const [pendingAlreadyListed, setPendingAlreadyListed] = useState<MaterialReviewRow>();
   const [paste, setPaste] = useState<PasteReview>();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,12 +62,12 @@ export function useMaterialAdding(
     const guessed = guessMaterial(text, known);
     const guess = chosenKind ? { ...guessed, ...chosenKind, why: SET_BY_YOU } : guessed;
     const item = materialFromGuess(guess, memory);
-    return { guess, item, duplicate: findDuplicateMaterial(block.items, item, keptBoth) };
+    return { guess, item, alreadyListed: findAlreadyListed(block.items, item, keptBoth) };
   }, [text, chosenKind, known, memory, block.items, keptBoth]);
 
   const finishAdding = (freshIds: readonly string[]) => {
     setText('');
-    setPendingDuplicate(undefined);
+    setPendingAlreadyListed(undefined);
     setChosenKind(undefined);
     onAdded(freshIds);
     inputRef.current?.focus();
@@ -77,10 +77,10 @@ export function useMaterialAdding(
     let freshIds: string[] = [];
     updateProtocol(draft => {
       freshIds = commitReviewRows(draft, block.id, rows);
-      keepDyesUsedBy(
+      keepFluorsUsedBy(
         draft,
         rows.map(row => row.item),
-        known.dyes
+        known.fluors
       );
     });
     finishAdding(freshIds);
@@ -88,7 +88,7 @@ export function useMaterialAdding(
 
   const changeText = (value: string) => {
     setText(value);
-    setPendingDuplicate(undefined);
+    setPendingAlreadyListed(undefined);
     if (!value.trim()) setChosenKind(undefined);
   };
 
@@ -103,8 +103,8 @@ export function useMaterialAdding(
     if (!preview) return;
     const row = reviewRow(block.items, keptBoth, preview.item, '');
     if (chosenKind) rememberKind(row.item.name, row.item.group, row.item.type);
-    if (preview.duplicate?.isDropped) {
-      const { id } = preview.duplicate;
+    if (preview.alreadyListed?.isDropped) {
+      const { id } = preview.alreadyListed;
       updateBlock(draft => {
         const dropped = draft.items.find(item => item.id === id);
         if (dropped) dropped.isDropped = false;
@@ -112,12 +112,12 @@ export function useMaterialAdding(
       finishAdding([id]);
       return;
     }
-    if (row.duplicateId) setPendingDuplicate(row);
+    if (row.alreadyListedId) setPendingAlreadyListed(row);
     else commit([row]);
   };
 
-  const resolveDuplicate = (isKeptBoth: boolean) => {
-    if (pendingDuplicate) commit([{ ...pendingDuplicate, isKeptBoth }]);
+  const resolveAlreadyListed = (isKeptBoth: boolean) => {
+    if (pendingAlreadyListed) commit([{ ...pendingAlreadyListed, isKeptBoth }]);
   };
 
   const pasteText = (pasted: string): boolean => {
@@ -168,14 +168,14 @@ export function useMaterialAdding(
   return {
     text,
     preview,
-    pendingDuplicate,
+    pendingAlreadyListed,
     paste,
     inputRef,
     changeText,
     chooseKind,
     clear,
     submit,
-    resolveDuplicate,
+    resolveAlreadyListed,
     pasteText,
     setPasteRowKind,
     togglePasteKeep,

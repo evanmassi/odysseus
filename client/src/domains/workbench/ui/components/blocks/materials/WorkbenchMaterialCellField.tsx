@@ -3,7 +3,7 @@ import { Autocomplete, DatePicker, Input, Select } from '@shared/ui';
 import { RATIO_NOTATION } from '../../../../utils/formulas/quantities';
 import { UNIT_PER_ITEM, fieldUnit } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/materialClashes';
-import { WorkbenchDyeField } from '../../dyes/WorkbenchDyeField';
+import { WorkbenchConjugateField } from '../../fluors/WorkbenchConjugateField';
 
 import { choiceOptions, unitOptions } from './materialSelectOptions';
 
@@ -102,7 +102,7 @@ export function WorkbenchMaterialCellField({
 
   if (definition.key === CONJUGATE_FIELD) {
     return (
-      <WorkbenchDyeField
+      <WorkbenchConjugateField
         value={value}
         label={label}
         includesOtherConjugates

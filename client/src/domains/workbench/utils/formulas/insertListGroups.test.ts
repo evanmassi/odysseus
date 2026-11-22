@@ -15,7 +15,7 @@ const pbs = material('PBS', 'Buffer');
 const item = (id: string, name: string) =>
   ({ kind: 'item', id, name, groupTitle: 'Chemicals', hint: '', label: '' }) as const;
 
-const calculation = calculateBoard([
+const board = calculateBoard([
   item(drug.id, 'Drug X'),
   item(pbs.id, 'PBS'),
   { kind: 'value', id: 'v1', name: 'Drug X stock concentration', value: '10', unit: 'mM' },
@@ -37,7 +37,7 @@ const calculation = calculateBoard([
 ]);
 
 const outline = (isForFormula: boolean) =>
-  insertListGroups(calculation, [drug, pbs], [], isForFormula, 'WHOLE EXPERIMENT').map(group => ({
+  insertListGroups(board, [drug, pbs], [], isForFormula, 'WHOLE EXPERIMENT').map(group => ({
     title: group.title,
     kind: group.kind,
     headingName: group.headingName,

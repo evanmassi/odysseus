@@ -13,26 +13,27 @@ export {
   type FormulaBlock,
   type MaterialsBlock,
   type ValuesBlock,
-  type VesselMapBlock,
-  type PlateViewBlock,
-  type CytometerBlock,
-  type Instrument,
-  type ProtocolDye,
-  type CellLine,
+  type PlateMapBlock,
+  type LinkedPlateMapBlock,
+  type FlowCytometryPanelBlock,
+  type Stain,
+  type Cytometer,
+  type ProtocolFluor,
+  type SampleEntry,
   type PlateLine,
   type PlateSeries,
   type ProtocolFile,
 } from './protocolFileSchemas';
 
 export {
-  bandColorOf,
+  indicatorColorOf,
   colorLineOf,
-  isFilledCell,
+  isFilledEntry,
   lineValueOf,
   moveValueKeys,
-  normalizeVesselMap,
+  normalizePlateMap,
   plateValueKey,
-} from './vesselMapValues';
+} from './plateMapValues';
 
 export { withGreekLetters } from './greekLetters';
 export { normalizeMaterialKey } from './materialKey';

@@ -1,4 +1,4 @@
-import { nameKey, type BoardCalculation, type BoardName } from '../formulas/boardCalculation';
+import { nameKey, type SolvedBoard, type BoardName } from '../formulas/boardCalculation';
 
 import { routeParsedLine, type RoutedValue } from './valueRouting';
 
@@ -26,16 +26,16 @@ export function neededForText(neededFor: readonly string[]): string {
 export function valueNeeds(
   protocol: Pick<Protocol, 'blocks'>,
   block: ValuesBlock,
-  calculation: BoardCalculation
+  board: SolvedBoard
 ): ValueNeed[] {
   const formulas = new Map(
-    [...calculation.names.values()].flatMap(entry =>
+    [...board.names.values()].flatMap(entry =>
       entry.kind === 'formula' ? [[entry.id, entry] as const] : []
     )
   );
   const blanks = new Map<string, Set<string>>();
   const absent = new Map<string, { name: string; neededFor: Set<string> }>();
-  for (const [id, result] of calculation.results) {
+  for (const [id, result] of board.results) {
     const formula = formulas.get(id);
     if (!formula || result.status !== 'error') continue;
     const needer = neederOf(formula);

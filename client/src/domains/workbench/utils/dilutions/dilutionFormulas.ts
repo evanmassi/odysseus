@@ -10,6 +10,8 @@ import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas
 import { fieldName, materialFields } from '../materials/materialCatalog';
 import { materialNamed } from '../materials/materialLookup';
 import { wellTotalName } from '../materials/materialRecipeFormulas';
+import { plateAmounts } from '../plateMap/plateMapNames';
+import { stepSeriesUnit } from '../plateMap/plateSeries';
 import {
   DILUENT_IN_TOP,
   EXTRA,
@@ -23,8 +25,6 @@ import {
   WORKING_STRENGTH,
 } from '../terms/termList';
 import { lowerLead } from '../values/valueNames';
-import { stepSeriesUnit } from '../vessels/plateSeries';
-import { plateAmounts } from '../vessels/vesselMapNames';
 
 import { diluentNeedId, runDiluents } from './dilutionDiluents';
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';
@@ -88,10 +88,10 @@ const dimensionOf = (unit: string) => dimensionKey(unitScale(unit)?.dimension ??
 
 function seriesName(protocol: Protocol, run: DilutionRun, field: 'start' | 'fold'): string {
   const [first] = run.members;
-  const plate = protocol.blocks.find(block => block.id === first.plateId);
+  const plateMap = protocol.blocks.find(block => block.id === first.plateId);
   const amount =
-    plate?.type === 'plate'
-      ? plateAmounts(plate).find(
+    plateMap?.type === 'plate'
+      ? plateAmounts(plateMap).find(
           candidate =>
             candidate.source.kind === 'series' &&
             candidate.source.seriesId === first.seriesId &&
@@ -158,7 +158,7 @@ function runNames(
   const top = seriesName(protocol, run, 'start');
   const fold = seriesName(protocol, run, 'fold');
   const busiest = named(lowerLead(REPLICATES.word));
-  const pointCount = Math.max(...run.wellsPerPoint.keys()) + 1;
+  const pointCount = Math.max(...run.replicatesByPoint.keys()) + 1;
   const roundsTo = (readNumber(settings.roundTo) ?? 0) > 0 ? input('roundTo') : '1 µL';
   const stock = stockSource(protocol, run, takenKeys);
   const hasStock = 'expr' in stock;
@@ -204,7 +204,7 @@ function runNames(
       kind: 'count',
       id: `${run.key}:prep:busiest`,
       name: busiest,
-      count: Math.max(...run.wellsPerPoint.values()),
+      count: Math.max(...run.replicatesByPoint.values()),
       workedOut: group,
       sourceBlockId: run.members[0].plateId,
     },
@@ -245,11 +245,12 @@ function diluentNeedNames(
 ): BoardName[] {
   return [...uses.values()].map(({ name, totals }) => {
     const shownName = materialNamed(protocol, name)?.name.trim() ?? name;
-    const needName = `${shownName} needed for dilutions`;
+    const needName = `Total ${lowerLead(shownName)} needed`;
     return {
       kind: 'formula',
       id: diluentNeedId(name),
       name: needName,
+      formerName: `${shownName} needed for dilutions`,
       expr: totals.join(' + '),
       unit: '',
       workedOut: {

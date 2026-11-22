@@ -23,12 +23,12 @@ const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
   other: [suggested(VOLUME_PER_WELL)],
 };
 
-function hasVesselMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {
-  const vesselMaps = protocol.blocks.filter(block => block.type === 'plate');
+function hasPlateMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {
+  const plateMaps = protocol.blocks.filter(block => block.type === 'plate');
   const key = normalizeMaterialKey(material.name);
   return (
-    vesselMaps.some(block => normalizeMaterialKey(block.title).includes(key)) ||
-    vesselMaps.length === 1
+    plateMaps.some(block => normalizeMaterialKey(block.title).includes(key)) ||
+    plateMaps.length === 1
   );
 }
 
@@ -59,7 +59,7 @@ export function valueSuggestions(
   const usual: readonly SuggestionRow[] = !material
     ? USUAL_VALUES['mix']
     : material.type === 'Plate'
-      ? hasVesselMapFor(protocol, material)
+      ? hasPlateMapFor(protocol, material)
         ? []
         : [['Wells used']]
       : (USUAL_VALUES[material.group] ?? USUAL_VALUES['other']);

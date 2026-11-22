@@ -2,7 +2,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { displayNameOf, findMaterial } from '../materials/materialLookup';
 
-import { type BoardCalculation, type BoardName, type WorkedOutGroup } from './boardCalculation';
+import { type SolvedBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
 import { formulaMaterial, nameWithinOwner } from './formulaScopes';
 
 import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
@@ -40,7 +40,7 @@ export function sectionKeyOf(
 export function calculationSections(
   block: FormulaBlock,
   materials: readonly MaterialItem[],
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   showsWorkedOut: boolean,
   generalTitle: string
 ): CalculationSection[] {
@@ -72,7 +72,7 @@ export function calculationSections(
     sections.get(sectionKeyOf(item.name, undefined, materials))?.items.push(item);
   }
   const worked = showsWorkedOut
-    ? [...calculation.names.values()].filter(
+    ? [...board.names.values()].filter(
         (entry): entry is FormulaName & { workedOut: WorkedOutGroup } =>
           entry.kind === 'formula' && !!entry.workedOut
       )
@@ -140,7 +140,7 @@ const tableSignature = (view: WorkedOutView) =>
 
 export function calculationLayout(
   sections: readonly CalculationSection[],
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   keptSectionIds: readonly string[]
 ): CalculationLayout {
   const missing = new Map<string, Set<string>>();
@@ -148,7 +148,7 @@ export function calculationLayout(
     ...section,
     groups: section.groups.flatMap(view => {
       const lines = view.lines.filter(line => {
-        const result = calculation.results.get(line.id);
+        const result = board.results.get(line.id);
         if (result?.status === 'ok') return true;
         if (result) {
           const subjects = missing.get(result.message) ?? new Set<string>();

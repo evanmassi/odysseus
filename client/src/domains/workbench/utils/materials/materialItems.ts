@@ -152,7 +152,7 @@ export function mergeMaterialInto(target: MaterialItem, source: MaterialItem): v
   }
 }
 
-export const findDuplicateMaterial = (
+export const findAlreadyListed = (
   items: readonly MaterialItem[],
   item: MaterialItem,
   keptBoth: readonly string[]

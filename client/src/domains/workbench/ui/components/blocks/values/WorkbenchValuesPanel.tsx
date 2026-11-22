@@ -17,6 +17,7 @@ import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
+import { labwareTitleOf } from '../../../../utils/plateMap/plateMapTabs';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
 import { TOTAL_WELL_VOLUME, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
 import { unitMismatch } from '../../../../utils/terms/termLookup';
@@ -60,7 +61,6 @@ import {
   type ValueTableGroup,
   type ValueTableRow,
 } from '../../../../utils/values/valueTable';
-import { labwareTitleOf } from '../../../../utils/vessels/vesselTabs';
 import { ADD_ICON } from '../../board/addIconClass';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchMaterialPlateNamesSection } from '../materials/WorkbenchMaterialPlateNamesSection';
@@ -147,7 +147,7 @@ function cellViewOf(
   cell: ValueTableCell,
   used: string,
   isNamed: boolean,
-  isDuplicate: boolean,
+  isNameTaken: boolean,
   blocks: Protocol['blocks']
 ): ValueCellView {
   const usageLine = usageTitle(used);
@@ -169,7 +169,7 @@ function cellViewOf(
     isNeeded: !!neededNote,
     isEditable: cell.isEditable,
     canRemove: cell.canRemove,
-    isDuplicate,
+    isNameTaken,
     isUsed: !!used || !isNamed,
     isWorked: cell.origin === 'worked',
     workedValue: cell.workedValue ?? '',
@@ -187,7 +187,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
 
 export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   const protocol = useProtocolWith('values', 'plate', 'materials');
-  const calculation = useWorkbenchStore(state => state.calculation);
+  const board = useWorkbenchStore(state => state.board);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
   const [generalEdit, setGeneralEdit] = useState<GeneralEdit>();
@@ -212,20 +212,17 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   const plateOffers = useWorkbenchData(state =>
     isFirstValuesBlock ? plateNameOffers(state.protocol) : []
   );
-  const needs = useMemo(
-    () => valueNeeds(protocol, block, calculation),
-    [protocol, block, calculation]
-  );
+  const needs = useMemo(() => valueNeeds(protocol, block, board), [protocol, block, board]);
   const groups = useStructuralSharing(
     useMemo(
       () =>
         buildValueTable(protocol, block, {
           materials,
-          calculation,
+          board,
           needs,
           unsortedNames: plateOffers.map(offer => offer.name),
         }),
-      [protocol, block, materials, calculation, needs, plateOffers]
+      [protocol, block, materials, board, needs, plateOffers]
     )
   );
   const generalNeeds = useMemo(
@@ -257,21 +254,21 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     [generalItems, groups]
   );
   const usageEntries = useWorkbenchData(state => [
-    ...nameUsage(state.protocol, state.calculation, usageIds),
+    ...nameUsage(state.protocol, state.board, usageIds),
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
-  const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
+  const fileFluors = useWorkbenchStore(state => state.protocol.dyes);
   const known = useMemo(
-    () => materialKnowledge(memory, { blocks: protocol.blocks, dyes: fileDyes }),
-    [memory, protocol, fileDyes]
+    () => materialKnowledge(memory, { blocks: protocol.blocks, dyes: fileFluors }),
+    [memory, protocol, fileFluors]
   );
   const readings = useWorkbenchData(state =>
-    isFirstValuesBlock ? readStepReadings(state.protocol, state.calculation).values : []
+    isFirstValuesBlock ? readStepReadings(state.protocol, state.board).values : []
   );
-  const takenNames = useMemo(() => new Set(calculation.names.keys()), [calculation]);
+  const takenNames = useMemo(() => new Set(board.names.keys()), [board]);
   const namedIds = useMemo(
-    () => new Set([...calculation.names.values()].map(entry => entry.id)),
-    [calculation]
+    () => new Set([...board.names.values()].map(entry => entry.id)),
+    [board]
   );
 
   const usageText = useCallback(
@@ -295,7 +292,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
                     cell,
                     usageText(cell.nameId),
                     namedIds.has(cell.nameId),
-                    calculation.duplicateIds.has(cell.nameId),
+                    board.takenNameIds.has(cell.nameId),
                     protocol.blocks
                   ),
                 ])
@@ -303,7 +300,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             ])
           )
         ),
-      [groups, usageText, namedIds, calculation.duplicateIds, protocol.blocks]
+      [groups, usageText, namedIds, board.takenNameIds, protocol.blocks]
     )
   );
   const generalRows = useStructuralSharing(
@@ -316,12 +313,12 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             fullName: item.name,
             value: item.value,
             unit: item.unit,
-            isDuplicate: calculation.duplicateIds.has(item.id),
+            isNameTaken: board.takenNameIds.has(item.id),
             usage: usageText(item.id),
             neededNote: item.value.trim() ? '' : neededNoteOf(blankNeeds.get(item.id) ?? []),
           })
         ),
-      [generalItems, usageText, calculation.duplicateIds, blankNeeds]
+      [generalItems, usageText, board.takenNameIds, blankNeeds]
     )
   );
 
@@ -559,8 +556,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             <span className="inline-edit">
               <input
                 value={block.generalTitle ?? WHOLE_EXPERIMENT_TITLE}
-                placeholder="Name this group"
-                aria-label="Group name"
+                placeholder="Name this row"
+                aria-label="Row name"
                 spellCheck={false}
                 className={`${TITLE_INPUT} uppercase`}
                 onChange={event => setGeneralTitle(event.target.value)}

@@ -1,5 +1,6 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { withSettledWords } from '../terms/termUpgrade';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
 import { recordOnMaterial, setPrepSetting } from './dilutionEdits';
@@ -86,8 +87,8 @@ const prepFor = (protocol: Protocol) =>
 describe('dilution prep', () => {
   it('pools identical series from copied plates into one prep sized for all their wells', () => {
     const protocol = protocolWith(doseSeries, []);
-    const [plate] = protocol.blocks.filter(block => block.type === 'plate');
-    const copy = structuredClone(plate);
+    const [plateMap] = protocol.blocks.filter(block => block.type === 'plate');
+    const copy = structuredClone(plateMap);
     if (copy.type !== 'plate') return;
     copy.id = 'copy';
     copy.title = 'Assay plate copy';
@@ -98,15 +99,15 @@ describe('dilution prep', () => {
     expect(runs).toHaveLength(1);
     expect(runs[0].members.map(member => member.plateId)).toEqual(['map', 'copy']);
     expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
-    expect(runs[0].wellsPerPoint.get(0)).toBe(6);
-    expect(dilutionRuns(protocol)[0].wellsPerPoint.get(0)).toBe(6);
-    expect(dilutionRuns({ blocks: [plate] })[0].places).toEqual(['Plate 1']);
+    expect(runs[0].replicatesByPoint.get(0)).toBe(6);
+    expect(dilutionRuns(protocol)[0].replicatesByPoint.get(0)).toBe(6);
+    expect(dilutionRuns({ blocks: [plateMap] })[0].places).toEqual(['Plate 1']);
   });
 
-  it('finds each step series on the plates with its busiest point', () => {
+  it('finds each dilution series on the plates with its most replicated point', () => {
     const [run] = dilutionRuns(protocolWith(doseSeries, []));
     expect(run).toMatchObject({ members: [{ plateId: 'map', seriesId: 's' }], subject: 'Drug X' });
-    expect([...run.wellsPerPoint.values()]).toEqual([3, 3, 3, 3]);
+    expect([...run.replicatesByPoint.values()]).toEqual([3, 3, 3, 3]);
   });
 
   it('rounds volumes to the pipettes without naming them and makes the top point from stock', () => {
@@ -116,7 +117,9 @@ describe('dilution prep', () => {
     expect(result.strength).toBe('4×');
     expect(result.transferText).toBe('40 µL');
     expect(result.stockText).toBe('14.4 µL');
-    expect(result.points.map(({ volume, final, working }) => [volume, final, working])).toEqual([
+    expect(
+      result.points.map(({ volume, final, workingConc }) => [volume, final, workingConc])
+    ).toEqual([
       ['120', '300 nM', '1.2 µM'],
       ['80', '100 nM', '400 nM'],
       ['80', '33.3 nM', '133 nM'],
@@ -200,7 +203,7 @@ describe('dilution prep', () => {
     const result = prepFor(protocolWith(ratio, []));
     if (result.kind !== 'ready') throw new Error(result.problem);
     expect(result.points.map(({ final }) => final)).toEqual(['1:100', '1:200', '1:400', '1:800']);
-    expect(result.points[0].working).toBe('1:25');
+    expect(result.points[0].workingConc).toBe('1:25');
     expect(result.stockShown).toBe('undiluted');
   });
 });
@@ -213,18 +216,31 @@ describe('diluents', () => {
       drugStock,
       medium,
     ]);
-    const calculation = calculateBoard(collectBoardNames(protocol));
-    const need = calculation.names.get('rpmi needed for dilutions');
+    const board = calculateBoard(collectBoardNames(protocol));
+    const need = board.names.get('total rpmi needed');
     expect(need).toMatchObject({ kind: 'formula', expr: 'Drug X diluent total' });
-    const result = need && calculation.results.get(need.id);
+    const result = need && board.results.get(need.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '346 µL' });
-    expect(diluentUses(protocol, calculation)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
+    expect(diluentUses(protocol, board)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
+  });
+
+  it('points an old "needed for dilutions" reference at the total needed', () => {
+    const protocol = protocolWith({ ...doseSeries, prep: { ...prep, diluent: 'RPMI' } }, [
+      drugStock,
+      medium,
+    ]);
+    const step = { id: 's1', kind: 'step', level: 1, text: 'Warm {RPMI needed for dilutions}.' };
+    const opened = withSettledWords({
+      ...protocol,
+      pages: [{ ...protocol.pages[0], steps: [step] }],
+    } as Protocol);
+    expect(opened.pages[0].steps[0]).toMatchObject({ text: 'Warm {Total RPMI needed}.' });
   });
 
   it("totals the protocol's diluent for a series that has none of its own", () => {
     const protocol = { ...protocolWith(doseSeries, [drugStock, medium]), diluent: 'RPMI' };
-    const calculation = calculateBoard(collectBoardNames(protocol));
-    expect(diluentUses(protocol, calculation)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
+    const board = calculateBoard(collectBoardNames(protocol));
+    expect(diluentUses(protocol, board)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
   });
 
   it("gives a series its own diluent, or the protocol's when it has none or it was cleared", () => {
@@ -242,14 +258,14 @@ describe('diluents', () => {
 describe('dilution prep as calculations', () => {
   it('writes each prep line as a read-only calculation with its working', () => {
     const protocol = protocolWith(doseSeries, [drugStock]);
-    const calculation = calculateBoard(collectBoardNames(protocol));
-    const stock = calculation.names.get('drug x stock to take');
+    const board = calculateBoard(collectBoardNames(protocol));
+    const stock = board.names.get('drug x stock to take');
     expect(stock).toMatchObject({
       kind: 'formula',
       expr: 'Drug X top vol. × Drug X top working conc. ÷ Drug X stock conc.',
       workedOut: { key: 'map:s', subject: 'Drug X' },
     });
-    const result = stock && calculation.results.get(stock.id);
+    const result = stock && board.results.get(stock.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '14.4 µL' });
   });
 
@@ -316,8 +332,10 @@ describe('dilution edits', () => {
     recordOnMaterial(protocol, 'Drug X', 'stock-concentration', '5', 'mM', name =>
       material(name, {}, {})
     );
-    const plate = protocol.blocks[1];
-    expect(plate.type === 'plate' && plate.series['s'].prep).toMatchObject({ extraPercent: '10' });
+    const plateMap = protocol.blocks[1];
+    expect(plateMap.type === 'plate' && plateMap.series['s'].prep).toMatchObject({
+      extraPercent: '10',
+    });
     const materials = protocol.blocks[0];
     expect(materials.type === 'materials' && materials.items[0]).toMatchObject({
       name: 'Drug X',

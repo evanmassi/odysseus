@@ -1,10 +1,16 @@
 import { UNIT_REGISTRY, type UnitKind } from '@odysseus/shared-schemas';
 
 import { nameKey, type BoardName } from '../formulas/boardCalculation';
+import { LABWARE_KIND_PLURALS } from '../plateMap/labwareCatalog';
 import { joinValueName } from '../values/valueNames';
-import { VESSEL_PLURALS } from '../vessels/vesselCatalog';
 
-import { COCKTAIL_VOLUME_PER_WELL, PER_WELL_TERMS, perVessel, TERMS, type Term } from './termList';
+import {
+  COCKTAIL_VOLUME_PER_WELL,
+  PER_WELL_TERMS,
+  perLabwareKind,
+  TERMS,
+  type Term,
+} from './termList';
 
 const kindOf = (unit: string) => UNIT_REGISTRY.find(entry => entry.id === unit)?.kind;
 
@@ -45,34 +51,34 @@ export function findTerm(
   return undefined;
 }
 
-const PER_VESSEL_SPELLINGS: ReadonlyArray<[noun: string, spelling: string]> = [
+const PER_LABWARE_KIND_SPELLINGS: ReadonlyArray<[noun: string, spelling: string]> = [
   ...PER_WELL_TERMS,
   COCKTAIL_VOLUME_PER_WELL,
 ].flatMap(term =>
-  Object.keys(VESSEL_PLURALS).flatMap(noun =>
-    recognizedSpellingsOf(perVessel(term, noun)).map((spelling): [string, string] => [
+  Object.keys(LABWARE_KIND_PLURALS).flatMap(noun =>
+    recognizedSpellingsOf(perLabwareKind(term, noun)).map((spelling): [string, string] => [
       noun,
       nameKey(spelling),
     ])
   )
 );
 
-function perVesselNoun(name: string): string | undefined {
+function labwareKindOf(name: string): string | undefined {
   const key = nameKey(name);
-  return PER_VESSEL_SPELLINGS.find(
+  return PER_LABWARE_KIND_SPELLINGS.find(
     ([, spelling]) => key === spelling || key.endsWith(` ${spelling}`)
   )?.[0];
 }
 
-export function withPerVessel(text: string, name: string): string {
-  const noun = perVesselNoun(name);
+export function withPerLabwareKind(text: string, name: string): string {
+  const noun = labwareKindOf(name);
   return noun && /\d/.test(text) && !text.endsWith(`/${noun}`) ? `${text}/${noun}` : text;
 }
 
-const ANY_VESSEL_TAIL = /\/(tube|flask|dish|position)$/;
+const ANY_LABWARE_KIND_TAIL = /\/(tube|flask|dish|sample)$/;
 
 const termsSpelled = (label: string) => {
-  const key = nameKey(label).replace(ANY_VESSEL_TAIL, '/well');
+  const key = nameKey(label).replace(ANY_LABWARE_KIND_TAIL, '/well');
   return TERMS.filter(term =>
     recognizedSpellingsOf(term).some(spelling => nameKey(spelling) === key)
   );

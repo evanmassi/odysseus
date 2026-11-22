@@ -12,7 +12,7 @@ import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BLOCK_TYPES, defaultBlockTitle } from '../../../utils/blocks/blockTypes';
 import { removalMessage, removeBlock } from '../../../utils/blocks/plateViews';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
-import { labwareKinds, labwareTitle } from '../../../utils/vessels/vesselTabs';
+import { labwareKinds, labwareTitle } from '../../../utils/plateMap/plateMapTabs';
 
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_HEADER_CONTROLS, BLOCK_PANELS } from './blockPanels';

@@ -2,14 +2,14 @@ import {
   type MaterialItem,
   type Protocol,
   type ValuesBlock,
-  type VesselMapBlock,
+  type PlateMapBlock,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
   formulaAnswerText,
-  type BoardCalculation,
+  type SolvedBoard,
   type FormulaResult,
 } from '../formulas/boardCalculation';
 import { FOLD_UNIT } from '../formulas/quantities';
@@ -47,9 +47,9 @@ import {
   wellTotalName,
 } from '../materials/materialRecipeFormulas';
 import { findSource, sourcesIn } from '../materials/materialSources';
+import { labwareTitle } from '../plateMap/plateMapTabs';
+import { plateSwatches, type PlateSwatch } from '../plateMap/plateSwatches';
 import { FINAL_CONCENTRATION, MIX_CONCENTRATION } from '../terms/termList';
-import { plateSwatches, type PlateSwatch } from '../vessels/plateSwatches';
-import { labwareTitle } from '../vessels/vesselTabs';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, sectionName } from './valueEdits';
@@ -125,7 +125,7 @@ export interface ValueTableGroup {
 
 export interface ValueTableSources {
   materials: ReadonlyMap<string, MaterialItem>;
-  calculation: BoardCalculation;
+  board: SolvedBoard;
   needs: readonly ValueNeed[];
   unsortedNames: readonly string[];
 }
@@ -146,11 +146,11 @@ const SHOWN_COUNTS: readonly CellCount[] = CELL_COUNTS.filter(count => count !==
 
 function missingCount(
   subject: CountSubject,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   isKnown: (count: CellCount) => boolean
 ): CellCount | undefined {
   const failed = (part: string) =>
-    calculation.results.get(cellPartId(subject.subject, part))?.status === 'error';
+    board.results.get(cellPartId(subject.subject, part))?.status === 'error';
   if (failed('stock') && !isKnown('liveConcentration')) return 'liveConcentration';
   if (failed('resuspend') && !isKnown('liveCells')) return 'liveCells';
   return undefined;
@@ -158,12 +158,12 @@ function missingCount(
 
 function countCells(
   subject: CountSubject,
-  calculation: BoardCalculation
+  board: SolvedBoard
 ): { cells: ValueTableCell[]; prep: CellPrep | undefined } {
   const values = countValues(subject);
   const solved = solveCounts(values);
   const isKnown = (count: CellCount) => solved.readings.has(count);
-  const missing = subject.isPlated ? missingCount(subject, calculation, isKnown) : undefined;
+  const missing = subject.isPlated ? missingCount(subject, board, isKnown) : undefined;
   const needer = [`${CELLS_TO_PREPARE} for ${subject.subject}`];
   const shown = CELL_COUNTS.filter(
     count => SHOWN_COUNTS.includes(count) || solved.readings.get(count)?.isTyped
@@ -199,17 +199,17 @@ function countCells(
     };
   });
   const prep = subject.isPlated
-    ? cellPrep(calculation, subject, isKnown('liveConcentration'), [...solved.clashes.values()])
+    ? cellPrep(board, subject, isKnown('liveConcentration'), [...solved.clashes.values()])
     : undefined;
   return { cells, prep };
 }
 
-const isVesselMap = (block: Protocol['blocks'][number]): block is VesselMapBlock =>
+const isPlateMap = (block: Protocol['blocks'][number]): block is PlateMapBlock =>
   block.type === 'plate';
 
 function plateMaterialFor(
-  plate: VesselMapBlock,
-  plates: readonly VesselMapBlock[],
+  plateMap: PlateMapBlock,
+  plates: readonly PlateMapBlock[],
   materials: readonly MaterialItem[]
 ): MaterialItem | undefined {
   return materials.find(material => {
@@ -218,7 +218,7 @@ function plateMaterialFor(
     const matched =
       plates.find(candidate => key && normalizeMaterialKey(candidate.title).includes(key)) ??
       (plates.length === 1 ? plates[0] : undefined);
-    return matched === plate;
+    return matched === plateMap;
   });
 }
 
@@ -329,7 +329,7 @@ function groupLabel(key: string): string {
 export function buildValueTable(
   protocol: Pick<Protocol, 'blocks'>,
   block: ValuesBlock,
-  { materials, calculation, needs, unsortedNames }: ValueTableSources
+  { materials, board, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
   const valuesBlocks = protocol.blocks.filter(
     (candidate): candidate is ValuesBlock => candidate.type === 'values'
@@ -341,14 +341,14 @@ export function buildValueTable(
       .flatMap(values => values.sections)
       .flatMap(section => ('materialId' in section ? [section.materialId] : []))
   );
-  const plates = protocol.blocks.filter(isVesselMap);
+  const plates = protocol.blocks.filter(isPlateMap);
   const sources = sourcesIn(protocol);
   const subjects = countSubjects(protocol);
   const countedIds = new Set(subjects.map(subject => subject.material.id));
   const unsorted = new Set(unsortedNames.map(normalizeMaterialKey));
   const allMaterials = [...materials.values()].filter(material => material.name.trim());
   const listedMaterials = allMaterials.filter(material => !material.isDropped);
-  const swatchOf = plateSwatches(protocol, calculation);
+  const swatchOf = plateSwatches(protocol, board);
 
   const rows: RowDraft[] = [];
   const rowByMaterial = new Map<string, RowDraft>();
@@ -456,13 +456,13 @@ export function buildValueTable(
   }
 
   const platesBySubject = new Map<string, Set<string>>();
-  const plateRowsByPlate = plates.map(plate => {
-    const plateRows = plateValueRows(plate);
+  const plateRowsByPlate = plates.map(plateMap => {
+    const plateRows = plateValueRows(plateMap);
     for (const row of plateRows) {
       const key = normalizeMaterialKey(plateSubject(row).subject);
-      if (key) platesBySubject.set(key, (platesBySubject.get(key) ?? new Set()).add(plate.id));
+      if (key) platesBySubject.set(key, (platesBySubject.get(key) ?? new Set()).add(plateMap.id));
     }
-    return { plate, plateRows };
+    return { plateMap, plateRows };
   });
 
   const subRowOf = (parent: RowDraft, name: string, shownName = name): ValueTableRow => {
@@ -489,18 +489,18 @@ export function buildValueTable(
     const owner = rowForMaterial(subject.material);
     if (!owner) continue;
     const row = subject.source ? subRowOf(owner, subject.source.name.trim()) : owner;
-    const { cells, prep } = countCells(subject, calculation);
+    const { cells, prep } = countCells(subject, board);
     const taken = new Set(row.cells.map(cell => cell.columnKey));
     row.cells.push(...cells.filter(cell => !taken.has(cell.columnKey)));
     if (prep) row.prep = prep;
   }
 
-  for (const { plate, plateRows } of plateRowsByPlate) {
-    const plateMaterial = plateMaterialFor(plate, plates, allMaterials);
+  for (const { plateMap, plateRows } of plateRowsByPlate) {
+    const plateMaterial = plateMaterialFor(plateMap, plates, allMaterials);
     const plateRow = plateMaterial
       ? rowForMaterial(plateMaterial)
       : isFirstBlock
-        ? draftRow(`plate:${plate.id}`, labwareTitle(plate), PLATE_GROUP_KEY, {
+        ? draftRow(`plate:${plateMap.id}`, labwareTitle(plateMap), PLATE_GROUP_KEY, {
             section: undefined,
             material: undefined,
             status: 'current',
@@ -518,7 +518,7 @@ export function buildValueTable(
       const variantText = /^\d+$/.test(variant) ? `series ${variant}` : variant;
       const tags = [
         donor ? donor.source.name.trim() : '',
-        isOnSeveralPlates ? labwareTitle(plate) : '',
+        isOnSeveralPlates ? labwareTitle(plateMap) : '',
         variantText,
       ].filter(Boolean);
       let target: ValueTableRow | undefined;
@@ -535,7 +535,7 @@ export function buildValueTable(
         columnKey: columnKey(label),
         label,
         fullName: row.name,
-        ...plateCellFields(row, labwareTitle(plate)),
+        ...plateCellFields(row, labwareTitle(plateMap)),
         neededFor: NOT_NEEDED,
         origin: 'plate',
         source: { kind: 'plate', row },
@@ -543,7 +543,7 @@ export function buildValueTable(
     }
   }
 
-  for (const entry of calculation.names.values()) {
+  for (const entry of board.names.values()) {
     if (entry.kind !== 'count' || !entry.id.endsWith(WELLS_SUFFIX)) continue;
     const material = materials.get(entry.id.slice(0, -WELLS_SUFFIX.length));
     const row = material && rowForMaterial(material);
@@ -568,7 +568,7 @@ export function buildValueTable(
   for (const material of listedMaterials) {
     if (material.recipe.length) rowForMaterial(material);
   }
-  const wellTotal = wellTotalName(calculation.names);
+  const wellTotal = wellTotalName(board.names);
   for (const row of [...rows]) {
     const { material } = row;
     if (!material?.recipe.length) continue;
@@ -578,7 +578,7 @@ export function buildValueTable(
         workedCell(
           `${row.id}:final`,
           finalConcentrationName(row.name),
-          calculation.results.get(mixFinalId(material.id)),
+          board.results.get(mixFinalId(material.id)),
           wellTotal
         )
       );
@@ -607,7 +607,7 @@ export function buildValueTable(
         workedCell(
           `${row.id}:recipe:${entry.id}:final`,
           finalConcentrationName(`${row.name} ${ingredientName}`),
-          calculation.results.get(recipeFinalId(material.id, entry.id)),
+          board.results.get(recipeFinalId(material.id, entry.id)),
           wellTotal
         )
       );

@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 import { AccentTick } from '@shared/ui';
 
 import { SECTION_RULE } from '../../board/sectionRuleClass';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
-import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
+import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 
 interface WorkbenchFormulaSectionHeaderProps {
   title: string;
@@ -23,7 +23,7 @@ export function WorkbenchFormulaSectionHeader({
   return (
     <header className="group flex items-center gap-2.5 px-2 pb-1.5">
       <AccentTick />
-      <WorkbenchMarkSwatch swatch={swatch} />
+      <WorkbenchIndicatorSwatch swatch={swatch} />
       <span className="max-w-full shrink-0 truncate type-name text-label-md font-semibold text-foreground">
         {title}
       </span>

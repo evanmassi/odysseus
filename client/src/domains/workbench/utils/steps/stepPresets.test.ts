@@ -2,7 +2,7 @@ import { calculateBoard } from '../formulas/boardCalculation';
 
 import { blankOptions, referenceOptions } from './stepPresets';
 
-const calculation = calculateBoard([
+const board = calculateBoard([
   { kind: 'value', id: 'v1', name: 'Spin time', value: '5', unit: 'min' },
   { kind: 'value', id: 'v2', name: 'Wash volume', value: '300', unit: 'µL' },
   {
@@ -16,7 +16,7 @@ const calculation = calculateBoard([
 ]);
 
 const texts = (label: string, typed: string) =>
-  blankOptions(calculation, label, typed).map(option => option.text);
+  blankOptions(board, label, typed).map(option => option.text);
 
 describe('blankOptions', () => {
   it('offers common choices and board values in the blank’s units when nothing is typed', () => {
@@ -39,12 +39,12 @@ describe('blankOptions', () => {
   });
 
   it('offers board materials for blanks it has no choices for', () => {
-    expect(blankOptions(calculation, 'buffer', 'buffer')).toEqual([{ text: 'PBS', name: 'PBS' }]);
+    expect(blankOptions(board, 'buffer', 'buffer')).toEqual([{ text: 'PBS', name: 'PBS' }]);
   });
 });
 
 describe('referenceOptions', () => {
-  const names = (typed: string) => referenceOptions(calculation, typed).map(option => option.name);
+  const names = (typed: string) => referenceOptions(board, typed).map(option => option.name);
 
   it('offers every board name whose words start with what was typed, best starts first', () => {
     expect(names('vol')).toEqual(['Wash volume']);

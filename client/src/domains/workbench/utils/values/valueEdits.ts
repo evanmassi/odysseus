@@ -281,7 +281,7 @@ export function removeValueSection(
   const section = block?.sections.find(candidate => candidate.id === sectionId);
   if (!block || !section) return undefined;
   const items = block.items.filter(item => item.section === sectionId).map(item => ({ ...item }));
-  const label = `${sectionName(section, materialsById(draft)) || 'mix'} section`;
+  const label = `${sectionName(section, materialsById(draft)) || 'mix'} row`;
   const index = block.sections.indexOf(section);
   block.sections = block.sections.filter(candidate => candidate.id !== sectionId);
   block.items = block.items.filter(item => item.section !== sectionId);

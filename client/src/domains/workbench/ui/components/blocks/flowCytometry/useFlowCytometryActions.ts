@@ -1,0 +1,157 @@
+import { useMemo } from 'react';
+
+import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
+import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { BUILT_IN_CYTOMETERS } from '../../../../utils/flowCytometry/cytometerCatalog';
+import {
+  dilutionFactor,
+  newMarkerMaterial,
+} from '../../../../utils/flowCytometry/flowCytometryPanel';
+import { keepFluorsUsedBy } from '../../../../utils/fluors/fileFluors';
+import { createId } from '../../../../utils/ids/createId';
+import { materialFields } from '../../../../utils/materials/materialCatalog';
+import { writeMaterialField } from '../../../../utils/materials/materialItems';
+import { ensureMaterial } from '../../../../utils/materials/materialLookup';
+import { materialKnowledge } from '../../../../utils/materials/materialMemory';
+
+import type {
+  FlowCytometryPanelBlock,
+  Stain,
+  FieldDefinition,
+  MaterialItem,
+} from '@odysseus/shared-schemas';
+
+type PanelRow = FlowCytometryPanelBlock['rows'][number];
+
+export interface FlowCytometryActions {
+  pickCytometer: (name: string) => void;
+  addMarker: (materialId: string, detectorId: string) => void;
+  createMarker: (text: string, detectorId: string) => void;
+  changeRow: (rowId: string, change: Partial<Omit<PanelRow, 'id' | 'materialId'>>) => void;
+  setDilution: (rowId: string, typed: string) => void;
+  removeMarker: (rowId: string) => void;
+  writeMaterial: (materialId: string, key: string, value: string) => void;
+  addStains: (stains: Stain[]) => void;
+  renameStain: (stainId: string, name: string) => void;
+  toggleStainMarker: (stainId: string, rowId: string) => void;
+  removeStain: (stainId: string) => void;
+  addPlus: (stainId: string, materialId: string, staining: string) => void;
+  setPlusStaining: (stainId: string, plusId: string, staining: string) => void;
+  removePlus: (stainId: string, plusId: string) => void;
+}
+
+const fieldFor = (item: MaterialItem, key: string): FieldDefinition =>
+  materialFields(item).find(definition => definition.key === key) ?? {
+    key,
+    label: key.charAt(0).toUpperCase() + key.slice(1),
+    kind: 'text',
+    scope: 'protocol',
+    unit: '',
+    options: [],
+  };
+
+export function useFlowCytometryActions(block: FlowCytometryPanelBlock): FlowCytometryActions {
+  const updateBlock = useUpdateBlock(block);
+  const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
+  const memory = useMaterialMemoryStore(state => state.memory);
+
+  return useMemo(() => {
+    const updateRow = (rowId: string, recipe: (row: PanelRow) => void) =>
+      updateBlock(draft => {
+        const row = draft.rows.find(candidate => candidate.id === rowId);
+        if (row) recipe(row);
+      });
+    const updateStain = (stainId: string, recipe: (stain: Stain) => void) =>
+      updateBlock(draft => {
+        const stain = draft.mixes.find(candidate => candidate.id === stainId);
+        if (stain) recipe(stain);
+      });
+    return {
+      pickCytometer: name =>
+        updateBlock(draft => {
+          const picked = BUILT_IN_CYTOMETERS.find(cytometer => cytometer.name === name);
+          if (picked) draft.instrument = structuredClone(picked);
+        }),
+      addMarker: (materialId, detectorId) =>
+        updateBlock(draft => {
+          draft.rows.push({ id: createId(), materialId, detectorId, stain: '', dilution: '' });
+        }),
+      createMarker: (text, detectorId) =>
+        updateProtocol(draft => {
+          const known = materialKnowledge(memory, draft);
+          const created = newMarkerMaterial(text, known, memory);
+          const material = ensureMaterial(draft, created.name, () => created);
+          keepFluorsUsedBy(draft, [material], known.fluors);
+          const panel = draft.blocks.find(candidate => candidate.id === block.id);
+          if (panel?.type !== 'cytometer') return;
+          panel.rows.push({
+            id: createId(),
+            materialId: material.id,
+            detectorId,
+            stain: '',
+            dilution: '',
+          });
+        }),
+      changeRow: (rowId, change) => updateRow(rowId, row => Object.assign(row, change)),
+      setDilution: (rowId, typed) =>
+        updateRow(rowId, row => {
+          row.dilution = dilutionFactor(typed);
+        }),
+      removeMarker: rowId =>
+        updateBlock(draft => {
+          draft.rows = draft.rows.filter(row => row.id !== rowId);
+          draft.mixes.forEach(stain => {
+            stain.rowIds = stain.rowIds.filter(id => id !== rowId);
+          });
+        }),
+      writeMaterial: (materialId, key, value) =>
+        updateProtocol(draft => {
+          const item = draft.blocks
+            .flatMap(candidate => (candidate.type === 'materials' ? candidate.items : []))
+            .find(candidate => candidate.id === materialId);
+          if (item) writeMaterialField(item, fieldFor(item, key), value);
+        }),
+      addStains: stains =>
+        updateBlock(draft => {
+          draft.mixes.push(...stains);
+        }),
+      renameStain: (stainId, name) =>
+        updateStain(stainId, stain => {
+          stain.name = name;
+        }),
+      toggleStainMarker: (stainId, rowId) =>
+        updateStain(stainId, stain => {
+          stain.rowIds = stain.rowIds.includes(rowId)
+            ? stain.rowIds.filter(id => id !== rowId)
+            : [...stain.rowIds, rowId];
+        }),
+      removeStain: stainId =>
+        updateProtocol(draft => {
+          for (const candidate of draft.blocks) {
+            if (candidate.type === 'cytometer' && candidate.id === block.id) {
+              candidate.mixes = candidate.mixes.filter(stain => stain.id !== stainId);
+            }
+            if (candidate.type === 'plate') {
+              for (const [key, stained] of Object.entries(candidate.stain)) {
+                if (stained === stainId) delete candidate.stain[key];
+              }
+            }
+          }
+        }),
+      addPlus: (stainId, materialId, staining) =>
+        updateStain(stainId, stain => {
+          stain.plus.push({ id: createId(), materialId, stain: staining });
+        }),
+      setPlusStaining: (stainId, plusId, staining) =>
+        updateStain(stainId, stain => {
+          const plus = stain.plus.find(candidate => candidate.id === plusId);
+          if (plus) plus.stain = staining;
+        }),
+      removePlus: (stainId, plusId) =>
+        updateStain(stainId, stain => {
+          stain.plus = stain.plus.filter(candidate => candidate.id !== plusId);
+        }),
+    };
+  }, [block.id, memory, updateBlock, updateProtocol]);
+}

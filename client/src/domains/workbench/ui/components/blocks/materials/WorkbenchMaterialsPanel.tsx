@@ -5,16 +5,16 @@ import { FlaskConical } from 'lucide-react';
 
 import { PanelEmptyState } from '@shared/ui';
 
-import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
+import { useFluorCatalog } from '../../../../hooks/useFluorCatalog';
 import { useStableActions } from '../../../../hooks/useStableActions';
 import { useUpdateBlock } from '../../../../hooks/useUpdateBlock';
 import { useBlocksOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { panelDetectorLabels } from '../../../../utils/cytometer/cytometerPanel';
 import { diluentUses } from '../../../../utils/dilutions/dilutionDiluents';
-import { resolveDye } from '../../../../utils/dyes/dyePicks';
-import { keepDyeInFile } from '../../../../utils/dyes/fileDyes';
+import { panelDetectorLabels } from '../../../../utils/flowCytometry/flowCytometryPanel';
+import { keepFluorInFile } from '../../../../utils/fluors/fileFluors';
+import { resolveFluor } from '../../../../utils/fluors/fluorPicks';
 import { nameUsage } from '../../../../utils/formulas/nameUsage';
 import {
   ANTIBODY_GROUP,
@@ -33,7 +33,7 @@ import {
   materialFromGuess,
   writeMaterialField,
 } from '../../../../utils/materials/materialItems';
-import { donorTargetsOf, listedMaterials } from '../../../../utils/materials/materialLookup';
+import { listedMaterials } from '../../../../utils/materials/materialLookup';
 import {
   LOT_FIELD,
   fillFromLotMemory,
@@ -62,6 +62,7 @@ import {
   addCustomSourceField,
   addSource,
   addSourcesNamed,
+  donorTargetsOf,
   moveIntoSources,
   sourceFieldChoices,
   startSources,
@@ -71,13 +72,13 @@ import {
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { plateFollowsListRename } from '../../../../utils/materials/renameFollowing';
+import { materialWellCounts } from '../../../../utils/plateMap/plateMapNames';
 import {
   acceptStepReadings,
   readStepReadings,
   type MaterialReading,
 } from '../../../../utils/steps/stepReadings';
 import { materialsById } from '../../../../utils/values/valueEdits';
-import { materialWellCounts } from '../../../../utils/vessels/vesselMapNames';
 
 import { useMaterialAdding } from './useMaterialAdding';
 import { useMaterialCellEditing, type MaterialCell } from './useMaterialCellEditing';
@@ -120,14 +121,14 @@ const NAME_CELL = 'name';
 export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps) {
   const materialBlocks = useBlocksOf('materials');
   const plateBlocks = useBlocksOf('plate');
-  const cytometerBlocks = useBlocksOf('cytometer');
+  const flowCytometryPanelBlocks = useBlocksOf('cytometer');
   const materialsOnly = useMemo(() => ({ blocks: materialBlocks }), [materialBlocks]);
-  const duplicateIdList = useWorkbenchData(state => [...state.calculation.duplicateIds]);
-  const duplicateIds = useMemo(() => new Set(duplicateIdList), [duplicateIdList]);
+  const takenNameIdList = useWorkbenchData(state => [...state.board.takenNameIds]);
+  const takenNameIds = useMemo(() => new Set(takenNameIdList), [takenNameIdList]);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const updateBlock = useUpdateBlock(block);
   const memory = useMaterialMemoryStore(state => state.memory);
-  const catalog = useDyeCatalog();
+  const catalog = useFluorCatalog();
   const rememberKind = useMaterialMemoryStore(state => state.rememberKind);
   const learnFromMaterials = useMaterialMemoryStore(state => state.learnFromMaterials);
   const toggleStartingField = useMaterialMemoryStore(state => state.toggleStartingField);
@@ -141,10 +142,10 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       setFresh(current => ({ ids: new Set(ids), stamp: current.stamp + 1 })),
     []
   );
-  const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
+  const fileFluors = useWorkbenchStore(state => state.protocol.dyes);
   const known = useMemo(
-    () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileDyes }),
-    [memory, materialBlocks, fileDyes]
+    () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileFluors }),
+    [memory, materialBlocks, fileFluors]
   );
   const adding = useMaterialAdding(block, known, markFresh);
   const removal = useMaterialRemoval(block, id => markFresh([id]));
@@ -176,17 +177,17 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
   const droppedItems = block.items.filter(item => item.isDropped);
   const itemIds = useMemo(() => block.items.map(item => item.id), [block.items]);
   const usageEntries = useWorkbenchData(state => [
-    ...nameUsage(state.protocol, state.calculation, itemIds),
+    ...nameUsage(state.protocol, state.board, itemIds),
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
-  const diluentUseList = useWorkbenchData(state => diluentUses(state.protocol, state.calculation));
+  const diluentUseList = useWorkbenchData(state => diluentUses(state.protocol, state.board));
   const diluentUseById = useMemo(
     () => new Map(diluentUseList.map(use => [use.materialId, use])),
     [diluentUseList]
   );
   const isFirstMaterialsBlock = materialBlocks[0]?.id === block.id;
   const readings = useWorkbenchData(state =>
-    isFirstMaterialsBlock ? readStepReadings(state.protocol, state.calculation).materials : []
+    isFirstMaterialsBlock ? readStepReadings(state.protocol, state.board).materials : []
   );
   const allMaterials = useMemo(() => materialsById(materialsOnly), [materialsOnly]);
   const recipeUsers = useMemo(() => recipesUsing([...allMaterials.values()]), [allMaterials]);
@@ -195,8 +196,8 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
     return new Map([...counts].map(([material, count]) => [material.id, count]));
   }, [plateBlocks, allMaterials]);
   const panelDetectors = useMemo(
-    () => panelDetectorLabels({ blocks: cytometerBlocks }),
-    [cytometerBlocks]
+    () => panelDetectorLabels({ blocks: flowCytometryPanelBlocks }),
+    [flowCytometryPanelBlocks]
   );
   const plateOffers = useWorkbenchData(state =>
     isFirstMaterialsBlock ? plateNameOffers(state.protocol) : []
@@ -242,8 +243,8 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
       } else if (cell.key === CONJUGATE_FIELD) {
         updateItem(cell.itemId, (item, draft) => {
           const typed = item.values[cell.key] ?? '';
-          const { name, toKeep } = resolveDye(catalog, Object.values(memory.dyes), typed);
-          if (toKeep) keepDyeInFile(draft, toKeep);
+          const { name, toKeep } = resolveFluor(catalog, Object.values(memory.dyes), typed);
+          if (toKeep) keepFluorInFile(draft, toKeep);
           if (name !== typed) item.values[cell.key] = name;
         });
       } else if (cell.key === NAME_CELL) {
@@ -487,7 +488,7 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
                   plateWells={plateWells}
                   diluentUses={diluentUseById}
                   panelDetectors={panelDetectors}
-                  duplicateIds={duplicateIds}
+                  takenNameIds={takenNameIds}
                   fresh={fresh}
                   removed={section.removed}
                   editing={editing}

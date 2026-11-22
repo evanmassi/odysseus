@@ -4,7 +4,7 @@ import { materialNamed } from '../materials/materialLookup';
 
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';
 
-import type { BoardCalculation } from '../formulas/boardCalculation';
+import type { SolvedBoard } from '../formulas/boardCalculation';
 import type { Protocol } from '@odysseus/shared-schemas';
 
 export interface DiluentUse {
@@ -23,14 +23,14 @@ export const runDiluents = (
 export const diluentNeedId = (material: string): string =>
   `dilutions:diluent:${normalizeMaterialKey(material)}`;
 
-function needText(calculation: BoardCalculation, diluent: string): string {
-  const result = calculation.results.get(diluentNeedId(diluent));
+function needText(board: SolvedBoard, diluent: string): string {
+  const result = board.results.get(diluentNeedId(diluent));
   return result?.status === 'ok' && 'text' in result.output ? result.output.text : '';
 }
 
 export function diluentUses(
   protocol: Pick<Protocol, 'blocks' | 'diluent'>,
-  calculation: BoardCalculation
+  board: SolvedBoard
 ): DiluentUse[] {
   const runs = dilutionRuns(protocol);
   const diluents = runDiluents(runs, protocol.diluent);
@@ -39,7 +39,7 @@ export function diluentUses(
     const diluent = diluents.get(run.key);
     const material = diluent ? materialNamed(protocol, diluent) : undefined;
     if (!diluent || !material || byMaterial.has(material.id)) continue;
-    byMaterial.set(material.id, { materialId: material.id, need: needText(calculation, diluent) });
+    byMaterial.set(material.id, { materialId: material.id, need: needText(board, diluent) });
   }
   return [...byMaterial.values()];
 }

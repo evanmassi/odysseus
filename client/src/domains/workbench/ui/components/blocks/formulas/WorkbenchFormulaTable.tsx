@@ -6,14 +6,14 @@ import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { LEADER_LINE } from '../../board/leaderLineClass';
 import { META_LABEL } from '../../board/metaLabelClass';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
 import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
 import { lineAnswer, WorkbenchFormulaWorkingLines } from './WorkbenchFormulaWorkingLines';
 
 import type { WorkedOutLine, WorkedOutSettings } from './WorkbenchFormulaWorkedOutGroup';
-import type { PlateSwatchOf } from '../../../../utils/vessels/plateSwatches';
+import type { PlateSwatchOf } from '../../../../utils/plateMap/plateSwatches';
 
 export interface FormulaTableRow {
   key: string;
@@ -88,7 +88,7 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                         <td key={line.id} className="py-1 pl-2 pr-3">
                           <span className="flex items-baseline gap-2">
                             <span className="flex self-center">
-                              <WorkbenchMarkSwatch swatch={swatchOf(row.subject)} />
+                              <WorkbenchIndicatorSwatch swatch={swatchOf(row.subject)} />
                             </span>
                             <button
                               type="button"

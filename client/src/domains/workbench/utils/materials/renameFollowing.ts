@@ -1,11 +1,11 @@
 import {
-  normalizeVesselMap,
+  normalizePlateMap,
   type Protocol,
-  type VesselMapBlock,
+  type PlateMapBlock,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
-import { heldNames, renameValue, type HeldName } from '../vessels/wellEdits';
+import { heldNames, renameValue, type HeldName } from '../plateMap/wellEdits';
 
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
 import { findSource, sourcesIn } from './materialSources';
@@ -21,15 +21,17 @@ export function withLeadingName(text: string, name: string): string {
   return notesAt < 0 ? name : `${name} ${text.slice(notesAt)}`;
 }
 
-const vesselMaps = (protocol: Pick<Protocol, 'blocks'>) =>
-  protocol.blocks.filter((block): block is VesselMapBlock => block.type === 'plate');
+const plateMaps = (protocol: Pick<Protocol, 'blocks'>) =>
+  protocol.blocks.filter((block): block is PlateMapBlock => block.type === 'plate');
 
 const isNameOnAnyWell = (protocol: Pick<Protocol, 'blocks'>, name: string): boolean =>
-  vesselMaps(protocol).some(plate => {
+  plateMaps(protocol).some(plateMap => {
     const heldIds = new Set(
-      Object.values(plate.cells).flatMap(lines => Object.values(lines).map(cell => cell.valueId))
+      Object.values(plateMap.cells).flatMap(lines =>
+        Object.values(lines).map(entry => entry.valueId)
+      )
     );
-    return plate.lines.some(line =>
+    return plateMap.lines.some(line =>
       line.values.some(value => heldIds.has(value.id) && isSameBareName(value.text, name))
     );
   });
@@ -55,11 +57,11 @@ export function plateFollowsListRename(draft: Protocol, from: string, to: string
 function renamePlateValues(draft: Protocol, from: string, to: string): void {
   const toName = nameWithoutNotes(to);
   if (!bareKey(to) || isSameBareName(from, to)) return;
-  for (const plate of vesselMaps(draft)) {
-    const values = plate.lines.flatMap(line => line.values);
+  for (const plateMap of plateMaps(draft)) {
+    const values = plateMap.lines.flatMap(line => line.values);
     const renamed = values.filter(value => isSameBareName(value.text, from));
     for (const value of renamed) value.text = withLeadingName(value.text, toName);
-    if (renamed.length) normalizeVesselMap(plate);
+    if (renamed.length) normalizePlateMap(plateMap);
   }
 }
 
@@ -69,12 +71,12 @@ export function renamePlateValue(
   valueId: string,
   text: string
 ): void {
-  const plate = vesselMaps(draft).find(block => block.id === blockId);
-  const value = plate?.lines.flatMap(line => line.values).find(item => item.id === valueId);
-  if (!plate || !value) return;
+  const plateMap = plateMaps(draft).find(block => block.id === blockId);
+  const value = plateMap?.lines.flatMap(line => line.values).find(item => item.id === valueId);
+  if (!plateMap || !value) return;
   const from = value.text;
-  renameValue(plate, valueId, text);
-  normalizeVesselMap(plate);
+  renameValue(plateMap, valueId, text);
+  normalizePlateMap(plateMap);
   materialFollowsPlateRename(draft, from, text);
 }
 
@@ -84,9 +86,9 @@ export function followWellEdit(
   started: ReadonlyMap<string, HeldName>,
   keys: readonly string[]
 ): void {
-  const plate = vesselMaps(draft).find(block => block.id === blockId);
-  if (!plate) return;
-  const now = heldNames(plate, keys);
+  const plateMap = plateMaps(draft).find(block => block.id === blockId);
+  if (!plateMap) return;
+  const now = heldNames(plateMap, keys);
   for (const [lineId, start] of started) {
     const current = now.get(lineId);
     if (current) materialFollowsPlateRename(draft, start.text, current.text);

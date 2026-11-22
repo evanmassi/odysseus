@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { BUILT_IN_CATALOG, laserLabel, yourDye, type Dye } from '../dyes/dyeCatalog';
+import { BUILT_IN_CATALOG, laserLabel, yourFluor, type Fluor } from '../fluors/fluorCatalog';
 
 import {
   ANTIBODY_STOP_WORDS,
@@ -21,7 +21,7 @@ import {
   type MaterialLexiconGroup,
 } from './materialLexicon';
 
-import type { ProtocolDye } from '@odysseus/shared-schemas';
+import type { ProtocolFluor } from '@odysseus/shared-schemas';
 
 export interface MaterialAmount {
   value: string;
@@ -48,7 +48,7 @@ export interface RememberedMaterialKind {
 
 export interface MaterialKnowledge {
   kinds: ReadonlyMap<string, RememberedMaterialKind>;
-  dyes: readonly ProtocolDye[];
+  fluors: readonly ProtocolFluor[];
 }
 
 interface MaterialGuessContext {
@@ -81,7 +81,7 @@ interface LexiconHit {
   isGeneric: boolean;
 }
 
-interface Fluorochrome {
+interface KnownFluor {
   name: string;
   laser: string;
   isProtein: boolean;
@@ -113,8 +113,8 @@ interface WordAnalysis {
   tokens: Token[];
   lexiconHits: TokenMatch<LexiconHit>[];
   lexiconHit?: TokenMatch<LexiconHit>;
-  fluorochromeHits: TokenMatch<Fluorochrome>[];
-  fluorochrome?: Fluorochrome;
+  fluorHits: TokenMatch<KnownFluor>[];
+  fluor?: KnownFluor;
   conjugateHits: TokenMatch<string>[];
   conjugate?: string;
   targetHits: TokenMatch<TargetHit>[];
@@ -144,17 +144,17 @@ function indexLexicon(): ReadonlyMap<string, LexiconHit> {
   return index;
 }
 
-function indexFluorochromes(dyes: readonly Dye[]): ReadonlyMap<string, Fluorochrome> {
-  const index = new Map<string, Fluorochrome>();
-  for (const dye of dyes) {
-    if (dye.kind !== 'conjugate' && dye.kind !== 'protein') continue;
-    const fluorochrome = {
-      name: dye.name,
-      laser: laserLabel(dye.lasers[0]),
-      isProtein: dye.kind === 'protein',
+function indexFluors(fluors: readonly Fluor[]): ReadonlyMap<string, KnownFluor> {
+  const index = new Map<string, KnownFluor>();
+  for (const fluor of fluors) {
+    if (fluor.kind !== 'conjugate' && fluor.kind !== 'protein') continue;
+    const known = {
+      name: fluor.name,
+      laser: laserLabel(fluor.lasers[0]),
+      isProtein: fluor.kind === 'protein',
     };
-    for (const spelling of [dye.name, ...dye.aliases]) {
-      index.set(normalizeMaterialKey(spelling), fluorochrome);
+    for (const spelling of [fluor.name, ...fluor.aliases]) {
+      index.set(normalizeMaterialKey(spelling), known);
     }
   }
   return index;
@@ -181,7 +181,7 @@ function indexVendors(): ReadonlyMap<string, string> {
 }
 
 const lexiconByKey = indexLexicon();
-const fluorochromeByKey = indexFluorochromes(BUILT_IN_CATALOG.dyes);
+const fluorByKey = indexFluors(BUILT_IN_CATALOG.fluors);
 const conjugateByKey: ReadonlyMap<string, string> = new Map(
   splitList(CONJUGATE_LEXICON).flatMap(chain => {
     const aliases = splitAliases(chain);
@@ -195,11 +195,11 @@ export const VENDOR_NAMES: readonly string[] = splitList(VENDOR_LEXICON).map(
   chain => splitAliases(chain)[0]
 );
 
-export const isNonFluorochromeConjugate = (name: string): boolean =>
+export const isNonFluorConjugate = (name: string): boolean =>
   conjugateByKey.has(normalizeMaterialKey(name));
 
-export const findFluorochromeName = (name: string): string | undefined =>
-  fluorochromeByKey.get(normalizeMaterialKey(name))?.name;
+export const findFluorName = (name: string): string | undefined =>
+  fluorByKey.get(normalizeMaterialKey(name))?.name;
 
 const THERAPEUTIC_ANTIBODY = /\b[a-z]{3,}mab\b/i;
 
@@ -473,11 +473,11 @@ function guessSupply(text: string): GuessOutcome | undefined {
 const ANTI_WORD = /(^|[\s(])(anti|α)\s?-?\s?(?!anti|biotic|fade|mycotic|body|bodies|oxidant|gen)/i;
 const DOUBLE_ANTI = /anti-anti/i;
 
-const dyeFluorochromeFinder =
-  (yours: ReadonlyMap<string, Fluorochrome>) =>
-  (key: string): Fluorochrome | undefined => {
-    const fluorochrome = fluorochromeByKey.get(key) ?? yours.get(key);
-    return fluorochrome?.isProtein ? undefined : fluorochrome;
+const fluorFinder =
+  (yours: ReadonlyMap<string, KnownFluor>) =>
+  (key: string): KnownFluor | undefined => {
+    const fluor = fluorByKey.get(key) ?? yours.get(key);
+    return fluor?.isProtein ? undefined : fluor;
   };
 
 const findTarget = (key: string): TargetHit | undefined =>
@@ -486,13 +486,13 @@ const findTarget = (key: string): TargetHit | undefined =>
 const longestThenLatest = <T>(first: TokenMatch<T>, second: TokenMatch<T>): number =>
   second.length - first.length || second.start - first.start;
 
-function analyzeWords(text: string, yours: ReadonlyMap<string, Fluorochrome>): WordAnalysis {
+function analyzeWords(text: string, yours: ReadonlyMap<string, KnownFluor>): WordAnalysis {
   const { amount, text: withoutAmount } = extractAmount(text);
   const nameText = withoutAmount.replace(WHITESPACE_RUNS, ' ').trim() || text;
   const tokens = tokenize(nameText);
   const used = new Set<number>();
   const lexiconHits = findMatches(tokens, key => lexiconByKey.get(key), used);
-  const fluorochromeHits = findMatches(tokens, dyeFluorochromeFinder(yours), used);
+  const fluorHits = findMatches(tokens, fluorFinder(yours), used);
   const conjugateHits = findMatches(
     tokens,
     key => conjugateByKey.get(key),
@@ -514,8 +514,8 @@ function analyzeWords(text: string, yours: ReadonlyMap<string, Fluorochrome>): W
     tokens,
     lexiconHits,
     lexiconHit: [...lexiconHits].sort(longestThenLatest)[0],
-    fluorochromeHits,
-    fluorochrome: fluorochromeHits[0]?.hit,
+    fluorHits,
+    fluor: fluorHits[0]?.hit,
     conjugateHits,
     conjugate: conjugateHits[0]?.hit,
     targetHits,
@@ -565,14 +565,14 @@ const recombinantOutcome = (
 });
 
 function labelledReagentOutcome(
-  { fluorochrome, conjugate, amount }: WordAnalysis,
+  { fluor, conjugate, amount }: WordAnalysis,
   { hit, text }: TokenMatch<LexiconHit>
 ): GuessOutcome {
   const fields: Fields = { ...hit.values };
-  if (fluorochrome !== undefined || conjugate !== undefined) {
-    fields['conjugate'] = fluorochrome?.name ?? conjugate;
+  if (fluor !== undefined || conjugate !== undefined) {
+    fields['conjugate'] = fluor?.name ?? conjugate;
   }
-  if (hit.type === 'Dye' && fluorochrome?.laser) fields['laser'] = fluorochrome.laser;
+  if (hit.type === 'Dye' && fluor?.laser) fields['laser'] = fluor.laser;
   const known = fields['target'] === 'Viability' ? 'viability dye' : hit.type.toLowerCase();
   return { group: 'ab', type: hit.type, why: `${text}: known ${known}`, fields, amount };
 }
@@ -609,13 +609,13 @@ const MOUSE_MARKER_NAME = /\bm(cd\d|il-?\d)/i;
 function readsAsAntibody({
   nameText,
   lexiconHit,
-  fluorochrome,
+  fluor,
   conjugate,
   target,
   hasAnti,
 }: WordAnalysis): boolean {
   if (ISOTYPE_WORD.test(nameText)) return true;
-  const isLabelled = fluorochrome !== undefined || conjugate !== undefined;
+  const isLabelled = fluor !== undefined || conjugate !== undefined;
   if (target) {
     if (isLabelled || hasAnti) return true;
     const isPlainMarker =
@@ -624,15 +624,15 @@ function readsAsAntibody({
       BUILT_IN_CATALOG.find(target.text)?.kind !== 'protein';
     if (isPlainMarker) return true;
   }
-  return (fluorochrome !== undefined || hasAnti) && !lexiconHit;
+  return (fluor !== undefined || hasAnti) && !lexiconHit;
 }
 
 const matchSecondary = (nameText: string, hasTarget: boolean): RegExpMatchArray | undefined =>
   nameText.match(SECONDARY) ??
   (hasTarget ? undefined : (nameText.match(SECONDARY_SPECIES_ONLY) ?? undefined));
 
-function conjugateNameOf({ nameText, fluorochrome, conjugate }: WordAnalysis): string | undefined {
-  if (fluorochrome) return fluorochrome.name;
+function conjugateNameOf({ nameText, fluor, conjugate }: WordAnalysis): string | undefined {
+  if (fluor) return fluor.name;
   if (BIOTIN.test(nameText)) return 'Biotin';
   return conjugate && !LEAF_FORMAT.test(conjugate) ? conjugate : undefined;
 }
@@ -691,15 +691,13 @@ const isCloneToken = (token: Token, index: number, consumed: ReadonlySet<number>
 function cloneOf({
   nameText,
   tokens,
-  fluorochromeHits,
+  fluorHits,
   conjugateHits,
   targetHits,
 }: WordAnalysis): string | undefined {
   const afterWord = nameText.match(CLONE_AFTER_WORD)?.[1];
   if (afterWord) return afterWord;
-  const consumed = new Set(
-    [...fluorochromeHits, ...conjugateHits, ...targetHits].flatMap(tokenIndexes)
-  );
+  const consumed = new Set([...fluorHits, ...conjugateHits, ...targetHits].flatMap(tokenIndexes));
   return tokens.find((token, index) => isCloneToken(token, index, consumed))?.text;
 }
 
@@ -710,15 +708,15 @@ function reactivityOf(nameText: string): string | undefined {
   return MOUSE_MARKER_NAME.test(nameText) ? 'Mouse' : undefined;
 }
 
-function antibodyWhy({ fluorochromeHits, target, hasAnti }: WordAnalysis): string {
-  if (fluorochromeHits.length > 0) return `${fluorochromeHits[0].text} is a fluorochrome`;
+function antibodyWhy({ fluorHits, target, hasAnti }: WordAnalysis): string {
+  if (fluorHits.length > 0) return `${fluorHits[0].text} is a fluor`;
   if (!target) return '"anti-" marks an antibody';
   const kind = target.hit.isCytokine ? 'cytokine' : 'marker';
   return `${target.text.replace(ANTI_TOKEN_PREFIX, '')} is a ${kind}${hasAnti ? ', with "anti-"' : ''}`;
 }
 
 function antibodyOutcome(words: WordAnalysis): GuessOutcome | undefined {
-  const { nameText, target, fluorochrome, amount } = words;
+  const { nameText, target, fluor, amount } = words;
   const secondary = matchSecondary(nameText, target !== undefined);
   if (!secondary && !readsAsAntibody(words)) return undefined;
   const host = nameText.match(HOST)?.[1];
@@ -739,7 +737,7 @@ function antibodyOutcome(words: WordAnalysis): GuessOutcome | undefined {
       'host-species': label.hostSpecies,
       reactivity: reactivityOf(nameText),
       conjugate: label.conjugateName,
-      laser: fluorochrome?.laser,
+      laser: fluor?.laser,
     },
   };
 }
@@ -968,11 +966,11 @@ function guessFromWords(
   values: Record<string, string>,
   groupHint: MaterialLexiconGroup | undefined
 ): GuessOutcome {
-  const { nameText, lexiconHit, fluorochrome, conjugate, target, hasAnti, keyword, amount } = words;
+  const { nameText, lexiconHit, fluor, conjugate, target, hasAnti, keyword, amount } = words;
   if (KIT_WORD.test(nameText) && !(lexiconHit && KIT_IN_NAME.test(lexiconHit.text))) {
     return { group: 'kits', type: 'Kit', why: '"kit" in the name', source: 'pattern', amount };
   }
-  const isPlainName = !fluorochrome && !conjugate && !hasAnti;
+  const isPlainName = !fluor && !conjugate && !hasAnti;
   if (isPlainName && keyword && !lexiconHit && DECISIVE_KEYWORD_TYPES.has(keyword.type)) {
     return keywordOutcome(keyword, words);
   }
@@ -1005,12 +1003,12 @@ const assembleGuess = (
 function guessFromText(
   raw: string,
   context: MaterialGuessContext,
-  dyes: readonly ProtocolDye[]
+  fluors: readonly ProtocolFluor[]
 ): MaterialGuess {
   const { text, values } = readIdentifiers(raw, context);
   const patternOutcome = guessAccession(text) ?? guessDnaSequence(text) ?? guessSupply(text);
   if (patternOutcome) return assembleGuess(patternOutcome, text, values);
-  const words = analyzeWords(text, indexFluorochromes(dyes.map(yourDye)));
+  const words = analyzeWords(text, indexFluors(fluors.map(yourFluor)));
   return assembleGuess(
     guessFromWords(raw, words, values, context.groupHint),
     words.nameText,
@@ -1031,10 +1029,10 @@ function withTherapeuticAntibody(guess: MaterialGuess): MaterialGuess {
 
 export function guessMaterial(
   raw: string,
-  { kinds, dyes }: MaterialKnowledge,
+  { kinds, fluors: fluors }: MaterialKnowledge,
   context: MaterialGuessContext = {}
 ): MaterialGuess {
-  const guess = withTherapeuticAntibody(guessFromText(raw, context, dyes));
+  const guess = withTherapeuticAntibody(guessFromText(raw, context, fluors));
   const memory =
     kinds.get(normalizeMaterialKey(guess.name)) ?? kinds.get(normalizeMaterialKey(raw));
   if (!memory || (memory.group === guess.group && memory.type === guess.type)) return guess;

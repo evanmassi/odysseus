@@ -1,6 +1,6 @@
 import { stepLabels } from '../steps/stepNumbering';
 
-import { nameKey, type BoardCalculation } from './boardCalculation';
+import { nameKey, type SolvedBoard } from './boardCalculation';
 import { formulaNameReferences } from './formulaParser';
 
 import type { Protocol } from '@odysseus/shared-schemas';
@@ -14,12 +14,12 @@ const STEP_REFERENCE = /\{([^}]+)\}/g;
 
 export function nameUsage(
   protocol: Protocol,
-  calculation: BoardCalculation,
+  board: SolvedBoard,
   ids: readonly string[]
 ): Map<string, NameUsage> {
   const wanted = new Set(ids);
   const ownerByName = new Map<string, string>();
-  for (const [key, entry] of calculation.names) {
+  for (const [key, entry] of board.names) {
     const owner = wanted.has(entry.id) ? entry.id : entry.id.split(':')[0];
     if (wanted.has(owner)) ownerByName.set(key, owner);
   }
@@ -35,11 +35,11 @@ export function nameUsage(
       }
     }
   }
-  const names = [...calculation.names.values()].map(entry => entry.name);
+  const names = [...board.names.values()].map(entry => entry.name);
   const typedExprs = protocol.blocks.flatMap(block =>
     block.type === 'formula' ? block.items.map(formula => formula.expr) : []
   );
-  const generatedExprs = [...calculation.names.values()].flatMap(entry =>
+  const generatedExprs = [...board.names.values()].flatMap(entry =>
     entry.kind === 'formula' && entry.workedOut ? [entry.expr] : []
   );
   for (const expr of [...typedExprs, ...generatedExprs]) {

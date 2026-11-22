@@ -50,7 +50,7 @@ beforeEach(() => getState().openProtocol(boardWith(), 'test.json'));
 describe('workbenchStore', () => {
   it('opens a document clean and calculated', () => {
     expect(selectIsDirty(getState())).toBe(false);
-    const result = getState().calculation.results.get('f1');
+    const result = getState().board.results.get('f1');
     expect(result).toMatchObject({ status: 'ok', output: { text: '9.6 mL' } });
   });
 
@@ -62,7 +62,7 @@ describe('workbenchStore', () => {
     });
     expect(blockOf('formula').items[0].expr).toBe('Volume per well * 96');
     expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Volume per well} to each well');
-    expect(getState().calculation.results.get('f1')).toMatchObject({ status: 'ok' });
+    expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
     expect(selectIsDirty(getState())).toBe(true);
   });
 
@@ -114,11 +114,11 @@ describe('workbenchStore', () => {
   describe('plate edits', () => {
     const addPlate = (cells: Record<string, Record<string, object>>) =>
       getState().updateProtocol(draft => {
-        const plate = createBlock('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
-        if (plate.type !== 'plate') return;
-        plate.lines = [{ id: 'l', name: '', role: 'auto', values: [{ id: 'd', text: 'Drug' }] }];
-        plate.cells = cells;
-        draft.blocks.push(plate);
+        const plateMap = createBlock('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
+        if (plateMap.type !== 'plate') return;
+        plateMap.lines = [{ id: 'l', name: '', role: 'auto', values: [{ id: 'd', text: 'Drug' }] }];
+        plateMap.cells = cells;
+        draft.blocks.push(plateMap);
       });
 
     it('drops a typed value once the plate provides the same name', () => {

@@ -547,7 +547,7 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
     excited by the blue laser". The dialog becomes "New fluor".
   - "Fluorochrome", "Dye" and "Color" are accepted. "Fluorochrome" is no longer shown.
   - **Gap found (a feature, not a word):** the Flow panel reads a row's fluor from that material's
-    own Conjugate (`utils/cytometer/cytometerPanel.ts:67`). A CD19-Fc-Biotin row shows Biotin and
+    own Conjugate (`utils/flowCytometry/flowCytometryPanel.ts:67`). A CD19-Fc-Biotin row shows Biotin and
     can't be placed, and there is no way to say "detected by SA-PE". The panel needs a marker to be
     detectable through a secondary, taking its fluor from the secondary. To be added to the plan
     as a Flow panel item.
@@ -907,7 +907,7 @@ All settled 2026-11-20. Evan changed S3 (straight quotes), S7 (blue plus icon + 
 ## Bugs found by the sweep (fixed alongside, not picks)
 
 1. The vessel picker labels a count "Number of 10 cm dishs", from a bare `+s`
-   (`WorkbenchVesselPickerPanel.tsx:126`).
+   (`WorkbenchLabwarePickerPanel.tsx:126`).
 2. Values says "Its 1 wells keep…", and elsewhere the UI says "1 points", "1 detectors" and "on 1
    lasers". "Two stains" is fixed text even when three share a detector.
 3. Renaming Whole experiment in Values doesn't reach Calculations or the insert list, which still

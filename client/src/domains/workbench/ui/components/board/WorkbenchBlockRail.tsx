@@ -9,19 +9,19 @@ import { BLOCK_TYPES } from '../../../utils/blocks/blockTypes';
 import { createBlock } from '../../../utils/blocks/createBlock';
 import {
   plateNameOf,
-  shelfNameOf,
-  vesselTabs,
+  otherLabwareTabNameOf,
+  plateMapTabs,
   labwareTitle,
-} from '../../../utils/vessels/vesselTabs';
+} from '../../../utils/plateMap/plateMapTabs';
 
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_PANELS } from './blockPanels';
 
 import type {
-  PlateViewBlock,
+  LinkedPlateMapBlock,
   Protocol,
   ProtocolBlockType,
-  VesselMapBlock,
+  PlateMapBlock,
 } from '@odysseus/shared-schemas';
 
 const RAIL_GROUPS: ReadonlyArray<[string, ProtocolBlockType[]]> = [
@@ -35,9 +35,11 @@ const MENU_GAP = 8;
 const MENU_HEADING =
   'relative z-10 block px-3 pb-1 pt-2 type-label text-label-2xs text-muted-foreground first:pt-1';
 
-const tabNames = (block: VesselMapBlock) =>
-  vesselTabs(block)
-    .map(tab => (tab.kind === 'plate' ? plateNameOf(block, tab.plate) : shelfNameOf(block)))
+const tabNames = (block: PlateMapBlock) =>
+  plateMapTabs(block)
+    .map(tab =>
+      tab.kind === 'plate' ? plateNameOf(block, tab.plate) : otherLabwareTabNameOf(block)
+    )
     .join(', ');
 
 const bottomOf = (draft: Protocol, page: string) =>
@@ -48,7 +50,7 @@ export function WorkbenchBlockRail() {
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const pages = useWorkbenchStore(state => state.protocol.pages);
   const blocks = useWorkbenchStore(state => state.protocol.blocks);
-  const plates = blocks.filter((block): block is VesselMapBlock => block.type === 'plate');
+  const plates = blocks.filter((block): block is PlateMapBlock => block.type === 'plate');
   const hasProcedure = blocks.some(block => block.page === activePageId && block.type === 'steps');
   const startFromRef = useRef<HTMLDivElement>(null);
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
@@ -63,7 +65,7 @@ export function WorkbenchBlockRail() {
       );
     });
 
-  const showPlate = (source: VesselMapBlock) =>
+  const showPlate = (source: PlateMapBlock) =>
     updateProtocol(draft => {
       const view = createBlock('plateView', {
         page: activePageId,
@@ -71,7 +73,7 @@ export function WorkbenchBlockRail() {
         y: bottomOf(draft, activePageId),
         w: source.w,
         h: BLOCK_TYPES.plateView.size[1],
-      }) as PlateViewBlock;
+      }) as LinkedPlateMapBlock;
       view.shows = source.id;
       view.side = draft.blocks.some(block => block.type === 'cytometer' && block.mixes.length)
         ? 'stain'

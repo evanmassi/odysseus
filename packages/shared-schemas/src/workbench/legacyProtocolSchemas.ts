@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { PAINTED_GROUPS_FILE_VERSION, paintedGroupsFileSchema } from './paintedGroupUpgrade';
 import { SERIES_DILUENT_FILE_VERSION, seriesDiluentFileSchema } from './seriesDiluentUpgrade';
-import { moveMixesToStainSide } from './stainSideUpgrade';
+import { moveStainsToStainSide } from './stainSideUpgrade';
 import {
   LINE_ROLES,
   PLATE_FORMATS,
@@ -10,11 +10,11 @@ import {
   PROTOCOL_FILE_VERSION,
   SERIES_DIRECTIONS,
   protocolFileSchema,
-  type CellLine,
+  type SampleEntry,
   type PlateSeries,
 } from './protocolFileSchemas';
 import { newProtocolId } from './protocolIds';
-import { normalizeVesselMap } from './vesselMapValues';
+import { normalizePlateMap } from './plateMapValues';
 
 const text = z.string().catch('');
 const textMap = z.record(z.string(), z.string()).catch({});
@@ -205,12 +205,12 @@ function valueIdFor(line: LegacyLine, valueText: string): string {
   return created.id;
 }
 
-function upgradeCellLine(raw: unknown, line: LegacyLine | undefined): CellLine | undefined {
+function upgradeSampleEntry(raw: unknown, line: LegacyLine | undefined): SampleEntry | undefined {
   if (typeof raw === 'string') return line ? { valueId: valueIdFor(line, raw) } : undefined;
   const parsed = loose.safeParse(raw);
   if (!parsed.success) return undefined;
   const { v, amt, unit, s, step } = parsed.data;
-  const upgraded: CellLine = {};
+  const upgraded: SampleEntry = {};
   if (typeof v === 'string' && v) upgraded.valueId = v;
   else if (typeof s === 'string' && line?.name) upgraded.valueId = valueIdFor(line, line.name);
   if (typeof amt === 'string') upgraded.amount = amt;
@@ -227,7 +227,7 @@ const PLATE_FORMAT_SET = new Set<string>(PLATE_FORMATS);
 const renameKeys = <T>(map: Record<string, T>, rename: (key: string) => string) =>
   Object.fromEntries(Object.entries(map).map(([key, value]) => [rename(key), value]));
 
-const legacyVesselMap = z
+const legacyPlateMap = z
   .object({
     plates: z.array(z.object({ id: z.string(), vessel: z.string(), name: text })).optional(),
     sets: z.array(z.object({ id: z.string(), vessel: z.string(), count: z.number() })).optional(),
@@ -248,11 +248,11 @@ const legacyVesselMap = z
   .transform(block => {
     let { wells, cells } = block;
     const lines = block.fields;
-    const isPlateVessel = block.vessel !== undefined && PLATE_FORMAT_SET.has(block.vessel);
+    const isPlateLabware = block.vessel !== undefined && PLATE_FORMAT_SET.has(block.vessel);
     let sets = block.sets;
     if (!sets) {
       sets = [];
-      if (block.vessel && !isPlateVessel) {
+      if (block.vessel && !isPlateLabware) {
         const setId = newProtocolId();
         sets = [{ id: setId, vessel: block.vessel, count: block.count ?? 1 }];
         const rename = (key: string) => key.replace(/^(\d+):1$/, `${setId}#$1:1`);
@@ -263,7 +263,7 @@ const legacyVesselMap = z
     let plates = block.plates;
     if (!plates) {
       plates =
-        block.vessel && isPlateVessel
+        block.vessel && isPlateLabware
           ? Array.from({ length: block.count ?? 1 }, (_, index) => ({
               id: newProtocolId(),
               vessel: block.vessel as string,
@@ -280,11 +280,11 @@ const legacyVesselMap = z
       cells = renameKeys(cells, rename);
     }
     const lineById = new Map(lines.map(line => [line.id, line]));
-    const upgradedCells: Record<string, Record<string, CellLine>> = {};
+    const upgradedCells: Record<string, Record<string, SampleEntry>> = {};
     for (const [wellKey, wellLines] of Object.entries(cells)) {
-      const upgradedLines: Record<string, CellLine> = {};
+      const upgradedLines: Record<string, SampleEntry> = {};
       for (const [lineId, raw] of Object.entries(wellLines)) {
-        const upgraded = upgradeCellLine(raw, lineById.get(lineId));
+        const upgraded = upgradeSampleEntry(raw, lineById.get(lineId));
         if (upgraded) upgradedLines[lineId] = upgraded;
       }
       upgradedCells[wellKey] = upgradedLines;
@@ -362,7 +362,7 @@ const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
       items: items.map(item => ({ ...item, unit: upgradeUnit(item.unit) })),
       materialSections: sections,
     })),
-  plate: legacyVesselMap,
+  plate: legacyPlateMap,
   steps: z.object({}),
   dilutions: z.object({}),
   flow: z.object({}),
@@ -470,7 +470,7 @@ function upgradeFile(raw: unknown): unknown {
 export const protocolFileInputSchema = z
   .preprocess(upgradeFile, protocolFileSchema)
   .transform(file => {
-    for (const block of file.protocol.blocks) if (block.type === 'plate') normalizeVesselMap(block);
-    moveMixesToStainSide(file.protocol);
+    for (const block of file.protocol.blocks) if (block.type === 'plate') normalizePlateMap(block);
+    moveStainsToStainSide(file.protocol);
     return file;
   });

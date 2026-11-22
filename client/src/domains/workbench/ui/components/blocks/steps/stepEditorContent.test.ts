@@ -2,7 +2,7 @@ import { calculateBoard } from '../../../../utils/formulas/boardCalculation';
 
 import { readEditor, replaceTypedReference, typedReferenceAtCaret } from './stepEditorContent';
 
-const calculation = calculateBoard([
+const board = calculateBoard([
   { kind: 'value', id: 'v1', name: 'Spin time', value: '5', unit: 'min' },
 ]);
 
@@ -27,7 +27,7 @@ describe('typed references', () => {
 
   it('swaps the typed brace for the picked name', () => {
     const editor = editorWith('Spin for {spi', 13);
-    replaceTypedReference(editor, 'Spin time', calculation);
+    replaceTypedReference(editor, 'Spin time', board);
     expect(readEditor(editor)).toBe('Spin for {Spin time} ');
   });
 });

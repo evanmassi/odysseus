@@ -97,6 +97,14 @@ export const LIVE_CELLS: Term = {
   unit: 'cells',
 };
 
+export const PLATING_CONCENTRATION: Term = {
+  word: 'Plating conc.',
+  meaning: 'Cells per mL to plate at: cells/well ÷ vol./well',
+  alsoAccepted: ['Plating concentration'],
+  unitKind: 'count-conc',
+  unit: 'cells/mL',
+};
+
 export const STOCK_CONCENTRATION: Term = {
   word: 'Stock conc.',
   meaning: 'Concentration of the stock you start from',
@@ -157,6 +165,14 @@ export const ANTIBODY_DILUTION: Term = {
   word: 'Dil.',
   meaning: 'How far the antibody is diluted for staining',
   alsoAccepted: ['Dilution'],
+};
+
+export const PER_TEST: Term = {
+  word: 'Per test',
+  alsoAccepted: [],
+  formerly: ['Amount'],
+  unitKind: 'volume',
+  unit: 'µL',
 };
 
 export const TOTAL_NEEDED: Term = {
@@ -371,6 +387,7 @@ export const TERMS: readonly Term[] = [
   LIVE_CELL_CONCENTRATION,
   TOTAL_CELLS,
   LIVE_CELLS,
+  PLATING_CONCENTRATION,
   STOCK_CONCENTRATION,
   FINAL_CONCENTRATION,
   MIX_CONCENTRATION,
@@ -381,6 +398,7 @@ export const TERMS: readonly Term[] = [
   VOLUME_MADE,
   RECONSTITUTION_VOLUME,
   ANTIBODY_DILUTION,
+  PER_TEST,
   TOTAL_NEEDED,
   TOTAL_VOLUME_NEEDED,
   CELLS_PER_VIAL,
@@ -411,7 +429,7 @@ export const PER_WELL_TERMS: readonly Term[] = [VOLUME_PER_WELL, CELLS_PER_WELL,
 
 const ENDS_IN_WELL = /well$/i;
 
-export const perVessel = (term: Term, noun: string): Term =>
+export const perLabwareKind = (term: Term, noun: string): Term =>
   noun === 'well'
     ? term
     : {

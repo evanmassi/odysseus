@@ -2,7 +2,7 @@ import { UNIT_REGISTRY, type Protocol } from '@odysseus/shared-schemas';
 
 import {
   nameKey,
-  type BoardCalculation,
+  type SolvedBoard,
   type BoardName,
   type FormulaGap,
   type FormulaResult,
@@ -15,6 +15,7 @@ import {
   EXTRA,
   LIVE_CELL_CONCENTRATION,
   LIVE_CELLS,
+  PLATING_CONCENTRATION,
   STOCK_CONCENTRATION,
   TOTAL_CELL_CONCENTRATION,
   TOTAL_NEEDED,
@@ -28,7 +29,7 @@ import { joinValueName } from '../values/valueNames';
 
 import { cellPartId, CELLS_TO_PREPARE } from './cellCounts';
 import { nameWithoutNotes } from './materialLookup';
-import { SOURCES_LABEL } from './materialSources';
+import { donorListName } from './materialSources';
 import { platedCells, type PlatedCells } from './platedCells';
 
 const isCellConcentration = (unit: string) =>
@@ -50,8 +51,7 @@ function subjectNames(
   materialsBlockId: string | undefined
 ): BoardName[] {
   const { subject, material, source } = plated;
-  const listLabel = material.sources?.label.trim();
-  const donorList = listLabel ? listLabel : SOURCES_LABEL;
+  const donorList = donorListName(material);
   const materialOwners = [material.name.trim(), nameWithoutNotes(material.name)];
   const owners = source ? [subject] : [subject, ...materialOwners];
   const id = (part: string) => cellPartId(subject, part);
@@ -110,7 +110,7 @@ function subjectNames(
 
   const needed = joinValueName(subject, TOTAL_NEEDED.word);
   formula('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
-  const plating = `${subject} plating concentration`;
+  const plating = joinValueName(subject, PLATING_CONCENTRATION.word);
   const platingProblem: FormulaGap | undefined = !perWell
     ? { problem: `${CELLS_PER_WELL.word} differ between wells` }
     : !volume
@@ -197,9 +197,9 @@ export function shortfallOf(result: FormulaResult | undefined): string | undefin
   return short > 0 ? `Short by ${formatNumber(short)} cells` : undefined;
 }
 
-export function cellWarnings(calculation: BoardCalculation): Map<string, string[]> {
+export function cellWarnings(board: SolvedBoard): Map<string, string[]> {
   const warnings = new Map<string, string[]>();
-  for (const [id, result] of calculation.results) {
+  for (const [id, result] of board.results) {
     if (!id.startsWith('cells:') || !id.endsWith(':left-over')) continue;
     const shortfall = shortfallOf(result);
     if (shortfall) warnings.set(id, [shortfall]);

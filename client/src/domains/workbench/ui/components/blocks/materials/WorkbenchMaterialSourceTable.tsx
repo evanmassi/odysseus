@@ -13,9 +13,9 @@ import { DONOR_ID_FIELD, sourceColumns } from '../../../../utils/materials/mater
 import { ADD_ICON } from '../../board/addIconClass';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { META_LABEL } from '../../board/metaLabelClass';
-import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
-import { WorkbenchPlateNameField } from '../vessels/WorkbenchPlateNameField';
-import { WorkbenchPlateSuggestionList } from '../vessels/WorkbenchPlateSuggestionList';
+import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
+import { WorkbenchPlateNameField } from '../plateMap/WorkbenchPlateNameField';
+import { WorkbenchPlateSuggestionList } from '../plateMap/WorkbenchPlateSuggestionList';
 
 import { ROW_ACTION } from './materialTableStyles';
 import { WorkbenchMaterialFieldSelector } from './WorkbenchMaterialFieldSelector';
@@ -234,7 +234,7 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
                     <tr key={source.id} className="group">
                       <td className={CELL}>
                         <span className="flex items-center gap-2">
-                          <WorkbenchMarkSwatch swatch={swatchOf(source.name)} />
+                          <WorkbenchIndicatorSwatch swatch={swatchOf(source.name)} />
                           <span className="inline-edit">
                             <input
                               value={source.name}

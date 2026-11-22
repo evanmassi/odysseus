@@ -8,7 +8,7 @@ import { useUndoShortcuts } from '../../../hooks/useUndoShortcuts';
 import { WorkbenchBlockRail } from '../board/WorkbenchBlockRail';
 import { WorkbenchBoard } from '../board/WorkbenchBoard';
 import { WorkbenchPageTabs } from '../board/WorkbenchPageTabs';
-import { WorkbenchDyeAddDialog } from '../dyes/WorkbenchDyeAddDialog';
+import { WorkbenchFluorAddDialog } from '../fluors/WorkbenchFluorAddDialog';
 import { WorkbenchNameTray } from '../tray/WorkbenchNameTray';
 
 import { WorkbenchFileBar } from './WorkbenchFileBar';
@@ -63,7 +63,7 @@ export function WorkbenchPage() {
         </div>
       </main>
       <WorkbenchNameTray />
-      <WorkbenchDyeAddDialog />
+      <WorkbenchFluorAddDialog />
       <ConfirmDialog
         isOpen={!!resolveDiscard}
         variant="warning"

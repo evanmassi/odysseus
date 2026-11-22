@@ -29,7 +29,7 @@ describe('lab memory saved in the browser', () => {
       donor: knownSources(memory, 'D-01', []).map(donor => `${donor.name} of ${donor.material}`),
       donorFields: memory.sourceFields.map(field => field.label),
       pinnedDonorColumns: startingSourceFieldsOf(memory, 'bio'),
-      fluors: knowledge.dyes.map(fluor => fluor.name),
+      fluors: knowledge.fluors.map(fluor => fluor.name),
       type: knowledge.kinds.get('celllinea')?.type,
     }).toEqual({
       donor: ['Donor 1 of PBMC'],

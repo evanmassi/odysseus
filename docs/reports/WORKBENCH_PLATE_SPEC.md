@@ -2,7 +2,7 @@
 
 Map of the mockup code (`docs/mockups/workbench-builder-study.html`, line numbers refer to it) and the
 agreed redesign. Read with `WORKBENCH_PLAN.md` → "Resume here". Already ported and touching plates:
-`utils/vessels/vesselCatalog.ts`, `utils/vessels/vesselMapNames.ts` (counts, amounts, material well
+`utils/plateMap/labwareCatalog.ts`, `utils/plateMap/plateMapNames.ts` (counts, amounts, material well
 counts; still keyed on painted groups), `utils/formulas/nameRenames.ts` (renames group labels), the
 v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
 
@@ -44,19 +44,19 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
 ## Build split
 
 1. Lead: v3 schema + upgrade + tests; value colors, normalized value identity, line merging; rework
-   `vesselMapNames.ts` (counts per value, amounts split by color-line value, twin tags by value);
+   `plateMapNames.ts` (counts per value, amounts split by color-line value, twin tags by value);
    drop group renames from `nameRenames.ts`; Values-block plate rows.
    **Done (2026-11-08):** schema v3 (`groups`/`wells` gone, `color` on line values); shared rules in
-   `shared-schemas/src/workbench/vesselMapValues.ts` (`plateValueKey`, `colorLineOf`, `isFilledCell`,
+   `shared-schemas/src/workbench/plateMapValues.ts` (`plateValueKey`, `colorLineOf`, `isFilledCell`,
    `unifyPlateValues`, `normalizeVesselMap` with sticky palette colors); v2→v3 in
    `paintedGroupUpgrade.ts` (legacy files go legacy→v2→v3; orphan values pruned first; a created
-   color line is pinned `role: 'color'`; best-fit color line as decided above); `vesselMapNames.ts` reworked with tests; group renames
+   color line is pinned `role: 'color'`; best-fit color line as decided above); `plateMapNames.ts` reworked with tests; group renames
    dropped. **Not done:** Values-block plate rows. The client must call `normalizeVesselMap` after
    every plate edit (Agent A's well editor). Vitest reads shared-schemas from `dist`, so run
    `npm run build` in the package before client tests.
-   **Plate map in the app (2026-11-08):** `ui/components/blocks/vessels/` covers the whole
+   **Plate map in the app (2026-11-08):** `ui/components/blocks/plateMap/` covers the whole
    vessel map inventory: drawing (value colors, series fade, captions, header doses, bands with
-   brackets/tags/rings computed from known geometry in `utils/vessels/plateGeometry.ts`), Merge
+   brackets/tags/rings computed from known geometry in `utils/plateMap/plateGeometry.ts`), Merge
    Replicates, selection with keyboard and clipboard, the floating well editor (values renamed in
    place while typing so colors hold; a new line is a screen-only row until typed), the series
    form (saves as you type, keeps prep, removal clears every well of the series), Add Vessel,
@@ -70,7 +70,7 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    with forward `1:N`, edits) and `ui/components/blocks/dilutions/`; the stock ask saves onto the
    material (creating it, and a Materials card, if needed) and suggests kDa for antibodies and
    `-mab` names. Fitted cards now shrink as well as grow. **Follow-ons (done):** the store runs
-   `utils/vessels/plateEditEffects.ts` on every edit (renaming a plate name that matched a material
+   `utils/plateMap/plateEditEffects.ts` on every edit (renaming a plate name that matched a material
    renames the material; a new plate amount drops a typed Values item with the same name), and
    `utils/steps/stepReadings.ts` reads materials and values from steps in one pass, offered in
    Materials and Values as "From your steps". **Slice 3 is complete** apart from the polish backlog.

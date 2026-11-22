@@ -13,7 +13,7 @@ const antibody = (name: string, conjugate: string, panel = '') => {
 };
 
 describe('conjugateClashes', () => {
-  it('flags two antibodies sharing a fluorochrome in the same panel', () => {
+  it('flags two antibodies sharing a fluor in the same panel', () => {
     const clashes = conjugateClashes([
       antibody('CD4', 'BV421'),
       antibody('CD8', 'Brilliant Violet 421'),
