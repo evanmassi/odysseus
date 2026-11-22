@@ -1,0 +1,560 @@
+{
+  "format": "odysseus-workbench-protocol",
+  "version": 4,
+  "savedAt": "2026-11-22T12:00:00.000Z",
+  "protocol": {
+    "title": "Safety net protocol",
+    "descriptor": "Every card",
+    "purpose": "Holds every saved feature of a version 4 file",
+    "runNumber": "1",
+    "runOn": { "from": "2026-11-22", "to": "2026-11-23" },
+    "pages": [
+      {
+        "id": "page-setup",
+        "name": "Setup",
+        "steps": [
+          { "id": "step-section", "kind": "section", "text": "Prepare cells" },
+          {
+            "id": "step-thaw",
+            "kind": "step",
+            "level": 1,
+            "text": "Thaw PBMC.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "step-spin",
+            "kind": "step",
+            "level": 2,
+            "text": "Spin 300 g, 5 min.",
+            "isMeanwhile": true
+          }
+        ]
+      },
+      { "id": "page-plates", "name": "Plates", "steps": [] }
+    ],
+    "blocks": [
+      {
+        "id": "card-materials",
+        "type": "materials",
+        "title": "Materials",
+        "page": "page-setup",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 10,
+        "isCollapsed": false,
+        "foldedGroups": ["kits"],
+        "customGroups": ["Shared reagents"],
+        "isDroppedOpen": true,
+        "items": [
+          {
+            "id": "mat-cells",
+            "group": "bio",
+            "type": "Cell line",
+            "name": "Cell line A",
+            "shownFields": ["vendor", "catalog", "count", "viability"],
+            "values": {
+              "vendor": "Supplier A",
+              "catalog": "CL-1",
+              "count": "1.00E+6",
+              "viability": "95"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": { "catalog": "Cat. no." },
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-pbmc",
+            "group": "bio",
+            "type": "Primary cells",
+            "name": "PBMC",
+            "shownFields": ["vendor"],
+            "values": { "vendor": "Supplier A" },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": [],
+            "sources": {
+              "label": "Donors",
+              "shownFields": [
+                "donor-id",
+                "lot-vial",
+                "total-count",
+                "viability",
+                "live-count",
+                "freeze-note"
+              ],
+              "customFields": [
+                {
+                  "key": "freeze-note",
+                  "label": "Freeze note",
+                  "kind": "text",
+                  "scope": "protocol",
+                  "unit": "",
+                  "options": []
+                }
+              ],
+              "rows": [
+                {
+                  "id": "donor-1",
+                  "name": "Donor 1",
+                  "values": {
+                    "donor-id": "D-01",
+                    "lot-vial": "V1",
+                    "total-count": "1.00E+7",
+                    "viability": "90",
+                    "freeze-note": "Slow freeze"
+                  },
+                  "units": {}
+                },
+                {
+                  "id": "donor-2",
+                  "name": "Donor 2",
+                  "values": { "donor-id": "D-02", "live-count": "8.00E+6" },
+                  "units": {}
+                }
+              ]
+            }
+          },
+          {
+            "id": "mat-cd3",
+            "group": "ab",
+            "type": "Antibody",
+            "name": "CD3 BV421",
+            "shownFields": ["vendor", "conjugate", "amount"],
+            "values": { "vendor": "Supplier B", "conjugate": "BV421", "amount": "200" },
+            "units": { "amount": "1:N" },
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-cd8",
+            "group": "ab",
+            "type": "Antibody",
+            "name": "CD8 PE",
+            "shownFields": ["conjugate", "amount"],
+            "values": { "conjugate": "PE", "amount": "5" },
+            "units": { "amount": "µL" },
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-fc",
+            "group": "ab",
+            "type": "Fc block",
+            "name": "Fc block X",
+            "shownFields": ["amount"],
+            "values": { "amount": "5" },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-dye",
+            "group": "ab",
+            "type": "Dye",
+            "name": "Viability dye X",
+            "shownFields": ["dilution"],
+            "values": { "dilution": "1000" },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-drug",
+            "group": "chem",
+            "type": "Drug or inhibitor",
+            "name": "Drug X",
+            "shownFields": ["stock-concentration", "batch-note"],
+            "values": { "stock-concentration": "10", "batch-note": "Batch 2" },
+            "units": { "stock-concentration": "mM" },
+            "customFields": [
+              {
+                "key": "batch-note",
+                "label": "Batch note",
+                "kind": "text",
+                "scope": "protocol",
+                "unit": "",
+                "options": []
+              }
+            ],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-medium",
+            "group": "media",
+            "type": "Medium",
+            "name": "Medium A",
+            "shownFields": ["recipe"],
+            "values": { "recipe": "Warm before use" },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": [
+              { "id": "ingredient-1", "materialId": "mat-supplement", "amount": "10", "unit": "%" }
+            ]
+          },
+          {
+            "id": "mat-supplement",
+            "group": "media",
+            "type": "Supplement",
+            "name": "Supplement Y",
+            "shownFields": [],
+            "values": {},
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": false,
+            "recipe": []
+          },
+          {
+            "id": "mat-old",
+            "group": "Shared reagents",
+            "type": "Other",
+            "name": "Old reagent Z",
+            "shownFields": [],
+            "values": {},
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isDropped": true,
+            "recipe": []
+          }
+        ]
+      },
+      {
+        "id": "card-table",
+        "type": "list",
+        "title": "Sample list",
+        "page": "page-setup",
+        "x": 0,
+        "y": 10,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": true,
+        "expandedHeight": 6,
+        "isNamed": true,
+        "columns": [
+          {
+            "id": "column-1",
+            "name": "Tube",
+            "kind": "text",
+            "unit": "",
+            "options": [],
+            "isHidden": false,
+            "warnsWhenPast": false
+          }
+        ],
+        "items": [{ "id": "table-row-1", "cells": { "column-1": "Tube 1" }, "units": {} }]
+      },
+      {
+        "id": "card-values",
+        "type": "values",
+        "title": "Values",
+        "page": "page-setup",
+        "x": 6,
+        "y": 10,
+        "w": 6,
+        "h": 6,
+        "isCollapsed": false,
+        "items": [
+          { "id": "value-well", "name": "Total well vol.", "value": "200", "unit": "µL" },
+          { "id": "value-extra", "name": "Extra (dead vol.)", "value": "10", "unit": "%" },
+          {
+            "id": "value-cell-volume",
+            "name": "Cell line A vol./well",
+            "value": "100",
+            "unit": "µL",
+            "section": "row-cells"
+          },
+          { "id": "value-cell-count", "section": "row-cells", "materialField": "count" },
+          {
+            "id": "value-mix",
+            "name": "Medium A + Supplement Y vol.",
+            "value": "50",
+            "unit": "mL",
+            "section": "row-mix"
+          }
+        ],
+        "sections": [
+          { "id": "row-cells", "materialId": "mat-cells" },
+          { "id": "row-mix", "mixName": "Medium A + Supplement Y" }
+        ],
+        "generalTitle": "Plate setup"
+      },
+      {
+        "id": "card-calculations",
+        "type": "formula",
+        "title": "Calculations",
+        "page": "page-setup",
+        "x": 0,
+        "y": 16,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false,
+        "items": [
+          {
+            "id": "calculation-1",
+            "name": "Cell line A vol. needed",
+            "expr": "Cell line A vol./well × 2",
+            "unit": "µL"
+          }
+        ],
+        "materialSections": ["mat-cells"]
+      },
+      {
+        "id": "card-procedure",
+        "type": "steps",
+        "title": "Procedure",
+        "page": "page-setup",
+        "x": 6,
+        "y": 16,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false
+      },
+      {
+        "id": "card-flow-diagram",
+        "type": "flow",
+        "title": "Flow diagram",
+        "page": "page-setup",
+        "x": 0,
+        "y": 20,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false
+      },
+      {
+        "id": "card-sketch",
+        "type": "sketch",
+        "title": "Sketch",
+        "page": "page-setup",
+        "x": 6,
+        "y": 20,
+        "w": 3,
+        "h": 3,
+        "isCollapsed": false,
+        "strokes": [
+          {
+            "kind": "line",
+            "color": "#86b6dc",
+            "points": [
+              [0, 0],
+              [10, 10]
+            ]
+          },
+          { "kind": "text", "color": "#d7dbe2", "x": 5, "y": 5, "text": "Label", "size": 12 }
+        ]
+      },
+      {
+        "id": "card-text",
+        "type": "text",
+        "title": "Notes",
+        "page": "page-setup",
+        "x": 9,
+        "y": 20,
+        "w": 3,
+        "h": 3,
+        "isCollapsed": false,
+        "html": "<p>Notes</p>"
+      },
+      {
+        "id": "card-linked-plate",
+        "type": "plateView",
+        "title": "Plates",
+        "page": "page-setup",
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8,
+        "isCollapsed": false,
+        "shows": "card-plate",
+        "side": "assay",
+        "activeTab": 1,
+        "mergesReplicates": true
+      },
+      {
+        "id": "card-plate",
+        "type": "plate",
+        "title": "Plates",
+        "page": "page-plates",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8,
+        "isCollapsed": false,
+        "plates": [{ "id": "plate-1", "vessel": "96", "name": "Plate 1" }],
+        "sets": [
+          { "id": "flasks", "vessel": "T75", "count": 2 },
+          { "id": "tubes", "vessel": "facs", "count": 3 }
+        ],
+        "activeTab": 0,
+        "lines": [
+          {
+            "id": "line-cells",
+            "name": "Cells",
+            "values": [
+              { "id": "cells-a", "text": "Cell line A", "color": "#86b6dc" },
+              { "id": "cells-donor-1", "text": "Donor 1" }
+            ],
+            "role": "band",
+            "hiddenMarks": ["bracket"]
+          },
+          {
+            "id": "line-drug",
+            "name": "Drug",
+            "values": [{ "id": "drug-x", "text": "Drug X", "color": "#6fa8e8" }],
+            "role": "color"
+          },
+          {
+            "id": "line-effectors",
+            "name": "Effectors",
+            "values": [{ "id": "effectors-donor-2", "text": "Donor 2" }],
+            "role": "auto",
+            "ratioTo": "line-cells"
+          }
+        ],
+        "cells": {
+          "plate-1:A1": {
+            "line-cells": { "valueId": "cells-a", "amount": "40000", "unit": "cells" },
+            "line-drug": { "valueId": "drug-x", "seriesId": "series-factor", "seriesStep": 0 }
+          },
+          "plate-1:A2": {
+            "line-cells": { "valueId": "cells-a", "amount": "40000", "unit": "cells" },
+            "line-drug": { "valueId": "drug-x", "seriesId": "series-factor", "seriesStep": 1 }
+          },
+          "plate-1:A3": {
+            "line-cells": { "valueId": "cells-a", "amount": "40000", "unit": "cells" },
+            "line-drug": { "valueId": "drug-x", "seriesId": "series-factor", "seriesStep": 2 }
+          },
+          "plate-1:B1": {
+            "line-cells": { "valueId": "cells-donor-1" },
+            "line-effectors": { "valueId": "effectors-donor-2" }
+          },
+          "plate-1:C1": {
+            "line-drug": { "valueId": "drug-x", "seriesId": "series-list", "seriesStep": 0 }
+          },
+          "plate-1:C2": {
+            "line-drug": { "valueId": "drug-x", "seriesId": "series-list", "seriesStep": 1 }
+          },
+          "flasks#0:1": { "line-cells": { "valueId": "cells-a" } },
+          "tubes#0:1": { "line-cells": { "valueId": "cells-donor-1" } }
+        },
+        "series": {
+          "series-factor": {
+            "start": "10",
+            "unit": "µM",
+            "fold": "3",
+            "direction": "right",
+            "prep": {
+              "volumeAdded": "20",
+              "wellVolume": "200",
+              "extraPercent": "10",
+              "roundTo": "1",
+              "diluent": "Medium A"
+            }
+          },
+          "series-list": { "points": ["1", "5"], "direction": "right" }
+        },
+        "shelfName": "Culture flasks",
+        "mergesReplicates": false,
+        "counts": { "used:well": "8" },
+        "amountNames": { "s:series-factor:start": "Drug X top" },
+        "side": "stain",
+        "stain": {
+          "plate-1:A1": "stain-full",
+          "plate-1:B1": "stain-fmo",
+          "tubes#0:1": "stain-unstained"
+        },
+        "stainedIn": { "plate-1:A2": "plate-1:A1", "plate-1:A3": "plate-1:D3" }
+      },
+      {
+        "id": "card-dilutions",
+        "type": "dilutions",
+        "title": "Dilutions",
+        "page": "page-plates",
+        "x": 0,
+        "y": 8,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false
+      },
+      {
+        "id": "card-flow-panel",
+        "type": "cytometer",
+        "title": "Flow panel",
+        "page": "page-plates",
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 6,
+        "isCollapsed": false,
+        "instrument": {
+          "name": "Test cytometer",
+          "kind": "conventional",
+          "lasers": [
+            {
+              "name": "Violet",
+              "nm": 405,
+              "detectors": [{ "id": "VL1", "filter": "450/50", "usual": "BV421" }]
+            },
+            {
+              "name": "Blue",
+              "nm": 488,
+              "detectors": [{ "id": "BL2", "filter": "585/40", "usual": "PE" }]
+            }
+          ]
+        },
+        "rows": [
+          {
+            "id": "marker-cd3",
+            "materialId": "mat-cd3",
+            "detectorId": "VL1",
+            "stain": "Surface",
+            "dilution": "200"
+          },
+          {
+            "id": "marker-cd8",
+            "materialId": "mat-cd8",
+            "detectorId": "BL2",
+            "stain": "Surface",
+            "dilution": "5"
+          }
+        ],
+        "mixes": [
+          {
+            "id": "stain-full",
+            "name": "Full stain",
+            "color": "#d6aa64",
+            "rowIds": ["marker-cd3", "marker-cd8"],
+            "plus": [
+              { "id": "plus-viability", "materialId": "mat-dye", "stain": "Viability" },
+              { "id": "plus-fc", "materialId": "mat-fc", "stain": "Surface" }
+            ]
+          },
+          { "id": "stain-fmo", "name": "FMO CD8", "rowIds": ["marker-cd3"], "plus": [] },
+          { "id": "stain-unstained", "name": "Unstained", "rowIds": [], "plus": [] }
+        ]
+      }
+    ],
+    "lotMemory": { "cd3bv421": { "L1": { "stock-concentration": "0.5" } } },
+    "keptBoth": ["mat-drug"],
+    "ignoredReadings": ["plate:Edge", "value:Spin speed"],
+    "dyes": [{ "name": "Qx Fluor 512", "lasers": [488], "peak": 512 }],
+    "diluent": "Medium A"
+  }
+}

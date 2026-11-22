@@ -200,7 +200,7 @@ The order matters here, or new names land on names still in use.
 
 ## Order of work
 
-1. **A safety net first:** version 4 sample files covering every card, and a test that opens them.
+1. **A safety net first** (built 2026-11-22): `utils/protocolFile/fixtures/everyCard.v4.json` holds every card and saved feature, and `stores/fixtures/labMemory.saved.json` the lab memory. Tests check each opens exactly as saved, survives a save and reopen, and still holds the same facts (named in app words, so Phase B rewrites only how they are read, never what is expected).
 2. **Words still wrong on screen** (below), fixed on their own, since they are app changes, not code
    names.
 3. **Phase A, code-only names, one area per commit,** each green before the next. Within the
