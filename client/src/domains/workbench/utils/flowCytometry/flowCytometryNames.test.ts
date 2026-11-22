@@ -1,4 +1,4 @@
-import { calculateBoard, formulaAnswerText, nameKey } from '../formulas/boardCalculation';
+import { calculateBoard, calculationAnswerText, nameKey } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
@@ -82,7 +82,7 @@ const protocol = (extra: ProtocolBlock[] = []): Protocol => ({
 const answer = (board: ReturnType<typeof calculateBoard>, name: string) => {
   const entry = board.names.get(nameKey(name));
   const result = entry && board.results.get(entry.id);
-  return result?.status === 'ok' ? formulaAnswerText(result) : result?.status;
+  return result?.status === 'ok' ? calculationAnswerText(result) : result?.status;
 };
 
 describe('flow panel names', () => {

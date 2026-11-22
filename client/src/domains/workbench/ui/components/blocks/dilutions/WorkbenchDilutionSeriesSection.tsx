@@ -9,7 +9,7 @@ import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
 import { WorkbenchDilutionStockField } from './WorkbenchDilutionStockField';
 import { WorkbenchDilutionStripPreview } from './WorkbenchDilutionStripPreview';
 
-import type { PrepSettings } from '../../../../utils/dilutions/dilutionFormulas';
+import type { PrepSettings } from '../../../../utils/dilutions/dilutionCalculations';
 import type { DilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 

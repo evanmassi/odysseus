@@ -20,7 +20,7 @@ const board = calculateBoard([
   item(pbs.id, 'PBS'),
   { kind: 'value', id: 'v1', name: 'Drug X stock concentration', value: '10', unit: 'mM' },
   {
-    kind: 'formula',
+    kind: 'calculation',
     id: 'f1',
     name: 'Drug X stock to take',
     expr: '2 µL',

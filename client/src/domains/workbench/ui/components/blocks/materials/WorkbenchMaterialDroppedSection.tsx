@@ -43,7 +43,7 @@ export function WorkbenchMaterialDroppedSection({
   onUndo,
 }: WorkbenchMaterialDroppedSectionProps) {
   const rows = items.map((item, index) => {
-    const used = usageSummary(usage.get(item.id) ?? { steps: [], formulaCount: 0 });
+    const used = usageSummary(usage.get(item.id) ?? { steps: [], calculationCount: 0 });
     return (
       <tr key={item.id} className={materialRowClass(index)}>
         <td className={`${MATERIAL_CELL} text-muted-foreground line-through`}>{item.name}</td>

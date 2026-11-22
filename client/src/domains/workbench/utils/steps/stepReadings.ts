@@ -318,23 +318,23 @@ function addValueFor(
   reading: ValueReading
 ): string {
   const block = firstBlockOrNew(draft, 'values');
-  let section = material
+  let valueRow = material
     ? block.sections.find(
         candidate => 'materialId' in candidate && candidate.materialId === material.id
       )
     : undefined;
-  if (material && !section) {
-    section = { id: createId(), materialId: material.id };
-    block.sections.push(section);
+  if (material && !valueRow) {
+    valueRow = { id: createId(), materialId: material.id };
+    block.sections.push(valueRow);
   }
-  const sectionId = section?.id ?? '';
-  insertAfterPeers(block, sectionId, [
+  const valueRowId = valueRow?.id ?? '';
+  insertAfterPeers(block, valueRowId, [
     {
       id: createId(),
       name: reading.label,
       value: reading.value,
       unit: reading.unit,
-      ...(sectionId && { section: sectionId }),
+      ...(valueRowId && { section: valueRowId }),
     },
   ]);
   return material ? joinValueName(material.name.trim(), reading.label) : reading.label;

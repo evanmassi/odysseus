@@ -26,14 +26,14 @@ import {
   addRoutedValue,
   addSuggestedValue,
   addValueLines,
-  addValueSection,
+  addValueRow,
   materialsById,
   removeValue,
-  removeValueSection,
+  removeValueRow,
   renameValue,
-  renameValueSection,
+  renameValueRow,
   restoreValues,
-  sectionPeers,
+  valuesInRow,
   setValueAmount,
   setValueUnit,
   type RemovedValues,
@@ -46,7 +46,7 @@ import {
   writeCellUnit,
   writeCellValue,
 } from '../../../../utils/values/valueFill';
-import { WHOLE_EXPERIMENT_TITLE } from '../../../../utils/values/valueNames';
+import { WHOLE_EXPERIMENT, WHOLE_EXPERIMENT_TITLE } from '../../../../utils/values/valueNames';
 import { neededForText, valueNeeds } from '../../../../utils/values/valueNeeds';
 import {
   routeValueLine,
@@ -103,7 +103,6 @@ interface ColumnFill {
 }
 
 const UNDO_MS = 8000;
-const GENERAL_SECTION = '';
 const TITLE_INPUT =
   'type-name text-label-md font-semibold text-foreground placeholder:text-muted-foreground';
 
@@ -243,7 +242,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
   );
   const generalItems = useMemo(
     () =>
-      sectionPeers(block, GENERAL_SECTION).flatMap(item => ('materialField' in item ? [] : [item])),
+      valuesInRow(block, WHOLE_EXPERIMENT).flatMap(item => ('materialField' in item ? [] : [item])),
     [block]
   );
   const usageIds = useMemo(
@@ -367,17 +366,17 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
 
   const addToRow = (
     row: ValueTableRow,
-    change: (draft: Protocol, sectionId: string) => string | undefined
+    change: (draft: Protocol, valueRowId: string) => string | undefined
   ) => {
-    let sectionId: string | undefined;
+    let valueRowId: string | undefined;
     let added: string | undefined;
     edit(draft => {
-      sectionId =
-        row.section?.id ??
-        (row.material ? addValueSection(draft, block.id, row.material.id) : undefined);
-      if (sectionId) added = change(draft, sectionId);
+      valueRowId =
+        row.valueRow?.id ??
+        (row.material ? addValueRow(draft, block.id, row.material.id) : undefined);
+      if (valueRowId) added = change(draft, valueRowId);
     });
-    return { sectionId, added };
+    return { valueRowId, added };
   };
 
   const rowSuggestions = (group: ValueTableGroup, row: ValueTableRow): ValueSuggestion[] => {
@@ -385,8 +384,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     const fromColumns = group.columns
       .filter(column => column.origin === 'typed' && !onRow.has(column.key))
       .map(column => columnSuggestion(group, column));
-    const section = row.section ?? (row.material && { id: row.id, materialId: row.material.id });
-    const usual = section ? valueSuggestions(protocol, block, section, row.material) : [];
+    const valueRow = row.valueRow ?? (row.material && { id: row.id, materialId: row.material.id });
+    const usual = valueRow ? valueSuggestions(protocol, block, valueRow, row.material) : [];
     const seen = new Set(fromColumns.map(suggestion => normalizeMaterialKey(suggestion.label)));
     return [
       ...fromColumns,
@@ -401,8 +400,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
     },
     onEditName: setEditingNameRowId,
     onRename: (row, name) => {
-      const { section } = row;
-      if (section) edit(draft => renameValueSection(draft, block.id, section.id, name));
+      const { valueRow } = row;
+      if (valueRow) edit(draft => renameValueRow(draft, block.id, valueRow.id, name));
     },
     onToggleAdd: rowId => setAddingRowId(current => (current === rowId ? undefined : rowId)),
     onFillColumn: (row, column) => {
@@ -443,8 +442,8 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       }
     },
     onRemoveRow: row => {
-      const { section } = row;
-      if (section) remove(draft => removeValueSection(draft, block.id, section.id));
+      const { valueRow } = row;
+      if (valueRow) remove(draft => removeValueRow(draft, block.id, valueRow.id));
     },
   });
 
@@ -481,15 +480,15 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       suggestions={rowSuggestions(group, row)}
       isFocusedOnMount
       onAddLines={lines => {
-        const { sectionId, added } = addToRow(row, (draft, id) =>
+        const { valueRowId, added } = addToRow(row, (draft, id) =>
           addValueLines(draft, block.id, lines, id)
         );
-        setAddingRowId(sectionId);
+        setAddingRowId(valueRowId);
         if (added) setEditingCellId(added);
       }}
       onSuggest={suggestion => {
-        const { added } = addToRow(row, (draft, sectionId) =>
-          addSuggestedValue(draft, block.id, sectionId, suggestion)
+        const { added } = addToRow(row, (draft, valueRowId) =>
+          addSuggestedValue(draft, block.id, valueRowId, suggestion)
         );
         setAddingRowId(undefined);
         setEditingCellId(added);
@@ -655,7 +654,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           onClick={() => {
             let added: string | undefined;
             edit(draft => {
-              added = addValueSection(draft, block.id, undefined);
+              added = addValueRow(draft, block.id, undefined);
             });
             setEditingNameRowId(added);
           }}

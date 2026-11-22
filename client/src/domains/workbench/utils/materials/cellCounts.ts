@@ -216,7 +216,7 @@ export function cellCountNames(
       const [a, b] = reading.rule.from.map(each => countName(subject, each));
       return [
         {
-          kind: 'formula',
+          kind: 'calculation',
           id,
           name,
           expr: `${a} ${reading.rule.operation} ${b}`,

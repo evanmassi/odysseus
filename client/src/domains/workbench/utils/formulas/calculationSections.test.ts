@@ -1,7 +1,9 @@
-import { calculateBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
-import { calculationLayout, calculationSections, WHOLE_EXPERIMENT } from './calculationSections';
+import { WHOLE_EXPERIMENT } from '../values/valueNames';
 
-import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
+import { calculateBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
+import { calculationLayout, calculationSections } from './calculationSections';
+
+import type { CalculationsBlock, MaterialItem } from '@odysseus/shared-schemas';
 
 const drug = {
   id: 'm-drug',
@@ -35,7 +37,7 @@ const names: BoardName[] = [
     workedOut: prepGroup('Drug X'),
   },
   {
-    kind: 'formula',
+    kind: 'calculation',
     id: 'transfer',
     name: 'Drug X transfer',
     expr: 'Drug X volume added × 2',
@@ -43,14 +45,14 @@ const names: BoardName[] = [
     workedOut: prepGroup('Drug X'),
   },
   {
-    kind: 'formula',
+    kind: 'calculation',
     id: 'raji',
     name: 'Raji transfer',
     expr: '5 µL',
     unit: '',
     workedOut: prepGroup('Raji'),
   },
-  { kind: 'formula', id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' },
+  { kind: 'calculation', id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' },
 ];
 
 const block = {
@@ -58,7 +60,7 @@ const block = {
   type: 'formula',
   items: [{ id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' }],
   materialSections: [],
-} as unknown as FormulaBlock;
+} as unknown as CalculationsBlock;
 
 describe('calculation sections', () => {
   const board = calculateBoard(names);
@@ -93,7 +95,7 @@ describe('calculation sections', () => {
     const withGaps = calculateBoard([
       ...names,
       {
-        kind: 'formula',
+        kind: 'calculation',
         id: 'raji-gap',
         name: 'Raji volume',
         expr: '',

@@ -260,7 +260,30 @@ The order matters here, or new names land on names still in use.
       `shelfName`, `cells`, `start` / `fold` / `points` / `seriesStep`, `hiddenMarks`, the role
       `color`, `mergesReplicates`.
    4. Calculations.
+      **Done 2026-11-22.** The card and each named result are calculation: `CalculationsBlock`,
+      folder `blocks/calculations/`, `WorkbenchCalculationsPanel` and `WorkbenchCalculation*`,
+      `CalculationItem`, `insert` / `update` / `removeCalculation`, `CalculationResult`,
+      `calculationAnswerText`, `CalculationName` (now one exported type, was copied into five
+      files), `CalculationGap`, `CalculationDraft`, `calculationMaterial`, `cellCalculations.ts`,
+      `materialRecipeCalculations.ts`, `dilutionCalculations.ts`, `calculationEdits.ts`, the
+      board entry kind and working source `'calculation'`, `data-calculation-row`; a variable
+      holding one is `calculation`. The typed math keeps formula: `parseFormula`, `FormulaNode`,
+      `FormulaError`, `FORMULA_FUNCTIONS`, `formulaCompletions`, `WorkbenchFormulaCompletionList`,
+      `formulaScopes`, `FORMULA_TEXT`, the tray's `'formula'` mode, and the engine folder
+      `utils/formulas/`. The name display's kinds now derive from the board's. Saved keys wait for
+      Phase B: card type `'formula'`, `items[].expr` (the code's `expr` goes with it).
    5. Values.
+      **Done 2026-11-22.** A Values row: `ValueRow` (now one exported type in shared-schemas, was
+      copied into three files), `addValueRow`, `removeValueRow`, `renameValueRow`, `valueRowName`,
+      `valuesInRow`, `valueRowId`; a variable holding one is `valueRow` (plain `row` already means
+      a table row there), and `ValueTableRow.valueRow` links a drawn row to its record; the undo
+      kind is `'row'`. The Whole experiment key had two copies (`WHOLE_EXPERIMENT`,
+      `GENERAL_SECTION`): now one `WHOLE_EXPERIMENT` in `valueNames.ts` beside its title, its name
+      left for the Whole experiment redesign. `ValueItem` stays, matching `MaterialItem` and
+      `CalculationItem`. Kept: the layout pieces `WorkbenchValueSection` and
+      `WorkbenchValueReadingsSection` (Section is a component suffix), and Procedure's own
+      sections. Saved keys wait for Phase B: `sections`, items' `section`, `generalTitle`,
+      `ignoredReadings`.
    6. Materials, donors, set aside.
    7. Procedure and Table.
    8. **Card last** (it touches nearly every file).

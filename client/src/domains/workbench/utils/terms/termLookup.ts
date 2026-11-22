@@ -15,7 +15,7 @@ import {
 const kindOf = (unit: string) => UNIT_REGISTRY.find(entry => entry.id === unit)?.kind;
 
 const unitOf = (entry: BoardName) =>
-  entry.kind === 'value' || entry.kind === 'formula' ? entry.unit : '';
+  entry.kind === 'value' || entry.kind === 'calculation' ? entry.unit : '';
 
 function fitsUnit(term: Term, entry: BoardName) {
   if (!term.unitKind) return true;

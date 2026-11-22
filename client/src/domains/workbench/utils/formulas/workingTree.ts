@@ -4,7 +4,7 @@ export interface WorkingRef {
   kind: 'ref';
   name: string;
   text: string;
-  source: 'value' | 'count' | 'formula';
+  source: 'value' | 'count' | 'calculation';
   isDropped: boolean;
 }
 

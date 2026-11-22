@@ -1,5 +1,5 @@
 import { calculateBoard, type BoardName } from './boardCalculation';
-import { checkFormulaDraft, readFormulaDraft } from './formulaDraft';
+import { checkCalculationDraft, readCalculationDraft } from './calculationDraft';
 
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
@@ -16,10 +16,10 @@ const value = (name: string, amount: string, unit = ''): BoardName => ({
 const board = calculateBoard([
   value('Raji per well', '10000', 'cells'),
   value('Wells used', '96'),
-  { kind: 'formula', id: 'total', name: 'Total volume', expr: 'Wells used × 50 µL', unit: '' },
+  { kind: 'calculation', id: 'total', name: 'Total volume', expr: 'Wells used × 50 µL', unit: '' },
 ]);
 
-const draft = (text: string) => readFormulaDraft(text, board, [raji]);
+const draft = (text: string) => readCalculationDraft(text, board, [raji]);
 
 describe('a typed calculation', () => {
   it('files a name that starts with a material under it and reads its short names within it', () => {
@@ -42,21 +42,21 @@ describe('a typed calculation', () => {
 
   it('works out the answer before it is added', () => {
     const typed = draft('Raji cells needed = per well × Wells used');
-    const check = typed && checkFormulaDraft(typed, board);
+    const check = typed && checkCalculationDraft(typed, board);
     expect(check?.problem).toBeUndefined();
     expect(check?.answer).toBe('9.60E+5 cells');
   });
 
   it('suggests the closest name when one is misspelled', () => {
     const typed = draft('Cells = Raji per wel × Wells used');
-    expect(typed && checkFormulaDraft(typed, board).problem).toMatch(
+    expect(typed && checkCalculationDraft(typed, board).problem).toMatch(
       /Did you mean Raji per well\?$/
     );
   });
 
   it('has nothing to check until a formula is typed', () => {
     const typed = draft('Raji cells needed');
-    expect(typed && checkFormulaDraft(typed, board)).toEqual({
+    expect(typed && checkCalculationDraft(typed, board)).toEqual({
       answer: undefined,
       problem: undefined,
     });

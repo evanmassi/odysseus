@@ -137,7 +137,7 @@ const legacyValueItem = z.union([
     .transform(item => ({ ...item, unit: upgradeUnit(item.unit) })),
 ]);
 
-const legacyValueSection = z.union([
+const legacyValueRow = z.union([
   z
     .object({ id: z.string(), of: z.string(), name: z.string().optional() })
     .transform(({ id, of, name }) => ({
@@ -348,7 +348,7 @@ const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
     })),
   values: z.object({
     items: list(legacyValueItem),
-    sections: list(legacyValueSection),
+    sections: list(legacyValueRow),
     generalTitle: z.string().optional(),
   }),
   formula: z

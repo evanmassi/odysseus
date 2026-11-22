@@ -20,27 +20,27 @@ import {
 import { autoUnit, AUTO_UNIT } from '../../../../utils/formulas/quantities';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { joinValueName } from '../../../../utils/values/valueNames';
-import { FORMULA_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
+import { CALCULATION_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 import { META_LABEL } from '../../board/metaLabelClass';
 import { POPOUT_PANEL } from '../../board/popoutPanelClass';
 import { useInsertTarget } from '../../tray/useInsertTarget';
 import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton';
 
+import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
 import { WorkbenchFormulaCompletionList } from './WorkbenchFormulaCompletionList';
-import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
 
 import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { TrayInsertion } from '../../tray/insertTrayStore';
-import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
+import type { CalculationsBlock, MaterialItem } from '@odysseus/shared-schemas';
 
-type FormulaItem = FormulaBlock['items'][number];
+type CalculationItem = CalculationsBlock['items'][number];
 
-interface WorkbenchFormulaEditorProps {
-  formula: FormulaItem;
+interface WorkbenchCalculationEditorProps {
+  calculation: CalculationItem;
   material: MaterialItem | undefined;
   board: SolvedBoard;
   anchorOf: () => DOMRect | undefined;
-  onChange: (change: Partial<Omit<FormulaItem, 'id'>>) => void;
+  onChange: (change: Partial<Omit<CalculationItem, 'id'>>) => void;
   onAddMissing: (name: string) => void;
   onRemove: () => void;
   onClose: () => void;
@@ -50,8 +50,8 @@ const LINE_INPUT = 'w-full text-body-sm text-foreground placeholder:text-muted-f
 const FORMULA_TEXT =
   'whitespace-pre-wrap break-words px-2 py-1.5 font-mono text-data-sm leading-relaxed [grid-area:1/1]';
 
-export function WorkbenchFormulaEditor({
-  formula,
+export function WorkbenchCalculationEditor({
+  calculation,
   material,
   board,
   anchorOf,
@@ -59,15 +59,17 @@ export function WorkbenchFormulaEditor({
   onAddMissing,
   onRemove,
   onClose,
-}: WorkbenchFormulaEditorProps) {
+}: WorkbenchCalculationEditorProps) {
   const expressionRef = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
-  const [name, setName] = useState(() => nameWithin(formula.name, material));
-  const [expression, setExpression] = useState(() => namesWithin(formula.expr, board, material));
+  const [name, setName] = useState(() => nameWithin(calculation.name, material));
+  const [expression, setExpression] = useState(() =>
+    namesWithin(calculation.expr, board, material)
+  );
   const [completions, setCompletions] = useState<FormulaCompletion[]>([]);
   const [highlighted, setHighlighted] = useState(0);
-  const isNameTaken = board.takenNameIds.has(formula.id);
-  const result = board.results.get(formula.id);
+  const isNameTaken = board.takenNameIds.has(calculation.id);
+  const result = board.results.get(calculation.id);
   const shownAutoUnit = result?.status === 'ok' ? autoUnit(result.quantity) : undefined;
 
   const editorPosition = usePlacedBeside(editorRef, anchorOf);
@@ -93,7 +95,7 @@ export function WorkbenchFormulaEditor({
 
   const refreshCompletions = (text: string, caret: number) => {
     setCompletions(
-      formulaCompletions(board, material, formulaWordAt(text, caret).text, formula.name)
+      formulaCompletions(board, material, formulaWordAt(text, caret).text, calculation.name)
     );
     setHighlighted(0);
   };
@@ -180,8 +182,8 @@ export function WorkbenchFormulaEditor({
         <Select
           size="xs"
           isQuiet
-          options={[...FORMULA_UNIT_OPTIONS]}
-          value={formula.unit}
+          options={[...CALCULATION_UNIT_OPTIONS]}
+          value={calculation.unit}
           aria-label="Show the answer in"
           renderValue={([selected]) =>
             selected?.value === AUTO_UNIT ? (shownAutoUnit ?? selected.label) : selected?.label
@@ -258,8 +260,8 @@ export function WorkbenchFormulaEditor({
           }}
         />
       </div>
-      <WorkbenchFormulaWorking
-        name={formula.name}
+      <WorkbenchCalculationWorking
+        name={calculation.name}
         result={result}
         isCompact={false}
         shortName={full => nameWithin(full, material)}

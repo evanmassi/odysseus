@@ -6,7 +6,7 @@ import elisaAnswers from '../protocolFile/fixtures/elisa.answers.json';
 import elisaMockup from '../protocolFile/fixtures/elisa.mockup.json';
 import { readProtocolFile } from '../protocolFile/protocolFile';
 
-import { calculateBoard, formulaAnswerText, type FormulaResult } from './boardCalculation';
+import { calculateBoard, calculationAnswerText, type CalculationResult } from './boardCalculation';
 import { collectBoardNames } from './boardNames';
 
 const EXAMPLES = {
@@ -15,10 +15,10 @@ const EXAMPLES = {
   elisa: [elisaMockup, elisaAnswers],
 } as const;
 
-const answerText = (result: FormulaResult | undefined) => {
+const answerText = (result: CalculationResult | undefined) => {
   if (!result) return 'MISSING';
   if (result.status !== 'ok') return `ERR ${result.message}`;
-  return 'error' in result.output ? `OUTERR ${result.output.error}` : formulaAnswerText(result);
+  return 'error' in result.output ? `OUTERR ${result.output.error}` : calculationAnswerText(result);
 };
 
 describe.each(Object.entries(EXAMPLES))('formulas in the %s example', (_, [file, answers]) => {

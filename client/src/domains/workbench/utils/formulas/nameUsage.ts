@@ -7,7 +7,7 @@ import type { Protocol } from '@odysseus/shared-schemas';
 
 export interface NameUsage {
   steps: string[];
-  formulaCount: number;
+  calculationCount: number;
 }
 
 const STEP_REFERENCE = /\{([^}]+)\}/g;
@@ -23,7 +23,7 @@ export function nameUsage(
     const owner = wanted.has(entry.id) ? entry.id : entry.id.split(':')[0];
     if (wanted.has(owner)) ownerByName.set(key, owner);
   }
-  const usage = new Map(ids.map(id => [id, { steps: [] as string[], formulaCount: 0 }]));
+  const usage = new Map(ids.map(id => [id, { steps: [] as string[], calculationCount: 0 }]));
   const labels = stepLabels(protocol.pages);
   for (const page of protocol.pages) {
     for (const step of page.steps) {
@@ -37,10 +37,10 @@ export function nameUsage(
   }
   const names = [...board.names.values()].map(entry => entry.name);
   const typedExprs = protocol.blocks.flatMap(block =>
-    block.type === 'formula' ? block.items.map(formula => formula.expr) : []
+    block.type === 'formula' ? block.items.map(calculation => calculation.expr) : []
   );
   const generatedExprs = [...board.names.values()].flatMap(entry =>
-    entry.kind === 'formula' && entry.workedOut ? [entry.expr] : []
+    entry.kind === 'calculation' && entry.workedOut ? [entry.expr] : []
   );
   for (const expr of [...typedExprs, ...generatedExprs]) {
     const owners = new Set(
@@ -48,16 +48,17 @@ export function nameUsage(
     );
     for (const owner of owners) {
       const use = usage.get(owner);
-      if (use) use.formulaCount += 1;
+      if (use) use.calculationCount += 1;
     }
   }
   return usage;
 }
 
-export function usageSummary({ steps, formulaCount }: NameUsage): string {
+export function usageSummary({ steps, calculationCount }: NameUsage): string {
   const parts: string[] = [];
   if (steps.length) parts.push(`${steps.length === 1 ? 'Step' : 'Steps'} ${steps.join(', ')}`);
-  if (formulaCount) parts.push(`${formulaCount} calculation${formulaCount === 1 ? '' : 's'}`);
+  if (calculationCount)
+    parts.push(`${calculationCount} calculation${calculationCount === 1 ? '' : 's'}`);
   return parts.join(' · ');
 }
 

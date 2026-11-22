@@ -1,17 +1,16 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { displayNameOf, findMaterial } from '../materials/materialLookup';
+import { WHOLE_EXPERIMENT } from '../values/valueNames';
 
-import { type SolvedBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
-import { formulaMaterial, nameWithinOwner } from './formulaScopes';
+import { type CalculationName, type SolvedBoard, type WorkedOutGroup } from './boardCalculation';
+import { calculationMaterial, nameWithinOwner } from './formulaScopes';
 
-import type { FormulaBlock, MaterialItem } from '@odysseus/shared-schemas';
-
-type FormulaName = Extract<BoardName, { kind: 'formula' }>;
+import type { CalculationsBlock, MaterialItem } from '@odysseus/shared-schemas';
 
 export interface WorkedOutView {
   group: WorkedOutGroup;
-  lines: FormulaName[];
+  lines: CalculationName[];
 }
 
 export interface CalculationSection {
@@ -19,18 +18,16 @@ export interface CalculationSection {
   material: MaterialItem | undefined;
   owner: string;
   title: string;
-  items: FormulaBlock['items'];
+  items: CalculationsBlock['items'];
   groups: WorkedOutView[];
 }
-
-export const WHOLE_EXPERIMENT = '';
 
 export function sectionKeyOf(
   name: string,
   workedOut: WorkedOutGroup | undefined,
   materials: readonly MaterialItem[]
 ): string {
-  if (!workedOut) return formulaMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
+  if (!workedOut) return calculationMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
   return (
     findMaterial(materials, workedOut.subject)?.id ??
     `subject:${normalizeMaterialKey(workedOut.subject)}`
@@ -38,7 +35,7 @@ export function sectionKeyOf(
 }
 
 export function calculationSections(
-  block: FormulaBlock,
+  block: CalculationsBlock,
   materials: readonly MaterialItem[],
   board: SolvedBoard,
   showsWorkedOut: boolean,
@@ -73,8 +70,8 @@ export function calculationSections(
   }
   const worked = showsWorkedOut
     ? [...board.names.values()].filter(
-        (entry): entry is FormulaName & { workedOut: WorkedOutGroup } =>
-          entry.kind === 'formula' && !!entry.workedOut
+        (entry): entry is CalculationName & { workedOut: WorkedOutGroup } =>
+          entry.kind === 'calculation' && !!entry.workedOut
       )
     : [];
   for (const line of worked) {
@@ -110,7 +107,7 @@ export interface CalculationTableRow {
   key: string;
   label: string;
   subject: string;
-  lines: FormulaName[];
+  lines: CalculationName[];
 }
 
 export interface CalculationTable {

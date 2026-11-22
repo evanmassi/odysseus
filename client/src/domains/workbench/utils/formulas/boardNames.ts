@@ -1,7 +1,7 @@
-import { dilutionFormulaNames } from '../dilutions/dilutionFormulas';
-import { flowCytometryFormulaNames } from '../flowCytometry/flowCytometryNames';
+import { dilutionCalculationNames } from '../dilutions/dilutionCalculations';
+import { flowCytometryCalculationNames } from '../flowCytometry/flowCytometryNames';
+import { cellCalculationNames } from '../materials/cellCalculations';
 import { cellCountNames, countSubjects } from '../materials/cellCounts';
-import { cellFormulaNames } from '../materials/cellFormulas';
 import {
   CELL_COUNT_KEYS,
   fieldName,
@@ -11,7 +11,7 @@ import {
   materialLabel,
 } from '../materials/materialCatalog';
 import { shortNameOf } from '../materials/materialLookup';
-import { recipeFormulaNames } from '../materials/materialRecipeFormulas';
+import { recipeCalculationNames } from '../materials/materialRecipeCalculations';
 import { materialWellCounts, plateAmounts, plateMapCounts } from '../plateMap/plateMapNames';
 import { joinValueName } from '../values/valueNames';
 
@@ -102,15 +102,15 @@ function valueNames(
   block: BlockOf<'values'>,
   materialsById: ReadonlyMap<string, MaterialItem>
 ): BoardName[] {
-  const sectionName = (sectionId: string | undefined) => {
-    const section = block.sections.find(candidate => candidate.id === sectionId);
-    if (!section) return undefined;
-    if ('mixName' in section) return section.mixName.trim();
-    return materialsById.get(section.materialId)?.name.trim() ?? section.materialName ?? '';
+  const valueRowName = (valueRowId: string | undefined) => {
+    const valueRow = block.sections.find(candidate => candidate.id === valueRowId);
+    if (!valueRow) return undefined;
+    if ('mixName' in valueRow) return valueRow.mixName.trim();
+    return materialsById.get(valueRow.materialId)?.name.trim() ?? valueRow.materialName ?? '';
   };
   return block.items.flatMap((item): BoardName[] => {
     if ('materialField' in item) return [];
-    const owner = sectionName(item.section);
+    const owner = valueRowName(item.section);
     return [
       {
         kind: 'value',
@@ -144,9 +144,9 @@ function vesselMapNames(block: BlockOf<'plate'>): BoardName[] {
   return [...counts, ...amounts];
 }
 
-const formulaNames = (block: BlockOf<'formula'>): BoardName[] =>
+const calculationNames = (block: BlockOf<'formula'>): BoardName[] =>
   block.items.map(item => ({
-    kind: 'formula',
+    kind: 'calculation',
     id: item.id,
     name: item.name,
     expr: item.expr,
@@ -188,7 +188,7 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
       case 'plate':
         return vesselMapNames(block);
       case 'formula':
-        return formulaNames(block);
+        return calculationNames(block);
       default:
         return [];
     }
@@ -204,9 +204,9 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
   ];
   const generated = [
     ...ownNames,
-    ...recipeFormulaNames(protocol, ownNames),
-    ...dilutionFormulaNames(protocol, ownNames),
-    ...cellFormulaNames(protocol, ownNames),
+    ...recipeCalculationNames(protocol, ownNames),
+    ...dilutionCalculationNames(protocol, ownNames),
+    ...cellCalculationNames(protocol, ownNames),
   ];
-  return [...generated, ...flowCytometryFormulaNames(protocol, generated)];
+  return [...generated, ...flowCytometryCalculationNames(protocol, generated)];
 }

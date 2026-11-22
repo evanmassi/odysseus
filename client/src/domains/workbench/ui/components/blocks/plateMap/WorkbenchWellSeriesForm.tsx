@@ -39,7 +39,8 @@ function nameSuggestions(board: SolvedBoard, typed: string) {
   return [...board.names.values()]
     .filter(
       entry =>
-        (entry.kind === 'value' || entry.kind === 'formula') && nameKey(entry.name).includes(key)
+        (entry.kind === 'value' || entry.kind === 'calculation') &&
+        nameKey(entry.name).includes(key)
     )
     .slice(0, SUGGESTION_LIMIT)
     .map(entry => ({ name: entry.name, shown: describeName(board, entry.name).text }));
@@ -47,7 +48,7 @@ function nameSuggestions(board: SolvedBoard, typed: string) {
 
 function linkedText(board: SolvedBoard, text: string) {
   const shown = describeName(board, text);
-  return shown.kind === 'value' || shown.kind === 'formula' ? shown.text : undefined;
+  return shown.kind === 'value' || shown.kind === 'calculation' ? shown.text : undefined;
 }
 
 export function WorkbenchWellSeriesForm({

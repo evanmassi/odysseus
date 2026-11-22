@@ -3,9 +3,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 import { fieldLabel, materialFields } from '../materials/materialCatalog';
 import { CELLS_PER_WELL, FINAL_CONCENTRATION, VOLUME_PER_WELL, type Term } from '../terms/termList';
 
-import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
-
-type ValueSection = ValuesBlock['sections'][number];
+import type { MaterialItem, Protocol, ValuesBlock, ValueRow } from '@odysseus/shared-schemas';
 
 export type ValueSuggestion =
   | { kind: 'field'; materialField: string; label: string }
@@ -35,11 +33,11 @@ function hasPlateMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialIt
 export function valueSuggestions(
   protocol: Pick<Protocol, 'blocks'>,
   block: ValuesBlock,
-  section: ValueSection,
+  valueRow: ValueRow,
   material: MaterialItem | undefined
 ): ValueSuggestion[] {
-  if ('materialId' in section && !material) return [];
-  const peers = block.items.filter(item => item.section === section.id);
+  if ('materialId' in valueRow && !material) return [];
+  const peers = block.items.filter(item => item.section === valueRow.id);
   const taken = new Set(
     peers.map(item =>
       'materialField' in item ? item.materialField : normalizeMaterialKey(item.name)

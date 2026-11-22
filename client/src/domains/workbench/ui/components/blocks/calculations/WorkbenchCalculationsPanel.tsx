@@ -10,62 +10,73 @@ import { useStableColumns } from '../../../../hooks/useStableColumns';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import { useProtocolWith } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { prepLineId } from '../../../../utils/dilutions/dilutionFormulas';
+import { prepLineId } from '../../../../utils/dilutions/dilutionCalculations';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import { dilutionRuns } from '../../../../utils/dilutions/dilutionRuns';
 import {
   nameKey,
   type SolvedBoard,
-  type FormulaResult,
+  type CalculationResult,
 } from '../../../../utils/formulas/boardCalculation';
+import {
+  checkCalculationDraft,
+  readCalculationDraft,
+} from '../../../../utils/formulas/calculationDraft';
+import {
+  addNamedValue,
+  insertCalculation,
+  removeCalculation,
+  setCalculationSection,
+  updateCalculation,
+} from '../../../../utils/formulas/calculationEdits';
 import {
   calculationLayout,
   calculationSections,
-  WHOLE_EXPERIMENT,
   type CalculationPart,
   type CalculationSection,
 } from '../../../../utils/formulas/calculationSections';
-import { checkFormulaDraft, readFormulaDraft } from '../../../../utils/formulas/formulaDraft';
-import {
-  addNamedValue,
-  insertFormula,
-  removeFormula,
-  setFormulaSection,
-  updateFormula,
-} from '../../../../utils/formulas/formulaEdits';
 import {
   calculationSuggestions,
-  formulaMaterial,
+  calculationMaterial,
   namesInFull,
   namesWithin,
   uniqueName,
   type CalculationSuggestion,
 } from '../../../../utils/formulas/formulaScopes';
 import { workingRefs } from '../../../../utils/formulas/workingTree';
-import { cellWarnings } from '../../../../utils/materials/cellFormulas';
+import { cellWarnings } from '../../../../utils/materials/cellCalculations';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
-import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
+import { recipeWarnings } from '../../../../utils/materials/materialRecipeCalculations';
 import { TOTAL_WELL_VOLUME, WELLS_USED } from '../../../../utils/terms/termList';
-import { generalTitleOf, joinValueName } from '../../../../utils/values/valueNames';
+import {
+  generalTitleOf,
+  joinValueName,
+  WHOLE_EXPERIMENT,
+} from '../../../../utils/values/valueNames';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
-import { WorkbenchFormulaEditor } from './WorkbenchFormulaEditor';
-import { FORMULA_ROW_ATTRIBUTE, WorkbenchFormulaRow } from './WorkbenchFormulaRow';
-import { WorkbenchFormulaSection } from './WorkbenchFormulaSection';
-import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
-import { WorkbenchFormulaTable } from './WorkbenchFormulaTable';
+import { WorkbenchCalculationEditor } from './WorkbenchCalculationEditor';
+import { CALCULATION_ROW_ATTRIBUTE, WorkbenchCalculationRow } from './WorkbenchCalculationRow';
+import { WorkbenchCalculationSection } from './WorkbenchCalculationSection';
+import { WorkbenchCalculationSuggestionList } from './WorkbenchCalculationSuggestionList';
+import { WorkbenchCalculationTable } from './WorkbenchCalculationTable';
 import {
-  WorkbenchFormulaWorkedOutGroup,
+  WorkbenchCalculationWorkedOutGroup,
   type WorkedOutLine,
   type WorkedOutSettings,
-} from './WorkbenchFormulaWorkedOutGroup';
+} from './WorkbenchCalculationWorkedOutGroup';
 
-import type { FormulaTableRow } from './WorkbenchFormulaTable';
-import type { FormulaBlock, MaterialItem, Protocol, ProtocolBlock } from '@odysseus/shared-schemas';
+import type { CalculationTableRowView } from './WorkbenchCalculationTable';
+import type {
+  CalculationsBlock,
+  MaterialItem,
+  Protocol,
+  ProtocolBlock,
+} from '@odysseus/shared-schemas';
 
-interface WorkbenchFormulaPanelProps {
-  block: FormulaBlock;
+interface WorkbenchCalculationsPanelProps {
+  block: CalculationsBlock;
 }
 
 interface GroupView {
@@ -75,7 +86,7 @@ interface GroupView {
 
 interface TableView {
   settings: WorkedOutSettings | undefined;
-  rows: FormulaTableRow[];
+  rows: CalculationTableRowView[];
 }
 
 const WIDE_TABLE_COLUMNS = 3;
@@ -102,7 +113,7 @@ const SETTINGS_LABELS: Partial<Record<ProtocolBlock['type'], string>> = {
 
 function linksOf(
   board: SolvedBoard,
-  result: FormulaResult | undefined
+  result: CalculationResult | undefined
 ): Readonly<Record<string, string>> {
   if (result?.status !== 'ok') return {};
   return Object.fromEntries(
@@ -126,7 +137,7 @@ function prepWarnings(protocol: Pick<Protocol, 'blocks'>, board: SolvedBoard) {
   return byLine;
 }
 
-export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
+export function WorkbenchCalculationsPanel({ block }: WorkbenchCalculationsPanelProps) {
   const protocol = useProtocolWith('materials', 'plate', 'formula', 'dilutions');
   const board = useWorkbenchStore(state => state.board);
   const activePageId = useWorkbenchStore(state => state.activePageId);
@@ -138,7 +149,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   const openRowBox = useCallback(
     () =>
       columnsRef.current
-        ?.querySelector(`[${FORMULA_ROW_ATTRIBUTE}="${openId}"]`)
+        ?.querySelector(`[${CALCULATION_ROW_ATTRIBUTE}="${openId}"]`)
         ?.getBoundingClientRect(),
     [openId]
   );
@@ -171,7 +182,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   );
   const results = useStructuralSharing(
     useMemo(
-      (): Partial<Record<string, FormulaResult>> => Object.fromEntries(board.results),
+      (): Partial<Record<string, CalculationResult>> => Object.fromEntries(board.results),
       [board]
     )
   );
@@ -225,10 +236,10 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     }, [layout, protocol, board, warnings])
   );
 
-  const sectionOf = (name: string) => formulaMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
+  const sectionOf = (name: string) => calculationMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
 
-  const addFormula = (material: MaterialItem | undefined, text: string) => {
+  const addCalculation = (material: MaterialItem | undefined, text: string) => {
     const [label, ...rest] = text.split('=');
     const name = uniqueName(
       board,
@@ -237,7 +248,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     const expr = namesInFull(withGreekLetters(rest.join('=').trim()), board, material);
     let added: string | undefined;
     edit(draft => {
-      added = insertFormula(
+      added = insertCalculation(
         draft,
         block.id,
         { name, expr },
@@ -249,11 +260,11 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
   };
 
   const typedDraft = useMemo(
-    () => readFormulaDraft(typed, board, materials),
+    () => readCalculationDraft(typed, board, materials),
     [typed, board, materials]
   );
   const typedCheck = useMemo(
-    () => typedDraft && checkFormulaDraft(typedDraft, board),
+    () => typedDraft && checkCalculationDraft(typedDraft, board),
     [typedDraft, board]
   );
   const [onlyPart] = layout.parts;
@@ -268,7 +279,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     const { savedName, expr, material } = typedDraft;
     let added: string | undefined;
     edit(draft => {
-      added = insertFormula(
+      added = insertCalculation(
         draft,
         block.id,
         { name: savedName, expr },
@@ -282,7 +293,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
 
   const addSuggestion = (material: MaterialItem | undefined, suggestion: CalculationSuggestion) =>
     edit(draft => {
-      insertFormula(
+      insertCalculation(
         draft,
         block.id,
         { name: suggestion.name, expr: suggestion.expr },
@@ -292,26 +303,28 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     });
 
   const ownItems = (section: CalculationSection) =>
-    section.items.map(formula => (
-      <WorkbenchFormulaRow
-        key={formula.id}
-        formulaId={formula.id}
-        name={formula.name}
-        result={results[formula.id]}
+    section.items.map(calculation => (
+      <WorkbenchCalculationRow
+        key={calculation.id}
+        calculationId={calculation.id}
+        name={calculation.name}
+        result={results[calculation.id]}
         material={section.material}
-        isOpen={formula.id === openId}
+        isOpen={calculation.id === openId}
         onOpen={setOpenId}
       />
     ));
   const open = sections
-    .flatMap(section => section.items.map(formula => ({ formula, material: section.material })))
-    .find(({ formula }) => formula.id === openId);
+    .flatMap(section =>
+      section.items.map(calculation => ({ calculation, material: section.material }))
+    )
+    .find(({ calculation }) => calculation.id === openId);
 
   const renderPart = (part: CalculationPart) => {
     if (part.kind === 'table') {
       const view = workedOut.tables[part.table.key];
       return (
-        <WorkbenchFormulaTable
+        <WorkbenchCalculationTable
           key={part.table.key}
           title={part.table.title}
           columns={part.table.columns}
@@ -326,7 +339,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     const { material, items, groups } = section;
     const { title } = section;
     return (
-      <WorkbenchFormulaSection
+      <WorkbenchCalculationSection
         key={section.key}
         title={isTitled ? title : undefined}
         kind={material?.type ?? ''}
@@ -335,18 +348,18 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         suggestions={material ? calculationSuggestions(board, material) : []}
         suggestionTitle={suggestion => namesWithin(suggestion.expr, board, material)}
         isEmpty={!items.length && !groups.length}
-        onAdd={material ? text => addFormula(material, text) : undefined}
+        onAdd={material ? text => addCalculation(material, text) : undefined}
         onSuggest={suggestion => addSuggestion(material, suggestion)}
         onRemoveSection={
           material && !items.length && !groups.length
-            ? () => edit(draft => setFormulaSection(draft, block.id, material.id, false))
+            ? () => edit(draft => setCalculationSection(draft, block.id, material.id, false))
             : undefined
         }
       >
         {groups.map(({ group }) => {
           const view = workedOut.groups[`${section.key}/${group.key}`];
           return (
-            <WorkbenchFormulaWorkedOutGroup
+            <WorkbenchCalculationWorkedOutGroup
               key={group.key}
               title={group.title}
               lines={view.lines}
@@ -357,7 +370,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           );
         })}
         {ownItems(section)}
-      </WorkbenchFormulaSection>
+      </WorkbenchCalculationSection>
     );
   };
   const isWideTable = (part: CalculationPart) =>
@@ -404,7 +417,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           </p>
         )}
         {typedDraft?.material && (
-          <WorkbenchFormulaSuggestionList
+          <WorkbenchCalculationSuggestionList
             suggestions={calculationSuggestions(board, typedDraft.material)}
             suggestionTitle={suggestion => namesWithin(suggestion.expr, board, typedDraft.material)}
             className="flex"
@@ -444,20 +457,20 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         <div className="mb-6 flex flex-col gap-6">{wideTables.map(renderPart)}</div>
       )}
       {open && (
-        <WorkbenchFormulaEditor
-          key={open.formula.id}
-          formula={open.formula}
+        <WorkbenchCalculationEditor
+          key={open.calculation.id}
+          calculation={open.calculation}
           material={open.material}
           board={board}
           anchorOf={openRowBox}
           onChange={change =>
-            edit(draft => updateFormula(draft, block.id, open.formula.id, change))
+            edit(draft => updateCalculation(draft, block.id, open.calculation.id, change))
           }
           onAddMissing={name =>
             edit(draft => addNamedValue(draft, name, open.material, activePageId))
           }
           onRemove={() => {
-            edit(draft => removeFormula(draft, block.id, open.formula.id));
+            edit(draft => removeCalculation(draft, block.id, open.calculation.id));
             setOpenId(undefined);
           }}
           onClose={() => setOpenId(undefined)}

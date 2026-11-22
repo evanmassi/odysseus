@@ -12,7 +12,7 @@ import {
   prepSettingsOf,
   type PrepLine,
   type PrepSettings,
-} from './dilutionFormulas';
+} from './dilutionCalculations';
 import { stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 

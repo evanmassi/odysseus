@@ -1,7 +1,8 @@
 import { materialGroupsOf } from '../materials/materialCatalog';
 import { UNSORTED_GROUP } from '../materials/materialItems';
+import { WHOLE_EXPERIMENT } from '../values/valueNames';
 
-import { sectionKeyOf, WHOLE_EXPERIMENT } from './calculationSections';
+import { sectionKeyOf } from './calculationSections';
 import { nameWithinOwner } from './formulaScopes';
 import { describeName } from './nameDisplay';
 

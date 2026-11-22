@@ -49,7 +49,7 @@ export type BoardName = NameSource &
         isDropped?: boolean;
       }
     | {
-        kind: 'formula';
+        kind: 'calculation';
         id: string;
         name: string;
         expr: string;
@@ -61,14 +61,14 @@ export type BoardName = NameSource &
       }
   );
 
-type FormulaName = Extract<BoardName, { kind: 'formula' }>;
+export type CalculationName = Extract<BoardName, { kind: 'calculation' }>;
 
-export interface FormulaGap {
+export interface CalculationGap {
   problem: string;
   need?: string;
 }
 
-export type FormulaResult =
+export type CalculationResult =
   | { status: 'empty'; message: string }
   | {
       status: 'error';
@@ -88,7 +88,7 @@ export type FormulaResult =
 export interface SolvedBoard {
   names: ReadonlyMap<string, BoardName>;
   takenNameIds: ReadonlySet<string>;
-  results: ReadonlyMap<string, FormulaResult>;
+  results: ReadonlyMap<string, CalculationResult>;
 }
 
 interface Evaluated {
@@ -109,8 +109,9 @@ const ROUNDABLE_WITHOUT_STEP = new Set(['', 'count:1']);
 
 export const nameKey = (name: string): string => name.trim().toLowerCase();
 
-export const formulaAnswerText = (result: Extract<FormulaResult, { status: 'ok' }>): string =>
-  'text' in result.output ? result.output.text : autoFormat(result.quantity);
+export const calculationAnswerText = (
+  result: Extract<CalculationResult, { status: 'ok' }>
+): string => ('text' in result.output ? result.output.text : autoFormat(result.quantity));
 
 export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   const names = new Map<string, BoardName>();
@@ -121,9 +122,11 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
     if (names.has(key)) takenNameIds.add(entry.id);
     else names.set(key, { ...entry, name: entry.name.trim() });
   }
-  const formulas = entries.filter((entry): entry is FormulaName => entry.kind === 'formula');
+  const calculations = entries.filter(
+    (entry): entry is CalculationName => entry.kind === 'calculation'
+  );
   const knownNames = [...names.values()].map(entry => entry.name);
-  const results = new Map<string, FormulaResult>();
+  const results = new Map<string, CalculationResult>();
   const inProgress: string[] = [];
 
   const resolve = (name: string): Evaluated => {
@@ -178,8 +181,8 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
       working: {
         kind: 'ref',
         name: entry.name,
-        text: formulaAnswerText(result),
-        source: 'formula',
+        text: calculationAnswerText(result),
+        source: 'calculation',
         isDropped: false,
       },
     };
@@ -286,37 +289,43 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
     };
   };
 
-  const evaluate = (formula: FormulaName): FormulaResult => {
-    const known = results.get(formula.id);
+  const evaluate = (calculation: CalculationName): CalculationResult => {
+    const known = results.get(calculation.id);
     if (known) return known;
-    if (inProgress.includes(formula.id)) {
+    if (inProgress.includes(calculation.id)) {
       const path = inProgress
-        .slice(inProgress.indexOf(formula.id))
-        .map(id => formulas.find(other => other.id === id)?.name.trim() ?? '');
-      throw new FormulaError(`Goes in a circle: ${[...path, formula.name.trim()].join(' → ')}`, {
-        isCycle: true,
-      });
+        .slice(inProgress.indexOf(calculation.id))
+        .map(id => calculations.find(other => other.id === id)?.name.trim() ?? '');
+      throw new FormulaError(
+        `Goes in a circle: ${[...path, calculation.name.trim()].join(' → ')}`,
+        {
+          isCycle: true,
+        }
+      );
     }
-    inProgress.push(formula.id);
-    let result: FormulaResult;
+    inProgress.push(calculation.id);
+    let result: CalculationResult;
     try {
-      if (takenNameIds.has(formula.id)) {
-        throw new FormulaError(`${formula.name.trim()} is already used`);
+      if (takenNameIds.has(calculation.id)) {
+        throw new FormulaError(`${calculation.name.trim()} is already used`);
       }
-      if (formula.problem) {
-        throw new FormulaError(formula.problem, formula.need ? { missingName: formula.need } : {});
+      if (calculation.problem) {
+        throw new FormulaError(
+          calculation.problem,
+          calculation.need ? { missingName: calculation.need } : {}
+        );
       }
-      if (!formula.expr.trim()) {
+      if (!calculation.expr.trim()) {
         result = { status: 'empty', message: 'Type a formula using the names on this board' };
       } else {
-        const tree = parseFormula(formula.expr, knownNames);
+        const tree = parseFormula(calculation.expr, knownNames);
         const { quantity, working } = run(tree);
         result = {
           status: 'ok',
           quantity,
           working,
           showsWorking: tree.kind !== 'number' && tree.kind !== 'ref',
-          output: formatQuantityIn(quantity, formula.unit),
+          output: formatQuantityIn(quantity, calculation.unit),
         };
       }
     } catch (error) {
@@ -324,10 +333,10 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
       result = { status: 'error', message: error.message, ...error.detail };
     }
     inProgress.pop();
-    results.set(formula.id, result);
+    results.set(calculation.id, result);
     return result;
   };
 
-  formulas.forEach(evaluate);
+  calculations.forEach(evaluate);
   return { names, takenNameIds, results };
 }

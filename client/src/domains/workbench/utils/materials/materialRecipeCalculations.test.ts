@@ -1,7 +1,7 @@
 import { calculateBoard, type SolvedBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 
-import { mixFinalId, recipeFinalId, recipeWarnings } from './materialRecipeFormulas';
+import { mixFinalId, recipeFinalId, recipeWarnings } from './materialRecipeCalculations';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 

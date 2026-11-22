@@ -17,7 +17,7 @@ import {
   panelStainings,
 } from '../../../../utils/flowCytometry/flowCytometryPanel';
 import { markerCandidatesOn } from '../../../../utils/flowCytometry/markerPlacement';
-import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
+import { calculationAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
 import { stainedPlaces } from '../../../../utils/plateMap/stainSide';
 import { BLOCK_ICONS } from '../../board/blockIcons';
@@ -58,7 +58,7 @@ export function WorkbenchFlowCytometryPanel({ block }: WorkbenchFlowCytometryPan
   const amountEntries = useWorkbenchData(state =>
     block.rows.map((row): [string, StainAmount] => {
       const result = state.board.results.get(stainAmountId(row.id));
-      if (result?.status === 'ok') return [row.id, { text: formulaAnswerText(result) }];
+      if (result?.status === 'ok') return [row.id, { text: calculationAnswerText(result) }];
       return [row.id, { problem: result?.status === 'error' ? result.message : undefined }];
     })
   );

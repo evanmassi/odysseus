@@ -112,7 +112,7 @@ const valueItemSchema = z.union([
   }),
 ]);
 
-const valueSectionSchema = z.union([
+const valueRowSchema = z.union([
   z.object({ id, materialId: z.string(), materialName: z.string().optional() }),
   z.object({ id, mixName: z.string() }),
 ]);
@@ -121,11 +121,11 @@ const valuesBlockSchema = z.object({
   ...blockBase,
   type: z.literal('values'),
   items: z.array(valueItemSchema),
-  sections: z.array(valueSectionSchema).default([]),
+  sections: z.array(valueRowSchema).default([]),
   generalTitle: z.string().optional(),
 });
 
-const formulaBlockSchema = z.object({
+const calculationsBlockSchema = z.object({
   ...blockBase,
   type: z.literal('formula'),
   items: z.array(z.object({ id, name: z.string(), expr: z.string(), unit: z.string() })),
@@ -286,7 +286,7 @@ const protocolBlockSchema = z.discriminatedUnion('type', [
   materialsBlockSchema,
   tableBlockSchema,
   valuesBlockSchema,
-  formulaBlockSchema,
+  calculationsBlockSchema,
   plateMapBlockSchema,
   linkedPlateMapBlockSchema,
   flowCytometryPanelBlockSchema,
@@ -329,7 +329,8 @@ export type MaterialSources = z.infer<typeof materialSourcesSchema>;
 export type MaterialSource = MaterialSources['rows'][number];
 export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
 export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
-export type FormulaBlock = z.infer<typeof formulaBlockSchema>;
+export type ValueRow = ValuesBlock['sections'][number];
+export type CalculationsBlock = z.infer<typeof calculationsBlockSchema>;
 export type PlateMapBlock = z.infer<typeof plateMapBlockSchema>;
 export type LinkedPlateMapBlock = z.infer<typeof linkedPlateMapBlockSchema>;
 export type FlowCytometryPanelBlock = z.infer<typeof flowCytometryPanelBlockSchema>;

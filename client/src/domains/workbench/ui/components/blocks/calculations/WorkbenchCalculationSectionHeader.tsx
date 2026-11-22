@@ -7,19 +7,19 @@ import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 
-interface WorkbenchFormulaSectionHeaderProps {
+interface WorkbenchCalculationSectionHeaderProps {
   title: string;
   kind?: string;
   swatch?: PlateSwatch;
   children?: ReactNode;
 }
 
-export function WorkbenchFormulaSectionHeader({
+export function WorkbenchCalculationSectionHeader({
   title,
   kind,
   swatch,
   children,
-}: WorkbenchFormulaSectionHeaderProps) {
+}: WorkbenchCalculationSectionHeaderProps) {
   return (
     <header className="group flex items-center gap-2.5 px-2 pb-1.5">
       <AccentTick />

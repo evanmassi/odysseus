@@ -5,7 +5,7 @@ import { SubsectionHeader } from '@shared/ui';
 import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { panelCocktails } from '../../../../utils/flowCytometry/flowCytometryCocktails';
 import { cocktailAntibodiesId } from '../../../../utils/flowCytometry/flowCytometryNames';
-import { formulaAnswerText, nameKey } from '../../../../utils/formulas/boardCalculation';
+import { calculationAnswerText, nameKey } from '../../../../utils/formulas/boardCalculation';
 import { SECTION_RULE } from '../../board/sectionRuleClass';
 
 import { FLUOR_SQUARE } from './flowCytometryTableStyles';
@@ -39,7 +39,7 @@ export function WorkbenchFlowCytometryCocktails({
       const result = state.board.results.get(id);
       const owner = state.board.names.get(nameKey(`${cocktail.name} antibodies`));
       return {
-        share: result?.status === 'ok' ? formulaAnswerText(result) : undefined,
+        share: result?.status === 'ok' ? calculationAnswerText(result) : undefined,
         isNameTaken: !!cocktail.rows.length && !!owner && owner.id !== id,
       };
     })

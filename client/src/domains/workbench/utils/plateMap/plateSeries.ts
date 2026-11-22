@@ -31,7 +31,7 @@ export function dilutionFactorOf(text: string): number {
 
 function readPart(board: SolvedBoard, text: string) {
   const shown = describeName(board, text.trim());
-  const isName = shown.kind === 'value' || shown.kind === 'formula';
+  const isName = shown.kind === 'value' || shown.kind === 'calculation';
   return { text: isName ? shown.text : text.trim(), isName };
 }
 

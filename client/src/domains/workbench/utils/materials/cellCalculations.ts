@@ -4,8 +4,9 @@ import {
   nameKey,
   type SolvedBoard,
   type BoardName,
-  type FormulaGap,
-  type FormulaResult,
+  type CalculationName,
+  type CalculationGap,
+  type CalculationResult,
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
 import { formatNumber } from '../formulas/quantities';
@@ -41,7 +42,7 @@ const PER_VIAL_FIELD = 'cells-per-vial';
 const isFilled = (entry: BoardName | undefined): entry is BoardName =>
   !!entry && (entry.kind !== 'value' || !!entry.value.trim());
 
-const missingCount = (count: Term, ...others: Term[]): FormulaGap => ({
+const missingCount = (count: Term, ...others: Term[]): CalculationGap => ({
   problem: `Needs a live count: ${count.word}, or ${others.map(term => term.word).join(' and ')}`,
 });
 
@@ -67,13 +68,27 @@ function subjectNames(
     settingsBlockId: materialsBlockId,
   };
   const inputs: BoardName[] = [];
-  const formulas: Array<Extract<BoardName, { kind: 'formula' }>> = [];
+  const calculations: CalculationName[] = [];
   const input = (part: string, name: string, value: string, unit: string) => {
     inputs.push({ kind: 'value', id: id(part), name, value, unit, workedOut: group });
     return name;
   };
-  const formula = (part: string, name: string, expr: string, unit: string, gap?: FormulaGap) =>
-    formulas.push({ kind: 'formula', id: id(part), name, expr, unit, workedOut: group, ...gap });
+  const addCalculation = (
+    part: string,
+    name: string,
+    expr: string,
+    unit: string,
+    gap?: CalculationGap
+  ) =>
+    calculations.push({
+      kind: 'calculation',
+      id: id(part),
+      name,
+      expr,
+      unit,
+      workedOut: group,
+      ...gap,
+    });
 
   const wellsName = `${subject} wells`;
   if (!names.has(nameKey(wellsName))) {
@@ -109,9 +124,9 @@ function subjectNames(
   const volume = named(VOLUME_PER_WELL, [...owners, ...materialOwners]);
 
   const needed = joinValueName(subject, TOTAL_NEEDED.word);
-  formula('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
+  addCalculation('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
   const plating = joinValueName(subject, PLATING_CONCENTRATION.word);
-  const platingProblem: FormulaGap | undefined = !perWell
+  const platingProblem: CalculationGap | undefined = !perWell
     ? { problem: `${CELLS_PER_WELL.word} differ between wells` }
     : !volume
       ? {
@@ -119,7 +134,7 @@ function subjectNames(
           need: joinValueName(nameWithoutNotes(material.name), VOLUME_PER_WELL.word),
         }
       : undefined;
-  formula(
+  addCalculation(
     'plating',
     plating,
     platingProblem ? '' : `${perWell} ÷ ${volume}`,
@@ -134,15 +149,15 @@ function subjectNames(
     const missingStock = stock
       ? undefined
       : missingCount(LIVE_CELL_CONCENTRATION, TOTAL_CELL_CONCENTRATION, VIABILITY);
-    formula(
+    addCalculation(
       'suspension',
       suspension,
       platingProblem ? '' : `${needed} ÷ ${plating}`,
       '',
       platingProblem
     );
-    formula('stock', stockToTake, stock ? `${needed} ÷ ${stock}` : '', '', missingStock);
-    formula(
+    addCalculation('stock', stockToTake, stock ? `${needed} ÷ ${stock}` : '', '', missingStock);
+    addCalculation(
       'diluent',
       `${subject} diluent to add`,
       stock && !platingProblem ? `${suspension} − ${stockToTake}` : '',
@@ -151,7 +166,7 @@ function subjectNames(
     );
   } else {
     if (source !== undefined || perVial !== undefined) {
-      formula(
+      addCalculation(
         'vials',
         `${subject} vials to thaw`,
         perVial ? `round up(${needed} ÷ ${perVial})` : '',
@@ -159,7 +174,7 @@ function subjectNames(
         perVial ? undefined : { problem: `Needs cells per vial in ${donorList}` }
       );
     }
-    formula(
+    addCalculation(
       'resuspend',
       `${subject} resuspend volume`,
       liveCells && !platingProblem ? `${liveCells} ÷ ${plating}` : '',
@@ -168,7 +183,7 @@ function subjectNames(
     );
   }
   if (isResuspended || liveCells) {
-    formula(
+    addCalculation(
       'left-over',
       `${subject} cells left over`,
       liveCells ? `${liveCells} − ${needed}` : '',
@@ -177,21 +192,21 @@ function subjectNames(
     );
   }
 
-  const clash = formulas.map(entry => entry.name).find(name => names.has(nameKey(name)));
-  if (!clash) return [...inputs, ...formulas];
+  const clash = calculations.map(entry => entry.name).find(name => names.has(nameKey(name)));
+  if (!clash) return [...inputs, ...calculations];
   const problem = `Rename "${clash}": the cell math for ${subject} needs that name.`;
-  return formulas
+  return calculations
     .filter(entry => !names.has(nameKey(entry.name)))
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
 }
 
-export function cellFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
+export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
   const materialsBlockId = protocol.blocks.find(block => block.type === 'materials')?.id;
   return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsBlockId));
 }
 
-export function shortfallOf(result: FormulaResult | undefined): string | undefined {
+export function shortfallOf(result: CalculationResult | undefined): string | undefined {
   if (result?.status !== 'ok') return undefined;
   const short = -result.quantity.magnitude;
   return short > 0 ? `Short by ${formatNumber(short)} cells` : undefined;

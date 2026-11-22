@@ -108,7 +108,7 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
   const moveEdit = (cellId: string, step: 1 | -1) =>
     actions.onEditCell(editableIds[editableIds.indexOf(cellId) + step]);
   const canAdd = canAddToRow(row);
-  const isNameEditable = row.section !== undefined && row.status !== 'missing';
+  const isNameEditable = row.valueRow !== undefined && row.status !== 'missing';
   const note = STATUS_NOTE[row.status];
 
   const nameContent = (
@@ -240,7 +240,7 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
               </button>
             </Tooltip>
           )}
-          {row.section && (
+          {row.valueRow && (
             <Button
               variant="ghost-danger"
               size="xs"

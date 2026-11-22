@@ -1,10 +1,15 @@
-import { formulaAnswerText, nameKey, type SolvedBoard } from './boardCalculation';
+import {
+  calculationAnswerText,
+  nameKey,
+  type BoardName,
+  type SolvedBoard,
+} from './boardCalculation';
 import { displayValue } from './quantities';
 
 export interface NameDisplay {
   text: string;
   label: string;
-  kind: 'missing' | 'item' | 'value' | 'count' | 'formula';
+  kind: BoardName['kind'] | 'missing';
   isDropped: boolean;
 }
 
@@ -35,14 +40,14 @@ export function describeName(board: SolvedBoard, name: string): NameDisplay {
     }
     case 'count':
       return { text: String(entry.count), label: entry.name, kind: 'count', isDropped: false };
-    case 'formula': {
+    case 'calculation': {
       const result = board.results.get(entry.id);
       if (result?.status !== 'ok')
         return { text: '?', label: entry.name, kind: 'missing', isDropped: false };
       return {
-        text: formulaAnswerText(result),
+        text: calculationAnswerText(result),
         label: entry.name,
-        kind: 'formula',
+        kind: 'calculation',
         isDropped: false,
       };
     }

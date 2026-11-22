@@ -9,6 +9,7 @@ export const upperLead = (label: string): string =>
 export const joinValueName = (owner: string, label: string): string =>
   owner ? `${owner} ${lowerLead(label.trim())}` : label;
 
+export const WHOLE_EXPERIMENT = '';
 export const WHOLE_EXPERIMENT_TITLE = 'Whole experiment';
 
 export function generalTitleOf(blocks: Protocol['blocks']): string {

@@ -2,19 +2,19 @@ import { Button, Tooltip } from '@shared/ui';
 
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
 
-interface WorkbenchFormulaSuggestionListProps {
+interface WorkbenchCalculationSuggestionListProps {
   suggestions: readonly CalculationSuggestion[];
   suggestionTitle: (suggestion: CalculationSuggestion) => string;
   className: string;
   onSuggest: (suggestion: CalculationSuggestion) => void;
 }
 
-export function WorkbenchFormulaSuggestionList({
+export function WorkbenchCalculationSuggestionList({
   suggestions,
   suggestionTitle,
   className,
   onSuggest,
-}: WorkbenchFormulaSuggestionListProps) {
+}: WorkbenchCalculationSuggestionListProps) {
   if (!suggestions.length) return null;
   return (
     <p

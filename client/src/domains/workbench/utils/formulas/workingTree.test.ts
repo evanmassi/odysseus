@@ -14,7 +14,7 @@ const workingOf = (expr: string) => {
     value('Volume made', '8', 'mL'),
     value('Stock', '8000', '×'),
     value('Working', '4', '×'),
-    { kind: 'formula', id: 'f', name: 'Needed', expr, unit: '' },
+    { kind: 'calculation', id: 'f', name: 'Needed', expr, unit: '' },
   ]);
   const result = board.results.get('f');
   if (result?.status !== 'ok') throw new Error('expected an answer');

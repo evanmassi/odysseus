@@ -2,7 +2,7 @@ import { calculateBoard, type BoardName } from './boardCalculation';
 import {
   calculationSuggestions,
   formulaCompletions,
-  formulaMaterial,
+  calculationMaterial,
   formulaTextParts,
   formulaWordAt,
   namesInFull,
@@ -45,10 +45,10 @@ const board = calculateBoard([
 ]);
 
 describe('formula scopes', () => {
-  it('finds the material a formula belongs to by its longest name prefix', () => {
+  it('finds the material a calculation belongs to by its longest name prefix', () => {
     const rajiLuc = material('Raji Luc');
-    expect(formulaMaterial('Raji Luc needed', [raji, rajiLuc])).toBe(rajiLuc);
-    expect(formulaMaterial('Total volume', [raji])).toBeUndefined();
+    expect(calculationMaterial('Raji Luc needed', [raji, rajiLuc])).toBe(rajiLuc);
+    expect(calculationMaterial('Total volume', [raji])).toBeUndefined();
   });
 
   it('shortens a name inside its material and capitalizes the rest', () => {

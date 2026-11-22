@@ -1,10 +1,11 @@
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
-  formulaAnswerText,
+  calculationAnswerText,
   nameKey,
   type SolvedBoard,
   type BoardName,
-  type FormulaGap,
+  type CalculationName,
+  type CalculationGap,
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
 import {
@@ -32,7 +33,7 @@ import { nameWithoutNotes } from './materialLookup';
 
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
-const missingWellTotal = (generalTitle: string): FormulaGap => ({
+const missingWellTotal = (generalTitle: string): CalculationGap => ({
   problem: `Needs the ${lowerLead(TOTAL_WELL_VOLUME.word)}: add "${TOTAL_WELL_VOLUME.word} 80 µL" under ${generalTitle}`,
   need: TOTAL_WELL_VOLUME.word,
 });
@@ -75,7 +76,7 @@ function mixNames(
   const wellTotal = wellTotalName(names);
   const scaling = perWell && wellTotal ? ` × ${perWell} ÷ ${wellTotal}` : '';
   const perWellName = joinValueName(mixName, VOLUME_PER_WELL.word);
-  const missing: FormulaGap | undefined = !perWell
+  const missing: CalculationGap | undefined = !perWell
     ? { problem: `Needs ${perWellName}`, need: perWellName }
     : !wellTotal
       ? missingWellTotal(generalTitle)
@@ -87,9 +88,9 @@ function mixNames(
     settingsBlockId: materialsBlockId,
   };
   const inputs: BoardName[] = [];
-  const finals: Array<Extract<BoardName, { kind: 'formula' }>> = [];
+  const finals: CalculationName[] = [];
   const final = (id: string, name: string, expr: string, unit: string, gap = missing) =>
-    finals.push({ kind: 'formula', id, name, expr, unit, workedOut: group, ...gap });
+    finals.push({ kind: 'calculation', id, name, expr, unit, workedOut: group, ...gap });
 
   const stockField = stockName(mix);
   const stock =
@@ -112,7 +113,7 @@ function mixNames(
   if (strength)
     final(mixFinalId(mix.id), finalConcentrationName(mixName), `${strength}${scaling}`, FOLD_UNIT);
   const stockNeed = joinValueName(mixName, STOCK_CONCENTRATION.word);
-  const cannotScale: FormulaGap | undefined =
+  const cannotScale: CalculationGap | undefined =
     concentration && !fromStock
       ? {
           problem: `Needs ${stockNeed} as a strength like 1000× to scale by its ${lowerLead(WORKING_CONCENTRATION.word)}`,
@@ -151,7 +152,10 @@ function mixNames(
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
 }
 
-export function recipeFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
+export function recipeCalculationNames(
+  protocol: Protocol,
+  taken: readonly BoardName[]
+): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
   const materialBlocks = protocol.blocks.filter(
     (block): block is MaterialsBlock => block.type === 'materials'
@@ -184,7 +188,7 @@ export function recipeWarnings(
     const made = result.quantity.magnitude;
     if (Math.abs(made - typedQuantity.magnitude) <= AGREEMENT * Math.abs(made)) continue;
     warnings.set(mixWorkingId(mix.id), [
-      `${WORKING_CONCENTRATION.word} says ${displayValue(typed.value, typed.unit)}, but the ${lowerLead(WORKING_DILUTION.word)} makes ${formulaAnswerText(result)}.`,
+      `${WORKING_CONCENTRATION.word} says ${displayValue(typed.value, typed.unit)}, but the ${lowerLead(WORKING_DILUTION.word)} makes ${calculationAnswerText(result)}.`,
     ]);
   }
   return warnings;

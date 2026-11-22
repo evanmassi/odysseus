@@ -1,16 +1,16 @@
 import { Button } from '@shared/ui';
 
-import type { WorkedOutSettings } from './WorkbenchFormulaWorkedOutGroup';
+import type { WorkedOutSettings } from './WorkbenchCalculationWorkedOutGroup';
 
-interface WorkbenchFormulaSettingsButtonProps {
+interface WorkbenchCalculationSettingsButtonProps {
   settings: WorkedOutSettings;
   onShowBlock: (blockId: string) => void;
 }
 
-export function WorkbenchFormulaSettingsButton({
+export function WorkbenchCalculationSettingsButton({
   settings,
   onShowBlock,
-}: WorkbenchFormulaSettingsButtonProps) {
+}: WorkbenchCalculationSettingsButtonProps) {
   return (
     <Button
       variant="ghost"

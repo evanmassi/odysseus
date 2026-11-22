@@ -49,7 +49,7 @@ export const unitChoices = (units: readonly string[]): SelectOption[] =>
 
 const FORMULA_EXCLUDED_UNITS = new Set(['', '°C']);
 
-export const FORMULA_UNIT_OPTIONS: readonly SelectOption[] = [
+export const CALCULATION_UNIT_OPTIONS: readonly SelectOption[] = [
   { value: AUTO_UNIT, label: 'auto', group: NOTATION_GROUP },
   ...VALUE_UNIT_OPTIONS.filter(option => !FORMULA_EXCLUDED_UNITS.has(String(option.value))),
 ];

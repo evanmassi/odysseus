@@ -2,15 +2,16 @@ import {
   type MaterialItem,
   type Protocol,
   type ValuesBlock,
+  type ValueRow,
   type PlateMapBlock,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
-  formulaAnswerText,
+  calculationAnswerText,
   type SolvedBoard,
-  type FormulaResult,
+  type CalculationResult,
 } from '../formulas/boardCalculation';
 import { FOLD_UNIT } from '../formulas/quantities';
 import { workingText } from '../formulas/workingTree';
@@ -45,20 +46,18 @@ import {
   mixFinalId,
   recipeFinalId,
   wellTotalName,
-} from '../materials/materialRecipeFormulas';
+} from '../materials/materialRecipeCalculations';
 import { findSource, sourcesIn } from '../materials/materialSources';
 import { labwareTitle } from '../plateMap/plateMapTabs';
 import { plateSwatches, type PlateSwatch } from '../plateMap/plateSwatches';
 import { FINAL_CONCENTRATION, MIX_CONCENTRATION } from '../terms/termList';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
-import { linkedValueOf, sectionName } from './valueEdits';
+import { linkedValueOf, valueRowName } from './valueEdits';
 import { columnKey, joinValueName } from './valueNames';
 
 import type { ValueNeed } from './valueNeeds';
 import type { RoutedValue } from './valueRouting';
-
-type ValueSection = ValuesBlock['sections'][number];
 
 export type ValueOrigin = 'typed' | 'plate' | 'materials' | 'worked';
 
@@ -100,7 +99,7 @@ export interface ValueTableRow {
   id: string;
   name: string;
   shownName: string;
-  section: ValueSection | undefined;
+  valueRow: ValueRow | undefined;
   material: MaterialItem | undefined;
   status: ValueRowStatus;
   swatch: PlateSwatch | undefined;
@@ -262,7 +261,7 @@ function plateCellFields(row: PlateValueRow, cardTitle: string) {
 function workedCell(
   id: string,
   fullName: string,
-  result: FormulaResult | undefined,
+  result: CalculationResult | undefined,
   wellTotal: string | undefined
 ): ValueTableCell {
   const isReady = result?.status === 'ok';
@@ -273,7 +272,7 @@ function workedCell(
     columnKey: columnKey(FINAL_CONCENTRATION.word),
     label: FINAL_CONCENTRATION.word,
     fullName,
-    value: isReady ? formulaAnswerText(result) : '',
+    value: isReady ? calculationAnswerText(result) : '',
     unit: '',
     units: [],
     isEditable: false,
@@ -335,11 +334,11 @@ export function buildValueTable(
     (candidate): candidate is ValuesBlock => candidate.type === 'values'
   );
   const isFirstBlock = valuesBlocks[0]?.id === block.id;
-  const sectionedElsewhere = new Set(
+  const materialsWithRowElsewhere = new Set(
     valuesBlocks
       .filter(values => values.id !== block.id)
       .flatMap(values => values.sections)
-      .flatMap(section => ('materialId' in section ? [section.materialId] : []))
+      .flatMap(valueRow => ('materialId' in valueRow ? [valueRow.materialId] : []))
   );
   const plates = protocol.blocks.filter(isPlateMap);
   const sources = sourcesIn(protocol);
@@ -357,7 +356,7 @@ export function buildValueTable(
     id: string,
     name: string,
     groupKey: string,
-    fields: Pick<ValueTableRow, 'section' | 'material' | 'status'>
+    fields: Pick<ValueTableRow, 'valueRow' | 'material' | 'status'>
   ): RowDraft => {
     const row: RowDraft = {
       id,
@@ -375,18 +374,18 @@ export function buildValueTable(
     return row;
   };
 
-  for (const section of block.sections) {
-    const material = 'materialId' in section ? materials.get(section.materialId) : undefined;
-    const status: ValueRowStatus = !('materialId' in section)
+  for (const valueRow of block.sections) {
+    const material = 'materialId' in valueRow ? materials.get(valueRow.materialId) : undefined;
+    const status: ValueRowStatus = !('materialId' in valueRow)
       ? 'current'
       : !material
         ? 'missing'
         : material.isDropped
           ? 'dropped'
           : 'current';
-    const groupKey = 'mixName' in section ? MIX_GROUP.key : (material?.group ?? MISSING_GROUP_KEY);
-    const row = draftRow(section.id, sectionName(section, materials), groupKey, {
-      section,
+    const groupKey = 'mixName' in valueRow ? MIX_GROUP.key : (material?.group ?? MISSING_GROUP_KEY);
+    const row = draftRow(valueRow.id, valueRowName(valueRow, materials), groupKey, {
+      valueRow,
       material,
       status,
     });
@@ -396,9 +395,9 @@ export function buildValueTable(
   const rowForMaterial = (material: MaterialItem): RowDraft | undefined => {
     const existing = rowByMaterial.get(material.id);
     if (existing) return existing;
-    if (!isFirstBlock || sectionedElsewhere.has(material.id)) return undefined;
+    if (!isFirstBlock || materialsWithRowElsewhere.has(material.id)) return undefined;
     const row = draftRow(`material:${material.id}`, material.name.trim(), material.group, {
-      section: undefined,
+      valueRow: undefined,
       material,
       status: material.isDropped ? 'dropped' : 'current',
     });
@@ -406,10 +405,10 @@ export function buildValueTable(
     return row;
   };
 
-  const sectionRows = new Map(rows.map(row => [row.id, row]));
-  const mixRows = rows.filter(row => row.section && 'mixName' in row.section);
+  const tableRowsById = new Map(rows.map(row => [row.id, row]));
+  const mixRows = rows.filter(row => row.valueRow && 'mixName' in row.valueRow);
   for (const item of block.items) {
-    const row = item.section ? sectionRows.get(item.section) : undefined;
+    const row = item.section ? tableRowsById.get(item.section) : undefined;
     if (!row) continue;
     const linked = linkedValueOf(block, item, materials);
     if ('materialField' in item) {
@@ -473,7 +472,7 @@ export function buildValueTable(
       id: `${parent.id}|${key}`,
       name,
       shownName,
-      section: undefined,
+      valueRow: undefined,
       material: undefined,
       status: 'current',
       swatch: undefined,
@@ -501,7 +500,7 @@ export function buildValueTable(
       ? rowForMaterial(plateMaterial)
       : isFirstBlock
         ? draftRow(`plate:${plateMap.id}`, labwareTitle(plateMap), PLATE_GROUP_KEY, {
-            section: undefined,
+            valueRow: undefined,
             material: undefined,
             status: 'current',
           })
@@ -619,8 +618,8 @@ export function buildValueTable(
     const { destination, fullName } = need.routed;
     const material = destination.materialId ? materials.get(destination.materialId) : undefined;
     const row =
-      (destination.kind === 'row' && destination.sectionId
-        ? sectionRows.get(destination.sectionId)
+      (destination.kind === 'row' && destination.valueRowId
+        ? tableRowsById.get(destination.valueRowId)
         : undefined) ??
       (material && rowForMaterial(material));
     if (!row) continue;

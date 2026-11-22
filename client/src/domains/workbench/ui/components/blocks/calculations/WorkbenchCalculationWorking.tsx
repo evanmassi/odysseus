@@ -4,7 +4,10 @@ import { Plus } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
-import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
+import {
+  calculationAnswerText,
+  type CalculationResult,
+} from '../../../../utils/formulas/boardCalculation';
 import { OPERATOR_SYMBOLS } from '../../../../utils/formulas/formulaParser';
 import {
   workingFraction,
@@ -13,9 +16,9 @@ import {
 } from '../../../../utils/formulas/workingTree';
 import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
 
-interface WorkbenchFormulaWorkingProps {
+interface WorkbenchCalculationWorkingProps {
   name: string;
-  result: FormulaResult | undefined;
+  result: CalculationResult | undefined;
   isCompact: boolean;
   shortName: (name: string) => string;
   onAddMissing?: (name: string) => void;
@@ -25,7 +28,7 @@ interface WorkbenchFormulaWorkingProps {
 const TERM_SOURCE_CLASS: Record<WorkingRef['source'], string> = {
   value: 'text-foreground',
   count: 'text-info-text',
-  formula: 'text-action',
+  calculation: 'text-action',
 };
 
 const SYMBOL = 'px-1 font-mono text-data-sm text-muted-foreground';
@@ -35,7 +38,7 @@ const BLANK_LABEL = '\u00a0';
 interface WorkingViewProps {
   node: WorkingNode;
   shortName: (name: string) => string;
-  linkFor: WorkbenchFormulaWorkingProps['linkFor'];
+  linkFor: WorkbenchCalculationWorkingProps['linkFor'];
 }
 
 function TermStack({ node, shortName, linkFor }: WorkingViewProps) {
@@ -149,14 +152,14 @@ function WorkingView({ node, ...rest }: WorkingViewProps) {
 
 const ONE: WorkingNode = { kind: 'literal', text: '1' };
 
-export function WorkbenchFormulaWorking({
+export function WorkbenchCalculationWorking({
   name,
   result,
   isCompact,
   shortName,
   onAddMissing,
   linkFor,
-}: WorkbenchFormulaWorkingProps) {
+}: WorkbenchCalculationWorkingProps) {
   if (!result) return null;
   if (result.status === 'empty')
     return <p className="text-label-xs text-muted-foreground">{result.message}</p>;
@@ -193,7 +196,7 @@ export function WorkbenchFormulaWorking({
         <p className="text-label-xs text-danger-text">{outputError}</p>
       ) : (
         <span className="font-mono text-data-lg text-action">
-          = {withPerLabwareKind(formulaAnswerText(result), name)}
+          = {withPerLabwareKind(calculationAnswerText(result), name)}
         </span>
       )}
     </div>

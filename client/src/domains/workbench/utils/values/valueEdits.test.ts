@@ -1,16 +1,16 @@
 import { produce } from 'immer';
 
-import { addNamedValue } from '../formulas/formulaEdits';
+import { addNamedValue } from '../formulas/calculationEdits';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
 import {
   addSuggestedValue,
   addValueLines,
-  addValueSection,
+  addValueRow,
   linkedValueOf,
   materialsById,
   removeValue,
-  removeValueSection,
+  removeValueRow,
   renameValue,
   restoreValues,
   setValueAmount,
@@ -61,11 +61,11 @@ describe('value edits', () => {
   it('writes a linked value, its label and its unit onto the material', () => {
     const before = protocolWithValues();
     const valuesId = valuesOf(before)?.id ?? '';
-    let sectionId = '';
+    let valueRowId = '';
     let itemId: string | undefined;
     const after = produce(before, draft => {
-      sectionId = addValueSection(draft, valuesId, 'm1') ?? '';
-      itemId = addSuggestedValue(draft, valuesId, sectionId, {
+      valueRowId = addValueRow(draft, valuesId, 'm1') ?? '';
+      itemId = addSuggestedValue(draft, valuesId, valueRowId, {
         kind: 'field',
         materialField: 'count',
         label: 'Count',
@@ -95,8 +95,8 @@ describe('value edits', () => {
     });
     const valuesId = valuesOf(before)?.id ?? '';
     const after = produce(before, draft => {
-      const sectionId = addValueSection(draft, valuesId, 'm1') ?? '';
-      const itemId = addSuggestedValue(draft, valuesId, sectionId, {
+      const valueRowId = addValueRow(draft, valuesId, 'm1') ?? '';
+      const itemId = addSuggestedValue(draft, valuesId, valueRowId, {
         kind: 'field',
         materialField: 'count',
         label: 'Count',
@@ -129,26 +129,26 @@ describe('value edits', () => {
     ]);
   });
 
-  it('removes and restores a whole section with its values', () => {
+  it('removes and restores a whole row with its values', () => {
     const before = protocolWithValues();
     const valuesId = valuesOf(before)?.id ?? '';
-    let sectionId = '';
-    const withSection = produce(before, draft => {
-      sectionId = addValueSection(draft, valuesId, undefined) ?? '';
-      addValueLines(draft, valuesId, ['Volume 5 mL'], sectionId);
+    let valueRowId = '';
+    const withValueRow = produce(before, draft => {
+      valueRowId = addValueRow(draft, valuesId, undefined) ?? '';
+      addValueLines(draft, valuesId, ['Volume 5 mL'], valueRowId);
     });
-    let removed: ReturnType<typeof removeValueSection>;
-    const without = produce(withSection, draft => {
-      removed = removeValueSection(draft, valuesId, sectionId);
+    let removed: ReturnType<typeof removeValueRow>;
+    const without = produce(withValueRow, draft => {
+      removed = removeValueRow(draft, valuesId, valueRowId);
     });
     expect(valuesOf(without)?.items).toEqual([]);
     const restored = produce(without, draft => {
       if (removed) restoreValues(draft, valuesId, removed);
     });
-    expect(valuesOf(restored)).toEqual(valuesOf(withSection));
+    expect(valuesOf(restored)).toEqual(valuesOf(withValueRow));
   });
 
-  it('adds a missing formula name as a value under its material', () => {
+  it('adds a name a calculation needs as a value under its material', () => {
     const before = protocolWithValues();
     const material = materialsById(before).get('m1');
     const after = produce(before, draft =>

@@ -8,24 +8,24 @@ import { LEADER_LINE } from '../../board/leaderLineClass';
 import { META_LABEL } from '../../board/metaLabelClass';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
-import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
-import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
-import { lineAnswer, WorkbenchFormulaWorkingLines } from './WorkbenchFormulaWorkingLines';
+import { WorkbenchCalculationSectionHeader } from './WorkbenchCalculationSectionHeader';
+import { WorkbenchCalculationSettingsButton } from './WorkbenchCalculationSettingsButton';
+import { lineAnswer, WorkbenchCalculationWorkingLines } from './WorkbenchCalculationWorkingLines';
 
-import type { WorkedOutLine, WorkedOutSettings } from './WorkbenchFormulaWorkedOutGroup';
+import type { WorkedOutLine, WorkedOutSettings } from './WorkbenchCalculationWorkedOutGroup';
 import type { PlateSwatchOf } from '../../../../utils/plateMap/plateSwatches';
 
-export interface FormulaTableRow {
+export interface CalculationTableRowView {
   key: string;
   label: string;
   subject: string;
   lines: readonly WorkedOutLine[];
 }
 
-interface WorkbenchFormulaTableProps {
+interface WorkbenchCalculationTableProps {
   title: string;
   columns: readonly string[];
-  rows: readonly FormulaTableRow[];
+  rows: readonly CalculationTableRowView[];
   settings: WorkedOutSettings | undefined;
   swatchOf: PlateSwatchOf;
   onShowBlock: (blockId: string) => void;
@@ -33,23 +33,23 @@ interface WorkbenchFormulaTableProps {
 
 const HEAD_CELL = `${META_LABEL} px-2 pb-1 align-bottom font-normal`;
 
-export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
+export const WorkbenchCalculationTable = memo(function WorkbenchCalculationTable({
   title,
   columns,
   rows,
   settings,
   swatchOf,
   onShowBlock,
-}: WorkbenchFormulaTableProps) {
+}: WorkbenchCalculationTableProps) {
   const [openKey, setOpenKey] = useState<string>();
 
   return (
     <section className="min-w-0 break-inside-avoid">
-      <WorkbenchFormulaSectionHeader title={title}>
+      <WorkbenchCalculationSectionHeader title={title}>
         {settings && (
-          <WorkbenchFormulaSettingsButton settings={settings} onShowBlock={onShowBlock} />
+          <WorkbenchCalculationSettingsButton settings={settings} onShowBlock={onShowBlock} />
         )}
-      </WorkbenchFormulaSectionHeader>
+      </WorkbenchCalculationSectionHeader>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -123,7 +123,7 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                   {isOpen && (
                     <tr className={zebra}>
                       <td colSpan={columns.length} className="px-2 pb-2 pl-6">
-                        <WorkbenchFormulaWorkingLines
+                        <WorkbenchCalculationWorkingLines
                           lines={row.lines}
                           shortName={shortName}
                           onShowBlock={onShowBlock}

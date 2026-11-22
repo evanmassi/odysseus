@@ -68,9 +68,9 @@ describe('workbenchStore', () => {
 
   it('carries a material rename into the names built from it', () => {
     getState().updateProtocol(draft => {
-      const formula = draft.blocks.find(block => block.type === 'formula');
-      if (formula?.type === 'formula') {
-        formula.items.push({
+      const calculationsBlock = draft.blocks.find(block => block.type === 'formula');
+      if (calculationsBlock?.type === 'formula') {
+        calculationsBlock.items.push({
           id: 'f2',
           name: 'Drug top',
           expr: 'Drug stock concentration / 1000',

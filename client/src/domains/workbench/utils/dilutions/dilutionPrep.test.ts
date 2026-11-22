@@ -218,7 +218,7 @@ describe('diluents', () => {
     ]);
     const board = calculateBoard(collectBoardNames(protocol));
     const need = board.names.get('total rpmi needed');
-    expect(need).toMatchObject({ kind: 'formula', expr: 'Drug X diluent total' });
+    expect(need).toMatchObject({ kind: 'calculation', expr: 'Drug X diluent total' });
     const result = need && board.results.get(need.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '346 µL' });
     expect(diluentUses(protocol, board)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
@@ -261,7 +261,7 @@ describe('dilution prep as calculations', () => {
     const board = calculateBoard(collectBoardNames(protocol));
     const stock = board.names.get('drug x stock to take');
     expect(stock).toMatchObject({
-      kind: 'formula',
+      kind: 'calculation',
       expr: 'Drug X top vol. × Drug X top working conc. ÷ Drug X stock conc.',
       workedOut: { key: 'map:s', subject: 'Drug X' },
     });

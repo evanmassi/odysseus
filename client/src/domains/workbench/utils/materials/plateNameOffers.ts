@@ -20,7 +20,7 @@ export const plateOfferKey = (name: string): string => `plate:${normalizeMateria
 function mixNames(protocol: Pick<Protocol, 'blocks'>): string[] {
   return protocol.blocks.flatMap(block =>
     block.type === 'values'
-      ? block.sections.flatMap(section => ('mixName' in section ? [section.mixName] : []))
+      ? block.sections.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []))
       : []
   );
 }

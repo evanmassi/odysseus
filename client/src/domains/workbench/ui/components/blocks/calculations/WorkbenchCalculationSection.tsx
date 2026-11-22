@@ -4,13 +4,13 @@ import { Plus } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
 
-import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
-import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
+import { WorkbenchCalculationSectionHeader } from './WorkbenchCalculationSectionHeader';
+import { WorkbenchCalculationSuggestionList } from './WorkbenchCalculationSuggestionList';
 
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
 import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 
-interface WorkbenchFormulaSectionProps {
+interface WorkbenchCalculationSectionProps {
   title: string | undefined;
   kind: string;
   swatch: PlateSwatch | undefined;
@@ -24,7 +24,7 @@ interface WorkbenchFormulaSectionProps {
   children: ReactNode;
 }
 
-export function WorkbenchFormulaSection({
+export function WorkbenchCalculationSection({
   title,
   kind,
   swatch,
@@ -36,13 +36,13 @@ export function WorkbenchFormulaSection({
   onSuggest,
   onRemoveSection,
   children,
-}: WorkbenchFormulaSectionProps) {
+}: WorkbenchCalculationSectionProps) {
   const [draft, setDraft] = useState('');
 
   return (
     <section className="group/section min-w-0 break-inside-avoid">
       {title !== undefined && (
-        <WorkbenchFormulaSectionHeader title={title} kind={kind} swatch={swatch}>
+        <WorkbenchCalculationSectionHeader title={title} kind={kind} swatch={swatch}>
           {onRemoveSection && (
             <Button
               variant="ghost-danger"
@@ -53,7 +53,7 @@ export function WorkbenchFormulaSection({
               Remove
             </Button>
           )}
-        </WorkbenchFormulaSectionHeader>
+        </WorkbenchCalculationSectionHeader>
       )}
       <div className="flex flex-col">{children}</div>
       {onAdd && (
@@ -81,7 +81,7 @@ export function WorkbenchFormulaSection({
           </Tooltip>
         </div>
       )}
-      <WorkbenchFormulaSuggestionList
+      <WorkbenchCalculationSuggestionList
         suggestions={suggestions}
         suggestionTitle={suggestionTitle}
         className={`px-2 ${isEmpty ? 'flex' : 'hidden group-focus-within/section:flex'}`}

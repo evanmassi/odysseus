@@ -21,7 +21,7 @@ export type FillTarget =
   | { kind: 'slot'; routed: RoutedValue };
 
 export const canAddToRow = (row: ValueTableRow): boolean =>
-  !row.isSubRow && (row.section !== undefined || row.material !== undefined);
+  !row.isSubRow && (row.valueRow !== undefined || row.material !== undefined);
 
 export const columnUnit = (group: ValueTableGroup, key: string): string =>
   group.rows.flatMap(row => row.cells).find(cell => cell.columnKey === key && cell.unit)?.unit ??
@@ -38,7 +38,7 @@ export function slotRoute(
       kind: 'row',
       shownOwner: row.shownName,
       materialId: row.material?.id,
-      sectionId: row.section?.id,
+      valueRowId: row.valueRow?.id,
       label: column.label,
     },
     fullName: joinValueName(row.name, column.label),

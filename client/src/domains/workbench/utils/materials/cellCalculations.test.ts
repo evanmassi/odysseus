@@ -2,7 +2,7 @@ import { calculateBoard, type SolvedBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { nameUsage } from '../formulas/nameUsage';
 
-import { cellWarnings } from './cellFormulas';
+import { cellWarnings } from './cellCalculations';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
@@ -107,7 +107,7 @@ describe('cell math for a donor on the plate', () => {
   it('counts a value the cell math reads as used', () => {
     const protocol = protocolWith({ 'live-count': '1e6' }, PLATING);
     const usage = nameUsage(protocol, calculate(protocol), ['PBMC volume per well']);
-    expect(usage.get('PBMC volume per well')?.formulaCount).toBe(1);
+    expect(usage.get('PBMC volume per well')?.calculationCount).toBe(1);
   });
 
   it('says what is missing, and warns when the cells fall short', () => {
@@ -262,7 +262,7 @@ describe('cell math from the counts', () => {
     expect(rajiAnswer(board, 'diluent')).toBe('2.72 mL');
     expect(rajiAnswer(board, 'left-over')).toBe('8.71E+6 cells');
     expect(board.names.get('raji live cell conc.')).toMatchObject({
-      kind: 'formula',
+      kind: 'calculation',
       expr: 'Raji total cell conc. × Raji viability',
       isIntermediate: true,
       workedOut: { key: 'cells:raji:group' },

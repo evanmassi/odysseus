@@ -5,23 +5,28 @@ import { createId } from '../ids/createId';
 import { nameWithin } from './formulaScopes';
 import { AUTO_UNIT } from './quantities';
 
-import type { FormulaBlock, MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type {
+  CalculationsBlock,
+  MaterialItem,
+  Protocol,
+  ValuesBlock,
+} from '@odysseus/shared-schemas';
 
-type FormulaItem = FormulaBlock['items'][number];
+type CalculationItem = CalculationsBlock['items'][number];
 
-function formulaBlock(draft: Protocol, blockId: string): FormulaBlock | undefined {
+function calculationsBlock(draft: Protocol, blockId: string): CalculationsBlock | undefined {
   const block = draft.blocks.find(candidate => candidate.id === blockId);
   return block?.type === 'formula' ? block : undefined;
 }
 
-export function insertFormula(
+export function insertCalculation(
   draft: Protocol,
   blockId: string,
-  formula: Omit<FormulaItem, 'id' | 'unit'>,
-  sectionOf: (item: FormulaItem) => string | undefined,
+  calculation: Omit<CalculationItem, 'id' | 'unit'>,
+  sectionOf: (item: CalculationItem) => string | undefined,
   section: string | undefined
 ): string | undefined {
-  const block = formulaBlock(draft, blockId);
+  const block = calculationsBlock(draft, blockId);
   if (!block) return undefined;
   const id = createId();
   const last = block.items.reduce(
@@ -30,34 +35,34 @@ export function insertFormula(
   );
   block.items.splice(last < 0 ? block.items.length : last + 1, 0, {
     id,
-    ...formula,
+    ...calculation,
     unit: AUTO_UNIT,
   });
   return id;
 }
 
-export function updateFormula(
+export function updateCalculation(
   draft: Protocol,
   blockId: string,
   itemId: string,
-  change: Partial<Omit<FormulaItem, 'id'>>
+  change: Partial<Omit<CalculationItem, 'id'>>
 ) {
-  const item = formulaBlock(draft, blockId)?.items.find(candidate => candidate.id === itemId);
+  const item = calculationsBlock(draft, blockId)?.items.find(candidate => candidate.id === itemId);
   if (item) Object.assign(item, change);
 }
 
-export function removeFormula(draft: Protocol, blockId: string, itemId: string): void {
-  const block = formulaBlock(draft, blockId);
+export function removeCalculation(draft: Protocol, blockId: string, itemId: string): void {
+  const block = calculationsBlock(draft, blockId);
   if (block) block.items = block.items.filter(item => item.id !== itemId);
 }
 
-export function setFormulaSection(
+export function setCalculationSection(
   draft: Protocol,
   blockId: string,
   materialId: string,
   isShown: boolean
 ): void {
-  const block = formulaBlock(draft, blockId);
+  const block = calculationsBlock(draft, blockId);
   if (!block) return;
   block.materialSections = isShown
     ? [...new Set([...block.materialSections, materialId])]
@@ -80,23 +85,25 @@ export function addNamedValue(
     values = createBlock('values', { page: pageId, x: 0, y: bottom, w, h }) as ValuesBlock;
     draft.blocks.push(values);
   }
-  let section =
+  let valueRow =
     material &&
     values.sections.find(
       candidate => 'materialId' in candidate && candidate.materialId === material.id
     );
-  if (material && !section) {
-    section = { id: createId(), materialId: material.id };
-    values.sections.push(section);
+  if (material && !valueRow) {
+    valueRow = { id: createId(), materialId: material.id };
+    values.sections.push(valueRow);
   }
   const item = {
     id: createId(),
     name: nameWithin(name, material),
     value: '',
     unit: '',
-    ...(section && { section: section.id }),
+    ...(valueRow && { section: valueRow.id }),
   };
-  const peers = values.items.filter(candidate => (candidate.section ?? '') === (section?.id ?? ''));
+  const peers = values.items.filter(
+    candidate => (candidate.section ?? '') === (valueRow?.id ?? '')
+  );
   const last = peers.at(-1);
   values.items.splice(last ? values.items.indexOf(last) + 1 : values.items.length, 0, item);
 }

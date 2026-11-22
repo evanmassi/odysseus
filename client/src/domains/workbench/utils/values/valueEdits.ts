@@ -17,10 +17,10 @@ import type {
   MaterialItem,
   Protocol,
   ValuesBlock,
+  ValueRow,
 } from '@odysseus/shared-schemas';
 
 type ValueItem = ValuesBlock['items'][number];
-type ValueSection = ValuesBlock['sections'][number];
 
 interface LinkedValue {
   material: MaterialItem;
@@ -34,7 +34,7 @@ interface LinkedValue {
 
 export type RemovedValues =
   | { kind: 'item'; item: ValueItem; index: number; label: string }
-  | { kind: 'section'; section: ValueSection; items: ValueItem[]; index: number; label: string };
+  | { kind: 'row'; valueRow: ValueRow; items: ValueItem[]; index: number; label: string };
 
 export const materialsById = (protocol: Pick<Protocol, 'blocks'>): Map<string, MaterialItem> =>
   new Map(
@@ -49,9 +49,9 @@ export function linkedValueOf(
   materials: ReadonlyMap<string, MaterialItem>
 ): LinkedValue | undefined {
   if (!('materialField' in item)) return undefined;
-  const section = block.sections.find(candidate => candidate.id === item.section);
+  const valueRow = block.sections.find(candidate => candidate.id === item.section);
   const material =
-    section && 'materialId' in section ? materials.get(section.materialId) : undefined;
+    valueRow && 'materialId' in valueRow ? materials.get(valueRow.materialId) : undefined;
   const field =
     material && materialFields(material).find(definition => definition.key === item.materialField);
   if (!material || !field) return undefined;
@@ -66,15 +66,15 @@ export function linkedValueOf(
   };
 }
 
-export const sectionPeers = (block: ValuesBlock, sectionId: string): ValueItem[] =>
-  block.items.filter(item => (item.section ?? '') === sectionId);
+export const valuesInRow = (block: ValuesBlock, valueRowId: string): ValueItem[] =>
+  block.items.filter(item => (item.section ?? '') === valueRowId);
 
-export function sectionName(
-  section: ValueSection,
+export function valueRowName(
+  valueRow: ValueRow,
   materials: ReadonlyMap<string, MaterialItem>
 ): string {
-  if ('mixName' in section) return section.mixName.trim();
-  return materials.get(section.materialId)?.name.trim() ?? section.materialName ?? '';
+  if ('mixName' in valueRow) return valueRow.mixName.trim();
+  return materials.get(valueRow.materialId)?.name.trim() ?? valueRow.materialName ?? '';
 }
 
 function valuesBlock(draft: Protocol, blockId: string): ValuesBlock | undefined {
@@ -89,8 +89,8 @@ function editTarget(draft: Protocol, blockId: string, itemId: string) {
   return { block, item, linked: linkedValueOf(block, item, materialsById(draft)) };
 }
 
-export function insertAfterPeers(block: ValuesBlock, sectionId: string, added: ValueItem[]) {
-  const last = sectionPeers(block, sectionId).at(-1);
+export function insertAfterPeers(block: ValuesBlock, valueRowId: string, added: ValueItem[]) {
+  const last = valuesInRow(block, valueRowId).at(-1);
   block.items.splice(last ? block.items.indexOf(last) + 1 : block.items.length, 0, ...added);
 }
 
@@ -133,47 +133,49 @@ export function addValueLines(
   draft: Protocol,
   blockId: string,
   lines: readonly string[],
-  sectionId: string
+  valueRowId: string
 ) {
   const block = valuesBlock(draft, blockId);
   if (!block) return undefined;
   const added = lines.flatMap(line => {
     const parsed = parseValueLine(line);
     return parsed
-      ? [{ id: createId(), ...settledLine(parsed), ...(sectionId && { section: sectionId }) }]
+      ? [{ id: createId(), ...settledLine(parsed), ...(valueRowId && { section: valueRowId }) }]
       : [];
   });
-  insertAfterPeers(block, sectionId, added);
+  insertAfterPeers(block, valueRowId, added);
   return added.length === 1 && !added[0].value ? added[0].id : undefined;
 }
 
 export function addSuggestedValue(
   draft: Protocol,
   blockId: string,
-  sectionId: string,
+  valueRowId: string,
   suggestion: ValueSuggestion
 ): string | undefined {
   const block = valuesBlock(draft, blockId);
   if (!block) return undefined;
   const id = createId();
   if (suggestion.kind === 'field') {
-    insertAfterPeers(block, sectionId, [
-      { id, section: sectionId, materialField: suggestion.materialField },
+    insertAfterPeers(block, valueRowId, [
+      { id, section: valueRowId, materialField: suggestion.materialField },
     ]);
-    const section = block.sections.find(candidate => candidate.id === sectionId);
+    const valueRow = block.sections.find(candidate => candidate.id === valueRowId);
     const material =
-      section && 'materialId' in section ? materialsById(draft).get(section.materialId) : undefined;
+      valueRow && 'materialId' in valueRow
+        ? materialsById(draft).get(valueRow.materialId)
+        : undefined;
     if (material && !material.shownFields.includes(suggestion.materialField)) {
       material.shownFields.push(suggestion.materialField);
     }
   } else {
     const { name, value, unit } = suggestion;
-    insertAfterPeers(block, sectionId, [{ id, section: sectionId, name, value, unit }]);
+    insertAfterPeers(block, valueRowId, [{ id, section: valueRowId, name, value, unit }]);
   }
   return id;
 }
 
-export function addValueSection(
+export function addValueRow(
   draft: Protocol,
   blockId: string,
   materialId: string | undefined
@@ -185,11 +187,11 @@ export function addValueSection(
   return id;
 }
 
-function materialSectionId(draft: Protocol, blockId: string, materialId: string) {
+function materialRowId(draft: Protocol, blockId: string, materialId: string) {
   const existing = valuesBlock(draft, blockId)?.sections.find(
-    section => 'materialId' in section && section.materialId === materialId
+    valueRow => 'materialId' in valueRow && valueRow.materialId === materialId
   );
-  return existing?.id ?? addValueSection(draft, blockId, materialId);
+  return existing?.id ?? addValueRow(draft, blockId, materialId);
 }
 
 export function addRoutedValue(
@@ -205,12 +207,12 @@ export function addRoutedValue(
     return id;
   }
   const { materialId } = destination;
-  const mixSectionId = destination.kind === 'row' ? destination.sectionId : undefined;
-  const sectionId = materialId ? materialSectionId(draft, blockId, materialId) : mixSectionId;
-  if (!sectionId) return undefined;
+  const mixRowId = destination.kind === 'row' ? destination.valueRowId : undefined;
+  const valueRowId = materialId ? materialRowId(draft, blockId, materialId) : mixRowId;
+  if (!valueRowId) return undefined;
   if (destination.kind === 'row') {
     const { label } = destination;
-    return addSuggestedValue(draft, blockId, sectionId, {
+    return addSuggestedValue(draft, blockId, valueRowId, {
       kind: 'value',
       name: label,
       value: line.value,
@@ -227,11 +229,11 @@ export function addRoutedValue(
   }
   const linked = block.items.find(
     item =>
-      'materialField' in item && item.section === sectionId && item.materialField === field.key
+      'materialField' in item && item.section === valueRowId && item.materialField === field.key
   );
   return (
     linked?.id ??
-    addSuggestedValue(draft, blockId, sectionId, {
+    addSuggestedValue(draft, blockId, valueRowId, {
       kind: 'field',
       materialField: field.key,
       label: field.label,
@@ -239,21 +241,21 @@ export function addRoutedValue(
   );
 }
 
-export function renameValueSection(
+export function renameValueRow(
   draft: Protocol,
   blockId: string,
-  sectionId: string,
+  valueRowId: string,
   name: string
 ): void {
-  const section = valuesBlock(draft, blockId)?.sections.find(
-    candidate => candidate.id === sectionId
+  const valueRow = valuesBlock(draft, blockId)?.sections.find(
+    candidate => candidate.id === valueRowId
   );
-  if (!section) return;
-  if ('mixName' in section) {
-    section.mixName = name;
+  if (!valueRow) return;
+  if ('mixName' in valueRow) {
+    valueRow.mixName = name;
     return;
   }
-  const material = materialsById(draft).get(section.materialId);
+  const material = materialsById(draft).get(valueRow.materialId);
   if (material) material.name = name;
 }
 
@@ -267,36 +269,36 @@ export function removeValue(
   if (!block || !item) return undefined;
   const linked = linkedValueOf(block, item, materialsById(draft));
   const label = (linked ? linked.label : 'name' in item ? item.name : '') || 'a value';
-  const index = sectionPeers(block, item.section ?? '').indexOf(item);
+  const index = valuesInRow(block, item.section ?? '').indexOf(item);
   block.items = block.items.filter(candidate => candidate.id !== itemId);
   return { kind: 'item', item: { ...item }, index, label };
 }
 
-export function removeValueSection(
+export function removeValueRow(
   draft: Protocol,
   blockId: string,
-  sectionId: string
+  valueRowId: string
 ): RemovedValues | undefined {
   const block = valuesBlock(draft, blockId);
-  const section = block?.sections.find(candidate => candidate.id === sectionId);
-  if (!block || !section) return undefined;
-  const items = block.items.filter(item => item.section === sectionId).map(item => ({ ...item }));
-  const label = `${sectionName(section, materialsById(draft)) || 'mix'} row`;
-  const index = block.sections.indexOf(section);
-  block.sections = block.sections.filter(candidate => candidate.id !== sectionId);
-  block.items = block.items.filter(item => item.section !== sectionId);
-  return { kind: 'section', section: { ...section }, items, index, label };
+  const valueRow = block?.sections.find(candidate => candidate.id === valueRowId);
+  if (!block || !valueRow) return undefined;
+  const items = block.items.filter(item => item.section === valueRowId).map(item => ({ ...item }));
+  const label = `${valueRowName(valueRow, materialsById(draft)) || 'mix'} row`;
+  const index = block.sections.indexOf(valueRow);
+  block.sections = block.sections.filter(candidate => candidate.id !== valueRowId);
+  block.items = block.items.filter(item => item.section !== valueRowId);
+  return { kind: 'row', valueRow: { ...valueRow }, items, index, label };
 }
 
 export function restoreValues(draft: Protocol, blockId: string, removed: RemovedValues): void {
   const block = valuesBlock(draft, blockId);
   if (!block) return;
-  if (removed.kind === 'section') {
-    block.sections.splice(Math.min(removed.index, block.sections.length), 0, removed.section);
+  if (removed.kind === 'row') {
+    block.sections.splice(Math.min(removed.index, block.sections.length), 0, removed.valueRow);
     block.items.push(...removed.items);
     return;
   }
-  const peers = sectionPeers(block, removed.item.section ?? '');
+  const peers = valuesInRow(block, removed.item.section ?? '');
   const before = peers[removed.index];
   const last = peers.at(-1);
   const at = before

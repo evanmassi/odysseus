@@ -1,4 +1,4 @@
-import { nameKey, type SolvedBoard, type BoardName } from '../formulas/boardCalculation';
+import { nameKey, type CalculationName, type SolvedBoard } from '../formulas/boardCalculation';
 
 import { routeParsedLine, type RoutedValue } from './valueRouting';
 
@@ -8,14 +8,12 @@ export type ValueNeed =
   | { kind: 'blank'; id: string; neededFor: string[] }
   | { kind: 'absent'; routed: RoutedValue; neededFor: string[] };
 
-type FormulaName = Extract<BoardName, { kind: 'formula' }>;
-
 const SHOWN_NEEDERS = 2;
 
-const neederOf = (formula: FormulaName) =>
-  formula.workedOut
-    ? `${formula.workedOut.title} for ${formula.workedOut.subject}`
-    : formula.name.trim();
+const neederOf = (calculation: CalculationName) =>
+  calculation.workedOut
+    ? `${calculation.workedOut.title} for ${calculation.workedOut.subject}`
+    : calculation.name.trim();
 
 export function neededForText(neededFor: readonly string[]): string {
   const shown = neededFor.slice(0, SHOWN_NEEDERS).join(', ');
@@ -28,20 +26,20 @@ export function valueNeeds(
   block: ValuesBlock,
   board: SolvedBoard
 ): ValueNeed[] {
-  const formulas = new Map(
+  const calculations = new Map(
     [...board.names.values()].flatMap(entry =>
-      entry.kind === 'formula' ? [[entry.id, entry] as const] : []
+      entry.kind === 'calculation' ? [[entry.id, entry] as const] : []
     )
   );
   const blanks = new Map<string, Set<string>>();
   const absent = new Map<string, { name: string; neededFor: Set<string> }>();
   for (const [id, result] of board.results) {
-    const formula = formulas.get(id);
-    if (!formula || result.status !== 'error') continue;
-    const needer = neederOf(formula);
+    const calculation = calculations.get(id);
+    if (!calculation || result.status !== 'error') continue;
+    const needer = neederOf(calculation);
     if (result.blankId) {
       blanks.set(result.blankId, (blanks.get(result.blankId) ?? new Set()).add(needer));
-    } else if (result.missingName && formula.workedOut) {
+    } else if (result.missingName && calculation.workedOut) {
       const key = nameKey(result.missingName);
       const entry = absent.get(key) ?? { name: result.missingName, neededFor: new Set() };
       entry.neededFor.add(needer);

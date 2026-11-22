@@ -1,16 +1,19 @@
-import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
+import {
+  calculationAnswerText,
+  type CalculationResult,
+} from '../../../../utils/formulas/boardCalculation';
 import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
 
-import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
+import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
 
 export interface WorkingLine {
   id: string;
   name: string;
-  result: FormulaResult | undefined;
+  result: CalculationResult | undefined;
   links?: Readonly<Record<string, string>>;
 }
 
-interface WorkbenchFormulaWorkingLinesProps {
+interface WorkbenchCalculationWorkingLinesProps {
   lines: readonly WorkingLine[];
   shortName: (name: string) => string;
   onShowBlock?: (blockId: string) => void;
@@ -19,13 +22,15 @@ interface WorkbenchFormulaWorkingLinesProps {
 const WORKING_ROW = 'border-t border-line-soft first:border-t-0';
 
 export const lineAnswer = (line: WorkingLine): string =>
-  line.result?.status === 'ok' ? withPerLabwareKind(formulaAnswerText(line.result), line.name) : '';
+  line.result?.status === 'ok'
+    ? withPerLabwareKind(calculationAnswerText(line.result), line.name)
+    : '';
 
-export function WorkbenchFormulaWorkingLines({
+export function WorkbenchCalculationWorkingLines({
   lines,
   shortName,
   onShowBlock,
-}: WorkbenchFormulaWorkingLinesProps) {
+}: WorkbenchCalculationWorkingLinesProps) {
   return (
     <table className="w-full border-collapse">
       <tbody>
@@ -37,7 +42,7 @@ export function WorkbenchFormulaWorkingLines({
                 {shortName(line.name)}
               </td>
               <td className="w-full py-1.5 align-middle">
-                <WorkbenchFormulaWorking
+                <WorkbenchCalculationWorking
                   name={line.name}
                   result={line.result}
                   isCompact

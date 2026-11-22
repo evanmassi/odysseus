@@ -8,42 +8,42 @@ import { ROW_HOVER_GLOW, ROW_LIT_HOVER } from '@shared/ui/primitives/table/rowGl
 import { nameWithin } from '../../../../utils/formulas/formulaScopes';
 import { LEADER_LINE } from '../../board/leaderLineClass';
 
-import { FORMULA_WORKING_INDENT } from './formulaLineClasses';
-import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
+import { CALCULATION_WORKING_INDENT } from './calculationLineClasses';
+import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
 
-import type { FormulaResult } from '../../../../utils/formulas/boardCalculation';
+import type { CalculationResult } from '../../../../utils/formulas/boardCalculation';
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
-interface WorkbenchFormulaRowProps {
-  formulaId: string;
+interface WorkbenchCalculationRowProps {
+  calculationId: string;
   name: string;
-  result: FormulaResult | undefined;
+  result: CalculationResult | undefined;
   material: MaterialItem | undefined;
   isOpen: boolean;
-  onOpen: (formulaId: string) => void;
+  onOpen: (calculationId: string) => void;
 }
 
-export const FORMULA_ROW_ATTRIBUTE = 'data-formula-row';
+export const CALCULATION_ROW_ATTRIBUTE = 'data-calculation-row';
 
-const answerOf = (result: FormulaResult | undefined) =>
+const answerOf = (result: CalculationResult | undefined) =>
   result?.status === 'ok' && 'text' in result.output ? result.output.text : '?';
 
-export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
-  formulaId,
+export const WorkbenchCalculationRow = memo(function WorkbenchCalculationRow({
+  calculationId,
   name,
   result,
   material,
   isOpen,
   onOpen,
-}: WorkbenchFormulaRowProps) {
+}: WorkbenchCalculationRowProps) {
   const [isShowingWorking, setIsShowingWorking] = useState(false);
   const shortName = nameWithin(name, material);
   const isWorkingShown = isShowingWorking || result?.status !== 'ok';
   return (
     <div
-      {...{ [FORMULA_ROW_ATTRIBUTE]: formulaId }}
+      {...{ [CALCULATION_ROW_ATTRIBUTE]: calculationId }}
       className={`row-tools-host px-2 py-1 even:bg-[hsl(var(--foreground)/var(--alpha-zebra))] ${isOpen ? ROW_LIT_HOVER : ROW_HOVER_GLOW.primary}`}
-      onDoubleClick={() => onOpen(formulaId)}
+      onDoubleClick={() => onOpen(calculationId)}
     >
       <span className="flex w-full items-baseline">
         <button
@@ -65,7 +65,7 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
                 type="button"
                 aria-label={`Edit ${shortName || 'calculation'}`}
                 className="pl-2 text-primary hover:text-foreground"
-                onClick={() => onOpen(formulaId)}
+                onClick={() => onOpen(calculationId)}
               >
                 <Pencil aria-hidden className="h-3 w-3" />
               </button>
@@ -74,8 +74,8 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
         </span>
       </span>
       {isWorkingShown && (
-        <div className={`${FORMULA_WORKING_INDENT} empty:hidden`}>
-          <WorkbenchFormulaWorking
+        <div className={`${CALCULATION_WORKING_INDENT} empty:hidden`}>
+          <WorkbenchCalculationWorking
             name={name}
             result={result}
             isCompact

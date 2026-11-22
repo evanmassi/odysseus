@@ -46,7 +46,7 @@ const isWordCharacter = (character: string | undefined) => /[A-Za-z0-9_µ°]/.te
 const ownerPrefix = (material: MaterialItem | undefined) =>
   material ? `${nameKey(material.name)} ` : '';
 
-export function formulaMaterial(
+export function calculationMaterial(
   name: string,
   materials: readonly MaterialItem[]
 ): MaterialItem | undefined {

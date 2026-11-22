@@ -99,7 +99,7 @@ describe('routing a typed value', () => {
     expect(routed('Th17 cocktail volume 50 µL')?.destination).toMatchObject({
       kind: 'row',
       materialId: undefined,
-      sectionId: 'mix',
+      valueRowId: 'mix',
       label: 'Vol.',
     });
   });
@@ -127,10 +127,10 @@ describe('adding routed values', () => {
       const value = routeValueLine(protocol, block, text);
       if (value) addRoutedValue(protocol, 'values', value);
     }
-    const rajiSections = block.sections.filter(
-      section => 'materialId' in section && section.materialId === 'raji'
+    const rajiRows = block.sections.filter(
+      valueRow => 'materialId' in valueRow && valueRow.materialId === 'raji'
     );
-    expect(rajiSections).toHaveLength(1);
+    expect(rajiRows).toHaveLength(1);
     expect(block.items.map(item => ('name' in item ? item.name : ''))).toEqual([
       'Cells/well',
       'Vol./well',

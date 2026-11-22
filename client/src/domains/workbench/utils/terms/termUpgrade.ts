@@ -39,7 +39,7 @@ function oldSpellings(names: ReadonlyMap<string, BoardName>): Map<string, string
   for (const entry of names.values()) {
     const name = entry.name.trim();
     const lower = name.toLowerCase();
-    const former = entry.kind === 'formula' ? entry.formerName?.toLowerCase() : undefined;
+    const former = entry.kind === 'calculation' ? entry.formerName?.toLowerCase() : undefined;
     if (former && !names.has(former) && !byOldName.has(former)) byOldName.set(former, name);
     for (const term of TERMS_ON_ANY_LABWARE_KIND) {
       const word = term.word.toLowerCase();

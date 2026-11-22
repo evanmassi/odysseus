@@ -29,7 +29,7 @@ export type ValueDestination =
       kind: 'row';
       shownOwner: string;
       materialId: string | undefined;
-      sectionId: string | undefined;
+      valueRowId: string | undefined;
       label: string;
     }
   | { kind: 'field'; materialId: string; field: FieldDefinition; current: string };
@@ -52,7 +52,7 @@ interface ValueOwner {
   title: string;
   shownTitle: string;
   material: MaterialItem | undefined;
-  sectionId: string | undefined;
+  valueRowId: string | undefined;
 }
 
 const ROWLESS_GROUPS: ReadonlySet<string> = new Set(['equip', 'soft']);
@@ -60,8 +60,8 @@ const ROWLESS_GROUPS: ReadonlySet<string> = new Set(['equip', 'soft']);
 const tidy = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 function valueOwners(protocol: Pick<Protocol, 'blocks'>, block: ValuesBlock): ValueOwner[] {
-  const sectionOf = (materialId: string) =>
-    block.sections.find(section => 'materialId' in section && section.materialId === materialId)
+  const valueRowOf = (materialId: string) =>
+    block.sections.find(valueRow => 'materialId' in valueRow && valueRow.materialId === materialId)
       ?.id;
   const materials = listedMaterials(protocol)
     .filter(material => !ROWLESS_GROUPS.has(material.group))
@@ -70,17 +70,17 @@ function valueOwners(protocol: Pick<Protocol, 'blocks'>, block: ValuesBlock): Va
       title: material.name.trim(),
       shownTitle: displayNameOf(material),
       material,
-      sectionId: sectionOf(material.id),
+      valueRowId: valueRowOf(material.id),
     }));
-  const mixes = block.sections.flatMap(section =>
-    'mixName' in section && section.mixName.trim()
+  const mixes = block.sections.flatMap(valueRow =>
+    'mixName' in valueRow && valueRow.mixName.trim()
       ? [
           {
-            names: [section.mixName],
-            title: section.mixName.trim(),
-            shownTitle: section.mixName.trim(),
+            names: [valueRow.mixName],
+            title: valueRow.mixName.trim(),
+            shownTitle: valueRow.mixName.trim(),
             material: undefined,
-            sectionId: section.id,
+            valueRowId: valueRow.id,
           },
         ]
       : []
@@ -155,7 +155,7 @@ export function routeParsedLine(
       kind: 'row',
       shownOwner: owner.shownTitle,
       materialId: owner.material?.id,
-      sectionId: owner.sectionId,
+      valueRowId: owner.valueRowId,
       label,
     },
     fullName: joinValueName(owner.title, label),

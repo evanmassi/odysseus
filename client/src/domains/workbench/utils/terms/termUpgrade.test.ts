@@ -1,6 +1,6 @@
 import { withSettledWords } from './termUpgrade';
 
-import type { FormulaBlock, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type { CalculationsBlock, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 
 type ValueItem = { id: string; name: string; value: string; unit: string };
 
@@ -40,7 +40,7 @@ const valueNames = (protocol: Protocol) =>
   (blockOf(protocol, 'values') as ValuesBlock).items.map(item => ('name' in item ? item.name : ''));
 
 const exprs = (protocol: Protocol) =>
-  (blockOf(protocol, 'formula') as FormulaBlock).items.map(item => item.expr);
+  (blockOf(protocol, 'formula') as CalculationsBlock).items.map(item => item.expr);
 
 describe('settling the words of an opened file', () => {
   it('files a typed value under the standard word and follows it in calculations and steps', () => {

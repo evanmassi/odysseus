@@ -1,20 +1,20 @@
 import {
-  formulaAnswerText,
+  calculationAnswerText,
   type SolvedBoard,
-  type FormulaResult,
+  type CalculationResult,
 } from '../formulas/boardCalculation';
 import { displayValue } from '../formulas/quantities';
 import { VOLUME_PER_WELL } from '../terms/termList';
 import { findTerm, withPerLabwareKind } from '../terms/termLookup';
 
+import { shortfallOf } from './cellCalculations';
 import { cellPartId, type CountSubject } from './cellCounts';
-import { shortfallOf } from './cellFormulas';
 import { nameWithoutNotes } from './materialLookup';
 
 export interface PrepLine {
   id: string;
   name: string;
-  result: FormulaResult | undefined;
+  result: CalculationResult | undefined;
 }
 
 export interface CellPrep {
@@ -47,7 +47,7 @@ export function cellPrep(
   const resultOf = (part: string) => board.results.get(cellPartId(subject.subject, part));
   const answer = (part: string) => {
     const result = resultOf(part);
-    return result?.status === 'ok' ? formulaAnswerText(result) : undefined;
+    return result?.status === 'ok' ? calculationAnswerText(result) : undefined;
   };
   const stock = answer('stock');
   const diluent = answer('diluent');
@@ -74,7 +74,7 @@ export function cellPrep(
     ...(resuspend ? ['Spin down', `resuspend in ${resuspend}`] : []),
     ...(plated && (stock ?? resuspend) ? [plated] : []),
     ...(leftOver?.status === 'ok' && !shortfall
-      ? [`${formulaAnswerText(leftOver)} left over`]
+      ? [`${calculationAnswerText(leftOver)} left over`]
       : []),
   ];
   const problems = PREP_PARTS.flatMap(part => {
@@ -87,7 +87,7 @@ export function cellPrep(
     steps,
     warnings: [...new Set([...(shortfall ? [shortfall] : []), ...problems, ...clashes])],
     lines: [...board.names.values()].flatMap(entry =>
-      entry.kind === 'formula' && entry.workedOut?.key === groupKey
+      entry.kind === 'calculation' && entry.workedOut?.key === groupKey
         ? [{ id: entry.id, name: entry.name, result: board.results.get(entry.id) }]
         : []
     ),

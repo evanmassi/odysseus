@@ -83,7 +83,7 @@ function blockNames(
       return [
         ...count,
         {
-          kind: 'formula',
+          kind: 'calculation',
           id: cocktailAntibodiesId(block.id, cocktail.key),
           name: antibodiesName,
           expr: shares.join(' + '),
@@ -109,7 +109,7 @@ function blockNames(
         : undefined;
     return [
       {
-        kind: 'formula',
+        kind: 'calculation',
         id: stainAmountId(row.id),
         name,
         expr: volume ? `${volume} × ${factor}` : '',
@@ -128,7 +128,7 @@ function blockNames(
   return [...factors, ...cocktails, ...amounts];
 }
 
-export function flowCytometryFormulaNames(
+export function flowCytometryCalculationNames(
   protocol: Protocol,
   taken: readonly BoardName[]
 ): BoardName[] {

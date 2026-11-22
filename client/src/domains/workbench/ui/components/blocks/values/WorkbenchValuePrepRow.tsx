@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
-import { WorkbenchFormulaWorkingLines } from '../formulas/WorkbenchFormulaWorkingLines';
+import { WorkbenchCalculationWorkingLines } from '../calculations/WorkbenchCalculationWorkingLines';
 
 import type { CellPrep } from '../../../../utils/materials/cellPrep';
 
@@ -46,7 +46,7 @@ export function WorkbenchValuePrepRow({ prep, span, isZebra }: WorkbenchValuePre
         )}
         {isShowingWorking && (
           <div className="mt-1 max-w-3xl pl-4">
-            <WorkbenchFormulaWorkingLines
+            <WorkbenchCalculationWorkingLines
               lines={prep.lines}
               shortName={name => nameWithinOwner(name, prep.subject)}
             />

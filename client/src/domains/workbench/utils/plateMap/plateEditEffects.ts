@@ -1,5 +1,5 @@
 import { nameKey } from '../formulas/boardCalculation';
-import { materialsById, sectionName } from '../values/valueEdits';
+import { materialsById, valueRowName } from '../values/valueEdits';
 import { joinValueName } from '../values/valueNames';
 
 import { plateAmounts } from './plateMapNames';
@@ -26,9 +26,9 @@ export function dropValuesTwinnedByPlate(
     if (block.type !== 'values') continue;
     block.items = block.items.filter(item => {
       if ('materialField' in item) return true;
-      const section = block.sections.find(candidate => candidate.id === item.section);
-      const fullName = section
-        ? joinValueName(sectionName(section, materials), item.name)
+      const valueRow = block.sections.find(candidate => candidate.id === item.section);
+      const fullName = valueRow
+        ? joinValueName(valueRowName(valueRow, materials), item.name)
         : item.name;
       return !newPlateNames.has(nameKey(fullName));
     });

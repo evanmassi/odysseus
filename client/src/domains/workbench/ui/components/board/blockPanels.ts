@@ -1,9 +1,9 @@
 import type { ComponentType } from 'react';
 
+import { WorkbenchCalculationsPanel } from '../blocks/calculations/WorkbenchCalculationsPanel';
 import { WorkbenchDilutionsPanel } from '../blocks/dilutions/WorkbenchDilutionsPanel';
 import { WorkbenchFlowCytometryPanel } from '../blocks/flowCytometry/WorkbenchFlowCytometryPanel';
 import { WorkbenchFlowDiagramPanel } from '../blocks/flowDiagram/WorkbenchFlowDiagramPanel';
-import { WorkbenchFormulaPanel } from '../blocks/formulas/WorkbenchFormulaPanel';
 import { WorkbenchMaterialsPanel } from '../blocks/materials/WorkbenchMaterialsPanel';
 import { WorkbenchLinkedPlateMapCardControls } from '../blocks/plateMap/WorkbenchLinkedPlateMapCardControls';
 import { WorkbenchLinkedPlateMapPanel } from '../blocks/plateMap/WorkbenchLinkedPlateMapPanel';
@@ -22,7 +22,7 @@ export const BLOCK_PANELS: BlockPanels = {
   materials: WorkbenchMaterialsPanel,
   steps: WorkbenchStepsPanel,
   values: WorkbenchValuesPanel,
-  formula: WorkbenchFormulaPanel,
+  formula: WorkbenchCalculationsPanel,
   plate: WorkbenchPlateMapPanel,
   plateView: WorkbenchLinkedPlateMapPanel,
   cytometer: WorkbenchFlowCytometryPanel,

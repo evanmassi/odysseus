@@ -9,7 +9,7 @@ import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardC
 import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { fieldName, materialFields } from '../materials/materialCatalog';
 import { materialNamed } from '../materials/materialLookup';
-import { wellTotalName } from '../materials/materialRecipeFormulas';
+import { wellTotalName } from '../materials/materialRecipeCalculations';
 import { plateAmounts } from '../plateMap/plateMapNames';
 import { stepSeriesUnit } from '../plateMap/plateSeries';
 import {
@@ -191,7 +191,7 @@ function runNames(
       const source = { id: prepInputId(run, key), name: input(key), unit: PREP_INPUTS[key][1] };
       const isFromExperiment = key === 'wellVolume' && !settings[key].trim() && wellTotal;
       return isFromExperiment
-        ? { ...source, kind: 'formula', expr: wellTotal, workedOut: group }
+        ? { ...source, kind: 'calculation', expr: wellTotal, workedOut: group }
         : {
             ...source,
             kind: 'value',
@@ -217,7 +217,7 @@ function runNames(
     .filter(key => !takenKeys.has(nameKey(line(key))))
     .map(
       (key): BoardName => ({
-        kind: 'formula',
+        kind: 'calculation',
         id: prepLineId(run, key),
         name: line(key),
         expr: exprs[key],
@@ -247,7 +247,7 @@ function diluentNeedNames(
     const shownName = materialNamed(protocol, name)?.name.trim() ?? name;
     const needName = `Total ${lowerLead(shownName)} needed`;
     return {
-      kind: 'formula',
+      kind: 'calculation',
       id: diluentNeedId(name),
       name: needName,
       formerName: `${shownName} needed for dilutions`,
@@ -266,7 +266,10 @@ function diluentNeedNames(
   });
 }
 
-export function dilutionFormulaNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
+export function dilutionCalculationNames(
+  protocol: Protocol,
+  taken: readonly BoardName[]
+): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const wellTotal = wellTotalName(new Map(taken.map(entry => [nameKey(entry.name), entry])));
   const dilutionsBlockId = protocol.blocks.find(block => block.type === 'dilutions')?.id;

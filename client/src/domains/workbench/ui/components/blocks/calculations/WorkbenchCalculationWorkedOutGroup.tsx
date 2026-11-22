@@ -3,20 +3,23 @@ import { memo, useState } from 'react';
 import { Button } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
-import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
+import {
+  calculationAnswerText,
+  type CalculationResult,
+} from '../../../../utils/formulas/boardCalculation';
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { LEADER_LINE } from '../../board/leaderLineClass';
 import { META_LABEL } from '../../board/metaLabelClass';
 
-import { FORMULA_WORKING_INDENT } from './formulaLineClasses';
-import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
-import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
+import { CALCULATION_WORKING_INDENT } from './calculationLineClasses';
+import { WorkbenchCalculationSettingsButton } from './WorkbenchCalculationSettingsButton';
+import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
 
 export interface WorkedOutLine {
   id: string;
   name: string;
-  result: FormulaResult | undefined;
+  result: CalculationResult | undefined;
   links: Readonly<Record<string, string>>;
   warnings: readonly string[];
   isIntermediate: boolean;
@@ -27,7 +30,7 @@ export interface WorkedOutSettings {
   blockId: string;
 }
 
-interface WorkbenchFormulaWorkedOutGroupProps {
+interface WorkbenchCalculationWorkedOutGroupProps {
   title: string;
   lines: readonly WorkedOutLine[];
   subject: string;
@@ -35,13 +38,13 @@ interface WorkbenchFormulaWorkedOutGroupProps {
   onShowBlock: (blockId: string) => void;
 }
 
-export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWorkedOutGroup({
+export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalculationWorkedOutGroup({
   title,
   lines,
   subject,
   settings,
   onShowBlock,
-}: WorkbenchFormulaWorkedOutGroupProps) {
+}: WorkbenchCalculationWorkedOutGroupProps) {
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const [isShowingWorking, setIsShowingWorking] = useState(false);
 
@@ -63,7 +66,7 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
           {capsKeepingGreek(shortName(title))}
         </span>
         {settings && (
-          <WorkbenchFormulaSettingsButton settings={settings} onShowBlock={onShowBlock} />
+          <WorkbenchCalculationSettingsButton settings={settings} onShowBlock={onShowBlock} />
         )}
       </div>
       {visibleLines.map(line => {
@@ -82,7 +85,7 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
               <span className="text-body-sm text-foreground">{shortName(line.name)}</span>
               <span aria-hidden className={LEADER_LINE} />
               <span className="font-mono text-data-sm text-foreground">
-                {result?.status === 'ok' && formulaAnswerText(result)}
+                {result?.status === 'ok' && calculationAnswerText(result)}
               </span>
             </button>
             {warnings.map(warning => (
@@ -91,8 +94,8 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
               </p>
             ))}
             {openIds.has(line.id) && (
-              <div className={`${FORMULA_WORKING_INDENT} pt-1`}>
-                <WorkbenchFormulaWorking
+              <div className={`${CALCULATION_WORKING_INDENT} pt-1`}>
+                <WorkbenchCalculationWorking
                   name={line.name}
                   result={result}
                   isCompact
