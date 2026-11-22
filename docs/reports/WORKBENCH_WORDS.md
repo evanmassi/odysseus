@@ -194,10 +194,31 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
      - Bug 6: Format has 1536-well.
      - Bug 12: conjugate aliases are filed under one name (horseradish peroxidase → HRP,
        biotinylated → Biotin, DIG → Digoxigenin). Digoxigenin is in the picker.
-   - **3e. Next: the display features.** "/well" after per-well numbers (A1), each word's hover
-     meaning, the unit-mismatch hover, "2 µL per test" in an antibody's Materials cell (D1), and
-     bug 7 (a field renamed on one material shows its new name in Values but not in the
-     Materials column, which needs a pick).
+   - **Bug 7 pick (2026-11-21): a field renamed from Values is renamed for the whole Materials
+     column** (every material in that group), and the Materials heading shows it.
+   - **Cell concentrations (raised by Evan 2026-11-21): built as W115** (see the plan). Cell
+     materials and donors share six fixed words: Total cell conc., Viability, Live cell conc., Vol.,
+     Total cells and Live cells. "Cell conc." and "Cell concentration" are now accepted spellings
+     of Total cell conc. ("Count" stays a former one), and "Total count" / "Live count" are
+     accepted spellings of Total cells / Live cells, so old references follow.
+   - **3e. Built and committed 2026-11-21: the display features.**
+     - "/well" (or "/tube" and so on) after a per-well number in Values cells and rows,
+       Calculations workings, answers and worked-out tables (`withPerVessel`, keyed by the name,
+       old spellings such as "volume added" included). Step text and the insert list show the
+       plain number, since a step already says "per well".
+     - Each word's meaning (`meaning` on the entry, `termMeaning`) shows on Values column
+       headings, ahead of the existing note, and on the Dilutions labels. Round to joins the
+       list for its meaning.
+     - The unit-mismatch hover on a Values cell: "Extra (dead vol.) should be a %, so the math
+       isn't using it" (`unitMismatch`). It never fires when any word with that label accepts the
+       unit.
+     - "2 µL per test" in an antibody's Materials cell; a 1:N shows just "1:200", since the
+       heading already says Dil.
+     - Bug 7: a field renamed from Values is renamed for every material in its Materials group,
+       and the Materials heading shows the group's label (`columnLabel`).
+     - S4: the empty Working strength shows "—".
+     - Tests: 575, green.
+     - Not seen in the app yet.
    - Shown labels, headings, hovers (adding a meaning to each entry once something
      shows it) and messages, with each card's bugs fixed as it is passed. This includes the
      unit-mismatch hover agreed 2026-11-20: a value named Extra (dead vol.) in µL says "Extra (dead
