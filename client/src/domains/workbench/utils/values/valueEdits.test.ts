@@ -1,9 +1,9 @@
 import { produce } from 'immer';
 
-import { addNamedValue } from '../formulas/calculationEdits';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
 import {
+  addNamedValue,
   addSuggestedValue,
   addValueLines,
   addValueRow,
@@ -154,7 +154,12 @@ describe('value edits', () => {
     const before = protocolWithValues();
     const material = materialsById(before).get('m1');
     const after = produce(before, draft =>
-      addNamedValue(draft, 'HeLa per well', material, draft.pages[0].id)
+      addNamedValue(
+        draft,
+        { name: 'HeLa per well', value: '', unit: '' },
+        material,
+        draft.pages[0].id
+      )
     );
     const values = valuesOf(after);
     expect(values?.rows).toEqual([{ id: expect.any(String), materialId: 'm1' }]);

@@ -52,11 +52,11 @@ describe('series edits', () => {
     const seriesId = writeSeries(card, sheet, rowB, { ...form, dilutionFactor: '3' });
     expect(card.samples['p:B4']).toEqual({ drug: { seriesId, seriesPoint: 2 } });
     expect(card.samples['p:B2']).toEqual({ drug: { valueId: 'x', seriesId, seriesPoint: 0 } });
-    card.series[seriesId] = { ...card.series[seriesId], prep: { volumeAdded: '20' } };
+    card.series[seriesId] = { ...card.series[seriesId], prep: { roundTo: '10' } };
     writeSeries(card, sheet, new Set(['p:B2']), { ...form, seriesId, dilutionFactor: '2' });
     expect(card.series[seriesId]).toMatchObject({
       dilutionFactor: '2',
-      prep: { volumeAdded: '20' },
+      prep: { roundTo: '10' },
     });
     expect(card.samples['p:B4']).toEqual({ drug: { seriesId, seriesPoint: 2 } });
   });

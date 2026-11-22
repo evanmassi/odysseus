@@ -1,16 +1,8 @@
-import { CARD_TYPES } from '../cards/cardTypes';
-import { createCard } from '../cards/createCard';
 import { createId } from '../ids/createId';
 
-import { nameWithin } from './formulaScopes';
 import { AUTO_UNIT } from './quantities';
 
-import type {
-  CalculationsCard,
-  MaterialItem,
-  Protocol,
-  ValuesCard,
-} from '@odysseus/shared-schemas';
+import type { CalculationsCard, Protocol } from '@odysseus/shared-schemas';
 
 type CalculationItem = CalculationsCard['items'][number];
 
@@ -67,41 +59,4 @@ export function setCalculationSection(
   card.materialSections = isShown
     ? [...new Set([...card.materialSections, materialId])]
     : card.materialSections.filter(id => id !== materialId);
-}
-
-export function addNamedValue(
-  draft: Protocol,
-  name: string,
-  material: MaterialItem | undefined,
-  pageId: string
-): void {
-  let values = draft.cards.find((card): card is ValuesCard => card.type === 'values');
-  if (!values) {
-    const [w, h] = CARD_TYPES.values.size;
-    const bottom = Math.max(
-      0,
-      ...draft.cards.filter(card => card.page === pageId).map(card => card.y + card.h)
-    );
-    values = createCard('values', { page: pageId, x: 0, y: bottom, w, h }) as ValuesCard;
-    draft.cards.push(values);
-  }
-  let valueRow =
-    material &&
-    values.rows.find(
-      candidate => 'materialId' in candidate && candidate.materialId === material.id
-    );
-  if (material && !valueRow) {
-    valueRow = { id: createId(), materialId: material.id };
-    values.rows.push(valueRow);
-  }
-  const item = {
-    id: createId(),
-    name: nameWithin(name, material),
-    value: '',
-    unit: '',
-    ...(valueRow && { row: valueRow.id }),
-  };
-  const peers = values.items.filter(candidate => (candidate.row ?? '') === (valueRow?.id ?? ''));
-  const last = peers.at(-1);
-  values.items.splice(last ? values.items.indexOf(last) + 1 : values.items.length, 0, item);
 }

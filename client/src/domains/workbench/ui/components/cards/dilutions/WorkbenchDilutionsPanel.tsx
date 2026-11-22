@@ -10,6 +10,7 @@ import { ownDiluent, runDiluents } from '../../../../utils/dilutions/dilutionDil
 import {
   recordOnMaterial,
   setPrepSetting,
+  setSharedPrepValue,
   type SeriesPrepKey,
 } from '../../../../utils/dilutions/dilutionEdits';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
@@ -24,6 +25,7 @@ import {
   shortNameOf,
 } from '../../../../utils/materials/materialLookup';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
+import { generalTitleOf } from '../../../../utils/values/valueNames';
 import { CARD_ICONS } from '../../board/cardIcons';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
@@ -145,10 +147,16 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
             color={run.color}
             swatch={indicatorOf(run)}
             prep={prep}
+            generalTitle={generalTitleOf(protocol.cards)}
             diluent={ownDiluent(run)}
             diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}
             diluentChoices={diluentChoices}
-            onSettingChange={(key, value) => setOnMembers(run, key, value)}
+            onSharedChange={(field, value) =>
+              updateProtocol(draft =>
+                setSharedPrepValue(draft, run.subject, field, value, card.page)
+              )
+            }
+            onRoundToChange={value => setOnMembers(run, 'roundTo', value)}
             onDiluentChange={diluent => setOnMembers(run, 'diluent', diluent)}
             onDiluentDone={() => listDiluent(ownDiluent(run))}
             onStockSave={(value, unit) => {

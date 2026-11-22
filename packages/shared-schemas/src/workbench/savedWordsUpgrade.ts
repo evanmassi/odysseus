@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PROTOCOL_FILE_VERSION } from './protocolFileSchemas';
+import { SERIES_PREP_FILE_VERSION } from './seriesPrepUpgrade';
 
 export const SAVED_WORDS_FILE_VERSION = 4;
 
@@ -240,6 +240,6 @@ export const savedWordsFileSchema = z
   .looseObject({ version: z.literal(SAVED_WORDS_FILE_VERSION), protocol: z.looseObject({}) })
   .transform(file => ({
     ...file,
-    version: PROTOCOL_FILE_VERSION,
+    version: SERIES_PREP_FILE_VERSION,
     protocol: upgradeProtocol(file.protocol),
   }));

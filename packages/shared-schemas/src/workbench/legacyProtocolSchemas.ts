@@ -11,6 +11,11 @@ import {
   protocolFileSchema,
 } from './protocolFileSchemas';
 import { SAVED_WORDS_FILE_VERSION, savedWordsFileSchema } from './savedWordsUpgrade';
+import {
+  movedPrepValueSchema,
+  SERIES_PREP_FILE_VERSION,
+  seriesPrepFileSchema,
+} from './seriesPrepUpgrade';
 import { newProtocolId } from './protocolIds';
 import { normalizePlateMap } from './plateMapValues';
 
@@ -487,6 +492,7 @@ function upgradeFile(raw: unknown): unknown {
     PAINTED_GROUPS_FILE_VERSION,
     SERIES_DILUENT_FILE_VERSION,
     SAVED_WORDS_FILE_VERSION,
+    SERIES_PREP_FILE_VERSION,
   ].includes(Number(versionOf(raw)));
   let file = isKnownVersion ? raw : legacyProtocolFile.parse(raw);
   // PITFALL: painted groups ride through as unknown keys and are retired only once the file reads in today's words, so the retiring code can stay on the live helpers.
@@ -495,11 +501,15 @@ function upgradeFile(raw: unknown): unknown {
   }
   if (versionOf(file) === SERIES_DILUENT_FILE_VERSION) file = seriesDiluentFileSchema.parse(file);
   if (versionOf(file) === SAVED_WORDS_FILE_VERSION) file = savedWordsFileSchema.parse(file);
+  if (versionOf(file) === SERIES_PREP_FILE_VERSION) file = seriesPrepFileSchema.parse(file);
   return paintedGroupsFileSchema.parse(file);
 }
 
 export const protocolFileInputSchema = z
-  .preprocess(upgradeFile, protocolFileSchema)
+  .preprocess(
+    upgradeFile,
+    protocolFileSchema.extend({ movedPrepValues: z.array(movedPrepValueSchema).default([]) })
+  )
   .transform(file => {
     for (const card of file.protocol.cards) if (card.type === 'plateMap') normalizePlateMap(card);
     moveStainsToStainSide(file.protocol);

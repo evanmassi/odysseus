@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 5;
+export const PROTOCOL_FILE_VERSION = 6;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -135,9 +135,6 @@ const calculationsCardSchema = z.object({
 export const SERIES_DIRECTIONS = ['right', 'down', 'left', 'up'] as const;
 
 const seriesPrepSchema = z.object({
-  volumeAdded: z.string().optional(),
-  wellVolume: z.string().optional(),
-  extraPercent: z.string().optional(),
   roundTo: z.string().optional(),
   diluent: z.string().optional(),
 });

@@ -1,7 +1,9 @@
 import { materialFields } from '../materials/materialCatalog';
 import { showMaterialField, writeMaterialField } from '../materials/materialItems';
-import { ensureMaterial } from '../materials/materialLookup';
+import { ensureMaterial, materialNamed } from '../materials/materialLookup';
+import { addNamedValue, writeValueSource } from '../values/valueEdits';
 
+import type { SharedPrepField } from './dilutionPrep';
 import type { MaterialItem, PlateSeries, Protocol } from '@odysseus/shared-schemas';
 
 export type SeriesPrepKey = keyof NonNullable<PlateSeries['prep']>;
@@ -34,4 +36,17 @@ export function recordOnMaterial(
     showMaterialField(material, field);
   }
   material.units[field] = unit;
+}
+
+export function setSharedPrepValue(
+  draft: Protocol,
+  subject: string,
+  { key, edit }: SharedPrepField,
+  value: string,
+  pageId: string
+): void {
+  if (edit.kind === 'source') writeValueSource(draft, edit.source, value);
+  if (edit.kind !== 'new' || !value.trim()) return;
+  const material = key === 'totalWellVolume' ? undefined : materialNamed(draft, subject);
+  addNamedValue(draft, { name: edit.name, value, unit: edit.unit }, material, pageId);
 }

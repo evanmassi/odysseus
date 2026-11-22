@@ -99,6 +99,7 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
          Antibodies, Top working, Diluent in well 1.
      - Bug found and fixed in the build: the open-time upgrade wasn't safe to run twice ("Extra"
        re-matched inside "Extra (dead vol.)"). It now scans current names too, with a test.
+     - (2026-11-22: the Dilutions "volume added" is now the shared Vol./well, W114 step 2.)
      - Held for W114 steps 2 and 3, since renaming now would collide with the shared value they
        merge into: the Dilutions input "volume added" (→ Vol./well), and the Flow panel's
        "<marker> dilution factor" (→ Dil.) and "amount per well" (→ Vol./well).

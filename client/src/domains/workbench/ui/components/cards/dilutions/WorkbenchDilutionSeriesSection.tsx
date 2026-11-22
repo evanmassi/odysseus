@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react';
+
 import { Input, Tooltip, type AutocompleteOption } from '@shared/ui';
 
-import { EXTRA, TOTAL_WELL_VOLUME, WORKING_STRENGTH } from '../../../../utils/terms/termList';
+import { SHARED_PREP_VALUES } from '../../../../utils/dilutions/dilutionCalculations';
+import { ROUND_TO, WORKING_STRENGTH } from '../../../../utils/terms/termList';
 import { termMeaning } from '../../../../utils/terms/termLookup';
 import { META_LABEL } from '../../board/metaLabelClass';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
@@ -9,8 +12,8 @@ import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
 import { WorkbenchDilutionStockField } from './WorkbenchDilutionStockField';
 import { WorkbenchDilutionStripPreview } from './WorkbenchDilutionStripPreview';
 
-import type { PrepSettings } from '../../../../utils/dilutions/dilutionCalculations';
-import type { DilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
+import type { SharedPrepKey } from '../../../../utils/dilutions/dilutionCalculations';
+import type { DilutionPrep, SharedPrepField } from '../../../../utils/dilutions/dilutionPrep';
 import type { PlateSwatch } from '../../../../utils/plateMap/plateSwatches';
 
 interface WorkbenchDilutionSeriesSectionProps {
@@ -20,21 +23,19 @@ interface WorkbenchDilutionSeriesSectionProps {
   color: string | undefined;
   swatch: PlateSwatch;
   prep: DilutionPrep;
+  generalTitle: string;
   diluent: string;
   diluentPlaceholder: string;
   diluentChoices: readonly AutocompleteOption[];
-  onSettingChange: (key: keyof PrepSettings, value: string) => void;
+  onSharedChange: (field: SharedPrepField, value: string) => void;
+  onRoundToChange: (value: string) => void;
   onDiluentChange: (diluent: string) => void;
   onDiluentDone: () => void;
   onStockSave: (value: string, unit: string) => void;
 }
 
-const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [
-  ['wellVolume', TOTAL_WELL_VOLUME.word, 'µL'],
-  ['volumeAdded', 'Volume added', 'µL'],
-  ['extraPercent', EXTRA.word, '%'],
-  ['roundTo', 'Round to', 'µL'],
-];
+const NO_EXTRA = 'none';
+
 export const PLAIN_RAIL = 'hsl(var(--muted-foreground))';
 
 function settingLabel(label: string) {
@@ -50,35 +51,73 @@ export function WorkbenchDilutionSeriesSection({
   color,
   swatch,
   prep,
+  generalTitle,
   diluent,
   diluentPlaceholder,
   diluentChoices,
-  onSettingChange,
+  onSharedChange,
+  onRoundToChange,
   onDiluentChange,
   onDiluentDone,
   onStockSave,
 }: WorkbenchDilutionSeriesSectionProps) {
   const rail = color ?? PLAIN_RAIL;
 
-  const settingField = ([key, label, unit]: (typeof SETTINGS)[number]) => (
-    <div key={key} className="flex flex-col gap-1">
-      {settingLabel(label)}
+  const settingBox = (label: string, control: ReactNode, unit: string, tag?: string) => (
+    <div key={label} className="flex flex-col gap-1">
+      <span className="flex items-baseline gap-1.5">
+        {settingLabel(label)}
+        {tag && <span className="text-label-xs text-muted-foreground">{tag}</span>}
+      </span>
       <span className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
-        <span className="w-16">
-          <Input
-            size="xs"
-            fullWidth
-            value={prep.settings[key]}
-            placeholder={key === 'wellVolume' ? prep.inheritedWellVolume : undefined}
-            aria-label={label}
-            inputClassName="text-right font-mono"
-            onValueChange={value => onSettingChange(key, value)}
-          />
-        </span>
+        {control}
         {unit}
       </span>
     </div>
   );
+
+  const settingInput = (
+    label: string,
+    value: string,
+    onChange: (value: string) => void,
+    placeholder?: string
+  ) => (
+    <span className="w-16">
+      <Input
+        size="xs"
+        fullWidth
+        value={value}
+        placeholder={placeholder}
+        aria-label={label}
+        inputClassName="text-right font-mono"
+        onValueChange={onChange}
+      />
+    </span>
+  );
+
+  const sharedField = (key: SharedPrepKey) => {
+    const field = prep.shared[key];
+    const label = SHARED_PREP_VALUES[key].term.word;
+    const control =
+      field.edit.kind === 'readOnly' ? (
+        <Tooltip content={field.edit.hint}>
+          <span className="font-mono text-data text-foreground">{field.value}</span>
+        </Tooltip>
+      ) : (
+        settingInput(
+          label,
+          field.value,
+          value => onSharedChange(field, value),
+          key === 'extra' ? NO_EXTRA : undefined
+        )
+      );
+    return settingBox(
+      label,
+      control,
+      field.unit,
+      field.isWholeExperiment ? generalTitle : undefined
+    );
+  };
 
   return (
     <section
@@ -103,14 +142,20 @@ export function WorkbenchDilutionSeriesSection({
         )}
       </div>
       <div className="flex flex-wrap gap-x-7 gap-y-2">
-        {SETTINGS.slice(0, 2).map(settingField)}
+        {sharedField('totalWellVolume')}
+        {sharedField('volumePerWell')}
         <div className="flex flex-col gap-1">
           {settingLabel(WORKING_STRENGTH.word)}
           <b className="flex h-7 items-center font-mono text-data text-primary">
             {prep.kind === 'ready' ? prep.strength : '—'}
           </b>
         </div>
-        {SETTINGS.slice(2).map(settingField)}
+        {sharedField('extra')}
+        {settingBox(
+          ROUND_TO.word,
+          settingInput(ROUND_TO.word, prep.settings.roundTo, onRoundToChange),
+          'µL'
+        )}
         <WorkbenchDilutionDiluentField
           value={diluent}
           placeholder={diluentPlaceholder}

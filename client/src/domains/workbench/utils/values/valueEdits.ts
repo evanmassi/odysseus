@@ -1,14 +1,18 @@
+import { CARD_TYPES } from '../cards/cardTypes';
+import { createCard } from '../cards/createCard';
+import { nameWithin } from '../formulas/formulaScopes';
 import { createId } from '../ids/createId';
 import {
   fieldLabel,
   fieldName,
   fieldUnit,
   materialFields,
+  materialValueId,
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
 import { writeMaterialField } from '../materials/materialItems';
 
-import { parseValueLine, settledLine } from './valueLines';
+import { parseValueLine, settledLine, type ParsedValueLine } from './valueLines';
 
 import type { RoutedValue } from './valueRouting';
 import type { ValueSuggestion } from './valueSuggestions';
@@ -194,6 +198,37 @@ function materialRowId(draft: Protocol, cardId: string, materialId: string) {
   return existing?.id ?? addValueRow(draft, cardId, materialId);
 }
 
+function valuesCardOnPage(draft: Protocol, pageId: string): ValuesCard {
+  const existing = draft.cards.find((card): card is ValuesCard => card.type === 'values');
+  if (existing) return existing;
+  const [w, h] = CARD_TYPES.values.size;
+  const bottom = Math.max(
+    0,
+    ...draft.cards.filter(card => card.page === pageId).map(card => card.y + card.h)
+  );
+  const created = createCard('values', { page: pageId, x: 0, y: bottom, w, h }) as ValuesCard;
+  draft.cards.push(created);
+  return created;
+}
+
+export function addNamedValue(
+  draft: Protocol,
+  line: ParsedValueLine,
+  material: MaterialItem | undefined,
+  pageId: string
+): void {
+  const card = valuesCardOnPage(draft, pageId);
+  const valueRowId = (material && materialRowId(draft, card.id, material.id)) ?? '';
+  insertAfterPeers(card, valueRowId, [
+    {
+      id: createId(),
+      ...line,
+      name: nameWithin(line.name, material),
+      ...(valueRowId && { row: valueRowId }),
+    },
+  ]);
+}
+
 export function addRoutedValue(
   draft: Protocol,
   cardId: string,
@@ -304,4 +339,35 @@ export function restoreValues(draft: Protocol, cardId: string, removed: RemovedV
       ? card.items.indexOf(last) + 1
       : card.items.length;
   card.items.splice(at, 0, removed.item);
+}
+
+export type ValueSource =
+  | { kind: 'item'; cardId: string; itemId: string }
+  | { kind: 'material'; materialId: string; field: FieldDefinition };
+
+export function valueSourceOf(
+  protocol: Pick<Protocol, 'cards'>,
+  entryId: string
+): ValueSource | undefined {
+  for (const card of protocol.cards) {
+    if (card.type !== 'values') continue;
+    const item = card.items.find(candidate => candidate.id === entryId && 'name' in candidate);
+    if (item) return { kind: 'item', cardId: card.id, itemId: item.id };
+  }
+  for (const material of materialsById(protocol).values()) {
+    const field = materialFields(material).find(
+      definition => materialValueId(material.id, definition.key) === entryId
+    );
+    if (field) return { kind: 'material', materialId: material.id, field };
+  }
+  return undefined;
+}
+
+export function writeValueSource(draft: Protocol, source: ValueSource, value: string): void {
+  if (source.kind === 'item') {
+    setValueAmount(draft, source.cardId, source.itemId, value);
+    return;
+  }
+  const material = materialsById(draft).get(source.materialId);
+  if (material) writeMaterialField(material, source.field, value);
 }

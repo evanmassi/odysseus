@@ -108,3 +108,17 @@ export function dilutionRuns(protocol: Pick<Protocol, 'cards'>): DilutionRun[] {
   }
   return [...pooled.values()];
 }
+
+export function runTags(runs: readonly DilutionRun[]): Map<string, string> {
+  const seen = new Map<string, number>();
+  return new Map(
+    runs
+      .filter(run => run.subject)
+      .map(run => {
+        const subjectKey = normalizeMaterialKey(run.subject);
+        const index = seen.get(subjectKey) ?? 0;
+        seen.set(subjectKey, index + 1);
+        return [run.key, index ? ` ${index + 1}` : ''];
+      })
+  );
+}

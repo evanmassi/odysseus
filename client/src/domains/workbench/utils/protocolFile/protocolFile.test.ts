@@ -1,3 +1,7 @@
+import { SHARED_PREP_KEYS, sharedPrepSource } from '../dilutions/dilutionCalculations';
+import { calculateBoard } from '../formulas/boardCalculation';
+import { collectBoardNames } from '../formulas/boardNames';
+
 import cellsLegacy from './fixtures/cells.legacy.json';
 import cellsMockup from './fixtures/cells.mockup.json';
 import cytotoxLegacy from './fixtures/cytotox.legacy.json';
@@ -6,6 +10,7 @@ import elisaLegacy from './fixtures/elisa.legacy.json';
 import elisaMockup from './fixtures/elisa.mockup.json';
 import everyCardV4 from './fixtures/everyCard.v4.json';
 import everyCardV5 from './fixtures/everyCard.v5.json';
+import everyCardV6 from './fixtures/everyCard.v6.json';
 import { ProtocolFileError, readProtocolFile, writeProtocolFile } from './protocolFile';
 
 import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
@@ -15,6 +20,14 @@ const EXAMPLES = {
   cytotox: [cytotoxLegacy, cytotoxMockup],
   elisa: [elisaLegacy, elisaMockup],
 } as const;
+
+const ids = vi.hoisted(() => ({ next: 0 }));
+
+vi.mock('../ids/createId', () => ({ createId: () => `new-${++ids.next}` }));
+
+beforeEach(() => {
+  ids.next = 0;
+});
 
 const read = (file: unknown) => readProtocolFile(JSON.stringify(file));
 
@@ -265,7 +278,7 @@ describe('upgrading older files', () => {
       unit: 'nM',
       dilutionFactor: '3',
       direction: 'right',
-      prep: { volumeAdded: '20', roundTo: '5' },
+      prep: { roundTo: '5' },
     });
     expect(plateMap).toMatchObject({ showsReplicatesAsOne: false, activeTab: 1 });
   });
@@ -666,6 +679,7 @@ function savedFacts(protocol: Protocol) {
   };
   const nameOf = (materialId: string) => materials.items.find(item => item.id === materialId)?.name;
   const values = cardOf(protocol, 'values');
+  const board = calculateBoard(collectBoardNames(protocol));
   const linked = cardOf(protocol, 'linkedPlateMap');
   const plateMap = cardOf(protocol, 'plateMap');
   const flowCytometryPanel = cardOf(protocol, 'flowCytometryPanel');
@@ -726,6 +740,12 @@ function savedFacts(protocol: Protocol) {
       dilutionFactor: 'dilutionFactor' in factorSeries ? factorSeries.dilutionFactor : undefined,
       typedValues: 'typedValues' in listSeries ? listSeries.typedValues : undefined,
       dilutionsSettings: factorSeries.prep,
+      sharedValues: Object.fromEntries(
+        SHARED_PREP_KEYS.map(key => {
+          const entry = sharedPrepSource(board.names, 'Drug X', key)?.entry;
+          return [key, entry?.kind === 'value' ? `${entry.value} ${entry.unit}` : undefined];
+        })
+      ),
     },
     renamedTopName: plateMap.amountNames['s:series-factor:top'],
     indicators: plateMap.lines.map(line => ({
@@ -810,7 +830,7 @@ const EVERY_CARD_FACTS = {
     'Viability dye X': '1000',
   },
   customField: 'Batch 2',
-  valueRows: ['Cell line A', 'Medium A + Supplement Y'],
+  valueRows: ['Cell line A', 'Medium A + Supplement Y', 'Drug X'],
   wholeExperimentTitle: 'Plate setup',
   calculations: ['Cell line A vol. needed = Cell line A vol./well × 2'],
   otherLabware: ['T75 × 2', 'facs × 3'],
@@ -825,13 +845,8 @@ const EVERY_CARD_FACTS = {
     top: '10 µM',
     dilutionFactor: '3',
     typedValues: ['1', '5'],
-    dilutionsSettings: {
-      volumeAdded: '20',
-      wellVolume: '200',
-      extraPercent: '10',
-      roundTo: '1',
-      diluent: 'Medium A',
-    },
+    dilutionsSettings: { roundTo: '1', diluent: 'Medium A' },
+    sharedValues: { totalWellVolume: '200 µL', volumePerWell: '20 µL', extra: '10 %' },
   },
   renamedTopName: 'Drug X top',
   indicators: [
@@ -860,32 +875,30 @@ const EVERY_CARD_FACTS = {
   steps: ['Prepare cells', 'Thaw PBMC.', 'Spin 300 g, 5 min.'],
 };
 
-describe('a version 4 file holding every card', () => {
+describe.each([
+  ['version 4', everyCardV4],
+  ['version 5', everyCardV5],
+])('a %s file holding every card', (_, sample) => {
   it('opens in today’s words with every saved value kept', () => {
-    expect(read(everyCardV4)).toEqual(everyCardV5.protocol);
+    expect(read(sample)).toEqual(everyCardV6.protocol);
   });
 
   it('survives a save and reopen unchanged', () => {
-    const opened = read(everyCardV4);
+    const opened = read(sample);
     expect(readProtocolFile(writeProtocolFile(opened))).toEqual(opened);
   });
 
   it('still holds everything it was saved with', () => {
-    expect(savedFacts(read(everyCardV4))).toEqual(EVERY_CARD_FACTS);
+    expect(savedFacts(read(sample))).toEqual(EVERY_CARD_FACTS);
   });
 });
 
-describe('a version 5 file holding every card', () => {
+describe('a version 6 file holding every card', () => {
   it('opens exactly as it was saved', () => {
-    expect(read(everyCardV5)).toEqual(everyCardV5.protocol);
-  });
-
-  it('survives a save and reopen unchanged', () => {
-    const opened = read(everyCardV5);
-    expect(readProtocolFile(writeProtocolFile(opened))).toEqual(opened);
+    expect(read(everyCardV6)).toEqual(everyCardV6.protocol);
   });
 
   it('still holds everything it was saved with', () => {
-    expect(savedFacts(read(everyCardV5))).toEqual(EVERY_CARD_FACTS);
+    expect(savedFacts(read(everyCardV6))).toEqual(EVERY_CARD_FACTS);
   });
 });

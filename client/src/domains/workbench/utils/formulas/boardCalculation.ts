@@ -113,6 +113,13 @@ export const calculationAnswerText = (
   result: Extract<CalculationResult, { status: 'ok' }>
 ): string => ('text' in result.output ? result.output.text : autoFormat(result.quantity));
 
+export function quantityOfName(board: SolvedBoard, entry: BoardName): Quantity | undefined {
+  if (entry.kind === 'value') return quantityOf(entry.value, entry.unit);
+  if (entry.kind !== 'calculation') return undefined;
+  const result = board.results.get(entry.id);
+  return result?.status === 'ok' ? result.quantity : undefined;
+}
+
 export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   const names = new Map<string, BoardName>();
   const takenNameIds = new Set<string>();

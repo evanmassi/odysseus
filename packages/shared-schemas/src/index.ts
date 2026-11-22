@@ -696,4 +696,5 @@ export {
   type PlateLine,
   type PlateSeries,
   type ProtocolFile,
+  type MovedPrepValue,
 } from './workbench';

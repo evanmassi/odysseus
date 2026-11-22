@@ -23,7 +23,6 @@ import {
   readCalculationDraft,
 } from '../../../../utils/formulas/calculationDraft';
 import {
-  addNamedValue,
   insertCalculation,
   removeCalculation,
   setCalculationSection,
@@ -48,6 +47,7 @@ import { cellWarnings } from '../../../../utils/materials/cellCalculations';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeCalculations';
 import { TOTAL_WELL_VOLUME, WELLS_USED } from '../../../../utils/terms/termList';
+import { addNamedValue } from '../../../../utils/values/valueEdits';
 import {
   generalTitleOf,
   joinValueName,
@@ -469,7 +469,9 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
             edit(draft => updateCalculation(draft, card.id, open.calculation.id, change))
           }
           onAddMissing={name =>
-            edit(draft => addNamedValue(draft, name, open.material, activePageId))
+            edit(draft =>
+              addNamedValue(draft, { name, value: '', unit: '' }, open.material, activePageId)
+            )
           }
           onRemove={() => {
             edit(draft => removeCalculation(draft, card.id, open.calculation.id));

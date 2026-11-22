@@ -1,23 +1,35 @@
 import { unitScale, type Protocol } from '@odysseus/shared-schemas';
 
-import { RATIO_NOTATION, readableAmount, readNumber } from '../formulas/quantities';
+import { quantityOfName, type BoardName, type SolvedBoard } from '../formulas/boardCalculation';
+import { describeName } from '../formulas/nameDisplay';
+import { RATIO_NOTATION, readableAmount } from '../formulas/quantities';
 import { displayNameOf, materialNamed } from '../materials/materialLookup';
 import { seriesDilutionFactor, seriesTop } from '../plateMap/plateSeries';
-import { DILUTION_FACTOR, TOP_AMOUNT, TOP_POSITION, TOTAL_WELL_VOLUME } from '../terms/termList';
+import {
+  DILUTION_FACTOR,
+  TOP_AMOUNT,
+  TOP_POSITION,
+  TOTAL_WELL_VOLUME,
+  VOLUME_PER_WELL,
+} from '../terms/termList';
+import { valueSourceOf, type ValueSource } from '../values/valueEdits';
 import { lowerLead } from '../values/valueNames';
 
 import {
-  prepInputId,
+  ownPrepValueName,
   prepLineId,
   prepSettingsOf,
+  SHARED_PREP_KEYS,
+  SHARED_PREP_VALUES,
+  sharedPrepSource,
   type PrepLine,
   type PrepSettings,
+  type SharedPrepKey,
 } from './dilutionCalculations';
 import { stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 
 import type { DilutionRun } from './dilutionRuns';
-import type { SolvedBoard } from '../formulas/boardCalculation';
 
 export interface PrepPoint {
   point: number;
@@ -32,10 +44,23 @@ export interface PrepWarning {
   text: string;
 }
 
+export type SharedPrepEdit =
+  | { kind: 'source'; source: ValueSource }
+  | { kind: 'new'; name: string; unit: string }
+  | { kind: 'readOnly'; hint: string };
+
+export interface SharedPrepField {
+  key: SharedPrepKey;
+  value: string;
+  unit: string;
+  isWholeExperiment: boolean;
+  edit: SharedPrepEdit;
+}
+
 interface PrepBase {
   settings: PrepSettings;
+  shared: Record<SharedPrepKey, SharedPrepField>;
   summary: string;
-  inheritedWellVolume: string | undefined;
 }
 
 export type DilutionPrep =
@@ -79,6 +104,41 @@ const lineAnswer = (board: SolvedBoard, run: DilutionRun, line: PrepLine) =>
 const inMicroliters = (answer: LineAnswer) =>
   'magnitude' in answer ? answer.magnitude / MICROLITER : undefined;
 
+const READ_ONLY_HINTS: Readonly<Record<BoardName['kind'], string>> = {
+  calculation: 'Worked out in Calculations',
+  value: 'Set on the card it comes from',
+  count: 'Counted from the plate',
+  item: 'Set on the card it comes from',
+};
+
+function sharedPrepField(
+  protocol: Pick<Protocol, 'cards'>,
+  board: SolvedBoard,
+  subject: string,
+  key: SharedPrepKey
+): SharedPrepField {
+  const found = sharedPrepSource(board.names, subject, key);
+  const { term, unit } = SHARED_PREP_VALUES[key];
+  if (!found) {
+    const name = key === 'totalWellVolume' ? term.word : ownPrepValueName(subject, key);
+    return { key, value: '', unit, isWholeExperiment: false, edit: { kind: 'new', name, unit } };
+  }
+  const { entry, isWholeExperiment } = found;
+  const source = valueSourceOf(protocol, entry.id);
+  if (source && entry.kind === 'value') {
+    const edit: SharedPrepEdit = { kind: 'source', source };
+    return { key, value: entry.value, unit: entry.unit, isWholeExperiment, edit };
+  }
+  const edit: SharedPrepEdit = { kind: 'readOnly', hint: READ_ONLY_HINTS[entry.kind] };
+  return { key, value: describeName(board, entry.name).text, unit: '', isWholeExperiment, edit };
+}
+
+function sharedMicroliters(board: SolvedBoard, subject: string, key: SharedPrepKey) {
+  const entry = sharedPrepSource(board.names, subject, key)?.entry;
+  const quantity = entry && quantityOfName(board, entry);
+  return quantity && quantity.magnitude / MICROLITER;
+}
+
 export function dilutionPrep(
   run: DilutionRun,
   protocol: Pick<Protocol, 'cards'>,
@@ -98,15 +158,12 @@ export function dilutionPrep(
     `1:${shortNumber(dilutionFactor || 0)}`,
     `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
   ].join(' · ');
-  const typedWellVolume = settings.wellVolume.trim();
-  const experimentWellVolume = typedWellVolume
-    ? undefined
-    : inMicroliters(answerOf(board, prepInputId(run, 'wellVolume')));
   const base = {
     settings,
+    shared: Object.fromEntries(
+      SHARED_PREP_KEYS.map(key => [key, sharedPrepField(protocol, board, run.subject, key)])
+    ) as Record<SharedPrepKey, SharedPrepField>,
     summary,
-    inheritedWellVolume:
-      experimentWellVolume === undefined ? undefined : shortNumber(experimentWellVolume),
   };
   if (!top || !(dilutionFactor > 1)) {
     return {
@@ -115,15 +172,18 @@ export function dilutionPrep(
       problem: `Give this series a ${lowerLead(TOP_AMOUNT.word)} with a unit, and a ${lowerLead(DILUTION_FACTOR.word)}, with its Dilution button.`,
     };
   }
-  const added = readNumber(settings.volumeAdded) ?? NaN;
-  const wellVolume = typedWellVolume ? readNumber(typedWellVolume) : experimentWellVolume;
-  if (!(added > 0) || !((wellVolume ?? NaN) >= added)) {
-    return {
-      ...base,
-      kind: 'problem',
-      problem: `Set the volume added, and the ${lowerLead(TOTAL_WELL_VOLUME.word)} here or as "${TOTAL_WELL_VOLUME.word}" in Values.`,
-    };
-  }
+  const added = sharedMicroliters(board, run.subject, 'volumePerWell');
+  const wellVolume = sharedMicroliters(board, run.subject, 'totalWellVolume');
+  const shownVolume = lowerLead(VOLUME_PER_WELL.word);
+  const shownWellVolume = lowerLead(TOTAL_WELL_VOLUME.word);
+  const problem = !(added && added > 0)
+    ? `Set the ${shownVolume} here, or as "${ownPrepValueName(run.subject, 'volumePerWell')}" in Values.`
+    : !(wellVolume && wellVolume > 0)
+      ? `Set the ${shownWellVolume} here, or as "${TOTAL_WELL_VOLUME.word}" in Values.`
+      : wellVolume < added
+        ? `The ${shownVolume} is more than the ${shownWellVolume}.`
+        : undefined;
+  if (problem) return { ...base, kind: 'problem', problem };
   const strengthAnswer = lineAnswer(board, run, 'strength');
   const volumeAnswers = (['transfer', 'diluent', 'topVolume'] as const).map(line =>
     lineAnswer(board, run, line)

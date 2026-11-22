@@ -567,3 +567,6 @@ export const materialLabel = (item: MaterialItem): string =>
     .map(key => (item.values[key] ?? '').trim())
     .filter(Boolean)
     .join(' ');
+
+export const materialValueId = (materialId: string, fieldKey: string): string =>
+  `${materialId}:${fieldKey}`;

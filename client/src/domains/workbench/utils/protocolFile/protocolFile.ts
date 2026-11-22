@@ -2,10 +2,12 @@ import {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
   protocolFileInputSchema,
+  type MovedPrepValue,
   type Protocol,
   type ProtocolFile,
 } from '@odysseus/shared-schemas';
 
+import { withMovedPrepValues } from '../dilutions/movedPrepValues';
 import { withSettledWords } from '../terms/termUpgrade';
 
 export class ProtocolFileError extends Error {}
@@ -26,13 +28,14 @@ export function readProtocolFile(text: string): Protocol {
     throw new ProtocolFileError(NOT_A_PROTOCOL);
   }
   if (!hasProtocolFormat(data)) throw new ProtocolFileError(NOT_A_PROTOCOL);
-  return withSettledWords(parsedProtocol(data));
+  const { protocol, movedPrepValues } = parsedFile(data);
+  return withSettledWords(withMovedPrepValues(protocol, movedPrepValues));
 }
 
-function parsedProtocol(data: unknown): Protocol {
+function parsedFile(data: unknown): { protocol: Protocol; movedPrepValues: MovedPrepValue[] } {
   try {
     const result = protocolFileInputSchema.safeParse(data);
-    if (result.success) return result.data.protocol;
+    if (result.success) return result.data;
     const issue = result.error.issues[0];
     throw new ProtocolFileError(
       `This protocol file is damaged at ${issue.path.join('.')}: ${issue.message}`

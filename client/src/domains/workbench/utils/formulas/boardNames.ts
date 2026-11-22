@@ -9,6 +9,7 @@ import {
   materialFields,
   materialGroup,
   materialLabel,
+  materialValueId,
 } from '../materials/materialCatalog';
 import { shortNameOf } from '../materials/materialLookup';
 import { recipeCalculationNames } from '../materials/materialRecipeCalculations';
@@ -87,7 +88,7 @@ function materialNames(
       const values = numbers.map(
         (definition): BoardName => ({
           kind: 'value',
-          id: `${item.id}:${definition.key}`,
+          id: materialValueId(item.id, definition.key),
           name: fieldName(item, definition),
           value: item.values[definition.key] ?? '',
           unit: fieldUnit(item, definition),

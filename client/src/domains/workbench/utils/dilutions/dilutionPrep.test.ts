@@ -3,7 +3,7 @@ import { collectBoardNames } from '../formulas/boardNames';
 import { withSettledWords } from '../terms/termUpgrade';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
-import { recordOnMaterial, setPrepSetting } from './dilutionEdits';
+import { recordOnMaterial, setPrepSetting, setSharedPrepValue } from './dilutionEdits';
 import { dilutionPrep } from './dilutionPrep';
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';
 import { stockFor } from './dilutionStock';
@@ -25,7 +25,19 @@ const material = (name: string, values: Record<string, string>, units: Record<st
     recipe: [],
   }) as MaterialItem;
 
-function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol {
+type ValueLine = { name: string; value: string; unit: string };
+
+const SHARED_PREP: ValueLine[] = [
+  { name: 'Total well vol.', value: '80', unit: 'µL' },
+  { name: 'Drug X vol./well', value: '20', unit: 'µL' },
+  { name: 'Drug X extra (dead vol.)', value: '20', unit: '%' },
+];
+
+function protocolWith(
+  series: PlateSeries,
+  materials: MaterialItem[],
+  values: ValueLine[] = SHARED_PREP
+): Protocol {
   const cells = Object.fromEntries(
     ['A', 'B', 'C'].flatMap(row =>
       [0, 1, 2, 3].map(step => [
@@ -64,19 +76,31 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
         stain: {},
         stainedIn: {},
       },
+      {
+        id: 'values',
+        type: 'values',
+        page: 'page',
+        x: 0,
+        y: 4,
+        w: 6,
+        h: 6,
+        items: values.map((line, index) => ({ id: `v${index}`, ...line })),
+        rows: [],
+      },
     ],
     diluent: '',
   } as unknown as Protocol;
 }
 
-const prep = { volumeAdded: '20', wellVolume: '80' };
 const doseSeries: PlateSeries = {
   top: '300',
   unit: 'nM',
   dilutionFactor: '3',
   direction: 'right',
-  prep,
 };
+const withDiluent = (diluent: string): PlateSeries => ({ ...doseSeries, prep: { diluent } });
+const valuesOf = (protocol: Protocol) =>
+  protocol.cards.flatMap(card => (card.type === 'values' ? card.items : []));
 const drugStock = material(
   'Drug X',
   { 'stock-concentration': '10' },
@@ -178,30 +202,53 @@ describe('dilution prep', () => {
     expect(result.warnings).toEqual([]);
   });
 
-  it('asks for the volumes before working anything out', () => {
-    const result = prepFor(protocolWith({ ...doseSeries, prep: undefined }, [drugStock]));
-    expect(result).toMatchObject({
+  it('asks for the shared volumes before working anything out', () => {
+    expect(prepFor(protocolWith(doseSeries, [drugStock], []))).toMatchObject({
       kind: 'problem',
-      problem:
-        'Set the volume added, and the total well vol. here or as "Total well vol." in Values.',
+      problem: 'Set the vol./well here, or as "Drug X vol./well" in Values.',
+    });
+    expect(prepFor(protocolWith(doseSeries, [drugStock], SHARED_PREP.slice(1)))).toMatchObject({
+      kind: 'problem',
+      problem: 'Set the total well vol. here, or as "Total well vol." in Values.',
     });
   });
 
-  it("takes the experiment's Well volume when the series leaves its own blank", () => {
-    const protocol = protocolWith({ ...doseSeries, prep: { volumeAdded: '20' } }, [drugStock]);
-    protocol.cards.push({
-      id: 'values',
-      type: 'values',
-      page: 'page',
-      items: [{ id: 'well', name: 'Well volume', value: '80', unit: 'µL' }],
-      rows: [],
-    } as unknown as Protocol['cards'][number]);
-    const inherited = prepFor(protocol);
-    const typed = prepFor(protocolWith(doseSeries, [drugStock]));
-    if (inherited.kind !== 'ready' || typed.kind !== 'ready') throw new Error('not ready');
-    expect(inherited.inheritedWellVolume).toBe('80');
-    expect(inherited.points).toEqual(typed.points);
-    expect(typed.inheritedWellVolume).toBeUndefined();
+  it("reads the drug's own total well vol. before the whole experiment's", () => {
+    const shared = prepFor(protocolWith(doseSeries, [drugStock]));
+    const own = prepFor(
+      protocolWith(
+        doseSeries,
+        [drugStock],
+        [...SHARED_PREP, { name: 'Drug X total well vol.', value: '160', unit: 'µL' }]
+      )
+    );
+    if (shared.kind !== 'ready' || own.kind !== 'ready') throw new Error('not ready');
+    expect(shared.shared.totalWellVolume).toMatchObject({ value: '80', isWholeExperiment: true });
+    expect(shared.shared.volumePerWell).toMatchObject({
+      value: '20',
+      unit: 'µL',
+      isWholeExperiment: false,
+      edit: { kind: 'source', source: { kind: 'item', cardId: 'values', itemId: 'v1' } },
+    });
+    expect(own.shared.totalWellVolume).toMatchObject({ value: '160', isWholeExperiment: false });
+    expect(shared.strength).toBe('4×');
+    expect(own.strength).toBe('8×');
+  });
+
+  it('makes exactly enough when no extra is set anywhere', () => {
+    const protocol = protocolWith(doseSeries, [drugStock], SHARED_PREP.slice(0, 2));
+    const board = calculateBoard(collectBoardNames(protocol));
+    expect(board.names.get('drug x vol. needed')).toMatchObject({
+      formula: 'Drug X replicates × Drug X vol./well',
+    });
+    expect(prepFor(protocol).shared.extra).toMatchObject({ value: '', edit: { kind: 'new' } });
+  });
+
+  it('marks the missing vol./well as needed in Values', () => {
+    const board = calculateBoard(collectBoardNames(protocolWith(doseSeries, [drugStock], [])));
+    const strength = board.names.get('drug x working strength');
+    const result = strength && board.results.get(strength.id);
+    expect(result).toMatchObject({ status: 'error', missingName: 'Drug X vol./well' });
   });
 
   it('runs a 1:N series forward from undiluted stock', () => {
@@ -210,7 +257,6 @@ describe('dilution prep', () => {
       unit: '1:N',
       dilutionFactor: '2',
       direction: 'right',
-      prep,
     };
     const result = prepFor(protocolWith(ratio, []));
     if (result.kind !== 'ready') throw new Error(result.problem);
@@ -224,10 +270,7 @@ describe('diluents', () => {
   const medium = { ...material('RPMI', {}, {}), group: 'media', type: 'Medium' };
 
   it('totals the diluent a series needs and shows it on the material', () => {
-    const protocol = protocolWith({ ...doseSeries, prep: { ...prep, diluent: 'RPMI' } }, [
-      drugStock,
-      medium,
-    ]);
+    const protocol = protocolWith(withDiluent('RPMI'), [drugStock, medium]);
     const board = calculateBoard(collectBoardNames(protocol));
     const need = board.names.get('total rpmi needed');
     expect(need).toMatchObject({ kind: 'calculation', formula: 'Drug X diluent total' });
@@ -237,10 +280,7 @@ describe('diluents', () => {
   });
 
   it('points an old "needed for dilutions" reference at the total needed', () => {
-    const protocol = protocolWith({ ...doseSeries, prep: { ...prep, diluent: 'RPMI' } }, [
-      drugStock,
-      medium,
-    ]);
+    const protocol = protocolWith(withDiluent('RPMI'), [drugStock, medium]);
     const step = { id: 's1', kind: 'step', level: 1, text: 'Warm {RPMI needed for dilutions}.' };
     const opened = withSettledWords({
       ...protocol,
@@ -259,7 +299,7 @@ describe('diluents', () => {
     const runs = (diluents: Array<string | undefined>) =>
       diluents.map((diluent, index) => ({
         key: String(index),
-        series: { ...doseSeries, prep: diluent === undefined ? prep : { ...prep, diluent } },
+        series: diluent === undefined ? doseSeries : withDiluent(diluent),
       })) as unknown as DilutionRun[];
     const chosen = runs([undefined, 'PBS', '', ' ']);
     expect([...runDiluents(chosen, 'RPMI').values()]).toEqual(['RPMI', 'PBS', 'RPMI', 'RPMI']);
@@ -294,17 +334,14 @@ describe('dilution prep as calculations', () => {
   });
 
   it('stops a prep whose name is already taken, instead of reading the wrong number', () => {
-    const protocol = protocolWith(doseSeries, [drugStock]);
-    protocol.cards.push({
-      id: 'values',
-      type: 'values',
-      page: 'page',
-      rows: [],
-      items: [{ id: 'mine', name: 'Drug X volume added', value: '50', unit: 'µL' }],
-    } as unknown as Protocol['cards'][number]);
+    const protocol = protocolWith(
+      doseSeries,
+      [drugStock],
+      [...SHARED_PREP, { name: 'Drug X round to', value: '50', unit: 'µL' }]
+    );
     expect(prepFor(protocol)).toMatchObject({
       kind: 'problem',
-      problem: 'Rename "Drug X volume added": the Drug X dilution prep needs that name.',
+      problem: 'Rename "Drug X round to": the Drug X dilution prep needs that name.',
     });
   });
 });
@@ -338,21 +375,52 @@ describe('stock lookup', () => {
 });
 
 describe('dilution edits', () => {
-  it('saves prep settings onto the series and answers onto a new material', () => {
+  it('saves Round to onto the series and answers onto a new material', () => {
     const protocol = protocolWith(doseSeries, []);
-    setPrepSetting(protocol, 'map', 's', 'extraPercent', '10');
+    setPrepSetting(protocol, 'map', 's', 'roundTo', '10');
     recordOnMaterial(protocol, 'Drug X', 'stock-concentration', '5', 'mM', name =>
       material(name, {}, {})
     );
     const plateMap = protocol.cards[1];
-    expect(plateMap.type === 'plateMap' && plateMap.series['s'].prep).toMatchObject({
-      extraPercent: '10',
-    });
+    expect(plateMap.type === 'plateMap' && plateMap.series['s'].prep).toEqual({ roundTo: '10' });
     const materials = protocol.cards[0];
     expect(materials.type === 'materials' && materials.items[0]).toMatchObject({
       name: 'Drug X',
       values: { 'stock-concentration': '5' },
       units: { 'stock-concentration': 'mM' },
     });
+  });
+
+  it('edits the shared number in Values, or adds it where the math looks', () => {
+    const protocol = protocolWith(doseSeries, [drugStock], SHARED_PREP.slice(0, 1));
+    const before = prepFor(protocol);
+    setSharedPrepValue(protocol, 'Drug X', before.shared.totalWellVolume, '100', 'page');
+    setSharedPrepValue(protocol, 'Drug X', before.shared.volumePerWell, '25', 'page');
+    setSharedPrepValue(protocol, 'Drug X', before.shared.extra, '', 'page');
+    const values = protocol.cards.find(card => card.type === 'values');
+    if (values?.type !== 'values') throw new Error('no Values card');
+    expect(values.rows).toEqual([{ id: expect.any(String), materialId: 'Drug X' }]);
+    expect(values.items).toEqual([
+      { id: 'v0', name: 'Total well vol.', value: '100', unit: 'µL' },
+      {
+        id: expect.any(String),
+        name: 'Vol./well',
+        value: '25',
+        unit: 'µL',
+        row: values.rows[0].id,
+      },
+    ]);
+    const after = prepFor(protocol);
+    expect(after.kind === 'ready' && after.strength).toBe('4×');
+  });
+
+  it('adds the total well vol. under Whole experiment, making a Values card if there is none', () => {
+    const protocol = protocolWith(doseSeries, [drugStock], []);
+    protocol.cards = protocol.cards.filter(card => card.type !== 'values');
+    const { totalWellVolume } = prepFor(protocol).shared;
+    setSharedPrepValue(protocol, 'Drug X', totalWellVolume, '80', 'page');
+    expect(valuesOf(protocol)).toEqual([
+      { id: expect.any(String), name: 'Total well vol.', value: '80', unit: 'µL' },
+    ]);
   });
 });
