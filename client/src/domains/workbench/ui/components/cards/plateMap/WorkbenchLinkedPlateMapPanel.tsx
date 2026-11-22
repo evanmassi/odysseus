@@ -14,11 +14,11 @@ interface WorkbenchLinkedPlateMapPanelProps {
 
 export function WorkbenchLinkedPlateMapPanel({ card }: WorkbenchLinkedPlateMapPanelProps) {
   const source = useWorkbenchStore(state =>
-    state.protocol.blocks.find(candidate => candidate.id === card.shows)
+    state.protocol.cards.find(candidate => candidate.id === card.shows)
   );
   const updateView = useUpdateCard(card);
   const shown = useMemo(
-    () => (source?.type === 'plate' ? shownPlate(source, card) : undefined),
+    () => (source?.type === 'plateMap' ? shownPlate(source, card) : undefined),
     [source, card]
   );
   if (!shown) {

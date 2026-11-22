@@ -25,14 +25,14 @@ const material = (type: string, name: string, values: Record<string, string> = {
 };
 
 const [IQUE, A8] = BUILT_IN_CYTOMETERS;
-const NOTHING_KNOWN = { kinds: new Map(), fluors: [] };
+const NOTHING_KNOWN = { knownTypes: new Map(), fluors: [] };
 
 const panel = (
   rows: Array<[MaterialItem, string, string?]>,
   cytometer = IQUE
 ): FlowCytometryPanelCard => ({
   id: 'panel',
-  type: 'cytometer',
+  type: 'flowCytometryPanel',
   title: 'Flow panel',
   page: 'page',
   x: 0,
@@ -40,15 +40,15 @@ const panel = (
   w: 12,
   h: 10,
   isCollapsed: false,
-  instrument: cytometer,
-  rows: rows.map(([item, detectorId, stain = 'Surface'], index) => ({
+  cytometer: cytometer,
+  markers: rows.map(([item, detectorId, stain = 'Surface'], index) => ({
     id: `row${index}`,
     materialId: item.id,
     detectorId,
-    stain,
+    staining: stain,
     dilution: '200',
   })),
-  mixes: [],
+  stains: [],
 });
 
 const cd4 = material('Antibody', 'CD4 BV421', {
@@ -154,7 +154,7 @@ describe('firstOpenDetector', () => {
 describe('panelDetectorLabels', () => {
   it('names each material’s detectors across panel cards', () => {
     const uses = panelDetectorLabels({
-      blocks: [
+      cards: [
         panel([
           [cd4, 'VL1'],
           [cd8, 'VL2'],

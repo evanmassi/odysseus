@@ -156,7 +156,7 @@ const isNotMaterial = (phrase: Phrase) =>
   NOT_MATERIALS.has(phrase.name.split(' ')[0].toLowerCase());
 
 const boardMaterials = (protocol: Protocol): MaterialItem[] =>
-  protocol.blocks
+  protocol.cards
     .flatMap(card => (card.type === 'materials' ? card.items : []))
     .filter(item => item.name.trim());
 
@@ -282,7 +282,7 @@ export function readStepReadings(protocol: Protocol, board: SolvedBoard): StepRe
     }
   }
 
-  const ignored = new Set(protocol.ignoredReadings);
+  const ignored = new Set(protocol.ignoredSuggestions);
   const shownValues = [...values.values()].filter(
     ({ isConflicting, isCondition, name, uses, key }) =>
       !isConflicting &&
@@ -319,13 +319,11 @@ function addValueFor(
 ): string {
   const card = firstCardOrNew(draft, 'values');
   let valueRow = material
-    ? card.sections.find(
-        candidate => 'materialId' in candidate && candidate.materialId === material.id
-      )
+    ? card.rows.find(candidate => 'materialId' in candidate && candidate.materialId === material.id)
     : undefined;
   if (material && !valueRow) {
     valueRow = { id: createId(), materialId: material.id };
-    card.sections.push(valueRow);
+    card.rows.push(valueRow);
   }
   const valueRowId = valueRow?.id ?? '';
   insertAfterPeers(card, valueRowId, [
@@ -334,7 +332,7 @@ function addValueFor(
       name: reading.label,
       value: reading.value,
       unit: reading.unit,
-      ...(valueRowId && { section: valueRowId }),
+      ...(valueRowId && { row: valueRowId }),
     },
   ]);
   return material ? joinValueName(material.name.trim(), reading.label) : reading.label;

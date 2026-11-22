@@ -27,11 +27,11 @@ export function lineLayers(
   colorLine: PlateLine | undefined,
   board: SolvedBoard
 ): LineLayer[] {
-  const usedKeys = Object.keys(card.cells).filter(key =>
-    Object.values(card.cells[key]).some(isFilledEntry)
+  const usedKeys = Object.keys(card.samples).filter(key =>
+    Object.values(card.samples[key]).some(isFilledEntry)
   );
   return card.lines.flatMap(line => {
-    const keysOnLine = usedKeys.filter(key => isFilledEntry(card.cells[key][line.id]));
+    const keysOnLine = usedKeys.filter(key => isFilledEntry(card.samples[key][line.id]));
     if (!keysOnLine.length) return [];
     const texts = [
       ...new Set(
@@ -42,7 +42,7 @@ export function lineLayers(
       ),
     ];
     const isOnEveryWell = keysOnLine.length === usedKeys.length && texts.length === 1;
-    const autoRole: ShownRole = line === colorLine ? 'color' : isOnEveryWell ? 'caption' : 'band';
+    const autoRole: ShownRole = line === colorLine ? 'fill' : isOnEveryWell ? 'caption' : 'band';
     return [{ line, role: line.role === 'auto' ? autoRole : line.role, texts }];
   });
 }
@@ -55,7 +55,7 @@ export function wellStripes(
   const slots = layers
     .filter(layer => layer.role === 'stripe')
     .map(({ line }) => {
-      const value = lineValueOf(line, card.cells[key]?.[line.id]);
+      const value = lineValueOf(line, card.samples[key]?.[line.id]);
       if (!value) return undefined;
       const progress = seriesProgress(card, key, line);
       const tint =
@@ -76,7 +76,7 @@ export type IndicatorPlacement = 'wellBorder' | 'corner' | 'inWell' | 'bracketTo
 export type IndicatorKind = 'band' | 'stripe' | 'fill';
 
 export function indicatorKindOf(role: ShownRole): IndicatorKind | undefined {
-  if (role === 'color') return 'fill';
+  if (role === 'fill') return 'fill';
   if (role === 'stripe') return 'stripe';
   return role === 'band' || role === 'tag' ? 'band' : undefined;
 }
@@ -154,13 +154,14 @@ function amountSummary(
   const runs = new Map<string, string[]>();
   const plain = new Set<string>();
   for (const key of keys) {
-    const seriesId = card.cells[key]?.[line.id]?.seriesId;
+    const seriesId = card.samples[key]?.[line.id]?.seriesId;
     if (seriesId !== undefined) runs.set(seriesId, [...(runs.get(seriesId) ?? []), key]);
     else if (readableAt(key)) plain.add(readableAt(key));
   }
   const ranges = [...runs.values()].map(run => {
     const byStep = [...run].sort(
-      (a, b) => (card.cells[a][line.id].seriesStep ?? 0) - (card.cells[b][line.id].seriesStep ?? 0)
+      (a, b) =>
+        (card.samples[a][line.id].seriesPoint ?? 0) - (card.samples[b][line.id].seriesPoint ?? 0)
     );
     const [first, last] = [readableAt(byStep[0]), readableAt(byStep[byStep.length - 1])];
     return first === last ? first : `${first} → ${last}`;
@@ -199,24 +200,24 @@ export function plateIndicators(
   printsInWells: boolean
 ): PlateIndicator[] {
   const usedPositions = sheet.positions.filter(position =>
-    Object.values(card.cells[position.key] ?? {}).some(isFilledEntry)
+    Object.values(card.samples[position.key] ?? {}).some(isFilledEntry)
   );
   if (!usedPositions.length) return [];
   const usedTop = Math.min(...usedPositions.map(position => position.row));
   const usedBottom = Math.max(...usedPositions.map(position => position.row));
   const indicators: PlateIndicator[] = [];
   for (const { line, role } of layers) {
-    const isLabeledFill = role === 'color' && !printsInWells;
+    const isLabeledFill = role === 'fill' && !printsInWells;
     if (role !== 'band' && role !== 'stripe' && role !== 'tag' && !isLabeledFill) continue;
     const groupOf = (key: string) => {
       const shown = wellLine(card, key, line, board);
       if (!shown || !wellLineText(shown) || (isLabeledFill && shown.readable)) return undefined;
-      const entry = card.cells[key][line.id];
+      const entry = card.samples[key][line.id];
       const amountKey = entry.seriesId === undefined ? shown.readable : `series:${entry.seriesId}`;
       return { key: `${entry.valueId ?? ''}|${amountKey}`, label: shown.label };
     };
     const groups = new Map<string, { label: string; mapKeys: string[]; cells: IndicatorCell[] }>();
-    for (const key of Object.keys(card.cells)) {
+    for (const key of Object.keys(card.samples)) {
       const group = groupOf(key);
       if (!group) continue;
       const entry = groups.get(group.key) ?? { label: group.label, mapKeys: [], cells: [] };
@@ -241,9 +242,9 @@ export function plateIndicators(
           group.clusters.every(cluster => isScatteredPlace(cluster.place))
         ));
     const isAmountShared = new Set(shownGroups.map(group => group.amount)).size <= 1;
-    const hidden = new Set(line.hiddenMarks);
+    const hidden = new Set(line.hiddenIndicators);
     for (const { label, amount, mapKeys, clusters } of shownGroups) {
-      const value = lineValueOf(line, card.cells[mapKeys[0]][line.id]);
+      const value = lineValueOf(line, card.samples[mapKeys[0]][line.id]);
       indicators.push({
         lineId: line.id,
         kind: isLabeledFill ? 'fill' : role === 'stripe' ? 'stripe' : 'band',

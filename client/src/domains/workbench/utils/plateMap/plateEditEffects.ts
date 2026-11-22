@@ -7,7 +7,7 @@ import { plateAmounts } from './plateMapNames';
 import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
 
 const plateMaps = (protocol: Protocol) =>
-  protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate');
+  protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
 
 export function removeValuesTwinnedByPlate(
   draft: Protocol,
@@ -22,11 +22,11 @@ export function removeValuesTwinnedByPlate(
   );
   if (!newPlateNames.size) return;
   const materials = materialsById(draft);
-  for (const card of draft.blocks) {
+  for (const card of draft.cards) {
     if (card.type !== 'values') continue;
     card.items = card.items.filter(item => {
       if ('materialField' in item) return true;
-      const valueRow = card.sections.find(candidate => candidate.id === item.section);
+      const valueRow = card.rows.find(candidate => candidate.id === item.row);
       const fullName = valueRow
         ? joinValueName(valueRowName(valueRow, materials), item.name)
         : item.name;

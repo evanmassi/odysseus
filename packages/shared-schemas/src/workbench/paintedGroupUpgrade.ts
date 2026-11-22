@@ -1,8 +1,12 @@
 import { z } from 'zod';
 
 import { newProtocolId } from './protocolIds';
-import { plateMapCardSchema, type PlateLine, type PlateMapCard } from './protocolFileSchemas';
-import { SERIES_DILUENT_FILE_VERSION } from './seriesDiluentUpgrade';
+import {
+  PROTOCOL_FILE_VERSION,
+  plateMapCardSchema,
+  type PlateLine,
+  type PlateMapCard,
+} from './protocolFileSchemas';
 import {
   lineValueOf,
   moveValueKeys,
@@ -22,7 +26,7 @@ const paintedGroupSchema = z.object({
 type PaintedGroup = z.infer<typeof paintedGroupSchema>;
 
 function addColorLine(card: PlateMapCard): PlateLine {
-  const line: PlateLine = { id: newProtocolId(), name: '', values: [], role: 'color' };
+  const line: PlateLine = { id: newProtocolId(), name: '', values: [], role: 'fill' };
   card.lines.push(line);
   return line;
 }
@@ -34,7 +38,7 @@ interface PaintedWells {
 }
 
 const heldValues = (card: PlateMapCard, line: PlateLine, keys: string[]) =>
-  keys.map(key => lineValueOf(line, card.cells[key]?.[line.id]));
+  keys.map(key => lineValueOf(line, card.samples[key]?.[line.id]));
 
 function paintedValueText(held: ReturnType<typeof heldValues>, label: string) {
   const [first] = held;
@@ -43,7 +47,7 @@ function paintedValueText(held: ReturnType<typeof heldValues>, label: string) {
 }
 
 function lineForPaint(card: PlateMapCard, painted: PaintedWells[]): PlateLine {
-  const explicit = card.lines.find(line => line.role === 'color');
+  const explicit = card.lines.find(line => line.role === 'fill');
   if (explicit) return explicit;
   let best: { line: PlateLine; kept: number; held: number } | undefined;
   for (const line of card.lines.filter(candidate => candidate.role === 'auto')) {
@@ -55,7 +59,7 @@ function lineForPaint(card: PlateMapCard, painted: PaintedWells[]): PlateLine {
     if (held && isBetter) best = { line, kept, held };
   }
   if (!best) return addColorLine(card);
-  best.line.role = 'color';
+  best.line.role = 'fill';
   return best.line;
 }
 
@@ -70,7 +74,7 @@ function valueForPaint(card: PlateMapCard, line: PlateLine, { label, keys }: Pai
   }
   for (const [index, key] of keys.entries()) {
     if (held[index]) continue;
-    const lines = (card.cells[key] ??= {});
+    const lines = (card.samples[key] ??= {});
     lines[line.id] = { ...lines[line.id], valueId: value.id };
   }
   return value;
@@ -120,21 +124,24 @@ const paintedPlateMapSchema = plateMapCardSchema
   .extend({ groups: z.array(paintedGroupSchema), wells: z.record(z.string(), z.string()) })
   .transform(({ groups, wells, ...card }) => retirePaintedGroups(card, groups, wells));
 
-const isPlateMap = (card: unknown) =>
-  typeof card === 'object' && card !== null && 'type' in card && card.type === 'plate';
+const isPaintedPlateMap = (card: unknown) =>
+  typeof card === 'object' &&
+  card !== null &&
+  'type' in card &&
+  card.type === 'plateMap' &&
+  'groups' in card;
 
 export const paintedGroupsFileSchema = z
   .looseObject({
-    version: z.literal(PAINTED_GROUPS_FILE_VERSION),
-    protocol: z.looseObject({ blocks: z.array(z.unknown()) }),
+    version: z.literal(PROTOCOL_FILE_VERSION),
+    protocol: z.looseObject({ cards: z.array(z.unknown()) }),
   })
   .transform(file => ({
     ...file,
-    version: SERIES_DILUENT_FILE_VERSION,
     protocol: {
       ...file.protocol,
-      blocks: file.protocol.blocks.map(card =>
-        isPlateMap(card) ? paintedPlateMapSchema.parse(card) : card
+      cards: file.protocol.cards.map(card =>
+        isPaintedPlateMap(card) ? paintedPlateMapSchema.parse(card) : card
       ),
     },
   }));

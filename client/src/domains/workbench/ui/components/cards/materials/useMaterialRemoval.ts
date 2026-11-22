@@ -15,7 +15,7 @@ export interface RemovedMaterial {
 const UNDO_WINDOW_MS = 8000;
 
 const groupPeers = (items: readonly MaterialItem[], item: MaterialItem) =>
-  items.filter(other => other.group === item.group && !other.isDropped);
+  items.filter(other => other.group === item.group && !other.isSetAside);
 
 export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string) => void) {
   const updateCard = useUpdateCard(card);
@@ -40,17 +40,17 @@ export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string)
     });
     updateCard(draft => {
       const target = draft.items.find(candidate => candidate.id === item.id);
-      if (target) target.isDropped = true;
+      if (target) target.isSetAside = true;
     });
   };
 
   const remove = (item: MaterialItem) => {
-    const peers = item.isDropped
-      ? card.items.filter(other => other.isDropped)
+    const peers = item.isSetAside
+      ? card.items.filter(other => other.isSetAside)
       : groupPeers(card.items, item);
     leaveUndo({
       item,
-      isFromSetAside: item.isDropped,
+      isFromSetAside: item.isSetAside,
       verb: 'Removed',
       placeIndex: peers.indexOf(item),
       index: card.items.indexOf(item),
@@ -63,7 +63,7 @@ export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string)
   const restoreSetAside = (item: MaterialItem) => {
     updateCard(draft => {
       const target = draft.items.find(candidate => candidate.id === item.id);
-      if (target) target.isDropped = false;
+      if (target) target.isSetAside = false;
     });
     onRestored(item.id);
   };
@@ -75,7 +75,7 @@ export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string)
     updateCard(draft => {
       if (removed.verb === 'Set aside') {
         const target = draft.items.find(candidate => candidate.id === removed.item.id);
-        if (target) target.isDropped = false;
+        if (target) target.isSetAside = false;
       } else {
         draft.items.splice(Math.min(removed.index, draft.items.length), 0, removed.item);
       }

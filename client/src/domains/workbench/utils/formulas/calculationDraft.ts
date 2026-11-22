@@ -13,7 +13,7 @@ import type { MaterialItem } from '@odysseus/shared-schemas';
 export interface CalculationDraft {
   name: string;
   savedName: string;
-  expr: string;
+  formula: string;
   material: MaterialItem | undefined;
 }
 
@@ -36,7 +36,7 @@ export function readCalculationDraft(
   return {
     name,
     savedName: uniqueName(board, name),
-    expr: namesInFull(withGreekLetters(rest.join('=').trim()), board, material),
+    formula: namesInFull(withGreekLetters(rest.join('=').trim()), board, material),
     material,
   };
 }
@@ -67,10 +67,16 @@ export function checkCalculationDraft(
   draft: CalculationDraft,
   board: SolvedBoard
 ): CalculationDraftCheck {
-  if (!draft.expr) return { answer: undefined, problem: undefined };
+  if (!draft.formula) return { answer: undefined, problem: undefined };
   const preview = calculateBoard([
     ...board.names.values(),
-    { kind: 'calculation', id: PREVIEW_ID, name: draft.savedName, expr: draft.expr, unit: '' },
+    {
+      kind: 'calculation',
+      id: PREVIEW_ID,
+      name: draft.savedName,
+      formula: draft.formula,
+      unit: '',
+    },
   ]).results.get(PREVIEW_ID);
   if (preview?.status === 'ok')
     return { answer: calculationAnswerText(preview), problem: undefined };

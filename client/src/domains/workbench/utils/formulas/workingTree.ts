@@ -5,7 +5,7 @@ export interface WorkingRef {
   name: string;
   text: string;
   source: 'value' | 'count' | 'calculation';
-  isDropped: boolean;
+  isSetAside: boolean;
 }
 
 export type WorkingNode =

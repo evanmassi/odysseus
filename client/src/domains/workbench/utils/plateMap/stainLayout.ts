@@ -206,7 +206,7 @@ export function moveStainPositions(
 export function forgetStainOf(card: PlateMapCard, keys: ReadonlySet<string>): void {
   for (const key of keys) {
     const position = stainPositionOf(card, key);
-    const isStillUsed = Object.keys(card.cells).some(
+    const isStillUsed = Object.keys(card.samples).some(
       other =>
         !keys.has(other) && isWellFilled(card, other) && stainPositionOf(card, other) === position
     );

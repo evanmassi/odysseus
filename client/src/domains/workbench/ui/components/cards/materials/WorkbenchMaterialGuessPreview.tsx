@@ -54,7 +54,7 @@ function PreviewLine({
     <>
       {alreadyListed && (
         <span className={ALREADY_LISTED}>
-          {alreadyListed.isDropped
+          {alreadyListed.isSetAside
             ? `${alreadyListed.name} was set aside. Enter restores it`
             : `${alreadyListed.name} is already listed`}
         </span>

@@ -28,7 +28,7 @@ const plate = (format: string, rows: number, cols: number): PlateLabware => ({
   cols,
 });
 
-const PLATE_LABWARE: Readonly<Record<PlateMapCard['plates'][number]['vessel'], PlateLabware>> = {
+const PLATE_LABWARE: Readonly<Record<PlateMapCard['plates'][number]['labware'], PlateLabware>> = {
   '6': plate('6', 2, 3),
   '12': plate('12', 3, 4),
   '24': plate('24', 4, 6),
@@ -40,25 +40,26 @@ const PLATE_LABWARE: Readonly<Record<PlateMapCard['plates'][number]['vessel'], P
 const FLASK = { group: 'Flasks and dishes', kind: 'flask', prefix: 'F' } as const;
 const TUBE = { group: 'Tubes', kind: 'tube', prefix: 'T' } as const;
 
-export const OTHER_LABWARE: Readonly<Record<PlateMapCard['sets'][number]['vessel'], OtherLabware>> =
-  {
-    T25: { ...FLASK, label: 'T25 flask', shape: 'flask25', scale: 1, short: 'T25' },
-    T75: { ...FLASK, label: 'T75 flask', shape: 'flask75', scale: 1.25, short: 'T75' },
-    T175: { ...FLASK, label: 'T175 flask', shape: 'flask175', scale: 1.5, short: 'T175' },
-    dish10: {
-      label: '10 cm dish',
-      group: 'Flasks and dishes',
-      kind: 'dish',
-      prefix: 'D',
-      shape: 'dish',
-      scale: 1,
-      short: '10 cm',
-    },
-    'tube1.5': { ...TUBE, label: '1.5 mL tube', shape: 'micro', scale: 0.6, short: '1.5 mL' },
-    facs: { ...TUBE, label: '5 mL FACS tube', shape: 'facs', scale: 0.85, short: 'FACS' },
-    tube15: { ...TUBE, label: '15 mL tube', shape: 'conical15', scale: 1.1, short: '15 mL' },
-    tube50: { ...TUBE, label: '50 mL tube', shape: 'conical50', scale: 1.1, short: '50 mL' },
-  };
+export const OTHER_LABWARE: Readonly<
+  Record<PlateMapCard['otherLabware'][number]['labware'], OtherLabware>
+> = {
+  T25: { ...FLASK, label: 'T25 flask', shape: 'flask25', scale: 1, short: 'T25' },
+  T75: { ...FLASK, label: 'T75 flask', shape: 'flask75', scale: 1.25, short: 'T75' },
+  T175: { ...FLASK, label: 'T175 flask', shape: 'flask175', scale: 1.5, short: 'T175' },
+  dish10: {
+    label: '10 cm dish',
+    group: 'Flasks and dishes',
+    kind: 'dish',
+    prefix: 'D',
+    shape: 'dish',
+    scale: 1,
+    short: '10 cm',
+  },
+  'tube1.5': { ...TUBE, label: '1.5 mL tube', shape: 'micro', scale: 0.6, short: '1.5 mL' },
+  facs: { ...TUBE, label: '5 mL FACS tube', shape: 'facs', scale: 0.85, short: 'FACS' },
+  tube15: { ...TUBE, label: '15 mL tube', shape: 'conical15', scale: 1.1, short: '15 mL' },
+  tube50: { ...TUBE, label: '50 mL tube', shape: 'conical50', scale: 1.1, short: '50 mL' },
+};
 
 export type LabwareType = keyof typeof PLATE_LABWARE | keyof typeof OTHER_LABWARE;
 
@@ -95,8 +96,10 @@ export function wordsForTypes(types: readonly LabwareType[]): LabwareWords {
 
 export function labwareTypeAt(card: PlateMapCard, wellKey: string): LabwareType {
   const onPlate = card.plates.find(candidate => wellKey.startsWith(`${candidate.id}:`));
-  if (onPlate) return onPlate.vessel;
+  if (onPlate) return onPlate.labware;
   return (
-    card.sets.find(set => wellKey.startsWith(`${set.id}#`))?.vessel ?? card.sets[0]?.vessel ?? '96'
+    card.otherLabware.find(set => wellKey.startsWith(`${set.id}#`))?.labware ??
+    card.otherLabware[0]?.labware ??
+    '96'
   );
 }

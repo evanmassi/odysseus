@@ -19,11 +19,11 @@ const plateMap = (): PlateMapCard =>
     y: 0,
     w: 6,
     h: 10,
-    plates: [{ id: 'p', vessel: '96', name: 'Day 1' }],
-    sets: [{ id: 's', vessel: 'T75', count: 3 }],
+    plates: [{ id: 'p', labware: '96', name: 'Day 1' }],
+    otherLabware: [{ id: 's', labware: 'T75', count: 3 }],
     activeTab: 1,
     lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'v', text: 'Drug' }] }],
-    cells: {
+    samples: {
       'p:H12': { l: { valueId: 'v' } },
       'p:A1': { l: { valueId: 'v' } },
       's#2:1': { l: { valueId: 'v' } },
@@ -41,9 +41,11 @@ describe('plate map edits', () => {
     const card = plateMap();
     const more = withLabwareCount(card, '96', 2);
     expect(labwareCountOf(more, '96')).toBe(2);
-    expect(withLabwareCount(card, 'T75', 1).sets).toEqual([{ id: 's', vessel: 'T75', count: 1 }]);
-    expect(withLabwareCount(card, 'T75', 0).sets).toEqual([]);
-    expect(withLabwareCount(card, 'facs', 2).sets).toHaveLength(2);
+    expect(withLabwareCount(card, 'T75', 1).otherLabware).toEqual([
+      { id: 's', labware: 'T75', count: 1 },
+    ]);
+    expect(withLabwareCount(card, 'T75', 0).otherLabware).toEqual([]);
+    expect(withLabwareCount(card, 'facs', 2).otherLabware).toHaveLength(2);
     expect(hasAnyLabware(withoutPlate(withLabwareCount(card, 'T75', 0), 'p'))).toBe(false);
   });
 
@@ -58,7 +60,7 @@ describe('plate map edits', () => {
     card.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
     const next = withLabwareCount(withLabwareCount(card, '96', 0), '6', 1);
     applyLabware(card, next);
-    expect(Object.keys(card.cells)).toEqual(['s#2:1']);
+    expect(Object.keys(card.samples)).toEqual(['s#2:1']);
     expect(card.stain).toEqual({ 's#2:1': 'fmo' });
     expect(card.w).toBe(4);
     expect(card.activeTab).toBe(1);
@@ -69,10 +71,10 @@ describe('plate map edits', () => {
     card.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
     const copy = duplicateOfTab(card, plateMapTabs(card)[0]);
     const [plate] = copy.plates;
-    expect(plate).toMatchObject({ vessel: '96', name: 'Day 1 copy' });
+    expect(plate).toMatchObject({ labware: '96', name: 'Day 1 copy' });
     expect(plate.id).not.toBe('p');
-    expect(copy.sets).toEqual([]);
-    expect(Object.keys(copy.cells).sort()).toEqual([`${plate.id}:A1`, `${plate.id}:H12`]);
+    expect(copy.otherLabware).toEqual([]);
+    expect(Object.keys(copy.samples).sort()).toEqual([`${plate.id}:A1`, `${plate.id}:H12`]);
     expect(copy.stain).toEqual({ [`${plate.id}:A1`]: 'full' });
     expect(copy.counts).toEqual({});
     expect(copy).toMatchObject({ x: 6, y: 0, activeTab: 0 });
@@ -80,19 +82,19 @@ describe('plate map edits', () => {
 
   it('duplicates a plate into a new tab of the same card with series of its own', () => {
     const card = plateMap();
-    card.cells['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesStep: 0 } };
-    card.series = { ser: { start: '10', unit: 'µM', fold: '3', direction: 'right' } };
+    card.samples['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesPoint: 0 } };
+    card.series = { ser: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } };
     card.stain = { 'p:A1': 'full' };
     duplicatePlateAsTab(card, card.plates[0]);
     const [original, copy] = card.plates;
     expect(original.id).toBe('p');
-    expect(copy).toMatchObject({ vessel: '96', name: 'Day 1 copy' });
+    expect(copy).toMatchObject({ labware: '96', name: 'Day 1 copy' });
     expect(card.activeTab).toBe(1);
-    expect(card.cells[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
+    expect(card.samples[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
     expect(card.stain).toEqual({ 'p:A1': 'full', [`${copy.id}:A1`]: 'full' });
-    const copiedSeriesId = card.cells[`${copy.id}:B1`]['l'].seriesId;
+    const copiedSeriesId = card.samples[`${copy.id}:B1`]['l'].seriesId;
     expect(copiedSeriesId).not.toBe('ser');
     expect(card.series[copiedSeriesId ?? '']).toEqual(card.series['ser']);
-    expect(card.cells['s#2:1']).toEqual({ l: { valueId: 'v' } });
+    expect(card.samples['s#2:1']).toEqual({ l: { valueId: 'v' } });
   });
 });

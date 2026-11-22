@@ -34,7 +34,9 @@ export const rowLetter = (row: number) => ROW_LETTERS[row];
 
 export const plateMapTabs = (card: PlateMapCard): PlateMapTab[] => [
   ...card.plates.map((plate): PlateMapTab => ({ kind: 'plate', id: plate.id, plate })),
-  ...(card.sets.length ? [{ kind: 'otherLabware' as const, id: OTHER_LABWARE_TAB_ID }] : []),
+  ...(card.otherLabware.length
+    ? [{ kind: 'otherLabware' as const, id: OTHER_LABWARE_TAB_ID }]
+    : []),
 ];
 
 export function activeTabOf(card: PlateMapCard): PlateMapTab {
@@ -46,7 +48,7 @@ export const plateNameOf = (card: PlateMapCard, plate: Plate) =>
   plate.name || `Plate ${card.plates.indexOf(plate) + 1}`;
 
 export const otherLabwareTabNameOf = (card: PlateMapCard) =>
-  card.shelfName?.trim() ? card.shelfName : otherLabwareKinds(card);
+  card.otherLabwareTabName?.trim() ? card.otherLabwareTabName : otherLabwareKinds(card);
 
 function kindsList(words: readonly string[]): string {
   const [first = '', ...rest] = words;
@@ -56,20 +58,22 @@ function kindsList(words: readonly string[]): string {
     : listed.join('');
 }
 
-const otherLabwarePlurals = (card: Pick<PlateMapCard, 'sets'>) => [
-  ...new Set(card.sets.map(set => LABWARE_KIND_PLURALS[labwareOf(set.vessel).kind])),
+const otherLabwarePlurals = (card: Pick<PlateMapCard, 'otherLabware'>) => [
+  ...new Set(card.otherLabware.map(set => LABWARE_KIND_PLURALS[labwareOf(set.labware).kind])),
 ];
 
-export const otherLabwareKinds = (card: Pick<PlateMapCard, 'sets'>): string =>
+export const otherLabwareKinds = (card: Pick<PlateMapCard, 'otherLabware'>): string =>
   kindsList(otherLabwarePlurals(card));
 
 export const tabWords = (card: PlateMapCard, tab: PlateMapTab): LabwareWords =>
-  wordsForTypes(tab.kind === 'plate' ? [tab.plate.vessel] : card.sets.map(set => set.vessel));
+  wordsForTypes(
+    tab.kind === 'plate' ? [tab.plate.labware] : card.otherLabware.map(set => set.labware)
+  );
 
 const AUTOMATIC_TITLES = new Set(['', 'vessel map', 'plate map']);
 
-export function labwareKinds(card: Pick<PlateMapCard, 'plates' | 'sets'>): string {
-  if (!card.sets.length) return 'Plate map';
+export function labwareKinds(card: Pick<PlateMapCard, 'plates' | 'otherLabware'>): string {
+  if (!card.otherLabware.length) return 'Plate map';
   return kindsList([...(card.plates.length ? ['plates'] : []), ...otherLabwarePlurals(card)]);
 }
 
@@ -77,7 +81,7 @@ export const labwareTitle = (card: PlateMapCard): string =>
   AUTOMATIC_TITLES.has(card.title.trim().toLowerCase()) ? labwareKinds(card) : card.title.trim();
 
 export function labwareTitleOf(cards: readonly ProtocolCard[], cardId?: string): string {
-  const plateMaps = cards.filter((card): card is PlateMapCard => card.type === 'plate');
+  const plateMaps = cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
   const plateMap =
     plateMaps.find(card => card.id === cardId) ??
     (plateMaps.length === 1 ? plateMaps[0] : undefined);
@@ -85,7 +89,7 @@ export function labwareTitleOf(cards: readonly ProtocolCard[], cardId?: string):
 }
 
 function plateSheet(plate: Plate): PlateMapSheet {
-  const labware = labwareOf(plate.vessel);
+  const labware = labwareOf(plate.labware);
   const rows = 'rows' in labware ? labware.rows : 1;
   const cols = 'cols' in labware ? labware.cols : 1;
   const positions = Array.from({ length: rows * cols }, (_, index) => {
@@ -99,8 +103,8 @@ function plateSheet(plate: Plate): PlateMapSheet {
 
 function otherLabwareSheet(card: PlateMapCard): PlateMapSheet {
   const numbered = new Map<string, number>();
-  const positions = card.sets.flatMap((set, row) => {
-    const labware = labwareOf(set.vessel);
+  const positions = card.otherLabware.flatMap((set, row) => {
+    const labware = labwareOf(set.labware);
     const prefix = 'prefix' in labware ? labware.prefix : '';
     const before = numbered.get(prefix) ?? 0;
     numbered.set(prefix, before + set.count);
@@ -111,8 +115,8 @@ function otherLabwareSheet(card: PlateMapCard): PlateMapSheet {
       col,
     }));
   });
-  const cols = Math.max(0, ...card.sets.map(set => set.count));
-  return { isPlate: false, rows: card.sets.length, cols, positions };
+  const cols = Math.max(0, ...card.otherLabware.map(set => set.count));
+  return { isPlate: false, rows: card.otherLabware.length, cols, positions };
 }
 
 export const sheetOf = (card: PlateMapCard, tab: PlateMapTab): PlateMapSheet =>

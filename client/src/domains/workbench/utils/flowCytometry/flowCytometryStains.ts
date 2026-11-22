@@ -29,7 +29,7 @@ export const markerColumns = (layout: PanelLayout): MarkerColumn[] =>
 const newStain = (name: string, rowIds: string[]): Stain => ({
   id: createId(),
   name,
-  rowIds,
+  markerIds: rowIds,
   plus: [],
 });
 

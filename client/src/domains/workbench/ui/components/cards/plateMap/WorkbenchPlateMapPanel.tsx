@@ -55,7 +55,7 @@ import { WorkbenchPlateStainLegend } from './WorkbenchPlateStainLegend';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
 import { WorkbenchWellEditorPanel } from './WorkbenchWellEditorPanel';
 
-type LabwareDisplay = Pick<PlateMapCard, 'activeTab' | 'mergesReplicates'>;
+type LabwareDisplay = Pick<PlateMapCard, 'activeTab' | 'showsReplicatesAsOne'>;
 
 interface WorkbenchPlateMapPanelProps {
   card: PlateMapCard;
@@ -82,14 +82,15 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
   const sheet = useMemo(() => sheetOf(card, tab), [card, tab]);
   const words = tabWords(card, tab);
   const isStain = card.side === 'stain';
-  const panels = useCardsOf('cytometer');
+  const panels = useCardsOf('flowCytometryPanel');
   const stains = useMemo(() => plateStains(panels), [panels]);
   const stainById = useMemo(() => new Map(stains.map(stain => [stain.id, stain])), [stains]);
   const colorLine = useMemo(() => colorLineOf(card), [card]);
   const layers = useMemo(() => lineLayers(card, colorLine, board), [card, colorLine, board]);
   const captions = useMemo(() => plateCaptions(layers), [layers]);
   const printsInWells =
-    tab.kind !== 'plate' || wellSizeFor(tab.plate.vessel, roomWidth, sheet.cols).density !== 'tiny';
+    tab.kind !== 'plate' ||
+    wellSizeFor(tab.plate.labware, roomWidth, sheet.cols).density !== 'tiny';
   const indicators = useMemo(
     () => (sheet.isPlate ? plateIndicators(card, sheet, layers, board, printsInWells) : []),
     [card, sheet, layers, board, printsInWells]
@@ -99,9 +100,9 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const recolorStain = (stainId: string, color: string) =>
     updateProtocol(draft => {
-      for (const panel of draft.blocks) {
-        if (panel.type !== 'cytometer') continue;
-        const stain = panel.mixes.find(candidate => candidate.id === stainId);
+      for (const panel of draft.cards) {
+        if (panel.type !== 'flowCytometryPanel') continue;
+        const stain = panel.stains.find(candidate => candidate.id === stainId);
         if (stain) stain.color = color;
       }
     });
@@ -227,7 +228,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
         ? {
             id: candidate.id,
             name: plateNameOf(card, candidate.plate),
-            kind: labwareOf(candidate.plate.vessel).label.replace(' plate', ''),
+            kind: labwareOf(candidate.plate.labware).label.replace(' plate', ''),
             ownName: candidate.plate.name,
             isPlate: true,
           }
@@ -235,7 +236,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
             id: candidate.id,
             name: otherLabwareTabNameOf(card),
             kind: otherLabwareKinds(card),
-            ownName: card.shelfName ?? '',
+            ownName: card.otherLabwareTabName ?? '',
             isPlate: false,
           }
   );
@@ -245,7 +246,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
     updateCard(draft => {
       const plate = draft.plates.find(({ id }) => id === tabId);
       if (plate) plate.name = name;
-      else draft.shelfName = name || undefined;
+      else draft.otherLabwareTabName = name || undefined;
     });
   };
 
@@ -265,7 +266,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
           onRemovePlate={labwareChanges.removePlate}
           onToggleReplicatesAsOne={() =>
             updateDisplay(draft => {
-              draft.mergesReplicates = !draft.mergesReplicates;
+              draft.showsReplicatesAsOne = !draft.showsReplicatesAsOne;
             })
           }
           onSetCount={labwareChanges.setCount}
@@ -291,7 +292,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
               layers={layers}
               indicators={indicators}
               size={wellSizeFor(
-                tab.plate.vessel,
+                tab.plate.labware,
                 roomWidth - indicatorWidthPad(indicators),
                 sheet.cols
               )}

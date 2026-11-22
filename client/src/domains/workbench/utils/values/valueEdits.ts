@@ -36,9 +36,9 @@ export type RemovedValues =
   | { kind: 'item'; item: ValueItem; index: number; label: string }
   | { kind: 'row'; valueRow: ValueRow; items: ValueItem[]; index: number; label: string };
 
-export const materialsById = (protocol: Pick<Protocol, 'blocks'>): Map<string, MaterialItem> =>
+export const materialsById = (protocol: Pick<Protocol, 'cards'>): Map<string, MaterialItem> =>
   new Map(
-    protocol.blocks
+    protocol.cards
       .flatMap(card => (card.type === 'materials' ? card.items : []))
       .map(item => [item.id, item])
   );
@@ -49,7 +49,7 @@ export function linkedValueOf(
   materials: ReadonlyMap<string, MaterialItem>
 ): LinkedValue | undefined {
   if (!('materialField' in item)) return undefined;
-  const valueRow = card.sections.find(candidate => candidate.id === item.section);
+  const valueRow = card.rows.find(candidate => candidate.id === item.row);
   const material =
     valueRow && 'materialId' in valueRow ? materials.get(valueRow.materialId) : undefined;
   const field =
@@ -67,7 +67,7 @@ export function linkedValueOf(
 }
 
 export const valuesInRow = (card: ValuesCard, valueRowId: string): ValueItem[] =>
-  card.items.filter(item => (item.section ?? '') === valueRowId);
+  card.items.filter(item => (item.row ?? '') === valueRowId);
 
 export function valueRowName(
   valueRow: ValueRow,
@@ -78,7 +78,7 @@ export function valueRowName(
 }
 
 function valuesCard(draft: Protocol, cardId: string): ValuesCard | undefined {
-  const card = draft.blocks.find(candidate => candidate.id === cardId);
+  const card = draft.cards.find(candidate => candidate.id === cardId);
   return card?.type === 'values' ? card : undefined;
 }
 
@@ -140,7 +140,7 @@ export function addValueLines(
   const added = lines.flatMap(line => {
     const parsed = parseValueLine(line);
     return parsed
-      ? [{ id: createId(), ...settledLine(parsed), ...(valueRowId && { section: valueRowId }) }]
+      ? [{ id: createId(), ...settledLine(parsed), ...(valueRowId && { row: valueRowId }) }]
       : [];
   });
   insertAfterPeers(card, valueRowId, added);
@@ -158,9 +158,9 @@ export function addSuggestedValue(
   const id = createId();
   if (suggestion.kind === 'field') {
     insertAfterPeers(card, valueRowId, [
-      { id, section: valueRowId, materialField: suggestion.materialField },
+      { id, row: valueRowId, materialField: suggestion.materialField },
     ]);
-    const valueRow = card.sections.find(candidate => candidate.id === valueRowId);
+    const valueRow = card.rows.find(candidate => candidate.id === valueRowId);
     const material =
       valueRow && 'materialId' in valueRow
         ? materialsById(draft).get(valueRow.materialId)
@@ -170,7 +170,7 @@ export function addSuggestedValue(
     }
   } else {
     const { name, value, unit } = suggestion;
-    insertAfterPeers(card, valueRowId, [{ id, section: valueRowId, name, value, unit }]);
+    insertAfterPeers(card, valueRowId, [{ id, row: valueRowId, name, value, unit }]);
   }
   return id;
 }
@@ -183,12 +183,12 @@ export function addValueRow(
   const card = valuesCard(draft, cardId);
   if (!card) return undefined;
   const id = createId();
-  card.sections.push(materialId ? { id, materialId } : { id, mixName: '' });
+  card.rows.push(materialId ? { id, materialId } : { id, mixName: '' });
   return id;
 }
 
 function materialRowId(draft: Protocol, cardId: string, materialId: string) {
-  const existing = valuesCard(draft, cardId)?.sections.find(
+  const existing = valuesCard(draft, cardId)?.rows.find(
     valueRow => 'materialId' in valueRow && valueRow.materialId === materialId
   );
   return existing?.id ?? addValueRow(draft, cardId, materialId);
@@ -228,8 +228,7 @@ export function addRoutedValue(
     if (line.unit && field.unit === UNIT_PER_ITEM) material.units[field.key] = line.unit;
   }
   const linked = card.items.find(
-    item =>
-      'materialField' in item && item.section === valueRowId && item.materialField === field.key
+    item => 'materialField' in item && item.row === valueRowId && item.materialField === field.key
   );
   return (
     linked?.id ??
@@ -247,9 +246,7 @@ export function renameValueRow(
   valueRowId: string,
   name: string
 ): void {
-  const valueRow = valuesCard(draft, cardId)?.sections.find(
-    candidate => candidate.id === valueRowId
-  );
+  const valueRow = valuesCard(draft, cardId)?.rows.find(candidate => candidate.id === valueRowId);
   if (!valueRow) return;
   if ('mixName' in valueRow) {
     valueRow.mixName = name;
@@ -269,7 +266,7 @@ export function removeValue(
   if (!card || !item) return undefined;
   const linked = linkedValueOf(card, item, materialsById(draft));
   const label = (linked ? linked.label : 'name' in item ? item.name : '') || 'a value';
-  const index = valuesInRow(card, item.section ?? '').indexOf(item);
+  const index = valuesInRow(card, item.row ?? '').indexOf(item);
   card.items = card.items.filter(candidate => candidate.id !== itemId);
   return { kind: 'item', item: { ...item }, index, label };
 }
@@ -280,13 +277,13 @@ export function removeValueRow(
   valueRowId: string
 ): RemovedValues | undefined {
   const card = valuesCard(draft, cardId);
-  const valueRow = card?.sections.find(candidate => candidate.id === valueRowId);
+  const valueRow = card?.rows.find(candidate => candidate.id === valueRowId);
   if (!card || !valueRow) return undefined;
-  const items = card.items.filter(item => item.section === valueRowId).map(item => ({ ...item }));
+  const items = card.items.filter(item => item.row === valueRowId).map(item => ({ ...item }));
   const label = `${valueRowName(valueRow, materialsById(draft)) || 'mix'} row`;
-  const index = card.sections.indexOf(valueRow);
-  card.sections = card.sections.filter(candidate => candidate.id !== valueRowId);
-  card.items = card.items.filter(item => item.section !== valueRowId);
+  const index = card.rows.indexOf(valueRow);
+  card.rows = card.rows.filter(candidate => candidate.id !== valueRowId);
+  card.items = card.items.filter(item => item.row !== valueRowId);
   return { kind: 'row', valueRow: { ...valueRow }, items, index, label };
 }
 
@@ -294,11 +291,11 @@ export function restoreValues(draft: Protocol, cardId: string, removed: RemovedV
   const card = valuesCard(draft, cardId);
   if (!card) return;
   if (removed.kind === 'row') {
-    card.sections.splice(Math.min(removed.index, card.sections.length), 0, removed.valueRow);
+    card.rows.splice(Math.min(removed.index, card.rows.length), 0, removed.valueRow);
     card.items.push(...removed.items);
     return;
   }
-  const peers = valuesInRow(card, removed.item.section ?? '');
+  const peers = valuesInRow(card, removed.item.row ?? '');
   const before = peers[removed.index];
   const last = peers.at(-1);
   const at = before

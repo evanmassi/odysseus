@@ -9,13 +9,13 @@ const item = (fields: Partial<MaterialItem>): MaterialItem =>
     units: {},
     customFields: [],
     fieldLabels: {},
-    isDropped: false,
+    isSetAside: false,
     recipe: [],
     ...fields,
   }) as MaterialItem;
 
 const protocol = {
-  blocks: [
+  cards: [
     {
       id: 'materials',
       type: 'materials',
@@ -25,7 +25,7 @@ const protocol = {
           group: 'bio',
           type: 'Primary cells',
           name: 'PBMC (fresh)',
-          sources: {
+          donors: {
             label: 'Donors',
             shownFields: [],
             customFields: [],
@@ -46,7 +46,7 @@ const protocol = {
       ],
     },
   ],
-} as unknown as Pick<Protocol, 'blocks'>;
+} as unknown as Pick<Protocol, 'cards'>;
 
 const known = knownNamesIn(protocol);
 const texts = (typed: string, onLine: string[] = []) =>

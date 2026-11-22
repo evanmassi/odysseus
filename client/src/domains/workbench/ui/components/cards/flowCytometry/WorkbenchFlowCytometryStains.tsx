@@ -55,7 +55,7 @@ export function WorkbenchFlowCytometryStains({
   return (
     <section aria-label="Stains" className="mt-4 flex flex-col gap-2.5">
       <div className="flex items-center gap-2.5">
-        <SubsectionHeader title="Stains" meta={card.mixes.length || undefined} />
+        <SubsectionHeader title="Stains" meta={card.stains.length || undefined} />
         <span aria-hidden className={SECTION_RULE} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -124,7 +124,7 @@ export function WorkbenchFlowCytometryStains({
         </Button>
       </div>
 
-      {card.mixes.length > 0 && (
+      {card.stains.length > 0 && (
         <div className="overflow-x-auto">
           <table className="border-separate border-spacing-y-0.5">
             <thead>
@@ -155,7 +155,7 @@ export function WorkbenchFlowCytometryStains({
               </tr>
             </thead>
             <tbody>
-              {card.mixes.map(stain => (
+              {card.stains.map(stain => (
                 <WorkbenchFlowCytometryStainRow
                   key={stain.id}
                   stain={stain}

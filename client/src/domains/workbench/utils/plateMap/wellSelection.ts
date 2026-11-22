@@ -51,7 +51,7 @@ export function selectionName(sheet: PlateMapSheet, keys: ReadonlySet<string>): 
 }
 
 export const isWellFilled = (card: PlateMapCard, key: string) =>
-  Object.values(card.cells[key] ?? {}).some(isFilledEntry);
+  Object.values(card.samples[key] ?? {}).some(isFilledEntry);
 
 function cornerOf(sheet: PlateMapSheet, keys: ReadonlySet<string>): GridPoint {
   const positions = sheet.positions.filter(position => keys.has(position.key));
@@ -72,7 +72,7 @@ export function copyWells(
     .map(position => ({
       rowOffset: position.row - corner.row,
       colOffset: position.col - corner.col,
-      lines: structuredClone(card.cells[position.key] ?? {}),
+      lines: structuredClone(card.samples[position.key] ?? {}),
       stainId: card.stain[position.key],
     }));
 }

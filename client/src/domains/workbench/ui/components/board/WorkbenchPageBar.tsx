@@ -24,7 +24,7 @@ function labelFieldWidth(name: string) {
 
 export function WorkbenchPageBar() {
   const pages = useWorkbenchStore(state => state.protocol.pages);
-  const cards = useWorkbenchStore(state => state.protocol.blocks);
+  const cards = useWorkbenchStore(state => state.protocol.cards);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const showPage = useWorkbenchStore(state => state.showPage);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -63,7 +63,7 @@ export function WorkbenchPageBar() {
     const index = pages.findIndex(page => page.id === pageId);
     const neighbor = pages[index - 1] ?? pages[index + 1];
     updateProtocol(draft => {
-      draft.blocks = draft.blocks.filter(card => card.page !== pageId);
+      draft.cards = draft.cards.filter(card => card.page !== pageId);
       draft.pages = draft.pages.filter(page => page.id !== pageId);
     });
     if (pageId === activePageId && neighbor) showPage(neighbor.id);

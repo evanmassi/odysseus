@@ -14,10 +14,10 @@ import {
 
 const plateMap = () =>
   ({
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
-    cells: {},
+    samples: {},
     series: {},
     counts: {},
     amountNames: {},
@@ -48,14 +48,17 @@ describe('series edits', () => {
   it('write each well its point and keep the Dilutions settings when rewritten', () => {
     const card = plateMap();
     const sheet = sheetFor(card);
-    card.cells['p:B2'] = { drug: { valueId: 'x', amount: '10' } };
+    card.samples['p:B2'] = { drug: { valueId: 'x', amount: '10' } };
     const seriesId = writeSeries(card, sheet, rowB, { ...form, dilutionFactor: '3' });
-    expect(card.cells['p:B4']).toEqual({ drug: { seriesId, seriesStep: 2 } });
-    expect(card.cells['p:B2']).toEqual({ drug: { valueId: 'x', seriesId, seriesStep: 0 } });
+    expect(card.samples['p:B4']).toEqual({ drug: { seriesId, seriesPoint: 2 } });
+    expect(card.samples['p:B2']).toEqual({ drug: { valueId: 'x', seriesId, seriesPoint: 0 } });
     card.series[seriesId] = { ...card.series[seriesId], prep: { volumeAdded: '20' } };
     writeSeries(card, sheet, new Set(['p:B2']), { ...form, seriesId, dilutionFactor: '2' });
-    expect(card.series[seriesId]).toMatchObject({ fold: '2', prep: { volumeAdded: '20' } });
-    expect(card.cells['p:B4']).toEqual({ drug: { seriesId, seriesStep: 2 } });
+    expect(card.series[seriesId]).toMatchObject({
+      dilutionFactor: '2',
+      prep: { volumeAdded: '20' },
+    });
+    expect(card.samples['p:B4']).toEqual({ drug: { seriesId, seriesPoint: 2 } });
   });
 
   it('remove a series from every well that held it, not just the selected ones', () => {
@@ -64,7 +67,7 @@ describe('series edits', () => {
     removeSeries(card, seriesId);
     normalizePlateMap(card);
     expect(card.series).toEqual({});
-    expect(card.cells).toEqual({});
+    expect(card.samples).toEqual({});
   });
 
   it('preview the points, shortening long runs', () => {
@@ -92,7 +95,7 @@ describe('series edits', () => {
     expect(lineUnitOf(card, 'drug')).toBe('');
     writeSeries(card, sheetFor(card), rowB, { ...form, dilutionFactor: '3' });
     expect(lineUnitOf(card, 'drug')).toBe('µM');
-    card.cells['p:H1'] = { drug: { valueId: 'x', amount: '5', unit: 'nM' } };
+    card.samples['p:H1'] = { drug: { valueId: 'x', amount: '5', unit: 'nM' } };
     expect(lineUnitOf(card, 'drug')).toBe('nM');
   });
 });

@@ -16,16 +16,16 @@ export function blankProtocol(): Protocol {
     runNumber: '',
     runOn: { from: '', to: '' },
     pages: [setup, plates, takedown],
-    blocks: [
+    cards: [
       createCard('materials', { page: setup.id, x: 0, y: 0, w: 12, h: 8 }),
-      createCard('steps', { page: setup.id, x: 0, y: 8, w: 12, h: 10 }),
+      createCard('procedure', { page: setup.id, x: 0, y: 8, w: 12, h: 10 }),
       createCard('values', { page: plates.id, x: 0, y: 0, w: 6, h: 6 }),
-      createCard('formula', { page: plates.id, x: 6, y: 0, w: 6, h: 6 }),
+      createCard('calculations', { page: plates.id, x: 6, y: 0, w: 6, h: 6 }),
     ],
     lotMemory: {},
     keptBoth: [],
-    ignoredReadings: [],
-    dyes: [],
+    ignoredSuggestions: [],
+    fluors: [],
     diluent: '',
   };
 }

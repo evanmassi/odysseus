@@ -15,7 +15,7 @@ const coCulture = (content: Partial<PlateMapCard> = {}) =>
       { id: 't', name: '', role: 'auto', values: [{ id: 'tv', text: 'T cells' }] },
       { id: 'r', name: '', role: 'auto', values: [{ id: 'rv', text: 'Raji' }] },
     ],
-    cells: {
+    samples: {
       'p:A1': {
         t: { valueId: 'tv', amount: '4:1', unit: 'N:N' },
         r: { valueId: 'rv', amount: '1e4', unit: 'cells' },
@@ -57,7 +57,7 @@ describe('formatRatio', () => {
 
 describe('a ratio series', () => {
   it('halves the ratio each point and never reads 0.5:1', () => {
-    const series = { start: '8:1', unit: 'N:N', fold: '2', direction: 'right' as const };
+    const series = { top: '8:1', unit: 'N:N', dilutionFactor: '2', direction: 'right' as const };
     expect([0, 1, 2, 3, 4, 5].map(step => pointAmount(series, step, empty).amount)).toEqual([
       '8:1',
       '4:1',
@@ -83,7 +83,7 @@ describe('cells worked out from a ratio', () => {
   it('asks for the other cells when more than one could be meant, and uses a picked one', () => {
     const card = coCulture();
     card.lines.push({ id: 'k', name: '', role: 'auto', values: [{ id: 'kv', text: 'K562' }] });
-    card.cells['p:A1']['k'] = { valueId: 'kv', amount: '5e3', unit: 'cells' };
+    card.samples['p:A1']['k'] = { valueId: 'kv', amount: '5e3', unit: 'cells' };
     const tCells = lineOf(card, 't');
     expect(ratioPartner(card, 'p:A1', tCells, empty)).toBeUndefined();
     setRatioPartner(card, 't', 'k');
@@ -117,7 +117,7 @@ describe('cells worked out from a ratio', () => {
 
     const merged = coCulture();
     merged.lines.push({ id: 'r2', name: '', role: 'auto', values: [{ id: 'rv2', text: 'Raji' }] });
-    merged.cells['p:A3'] = { r2: { valueId: 'rv2', amount: '1e4', unit: 'cells' } };
+    merged.samples['p:A3'] = { r2: { valueId: 'rv2', amount: '1e4', unit: 'cells' } };
     lineOf(merged, 't').ratioTo = 'r2';
     normalizePlateMap(merged);
     expect(lineOf(merged, 't').ratioTo).toBe('r');

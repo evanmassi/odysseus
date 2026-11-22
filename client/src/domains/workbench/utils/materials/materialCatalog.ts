@@ -99,7 +99,7 @@ export const SHORT_NAME_FIELD = shortName.key;
 
 const consent = field('Consent or IRB reference');
 const MADE_HERE = [
-  field('Recipe'),
+  field('Recipe', 'text', { key: 'recipe-note' }),
   numberField(VOLUME_MADE.word, 'mL', { key: 'volume-made' }),
   dateField('Made on'),
   field('Made by'),
@@ -107,7 +107,7 @@ const MADE_HERE = [
 ];
 const PHYSICAL_CORE = [
   shortName,
-  field('Source', 'text', { key: 'vendor' }),
+  field('Source'),
   field('Catalog #', 'text', { key: 'catalog' }),
   field('Lot'),
   dateField('Expires', { warnsWhenPast: true }),
@@ -122,14 +122,16 @@ const EQUIPMENT_CORE = [shortName, field('Model'), field('Manufacturer'), field(
 const SOFTWARE_CORE = [shortName, field('Source'), field('Notes')];
 
 export const CELL_COUNT_FIELDS = {
-  totalConcentration: numberField(TOTAL_CELL_CONCENTRATION.word, 'cells/mL', { key: 'count' }),
+  totalConcentration: numberField(TOTAL_CELL_CONCENTRATION.word, 'cells/mL', {
+    key: 'total-cell-conc',
+  }),
   viability: numberField(VIABILITY.word, '%'),
   liveConcentration: numberField(LIVE_CELL_CONCENTRATION.word, 'cells/mL', {
     key: 'live-cell-conc',
   }),
   volume: numberField(VOLUME.word, 'mL', { key: 'volume' }),
-  totalCells: numberField(TOTAL_CELLS.word, 'cells', { key: 'total-count' }),
-  liveCells: numberField(LIVE_CELLS.word, 'cells', { key: 'live-count' }),
+  totalCells: numberField(TOTAL_CELLS.word, 'cells', { key: 'total-cells' }),
+  liveCells: numberField(LIVE_CELLS.word, 'cells', { key: 'live-cells' }),
 } as const;
 
 export type CellCount = keyof typeof CELL_COUNT_FIELDS;
@@ -277,7 +279,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Target species and isotype'),
         field('Conjugate'),
         choiceField('Cross-adsorbed', YES_NO),
-        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'amount' }),
         field('Panel'),
       ],
       'Isotype control': [
@@ -295,13 +297,13 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         choiceField('Laser', LASERS),
         field('Excitation and emission'),
         stockField('µM'),
-        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'amount' }),
         field('Panel'),
       ],
       Multimer: [
         field('Specificity'),
         field('Conjugate'),
-        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'amount' }),
         field('Panel'),
       ],
       'Fc block': [field('Species'), numberField(PER_TEST.word, 'µL', { key: 'amount' })],
@@ -558,7 +560,7 @@ export function fieldName(item: MaterialItem, definition: FieldDefinition): stri
   return `${item.name.trim()} ${label.toLowerCase()}`;
 }
 
-const LABEL_FIELDS = ['vendor', 'catalog', 'model', 'version'];
+const LABEL_FIELDS = ['source', 'catalog', 'model', 'version'];
 
 export const materialLabel = (item: MaterialItem): string =>
   LABEL_FIELDS.filter(key => item.shownFields.includes(key))

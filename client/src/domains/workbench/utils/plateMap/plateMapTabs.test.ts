@@ -9,11 +9,11 @@ import {
 import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 const card = {
-  plates: [{ id: 'p1', vessel: '6', name: '' }],
-  sets: [
-    { id: 's1', vessel: 'T75', count: 2 },
-    { id: 's2', vessel: 'T25', count: 1 },
-    { id: 's3', vessel: 'tube15', count: 2 },
+  plates: [{ id: 'p1', labware: '6', name: '' }],
+  otherLabware: [
+    { id: 's1', labware: 'T75', count: 2 },
+    { id: 's2', labware: 'T25', count: 1 },
+    { id: 's3', labware: 'tube15', count: 2 },
   ],
   activeTab: 9,
 } as PlateMapCard;
@@ -28,10 +28,10 @@ describe('plate map tabs', () => {
   it('names the card after what it holds unless it was renamed', () => {
     const titled = (title: string, parts: Partial<PlateMapCard>) =>
       labwareTitle({ ...card, title, ...parts } as PlateMapCard);
-    expect(titled('Plate map', { sets: [] })).toBe('Plate map');
+    expect(titled('Plate map', { otherLabware: [] })).toBe('Plate map');
     expect(titled('VESSEL MAP', { plates: [] })).toBe('Flasks & tubes');
     expect(titled('Plate map', {})).toBe('Plates, flasks & tubes');
-    expect(titled('Assay plate', { sets: [] })).toBe('Assay plate');
+    expect(titled('Assay plate', { otherLabware: [] })).toBe('Assay plate');
   });
 
   it('lay a plate out row by row with lettered rows', () => {

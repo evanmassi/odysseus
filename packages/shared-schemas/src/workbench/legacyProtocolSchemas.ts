@@ -4,15 +4,13 @@ import { PAINTED_GROUPS_FILE_VERSION, paintedGroupsFileSchema } from './paintedG
 import { SERIES_DILUENT_FILE_VERSION, seriesDiluentFileSchema } from './seriesDiluentUpgrade';
 import { moveStainsToStainSide } from './stainSideUpgrade';
 import {
-  LINE_ROLES,
   PLATE_FORMATS,
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
   SERIES_DIRECTIONS,
   protocolFileSchema,
-  type SampleEntry,
-  type PlateSeries,
 } from './protocolFileSchemas';
+import { SAVED_WORDS_FILE_VERSION, savedWordsFileSchema } from './savedWordsUpgrade';
 import { newProtocolId } from './protocolIds';
 import { normalizePlateMap } from './plateMapValues';
 
@@ -20,6 +18,24 @@ const text = z.string().catch('');
 const textMap = z.record(z.string(), z.string()).catch({});
 const list = <T extends z.ZodType>(item: T) => z.array(item).catch([]);
 const loose = z.record(z.string(), z.unknown());
+
+const VERSION_4_LINE_ROLES = [
+  'auto',
+  'color',
+  'band',
+  'stripe',
+  'tag',
+  'caption',
+  'hover',
+] as const;
+
+interface Version4SampleEntry {
+  valueId?: string;
+  amount?: string;
+  unit?: string;
+  seriesId?: string;
+  seriesStep?: number;
+}
 
 const RENAMED_MATERIAL_FIELDS: Record<string, string> = {
   concentration: 'stock-concentration',
@@ -175,7 +191,7 @@ const legacySeries = z
     dir: direction,
     prep: legacyPrep,
   })
-  .transform((series): PlateSeries => {
+  .transform(series => {
     const prep = series.prep && { prep: series.prep };
     if (series.list) return { points: series.list, direction: series.dir, ...prep };
     return {
@@ -192,7 +208,7 @@ const legacyLine = z.object({
   id: z.string(),
   name: text,
   values: list(legacyLineValue),
-  show: z.enum(LINE_ROLES).catch('auto'),
+  show: z.enum(VERSION_4_LINE_ROLES).catch('auto'),
 });
 
 type LegacyLine = z.infer<typeof legacyLine>;
@@ -205,12 +221,15 @@ function valueIdFor(line: LegacyLine, valueText: string): string {
   return created.id;
 }
 
-function upgradeSampleEntry(raw: unknown, line: LegacyLine | undefined): SampleEntry | undefined {
+function upgradeSampleEntry(
+  raw: unknown,
+  line: LegacyLine | undefined
+): Version4SampleEntry | undefined {
   if (typeof raw === 'string') return line ? { valueId: valueIdFor(line, raw) } : undefined;
   const parsed = loose.safeParse(raw);
   if (!parsed.success) return undefined;
   const { v, amt, unit, s, step } = parsed.data;
-  const upgraded: SampleEntry = {};
+  const upgraded: Version4SampleEntry = {};
   if (typeof v === 'string' && v) upgraded.valueId = v;
   else if (typeof s === 'string' && line?.name) upgraded.valueId = valueIdFor(line, line.name);
   if (typeof amt === 'string') upgraded.amount = amt;
@@ -280,9 +299,9 @@ const legacyPlateMap = z
       cells = renameKeys(cells, rename);
     }
     const lineById = new Map(lines.map(line => [line.id, line]));
-    const upgradedCells: Record<string, Record<string, SampleEntry>> = {};
+    const upgradedCells: Record<string, Record<string, Version4SampleEntry>> = {};
     for (const [wellKey, wellLines] of Object.entries(cells)) {
-      const upgradedLines: Record<string, SampleEntry> = {};
+      const upgradedLines: Record<string, Version4SampleEntry> = {};
       for (const [lineId, raw] of Object.entries(wellLines)) {
         const upgraded = upgradeSampleEntry(raw, lineById.get(lineId));
         if (upgraded) upgradedLines[lineId] = upgraded;
@@ -458,19 +477,31 @@ const legacyProtocolFile = z
   })
   .transform(file => ({ ...file, version: PAINTED_GROUPS_FILE_VERSION }));
 
+const versionOf = (file: unknown) => loose.safeParse(file).data?.['version'];
+
+const withVersion = (file: unknown, version: number) => ({ ...loose.parse(file), version });
+
 function upgradeFile(raw: unknown): unknown {
-  const version = loose.safeParse(raw).data?.['version'];
-  if (version === PROTOCOL_FILE_VERSION) return raw;
-  if (version === SERIES_DILUENT_FILE_VERSION) return seriesDiluentFileSchema.parse(raw);
-  const paintedGroupsFile =
-    version === PAINTED_GROUPS_FILE_VERSION ? raw : legacyProtocolFile.parse(raw);
-  return seriesDiluentFileSchema.parse(paintedGroupsFileSchema.parse(paintedGroupsFile));
+  if (versionOf(raw) === PROTOCOL_FILE_VERSION) return raw;
+  const isKnownVersion = [
+    PAINTED_GROUPS_FILE_VERSION,
+    SERIES_DILUENT_FILE_VERSION,
+    SAVED_WORDS_FILE_VERSION,
+  ].includes(Number(versionOf(raw)));
+  let file = isKnownVersion ? raw : legacyProtocolFile.parse(raw);
+  // PITFALL: painted groups ride through as unknown keys and are retired only once the file reads in today's words, so the retiring code can stay on the live helpers.
+  if (versionOf(file) === PAINTED_GROUPS_FILE_VERSION) {
+    file = withVersion(file, SERIES_DILUENT_FILE_VERSION);
+  }
+  if (versionOf(file) === SERIES_DILUENT_FILE_VERSION) file = seriesDiluentFileSchema.parse(file);
+  if (versionOf(file) === SAVED_WORDS_FILE_VERSION) file = savedWordsFileSchema.parse(file);
+  return paintedGroupsFileSchema.parse(file);
 }
 
 export const protocolFileInputSchema = z
   .preprocess(upgradeFile, protocolFileSchema)
   .transform(file => {
-    for (const card of file.protocol.blocks) if (card.type === 'plate') normalizePlateMap(card);
+    for (const card of file.protocol.cards) if (card.type === 'plateMap') normalizePlateMap(card);
     moveStainsToStainSide(file.protocol);
     return file;
   });

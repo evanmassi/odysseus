@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PROTOCOL_FILE_VERSION } from './protocolFileSchemas';
+import { SAVED_WORDS_FILE_VERSION } from './savedWordsUpgrade';
 
 export const SERIES_DILUENT_FILE_VERSION = 3;
 
@@ -28,6 +28,6 @@ export const seriesDiluentFileSchema = z
   })
   .transform(file => ({
     ...file,
-    version: PROTOCOL_FILE_VERSION,
+    version: SAVED_WORDS_FILE_VERSION,
     protocol: { ...file.protocol, diluent: firstChosenDiluent(file.protocol.blocks) },
   }));

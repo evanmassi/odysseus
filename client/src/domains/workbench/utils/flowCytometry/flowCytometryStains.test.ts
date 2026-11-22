@@ -30,7 +30,7 @@ const foxp3 = antibody('Foxp3 PE', 'Foxp3', 'PE');
 
 const card: FlowCytometryPanelCard = {
   id: 'panel',
-  type: 'cytometer',
+  type: 'flowCytometryPanel',
   title: 'Flow panel',
   page: 'page',
   x: 0,
@@ -38,13 +38,13 @@ const card: FlowCytometryPanelCard = {
   w: 12,
   h: 10,
   isCollapsed: false,
-  instrument: BUILT_IN_CYTOMETERS[0],
-  rows: [
-    { id: 'foxp3', materialId: foxp3.id, detectorId: 'BL2', stain: 'ICS', dilution: '50' },
-    { id: 'cd3', materialId: cd3.id, detectorId: 'BL1', stain: 'Surface', dilution: '100' },
-    { id: 'cd4', materialId: cd4.id, detectorId: 'VL1', stain: 'Surface', dilution: '200' },
+  cytometer: BUILT_IN_CYTOMETERS[0],
+  markers: [
+    { id: 'foxp3', materialId: foxp3.id, detectorId: 'BL2', staining: 'ICS', dilution: '50' },
+    { id: 'cd3', materialId: cd3.id, detectorId: 'BL1', staining: 'Surface', dilution: '100' },
+    { id: 'cd4', materialId: cd4.id, detectorId: 'VL1', staining: 'Surface', dilution: '200' },
   ],
-  mixes: [],
+  stains: [],
 };
 
 const columns = markerColumns(panelLayout(card, [cd4, cd3, foxp3], BUILT_IN_CATALOG));
@@ -59,14 +59,14 @@ describe('stain shortcuts', () => {
   it('ticks every marker for the full stain and none for unstained or an empty stain', () => {
     expect(fullStain(columns)).toMatchObject({
       name: 'Full stain',
-      rowIds: ['cd4', 'cd3', 'foxp3'],
+      markerIds: ['cd4', 'cd3', 'foxp3'],
     });
-    expect(unstainedControl()).toMatchObject({ name: 'Unstained', rowIds: [] });
-    expect(emptyStain()).toMatchObject({ name: 'New stain', rowIds: [], plus: [] });
+    expect(unstainedControl()).toMatchObject({ name: 'Unstained', markerIds: [] });
+    expect(emptyStain()).toMatchObject({ name: 'New stain', markerIds: [], plus: [] });
   });
 
   it('makes one single stain per antibody', () => {
-    expect(singleStains(columns).map(stain => [stain.name, stain.rowIds])).toEqual([
+    expect(singleStains(columns).map(stain => [stain.name, stain.markerIds])).toEqual([
       ['Single CD4 BV421', ['cd4']],
       ['Single CD3 FITC', ['cd3']],
       ['Single Foxp3 PE', ['foxp3']],
@@ -74,7 +74,10 @@ describe('stain shortcuts', () => {
   });
 
   it('leaves out the picked marker for an FMO', () => {
-    expect(fmoStain(columns, 'cd3')).toMatchObject({ name: 'FMO CD3', rowIds: ['cd4', 'foxp3'] });
+    expect(fmoStain(columns, 'cd3')).toMatchObject({
+      name: 'FMO CD3',
+      markerIds: ['cd4', 'foxp3'],
+    });
     expect(fmoStain(columns, 'gone')).toBeUndefined();
   });
 });

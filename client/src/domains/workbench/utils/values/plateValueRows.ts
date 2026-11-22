@@ -42,8 +42,8 @@ export function plateValueRows(plateMap: PlateMapCard): PlateValueRow[] {
 }
 
 function plateOf(draft: Protocol, plateId: string): PlateMapCard | undefined {
-  const plateMap = draft.blocks.find(candidate => candidate.id === plateId);
-  return plateMap?.type === 'plate' ? plateMap : undefined;
+  const plateMap = draft.cards.find(candidate => candidate.id === plateId);
+  return plateMap?.type === 'plateMap' ? plateMap : undefined;
 }
 
 function editPlate(draft: Protocol, plateId: string, change: (plateMap: PlateMapCard) => void) {
@@ -65,12 +65,12 @@ export function setPlateRowValue(draft: Protocol, row: PlateValueRow, typed: str
     const from = source.amount.source;
     if (from.kind === 'wells') {
       for (const key of from.keys) {
-        const entry = plateMap.cells[key]?.[from.lineId];
+        const entry = plateMap.samples[key]?.[from.lineId];
         if (entry) entry.amount = typed;
       }
     } else if (from.kind === 'series') {
       const series = plateMap.series[from.seriesId];
-      if (series && 'start' in series) series[from.field] = typed;
+      if (series && 'top' in series) series[from.field] = typed;
     }
   });
 }
@@ -81,12 +81,12 @@ export function setPlateRowUnit(draft: Protocol, row: PlateValueRow, unit: strin
   editPlate(draft, row.plateId, plateMap => {
     if (from.kind === 'wells') {
       for (const key of from.keys) {
-        const entry = plateMap.cells[key]?.[from.lineId];
+        const entry = plateMap.samples[key]?.[from.lineId];
         if (entry) entry.unit = unit;
       }
-    } else if (from.kind === 'series' && from.field === 'start') {
+    } else if (from.kind === 'series' && from.field === 'top') {
       const series = plateMap.series[from.seriesId];
-      if (series && 'start' in series) series.unit = unit;
+      if (series && 'top' in series) series.unit = unit;
     }
   });
 }
@@ -98,7 +98,7 @@ export function removePlateRow(draft: Protocol, row: PlateValueRow): void {
   editPlate(draft, row.plateId, plateMap => {
     const { source } = row;
     if (source.kind === 'count') {
-      for (const lines of Object.values(plateMap.cells)) {
+      for (const lines of Object.values(plateMap.samples)) {
         for (const entry of Object.values(lines)) {
           if (entry.valueId === source.count.key) delete entry.valueId;
         }
@@ -108,7 +108,7 @@ export function removePlateRow(draft: Protocol, row: PlateValueRow): void {
     const from = source.amount.source;
     if (from.kind !== 'wells') return removeSeries(plateMap, from.seriesId);
     for (const key of from.keys) {
-      const entry = plateMap.cells[key]?.[from.lineId];
+      const entry = plateMap.samples[key]?.[from.lineId];
       if (!entry) continue;
       delete entry.amount;
       delete entry.unit;

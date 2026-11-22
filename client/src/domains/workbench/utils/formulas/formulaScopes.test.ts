@@ -23,7 +23,7 @@ const material = (name: string): MaterialItem => ({
   units: {},
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
   recipe: [],
 });
 
@@ -74,7 +74,7 @@ describe('formula scopes', () => {
       {
         label: 'Total needed',
         name: 'Raji total needed',
-        expr: 'Raji per well × Wells used × (1 + Overage)',
+        formula: 'Raji per well × Wells used × (1 + Overage)',
       },
     ]);
   });
@@ -90,7 +90,7 @@ describe('formula scopes', () => {
       {
         label: 'Total needed',
         name: 'Raji total needed',
-        expr: 'Raji cells/well × Wells used × (1 + Raji extra (dead vol.))',
+        formula: 'Raji cells/well × Wells used × (1 + Raji extra (dead vol.))',
       },
     ]);
   });

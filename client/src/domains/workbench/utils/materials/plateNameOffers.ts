@@ -17,16 +17,16 @@ const SHORTEST_MENTION = 3;
 
 export const plateOfferKey = (name: string): string => `plate:${normalizeMaterialKey(name)}`;
 
-function mixNames(protocol: Pick<Protocol, 'blocks'>): string[] {
-  return protocol.blocks.flatMap(card =>
+function mixNames(protocol: Pick<Protocol, 'cards'>): string[] {
+  return protocol.cards.flatMap(card =>
     card.type === 'values'
-      ? card.sections.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []))
+      ? card.rows.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []))
       : []
   );
 }
 
 export function plateNameOffers(
-  protocol: Pick<Protocol, 'blocks' | 'ignoredReadings'>
+  protocol: Pick<Protocol, 'cards' | 'ignoredSuggestions'>
 ): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);
@@ -34,15 +34,15 @@ export function plateNameOffers(
   const materialKeys = materials
     .map(material => normalizeMaterialKey(material.name))
     .filter(key => key.length >= SHORTEST_MENTION);
-  const ignored = new Set(protocol.ignoredReadings);
+  const ignored = new Set(protocol.ignoredSuggestions);
   const offers = new Map<string, PlateNameOffer>();
-  for (const plateMap of protocol.blocks) {
-    if (plateMap.type !== 'plate') continue;
+  for (const plateMap of protocol.cards) {
+    if (plateMap.type !== 'plateMap') continue;
     for (const line of plateMap.lines) {
       for (const value of line.values) {
         const name = value.text.trim();
         const key = plateOfferKey(name);
-        const wellCount = Object.values(plateMap.cells).filter(
+        const wellCount = Object.values(plateMap.samples).filter(
           lines => lines[line.id]?.valueId === value.id
         ).length;
         const nameKey = normalizeMaterialKey(name);

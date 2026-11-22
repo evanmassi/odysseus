@@ -17,7 +17,7 @@ import type {
   Protocol,
 } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelCard['rows'][number];
+type PanelRow = FlowCytometryPanelCard['markers'][number];
 type Detector = Cytometer['lasers'][number]['detectors'][number];
 
 export interface PanelMarker {
@@ -106,11 +106,11 @@ export function panelLayout(
   catalog: FluorCatalog
 ): PanelLayout {
   const byId = new Map(materials.map(item => [item.id, item]));
-  const markers = card.rows.map(row =>
-    readMarker(row, byId.get(row.materialId), card.instrument, catalog)
+  const markers = card.markers.map(row =>
+    readMarker(row, byId.get(row.materialId), card.cytometer, catalog)
   );
   const placed = new Set<PanelMarker>();
-  const lasers = (card.instrument?.lasers ?? []).map(laser => ({
+  const lasers = (card.cytometer?.lasers ?? []).map(laser => ({
     name: laser.name,
     nm: laser.nm,
     color: wavelengthColor(laser.nm),
@@ -139,7 +139,7 @@ export const markerCandidates = (
   card: FlowCytometryPanelCard,
   materials: readonly MaterialItem[]
 ): MaterialItem[] => {
-  const onPanel = new Set(card.rows.map(row => row.materialId));
+  const onPanel = new Set(card.markers.map(row => row.materialId));
   return materials.filter(
     item =>
       item.group === ANTIBODY_GROUP &&
@@ -151,7 +151,7 @@ export const markerCandidates = (
 
 export function panelStainings(card: FlowCytometryPanelCard): string[] {
   const byKey = new Map<string, string>();
-  for (const staining of [...card.rows.map(row => row.stain), ...STARTING_STAININGS]) {
+  for (const staining of [...card.markers.map(row => row.staining), ...STARTING_STAININGS]) {
     const key = normalizeMaterialKey(staining);
     if (key && !byKey.has(key)) byKey.set(key, staining.trim());
   }
@@ -163,11 +163,11 @@ export const dilutionFactor = (typed: string): string => typed.replace(/^\s*1\s*
 export const firstOpenDetector = (laser: LaserGroup): string | undefined =>
   (laser.slots.find(slot => !slot.markers.length) ?? laser.slots[0])?.detector.id;
 
-export function panelDetectorLabels(protocol: Pick<Protocol, 'blocks'>): Map<string, string> {
+export function panelDetectorLabels(protocol: Pick<Protocol, 'cards'>): Map<string, string> {
   const detectors = new Map<string, string[]>();
-  for (const card of protocol.blocks) {
-    if (card.type !== 'cytometer') continue;
-    for (const row of card.rows) {
+  for (const card of protocol.cards) {
+    if (card.type !== 'flowCytometryPanel') continue;
+    for (const row of card.markers) {
       detectors.set(row.materialId, [...(detectors.get(row.materialId) ?? []), row.detectorId]);
     }
   }

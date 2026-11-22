@@ -19,11 +19,11 @@ export interface PlateSwatch {
 export type PlateSwatchOf = (name: string) => PlateSwatch | undefined;
 
 export function plateSwatches(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   board: SolvedBoard
 ): PlateSwatchOf {
-  const swatches = protocol.blocks
-    .filter((card): card is PlateMapCard => card.type === 'plate')
+  const swatches = protocol.cards
+    .filter((card): card is PlateMapCard => card.type === 'plateMap')
     .flatMap(plateMap =>
       lineLayers(plateMap, colorLineOf(plateMap), board).flatMap(({ line, role }) => {
         const kind = indicatorKindOf(role);

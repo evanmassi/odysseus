@@ -19,16 +19,15 @@ export const DONOR_ID_FIELD = 'donor-id';
 const DONOR_LOT_FIELD = 'lot-vial';
 const DONOR_KEY_OF_MATERIAL_KEY: Readonly<Record<string, string>> = {
   lot: DONOR_LOT_FIELD,
-  vendor: 'source',
 };
 
 export function donorListName(material: MaterialItem): string {
-  const label = material.sources?.label.trim();
+  const label = material.donors?.label.trim();
   return label ? label : DONORS_LABEL;
 }
 
 export const donorTargetsOf = (
-  protocol: Pick<Protocol, 'blocks'>
+  protocol: Pick<Protocol, 'cards'>
 ): Array<{ value: string; label: string }> =>
   listedMaterials(protocol)
     .filter(item => item.group === BIO_GROUP)
@@ -51,7 +50,7 @@ export function startDonors(
   startingFields: readonly string[],
   learned: readonly FieldDefinition[]
 ): void {
-  item.sources ??= {
+  item.donors ??= {
     label: DONORS_LABEL,
     shownFields: [...startingFields],
     customFields: learned
@@ -88,7 +87,7 @@ export function addDonorsNamed(
   learned: readonly FieldDefinition[]
 ): void {
   startDonors(item, startingFields, learned);
-  const { sources: donors } = item;
+  const { donors: donors } = item;
   if (!donors) return;
   for (const name of names) {
     if (name.trim() && !findNamed(donors.rows, name, row => row.name)) addDonor(donors, name);
@@ -156,9 +155,9 @@ export interface KnownDonorMatch {
   donor: ExperimentDonor;
 }
 
-export function donorsIn(protocol: Pick<Protocol, 'blocks'>): KnownDonorMatch[] {
+export function donorsIn(protocol: Pick<Protocol, 'cards'>): KnownDonorMatch[] {
   return listedMaterials(protocol).flatMap(material =>
-    (material.sources?.rows ?? []).map(donor => ({ material, donor }))
+    (material.donors?.rows ?? []).map(donor => ({ material, donor }))
   );
 }
 
@@ -183,25 +182,25 @@ export interface DonorSummary {
   summary: string;
 }
 
-export const donorSummaries = (protocol: Pick<Protocol, 'blocks'>): DonorSummary[] =>
+export const donorSummaries = (protocol: Pick<Protocol, 'cards'>): DonorSummary[] =>
   donorsIn(protocol).map(match => ({ name: match.donor.name, summary: donorSummary(match) }));
 
 export function moveIntoDonors(draft: Protocol, itemId: string, targetId: string): void {
   const target = listedMaterials(draft).find(candidate => candidate.id === targetId);
-  const card = draft.blocks.find(
+  const card = draft.cards.find(
     candidate => candidate.type === 'materials' && candidate.items.some(item => item.id === itemId)
   );
-  if (!target?.sources || card?.type !== 'materials' || itemId === targetId) return;
+  if (!target?.donors || card?.type !== 'materials' || itemId === targetId) return;
   const item = card.items.find(candidate => candidate.id === itemId);
   if (!item) return;
-  const donorKeys = new Set(donorFields(target.sources).map(field => field.key));
+  const donorKeys = new Set(donorFields(target.donors).map(field => field.key));
   const carried = Object.entries(item.values).flatMap(([key, value]) => {
     const donorKey = DONOR_KEY_OF_MATERIAL_KEY[key] ?? key;
     return value.trim() && donorKeys.has(donorKey) ? [[key, donorKey] as const] : [];
   });
   card.items = card.items.filter(candidate => candidate.id !== itemId);
-  if (findNamed(target.sources.rows, item.name, row => row.name)) return;
-  addDonor(target.sources, nameWithoutNotes(item.name), {
+  if (findNamed(target.donors.rows, item.name, row => row.name)) return;
+  addDonor(target.donors, nameWithoutNotes(item.name), {
     values: Object.fromEntries(carried.map(([key, donorKey]) => [donorKey, item.values[key]])),
     units: Object.fromEntries(
       carried.flatMap(([key, donorKey]) => (item.units[key] ? [[donorKey, item.units[key]]] : []))

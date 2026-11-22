@@ -28,11 +28,11 @@ const shelf = {
 describe('fieldChoices', () => {
   it('lists type fields before core fields, the most shared first, plus learned fields', () => {
     const memory: LabMemory = { ...EMPTY_LAB_MEMORY, fields: { 'supplies|Tips': [shelf] } };
-    const choices = fieldChoices([material('Tips'), material('Tube')], new Set(['vendor']), memory);
+    const choices = fieldChoices([material('Tips'), material('Tube')], new Set(['source']), memory);
     const keys = choices.map(choice => choice.definition.key);
     expect(keys.slice(0, 3)).toEqual(['volume', 'filtered', 'low-retention']);
-    expect(keys.indexOf('custom-shelf')).toBeLessThan(keys.indexOf('vendor'));
-    expect(choices.find(choice => choice.definition.key === 'vendor')?.isShown).toBe(true);
+    expect(keys.indexOf('custom-shelf')).toBeLessThan(keys.indexOf('source'));
+    expect(choices.find(choice => choice.definition.key === 'source')?.isShown).toBe(true);
   });
 });
 

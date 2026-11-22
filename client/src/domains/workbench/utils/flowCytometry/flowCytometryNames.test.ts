@@ -19,30 +19,30 @@ const placement = { page: 'page', x: 0, y: 0, w: 12, h: 10, isCollapsed: false }
 const panel: FlowCytometryPanelCard = {
   ...placement,
   id: 'panel',
-  type: 'cytometer',
+  type: 'flowCytometryPanel',
   title: 'Flow panel',
-  rows: [
-    { id: 'cd3', materialId: cd3.id, detectorId: 'VL1', stain: 'Surface', dilution: '100' },
-    { id: 'cd4', materialId: cd4.id, detectorId: 'BL1', stain: 'Surface', dilution: '200' },
+  markers: [
+    { id: 'cd3', materialId: cd3.id, detectorId: 'VL1', staining: 'Surface', dilution: '100' },
+    { id: 'cd4', materialId: cd4.id, detectorId: 'BL1', staining: 'Surface', dilution: '200' },
   ],
-  mixes: [
-    { id: 'full', name: 'Full stain', rowIds: ['cd3', 'cd4'], plus: [] },
-    { id: 'fmo', name: 'FMO CD3', rowIds: ['cd4'], plus: [] },
+  stains: [
+    { id: 'full', name: 'Full stain', markerIds: ['cd3', 'cd4'], plus: [] },
+    { id: 'fmo', name: 'FMO CD3', markerIds: ['cd4'], plus: [] },
   ],
 };
 
 const plateMap: ProtocolCard = {
   ...placement,
   id: 'plate',
-  type: 'plate',
+  type: 'plateMap',
   title: 'Vessel map',
-  plates: [{ id: 'p1', vessel: '96', name: '' }],
-  sets: [],
+  plates: [{ id: 'p1', labware: '96', name: '' }],
+  otherLabware: [],
   activeTab: 0,
   lines: [],
-  cells: {},
+  samples: {},
   series: {},
-  mergesReplicates: true,
+  showsReplicatesAsOne: true,
   counts: {},
   amountNames: {},
   side: 'stain',
@@ -57,9 +57,9 @@ const protocol = (extra: ProtocolCard[] = []): Protocol => ({
   runNumber: '',
   runOn: { from: '', to: '' },
   pages: [{ id: 'page', name: 'Flow', steps: [] }],
-  dyes: [],
+  fluors: [],
   diluent: '',
-  blocks: [
+  cards: [
     {
       ...placement,
       id: 'materials',
@@ -67,7 +67,7 @@ const protocol = (extra: ProtocolCard[] = []): Protocol => ({
       title: 'Materials',
       foldedGroups: [],
       customGroups: [],
-      isDroppedOpen: false,
+      isSetAsideOpen: false,
       items: [cd3, cd4],
     },
     panel,
@@ -76,7 +76,7 @@ const protocol = (extra: ProtocolCard[] = []): Protocol => ({
   ],
   lotMemory: {},
   keptBoth: [],
-  ignoredReadings: [],
+  ignoredSuggestions: [],
 });
 
 const answer = (board: ReturnType<typeof calculateBoard>, name: string) => {
@@ -104,9 +104,11 @@ describe('flow panel names', () => {
     const own: ProtocolCard = {
       ...placement,
       id: 'formulas',
-      type: 'formula',
+      type: 'calculations',
       title: 'Calculations',
-      items: [{ id: 'mine', name: 'Full stain Surface cocktail antibodies', expr: '2', unit: '' }],
+      items: [
+        { id: 'mine', name: 'Full stain Surface cocktail antibodies', formula: '2', unit: '' },
+      ],
       materialSections: [],
     };
     const board = calculateBoard(collectBoardNames(protocol([own])));
@@ -121,7 +123,7 @@ describe('flow panel names', () => {
       type: 'values',
       title: 'Values',
       items: [{ id: 'volume', name: 'Surface stain volume', value: '50', unit: 'µL' }],
-      sections: [],
+      rows: [],
     };
     expect(
       answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 amount per well')

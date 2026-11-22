@@ -84,7 +84,7 @@ function subjectNames(
       kind: 'calculation',
       id: id(part),
       name,
-      expr,
+      formula: expr,
       unit,
       workedOut: group,
       ...gap,
@@ -202,7 +202,7 @@ function subjectNames(
 
 export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialsCardId = protocol.blocks.find(card => card.type === 'materials')?.id;
+  const materialsCardId = protocol.cards.find(card => card.type === 'materials')?.id;
   return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsCardId));
 }
 

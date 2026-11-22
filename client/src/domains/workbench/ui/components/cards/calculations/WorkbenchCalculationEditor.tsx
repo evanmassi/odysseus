@@ -64,7 +64,7 @@ export function WorkbenchCalculationEditor({
   const editorRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState(() => nameWithin(calculation.name, material));
   const [expression, setExpression] = useState(() =>
-    namesWithin(calculation.expr, board, material)
+    namesWithin(calculation.formula, board, material)
   );
   const [completions, setCompletions] = useState<FormulaCompletion[]>([]);
   const [highlighted, setHighlighted] = useState(0);
@@ -102,7 +102,7 @@ export function WorkbenchCalculationEditor({
 
   const changeExpression = (text: string, caret: number) => {
     setExpression(text);
-    onChange({ expr: namesInFull(text, board, material) });
+    onChange({ formula: namesInFull(text, board, material) });
     refreshCompletions(text, caret);
   };
 
@@ -236,7 +236,7 @@ export function WorkbenchCalculationEditor({
             const converted = withGreekLetters(expression);
             if (converted === expression) return;
             setExpression(converted);
-            onChange({ expr: namesInFull(converted, board, material) });
+            onChange({ formula: namesInFull(converted, board, material) });
           }}
           onKeyDown={event => {
             if (!completions.length) {

@@ -20,17 +20,17 @@ type CardPanels = {
 
 export const CARD_PANELS: CardPanels = {
   materials: WorkbenchMaterialsPanel,
-  steps: WorkbenchProcedurePanel,
+  procedure: WorkbenchProcedurePanel,
   values: WorkbenchValuesPanel,
-  formula: WorkbenchCalculationsPanel,
-  plate: WorkbenchPlateMapPanel,
-  plateView: WorkbenchLinkedPlateMapPanel,
-  cytometer: WorkbenchFlowCytometryPanel,
+  calculations: WorkbenchCalculationsPanel,
+  plateMap: WorkbenchPlateMapPanel,
+  linkedPlateMap: WorkbenchLinkedPlateMapPanel,
+  flowCytometryPanel: WorkbenchFlowCytometryPanel,
   dilutions: WorkbenchDilutionsPanel,
-  flow: WorkbenchFlowDiagramPanel,
+  flowDiagram: WorkbenchFlowDiagramPanel,
 };
 
 export const CARD_HEADER_CONTROLS: CardPanels = {
-  plate: WorkbenchPlateMapCardControls,
-  plateView: WorkbenchLinkedPlateMapCardControls,
+  plateMap: WorkbenchPlateMapCardControls,
+  linkedPlateMap: WorkbenchLinkedPlateMapCardControls,
 };

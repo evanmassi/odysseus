@@ -6,7 +6,7 @@ import { plateSwatches, type PlateSwatchOf } from '../utils/plateMap/plateSwatch
 import { useProtocolWith } from './useWorkbenchSlice';
 
 export function usePlateSwatches(): PlateSwatchOf {
-  const protocol = useProtocolWith('plate');
+  const protocol = useProtocolWith('plateMap');
   const board = useWorkbenchStore(state => state.board);
   return useMemo(() => plateSwatches(protocol, board), [protocol, board]);
 }

@@ -16,13 +16,13 @@ export function WorkbenchPlateMapCardControls({ card }: WorkbenchPlateMapCardCon
   const updateCard = useUpdateCard(card);
   const showCard = useShowCard();
   const firstViewId = useWorkbenchStore(
-    state => linkedPlateMapsOf(state.protocol.blocks, card.id)[0]?.id
+    state => linkedPlateMapsOf(state.protocol.cards, card.id)[0]?.id
   );
   const viewCount = useWorkbenchStore(
-    state => linkedPlateMapsOf(state.protocol.blocks, card.id).length
+    state => linkedPlateMapsOf(state.protocol.cards, card.id).length
   );
   const viewPlace = useWorkbenchStore(state => {
-    const [view] = linkedPlateMapsOf(state.protocol.blocks, card.id);
+    const [view] = linkedPlateMapsOf(state.protocol.cards, card.id);
     if (!view) return undefined;
     if (view.page === card.page) return 'this page';
     return state.protocol.pages.find(page => page.id === view.page)?.name;

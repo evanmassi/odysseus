@@ -12,7 +12,7 @@ const calculation = (name: string, expr: string, unit = 'auto'): BoardName => ({
   kind: 'calculation',
   id: `f-${name}`,
   name,
-  expr,
+  formula: expr,
   unit,
 });
 

@@ -16,7 +16,7 @@ const GROUP_DEFAULT_FIELDS: Readonly<Record<string, readonly string[]>> = {
   equip: ['model'],
   soft: ['source'],
 };
-const PHYSICAL_DEFAULT_FIELDS = ['vendor', 'catalog', 'lot'];
+const PHYSICAL_DEFAULT_FIELDS = ['source', 'catalog', 'lot'];
 const TYPE_DEFAULT_FIELDS: Readonly<Record<string, readonly string[]>> = {
   Antibody: [...PHYSICAL_DEFAULT_FIELDS, 'isotype'],
   Software: ['version'],
@@ -31,7 +31,7 @@ const AMOUNT_FIELDS = [
   'coating-concentration',
 ];
 const MOLAR_STOCK_UNITS = new Set(['mM', 'M']);
-export const RECIPE_FIELD = 'recipe';
+export const RECIPE_FIELD = 'recipe-note';
 const MADE_ON_FIELD = 'made-on';
 
 const hasText = (value: string | undefined): value is string => !!value?.trim();
@@ -78,7 +78,7 @@ function newMaterial(group: string, type: string, name: string, memory: LabMemor
     units: {},
     customFields: [],
     fieldLabels: {},
-    isDropped: false,
+    isSetAside: false,
     recipe: [],
   };
   const starting = addStartingFields(item, memory);

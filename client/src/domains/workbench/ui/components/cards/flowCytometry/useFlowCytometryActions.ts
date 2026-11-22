@@ -22,7 +22,7 @@ import type {
   MaterialItem,
 } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelCard['rows'][number];
+type PanelRow = FlowCytometryPanelCard['markers'][number];
 
 export interface FlowCytometryActions {
   pickCytometer: (name: string) => void;
@@ -59,23 +59,29 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
   return useMemo(() => {
     const updateRow = (rowId: string, recipe: (row: PanelRow) => void) =>
       updateCard(draft => {
-        const row = draft.rows.find(candidate => candidate.id === rowId);
+        const row = draft.markers.find(candidate => candidate.id === rowId);
         if (row) recipe(row);
       });
     const updateStain = (stainId: string, recipe: (stain: Stain) => void) =>
       updateCard(draft => {
-        const stain = draft.mixes.find(candidate => candidate.id === stainId);
+        const stain = draft.stains.find(candidate => candidate.id === stainId);
         if (stain) recipe(stain);
       });
     return {
       pickCytometer: name =>
         updateCard(draft => {
           const picked = BUILT_IN_CYTOMETERS.find(cytometer => cytometer.name === name);
-          if (picked) draft.instrument = structuredClone(picked);
+          if (picked) draft.cytometer = structuredClone(picked);
         }),
       addMarker: (materialId, detectorId) =>
         updateCard(draft => {
-          draft.rows.push({ id: createId(), materialId, detectorId, stain: '', dilution: '' });
+          draft.markers.push({
+            id: createId(),
+            materialId,
+            detectorId,
+            staining: '',
+            dilution: '',
+          });
         }),
       createMarker: (text, detectorId) =>
         updateProtocol(draft => {
@@ -83,13 +89,13 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
           const created = newMarkerMaterial(text, known, memory);
           const material = ensureMaterial(draft, created.name, () => created);
           keepFluorsUsedBy(draft, [material], known.fluors);
-          const panel = draft.blocks.find(candidate => candidate.id === card.id);
-          if (panel?.type !== 'cytometer') return;
-          panel.rows.push({
+          const panel = draft.cards.find(candidate => candidate.id === card.id);
+          if (panel?.type !== 'flowCytometryPanel') return;
+          panel.markers.push({
             id: createId(),
             materialId: material.id,
             detectorId,
-            stain: '',
+            staining: '',
             dilution: '',
           });
         }),
@@ -100,21 +106,21 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
         }),
       removeMarker: rowId =>
         updateCard(draft => {
-          draft.rows = draft.rows.filter(row => row.id !== rowId);
-          draft.mixes.forEach(stain => {
-            stain.rowIds = stain.rowIds.filter(id => id !== rowId);
+          draft.markers = draft.markers.filter(row => row.id !== rowId);
+          draft.stains.forEach(stain => {
+            stain.markerIds = stain.markerIds.filter(id => id !== rowId);
           });
         }),
       writeMaterial: (materialId, key, value) =>
         updateProtocol(draft => {
-          const item = draft.blocks
+          const item = draft.cards
             .flatMap(candidate => (candidate.type === 'materials' ? candidate.items : []))
             .find(candidate => candidate.id === materialId);
           if (item) writeMaterialField(item, fieldFor(item, key), value);
         }),
       addStains: stains =>
         updateCard(draft => {
-          draft.mixes.push(...stains);
+          draft.stains.push(...stains);
         }),
       renameStain: (stainId, name) =>
         updateStain(stainId, stain => {
@@ -122,17 +128,17 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
         }),
       toggleStainMarker: (stainId, rowId) =>
         updateStain(stainId, stain => {
-          stain.rowIds = stain.rowIds.includes(rowId)
-            ? stain.rowIds.filter(id => id !== rowId)
-            : [...stain.rowIds, rowId];
+          stain.markerIds = stain.markerIds.includes(rowId)
+            ? stain.markerIds.filter(id => id !== rowId)
+            : [...stain.markerIds, rowId];
         }),
       removeStain: stainId =>
         updateProtocol(draft => {
-          for (const candidate of draft.blocks) {
-            if (candidate.type === 'cytometer' && candidate.id === card.id) {
-              candidate.mixes = candidate.mixes.filter(stain => stain.id !== stainId);
+          for (const candidate of draft.cards) {
+            if (candidate.type === 'flowCytometryPanel' && candidate.id === card.id) {
+              candidate.stains = candidate.stains.filter(stain => stain.id !== stainId);
             }
-            if (candidate.type === 'plate') {
+            if (candidate.type === 'plateMap') {
               for (const [key, stained] of Object.entries(candidate.stain)) {
                 if (stained === stainId) delete candidate.stain[key];
               }
@@ -141,12 +147,12 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
         }),
       addPlus: (stainId, materialId, staining) =>
         updateStain(stainId, stain => {
-          stain.plus.push({ id: createId(), materialId, stain: staining });
+          stain.plus.push({ id: createId(), materialId, staining: staining });
         }),
       setPlusStaining: (stainId, plusId, staining) =>
         updateStain(stainId, stain => {
           const plus = stain.plus.find(candidate => candidate.id === plusId);
-          if (plus) plus.stain = staining;
+          if (plus) plus.staining = staining;
         }),
       removePlus: (stainId, plusId) =>
         updateStain(stainId, stain => {

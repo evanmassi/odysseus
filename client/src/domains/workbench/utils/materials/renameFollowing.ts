@@ -21,13 +21,13 @@ export function withLeadingName(text: string, name: string): string {
   return notesAt < 0 ? name : `${name} ${text.slice(notesAt)}`;
 }
 
-const plateMaps = (protocol: Pick<Protocol, 'blocks'>) =>
-  protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate');
+const plateMaps = (protocol: Pick<Protocol, 'cards'>) =>
+  protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
 
-const isNameOnAnyWell = (protocol: Pick<Protocol, 'blocks'>, name: string): boolean =>
+const isNameOnAnyWell = (protocol: Pick<Protocol, 'cards'>, name: string): boolean =>
   plateMaps(protocol).some(plateMap => {
     const heldIds = new Set(
-      Object.values(plateMap.cells).flatMap(lines =>
+      Object.values(plateMap.samples).flatMap(lines =>
         Object.values(lines).map(entry => entry.valueId)
       )
     );
@@ -36,7 +36,7 @@ const isNameOnAnyWell = (protocol: Pick<Protocol, 'blocks'>, name: string): bool
     );
   });
 
-const isNameListed = (protocol: Pick<Protocol, 'blocks'>, name: string): boolean =>
+const isNameListed = (protocol: Pick<Protocol, 'cards'>, name: string): boolean =>
   findMaterial(listedMaterials(protocol), name) !== undefined ||
   findDonor(donorsIn(protocol), name) !== undefined;
 

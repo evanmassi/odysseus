@@ -120,11 +120,11 @@ export function WorkbenchMaterialTable({
       actions={actions}
       donorTargets={donorTargets}
     />,
-    item.sources && (
+    item.donors && (
       <WorkbenchMaterialDonorTable
         key={`${item.id}-sources`}
         item={item}
-        donors={item.sources}
+        donors={item.donors}
         span={columns.length + 4}
         plateNames={plateNames}
         isJustOpened={item.id === openedDonorsId}

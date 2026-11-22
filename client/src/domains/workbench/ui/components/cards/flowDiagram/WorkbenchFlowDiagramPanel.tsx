@@ -22,7 +22,7 @@ import { WorkbenchFlowDiagramWaitLabel } from './WorkbenchFlowDiagramWaitLabel';
 import type { ProtocolCard, ProtocolStep } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowDiagramPanelProps {
-  card: Extract<ProtocolCard, { type: 'flow' }>;
+  card: Extract<ProtocolCard, { type: 'flowDiagram' }>;
 }
 
 const NO_STEPS: ProtocolStep[] = [];
@@ -42,8 +42,8 @@ export function WorkbenchFlowDiagramPanel({ card }: WorkbenchFlowDiagramPanelPro
   const board = useWorkbenchStore(state => state.board);
   const procedureCardId = useWorkbenchStore(
     state =>
-      state.protocol.blocks.find(
-        candidate => candidate.type === 'steps' && candidate.page === card.page
+      state.protocol.cards.find(
+        candidate => candidate.type === 'procedure' && candidate.page === card.page
       )?.id
   );
   const editStep = useStepEditingStore(state => state.editStep);

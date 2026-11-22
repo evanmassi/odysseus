@@ -7,11 +7,11 @@ const filled = { drug: { valueId: 'x' } };
 
 const plate = (wells: string[], stain: Record<string, string>, stainedIn = {}) =>
   ({
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     activeTab: 0,
     lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Compound X' }] }],
-    cells: Object.fromEntries(wells.map(label => [`p:${label}`, structuredClone(filled)])),
+    samples: Object.fromEntries(wells.map(label => [`p:${label}`, structuredClone(filled)])),
     series: {},
     stain,
     stainedIn,
@@ -30,7 +30,7 @@ describe('moving assay wells', () => {
   it('carries the stain of a well that sits on its own position, even when shifting onto itself', () => {
     const card = plate(['A1', 'A2'], { 'p:A1': 'full', 'p:A2': 'fmo' });
     move(card, ['A1', 'A2'], ['A2', 'A3']);
-    expect(Object.keys(card.cells).sort()).toEqual(['p:A2', 'p:A3']);
+    expect(Object.keys(card.samples).sort()).toEqual(['p:A2', 'p:A3']);
     expect(card.stain).toEqual({ 'p:A2': 'full', 'p:A3': 'fmo' });
     expect(card.stainedIn).toEqual({});
   });
@@ -45,7 +45,7 @@ describe('moving assay wells', () => {
   it('replaces what was in the landing wells, stain and all', () => {
     const card = plate(['A1', 'B1'], { 'p:B1': 'fmo' });
     move(card, ['A1'], ['B1']);
-    expect(Object.keys(card.cells)).toEqual(['p:B1']);
+    expect(Object.keys(card.samples)).toEqual(['p:B1']);
     expect(card.stain).toEqual({});
   });
 });

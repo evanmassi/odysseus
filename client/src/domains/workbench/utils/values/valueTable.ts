@@ -203,8 +203,8 @@ function countCells(
   return { cells, prep };
 }
 
-const isPlateMap = (card: Protocol['blocks'][number]): card is PlateMapCard =>
-  card.type === 'plate';
+const isPlateMap = (card: Protocol['cards'][number]): card is PlateMapCard =>
+  card.type === 'plateMap';
 
 function plateMaterialFor(
   plateMap: PlateMapCard,
@@ -247,7 +247,8 @@ function plateCellFields(row: PlateValueRow, cardTitle: string) {
     };
   }
   const from = source.amount.source;
-  const isFixedUnit = from.kind === 'points' || (from.kind === 'series' && from.field === 'fold');
+  const isFixedUnit =
+    from.kind === 'points' || (from.kind === 'series' && from.field === 'dilutionFactor');
   return {
     value: source.amount.value,
     unit: source.amount.unit,
@@ -326,27 +327,27 @@ function groupLabel(key: string): string {
 }
 
 export function buildValueTable(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   card: ValuesCard,
   { materials, board, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
-  const valuesCards = protocol.blocks.filter(
+  const valuesCards = protocol.cards.filter(
     (candidate): candidate is ValuesCard => candidate.type === 'values'
   );
   const isFirstCard = valuesCards[0]?.id === card.id;
   const materialsWithRowElsewhere = new Set(
     valuesCards
       .filter(values => values.id !== card.id)
-      .flatMap(values => values.sections)
+      .flatMap(values => values.rows)
       .flatMap(valueRow => ('materialId' in valueRow ? [valueRow.materialId] : []))
   );
-  const plates = protocol.blocks.filter(isPlateMap);
+  const plates = protocol.cards.filter(isPlateMap);
   const matches = donorsIn(protocol);
   const subjects = countSubjects(protocol);
   const countedIds = new Set(subjects.map(subject => subject.material.id));
   const unsorted = new Set(unsortedNames.map(normalizeMaterialKey));
   const allMaterials = [...materials.values()].filter(material => material.name.trim());
-  const listedMaterials = allMaterials.filter(material => !material.isDropped);
+  const listedMaterials = allMaterials.filter(material => !material.isSetAside);
   const swatchOf = plateSwatches(protocol, board);
 
   const rows: RowDraft[] = [];
@@ -374,13 +375,13 @@ export function buildValueTable(
     return row;
   };
 
-  for (const valueRow of card.sections) {
+  for (const valueRow of card.rows) {
     const material = 'materialId' in valueRow ? materials.get(valueRow.materialId) : undefined;
     const status: ValueRowStatus = !('materialId' in valueRow)
       ? 'current'
       : !material
         ? 'removed'
-        : material.isDropped
+        : material.isSetAside
           ? 'setAside'
           : 'current';
     const groupKey = 'mixName' in valueRow ? MIX_GROUP.key : (material?.group ?? REMOVED_GROUP_KEY);
@@ -399,7 +400,7 @@ export function buildValueTable(
     const row = draftRow(`material:${material.id}`, material.name.trim(), material.group, {
       valueRow: undefined,
       material,
-      status: material.isDropped ? 'setAside' : 'current',
+      status: material.isSetAside ? 'setAside' : 'current',
     });
     rowByMaterial.set(material.id, row);
     return row;
@@ -408,7 +409,7 @@ export function buildValueTable(
   const tableRowsById = new Map(rows.map(row => [row.id, row]));
   const mixRows = rows.filter(row => row.valueRow && 'mixName' in row.valueRow);
   for (const item of card.items) {
-    const row = item.section ? tableRowsById.get(item.section) : undefined;
+    const row = item.row ? tableRowsById.get(item.row) : undefined;
     if (!row) continue;
     const linked = linkedValueOf(card, item, materials);
     if ('materialField' in item) {

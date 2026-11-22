@@ -40,8 +40,10 @@ interface WorkbenchValueHeaderRowProps {
   actions: ValueColumnActions;
 }
 
-const ORIGIN_MARK: Partial<Record<ValueOrigin, { icon: typeof CARD_ICONS.plate; note: string }>> = {
-  plate: { icon: CARD_ICONS.plate, note: 'Read from the labware' },
+const ORIGIN_MARK: Partial<
+  Record<ValueOrigin, { icon: typeof CARD_ICONS.plateMap; note: string }>
+> = {
+  plate: { icon: CARD_ICONS.plateMap, note: 'Read from the labware' },
   materials: { icon: CARD_ICONS.materials, note: 'Read from Materials' },
 };
 

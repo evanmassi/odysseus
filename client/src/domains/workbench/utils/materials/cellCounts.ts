@@ -155,19 +155,19 @@ export const countName = (subject: CountSubject, count: CellCount): string =>
 export const cellPartId = (subject: string, part: string): string =>
   `cells:${nameKey(subject)}:${part}`;
 
-export function countSubjects(protocol: Pick<Protocol, 'blocks'>): CountSubject[] {
+export function countSubjects(protocol: Pick<Protocol, 'cards'>): CountSubject[] {
   const plated = platedCells(protocol);
   const platedSubjects = new Set(plated.map(entry => nameKey(entry.subject)));
   const platedMaterials = new Set(plated.map(entry => entry.material.id));
   return listedMaterials(protocol)
     .filter(
       material =>
-        !material.isDropped &&
+        !material.isSetAside &&
         material.name.trim() &&
         (CELL_TYPES.includes(material.type) || platedMaterials.has(material.id))
     )
     .flatMap(material => {
-      const donors = (material.sources?.rows ?? []).filter(donor => donor.name.trim());
+      const donors = (material.donors?.rows ?? []).filter(donor => donor.name.trim());
       const subjects = donors.length
         ? donors.map(donor => ({
             owner: donor.name.trim(),
@@ -219,7 +219,7 @@ export function cellCountNames(
           kind: 'calculation',
           id,
           name,
-          expr: `${a} ${reading.rule.operation} ${b}`,
+          formula: `${a} ${reading.rule.operation} ${b}`,
           unit,
           isIntermediate: true,
           ...(workedOut && { workedOut }),

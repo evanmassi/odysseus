@@ -47,7 +47,7 @@ export interface RememberedMaterialType {
 }
 
 export interface MaterialKnowledge {
-  kinds: ReadonlyMap<string, RememberedMaterialType>;
+  knownTypes: ReadonlyMap<string, RememberedMaterialType>;
   fluors: readonly ProtocolFluor[];
 }
 
@@ -376,7 +376,7 @@ function detachVendor(text: string, values: Record<string, string>): string {
     LONGEST_VENDOR_TOKENS
   ).find(hit => hit.length < tokens.length);
   if (!vendorHit) return text;
-  values['vendor'] ??= vendorHit.hit;
+  values['source'] ??= vendorHit.hit;
   const after = vendorHit.start + vendorHit.length;
   const nextText = tokens[after]?.text ?? '';
   const isCatalogAfterVendor =
@@ -397,7 +397,7 @@ function readIdentifiers(
 ): { text: string; values: Record<string, string> } {
   let text = raw.replace(WHITESPACE_RUNS, ' ').trim();
   const values: Record<string, string> = {};
-  if (vendor) values['vendor'] = vendor;
+  if (vendor) values['source'] = vendor;
   if (identifier) readIdentifierColumn(identifier, values);
   const rrid = text.match(RRID);
   if (rrid) {
@@ -875,18 +875,18 @@ function instrumentOutcome(
   values: Record<string, string>,
   amount: MaterialAmount | undefined
 ): GuessOutcome {
-  const { vendor, ...valuesWithoutVendor } = values;
+  const { source, ...valuesWithoutSource } = values;
   return {
     group: hit.group,
     type: hit.type,
     why: `${text}: known ${hit.type.toLowerCase()}`,
     name: raw.trim(),
     amount,
-    baseValues: valuesWithoutVendor,
+    baseValues: valuesWithoutSource,
     fields: {
       ...hit.values,
       model: hit.isGeneric ? undefined : text,
-      manufacturer: vendor,
+      manufacturer: source,
     },
   };
 }
@@ -1029,7 +1029,7 @@ function withTherapeuticAntibody(guess: MaterialGuess): MaterialGuess {
 
 export function guessMaterial(
   raw: string,
-  { kinds, fluors: fluors }: MaterialKnowledge,
+  { knownTypes: kinds, fluors: fluors }: MaterialKnowledge,
   context: MaterialGuessContext = {}
 ): MaterialGuess {
   const guess = withTherapeuticAntibody(guessFromText(raw, context, fluors));

@@ -13,13 +13,13 @@ const material = (id: string, name: string) => ({
   units: {},
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
 });
 
 function protocolWith(names: string[], ignored: string[] = []): Protocol {
   return {
-    ignoredReadings: ignored,
-    blocks: [
+    ignoredSuggestions: ignored,
+    cards: [
       {
         id: 'materials',
         type: 'materials',
@@ -29,11 +29,11 @@ function protocolWith(names: string[], ignored: string[] = []): Protocol {
         id: 'values',
         type: 'values',
         items: [],
-        sections: [{ id: 'mix', mixName: 'Th17 cocktail' }],
+        rows: [{ id: 'mix', mixName: 'Th17 cocktail' }],
       },
       {
         id: 'map',
-        type: 'plate',
+        type: 'plateMap',
         title: 'Plate',
         lines: [
           {
@@ -43,7 +43,7 @@ function protocolWith(names: string[], ignored: string[] = []): Protocol {
             values: names.map(name => ({ id: name, text: name, color: '#123456' })),
           },
         ],
-        cells: Object.fromEntries(
+        samples: Object.fromEntries(
           names.map((name, index) => [`p:A${index + 1}`, { line: { valueId: name } }])
         ),
       },

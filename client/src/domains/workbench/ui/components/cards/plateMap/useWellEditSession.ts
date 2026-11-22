@@ -11,8 +11,8 @@ const NOTHING_HELD: ReadonlyMap<string, HeldName> = new Map();
 const plateMapNow = (cardId: string) =>
   useWorkbenchStore
     .getState()
-    .protocol.blocks.find(
-      (card): card is PlateMapCard => card.id === cardId && card.type === 'plate'
+    .protocol.cards.find(
+      (card): card is PlateMapCard => card.id === cardId && card.type === 'plateMap'
     );
 
 export function useWellEditSession(

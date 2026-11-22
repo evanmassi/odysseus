@@ -40,7 +40,7 @@ const names: BoardName[] = [
     kind: 'calculation',
     id: 'transfer',
     name: 'Drug X transfer',
-    expr: 'Drug X volume added × 2',
+    formula: 'Drug X volume added × 2',
     unit: '',
     workedOut: prepGroup('Drug X'),
   },
@@ -48,16 +48,16 @@ const names: BoardName[] = [
     kind: 'calculation',
     id: 'raji',
     name: 'Raji transfer',
-    expr: '5 µL',
+    formula: '5 µL',
     unit: '',
     workedOut: prepGroup('Raji'),
   },
-  { kind: 'calculation', id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' },
+  { kind: 'calculation', id: 'own', name: 'Drug X (Sigma) needed', formula: '2 µL', unit: '' },
 ];
 
 const card = {
   id: 'calc',
-  type: 'formula',
+  type: 'calculations',
   items: [{ id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' }],
   materialSections: [],
 } as unknown as CalculationsCard;
@@ -98,7 +98,7 @@ describe('calculation sections', () => {
         kind: 'calculation',
         id: 'raji-gap',
         name: 'Raji volume',
-        expr: '',
+        formula: '',
         unit: '',
         problem: 'Needs a stain step',
         workedOut: { ...prepGroup('Raji'), key: 'stain:raji', title: 'Amount per well' },

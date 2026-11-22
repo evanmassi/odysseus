@@ -6,20 +6,20 @@ const row = (id: string, stain: string) => ({
   id,
   materialId: `m-${id}`,
   detectorId: id,
-  stain,
+  staining: stain,
   dilution: '100',
 });
 
 const stain = (name: string, rowIds: string[], plus: Stain['plus'] = []): Stain => ({
   id: name,
   name,
-  rowIds,
+  markerIds: rowIds,
   plus,
 });
 
 const panel = (stains: Stain[]): FlowCytometryPanelCard => ({
   id: 'panel',
-  type: 'cytometer',
+  type: 'flowCytometryPanel',
   title: 'Flow panel',
   page: 'page',
   x: 0,
@@ -27,8 +27,8 @@ const panel = (stains: Stain[]): FlowCytometryPanelCard => ({
   w: 12,
   h: 10,
   isCollapsed: false,
-  rows: [row('cd3', 'Surface'), row('cd4', 'surface'), row('foxp3', 'ICS'), row('cd69', '')],
-  mixes: stains,
+  markers: [row('cd3', 'Surface'), row('cd4', 'surface'), row('foxp3', 'ICS'), row('cd69', '')],
+  stains: stains,
 });
 
 const summary = (card: FlowCytometryPanelCard) =>
@@ -66,7 +66,7 @@ describe('panelCocktails', () => {
   it('keeps a stain with an extra material apart, and lists markers with no staining', () => {
     const card = panel([
       stain('Full stain', ['foxp3']),
-      stain('Isotype', [], [{ id: 'p', materialId: 'isotype', stain: 'ICS' }]),
+      stain('Isotype', [], [{ id: 'p', materialId: 'isotype', staining: 'ICS' }]),
     ]);
     const { stainings, rowsWithoutStaining } = panelCocktails(card);
     const ics = stainings.find(staining => staining.staining === 'ICS');

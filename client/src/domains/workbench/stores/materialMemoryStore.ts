@@ -9,6 +9,7 @@ import {
   rememberKind,
   startingDonorFieldsOf,
   toggleStartingField,
+  upgradeLabMemory,
   type LabMemory,
   type PinnedFields,
 } from '../utils/materials/materialMemory';
@@ -16,6 +17,7 @@ import {
 import type { MaterialItem, ProtocolFluor } from '@odysseus/shared-schemas';
 
 const LAB_MEMORY_KEY = 'odysseus-workbench-lab-memory';
+const LAB_MEMORY_VERSION = 1;
 
 interface MaterialMemoryState {
   memory: LabMemory;
@@ -56,6 +58,10 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
     }),
     {
       name: LAB_MEMORY_KEY,
+      version: LAB_MEMORY_VERSION,
+      migrate: persisted => ({
+        memory: upgradeLabMemory((persisted as Partial<MaterialMemoryState> | undefined)?.memory),
+      }),
       partialize: state => ({ memory: state.memory }),
       // PITFALL: memory saved before a field was added to LabMemory lacks it; fill from the empty shape.
       merge: (persisted, current) => ({

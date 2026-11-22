@@ -32,7 +32,7 @@ export function wellLine(
   line: PlateLine,
   board: SolvedBoard
 ): WellLine | undefined {
-  const entry = card.cells[key]?.[line.id];
+  const entry = card.samples[key]?.[line.id];
   const point = wellAmount(card, key, line, board);
   if (!isFilledEntry(entry) || !point) return undefined;
   const { amount, unit } = point;
@@ -58,15 +58,15 @@ export function seriesProgress(
   key: string,
   line: PlateLine
 ): number | undefined {
-  const entry = card.cells[key]?.[line.id];
+  const entry = card.samples[key]?.[line.id];
   if (entry?.seriesId === undefined) return undefined;
   const lastStep = Math.max(
-    ...Object.values(card.cells)
+    ...Object.values(card.samples)
       .map(lines => lines[line.id])
       .filter(other => other?.seriesId === entry.seriesId)
-      .map(other => other.seriesStep ?? 0)
+      .map(other => other.seriesPoint ?? 0)
   );
-  return lastStep > 0 ? (entry.seriesStep ?? 0) / lastStep : undefined;
+  return lastStep > 0 ? (entry.seriesPoint ?? 0) / lastStep : undefined;
 }
 
 export function wellColor(
@@ -74,7 +74,7 @@ export function wellColor(
   key: string,
   colorLine: PlateLine | undefined
 ): WellColor | undefined {
-  const entry = colorLine && card.cells[key]?.[colorLine.id];
+  const entry = colorLine && card.samples[key]?.[colorLine.id];
   const color = colorLine && lineValueOf(colorLine, entry)?.color;
   if (!colorLine || !entry || !color) return undefined;
   const progress = seriesProgress(card, key, colorLine);

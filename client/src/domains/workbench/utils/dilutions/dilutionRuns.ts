@@ -36,10 +36,10 @@ interface PlateRun extends Omit<PlacedRun, 'place'> {
 const runsOnPlate = cachedPerCard((plateMap: PlateMapCard): PlateRun[] =>
   plateMap.lines.flatMap(line => {
     const runs = new Map<string, Omit<PlateRun, 'tabNames'> & { plateIds: Set<string> }>();
-    for (const [key, lines] of Object.entries(plateMap.cells)) {
+    for (const [key, lines] of Object.entries(plateMap.samples)) {
       const entry = lines[line.id];
       const series = entry?.seriesId === undefined ? undefined : plateMap.series[entry.seriesId];
-      if (!entry?.seriesId || !series || !('start' in series)) continue;
+      if (!entry?.seriesId || !series || !('top' in series)) continue;
       const value = lineValueOf(line, entry);
       const run = runs.get(entry.seriesId) ?? {
         ref: { plateId: plateMap.id, seriesId: entry.seriesId },
@@ -51,7 +51,7 @@ const runsOnPlate = cachedPerCard((plateMap: PlateMapCard): PlateRun[] =>
       };
       runs.set(entry.seriesId, run);
       run.plateIds.add(key.split(':')[0]);
-      const point = entry.seriesStep ?? 0;
+      const point = entry.seriesPoint ?? 0;
       run.replicatesByPoint.set(point, (run.replicatesByPoint.get(point) ?? 0) + 1);
     }
     return [...runs.values()].map(({ plateIds, ...run }) => ({
@@ -78,13 +78,13 @@ function placedRuns(plates: readonly PlateMapCard[]): PlacedRun[] {
 const sameSourceKey = ({ subject, series }: PlacedRun) =>
   [
     normalizeMaterialKey(subject),
-    series.start.trim(),
+    series.top.trim(),
     series.unit,
-    dilutionFactorOf(series.fold),
+    dilutionFactorOf(series.dilutionFactor),
   ].join('|');
 
-export function dilutionRuns(protocol: Pick<Protocol, 'blocks'>): DilutionRun[] {
-  const plates = protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate');
+export function dilutionRuns(protocol: Pick<Protocol, 'cards'>): DilutionRun[] {
+  const plates = protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
   const pooled = new Map<string, DilutionRun>();
   for (const placed of placedRuns(plates)) {
     const { ref, place, ...run } = placed;

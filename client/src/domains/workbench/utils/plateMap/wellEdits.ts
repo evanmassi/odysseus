@@ -28,13 +28,13 @@ const sharedOf = (texts: readonly string[]) => {
 };
 
 const isOnWells = (card: PlateMapCard, keys: readonly string[], line: PlateLine) =>
-  keys.some(key => card.cells[key]?.[line.id]);
+  keys.some(key => card.samples[key]?.[line.id]);
 
 export function wellRows(card: PlateMapCard, keys: readonly string[]): WellRow[] {
   return card.lines
     .filter(line => isOnWells(card, keys, line))
     .map(line => {
-      const cells = keys.map(key => card.cells[key]?.[line.id]);
+      const cells = keys.map(key => card.samples[key]?.[line.id]);
       const values = cells.map(entry => lineValueOf(line, entry));
       const text = sharedOf(values.map(value => value?.text ?? ''));
       const [firstValue] = values;
@@ -78,7 +78,7 @@ function valueOnLine(line: PlateLine, moved: PlateLine['values'][number]) {
 }
 
 function subjectsOn(card: PlateMapCard, line: PlateLine): Set<string> {
-  const texts = Object.values(card.cells).map(lines => lineValueOf(line, lines[line.id])?.text);
+  const texts = Object.values(card.samples).map(lines => lineValueOf(line, lines[line.id])?.text);
   return new Set(texts.filter(text => text !== undefined).map(normalizeMaterialKey));
 }
 
@@ -107,7 +107,7 @@ export function moveWellsToLine(
   const movedValues = new Map<string, string>();
   const movedSubjects = new Set<string>();
   for (const key of keys) {
-    const lines = card.cells[key];
+    const lines = card.samples[key];
     const entry = lines?.[fromId];
     if (!lines || !entry) continue;
     const value = lineValueOf(from, entry);
@@ -119,7 +119,7 @@ export function moveWellsToLine(
     lines[toId] = target ? { ...entry, valueId: target.id } : entry;
     delete lines[fromId];
   }
-  const stillHeld = new Set(Object.values(card.cells).map(lines => lines[fromId]?.valueId));
+  const stillHeld = new Set(Object.values(card.samples).map(lines => lines[fromId]?.valueId));
   for (const [fromValueId, toValueId] of movedValues) {
     if (!stillHeld.has(fromValueId)) moveValueKeys(card, fromValueId, toValueId);
   }
@@ -133,14 +133,14 @@ function writeCells(
   change: (entry: SampleEntry) => void
 ): void {
   for (const key of keys) {
-    const lines = (card.cells[key] ??= {});
+    const lines = (card.samples[key] ??= {});
     const entry = { ...lines[lineId] };
     change(entry);
     const { unit } = entry;
     if (isFilledEntry(entry)) lines[lineId] = entry;
     else if (unit) lines[lineId] = { unit };
     else delete lines[lineId];
-    if (!Object.keys(lines).length) delete card.cells[key];
+    if (!Object.keys(lines).length) delete card.samples[key];
   }
 }
 
@@ -158,8 +158,8 @@ const isHeldOnlyBy = (
   valueId: string,
   keys: readonly string[]
 ) =>
-  Object.keys(card.cells).every(
-    key => keys.includes(key) || card.cells[key][line.id]?.valueId !== valueId
+  Object.keys(card.samples).every(
+    key => keys.includes(key) || card.samples[key][line.id]?.valueId !== valueId
   );
 
 export function setWellsText(
@@ -173,7 +173,7 @@ export function setWellsText(
     writeCells(card, keys, line.id, entry => delete entry.valueId);
     return;
   }
-  const held = keys.map(key => lineValueOf(line, card.cells[key]?.[line.id]));
+  const held = keys.map(key => lineValueOf(line, card.samples[key]?.[line.id]));
   const [first] = held;
   if (first && held.every(value => value === first) && isHeldOnlyBy(card, line, first.id, keys)) {
     first.text = text;
@@ -198,7 +198,7 @@ export function setWellsAmount(
 ): void {
   writeCells(card, keys, lineFor(card, lineId).id, entry => {
     delete entry.seriesId;
-    delete entry.seriesStep;
+    delete entry.seriesPoint;
     if (amount.trim()) entry.amount = amount;
     else delete entry.amount;
   });
@@ -222,10 +222,10 @@ export function removeLineFromWells(
   lineId: string
 ): void {
   for (const key of keys) {
-    const lines = card.cells[key];
+    const lines = card.samples[key];
     if (!lines) continue;
     delete lines[lineId];
-    if (!Object.keys(lines).length) delete card.cells[key];
+    if (!Object.keys(lines).length) delete card.samples[key];
   }
 }
 
@@ -283,7 +283,7 @@ export function nameElsewhere(
     .find(line => line.id === lineId)
     ?.values.find(candidate => candidate.id === valueId);
   const selected = new Set(keys);
-  const outside = Object.entries(card.cells)
+  const outside = Object.entries(card.samples)
     .filter(([key, lines]) => !selected.has(key) && lines[lineId]?.valueId === valueId)
     .map(([key]) => key.match(VESSEL_OF_KEY)?.[0]);
   if (!value || !outside.length) return undefined;
@@ -300,13 +300,13 @@ export function nameElsewhere(
 export function toggleIndicatorPart(
   card: PlateMapCard,
   lineId: string,
-  part: NonNullable<PlateLine['hiddenMarks']>[number]
+  part: NonNullable<PlateLine['hiddenIndicators']>[number]
 ): void {
   const line = card.lines.find(candidate => candidate.id === lineId);
   if (!line) return;
-  const hidden = new Set(line.hiddenMarks);
+  const hidden = new Set(line.hiddenIndicators);
   if (hidden.has(part)) hidden.delete(part);
   else hidden.add(part);
-  if (hidden.size) line.hiddenMarks = [...hidden];
-  else delete line.hiddenMarks;
+  if (hidden.size) line.hiddenIndicators = [...hidden];
+  else delete line.hiddenIndicators;
 }

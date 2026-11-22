@@ -34,9 +34,9 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     },
     size: [12, 10],
     fitsContent: true,
-    createContent: () => ({ foldedGroups: [], customGroups: [], isDroppedOpen: false, items: [] }),
+    createContent: () => ({ foldedGroups: [], customGroups: [], isSetAsideOpen: false, items: [] }),
   },
-  list: {
+  table: {
     label: 'Table',
     hint: 'Your own columns, e.g. a standard curve',
     size: [12, 6],
@@ -63,15 +63,15 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
         'Type a name and amount and press [Enter], or paste a list',
         'Start with a material or mix to put it on that row, e.g. Raji Cells/well 10000',
         'A field the material has, e.g. Raji Viability, fills it in <materials>',
-        'Numbers from the <plate> and <materials> show up on their own',
-        'Use them by name in <formula> and <steps>',
+        'Numbers from the <plateMap> and <materials> show up on their own',
+        'Use them by name in <calculations> and <procedure>',
       ],
     },
     size: [4, 6],
     fitsContent: true,
-    createContent: () => ({ items: [], sections: [] }),
+    createContent: () => ({ items: [], rows: [] }),
   },
-  formula: {
+  calculations: {
     label: 'Calculations',
     hint: 'Math over your values, shown with its working',
     usageTip: {
@@ -79,7 +79,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
       points: [
         'Type a name and press [Enter], or type Name = formula',
         'Start with a material, e.g. Raji Total needed, to put it under that material',
-        'Names from <values>, <materials> and the <plate> are offered as you type, [Tab] picks one',
+        'Names from <values>, <materials> and the <plateMap> are offered as you type, [Tab] picks one',
         '*Click* a calculation to edit it and see its working',
       ],
     },
@@ -87,19 +87,19 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     fitsContent: true,
     createContent: () => ({ items: [], materialSections: [] }),
   },
-  plate: {
+  plateMap: {
     label: 'Plate map',
     hint: 'Plates, flasks, dishes or tubes; counts feed calculations',
     size: [6, 14],
     fitsContent: true,
     createContent: () => ({
-      plates: [{ id: createId(), vessel: '96' as const, name: '' }],
-      sets: [],
+      plates: [{ id: createId(), labware: '96' as const, name: '' }],
+      otherLabware: [],
       activeTab: 0,
       lines: [],
-      cells: {},
+      samples: {},
       series: {},
-      mergesReplicates: true,
+      showsReplicatesAsOne: true,
       counts: {},
       amountNames: {},
       side: 'assay' as const,
@@ -107,7 +107,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
       stainedIn: {},
     }),
   },
-  plateView: {
+  linkedPlateMap: {
     label: 'Plate map',
     hint: 'Labware shown from another page',
     size: [6, 14],
@@ -116,10 +116,10 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
       shows: '',
       side: 'assay' as const,
       activeTab: 0,
-      mergesReplicates: true,
+      showsReplicatesAsOne: true,
     }),
   },
-  cytometer: {
+  flowCytometryPanel: {
     label: 'Flow panel',
     hint: 'Markers by laser and detector on your cytometer',
     usageTip: {
@@ -129,15 +129,15 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
         '*Add a marker* on a detector picks one from <materials> or makes a new one',
         'A marker lights amber when another detector would read its fluor better',
         '*Full stain*, *Single stain* and *FMO* make the stains for your controls',
-        'Type a stain name on wells in the <plate> to count its wells',
-        'Amounts per well and cocktails are names you can use in <formula>',
+        'Type a stain name on wells in the <plateMap> to count its wells',
+        'Amounts per well and cocktails are names you can use in <calculations>',
       ],
     },
     size: [12, 10],
     fitsContent: true,
-    createContent: () => ({ rows: [], mixes: [] }),
+    createContent: () => ({ markers: [], stains: [] }),
   },
-  steps: {
+  procedure: {
     label: 'Procedure',
     hint: 'The outline of what you do',
     usageTip: {
@@ -159,18 +159,18 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     usageTip: {
       heading: 'See how to make each dilution series',
       points: [
-        'Pick wells on the <plate>, type an amount and click *Dilution*',
+        'Pick wells on the <plateMap>, type an amount and click *Dilution*',
         'Set the *Diluent* once at the top, or per series',
         '*Extra* covers dead volume, *Round to* matches your pipette',
         'A missing stock or molecular weight is asked for here and saved in <materials>',
-        'The volumes are names you can use in <formula> and <steps>',
+        'The volumes are names you can use in <calculations> and <procedure>',
       ],
     },
     size: [12, 10],
     fitsContent: true,
     createContent: () => ({}),
   },
-  flow: {
+  flowDiagram: {
     label: 'Flow diagram',
     hint: 'The steps drawn as pictures and arrows',
     usageTip: {
@@ -178,7 +178,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
       points: [
         '*Click* a step to mark your place',
         '[←] or [→] moves your place, [Esc] clears it',
-        '*Double-click* a step to edit it in <steps>',
+        '*Double-click* a step to edit it in <procedure>',
       ],
     },
     size: [12, 6],

@@ -17,15 +17,15 @@ import type { ProtocolCardType } from '@odysseus/shared-schemas';
 
 export const CARD_ICONS: Readonly<Record<ProtocolCardType, LucideIcon>> = {
   materials: FlaskConical,
-  list: Table2,
+  table: Table2,
   values: Hash,
-  formula: FunctionSquare,
-  plate: Grid3x3,
-  plateView: Grid3x3,
-  cytometer: Rainbow,
-  steps: ListOrdered,
+  calculations: FunctionSquare,
+  plateMap: Grid3x3,
+  linkedPlateMap: Grid3x3,
+  flowCytometryPanel: Rainbow,
+  procedure: ListOrdered,
   dilutions: ArrowDownToLine,
-  flow: Workflow,
+  flowDiagram: Workflow,
   sketch: PenLine,
   text: Pilcrow,
 };

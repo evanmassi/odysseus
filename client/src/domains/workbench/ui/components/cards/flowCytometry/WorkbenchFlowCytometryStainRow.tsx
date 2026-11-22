@@ -15,7 +15,7 @@ import type { StainedPlace } from '../../../../utils/plateMap/stainSide';
 import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowCytometryStainRowProps {
-  stain: FlowCytometryPanelCard['mixes'][number];
+  stain: FlowCytometryPanelCard['stains'][number];
   columns: readonly MarkerColumn[];
   places: readonly StainedPlace[];
   materialNames: ReadonlyMap<string, string>;
@@ -51,7 +51,7 @@ export function WorkbenchFlowCytometryStainRow({
         />
       </td>
       {columns.map(column => {
-        const isIn = stain.rowIds.includes(column.marker.row.id);
+        const isIn = stain.markerIds.includes(column.marker.row.id);
         return (
           <td
             key={column.marker.row.id}
@@ -87,7 +87,7 @@ export function WorkbenchFlowCytometryStainRow({
                 <Select
                   size="xs"
                   isQuiet
-                  value={plus.stain || null}
+                  value={plus.staining || null}
                   placeholder="e.g. Surface"
                   options={stainingOptions}
                   aria-label={`Staining of ${name} in ${stainName}`}

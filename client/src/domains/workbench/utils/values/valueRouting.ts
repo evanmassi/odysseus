@@ -54,10 +54,9 @@ const ROWLESS_GROUPS: ReadonlySet<string> = new Set(['equip', 'soft']);
 
 const tidy = (text: string) => text.replace(/\s+/g, ' ').trim();
 
-function valueOwners(protocol: Pick<Protocol, 'blocks'>, card: ValuesCard): ValueOwner[] {
+function valueOwners(protocol: Pick<Protocol, 'cards'>, card: ValuesCard): ValueOwner[] {
   const valueRowOf = (materialId: string) =>
-    card.sections.find(valueRow => 'materialId' in valueRow && valueRow.materialId === materialId)
-      ?.id;
+    card.rows.find(valueRow => 'materialId' in valueRow && valueRow.materialId === materialId)?.id;
   const materials = listedMaterials(protocol)
     .filter(material => !ROWLESS_GROUPS.has(material.group))
     .map(material => ({
@@ -67,7 +66,7 @@ function valueOwners(protocol: Pick<Protocol, 'blocks'>, card: ValuesCard): Valu
       material,
       valueRowId: valueRowOf(material.id),
     }));
-  const mixes = card.sections.flatMap(valueRow =>
+  const mixes = card.rows.flatMap(valueRow =>
     'mixName' in valueRow && valueRow.mixName.trim()
       ? [
           {
@@ -102,7 +101,7 @@ function ownField(material: MaterialItem, label: string) {
 }
 
 export function routeValueLine(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   card: ValuesCard,
   text: string
 ): RoutedValue | undefined {
@@ -111,7 +110,7 @@ export function routeValueLine(
 }
 
 export function routeParsedLine(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   card: ValuesCard,
   line: ParsedValueLine
 ): RoutedValue {

@@ -21,7 +21,7 @@ const material = (name: string): MaterialItem =>
 
 function setup(items: MaterialItem[]): { protocol: Protocol; card: MaterialsCard } {
   const protocol = blankProtocol();
-  const card = protocol.blocks.find(
+  const card = protocol.cards.find(
     (candidate): candidate is MaterialsCard => candidate.type === 'materials'
   );
   if (!card) throw new Error('blank protocol has no materials block');
@@ -36,7 +36,7 @@ describe('pastedReviewRows', () => {
       'DMSO\nHeLa\n\n- 96-well plate',
       [existing],
       [],
-      { kinds: new Map(), fluors: [] },
+      { knownTypes: new Map(), fluors: [] },
       EMPTY_LAB_MEMORY
     );
     expect(rows.map(row => row.item.name)).toEqual(['DMSO', 'HeLa', '96-well plate']);
@@ -74,7 +74,7 @@ describe('commitReviewRows', () => {
     const { protocol, card } = setup([existing]);
     card.foldedGroups = ['chem'];
     const typed = material('dmso');
-    typed.values['vendor'] = 'Sigma';
+    typed.values['source'] = 'Sigma';
     const fresh = material('Ethanol');
     const ids = commitReviewRows(protocol, card.id, [
       reviewRow(card.items, protocol.keptBoth, typed, ''),
@@ -82,7 +82,7 @@ describe('commitReviewRows', () => {
     ]);
     expect(ids).toEqual([existing.id, fresh.id]);
     expect(card.items.map(item => item.name)).toEqual(['DMSO', 'Ethanol']);
-    expect(card.items[0].values['vendor']).toBe('Sigma');
+    expect(card.items[0].values['source']).toBe('Sigma');
     expect(card.foldedGroups).toEqual([]);
   });
 

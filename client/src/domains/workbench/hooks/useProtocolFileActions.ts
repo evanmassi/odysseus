@@ -37,8 +37,8 @@ export function useProtocolFileActions(confirmDiscard: () => Promise<boolean>) {
   useEffect(
     () =>
       useWorkbenchStore.subscribe((state, previous) => {
-        if (state.protocol.dyes !== previous.protocol.dyes) {
-          useMaterialMemoryStore.getState().rememberFluors(state.protocol.dyes);
+        if (state.protocol.fluors !== previous.protocol.fluors) {
+          useMaterialMemoryStore.getState().rememberFluors(state.protocol.fluors);
         }
       }),
     []

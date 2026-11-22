@@ -67,7 +67,7 @@ export const EXTRA: Term = {
 export const TOTAL_CELL_CONCENTRATION: Term = {
   word: 'Total cell conc.',
   meaning: 'Cells per mL in the suspension, live and dead',
-  alsoAccepted: ['Total cell concentration', 'Cell conc.', 'Cell concentration'],
+  alsoAccepted: ['Total cell concentration', 'Cell conc.', 'Cell concentration', 'Total count'],
   formerly: ['Count'],
   unitKind: 'count-conc',
   unit: 'cells/mL',
@@ -76,7 +76,12 @@ export const TOTAL_CELL_CONCENTRATION: Term = {
 export const LIVE_CELL_CONCENTRATION: Term = {
   word: 'Live cell conc.',
   meaning: 'Live cells per mL in the suspension; plating uses this',
-  alsoAccepted: ['Live cell concentration', 'Viable cell conc.', 'Viable cell concentration'],
+  alsoAccepted: [
+    'Live cell concentration',
+    'Viable cell conc.',
+    'Viable cell concentration',
+    'Live count',
+  ],
   unitKind: 'count-conc',
   unit: 'cells/mL',
 };
@@ -84,7 +89,7 @@ export const LIVE_CELL_CONCENTRATION: Term = {
 export const TOTAL_CELLS: Term = {
   word: 'Total cells',
   meaning: 'All the cells in the suspension, live and dead',
-  alsoAccepted: ['Total count'],
+  alsoAccepted: [],
   unitKind: 'cell-count',
   unit: 'cells',
 };
@@ -92,7 +97,7 @@ export const TOTAL_CELLS: Term = {
 export const LIVE_CELLS: Term = {
   word: 'Live cells',
   meaning: 'Live cells in the whole suspension',
-  alsoAccepted: ['Live count', 'Viable cells'],
+  alsoAccepted: ['Viable cells'],
   unitKind: 'cell-count',
   unit: 'cells',
 };

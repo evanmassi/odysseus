@@ -57,7 +57,8 @@ export const wellTotalName = (names: ReadonlyMap<string, BoardName>): string | u
 const mixValue = (mix: MaterialItem, term: Term, names: ReadonlyMap<string, BoardName>) =>
   findTerm(names, term, [mix.name.trim(), nameWithoutNotes(mix.name)]);
 
-const isMix = (item: MaterialItem) => !!item.name.trim() && !item.isDropped && !!item.recipe.length;
+const isMix = (item: MaterialItem) =>
+  !!item.name.trim() && !item.isSetAside && !!item.recipe.length;
 
 function stockName(mix: MaterialItem) {
   const definition = materialFields(mix).find(candidate => candidate.key === STOCK_FIELD);
@@ -90,7 +91,7 @@ function mixNames(
   const inputs: BoardName[] = [];
   const finals: CalculationName[] = [];
   const final = (id: string, name: string, expr: string, unit: string, gap = missing) =>
-    finals.push({ kind: 'calculation', id, name, expr, unit, workedOut: group, ...gap });
+    finals.push({ kind: 'calculation', id, name, formula: expr, unit, workedOut: group, ...gap });
 
   const stockField = stockName(mix);
   const stock =
@@ -157,13 +158,13 @@ export function recipeCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialCards = protocol.blocks.filter(
+  const materialCards = protocol.cards.filter(
     (card): card is MaterialsCard => card.type === 'materials'
   );
   const byId = new Map(
     materialCards.flatMap(card => card.items).map(item => [item.id, item] as const)
   );
-  const generalTitle = generalTitleOf(protocol.blocks);
+  const generalTitle = generalTitleOf(protocol.cards);
   return materialCards.flatMap(card =>
     card.items.filter(isMix).flatMap(mix => mixNames(mix, card.id, byId, names, generalTitle))
   );
@@ -172,11 +173,11 @@ export function recipeCalculationNames(
 const AGREEMENT = 0.01;
 
 export function recipeWarnings(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   board: SolvedBoard
 ): Map<string, string[]> {
   const warnings = new Map<string, string[]>();
-  const mixes = protocol.blocks
+  const mixes = protocol.cards
     .flatMap(card => (card.type === 'materials' ? card.items : []))
     .filter(isMix);
   for (const mix of mixes) {

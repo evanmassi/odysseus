@@ -5,7 +5,7 @@ import { lowerLead } from '../values/valueNames';
 
 import type { FlowCytometryPanelCard, Stain } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelCard['rows'][number];
+type PanelRow = FlowCytometryPanelCard['markers'][number];
 type StainPlus = Stain['plus'][number];
 
 export interface Cocktail {
@@ -30,8 +30,8 @@ export interface PanelCocktails {
 function usedStainings(card: FlowCytometryPanelCard): string[] {
   const byKey = new Map<string, string>();
   const stainings = [
-    ...card.rows.map(row => row.stain),
-    ...card.mixes.flatMap(stain => stain.plus.map(plus => plus.stain)),
+    ...card.markers.map(row => row.staining),
+    ...card.stains.flatMap(stain => stain.plus.map(plus => plus.staining)),
   ];
   for (const staining of stainings) {
     const key = normalizeMaterialKey(staining);
@@ -45,9 +45,11 @@ function stainingCocktails(card: FlowCytometryPanelCard, staining: string): Stai
   const isInStaining = (staining: string) => normalizeMaterialKey(staining) === stainingKey;
   const cocktails = new Map<string, Cocktail>();
   const stainsWithout: Stain[] = [];
-  for (const stain of card.mixes) {
-    const rows = card.rows.filter(row => stain.rowIds.includes(row.id) && isInStaining(row.stain));
-    const plus = stain.plus.filter(entry => isInStaining(entry.stain));
+  for (const stain of card.stains) {
+    const rows = card.markers.filter(
+      row => stain.markerIds.includes(row.id) && isInStaining(row.staining)
+    );
+    const plus = stain.plus.filter(entry => isInStaining(entry.staining));
     if (!rows.length && !plus.length) {
       stainsWithout.push(stain);
       continue;
@@ -73,5 +75,5 @@ function stainingCocktails(card: FlowCytometryPanelCard, staining: string): Stai
 
 export const panelCocktails = (card: FlowCytometryPanelCard): PanelCocktails => ({
   stainings: usedStainings(card).map(staining => stainingCocktails(card, staining)),
-  rowsWithoutStaining: card.rows.filter(row => !row.stain.trim()),
+  rowsWithoutStaining: card.markers.filter(row => !row.staining.trim()),
 });

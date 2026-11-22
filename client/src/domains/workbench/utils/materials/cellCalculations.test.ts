@@ -17,9 +17,9 @@ const pbmc = (live: Record<string, string>): MaterialItem =>
     units: {},
     customFields: [],
     fieldLabels: {},
-    isDropped: false,
+    isSetAside: false,
     recipe: [],
-    sources: {
+    donors: {
       label: 'Donors',
       shownFields: [],
       customFields: [],
@@ -41,16 +41,16 @@ function protocolWith(
   );
   return {
     pages: [{ id: 'page', name: 'Setup', steps: [] }],
-    blocks: [
+    cards: [
       { id: 'materials', type: 'materials', page: 'page', items: [pbmc(live)] },
       {
         id: 'plate',
-        type: 'plate',
+        type: 'plateMap',
         page: 'page',
-        plates: [{ id: 'p', vessel: '96', name: '' }],
-        sets: [],
+        plates: [{ id: 'p', labware: '96', name: '' }],
+        otherLabware: [],
         lines: [{ id: 'd', name: 'Donors', role: 'auto', values: [{ id: 'v1', text: 'Donor 1' }] }],
-        cells,
+        samples: cells,
         series: {},
         counts: {},
         amountNames: {},
@@ -62,7 +62,7 @@ function protocolWith(
         id: 'values',
         type: 'values',
         page: 'page',
-        sections: [],
+        rows: [],
         items: values.map(([name, value, unit]) => ({ id: name, name, value, unit })),
       },
     ],
@@ -83,7 +83,7 @@ const PLATING: Array<[string, string, string]> = [
 
 describe('cell math for a donor on the plate', () => {
   it('works out cells needed, vials, plating concentration, resuspend volume and left over', () => {
-    const board = calculate(protocolWith({ 'total-count': '1e7', viability: '90' }, PLATING));
+    const board = calculate(protocolWith({ 'total-cells': '1e7', viability: '90' }, PLATING));
     expect(answer(board, 'needed')).toBe('3.30E+5 cells');
     expect(answer(board, 'vials')).toBe('1');
     expect(answer(board, 'plating')).toBe('1.00E+6 cells/mL');
@@ -95,7 +95,7 @@ describe('cell math for a donor on the plate', () => {
 
   it('reads the per-well volume and a whole-experiment extra under their other spellings', () => {
     const board = calculate(
-      protocolWith({ 'total-count': '1e7', viability: '90' }, [
+      protocolWith({ 'total-cells': '1e7', viability: '90' }, [
         ['PBMC vol./well', '100', 'µL'],
         ['Extra (dead vol.)', '10', '%'],
       ])
@@ -105,7 +105,7 @@ describe('cell math for a donor on the plate', () => {
   });
 
   it('counts a value the cell math reads as used', () => {
-    const protocol = protocolWith({ 'live-count': '1e6' }, PLATING);
+    const protocol = protocolWith({ 'live-cells': '1e6' }, PLATING);
     const usage = nameUsage(protocol, calculate(protocol), ['PBMC volume per well']);
     expect(usage.get('PBMC volume per well')?.calculationCount).toBe(1);
   });
@@ -121,7 +121,7 @@ describe('cell math for a donor on the plate', () => {
       message: 'Needs a live count: Live cells, or Live cell conc. and Vol.',
     });
 
-    const short = calculate(protocolWith({ 'live-count': '2e5' }, PLATING));
+    const short = calculate(protocolWith({ 'live-cells': '2e5' }, PLATING));
     expect(cellWarnings(short)).toEqual(
       new Map([['cells:donor 1:left-over', ['Short by 1.30E+5 cells']]])
     );
@@ -129,7 +129,7 @@ describe('cell math for a donor on the plate', () => {
 
   it('steps aside for a name the scientist already uses', () => {
     const board = calculate(
-      protocolWith({ 'live-count': '1e6' }, [['Donor 1 total needed', '5', '']])
+      protocolWith({ 'live-cells': '1e6' }, [['Donor 1 total needed', '5', '']])
     );
     expect(answer(board, 'vials')).toMatchObject({
       message: 'Rename "Donor 1 total needed": the cell math for Donor 1 needs that name.',
@@ -148,7 +148,7 @@ describe('cell math for cells diluted from a stock', () => {
     units: { 'stock-concentration': 'cells/mL' },
     customFields: [],
     fieldLabels: {},
-    isDropped: false,
+    isSetAside: false,
     recipe: [],
   } as unknown as MaterialItem;
 
@@ -162,20 +162,20 @@ describe('cell math for cells diluted from a stock', () => {
     );
     return {
       ...base,
-      blocks: base.blocks.map(card => {
+      cards: base.cards.map(card => {
         if (card.type === 'materials') return { ...card, items: [hkca] };
-        if (card.type === 'plate') {
+        if (card.type === 'plateMap') {
           return {
             ...card,
-            cells,
+            samples: cells,
             lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
           };
         }
         if (card.type === 'values') {
           return {
             ...card,
-            sections: [{ id: 's', materialId: 'hkca' }],
-            items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', section: 's' }],
+            rows: [{ id: 's', materialId: 'hkca' }],
+            items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', row: 's' }],
           };
         }
         return card;
@@ -212,7 +212,7 @@ describe('cell math from the counts', () => {
       units: {},
       customFields: [],
       fieldLabels: {},
-      isDropped: false,
+      isSetAside: false,
       recipe: [],
     }) as unknown as MaterialItem;
 
@@ -226,21 +226,21 @@ describe('cell math from the counts', () => {
     );
     return {
       ...base,
-      blocks: base.blocks.map(card => {
+      cards: base.cards.map(card => {
         if (card.type === 'materials') return { ...card, items: [raji(values)] };
-        if (card.type === 'plate') {
+        if (card.type === 'plateMap') {
           return {
             ...card,
-            cells,
+            samples: cells,
             lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
           };
         }
         if (card.type === 'values') {
           return {
             ...card,
-            sections: [{ id: 's', materialId: 'raji' }],
+            rows: [{ id: 's', materialId: 'raji' }],
             items: [
-              { id: 'vol', name: 'Vol./well', value: '100', unit: 'µL', section: 's' },
+              { id: 'vol', name: 'Vol./well', value: '100', unit: 'µL', row: 's' },
               { id: 'extra', name: 'Extra (dead vol.)', value: '20', unit: '%' },
             ],
           };
@@ -256,21 +256,23 @@ describe('cell math from the counts', () => {
   };
 
   it('takes from the culture by its live cell conc., worked out from total and viability', () => {
-    const board = calculate(cultureProtocol({ count: '2e6', viability: '90', volume: '5' }));
+    const board = calculate(
+      cultureProtocol({ 'total-cell-conc': '2e6', viability: '90', volume: '5' })
+    );
     expect(rajiAnswer(board, 'needed')).toBe('2.88E+5 cells');
     expect(rajiAnswer(board, 'stock')).toBe('160 µL');
     expect(rajiAnswer(board, 'diluent')).toBe('2.72 mL');
     expect(rajiAnswer(board, 'left-over')).toBe('8.71E+6 cells');
     expect(board.names.get('raji live cell conc.')).toMatchObject({
       kind: 'calculation',
-      expr: 'Raji total cell conc. × Raji viability',
+      formula: 'Raji total cell conc. × Raji viability',
       isIntermediate: true,
       workedOut: { key: 'cells:raji:group' },
     });
   });
 
   it('asks for a live count when there is none', () => {
-    const board = calculate(cultureProtocol({ count: '2e6' }));
+    const board = calculate(cultureProtocol({ 'total-cell-conc': '2e6' }));
     expect(rajiAnswer(board, 'stock')).toMatchObject({
       message: 'Needs a live count: Live cell conc., or Total cell conc. and Viability',
     });

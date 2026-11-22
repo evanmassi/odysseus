@@ -28,13 +28,13 @@ const pbmc = (): MaterialItem => {
 };
 
 const listOf = (item: MaterialItem): ExperimentDonors => {
-  if (!item.sources) throw new Error('no donors list');
-  return item.sources;
+  if (!item.donors) throw new Error('no donors list');
+  return item.donors;
 };
 
 const withMaterials = (...items: MaterialItem[]): Protocol => {
   const protocol = blankProtocol();
-  protocol.blocks.push({
+  protocol.cards.push({
     id: 'm',
     type: 'materials',
     title: 'Materials',
@@ -46,7 +46,7 @@ const withMaterials = (...items: MaterialItem[]): Protocol => {
     isCollapsed: false,
     foldedGroups: [],
     customGroups: [],
-    isDroppedOpen: false,
+    isSetAsideOpen: false,
     items,
   });
   return protocol;
@@ -123,7 +123,7 @@ describe('remembered donors', () => {
     addDonor(listOf(item), 'Donor 1', { values: { 'donor-id': 'D-12' }, units: {} });
     addDonor(listOf(item), 'Donor 2');
     const memory = learnFromMaterials(EMPTY_LAB_MEMORY, [item]);
-    expect(Object.keys(memory.sources)).toEqual(['d12']);
+    expect(Object.keys(memory.donors)).toEqual(['d12']);
     expect(knownDonors(memory, 'd-1', []).map(knownDonor => knownDonor.name)).toEqual(['Donor 1']);
     expect(knownDonors(memory, 'donor', []).map(knownDonor => knownDonor.material)).toEqual([
       'PBMC',
@@ -153,7 +153,7 @@ describe('remembered donors', () => {
     const item = pbmc();
     addCustomDonorField(listOf(item), 'Freezer box');
     const memory = learnFromMaterials(EMPTY_LAB_MEMORY, [item]);
-    expect(memory.sourceFields.map(field => field.label)).toEqual(['Freezer box']);
+    expect(memory.donorFields.map(field => field.label)).toEqual(['Freezer box']);
   });
 });
 
@@ -165,10 +165,10 @@ describe('making a material a donor', () => {
     );
     Object.assign(stray.values, {
       lot: 'L7',
-      vendor: 'Blood bank',
+      source: 'Blood bank',
       'donor-id': 'D-101',
       viability: '92',
-      count: '1e6',
+      'total-cell-conc': '1e6',
     });
     const host = pbmc();
     const protocol = withMaterials(host, stray);
@@ -181,11 +181,11 @@ describe('making a material a donor', () => {
         source: 'Blood bank',
         'donor-id': 'D-101',
         viability: '92',
-        count: '1e6',
+        'total-cell-conc': '1e6',
       },
     });
     expect(donorsIn(protocol)).toHaveLength(1);
-    expect(protocol.blocks.flatMap(card => (card.type === 'materials' ? card.items : []))).toEqual([
+    expect(protocol.cards.flatMap(card => (card.type === 'materials' ? card.items : []))).toEqual([
       host,
     ]);
   });

@@ -65,8 +65,8 @@ function writeCount(draft: Protocol, { materialId, donorId, count }: CountSource
     writeMaterialField(material, field, value);
     return;
   }
-  const donor = material.sources?.rows.find(row => row.id === donorId);
-  if (material.sources && donor) writeDonorField(material.sources, donor, field.key, value);
+  const donor = material.donors?.rows.find(row => row.id === donorId);
+  if (material.donors && donor) writeDonorField(material.donors, donor, field.key, value);
 }
 
 export function writeCellValue(

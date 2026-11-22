@@ -26,7 +26,7 @@ export function replicatesShownAsOne(
   board: SolvedBoard,
   stainSamples: StainSamples | undefined
 ): ReplicatesShownAsOne {
-  if (!sheet.isPlate || !card.mergesReplicates) return NONE_SHOWN_AS_ONE;
+  if (!sheet.isPlate || !card.showsReplicatesAsOne) return NONE_SHOWN_AS_ONE;
   const keyAt = new Map(
     sheet.positions.map(position => [`${position.row},${position.col}`, position.key])
   );

@@ -19,12 +19,12 @@ const sampleEntry = (id: string, name: string) => ({
   units: {},
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
   recipe: [],
 });
 
 const protocol = {
-  blocks: [
+  cards: [
     {
       id: 'materials',
       type: 'materials',
@@ -37,22 +37,22 @@ const protocol = {
     {
       id: 'values',
       type: 'values',
-      sections: [
+      rows: [
         { id: 'sec-raji', materialId: 'raji' },
         { id: 'sec-jurkat', materialId: 'jurkat' },
         { id: 'sec-k562', materialId: 'k562' },
       ],
       items: [
-        { id: 'raji-per', section: 'sec-raji', name: 'Per well', value: '1e4', unit: 'cells' },
-        { id: 'jurkat-per', section: 'sec-jurkat', name: 'Per well', value: '', unit: '' },
-        { id: 'k562-vol', section: 'sec-k562', name: 'Volume per well', value: '50', unit: 'µL' },
+        { id: 'raji-per', row: 'sec-raji', name: 'Per well', value: '1e4', unit: 'cells' },
+        { id: 'jurkat-per', row: 'sec-jurkat', name: 'Per well', value: '', unit: '' },
+        { id: 'k562-vol', row: 'sec-k562', name: 'Volume per well', value: '50', unit: 'µL' },
       ],
     },
   ],
 } as unknown as Protocol;
 
 const valuesOf = (current: Protocol) =>
-  current.blocks.find((card): card is ValuesCard => card.type === 'values')!;
+  current.cards.find((card): card is ValuesCard => card.type === 'values')!;
 
 function bioGroup(current: Protocol) {
   const [group] = buildValueTable(current, valuesOf(current), {
@@ -67,7 +67,7 @@ function bioGroup(current: Protocol) {
 const perWell = (current: Protocol) =>
   valuesOf(current)
     .items.filter(item => 'name' in item && item.name === 'Per well')
-    .map(item => ('value' in item ? [item.section, item.value, item.unit] : []));
+    .map(item => ('value' in item ? [item.row, item.value, item.unit] : []));
 
 describe('filling blanks in a column', () => {
   it('reaches blank values and rows missing the value, never filled ones', () => {

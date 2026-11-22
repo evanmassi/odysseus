@@ -47,25 +47,27 @@ export function seriesFormFor(
   if (!series) {
     return { ...blank, isList: false, top: typed.amount, unit: typed.unit, direction: 'right' };
   }
-  if ('points' in series) {
+  if ('typedValues' in series) {
     return {
       ...blank,
       isList: true,
-      typedValues: series.points.join(', '),
+      typedValues: series.typedValues.join(', '),
       direction: series.direction,
     };
   }
-  const { start: top, unit, fold: dilutionFactor, direction } = series;
+  const { top, unit, dilutionFactor, direction } = series;
   return { ...blank, isList: false, top, unit, dilutionFactor, direction };
 }
 
 export function lineUnitOf(card: PlateMapCard, lineId: string): string {
-  const cells = Object.values(card.cells).flatMap(lines => (lines[lineId] ? [lines[lineId]] : []));
+  const cells = Object.values(card.samples).flatMap(lines =>
+    lines[lineId] ? [lines[lineId]] : []
+  );
   const typed = cells.find(entry => entry.unit)?.unit;
   if (typed) return typed;
   for (const entry of cells) {
     const series = entry.seriesId === undefined ? undefined : card.series[entry.seriesId];
-    if (series && 'start' in series && series.unit) return series.unit;
+    if (series && 'top' in series && series.unit) return series.unit;
   }
   return '';
 }
@@ -77,7 +79,7 @@ export function seriesTargets(
   form: Pick<SeriesForm, 'lineId' | 'seriesId'>
 ): string[] {
   const inSeries = (key: string) =>
-    form.seriesId !== undefined && card.cells[key]?.[form.lineId]?.seriesId === form.seriesId;
+    form.seriesId !== undefined && card.samples[key]?.[form.lineId]?.seriesId === form.seriesId;
   return sheet.positions
     .filter(position => keys.has(position.key) || inSeries(position.key))
     .map(position => position.key);
@@ -99,12 +101,12 @@ export function wellPoints(
 }
 
 function seriesShape(form: SeriesForm): PlateSeries {
-  if (form.isList) return { points: splitPoints(form.typedValues), direction: form.direction };
+  if (form.isList) return { typedValues: splitPoints(form.typedValues), direction: form.direction };
   const typed = readTypedAmount(form.top);
   return {
-    start: typed?.value ?? form.top.trim(),
+    top: typed?.value ?? form.top.trim(),
     unit: typed?.unit ?? form.unit,
-    fold: form.dilutionFactor.trim(),
+    dilutionFactor: form.dilutionFactor.trim(),
     direction: form.direction,
   };
 }
@@ -124,22 +126,22 @@ export function writeSeries(
   const prep = card.series[seriesId]?.prep;
   card.series[seriesId] = { ...seriesShape(form), ...(prep && { prep }) };
   for (const key of targets) {
-    const lines = (card.cells[key] ??= {});
+    const lines = (card.samples[key] ??= {});
     const valueId = lines[form.lineId]?.valueId;
     lines[form.lineId] = {
       ...(valueId && { valueId }),
       seriesId,
-      seriesStep: pointByWell.get(key) ?? 0,
+      seriesPoint: pointByWell.get(key) ?? 0,
     };
   }
   return seriesId;
 }
 
 export function removeSeries(card: PlateMapCard, seriesId: string): void {
-  for (const entry of Object.values(card.cells).flatMap(lines => Object.values(lines))) {
+  for (const entry of Object.values(card.samples).flatMap(lines => Object.values(lines))) {
     if (entry.seriesId !== seriesId) continue;
     delete entry.seriesId;
-    delete entry.seriesStep;
+    delete entry.seriesPoint;
   }
   delete card.series[seriesId];
 }

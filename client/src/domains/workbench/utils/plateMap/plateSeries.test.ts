@@ -8,7 +8,7 @@ const points = (series: Parameters<typeof pointAmount>[0], board = empty) =>
 
 describe('series points', () => {
   it('divide a dose by the dilution factor at each point', () => {
-    expect(points({ start: '300', unit: 'nM', fold: '3', direction: 'right' })).toEqual([
+    expect(points({ top: '300', unit: 'nM', dilutionFactor: '3', direction: 'right' })).toEqual([
       { amount: '300', unit: 'nM' },
       { amount: '100', unit: 'nM' },
       { amount: '33.3', unit: 'nM' },
@@ -17,7 +17,7 @@ describe('series points', () => {
 
   it('dilute a 1:N top further at each point', () => {
     expect(
-      points({ start: '1:10', unit: '1:N', fold: '3', direction: 'right' }).map(
+      points({ top: '1:10', unit: '1:N', dilutionFactor: '3', direction: 'right' }).map(
         point => point.amount
       )
     ).toEqual(['10', '30', '90']);
@@ -29,7 +29,7 @@ describe('series points', () => {
       { kind: 'value', id: 'fold', name: 'Fold', value: '2', unit: 'X' },
     ]);
     expect(
-      points({ start: 'Top dose', unit: 'µM', fold: 'fold', direction: 'down' }, board)
+      points({ top: 'Top dose', unit: 'µM', dilutionFactor: 'fold', direction: 'down' }, board)
     ).toEqual([
       { amount: '10 µM', unit: '' },
       { amount: '5 µM', unit: '' },
@@ -38,7 +38,7 @@ describe('series points', () => {
   });
 
   it('list typed points as they are', () => {
-    expect(points({ points: ['High', 'Low'], direction: 'right' })).toEqual([
+    expect(points({ typedValues: ['High', 'Low'], direction: 'right' })).toEqual([
       { amount: 'High', unit: '' },
       { amount: 'Low', unit: '' },
       { amount: '', unit: '' },
@@ -46,9 +46,9 @@ describe('series points', () => {
   });
 
   it('keep the start when there is no usable fold', () => {
-    expect(pointAmount({ start: '5', unit: 'nM', fold: '', direction: 'right' }, 2, empty)).toEqual(
-      { amount: '5', unit: 'nM' }
-    );
+    expect(
+      pointAmount({ top: '5', unit: 'nM', dilutionFactor: '', direction: 'right' }, 2, empty)
+    ).toEqual({ amount: '5', unit: 'nM' });
   });
 });
 
@@ -58,7 +58,9 @@ describe('a plate map reading the board', () => {
       { kind: 'value', id: 'top', name: 'Top dose', value: topDose, unit: 'µM' },
       { kind: 'value', id: 'other', name: 'Other volume', value: other, unit: 'µL' },
     ]);
-  const series = [{ start: 'Top dose', unit: 'µM', fold: '3', direction: 'right' as const }];
+  const series = [
+    { top: 'Top dose', unit: 'µM', dilutionFactor: '3', direction: 'right' as const },
+  ];
 
   it('ignores board changes its series do not read', () => {
     expect(readsSeriesAlike(series, board('10', '50'), board('10', '80'))).toBe(true);

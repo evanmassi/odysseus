@@ -142,12 +142,12 @@ export function WorkbenchFlowCytometryMarkerRow({
       <td className={FLOW_CYTOMETRY_CELL}>
         <span className="inline-edit">
           <Autocomplete
-            value={row.stain}
+            value={row.staining}
             placeholder="e.g. Surface"
             options={stainings.map(staining => ({ value: staining, label: staining }))}
             aria-label={`Staining of ${name}`}
             inputClassName={`${FLOW_CYTOMETRY_PICK_FIELD} w-20`}
-            onChange={staining => actions.changeRow(row.id, { stain: staining })}
+            onChange={staining => actions.changeRow(row.id, { staining: staining })}
           />
         </span>
       </td>

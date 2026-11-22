@@ -103,11 +103,11 @@ export function useMaterialAdding(
     if (!preview) return;
     const row = reviewRow(card.items, keptBoth, preview.item, '');
     if (chosenKind) rememberKind(row.item.name, row.item.group, row.item.type);
-    if (preview.alreadyListed?.isDropped) {
+    if (preview.alreadyListed?.isSetAside) {
       const { id } = preview.alreadyListed;
       updateCard(draft => {
         const setAsideItem = draft.items.find(item => item.id === id);
-        if (setAsideItem) setAsideItem.isDropped = false;
+        if (setAsideItem) setAsideItem.isSetAside = false;
       });
       finishAdding([id]);
       return;

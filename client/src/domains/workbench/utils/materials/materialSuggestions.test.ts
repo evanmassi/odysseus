@@ -16,7 +16,7 @@ const material = (name: string, vendor: string) => {
 describe('fieldSuggestions', () => {
   it('offers values used elsewhere first, then the built-in vendor list', () => {
     const protocol = blankProtocol();
-    for (const card of protocol.blocks) {
+    for (const card of protocol.cards) {
       if (card.type === 'materials')
         card.items = [material('A', 'Acme Bio'), material('B', 'Acme Bio')];
     }

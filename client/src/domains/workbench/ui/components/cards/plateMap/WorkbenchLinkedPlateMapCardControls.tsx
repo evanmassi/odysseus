@@ -17,14 +17,14 @@ export function WorkbenchLinkedPlateMapCardControls({
   const updateView = useUpdateCard(card);
   const showCard = useShowCard();
   const source = useWorkbenchStore(state =>
-    state.protocol.blocks.find(candidate => candidate.id === card.shows)
+    state.protocol.cards.find(candidate => candidate.id === card.shows)
   );
   const sourcePlace = useWorkbenchStore(state => {
     if (!source) return undefined;
     if (source.page === card.page) return 'this page';
     return state.protocol.pages.find(page => page.id === source.page)?.name;
   });
-  if (source?.type !== 'plate') return null;
+  if (source?.type !== 'plateMap') return null;
   return (
     <>
       {sourcePlace && (

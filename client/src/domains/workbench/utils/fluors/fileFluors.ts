@@ -6,8 +6,8 @@ import type { MaterialItem, Protocol, ProtocolFluor } from '@odysseus/shared-sch
 
 export function keepFluorInFile(draft: Protocol, fluor: ProtocolFluor): void {
   const key = normalizeMaterialKey(fluor.name);
-  if (draft.dyes.some(kept => normalizeMaterialKey(kept.name) === key)) return;
-  draft.dyes.push({ name: fluor.name.trim(), lasers: [...fluor.lasers], peak: fluor.peak });
+  if (draft.fluors.some(kept => normalizeMaterialKey(kept.name) === key)) return;
+  draft.fluors.push({ name: fluor.name.trim(), lasers: [...fluor.lasers], peak: fluor.peak });
 }
 
 export function keepFluorsUsedBy(

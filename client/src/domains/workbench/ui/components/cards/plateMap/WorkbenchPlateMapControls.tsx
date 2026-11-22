@@ -137,15 +137,17 @@ export function WorkbenchPlateMapControls({
         {active?.isPlate && (
           <Tooltip
             content={
-              card.mergesReplicates ? 'Show replicates as one: on' : 'Show replicates as one: off'
+              card.showsReplicatesAsOne
+                ? 'Show replicates as one: on'
+                : 'Show replicates as one: off'
             }
           >
             <Button
-              variant={card.mergesReplicates ? 'secondary' : 'ghost'}
+              variant={card.showsReplicatesAsOne ? 'secondary' : 'ghost'}
               size="sm"
               iconOnly
               aria-label="Show replicates as one"
-              aria-pressed={card.mergesReplicates}
+              aria-pressed={card.showsReplicatesAsOne}
               onClick={onToggleReplicatesAsOne}
             >
               <Combine className="h-4 w-4" />

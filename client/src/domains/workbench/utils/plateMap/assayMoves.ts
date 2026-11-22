@@ -15,7 +15,7 @@ export function moveAssayWells(
     .map(position => position.key);
   const replaced = new Set(landing.filter(key => !cutKeys.has(key) && isWellFilled(card, key)));
   forgetStainOf(card, replaced);
-  for (const key of replaced) delete card.cells[key];
+  for (const key of replaced) delete card.samples[key];
 
   const samples = stainSamples(card, sheet);
   const destination = new Map(leaving.map((key, index) => [key, landing[index]]));
@@ -34,7 +34,7 @@ export function moveAssayWells(
 
   const moved = leaving.map(key => ({
     to: destination.get(key) ?? key,
-    cells: card.cells[key],
+    samples: card.samples[key],
     position: stainPositionOf(card, key),
     stainId: card.stain[key],
     travels: travelsWithStain.has(key),
@@ -43,11 +43,11 @@ export function moveAssayWells(
     if (travels) delete card.stain[position];
   }
   for (const key of leaving) {
-    delete card.cells[key];
+    delete card.samples[key];
     delete card.stainedIn[key];
   }
-  for (const { to, cells, position, stainId: stainId, travels } of moved) {
-    if (cells) card.cells[to] = cells;
+  for (const { to, samples: cells, position, stainId: stainId, travels } of moved) {
+    if (cells) card.samples[to] = cells;
     if (travels) {
       if (stainId) card.stain[to] = stainId;
       else delete card.stain[to];

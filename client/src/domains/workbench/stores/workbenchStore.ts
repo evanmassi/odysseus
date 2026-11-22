@@ -42,7 +42,7 @@ interface WorkbenchState {
 let lastBoard: { inputs: string; board: SolvedBoard } | undefined;
 let lastEditAt = 0;
 
-const plateMapsOf = (protocol: Protocol) => protocol.blocks.filter(card => card.type === 'plate');
+const plateMapsOf = (protocol: Protocol) => protocol.cards.filter(card => card.type === 'plateMap');
 
 function haveSamePlateMaps(before: Protocol, after: Protocol): boolean {
   const [was, now] = [plateMapsOf(before), plateMapsOf(after)];
@@ -158,7 +158,7 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
   fitCardHeight: (cardId, height) =>
     set(state => ({
       protocol: produce(state.protocol, draft => {
-        const card = draft.blocks.find(candidate => candidate.id === cardId);
+        const card = draft.cards.find(candidate => candidate.id === cardId);
         if (card) card.h = height;
       }),
     })),

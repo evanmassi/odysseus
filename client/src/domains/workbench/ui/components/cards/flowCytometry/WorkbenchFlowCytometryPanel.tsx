@@ -46,20 +46,20 @@ const NUMBER_HEAD_CELL =
 
 export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPanelProps) {
   const actions = useFlowCytometryActions(card);
-  const { blocks: cards } = useProtocolWith('materials');
-  const materials = useMemo(() => listedMaterials({ blocks: cards }), [cards]);
+  const { cards: cards } = useProtocolWith('materials');
+  const materials = useMemo(() => listedMaterials({ cards: cards }), [cards]);
   const catalog = useFluorCatalog();
   const layout = useMemo(() => panelLayout(card, materials, catalog), [card, materials, catalog]);
   const stainings = useMemo(() => panelStainings(card), [card]);
   const amountEntries = useWorkbenchData(state =>
-    card.rows.map((row): [string, StainAmount] => {
+    card.markers.map((row): [string, StainAmount] => {
       const result = state.board.results.get(stainAmountId(row.id));
       if (result?.status === 'ok') return [row.id, { text: calculationAnswerText(result) }];
       return [row.id, { problem: result?.status === 'error' ? result.message : undefined }];
     })
   );
   const amounts = useMemo(() => new Map(amountEntries), [amountEntries]);
-  const plateCards = useCardsOf('plate');
+  const plateCards = useCardsOf('plateMap');
   const stainPlaces = useMemo(() => stainedPlaces(plateCards), [plateCards]);
   const wellsPerStain = useMemo(
     () =>
@@ -77,9 +77,9 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
   );
   const candidates = useMemo(
     () =>
-      card.instrument
+      card.cytometer
         ? markerCandidatesOn(
-            card.instrument,
+            card.cytometer,
             catalog,
             markerCandidates(card, materials).map(item => ({
               materialId: item.id,
@@ -105,7 +105,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
     value: cytometer.name,
     label: cytometer.name,
   }));
-  const cytometer = card.instrument;
+  const cytometer = card.cytometer;
   const isSpectral = cytometer?.kind === 'spectral';
 
   return (
@@ -143,7 +143,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
 
       {!cytometer ? (
         <PanelEmptyState
-          icon={CARD_ICONS.cytometer}
+          icon={CARD_ICONS.flowCytometryPanel}
           message="Pick the cytometer above"
           description="Its lasers and detectors become the rows"
         />

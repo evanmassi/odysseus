@@ -39,7 +39,7 @@ export const lineValueOf = (
   cell?.valueId ? line.values.find(value => value.id === cell.valueId) : undefined;
 
 const cellsOn = (card: PlateMapCard, line: PlateLine) =>
-  Object.values(card.cells).map(lines => lines[line.id]);
+  Object.values(card.samples).map(lines => lines[line.id]);
 
 const hasSeries = (card: PlateMapCard, line: PlateLine) =>
   cellsOn(card, line).some(cell => cell?.seriesId !== undefined);
@@ -57,7 +57,7 @@ function varies(card: PlateMapCard, line: PlateLine): boolean {
 }
 
 export const colorLineOf = (card: PlateMapCard): PlateLine | undefined =>
-  card.lines.find(line => line.role === 'color') ??
+  card.lines.find(line => line.role === 'fill') ??
   card.lines.find(line => line.role === 'auto' && hasSeries(card, line)) ??
   card.lines.find(line => line.role === 'auto' && varies(card, line));
 
@@ -112,7 +112,7 @@ const sharesName = (a: PlateLine, b: PlateLine) => {
 };
 
 const holdsBoth = (card: PlateMapCard, a: PlateLine, b: PlateLine) =>
-  Object.values(card.cells).some(lines => lines[a.id] && lines[b.id]);
+  Object.values(card.samples).some(lines => lines[a.id] && lines[b.id]);
 
 function findTwinLines(card: PlateMapCard): [PlateLine, PlateLine] | undefined {
   for (const [index, kept] of card.lines.entries()) {
@@ -128,7 +128,7 @@ function findTwinLines(card: PlateMapCard): [PlateLine, PlateLine] | undefined {
 }
 
 function mergeLineInto(card: PlateMapCard, from: PlateLine, into: PlateLine): void {
-  for (const lines of Object.values(card.cells)) {
+  for (const lines of Object.values(card.samples)) {
     if (!lines[from.id]) continue;
     lines[into.id] = lines[from.id];
     delete lines[from.id];
@@ -149,17 +149,17 @@ function mergeLineInto(card: PlateMapCard, from: PlateLine, into: PlateLine): vo
 }
 
 export function pruneUnused(card: PlateMapCard): void {
-  for (const [key, lines] of Object.entries(card.cells)) {
+  for (const [key, lines] of Object.entries(card.samples)) {
     for (const [lineId, cell] of Object.entries(lines)) {
       const { unit } = cell;
       if (!isFilledEntry(cell) && !unit) delete lines[lineId];
     }
-    if (!Object.keys(lines).length) delete card.cells[key];
+    if (!Object.keys(lines).length) delete card.samples[key];
   }
   for (const key of Object.keys(card.stainedIn)) {
-    if (!Object.values(card.cells[key] ?? {}).some(isFilledEntry)) delete card.stainedIn[key];
+    if (!Object.values(card.samples[key] ?? {}).some(isFilledEntry)) delete card.stainedIn[key];
   }
-  const sampleEntries = Object.values(card.cells).flatMap(lines => Object.entries(lines));
+  const sampleEntries = Object.values(card.samples).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(sampleEntries.map(([lineId]) => lineId));
   const usedValues = new Set(sampleEntries.map(([, cell]) => cell.valueId));
   const usedSeries = new Set(sampleEntries.map(([, cell]) => cell.seriesId));

@@ -25,7 +25,7 @@ const MIN_WIDTH = 2;
 const MIN_OPEN_HEIGHT = 2;
 
 export function WorkbenchBoard() {
-  const cards = useWorkbenchStore(state => state.protocol.blocks);
+  const cards = useWorkbenchStore(state => state.protocol.cards);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const { width, containerRef, mounted } = useContainerWidth();
@@ -52,7 +52,7 @@ export function WorkbenchBoard() {
   const commitLayout = (next: Layout) =>
     updateProtocol(draft => {
       for (const item of next) {
-        const card = draft.blocks.find(candidate => candidate.id === item.i);
+        const card = draft.cards.find(candidate => candidate.id === item.i);
         if (!card) continue;
         if (card.x !== item.x) card.x = item.x;
         if (card.y !== item.y) card.y = item.y;

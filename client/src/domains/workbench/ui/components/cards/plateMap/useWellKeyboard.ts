@@ -131,7 +131,7 @@ export function useWellKeyboard(
       describe: filled => `Replace what's in ${filled}?`,
       apply: () => {
         updatePlateMap(draft => {
-          for (const { key, lines } of targets) draft.cells[key] = structuredClone(lines);
+          for (const { key, lines } of targets) draft.samples[key] = structuredClone(lines);
         });
         finishPaste();
       },
@@ -158,7 +158,7 @@ export function useWellKeyboard(
       if (!isStainSide) forgetStainOf(draft, selection.keys);
       for (const key of selection.keys) {
         if (isStainSide) delete draft.stain[key];
-        else delete draft.cells[key];
+        else delete draft.samples[key];
       }
     });
 

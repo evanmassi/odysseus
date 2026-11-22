@@ -36,7 +36,7 @@ function cardNames(
     return isFree;
   };
   const factorNames = new Map<string, string>();
-  const factors = card.rows.flatMap((row): BoardName[] => {
+  const factors = card.markers.flatMap((row): BoardName[] => {
     const material = materialNames.get(row.materialId);
     if (!material) return [];
     const name = dilutionFactorName(material);
@@ -86,7 +86,7 @@ function cardNames(
           kind: 'calculation',
           id: cocktailAntibodiesId(card.id, cocktail.key),
           name: antibodiesName,
-          expr: shares.join(' + '),
+          formula: shares.join(' + '),
           unit: SHARE_UNIT,
           workedOut: group,
           originCardId: card.id,
@@ -94,13 +94,13 @@ function cardNames(
       ];
     })
   );
-  const amounts = card.rows.flatMap((row): BoardName[] => {
+  const amounts = card.markers.flatMap((row): BoardName[] => {
     const material = materialNames.get(row.materialId);
     const factor = factorNames.get(row.id);
     if (!material || !factor) return [];
     const name = `${material} amount per well`;
     if (!claim(name)) return [];
-    const staining = row.stain.trim();
+    const staining = row.staining.trim();
     const volume = findTerm(ownNames, COCKTAIL_VOLUME_PER_WELL, [staining, ''])?.name.trim();
     const problem = !staining
       ? 'Needs a staining, e.g. Surface'
@@ -112,7 +112,7 @@ function cardNames(
         kind: 'calculation',
         id: stainAmountId(row.id),
         name,
-        expr: volume ? `${volume} × ${factor}` : '',
+        formula: volume ? `${volume} × ${factor}` : '',
         unit: PIPETTED_UNIT,
         workedOut: {
           key: `amount:${row.id}`,
@@ -133,17 +133,19 @@ export function flowCytometryCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const materialNames = new Map(
-    protocol.blocks
+    protocol.cards
       .flatMap(card => (card.type === 'materials' ? card.items : []))
-      .filter(item => item.name.trim() && !item.isDropped)
+      .filter(item => item.name.trim() && !item.isSetAside)
       .map(item => [item.id, item.name.trim()])
   );
   const wells = stainedWellCounts(
-    protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate')
+    protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap')
   );
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const ownNames = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  return protocol.blocks.flatMap(card =>
-    card.type === 'cytometer' ? cardNames(card, materialNames, wells, takenKeys, ownNames) : []
+  return protocol.cards.flatMap(card =>
+    card.type === 'flowCytometryPanel'
+      ? cardNames(card, materialNames, wells, takenKeys, ownNames)
+      : []
   );
 }

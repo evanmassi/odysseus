@@ -86,11 +86,11 @@ const MASS_CONCENTRATION = dimensionKey({ mass: 1, volume: -1 });
 
 const dimensionOf = (unit: string) => dimensionKey(unitScale(unit)?.dimension ?? {});
 
-function seriesName(protocol: Protocol, run: DilutionRun, field: 'start' | 'fold'): string {
+function seriesName(protocol: Protocol, run: DilutionRun, field: 'top' | 'dilutionFactor'): string {
   const [first] = run.members;
-  const plateMap = protocol.blocks.find(card => card.id === first.plateId);
+  const plateMap = protocol.cards.find(card => card.id === first.plateId);
   const amount =
-    plateMap?.type === 'plate'
+    plateMap?.type === 'plateMap'
       ? plateAmounts(plateMap).find(
           candidate =>
             candidate.source.kind === 'series' &&
@@ -107,7 +107,7 @@ function fieldNameOf(material: MaterialItem, key: string): string | undefined {
 }
 
 type StockSource =
-  | { expr: (topVolume: string, topWorking: string) => string }
+  | { formula: (topVolume: string, topWorking: string) => string }
   | { problem: string };
 
 function stockSource(
@@ -118,7 +118,8 @@ function stockSource(
   const seriesUnit = stepSeriesUnit(run.series);
   const isRatio = seriesUnit === RATIO_NOTATION;
   const reading = stockFor(protocol, run.subject, seriesUnit, isRatio);
-  if (reading.kind === 'undiluted') return { expr: (volume, working) => `${volume} × ${working}` };
+  if (reading.kind === 'undiluted')
+    return { formula: (volume, working) => `${volume} × ${working}` };
   if (reading.kind !== 'ready') return { problem: reading.issue };
   const material = materialNamed(protocol, run.subject);
   const stock = material && fieldNameOf(material, STOCK_FIELD);
@@ -130,7 +131,7 @@ function stockSource(
   const stockKind = dimensionOf(material.units[STOCK_FIELD] ?? '');
   const seriesKind = dimensionOf(seriesUnit);
   if (stockKind === seriesKind)
-    return { expr: (volume, working) => `${volume} × ${working} ÷ ${stock}` };
+    return { formula: (volume, working) => `${volume} × ${working} ÷ ${stock}` };
   const weight = fieldNameOf(material, WEIGHT_FIELD);
   if (!weight || !takenKeys.has(nameKey(weight))) {
     return {
@@ -138,8 +139,8 @@ function stockSource(
     };
   }
   return stockKind === MASS_CONCENTRATION
-    ? { expr: (volume, working) => `${volume} × ${working} × ${weight} ÷ ${stock}` }
-    : { expr: (volume, working) => `${volume} × ${working} ÷ (${stock} × ${weight})` };
+    ? { formula: (volume, working) => `${volume} × ${working} × ${weight} ÷ ${stock}` }
+    : { formula: (volume, working) => `${volume} × ${working} ÷ (${stock} × ${weight})` };
 }
 
 function runNames(
@@ -155,22 +156,22 @@ function runNames(
   const named = (label: string) => `${subject} ${label}${tag}`;
   const input = (key: keyof PrepSettings) => named(PREP_INPUTS[key][0]);
   const line = (key: PrepLine) => named(PREP_LINES[key]);
-  const top = seriesName(protocol, run, 'start');
-  const fold = seriesName(protocol, run, 'fold');
+  const top = seriesName(protocol, run, 'top');
+  const fold = seriesName(protocol, run, 'dilutionFactor');
   const busiest = named(lowerLead(REPLICATES.word));
   const pointCount = Math.max(...run.replicatesByPoint.keys()) + 1;
   const roundsTo = (readNumber(settings.roundTo) ?? 0) > 0 ? input('roundTo') : '1 µL';
   const stock = stockSource(protocol, run, takenKeys);
-  const hasStock = 'expr' in stock;
+  const hasStock = 'formula' in stock;
 
-  const exprs: Record<PrepLine, string> = {
+  const formulas: Record<PrepLine, string> = {
     strength: `${input('wellVolume')} ÷ ${input('volumeAdded')}`,
     needed: `${busiest} × ${input('volumeAdded')} × (1 + ${input('extraPercent')})`,
     transfer: `round up(${line('needed')} ÷ (${fold} − 1), ${roundsTo})`,
     diluent: `${line('transfer')} × (${fold} − 1)`,
     topVolume: `${line('transfer')} + ${line('diluent')}`,
     topWorking: `${top} × ${line('strength')}`,
-    stock: hasStock ? stock.expr(line('topVolume'), line('topWorking')) : '',
+    stock: hasStock ? stock.formula(line('topVolume'), line('topWorking')) : '',
     topDiluent: `${line('topVolume')} − ${line('stock')}`,
     diluentTotal: hasStock
       ? `${line('topDiluent')} + ${line('diluent')} × ${pointCount - 1}`
@@ -191,7 +192,7 @@ function runNames(
       const source = { id: prepInputId(run, key), name: input(key), unit: PREP_INPUTS[key][1] };
       const isFromExperiment = key === 'wellVolume' && !settings[key].trim() && wellTotal;
       return isFromExperiment
-        ? { ...source, kind: 'calculation', expr: wellTotal, workedOut: group }
+        ? { ...source, kind: 'calculation', formula: wellTotal, workedOut: group }
         : {
             ...source,
             kind: 'value',
@@ -211,16 +212,16 @@ function runNames(
   ];
   const takenName = [
     ...inputs.map(entry => entry.name),
-    ...Object.keys(exprs).map(key => line(key as PrepLine)),
+    ...Object.keys(formulas).map(key => line(key as PrepLine)),
   ].find(name => takenKeys.has(nameKey(name)));
-  const lines = (Object.keys(exprs) as PrepLine[])
+  const lines = (Object.keys(formulas) as PrepLine[])
     .filter(key => !takenKeys.has(nameKey(line(key))))
     .map(
       (key): BoardName => ({
         kind: 'calculation',
         id: prepLineId(run, key),
         name: line(key),
-        expr: exprs[key],
+        formula: formulas[key],
         unit: units[key] ?? '',
         workedOut: group,
         ...(INTERMEDIATE_LINES.has(key) && { isIntermediate: true }),
@@ -251,7 +252,7 @@ function diluentNeedNames(
       id: diluentNeedId(name),
       name: needName,
       formerName: `${shownName} needed for dilutions`,
-      expr: totals.join(' + '),
+      formula: totals.join(' + '),
       unit: '',
       workedOut: {
         key: diluentNeedId(name),
@@ -272,7 +273,7 @@ export function dilutionCalculationNames(
 ): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const wellTotal = wellTotalName(new Map(taken.map(entry => [nameKey(entry.name), entry])));
-  const dilutionsCardId = protocol.blocks.find(card => card.type === 'dilutions')?.id;
+  const dilutionsCardId = protocol.cards.find(card => card.type === 'dilutions')?.id;
   const runs = dilutionRuns(protocol);
   const diluents = runDiluents(runs, protocol.diluent);
   const uses = new Map<string, DiluentUse>();

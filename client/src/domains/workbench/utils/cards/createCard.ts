@@ -35,12 +35,12 @@ export function firstCardOrNew<Type extends ProtocolCardType>(
 ): Extract<ProtocolCard, { type: Type }> {
   const isWanted = (card: ProtocolCard): card is Extract<ProtocolCard, { type: Type }> =>
     card.type === type;
-  const existing = draft.blocks.find(isWanted);
+  const existing = draft.cards.find(isWanted);
   if (existing) return existing;
   const page = draft.pages[0].id;
   const bottom = Math.max(
     0,
-    ...draft.blocks.filter(card => card.page === page).map(card => card.y + card.h)
+    ...draft.cards.filter(card => card.page === page).map(card => card.y + card.h)
   );
   const created = createCard(type, {
     page,
@@ -49,6 +49,6 @@ export function firstCardOrNew<Type extends ProtocolCardType>(
     w: NEW_CARD_WIDTH,
     h: CARD_TYPES[type].size[1],
   });
-  draft.blocks.push(created);
+  draft.cards.push(created);
   return created as Extract<ProtocolCard, { type: Type }>;
 }

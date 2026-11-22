@@ -38,10 +38,10 @@ const fieldOf = (item: MaterialItem, key: string) => {
 
 describe('materialFromGuess', () => {
   it('shows the default fields for the type', () => {
-    expect(make().shownFields).toEqual(['vendor', 'catalog', 'lot']);
+    expect(make().shownFields).toEqual(['source', 'catalog', 'lot']);
     expect(make({ group: 'equip', type: 'Instrument' }).shownFields).toEqual(['model']);
     expect(make({ group: 'ab', type: 'Antibody' }).shownFields).toEqual([
-      'vendor',
+      'source',
       'catalog',
       'lot',
       'isotype',
@@ -83,7 +83,7 @@ describe('materialFromGuess', () => {
     const remembered: RememberedMaterial = {
       group: 'chem',
       type: 'Chemical',
-      values: { vendor: 'Sigma', grade: 'ACS' },
+      values: { source: 'Sigma', grade: 'ACS' },
       units: {},
       customFields: [
         {
@@ -98,16 +98,16 @@ describe('materialFromGuess', () => {
       shownFields: ['grade', 'custom-shelf'],
     };
     const item = make({ name: 'NaCl', values: {} }, { nacl: remembered });
-    expect(item.values).toMatchObject({ vendor: 'Sigma', grade: 'ACS' });
+    expect(item.values).toMatchObject({ source: 'Sigma', grade: 'ACS' });
     expect(item.customFields.map(field => field.key)).toEqual(['custom-shelf']);
-    expect(item.shownFields).toEqual(expect.arrayContaining(['vendor', 'grade', 'custom-shelf']));
+    expect(item.shownFields).toEqual(expect.arrayContaining(['source', 'grade', 'custom-shelf']));
   });
 
   it('ignores a remembered material filed under another type', () => {
     const remembered: RememberedMaterial = {
       group: 'media',
       type: 'Buffer',
-      values: { vendor: 'Gibco' },
+      values: { source: 'Gibco' },
       units: {},
       customFields: [],
       shownFields: [],
@@ -130,7 +130,7 @@ describe('writeMaterialField', () => {
 
   it('shows the made-on field once a recipe is written', () => {
     const medium = make({ group: 'media', type: 'Medium', name: 'Complete RPMI' });
-    writeMaterialField(medium, fieldOf(medium, 'recipe'), 'RPMI + 10% FBS');
+    writeMaterialField(medium, fieldOf(medium, 'recipe-note'), 'RPMI + 10% FBS');
     expect(medium.shownFields).toContain('made-on');
   });
 });
@@ -146,7 +146,7 @@ describe('pinned starting fields', () => {
 
   it('starts a group from the built-in defaults of all its types until something is pinned', () => {
     expect(groupStartingFields(EMPTY_LAB_MEMORY, 'ab')).toEqual([
-      'vendor',
+      'source',
       'catalog',
       'lot',
       'isotype',
@@ -154,9 +154,9 @@ describe('pinned starting fields', () => {
   });
 
   it('starts new materials with the pinned fields their type has', () => {
-    const memory = pinned({ ab: ['vendor', 'clone', 'isotype'] });
-    expect(newOf('Antibody', memory).shownFields).toEqual(['vendor', 'clone', 'isotype']);
-    expect(newOf('Isotype control', memory).shownFields).toEqual(['vendor', 'isotype']);
+    const memory = pinned({ ab: ['source', 'clone', 'isotype'] });
+    expect(newOf('Antibody', memory).shownFields).toEqual(['source', 'clone', 'isotype']);
+    expect(newOf('Isotype control', memory).shownFields).toEqual(['source', 'isotype']);
   });
 
   it('brings a pinned field of your own along with its definition', () => {
@@ -201,12 +201,12 @@ describe('copyMaterialField and mergeMaterialInto', () => {
 
   it('merges only into blank fields', () => {
     const target = make({ name: 'DMSO', values: {} });
-    target.values['vendor'] = 'Sigma';
+    target.values['source'] = 'Sigma';
     const source = make({ name: 'DMSO' });
-    source.values['vendor'] = 'Fisher';
+    source.values['source'] = 'Fisher';
     source.values['catalog'] = 'D2650';
     mergeMaterialInto(target, source);
-    expect(target.values).toMatchObject({ vendor: 'Sigma', catalog: 'D2650' });
+    expect(target.values).toMatchObject({ source: 'Sigma', catalog: 'D2650' });
   });
 });
 
@@ -226,7 +226,7 @@ describe('materialText and materialColumns', () => {
     expect(materialText(item, fieldOf(item, 'amount'))).toBe('1:200');
     const perTest = make({ group: 'ab', type: 'Antibody', amount: { value: '2', unit: 'µL' } });
     expect(materialText(perTest, fieldOf(perTest, 'amount'))).toBe('2 µL per test');
-    expect(materialText(item, fieldOf(item, 'vendor'))).toBe('');
+    expect(materialText(item, fieldOf(item, 'source'))).toBe('');
     item.values['catalog'] = '100000';
     item.values['lot'] = '20241105';
     expect(materialText(item, fieldOf(item, 'catalog'))).toBe('100000');
@@ -247,7 +247,7 @@ describe('materialText and materialColumns', () => {
     const b = make({ group: 'supplies', type: 'Tips' });
     b.shownFields.push('volume');
     expect(materialColumns([a, b]).map(column => column.key)).toEqual([
-      'vendor',
+      'source',
       'catalog',
       'lot',
       'format',

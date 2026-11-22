@@ -56,7 +56,7 @@ export function insertListGroups(
   };
 
   for (const entry of entries) {
-    if ('isDropped' in entry && entry.isDropped) continue;
+    if ('isSetAside' in entry && entry.isSetAside) continue;
     const shown = describeName(board, entry.name).text;
     const value = shown === entry.name ? undefined : shown;
     if (entry.kind === 'item') {

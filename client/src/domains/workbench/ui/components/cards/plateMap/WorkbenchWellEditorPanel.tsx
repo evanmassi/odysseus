@@ -151,7 +151,7 @@ export function WorkbenchWellEditorPanel({
     ),
   ];
   const words = wordsForTypes(
-    tab.kind === 'plate' ? [tab.plate.vessel] : card.sets.map(set => set.vessel)
+    tab.kind === 'plate' ? [tab.plate.labware] : card.otherLabware.map(set => set.labware)
   );
   const { noun, plural } = words;
   const where = selectionName(sheet, keys);

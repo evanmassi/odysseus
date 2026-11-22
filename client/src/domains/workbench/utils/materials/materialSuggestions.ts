@@ -9,13 +9,13 @@ const BUILT_IN_SUGGESTIONS: Readonly<Record<string, readonly string[]>> = {
 };
 
 export function fieldSuggestions(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   key: string,
   typed: string,
   exceptItemId: string
 ): string[] {
   const counts = new Map<string, number>();
-  for (const card of protocol.blocks) {
+  for (const card of protocol.cards) {
     if (card.type !== 'materials') continue;
     for (const item of card.items) {
       const value = (item.values[key] ?? '').trim();

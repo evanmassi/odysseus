@@ -59,7 +59,7 @@ export interface PlateMapCount {
 
 export type PlateAmountSource =
   | { kind: 'wells'; lineId: string; keys: string[] }
-  | { kind: 'series'; seriesId: string; field: 'start' | 'fold' }
+  | { kind: 'series'; seriesId: string; field: 'top' | 'dilutionFactor' }
   | { kind: 'points'; seriesId: string };
 
 export interface PlateAmount {
@@ -113,17 +113,17 @@ const LEGEND_WORDS = new Map<Term, string>([
 ]);
 
 export const seriesLegendWord = (series: PlateSeries): string =>
-  ('start' in series
+  ('top' in series
     ? LEGEND_WORDS.get(seriesTopTerm(series.unit, stepSeriesUnit(series)))
     : undefined) ?? 'amount';
 const typedCount = (card: PlateMapCard, key: string) => readNumber(card.counts[key] ?? '');
 
 const keysHolding = (card: PlateMapCard, line: PlateLine, value: LineValue) =>
-  Object.keys(card.cells).filter(key => card.cells[key][line.id]?.valueId === value.id);
+  Object.keys(card.samples).filter(key => card.samples[key][line.id]?.valueId === value.id);
 
 const allLabwareTypes = (card: PlateMapCard): LabwareType[] => [
-  ...card.plates.map(candidate => candidate.vessel),
-  ...card.sets.map(set => set.vessel),
+  ...card.plates.map(candidate => candidate.labware),
+  ...card.otherLabware.map(set => set.labware),
 ];
 
 function valueCounts(card: PlateMapCard): PlateMapCount[] {
@@ -149,8 +149,8 @@ function valueCounts(card: PlateMapCard): PlateMapCount[] {
 }
 
 function countLabware(card: PlateMapCard): PlateMapCount[] {
-  const usedKeys = Object.keys(card.cells).filter(key =>
-    Object.values(card.cells[key]).some(isFilledEntry)
+  const usedKeys = Object.keys(card.samples).filter(key =>
+    Object.values(card.samples[key]).some(isFilledEntry)
   );
   const nouns = [...new Set(allLabwareTypes(card).map(type => labwareOf(type).kind))];
   const used = (nouns.length > 1 ? nouns : [undefined]).map((noun): PlateMapCount => {
@@ -169,9 +169,9 @@ function countLabware(card: PlateMapCard): PlateMapCount[] {
       kind: 'used',
     };
   });
-  const plateTotals = [...new Set(card.plates.map(candidate => candidate.vessel))].map(
+  const plateTotals = [...new Set(card.plates.map(candidate => candidate.labware))].map(
     (type): PlateMapCount => {
-      const count = card.plates.filter(candidate => candidate.vessel === type).length;
+      const count = card.plates.filter(candidate => candidate.labware === type).length;
       const name = `${labwareOf(type).label}s`;
       return {
         name,
@@ -184,22 +184,24 @@ function countLabware(card: PlateMapCard): PlateMapCount[] {
       };
     }
   );
-  const setTotals = [...new Set(card.sets.map(set => set.vessel))].map((type): PlateMapCount => {
-    const labware = labwareOf(type);
-    const count = card.sets
-      .filter(set => set.vessel === type)
-      .reduce((sum, set) => sum + set.count, 0);
-    const name = `${labware.label.replace(/ (flask|dish|tube)$/, '')} ${LABWARE_KIND_PLURALS[labware.kind]}`;
-    return {
-      name,
-      label: name,
-      subject: '',
-      count,
-      tally: count,
-      key: `count:${type}`,
-      kind: 'total',
-    };
-  });
+  const setTotals = [...new Set(card.otherLabware.map(set => set.labware))].map(
+    (type): PlateMapCount => {
+      const labware = labwareOf(type);
+      const count = card.otherLabware
+        .filter(set => set.labware === type)
+        .reduce((sum, set) => sum + set.count, 0);
+      const name = `${labware.label.replace(/ (flask|dish|tube)$/, '')} ${LABWARE_KIND_PLURALS[labware.kind]}`;
+      return {
+        name,
+        label: name,
+        subject: '',
+        count,
+        tally: count,
+        key: `count:${type}`,
+        kind: 'total',
+      };
+    }
+  );
   return [...valueCounts(card), ...used, ...plateTotals, ...setTotals];
 }
 
@@ -232,9 +234,9 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
   };
   const colorLine = colorLineOf(card);
   const colorValueAt = (key: string) =>
-    colorLine ? lineValueOf(colorLine, card.cells[key]?.[colorLine.id]) : undefined;
+    colorLine ? lineValueOf(colorLine, card.samples[key]?.[colorLine.id]) : undefined;
   const soleValueOn = (other: PlateLine, keys: string[]) => {
-    const values = new Set(keys.map(key => lineValueOf(other, card.cells[key]?.[other.id])));
+    const values = new Set(keys.map(key => lineValueOf(other, card.samples[key]?.[other.id])));
     return values.size === 1 ? [...values][0] : undefined;
   };
   const solePlate = (keys: string[]) => {
@@ -245,7 +247,7 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
   for (const line of card.lines) {
     const plain = new Map<string, { subject: string; noun: string; cells: PlainCell[] }>();
     const runs = new Map<string, { subject: string; keys: string[]; steps: Set<number> }>();
-    for (const [key, lines] of Object.entries(card.cells)) {
+    for (const [key, lines] of Object.entries(card.samples)) {
       const entry = lines[line.id];
       const subject = lineValueOf(line, entry)?.text.trim() ?? '';
       if (!entry || !subject) continue;
@@ -253,7 +255,7 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
         const run = runs.get(entry.seriesId) ?? { subject, keys: [], steps: new Set<number>() };
         runs.set(entry.seriesId, run);
         run.keys.push(key);
-        run.steps.add(entry.seriesStep ?? 0);
+        run.steps.add(entry.seriesPoint ?? 0);
       } else if ((entry.amount ?? '').trim()) {
         const unit = entry.unit ?? '';
         const noun = amountNoun(unit, labwareOf(labwareTypeAt(card, key)).kind);
@@ -292,7 +294,7 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
 
     const dilutionRuns = [...runs.entries()].flatMap(([seriesId, run]) => {
       const series = card.series[seriesId];
-      return series && 'start' in series ? [{ seriesId, series, ...run }] : [];
+      return series && 'top' in series ? [{ seriesId, series, ...run }] : [];
     });
     for (const run of dilutionRuns) {
       const { seriesId, series, subject, steps } = run;
@@ -319,26 +321,26 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
               : ` ${index + 1}`;
       const top = seriesTopTerm(series.unit, stepSeriesUnit(series));
       const shared = { subject, variant: tag.trim() };
-      if (STARTS_WITH_NUMBER.test(series.start)) {
+      if (STARTS_WITH_NUMBER.test(series.top)) {
         add({
-          key: `s:${seriesId}:start`,
+          key: `s:${seriesId}:top`,
           automaticName: `${subject} ${lowerLead(top.word)}${tag}`,
           label: top.word,
           ...shared,
-          value: readTypedAmount(series.start)?.value ?? series.start.trim(),
+          value: readTypedAmount(series.top)?.value ?? series.top.trim(),
           unit: stepSeriesUnit(series),
-          source: { kind: 'series', seriesId, field: 'start' },
+          source: { kind: 'series', seriesId, field: 'top' },
         });
       }
-      if (STARTS_WITH_NUMBER.test(series.fold)) {
+      if (STARTS_WITH_NUMBER.test(series.dilutionFactor)) {
         add({
-          key: `s:${seriesId}:fold`,
+          key: `s:${seriesId}:dilutionFactor`,
           automaticName: `${subject} ${lowerLead(DILUTION_FACTOR.word)}${tag}`,
           label: DILUTION_FACTOR.word,
           ...shared,
-          value: String(dilutionFactorOf(series.fold)),
+          value: String(dilutionFactorOf(series.dilutionFactor)),
           unit: DILUTION_FACTOR_NOTATION,
-          source: { kind: 'series', seriesId, field: 'fold' },
+          source: { kind: 'series', seriesId, field: 'dilutionFactor' },
         });
       }
       add({
@@ -362,7 +364,7 @@ export const plateAmounts: (card: PlateMapCard) => readonly PlateAmount[] =
   cachedPerCard(amountsOnPlate);
 
 const wellTexts = cachedPerCard((card: PlateMapCard): string[] =>
-  Object.values(card.cells).map(lines =>
+  Object.values(card.samples).map(lines =>
     card.lines
       .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
       .join(' | ')
@@ -389,7 +391,7 @@ export function materialWellCounts(
       material.name,
       nameWithoutNotes(material.name),
       shortNameOf(material),
-      ...(material.sources?.rows.map(donor => donor.name) ?? []),
+      ...(material.donors?.rows.map(donor => donor.name) ?? []),
     ]
       .filter(Boolean)
       .map(mentionPattern),

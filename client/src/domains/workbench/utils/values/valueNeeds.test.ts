@@ -15,14 +15,14 @@ const item = (id: string, name: string, group: string, recipe: unknown[] = []) =
   units: {},
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
   recipe,
 });
 
 function needsFor(items: ValuesCard['items']) {
-  const values = { id: 'values', type: 'values', sections: [], items } as unknown as ValuesCard;
+  const values = { id: 'values', type: 'values', rows: [], items } as unknown as ValuesCard;
   const protocol = {
-    blocks: [
+    cards: [
       {
         id: 'materials',
         type: 'materials',

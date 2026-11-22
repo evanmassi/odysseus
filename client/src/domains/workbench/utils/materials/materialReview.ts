@@ -59,7 +59,7 @@ export function commitReviewRows(
   cardId: string,
   rows: readonly MaterialReviewRow[]
 ): string[] {
-  const card = protocol.blocks.find(candidate => candidate.id === cardId);
+  const card = protocol.cards.find(candidate => candidate.id === cardId);
   if (card?.type !== 'materials') return [];
   const freshIds = new Set<string>();
   for (const { item, alreadyListedId, isKeptBoth } of rows) {

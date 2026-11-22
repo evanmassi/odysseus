@@ -1,4 +1,4 @@
-import { normalizeMaterialKey } from '@odysseus/shared-schemas';
+import { normalizeMaterialKey, renamedFieldKey } from '@odysseus/shared-schemas';
 
 import { DONOR_ID_FIELD, STARTING_DONOR_FIELDS } from './materialDonors';
 import { type MaterialKnowledge, type RememberedMaterialType } from './materialGuesser';
@@ -28,26 +28,91 @@ export interface KnownDonor {
 }
 
 export interface LabMemory {
-  kinds: Record<string, RememberedMaterialType>;
+  knownTypes: Record<string, RememberedMaterialType>;
   materials: Record<string, RememberedMaterial>;
   fields: Record<string, FieldDefinition[]>;
   startingFields: Record<string, string[]>;
-  dyes: Record<string, ProtocolFluor>;
-  sources: Record<string, KnownDonor>;
-  sourceFields: FieldDefinition[];
-  startingSourceFields: Record<string, string[]>;
+  fluors: Record<string, ProtocolFluor>;
+  donors: Record<string, KnownDonor>;
+  donorFields: FieldDefinition[];
+  startingDonorFields: Record<string, string[]>;
 }
 
 export const EMPTY_LAB_MEMORY: LabMemory = {
-  kinds: {},
+  knownTypes: {},
   materials: {},
   fields: {},
   startingFields: {},
-  dyes: {},
-  sources: {},
-  sourceFields: [],
-  startingSourceFields: {},
+  fluors: {},
+  donors: {},
+  donorFields: [],
+  startingDonorFields: {},
 };
+
+type SavedRecord = Record<string, unknown>;
+
+const recordOf = (value: unknown): SavedRecord =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as SavedRecord)
+    : {};
+
+const mapValues = (value: unknown, upgrade: (entry: unknown) => unknown) =>
+  Object.fromEntries(Object.entries(recordOf(value)).map(([key, entry]) => [key, upgrade(entry)]));
+
+const withFieldKeys = (value: unknown, materialType = '') =>
+  Object.fromEntries(
+    Object.entries(recordOf(value)).map(([key, entry]) => [
+      renamedFieldKey(key, materialType),
+      entry,
+    ])
+  );
+
+const fieldKeyList = (value: unknown, materialType = '') =>
+  Array.isArray(value)
+    ? value.map(key => (typeof key === 'string' ? renamedFieldKey(key, materialType) : key))
+    : [];
+
+const definitionsWithFieldKeys = (value: unknown) =>
+  Array.isArray(value)
+    ? value.map(definition => {
+        const saved = recordOf(definition);
+        return typeof saved['key'] === 'string'
+          ? { ...saved, key: renamedFieldKey(saved['key'], '') }
+          : saved;
+      })
+    : [];
+
+export function upgradeLabMemory(saved: unknown): LabMemory {
+  const memory = recordOf(saved);
+  return {
+    ...EMPTY_LAB_MEMORY,
+    knownTypes: recordOf(memory['kinds']),
+    materials: mapValues(memory['materials'], entry => {
+      const material = recordOf(entry);
+      const type = typeof material['type'] === 'string' ? material['type'] : '';
+      return {
+        ...material,
+        values: withFieldKeys(material['values'], type),
+        units: withFieldKeys(material['units'], type),
+        shownFields: fieldKeyList(material['shownFields'], type),
+        customFields: definitionsWithFieldKeys(material['customFields']),
+      };
+    }),
+    fields: mapValues(memory['fields'], definitionsWithFieldKeys),
+    startingFields: mapValues(memory['startingFields'], keys => fieldKeyList(keys)),
+    fluors: recordOf(memory['dyes']),
+    donors: mapValues(memory['sources'], entry => {
+      const donor = recordOf(entry);
+      return {
+        ...donor,
+        values: withFieldKeys(donor['values']),
+        units: withFieldKeys(donor['units']),
+      };
+    }),
+    donorFields: definitionsWithFieldKeys(memory['sourceFields']),
+    startingDonorFields: mapValues(memory['startingSourceFields'], keys => fieldKeyList(keys)),
+  } as LabMemory;
+}
 
 const kindKey = (group: string, type: string) => `${group}|${type}`;
 
@@ -57,9 +122,9 @@ export const learnedFields = (
 ): readonly FieldDefinition[] => memory.fields[kindKey(item.group, item.type)] ?? [];
 
 export const startingDonorFieldsOf = (memory: LabMemory, group: string): readonly string[] =>
-  memory.startingSourceFields[group] ?? STARTING_DONOR_FIELDS;
+  memory.startingDonorFields[group] ?? STARTING_DONOR_FIELDS;
 
-export type PinnedFields = 'startingFields' | 'startingSourceFields';
+export type PinnedFields = 'startingFields' | 'startingDonorFields';
 
 export function toggleStartingField(
   memory: LabMemory,
@@ -79,16 +144,19 @@ export function rememberKind(
   type: string
 ): LabMemory {
   if (!name.trim()) return memory;
-  return { ...memory, kinds: { ...memory.kinds, [normalizeMaterialKey(name)]: { group, type } } };
+  return {
+    ...memory,
+    knownTypes: { ...memory.knownTypes, [normalizeMaterialKey(name)]: { group, type } },
+  };
 }
 
 function learnDonors(memory: LabMemory, items: readonly MaterialItem[]): LabMemory {
-  const knownDonors = { ...memory.sources };
-  const donorFields = [...memory.sourceFields];
+  const knownDonors = { ...memory.donors };
+  const donorFields = [...memory.donorFields];
   let hasLearned = false;
   for (const item of items) {
-    if (!item.sources || item.isDropped) continue;
-    for (const row of item.sources.rows) {
+    if (!item.donors || item.isSetAside) continue;
+    for (const row of item.donors.rows) {
       const donorId = row.values[DONOR_ID_FIELD]?.trim();
       if (!donorId) continue;
       const learned = {
@@ -103,15 +171,15 @@ function learnDonors(memory: LabMemory, items: readonly MaterialItem[]): LabMemo
         hasLearned = true;
       }
     }
-    for (const definition of item.sources.customFields) {
-      const isShown = item.sources.shownFields.includes(definition.key);
+    for (const definition of item.donors.customFields) {
+      const isShown = item.donors.shownFields.includes(definition.key);
       if (isShown && !donorFields.some(known => known.key === definition.key)) {
         donorFields.push({ ...definition });
         hasLearned = true;
       }
     }
   }
-  return hasLearned ? { ...memory, sources: knownDonors, sourceFields: donorFields } : memory;
+  return hasLearned ? { ...memory, donors: knownDonors, donorFields: donorFields } : memory;
 }
 
 export function learnFromMaterials(memory: LabMemory, items: readonly MaterialItem[]): LabMemory {
@@ -123,7 +191,7 @@ function learnMaterials(memory: LabMemory, items: readonly MaterialItem[]): LabM
   const fields = { ...memory.fields };
   let hasLearned = false;
   for (const item of items) {
-    if (!item.name.trim() || item.isDropped || item.group === UNSORTED_GROUP) continue;
+    if (!item.name.trim() || item.isSetAside || item.group === UNSORTED_GROUP) continue;
     const key = normalizeMaterialKey(item.name);
     const learned = {
       group: item.group,
@@ -164,7 +232,7 @@ export function knownDonors(
   const listedIds = new Set(
     listed.map(row => normalizeMaterialKey(row.values[DONOR_ID_FIELD] ?? '')).filter(Boolean)
   );
-  return Object.entries(memory.sources)
+  return Object.entries(memory.donors)
     .filter(
       ([key, knownDonor]) =>
         !listedIds.has(key) &&
@@ -175,7 +243,7 @@ export function knownDonors(
 }
 
 export function rememberFluors(memory: LabMemory, fluors: readonly ProtocolFluor[]): LabMemory {
-  const remembered = { ...memory.dyes };
+  const remembered = { ...memory.fluors };
   let hasLearned = false;
   for (const fluor of fluors) {
     const key = normalizeMaterialKey(fluor.name);
@@ -184,23 +252,26 @@ export function rememberFluors(memory: LabMemory, fluors: readonly ProtocolFluor
       hasLearned = true;
     }
   }
-  return hasLearned ? { ...memory, dyes: remembered } : memory;
+  return hasLearned ? { ...memory, fluors: remembered } : memory;
 }
 
 export function materialKnowledge(
   memory: LabMemory,
-  protocol: Pick<Protocol, 'blocks' | 'dyes'>
+  protocol: Pick<Protocol, 'cards' | 'fluors'>
 ): MaterialKnowledge {
-  const fileFluorKeys = new Set(protocol.dyes.map(fluor => normalizeMaterialKey(fluor.name)));
-  const rememberedFluors = Object.values(memory.dyes).filter(
+  const fileFluorKeys = new Set(protocol.fluors.map(fluor => normalizeMaterialKey(fluor.name)));
+  const rememberedFluors = Object.values(memory.fluors).filter(
     fluor => !fileFluorKeys.has(normalizeMaterialKey(fluor.name))
   );
-  return { kinds: knownTypes(memory, protocol), fluors: [...protocol.dyes, ...rememberedFluors] };
+  return {
+    knownTypes: knownTypes(memory, protocol),
+    fluors: [...protocol.fluors, ...rememberedFluors],
+  };
 }
 
 function knownTypes(
   memory: LabMemory,
-  protocol: Pick<Protocol, 'blocks'>
+  protocol: Pick<Protocol, 'cards'>
 ): Map<string, RememberedMaterialType> {
   const known = new Map<string, RememberedMaterialType>();
   for (const [key, material] of Object.entries(memory.materials)) {
@@ -210,7 +281,7 @@ function knownTypes(
       why: 'from your earlier protocols',
     });
   }
-  for (const card of protocol.blocks) {
+  for (const card of protocol.cards) {
     if (card.type !== 'materials') continue;
     for (const item of card.items) {
       if (!item.name.trim() || item.group === UNSORTED_GROUP) continue;
@@ -221,6 +292,6 @@ function knownTypes(
       });
     }
   }
-  for (const [key, kind] of Object.entries(memory.kinds)) known.set(key, kind);
+  for (const [key, kind] of Object.entries(memory.knownTypes)) known.set(key, kind);
   return known;
 }

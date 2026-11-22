@@ -123,9 +123,9 @@ const NAME_CELL = 'name';
 
 export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) {
   const materialCards = useCardsOf('materials');
-  const plateCards = useCardsOf('plate');
-  const flowCytometryPanelCards = useCardsOf('cytometer');
-  const materialsOnly = useMemo(() => ({ blocks: materialCards }), [materialCards]);
+  const plateCards = useCardsOf('plateMap');
+  const flowCytometryPanelCards = useCardsOf('flowCytometryPanel');
+  const materialsOnly = useMemo(() => ({ cards: materialCards }), [materialCards]);
   const takenNameIdList = useWorkbenchData(state => [...state.board.takenNameIds]);
   const takenNameIds = useMemo(() => new Set(takenNameIdList), [takenNameIdList]);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -145,9 +145,9 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
       setFresh(current => ({ ids: new Set(ids), stamp: current.stamp + 1 })),
     []
   );
-  const fileFluors = useWorkbenchStore(state => state.protocol.dyes);
+  const fileFluors = useWorkbenchStore(state => state.protocol.fluors);
   const known = useMemo(
-    () => materialKnowledge(memory, { blocks: materialCards, dyes: fileFluors }),
+    () => materialKnowledge(memory, { cards: materialCards, fluors: fileFluors }),
     [memory, materialCards, fileFluors]
   );
   const adding = useMaterialAdding(card, known, markFresh);
@@ -158,7 +158,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     () =>
       materialGroupsOf(card.customGroups)
         .map(group => {
-          const items = card.items.filter(item => item.group === group.key && !item.isDropped);
+          const items = card.items.filter(item => item.group === group.key && !item.isSetAside);
           return {
             group,
             items,
@@ -177,7 +177,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
         ),
     [card.items, card.customGroups, card.foldedGroups, removed]
   );
-  const setAsideItems = card.items.filter(item => item.isDropped);
+  const setAsideItems = card.items.filter(item => item.isSetAside);
   const itemIds = useMemo(() => card.items.map(item => item.id), [card.items]);
   const usageEntries = useWorkbenchData(state => [
     ...nameUsage(state.protocol, state.board, itemIds),
@@ -199,7 +199,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     return new Map([...counts].map(([material, count]) => [material.id, count]));
   }, [plateCards, allMaterials]);
   const panelDetectors = useMemo(
-    () => panelDetectorLabels({ blocks: flowCytometryPanelCards }),
+    () => panelDetectorLabels({ cards: flowCytometryPanelCards }),
     [flowCytometryPanelCards]
   );
   const plateOffers = useWorkbenchData(state =>
@@ -224,7 +224,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
   const updateItem = useCallback(
     (itemId: string, recipe: (item: MaterialItem, draft: Protocol) => void) =>
       updateProtocol(draft => {
-        const target = draft.blocks.find(candidate => candidate.id === card.id);
+        const target = draft.cards.find(candidate => candidate.id === card.id);
         const item =
           target?.type === 'materials' ? target.items.find(i => i.id === itemId) : undefined;
         if (item) recipe(item, draft);
@@ -246,7 +246,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
       } else if (cell.key === CONJUGATE_FIELD) {
         updateItem(cell.itemId, (item, draft) => {
           const typed = item.values[cell.key] ?? '';
-          const { name, toKeep } = resolveFluor(catalog, Object.values(memory.dyes), typed);
+          const { name, toKeep } = resolveFluor(catalog, Object.values(memory.fluors), typed);
           if (toKeep) keepFluorInFile(draft, toKeep);
           if (name !== typed) item.values[cell.key] = name;
         });
@@ -265,7 +265,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
         });
       }
     },
-    [updateItem, catalog, memory.dyes]
+    [updateItem, catalog, memory.fluors]
   );
   const editing = useMaterialCellEditing(cellOrder, enterCell, finishCell);
   const isEditingCell = editing.cell !== undefined;
@@ -333,12 +333,12 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
       updateProtocol(draft => {
         const target = listedMaterials(draft).find(candidate => candidate.id === targetId);
         if (!target) return;
-        startDonors(target, startingDonorFieldsOf(memory, target.group), memory.sourceFields);
+        startDonors(target, startingDonorFieldsOf(memory, target.group), memory.donorFields);
         moveIntoDonors(draft, itemId, targetId);
       }),
     startDonors: itemId => {
       updateItem(itemId, item =>
-        startDonors(item, startingDonorFieldsOf(memory, item.group), memory.sourceFields)
+        startDonors(item, startingDonorFieldsOf(memory, item.group), memory.donorFields)
       );
       setOpenedDonorsId(itemId);
     },
@@ -354,26 +354,26 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     change: (donor: ExperimentDonor, draft: Protocol) => void
   ) =>
     updateItem(itemId, (item, draft) => {
-      const donor = item.sources?.rows.find(row => row.id === donorId);
+      const donor = item.donors?.rows.find(row => row.id === donorId);
       if (donor) change(donor, draft);
     });
 
   const donorActions = useStableActions<DonorTableActions>({
     renameList: (itemId, label) =>
       updateItem(itemId, item => {
-        if (item.sources) item.sources.label = label || DONORS_LABEL;
+        if (item.donors) item.donors.label = label || DONORS_LABEL;
       }),
     removeList: itemId =>
       updateItem(itemId, item => {
-        delete item.sources;
+        delete item.donors;
       }),
     add: (itemId, names) =>
       updateItem(itemId, item =>
-        addDonorsNamed(item, names, startingDonorFieldsOf(memory, item.group), memory.sourceFields)
+        addDonorsNamed(item, names, startingDonorFieldsOf(memory, item.group), memory.donorFields)
       ),
     recall: (itemId, remembered) =>
       updateItem(itemId, item => {
-        if (item.sources) addDonor(item.sources, remembered.name, remembered);
+        if (item.donors) addDonor(item.donors, remembered.name, remembered);
       }),
     rename: (itemId, donorId, name) =>
       updateDonor(itemId, donorId, donor => {
@@ -386,24 +386,24 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
       }),
     write: (itemId, donorId, key, value) =>
       updateItem(itemId, item => {
-        const donor = item.sources?.rows.find(row => row.id === donorId);
-        if (item.sources && donor) writeDonorField(item.sources, donor, key, value);
+        const donor = item.donors?.rows.find(row => row.id === donorId);
+        if (item.donors && donor) writeDonorField(item.donors, donor, key, value);
       }),
     remove: (itemId, donorId) =>
       updateItem(itemId, item => {
-        if (item.sources) item.sources.rows = item.sources.rows.filter(row => row.id !== donorId);
+        if (item.donors) item.donors.rows = item.donors.rows.filter(row => row.id !== donorId);
       }),
     toggleField: (itemId, key) =>
       updateItem(itemId, item => {
-        if (item.sources) toggleDonorField(item.sources, key, memory.sourceFields);
+        if (item.donors) toggleDonorField(item.donors, key, memory.donorFields);
       }),
     addCustomField: (itemId, label) =>
       updateItem(itemId, item => {
-        if (item.sources) addCustomDonorField(item.sources, label);
+        if (item.donors) addCustomDonorField(item.donors, label);
       }),
-    togglePin: (group, key) => toggleStartingField('startingSourceFields', group, key),
+    togglePin: (group, key) => toggleStartingField('startingDonorFields', group, key),
     known: (typed, rows) => knownDonors(memory, typed, rows),
-    fieldChoices: donors => donorFieldChoices(donors, memory.sourceFields),
+    fieldChoices: donors => donorFieldChoices(donors, memory.donorFields),
     pinnedKeys: group => new Set(startingDonorFieldsOf(memory, group)),
   });
   const plateNames = useMemo(() => plateOffers.map(offer => offer.name), [plateOffers]);
@@ -538,7 +538,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
             onAccept={acceptReadings}
             onIgnore={reading =>
               updateProtocol(draft => {
-                draft.ignoredReadings.push(reading.key);
+                draft.ignoredSuggestions.push(reading.key);
               })
             }
           />
@@ -548,11 +548,11 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
           <WorkbenchMaterialSetAsideSection
             items={setAsideItems}
             usage={usage}
-            isOpen={card.isDroppedOpen}
+            isOpen={card.isSetAsideOpen}
             removed={removed?.isFromSetAside ? removed : undefined}
             onToggleOpen={() =>
               updateCard(draft => {
-                draft.isDroppedOpen = !draft.isDroppedOpen;
+                draft.isSetAsideOpen = !draft.isSetAsideOpen;
               })
             }
             onRestore={removal.restoreSetAside}

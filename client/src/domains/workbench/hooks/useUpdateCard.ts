@@ -10,7 +10,7 @@ export function useUpdateCard<Card extends ProtocolCard>(card: Card) {
   return useCallback(
     (recipe: (draft: Card) => void) =>
       updateProtocol(draft => {
-        const target = draft.blocks.find(candidate => candidate.id === id);
+        const target = draft.cards.find(candidate => candidate.id === id);
         if (target) recipe(target as Card);
       }),
     [id, updateProtocol]

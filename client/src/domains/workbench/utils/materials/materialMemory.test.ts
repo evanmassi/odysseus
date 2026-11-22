@@ -28,13 +28,13 @@ const shelf = {
 describe('learnFromMaterials', () => {
   it('remembers named, kept, sorted materials by loose name', () => {
     const kept = material('NaCl');
-    kept.values['vendor'] = 'Sigma';
-    const dropped = { ...material('KCl'), isDropped: true };
+    kept.values['source'] = 'Sigma';
+    const dropped = { ...material('KCl'), isSetAside: true };
     const unsorted = material('Mystery', 'unsorted', 'Other');
     const unnamed = material('  ');
     const memory = learnFromMaterials(EMPTY_LAB_MEMORY, [kept, dropped, unsorted, unnamed]);
     expect(Object.keys(memory.materials)).toEqual(['nacl']);
-    expect(memory.materials['nacl']).toMatchObject({ group: 'chem', values: { vendor: 'Sigma' } });
+    expect(memory.materials['nacl']).toMatchObject({ group: 'chem', values: { source: 'Sigma' } });
   });
 
   it('learns custom fields for the type only while they are shown', () => {
@@ -53,7 +53,7 @@ describe('learnFromMaterials', () => {
 describe('rememberedKinds', () => {
   const protocolWith = (items: MaterialItem[]): Protocol => {
     const protocol = blankProtocol();
-    const card = protocol.blocks.find(candidate => candidate.type === 'materials');
+    const card = protocol.cards.find(candidate => candidate.type === 'materials');
     if (card?.type === 'materials') card.items = items;
     return protocol;
   };
@@ -61,12 +61,12 @@ describe('rememberedKinds', () => {
   it('prefers what you set by hand over this protocol over earlier protocols', () => {
     let memory = learnFromMaterials(EMPTY_LAB_MEMORY, [material('PBS', 'chem', 'Solvent')]);
     const protocol = protocolWith([material('PBS', 'media', 'Buffer')]);
-    expect(materialKnowledge(memory, protocol).kinds.get('pbs')).toMatchObject({
+    expect(materialKnowledge(memory, protocol).knownTypes.get('pbs')).toMatchObject({
       type: 'Buffer',
       why: 'already in this protocol',
     });
     memory = rememberKind(memory, 'PBS', 'media', 'Stock solution');
-    expect(materialKnowledge(memory, protocol).kinds.get('pbs')).toEqual({
+    expect(materialKnowledge(memory, protocol).knownTypes.get('pbs')).toEqual({
       group: 'media',
       type: 'Stock solution',
     });
@@ -97,9 +97,9 @@ describe('lot memory', () => {
 
 describe('toggleStartingField', () => {
   it('unpins from the current list, then pins back at the end', () => {
-    const current = ['vendor', 'catalog', 'lot', 'isotype'];
+    const current = ['source', 'catalog', 'lot', 'isotype'];
     const unpinned = toggleStartingField(EMPTY_LAB_MEMORY, 'startingFields', 'ab', 'lot', current);
-    expect(unpinned.startingFields).toEqual({ ab: ['vendor', 'catalog', 'isotype'] });
+    expect(unpinned.startingFields).toEqual({ ab: ['source', 'catalog', 'isotype'] });
     const repinned = toggleStartingField(
       unpinned,
       'startingFields',
@@ -107,6 +107,6 @@ describe('toggleStartingField', () => {
       'lot',
       unpinned.startingFields['ab']
     );
-    expect(repinned.startingFields['ab']).toEqual(['vendor', 'catalog', 'isotype', 'lot']);
+    expect(repinned.startingFields['ab']).toEqual(['source', 'catalog', 'isotype', 'lot']);
   });
 });

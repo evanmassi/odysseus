@@ -11,7 +11,7 @@ import {
   type MaterialKnowledge,
 } from './materialGuesser';
 
-const nothingRemembered: MaterialKnowledge = { kinds: new Map(), fluors: [] };
+const nothingRemembered: MaterialKnowledge = { knownTypes: new Map(), fluors: [] };
 const guess = (text: string): MaterialGuess => guessMaterial(text, nothingRemembered);
 
 describe('normalizeMaterialKey', () => {
@@ -47,7 +47,7 @@ describe('guessMaterial antibodies and labels', () => {
       type: 'Antibody',
       name: 'anti-mouse CD8a PE-Cy7 (53-6.7)',
       values: {
-        vendor: 'BioLegend',
+        source: 'BioLegend',
         catalog: '100722',
         target: 'CD8a',
         clone: '53-6.7',
@@ -128,7 +128,7 @@ describe('guessMaterial reagents and media', () => {
     expect(guess('DMEM high glucose, Gibco 11965-092')).toMatchObject({
       type: 'Medium',
       name: 'DMEM high glucose',
-      values: { vendor: 'Gibco', catalog: '11965-092', glucose: 'High' },
+      values: { source: 'Gibco', catalog: '11965-092', glucose: 'High' },
     });
   });
 
@@ -259,7 +259,7 @@ describe('guessMaterial patterns', () => {
 describe('guessMaterial memory and context', () => {
   it('lets a remembered type override the guess', () => {
     const remembered = {
-      kinds: new Map([['hela', { group: 'bio', type: 'Primary cells' }]]),
+      knownTypes: new Map([['hela', { group: 'bio', type: 'Primary cells' }]]),
       fluors: [],
     };
     expect(guessMaterial('HeLa', remembered)).toMatchObject({
@@ -271,7 +271,7 @@ describe('guessMaterial memory and context', () => {
 
   it('keeps its own reason when memory agrees', () => {
     const remembered = {
-      kinds: new Map([['hela', { group: 'bio', type: 'Cell line', why: 'already here' }]]),
+      knownTypes: new Map([['hela', { group: 'bio', type: 'Cell line', why: 'already here' }]]),
       fluors: [],
     };
     expect(guessMaterial('HeLa', remembered)).toMatchObject({
@@ -282,7 +282,7 @@ describe('guessMaterial memory and context', () => {
 
   it('reads a fluor the file or this computer added as the conjugate', () => {
     const known = {
-      kinds: new Map(),
+      knownTypes: new Map(),
       fluors: [{ name: 'Qx Fluor 512', lasers: [488], peak: 512 }],
     };
     expect(guessMaterial('CD4 Qx Fluor 512 RPA-T4', known)).toMatchObject({
@@ -306,7 +306,7 @@ describe('guessMaterial memory and context', () => {
   it('reads vendor and identifier columns', () => {
     const context = { vendor: 'BioLegend', identifier: 'Cat# 300532; RRID:AB_2562598' };
     expect(guessMaterial('CD4 BV421', nothingRemembered, context).values).toEqual({
-      vendor: 'BioLegend',
+      source: 'BioLegend',
       rrid: 'AB_2562598',
       catalog: '300532',
       target: 'CD4',
@@ -357,7 +357,7 @@ describe('splitPastedMaterials', () => {
     expect(guessMaterial(row.text, nothingRemembered, row.context)).toMatchObject({
       group: 'supplies',
       type: 'Other',
-      values: { vendor: 'Someone' },
+      values: { source: 'Someone' },
     });
   });
 });

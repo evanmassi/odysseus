@@ -25,10 +25,10 @@ import type {
 } from '@odysseus/shared-schemas';
 
 const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
-  ['Inputs', ['materials', 'cytometer']],
-  ['Write', ['text', 'steps', 'flow', 'sketch']],
-  ['Numbers', ['values', 'formula', 'dilutions', 'list']],
-  ['Layout', ['plate']],
+  ['Inputs', ['materials', 'flowCytometryPanel']],
+  ['Write', ['text', 'procedure', 'flowDiagram', 'sketch']],
+  ['Numbers', ['values', 'calculations', 'dilutions', 'table']],
+  ['Layout', ['plateMap']],
 ];
 
 const MENU_GAP = 8;
@@ -41,15 +41,15 @@ const tabNames = (card: PlateMapCard) =>
     .join(', ');
 
 const bottomOf = (draft: Protocol, page: string) =>
-  Math.max(0, ...draft.blocks.filter(card => card.page === page).map(card => card.y + card.h));
+  Math.max(0, ...draft.cards.filter(card => card.page === page).map(card => card.y + card.h));
 
 export function WorkbenchCardRail() {
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const pages = useWorkbenchStore(state => state.protocol.pages);
-  const cards = useWorkbenchStore(state => state.protocol.blocks);
-  const plates = cards.filter((card): card is PlateMapCard => card.type === 'plate');
-  const hasProcedure = cards.some(card => card.page === activePageId && card.type === 'steps');
+  const cards = useWorkbenchStore(state => state.protocol.cards);
+  const plates = cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
+  const hasProcedure = cards.some(card => card.page === activePageId && card.type === 'procedure');
   const startFromRef = useRef<HTMLDivElement>(null);
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [startMenuAt, setStartMenuAt] = useState<{ top: number; left: number }>();
@@ -58,29 +58,29 @@ export function WorkbenchCardRail() {
   const addCard = (type: ProtocolCardType) =>
     updateProtocol(draft => {
       const [w, h] = CARD_TYPES[type].size;
-      draft.blocks.push(
+      draft.cards.push(
         createCard(type, { page: activePageId, x: 0, y: bottomOf(draft, activePageId), w, h })
       );
     });
 
   const showPlate = (source: PlateMapCard) =>
     updateProtocol(draft => {
-      const view = createCard('plateView', {
+      const view = createCard('linkedPlateMap', {
         page: activePageId,
         x: 0,
         y: bottomOf(draft, activePageId),
         w: source.w,
-        h: CARD_TYPES.plateView.size[1],
+        h: CARD_TYPES.linkedPlateMap.size[1],
       }) as LinkedPlateMapCard;
       view.shows = source.id;
-      view.side = draft.blocks.some(card => card.type === 'cytometer' && card.mixes.length)
+      view.side = draft.cards.some(card => card.type === 'flowCytometryPanel' && card.stains.length)
         ? 'stain'
         : 'assay';
-      draft.blocks.push(view);
+      draft.cards.push(view);
     });
 
   const pick = (type: ProtocolCardType) => {
-    if (type !== 'plate' || !plates.length) return addCard(type);
+    if (type !== 'plateMap' || !plates.length) return addCard(type);
     if (isStartMenuOpen) return closeStartMenu();
     const item = startFromRef.current?.getBoundingClientRect();
     if (item) setStartMenuAt({ top: item.top, left: item.right + MENU_GAP });
@@ -100,8 +100,8 @@ export function WorkbenchCardRail() {
           <h4 className="px-2 pb-1 type-label text-label-xs text-muted-foreground">{label}</h4>
           {types.map(type => {
             const Icon = CARD_ICONS[type];
-            const isOnPage = type === 'steps' && hasProcedure;
-            const hasStartChoice = type === 'plate' && plates.length > 0;
+            const isOnPage = type === 'procedure' && hasProcedure;
+            const hasStartChoice = type === 'plateMap' && plates.length > 0;
             return (
               <div key={type} ref={hasStartChoice ? startFromRef : undefined} className="relative">
                 <button
@@ -140,7 +140,7 @@ export function WorkbenchCardRail() {
                       label="Empty plate map"
                       onClick={() => {
                         closeStartMenu();
-                        addCard('plate');
+                        addCard('plateMap');
                       }}
                     />
                     {pages.map(page => {
@@ -152,7 +152,7 @@ export function WorkbenchCardRail() {
                           {onPage.map(source => (
                             <MenuItem
                               key={source.id}
-                              icon={CARD_ICONS.plate}
+                              icon={CARD_ICONS.plateMap}
                               label={labwareTitle(source)}
                               description={tabNames(source)}
                               onClick={() => {

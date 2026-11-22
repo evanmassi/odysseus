@@ -10,15 +10,15 @@ export interface NameDisplay {
   text: string;
   label: string;
   kind: BoardName['kind'] | 'missing';
-  isDropped: boolean;
+  isSetAside: boolean;
 }
 
 export function describeName(board: SolvedBoard, name: string): NameDisplay {
   const entry = board.names.get(nameKey(name));
-  if (!entry) return { text: name, label: 'not on this board', kind: 'missing', isDropped: false };
+  if (!entry) return { text: name, label: 'not on this board', kind: 'missing', isSetAside: false };
   switch (entry.kind) {
     case 'item': {
-      const isDropped = !!entry.isDropped;
+      const isDropped = !!entry.isSetAside;
       const fullName = entry.shownName ? entry.name.trim() : '';
       return {
         text: entry.shownName ?? entry.name,
@@ -26,36 +26,36 @@ export function describeName(board: SolvedBoard, name: string): NameDisplay {
           ? 'Set aside in Materials'
           : [fullName, entry.label].filter(Boolean).join(' · '),
         kind: 'item',
-        isDropped,
+        isSetAside: isDropped,
       };
     }
     case 'value': {
-      const isDropped = !!entry.isDropped;
+      const isDropped = !!entry.isSetAside;
       return {
         text: displayValue(entry.value, entry.unit),
         label: isDropped ? `${entry.name}, set aside in Materials` : entry.name,
         kind: 'value',
-        isDropped,
+        isSetAside: isDropped,
       };
     }
     case 'count':
-      return { text: String(entry.count), label: entry.name, kind: 'count', isDropped: false };
+      return { text: String(entry.count), label: entry.name, kind: 'count', isSetAside: false };
     case 'calculation': {
       const result = board.results.get(entry.id);
       if (result?.status !== 'ok')
-        return { text: '?', label: entry.name, kind: 'missing', isDropped: false };
+        return { text: '?', label: entry.name, kind: 'missing', isSetAside: false };
       return {
         text: calculationAnswerText(result),
         label: entry.name,
         kind: 'calculation',
-        isDropped: false,
+        isSetAside: false,
       };
     }
   }
 }
 
 const isSameDisplay = (a: NameDisplay, b: NameDisplay) =>
-  a.text === b.text && a.label === b.label && a.kind === b.kind && a.isDropped === b.isDropped;
+  a.text === b.text && a.label === b.label && a.kind === b.kind && a.isSetAside === b.isSetAside;
 
 export const readsNamesAlike = (
   names: readonly string[],

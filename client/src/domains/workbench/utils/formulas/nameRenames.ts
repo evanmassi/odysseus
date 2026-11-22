@@ -62,8 +62,8 @@ export function applyRenames(
   renames: NameRenames
 ): void {
   const renamed = (text: string) => renames.byOldName.get(nameKey(text));
-  for (const card of draft.blocks) {
-    if (card.type !== 'plate') continue;
+  for (const card of draft.cards) {
+    if (card.type !== 'plateMap') continue;
     for (const line of card.lines) {
       line.name = renamed(line.name) ?? line.name;
       for (const value of line.values) value.text = renamed(value.text) ?? value.text;
@@ -79,10 +79,10 @@ export function applyReferenceRenames(
 ): void {
   const previousNames = [...new Set(knownNames.values())].sort((a, b) => b.length - a.length);
   const renamed = (text: string) => renames.byOldName.get(nameKey(text));
-  for (const card of draft.blocks) {
-    if (card.type === 'formula') {
+  for (const card of draft.cards) {
+    if (card.type === 'calculations') {
       for (const item of card.items) {
-        item.expr = rewriteExpression(item.expr, previousNames, renames);
+        item.formula = rewriteExpression(item.formula, previousNames, renames);
         const owner = [...renames.byItemPrefix.keys()].find(prefix =>
           item.name.toLowerCase().startsWith(prefix)
         );
@@ -90,11 +90,11 @@ export function applyReferenceRenames(
           item.name = `${renames.byItemPrefix.get(owner)} ${item.name.slice(owner.length)}`;
       }
     }
-    if (card.type === 'plate') {
+    if (card.type === 'plateMap') {
       for (const series of Object.values(card.series)) {
-        if (!('start' in series)) continue;
-        series.start = renamed(series.start) ?? series.start;
-        series.fold = renamed(series.fold) ?? series.fold;
+        if (!('top' in series)) continue;
+        series.top = renamed(series.top) ?? series.top;
+        series.dilutionFactor = renamed(series.dilutionFactor) ?? series.dilutionFactor;
       }
     }
   }

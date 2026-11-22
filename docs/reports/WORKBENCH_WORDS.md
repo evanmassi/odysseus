@@ -201,6 +201,9 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
      Total cells and Live cells. "Cell conc." and "Cell concentration" are now accepted spellings
      of Total cell conc. ("Count" stays a former one), and "Total count" / "Live count" are
      accepted spellings of Total cells / Live cells, so old references follow.
+     **Revised 2026-11-22:** "Total count" and "Live count" were cell counter readings in cells/mL,
+     so they are accepted spellings of Total cell conc. and Live cell conc., and old files move them
+     there (Evan, on his stim assay file).
    - **3e. Built and committed 2026-11-21: the display features.**
      - "/well" (or "/tube" and so on) after a per-well number in Values cells and rows,
        Calculations workings, answers and worked-out tables (`withPerVessel`, keyed by the name,

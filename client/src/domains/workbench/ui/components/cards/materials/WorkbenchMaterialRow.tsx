@@ -203,7 +203,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   donorTargets,
 }: WorkbenchMaterialRowProps) {
   const donorChoices = donorTargets.filter(target => target.value !== item.id);
-  const canBeDonor = donorChoices.length > 0 && !item.sources?.rows.length;
+  const canBeDonor = donorChoices.length > 0 && !item.donors?.rows.length;
   const rowRef = useRef<HTMLTableRowElement>(null);
   const fields = materialFields(item);
   const workedCounts = workedCountsByKey(item.values);
@@ -378,7 +378,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
           (!diluentUse && <span className={`italic ${MATERIAL_WARNING_TEXT}`}>Not used</span>)}
       </td>
       <td className={MATERIAL_ACTIONS_CELL}>
-        {item.group === BIO_GROUP && !item.sources && (
+        {item.group === BIO_GROUP && !item.donors && (
           <Tooltip content="List the donors this material came from, one row each">
             <Button
               variant="ghost"

@@ -20,7 +20,7 @@ import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
 
 function protocolWithValues(): Protocol {
   const protocol = blankProtocol();
-  for (const card of protocol.blocks) {
+  for (const card of protocol.cards) {
     if (card.type === 'materials') {
       card.items = [
         {
@@ -28,12 +28,12 @@ function protocolWithValues(): Protocol {
           group: 'bio',
           type: 'Cell line',
           name: 'HeLa',
-          shownFields: ['count'],
+          shownFields: ['total-cell-conc'],
           values: { count: '1e6' },
           units: {},
           customFields: [],
           fieldLabels: {},
-          isDropped: false,
+          isSetAside: false,
           recipe: [],
         },
       ];
@@ -43,7 +43,7 @@ function protocolWithValues(): Protocol {
 }
 
 const valuesOf = (protocol: Protocol) =>
-  protocol.blocks.find((card): card is ValuesCard => card.type === 'values');
+  protocol.cards.find((card): card is ValuesCard => card.type === 'values');
 
 describe('value edits', () => {
   it('adds typed lines and asks for the number of a single empty one', () => {
@@ -67,7 +67,7 @@ describe('value edits', () => {
       valueRowId = addValueRow(draft, valuesId, 'm1') ?? '';
       itemId = addSuggestedValue(draft, valuesId, valueRowId, {
         kind: 'field',
-        materialField: 'count',
+        materialField: 'total-cell-conc',
         label: 'Count',
       });
       setValueAmount(draft, valuesId, itemId ?? '', '2e6');
@@ -85,7 +85,7 @@ describe('value edits', () => {
 
   it('renames a linked field for every material in its Materials column', () => {
     const before = produce(protocolWithValues(), draft => {
-      const materials = draft.blocks.find(card => card.type === 'materials');
+      const materials = draft.cards.find(card => card.type === 'materials');
       if (materials?.type !== 'materials') return;
       const [hela] = materials.items;
       materials.items.push(
@@ -98,14 +98,16 @@ describe('value edits', () => {
       const valueRowId = addValueRow(draft, valuesId, 'm1') ?? '';
       const itemId = addSuggestedValue(draft, valuesId, valueRowId, {
         kind: 'field',
-        materialField: 'count',
+        materialField: 'total-cell-conc',
         label: 'Count',
       });
       renameValue(draft, valuesId, itemId ?? '', 'Seeding count');
     });
-    const materials = after.blocks.find(card => card.type === 'materials');
+    const materials = after.cards.find(card => card.type === 'materials');
     const labels =
-      materials?.type === 'materials' ? materials.items.map(item => item.fieldLabels['count']) : [];
+      materials?.type === 'materials'
+        ? materials.items.map(item => item.fieldLabels['total-cell-conc'])
+        : [];
     expect(labels).toEqual(['Seeding count', 'Seeding count', undefined]);
   });
 
@@ -155,14 +157,14 @@ describe('value edits', () => {
       addNamedValue(draft, 'HeLa per well', material, draft.pages[0].id)
     );
     const values = valuesOf(after);
-    expect(values?.sections).toEqual([{ id: expect.any(String), materialId: 'm1' }]);
+    expect(values?.rows).toEqual([{ id: expect.any(String), materialId: 'm1' }]);
     expect(values?.items).toEqual([
       {
         id: expect.any(String),
         name: 'Per well',
         value: '',
         unit: '',
-        section: values?.sections[0].id,
+        row: values?.rows[0].id,
       },
     ]);
   });

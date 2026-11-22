@@ -4,9 +4,9 @@ import { copyWells, keysInRect, movedPoint, pasteTargets } from './wellSelection
 import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 const card = {
-  plates: [{ id: 'p', vessel: '6', name: '' }],
-  sets: [],
-  cells: { 'p:A1': { drug: { valueId: 'x' } }, 'p:A2': { drug: { valueId: 'y' } } },
+  plates: [{ id: 'p', labware: '6', name: '' }],
+  otherLabware: [],
+  samples: { 'p:A1': { drug: { valueId: 'x' } }, 'p:A2': { drug: { valueId: 'y' } } },
   stain: { 'p:A1': 'full' },
   stainedIn: {},
 } as unknown as PlateMapCard;

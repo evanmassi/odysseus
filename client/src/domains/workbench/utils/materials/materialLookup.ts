@@ -40,13 +40,13 @@ export const findMaterial = (
   findNamed(materials, name, item => item.name) ??
   findNamed(materials.filter(shortNameOf), name, shortNameOf);
 
-export const listedMaterials = (protocol: Pick<Protocol, 'blocks'>): MaterialItem[] =>
-  protocol.blocks
+export const listedMaterials = (protocol: Pick<Protocol, 'cards'>): MaterialItem[] =>
+  protocol.cards
     .flatMap(card => (card.type === 'materials' ? card.items : []))
-    .filter(item => !item.isDropped && item.name.trim());
+    .filter(item => !item.isSetAside && item.name.trim());
 
 export const materialNamed = (
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   name: string
 ): MaterialItem | undefined => findMaterial(listedMaterials(protocol), name);
 

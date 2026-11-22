@@ -4,7 +4,7 @@ import type { MaterialItem, PlateLine, PlateMapCard } from '@odysseus/shared-sch
 
 const plateMap = (content: Partial<PlateMapCard>): PlateMapCard => ({
   id: 'map',
-  type: 'plate',
+  type: 'plateMap',
   title: 'Vessel map',
   page: 'page',
   x: 0,
@@ -12,13 +12,13 @@ const plateMap = (content: Partial<PlateMapCard>): PlateMapCard => ({
   w: 6,
   h: 6,
   isCollapsed: false,
-  plates: [{ id: 'p1', vessel: '96', name: '' }],
-  sets: [],
+  plates: [{ id: 'p1', labware: '96', name: '' }],
+  otherLabware: [],
   activeTab: 0,
   lines: [],
-  cells: {},
+  samples: {},
   series: {},
-  mergesReplicates: true,
+  showsReplicatesAsOne: true,
   counts: {},
   amountNames: {},
   side: 'assay',
@@ -37,9 +37,9 @@ const line = (id: string, texts: string[], role: PlateLine['role'] = 'auto'): Pl
 describe('plate map counts', () => {
   it('counts each color value across plates and shelves, with typed counts winning', () => {
     const card = plateMap({
-      sets: [{ id: 's1', vessel: 'T75', count: 2 }],
+      otherLabware: [{ id: 's1', labware: 'T75', count: 2 }],
       lines: [line('drug', ['Aspirin', 'Brufen'])],
-      cells: {
+      samples: {
         'p1:A1': { drug: { valueId: 'Aspirin' } },
         'p1:A2': { drug: { valueId: 'Aspirin' } },
         's1#1:1': { drug: { valueId: 'Brufen' } },
@@ -62,7 +62,7 @@ describe('plate amounts', () => {
   it('splits an amount that differs by color value', () => {
     const card = plateMap({
       lines: [line('drug', ['Aspirin', 'Brufen']), line('stim', ['Anti-CD3'])],
-      cells: {
+      samples: {
         'p1:A1': {
           drug: { valueId: 'Aspirin' },
           stim: { valueId: 'Anti-CD3', amount: '1', unit: 'µg/mL' },
@@ -81,8 +81,8 @@ describe('plate amounts', () => {
 
   const twinSeries = (colorValues: [string, string]) =>
     plateMap({
-      lines: [line('cells', ['Jurkat', 'Raji'], 'color'), line('drug', ['Drug X'])],
-      cells: Object.fromEntries(
+      lines: [line('cells', ['Jurkat', 'Raji'], 'fill'), line('drug', ['Drug X'])],
+      samples: Object.fromEntries(
         colorValues.flatMap((cellValue, row) =>
           [0, 1].map(step => [
             `p1:${'AB'[row]}${step + 1}`,
@@ -94,8 +94,8 @@ describe('plate amounts', () => {
         )
       ),
       series: {
-        s1: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
-        s2: { start: '30', unit: 'µM', fold: '3', direction: 'right' },
+        s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+        s2: { top: '30', unit: 'µM', dilutionFactor: '3', direction: 'right' },
       },
     });
 
@@ -116,18 +116,18 @@ describe('twin series on different plates', () => {
   it('are told apart by the plate they sit on', () => {
     const card = plateMap({
       plates: [
-        { id: 'p1', vessel: '96', name: '' },
-        { id: 'p2', vessel: '96', name: 'Copy' },
+        { id: 'p1', labware: '96', name: '' },
+        { id: 'p2', labware: '96', name: 'Copy' },
       ],
       lines: [line('drug', ['Drug X', 'DMSO'])],
-      cells: {
-        'p1:A1': { drug: { valueId: 'Drug X', seriesId: 's1', seriesStep: 0 } },
+      samples: {
+        'p1:A1': { drug: { valueId: 'Drug X', seriesId: 's1', seriesPoint: 0 } },
         'p1:A2': { drug: { valueId: 'DMSO' } },
-        'p2:A1': { drug: { valueId: 'Drug X', seriesId: 's2', seriesStep: 0 } },
+        'p2:A1': { drug: { valueId: 'Drug X', seriesId: 's2', seriesPoint: 0 } },
       },
       series: {
-        s1: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
-        s2: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
+        s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+        s2: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
       },
     });
     const names = plateAmounts(card).map(({ name }) => name);
@@ -140,7 +140,7 @@ describe('material well counts', () => {
   it('count wells by the short name in front of a note in parentheses', () => {
     const card = plateMap({
       lines: [line('stim', ['STX', 'None'])],
-      cells: {
+      samples: {
         'p1:A1': { stim: { valueId: 'STX' } },
         'p1:A2': { stim: { valueId: 'STX' } },
         'p1:A3': { stim: { valueId: 'None' } },
@@ -157,7 +157,7 @@ describe('material well counts', () => {
   it('count wells by the material short name', () => {
     const card = plateMap({
       lines: [line('media', ['ImmunoCult XF'])],
-      cells: { 'p1:A1': { media: { valueId: 'ImmunoCult XF' } } },
+      samples: { 'p1:A1': { media: { valueId: 'ImmunoCult XF' } } },
     });
     const medium = {
       name: 'ImmunoCult™-XF T Cell Expansion Medium',

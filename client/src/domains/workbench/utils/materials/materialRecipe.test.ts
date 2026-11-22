@@ -12,17 +12,17 @@ const material = (id: string, name: string): MaterialItem => ({
   units: {},
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
   recipe: [],
 });
 
 const protocolWith = (items: MaterialItem[]) =>
   ({
-    blocks: [{ id: 'materials', type: 'materials', items, foldedGroups: [] }],
+    cards: [{ id: 'materials', type: 'materials', items, foldedGroups: [] }],
   }) as unknown as Protocol;
 
 const itemsOf = (protocol: Protocol) =>
-  protocol.blocks.flatMap(card => (card.type === 'materials' ? card.items : []));
+  protocol.cards.flatMap(card => (card.type === 'materials' ? card.items : []));
 
 describe('recipes', () => {
   it('adds a typed ingredient, linking a listed material or adding a new one', () => {

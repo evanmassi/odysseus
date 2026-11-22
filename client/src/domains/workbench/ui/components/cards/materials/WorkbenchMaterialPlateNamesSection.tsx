@@ -39,15 +39,15 @@ export function WorkbenchMaterialPlateNamesSection({
   offers,
 }: WorkbenchMaterialPlateNamesSectionProps) {
   const materialCards = useCardsOf('materials');
-  const fileFluors = useWorkbenchStore(state => state.protocol.dyes);
+  const fileFluors = useWorkbenchStore(state => state.protocol.fluors);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
   const swatchOf = usePlateSwatches();
   const known = useMemo(
-    () => materialKnowledge(memory, { blocks: materialCards, dyes: fileFluors }),
+    () => materialKnowledge(memory, { cards: materialCards, fluors: fileFluors }),
     [memory, materialCards, fileFluors]
   );
-  const materialsOnly = useMemo(() => ({ blocks: materialCards }), [materialCards]);
+  const materialsOnly = useMemo(() => ({ cards: materialCards }), [materialCards]);
   const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);
   const materialChoices = useMemo(
     () =>
@@ -76,14 +76,14 @@ export function WorkbenchMaterialPlateNamesSection({
         item,
         added.map(offer => offer.name),
         startingDonorFieldsOf(memory, item.group),
-        memory.sourceFields
+        memory.donorFields
       );
     });
   const onLink = (offer: PlateNameOffer, materialId: string) =>
     updateProtocol(draft => linkPlateName(draft, offer.name, materialId));
   const onIgnore = (offer: PlateNameOffer) =>
     updateProtocol(draft => {
-      draft.ignoredReadings.push(offer.key);
+      draft.ignoredSuggestions.push(offer.key);
     });
 
   return (

@@ -17,7 +17,7 @@ import {
 const plateMap = (content: Partial<PlateMapCard> = {}) =>
   ({
     lines: [],
-    cells: {},
+    samples: {},
     series: {},
     counts: {},
     amountNames: {},
@@ -40,7 +40,7 @@ describe('editing wells', () => {
     );
     expect(card.lines).toHaveLength(1);
     expect(card.lines[0].values).toEqual([{ id: expect.any(String), text: 'Aspirin' }]);
-    expect(Object.keys(card.cells)).toEqual(['p:A1', 'p:A2']);
+    expect(Object.keys(card.samples)).toEqual(['p:A1', 'p:A2']);
   });
 
   it('renames a value held only by the selected wells, so it keeps its color while typing', () => {
@@ -69,16 +69,16 @@ describe('editing wells', () => {
     const lineId = card.lines[0].id;
     edit(card, draft => setWellsText(draft, ['p:A3'], lineId, ' ASPIRIN'));
     expect(card.lines[0].values).toHaveLength(1);
-    expect(card.cells['p:A3'][lineId].valueId).toBe(card.lines[0].values[0].id);
+    expect(card.samples['p:A3'][lineId].valueId).toBe(card.lines[0].values[0].id);
   });
 
   it('keeps a chosen unit before an amount is typed, and clears amounts from a series', () => {
     const card = edit(plateMap(), draft => setWellsUnit(draft, ['p:A1'], undefined, 'µM'));
     const lineId = card.lines[0].id;
-    expect(card.cells['p:A1'][lineId]).toEqual({ unit: 'µM' });
-    card.cells['p:A1'][lineId] = { seriesId: 's', seriesStep: 1, unit: 'µM' };
+    expect(card.samples['p:A1'][lineId]).toEqual({ unit: 'µM' });
+    card.samples['p:A1'][lineId] = { seriesId: 's', seriesPoint: 1, unit: 'µM' };
     edit(card, draft => setWellsAmount(draft, ['p:A1'], lineId, '10'));
-    expect(card.cells['p:A1'][lineId]).toEqual({ amount: '10', unit: 'µM' });
+    expect(card.samples['p:A1'][lineId]).toEqual({ amount: '10', unit: 'µM' });
   });
 
   it('reads shared and mixed contents for the editor rows', () => {
@@ -95,7 +95,7 @@ describe('editing wells', () => {
     const card = edit(plateMap(), draft => setWellsText(draft, ['p:A1'], undefined, 'Aspirin'));
     edit(card, draft => removeLineFromWells(draft, ['p:A1'], card.lines[0].id));
     expect(card.lines).toEqual([]);
-    expect(card.cells).toEqual({});
+    expect(card.samples).toEqual({});
   });
 });
 
@@ -103,11 +103,11 @@ describe('names shared across the selection', () => {
   const twoPlates = () =>
     plateMap({
       plates: [
-        { id: 'p1', vessel: '384', name: 'P1 - Flat bottom' },
-        { id: 'p2', vessel: '384', name: 'P2 - V-bottom' },
+        { id: 'p1', labware: '384', name: 'P1 - Flat bottom' },
+        { id: 'p2', labware: '384', name: 'P2 - V-bottom' },
       ],
       lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'v', text: 'STX' }] }],
-      cells: {
+      samples: {
         'p1:A1': { l: { valueId: 'v' } },
         'p1:A2': { l: { valueId: 'v' } },
         'p2:A1': { l: { valueId: 'v' } },
@@ -152,7 +152,7 @@ describe('one line per name', () => {
     const card = edit(
       plateMap({
         lines: [1, 2, 3, 4, 5].map(donorLine),
-        cells: Object.fromEntries(
+        samples: Object.fromEntries(
           [1, 2, 3, 4, 5].map(index => [`p:A${index}`, { [`d${index}`]: { valueId: `v${index}` } }])
         ),
       }),
@@ -167,7 +167,7 @@ describe('one line per name', () => {
       'Donor 4',
       'Donor 5',
     ]);
-    expect(card.cells['p:A5']).toEqual({ d1: { valueId: 'v5' } });
+    expect(card.samples['p:A5']).toEqual({ d1: { valueId: 'v5' } });
   });
 
   it('keeps same-named lines apart when a well holds both, and never merges unnamed lines', () => {
@@ -179,7 +179,7 @@ describe('one line per name', () => {
           { id: 'u1', name: '', role: 'auto', values: [{ id: 'x', text: 'Heat' }] },
           { id: 'u2', name: '', role: 'auto', values: [{ id: 'y', text: 'Cold' }] },
         ],
-        cells: {
+        samples: {
           'p:A1': { d1: { valueId: 'v1' }, d2: { valueId: 'v2' } },
           'p:A2': { u1: { valueId: 'x' } },
           'p:A3': { u2: { valueId: 'y' } },
@@ -203,7 +203,7 @@ describe('putting wells on another line', () => {
           values: [{ id: 'none', text: 'Unstimulated', color: '#7d8494' }],
         },
       ],
-      cells: {
+      samples: {
         'p:B1': { s: { valueId: 'lps', amount: '10', unit: 'ng/mL' } },
         'p:N1': { n: { valueId: 'none', amount: '2', unit: 'µL' } },
         'p:O1': { n: { valueId: 'none', amount: '2', unit: 'µL' } },
@@ -216,7 +216,7 @@ describe('putting wells on another line', () => {
     expect(card.lines.map(line => line.name)).toEqual(['Stimulations']);
     const unstimulated = card.lines[0].values.find(value => value.text === 'Unstimulated');
     expect(unstimulated?.color).toBe('#7d8494');
-    expect(card.cells['p:N1']).toEqual({
+    expect(card.samples['p:N1']).toEqual({
       s: { valueId: unstimulated?.id, amount: '2', unit: 'µL' },
     });
     expect(card.amountNames).toEqual({ 'a:s:unstimulated-perwell': 'Medium per well' });
@@ -224,7 +224,7 @@ describe('putting wells on another line', () => {
 
   it('leaves the amount name behind while other wells still hold the label there', () => {
     const card = stimulated();
-    card.cells['p:O1']['s'] = { valueId: 'lps' };
+    card.samples['p:O1']['s'] = { valueId: 'lps' };
     edit(card, draft => moveWellsToLine(draft, ['p:N1'], 'n', 's'));
     expect(card.lines).toHaveLength(2);
     expect(card.amountNames).toEqual({ 'a:n:unstimulated-perwell': 'Medium per well' });

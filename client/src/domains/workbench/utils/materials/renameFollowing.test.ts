@@ -22,7 +22,7 @@ const P2_WELLS = ['p2:A1', 'p2:A2'];
 
 function twoPlateProtocol(materialName = STIM_NAME): Protocol {
   return produce(blankProtocol(), draft => {
-    const materials = draft.blocks.find(card => card.type === 'materials');
+    const materials = draft.cards.find(card => card.type === 'materials');
     if (materials?.type === 'materials') {
       materials.items.push({
         id: 'stim',
@@ -34,27 +34,27 @@ function twoPlateProtocol(materialName = STIM_NAME): Protocol {
         units: {},
         customFields: [],
         fieldLabels: {},
-        isDropped: false,
+        isSetAside: false,
         recipe: [],
       });
     }
-    const map = createCard('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
-    if (map.type !== 'plate') return;
+    const map = createCard('plateMap', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
+    if (map.type !== 'plateMap') return;
     map.id = 'map';
     map.plates = [
-      { id: 'p1', vessel: '384', name: 'P1 - Flat bottom' },
-      { id: 'p2', vessel: '384', name: 'P2 - V-bottom' },
+      { id: 'p1', labware: '384', name: 'P1 - Flat bottom' },
+      { id: 'p2', labware: '384', name: 'P2 - V-bottom' },
     ];
     map.lines = [{ id: 'line', name: '', role: 'band', values: [{ id: 'stx', text: 'STX' }] }];
-    map.cells = Object.fromEntries(
+    map.samples = Object.fromEntries(
       [...P1_WELLS, ...P2_WELLS].map(key => [key, { line: { valueId: 'stx' } }])
     );
-    draft.blocks.push(map);
+    draft.cards.push(map);
   });
 }
 
 const mapOf = (protocol: Protocol) =>
-  protocol.blocks.find((card): card is PlateMapCard => card.id === 'map')!;
+  protocol.cards.find((card): card is PlateMapCard => card.id === 'map')!;
 const stimName = (protocol: Protocol) =>
   listedMaterials(protocol).find(item => item.id === 'stim')?.name;
 const plateTexts = (protocol: Protocol) => mapOf(protocol).lines[0].values.map(value => value.text);
@@ -67,7 +67,7 @@ const withDonor = (protocol: Protocol, name: string) =>
     const item = listedMaterials(draft).find(candidate => candidate.id === 'stim');
     if (!item) return;
     startDonors(item, [], []);
-    item.sources?.rows.push({ id: name, name, values: {}, units: {} });
+    item.donors?.rows.push({ id: name, name, values: {}, units: {} });
   });
 const typeIntoWells = (protocol: Protocol, keys: string[], text: string) =>
   produce(protocol, draft => setWellsText(mapOf(draft), keys, 'line', text));

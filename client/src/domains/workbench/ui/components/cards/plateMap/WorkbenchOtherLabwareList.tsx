@@ -56,8 +56,8 @@ export function WorkbenchOtherLabwareList({
   const actions = useWellPointerActions(sheet, selection, onOpenWell, onOpenMenu);
   const labwareRowViews = useMemo(
     () =>
-      card.sets.map((set, row) => {
-        const labware = OTHER_LABWARE[set.vessel];
+      card.otherLabware.map((set, row) => {
+        const labware = OTHER_LABWARE[set.labware];
         const width = SHAPE_METRICS[labware.shape].width * labware.scale * scale;
         return {
           id: set.id,

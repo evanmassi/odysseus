@@ -19,7 +19,7 @@ const material = (
   units: {},
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
   recipe: [],
 });
 
@@ -28,10 +28,10 @@ function protocolWith(): { protocol: Protocol; card: ValuesCard } {
     id: 'values',
     type: 'values',
     items: [],
-    sections: [{ id: 'mix', mixName: 'Th17 cocktail' }],
+    rows: [{ id: 'mix', mixName: 'Th17 cocktail' }],
   } as unknown as ValuesCard;
   const protocol = {
-    blocks: [
+    cards: [
       {
         id: 'materials',
         type: 'materials',
@@ -91,7 +91,7 @@ describe('routing a typed value', () => {
 
   it('fills in a field the material has instead of making a second value', () => {
     expect(routed('Raji count 1e6 cells/mL')).toMatchObject({
-      destination: { kind: 'field', materialId: 'raji', field: { key: 'count' } },
+      destination: { kind: 'field', materialId: 'raji', field: { key: 'total-cell-conc' } },
     });
   });
 
@@ -127,7 +127,7 @@ describe('adding routed values', () => {
       const value = routeValueLine(protocol, card, text);
       if (value) addRoutedValue(protocol, 'values', value);
     }
-    const rajiRows = card.sections.filter(
+    const rajiRows = card.rows.filter(
       valueRow => 'materialId' in valueRow && valueRow.materialId === 'raji'
     );
     expect(rajiRows).toHaveLength(1);
@@ -143,10 +143,10 @@ describe('adding routed values', () => {
       const value = routeValueLine(protocol, card, text);
       if (value) addRoutedValue(protocol, 'values', value);
     }
-    const [materials] = protocol.blocks;
+    const [materials] = protocol.cards;
     const raji = materials.type === 'materials' ? materials.items[0] : undefined;
-    expect(raji?.values['count']).toBe('2e6');
-    expect(raji?.shownFields).toContain('count');
+    expect(raji?.values['total-cell-conc']).toBe('2e6');
+    expect(raji?.shownFields).toContain('total-cell-conc');
     expect(card.items.filter(item => 'materialField' in item)).toHaveLength(1);
   });
 });

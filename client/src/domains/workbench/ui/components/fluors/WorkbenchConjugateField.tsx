@@ -29,7 +29,7 @@ export function WorkbenchConjugateField({
   onChange,
 }: WorkbenchConjugateFieldProps) {
   const catalog = useFluorCatalog();
-  const memoryFluors = useMaterialMemoryStore(state => state.memory.dyes);
+  const memoryFluors = useMaterialMemoryStore(state => state.memory.fluors);
   const remembered = useMemo(() => Object.values(memoryFluors), [memoryFluors]);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const askToAdd = useFluorAddStore(state => state.askToAdd);

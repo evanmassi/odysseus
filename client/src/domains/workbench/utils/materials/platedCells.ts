@@ -23,13 +23,13 @@ export interface PlatedCells {
   perWell: Set<number>;
 }
 
-export function platedCells(protocol: Pick<Protocol, 'blocks'>): PlatedCells[] {
-  const materials = listedMaterials(protocol).filter(item => !item.isDropped);
+export function platedCells(protocol: Pick<Protocol, 'cards'>): PlatedCells[] {
+  const materials = listedMaterials(protocol).filter(item => !item.isSetAside);
   const matches = donorsIn(protocol);
   const plated = new Map<string, PlatedCells>();
-  const plates = protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate');
+  const plates = protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
   for (const plateMap of plates) {
-    for (const [key, lines] of Object.entries(plateMap.cells)) {
+    for (const [key, lines] of Object.entries(plateMap.samples)) {
       for (const line of plateMap.lines) {
         const text = lineValueOf(line, lines[line.id])?.text.trim();
         const count = text ? cellCount(plateMap, key, line, NO_NAMES) : undefined;

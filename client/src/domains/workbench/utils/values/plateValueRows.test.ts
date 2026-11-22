@@ -5,10 +5,10 @@ import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
 function protocolWithPlate(): Protocol {
   const plateMap = {
     id: 'map',
-    type: 'plate',
+    type: 'plateMap',
     title: 'Assay plate map',
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     lines: [
       {
         id: 'drug',
@@ -21,29 +21,29 @@ function protocolWithPlate(): Protocol {
       },
       { id: 'stim', name: '', role: 'auto', values: [{ id: 'cd3', text: 'Anti-CD3' }] },
     ],
-    cells: {
+    samples: {
       'p:A1': {
-        drug: { valueId: 'x', seriesId: 's', seriesStep: 0 },
+        drug: { valueId: 'x', seriesId: 's', seriesPoint: 0 },
         stim: { valueId: 'cd3', amount: '1', unit: 'µg/mL' },
       },
       'p:A2': {
-        drug: { valueId: 'x', seriesId: 's', seriesStep: 1 },
+        drug: { valueId: 'x', seriesId: 's', seriesPoint: 1 },
         stim: { valueId: 'cd3', amount: '1', unit: 'µg/mL' },
       },
       'p:A3': { drug: { valueId: 'v' }, stim: { valueId: 'cd3', amount: '1', unit: 'µg/mL' } },
     },
-    series: { s: { start: '10', unit: 'µM', fold: '3', direction: 'right' } },
+    series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
     counts: {},
     amountNames: {},
     side: 'assay',
     stain: {},
     stainedIn: {},
   } as unknown as PlateMapCard;
-  return { blocks: [plateMap] } as unknown as Protocol;
+  return { cards: [plateMap] } as unknown as Protocol;
 }
 
 const plateIn = (protocol: Protocol) =>
-  protocol.blocks.find(card => card.type === 'plate') as PlateMapCard;
+  protocol.cards.find(card => card.type === 'plateMap') as PlateMapCard;
 
 const rowNamed = (protocol: Protocol, name: string) =>
   plateValueRows(plateIn(protocol)).find(row => row.name === name)!;
@@ -67,8 +67,8 @@ describe('plate rows', () => {
     setPlateRowValue(protocol, rowNamed(protocol, 'Anti-CD3 final conc.'), '2');
     setPlateRowValue(protocol, rowNamed(protocol, 'Vehicle wells'), '4');
     const plateMap = plateIn(protocol);
-    expect(plateMap.series['s']).toMatchObject({ start: '30' });
-    expect(plateMap.cells['p:A3']['stim']).toMatchObject({ amount: '2' });
+    expect(plateMap.series['s']).toMatchObject({ top: '30' });
+    expect(plateMap.samples['p:A3']['stim']).toMatchObject({ amount: '2' });
     expect(plateMap.counts).toEqual({ v: '4' });
   });
 
@@ -80,8 +80,8 @@ describe('plate rows', () => {
     removePlateRow(protocol, row('Anti-CD3 final conc.'));
     removePlateRow(protocol, row('Drug X dil. factor'));
     const plateMap = plateIn(protocol);
-    expect(plateMap.cells['p:A3']).toEqual({ stim: { valueId: 'cd3' } });
-    expect(plateMap.cells['p:A1']).toEqual({ drug: { valueId: 'x' }, stim: { valueId: 'cd3' } });
+    expect(plateMap.samples['p:A3']).toEqual({ stim: { valueId: 'cd3' } });
+    expect(plateMap.samples['p:A1']).toEqual({ drug: { valueId: 'x' }, stim: { valueId: 'cd3' } });
     expect(plateMap.series).toEqual({});
   });
 });

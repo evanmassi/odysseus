@@ -22,7 +22,7 @@ export function neededForText(neededFor: readonly string[]): string {
 }
 
 export function valueNeeds(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   card: ValuesCard,
   board: SolvedBoard
 ): ValueNeed[] {

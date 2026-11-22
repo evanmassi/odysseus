@@ -11,16 +11,16 @@ const plateWithReplicates = (
   stainedIn: Record<string, string> = {}
 ): PlateMapCard =>
   ({
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     activeTab: 0,
     lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Compound X' }] }],
-    cells: {
+    samples: {
       'p:A1': { drug: { valueId: 'x' } },
       'p:A2': { drug: { valueId: 'x' } },
     },
     series: {},
-    mergesReplicates: true,
+    showsReplicatesAsOne: true,
     counts: {},
     amountNames: {},
     side: 'stain',

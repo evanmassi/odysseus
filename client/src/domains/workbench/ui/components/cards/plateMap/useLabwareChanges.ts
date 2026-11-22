@@ -33,8 +33,8 @@ export function useLabwareChanges(
     const apply = () => updatePlateMap(draft => applyLabware(draft, next));
     const lost = wellsLostTo(card, next);
     const words = wordsForTypes([
-      ...card.plates.map(plate => plate.vessel),
-      ...card.sets.map(set => set.vessel),
+      ...card.plates.map(plate => plate.labware),
+      ...card.otherLabware.map(set => set.labware),
     ]);
     if (!lost) return apply();
     ask({
@@ -61,7 +61,7 @@ export function useLabwareChanges(
       updateProtocol(draft => {
         const copy = duplicateOfTab(card, tab);
         normalizePlateMap(copy);
-        draft.blocks.push(copy);
+        draft.cards.push(copy);
       });
     },
   };

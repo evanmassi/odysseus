@@ -36,7 +36,7 @@ interface NameOrigin {
 
 export type BoardName = NameOrigin &
   (
-    | { kind: 'value'; id: string; name: string; value: string; unit: string; isDropped?: boolean }
+    | { kind: 'value'; id: string; name: string; value: string; unit: string; isSetAside?: boolean }
     | { kind: 'count'; id: string; name: string; count: number }
     | {
         kind: 'item';
@@ -46,13 +46,13 @@ export type BoardName = NameOrigin &
         groupTitle: string;
         hint: string;
         label: string;
-        isDropped?: boolean;
+        isSetAside?: boolean;
       }
     | {
         kind: 'calculation';
         id: string;
         name: string;
-        expr: string;
+        formula: string;
         unit: string;
         problem?: string;
         need?: string;
@@ -148,7 +148,7 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
           name: entry.name,
           text,
           source: 'value',
-          isDropped: !!entry.isDropped,
+          isSetAside: !!entry.isSetAside,
         },
       };
     }
@@ -160,7 +160,7 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
           name: entry.name,
           text: String(entry.count),
           source: 'count',
-          isDropped: false,
+          isSetAside: false,
         },
       };
     }
@@ -183,7 +183,7 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
         name: entry.name,
         text: calculationAnswerText(result),
         source: 'calculation',
-        isDropped: false,
+        isSetAside: false,
       },
     };
   };
@@ -315,10 +315,10 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
           calculation.need ? { missingName: calculation.need } : {}
         );
       }
-      if (!calculation.expr.trim()) {
+      if (!calculation.formula.trim()) {
         result = { status: 'empty', message: 'Type a formula using the names on this board' };
       } else {
-        const tree = parseFormula(calculation.expr, knownNames);
+        const tree = parseFormula(calculation.formula, knownNames);
         const { quantity, working } = run(tree);
         result = {
           status: 'ok',

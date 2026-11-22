@@ -29,9 +29,9 @@ export const dimmedForStain = (color: WellColor | undefined): WellColor | undefi
 export function plateStains(panels: readonly FlowCytometryPanelCard[]): PlateStain[] {
   let colored = 0;
   return panels
-    .flatMap(panel => panel.mixes)
+    .flatMap(panel => panel.stains)
     .map(stain => {
-      const hasStains = stain.rowIds.length > 0 || stain.plus.length > 0;
+      const hasStains = stain.markerIds.length > 0 || stain.plus.length > 0;
       const autoColor = hasStains
         ? STAIN_COLORS[colored++ % STAIN_COLORS.length]
         : EMPTY_STAIN_COLOR;
@@ -63,7 +63,10 @@ export function stainedPlaces(plates: readonly PlateMapCard[]): Map<string, Stai
   for (const card of plates) {
     const tabs = [
       ...card.plates.map(plate => ({ prefix: `${plate.id}:`, name: plateNameOf(card, plate) })),
-      ...card.sets.map(set => ({ prefix: `${set.id}#`, name: otherLabwareTabNameOf(card) })),
+      ...card.otherLabware.map(set => ({
+        prefix: `${set.id}#`,
+        name: otherLabwareTabNameOf(card),
+      })),
     ];
     for (const { prefix, name } of tabs) {
       const counts = new Map<string, number>();

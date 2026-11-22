@@ -36,8 +36,8 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
 }: WorkbenchCardShellProps) {
   const updateCard = useUpdateCard(card);
   const shownCard = useWorkbenchStore(state =>
-    card.type === 'plateView'
-      ? state.protocol.blocks.find(candidate => candidate.id === card.shows)
+    card.type === 'linkedPlateMap'
+      ? state.protocol.cards.find(candidate => candidate.id === card.shows)
       : undefined
   );
   const titled = shownCard ?? card;
@@ -54,8 +54,8 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
   const HeaderControls = CARD_HEADER_CONTROLS[card.type] as
     | ComponentType<{ card: ProtocolCard }>
     | undefined;
-  const automaticTitle = titled.type === 'plate' ? labwareKinds(titled) : cardType.label;
-  const shownTitle = titled.type === 'plate' ? labwareTitle(titled) : titled.title;
+  const automaticTitle = titled.type === 'plateMap' ? labwareKinds(titled) : cardType.label;
+  const shownTitle = titled.type === 'plateMap' ? labwareTitle(titled) : titled.title;
   const hasOwnTitle = shownTitle.trim().toLowerCase() !== automaticTitle.toLowerCase();
 
   const toggleFold = () =>

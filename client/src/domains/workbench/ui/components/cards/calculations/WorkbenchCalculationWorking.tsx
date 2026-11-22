@@ -44,7 +44,7 @@ interface WorkingViewProps {
 function TermStack({ node, shortName, linkFor }: WorkingViewProps) {
   if (node.kind !== 'ref' && node.kind !== 'literal') return null;
   const isRef = node.kind === 'ref';
-  const stackClass = `inline-flex flex-col items-center ${isRef && node.isDropped ? 'line-through' : ''}`;
+  const stackClass = `inline-flex flex-col items-center ${isRef && node.isSetAside ? 'line-through' : ''}`;
   const content = (
     <>
       <span className={TERM_LABEL}>{isRef ? shortName(node.name) : BLANK_LABEL}</span>

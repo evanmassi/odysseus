@@ -2,19 +2,19 @@ import { stainedPlaces, stainedWellCounts, plateStains, stainWells } from './sta
 
 import type { FlowCytometryPanelCard, PlateMapCard } from '@odysseus/shared-schemas';
 
-const panel = (stains: FlowCytometryPanelCard['mixes']) =>
-  ({ mixes: stains }) as FlowCytometryPanelCard;
+const panel = (stains: FlowCytometryPanelCard['stains']) =>
+  ({ stains: stains }) as FlowCytometryPanelCard;
 const plate = (stain: Record<string, string>) => ({ stain }) as PlateMapCard;
 
 describe('plate stains', () => {
   it('colors stains with markers in turn and a stain with none grey, across panels', () => {
     const stains = plateStains([
       panel([
-        { id: 'full', name: 'Full Stain', rowIds: ['cd3'], plus: [] },
-        { id: 'none', name: 'Unstained', rowIds: [], plus: [] },
+        { id: 'full', name: 'Full Stain', markerIds: ['cd3'], plus: [] },
+        { id: 'none', name: 'Unstained', markerIds: [], plus: [] },
       ]),
       panel([
-        { id: 'fmo', name: ' ', rowIds: [], plus: [{ id: 'p', materialId: 'm', stain: '' }] },
+        { id: 'fmo', name: ' ', markerIds: [], plus: [{ id: 'p', materialId: 'm', staining: '' }] },
       ]),
     ]);
     expect(stains.map(stain => stain.name)).toEqual(['Full Stain', 'Unstained', 'Unnamed stain']);
@@ -25,8 +25,8 @@ describe('plate stains', () => {
   it('keeps a color picked for a stain, the others keeping their turn in the palette', () => {
     const stains = plateStains([
       panel([
-        { id: 'full', name: 'Full Stain', color: '#d97a7a', rowIds: ['cd3'], plus: [] },
-        { id: 'fmo', name: 'FMO', rowIds: ['cd4'], plus: [] },
+        { id: 'full', name: 'Full Stain', color: '#d97a7a', markerIds: ['cd3'], plus: [] },
+        { id: 'fmo', name: 'FMO', markerIds: ['cd4'], plus: [] },
       ]),
     ]);
     expect(stains.map(stain => stain.color)).toEqual(['#d97a7a', '#5cc8bd']);
@@ -49,10 +49,10 @@ describe('stained wells', () => {
     const card = {
       id: 'map',
       plates: [
-        { id: 'p', vessel: '96', name: 'P1' },
-        { id: 'q', vessel: '96', name: '' },
+        { id: 'p', labware: '96', name: 'P1' },
+        { id: 'q', labware: '96', name: '' },
       ],
-      sets: [{ id: 's', vessel: 'facs', count: 4 }],
+      otherLabware: [{ id: 's', labware: 'facs', count: 4 }],
       stain: { 'p:A1': 'full', 'p:A2': 'full', 'q:B1': 'full', 's#0:1': 'full', 's#1:1': 'fmo' },
       stainedIn: {},
     } as unknown as PlateMapCard;

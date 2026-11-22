@@ -21,7 +21,7 @@ const DOSES = ['100 nM', '10 nM'];
 const DONORS = ['Donor 1', 'Donor 2'];
 
 function assayPlate(stain: Record<string, string> = {}): PlateMapCard {
-  const cells: PlateMapCard['cells'] = {};
+  const cells: PlateMapCard['samples'] = {};
   DONORS.forEach((_, row) => {
     for (let col = 0; col < 6; col++) {
       cells[`p:${'AB'[row]}${col + 1}`] = {
@@ -31,8 +31,8 @@ function assayPlate(stain: Record<string, string> = {}): PlateMapCard {
     }
   });
   return {
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     activeTab: 0,
     lines: [
       {
@@ -48,9 +48,9 @@ function assayPlate(stain: Record<string, string> = {}): PlateMapCard {
         values: DONORS.map((text, index) => ({ id: `donor${index}`, text })),
       },
     ],
-    cells,
+    samples: cells,
     series: {},
-    mergesReplicates: true,
+    showsReplicatesAsOne: true,
     counts: {},
     amountNames: {},
     side: 'stain',

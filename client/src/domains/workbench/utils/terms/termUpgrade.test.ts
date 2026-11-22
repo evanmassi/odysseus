@@ -4,7 +4,7 @@ import type { CalculationsCard, Protocol, ValuesCard } from '@odysseus/shared-sc
 
 type ValueItem = { id: string; name: string; value: string; unit: string };
 
-function protocolWith(values: ValueItem[], exprs: string[], stepText = ''): Protocol {
+function protocolWith(values: ValueItem[], formulas: string[], stepText = ''): Protocol {
   return {
     pages: [
       {
@@ -15,16 +15,16 @@ function protocolWith(values: ValueItem[], exprs: string[], stepText = ''): Prot
           : [],
       },
     ],
-    blocks: [
-      { id: 'values', type: 'values', page: 'page', sections: [], items: values },
+    cards: [
+      { id: 'values', type: 'values', page: 'page', rows: [], items: values },
       {
         id: 'formulas',
-        type: 'formula',
+        type: 'calculations',
         page: 'page',
-        items: exprs.map((expr, index) => ({
+        items: formulas.map((expr, index) => ({
           id: `f${index}`,
           name: `Result ${index}`,
-          expr,
+          formula: expr,
           unit: '',
         })),
         materialSections: [],
@@ -33,14 +33,14 @@ function protocolWith(values: ValueItem[], exprs: string[], stepText = ''): Prot
   } as unknown as Protocol;
 }
 
-const cardOf = <T extends Protocol['blocks'][number]['type']>(protocol: Protocol, type: T) =>
-  protocol.blocks.find(card => card.type === type);
+const cardOf = <T extends Protocol['cards'][number]['type']>(protocol: Protocol, type: T) =>
+  protocol.cards.find(card => card.type === type);
 
 const valueNames = (protocol: Protocol) =>
   (cardOf(protocol, 'values') as ValuesCard).items.map(item => ('name' in item ? item.name : ''));
 
-const exprs = (protocol: Protocol) =>
-  (cardOf(protocol, 'formula') as CalculationsCard).items.map(item => item.expr);
+const formulas = (protocol: Protocol) =>
+  (cardOf(protocol, 'calculations') as CalculationsCard).items.map(item => item.formula);
 
 describe('settling the words of an opened file', () => {
   it('files a typed value under the standard word and follows it in calculations and steps', () => {
@@ -52,7 +52,7 @@ describe('settling the words of an opened file', () => {
       )
     );
     expect(valueNames(upgraded)).toEqual(['Extra (dead vol.)']);
-    expect(exprs(upgraded)).toEqual(['Extra (dead vol.) × 2']);
+    expect(formulas(upgraded)).toEqual(['Extra (dead vol.) × 2']);
     expect(upgraded.pages[0].steps[0].text).toBe('Add {Extra (dead vol.)} on top.');
   });
 
@@ -64,7 +64,7 @@ describe('settling the words of an opened file', () => {
         'Plate at {Raji plating concentration}.'
       )
     );
-    expect(exprs(upgraded)).toEqual(['Raji plating conc. × 2']);
+    expect(formulas(upgraded)).toEqual(['Raji plating conc. × 2']);
     expect(upgraded.pages[0].steps[0].text).toBe('Plate at {Raji plating conc.}.');
   });
 
@@ -73,7 +73,7 @@ describe('settling the words of an opened file', () => {
       protocolWith([{ id: 'o', name: 'Overage', value: '10', unit: '%' }], ['1 + Overage'])
     );
     expect(withSettledWords(once)).toEqual(once);
-    expect(exprs(once)).toEqual(['1 + Extra (dead vol.)']);
+    expect(formulas(once)).toEqual(['1 + Extra (dead vol.)']);
   });
 
   it('points an old name at the name that now carries the standard word', () => {
@@ -83,7 +83,7 @@ describe('settling the words of an opened file', () => {
         ['Drug volume per well × 3']
       )
     );
-    expect(exprs(upgraded)).toEqual(['Drug vol./well × 3']);
+    expect(formulas(upgraded)).toEqual(['Drug vol./well × 3']);
   });
 
   it('renames a generated name that the list only knows as a former one', () => {
@@ -93,7 +93,7 @@ describe('settling the words of an opened file', () => {
         ['Drug X fold × 2']
       )
     );
-    expect(exprs(upgraded)).toEqual(['Drug X dil. factor × 2']);
+    expect(formulas(upgraded)).toEqual(['Drug X dil. factor × 2']);
   });
 
   it('leaves a value with no unit, and a reference that is still a real name, as they were', () => {
@@ -107,6 +107,6 @@ describe('settling the words of an opened file', () => {
     );
     const upgraded = withSettledWords(protocol);
     expect(valueNames(upgraded)).toEqual(['Well volume', 'Raji needed', 'Raji total needed']);
-    expect(exprs(upgraded)).toEqual(['Raji needed + Well volume']);
+    expect(formulas(upgraded)).toEqual(['Raji needed + Well volume']);
   });
 });

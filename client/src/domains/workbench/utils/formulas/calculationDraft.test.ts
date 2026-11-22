@@ -16,7 +16,13 @@ const value = (name: string, amount: string, unit = ''): BoardName => ({
 const board = calculateBoard([
   value('Raji per well', '10000', 'cells'),
   value('Wells used', '96'),
-  { kind: 'calculation', id: 'total', name: 'Total volume', expr: 'Wells used × 50 µL', unit: '' },
+  {
+    kind: 'calculation',
+    id: 'total',
+    name: 'Total volume',
+    formula: 'Wells used × 50 µL',
+    unit: '',
+  },
 ]);
 
 const draft = (text: string) => readCalculationDraft(text, board, [raji]);
@@ -26,7 +32,7 @@ describe('a typed calculation', () => {
     expect(draft('Raji cells needed = per well × Wells used')).toMatchObject({
       name: 'Raji cells needed',
       savedName: 'Raji cells needed',
-      expr: 'Raji per well × Wells used',
+      formula: 'Raji per well × Wells used',
       material: raji,
     });
     expect(draft('Plate count')?.material).toBeUndefined();

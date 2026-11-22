@@ -23,7 +23,7 @@ const board = calculateBoard([
     kind: 'calculation',
     id: 'f1',
     name: 'Drug X stock to take',
-    expr: '2 µL',
+    formula: '2 µL',
     unit: '',
     workedOut: {
       key: 'run',

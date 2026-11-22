@@ -39,3 +39,4 @@ export {
 export { withGreekLetters } from './greekLetters';
 export { normalizeMaterialKey } from './materialKey';
 export { protocolFileInputSchema } from './legacyProtocolSchemas';
+export { renamedFieldKey } from './savedWordsUpgrade';

@@ -124,7 +124,7 @@ function linksOf(
   );
 }
 
-function prepWarnings(protocol: Pick<Protocol, 'blocks'>, board: SolvedBoard) {
+function prepWarnings(protocol: Pick<Protocol, 'cards'>, board: SolvedBoard) {
   const byLine = new Map<string, string[]>();
   for (const run of dilutionRuns(protocol)) {
     const prep = dilutionPrep(run, protocol, board, '');
@@ -138,7 +138,7 @@ function prepWarnings(protocol: Pick<Protocol, 'blocks'>, board: SolvedBoard) {
 }
 
 export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelProps) {
-  const protocol = useProtocolWith('materials', 'plate', 'formula', 'dilutions');
+  const protocol = useProtocolWith('materials', 'plateMap', 'calculations', 'dilutions');
   const board = useWorkbenchStore(state => state.board);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -156,15 +156,15 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
 
   const materials = useMemo(
     () =>
-      protocol.blocks
+      protocol.cards
         .flatMap(candidate => (candidate.type === 'materials' ? candidate.items : []))
         .filter(item => item.name.trim()),
     [protocol]
   );
   const swatchOf = usePlateSwatches();
-  const generalTitle = generalTitleOf(protocol.blocks);
+  const generalTitle = generalTitleOf(protocol.cards);
   const showsWorkedOut =
-    protocol.blocks.find(candidate => candidate.type === 'formula')?.id === card.id;
+    protocol.cards.find(candidate => candidate.type === 'calculations')?.id === card.id;
   const sections = useMemo(
     () => calculationSections(card, materials, board, showsWorkedOut, generalTitle),
     [card, materials, board, showsWorkedOut, generalTitle]
@@ -193,7 +193,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
   const workedOut = useStructuralSharing(
     useMemo(() => {
       const settingsOf = (cardId: string | undefined): WorkedOutSettings | undefined => {
-        const settingsCard = protocol.blocks.find(candidate => candidate.id === cardId);
+        const settingsCard = protocol.cards.find(candidate => candidate.id === cardId);
         const label = settingsCard && SETTINGS_LABELS[settingsCard.type];
         return settingsCard && label ? { label, cardId: settingsCard.id } : undefined;
       };
@@ -251,7 +251,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
       added = insertCalculation(
         draft,
         card.id,
-        { name, expr },
+        { name, formula: expr },
         item => sectionOf(item.name),
         material?.id ?? WHOLE_EXPERIMENT
       );
@@ -276,13 +276,13 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
 
   const addTyped = () => {
     if (!typedDraft) return;
-    const { savedName, expr, material } = typedDraft;
+    const { savedName, formula: expr, material } = typedDraft;
     let added: string | undefined;
     edit(draft => {
       added = insertCalculation(
         draft,
         card.id,
-        { name: savedName, expr },
+        { name: savedName, formula: expr },
         item => sectionOf(item.name),
         material?.id ?? WHOLE_EXPERIMENT
       );
@@ -296,7 +296,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
       insertCalculation(
         draft,
         card.id,
-        { name: suggestion.name, expr: suggestion.expr },
+        { name: suggestion.name, formula: suggestion.formula },
         item => sectionOf(item.name),
         material?.id ?? WHOLE_EXPERIMENT
       );
@@ -346,7 +346,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
         swatch={swatchOf(section.owner)}
         addPlaceholder={`Add to ${title}`}
         suggestions={material ? calculationSuggestions(board, material) : []}
-        suggestionTitle={suggestion => namesWithin(suggestion.expr, board, material)}
+        suggestionTitle={suggestion => namesWithin(suggestion.formula, board, material)}
         isEmpty={!items.length && !groups.length}
         onAdd={material ? text => addCalculation(material, text) : undefined}
         onSuggest={suggestion => addSuggestion(material, suggestion)}
@@ -413,13 +413,15 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
             {typedCheck?.problem && (
               <span className="text-warning-text"> · {typedCheck.problem}</span>
             )}
-            {!typedDraft.expr && ' · press Enter to write its formula'}
+            {!typedDraft.formula && ' · press Enter to write its formula'}
           </p>
         )}
         {typedDraft?.material && (
           <WorkbenchCalculationSuggestionList
             suggestions={calculationSuggestions(board, typedDraft.material)}
-            suggestionTitle={suggestion => namesWithin(suggestion.expr, board, typedDraft.material)}
+            suggestionTitle={suggestion =>
+              namesWithin(suggestion.formula, board, typedDraft.material)
+            }
             className="flex"
             onSuggest={suggestion => {
               addSuggestion(typedDraft.material, suggestion);
@@ -430,7 +432,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
       </div>
       {isEmpty && (
         <PanelEmptyState
-          icon={CARD_ICONS.formula}
+          icon={CARD_ICONS.calculations}
           message="Add a calculation above"
           description="Name it, or type Name = formula"
         />

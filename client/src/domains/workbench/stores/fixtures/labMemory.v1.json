@@ -1,0 +1,68 @@
+{
+  "knownTypes": {
+    "celllinea": {
+      "group": "bio",
+      "type": "Cell line"
+    }
+  },
+  "materials": {
+    "celllinea": {
+      "group": "bio",
+      "type": "Cell line",
+      "values": {
+        "source": "Supplier A",
+        "total-cell-conc": "1.00E+6"
+      },
+      "units": {},
+      "customFields": [],
+      "shownFields": ["source", "total-cell-conc"]
+    }
+  },
+  "fields": {
+    "chem|Drug or inhibitor": [
+      {
+        "key": "batch-note",
+        "label": "Batch note",
+        "kind": "text",
+        "scope": "protocol",
+        "unit": "",
+        "options": []
+      }
+    ]
+  },
+  "startingFields": {
+    "bio": ["source", "total-cell-conc", "viability"]
+  },
+  "fluors": {
+    "qxfluor512": {
+      "name": "Qx Fluor 512",
+      "lasers": [488],
+      "peak": 512
+    }
+  },
+  "donors": {
+    "d01": {
+      "name": "Donor 1",
+      "material": "PBMC",
+      "values": {
+        "donor-id": "D-01",
+        "total-cell-conc": "1.00E+7",
+        "live-cell-conc": "9.00E+6"
+      },
+      "units": {}
+    }
+  },
+  "donorFields": [
+    {
+      "key": "freeze-note",
+      "label": "Freeze note",
+      "kind": "text",
+      "scope": "protocol",
+      "unit": "",
+      "options": []
+    }
+  ],
+  "startingDonorFields": {
+    "bio": ["donor-id", "viability", "live-cell-conc"]
+  }
+}

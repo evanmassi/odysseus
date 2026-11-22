@@ -7,10 +7,10 @@ import { useWellSelection } from './useWellSelection';
 import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 const card = {
-  plates: [{ id: 'p', vessel: '96', name: '' }],
-  sets: [],
+  plates: [{ id: 'p', labware: '96', name: '' }],
+  otherLabware: [],
   lines: [],
-  cells: {},
+  samples: {},
   series: {},
   counts: {},
   amountNames: {},

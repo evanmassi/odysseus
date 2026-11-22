@@ -10,7 +10,7 @@ export function useShowCard(): (cardId: string) => void {
     (cardId: string) => {
       const card = useWorkbenchStore
         .getState()
-        .protocol.blocks.find(candidate => candidate.id === cardId);
+        .protocol.cards.find(candidate => candidate.id === cardId);
       if (!card) return;
       showPage(card.page);
       requestAnimationFrame(() =>

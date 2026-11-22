@@ -5,6 +5,7 @@ import cytotoxMockup from './fixtures/cytotox.mockup.json';
 import elisaLegacy from './fixtures/elisa.legacy.json';
 import elisaMockup from './fixtures/elisa.mockup.json';
 import everyCardV4 from './fixtures/everyCard.v4.json';
+import everyCardV5 from './fixtures/everyCard.v5.json';
 import { ProtocolFileError, readProtocolFile, writeProtocolFile } from './protocolFile';
 
 import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
@@ -36,8 +37,8 @@ const card = (type: string, fields: Record<string, unknown> = {}) => ({
 });
 
 const plateOf = (protocol: Protocol) => {
-  const plateMap = protocol.blocks.find(candidate => candidate.type === 'plate');
-  if (plateMap?.type !== 'plate') throw new Error('no plate block');
+  const plateMap = protocol.cards.find(candidate => candidate.type === 'plateMap');
+  if (plateMap?.type !== 'plateMap') throw new Error('no plate block');
   return plateMap;
 };
 
@@ -105,7 +106,7 @@ describe('upgrading older files', () => {
         steps: [{ id: 's1', kind: 'step', level: 1, text: 'Thaw', isMeanwhile: false }],
       },
     ]);
-    expect(protocol.blocks[0].page).toBe(protocol.pages[0].id);
+    expect(protocol.cards[0].page).toBe(protocol.pages[0].id);
   });
 
   it('gives a file with no pages a Setup page instead of failing', () => {
@@ -134,7 +135,7 @@ describe('upgrading older files', () => {
         ],
       })
     );
-    const materials = protocol.blocks[0];
+    const materials = protocol.cards[0];
     if (materials.type !== 'materials') throw new Error('no materials');
     expect(materials.items[0]).toMatchObject({
       shownFields: ['stock-concentration', 'final-concentration'],
@@ -150,7 +151,7 @@ describe('upgrading older files', () => {
         blocks: [card('values', { items: [{ id: 'v1', name: 'Fold', value: '4', unit: 'x' }] })],
       })
     );
-    expect(protocol.blocks[0]).toMatchObject({ items: [{ unit: 'X' }] });
+    expect(protocol.cards[0]).toMatchObject({ items: [{ unit: 'X' }] });
   });
 
   it('splits an old single-plate card into named plates with their own well keys', () => {
@@ -171,13 +172,15 @@ describe('upgrading older files', () => {
     );
     const plateMap = plateOf(protocol);
     expect(plateMap.plates.map(({ name }) => name)).toEqual(['Day 1', '']);
-    expect(Object.keys(plateMap.cells)).toEqual([
+    expect(Object.keys(plateMap.samples)).toEqual([
       `${plateMap.plates[0].id}:A1`,
       `${plateMap.plates[1].id}:B2`,
     ]);
     const [aspirin] = plateMap.lines[0].values;
     expect(aspirin.text).toBe('Aspirin');
-    expect(plateMap.cells[`${plateMap.plates[0].id}:A1`]).toEqual({ f1: { valueId: aspirin.id } });
+    expect(plateMap.samples[`${plateMap.plates[0].id}:A1`]).toEqual({
+      f1: { valueId: aspirin.id },
+    });
   });
 
   it('turns an old flask card into other labware with its own keys', () => {
@@ -196,8 +199,8 @@ describe('upgrading older files', () => {
       )
     );
     expect(plateMap.plates).toEqual([]);
-    expect(plateMap.sets).toEqual([{ id: expect.any(String), vessel: 'T75', count: 3 }]);
-    expect(Object.keys(plateMap.cells)).toEqual([`${plateMap.sets[0].id}#2:1`]);
+    expect(plateMap.otherLabware).toEqual([{ id: expect.any(String), labware: 'T75', count: 3 }]);
+    expect(Object.keys(plateMap.samples)).toEqual([`${plateMap.otherLabware[0].id}#2:1`]);
   });
 
   it('drops sample entries the mockup would have crashed on', () => {
@@ -218,7 +221,7 @@ describe('upgrading older files', () => {
         })
       )
     );
-    expect(plateMap.cells).toEqual({
+    expect(plateMap.samples).toEqual({
       'p1:A2': { f1: { valueId: 'v1', amount: '5', unit: 'X' } },
     });
   });
@@ -252,19 +255,19 @@ describe('upgrading older files', () => {
     const drug = plateMap.lines[0];
     expect(drug.role).toBe('band');
     expect(drug.values.map(({ text }) => text)).toEqual(['Drug']);
-    expect(plateMap.cells['p1:A1']['f1']).toEqual({
+    expect(plateMap.samples['p1:A1']['f1']).toEqual({
       valueId: drug.values[0].id,
       seriesId: 's1',
-      seriesStep: 2,
+      seriesPoint: 2,
     });
     expect(plateMap.series['s1']).toEqual({
-      start: '300',
+      top: '300',
       unit: 'nM',
-      fold: '3',
+      dilutionFactor: '3',
       direction: 'right',
       prep: { volumeAdded: '20', roundTo: '5' },
     });
-    expect(plateMap).toMatchObject({ mergesReplicates: false, activeTab: 1 });
+    expect(plateMap).toMatchObject({ showsReplicatesAsOne: false, activeTab: 1 });
   });
 });
 
@@ -389,7 +392,7 @@ describe('retiring painted colors', () => {
       counts: { g2: '3' },
     });
     const drug = plateMap.lines.find(candidate => candidate.id === 'drug');
-    expect(drug?.role).toBe('color');
+    expect(drug?.role).toBe('fill');
     expect(drug?.values.map(({ text, color }) => [text, color])).toEqual([
       ['Compound X', RED],
       ['DMSO', GREEN],
@@ -422,9 +425,9 @@ describe('retiring painted colors', () => {
     });
     const valueId = (text: string) =>
       plateMap.lines[0].values.find(value => value.text === text)?.id;
-    expect(plateMap.cells['p1:A1']).toEqual({ drug: { valueId: 'a', amount: '5', unit: 'µM' } });
-    expect(plateMap.cells['p1:B1']).toEqual({ drug: { valueId: valueId('Standard') } });
-    expect(plateMap.cells['p1:B2']).toEqual({ drug: { valueId: valueId('Color 2') } });
+    expect(plateMap.samples['p1:A1']).toEqual({ drug: { valueId: 'a', amount: '5', unit: 'µM' } });
+    expect(plateMap.samples['p1:B1']).toEqual({ drug: { valueId: valueId('Standard') } });
+    expect(plateMap.samples['p1:B2']).toEqual({ drug: { valueId: valueId('Color 2') } });
     expect(plateMap.lines[0].values.map(({ text, color }) => [text, color])).toEqual([
       ['Aspirin', '#6fa8e8'],
       ['Brufen', '#5cc8bd'],
@@ -442,11 +445,11 @@ describe('retiring painted colors', () => {
       {
         id: expect.any(String),
         name: '',
-        role: 'color',
+        role: 'fill',
         values: [{ id: expect.any(String), text: 'Blank', color: RED }],
       },
     ]);
-    expect(Object.keys(plateMap.cells)).toEqual(['p1:A1', 'p1:A2']);
+    expect(Object.keys(plateMap.samples)).toEqual(['p1:A1', 'p1:A2']);
   });
 
   it('colors unpainted values from the free palette, and neutral ones grey', () => {
@@ -491,7 +494,7 @@ describe('retiring painted colors', () => {
     expect(
       plateMap.lines.map(({ id, name, values }) => [id, name, values.map(v => v.text)])
     ).toEqual([['l1', 'Drug', ['STX', 'Zeta']]]);
-    expect(plateMap.cells['p1:A2']).toEqual({ l1: { valueId: 'h1' } });
+    expect(plateMap.samples['p1:A2']).toEqual({ l1: { valueId: 'h1' } });
     expect(plateMap.amountNames).toEqual({ 'a:l1:zeta-concentration': 'Zeta dose' });
   });
 
@@ -543,13 +546,21 @@ describe('retiring painted colors', () => {
 
 describe('the protocol diluent', () => {
   const versionThree = (diluent: string | undefined) => {
-    const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
+    type SeriesV4 = { prep?: { diluent?: string } };
+    const file = structuredClone(everyCardV4) as unknown as {
+      version: number;
+      protocol: {
+        diluent?: string;
+        blocks: Array<{ type: string; series?: Record<string, SeriesV4> }>;
+      };
+    };
     file.version = 3;
     delete file.protocol.diluent;
-    const plates = file.protocol.blocks.filter((item: { type: string }) => item.type === 'plate');
-    const [series] = plates.flatMap((plate: { series: Record<string, object> }) =>
-      Object.values(plate.series)
-    );
+    const allSeries = file.protocol.blocks
+      .filter(item => item.type === 'plate')
+      .flatMap(plate => Object.values(plate.series ?? {}));
+    for (const each of allSeries) delete each.prep?.diluent;
+    const [series] = allSeries;
     if (diluent !== undefined) series.prep = { ...series.prep, diluent };
     return file;
   };
@@ -569,10 +580,10 @@ describe('the protocol diluent', () => {
 describe('opening a current file', () => {
   it('keeps a card that shows a plate map from another page', () => {
     const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
-    const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');
-    file.protocol.blocks.push({
+    const plate = file.protocol.cards.find((item: { type: string }) => item.type === 'plateMap');
+    file.protocol.cards.push({
       id: 'view',
-      type: 'plateView',
+      type: 'linkedPlateMap',
       title: plate.title,
       page: plate.page,
       x: 0,
@@ -582,35 +593,35 @@ describe('opening a current file', () => {
       shows: plate.id,
       side: 'stain',
     });
-    const view = read(file).blocks.find(card => card.type === 'plateView');
+    const view = read(file).cards.find(card => card.type === 'linkedPlateMap');
     expect(view).toMatchObject({
       shows: plate.id,
       side: 'stain',
       activeTab: 0,
-      mergesReplicates: true,
+      showsReplicatesAsOne: true,
     });
   });
 
   it('moves mix names typed on wells to the Stain side', () => {
     const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
-    const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');
-    file.protocol.blocks.push({
+    const plate = file.protocol.cards.find((item: { type: string }) => item.type === 'plateMap');
+    file.protocol.cards.push({
       id: 'panel',
-      type: 'cytometer',
+      type: 'flowCytometryPanel',
       title: 'Flow panel',
       page: plate.page,
       x: 0,
       y: 0,
       w: 12,
       h: 10,
-      rows: [],
-      mixes: [{ id: 'full', name: 'Full Stain', rowIds: [], plus: [] }],
+      markers: [],
+      stains: [{ id: 'full', name: 'Full Stain', markerIds: [], plus: [] }],
     });
     plate.lines = [
       { id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Compound X' }] },
       { id: 'mix', name: 'Stain', role: 'band', values: [{ id: 'f', text: 'full stain' }] },
     ];
-    plate.cells = {
+    plate.samples = {
       'p:A1': { drug: { valueId: 'x' }, mix: { valueId: 'f' } },
       'p:A2': { drug: { valueId: 'x' } },
     };
@@ -618,19 +629,19 @@ describe('opening a current file', () => {
     const opened = plateOf(read(file));
     expect(opened.stain).toEqual({ 'p:A1': 'full' });
     expect(opened.lines.map(line => line.id)).toEqual(['drug']);
-    expect(Object.keys(opened.cells)).toEqual(['p:A1', 'p:A2']);
+    expect(Object.keys(opened.samples)).toEqual(['p:A1', 'p:A2']);
   });
 
   it('merges plate lines that share a name and no well', () => {
     const file = JSON.parse(writeProtocolFile(read(cytotoxMockup)));
-    const plate = file.protocol.blocks.find((item: { type: string }) => item.type === 'plate');
+    const plate = file.protocol.cards.find((item: { type: string }) => item.type === 'plateMap');
     plate.lines = [1, 2].map(index => ({
       id: `d${index}`,
       name: 'Donors',
       role: 'auto',
       values: [{ id: `v${index}`, text: `Donor ${index}` }],
     }));
-    plate.cells = { 'p:A1': { d1: { valueId: 'v1' } }, 'p:A2': { d2: { valueId: 'v2' } } };
+    plate.samples = { 'p:A1': { d1: { valueId: 'v1' } }, 'p:A2': { d2: { valueId: 'v2' } } };
     plate.series = {};
     const { lines } = plateOf(read(file));
     expect(lines).toHaveLength(1);
@@ -639,7 +650,7 @@ describe('opening a current file', () => {
 });
 
 const cardOf = <Type extends ProtocolCardType>(protocol: Protocol, type: Type) => {
-  const card = protocol.blocks.find(
+  const card = protocol.cards.find(
     (candidate): candidate is Extract<ProtocolCard, { type: Type }> => candidate.type === type
   );
   if (!card) throw new Error(`no ${type} card`);
@@ -655,75 +666,75 @@ function savedFacts(protocol: Protocol) {
   };
   const nameOf = (materialId: string) => materials.items.find(item => item.id === materialId)?.name;
   const values = cardOf(protocol, 'values');
-  const linked = cardOf(protocol, 'plateView');
-  const plateMap = cardOf(protocol, 'plate');
-  const flowCytometryPanel = cardOf(protocol, 'cytometer');
+  const linked = cardOf(protocol, 'linkedPlateMap');
+  const plateMap = cardOf(protocol, 'plateMap');
+  const flowCytometryPanel = cardOf(protocol, 'flowCytometryPanel');
   const stainName = (id: string | undefined) =>
-    flowCytometryPanel.mixes.find(stain => stain.id === id)?.name;
+    flowCytometryPanel.stains.find(stain => stain.id === id)?.name;
   const factorSeries = plateMap.series['series-factor'];
   const listSeries = plateMap.series['series-list'];
   const amountOf = (name: string) =>
     [material(name).values['amount'], material(name).units['amount']].filter(Boolean).join(' ');
   return {
-    cardTypes: protocol.blocks.map(card => card.type).sort(),
+    cardTypes: protocol.cards.map(card => card.type).sort(),
     linkedPlateMap: { page: linked.page, shows: linked.shows, sourcePage: plateMap.page },
-    donorListLabel: material('PBMC').sources?.label,
-    donors: material('PBMC').sources?.rows.map(donor => ({
+    donorListLabel: material('PBMC').donors?.label,
+    donors: material('PBMC').donors?.rows.map(donor => ({
       name: donor.name,
       donorId: donor.values['donor-id'],
       lotVial: donor.values['lot-vial'],
-      totalCells: donor.values['total-count'],
-      liveCells: donor.values['live-count'],
+      totalCellConc: donor.values['total-cell-conc'],
+      liveCellConc: donor.values['live-cell-conc'],
       freezeNote: donor.values['freeze-note'],
     })),
     sampleEntry: {
-      source: material('Cell line A').values['vendor'],
-      totalCellConc: material('Cell line A').values['count'],
+      source: material('Cell line A').values['source'],
+      totalCellConc: material('Cell line A').values['total-cell-conc'],
       viability: material('Cell line A').values['viability'],
       renamedCatalogLabel: material('Cell line A').fieldLabels['catalog'],
     },
-    setAside: materials.items.filter(item => item.isDropped).map(item => item.name),
-    isSetAsideOpen: materials.isDroppedOpen,
+    setAside: materials.items.filter(item => item.isSetAside).map(item => item.name),
+    isSetAsideOpen: materials.isSetAsideOpen,
     recipe: {
       ingredients: material('Medium A').recipe.map(
         entry => `${nameOf(entry.materialId)} ${entry.amount} ${entry.unit}`
       ),
-      note: material('Medium A').values['recipe'],
+      note: material('Medium A').values['recipe-note'],
     },
     stainingAmounts: {
       'CD3 BV421': amountOf('CD3 BV421'),
       'CD8 PE': amountOf('CD8 PE'),
       'Fc block X': amountOf('Fc block X'),
-      'Viability dye X': material('Viability dye X').values['dilution'],
+      'Viability dye X': material('Viability dye X').values['amount'],
     },
     customField: material('Drug X').values['batch-note'],
-    valueRows: values.sections.map(row =>
-      'mixName' in row ? row.mixName : nameOf(row.materialId)
-    ),
+    valueRows: values.rows.map(row => ('mixName' in row ? row.mixName : nameOf(row.materialId))),
     wholeExperimentTitle: values.generalTitle,
-    calculations: cardOf(protocol, 'formula').items.map(item => `${item.name} = ${item.expr}`),
-    otherLabware: plateMap.sets.map(labware => `${labware.vessel} × ${labware.count}`),
-    otherLabwareTabName: plateMap.shelfName,
+    calculations: cardOf(protocol, 'calculations').items.map(
+      item => `${item.name} = ${item.formula}`
+    ),
+    otherLabware: plateMap.otherLabware.map(labware => `${labware.labware} × ${labware.count}`),
+    otherLabwareTabName: plateMap.otherLabwareTabName,
     samples: {
-      A1: plateMap.cells['plate-1:A1']['line-cells'],
-      A2SeriesPoint: plateMap.cells['plate-1:A2']['line-drug'].seriesStep,
-      firstFlask: plateMap.cells['flasks#0:1']['line-cells'].valueId,
-      firstTube: plateMap.cells['tubes#0:1']['line-cells'].valueId,
+      A1: plateMap.samples['plate-1:A1']['line-cells'],
+      A2SeriesPoint: plateMap.samples['plate-1:A2']['line-drug'].seriesPoint,
+      firstFlask: plateMap.samples['flasks#0:1']['line-cells'].valueId,
+      firstTube: plateMap.samples['tubes#0:1']['line-cells'].valueId,
     },
     series: {
-      top: 'start' in factorSeries ? `${factorSeries.start} ${factorSeries.unit}` : undefined,
-      dilutionFactor: 'fold' in factorSeries ? factorSeries.fold : undefined,
-      typedValues: 'points' in listSeries ? listSeries.points : undefined,
+      top: 'top' in factorSeries ? `${factorSeries.top} ${factorSeries.unit}` : undefined,
+      dilutionFactor: 'dilutionFactor' in factorSeries ? factorSeries.dilutionFactor : undefined,
+      typedValues: 'typedValues' in listSeries ? listSeries.typedValues : undefined,
       dilutionsSettings: factorSeries.prep,
     },
-    renamedTopName: plateMap.amountNames['s:series-factor:start'],
+    renamedTopName: plateMap.amountNames['s:series-factor:top'],
     indicators: plateMap.lines.map(line => ({
       line: line.name,
       look: line.role,
-      hidden: line.hiddenMarks,
+      hidden: line.hiddenIndicators,
       ratioTo: line.ratioTo,
     })),
-    showsReplicatesAsOne: plateMap.mergesReplicates,
+    showsReplicatesAsOne: plateMap.showsReplicatesAsOne,
     typedCounts: plateMap.counts,
     shownSide: plateMap.side,
     stains: {
@@ -732,34 +743,34 @@ function savedFacts(protocol: Protocol) {
       firstTube: stainName(plateMap.stain['tubes#0:1']),
     },
     stainedIn: plateMap.stainedIn,
-    cytometer: flowCytometryPanel.instrument?.name,
-    markers: flowCytometryPanel.rows.map(
+    cytometer: flowCytometryPanel.cytometer?.name,
+    markers: flowCytometryPanel.markers.map(
       marker =>
-        `${nameOf(marker.materialId)} · ${marker.detectorId} · ${marker.stain} · ${marker.dilution}`
+        `${nameOf(marker.materialId)} · ${marker.detectorId} · ${marker.staining} · ${marker.dilution}`
     ),
-    stainList: flowCytometryPanel.mixes.map(stain => ({
+    stainList: flowCytometryPanel.stains.map(stain => ({
       name: stain.name,
-      markers: stain.rowIds.length,
-      added: stain.plus.map(entry => `${nameOf(entry.materialId)} · ${entry.stain}`),
+      markers: stain.markerIds.length,
+      added: stain.plus.map(entry => `${nameOf(entry.materialId)} · ${entry.staining}`),
     })),
-    fluors: protocol.dyes.map(fluor => fluor.name),
-    ignoredSuggestions: protocol.ignoredReadings,
+    fluors: protocol.fluors.map(fluor => fluor.name),
+    ignoredSuggestions: protocol.ignoredSuggestions,
     steps: protocol.pages[0].steps.map(step => step.text),
   };
 }
 
 const EVERY_CARD_FACTS = {
   cardTypes: [
-    'cytometer',
+    'calculations',
     'dilutions',
-    'flow',
-    'formula',
-    'list',
+    'flowCytometryPanel',
+    'flowDiagram',
+    'linkedPlateMap',
     'materials',
-    'plate',
-    'plateView',
+    'plateMap',
+    'procedure',
     'sketch',
-    'steps',
+    'table',
     'text',
     'values',
   ],
@@ -770,16 +781,16 @@ const EVERY_CARD_FACTS = {
       name: 'Donor 1',
       donorId: 'D-01',
       lotVial: 'V1',
-      totalCells: '1.00E+7',
-      liveCells: undefined,
+      totalCellConc: '1.00E+7',
+      liveCellConc: undefined,
       freezeNote: 'Slow freeze',
     },
     {
       name: 'Donor 2',
       donorId: 'D-02',
       lotVial: undefined,
-      totalCells: undefined,
-      liveCells: '8.00E+6',
+      totalCellConc: undefined,
+      liveCellConc: '8.00E+6',
       freezeNote: undefined,
     },
   ],
@@ -825,7 +836,7 @@ const EVERY_CARD_FACTS = {
   renamedTopName: 'Drug X top',
   indicators: [
     { line: 'Cells', look: 'band', hidden: ['bracket'], ratioTo: undefined },
-    { line: 'Drug', look: 'color', hidden: undefined, ratioTo: undefined },
+    { line: 'Drug', look: 'fill', hidden: undefined, ratioTo: undefined },
     { line: 'Effectors', look: 'auto', hidden: undefined, ratioTo: 'line-cells' },
   ],
   showsReplicatesAsOne: false,
@@ -850,8 +861,8 @@ const EVERY_CARD_FACTS = {
 };
 
 describe('a version 4 file holding every card', () => {
-  it('opens exactly as it was saved', () => {
-    expect(read(everyCardV4)).toEqual(everyCardV4.protocol);
+  it('opens in today’s words with every saved value kept', () => {
+    expect(read(everyCardV4)).toEqual(everyCardV5.protocol);
   });
 
   it('survives a save and reopen unchanged', () => {
@@ -861,5 +872,20 @@ describe('a version 4 file holding every card', () => {
 
   it('still holds everything it was saved with', () => {
     expect(savedFacts(read(everyCardV4))).toEqual(EVERY_CARD_FACTS);
+  });
+});
+
+describe('a version 5 file holding every card', () => {
+  it('opens exactly as it was saved', () => {
+    expect(read(everyCardV5)).toEqual(everyCardV5.protocol);
+  });
+
+  it('survives a save and reopen unchanged', () => {
+    const opened = read(everyCardV5);
+    expect(readProtocolFile(writeProtocolFile(opened))).toEqual(opened);
+  });
+
+  it('still holds everything it was saved with', () => {
+    expect(savedFacts(read(everyCardV5))).toEqual(EVERY_CARD_FACTS);
   });
 });

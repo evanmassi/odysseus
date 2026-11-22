@@ -11,7 +11,7 @@ import { amountUnit, readTypedAmount } from '../units/textAmounts';
 import type { SolvedBoard } from '../formulas/boardCalculation';
 import type { PlateLine, PlateSeries, PlateMapCard } from '@odysseus/shared-schemas';
 
-export type StepSeries = Extract<PlateSeries, { start: string }>;
+export type StepSeries = Extract<PlateSeries, { top: string }>;
 
 export interface PointAmount {
   amount: string;
@@ -43,8 +43,8 @@ export const readsSeriesAlike = (
   a === b ||
   seriesList.every(
     series =>
-      'points' in series ||
-      [series.start, series.fold].every(text => {
+      'typedValues' in series ||
+      [series.top, series.dilutionFactor].every(text => {
         const before = readPart(a, text);
         const after = readPart(b, text);
         return before.text === after.text && before.isName === after.isName;
@@ -61,9 +61,9 @@ const DIRECTION_ARROWS: Readonly<Record<PlateSeries['direction'], string>> = {
 const shortNumber = (value: number) => String(Number(value.toPrecision(3)));
 
 export function pointAmount(series: PlateSeries, point: number, board: SolvedBoard): PointAmount {
-  if ('points' in series) return { amount: series.points[point] ?? '', unit: '' };
-  const top = readPart(board, series.start);
-  const dilutionFactor = dilutionFactorOf(readPart(board, series.fold).text);
+  if ('typedValues' in series) return { amount: series.typedValues[point] ?? '', unit: '' };
+  const top = readPart(board, series.top);
+  const dilutionFactor = dilutionFactorOf(readPart(board, series.dilutionFactor).text);
   if (series.unit === PAIR_NOTATION) {
     const ratio = readPair(top.text);
     return ratio && dilutionFactor > 0
@@ -90,19 +90,20 @@ export function wellAmount(
   line: PlateLine,
   board: SolvedBoard
 ): PointAmount | undefined {
-  const entry = card.cells[key]?.[line.id];
+  const entry = card.samples[key]?.[line.id];
   if (!entry) return undefined;
   const series = entry.seriesId === undefined ? undefined : card.series[entry.seriesId];
   return series
-    ? pointAmount(series, entry.seriesStep ?? 0, board)
+    ? pointAmount(series, entry.seriesPoint ?? 0, board)
     : { amount: entry.amount?.trim() ?? '', unit: entry.unit ?? '' };
 }
 
 export function seriesSummary(series: PlateSeries, board: SolvedBoard): string {
   const arrow = DIRECTION_ARROWS[series.direction];
-  if ('points' in series) return [series.points.join(', '), arrow].filter(Boolean).join(' ');
+  if ('typedValues' in series)
+    return [series.typedValues.join(', '), arrow].filter(Boolean).join(' ');
   const top = pointAmount(series, 0, board);
-  const dilutionFactor = readPart(board, series.fold).text;
+  const dilutionFactor = readPart(board, series.dilutionFactor).text;
   if (series.unit === PAIR_NOTATION) {
     return [
       top.amount,
@@ -122,12 +123,12 @@ export function seriesSummary(series: PlateSeries, board: SolvedBoard): string {
 }
 
 export const seriesDilutionFactor = (series: StepSeries, board: SolvedBoard) =>
-  dilutionFactorOf(readPart(board, series.fold).text);
+  dilutionFactorOf(readPart(board, series.dilutionFactor).text);
 
 const AMOUNT_WITH_UNIT = /^\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(.*)$/;
 
 export const stepSeriesUnit = (series: StepSeries): string =>
-  series.unit || (readTypedAmount(series.start)?.unit ?? '');
+  series.unit || (readTypedAmount(series.top)?.unit ?? '');
 
 export function seriesTop(
   series: StepSeries,

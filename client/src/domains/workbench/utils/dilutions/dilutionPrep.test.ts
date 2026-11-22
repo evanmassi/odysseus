@@ -21,7 +21,7 @@ const material = (name: string, values: Record<string, string>, units: Record<st
     units,
     customFields: [],
     fieldLabels: {},
-    isDropped: false,
+    isSetAside: false,
     recipe: [],
   }) as MaterialItem;
 
@@ -30,13 +30,13 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
     ['A', 'B', 'C'].flatMap(row =>
       [0, 1, 2, 3].map(step => [
         `p:${row}${step + 1}`,
-        { drug: { valueId: 'x', seriesId: 's', seriesStep: step } },
+        { drug: { valueId: 'x', seriesId: 's', seriesPoint: step } },
       ])
     )
   );
   return {
     pages: [{ id: 'page', name: 'Setup', steps: [] }],
-    blocks: [
+    cards: [
       {
         id: 'materials',
         type: 'materials',
@@ -50,14 +50,14 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
       },
       {
         id: 'map',
-        type: 'plate',
+        type: 'plateMap',
         page: 'page',
         title: 'Assay plate',
-        plates: [{ id: 'p', vessel: '96', name: '' }],
+        plates: [{ id: 'p', labware: '96', name: '' }],
         lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
-        cells,
+        samples: cells,
         series: { s: series },
-        sets: [],
+        otherLabware: [],
         counts: {},
         amountNames: {},
         side: 'assay',
@@ -70,7 +70,13 @@ function protocolWith(series: PlateSeries, materials: MaterialItem[]): Protocol 
 }
 
 const prep = { volumeAdded: '20', wellVolume: '80' };
-const doseSeries: PlateSeries = { start: '300', unit: 'nM', fold: '3', direction: 'right', prep };
+const doseSeries: PlateSeries = {
+  top: '300',
+  unit: 'nM',
+  dilutionFactor: '3',
+  direction: 'right',
+  prep,
+};
 const drugStock = material(
   'Drug X',
   { 'stock-concentration': '10' },
@@ -87,21 +93,21 @@ const prepFor = (protocol: Protocol) =>
 describe('dilution prep', () => {
   it('pools identical series from copied plates into one prep sized for all their wells', () => {
     const protocol = protocolWith(doseSeries, []);
-    const [plateMap] = protocol.blocks.filter(card => card.type === 'plate');
+    const [plateMap] = protocol.cards.filter(card => card.type === 'plateMap');
     const copy = structuredClone(plateMap);
-    if (copy.type !== 'plate') return;
+    if (copy.type !== 'plateMap') return;
     copy.id = 'copy';
     copy.title = 'Assay plate copy';
     copy.series = { other: copy.series['s'] };
-    for (const lines of Object.values(copy.cells)) lines['drug'].seriesId = 'other';
-    protocol.blocks.push(copy);
+    for (const lines of Object.values(copy.samples)) lines['drug'].seriesId = 'other';
+    protocol.cards.push(copy);
     const runs = dilutionRuns(protocol);
     expect(runs).toHaveLength(1);
     expect(runs[0].members.map(member => member.plateId)).toEqual(['map', 'copy']);
     expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
     expect(runs[0].replicatesByPoint.get(0)).toBe(6);
     expect(dilutionRuns(protocol)[0].replicatesByPoint.get(0)).toBe(6);
-    expect(dilutionRuns({ blocks: [plateMap] })[0].places).toEqual(['Plate 1']);
+    expect(dilutionRuns({ cards: [plateMap] })[0].places).toEqual(['Plate 1']);
   });
 
   it('finds each dilution series on the plates with its most replicated point', () => {
@@ -183,13 +189,13 @@ describe('dilution prep', () => {
 
   it("takes the experiment's Well volume when the series leaves its own blank", () => {
     const protocol = protocolWith({ ...doseSeries, prep: { volumeAdded: '20' } }, [drugStock]);
-    protocol.blocks.push({
+    protocol.cards.push({
       id: 'values',
       type: 'values',
       page: 'page',
       items: [{ id: 'well', name: 'Well volume', value: '80', unit: 'µL' }],
-      sections: [],
-    } as unknown as Protocol['blocks'][number]);
+      rows: [],
+    } as unknown as Protocol['cards'][number]);
     const inherited = prepFor(protocol);
     const typed = prepFor(protocolWith(doseSeries, [drugStock]));
     if (inherited.kind !== 'ready' || typed.kind !== 'ready') throw new Error('not ready');
@@ -199,7 +205,13 @@ describe('dilution prep', () => {
   });
 
   it('runs a 1:N series forward from undiluted stock', () => {
-    const ratio: PlateSeries = { start: '100', unit: '1:N', fold: '2', direction: 'right', prep };
+    const ratio: PlateSeries = {
+      top: '100',
+      unit: '1:N',
+      dilutionFactor: '2',
+      direction: 'right',
+      prep,
+    };
     const result = prepFor(protocolWith(ratio, []));
     if (result.kind !== 'ready') throw new Error(result.problem);
     expect(result.points.map(({ final }) => final)).toEqual(['1:100', '1:200', '1:400', '1:800']);
@@ -218,7 +230,7 @@ describe('diluents', () => {
     ]);
     const board = calculateBoard(collectBoardNames(protocol));
     const need = board.names.get('total rpmi needed');
-    expect(need).toMatchObject({ kind: 'calculation', expr: 'Drug X diluent total' });
+    expect(need).toMatchObject({ kind: 'calculation', formula: 'Drug X diluent total' });
     const result = need && board.results.get(need.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '346 µL' });
     expect(diluentUses(protocol, board)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
@@ -262,7 +274,7 @@ describe('dilution prep as calculations', () => {
     const stock = board.names.get('drug x stock to take');
     expect(stock).toMatchObject({
       kind: 'calculation',
-      expr: 'Drug X top vol. × Drug X top working conc. ÷ Drug X stock conc.',
+      formula: 'Drug X top vol. × Drug X top working conc. ÷ Drug X stock conc.',
       workedOut: { key: 'map:s', subject: 'Drug X' },
     });
     const result = stock && board.results.get(stock.id);
@@ -283,13 +295,13 @@ describe('dilution prep as calculations', () => {
 
   it('stops a prep whose name is already taken, instead of reading the wrong number', () => {
     const protocol = protocolWith(doseSeries, [drugStock]);
-    protocol.blocks.push({
+    protocol.cards.push({
       id: 'values',
       type: 'values',
       page: 'page',
-      sections: [],
+      rows: [],
       items: [{ id: 'mine', name: 'Drug X volume added', value: '50', unit: 'µL' }],
-    } as unknown as Protocol['blocks'][number]);
+    } as unknown as Protocol['cards'][number]);
     expect(prepFor(protocol)).toMatchObject({
       kind: 'problem',
       problem: 'Rename "Drug X volume added": the Drug X dilution prep needs that name.',
@@ -332,11 +344,11 @@ describe('dilution edits', () => {
     recordOnMaterial(protocol, 'Drug X', 'stock-concentration', '5', 'mM', name =>
       material(name, {}, {})
     );
-    const plateMap = protocol.blocks[1];
-    expect(plateMap.type === 'plate' && plateMap.series['s'].prep).toMatchObject({
+    const plateMap = protocol.cards[1];
+    expect(plateMap.type === 'plateMap' && plateMap.series['s'].prep).toMatchObject({
       extraPercent: '10',
     });
-    const materials = protocol.blocks[0];
+    const materials = protocol.cards[0];
     expect(materials.type === 'materials' && materials.items[0]).toMatchObject({
       name: 'Drug X',
       values: { 'stock-concentration': '5' },

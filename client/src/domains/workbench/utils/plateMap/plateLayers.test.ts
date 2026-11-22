@@ -25,19 +25,19 @@ function plateWith(wells: Record<string, Record<string, string>>, lines: PlateLi
   );
   return {
     id: 'plate',
-    type: 'plate',
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    type: 'plateMap',
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     activeTab: 0,
     lines,
-    cells,
+    samples: cells,
     series: {},
     counts: {},
     amountNames: {},
     side: 'assay',
     stain: {},
     stainedIn: {},
-    mergesReplicates: false,
+    showsReplicatesAsOne: false,
   } as unknown as PlateMapCard;
 }
 
@@ -59,7 +59,7 @@ describe('plate indicators', () => {
   const layers = lineLayers(plateMap, lines[0], NO_NAMES);
 
   it('draws stripes only for the lines set to Stripe, in line order', () => {
-    expect(layers.map(layer => layer.role)).toEqual(['color', 'stripe', 'stripe', 'band']);
+    expect(layers.map(layer => layer.role)).toEqual(['fill', 'stripe', 'stripe', 'band']);
     const indicators = plateIndicators(
       plateMap,
       sheetOf(plateMap, plateMapTabs(plateMap)[0]),
@@ -86,7 +86,7 @@ describe('plate indicators', () => {
       [line('ratio', ['T cells'], 'stripe')]
     );
     ['p:A1', 'p:A2', 'p:A3'].forEach((key, step) => {
-      Object.assign(titrated.cells[key]['ratio'], { seriesId: 's', seriesStep: step });
+      Object.assign(titrated.samples[key]['ratio'], { seriesId: 's', seriesPoint: step });
     });
     const tints = ['p:A1', 'p:A2', 'p:A3'].map(
       key => wellStripes(titrated, key, lineLayers(titrated, undefined, NO_NAMES))[0]?.tint
@@ -104,14 +104,14 @@ describe('plate indicators', () => {
       },
       [line('ratio', ['T donor A', 'T donor B'], 'stripe')]
     );
-    titrated.series = { s: { start: '8:1', unit: 'N:N', fold: '2', direction: 'right' } };
+    titrated.series = { s: { top: '8:1', unit: 'N:N', dilutionFactor: '2', direction: 'right' } };
     for (const [key, step] of [
       ['p:A1', 0],
       ['p:A2', 1],
       ['p:B1', 0],
       ['p:B2', 1],
     ] as const) {
-      Object.assign(titrated.cells[key]['ratio'], { seriesId: 's', seriesStep: step });
+      Object.assign(titrated.samples[key]['ratio'], { seriesId: 's', seriesPoint: step });
     }
     const layered = lineLayers(titrated, undefined, NO_NAMES);
     const indicators = plateIndicators(
@@ -133,8 +133,8 @@ describe('plate indicators', () => {
     const dosed = plateWith({ A1: { drug: 'Drug X' }, A2: { drug: 'Drug X' } }, [
       line('drug', ['Drug X'], 'band'),
     ]);
-    Object.assign(dosed.cells['p:A1']['drug'], { amount: '10', unit: 'µM' });
-    Object.assign(dosed.cells['p:A2']['drug'], { amount: '5', unit: 'µM' });
+    Object.assign(dosed.samples['p:A1']['drug'], { amount: '10', unit: 'µM' });
+    Object.assign(dosed.samples['p:A2']['drug'], { amount: '5', unit: 'µM' });
     const indicators = plateIndicators(
       dosed,
       sheetOf(dosed, plateMapTabs(dosed)[0]),
@@ -167,8 +167,8 @@ describe('plate indicators', () => {
       { A1: { stim: 'Stim X' }, A2: { stim: 'Unstim' }, B2: { stim: 'Unstim' } },
       [line('stim', ['Stim X', 'Unstim'])]
     );
-    Object.assign(dosed.cells['p:A1']['stim'], { amount: '10', unit: 'µM' });
-    dosed.lines[0].hiddenMarks = ['outline'];
+    Object.assign(dosed.samples['p:A1']['stim'], { amount: '10', unit: 'µM' });
+    dosed.lines[0].hiddenIndicators = ['outline'];
     const sheet = sheetOf(dosed, plateMapTabs(dosed)[0]);
     const layered = lineLayers(dosed, dosed.lines[0], NO_NAMES);
     expect(plateIndicators(dosed, sheet, layered, NO_NAMES, true)).toEqual([]);
@@ -181,7 +181,7 @@ describe('plate indicators', () => {
       { A1: { donors: 'Donor 1', stim: 'Stim X' }, A2: { donors: 'Donor 2', stim: 'Stim X' } },
       [line('donors', ['Donor 1', 'Donor 2']), line('stim', ['Stim X'])]
     );
-    titrated.cells['p:A1']['stim'].seriesId = 's';
+    titrated.samples['p:A1']['stim'].seriesId = 's';
     expect(colorLineOf(titrated)?.id).toBe('stim');
   });
 });

@@ -75,7 +75,7 @@ export function WorkbenchPlateLegendSection({
   const treatments = (colorLine?.values ?? []).filter(value => countOf.has(value.id));
   const used = counts.filter(count => count.kind === 'used');
   const legendWords = new Set(
-    Object.values(card.cells).flatMap(lines => {
+    Object.values(card.samples).flatMap(lines => {
       const series = colorLine && card.series[lines[colorLine.id]?.seriesId ?? ''];
       return series ? [seriesLegendWord(series)] : [];
     })

@@ -119,7 +119,7 @@ function plateRemovalMessage(row: PlateValueRow): string {
   return `Remove the ${subject} dilution? Its wells keep the ${subject} label.`;
 }
 
-function sourceLines(cell: ValueCell, cards: Protocol['blocks']): string[] {
+function sourceLines(cell: ValueCell, cards: Protocol['cards']): string[] {
   const card = labwareTitleOf(
     cards,
     cell.linkedTo.kind === 'plate' ? cell.linkedTo.row.plateId : undefined
@@ -147,7 +147,7 @@ function cellViewOf(
   used: string,
   isNamed: boolean,
   isNameTaken: boolean,
-  cards: Protocol['blocks']
+  cards: Protocol['cards']
 ): ValueCellView {
   const usageLine = usageTitle(used);
   const neededNote = neededNoteOf(cell.neededFor);
@@ -185,7 +185,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
 });
 
 export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
-  const protocol = useProtocolWith('values', 'plate', 'materials');
+  const protocol = useProtocolWith('values', 'plateMap', 'materials');
   const board = useWorkbenchStore(state => state.board);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
@@ -206,7 +206,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
   }, [removed]);
 
   const isFirstValuesCard =
-    protocol.blocks.find(candidate => candidate.type === 'values')?.id === card.id;
+    protocol.cards.find(candidate => candidate.type === 'values')?.id === card.id;
   const materials = useMemo(() => materialsById(protocol), [protocol]);
   const plateOffers = useWorkbenchData(state =>
     isFirstValuesCard ? plateNameOffers(state.protocol) : []
@@ -256,9 +256,9 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     ...nameUsage(state.protocol, state.board, usageIds),
   ]);
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
-  const fileFluors = useWorkbenchStore(state => state.protocol.dyes);
+  const fileFluors = useWorkbenchStore(state => state.protocol.fluors);
   const known = useMemo(
-    () => materialKnowledge(memory, { blocks: protocol.blocks, dyes: fileFluors }),
+    () => materialKnowledge(memory, { cards: protocol.cards, fluors: fileFluors }),
     [memory, protocol, fileFluors]
   );
   const readings = useWorkbenchData(state =>
@@ -292,14 +292,14 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
                     usageText(cell.nameId),
                     namedIds.has(cell.nameId),
                     board.takenNameIds.has(cell.nameId),
-                    protocol.blocks
+                    protocol.cards
                   ),
                 ])
               ),
             ])
           )
         ),
-      [groups, usageText, namedIds, board.takenNameIds, protocol.blocks]
+      [groups, usageText, namedIds, board.takenNameIds, protocol.cards]
     )
   );
   const generalRows = useStructuralSharing(
@@ -343,7 +343,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
 
   const setGeneralTitle = (title: string) =>
     edit(draft => {
-      const target = draft.blocks.find(candidate => candidate.id === card.id);
+      const target = draft.cards.find(candidate => candidate.id === card.id);
       if (target?.type === 'values') target.generalTitle = title;
     });
 
@@ -640,7 +640,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
             }
             onIgnore={reading =>
               edit(draft => {
-                draft.ignoredReadings.push(reading.key);
+                draft.ignoredSuggestions.push(reading.key);
               })
             }
           />

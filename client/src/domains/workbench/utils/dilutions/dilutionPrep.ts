@@ -81,7 +81,7 @@ const inMicroliters = (answer: LineAnswer) =>
 
 export function dilutionPrep(
   run: DilutionRun,
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   board: SolvedBoard,
   chosenDiluent: string
 ): DilutionPrep {
@@ -94,7 +94,7 @@ export function dilutionPrep(
   const show = (value: number) =>
     isRatio ? `1:${shortNumber(value)}` : readableAmount(String(value), unit);
   const summary = [
-    top ? show(top.value) : run.series.start || '?',
+    top ? show(top.value) : run.series.top || '?',
     `1:${shortNumber(dilutionFactor || 0)}`,
     `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
   ].join(' · ');

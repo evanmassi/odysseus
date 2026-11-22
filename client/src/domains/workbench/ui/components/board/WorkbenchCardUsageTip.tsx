@@ -13,7 +13,7 @@ interface WorkbenchCardUsageTipProps {
   cardLabel: string;
 }
 
-const MARKUP = /(\[[^\]]+\]|\*[^*]+\*|<[a-z]+>)/;
+const MARKUP = /(\[[^\]]+\]|\*[^*]+\*|<[a-zA-Z]+>)/;
 
 const isCardType = (text: string): text is ProtocolCardType => text in CARD_TYPES;
 

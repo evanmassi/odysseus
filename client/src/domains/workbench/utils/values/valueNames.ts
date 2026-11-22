@@ -12,7 +12,7 @@ export const joinValueName = (owner: string, label: string): string =>
 export const WHOLE_EXPERIMENT = '';
 export const WHOLE_EXPERIMENT_TITLE = 'Whole experiment';
 
-export function generalTitleOf(cards: Protocol['blocks']): string {
+export function generalTitleOf(cards: Protocol['cards']): string {
   const title = cards
     .find((card): card is ValuesCard => card.type === 'values')
     ?.generalTitle?.trim();

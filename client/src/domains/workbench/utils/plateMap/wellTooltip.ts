@@ -45,7 +45,7 @@ function splitAmount(readable: string): { amount: string; unit: string } {
 }
 
 function indicatorOf(card: PlateMapCard, layer: LineLayer, key: string): WellIndicator | undefined {
-  const value = lineValueOf(layer.line, card.cells[key]?.[layer.line.id]);
+  const value = lineValueOf(layer.line, card.samples[key]?.[layer.line.id]);
   const kind = indicatorKindOf(layer.role);
   if (!value || !kind) return undefined;
   const color = kind === 'fill' ? value.color : indicatorColorOf(card, value);

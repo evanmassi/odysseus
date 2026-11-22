@@ -1,4 +1,4 @@
-# Workbench: Code Names Match App Words (inventory, nothing renamed yet)
+# Workbench: Code Names Match App Words (done 2026-11-22)
 
 The app's words were settled in `WORKBENCH_WORDS.md`, but the workbench code still names most
 ideas with older words (block for card, vessel for Plate map, formula for Calculations, cytometer
@@ -333,6 +333,24 @@ The order matters here, or new names land on names still in use.
 4. **Phase B, file format v5:** every saved key and value in the tables above renamed in one
    conversion, the lab memory migrated, all checked on the sample files and Evan's real files.
    The series prep keys go with W114 step 2 instead.
+   **Done 2026-11-22.** `PROTOCOL_FILE_VERSION` is 5. `savedWordsUpgrade.ts` turns a raw version 4
+   file into today's words (card types, `cards`, `samples`, `otherLabware`, `labware`, `rows` /
+   `row`, `formula`, `top` / `dilutionFactor` / `typedValues` / `seriesPoint` and the renamed-name
+   keys built on them, `hiddenIndicators`, the role `fill`, `showsReplicatesAsOne`,
+   `otherLabwareTabName`, `cytometer`, `markers` / `markerIds`, `staining`, `stains`, `fluors`,
+   `ignoredSuggestions`, `isSetAside` / `isSetAsideOpen`, `donors`, and the field keys `source`,
+   `total-cell-conc` (from both `count` and `total-count`), `live-cell-conc` (from `live-count`),
+   `recipe-note`, and `amount` for Secondary reagent,
+   Dye and Multimer, in values, units, labels, shown fields, donor rows, Values links and lot memory).
+   Older files climb to version 4 on the raw file as before (the version 1 reader keeps its own
+   version 4 words and role list); a version 2 file's painted groups ride along and are retired
+   once the file reads in today's words. The lab memory saves at version 1 and upgrades once on
+   load (`upgradeLabMemory`, sharing `renamedFieldKey`). Checked by `everyCard.v5.json` and
+   `labMemory.v1.json`, each shown to differ from its old sample only by these renames, and by the
+   facts tests, unchanged except for the saved words themselves. Evan's three calls: `labware`,
+   `markers` / `markerIds`, `showsReplicatesAsOne`. Still waiting: the series' Dilutions settings
+   and the Flow panel's `markers[].dilution` (W114 steps 2 and 3), Whole experiment's
+   `generalTitle` (its redesign).
 
 ## Words still wrong on screen (found by the sweep)
 
@@ -449,8 +467,13 @@ standalone, CocktailTube, MaterialDonor, RememberedDonor, SavedDonor.
     → `donorFields` / `startingDonorFields`. The material key `vendor` → `source`, the guesser's
     `VENDOR_*` → `SUPPLIER_*`; the generic "where it came from" (`sourceBlockId`,
     `ValueCellSource`) → `origin`.
-16. **Cell count keys:** `count` → `total-cell-conc`, `total-count` → `total-cells`, `live-count` →
-    `live-cells`; the Recipe note's key → `recipe-note`.
+16. **Cell count keys:** `count` → `total-cell-conc`; the Recipe note's key → `recipe-note`.
+    **Revised 2026-11-22:** `total-count` → **`total-cell-conc`** and `live-count` →
+    **`live-cell-conc`**, not total and live cells. The old "Total count" / "Live count" columns
+    held cell counter readings in cells/mL (Evan, on his stim assay file: "those are supposed to be
+    cell counter values in cells/mL"); the W115 reading of them as numbers of cells was wrong. The
+    word list follows: "Total count" and "Live count" are accepted spellings of Total cell conc.
+    and Live cell conc.
 17. **Type:** the menu label "Kind of material" → **Type**; `MaterialKind` (a section plus a type)
     → `MaterialTypeSelection`; lab memory `kinds` → `knownTypes`.
 18. **Leftover words:** `ignoredReadings` → `ignoredSuggestions`. A name used twice is **taken**,

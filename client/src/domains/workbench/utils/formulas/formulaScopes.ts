@@ -22,7 +22,7 @@ import type { MaterialItem } from '@odysseus/shared-schemas';
 export interface CalculationSuggestion {
   label: string;
   name: string;
-  expr: string;
+  formula: string;
 }
 
 export interface FormulaCompletion {
@@ -185,24 +185,24 @@ export function calculationSuggestions(
       label: TOTAL_NEEDED.word,
       name: own(TOTAL_NEEDED.word),
       isReady: !!amount && !!wells && !needed,
-      expr: `${amount} × ${wells}${overage}`,
+      formula: `${amount} × ${wells}${overage}`,
     },
     {
       label: 'To take',
       name: own('To take'),
       isReady: !!cells && !!needed && !!liveConcentration,
-      expr: `${needed} ÷ ${liveConcentration}`,
+      formula: `${needed} ÷ ${liveConcentration}`,
     },
     {
       label: TOTAL_VOLUME_NEEDED.word,
       name: own(TOTAL_VOLUME_NEEDED.word),
       isReady: !!cells && !!volume && !!wells && !find(TOTAL_VOLUME_NEEDED, [owner]),
-      expr: `${wells} × ${volume}${overage}`,
+      formula: `${wells} × ${volume}${overage}`,
     },
   ];
   return recipes
     .filter(recipe => recipe.isReady && !has(recipe.name))
-    .map(({ label, name, expr }) => ({ label, name, expr }));
+    .map(({ label, name, formula }) => ({ label, name, formula }));
 }
 
 export function formulaWordAt(value: string, caret: number) {

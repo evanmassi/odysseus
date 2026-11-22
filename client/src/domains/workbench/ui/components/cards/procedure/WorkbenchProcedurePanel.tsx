@@ -29,7 +29,7 @@ import { WorkbenchStepSectionRow } from './WorkbenchStepSectionRow';
 import type { ProtocolCard, ProtocolStep } from '@odysseus/shared-schemas';
 
 interface WorkbenchProcedurePanelProps {
-  card: Extract<ProtocolCard, { type: 'steps' }>;
+  card: Extract<ProtocolCard, { type: 'procedure' }>;
 }
 
 const NO_STEPS: ProtocolStep[] = [];

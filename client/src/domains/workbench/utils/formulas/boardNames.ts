@@ -21,7 +21,7 @@ import type { MaterialItem, Protocol, ProtocolCard } from '@odysseus/shared-sche
 
 type CardOf<Type extends ProtocolCard['type']> = Extract<ProtocolCard, { type: Type }>;
 
-const tableRowLabel = (card: CardOf<'list'>, row: CardOf<'list'>['items'][number]) =>
+const tableRowLabel = (card: CardOf<'table'>, row: CardOf<'table'>['items'][number]) =>
   card.columns
     .slice(1)
     .filter(column => !column.isHidden && column.kind === 'text')
@@ -30,7 +30,7 @@ const tableRowLabel = (card: CardOf<'list'>, row: CardOf<'list'>['items'][number
     .filter(Boolean)
     .join(' ');
 
-function tableNames(card: CardOf<'list'>): BoardName[] {
+function tableNames(card: CardOf<'table'>): BoardName[] {
   if (!card.isNamed) return [];
   const [nameColumn] = card.columns;
   const numberColumns = card.columns.filter(column => column.kind === 'number');
@@ -82,7 +82,7 @@ function materialNames(
         groupTitle: materialGroup(item.group).label,
         hint: numbers[0] ? fieldName(item, numbers[0]) : '',
         label: materialLabel(item),
-        isDropped: item.isDropped,
+        isSetAside: item.isSetAside,
       };
       const values = numbers.map(
         (definition): BoardName => ({
@@ -91,7 +91,7 @@ function materialNames(
           name: fieldName(item, definition),
           value: item.values[definition.key] ?? '',
           unit: fieldUnit(item, definition),
-          isDropped: item.isDropped,
+          isSetAside: item.isSetAside,
         })
       );
       return [entry, ...values];
@@ -103,14 +103,14 @@ function valueNames(
   materialsById: ReadonlyMap<string, MaterialItem>
 ): BoardName[] {
   const valueRowName = (valueRowId: string | undefined) => {
-    const valueRow = card.sections.find(candidate => candidate.id === valueRowId);
+    const valueRow = card.rows.find(candidate => candidate.id === valueRowId);
     if (!valueRow) return undefined;
     if ('mixName' in valueRow) return valueRow.mixName.trim();
     return materialsById.get(valueRow.materialId)?.name.trim() ?? valueRow.materialName ?? '';
   };
   return card.items.flatMap((item): BoardName[] => {
     if ('materialField' in item) return [];
-    const owner = valueRowName(item.section);
+    const owner = valueRowName(item.row);
     return [
       {
         kind: 'value',
@@ -123,7 +123,7 @@ function valueNames(
   });
 }
 
-function vesselMapNames(card: CardOf<'plate'>): BoardName[] {
+function vesselMapNames(card: CardOf<'plateMap'>): BoardName[] {
   const counts = plateMapCounts(card).map(
     (count): BoardName => ({
       kind: 'count',
@@ -144,12 +144,12 @@ function vesselMapNames(card: CardOf<'plate'>): BoardName[] {
   return [...counts, ...amounts];
 }
 
-const calculationNames = (card: CardOf<'formula'>): BoardName[] =>
+const calculationNames = (card: CardOf<'calculations'>): BoardName[] =>
   card.items.map(item => ({
     kind: 'calculation',
     id: item.id,
     name: item.name,
-    expr: item.expr,
+    formula: item.formula,
     unit: item.unit,
   }));
 
@@ -159,8 +159,8 @@ function wellCountNames(
   materials: readonly MaterialItem[]
 ) {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
-  const plateMaps = protocol.blocks.filter(
-    (card): card is CardOf<'plate'> => card.type === 'plate'
+  const plateMaps = protocol.cards.filter(
+    (card): card is CardOf<'plateMap'> => card.type === 'plateMap'
   );
   return [...materialWellCounts(plateMaps, materials)].flatMap(([material, count]): BoardName[] => {
     const name = `${material.name.trim()} wells`;
@@ -171,7 +171,7 @@ function wellCountNames(
 }
 
 export function collectBoardNames(protocol: Protocol): BoardName[] {
-  const materials = protocol.blocks
+  const materials = protocol.cards
     .flatMap(card => (card.type === 'materials' ? card.items : []))
     .filter(item => item.name.trim());
   const materialsById = new Map(materials.map(item => [item.id, item]));
@@ -179,24 +179,24 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
   const cellMaterialIds = new Set(subjects.map(subject => subject.material.id));
   const namesOf = (card: ProtocolCard): BoardName[] => {
     switch (card.type) {
-      case 'list':
+      case 'table':
         return tableNames(card);
       case 'materials':
         return materialNames(card, cellMaterialIds);
       case 'values':
         return valueNames(card, materialsById);
-      case 'plate':
+      case 'plateMap':
         return vesselMapNames(card);
-      case 'formula':
+      case 'calculations':
         return calculationNames(card);
       default:
         return [];
     }
   };
-  const cardNames = protocol.blocks.flatMap(card =>
+  const cardNames = protocol.cards.flatMap(card =>
     namesOf(card).map(entry => ({ ...entry, originCardId: card.id }))
   );
-  const materialsCardId = protocol.blocks.find(card => card.type === 'materials')?.id;
+  const materialsCardId = protocol.cards.find(card => card.type === 'materials')?.id;
   const ownNames = [
     ...cardNames,
     ...wellCountNames(protocol, cardNames, materials),

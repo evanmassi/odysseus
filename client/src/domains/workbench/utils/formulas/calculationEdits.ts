@@ -15,8 +15,8 @@ import type {
 type CalculationItem = CalculationsCard['items'][number];
 
 function calculationsCard(draft: Protocol, cardId: string): CalculationsCard | undefined {
-  const card = draft.blocks.find(candidate => candidate.id === cardId);
-  return card?.type === 'formula' ? card : undefined;
+  const card = draft.cards.find(candidate => candidate.id === cardId);
+  return card?.type === 'calculations' ? card : undefined;
 }
 
 export function insertCalculation(
@@ -75,35 +75,33 @@ export function addNamedValue(
   material: MaterialItem | undefined,
   pageId: string
 ): void {
-  let values = draft.blocks.find((card): card is ValuesCard => card.type === 'values');
+  let values = draft.cards.find((card): card is ValuesCard => card.type === 'values');
   if (!values) {
     const [w, h] = CARD_TYPES.values.size;
     const bottom = Math.max(
       0,
-      ...draft.blocks.filter(card => card.page === pageId).map(card => card.y + card.h)
+      ...draft.cards.filter(card => card.page === pageId).map(card => card.y + card.h)
     );
     values = createCard('values', { page: pageId, x: 0, y: bottom, w, h }) as ValuesCard;
-    draft.blocks.push(values);
+    draft.cards.push(values);
   }
   let valueRow =
     material &&
-    values.sections.find(
+    values.rows.find(
       candidate => 'materialId' in candidate && candidate.materialId === material.id
     );
   if (material && !valueRow) {
     valueRow = { id: createId(), materialId: material.id };
-    values.sections.push(valueRow);
+    values.rows.push(valueRow);
   }
   const item = {
     id: createId(),
     name: nameWithin(name, material),
     value: '',
     unit: '',
-    ...(valueRow && { section: valueRow.id }),
+    ...(valueRow && { row: valueRow.id }),
   };
-  const peers = values.items.filter(
-    candidate => (candidate.section ?? '') === (valueRow?.id ?? '')
-  );
+  const peers = values.items.filter(candidate => (candidate.row ?? '') === (valueRow?.id ?? ''));
   const last = peers.at(-1);
   values.items.splice(last ? values.items.indexOf(last) + 1 : values.items.length, 0, item);
 }

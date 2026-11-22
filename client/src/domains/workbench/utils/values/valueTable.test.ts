@@ -36,7 +36,7 @@ const material = (
   units,
   customFields: [],
   fieldLabels: {},
-  isDropped: false,
+  isSetAside: false,
   recipe: [],
 });
 
@@ -66,12 +66,12 @@ const line = (id: string, texts: string[]): PlateLine => ({
 const plateMap = (id: string, title: string, content: Partial<PlateMapCard>): PlateMapCard =>
   ({
     id,
-    type: 'plate',
+    type: 'plateMap',
     title,
-    plates: [{ id: 'p', vessel: '96', name: '' }],
-    sets: [],
+    plates: [{ id: 'p', labware: '96', name: '' }],
+    otherLabware: [],
     lines: [],
-    cells: {},
+    samples: {},
     series: {},
     counts: {},
     amountNames: {},
@@ -85,37 +85,37 @@ const plateMap = (id: string, title: string, content: Partial<PlateMapCard>): Pl
 
 const killingPlate = plateMap('map', 'Assay plate map', {
   lines: [line('drug', ['Drug X', 'DMSO', 'Targets only']), line('cells', ['Raji'])],
-  cells: {
+  samples: {
     'p:A1': {
-      drug: { valueId: 'Drug X', seriesId: 's', seriesStep: 0 },
+      drug: { valueId: 'Drug X', seriesId: 's', seriesPoint: 0 },
       cells: { valueId: 'Raji' },
     },
     'p:A2': {
-      drug: { valueId: 'Drug X', seriesId: 's', seriesStep: 1 },
+      drug: { valueId: 'Drug X', seriesId: 's', seriesPoint: 1 },
       cells: { valueId: 'Raji' },
     },
     'p:A3': { drug: { valueId: 'DMSO' }, cells: { valueId: 'Raji' } },
     'p:A4': { drug: { valueId: 'Targets only' }, cells: { valueId: 'Raji' } },
   },
-  series: { s: { start: '10', unit: 'µM', fold: '3', direction: 'right' } },
+  series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
 });
 
 const valuesCard = (id: string, content: Partial<ValuesCard>): ValuesCard =>
-  ({ id, type: 'values', items: [], sections: [], ...content }) as unknown as ValuesCard;
+  ({ id, type: 'values', items: [], rows: [], ...content }) as unknown as ValuesCard;
 
 const mainValues = valuesCard('values', {
-  sections: [
+  rows: [
     { id: 'sec-raji', materialId: 'm-raji' },
     { id: 'sec-tcells', materialId: 'm-tcells' },
     { id: 'sec-drug', materialId: 'm-drug' },
     { id: 'sec-plate', materialId: 'm-plate' },
   ],
   items: [
-    { id: 'raji-per', section: 'sec-raji', name: 'Per well', value: '10000', unit: 'cells' },
-    { id: 'raji-vol', section: 'sec-raji', name: 'volume per well', value: '50', unit: 'µL' },
-    { id: 't-vol', section: 'sec-tcells', name: 'Volume  per well', value: '100', unit: 'µL' },
-    { id: 'drug-vol', section: 'sec-drug', name: 'Volume per well', value: '20', unit: 'µL' },
-    { id: 'drug-stock', section: 'sec-drug', materialField: 'stock-concentration' },
+    { id: 'raji-per', row: 'sec-raji', name: 'Per well', value: '10000', unit: 'cells' },
+    { id: 'raji-vol', row: 'sec-raji', name: 'volume per well', value: '50', unit: 'µL' },
+    { id: 't-vol', row: 'sec-tcells', name: 'Volume  per well', value: '100', unit: 'µL' },
+    { id: 'drug-vol', row: 'sec-drug', name: 'Volume per well', value: '20', unit: 'µL' },
+    { id: 'drug-stock', row: 'sec-drug', materialField: 'stock-concentration' },
   ],
 });
 
@@ -133,12 +133,12 @@ function tableOf(
   });
 }
 
-function tableFor(cards: Protocol['blocks'], valuesId = 'values'): ValueTableGroup[] {
+function tableFor(cards: Protocol['cards'], valuesId = 'values'): ValueTableGroup[] {
   const protocol = {
-    blocks: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...cards],
+    cards: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...cards],
     diluent: '',
   } as unknown as Protocol;
-  const card = protocol.blocks.find(candidate => candidate.id === valuesId) as ValuesCard;
+  const card = protocol.cards.find(candidate => candidate.id === valuesId) as ValuesCard;
   return tableOf(protocol, card);
 }
 
@@ -217,7 +217,7 @@ describe('the values table', () => {
   it('links plate names to materials named with a note, and to mixes', () => {
     const banded = plateMap('map', 'Assay plate map', {
       lines: [line('drug', ['Drug X', 'DMSO']), line('stim', ['STX', 'Th17 cocktail'])],
-      cells: {
+      samples: {
         'p:A1': {
           drug: { valueId: 'Drug X' },
           stim: { valueId: 'STX', amount: '10', unit: 'µg/mL' },
@@ -234,10 +234,10 @@ describe('the values table', () => {
       items: [...MATERIALS, material('m-stx', 'STX (stim X description)', 'bio', 'Other')],
     };
     const mix = valuesCard('values', {
-      sections: [...mainValues.sections, { id: 'sec-mix', mixName: 'Th17 cocktail' }],
+      rows: [...mainValues.rows, { id: 'sec-mix', mixName: 'Th17 cocktail' }],
       items: mainValues.items,
     });
-    const protocol = { blocks: [withNote, banded, mix] } as unknown as Protocol;
+    const protocol = { cards: [withNote, banded, mix] } as unknown as Protocol;
     const table = tableOf(protocol, mix);
     const bio = groupNamed(table, 'Biological material');
     const stx = bio.rows.find(row => row.name.startsWith('STX'))!;
@@ -256,7 +256,7 @@ describe('the values table', () => {
     });
     const banded = plateMap('map', 'Assay plate map', {
       lines: [line('drug', ['Drug X', 'DMSO']), plain('cells', ['Raji'])],
-      cells: {
+      samples: {
         'p:A1': { drug: { valueId: 'Drug X' }, cells: { valueId: 'Raji' } },
         'p:A2': { drug: { valueId: 'DMSO' } },
       },
@@ -273,7 +273,7 @@ describe('the values table', () => {
   it('draws a striped line striped, the way the legend does', () => {
     const striped = plateMap('map', 'Assay plate map', {
       lines: [line('drug', ['Drug X', 'DMSO']), { ...line('cells', ['Raji']), role: 'stripe' }],
-      cells: {
+      samples: {
         'p:A1': { drug: { valueId: 'Drug X' }, cells: { valueId: 'Raji' } },
         'p:A2': { drug: { valueId: 'DMSO' } },
       },
@@ -307,13 +307,13 @@ describe('the values table', () => {
       items: [...MATERIALS, cocktail, material('m-il6', 'IL-6', 'chem', 'Recombinant protein')],
     };
     const values = valuesCard('values', {
-      sections: [{ id: 'sec-th17', materialId: 'm-th17' }],
+      rows: [{ id: 'sec-th17', materialId: 'm-th17' }],
       items: [
         { id: 'well', name: 'Well volume', value: '80', unit: 'µL' },
-        { id: 'th17-vol', section: 'sec-th17', name: 'Volume per well', value: '20', unit: 'µL' },
+        { id: 'th17-vol', row: 'sec-th17', name: 'Volume per well', value: '20', unit: 'µL' },
       ],
     });
-    const protocol = { blocks: [withCocktail, values] } as unknown as Protocol;
+    const protocol = { cards: [withCocktail, values] } as unknown as Protocol;
     const table = tableOf(protocol, values);
     const chem = groupNamed(table, 'Chemicals & proteins');
     expect(chem.rows.map(row => [row.name, row.isSubRow])).toEqual([
@@ -346,19 +346,19 @@ describe('the values table', () => {
   it('gives each extra series of the same drug its own row under the drug', () => {
     const twins = plateMap('map', 'Assay plate map', {
       lines: [line('cells', ['Raji', 'Jurkat']), line('drug', ['Drug X'])],
-      cells: {
+      samples: {
         'p:A1': {
           cells: { valueId: 'Raji' },
-          drug: { valueId: 'Drug X', seriesId: 's1', seriesStep: 0 },
+          drug: { valueId: 'Drug X', seriesId: 's1', seriesPoint: 0 },
         },
         'p:B1': {
           cells: { valueId: 'Jurkat' },
-          drug: { valueId: 'Drug X', seriesId: 's2', seriesStep: 0 },
+          drug: { valueId: 'Drug X', seriesId: 's2', seriesPoint: 0 },
         },
       },
       series: {
-        s1: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
-        s2: { start: '1', unit: 'µM', fold: '2', direction: 'right' },
+        s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+        s2: { top: '1', unit: 'µM', dilutionFactor: '2', direction: 'right' },
       },
     });
     const chem = groupNamed(tableFor([twins, mainValues]), 'Chemicals & proteins');
@@ -369,11 +369,11 @@ describe('the values table', () => {
   it('splits a drug on two plates into a row per plate', () => {
     const plateOne = plateMap('one', 'Plate one', {
       lines: [line('drug', ['Drug X', 'DMSO'])],
-      cells: { 'p:A1': { drug: { valueId: 'Drug X' } }, 'p:A2': { drug: { valueId: 'DMSO' } } },
+      samples: { 'p:A1': { drug: { valueId: 'Drug X' } }, 'p:A2': { drug: { valueId: 'DMSO' } } },
     });
     const plateTwo = plateMap('two', 'Plate two', {
       lines: [line('drug', ['Drug X', 'DMSO'])],
-      cells: {
+      samples: {
         'p:A1': { drug: { valueId: 'Drug X' } },
         'p:A2': { drug: { valueId: 'Drug X' } },
         'p:A3': { drug: { valueId: 'DMSO' } },
@@ -390,7 +390,7 @@ describe('the values table', () => {
 
   it('shows rows for materials without values only in the first Values card', () => {
     const second = valuesCard('second', {
-      sections: [{ id: 'sec-jurkat', materialId: 'm-jurkat' }],
+      rows: [{ id: 'sec-jurkat', materialId: 'm-jurkat' }],
     });
     const groupsOfSecond = tableFor([killingPlate, mainValues, second], 'second');
     expect(groupsOfSecond.flatMap(group => group.rows.map(row => row.name))).toEqual(['Jurkat']);
@@ -398,7 +398,7 @@ describe('the values table', () => {
 
   it('keeps every row an edit did not touch when the rebuilt table is shared with the last one', () => {
     const edited = valuesCard('values', {
-      sections: mainValues.sections,
+      rows: mainValues.rows,
       items: mainValues.items.map(item =>
         item.id === 'raji-per' ? { ...item, value: '20000' } : item
       ),
@@ -419,13 +419,11 @@ describe('short names in the values table', () => {
       'short-name': 'ImmunoCult XF',
     });
     const values = valuesCard('values', {
-      sections: [{ id: 'sec-med', materialId: 'm-med' }],
-      items: [
-        { id: 'med-vol', section: 'sec-med', name: 'Volume per well', value: '100', unit: 'µL' },
-      ],
+      rows: [{ id: 'sec-med', materialId: 'm-med' }],
+      items: [{ id: 'med-vol', row: 'sec-med', name: 'Volume per well', value: '100', unit: 'µL' }],
     });
     const moreMaterials = { id: 'more', type: 'materials', items: [medium] };
-    const groups = tableFor([moreMaterials as unknown as Protocol['blocks'][number], values]);
+    const groups = tableFor([moreMaterials as unknown as Protocol['cards'][number], values]);
     const [row] = groupNamed(groups, 'Media, buffers & solutions').rows;
     expect(row).toMatchObject({ name: medium.name, shownName: 'ImmunoCult XF' });
     expect(row.cells[0].fullName.startsWith(medium.name)).toBe(true);
@@ -435,7 +433,7 @@ describe('short names in the values table', () => {
 describe('plate names and needed values in the values table', () => {
   const tCellsWithDonors: MaterialItem = {
     ...material('m-tcells', 'T cells', 'bio', 'Primary cells'),
-    sources: {
+    donors: {
       label: 'Donors',
       shownFields: [],
       customFields: [],
@@ -447,7 +445,7 @@ describe('plate names and needed values in the values table', () => {
   };
   const donorPlate = plateMap('map', 'Assay plate map', {
     lines: [line('cells', ['D3128', 'D2044', 'Mystery'])],
-    cells: {
+    samples: {
       'p:A1': { cells: { valueId: 'D3128', amount: '1e5', unit: 'cells' } },
       'p:A2': { cells: { valueId: 'D2044', amount: '1e5', unit: 'cells' } },
       'p:A3': { cells: { valueId: 'Mystery' } },
@@ -455,7 +453,7 @@ describe('plate names and needed values in the values table', () => {
   });
   const donorProtocol = (values: ValuesCard) =>
     ({
-      blocks: [
+      cards: [
         {
           id: 'materials',
           type: 'materials',
@@ -504,10 +502,8 @@ describe('plate names and needed values in the values table', () => {
 
   it('marks a blank value that the math is waiting on', () => {
     const values = valuesCard('values', {
-      sections: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
-      items: [
-        { id: 't-vol', section: 'sec-tcells', name: 'Volume per well', value: '', unit: 'µL' },
-      ],
+      rows: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
+      items: [{ id: 't-vol', row: 'sec-tcells', name: 'Volume per well', value: '', unit: 'µL' }],
     });
     const table = tableOf(donorProtocol(values), values);
     const cell = rowNamed(table, 'Biological material', 'T cells').cells.find(
@@ -521,7 +517,7 @@ describe('plate names and needed values in the values table', () => {
 describe('cells on the values table', () => {
   const tCells = (rows: Array<{ id: string; name: string; values: Record<string, string> }>) => ({
     ...material('m-tcells', 'T cells', 'bio', 'Primary cells'),
-    sources: {
+    donors: {
       label: 'Donors',
       shownFields: [],
       customFields: [],
@@ -530,7 +526,7 @@ describe('cells on the values table', () => {
   });
   const cellPlate = plateMap('map', 'Assay plate map', {
     lines: [line('cells', ['Raji', 'D1', 'D2', 'GFP lentivirus'])],
-    cells: {
+    samples: {
       'p:A1': { cells: { valueId: 'Raji', amount: '1e4', unit: 'cells' } },
       'p:A2': { cells: { valueId: 'D1', amount: '1e5', unit: 'cells' } },
       'p:A3': { cells: { valueId: 'D2', amount: '1e5', unit: 'cells' } },
@@ -538,12 +534,12 @@ describe('cells on the values table', () => {
     },
   });
   const plating = valuesCard('values', {
-    sections: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
-    items: [{ id: 't-vol', section: 'sec-tcells', name: 'Vol./well', value: '100', unit: 'µL' }],
+    rows: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
+    items: [{ id: 't-vol', row: 'sec-tcells', name: 'Vol./well', value: '100', unit: 'µL' }],
   });
   const cellTable = (items: MaterialItem[]) => {
     const protocol = {
-      blocks: [{ id: 'materials', type: 'materials', items }, cellPlate, plating],
+      cards: [{ id: 'materials', type: 'materials', items }, cellPlate, plating],
     } as unknown as Protocol;
     return groupNamed(tableOf(protocol, plating), 'Biological material');
   };
@@ -552,14 +548,14 @@ describe('cells on the values table', () => {
   const cellOf = (group: ValueTableGroup, name: string, label: string) =>
     rowOf(group, name).cells.find(cell => cell.label === label);
   const donors = tCells([
-    { id: 'd1', name: 'D1', values: { 'live-count': '9e6' } },
+    { id: 'd1', name: 'D1', values: { 'live-cells': '9e6' } },
     { id: 'd2', name: 'D2', values: {} },
     { id: 'd3', name: 'D3', values: { viability: '80' } },
   ]);
 
   it('puts the counts first on a cell row and works out the blanks', () => {
     const bio = cellTable([
-      material('m-raji', 'Raji', 'bio', 'Cell line', { count: '2e6', viability: '90' }),
+      material('m-raji', 'Raji', 'bio', 'Cell line', { 'total-cell-conc': '2e6', viability: '90' }),
     ]);
     expect(bio.columns.slice(0, 5).map(column => column.label)).toEqual([
       'Total cell conc.',
@@ -590,7 +586,7 @@ describe('cells on the values table', () => {
   it('flags typed counts that disagree', () => {
     const bio = cellTable([
       material('m-raji', 'Raji', 'bio', 'Cell line', {
-        count: '2e6',
+        'total-cell-conc': '2e6',
         viability: '90',
         'live-cell-conc': '5e5',
       }),
@@ -637,7 +633,7 @@ describe('cells on the values table', () => {
 
   it('writes a typed count back to the donor in Materials', () => {
     const protocol = {
-      blocks: [{ id: 'materials', type: 'materials', items: [donors] }, cellPlate, plating],
+      cards: [{ id: 'materials', type: 'materials', items: [donors] }, cellPlate, plating],
     } as unknown as Protocol;
     const cell = cellOf(
       groupNamed(tableOf(protocol, plating), 'Biological material'),
@@ -647,8 +643,8 @@ describe('cells on the values table', () => {
     const written = produce(protocol, draft => {
       if (cell) writeCellValue(draft, 'values', cell, '2');
     });
-    const [item] = (written.blocks[0] as { items: MaterialItem[] }).items;
-    expect(item.sources?.rows[1].values['volume']).toBe('2');
-    expect(item.sources?.shownFields).toContain('volume');
+    const [item] = (written.cards[0] as { items: MaterialItem[] }).items;
+    expect(item.donors?.rows[1].values['volume']).toBe('2');
+    expect(item.donors?.shownFields).toContain('volume');
   });
 });

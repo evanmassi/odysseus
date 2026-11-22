@@ -46,7 +46,7 @@ interface WorkbenchWellLineRowProps {
   onPickColor: (color: string) => void;
 }
 
-type IndicatorPart = NonNullable<PlateLine['hiddenMarks']>[number];
+type IndicatorPart = NonNullable<PlateLine['hiddenIndicators']>[number];
 
 const INDICATOR_PARTS: ReadonlyArray<{ part: IndicatorPart; label: string }> = [
   { part: 'outline', label: 'Outline' },
@@ -58,7 +58,7 @@ const hasIndicatorParts = (role: ShownRole | PlateLine['role'] | undefined) =>
 
 const ROLE_LABELS: Readonly<Record<PlateLine['role'], string>> = {
   auto: 'Auto',
-  color: 'Fill',
+  fill: 'Fill',
   band: 'Band',
   stripe: 'Stripe',
   tag: 'Tag',
@@ -210,7 +210,7 @@ export function WorkbenchWellLineRow({
           <p className="flex items-center gap-1.5 pl-6 text-caption text-muted-foreground">
             Shows
             {INDICATOR_PARTS.map(({ part, label }) => {
-              const isShown = !row.line?.hiddenMarks?.includes(part);
+              const isShown = !row.line?.hiddenIndicators?.includes(part);
               return (
                 <button
                   key={part}

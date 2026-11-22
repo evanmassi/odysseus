@@ -60,7 +60,7 @@ export function cellCount(
 }
 
 export function partnerName(card: PlateMapCard, key: string, partner: PlateLine): string {
-  const text = lineValueOf(partner, card.cells[key]?.[partner.id])?.text.trim();
+  const text = lineValueOf(partner, card.samples[key]?.[partner.id])?.text.trim();
   return [text, partner.name.trim()].find(Boolean) ?? 'the other cells';
 }
 
@@ -95,7 +95,7 @@ export function ratioRow(
         : '';
   return {
     choices: card.lines
-      .filter(other => other.id !== line.id && keys.some(key => card.cells[key]?.[other.id]))
+      .filter(other => other.id !== line.id && keys.some(key => card.samples[key]?.[other.id]))
       .map(other => ({ lineId: other.id, label: partnerName(card, firstKey, other) })),
     chosenId: card.lines.some(other => other.id === line.ratioTo) ? (line.ratioTo ?? '') : '',
     autoLabel: auto && partnerName(card, firstKey, auto),

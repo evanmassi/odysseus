@@ -29,7 +29,7 @@ function needText(board: SolvedBoard, diluent: string): string {
 }
 
 export function diluentUses(
-  protocol: Pick<Protocol, 'blocks' | 'diluent'>,
+  protocol: Pick<Protocol, 'cards' | 'diluent'>,
   board: SolvedBoard
 ): DiluentUse[] {
   const runs = dilutionRuns(protocol);

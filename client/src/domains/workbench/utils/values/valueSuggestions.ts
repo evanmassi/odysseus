@@ -21,8 +21,8 @@ const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
   other: [suggested(VOLUME_PER_WELL)],
 };
 
-function hasPlateMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {
-  const plateMaps = protocol.blocks.filter(card => card.type === 'plate');
+function hasPlateMapFor(protocol: Pick<Protocol, 'cards'>, material: MaterialItem) {
+  const plateMaps = protocol.cards.filter(card => card.type === 'plateMap');
   const key = normalizeMaterialKey(material.name);
   return (
     plateMaps.some(card => normalizeMaterialKey(card.title).includes(key)) || plateMaps.length === 1
@@ -30,13 +30,13 @@ function hasPlateMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialIt
 }
 
 export function valueSuggestions(
-  protocol: Pick<Protocol, 'blocks'>,
+  protocol: Pick<Protocol, 'cards'>,
   card: ValuesCard,
   valueRow: ValueRow,
   material: MaterialItem | undefined
 ): ValueSuggestion[] {
   if ('materialId' in valueRow && !material) return [];
-  const peers = card.items.filter(item => item.section === valueRow.id);
+  const peers = card.items.filter(item => item.row === valueRow.id);
   const taken = new Set(
     peers.map(item =>
       'materialField' in item ? item.materialField : normalizeMaterialKey(item.name)

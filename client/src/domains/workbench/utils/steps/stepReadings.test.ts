@@ -21,7 +21,7 @@ function protocolWith(stepTexts: string[], items: MaterialItem[] = []) {
     text,
     isMeanwhile: false,
   }));
-  const card = protocol.blocks.find(
+  const card = protocol.cards.find(
     (candidate): candidate is MaterialsCard => candidate.type === 'materials'
   );
   if (!card) throw new Error('blank protocol has no materials block');
@@ -63,7 +63,7 @@ describe('material readings', () => {
   it('names materials already on the board as they are written there, and honours ignores', () => {
     const { protocol } = protocolWith(['Wash with Pbs.'], [material('PBS', 'media', 'Buffer')]);
     expect(read(protocol)).toMatchObject([{ name: 'PBS', isOnBoard: true, key: 'material:pbs' }]);
-    protocol.ignoredReadings = ['material:pbs'];
+    protocol.ignoredSuggestions = ['material:pbs'];
     expect(read(protocol)).toEqual([]);
   });
 });
@@ -106,7 +106,7 @@ describe('accepting readings', () => {
       'Add {Bright-Glo vol./well} of {Bright-Glo} per well.'
     );
     expect(card.items.map(item => item.name)).toEqual(['Bright-Glo']);
-    const values = protocol.blocks.find(candidate => candidate.type === 'values');
+    const values = protocol.cards.find(candidate => candidate.type === 'values');
     expect(values?.type === 'values' && values.items.at(-1)).toMatchObject({
       name: 'Vol./well',
       value: '50',

@@ -36,11 +36,11 @@ export function nameUsage(
     }
   }
   const names = [...board.names.values()].map(entry => entry.name);
-  const typedExprs = protocol.blocks.flatMap(card =>
-    card.type === 'formula' ? card.items.map(calculation => calculation.expr) : []
+  const typedExprs = protocol.cards.flatMap(card =>
+    card.type === 'calculations' ? card.items.map(calculation => calculation.formula) : []
   );
   const generatedExprs = [...board.names.values()].flatMap(entry =>
-    entry.kind === 'calculation' && entry.workedOut ? [entry.expr] : []
+    entry.kind === 'calculation' && entry.workedOut ? [entry.formula] : []
   );
   for (const expr of [...typedExprs, ...generatedExprs]) {
     const owners = new Set(

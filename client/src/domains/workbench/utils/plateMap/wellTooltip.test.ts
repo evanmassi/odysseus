@@ -14,7 +14,7 @@ const coCulture = () =>
       { id: 't', name: '', role: 'stripe', values: [{ id: 'tv', text: 'T donor A' }] },
       { id: 'r', name: '', role: 'auto', values: [{ id: 'rv', text: 'Raji' }] },
     ],
-    cells: {
+    samples: {
       'p:A1': {
         t: { valueId: 'tv', amount: '4:1', unit: 'N:N' },
         r: { valueId: 'rv', amount: '1e4', unit: 'cells' },
@@ -45,7 +45,7 @@ describe('well tooltip rows', () => {
 
   it('asks for the other cells when the ratio has no partner', () => {
     const card = coCulture();
-    delete card.cells['p:A1']['r'];
+    delete card.samples['p:A1']['r'];
     const rows = rowsAt(card);
     expect(rows[0]).toEqual({
       kind: 'ratio',
@@ -64,13 +64,13 @@ describe('well tooltip rows', () => {
   it('says what a pooled position came from, and where a pooled-away well was stained', () => {
     const card = {
       ...coCulture(),
-      plates: [{ id: 'p', vessel: '96', name: '' }],
-      sets: [],
+      plates: [{ id: 'p', labware: '96', name: '' }],
+      otherLabware: [],
       activeTab: 0,
       stain: { 'p:B1': 'full' },
       stainedIn: { 'p:A1': 'p:B1', 'p:A2': 'p:B1' },
     } as unknown as PlateMapCard;
-    card.cells['p:A2'] = structuredClone(card.cells['p:A1']);
+    card.samples['p:A2'] = structuredClone(card.samples['p:A1']);
     const sheet = sheetOf(card, activeTabOf(card));
     const layers = lineLayers(card, undefined, empty);
     const pooled = stainSideTooltipRows(card, sheet, 'p:B1', layers, empty, []);
