@@ -88,8 +88,8 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
     createContent: () => ({ items: [], materialSections: [] }),
   },
   plate: {
-    label: 'Vessel map',
-    hint: 'Plates, flasks, dishes or tubes; counts feed formulas',
+    label: 'Plate map',
+    hint: 'Plates, flasks, dishes or tubes; counts feed calculations',
     size: [6, 14],
     fitsContent: true,
     createContent: () => ({
@@ -108,8 +108,8 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
     }),
   },
   plateView: {
-    label: 'Vessel map',
-    hint: 'A Vessel map shown from another page',
+    label: 'Plate map',
+    hint: 'Labware shown from another page',
     size: [6, 14],
     fitsContent: true,
     createContent: () => ({
@@ -121,15 +121,15 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   },
   cytometer: {
     label: 'Flow panel',
-    hint: 'Stains by laser and detector on your cytometer',
+    hint: 'Markers by laser and detector on your cytometer',
     usageTip: {
-      heading: 'Lay out your stains on the cytometer',
+      heading: 'Lay out your markers on the cytometer',
       points: [
         'Pick the cytometer, and each detector becomes a row under its laser',
-        '*Add a stain* on a detector picks one from <materials> or makes a new one',
-        'A stain lights amber when another detector would read it better',
-        '*Full Stain*, *Single Stain* and *FMO* make the mixes for your controls',
-        'Type a mix name on wells in the <plate> to count its wells',
+        '*Add a marker* on a detector picks one from <materials> or makes a new one',
+        'A marker lights amber when another detector would read its fluor better',
+        '*Full stain*, *Single stain* and *FMO* make the stains for your controls',
+        'Type a stain name on wells in the <plate> to count its wells',
         'Amounts per well and cocktails are names you can use in <formula>',
       ],
     },
@@ -144,7 +144,7 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
       heading: 'Write out what you do, step by step',
       points: [
         '[Shift+Enter] starts the next step',
-        '[Tab] indents, [Shift+Tab] outdents',
+        '[Tab] moves in, [Shift+Tab] moves out',
         'Type [{] to drop in a <values> or <materials> name',
         '*Drag* to reorder',
       ],
@@ -187,12 +187,11 @@ export const BLOCK_TYPES: { readonly [Type in ProtocolBlockType]: BlockType<Type
   },
   sketch: {
     label: 'Sketch',
-    hint: 'A freehand whiteboard tile',
+    hint: 'A freehand whiteboard',
     size: [3, 6],
     createContent: () => ({ strokes: [] }),
   },
   text: { label: 'Text', hint: 'Free notes', size: [4, 3], createContent: () => ({ html: '' }) },
 };
 
-export const defaultBlockTitle = (type: ProtocolBlockType): string =>
-  BLOCK_TYPES[type].label.toUpperCase();
+export const defaultBlockTitle = (type: ProtocolBlockType): string => BLOCK_TYPES[type].label;

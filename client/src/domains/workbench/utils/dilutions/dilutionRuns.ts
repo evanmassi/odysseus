@@ -7,7 +7,7 @@ import {
 
 import { cachedPerBlock } from '../blocks/cachedPerBlock';
 import { foldOf, type StepSeries } from '../vessels/plateSeries';
-import { plateNameOf } from '../vessels/vesselTabs';
+import { plateNameOf, labwareTitle } from '../vessels/vesselTabs';
 
 export interface SeriesRef {
   plateId: string;
@@ -69,7 +69,7 @@ function placedRuns(plates: readonly VesselMapBlock[]): PlacedRun[] {
       const showsCard = plates.length > 1 || !tabNames.length;
       return {
         ...run,
-        place: [showsCard ? plate.title.trim() : '', ...tabNames].filter(Boolean).join(' · '),
+        place: [showsCard ? labwareTitle(plate) : '', ...tabNames].filter(Boolean).join(' · '),
       };
     })
   );

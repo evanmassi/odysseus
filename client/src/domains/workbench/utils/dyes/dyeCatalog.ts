@@ -23,6 +23,7 @@ const LASER_COLOR_NAMES: Readonly<Record<number, string>> = {
   355: 'UV',
   405: 'Violet',
   488: 'Blue',
+  532: 'Green',
   561: 'Yellow-green',
   640: 'Red',
   808: 'Near-IR',
@@ -32,8 +33,6 @@ export const STANDARD_LASERS_NM: readonly number[] = Object.keys(LASER_COLOR_NAM
 
 export const laserLabel = (nm: number): string =>
   LASER_COLOR_NAMES[nm] ? `${LASER_COLOR_NAMES[nm]} ${nm}` : `${nm} nm`;
-
-export const dyeLaserLabel = (dye: Dye): string => dye.lasers.map(laserLabel).join(' or ');
 
 const BUILT_IN_DYES: readonly Dye[] = BUILT_IN_DYE_GROUPS.flatMap(
   ({ kind, lasers, isFixable = false, dyes }) =>

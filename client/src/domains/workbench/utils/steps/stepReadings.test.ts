@@ -103,12 +103,12 @@ describe('accepting readings', () => {
     const { protocol, block } = protocolWith(['Add 50 µL of Bright-Glo per well.']);
     acceptStepReadings(protocol, { values: readAll(protocol).values }, name => material(name));
     expect(protocol.pages[0].steps[0].text).toBe(
-      'Add {Bright-Glo volume per well} of {Bright-Glo} per well.'
+      'Add {Bright-Glo vol./well} of {Bright-Glo} per well.'
     );
     expect(block.items.map(item => item.name)).toEqual(['Bright-Glo']);
     const values = protocol.blocks.find(candidate => candidate.type === 'values');
     expect(values?.type === 'values' && values.items.at(-1)).toMatchObject({
-      name: 'Volume per well',
+      name: 'Vol./well',
       value: '50',
       unit: 'µL',
     });
@@ -122,8 +122,8 @@ describe('value readings', () => {
       [material('PBS', 'media', 'Buffer')]
     );
     expect(readAll(protocol).values.map(({ name, value, unit }) => [name, value, unit])).toEqual([
-      ['Bright-Glo volume per well', '50', 'µL'],
-      ['PBS concentration', '10', 'µM'],
+      ['Bright-Glo vol./well', '50', 'µL'],
+      ['PBS final conc.', '10', 'µM'],
     ]);
   });
 
@@ -133,7 +133,7 @@ describe('value readings', () => {
     const twice = protocolWith(['Incubate 30 min at 37 °C.', 'Incubate 30 min again.']).protocol;
     expect(readAll(twice).values.map(({ name }) => name)).toEqual(['Incubation time']);
     const past = protocolWith(['Spun 5 min at 4 °C.', 'Centrifuged 5 min again.']).protocol;
-    expect(readAll(past).values.map(({ name }) => name)).toEqual(['Spin time']);
+    expect(readAll(past).values.map(({ name }) => name)).toEqual(['Centrifuge time']);
     const conflict = protocolWith([
       'Add 50 µL of Bright-Glo.',
       'Add 20 µL of Bright-Glo.',

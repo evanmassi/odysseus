@@ -24,9 +24,17 @@ import {
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
 import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
-import { mixFinalId, recipeFinalId, wellTotalName } from '../materials/materialRecipeFormulas';
+import {
+  finalConcentrationName,
+  mixConcentrationName,
+  mixFinalId,
+  recipeFinalId,
+  wellTotalName,
+} from '../materials/materialRecipeFormulas';
 import { findSource, sourcesIn } from '../materials/materialSources';
+import { FINAL_CONCENTRATION, MIX_CONCENTRATION } from '../terms/termList';
 import { lineLayers, markKindOf, type BandKind } from '../vessels/plateLayers';
+import { labwareTitle } from '../vessels/vesselTabs';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, sectionName } from './valueEdits';
@@ -117,8 +125,6 @@ const MIX_GROUP = { key: 'mix', label: 'Mixes' };
 const PLATE_GROUP_KEY = 'supplies';
 const MISSING_GROUP_KEY = 'unsorted';
 const ORIGIN_RANK: Record<ValueOrigin, number> = { typed: 0, plate: 1, materials: 2, worked: 3 };
-const IN_THE_MIX = 'In the mix';
-const FINAL_IN_THE_WELL = 'Final in the well';
 const WELLS_SUFFIX = ':wells';
 const NOT_NEEDED: readonly string[] = [];
 
@@ -151,7 +157,7 @@ function plateSubject(row: PlateValueRow): { subject: string; variant: string; l
       };
 }
 
-function plateCellFields(row: PlateValueRow) {
+function plateCellFields(row: PlateValueRow, cardTitle: string) {
   const canRemove = canRemovePlateRow(row);
   const { source } = row;
   if (source.kind === 'count') {
@@ -162,7 +168,7 @@ function plateCellFields(row: PlateValueRow) {
       units: [],
       isEditable: count.kind !== 'total',
       canRemove,
-      note: count.count === count.tally ? '' : `Typed in; the plate map has ${count.tally}`,
+      note: count.count === count.tally ? '' : `Typed in; ${cardTitle} counts ${count.tally}`,
     };
   }
   const from = source.amount.source;
@@ -188,8 +194,8 @@ function workedCell(
   return {
     id,
     nameId: id,
-    columnKey: columnKey(FINAL_IN_THE_WELL),
-    label: FINAL_IN_THE_WELL,
+    columnKey: columnKey(FINAL_CONCENTRATION.word),
+    label: FINAL_CONCENTRATION.word,
     fullName,
     value: isReady ? formulaAnswerText(result) : '',
     unit: '',
@@ -407,7 +413,7 @@ export function buildValueTable(
     const plateRow = plateMaterial
       ? rowForMaterial(plateMaterial)
       : isFirstBlock
-        ? draftRow(`plate:${plate.id}`, plate.title.trim(), PLATE_GROUP_KEY, {
+        ? draftRow(`plate:${plate.id}`, labwareTitle(plate), PLATE_GROUP_KEY, {
             section: undefined,
             material: undefined,
             status: 'current',
@@ -425,7 +431,7 @@ export function buildValueTable(
       const variantText = /^\d+$/.test(variant) ? `series ${variant}` : variant;
       const tags = [
         donor ? donor.source.name.trim() : '',
-        isOnSeveralPlates ? plate.title.trim() : '',
+        isOnSeveralPlates ? labwareTitle(plate) : '',
         variantText,
       ].filter(Boolean);
       let target: ValueTableRow | undefined;
@@ -442,7 +448,7 @@ export function buildValueTable(
         columnKey: columnKey(label),
         label,
         fullName: row.name,
-        ...plateCellFields(row),
+        ...plateCellFields(row, labwareTitle(plate)),
         neededFor: NOT_NEEDED,
         origin: 'plate',
         source: { kind: 'plate', row },
@@ -484,7 +490,7 @@ export function buildValueTable(
       row.cells.push(
         workedCell(
           `${row.id}:final`,
-          `${row.name} in the well`,
+          finalConcentrationName(row.name),
           calculation.results.get(mixFinalId(material.id)),
           wellTotal
         )
@@ -492,15 +498,15 @@ export function buildValueTable(
     }
     for (const entry of material.recipe) {
       const ingredient = materials.get(entry.materialId);
-      const ingredientName = ingredient?.name.trim() ?? 'No longer in Materials';
+      const ingredientName = ingredient?.name.trim() ?? 'Removed from Materials';
       const subRow = subRowOf(row, ingredientName, ingredient && displayNameOf(ingredient));
       subRow.cells.push(
         {
           id: `${row.id}:recipe:${entry.id}`,
           nameId: `${material.id}:recipe:${entry.id}`,
-          columnKey: columnKey(IN_THE_MIX),
-          label: IN_THE_MIX,
-          fullName: `${ingredientName} in ${row.name}`,
+          columnKey: columnKey(MIX_CONCENTRATION.word),
+          label: MIX_CONCENTRATION.word,
+          fullName: mixConcentrationName(row.name, ingredientName),
           value: entry.amount,
           unit: entry.unit,
           units: undefined,
@@ -513,7 +519,7 @@ export function buildValueTable(
         },
         workedCell(
           `${row.id}:recipe:${entry.id}:final`,
-          `${ingredientName} in the well`,
+          finalConcentrationName(`${row.name} ${ingredientName}`),
           calculation.results.get(recipeFinalId(material.id, entry.id)),
           wellTotal
         )

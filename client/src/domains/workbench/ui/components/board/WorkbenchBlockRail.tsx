@@ -7,7 +7,12 @@ import { DropdownMenu, MenuItem, useMenuItemHover } from '@shared/ui';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BLOCK_TYPES } from '../../../utils/blocks/blockTypes';
 import { createBlock } from '../../../utils/blocks/createBlock';
-import { plateNameOf, shelfNameOf, vesselTabs } from '../../../utils/vessels/vesselTabs';
+import {
+  plateNameOf,
+  shelfNameOf,
+  vesselTabs,
+  labwareTitle,
+} from '../../../utils/vessels/vesselTabs';
 
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_PANELS } from './blockPanels';
@@ -89,7 +94,7 @@ export function WorkbenchBlockRail() {
   ).filter(([, types]) => types.length);
 
   return (
-    <nav aria-label="Add a block" className="flex flex-col gap-4">
+    <nav aria-label="Add a card" className="flex flex-col gap-4">
       {groups.map(([label, types]) => (
         <section key={label}>
           <h4 className="px-2 pb-1 type-label text-label-xs text-muted-foreground">{label}</h4>
@@ -125,7 +130,7 @@ export function WorkbenchBlockRail() {
                     triggerRef={startFromRef}
                     portal
                     motion="slide-right"
-                    aria-label="Start the Vessel map from"
+                    aria-label="Start the Plate map from"
                     className="min-w-[160px] max-w-sm"
                     style={startMenuAt}
                   >
@@ -148,7 +153,7 @@ export function WorkbenchBlockRail() {
                             <MenuItem
                               key={source.id}
                               icon={BLOCK_ICONS.plate}
-                              label={source.title}
+                              label={labwareTitle(source)}
                               description={tabNames(source)}
                               onClick={() => {
                                 closeStartMenu();

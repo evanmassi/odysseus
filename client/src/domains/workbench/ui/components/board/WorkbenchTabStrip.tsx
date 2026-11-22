@@ -9,6 +9,7 @@ interface WorkbenchTabStripProps {
   ids: readonly string[];
   onChange: (id: string) => void;
   spacing?: TabSpacing;
+  itemName?: 'tab' | 'page';
   children: ReactNode;
 }
 
@@ -20,6 +21,7 @@ export function WorkbenchTabStrip({
   ids,
   onChange,
   spacing,
+  itemName = 'tab',
   children,
 }: WorkbenchTabStripProps) {
   const stripRef = useRef<HTMLDivElement>(null);
@@ -96,23 +98,23 @@ export function WorkbenchTabStrip({
       </div>
       {canStep && (
         <span className="flex flex-none items-center">
-          <Tooltip content="Previous tab">
+          <Tooltip content={`Previous ${itemName}`}>
             <Button
               variant="ghost"
               size="sm"
               iconOnly
-              aria-label="Previous tab"
+              aria-label={`Previous ${itemName}`}
               onClick={() => step(-1)}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
           </Tooltip>
-          <Tooltip content="Next tab">
+          <Tooltip content={`Next ${itemName}`}>
             <Button
               variant="ghost"
               size="sm"
               iconOnly
-              aria-label="Next tab"
+              aria-label={`Next ${itemName}`}
               onClick={() => step(1)}
             >
               <ChevronRight className="h-4 w-4" />

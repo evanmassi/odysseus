@@ -37,7 +37,7 @@ const calculation = calculateBoard([
 ]);
 
 const outline = (isForFormula: boolean) =>
-  insertListGroups(calculation, [drug, pbs], [], isForFormula).map(group => ({
+  insertListGroups(calculation, [drug, pbs], [], isForFormula, 'WHOLE EXPERIMENT').map(group => ({
     title: group.title,
     kind: group.kind,
     headingName: group.headingName,

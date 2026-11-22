@@ -50,7 +50,7 @@ export const WorkbenchValueRow = memo(function WorkbenchValueRow({
   actions,
 }: WorkbenchValueRowProps) {
   const isInvalid = isUnreadableAmount(row.value, row.unit);
-  const usage = usageTitle(row.fullName, row.usage);
+  const usage = usageTitle(row.usage);
   const title = row.neededNote ? wellTooltipContent([usage, row.neededNote]) : usage;
 
   const handleKeyDown = (cell: ValueCell) => (event: React.KeyboardEvent) => {

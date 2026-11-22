@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
+import { Plus } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@shared/ui';
@@ -42,6 +43,7 @@ import {
 } from '../../../../utils/vessels/wellEdits';
 import { selectionName } from '../../../../utils/vessels/wellSelection';
 import { knownNamesIn } from '../../../../utils/vessels/wellValueSuggestions';
+import { ADD_ICON } from '../../board/addIconClass';
 import { POPOUT_PANEL } from '../../board/popoutPanelClass';
 
 import { useUpdateVesselMap } from './useUpdateVesselMap';
@@ -242,13 +244,14 @@ export function WorkbenchWellEditorPanel({
         return (
           <div key={`row-${lineId}`} className="flex flex-col gap-2">
             <WorkbenchWellLineRow
+              words={{ noun, plural }}
               knownNames={knownNames}
               row={row}
               lineName={draft?.name ? draft.name : (row.line?.name ?? '')}
               lineOffers={offeredNames(lineId)}
               textPlaceholder={
                 index === 0
-                  ? `What’s in ${keys.size === 1 ? `this ${noun}` : `these ${plural}`}`
+                  ? `What's in ${keys.size === 1 ? `this ${noun}` : `these ${plural}`}`
                   : 'Another line'
               }
               seriesText={series && seriesSummary(series, calculation)}
@@ -295,6 +298,7 @@ export function WorkbenchWellEditorPanel({
             />
             {form && (
               <WorkbenchWellSeriesForm
+                words={{ noun, plural }}
                 form={form}
                 isUnnamed={!row.text.trim() && !row.isTextMixed}
                 preview={seriesPreview(block, sheet, keys, form, calculation)}
@@ -314,10 +318,11 @@ export function WorkbenchWellEditorPanel({
       })}
       <button
         type="button"
-        className="self-start text-body-sm text-primary hover:underline"
+        className="inline-flex items-center gap-1 self-start text-body-sm text-primary hover:underline"
         onClick={() => setDrafts([...shownDrafts, { lineId: createId(), name: '' }])}
       >
-        + Line
+        <Plus aria-hidden className={ADD_ICON} />
+        Add line
       </button>
     </div>,
     document.body

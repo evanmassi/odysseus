@@ -4,6 +4,16 @@ import { firstBlockOrNew } from '../blocks/createBlock';
 import { nameKey, type BoardCalculation } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
 import { ensureMaterial, shortNameOf } from '../materials/materialLookup';
+import {
+  CELLS_PER_WELL,
+  CONDITION_NOUNS,
+  conditionMeasure,
+  FINAL_CONCENTRATION,
+  MASS,
+  MASS_PER_WELL,
+  VOLUME,
+  VOLUME_PER_WELL,
+} from '../terms/termList';
 import { findAmounts } from '../units/textAmounts';
 import { insertAfterPeers } from '../values/valueEdits';
 import { joinValueName } from '../values/valueNames';
@@ -97,33 +107,16 @@ const NOT_MATERIALS = new Set([
   'each',
 ]);
 const AMOUNT_LABELS: Readonly<Record<string, string>> = {
-  volume: 'Volume',
-  mass: 'Amount',
+  volume: VOLUME.word,
+  mass: MASS.word,
   'cell-count': 'Cells',
-  'mass-conc': 'Concentration',
-  molarity: 'Concentration',
+  'mass-conc': FINAL_CONCENTRATION.word,
+  molarity: FINAL_CONCENTRATION.word,
 };
-const CONDITION_LABELS: Readonly<Record<string, string>> = {
-  time: 'time',
-  temperature: 'temperature',
-  'g-force': 'speed',
-  'rotor-speed': 'speed',
-};
-const CONDITION_NOUNS: Readonly<Record<string, string>> = {
-  centrifuge: 'Spin',
-  spin: 'Spin',
-  pellet: 'Spin',
-  incubate: 'Incubation',
-  block: 'Blocking',
-  stain: 'Staining',
-  wash: 'Wash',
-  thaw: 'Thaw',
-  warm: 'Warming',
-  wait: 'Wait',
-  shake: 'Shaking',
-  vortex: 'Vortex',
-  fix: 'Fixation',
-  lyse: 'Lysis',
+const PER_WELL_LABELS: Readonly<Record<string, string>> = {
+  volume: VOLUME_PER_WELL.word,
+  mass: MASS_PER_WELL.word,
+  'cell-count': CELLS_PER_WELL.word,
 };
 const PHRASE_WORD_LIMIT = 4;
 const AMOUNT_LEAD = /^\s+(of\s+)?(the\s+)?/;
@@ -258,20 +251,15 @@ export function readStepReadings(protocol: Protocol, calculation: BoardCalculati
             ? referenced.name.trim()
             : noteMaterial(phrase.name, { ...at, start: phrase.start, end: phrase.end });
           const perWell = PER_WELL.test(text.slice(phrase.end));
-          const label =
-            amountNoun === 'Cells'
-              ? perWell
-                ? 'Per well'
-                : 'Cells'
-              : `${amountNoun}${perWell ? ' per well' : ''}`;
+          const label = (perWell ? PER_WELL_LABELS[kind] : undefined) ?? amountNoun;
           noteValue({ material, label, value, unit, isCondition: false }, use, materialUse);
-        } else if (CONDITION_LABELS[kind]) {
+        } else if (conditionMeasure(kind)) {
           const noun = conditionNoun(text.slice(0, index));
           if (noun) {
             noteValue(
               {
                 material: undefined,
-                label: `${noun} ${CONDITION_LABELS[kind]}`,
+                label: `${noun} ${conditionMeasure(kind)}`,
                 value,
                 unit,
                 isCondition: true,

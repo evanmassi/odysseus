@@ -57,9 +57,9 @@ export function nameUsage(
 export function usageSummary({ steps, formulaCount }: NameUsage): string {
   const parts: string[] = [];
   if (steps.length) parts.push(`${steps.length === 1 ? 'Step' : 'Steps'} ${steps.join(', ')}`);
-  if (formulaCount) parts.push(`${formulaCount} formula${formulaCount === 1 ? '' : 's'}`);
+  if (formulaCount) parts.push(`${formulaCount} calculation${formulaCount === 1 ? '' : 's'}`);
   return parts.join(' · ');
 }
 
-export const usageTitle = (name: string, usage: string): string =>
-  usage ? `${name}: used in ${usage}` : `${name}: not used in any step or formula`;
+export const usageTitle = (usage: string): string =>
+  usage ? `Used in ${usage}` : 'Not used in any step or calculation';

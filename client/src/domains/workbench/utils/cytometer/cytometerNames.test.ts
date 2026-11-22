@@ -92,12 +92,12 @@ describe('flow panel names', () => {
       kind: 'value',
       value: '100',
     });
-    expect(calculation.names.get(nameKey('Full stain Surface wells'))).toMatchObject({
+    expect(calculation.names.get(nameKey('Full stain Surface cocktail wells'))).toMatchObject({
       kind: 'count',
       count: 2,
     });
-    expect(answer(calculation, 'Full stain Surface antibodies')).toBe('1.5 %');
-    expect(answer(calculation, 'FMO CD3 Surface antibodies')).toBe('0.5 %');
+    expect(answer(calculation, 'Full stain Surface cocktail antibodies')).toBe('1.5%');
+    expect(answer(calculation, 'FMO CD3 Surface cocktail antibodies')).toBe('0.5%');
   });
 
   it('leaves a name that is already the scientist’s own to them', () => {
@@ -106,11 +106,13 @@ describe('flow panel names', () => {
       id: 'formulas',
       type: 'formula',
       title: 'Calculations',
-      items: [{ id: 'mine', name: 'Full stain Surface antibodies', expr: '2', unit: '' }],
+      items: [{ id: 'mine', name: 'Full stain Surface cocktail antibodies', expr: '2', unit: '' }],
       materialSections: [],
     };
     const calculation = calculateBoard(collectBoardNames(protocol([own])));
-    expect(calculation.names.get(nameKey('Full stain Surface antibodies'))?.id).toBe('mine');
+    expect(calculation.names.get(nameKey('Full stain Surface cocktail antibodies'))?.id).toBe(
+      'mine'
+    );
     expect(calculation.duplicateIds.size).toBe(0);
   });
 
@@ -126,11 +128,21 @@ describe('flow panel names', () => {
     expect(
       answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 amount per well')
     ).toBe('0.5 µL');
+    const cocktailVolume: ProtocolBlock = {
+      ...values,
+      items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
+    };
+    expect(
+      answer(
+        calculateBoard(collectBoardNames(protocol([cocktailVolume]))),
+        'CD3 BV421 amount per well'
+      )
+    ).toBe('0.5 µL');
     const missing = calculateBoard(collectBoardNames(protocol()));
     const entry = missing.names.get(nameKey('CD3 BV421 amount per well'));
     expect(entry && missing.results.get(entry.id)).toMatchObject({
       status: 'error',
-      message: 'Needs “Surface stain volume” or “Stain volume” in Values',
+      message: 'Needs "Surface cocktail vol./well" or "Cocktail vol./well" in Values',
     });
   });
 });

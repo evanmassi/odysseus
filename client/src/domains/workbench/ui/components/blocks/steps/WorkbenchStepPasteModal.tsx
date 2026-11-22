@@ -64,7 +64,7 @@ export function WorkbenchStepPasteModal({ isOpen, onClose, onAdd }: WorkbenchSte
               close();
             }}
           >
-            {stepCount ? `Add ${stepCount} Step${stepCount === 1 ? '' : 's'}` : 'Add Steps'}
+            {stepCount ? `Add ${stepCount} step${stepCount === 1 ? '' : 's'}` : 'Add steps'}
           </Button>
         </div>
       }

@@ -74,7 +74,7 @@ export function WorkbenchVesselPickerPanel({
     <div
       ref={pickerRef}
       role="dialog"
-      aria-label="Add or remove vessels"
+      aria-label="Add or remove labware"
       className="fixed z-50 flex w-[340px] flex-col gap-2 border border-line-mid bg-card p-2.5 shadow-lg"
       style={position}
     >
@@ -83,8 +83,8 @@ export function WorkbenchVesselPickerPanel({
         size="sm"
         fullWidth
         value={query}
-        placeholder="Find a plate, flask or tube"
-        aria-label="Find a vessel"
+        placeholder="Find labware"
+        aria-label="Find labware"
         spellCheck={false}
         onValueChange={setQuery}
       />
@@ -123,7 +123,7 @@ export function WorkbenchVesselPickerPanel({
                         key={`${type}:${count}`}
                         defaultValue={count}
                         inputMode="numeric"
-                        aria-label={`Number of ${label}s`}
+                        aria-label={`Count of ${label}`}
                         className="h-7 w-10 border border-line-soft bg-transparent text-center font-mono text-data-sm text-foreground outline-none focus:border-primary/60"
                         onBlur={event => onCountChange(type, Number(event.currentTarget.value))}
                         onKeyDown={event => {

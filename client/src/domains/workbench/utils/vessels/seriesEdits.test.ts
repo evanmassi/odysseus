@@ -72,7 +72,7 @@ describe('series edits', () => {
     const sheet = sheetFor(block);
     const row = new Set(sheet.spots.filter(spot => spot.row === 0).map(spot => spot.key));
     expect(seriesPreview(block, sheet, row, { ...form, fold: '3' }, calculateBoard([]))).toBe(
-      '12 steps: 10 µM, 3.33 µM, 1.11 µM, 0.37 µM, …, 5.65E-5 µM'
+      '12 points: 10 µM, 3.33 µM, 1.11 µM, 0.37 µM, …, 5.65E-5 µM'
     );
     expect(
       seriesPreview(
@@ -82,7 +82,7 @@ describe('series edits', () => {
         { ...form, isList: true, points: 'High, Low' },
         calculateBoard([])
       )
-    ).toBe('3 steps: High, Low, and 1 left blank');
+    ).toBe('3 points: High, Low, and 1 left blank');
   });
 
   it('default a new series to a unit already used on its line', () => {

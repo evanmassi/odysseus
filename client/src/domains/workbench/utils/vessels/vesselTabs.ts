@@ -1,6 +1,6 @@
-import { VESSEL_PLURALS, vesselOf } from './vesselCatalog';
+import { VESSEL_PLURALS, vesselOf, wordsForTypes, type VesselWords } from './vesselCatalog';
 
-import type { VesselMapBlock } from '@odysseus/shared-schemas';
+import type { ProtocolBlock, VesselMapBlock } from '@odysseus/shared-schemas';
 
 type Plate = VesselMapBlock['plates'][number];
 
@@ -39,13 +39,41 @@ export const plateNameOf = (block: VesselMapBlock, plate: Plate) =>
   plate.name || `Plate ${block.plates.indexOf(plate) + 1}`;
 
 export const shelfNameOf = (block: VesselMapBlock) =>
-  block.shelfName?.trim() ? block.shelfName : 'Group 1';
+  block.shelfName?.trim() ? block.shelfName : shelfKinds(block);
 
-export function shelfKinds(block: VesselMapBlock): string {
-  const words = [...new Set(block.sets.map(set => VESSEL_PLURALS[vesselOf(set.vessel).noun]))];
-  return words
-    .map((word, index) => (index ? word : word[0].toUpperCase() + word.slice(1)))
-    .join(' & ');
+function kindsList(words: readonly string[]): string {
+  const [first = '', ...rest] = words;
+  const listed = [first[0]?.toUpperCase() + first.slice(1), ...rest];
+  return listed.length > 1
+    ? `${listed.slice(0, -1).join(', ')} & ${listed[listed.length - 1]}`
+    : listed.join('');
+}
+
+const shelfPlurals = (block: Pick<VesselMapBlock, 'sets'>) => [
+  ...new Set(block.sets.map(set => VESSEL_PLURALS[vesselOf(set.vessel).noun])),
+];
+
+export const shelfKinds = (block: Pick<VesselMapBlock, 'sets'>): string =>
+  kindsList(shelfPlurals(block));
+
+export const tabWords = (block: VesselMapBlock, tab: VesselTab): VesselWords =>
+  wordsForTypes(tab.kind === 'plate' ? [tab.plate.vessel] : block.sets.map(set => set.vessel));
+
+const AUTOMATIC_TITLES = new Set(['', 'vessel map', 'plate map']);
+
+export function labwareKinds(block: Pick<VesselMapBlock, 'plates' | 'sets'>): string {
+  if (!block.sets.length) return 'Plate map';
+  return kindsList([...(block.plates.length ? ['plates'] : []), ...shelfPlurals(block)]);
+}
+
+export const labwareTitle = (block: VesselMapBlock): string =>
+  AUTOMATIC_TITLES.has(block.title.trim().toLowerCase()) ? labwareKinds(block) : block.title.trim();
+
+export function labwareTitleOf(blocks: readonly ProtocolBlock[], cardId?: string): string {
+  const cards = blocks.filter((block): block is VesselMapBlock => block.type === 'plate');
+  const card =
+    cards.find(block => block.id === cardId) ?? (cards.length === 1 ? cards[0] : undefined);
+  return card ? labwareTitle(card) : 'Plate map';
 }
 
 function plateSheet(plate: Plate): VesselSheet {

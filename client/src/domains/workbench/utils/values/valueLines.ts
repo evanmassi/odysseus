@@ -1,4 +1,5 @@
 import { readNumber } from '../formulas/quantities';
+import { settledValue } from '../terms/termLookup';
 import { amountUnit } from '../units/textAmounts';
 
 export interface ParsedValueLine {
@@ -11,6 +12,11 @@ const RATIO_LINE = /^(.*?)[\s:=]+(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/;
 const NUMBER_WITH_UNIT = /^([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?[kKM]?)(\D.*)$/;
 
 const cleanName = (name: string) => name.replace(/[\s:=]+$/, '').trim();
+
+export function settledLine(line: ParsedValueLine): ParsedValueLine {
+  const { label, unit } = settledValue(line.name, line.unit);
+  return { ...line, name: label, unit };
+}
 
 export function parseValueLine(line: string): ParsedValueLine | undefined {
   const text = line.trim();

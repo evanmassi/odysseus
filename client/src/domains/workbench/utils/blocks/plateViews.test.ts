@@ -82,10 +82,10 @@ describe('plate views', () => {
   it('says what removing will do', () => {
     const protocol = protocolWith(original(), view('v1', 'takedown'));
     expect(removalMessage(protocol, protocol.blocks[1])).toBe(
-      'Remove this view of “Plate map”? Its plates stay on Plates & Calculations.'
+      'Remove this card? Its plates stay on Plates & Calculations.'
     );
     expect(removalMessage(protocol, protocol.blocks[0])).toBe(
-      'Remove the “Plate map” block from this page? Its plates move to the view on Takedown, so nothing is lost.'
+      'Remove the "Plate map" card from this page? Its plates move to the card on Takedown, so nothing is lost.'
     );
   });
 });

@@ -1,3 +1,5 @@
+import { labwareTitle } from '../vessels/vesselTabs';
+
 import type {
   PlateViewBlock,
   Protocol,
@@ -24,16 +26,17 @@ export function removalMessage(
   protocol: Pick<Protocol, 'pages' | 'blocks'>,
   block: ProtocolBlock
 ): string {
-  const asked = `Remove the “${block.title}” block from this page?`;
+  const title = block.type === 'plate' ? labwareTitle(block) : block.title;
+  const asked = `Remove the "${title}" card from this page?`;
   if (block.type === 'plateView') {
     const source = protocol.blocks.find(candidate => candidate.id === block.shows);
     return source
-      ? `Remove this view of “${source.title}”? Its plates stay on ${pageName(protocol, source.page)}.`
+      ? `Remove this card? Its plates stay on ${pageName(protocol, source.page)}.`
       : asked;
   }
   const [heir] = block.type === 'plate' ? viewsOf(protocol.blocks, block.id) : [];
   return heir
-    ? `${asked} Its plates move to the view on ${pageName(protocol, heir.page)}, so nothing is lost.`
+    ? `${asked} Its plates move to the card on ${pageName(protocol, heir.page)}, so nothing is lost.`
     : asked;
 }
 

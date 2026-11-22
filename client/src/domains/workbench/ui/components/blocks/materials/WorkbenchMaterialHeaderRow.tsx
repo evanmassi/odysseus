@@ -1,9 +1,10 @@
 import { memo, type RefObject } from 'react';
 
-import { X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
+import { ADD_ICON } from '../../board/addIconClass';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 
 import { MATERIAL_HEAD_CELL, MATERIAL_HEAD_ROW } from './materialTableStyles';
@@ -63,13 +64,14 @@ export const WorkbenchMaterialHeaderRow = memo(function WorkbenchMaterialHeaderR
           <button
             ref={fieldButtonRef}
             type="button"
-            className={`type-label transition-colors hover:text-foreground ${
+            className={`inline-flex items-center gap-1 type-label transition-colors hover:text-foreground ${
               isFieldMenuOpen ? 'text-foreground' : 'text-foreground/55'
             }`}
             aria-expanded={isFieldMenuOpen}
             onClick={() => actions.toggleFieldMenu(group)}
           >
-            + Field
+            <Plus aria-hidden className={ADD_ICON} />
+            Add field
           </button>
         </th>
       </tr>

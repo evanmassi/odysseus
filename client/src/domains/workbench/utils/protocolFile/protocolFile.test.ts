@@ -289,7 +289,7 @@ describe('readProtocolFile errors', () => {
 
   it('reports an unknown block type in an old file', () => {
     expect(() => read(legacyFile({ blocks: [block('hologram')] }))).toThrow(
-      'Unknown block type “hologram”'
+      'Unknown card type "hologram"'
     );
   });
 });

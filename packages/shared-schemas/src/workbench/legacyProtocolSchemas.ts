@@ -393,7 +393,7 @@ const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
 function upgradeBlock(raw: unknown, fallbackPage: string): unknown {
   const base = z.object(legacyBlockBase).parse(raw);
   const content = legacyBlockContent[base.type];
-  if (!content) throw new Error(`Unknown block type “${base.type}”`);
+  if (!content) throw new Error(`Unknown card type "${base.type}"`);
   return {
     id: base.id,
     type: base.type,

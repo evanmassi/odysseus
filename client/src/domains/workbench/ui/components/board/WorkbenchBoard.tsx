@@ -70,7 +70,7 @@ export function WorkbenchBoard() {
     >
       {!pageBlocks.length && (
         <p className="px-2 py-6 text-body-sm text-muted-foreground">
-          Nothing on this page yet. Add a block from the left.
+          Nothing on this page yet. Add a card from the left.
         </p>
       )}
       {mounted && pageBlocks.length > 0 && (

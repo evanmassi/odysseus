@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { ListOrdered } from 'lucide-react';
+import { ListOrdered, Plus } from 'lucide-react';
 
 import { Button, PanelEmptyState } from '@shared/ui';
 
@@ -17,6 +17,7 @@ import {
   moveStepBlock,
 } from '../../../../utils/steps/stepOrder';
 import { groupStepsBySection, precedingMainSteps } from '../../../../utils/steps/stepOutline';
+import { ADD_ICON } from '../../board/addIconClass';
 
 import { stepRowDragStyle } from './stepRowDragStyle';
 import { useStepDrag, type StepDrop } from './useStepDrag';
@@ -105,13 +106,19 @@ export function WorkbenchStepsPanel({ block }: WorkbenchStepsPanelProps) {
       <Button
         variant="ghost"
         size="xs"
+        leftIcon={<Plus aria-hidden className={ADD_ICON} />}
         onMouseDown={event => event.preventDefault()}
         onClick={addStep}
       >
-        + Step
+        Add step
       </Button>
-      <Button variant="ghost" size="xs" onClick={addSection}>
-        + Section
+      <Button
+        variant="ghost"
+        size="xs"
+        leftIcon={<Plus aria-hidden className={ADD_ICON} />}
+        onClick={addSection}
+      >
+        Add section
       </Button>
       <Button variant="ghost" size="xs" onClick={() => setIsPasting(true)}>
         Paste protocol

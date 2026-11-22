@@ -93,7 +93,7 @@ function readStain(
 }
 
 const stainLabel = (stain: PanelStain) =>
-  [stain.fluorochrome, stain.marker, stain.material?.name.trim()].find(Boolean) ?? 'another stain';
+  [stain.fluorochrome, stain.marker, stain.material?.name.trim()].find(Boolean) ?? 'another marker';
 
 export function panelLayout(
   block: CytometerBlock,

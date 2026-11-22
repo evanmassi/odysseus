@@ -1,4 +1,18 @@
-import { upperLead } from '../values/valueNames';
+import {
+  CELL_CONCENTRATION,
+  CELLS_PER_WELL,
+  EXTRA,
+  MASS_PER_WELL,
+  TOTAL_NEEDED,
+  TOTAL_VOLUME_NEEDED,
+  VIABILITY,
+  VOLUME_PER_WELL,
+  WELLS,
+  WELLS_USED,
+  type Term,
+} from '../terms/termList';
+import { findTerm } from '../terms/termLookup';
+import { joinValueName, upperLead } from '../values/valueNames';
 
 import { nameKey, type BoardCalculation } from './boardCalculation';
 import { FORMULA_FUNCTIONS, type FormulaFunction } from './formulaParser';
@@ -20,10 +34,10 @@ export interface FormulaCompletion {
 }
 
 export const FORMULA_FUNCTION_HINTS: Readonly<Record<FormulaFunction, string>> = {
-  'round up': 'to a whole number, or to a step: round up(Mix, 5 mL)',
-  'round down': 'to a whole number, or to a step',
-  round: 'to the nearest whole number, or step',
-  'at least': 'never below a minimum: at least(Needed, 100 µL)',
+  'round up': 'up to a whole number, or to an amount: round up(Total needed, 5 mL)',
+  'round down': 'down to a whole number, or to an amount',
+  round: 'to the nearest whole number, or amount',
+  'at least': 'never below a minimum: at least(Total needed, 100 µL)',
 };
 
 const COMPLETION_LIMIT = 8;
@@ -156,32 +170,38 @@ export function calculationSuggestions(
 ): CalculationSuggestion[] {
   if (!material) return [];
   const has = (name: string) => calculation.names.has(nameKey(name));
-  const own = (suffix: string) => `${material.name.trim()} ${suffix}`;
-  const wells = [own('wells'), 'Wells used'].find(has);
-  const overage = has('Overage') ? ' × (1 + Overage)' : '';
-  const amount = [own('per well'), own('volume per well')].find(has);
-  const isCells = has(own('per well'));
-  const viability = has(own('viability')) ? ` × ${own('viability')}` : '';
+  const owner = material.name.trim();
+  const own = (label: string) => joinValueName(owner, label);
+  const find = (term: Term, owners: readonly string[]) =>
+    findTerm(calculation.names, term, owners)?.name;
+  const needed = find(TOTAL_NEEDED, [owner]);
+  const wells = find(WELLS, [owner]) ?? find(WELLS_USED, ['']);
+  const extra = find(EXTRA, [owner, '']);
+  const overage = extra ? ` × (1 + ${extra})` : '';
+  const cells = find(CELLS_PER_WELL, [owner]);
+  const volume = find(VOLUME_PER_WELL, [owner]);
+  const amount = cells ?? find(MASS_PER_WELL, [owner]) ?? volume;
+  const count = find(CELL_CONCENTRATION, [owner]);
+  const viabilityName = find(VIABILITY, [owner]);
+  const viability = viabilityName ? ` × ${viabilityName}` : '';
   const recipes = [
     {
-      label: 'Needed',
-      name: own('needed'),
-      isReady: !!amount && !!wells,
+      label: TOTAL_NEEDED.word,
+      name: own(TOTAL_NEEDED.word),
+      isReady: !!amount && !!wells && !needed,
       expr: `${amount} × ${wells}${overage}`,
     },
     {
       label: 'To take',
-      name: own('to take'),
-      isReady: isCells && has(own('needed')) && has(own('count')),
-      expr: viability
-        ? `${own('needed')} ÷ (${own('count')}${viability})`
-        : `${own('needed')} ÷ ${own('count')}`,
+      name: own('To take'),
+      isReady: !!cells && !!needed && !!count,
+      expr: viability ? `${needed} ÷ (${count}${viability})` : `${needed} ÷ ${count}`,
     },
     {
-      label: 'Mix',
-      name: own('mix'),
-      isReady: isCells && has(own('volume per well')) && !!wells,
-      expr: `${wells} × ${own('volume per well')}${overage}`,
+      label: TOTAL_VOLUME_NEEDED.word,
+      name: own(TOTAL_VOLUME_NEEDED.word),
+      isReady: !!cells && !!volume && !!wells && !find(TOTAL_VOLUME_NEEDED, [owner]),
+      expr: `${wells} × ${volume}${overage}`,
     },
   ];
   return recipes

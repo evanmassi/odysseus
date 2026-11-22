@@ -119,7 +119,7 @@ export function WorkbenchMaterialFieldSelector({
             <span className={`${CHECK_BOX} border-dashed border-line-mid`}>
               <Plus aria-hidden className="h-3 w-3" />
             </span>
-            Add “{query.trim()}” as a field
+            {`Add "${query.trim()}" as a field`}
           </button>
         )}
       </ScrollArea>

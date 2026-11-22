@@ -33,7 +33,7 @@ describe('bestDetector', () => {
 describe('misplacementText', () => {
   it('says when a dye sits on a laser that does not excite it', () => {
     expect(misplacementText(IQUE, BUILT_IN_CATALOG, 'BV785', 'BL3')).toEqual({
-      text: 'BV785 isn’t excited by the blue laser; it works best on VL6 (780/60).',
+      text: "BV785 isn't excited by the blue laser; it works best on VL6 (780/60).",
       detectorId: 'VL6',
       filter: '780/60',
     });

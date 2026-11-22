@@ -2,6 +2,8 @@ import { unitScale, type Protocol } from '@odysseus/shared-schemas';
 
 import { RATIO_NOTATION, readableAmount, readNumber } from '../formulas/quantities';
 import { displayNameOf, materialNamed } from '../materials/materialLookup';
+import { DILUTION_FACTOR, TOP_AMOUNT, TOP_POSITION, TOTAL_WELL_VOLUME } from '../terms/termList';
+import { lowerLead } from '../values/valueNames';
 import { seriesFold, seriesTop } from '../vessels/plateSeries';
 
 import {
@@ -67,7 +69,7 @@ function answerOf(calculation: BoardCalculation, id: string): LineAnswer {
   const result = calculation.results.get(id);
   if (result?.status === 'ok') return { magnitude: result.quantity.magnitude };
   return {
-    problem: result?.message ?? 'Name this treatment on the plate map to work out its prep.',
+    problem: result?.message ?? 'Name this treatment in its wells to work out its prep.',
   };
 }
 
@@ -94,7 +96,7 @@ export function dilutionPrep(
   const summary = [
     top ? show(top.value) : run.series.start || '?',
     `1:${shortNumber(fold || 0)}`,
-    `${pointCount} points`,
+    `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
   ].join(' · ');
   const typedWellVolume = settings.wellVolume.trim();
   const experimentWellVolume = typedWellVolume
@@ -110,7 +112,7 @@ export function dilutionPrep(
     return {
       ...base,
       kind: 'problem',
-      problem: 'Give this series a starting amount with a unit, and a fold, on the plate map.',
+      problem: `Give this series a ${lowerLead(TOP_AMOUNT.word)} with a unit, and a ${lowerLead(DILUTION_FACTOR.word)}, with its Dilution button.`,
     };
   }
   const added = readNumber(settings.volumeAdded) ?? NaN;
@@ -119,7 +121,7 @@ export function dilutionPrep(
     return {
       ...base,
       kind: 'problem',
-      problem: 'Set the volume added, and the well volume here or as "Well volume" in Values.',
+      problem: `Set the volume added, and the ${lowerLead(TOTAL_WELL_VOLUME.word)} here or as "${TOTAL_WELL_VOLUME.word}" in Values.`,
     };
   }
   const strengthAnswer = lineAnswer(calculation, run, 'strength');
@@ -142,7 +144,7 @@ export function dilutionPrep(
   if (isRatio && top.value / strength < 1) {
     warn(
       'topWorking',
-      `At ${shortNumber(strength)}× the top well would need stock stronger than undiluted.`
+      `At ${shortNumber(strength)}× the top would need stock stronger than undiluted.`
     );
   }
   const stockAnswer = lineAnswer(calculation, run, 'stock');
@@ -151,10 +153,7 @@ export function dilutionPrep(
   if (rawStock !== undefined && rawStock > total) {
     const stockName =
       stock.kind === 'ready' ? `${stock.shown} ${stock.material}` : 'undiluted stock';
-    warn(
-      'stock',
-      `The stock (${stockName}) is weaker than the top well needs (${show(working(0))}).`
-    );
+    warn('stock', `The stock (${stockName}) is weaker than the top needs (${show(working(0))}).`);
     rawStock = undefined;
   }
   const points = Array.from({ length: pointCount }, (_, point) => ({
@@ -169,12 +168,12 @@ export function dilutionPrep(
   const diluentMaterial = materialNamed(protocol, chosenDiluent);
   const diluentLabel = diluentMaterial ? displayNameOf(diluentMaterial) : chosenDiluent.trim();
   const diluentName = diluentLabel || 'diluent';
-  const restWells = pointCount > 2 ? `Wells 2–${pointCount}` : 'Well 2';
+  const restWells = pointCount > 2 ? `Then 2–${pointCount}` : 'Then 2';
   const totalLabel = `${diluentLabel || 'Diluent'} total`;
   const notes: Array<[string, string]> = [];
   if (rawStock !== undefined && topDiluent !== undefined) {
     notes.push([
-      'Well 1',
+      TOP_POSITION,
       `${dialed('series', total)} (${dialed('stock', rawStock)} stock + ${dialed('stock', topDiluent)} ${diluentName})`,
     ]);
   }

@@ -55,7 +55,7 @@ function PreviewLine({
       {duplicate && (
         <span className={DUPLICATE}>
           {duplicate.isDropped
-            ? `${duplicate.name} was dropped. Enter brings it back`
+            ? `${duplicate.name} was set aside. Enter restores it`
             : `${duplicate.name} is already listed`}
         </span>
       )}

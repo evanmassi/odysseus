@@ -36,7 +36,7 @@ export function WorkbenchCytometerMixRow({
   actions,
 }: WorkbenchCytometerMixRowProps) {
   const showBlock = useShowBlock();
-  const mixName = mix.name.trim() || 'this mix';
+  const mixName = mix.name.trim() || 'this stain';
   const plusIds = new Set(mix.plus.map(plus => plus.materialId));
 
   return (
@@ -44,8 +44,8 @@ export function WorkbenchCytometerMixRow({
       <td className={CYTOMETER_CELL}>
         <WorkbenchCytometerTextCell
           value={mix.name}
-          label="Mix name"
-          placeholder="Mix name"
+          label="Stain name"
+          placeholder="Stain name"
           className="font-semibold"
           onChange={name => actions.renameMix(mix.id, name)}
         />
@@ -80,7 +80,7 @@ export function WorkbenchCytometerMixRow({
       <td className={CYTOMETER_CELL}>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {mix.plus.map(plus => {
-            const name = materialNames.get(plus.materialId) ?? 'no longer in Materials';
+            const name = materialNames.get(plus.materialId) ?? 'removed from Materials';
             return (
               <span key={plus.id} className="inline-flex items-center gap-1">
                 <span>{name}</span>
@@ -88,15 +88,15 @@ export function WorkbenchCytometerMixRow({
                   size="xs"
                   isQuiet
                   value={plus.stain || null}
-                  placeholder="Stain step"
+                  placeholder="e.g. Surface"
                   options={stepOptions}
-                  aria-label={`Stain step of ${name} in ${mixName}`}
+                  aria-label={`Cocktail of ${name} in ${mixName}`}
                   onChange={stain => actions.setPlusStain(mix.id, plus.id, String(stain ?? ''))}
                 />
-                <Tooltip content="Take it out of this mix">
+                <Tooltip content="Remove from this stain">
                   <button
                     type="button"
-                    aria-label={`Take ${name} out of ${mixName}`}
+                    aria-label={`Remove ${name} from ${mixName}`}
                     className={REMOVE_BUTTON}
                     onClick={() => actions.removePlus(mix.id, plus.id)}
                   >
@@ -110,7 +110,7 @@ export function WorkbenchCytometerMixRow({
             size="xs"
             isQuiet
             value={null}
-            placeholder="+ Material"
+            placeholder="Add material"
             options={materialOptions.filter(option => !plusIds.has(String(option.value)))}
             aria-label={`Add a material to ${mixName}`}
             onChange={materialId =>
@@ -138,7 +138,7 @@ export function WorkbenchCytometerMixRow({
         )}
       </td>
       <td className={`${CYTOMETER_CELL} w-px px-2`}>
-        <Tooltip content="Remove this mix">
+        <Tooltip content="Remove this stain">
           <button
             type="button"
             aria-label={`Remove ${mixName}`}

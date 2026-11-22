@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { BUILT_IN_CATALOG, dyeLaserLabel, yourDye, type Dye } from '../dyes/dyeCatalog';
+import { BUILT_IN_CATALOG, laserLabel, yourDye, type Dye } from '../dyes/dyeCatalog';
 
 import {
   ANTIBODY_STOP_WORDS,
@@ -150,7 +150,7 @@ function indexFluorochromes(dyes: readonly Dye[]): ReadonlyMap<string, Fluorochr
     if (dye.kind !== 'conjugate' && dye.kind !== 'protein') continue;
     const fluorochrome = {
       name: dye.name,
-      laser: dyeLaserLabel(dye),
+      laser: laserLabel(dye.lasers[0]),
       isProtein: dye.kind === 'protein',
     };
     for (const spelling of [dye.name, ...dye.aliases]) {
@@ -183,7 +183,10 @@ function indexVendors(): ReadonlyMap<string, string> {
 const lexiconByKey = indexLexicon();
 const fluorochromeByKey = indexFluorochromes(BUILT_IN_CATALOG.dyes);
 const conjugateByKey: ReadonlyMap<string, string> = new Map(
-  splitList(CONJUGATE_LEXICON).map(name => [normalizeMaterialKey(name), name])
+  splitList(CONJUGATE_LEXICON).flatMap(chain => {
+    const aliases = splitAliases(chain);
+    return aliases.map((alias): [string, string] => [normalizeMaterialKey(alias), aliases[0]]);
+  })
 );
 const targetByKey = indexTargets();
 const vendorByKey = indexVendors();
@@ -461,7 +464,7 @@ function guessSupply(text: string): GuessOutcome | undefined {
   return {
     group: 'supplies',
     type: shape.type,
-    why: `“${shape.match}” reads as a ${shape.type.toLowerCase()}`,
+    why: `"${shape.match}" reads as a ${shape.type.toLowerCase()}`,
     source: 'pattern',
     fields: shape.values,
   };
@@ -538,7 +541,7 @@ const MOUSE_CYTOKINE_NAME = /^r?m(?=IL|IFN|TNF|GM|M-|G-|TGF|FLT|SCF|EGF|FGF|VEGF
 const keywordOutcome = (rule: KeywordRule, { nameText, amount }: WordAnalysis): GuessOutcome => ({
   group: rule.group,
   type: rule.type,
-  why: rule.why ?? `“${(nameText.match(rule.pattern) ?? [''])[0].trim()}” in the name`,
+  why: rule.why ?? `"${(nameText.match(rule.pattern) ?? [''])[0].trim()}" in the name`,
   source: 'pattern',
   amount,
 });
@@ -643,7 +646,7 @@ function secondaryOutcome(
   return {
     group: 'ab',
     type: 'Secondary reagent',
-    why: `“${secondary[0].trim()}” marks a secondary`,
+    why: `"${secondary[0].trim()}" marks a secondary`,
     amount,
     fields: {
       'host-species': hostSpecies,
@@ -667,7 +670,7 @@ const isotypeOutcome = (
 ): GuessOutcome => ({
   group: 'ab',
   type: 'Isotype control',
-  why: '“isotype” in the name',
+  why: '"isotype" in the name',
   amount,
   fields: {
     isotype: isotypeNameOf(nameText),
@@ -709,9 +712,9 @@ function reactivityOf(nameText: string): string | undefined {
 
 function antibodyWhy({ fluorochromeHits, target, hasAnti }: WordAnalysis): string {
   if (fluorochromeHits.length > 0) return `${fluorochromeHits[0].text} is a fluorochrome`;
-  if (!target) return '“anti-” marks an antibody';
+  if (!target) return '"anti-" marks an antibody';
   const kind = target.hit.isCytokine ? 'cytokine' : 'marker';
-  return `${target.text.replace(ANTI_TOKEN_PREFIX, '')} is a ${kind}${hasAnti ? ', with “anti-”' : ''}`;
+  return `${target.text.replace(ANTI_TOKEN_PREFIX, '')} is a ${kind}${hasAnti ? ', with "anti-"' : ''}`;
 }
 
 function antibodyOutcome(words: WordAnalysis): GuessOutcome | undefined {
@@ -967,7 +970,7 @@ function guessFromWords(
 ): GuessOutcome {
   const { nameText, lexiconHit, fluorochrome, conjugate, target, hasAnti, keyword, amount } = words;
   if (KIT_WORD.test(nameText) && !(lexiconHit && KIT_IN_NAME.test(lexiconHit.text))) {
-    return { group: 'kits', type: 'Kit', why: '“kit” in the name', source: 'pattern', amount };
+    return { group: 'kits', type: 'Kit', why: '"kit" in the name', source: 'pattern', amount };
   }
   const isPlainName = !fluorochrome && !conjugate && !hasAnti;
   if (isPlainName && keyword && !lexiconHit && DECISIVE_KEYWORD_TYPES.has(keyword.type)) {

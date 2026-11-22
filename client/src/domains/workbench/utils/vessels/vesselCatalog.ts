@@ -6,7 +6,6 @@ interface VesselBase {
   label: string;
   group: 'Plates' | 'Flasks and dishes' | 'Tubes';
   noun: VesselNoun;
-  many: 'Plates' | 'Flasks' | 'Dishes' | 'Tubes';
 }
 
 interface PlateVessel extends VesselBase {
@@ -25,7 +24,6 @@ const plate = (format: string, rows: number, cols: number): PlateVessel => ({
   label: `${format}-well plate`,
   group: 'Plates',
   noun: 'well',
-  many: 'Plates',
   rows,
   cols,
 });
@@ -39,8 +37,8 @@ const PLATE_VESSELS: Readonly<Record<VesselMapBlock['plates'][number]['vessel'],
   '384': plate('384', 16, 24),
 };
 
-const FLASK = { group: 'Flasks and dishes', noun: 'flask', many: 'Flasks', prefix: 'F' } as const;
-const TUBE = { group: 'Tubes', noun: 'tube', many: 'Tubes', prefix: 'T' } as const;
+const FLASK = { group: 'Flasks and dishes', noun: 'flask', prefix: 'F' } as const;
+const TUBE = { group: 'Tubes', noun: 'tube', prefix: 'T' } as const;
 
 export const LOOSE_VESSELS: Readonly<
   Record<VesselMapBlock['sets'][number]['vessel'], LooseVessel>
@@ -52,7 +50,6 @@ export const LOOSE_VESSELS: Readonly<
     label: '10 cm dish',
     group: 'Flasks and dishes',
     noun: 'dish',
-    many: 'Dishes',
     prefix: 'D',
     shape: 'dish',
     scale: 1,
@@ -83,11 +80,16 @@ export const VESSEL_PLURALS: Readonly<Record<VesselNoun, string>> = {
   tube: 'tubes',
 };
 
-export function wordsForTypes(types: readonly VesselType[]): { noun: string; plural: string } {
+export interface VesselWords {
+  noun: string;
+  plural: string;
+}
+
+export function wordsForTypes(types: readonly VesselType[]): VesselWords {
   const nouns = [...new Set(types.map(type => vesselOf(type).noun))];
   return nouns.length === 1
     ? { noun: nouns[0], plural: VESSEL_PLURALS[nouns[0]] }
-    : { noun: 'vessel', plural: 'vessels' };
+    : { noun: 'position', plural: 'positions' };
 }
 
 export function vesselTypeAt(block: VesselMapBlock, wellKey: string): VesselType {

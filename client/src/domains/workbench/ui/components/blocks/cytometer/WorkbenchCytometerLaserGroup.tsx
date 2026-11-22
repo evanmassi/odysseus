@@ -44,7 +44,7 @@ function groupedOptions(
     ...others.map(({ materialId, name, best }) => ({
       value: materialId,
       label: best ? `${name} · works best on ${best.detector.id}` : name,
-      group: here.length ? 'Other stains' : undefined,
+      group: here.length ? 'Other markers' : undefined,
     })),
   ];
 }
@@ -74,8 +74,10 @@ export function WorkbenchCytometerLaserGroup({
         <span className="block text-label-xs text-muted-foreground">{laser.nm} nm</span>
         {isSpectral ? (
           <span className="mt-1 block text-label-xs text-muted-foreground">
-            {stains.length} {stains.length === 1 ? 'dye' : 'dyes'}
-            <span className="block">{laser.slots.length} detectors</span>
+            {stains.length} {stains.length === 1 ? 'fluor' : 'fluors'}
+            <span className="block">
+              {laser.slots.length} {laser.slots.length === 1 ? 'detector' : 'detectors'}
+            </span>
           </span>
         ) : (
           <span className="mt-1 block text-label-xs text-muted-foreground">
@@ -129,7 +131,7 @@ export function WorkbenchCytometerLaserGroup({
                     className={`${FLUOROCHROME_SQUARE} outline-dashed outline-1 -outline-offset-1 outline-muted-foreground/60`}
                   />
                   {addStain(
-                    `Add a stain on ${slot.detector.id}`,
+                    `Add a marker on ${slot.detector.id}`,
                     groupedOptions(
                       candidates,
                       candidate => candidate.best?.detector.id === slot.detector.id,
@@ -164,7 +166,7 @@ export function WorkbenchCytometerLaserGroup({
                     <WorkbenchCytometerDetectorPicker
                       value={stain.row.detectorId}
                       options={detectorOptions}
-                      label={`Peak detector of ${stain.material?.name ?? 'this dye'}`}
+                      label={`Peak detector of ${stain.material?.name ?? 'this marker'}`}
                       onPick={detectorId => actions.changeRow(stain.row.id, { detectorId })}
                     />
                   ) : undefined
@@ -184,7 +186,7 @@ export function WorkbenchCytometerLaserGroup({
           <td colSpan={COLUMNS_AFTER_FILTER} className={CYTOMETER_CELL}>
             <span className="flex items-center">
               {addStain(
-                `Add a dye on ${laser.name}`,
+                `Add a marker on ${laser.name}`,
                 groupedOptions(
                   candidates,
                   candidate => candidate.best?.laser.name === laser.name,

@@ -54,7 +54,7 @@ function DyeAddForm({ typedName, onAdd, onCancel }: DyeAddFormProps) {
   return (
     <BaseModal
       isOpen
-      title="New dye"
+      title="New fluor"
       icon={<Palette className="h-4 w-4" />}
       size="xs"
       onClose={onCancel}
@@ -64,7 +64,7 @@ function DyeAddForm({ typedName, onAdd, onCancel }: DyeAddFormProps) {
             Cancel
           </Button>
           <Button variant="primary" size="sm" disabled={!isReady} onClick={add}>
-            Add dye
+            Add fluor
           </Button>
         </div>
       }
@@ -119,8 +119,7 @@ function DyeAddForm({ typedName, onAdd, onCancel }: DyeAddFormProps) {
             <span className="text-body-sm text-muted-foreground">nm</span>
           </span>
           <span className="text-body-sm text-muted-foreground">
-            The vendor’s spectrum viewer or FPbase lists it. The panel uses it to find the best
-            detector.
+            {`The vendor's spectrum viewer or FPbase lists it. The panel uses it to find the best detector.`}
           </span>
         </div>
       </div>

@@ -9,13 +9,13 @@ describe('parseProtocolText', () => {
   it('reads the paste example into sections, steps, sub-steps and notes', () => {
     expect(outline(PASTE_EXAMPLE)).toEqual([
       '§ PREPARE THE PLATE',
-      'Dilute the capture antibody to its working concentration in coating buffer and add 100 µL per well. Seal and incubate overnight at 4 °C.',
+      'Dilute the capture antibody to its working concentration in coating buffer and add 100 µL per well. Seal and incubate overnight at 4°C.',
       'Wash the plate three times.',
       '  Fill each well with 300 µL of wash buffer and aspirate.',
       '  After the last wash, invert the plate and blot it on paper towels.',
-      'Add 200 µL of blocking buffer per well and incubate for at least 1 hour at room temperature. Note: blocked plates can be stored sealed at 4 °C for up to two weeks.',
+      'Add 200 µL of blocking buffer per well and incubate for at least 1 h at RT. Note: blocked plates can be stored sealed at 4°C for up to two weeks.',
       '§ RUN THE ASSAY',
-      'Add 100 µL of standards or samples per well. Incubate 2 hours at room temperature.',
+      'Add 100 µL of standards or samples per well. Incubate 2 h at RT.',
       'Wash as in step 2.',
     ]);
   });

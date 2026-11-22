@@ -14,7 +14,7 @@ export interface MixColumn {
 
 const stainLabel = (stain: PanelStain): string =>
   [stain.marker, stain.fluorochrome].filter(Boolean).join(' ') ||
-  ([stain.material?.name.trim()].find(Boolean) ?? 'Stain');
+  ([stain.material?.name.trim()].find(Boolean) ?? 'Marker');
 
 export const mixColumns = (layout: PanelLayout): MixColumn[] =>
   layout.lasers.flatMap(laser =>
@@ -38,11 +38,11 @@ const newMix = (name: string, rowIds: string[]): Mix => ({
 const rowIdsOf = (columns: readonly MixColumn[]) => columns.map(column => column.stain.row.id);
 
 export const fullStainMix = (columns: readonly MixColumn[]): Mix =>
-  newMix('Full Stain', rowIdsOf(columns));
+  newMix('Full stain', rowIdsOf(columns));
 
 export const unstainedMix = (): Mix => newMix('Unstained', []);
 
-export const emptyMix = (): Mix => newMix('New mix', []);
+export const emptyMix = (): Mix => newMix('New stain', []);
 
 export const singleStainMixes = (columns: readonly MixColumn[]): Mix[] =>
   columns.map(column => newMix(`Single ${column.label}`, [column.stain.row.id]));

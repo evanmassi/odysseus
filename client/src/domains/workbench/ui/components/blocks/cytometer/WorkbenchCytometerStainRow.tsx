@@ -49,7 +49,7 @@ export function WorkbenchCytometerStainRow({
   actions,
 }: WorkbenchCytometerStainRowProps) {
   const { row, material } = stain;
-  const name = [material?.name.trim()].find(Boolean) ?? 'this stain';
+  const name = [material?.name.trim()].find(Boolean) ?? 'this marker';
   const writeMaterial = (key: string) => (value: string) =>
     material && actions.writeMaterial(material.id, key, value);
 
@@ -71,8 +71,8 @@ export function WorkbenchCytometerStainRow({
             <span className="inline-edit">
               <WorkbenchDyeField
                 value={stain.fluorochrome}
-                label={`Fluorochrome of ${name}`}
-                placeholder="Fluorochrome"
+                label={`Fluor of ${name}`}
+                placeholder="Fluor"
                 includesOtherConjugates={false}
                 inputClassName={`${CYTOMETER_PICK_FIELD} w-28`}
                 onChange={writeMaterial(CONJUGATE_KEY)}
@@ -116,7 +116,7 @@ export function WorkbenchCytometerStainRow({
             onChange={writeMaterial(stain.markerKey)}
           />
         ) : (
-          <span className="font-normal italic text-muted-foreground">no longer in Materials</span>
+          <span className="font-normal italic text-muted-foreground">removed from Materials</span>
         )}
       </td>
       <td className={CYTOMETER_CELL}>
@@ -143,9 +143,9 @@ export function WorkbenchCytometerStainRow({
         <span className="inline-edit">
           <Autocomplete
             value={row.stain}
-            placeholder="Stain step"
+            placeholder="e.g. Surface"
             options={steps.map(step => ({ value: step, label: step }))}
-            aria-label={`Stain step of ${name}`}
+            aria-label={`Cocktail of ${name}`}
             inputClassName={`${CYTOMETER_PICK_FIELD} w-20`}
             onChange={stainStep => actions.changeRow(row.id, { stain: stainStep })}
           />
@@ -175,10 +175,10 @@ export function WorkbenchCytometerStainRow({
         )}
       </td>
       <td className={`${CYTOMETER_CELL} w-px px-2`}>
-        <Tooltip content="Take it off the panel">
+        <Tooltip content="Remove from the panel">
           <button
             type="button"
-            aria-label={`Take ${name} off the panel`}
+            aria-label={`Remove ${name} from the panel`}
             className="text-muted-foreground opacity-0 hover:text-danger-text focus-visible:opacity-100 group-hover:opacity-100"
             onClick={() => actions.removeStain(row.id)}
           >

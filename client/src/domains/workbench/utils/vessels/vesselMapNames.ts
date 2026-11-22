@@ -18,8 +18,21 @@ import {
   readNumber,
 } from '../formulas/quantities';
 import { nameWithoutNotes, shortNameOf } from '../materials/materialLookup';
+import {
+  CELLS_PER_WELL,
+  DILUTION_FACTOR,
+  FINAL_CONCENTRATION,
+  MASS_PER_WELL,
+  perVessel,
+  POINTS,
+  TOP_AMOUNT,
+  TOP_CONCENTRATION,
+  TOP_DILUTION,
+  VOLUME_PER_WELL,
+  type Term,
+} from '../terms/termList';
 import { readTypedAmount } from '../units/textAmounts';
-import { upperLead } from '../values/valueNames';
+import { lowerLead, upperLead } from '../values/valueNames';
 
 import { foldOf, stepSeriesUnit } from './plateSeries';
 import {
@@ -78,13 +91,20 @@ const CONCENTRATION_DIMENSIONS = new Set(
     { count: 1, volume: -1 },
   ].map(dimensionKey)
 );
-const PER_VESSEL_WORDS = new Map([
-  [dimensionKey({ volume: 1 }), 'volume per'],
-  [dimensionKey({ count: 1 }), 'per'],
-  [dimensionKey({ mass: 1 }), 'per'],
+const PER_VESSEL_TERMS = new Map([
+  [dimensionKey({ volume: 1 }), VOLUME_PER_WELL],
+  [dimensionKey({ count: 1 }), CELLS_PER_WELL],
+  [dimensionKey({ mass: 1 }), MASS_PER_WELL],
 ]);
 
 const STARTS_WITH_NUMBER = /^\s*[-+]?\.?\d/;
+
+export const seriesTopTerm = (notation: string, unit: string): Term =>
+  notation === RATIO_NOTATION
+    ? TOP_DILUTION
+    : CONCENTRATION_DIMENSIONS.has(dimensionKey(unitScale(unit)?.dimension ?? {}))
+      ? TOP_CONCENTRATION
+      : TOP_AMOUNT;
 const typedCount = (block: VesselMapBlock, key: string) => readNumber(block.counts[key] ?? '');
 
 const keysHolding = (block: VesselMapBlock, line: PlateLine, value: LineValue) =>
@@ -121,16 +141,23 @@ function countVessels(block: VesselMapBlock): VesselCount[] {
   const usedKeys = Object.keys(block.cells).filter(key =>
     Object.values(block.cells[key]).some(isFilledCell)
   );
-  const usedName = `${upperLead(wordsForTypes(allVesselTypes(block)).plural)} used`;
-  const used: VesselCount = {
-    name: usedName,
-    label: usedName,
-    subject: '',
-    count: typedCount(block, 'used') ?? usedKeys.length,
-    tally: usedKeys.length,
-    key: 'used',
-    kind: 'used',
-  };
+  const nouns = [...new Set(allVesselTypes(block).map(type => vesselOf(type).noun))];
+  const used = (nouns.length > 1 ? nouns : [undefined]).map((noun): VesselCount => {
+    const keys = noun
+      ? usedKeys.filter(key => vesselOf(vesselTypeAt(block, key)).noun === noun)
+      : usedKeys;
+    const name = `${upperLead(noun ? VESSEL_PLURALS[noun] : wordsForTypes(allVesselTypes(block)).plural)} used`;
+    const key = noun ? `used:${noun}` : 'used';
+    return {
+      name,
+      label: name,
+      subject: '',
+      count: typedCount(block, key) ?? keys.length,
+      tally: keys.length,
+      key,
+      kind: 'used',
+    };
+  });
   const plateTotals = [...new Set(block.plates.map(candidate => candidate.vessel))].map(
     (type): VesselCount => {
       const count = block.plates.filter(candidate => candidate.vessel === type).length;
@@ -162,15 +189,15 @@ function countVessels(block: VesselMapBlock): VesselCount[] {
       kind: 'total',
     };
   });
-  return [...valueCounts(block), used, ...plateTotals, ...setTotals];
+  return [...valueCounts(block), ...used, ...plateTotals, ...setTotals];
 }
 
 function amountNoun(unit: string, vesselNoun: string): string {
   if (unit === PAIR_NOTATION) return 'ratio';
   const key = dimensionKey(unitScale(unit)?.dimension ?? {});
-  if (CONCENTRATION_DIMENSIONS.has(key)) return 'concentration';
-  const perVessel = PER_VESSEL_WORDS.get(key);
-  return perVessel ? `${perVessel} ${vesselNoun}` : 'amount';
+  if (CONCENTRATION_DIMENSIONS.has(key)) return lowerLead(FINAL_CONCENTRATION.word);
+  const term = PER_VESSEL_TERMS.get(key);
+  return term ? lowerLead(perVessel(term, vesselNoun).word) : 'amount';
 }
 
 interface PlainCell {
@@ -279,13 +306,13 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
             : plate && isApart(twinPlates)
               ? ` on ${plateNameOf(block, plate)}`
               : ` ${index + 1}`;
-      const startWord = series.unit === RATIO_NOTATION ? 'dilution' : 'dose';
+      const top = seriesTopTerm(series.unit, stepSeriesUnit(series));
       const shared = { subject, variant: tag.trim() };
       if (STARTS_WITH_NUMBER.test(series.start)) {
         add({
           key: `s:${seriesId}:start`,
-          automaticName: `${subject} top ${startWord}${tag}`,
-          label: `Top ${startWord}`,
+          automaticName: `${subject} ${lowerLead(top.word)}${tag}`,
+          label: top.word,
           ...shared,
           value: readTypedAmount(series.start)?.value ?? series.start.trim(),
           unit: stepSeriesUnit(series),
@@ -295,8 +322,8 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
       if (STARTS_WITH_NUMBER.test(series.fold)) {
         add({
           key: `s:${seriesId}:fold`,
-          automaticName: `${subject} fold${tag}`,
-          label: 'Dilution',
+          automaticName: `${subject} ${lowerLead(DILUTION_FACTOR.word)}${tag}`,
+          label: DILUTION_FACTOR.word,
           ...shared,
           value: String(foldOf(series.fold)),
           unit: DILUTION_FACTOR_NOTATION,
@@ -305,8 +332,8 @@ function amountsOnPlate(block: VesselMapBlock): PlateAmount[] {
       }
       add({
         key: `s:${seriesId}:points`,
-        automaticName: `${subject} points${tag}`,
-        label: 'Points',
+        automaticName: `${subject} ${lowerLead(POINTS.word)}${tag}`,
+        label: POINTS.word,
         ...shared,
         value: String(steps.size),
         unit: '',

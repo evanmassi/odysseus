@@ -44,6 +44,16 @@ describe('calculateBoard', () => {
     expect(answerOf(board, 'Total')).toBe('9.6 mL');
   });
 
+  it('reads names that hold a slash or brackets as whole names', () => {
+    const board = [
+      value('Raji cells/well', '1e4', 'cells'),
+      value('Wells used', '10'),
+      value('Extra (dead vol.)', '10', '%'),
+      formula('Raji total', 'Raji cells/well × Wells used × (1 + Extra (dead vol.))'),
+    ];
+    expect(answerOf(board, 'Raji total')).toBe('1.10E+5 cells');
+  });
+
   it('converts between units of the same dimension', () => {
     const board = [
       value('Stock', '2', 'mL'),
@@ -123,7 +133,9 @@ describe('calculateBoard', () => {
 
   it('refuses to round a volume without a step', () => {
     const board = [value('Need', '7.2', 'mL'), formula('Make', 'round up(Need)')];
-    expect(errorOf(board, 'Make')).toBe('To round up a volume, give a step: round up(…, 5 mL)');
+    expect(errorOf(board, 'Make')).toBe(
+      'To round up a volume, give what to round to: round up(…, 5 mL)'
+    );
   });
 
   it('refuses to add different dimensions', () => {
@@ -177,7 +189,7 @@ describe('calculateBoard', () => {
     const board = [value('Volume', '1', 'mL'), formula('volume', '2 mL')];
     const calculation = calculateBoard(board);
     expect(calculation.duplicateIds.has('f-volume')).toBe(true);
-    expect(errorOf(board, 'volume')).toBe('Another value or formula already has this name');
+    expect(errorOf(board, 'volume')).toBe('volume is already used');
   });
 
   it('treats an empty formula as empty, not an error', () => {

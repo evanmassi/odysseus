@@ -135,13 +135,22 @@ export function workingValue(value: string, unit: string): string {
     : displayValue(value, unit);
 }
 
+const ATTACHED_UNITS: Readonly<Record<string, string>> = { '%': '%', '°C': '°C', '× g': '×g' };
+
+export const withUnit = (number: string, unit: string): string =>
+  !unit
+    ? number
+    : unit in ATTACHED_UNITS
+      ? `${number}${ATTACHED_UNITS[unit]}`
+      : `${number} ${unit}`;
+
 export function displayValue(value: string, unit: string): string {
   const text = value.trim();
   if (showsOneToPrefix(unit)) return `1:${text}`;
   if (unit === PAIR_NOTATION) return text.replace(/\s*:\s*/, ':');
   const readable = readableNumberText(text);
   if (unit === FOLD_UNIT) return `${readable}×`;
-  return unit ? `${readable} ${unit}` : readable;
+  return withUnit(readable, unit);
 }
 
 export function readableAmount(value: string, unit: string): string {
@@ -164,7 +173,7 @@ export function autoUnit(quantity: Quantity): string | undefined {
 
 export function autoFormat(quantity: Quantity): string {
   const unit = autoUnit(quantity);
-  if (unit) return `${formatNumber(quantity.magnitude / scaleOf(unit).factor)} ${unit}`;
+  if (unit) return withUnit(formatNumber(quantity.magnitude / scaleOf(unit).factor), unit);
   const number = formatNumber(quantity.magnitude);
   const key = dimensionKey(quantity.dimension);
   return key ? `${number} (${describeDimension(quantity.dimension)})` : number;
@@ -189,7 +198,7 @@ export function formatQuantityIn(quantity: Quantity, unit: string): FormattedQua
     };
   }
   if (unit === FOLD_UNIT) return { text: `${formatNumber(magnitude)}×` };
-  return { text: `${formatNumber(magnitude / scaleOf(unit).factor)} ${unit}` };
+  return { text: withUnit(formatNumber(magnitude / scaleOf(unit).factor), unit) };
 }
 
 export const FORMULA_LITERAL_UNITS = UNIT_REGISTRY.filter(

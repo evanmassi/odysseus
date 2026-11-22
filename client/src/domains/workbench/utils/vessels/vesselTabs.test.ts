@@ -1,4 +1,4 @@
-import { activeTabOf, sheetOf, shelfKinds, vesselTabs } from './vesselTabs';
+import { activeTabOf, labwareTitle, sheetOf, shelfKinds, vesselTabs } from './vesselTabs';
 
 import type { VesselMapBlock } from '@odysseus/shared-schemas';
 
@@ -17,6 +17,15 @@ describe('vessel tabs', () => {
     expect(vesselTabs(block).map(tab => tab.id)).toEqual(['p1', 'shelf']);
     expect(activeTabOf(block).kind).toBe('shelf');
     expect(shelfKinds(block)).toBe('Flasks & tubes');
+  });
+
+  it('names the card after what it holds unless it was renamed', () => {
+    const titled = (title: string, parts: Partial<VesselMapBlock>) =>
+      labwareTitle({ ...block, title, ...parts } as VesselMapBlock);
+    expect(titled('Plate map', { sets: [] })).toBe('Plate map');
+    expect(titled('VESSEL MAP', { plates: [] })).toBe('Flasks & tubes');
+    expect(titled('Plate map', {})).toBe('Plates, flasks & tubes');
+    expect(titled('Assay plate', { sets: [] })).toBe('Assay plate');
   });
 
   it('lay a plate out row by row with lettered rows', () => {

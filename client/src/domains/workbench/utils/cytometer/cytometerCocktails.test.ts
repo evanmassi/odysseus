@@ -52,14 +52,14 @@ describe('panelCocktails', () => {
       {
         step: 'Surface',
         cocktails: [
-          ['Full stain Surface', ['Full stain', 'FMO Foxp3']],
-          ['FMO CD4 Surface', ['FMO CD4']],
+          ['Full stain Surface cocktail', ['Full stain', 'FMO Foxp3']],
+          ['FMO CD4 Surface cocktail', ['FMO CD4']],
         ],
         without: ['Unstained'],
       },
       {
         step: 'ICS',
-        cocktails: [['Full stain ICS', ['Full stain', 'FMO CD4']]],
+        cocktails: [['Full stain ICS cocktail', ['Full stain', 'FMO CD4']]],
         without: ['FMO Foxp3', 'Unstained'],
       },
     ]);
@@ -73,8 +73,8 @@ describe('panelCocktails', () => {
     const { steps, rowsWithoutStep } = panelCocktails(block);
     const ics = steps.find(step => step.step === 'ICS');
     expect(ics?.cocktails.map(cocktail => cocktail.name)).toEqual([
-      'Full stain ICS',
-      'Isotype ICS',
+      'Full stain ICS cocktail',
+      'Isotype ICS cocktail',
     ]);
     expect(rowsWithoutStep.map(entry => entry.id)).toEqual(['cd69']);
   });

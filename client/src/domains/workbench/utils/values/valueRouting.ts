@@ -10,8 +10,9 @@ import {
   nameWithoutNotes,
   shortNameOf,
 } from '../materials/materialLookup';
+import { isSpellingOf, settledValue } from '../terms/termLookup';
 
-import { parseValueLine, type ParsedValueLine } from './valueLines';
+import { parseValueLine, settledLine, type ParsedValueLine } from './valueLines';
 import { joinValueName, upperLead } from './valueNames';
 import { valueUnitLabel } from './valueUnits';
 
@@ -99,7 +100,9 @@ function ownField(material: MaterialItem, label: string) {
   return materialFields(material).find(
     definition =>
       definition.kind === 'number' &&
-      (isSameLabel(definition.label, label) || isSameLabel(fieldLabel(material, definition), label))
+      (isSameLabel(definition.label, label) ||
+        isSameLabel(fieldLabel(material, definition), label) ||
+        isSpellingOf(label, definition.label))
   );
 }
 
@@ -124,7 +127,10 @@ export function routeParsedLine(
       return name ? [{ owner, name }] : [];
     })
     .sort((a, b) => b.name.length - a.name.length)[0];
-  if (!best) return { line, destination: { kind: 'general' }, fullName: line.name };
+  if (!best) {
+    const settled = settledLine(line);
+    return { line: settled, destination: { kind: 'general' }, fullName: settled.name };
+  }
   const { owner } = best;
   const rest = typed.slice(best.name.length).trim();
   const field = owner.material && ownField(owner.material, rest);
@@ -141,9 +147,10 @@ export function routeParsedLine(
       fullName: fieldName(owner.material, field),
     };
   }
-  const label = upperLead(rest);
+  const settled = settledValue(upperLead(rest), line.unit);
+  const label = settled.label;
   return {
-    line,
+    line: { ...line, unit: settled.unit },
     destination: {
       kind: 'row',
       shownOwner: owner.shownTitle,
@@ -165,8 +172,9 @@ export function rowValueGuess(
   ownerName: string,
   takenNames: ReadonlySet<string>
 ): ValueLineGuess | undefined {
-  const line = parseValueLine(text);
-  if (!line) return undefined;
+  const parsed = parseValueLine(text);
+  if (!parsed) return undefined;
+  const line = settledLine(parsed);
   const full = ownerName ? joinValueName(ownerName, line.name) : line.name;
   return { full, shown: shownAmount(line), place: '', isTaken: takenNames.has(nameKey(full)) };
 }

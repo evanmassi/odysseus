@@ -3,6 +3,8 @@ import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-sc
 import { dimensionKey, readableAmount, readNumber } from '../formulas/quantities';
 import { isTherapeuticAntibodyName } from '../materials/materialGuesser';
 import { displayNameOf, materialNamed } from '../materials/materialLookup';
+import { MOLECULAR_WEIGHT, STOCK_CONCENTRATION } from '../terms/termList';
+import { lowerLead } from '../values/valueNames';
 
 export const STOCK_FIELD = 'stock-concentration';
 export const WEIGHT_FIELD = 'molecular-weight';
@@ -69,7 +71,7 @@ export function stockFor(
       need: 'stock',
       unit: seriesUnit,
       issue: material
-        ? `${displayNameOf(material)} has no stock concentration yet.`
+        ? `${displayNameOf(material)} has no ${lowerLead(STOCK_CONCENTRATION.word)} yet.`
         : `${subject || 'This treatment'} is not in Materials yet.`,
     };
   }
@@ -83,7 +85,7 @@ export function stockFor(
       kind: 'ask',
       need: 'weight',
       unit: isLarge ? 'kDa' : 'g/mol',
-      issue: `Its stock is ${shown}, so turning it into ${seriesUnit} needs a molecular weight${isLarge ? ' (about 150 kDa for an IgG)' : ''}.`,
+      issue: `Its stock is ${shown}, so turning it into ${seriesUnit} needs an ${MOLECULAR_WEIGHT.word}${isLarge ? ' (about 150 kDa for an IgG)' : ''}.`,
     };
   }
   if ('error' in conversion) {

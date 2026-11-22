@@ -10,6 +10,19 @@ import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas
 import { fieldName, materialFields } from '../materials/materialCatalog';
 import { materialNamed } from '../materials/materialLookup';
 import { wellTotalName } from '../materials/materialRecipeFormulas';
+import {
+  DILUENT_IN_TOP,
+  EXTRA,
+  MOLECULAR_WEIGHT,
+  REPLICATES,
+  STOCK_CONCENTRATION,
+  TOP_VOLUME,
+  TOP_WORKING_CONCENTRATION,
+  TOTAL_WELL_VOLUME,
+  VOLUME_NEEDED,
+  WORKING_STRENGTH,
+} from '../terms/termList';
+import { lowerLead } from '../values/valueNames';
 import { stepSeriesUnit } from '../vessels/plateSeries';
 import { plateAmounts } from '../vessels/vesselMapNames';
 
@@ -37,21 +50,21 @@ export const prepSettingsOf = (run: DilutionRun): PrepSettings => ({
 });
 
 const PREP_INPUTS: Readonly<Record<keyof PrepSettings, [label: string, unit: string]>> = {
-  wellVolume: ['well volume', 'µL'],
+  wellVolume: [lowerLead(TOTAL_WELL_VOLUME.word), 'µL'],
   volumeAdded: ['volume added', 'µL'],
-  extraPercent: ['extra', '%'],
+  extraPercent: [lowerLead(EXTRA.word), '%'],
   roundTo: ['round to', 'µL'],
 };
 
 export const PREP_LINES = {
-  strength: 'working strength',
-  needed: 'volume needed',
+  strength: lowerLead(WORKING_STRENGTH.word),
+  needed: lowerLead(VOLUME_NEEDED.word),
   transfer: 'transfer',
   diluent: 'diluent per point',
-  topVolume: 'top well volume',
-  topWorking: 'top working',
+  topVolume: lowerLead(TOP_VOLUME.word),
+  topWorking: lowerLead(TOP_WORKING_CONCENTRATION.word),
   stock: 'stock to take',
-  topDiluent: 'diluent in well 1',
+  topDiluent: lowerLead(DILUENT_IN_TOP.word),
   diluentTotal: 'diluent total',
 } as const;
 
@@ -110,7 +123,9 @@ function stockSource(
   const material = materialNamed(protocol, run.subject);
   const stock = material && fieldNameOf(material, STOCK_FIELD);
   if (!material || !stock || !takenKeys.has(nameKey(stock))) {
-    return { problem: `${reading.material}'s stock concentration isn't shown in Materials.` };
+    return {
+      problem: `${reading.material}'s ${lowerLead(STOCK_CONCENTRATION.word)} isn't shown in Materials.`,
+    };
   }
   const stockKind = dimensionOf(material.units[STOCK_FIELD] ?? '');
   const seriesKind = dimensionOf(seriesUnit);
@@ -118,7 +133,9 @@ function stockSource(
     return { expr: (volume, working) => `${volume} × ${working} ÷ ${stock}` };
   const weight = fieldNameOf(material, WEIGHT_FIELD);
   if (!weight || !takenKeys.has(nameKey(weight))) {
-    return { problem: `${material.name.trim()}'s molecular weight isn't shown in Materials.` };
+    return {
+      problem: `${material.name.trim()}'s ${MOLECULAR_WEIGHT.word} isn't shown in Materials.`,
+    };
   }
   return stockKind === MASS_CONCENTRATION
     ? { expr: (volume, working) => `${volume} × ${working} × ${weight} ÷ ${stock}` }
@@ -140,7 +157,7 @@ function runNames(
   const line = (key: PrepLine) => named(PREP_LINES[key]);
   const top = seriesName(protocol, run, 'start');
   const fold = seriesName(protocol, run, 'fold');
-  const busiest = named('wells per point');
+  const busiest = named(lowerLead(REPLICATES.word));
   const pointCount = Math.max(...run.wellsPerPoint.keys()) + 1;
   const roundsTo = (readNumber(settings.roundTo) ?? 0) > 0 ? input('roundTo') : '1 µL';
   const stock = stockSource(protocol, run, takenKeys);
@@ -208,7 +225,7 @@ function runNames(
         workedOut: group,
         ...(INTERMEDIATE_LINES.has(key) && { isIntermediate: true }),
         ...(clash
-          ? { problem: `Rename “${clash}”: the ${subject} dilution prep needs that name.` }
+          ? { problem: `Rename "${clash}": the ${subject} dilution prep needs that name.` }
           : key === 'stock' && !hasStock && { problem: stock.problem }),
       })
     );
@@ -242,7 +259,7 @@ function diluentNeedNames(
         settingsBlockId: dilutionsBlockId,
       },
       ...(takenKeys.has(nameKey(needName)) && {
-        problem: `Rename “${needName}”: the dilution prep needs that name.`,
+        problem: `Rename "${needName}": the dilution prep needs that name.`,
       }),
     };
   });

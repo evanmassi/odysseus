@@ -44,7 +44,7 @@ describe('valueNeeds', () => {
     const [need] = needsFor([]);
     expect(need).toMatchObject({
       kind: 'absent',
-      routed: { destination: { kind: 'row', materialId: 'mix', label: 'Volume per well' } },
+      routed: { destination: { kind: 'row', materialId: 'mix', label: 'Vol./well' } },
     });
   });
 
@@ -56,7 +56,7 @@ describe('valueNeeds', () => {
       expect.objectContaining({
         kind: 'absent',
         routed: expect.objectContaining({ destination: { kind: 'general' } }),
-        neededFor: ['Final in the well for Stain mix'],
+        neededFor: ['Final conc. for Stain mix'],
       }),
     ]);
   });

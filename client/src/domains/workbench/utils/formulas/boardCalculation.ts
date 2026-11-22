@@ -128,7 +128,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
   const resolve = (name: string): Evaluated => {
     const entry = names.get(nameKey(name));
     if (!entry)
-      throw new FormulaError(`‘${name}’ isn't a value or formula on this board`, {
+      throw new FormulaError(`'${name}' isn't a value or calculation on this board`, {
         missingName: name,
       });
     if (entry.kind === 'value') {
@@ -228,7 +228,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
       throw new FormulaError(
         name === 'at least'
           ? `at least needs two of the same kind, not a ${describeDimension(dimension)} and a ${describeDimension(step.quantity.dimension)}`
-          : `The step has to be a ${describeDimension(dimension)} too, not a ${describeDimension(step.quantity.dimension)}`
+          : `What to round to has to be a ${describeDimension(dimension)} too, not a ${describeDimension(step.quantity.dimension)}`
       );
     }
     if (name === 'at least') {
@@ -242,11 +242,11 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
     }
     if (!step && !ROUNDABLE_WITHOUT_STEP.has(dimensionKey(dimension))) {
       throw new FormulaError(
-        `To ${name} a ${describeDimension(dimension)}, give a step: ${name}(…, 5 mL)`
+        `To ${name} a ${describeDimension(dimension)}, give what to round to: ${name}(…, 5 mL)`
       );
     }
     if (step && step.quantity.magnitude <= 0) {
-      throw new FormulaError(`The step for ${name} has to be more than zero`);
+      throw new FormulaError(`What ${name} rounds to has to be more than zero`);
     }
     const round = ROUNDING[name];
     const magnitude = step
@@ -300,7 +300,7 @@ export function calculateBoard(entries: readonly BoardName[]): BoardCalculation 
     let result: FormulaResult;
     try {
       if (duplicateIds.has(formula.id)) {
-        throw new FormulaError('Another value or formula already has this name');
+        throw new FormulaError(`${formula.name.trim()} is already used`);
       }
       if (formula.problem) {
         throw new FormulaError(formula.problem, formula.need ? { missingName: formula.need } : {});

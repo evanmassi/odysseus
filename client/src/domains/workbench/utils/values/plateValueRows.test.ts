@@ -54,17 +54,17 @@ describe('plate rows', () => {
       'Drug X wells',
       'Vehicle wells',
       'Wells used',
-      'Drug X top dose',
-      'Drug X fold',
+      'Drug X top conc.',
+      'Drug X dil. factor',
       'Drug X points',
-      'Anti-CD3 concentration',
+      'Anti-CD3 final conc.',
     ]);
   });
 
   it('write edits back to the plate', () => {
     const protocol = protocolWithPlate();
-    setPlateRowValue(protocol, rowNamed(protocol, 'Drug X top dose'), '30');
-    setPlateRowValue(protocol, rowNamed(protocol, 'Anti-CD3 concentration'), '2');
+    setPlateRowValue(protocol, rowNamed(protocol, 'Drug X top conc.'), '30');
+    setPlateRowValue(protocol, rowNamed(protocol, 'Anti-CD3 final conc.'), '2');
     setPlateRowValue(protocol, rowNamed(protocol, 'Vehicle wells'), '4');
     const plate = plateIn(protocol);
     expect(plate.series['s']).toMatchObject({ start: '30' });
@@ -77,8 +77,8 @@ describe('plate rows', () => {
     const rows = plateValueRows(plateIn(protocol));
     const row = (name: string) => rows.find(candidate => candidate.name === name)!;
     removePlateRow(protocol, row('Vehicle wells'));
-    removePlateRow(protocol, row('Anti-CD3 concentration'));
-    removePlateRow(protocol, row('Drug X fold'));
+    removePlateRow(protocol, row('Anti-CD3 final conc.'));
+    removePlateRow(protocol, row('Drug X dil. factor'));
     const plate = plateIn(protocol);
     expect(plate.cells['p:A3']).toEqual({ stim: { valueId: 'cd3' } });
     expect(plate.cells['p:A1']).toEqual({ drug: { valueId: 'x' }, stim: { valueId: 'cd3' } });

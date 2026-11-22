@@ -64,7 +64,7 @@ describe('calculation sections', () => {
   const calculation = calculateBoard(board);
 
   it('puts the app math under its material, or under the treatment when it has no material', () => {
-    const sections = calculationSections(block, [drug], calculation, true);
+    const sections = calculationSections(block, [drug], calculation, true, 'Whole experiment');
     expect(sections.map(section => [section.key, section.owner])).toEqual([
       [WHOLE_EXPERIMENT, ''],
       ['m-drug', 'Drug X (Sigma)'],
@@ -75,8 +75,17 @@ describe('calculation sections', () => {
     expect(drugSection.groups.map(view => view.lines.map(line => line.id))).toEqual([['transfer']]);
   });
 
+  it('titles the whole-experiment section with the name the Values card gives it', () => {
+    const sections = calculationSections(block, [drug], calculation, true, 'Bench setup');
+    expect(sections.map(section => section.title)).toEqual([
+      'Bench setup',
+      'Drug X (Sigma)',
+      'Raji',
+    ]);
+  });
+
   it('leaves the app math off a second Calculations card', () => {
-    const sections = calculationSections(block, [drug], calculation, false);
+    const sections = calculationSections(block, [drug], calculation, false, 'Whole experiment');
     expect(sections.flatMap(section => section.groups)).toEqual([]);
   });
 
@@ -93,7 +102,7 @@ describe('calculation sections', () => {
         workedOut: { ...prepGroup('Raji'), key: 'stain:raji', title: 'Amount per well' },
       },
     ]);
-    const sections = calculationSections(block, [drug], withGaps, true);
+    const sections = calculationSections(block, [drug], withGaps, true, 'Whole experiment');
     const { parts, missing } = calculationLayout(sections, withGaps, []);
     expect(missing).toEqual([{ message: 'Needs a stain step', subjects: ['Raji'] }]);
     expect(parts.map(part => part.kind)).toEqual(['table', 'section']);

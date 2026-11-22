@@ -53,7 +53,7 @@ describe('guessMaterial antibodies and labels', () => {
         clone: '53-6.7',
         reactivity: 'Mouse',
         conjugate: 'PE-Cy7',
-        laser: 'Yellow-green 561 or Blue 488',
+        laser: 'Yellow-green 561',
       },
       why: 'PE-Cy7 is a fluorochrome',
       source: 'list',
@@ -69,7 +69,7 @@ describe('guessMaterial antibodies and labels', () => {
         conjugate: 'Alexa Fluor 488',
         'cross-adsorbed': 'Yes',
       },
-      why: '“anti-Rabbit IgG” marks a secondary',
+      why: '"anti-Rabbit IgG" marks a secondary',
     });
   });
 
@@ -172,7 +172,7 @@ describe('guessMaterial reagents and media', () => {
       why: 'ELISA kit: known kit',
     });
     expect(guess('GAPDH forward primer')).toMatchObject({ group: 'mol', type: 'Oligo' });
-    expect(guess('Actb_F')).toMatchObject({ type: 'Oligo', why: '“_F” in the name' });
+    expect(guess('Actb_F')).toMatchObject({ type: 'Oligo', why: '"_F" in the name' });
   });
 });
 
@@ -208,7 +208,7 @@ describe('guessMaterial patterns', () => {
       group: 'supplies',
       type: 'Plate',
       values: { format: '96-well', surface: 'TC-treated', bottom: 'Flat', sterile: 'Yes' },
-      why: '“96-well” reads as a plate',
+      why: '"96-well" reads as a plate',
     });
     expect(guess('1000 µL filter tips low retention').values).toEqual({
       volume: '1000 µL',

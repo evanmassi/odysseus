@@ -61,6 +61,22 @@ export function applyRenames(
   knownNames: ReadonlyMap<string, string>,
   renames: NameRenames
 ): void {
+  const renamed = (text: string) => renames.byOldName.get(nameKey(text));
+  for (const block of draft.blocks) {
+    if (block.type !== 'plate') continue;
+    for (const line of block.lines) {
+      line.name = renamed(line.name) ?? line.name;
+      for (const value of line.values) value.text = renamed(value.text) ?? value.text;
+    }
+  }
+  applyReferenceRenames(draft, knownNames, renames);
+}
+
+export function applyReferenceRenames(
+  draft: Protocol,
+  knownNames: ReadonlyMap<string, string>,
+  renames: NameRenames
+): void {
   const previousNames = [...new Set(knownNames.values())].sort((a, b) => b.length - a.length);
   const renamed = (text: string) => renames.byOldName.get(nameKey(text));
   for (const block of draft.blocks) {
@@ -75,10 +91,6 @@ export function applyRenames(
       }
     }
     if (block.type === 'plate') {
-      for (const line of block.lines) {
-        line.name = renamed(line.name) ?? line.name;
-        for (const value of line.values) value.text = renamed(value.text) ?? value.text;
-      }
       for (const series of Object.values(block.series)) {
         if (!('start' in series)) continue;
         series.start = renamed(series.start) ?? series.start;

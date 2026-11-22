@@ -33,7 +33,11 @@ export function stainMixes(panels: readonly CytometerBlock[]): StainMix[] {
     .map(mix => {
       const hasStains = mix.rowIds.length > 0 || mix.plus.length > 0;
       const autoColor = hasStains ? MIX_COLORS[colored++ % MIX_COLORS.length] : NO_STAIN_COLOR;
-      return { id: mix.id, name: mix.name.trim() || 'Unnamed mix', color: mix.color ?? autoColor };
+      return {
+        id: mix.id,
+        name: mix.name.trim() || 'Unnamed stain',
+        color: mix.color ?? autoColor,
+      };
     });
 }
 

@@ -12,9 +12,11 @@ import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { BLOCK_TYPES, defaultBlockTitle } from '../../../utils/blocks/blockTypes';
 import { removalMessage, removeBlock } from '../../../utils/blocks/plateViews';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
+import { labwareKinds, labwareTitle } from '../../../utils/vessels/vesselTabs';
 
 import { BLOCK_ICONS } from './blockIcons';
 import { BLOCK_HEADER_CONTROLS, BLOCK_PANELS } from './blockPanels';
+import { capsKeepingGreek } from './capsKeepingGreek';
 import { WorkbenchBlockPendingPanel } from './WorkbenchBlockPendingPanel';
 import { WorkbenchBlockUsageTip } from './WorkbenchBlockUsageTip';
 
@@ -52,7 +54,9 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const HeaderControls = BLOCK_HEADER_CONTROLS[block.type] as
     | ComponentType<{ block: ProtocolBlock }>
     | undefined;
-  const hasOwnTitle = titled.title.trim().toLowerCase() !== blockType.label.toLowerCase();
+  const automaticTitle = titled.type === 'plate' ? labwareKinds(titled) : blockType.label;
+  const shownTitle = titled.type === 'plate' ? labwareTitle(titled) : titled.title;
+  const hasOwnTitle = shownTitle.trim().toLowerCase() !== automaticTitle.toLowerCase();
 
   const toggleFold = () =>
     updateBlock(draft => {
@@ -69,7 +73,9 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
   const finishRename = (title: string) => {
     setIsRenaming(false);
     updateTitled(draft => {
-      draft.title = withGreekLetters(title.trim()) || defaultBlockTitle(titled.type);
+      const typed = withGreekLetters(title.trim());
+      const isAutomatic = !typed || typed.toLowerCase() === automaticTitle.toLowerCase();
+      draft.title = isAutomatic ? defaultBlockTitle(titled.type) : typed;
     });
   };
 
@@ -89,7 +95,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
             type="button"
             className={HEADER_BUTTON}
             onClick={toggleFold}
-            aria-label={block.isCollapsed ? 'Expand block' : 'Collapse block'}
+            aria-label={block.isCollapsed ? 'Expand card' : 'Collapse card'}
           >
             {block.isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -101,8 +107,8 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
           {isRenaming ? (
             <input
               ref={focusOnMount}
-              defaultValue={titled.title}
-              aria-label="Block title"
+              defaultValue={shownTitle}
+              aria-label="Card title"
               className="min-w-0 flex-1 bg-transparent type-name text-label-md font-semibold text-foreground outline-none"
               onBlur={event => finishRename(event.currentTarget.value)}
               onKeyDown={event => {
@@ -114,14 +120,12 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
             <span className="flex min-w-0 flex-1 items-center gap-2">
               <Tooltip content="Double-click to rename">
                 <span
-                  className="min-w-0 truncate type-name text-label-md font-semibold text-foreground"
+                  className="min-w-0 truncate type-name text-label-md font-semibold uppercase text-foreground"
                   onDoubleClick={() => setIsRenaming(true)}
                 >
-                  {titled.title}
+                  {capsKeepingGreek(shownTitle)}
                   {hasOwnTitle && (
-                    <span className="ml-2 font-normal text-muted-foreground">
-                      {blockType.label}
-                    </span>
+                    <span className="ml-2 font-normal text-muted-foreground">{automaticTitle}</span>
                   )}
                 </span>
               </Tooltip>
@@ -135,7 +139,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
             type="button"
             className={HEADER_BUTTON}
             onClick={() => setIsConfirmingRemove(true)}
-            aria-label="Remove block"
+            aria-label="Remove card"
           >
             <X className="h-4 w-4" />
           </button>
@@ -151,7 +155,7 @@ export const WorkbenchBlockShell = memo(function WorkbenchBlockShell({
         <ConfirmDialog
           isOpen={isConfirmingRemove}
           variant="danger"
-          title="Remove block"
+          title="Remove card"
           message={removeMessage}
           confirmText="Remove"
           onConfirm={removeThisBlock}

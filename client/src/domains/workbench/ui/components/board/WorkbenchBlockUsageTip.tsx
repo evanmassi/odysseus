@@ -77,7 +77,7 @@ export function WorkbenchBlockUsageTip({ tip, blockLabel }: WorkbenchBlockUsageT
     >
       <button
         type="button"
-        aria-label={`About the ${blockLabel} block`}
+        aria-label={`About the ${blockLabel} card`}
         className="flex flex-none cursor-help text-muted-foreground hover:text-foreground"
       >
         <Info className="h-3.5 w-3.5" />

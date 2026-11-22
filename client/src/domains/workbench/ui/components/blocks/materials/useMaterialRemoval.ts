@@ -7,7 +7,7 @@ import type { MaterialItem, MaterialsBlock } from '@odysseus/shared-schemas';
 export interface RemovedMaterial {
   item: MaterialItem;
   isFromDropped: boolean;
-  verb: 'Dropped' | 'Removed';
+  verb: 'Set aside' | 'Removed';
   placeIndex: number;
   index: number;
 }
@@ -34,7 +34,7 @@ export function useMaterialRemoval(block: MaterialsBlock, onRestored: (id: strin
     leaveUndo({
       item,
       isFromDropped: false,
-      verb: 'Dropped',
+      verb: 'Set aside',
       placeIndex: groupPeers(block.items, item).indexOf(item),
       index: block.items.indexOf(item),
     });
@@ -73,7 +73,7 @@ export function useMaterialRemoval(block: MaterialsBlock, onRestored: (id: strin
     clearTimeout(timer.current);
     setRemoved(undefined);
     updateBlock(draft => {
-      if (removed.verb === 'Dropped') {
+      if (removed.verb === 'Set aside') {
         const target = draft.items.find(candidate => candidate.id === removed.item.id);
         if (target) target.isDropped = false;
       } else {

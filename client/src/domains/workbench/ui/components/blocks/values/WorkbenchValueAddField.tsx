@@ -94,7 +94,9 @@ export function WorkbenchValueAddField({
         >
           <b className="font-semibold text-foreground">{guess.full}</b> · {guess.shown}
           {guess.place && ` · ${guess.place}`}
-          {guess.isTaken && <span className="text-warning-text"> · name already used</span>}
+          {guess.isTaken && (
+            <span className="text-warning-text">{` · ${guess.full} is already used`}</span>
+          )}
         </p>
       )}
       {onSuggest && suggestions.length > 0 && (

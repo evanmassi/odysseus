@@ -58,11 +58,11 @@ describe('mixColumns', () => {
 describe('mix shortcuts', () => {
   it('ticks every stain for the full stain and none for unstained or an empty mix', () => {
     expect(fullStainMix(columns)).toMatchObject({
-      name: 'Full Stain',
+      name: 'Full stain',
       rowIds: ['cd4', 'cd3', 'foxp3'],
     });
     expect(unstainedMix()).toMatchObject({ name: 'Unstained', rowIds: [] });
-    expect(emptyMix()).toMatchObject({ name: 'New mix', rowIds: [], plus: [] });
+    expect(emptyMix()).toMatchObject({ name: 'New stain', rowIds: [], plus: [] });
   });
 
   it('makes one single stain per antibody', () => {

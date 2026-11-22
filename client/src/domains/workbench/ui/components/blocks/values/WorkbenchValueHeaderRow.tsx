@@ -41,7 +41,7 @@ interface WorkbenchValueHeaderRowProps {
 
 const ORIGIN_MARK: Partial<Record<ValueOrigin, { icon: typeof BLOCK_ICONS.plate; note: string }>> =
   {
-    plate: { icon: BLOCK_ICONS.plate, note: 'Read from the plate map' },
+    plate: { icon: BLOCK_ICONS.plate, note: 'Read from the labware' },
     materials: { icon: BLOCK_ICONS.materials, note: 'Read from Materials' },
   };
 

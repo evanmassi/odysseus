@@ -1,5 +1,6 @@
 import { Input, type AutocompleteOption } from '@shared/ui';
 
+import { EXTRA, TOTAL_WELL_VOLUME, WORKING_STRENGTH } from '../../../../utils/terms/termList';
 import { META_LABEL } from '../../board/metaLabelClass';
 
 import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
@@ -25,9 +26,9 @@ interface WorkbenchDilutionSeriesSectionProps {
 }
 
 const SETTINGS: ReadonlyArray<[keyof PrepSettings, string, string]> = [
-  ['wellVolume', 'Well volume', 'µL'],
+  ['wellVolume', TOTAL_WELL_VOLUME.word, 'µL'],
   ['volumeAdded', 'Volume added', 'µL'],
-  ['extraPercent', 'Extra (dead vol.)', '%'],
+  ['extraPercent', EXTRA.word, '%'],
   ['roundTo', 'Round to', 'µL'],
 ];
 const PLAIN_RAIL = 'hsl(var(--muted-foreground))';
@@ -95,7 +96,7 @@ export function WorkbenchDilutionSeriesSection({
       <div className="flex flex-wrap gap-x-7 gap-y-2">
         {SETTINGS.slice(0, 2).map(settingField)}
         <div className="flex flex-col gap-1">
-          <span className={META_LABEL}>Factor</span>
+          <span className={META_LABEL}>{WORKING_STRENGTH.word}</span>
           <b className="flex h-7 items-center font-mono text-data text-primary">
             {prep.kind === 'ready' ? prep.strength : '–'}
           </b>

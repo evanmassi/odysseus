@@ -40,7 +40,7 @@ export function WorkbenchMaterialRecipeEditor({
             {ingredient ? (
               ingredient.name.trim()
             ) : (
-              <span className="italic text-muted-foreground">no longer in Materials</span>
+              <span className="italic text-muted-foreground">removed from Materials</span>
             )}
           </span>
           <span className="inline-edit" data-align="end">
@@ -61,10 +61,10 @@ export function WorkbenchMaterialRecipeEditor({
             className="w-24"
             onChange={unit => onUnitChange(entry.id, String(unit ?? ''))}
           />
-          <Tooltip content="Take it out of the recipe">
+          <Tooltip content="Remove from the recipe">
             <button
               type="button"
-              aria-label={`Take ${ingredient?.name ?? 'this ingredient'} out of the recipe`}
+              aria-label={`Remove ${ingredient?.name ?? 'this ingredient'} from the recipe`}
               className="text-muted-foreground hover:text-danger-text"
               onClick={() => onRemove(entry.id)}
             >

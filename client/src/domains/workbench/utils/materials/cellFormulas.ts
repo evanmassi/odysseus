@@ -16,11 +16,23 @@ import {
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
 import { formatNumber } from '../formulas/quantities';
-import { joinValueName } from '../values/valueNames';
+import {
+  CELL_CONCENTRATION,
+  CELLS_PER_VIAL,
+  CELLS_PER_WELL,
+  EXTRA,
+  LIVE_COUNT,
+  STOCK_CONCENTRATION,
+  TOTAL_NEEDED,
+  VOLUME_PER_WELL,
+  type Term,
+} from '../terms/termList';
+import { findTerm } from '../terms/termLookup';
+import { joinValueName, lowerLead } from '../values/valueNames';
 import { cellCount } from '../vessels/cellRatios';
 
 import { findMaterial, listedMaterials, nameWithoutNotes } from './materialLookup';
-import { findSource, sourcesIn, workedOutCount } from './materialSources';
+import { findSource, SOURCES_LABEL, sourcesIn, workedOutCount } from './materialSources';
 
 const NO_NAMES = calculateBoard([]);
 const isCellConcentration = (unit: string) =>
@@ -86,14 +98,13 @@ function subjectNames(
   materialsBlockId: string | undefined
 ): BoardName[] {
   const { subject, material, source } = plated;
+  const listLabel = material.sources?.label.trim();
+  const donorList = listLabel ? listLabel : SOURCES_LABEL;
   const owners = [material.name.trim(), nameWithoutNotes(material.name)];
   const id = (part: string) => `cells:${nameKey(subject)}:${part}`;
-  const entryFor = (owner: string, label: string) =>
-    names.get(nameKey(joinValueName(owner, label)));
-  const own = (label: string) => entryFor(subject, label)?.name;
-  const ownOrMaterialEntry = (label: string) =>
-    [subject, ...owners].map(owner => entryFor(owner, label)).find(Boolean);
-  const ownOrMaterial = (label: string) => ownOrMaterialEntry(label)?.name;
+  const own = (term: Term) => findTerm(names, term, [subject])?.name;
+  const ownOrMaterialEntry = (term: Term) => findTerm(names, term, [subject, ...owners]);
+  const ownOrMaterial = (term: Term) => ownOrMaterialEntry(term)?.name;
   const group: WorkedOutGroup = {
     key: id('group'),
     subject,
@@ -123,36 +134,38 @@ function subjectNames(
   const [onlyPerWell] = plated.perWell;
   const perWell =
     plated.perWell.size === 1
-      ? (own('per well') ??
-        input('per-well', `${subject} cells per well`, String(onlyPerWell), CELLS))
+      ? (own(CELLS_PER_WELL) ??
+        input('per-well', joinValueName(subject, CELLS_PER_WELL.word), String(onlyPerWell), CELLS))
       : undefined;
   const perVialValue = sourceCount(source, PER_VIAL_FIELD);
   const perVial =
-    own('cells per vial') ??
+    own(CELLS_PER_VIAL) ??
     (perVialValue
       ? input('per-vial', `${subject} cells per vial`, perVialValue, CELLS)
       : undefined);
   const liveValue = sourceCount(source, LIVE_FIELD);
   const live =
-    own('live count') ??
+    own(LIVE_COUNT) ??
     (liveValue ? input('live', `${subject} live count`, liveValue, CELLS) : undefined);
-  const extra = ownOrMaterial('extra');
-  const volume = ownOrMaterial('volume per well');
-  const stockEntry = source ? undefined : ownOrMaterialEntry('stock concentration');
+  const extra = findTerm(names, EXTRA, [subject, ...owners, ''])?.name;
+  const volume = ownOrMaterial(VOLUME_PER_WELL);
+  const stockEntry = source
+    ? undefined
+    : (ownOrMaterialEntry(CELL_CONCENTRATION) ?? ownOrMaterialEntry(STOCK_CONCENTRATION));
   const stock =
     stockEntry?.kind === 'value' && stockEntry.value.trim() && isCellConcentration(stockEntry.unit)
       ? stockEntry.name
       : undefined;
 
-  const needed = `${subject} cells needed`;
+  const needed = joinValueName(subject, TOTAL_NEEDED.word);
   formula('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
   const plating = `${subject} plating concentration`;
   const platingProblem: FormulaGap | undefined = !perWell
-    ? { problem: 'Cells per well differ between wells' }
+    ? { problem: `${CELLS_PER_WELL.word} differ between wells` }
     : !volume
       ? {
-          problem: 'Needs “Volume per well” in Values, the volume of cells added to each well',
-          need: joinValueName(nameWithoutNotes(material.name), 'Volume per well'),
+          problem: `Needs "${VOLUME_PER_WELL.word}" in Values, the volume of cells added to each well`,
+          need: joinValueName(nameWithoutNotes(material.name), VOLUME_PER_WELL.word),
         }
       : undefined;
   formula(
@@ -188,15 +201,15 @@ function subjectNames(
         `${subject} vials to thaw`,
         perVial ? `round up(${needed} ÷ ${perVial})` : '',
         '',
-        perVial ? undefined : { problem: 'Needs cells per vial in Donors' }
+        perVial ? undefined : { problem: `Needs cells per vial in ${donorList}` }
       );
     }
     const missingLive: FormulaGap | undefined = live
       ? undefined
       : {
           problem: source
-            ? 'Needs a live count in Donors'
-            : 'Needs a live count, or a stock concentration in cells/mL in Materials',
+            ? `Needs a live count in ${donorList}`
+            : `Needs a live count, or a ${lowerLead(CELL_CONCENTRATION.word)} in Materials`,
         };
     formula(
       'resuspend',
@@ -216,7 +229,7 @@ function subjectNames(
 
   const clash = formulas.map(entry => entry.name).find(name => names.has(nameKey(name)));
   if (!clash) return [...inputs, ...formulas];
-  const problem = `Rename “${clash}”: the cell math for ${subject} needs that name.`;
+  const problem = `Rename "${clash}": the cell math for ${subject} needs that name.`;
   return formulas
     .filter(entry => !names.has(nameKey(entry.name)))
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));

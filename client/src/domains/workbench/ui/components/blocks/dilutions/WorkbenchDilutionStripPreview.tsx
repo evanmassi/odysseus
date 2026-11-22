@@ -1,3 +1,10 @@
+import {
+  FINAL_CONCENTRATION,
+  REPLICATES,
+  TOP_POSITION,
+  WORKING_CONCENTRATION,
+} from '../../../../utils/terms/termList';
+
 import type { DilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 
 type ReadyPrep = Extract<DilutionPrep, { kind: 'ready' }>;
@@ -88,20 +95,22 @@ export function WorkbenchDilutionStripPreview({
       <text x={30} y={CENTER_Y + 10} fontSize={9} className={`${MONO} ${MUTED}`}>
         stock
       </text>
-      {['Final', `Working ${prep.strength}`, ...(prep.isUneven ? ['Replicates'] : [])].map(
-        (label, index) => (
-          <text
-            key={label}
-            x={0}
-            y={below(17 + index * 14)}
-            fontSize={10}
-            textAnchor="start"
-            className={MUTED}
-          >
-            {label}
-          </text>
-        )
-      )}
+      {[
+        FINAL_CONCENTRATION.word,
+        `${WORKING_CONCENTRATION.word} (${prep.strength})`,
+        ...(prep.isUneven ? [REPLICATES.word] : []),
+      ].map((label, index) => (
+        <text
+          key={label}
+          x={0}
+          y={below(17 + index * 14)}
+          fontSize={10}
+          textAnchor="start"
+          className={MUTED}
+        >
+          {label}
+        </text>
+      ))}
       {prep.points.map((point, index) => {
         const x = centerX(index);
         const arrowEnd = x - RADIUS - 5;
@@ -122,6 +131,9 @@ export function WorkbenchDilutionStripPreview({
                   : undefined
               }
             />
+            <text x={x} y={CENTER_Y - RADIUS - 4} fontSize={9} className={MUTED}>
+              {index ? point.point : TOP_POSITION}
+            </text>
             <text x={x} y={CENTER_Y + 1} fontSize={11} className={`${MONO} ${BRIGHT}`}>
               {point.volume}
             </text>

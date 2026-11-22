@@ -1,5 +1,8 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
+import { COCKTAIL } from '../terms/termList';
+import { lowerLead } from '../values/valueNames';
+
 import type { CytometerBlock } from '@odysseus/shared-schemas';
 
 type PanelRow = CytometerBlock['rows'][number];
@@ -55,9 +58,10 @@ function stepCocktails(block: CytometerBlock, step: string): StainStepCocktails 
       ...rows.map(row => row.id).sort(),
       ...plus.map(entry => entry.materialId).sort(),
     ].join('|');
+    const base = `${mix.name.trim()} ${step}`.trim();
     const cocktail = cocktails.get(key) ?? {
       key,
-      name: `${mix.name.trim()} ${step}`.trim(),
+      name: base && `${base} ${lowerLead(COCKTAIL)}`,
       mixes: [],
       rows,
       plus,

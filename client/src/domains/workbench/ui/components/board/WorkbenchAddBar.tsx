@@ -59,7 +59,7 @@ export function WorkbenchAddBar({
         disabled={!hasText}
         onClick={onSubmit}
       >
-        Add {itemLabel}
+        Add {itemLabel.toLowerCase()}
       </Button>
     </div>
   );

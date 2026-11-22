@@ -71,8 +71,39 @@ describe('formula scopes', () => {
 
   it('suggests the usual cell calculations once their inputs exist', () => {
     expect(calculationSuggestions(board, raji)).toEqual([
-      { label: 'Needed', name: 'Raji needed', expr: 'Raji per well × Wells used × (1 + Overage)' },
+      {
+        label: 'Total needed',
+        name: 'Raji total needed',
+        expr: 'Raji per well × Wells used × (1 + Overage)',
+      },
     ]);
+  });
+
+  it('finds the per-well cells and the extra under any accepted spelling', () => {
+    const spelled = calculateBoard([
+      value('Raji cells/well', '10000', 'cells'),
+      value('Wells used', '96'),
+      value('Extra (dead vol.)', '10', '%'),
+      value('Raji extra (dead vol.)', '20', '%'),
+    ]);
+    expect(calculationSuggestions(spelled, raji)).toEqual([
+      {
+        label: 'Total needed',
+        name: 'Raji total needed',
+        expr: 'Raji cells/well × Wells used × (1 + Raji extra (dead vol.))',
+      },
+    ]);
+  });
+
+  it('does not treat a per-well mass as cells', () => {
+    const medium = material('Medium');
+    const masses = calculateBoard([
+      value('Medium per well', '2', 'µg'),
+      value('Medium count', '1e6', 'cells/mL'),
+      value('Medium needed', '200', 'µg'),
+      value('Wells used', '96'),
+    ]);
+    expect(calculationSuggestions(masses, medium)).toEqual([]);
   });
 
   it('numbers a name that is already taken', () => {

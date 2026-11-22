@@ -10,6 +10,7 @@ import { BOARD_MARGIN } from '../../../utils/blocks/boardGeometry';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 import { createId } from '../../../utils/ids/createId';
 
+import { capsKeepingGreek } from './capsKeepingGreek';
 import { WorkbenchTabStrip } from './WorkbenchTabStrip';
 
 const LABEL_TRACKING = '0.08em';
@@ -40,7 +41,7 @@ export function WorkbenchPageTabs() {
   const deletingBlockCount = blocks.filter(block => block.page === deletingPageId).length;
 
   const addPage = () => {
-    const page = { id: createId(), name: `PAGE ${pages.length + 1}`, steps: [] };
+    const page = { id: createId(), name: `Page ${pages.length + 1}`, steps: [] };
     updateProtocol(draft => {
       draft.pages.push(page);
     });
@@ -76,7 +77,7 @@ export function WorkbenchPageTabs() {
   };
 
   const canDelete = pages.length > 1;
-  const blockWords = deletingBlockCount === 1 ? 'block' : 'blocks';
+  const cardWords = deletingBlockCount === 1 ? 'card' : 'cards';
 
   return (
     <div style={{ paddingInline: BOARD_MARGIN }}>
@@ -86,6 +87,7 @@ export function WorkbenchPageTabs() {
           ids={pages.map(page => page.id)}
           onChange={showPage}
           spacing="snug"
+          itemName="page"
         >
           {pages.map(page =>
             page.id === renamingPageId ? (
@@ -118,12 +120,14 @@ export function WorkbenchPageTabs() {
               >
                 <Tab id={page.id}>
                   <span className="inline-flex items-center gap-1">
-                    {page.name || 'Untitled page'}
+                    <span className="uppercase">
+                      {capsKeepingGreek(page.name || 'Untitled page')}
+                    </span>
                     {canDelete && (
                       <span
                         role="button"
                         tabIndex={0}
-                        aria-label={`Delete the ${page.name} page`}
+                        aria-label={`Remove the ${page.name} page`}
                         className="invisible inline-flex text-muted-foreground hover:text-danger-text group-focus-within:visible group-hover:visible"
                         onClick={event => {
                           event.stopPropagation();
@@ -146,22 +150,22 @@ export function WorkbenchPageTabs() {
           <Button
             variant="ghost"
             size="sm"
-            leftIcon={<Plus className="h-3.5 w-3.5" />}
+            leftIcon={<Plus className="h-3.5 w-3.5 text-primary" />}
             onClick={addPage}
           >
-            Page
+            Add page
           </Button>
         </span>
         <ConfirmDialog
           isOpen={!!deletingPage}
           variant="danger"
-          title="Delete page"
+          title="Remove page"
           message={
             deletingBlockCount
-              ? `Delete the “${deletingPage?.name}” page and the ${deletingBlockCount} ${blockWords} on it?`
-              : `Delete the “${deletingPage?.name}” page and its steps?`
+              ? `Remove the "${deletingPage?.name}" page and the ${deletingBlockCount} ${cardWords} on it?`
+              : `Remove the "${deletingPage?.name}" page and its steps?`
           }
-          confirmText="Delete"
+          confirmText="Remove"
           onConfirm={() => deletingPageId && deletePage(deletingPageId)}
           onCancel={() => setDeletingPageId(undefined)}
         />

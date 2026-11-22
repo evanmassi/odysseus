@@ -61,7 +61,7 @@ export function WorkbenchCytometerAddStain({
       isQuiet
       value={null}
       placeholder={label}
-      options={[...stainOptions, { value: NEW_STAIN, label: 'New stain…' }]}
+      options={[...stainOptions, { value: NEW_STAIN, label: 'New marker…' }]}
       aria-label={label}
       onChange={choice => {
         if (choice === NEW_STAIN) setIsTyping(true);

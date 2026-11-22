@@ -1,6 +1,7 @@
 import { normalizeVesselMap, type VesselMapBlock } from '@odysseus/shared-schemas';
 
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
 import {
   applyVessels,
   copyPlateIntoCard,
@@ -31,11 +32,15 @@ export function useVesselChanges(
     if (!hasAnyVessel(next)) return;
     const apply = () => updateVesselMap(draft => applyVessels(draft, next));
     const lost = wellsLostTo(block, next);
+    const words = wordsForTypes([
+      ...block.plates.map(plate => plate.vessel),
+      ...block.sets.map(set => set.vessel),
+    ]);
     if (!lost) return apply();
     ask({
-      title: 'Remove vessels',
+      title: 'Remove labware',
       confirmText: 'Remove',
-      message: `${lost} filled ${lost === 1 ? 'spot is' : 'spots are'} no longer on this map and will be cleared. Continue?`,
+      message: `${lost} filled ${lost === 1 ? `${words.noun} is` : `${words.plural} are`} no longer on this map and will be cleared. Continue?`,
       onConfirm: apply,
     });
   };

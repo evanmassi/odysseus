@@ -16,7 +16,7 @@ describe('stain mixes', () => {
         { id: 'fmo', name: ' ', rowIds: [], plus: [{ id: 'p', materialId: 'm', stain: '' }] },
       ]),
     ]);
-    expect(mixes.map(mix => mix.name)).toEqual(['Full Stain', 'Unstained', 'Unnamed mix']);
+    expect(mixes.map(mix => mix.name)).toEqual(['Full Stain', 'Unstained', 'Unnamed stain']);
     expect(mixes[1].color).toBe('#7d8494');
     expect(new Set(mixes.map(mix => mix.color)).size).toBe(3);
   });
@@ -58,10 +58,10 @@ describe('stained wells', () => {
     expect(stainedPlaces([block]).get('full')).toEqual([
       { blockId: 'map', name: 'P1', count: 2 },
       { blockId: 'map', name: 'Plate 2', count: 1 },
-      { blockId: 'map', name: 'Group 1', count: 1 },
+      { blockId: 'map', name: 'Tubes', count: 1 },
     ]);
     expect(stainedPlaces([block]).get('fmo')).toEqual([
-      { blockId: 'map', name: 'Group 1', count: 1 },
+      { blockId: 'map', name: 'Tubes', count: 1 },
     ]);
   });
 

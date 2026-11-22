@@ -34,6 +34,7 @@ import {
   sheetOf,
   shelfKinds,
   shelfNameOf,
+  tabWords,
   vesselTabs,
 } from '../../../../utils/vessels/vesselTabs';
 import { setWellsText, startingLineId } from '../../../../utils/vessels/wellEdits';
@@ -79,6 +80,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
   const tabs = useMemo(() => vesselTabs(block), [block]);
   const tab = useMemo(() => activeTabOf(block), [block]);
   const sheet = useMemo(() => sheetOf(block, tab), [block, tab]);
+  const words = tabWords(block, tab);
   const isStain = block.side === 'stain';
   const panels = useBlocksOf('cytometer');
   const mixes = useMemo(() => stainMixes(panels), [panels]);
@@ -280,7 +282,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
         />
         {captions.length > 0 && !isStain && (
           <p className="text-body-sm text-muted-foreground">
-            Every well: <b className="text-foreground">{captions.join(' · ')}</b>
+            Every {words.noun}: <b className="text-foreground">{captions.join(' · ')}</b>
           </p>
         )}
         {roomWidth > 0 &&
@@ -328,6 +330,7 @@ export function WorkbenchVesselMapPanel({ block, onDisplayChange }: WorkbenchVes
             mixes={mixes}
             counts={stainCounts}
             hasSelection={selection.keys.size > 0}
+            words={words}
             onPick={stainSelected}
             onFillUnstained={fillUnstained}
             onRecolor={recolorMix}

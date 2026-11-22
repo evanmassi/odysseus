@@ -155,7 +155,7 @@ export function WorkbenchMaterialPlateNamesSection({
                     )}
                     {materialChoices.length > 0 && (
                       <Tooltip
-                        content={`Link it to a material you already listed; that material is renamed “${offer.name} (its name)”`}
+                        content={`Link it to a material you already listed; that material is renamed "${offer.name} (its name)"`}
                       >
                         <span className="w-36">
                           <Select

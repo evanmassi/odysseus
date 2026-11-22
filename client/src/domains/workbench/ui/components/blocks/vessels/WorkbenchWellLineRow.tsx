@@ -15,6 +15,7 @@ import { WorkbenchPlateSuggestionList } from './WorkbenchPlateSuggestionList';
 
 import type { RatioRow } from '../../../../utils/vessels/cellRatios';
 import type { ShownRole } from '../../../../utils/vessels/plateLayers';
+import type { VesselWords } from '../../../../utils/vessels/vesselCatalog';
 import type { NameElsewhere, WellRow } from '../../../../utils/vessels/wellEdits';
 import type { KnownName } from '../../../../utils/vessels/wellValueSuggestions';
 
@@ -30,6 +31,7 @@ interface WorkbenchWellLineRowProps {
   canRemove: boolean;
   inputRef: Ref<HTMLInputElement> | undefined;
   sharedName: NameElsewhere | undefined;
+  words: VesselWords;
   ratio: RatioRow | undefined;
   onTextChange: (text: string) => void;
   onRenameEverywhere: () => void;
@@ -76,6 +78,7 @@ export function WorkbenchWellLineRow({
   canRemove,
   inputRef,
   sharedName,
+  words,
   ratio,
   onTextChange,
   onRenameEverywhere,
@@ -106,7 +109,7 @@ export function WorkbenchWellLineRow({
           placeholder="Name this line"
           className="text-label-xs text-muted-foreground"
           offers={lineOffers}
-          offersLabel="Put these wells on"
+          offersLabel={`Put these ${words.plural} on`}
           onRename={onRenameLine}
         />
       </span>
@@ -129,7 +132,7 @@ export function WorkbenchWellLineRow({
             fullWidth
             value={row.text}
             placeholder={row.isTextMixed ? 'Mixed. Typing replaces all' : textPlaceholder}
-            aria-label="What is in these wells"
+            aria-label={`What is in these ${words.plural}`}
             spellCheck={false}
             autoComplete="off"
             onValueChange={onTextChange}
@@ -162,7 +165,7 @@ export function WorkbenchWellLineRow({
               onValueChange={onAmountChange}
               onUnitChange={onUnitChange}
             />
-            <Tooltip content="Fill these wells with a dilution or any stepped series">
+            <Tooltip content={`Fill these ${words.plural} with a dilution or any stepped series`}>
               <button
                 type="button"
                 className="text-caption text-primary hover:underline"
@@ -174,7 +177,9 @@ export function WorkbenchWellLineRow({
           </>
         )}
         {showsRole && row.line && (
-          <Tooltip content={`Show ${lineName || 'this line'} as… (every well on that line)`}>
+          <Tooltip
+            content={`Show ${lineName || 'this line'} as… (every ${words.noun} on that line)`}
+          >
             <span className="inline-flex">
               <Select
                 size="xs"
@@ -191,7 +196,7 @@ export function WorkbenchWellLineRow({
         {canRemove && (
           <button
             type="button"
-            aria-label="Remove this line from these wells"
+            aria-label={`Remove this line from these ${words.plural}`}
             className="inline-flex h-6 w-6 flex-none items-center justify-center text-muted-foreground hover:text-danger-text"
             onClick={onRemove}
           >
@@ -246,7 +251,7 @@ export function WorkbenchWellLineRow({
       {sharedName && (
         <p className="pl-6 text-caption text-muted-foreground">
           {sharedName.text} is also on {sharedName.wellCount}{' '}
-          {sharedName.wellCount === 1 ? 'well' : 'wells'}
+          {sharedName.wellCount === 1 ? words.noun : words.plural}
           {sharedName.vesselName && ` on ${sharedName.vesselName}`} ·{' '}
           <button
             type="button"

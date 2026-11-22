@@ -85,8 +85,7 @@ export function WorkbenchCytometerPeakMap({ lasers }: WorkbenchCytometerPeakMapP
         })}
       </div>
       <figcaption className="mt-1 text-label-2xs text-muted-foreground">
-        Detector band centers, nm. Tinted squares are each laser’s detectors; a filled one is where
-        a dye peaks.
+        {`Detector band centers, nm. Tinted squares are each laser's detectors; a filled one is where a fluor peaks.`}
       </figcaption>
     </figure>
   );

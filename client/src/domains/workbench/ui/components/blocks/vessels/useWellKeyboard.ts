@@ -8,7 +8,7 @@ import {
   moveStainSpots,
   stainMoveTargets,
 } from '../../../../utils/vessels/stainLayout';
-import { wordsForTypes } from '../../../../utils/vessels/vesselCatalog';
+import { tabWords } from '../../../../utils/vessels/vesselTabs';
 import {
   copyWells,
   isWellFilled,
@@ -43,10 +43,10 @@ interface ClipboardMarks {
 
 const NO_KEYS: ReadonlySet<string> = new Set();
 
-const BLOCKED_MOVES = {
-  edge: 'Those wells would land past the edge of the plate.',
-  cells: 'Some of those spots already hold cells on the Stain side. Move or pool them first.',
-} as const;
+const blockedMove = (reason: 'edge' | 'cells', plural: string) =>
+  reason === 'edge'
+    ? `Those ${plural} would land past the edge of the plate.`
+    : `Some of those ${plural} already hold samples on the Stain side. Move or pool them first.`;
 
 const ARROW_STEPS: Readonly<Record<string, readonly [number, number]>> = {
   ArrowUp: [-1, 0],
@@ -71,9 +71,7 @@ export function useWellKeyboard(
   const marksHere = marks?.tabId === tab.id ? marks : undefined;
   const cutKeys = marksHere?.isCut && marksHere.side === side ? marksHere.keys : NO_KEYS;
   const copiedKeys = marksHere && !marksHere.isCut ? marksHere.keys : NO_KEYS;
-  const { noun, plural } = wordsForTypes(
-    tab.kind === 'plate' ? [tab.plate.vessel] : block.sets.map(set => set.vessel)
-  );
+  const { noun, plural } = tabWords(block, tab);
   const counted = (count: number) => `${count} ${count === 1 ? noun : plural}`;
 
   const confirmIfFilled = ({ keys, title, confirmText, describe, apply }: FilledCheck) => {
@@ -90,17 +88,18 @@ export function useWellKeyboard(
   const moveCutWells = () => {
     if (isStainSide) {
       const targets = stainMoveTargets(block, sheet, cutKeys, selection.keys);
-      if ('blockedBy' in targets) return notifications.warning(BLOCKED_MOVES[targets.blockedBy]);
+      if ('blockedBy' in targets)
+        return notifications.warning(blockedMove(targets.blockedBy, plural));
       updateVesselMap(draft => moveStainSpots(draft, sheet, cutKeys, targets.landing));
       return finishMove(targets.landing);
     }
     const landing = shiftedTargets(sheet, cutKeys, selection.keys);
-    if (!landing) return notifications.warning(BLOCKED_MOVES.edge);
+    if (!landing) return notifications.warning(blockedMove('edge', plural));
     confirmIfFilled({
       keys: landing.filter(key => !cutKeys.has(key)),
       title: 'Move wells',
       confirmText: 'Replace',
-      describe: filled => `Replace what’s in ${filled}?`,
+      describe: filled => `Replace what's in ${filled}?`,
       apply: () => {
         updateVesselMap(draft => moveAssayWells(draft, sheet, cutKeys, landing));
         finishMove(landing);
@@ -129,7 +128,7 @@ export function useWellKeyboard(
       keys: pasted,
       title: 'Paste wells',
       confirmText: 'Replace',
-      describe: filled => `Replace what’s in ${filled}?`,
+      describe: filled => `Replace what's in ${filled}?`,
       apply: () => {
         updateVesselMap(draft => {
           for (const { key, lines } of targets) draft.cells[key] = structuredClone(lines);

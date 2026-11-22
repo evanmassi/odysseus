@@ -18,6 +18,7 @@ export interface CalculationSection {
   key: string;
   material: MaterialItem | undefined;
   owner: string;
+  title: string;
   items: FormulaBlock['items'];
   groups: WorkedOutView[];
 }
@@ -40,16 +41,31 @@ export function calculationSections(
   block: FormulaBlock,
   materials: readonly MaterialItem[],
   calculation: BoardCalculation,
-  showsWorkedOut: boolean
+  showsWorkedOut: boolean,
+  generalTitle: string
 ): CalculationSection[] {
   const sections = new Map<string, CalculationSection>([
     [
       WHOLE_EXPERIMENT,
-      { key: WHOLE_EXPERIMENT, material: undefined, owner: '', items: [], groups: [] },
+      {
+        key: WHOLE_EXPERIMENT,
+        material: undefined,
+        owner: '',
+        title: generalTitle,
+        items: [],
+        groups: [],
+      },
     ],
     ...materials.map((material): [string, CalculationSection] => [
       material.id,
-      { key: material.id, material, owner: material.name.trim(), items: [], groups: [] },
+      {
+        key: material.id,
+        material,
+        owner: material.name.trim(),
+        title: displayNameOf(material),
+        items: [],
+        groups: [],
+      },
     ]),
   ]);
   for (const item of block.items) {
@@ -67,6 +83,7 @@ export function calculationSections(
       key,
       material: undefined,
       owner: line.workedOut.subject,
+      title: line.workedOut.subject,
       items: [],
       groups: [],
     };
@@ -83,9 +100,6 @@ export function calculationSections(
       (section.material && block.materialSections.includes(section.material.id))
   );
 }
-
-export const sectionTitle = (section: CalculationSection): string =>
-  section.material ? displayNameOf(section.material) : section.owner || 'WHOLE EXPERIMENT';
 
 export interface MissingNote {
   message: string;
@@ -138,7 +152,7 @@ export function calculationLayout(
         if (result?.status === 'ok') return true;
         if (result) {
           const subjects = missing.get(result.message) ?? new Set<string>();
-          missing.set(result.message, subjects.add(sectionTitle(section)));
+          missing.set(result.message, subjects.add(section.title));
         }
         return false;
       });
@@ -174,7 +188,7 @@ export function calculationLayout(
       }
       table.rows.push({
         key: `${section.key}/${view.group.key}`,
-        label: sectionTitle(section),
+        label: section.title,
         subject: view.group.subject,
         lines: shownLines(view),
       });

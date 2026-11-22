@@ -43,7 +43,7 @@ export function WorkbenchDyeField({
     () =>
       picks.map(pick => ({
         value: pick.name,
-        label: pick.isNew ? `Add “${pick.name}” as a new dye…` : pick.name,
+        label: pick.isNew ? `Add "${pick.name}" as a new fluor…` : pick.name,
         secondary: pick.peak === undefined ? undefined : `${pick.peak} nm`,
         group: pick.group,
       })),

@@ -1,5 +1,7 @@
 import { Fragment } from 'react';
 
+import { Plus } from 'lucide-react';
+
 import { Tooltip } from '@shared/ui';
 
 import { formulaAnswerText, type FormulaResult } from '../../../../utils/formulas/boardCalculation';
@@ -165,7 +167,8 @@ export function WorkbenchFormulaWorking({
             className="ml-2 text-action hover:underline"
             onClick={() => result.missingName && onAddMissing(result.missingName)}
           >
-            + Add ‘{result.missingName}’ as a value
+            <Plus aria-hidden className="mr-0.5 inline h-3 w-3 text-primary" />
+            {`Add "${result.missingName}" as a value`}
           </button>
         )}
       </p>

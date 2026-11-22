@@ -17,17 +17,16 @@ const MAX_HEADING_LENGTH = 60;
 
 export const PASTE_EXAMPLE = `PREPARE THE PLATE
 1. Dilute the capture antibody to its working concentration in coating
-buffer and add 100 µL per well. Seal and incubate overnight at 4 °C.
+buffer and add 100 µL per well. Seal and incubate overnight at 4°C.
 2. Wash the plate three times.
    a. Fill each well with 300 µL of wash buffer and aspirate.
    b. After the last wash, invert the plate and blot it on paper towels.
 3. Add 200 µL of blocking buffer per well and incubate for at least
-1 hour at room temperature.
-Note: blocked plates can be stored sealed at 4 °C for up to two weeks.
+1 h at RT.
+Note: blocked plates can be stored sealed at 4°C for up to two weeks.
 
 RUN THE ASSAY
-4. Add 100 µL of standards or samples per well. Incubate 2 hours at
-room temperature.
+4. Add 100 µL of standards or samples per well. Incubate 2 h at RT.
 5. Wash as in step 2.`;
 
 const step = (level: 1 | 2, text: string): ParsedProtocolStep => ({

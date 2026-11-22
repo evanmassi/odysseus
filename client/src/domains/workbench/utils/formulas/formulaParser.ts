@@ -123,7 +123,7 @@ function parseTokens(tokens: Token[]): FormulaNode {
     return token?.kind === 'op' && token.text === text;
   };
   const expect = (text: string) => {
-    if (!isOperator(text)) throw new FormulaError(`Missing ‘${text}’`);
+    if (!isOperator(text)) throw new FormulaError(`Missing '${text}'`);
     index++;
   };
 
@@ -156,7 +156,7 @@ function parseTokens(tokens: Token[]): FormulaNode {
     if (token.kind === 'number') return { kind: 'number', value: token.value, unit: token.unit };
     if (token.kind === 'name') return { kind: 'ref', name: token.name };
     if (token.kind === 'unknown') {
-      throw new FormulaError(`‘${token.text}’ isn't a value or formula on this board`, {
+      throw new FormulaError(`'${token.text}' isn't a value or calculation on this board`, {
         missingName: token.text,
       });
     }
@@ -172,8 +172,8 @@ function parseTokens(tokens: Token[]): FormulaNode {
       if (isAtLeast ? args.length !== 2 : args.length > 2) {
         throw new FormulaError(
           isAtLeast
-            ? 'at least needs two things: at least(Needed, 100 µL)'
-            : `${token.name} takes a number, or a number and a step: ${token.name}(Mix, 5 mL)`
+            ? 'at least needs two things: at least(Total needed, 100 µL)'
+            : `${token.name} takes a number, or a number and what to round to: ${token.name}(Total needed, 5 mL)`
         );
       }
       return { kind: 'call', name: token.name, args };
@@ -183,12 +183,12 @@ function parseTokens(tokens: Token[]): FormulaNode {
       expect(')');
       return { kind: 'group', inner };
     }
-    throw new FormulaError(`Unexpected ‘${tokenText(token)}’`);
+    throw new FormulaError(`Unexpected '${tokenText(token)}'`);
   };
 
   if (!tokens.length) throw new FormulaError('Empty formula');
   const tree = expression();
-  if (index < tokens.length) throw new FormulaError(`Unexpected ‘${tokenText(tokens[index])}’`);
+  if (index < tokens.length) throw new FormulaError(`Unexpected '${tokenText(tokens[index])}'`);
   return tree;
 }
 

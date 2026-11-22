@@ -72,7 +72,7 @@ export function WorkbenchCytometerCocktails({
       </div>
       {rowsWithoutStep.length > 0 && (
         <p className="text-body-sm text-warning-text">
-          No stain step yet, so in no cocktail:{' '}
+          No cocktail picked yet:{' '}
           {rowsWithoutStep
             .map(row => stains.get(row.id)?.label ?? materialNames.get(row.materialId) ?? '')
             .filter(Boolean)
@@ -138,8 +138,7 @@ export function WorkbenchCytometerCocktails({
                   )}
                   {isNameTaken && (
                     <span className="text-label-xs text-warning-text">
-                      “{cocktail.name} antibodies” is already one of your names; rename yours to get
-                      this one in Calculations.
+                      {`"${cocktail.name} antibodies" is already one of your names; rename yours to get this one in Calculations.`}
                     </span>
                   )}
                 </div>

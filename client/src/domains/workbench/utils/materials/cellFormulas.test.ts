@@ -93,6 +93,17 @@ describe('cell math for a donor on the plate', () => {
     expect(cellWarnings(calculation).size).toBe(0);
   });
 
+  it('reads the per-well volume and a whole-experiment extra under their other spellings', () => {
+    const calculation = calculate(
+      protocolWith({ 'total-count': '1e7', viability: '90' }, [
+        ['PBMC vol./well', '100', 'µL'],
+        ['Extra (dead vol.)', '10', '%'],
+      ])
+    );
+    expect(answer(calculation, 'needed')).toBe('3.30E+5 cells');
+    expect(answer(calculation, 'plating')).toBe('1.00E+6 cells/mL');
+  });
+
   it('counts a value the cell math reads as used', () => {
     const protocol = protocolWith({ 'live-count': '1e6' }, PLATING);
     const usage = nameUsage(protocol, calculate(protocol), ['PBMC volume per well']);
@@ -104,7 +115,7 @@ describe('cell math for a donor on the plate', () => {
     expect(answer(missing, 'needed')).toBe('3.00E+5 cells');
     expect(answer(missing, 'plating')).toMatchObject({
       status: 'error',
-      message: 'Needs “Volume per well” in Values, the volume of cells added to each well',
+      message: 'Needs "Vol./well" in Values, the volume of cells added to each well',
     });
     expect(answer(missing, 'left-over')).toMatchObject({ message: 'Needs a live count in Donors' });
 
@@ -116,10 +127,10 @@ describe('cell math for a donor on the plate', () => {
 
   it('steps aside for a name the scientist already uses', () => {
     const calculation = calculate(
-      protocolWith({ 'live-count': '1e6' }, [['Donor 1 cells needed', '5', '']])
+      protocolWith({ 'live-count': '1e6' }, [['Donor 1 total needed', '5', '']])
     );
     expect(answer(calculation, 'vials')).toMatchObject({
-      message: 'Rename “Donor 1 cells needed”: the cell math for Donor 1 needs that name.',
+      message: 'Rename "Donor 1 total needed": the cell math for Donor 1 needs that name.',
     });
   });
 });

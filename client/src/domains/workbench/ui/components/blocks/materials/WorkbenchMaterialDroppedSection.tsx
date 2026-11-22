@@ -79,7 +79,7 @@ export function WorkbenchMaterialDroppedSection({
 
   return (
     <WorkbenchMaterialSection
-      title="Dropped"
+      title="Set aside"
       count={items.length}
       isFolded={!isOpen}
       onToggleFold={onToggleOpen}

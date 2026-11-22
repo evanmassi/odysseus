@@ -4,9 +4,12 @@ import { Button, Input, Select, Tooltip } from '@shared/ui';
 
 import { nameKey, type BoardCalculation } from '../../../../utils/formulas/boardCalculation';
 import { describeName } from '../../../../utils/formulas/nameDisplay';
+import { DILUTION_FACTOR } from '../../../../utils/terms/termList';
 import { VALUE_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
+import { seriesTopTerm } from '../../../../utils/vessels/vesselMapNames';
 
 import type { SeriesForm } from '../../../../utils/vessels/seriesEdits';
+import type { VesselWords } from '../../../../utils/vessels/vesselCatalog';
 
 interface WorkbenchWellSeriesFormProps {
   form: SeriesForm;
@@ -17,6 +20,7 @@ interface WorkbenchWellSeriesFormProps {
   onChange: (change: Partial<SeriesForm>) => void;
   onDone: () => void;
   onRemove: (() => void) | undefined;
+  words: VesselWords;
 }
 
 const DIRECTIONS: ReadonlyArray<[SeriesForm['direction'], string, string]> = [
@@ -55,8 +59,10 @@ export function WorkbenchWellSeriesForm({
   onChange,
   onDone,
   onRemove,
+  words,
 }: WorkbenchWellSeriesFormProps) {
   const startLink = linkedText(calculation, form.start);
+  const topWord = seriesTopTerm(form.unit, form.unit).word;
   const foldLink = linkedText(calculation, form.fold);
 
   const suggestionsFor = (part: 'start' | 'fold') => {
@@ -110,15 +116,15 @@ export function WorkbenchWellSeriesForm({
       ) : (
         <>
           <div className="flex items-center gap-2">
-            <span className={LABEL}>Start</span>
+            <span className={LABEL}>{topWord}</span>
             <span className="min-w-0 flex-1">
               <Input
                 ref={startRef}
                 size="sm"
                 fullWidth
                 value={form.start}
-                aria-label="Start"
-                placeholder="10, or a value’s name"
+                aria-label={topWord}
+                placeholder="10, or a value's name"
                 spellCheck={false}
                 autoComplete="off"
                 onValueChange={start => onChange({ start })}
@@ -140,14 +146,14 @@ export function WorkbenchWellSeriesForm({
           </div>
           {suggestionsFor('start')}
           <div className="flex items-center gap-2">
-            <span className={LABEL}>Dilution</span>
+            <span className={LABEL}>{DILUTION_FACTOR.word}</span>
             <span className="font-mono text-data-sm text-muted-foreground">1:</span>
             <span className="w-24">
               <Input
                 size="sm"
                 fullWidth
                 value={form.fold}
-                aria-label="Dilution, 1 in"
+                aria-label={`${DILUTION_FACTOR.word}, 1 in`}
                 placeholder="3"
                 spellCheck={false}
                 autoComplete="off"
@@ -185,13 +191,12 @@ export function WorkbenchWellSeriesForm({
       <p className="text-caption text-muted-foreground">{preview}</p>
       {!form.isList && !form.unit && !startLink && (
         <p className="text-caption text-warning-text">
-          No unit yet, so the wells will show bare numbers. Pick one next to Start.
+          {`No unit yet, so the ${words.plural} will show bare numbers. Pick one next to ${topWord}.`}
         </p>
       )}
       {isUnnamed && (
         <p className="text-caption text-warning-text">
-          Name what is being diluted in the box above, so the wells and the Dilutions card can say
-          what it is.
+          {`Name what is being diluted in the box above, so the ${words.plural} and the Dilutions card can say what it is.`}
         </p>
       )}
       <div className="flex gap-2">

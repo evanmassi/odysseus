@@ -11,7 +11,7 @@ export interface DyePick {
   isNew?: boolean;
 }
 
-const NON_DYE_CONJUGATES = ['HRP', 'Biotin', 'AP'];
+const NON_DYE_CONJUGATES = ['HRP', 'Biotin', 'AP', 'Digoxigenin'];
 const OTHER_CONJUGATES_GROUP = 'Other conjugates';
 const NEW_DYE_GROUP = 'Not in the list';
 

@@ -12,7 +12,7 @@ describe('conjugatePicks', () => {
     expect(picks[0].group).toBe('UV 355');
     const violet = picks.filter(pick => pick.group === 'Violet 405').map(pick => pick.peak!);
     expect(violet).toEqual([...violet].sort((a, b) => a - b));
-    expect(names(picks.slice(-3))).toEqual(['HRP', 'Biotin', 'AP']);
+    expect(names(picks.slice(-4))).toEqual(['HRP', 'Biotin', 'AP', 'Digoxigenin']);
     expect(names(picks)).not.toContain('GFP');
     expect(names(picks)).not.toContain('Zombie NIR');
   });

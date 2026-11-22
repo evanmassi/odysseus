@@ -72,7 +72,7 @@ export function WorkbenchVesselMapControls({
               ref={focusOnMount}
               defaultValue={tab.ownName}
               placeholder={tab.name}
-              aria-label={tab.isPlate ? 'Plate name' : 'Vessel group name'}
+              aria-label="Tab name"
               spellCheck={false}
               className="w-40 bg-transparent px-3 py-2 type-name text-label-sm text-foreground outline-none"
               onFocus={event => event.currentTarget.select()}
@@ -136,13 +136,15 @@ export function WorkbenchVesselMapControls({
         )}
         {active?.isPlate && (
           <Tooltip
-            content={block.mergesReplicates ? 'Merge replicates: on' : 'Merge replicates: off'}
+            content={
+              block.mergesReplicates ? 'Show replicates as one: on' : 'Show replicates as one: off'
+            }
           >
             <Button
               variant={block.mergesReplicates ? 'secondary' : 'ghost'}
               size="sm"
               iconOnly
-              aria-label="Merge replicates"
+              aria-label="Show replicates as one"
               aria-pressed={block.mergesReplicates}
               onClick={onToggleMerge}
             >
@@ -150,13 +152,13 @@ export function WorkbenchVesselMapControls({
             </Button>
           </Tooltip>
         )}
-        <Tooltip content="Add or remove plates, flasks, dishes and tubes">
+        <Tooltip content="Add or remove labware">
           <span ref={pickerAnchorRef} className="inline-flex">
             <Button
               variant={isPicking ? 'secondary' : 'ghost'}
               size="sm"
               iconOnly
-              aria-label="Add vessel"
+              aria-label="Add labware"
               aria-expanded={isPicking}
               onClick={() => setIsPicking(!isPicking)}
             >
@@ -166,7 +168,9 @@ export function WorkbenchVesselMapControls({
         </Tooltip>
         <Tooltip
           content={
-            active?.isPlate ? 'Copy this plate' : 'Copy these into a new card beside this one'
+            active?.isPlate
+              ? 'Duplicate this plate'
+              : 'Duplicate these into a new card beside this one'
           }
         >
           <span ref={copyAnchorRef} className="relative inline-flex">
@@ -185,13 +189,13 @@ export function WorkbenchVesselMapControls({
               onClose={() => setIsCopying(false)}
               triggerRef={copyAnchorRef}
               align="end"
-              aria-label="Copy this plate"
+              aria-label="Duplicate this plate"
               className="top-9 w-48 normal-case tracking-normal"
             >
               {(['tab', 'card'] as const).map(place => (
                 <MenuItem
                   key={place}
-                  label={place === 'tab' ? 'Copy as a new tab' : 'Copy to a new card'}
+                  label={place === 'tab' ? 'Duplicate as a new tab' : 'Duplicate to a new card'}
                   onClick={() => {
                     setIsCopying(false);
                     onDuplicate(place);

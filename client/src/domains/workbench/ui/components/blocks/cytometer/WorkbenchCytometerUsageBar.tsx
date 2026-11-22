@@ -26,8 +26,8 @@ export function WorkbenchCytometerUsageBar({
       <span>
         <b className="font-mono text-data-sm text-foreground">{usedCount}</b>{' '}
         {isSpectral
-          ? `${usedCount === 1 ? 'dye' : 'dyes'} on ${groups.length} lasers`
-          : `of ${marks.length} detectors`}
+          ? `${usedCount === 1 ? 'fluor' : 'fluors'} on ${groups.length} ${groups.length === 1 ? 'laser' : 'lasers'}`
+          : `of ${marks.length} ${marks.length === 1 ? 'detector' : 'detectors'}`}
       </span>
       <span aria-hidden className="flex items-center gap-1.5">
         {groups.map(group => (

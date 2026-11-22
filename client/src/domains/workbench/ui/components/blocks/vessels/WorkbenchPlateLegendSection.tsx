@@ -73,7 +73,7 @@ export function WorkbenchPlateLegendSection({
     block.lines.flatMap(line => line.values.map(value => [value.id, value.text] as const))
   );
   const treatments = (colorLine?.values ?? []).filter(value => countOf.has(value.id));
-  const used = countOf.get('used');
+  const used = counts.filter(count => count.kind === 'used');
   const hasSeries =
     !!colorLine &&
     Object.values(block.cells).some(lines => lines[colorLine.id]?.seriesId !== undefined);
@@ -209,13 +209,13 @@ export function WorkbenchPlateLegendSection({
         />
       )}
       <div className="flex flex-wrap items-center gap-x-2 text-caption text-muted-foreground">
-        {used && (
-          <span {...{ [PICK_NAME_ATTRIBUTE]: used.name }}>
-            {used.name} <span className={SEPARATOR}>·</span>{' '}
-            <b className="font-mono text-data-sm text-foreground">{used.count}</b>
+        {used.map(count => (
+          <span key={count.key} {...{ [PICK_NAME_ATTRIBUTE]: count.name }}>
+            {count.name} <span className={SEPARATOR}>·</span>{' '}
+            <b className="font-mono text-data-sm text-foreground">{count.count}</b>
           </span>
-        )}
-        {used && hasSeries && <span className={SEPARATOR}>·</span>}
+        ))}
+        {used.length > 0 && hasSeries && <span className={SEPARATOR}>·</span>}
         {hasSeries && (
           <span className="inline-flex items-center gap-1.5">
             <span className="inline-flex gap-0.5">
@@ -229,7 +229,7 @@ export function WorkbenchPlateLegendSection({
                 />
               ))}
             </span>
-            stronger color = higher dose
+            stronger color = higher amount
           </span>
         )}
       </div>

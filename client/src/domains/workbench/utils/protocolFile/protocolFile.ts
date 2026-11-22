@@ -6,6 +6,8 @@ import {
   type ProtocolFile,
 } from '@odysseus/shared-schemas';
 
+import { withSettledWords } from '../terms/termUpgrade';
+
 export class ProtocolFileError extends Error {}
 
 const NOT_A_PROTOCOL = "This isn't a workbench protocol file.";
@@ -24,6 +26,10 @@ export function readProtocolFile(text: string): Protocol {
     throw new ProtocolFileError(NOT_A_PROTOCOL);
   }
   if (!hasProtocolFormat(data)) throw new ProtocolFileError(NOT_A_PROTOCOL);
+  return withSettledWords(parsedProtocol(data));
+}
+
+function parsedProtocol(data: unknown): Protocol {
   try {
     const result = protocolFileInputSchema.safeParse(data);
     if (result.success) return result.data.protocol;

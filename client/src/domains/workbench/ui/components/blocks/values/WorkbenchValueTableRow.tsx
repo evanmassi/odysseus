@@ -53,7 +53,11 @@ interface WorkbenchValueTableRowProps {
   actions: ValueRowActions;
 }
 
-const STATUS_NOTE = { current: '', dropped: 'dropped', missing: 'no longer in Materials' };
+const STATUS_NOTE = {
+  current: '',
+  dropped: 'set aside in Materials',
+  missing: 'removed from Materials',
+};
 const RAIL_X = 'left-[25px]';
 const NEUTRAL_RAIL = 'hsl(var(--muted-foreground) / 0.5)';
 

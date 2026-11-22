@@ -1,4 +1,4 @@
-import { BUILT_IN_CATALOG, dyeCatalog, dyeLaserLabel, dyeSpelling, laserLabel } from './dyeCatalog';
+import { BUILT_IN_CATALOG, dyeCatalog, dyeSpelling, laserLabel } from './dyeCatalog';
 
 describe('BUILT_IN_CATALOG', () => {
   it('finds a dye by any spelling and gives its lasers and emission peak', () => {
@@ -16,7 +16,6 @@ describe('BUILT_IN_CATALOG', () => {
 
   it('lets the PE family use the yellow-green or blue laser, yellow-green first', () => {
     expect(BUILT_IN_CATALOG.find('PE')?.lasers).toEqual([561, 488]);
-    expect(dyeLaserLabel(BUILT_IN_CATALOG.find('PE-Cy7')!)).toBe('Yellow-green 561 or Blue 488');
   });
 
   it('knows viability dyes, fluorescent proteins and nothing about chemical conjugates', () => {
@@ -62,7 +61,8 @@ describe('dyeCatalog', () => {
 describe('labels and spelling', () => {
   it('names standard lasers by color and others by wavelength', () => {
     expect(laserLabel(405)).toBe('Violet 405');
-    expect(laserLabel(532)).toBe('532 nm');
+    expect(laserLabel(532)).toBe('Green 532');
+    expect(laserLabel(445)).toBe('445 nm');
   });
 
   it('snaps a known spelling to the list’s and keeps an unknown one as typed', () => {

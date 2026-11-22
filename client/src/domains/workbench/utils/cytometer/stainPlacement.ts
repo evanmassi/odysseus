@@ -71,7 +71,7 @@ export function misplacementText(
   if (isExcited && bandGap(dye.peak, detector.filter) <= best.gap) return undefined;
   const why = isExcited
     ? `peaks near ${dye.peak} nm`
-    : `isn’t excited by the ${laser.name.toLowerCase()} laser`;
+    : `isn't excited by the ${laser.name.toLowerCase()} laser`;
   return {
     text: `${dye.name} ${why}; it works best on ${best.detector.id} (${best.detector.filter}).`,
     detectorId: best.detector.id,

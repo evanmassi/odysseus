@@ -18,7 +18,7 @@ export function describeName(calculation: BoardCalculation, name: string): NameD
       return {
         text: entry.shownName ?? entry.name,
         label: isDropped
-          ? 'Dropped from Materials'
+          ? 'Set aside in Materials'
           : [fullName, entry.label].filter(Boolean).join(' · '),
         kind: 'item',
         isDropped,
@@ -28,7 +28,7 @@ export function describeName(calculation: BoardCalculation, name: string): NameD
       const isDropped = !!entry.isDropped;
       return {
         text: displayValue(entry.value, entry.unit),
-        label: isDropped ? `${entry.name}, dropped from Materials` : entry.name,
+        label: isDropped ? `${entry.name}, set aside in Materials` : entry.name,
         kind: 'value',
         isDropped,
       };

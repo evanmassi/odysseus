@@ -123,8 +123,8 @@ describe('dilution prep', () => {
       ['80', '11.1 nM', '44.4 nM'],
     ]);
     expect(result.notes).toEqual([
-      ['Well 1', '120 µL (14.4 µL stock + 105.6 µL RPMI)'],
-      ['Wells 2–4', '80 µL RPMI each'],
+      ['Top', '120 µL (14.4 µL stock + 105.6 µL RPMI)'],
+      ['Then 2–4', '80 µL RPMI each'],
       ['RPMI total', '346 µL'],
     ]);
     expect(result.warnings).toEqual([]);
@@ -147,14 +147,14 @@ describe('dilution prep', () => {
       return result.kind === 'ready' ? result.notes : [];
     };
     const expected = [
-      ['Well 1', '120 µL (14.4 µL stock + 105.6 µL ImmunoCult XF)'],
-      ['Wells 2–4', '80 µL ImmunoCult XF each'],
+      ['Top', '120 µL (14.4 µL stock + 105.6 µL ImmunoCult XF)'],
+      ['Then 2–4', '80 µL ImmunoCult XF each'],
       ['ImmunoCult XF total', '346 µL'],
     ];
     expect(notesFor(medium.name)).toEqual(expected);
     expect(notesFor('immunocult xf')).toEqual(expected);
     medium.shownFields = [];
-    expect(notesFor(medium.name)[1]).toEqual(['Wells 2–4', `80 µL ${medium.name} each`]);
+    expect(notesFor(medium.name)[1]).toEqual(['Then 2–4', `80 µL ${medium.name} each`]);
   });
 
   it('shows a tiny stock volume as it is, without telling the scientist what to pipette with', () => {
@@ -173,7 +173,8 @@ describe('dilution prep', () => {
     const result = prepFor(protocolWith({ ...doseSeries, prep: undefined }, [drugStock]));
     expect(result).toMatchObject({
       kind: 'problem',
-      problem: 'Set the volume added, and the well volume here or as "Well volume" in Values.',
+      problem:
+        'Set the volume added, and the total well vol. here or as "Total well vol." in Values.',
     });
   });
 
@@ -245,7 +246,7 @@ describe('dilution prep as calculations', () => {
     const stock = calculation.names.get('drug x stock to take');
     expect(stock).toMatchObject({
       kind: 'formula',
-      expr: 'Drug X top well volume × Drug X top working ÷ Drug X stock concentration',
+      expr: 'Drug X top vol. × Drug X top working conc. ÷ Drug X stock conc.',
       workedOut: { key: 'map:s', subject: 'Drug X' },
     });
     const result = stock && calculation.results.get(stock.id);
@@ -275,7 +276,7 @@ describe('dilution prep as calculations', () => {
     } as unknown as Protocol['blocks'][number]);
     expect(prepFor(protocol)).toMatchObject({
       kind: 'problem',
-      problem: 'Rename “Drug X volume added”: the Drug X dilution prep needs that name.',
+      problem: 'Rename "Drug X volume added": the Drug X dilution prep needs that name.',
     });
   });
 });

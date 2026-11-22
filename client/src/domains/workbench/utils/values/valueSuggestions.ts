@@ -1,6 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { fieldLabel, materialFields } from '../materials/materialCatalog';
+import { CELLS_PER_WELL, FINAL_CONCENTRATION, VOLUME_PER_WELL, type Term } from '../terms/termList';
 
 import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
 
@@ -12,18 +13,14 @@ export type ValueSuggestion =
 
 type SuggestionRow = readonly [name: string, unit?: string];
 
+const suggested = (term: Term): SuggestionRow => [term.word, term.unit];
+
 const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
-  bio: [
-    ['Per well', 'cells'],
-    ['Volume per well', 'µL'],
-  ],
-  ab: [['Volume per well', 'µL'], ['Tests']],
-  chem: [['Final concentration', 'µM'], ['Volume per well', 'µL'], ['Fold', 'X'], ['Points']],
-  mix: [
-    ['Volume per well', 'µL'],
-    ['Total volume', 'mL'],
-  ],
-  other: [['Volume per well', 'µL']],
+  bio: [suggested(CELLS_PER_WELL), suggested(VOLUME_PER_WELL)],
+  ab: [suggested(VOLUME_PER_WELL), ['Tests']],
+  chem: [[FINAL_CONCENTRATION.word, 'µM'], suggested(VOLUME_PER_WELL), ['Fold', 'X'], ['Points']],
+  mix: [suggested(VOLUME_PER_WELL)],
+  other: [suggested(VOLUME_PER_WELL)],
 };
 
 function hasVesselMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {

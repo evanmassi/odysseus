@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
 
@@ -71,12 +71,12 @@ export function WorkbenchMaterialPastePanel({
                 )}
               </td>
               <td className="w-px px-2 text-right">
-                <Tooltip content="Leave this one out">
+                <Tooltip content="Remove from the list">
                   <Button
                     variant="ghost"
                     size="xs"
                     iconOnly
-                    aria-label={`Leave ${row.item.name} out`}
+                    aria-label={`Remove ${row.item.name} from the list`}
                     onClick={() => onDropRow(index)}
                   >
                     <X aria-hidden className="h-3.5 w-3.5" />
@@ -88,8 +88,13 @@ export function WorkbenchMaterialPastePanel({
         </tbody>
       </table>
       <div className="mt-2.5 flex items-center gap-2.5">
-        <Button variant="primary" size="sm" onClick={onAdd}>
-          + {reviewActionLabel(paste.rows)}
+        <Button
+          variant="primary"
+          size="sm"
+          leftIcon={<Plus aria-hidden className="h-3.5 w-3.5" />}
+          onClick={onAdd}
+        >
+          {reviewActionLabel(paste.rows)}
         </Button>
         <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel

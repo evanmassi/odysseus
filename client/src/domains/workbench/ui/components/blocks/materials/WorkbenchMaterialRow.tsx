@@ -1,5 +1,7 @@
 import { memo, useEffect, useRef, type ReactNode } from 'react';
 
+import { Plus } from 'lucide-react';
+
 import { Button, Select, Tooltip, type SelectOption } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
@@ -14,6 +16,7 @@ import {
 } from '../../../../utils/materials/materialItems';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { SOURCES_LABEL } from '../../../../utils/materials/materialSources';
+import { ADD_ICON } from '../../board/addIconClass';
 
 import {
   MATERIAL_ACTIONS_CELL,
@@ -262,7 +265,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
               <b className="text-foreground">{item.name.trim()}:</b>
               {recipe.map(({ entry, ingredient }) => (
                 <span key={entry.id} className="pl-3">
-                  {ingredient?.name.trim() ?? 'No longer in Materials'} ·{' '}
+                  {ingredient?.name.trim() ?? 'Removed from Materials'} ·{' '}
                   {entry.amount.trim() ? displayValue(entry.amount, entry.unit) : 'amount not set'}
                 </span>
               ))}
@@ -351,9 +354,10 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
               variant="ghost"
               size="xs"
               className={ROW_ACTION}
+              leftIcon={<Plus aria-hidden className={ADD_ICON} />}
               onClick={() => actions.startSources(item.id)}
             >
-              + {SOURCES_LABEL}
+              Add {SOURCES_LABEL.toLowerCase()}
             </Button>
           </Tooltip>
         )}
@@ -373,7 +377,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
           </Tooltip>
         )}
         <Button variant="ghost" size="xs" className={ROW_ACTION} onClick={() => actions.drop(item)}>
-          Drop
+          Set aside
         </Button>
         <Button
           variant="ghost-danger"

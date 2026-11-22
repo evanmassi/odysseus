@@ -22,8 +22,6 @@ export interface InsertListGroup {
   rows: InsertListRow[];
 }
 
-const WHOLE_EXPERIMENT_TITLE = 'WHOLE EXPERIMENT';
-
 function inCardOrder(materials: readonly MaterialItem[], customGroups: readonly string[]) {
   const order = materialGroupsOf(customGroups).map(group => group.key);
   const rank = (item: MaterialItem) =>
@@ -35,7 +33,8 @@ export function insertListGroups(
   calculation: BoardCalculation,
   materials: readonly MaterialItem[],
   customGroups: readonly string[],
-  isForFormula: boolean
+  isForFormula: boolean,
+  generalTitle: string
 ): InsertListGroup[] {
   const entries = [...calculation.names.values()];
   const materialGroups = inCardOrder(materials, customGroups).map(
@@ -71,7 +70,7 @@ export function insertListGroups(
     const key = sectionKeyOf(entry.name, entry.workedOut, materials);
     const group =
       key === WHOLE_EXPERIMENT
-        ? groupFor(WHOLE_EXPERIMENT, WHOLE_EXPERIMENT_TITLE)
+        ? groupFor(WHOLE_EXPERIMENT, generalTitle)
         : groupFor(key, entry.workedOut?.subject ?? '');
     const row = { name: entry.name, label: nameWithinOwner(entry.name, group.title), value };
     if (entry.workedOut) workedOut.set(group.key, [...(workedOut.get(group.key) ?? []), row]);

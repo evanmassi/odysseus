@@ -5,6 +5,7 @@ import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
 import { readNumber } from '../../../../utils/formulas/quantities';
 import { MOLAR_MASS_UNITS } from '../../../../utils/materials/materialCatalog';
+import { MOLECULAR_WEIGHT, STOCK_CONCENTRATION } from '../../../../utils/terms/termList';
 import { unitChoices } from '../../../../utils/values/valueUnits';
 
 import type { StockReading } from '../../../../utils/dilutions/dilutionStock';
@@ -28,14 +29,14 @@ export function WorkbenchDilutionStockField({ ask, onSave }: WorkbenchDilutionSt
     <div className="my-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border border-dashed border-warning-text/60 px-2.5 py-2 text-body-sm text-warning-text">
       <span>{ask.issue}</span>
       <span className="flex items-center gap-1.5 text-foreground">
-        {ask.need === 'weight' ? 'Molecular weight' : 'Stock'}
+        {ask.need === 'weight' ? MOLECULAR_WEIGHT.word : 'Stock'}
         <span className="w-20">
           <Input
             size="xs"
             fullWidth
             value={value}
             placeholder={ask.need === 'weight' ? '150' : '10'}
-            aria-label={ask.need === 'weight' ? 'Molecular weight' : 'Stock concentration'}
+            aria-label={ask.need === 'weight' ? MOLECULAR_WEIGHT.word : STOCK_CONCENTRATION.word}
             inputClassName="text-right font-mono"
             onValueChange={setValue}
             onKeyDown={event => {

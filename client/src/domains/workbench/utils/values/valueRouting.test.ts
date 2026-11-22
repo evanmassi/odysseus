@@ -60,15 +60,22 @@ describe('routing a typed value', () => {
   it('keeps a line that starts with no material or mix for the whole experiment', () => {
     expect(routed('Well volume 80 µL')).toMatchObject({
       destination: { kind: 'general' },
-      fullName: 'Well volume',
+      fullName: 'Total well vol.',
     });
     expect(routed('Centrifuge speed 300 g')?.destination.kind).toBe('general');
   });
 
+  it('files a value under the standard word and gives it the usual unit', () => {
+    expect(routed('Overage 10')).toMatchObject({
+      line: { name: 'Extra (dead vol.)', value: '10', unit: '%' },
+      fullName: 'Extra (dead vol.)',
+    });
+  });
+
   it("puts a line that starts with a material on that material's row, the longest name winning", () => {
     expect(routed('Raji per well 10000 cells')).toMatchObject({
-      destination: { kind: 'row', materialId: 'raji', label: 'Per well' },
-      fullName: 'Raji per well',
+      destination: { kind: 'row', materialId: 'raji', label: 'Cells/well' },
+      fullName: 'Raji cells/well',
     });
     expect(routed('raji luc per well 5000 cells')?.destination).toMatchObject({
       materialId: 'luc',
@@ -78,7 +85,7 @@ describe('routing a typed value', () => {
   it('knows a material by its short name and names the value by its full name', () => {
     expect(routed('ImmunoCult XF volume per well 50 µL')).toMatchObject({
       destination: { kind: 'row', materialId: 'medium', shownOwner: 'ImmunoCult XF' },
-      fullName: 'ImmunoCult™-XF T Cell Expansion Medium volume per well',
+      fullName: 'ImmunoCult™-XF T Cell Expansion Medium vol./well',
     });
   });
 
@@ -93,12 +100,12 @@ describe('routing a typed value', () => {
       kind: 'row',
       materialId: undefined,
       sectionId: 'mix',
-      label: 'Volume',
+      label: 'Vol.',
     });
   });
 
   it('says where the value will go', () => {
-    const taken = new Set(['raji per well']);
+    const taken = new Set(['raji cells/well']);
     const onRow = routed('Raji per well 10000 cells');
     expect(onRow && routedValueGuess(onRow, taken)).toMatchObject({
       place: 'on the Raji row',
@@ -107,7 +114,7 @@ describe('routing a typed value', () => {
     const inMaterials = routed('Raji count 1e6 cells/mL');
     expect(inMaterials && routedValueGuess(inMaterials, taken).place).toBe('in Materials');
     expect(rowValueGuess('Volume per well 50 µL', 'Raji', taken)).toMatchObject({
-      full: 'Raji volume per well',
+      full: 'Raji vol./well',
       place: '',
     });
   });
@@ -125,8 +132,8 @@ describe('adding routed values', () => {
     );
     expect(rajiSections).toHaveLength(1);
     expect(block.items.map(item => ('name' in item ? item.name : ''))).toEqual([
-      'Per well',
-      'Volume per well',
+      'Cells/well',
+      'Vol./well',
     ]);
   });
 

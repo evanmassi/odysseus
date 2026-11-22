@@ -190,7 +190,7 @@ export function WorkbenchPlateTable({
         const heading = [
           where,
           wells.length > 1 && `pooled ×${wells.length}`,
-          (mix !== undefined || isInUse) && (mix?.name ?? 'not stained'),
+          (mix !== undefined || isInUse) && (mix?.name ?? 'no stain assigned'),
         ];
         return [
           {

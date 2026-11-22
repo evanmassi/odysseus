@@ -1,4 +1,4 @@
-import { BUILT_IN_CATALOG, dyeLaserLabel } from '../dyes/dyeCatalog';
+import { BUILT_IN_CATALOG, laserLabel } from '../dyes/dyeCatalog';
 
 import type { DyeKind } from '../dyes/dyeList';
 
@@ -29,7 +29,7 @@ const DYE_MATERIAL_TARGETS: Readonly<Partial<Record<DyeKind, string>>> = {
 const DYE_MATERIAL_ENTRIES: readonly MaterialLexiconEntry[] = BUILT_IN_CATALOG.dyes.flatMap(dye => {
   const target = DYE_MATERIAL_TARGETS[dye.kind];
   if (!target) return [];
-  const values: Record<string, string> = { target, laser: dyeLaserLabel(dye) };
+  const values: Record<string, string> = { target, laser: laserLabel(dye.lasers[0]) };
   if (dye.kind === 'viability') values['fixable'] = dye.isFixable ? 'Yes' : 'No';
   return {
     group: 'ab',
@@ -554,7 +554,7 @@ export const MATERIAL_LEXICON: readonly MaterialLexiconEntry[] = [
 ];
 
 export const CONJUGATE_LEXICON =
-  'HRP|horseradish peroxidase|AP|biotin|biotinylated|digoxigenin|DIG|Ultra-LEAF|LEAF';
+  'HRP=horseradish peroxidase|AP=alkaline phosphatase|Biotin=biotinylated|Digoxigenin=DIG|Ultra-LEAF|LEAF';
 
 export const TARGET_LEXICON =
   'GFP|EGFP|YFP|RFP|mCherry|tdTomato|HLA-DR|HLA-A2|HLA-ABC|HLA-E|HLA-G|MHC I|MHC II|MHCII|MHC class I|MHC class II|I-A/I-E|IA/IE|H-2Kb|H-2Db|H-2Kd|TCRb|TCRβ|TCR beta|TCRab|TCRαβ|TCRgd|TCRγδ|TCR Vβ|Vα2|Vα7.2|Vβ5|Vδ1|Vδ2|Vγ9|CCR2|CCR4|CCR5|CCR6|CCR7|CCR9|CCR10|CXCR3|CXCR4|CXCR5|CXCR6|CX3CR1|PD-1|PD-L1|PD-L2|CTLA-4|LAG-3|TIM-3|TIGIT|2B4|ICOS|OX40|4-1BB|GITR|KLRG1|NKG2D|NKG2A|NKG2C|NKp30|NKp44|NKp46|NK1.1|DX5|Ly6C|Ly-6C|Ly6G|Ly-6G|Ly6A/E|Gr-1|F4/80|B220|Sca-1|c-Kit|Thy1.1|Thy1.2|Thy-1|IgD|IgM|IgG|IgA|IgE|FcεRI|FceRIa|FoxP3|T-bet|GATA3|GATA-3|RORγt|RORgt|Eomes|TCF1|TCF-1|TCF7|TOX|Bcl-6|Bcl-2|Blimp-1|IRF4|IRF8|PU.1|Ki-67|Ki67|Helios|Granzyme B|GzmB|Granzyme A|Granzyme K|Perforin|Granulysin|EpCAM|E-cadherin|N-cadherin|vimentin|pan-cytokeratin|cytokeratin|CK19|CK8|β-actin|beta-actin|actin|GAPDH|tubulin|α-tubulin|β-tubulin|β-III tubulin|vinculin|lamin B1|histone H3|H3|H3K27me3|H3K4me3|H3K27ac|H3K9me3|γH2AX|gH2AX|p53|p21|p16|caspase-3|cleaved caspase-3|PARP|cleaved PARP|LC3B|LC3|p62|SQSTM1|mTOR|AKT|pAKT|p-AKT|ERK|pERK|p-ERK|ERK1/2|STAT1|STAT3|STAT5|STAT6|pSTAT1|pSTAT3|pSTAT5|pSTAT6|S6|pS6|NF-κB|NF-kB|p65|IκBα|Myc|c-Myc|MYC|GFP tag|FLAG|HA|HA tag|His tag|6xHis|V5|Myc tag|Strep-tag|GST|Ig kappa|Igκ|Ig lambda|Igλ|CD45.1|CD45.2|Ter119|TER-119|Siglec-F|SiglecF|Siglec-H|MerTK|XCR1|Clec9a|DEC-205|IL-7Rα|IL-7Ra|CLA|PSGL-1|Ly108|SLAMF6|SLAMF7|CD45RA|CD45RO|CD45RB|BTLA|VISTA|CD39|CD73|NRP1|Nrp1|ST2|KLRB1|MAIT|iNKT|PLZF|ROR-γt|AhR|Sox2|Oct4|Nanog|Pax6|Nestin|GFAP|NeuN|MAP2|Iba1|Olig2|MBP|Synapsin|PSD-95|Tuj1|α-SMA|alpha-SMA|SMA|CD31 PECAM|PECAM-1|VE-cadherin|vWF|LYVE-1|Podoplanin|Prox1|collagen I antibody|fibronectin antibody|E-selectin|P-selectin|ICAM-1|VCAM-1|LFA-1|VLA-4|integrin β7|α4β7|β7 integrin|Annexin A1|HMGB1|calreticulin|HSP70|HSP90|ubiquitin|K48-ubiquitin|K63-ubiquitin|phospho-tyrosine|pY|Ser473|Thr308|cyclin D1|cyclin B1|CDK4|CDK6|Rb|pRb|E2F1|Survivin|BAX|BAK|BIM|Mcl-1|XIAP|Caspase-8|Caspase-9|RIPK1|RIPK3|MLKL|pMLKL|NLRP3|ASC|Gasdermin D|GSDMD|IL-1β|pro-IL-1β|cGAS|STING|IRF3|pIRF3|TBK1|pTBK1|MAVS|RIG-I|MDA5|TLR4|TLR7|TLR9|MyD88|TRIF|PD1|PDL1|CTLA4|LAG3|TIM3|Tim-3|41BB|OX-40';

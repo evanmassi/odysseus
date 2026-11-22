@@ -71,7 +71,7 @@ export function WorkbenchVesselShelfList({
               const heading = [
                 vessel.label,
                 wells.length > 1 && `pooled ×${wells.length}`,
-                stainLook && (mix?.name ?? 'not stained'),
+                stainLook && (mix?.name ?? 'no stain assigned'),
               ];
               return {
                 key: spot.key,

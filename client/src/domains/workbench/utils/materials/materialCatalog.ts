@@ -1,6 +1,20 @@
 import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
-import { upperLead } from '../values/valueNames';
+import {
+  ANTIBODY_DILUTION,
+  CELL_CONCENTRATION,
+  COATING_CONCENTRATION,
+  FINAL_CONCENTRATION,
+  MOLECULAR_WEIGHT,
+  PROTEIN_CONCENTRATION,
+  RECONSTITUTION_VOLUME,
+  STOCK_CONCENTRATION,
+  TOP_CONCENTRATION,
+  VOLUME_MADE,
+  VOLUME_PER_REACTION,
+  VOLUME_PER_WELL,
+} from '../terms/termList';
+import { lowerLead, upperLead } from '../values/valueNames';
 
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
@@ -55,15 +69,21 @@ const LASERS = [
 export const MOLAR_MASS_UNITS = ['g/mol', 'kDa'];
 
 const stockField = (defaultUnit: string, extras: FieldExtras = {}) =>
-  numberField('Stock concentration', UNIT_PER_ITEM, {
+  numberField(STOCK_CONCENTRATION.word, UNIT_PER_ITEM, {
+    key: 'stock-concentration',
     defaultUnit,
     units: CONCENTRATION_UNIT_IDS,
     ...extras,
   });
 const finalField = (defaultUnit: string) =>
-  numberField('Final concentration', UNIT_PER_ITEM, { defaultUnit, units: CONCENTRATION_UNIT_IDS });
+  numberField(FINAL_CONCENTRATION.word, UNIT_PER_ITEM, {
+    key: 'final-concentration',
+    defaultUnit,
+    units: CONCENTRATION_UNIT_IDS,
+  });
 const molarMassField = (defaultUnit: string) =>
-  numberField('Molecular weight', UNIT_PER_ITEM, {
+  numberField(MOLECULAR_WEIGHT.word, UNIT_PER_ITEM, {
+    key: 'molecular-weight',
     defaultUnit,
     units: defaultUnit === 'kDa' ? ['kDa', 'g/mol'] : MOLAR_MASS_UNITS,
   });
@@ -74,14 +94,14 @@ export const SHORT_NAME_FIELD = shortName.key;
 const consent = field('Consent or IRB reference');
 const MADE_HERE = [
   field('Recipe'),
-  numberField('Volume made', 'mL'),
+  numberField(VOLUME_MADE.word, 'mL', { key: 'volume-made' }),
   dateField('Made on'),
   field('Made by'),
   choiceField('Sterile-filtered', YES_NO),
 ];
 const PHYSICAL_CORE = [
   shortName,
-  field('Vendor or source', 'text', { key: 'vendor' }),
+  field('Source', 'text', { key: 'vendor' }),
   field('Catalog #', 'text', { key: 'catalog' }),
   field('Lot'),
   dateField('Expires', { warnsWhenPast: true }),
@@ -108,7 +128,7 @@ export const SOURCE_FIELDS: readonly FieldDefinition[] = [
 export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   {
     key: BIO_GROUP,
-    label: 'Biological Material',
+    label: 'Biological material',
     core: PHYSICAL_CORE,
     types: {
       'Cell line': [
@@ -121,7 +141,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         dateField('Authentication date'),
         dateField('Mycoplasma test date'),
         numberField('Passage'),
-        numberField('Count', 'cells/mL'),
+        numberField(CELL_CONCENTRATION.word, 'cells/mL', { key: 'count' }),
         numberField('Viability', '%'),
       ],
       'Primary cells': [
@@ -131,7 +151,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Isolation method'),
         dateField('Collected'),
         dateField('Frozen'),
-        numberField('Count', 'cells/mL'),
+        numberField(CELL_CONCENTRATION.word, 'cells/mL', { key: 'count' }),
         numberField('Viability', '%'),
         consent,
       ],
@@ -157,7 +177,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Anticoagulant'),
         dateField('Collected'),
         numberField('Freeze-thaw count'),
-        numberField('Dilution', '1:N'),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
         consent,
       ],
       Organism: [
@@ -196,7 +216,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   },
   {
     key: ANTIBODY_GROUP,
-    label: 'Antibodies & Stains',
+    label: 'Antibodies & stains',
     core: PHYSICAL_CORE,
     types: {
       Antibody: [
@@ -209,10 +229,11 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         choiceField('Laser', LASERS),
         stockField('µg/mL', LOT_SCOPED),
         molarMassField('kDa'),
-        numberField('Amount', UNIT_PER_ITEM, {
+        numberField(ANTIBODY_DILUTION.word, UNIT_PER_ITEM, {
+          key: 'amount',
           defaultUnit: '1:N',
           units: ['µL', '1:N', 'µg/mL', 'ng/mL'],
-          nameByUnit: { '1:N': 'dilution', µL: 'per test' },
+          nameByUnit: { '1:N': lowerLead(ANTIBODY_DILUTION.word), µL: 'per test' },
         }),
         field('Application'),
         field('RRID'),
@@ -223,7 +244,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Target species and isotype'),
         field('Conjugate'),
         choiceField('Cross-adsorbed', YES_NO),
-        numberField('Dilution', '1:N'),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
         field('Panel'),
       ],
       'Isotype control': [
@@ -241,13 +262,13 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         choiceField('Laser', LASERS),
         field('Excitation and emission'),
         stockField('µM'),
-        numberField('Dilution', '1:N'),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
         field('Panel'),
       ],
       Multimer: [
         field('Specificity'),
         field('Conjugate'),
-        numberField('Dilution', '1:N'),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'dilution' }),
         field('Panel'),
       ],
       'Fc block': [field('Species'), numberField('Amount', 'µL')],
@@ -259,7 +280,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   },
   {
     key: 'chem',
-    label: 'Chemicals & Proteins',
+    label: 'Chemicals & proteins',
     core: PHYSICAL_CORE,
     types: {
       Chemical: [
@@ -298,16 +319,17 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
       ],
       'Transfection reagent': [
         field('Ratio to nucleic acid'),
-        numberField('Volume per well', 'µL'),
+        numberField(VOLUME_PER_WELL.word, 'µL', { key: 'volume-per-well' }),
       ],
       Stimulant: [field('Target or pathway'), finalField('ng/mL'), field('Duration')],
       Peptide: [field('Sequence'), field('Modifications'), field('Purity'), stockField('mM')],
       Standard: [
-        numberField('Top concentration', UNIT_PER_ITEM, {
+        numberField(TOP_CONCENTRATION.word, UNIT_PER_ITEM, {
+          key: 'top-concentration',
           defaultUnit: 'pg/mL',
           units: ['pg/mL', 'ng/mL', 'µg/mL', 'mM', 'µM', 'nM'],
         }),
-        numberField('Reconstitution volume', 'µL'),
+        numberField(RECONSTITUTION_VOLUME.word, 'µL', { key: 'reconstitution-volume' }),
       ],
       'Detection reagent': [
         choiceField('Detection', ['Colorimetric', 'Chemiluminescent', 'Fluorescent']),
@@ -318,7 +340,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   },
   {
     key: 'media',
-    label: 'Media, Buffers, & Solutions',
+    label: 'Media, buffers & solutions',
     core: PHYSICAL_CORE,
     types: {
       Medium: [
@@ -344,8 +366,11 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
       'Fix or perm': [field('Fixative or detergent'), stockField('%'), field('Time')],
       'Coating or matrix': [
         field('Matrix'),
-        numberField('Protein concentration', 'mg/mL', LOT_SCOPED),
-        numberField('Coating concentration', 'µg/mL'),
+        numberField(PROTEIN_CONCENTRATION.word, 'mg/mL', {
+          ...LOT_SCOPED,
+          key: 'protein-concentration',
+        }),
+        numberField(COATING_CONCENTRATION.word, 'µg/mL', { key: 'coating-concentration' }),
       ],
       'Mounting medium': [
         choiceField('DAPI', ['With', 'Without']),
@@ -355,13 +380,13 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   },
   {
     key: 'kits',
-    label: 'Kits & Assays',
+    label: 'Kits & assays',
     core: PHYSICAL_CORE,
     types: { Kit: [field('Kit version'), field('Components used'), field('Protocol version')] },
   },
   {
     key: 'mol',
-    label: 'Molecular Biology',
+    label: 'Molecular biology',
     core: PHYSICAL_CORE,
     types: {
       Oligo: [
@@ -382,7 +407,10 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         choiceField('Sequence verified', YES_NO),
       ],
       'siRNA or guide RNA': [field('Target gene'), field('Sequence'), stockField('µM')],
-      'Master mix': [field('Chemistry'), numberField('Volume per reaction', 'µL')],
+      'Master mix': [
+        field('Chemistry'),
+        numberField(VOLUME_PER_REACTION.word, 'µL', { key: 'volume-per-reaction' }),
+      ],
       Ladder: [field('Size range'), numberField('Amount loaded', 'µL')],
     },
   },
@@ -392,7 +420,15 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
     core: PHYSICAL_CORE,
     types: {
       Plate: [
-        choiceField('Format', ['6-well', '12-well', '24-well', '48-well', '96-well', '384-well']),
+        choiceField('Format', [
+          '6-well',
+          '12-well',
+          '24-well',
+          '48-well',
+          '96-well',
+          '384-well',
+          '1536-well',
+        ]),
         choiceField('Surface', ['TC-treated', 'High-binding', 'Low-binding', 'Untreated']),
         choiceField('Color', ['Clear', 'White', 'Black']),
         choiceField('Bottom', ['Flat', 'Round', 'V']),
@@ -433,7 +469,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
   },
   {
     key: 'soft',
-    label: 'Software & Data',
+    label: 'Software & data',
     core: SOFTWARE_CORE,
     types: {
       Software: [field('Version'), field('Settings or template file')],

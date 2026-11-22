@@ -53,14 +53,14 @@ export function WorkbenchCytometerMixes({
   const fmoRef = useRef<HTMLSpanElement>(null);
 
   return (
-    <section aria-label="Mixes" className="mt-4 flex flex-col gap-2.5">
+    <section aria-label="Stains" className="mt-4 flex flex-col gap-2.5">
       <div className="flex items-center gap-2.5">
-        <SubsectionHeader title="Mixes" meta={block.mixes.length || undefined} />
+        <SubsectionHeader title="Stains" meta={block.mixes.length || undefined} />
         <span aria-hidden className={SECTION_RULE} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <Button size="xs" variant="ghost" onClick={() => actions.addMixes([fullStainMix(columns)])}>
-          Full Stain
+          Full stain
         </Button>
         <span
           role="group"
@@ -76,7 +76,7 @@ export function WorkbenchCytometerMixes({
             disabled={!columns.length}
             onClick={() => actions.addMixes(singleStainMixes(columns))}
           >
-            Single Stain
+            Single stain
           </Button>
           <span ref={fmoRef} className="inline-flex">
             <Button
@@ -120,7 +120,7 @@ export function WorkbenchCytometerMixes({
           </DropdownMenu>
         </span>
         <Button size="xs" variant="ghost" onClick={() => actions.addMixes([emptyMix()])}>
-          Empty Mix
+          Empty stain
         </Button>
       </div>
 
@@ -129,7 +129,7 @@ export function WorkbenchCytometerMixes({
           <table className="border-separate border-spacing-y-0.5">
             <thead>
               <tr>
-                <th className={HEAD_CELL}>Mix</th>
+                <th className={HEAD_CELL}>Stain</th>
                 {columns.map(column => (
                   <th
                     key={column.stain.row.id}

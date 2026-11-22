@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { HeaderStrip, PanelEmptyState, Select } from '@shared/ui';
+import { HeaderStrip, PanelEmptyState, Select, Tooltip } from '@shared/ui';
 
 import { useDyeCatalog } from '../../../../hooks/useDyeCatalog';
 import {
@@ -127,14 +127,14 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
         />
         {layout.clashCount > 0 && (
           <span className="text-danger-text">
-            {layout.clashCount} {layout.clashCount === 1 ? 'detector holds' : 'detectors hold'} two
-            stains
+            {layout.clashCount} {layout.clashCount === 1 ? 'detector holds' : 'detectors hold'} more
+            than one marker
           </span>
         )}
         {layout.misplacedCount > 0 && (
           <span className="text-warning-text">
             {layout.misplacedCount}{' '}
-            {layout.misplacedCount === 1 ? 'stain would work' : 'stains would work'} better on
+            {layout.misplacedCount === 1 ? 'marker would work' : 'markers would work'} better on
             another detector
           </span>
         )}
@@ -157,11 +157,15 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
                   <th className={HEAD_CELL}>Laser</th>
                   <th className={HEAD_CELL}>{isSpectral ? 'Peak detector' : 'Detector'}</th>
                   <th className={HEAD_CELL}>Filter</th>
-                  <th className={HEAD_CELL}>Fluorochrome</th>
+                  <th className={HEAD_CELL}>Fluor</th>
                   <th className={HEAD_CELL}>Marker</th>
                   <th className={HEAD_CELL}>Clone</th>
                   <th className={HEAD_CELL}>Isotype</th>
-                  <th className={HEAD_CELL}>Stain</th>
+                  <th className={HEAD_CELL}>
+                    <Tooltip content="Where the marker is, and the cocktail it goes in">
+                      <span>Cocktail</span>
+                    </Tooltip>
+                  </th>
                   <th className={NUMBER_HEAD_CELL}>Dilution factor</th>
                   <th className={NUMBER_HEAD_CELL}>Amount per well</th>
                   <th className={HEAD_CELL} />
@@ -201,7 +205,7 @@ export function WorkbenchCytometerPanel({ block }: WorkbenchCytometerPanelProps)
                               value={null}
                               placeholder={stain.row.detectorId}
                               options={detectorOptions}
-                              label={`Detector for ${stain.material?.name ?? 'this stain'}`}
+                              label={`Detector for ${stain.material?.name ?? 'this marker'}`}
                               onPick={detectorId => actions.changeRow(stain.row.id, { detectorId })}
                             />
                           }

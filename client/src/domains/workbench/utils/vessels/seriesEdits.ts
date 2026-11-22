@@ -1,6 +1,8 @@
 import { displayValue } from '../formulas/quantities';
 import { createId } from '../ids/createId';
+import { DILUTION_FACTOR, TOP_AMOUNT } from '../terms/termList';
 import { readTypedAmount } from '../units/textAmounts';
+import { lowerLead } from '../values/valueNames';
 
 import { seriesPoint } from './plateSeries';
 
@@ -152,13 +154,13 @@ export function seriesPreview(
   if (!filled.length) {
     return form.isList
       ? 'Type the values, separated by commas.'
-      : 'Type a start and a dilution, or pick them from Values.';
+      : `Type a ${lowerLead(TOP_AMOUNT.word)} and a ${lowerLead(DILUTION_FACTOR.word)}, or pick them from Values.`;
   }
   const shown =
     filled.length > PREVIEW_ROOM
       ? [...filled.slice(0, PREVIEW_HEAD), '…', filled[filled.length - 1]]
       : filled;
   const blanks = pointCount - filled.length;
-  const stepWord = pointCount === 1 ? 'step' : 'steps';
-  return `${pointCount} ${stepWord}: ${shown.join(', ')}${blanks ? `, and ${blanks} left blank` : ''}`;
+  const pointWord = pointCount === 1 ? 'point' : 'points';
+  return `${pointCount} ${pointWord}: ${shown.join(', ')}${blanks ? `, and ${blanks} left blank` : ''}`;
 }

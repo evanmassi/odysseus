@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { withGreekLetters, normalizeMaterialKey } from '@odysseus/shared-schemas';
+import { Plus } from 'lucide-react';
 
 import { Button, PanelEmptyState } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -10,13 +11,14 @@ import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
 import { useProtocolWith, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { nameUsage, usageSummary } from '../../../../utils/formulas/nameUsage';
+import { nameUsage, usageSummary, usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
+import { TOTAL_WELL_VOLUME, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
 import { removePlateRow, type PlateValueRow } from '../../../../utils/values/plateValueRows';
 import {
   addRoutedValue,
@@ -42,6 +44,7 @@ import {
   writeCellUnit,
   writeCellValue,
 } from '../../../../utils/values/valueFill';
+import { WHOLE_EXPERIMENT_TITLE } from '../../../../utils/values/valueNames';
 import { neededForText, valueNeeds } from '../../../../utils/values/valueNeeds';
 import {
   routeValueLine,
@@ -56,6 +59,8 @@ import {
   type ValueTableGroup,
   type ValueTableRow,
 } from '../../../../utils/values/valueTable';
+import { labwareTitleOf } from '../../../../utils/vessels/vesselTabs';
+import { ADD_ICON } from '../../board/addIconClass';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchMaterialPlateNamesSection } from '../materials/WorkbenchMaterialPlateNamesSection';
 
@@ -104,7 +109,7 @@ const TITLE_INPUT =
 function plateRemovalMessage(row: PlateValueRow): string {
   const { source } = row;
   if (source.kind === 'count') {
-    return `Clear “${source.count.subject}” from the plate? Its ${source.count.tally} wells keep anything else in them.`;
+    return `Clear "${source.count.subject}" from the plate? Its ${source.count.tally} wells keep anything else in them.`;
   }
   const { subject, value, unit, source: from } = source.amount;
   if (from.kind === 'wells') {
@@ -114,11 +119,15 @@ function plateRemovalMessage(row: PlateValueRow): string {
   return `Remove the ${subject} dilution? Its wells keep the ${subject} label.`;
 }
 
-function sourceLines(cell: ValueTableCell): string[] {
+function sourceLines(cell: ValueTableCell, blocks: Protocol['blocks']): string[] {
+  const card = labwareTitleOf(
+    blocks,
+    cell.source.kind === 'plate' ? cell.source.row.plateId : undefined
+  );
   if (cell.origin === 'worked') return [];
   if (cell.source.kind === 'recipe') return ['Changing it here changes the recipe in Materials'];
-  if (!cell.isEditable) return ['Counted from the plate map'];
-  if (cell.origin === 'plate') return ['Changing it here changes the plate map'];
+  if (!cell.isEditable) return [`Counted from ${card}`];
+  if (cell.origin === 'plate') return [`Changing it here changes ${card}`];
   if (cell.origin === 'materials') return ['Changing it here changes Materials'];
   return [];
 }
@@ -137,9 +146,10 @@ function cellViewOf(
   cell: ValueTableCell,
   used: string,
   isNamed: boolean,
-  isDuplicate: boolean
+  isDuplicate: boolean,
+  blocks: Protocol['blocks']
 ): ValueCellView {
-  const usageLine = used ? `Used in ${used}` : 'Not used in any step or formula';
+  const usageLine = usageTitle(used);
   const neededNote = neededNoteOf(cell.neededFor);
   return {
     value: cell.value,
@@ -150,7 +160,7 @@ function cellViewOf(
       ...(isNamed ? [usageLine] : []),
       ...(neededNote ? [neededNote] : []),
       ...(cell.note ? [cell.note] : []),
-      ...sourceLines(cell),
+      ...sourceLines(cell, blocks),
     ],
     isNeeded: !!neededNote,
     isEditable: cell.isEditable,
@@ -279,14 +289,15 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
                     cell,
                     usageText(cell.nameId),
                     namedIds.has(cell.nameId),
-                    calculation.duplicateIds.has(cell.nameId)
+                    calculation.duplicateIds.has(cell.nameId),
+                    protocol.blocks
                   ),
                 ])
               ),
             ])
           )
         ),
-      [groups, usageText, namedIds, calculation.duplicateIds]
+      [groups, usageText, namedIds, calculation.duplicateIds, protocol.blocks]
     )
   );
   const generalRows = useStructuralSharing(
@@ -462,7 +473,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
 
   const renderAdder = (group: ValueTableGroup, row: ValueTableRow) => (
     <WorkbenchValueAddField
-      placeholder={`Add to ${row.shownName || 'this mix'}: Volume per well 50 µL`}
+      placeholder={`Add to ${row.shownName || 'this mix'}: ${VOLUME_PER_WELL.word} 50 µL`}
       guessFor={text => rowValueGuess(text, row.name, takenNames)}
       suggestions={rowSuggestions(group, row)}
       isFocusedOnMount
@@ -512,7 +523,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
       <div className="mb-6 px-2 pt-2">
         <WorkbenchValueAddField
           variant="bar"
-          placeholder="e.g. Well volume 80 µL, or paste a list"
+          placeholder={`e.g. ${TOTAL_WELL_VOLUME.word} 80 µL, or paste a list`}
           guessFor={text => {
             const routed = routeValueLine(protocol, block, text);
             return routed && routedValueGuess(routed, takenNames);
@@ -541,11 +552,11 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
           groups.length > 0 ? (
             <span className="inline-edit">
               <input
-                value={block.generalTitle ?? 'WHOLE EXPERIMENT'}
+                value={block.generalTitle ?? WHOLE_EXPERIMENT_TITLE}
                 placeholder="Name this group"
                 aria-label="Group name"
                 spellCheck={false}
-                className={TITLE_INPUT}
+                className={`${TITLE_INPUT} uppercase`}
                 onChange={event => setGeneralTitle(event.target.value)}
                 onBlur={event => {
                   const converted = withGreekLetters(event.target.value);
@@ -637,6 +648,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
         <Button
           variant="ghost"
           size="xs"
+          leftIcon={<Plus aria-hidden className={ADD_ICON} />}
           onClick={() => {
             let added: string | undefined;
             edit(draft => {
@@ -645,7 +657,7 @@ export function WorkbenchValuesPanel({ block }: WorkbenchValuesPanelProps) {
             setEditingNameRowId(added);
           }}
         >
-          + Mix or cocktail
+          Add mix
         </Button>
       </div>
       <ConfirmDialog

@@ -20,7 +20,6 @@ import {
 import {
   calculationLayout,
   calculationSections,
-  sectionTitle,
   WHOLE_EXPERIMENT,
   type CalculationPart,
   type CalculationSection,
@@ -45,7 +44,8 @@ import { workingRefs } from '../../../../utils/formulas/workingTree';
 import { cellWarnings } from '../../../../utils/materials/cellFormulas';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeFormulas';
-import { joinValueName } from '../../../../utils/values/valueNames';
+import { TOTAL_WELL_VOLUME, WELLS_USED } from '../../../../utils/terms/termList';
+import { generalTitleOf, joinValueName } from '../../../../utils/values/valueNames';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
@@ -149,11 +149,12 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         .filter(item => item.name.trim()),
     [protocol]
   );
+  const generalTitle = generalTitleOf(protocol.blocks);
   const showsWorkedOut =
     protocol.blocks.find(candidate => candidate.type === 'formula')?.id === block.id;
   const sections = useMemo(
-    () => calculationSections(block, materials, calculation, showsWorkedOut),
-    [block, materials, calculation, showsWorkedOut]
+    () => calculationSections(block, materials, calculation, showsWorkedOut, generalTitle),
+    [block, materials, calculation, showsWorkedOut, generalTitle]
   );
   const warnings = useMemo(
     () =>
@@ -320,7 +321,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
     }
     const { section } = part;
     const { material, items, groups } = section;
-    const title = sectionTitle(section);
+    const { title } = section;
     return (
       <WorkbenchFormulaSection
         key={section.key}
@@ -373,7 +374,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
       <div className="mb-6 px-2 pt-2">
         <WorkbenchAddBar
           value={typed}
-          placeholder="e.g. Total volume = Wells used × Well volume"
+          placeholder={`e.g. Total vol. = ${WELLS_USED.word} × ${TOTAL_WELL_VOLUME.word}`}
           itemLabel="Calculation"
           onValueChange={setTyped}
           onSubmit={addTyped}

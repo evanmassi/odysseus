@@ -8,7 +8,7 @@ import {
 } from '../materials/materialCatalog';
 import { writeMaterialField } from '../materials/materialItems';
 
-import { parseValueLine } from './valueLines';
+import { parseValueLine, settledLine } from './valueLines';
 
 import type { RoutedValue } from './valueRouting';
 import type { ValueSuggestion } from './valueSuggestions';
@@ -133,7 +133,9 @@ export function addValueLines(
   if (!block) return undefined;
   const added = lines.flatMap(line => {
     const parsed = parseValueLine(line);
-    return parsed ? [{ id: createId(), ...parsed, ...(sectionId && { section: sectionId }) }] : [];
+    return parsed
+      ? [{ id: createId(), ...settledLine(parsed), ...(sectionId && { section: sectionId }) }]
+      : [];
   });
   insertAfterPeers(block, sectionId, added);
   return added.length === 1 && !added[0].value ? added[0].id : undefined;

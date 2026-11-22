@@ -69,12 +69,26 @@ const calculate = (protocol: Protocol) => calculateBoard(collectBoardNames(proto
 describe('recipe finals in the well', () => {
   it('goes from the stock through the working dilution to the well', () => {
     const calculation = calculate(protocolWith([['Working dilution', '2000', '1:N']]));
-    expect(calculation.names.get('th17 cocktail working')).toMatchObject({
-      expr: 'Th17 cocktail stock concentration × Th17 cocktail working dilution',
+    expect(calculation.names.get('th17 cocktail working strength')).toMatchObject({
+      expr: 'Th17 cocktail stock conc. × Th17 cocktail working dilution',
     });
     expect(answer(calculation, 'mix:recipe:working')).toBe('4×');
     expect(answer(calculation, mixFinalId('mix'))).toBe('1×');
     expect(answer(calculation, recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
+  });
+
+  it('reads the well total and the mix’s per-well volume under their other spellings', () => {
+    const protocol = protocolWith([['Working dilution', '2000', '1:N']]);
+    const values = protocol.blocks.find(block => block.type === 'values');
+    if (values?.type !== 'values') throw new Error('no values block');
+    values.items = values.items.map(item =>
+      'name' in item && item.name === 'Well volume'
+        ? { ...item, name: 'Total well vol.' }
+        : 'name' in item && item.name === 'Volume per well'
+          ? { ...item, name: 'Vol./well' }
+          : item
+    );
+    expect(answer(calculate(protocol), recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
   });
 
   it('scales by a typed working concentration when there is no dilution', () => {
@@ -89,7 +103,7 @@ describe('recipe finals in the well', () => {
       ['Working concentration', '4', 'X'],
     ]);
     expect([...recipeWarnings(protocol, calculate(protocol)).values()]).toEqual([
-      ['Working concentration says 4×, but the working dilution makes 8×.'],
+      ['Working conc. says 4×, but the working dil. makes 8×.'],
     ]);
   });
 });

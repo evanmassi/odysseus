@@ -125,7 +125,7 @@ describe('workbenchStore', () => {
       getState().updateProtocol(draft => {
         const values = draft.blocks.find(block => block.type === 'values');
         if (values?.type === 'values')
-          values.items.push({ id: 'v2', name: 'Drug concentration', value: '5', unit: 'µM' });
+          values.items.push({ id: 'v2', name: 'Drug final conc.', value: '5', unit: 'µM' });
       });
       addPlate({ 'p:A1': { l: { valueId: 'd', amount: '5', unit: 'µM' } } });
       expect(blockOf('values').items.map(item => item.id)).toEqual(['v1']);

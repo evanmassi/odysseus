@@ -13,18 +13,28 @@ import {
   FOLD_UNIT,
   quantityOf,
 } from '../formulas/quantities';
-import { joinValueName } from '../values/valueNames';
+import {
+  FINAL_CONCENTRATION,
+  MIX_CONCENTRATION,
+  STOCK_CONCENTRATION,
+  TOTAL_WELL_VOLUME,
+  VOLUME_PER_WELL,
+  WORKING_CONCENTRATION,
+  WORKING_DILUTION,
+  WORKING_STRENGTH,
+  type Term,
+} from '../terms/termList';
+import { findTerm } from '../terms/termLookup';
+import { joinValueName, lowerLead } from '../values/valueNames';
 
 import { fieldName, materialFields } from './materialCatalog';
 import { nameWithoutNotes } from './materialLookup';
 
 import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
 
-const WELL_VOLUME_NAMES = ['Well volume', 'Final well volume', 'Total well volume'];
-const [WELL_VOLUME] = WELL_VOLUME_NAMES;
 const MISSING_WELL_TOTAL: FormulaGap = {
-  problem: 'Needs the well total: add "Well volume 80 µL" under Whole experiment',
-  need: WELL_VOLUME,
+  problem: `Needs the well total: add "${TOTAL_WELL_VOLUME.word} 80 µL" under Whole experiment`,
+  need: TOTAL_WELL_VOLUME.word,
 };
 
 export const recipeFinalId = (mixId: string, entryId: string): string =>
@@ -34,15 +44,17 @@ export const mixFinalId = (mixId: string): string => `${mixId}:recipe:final`;
 
 const mixWorkingId = (mixId: string) => `${mixId}:recipe:working`;
 
-export const wellTotalName = (
-  names: ReadonlyMap<string, BoardName> | BoardCalculation['names']
-): string | undefined =>
-  WELL_VOLUME_NAMES.map(name => names.get(nameKey(name))).find(Boolean)?.name;
+export const mixConcentrationName = (mixName: string, ingredient: string): string =>
+  joinValueName(`${mixName} ${ingredient}`, MIX_CONCENTRATION.word);
 
-function mixValue(mix: MaterialItem, label: string, names: ReadonlyMap<string, BoardName>) {
-  const owners = [mix.name.trim(), nameWithoutNotes(mix.name)];
-  return owners.map(owner => names.get(nameKey(joinValueName(owner, label)))).find(Boolean);
-}
+export const finalConcentrationName = (owner: string): string =>
+  joinValueName(owner, FINAL_CONCENTRATION.word);
+
+export const wellTotalName = (names: ReadonlyMap<string, BoardName>): string | undefined =>
+  findTerm(names, TOTAL_WELL_VOLUME, [''])?.name;
+
+const mixValue = (mix: MaterialItem, term: Term, names: ReadonlyMap<string, BoardName>) =>
+  findTerm(names, term, [mix.name.trim(), nameWithoutNotes(mix.name)]);
 
 const isMix = (item: MaterialItem) => !!item.name.trim() && !item.isDropped && !!item.recipe.length;
 
@@ -58,10 +70,10 @@ function mixNames(
   names: ReadonlyMap<string, BoardName>
 ): BoardName[] {
   const mixName = mix.name.trim();
-  const perWell = mixValue(mix, 'Volume per well', names)?.name;
+  const perWell = mixValue(mix, VOLUME_PER_WELL, names)?.name;
   const wellTotal = wellTotalName(names);
   const scaling = perWell && wellTotal ? ` × ${perWell} ÷ ${wellTotal}` : '';
-  const perWellName = joinValueName(mixName, 'Volume per well');
+  const perWellName = joinValueName(mixName, VOLUME_PER_WELL.word);
   const missing: FormulaGap | undefined = !perWell
     ? { problem: `Needs ${perWellName}`, need: perWellName }
     : !wellTotal
@@ -70,7 +82,7 @@ function mixNames(
   const group: WorkedOutGroup = {
     key: `recipe:${mix.id}`,
     subject: mixName,
-    title: 'Final in the well',
+    title: FINAL_CONCENTRATION.word,
     settingsBlockId: materialsBlockId,
   };
   const inputs: BoardName[] = [];
@@ -83,32 +95,33 @@ function mixNames(
     mix.units[STOCK_FIELD] === FOLD_UNIT && stockField && names.has(nameKey(stockField))
       ? stockField
       : undefined;
-  const dilution = mixValue(mix, 'Working dilution', names);
-  const concentration = mixValue(mix, 'Working concentration', names)?.name;
+  const dilution = mixValue(mix, WORKING_DILUTION, names);
+  const concentration = mixValue(mix, WORKING_CONCENTRATION, names)?.name;
   const dilutes = dilution
     ? `${dilution.kind === 'value' && dilution.unit === DILUTION_FACTOR_NOTATION ? '÷' : '×'} ${dilution.name}`
     : undefined;
   const fromStock =
     dilutes ?? (concentration && stock ? `× ${concentration} ÷ ${stock}` : undefined);
-  const working = dilutes && stock ? `${mixName} working` : concentration;
+  const workingName = joinValueName(mixName, WORKING_STRENGTH.word);
+  const working = dilutes && stock ? workingName : concentration;
   if (dilutes && stock) {
-    final(mixWorkingId(mix.id), `${mixName} working`, `${stock} ${dilutes}`, FOLD_UNIT, undefined);
+    final(mixWorkingId(mix.id), workingName, `${stock} ${dilutes}`, FOLD_UNIT, undefined);
   }
   const strength = working ?? stock;
   if (strength)
-    final(mixFinalId(mix.id), `${mixName} in the well`, `${strength}${scaling}`, FOLD_UNIT);
-  const stockNeed = joinValueName(mixName, 'Stock concentration');
+    final(mixFinalId(mix.id), finalConcentrationName(mixName), `${strength}${scaling}`, FOLD_UNIT);
+  const stockNeed = joinValueName(mixName, STOCK_CONCENTRATION.word);
   const cannotScale: FormulaGap | undefined =
     concentration && !fromStock
       ? {
-          problem: `Needs ${stockNeed} in X to scale by its working concentration`,
+          problem: `Needs ${stockNeed} as a strength like 1000× to scale by its ${lowerLead(WORKING_CONCENTRATION.word)}`,
           need: stockNeed,
         }
       : undefined;
   for (const entry of mix.recipe) {
     const ingredient = materials.get(entry.materialId)?.name.trim();
     if (!ingredient) continue;
-    const inMix = `${mixName} ${ingredient} in the mix`;
+    const inMix = mixConcentrationName(mixName, ingredient);
     inputs.push({
       kind: 'value',
       id: `${mix.id}:recipe:${entry.id}`,
@@ -120,7 +133,7 @@ function mixNames(
     });
     final(
       recipeFinalId(mix.id, entry.id),
-      `${mixName} ${ingredient} in the well`,
+      finalConcentrationName(`${mixName} ${ingredient}`),
       `${inMix}${fromStock ? ` ${fromStock}` : ''}${scaling}`,
       entry.unit === FOLD_UNIT ? FOLD_UNIT : '',
       cannotScale ?? missing
@@ -131,7 +144,7 @@ function mixNames(
     .map(entry => entry.name)
     .find(name => names.has(nameKey(name)));
   if (!clash) return [...inputs, ...finals];
-  const problem = `Rename “${clash}”: the ${mixName} recipe needs that name.`;
+  const problem = `Rename "${clash}": the ${mixName} recipe needs that name.`;
   return finals
     .filter(entry => !names.has(nameKey(entry.name)))
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
@@ -162,14 +175,14 @@ export function recipeWarnings(
     .filter(isMix);
   for (const mix of mixes) {
     const result = calculation.results.get(mixWorkingId(mix.id));
-    const typed = mixValue(mix, 'Working concentration', calculation.names);
+    const typed = mixValue(mix, WORKING_CONCENTRATION, calculation.names);
     if (result?.status !== 'ok' || typed?.kind !== 'value') continue;
     const typedQuantity = quantityOf(typed.value, typed.unit);
     if (!typedQuantity) continue;
     const made = result.quantity.magnitude;
     if (Math.abs(made - typedQuantity.magnitude) <= AGREEMENT * Math.abs(made)) continue;
     warnings.set(mixWorkingId(mix.id), [
-      `Working concentration says ${displayValue(typed.value, typed.unit)}, but the working dilution makes ${formulaAnswerText(result)}.`,
+      `${WORKING_CONCENTRATION.word} says ${displayValue(typed.value, typed.unit)}, but the ${lowerLead(WORKING_DILUTION.word)} makes ${formulaAnswerText(result)}.`,
     ]);
   }
   return warnings;

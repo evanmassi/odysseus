@@ -15,6 +15,7 @@ import { matchesWordStarts } from '../../../utils/formulas/nameMatching';
 import { listedMaterials } from '../../../utils/materials/materialLookup';
 import { STEP_PRESETS } from '../../../utils/steps/stepPresets';
 import { templateText } from '../../../utils/steps/stepTemplate';
+import { generalTitleOf } from '../../../utils/values/valueNames';
 import { LEADER_LINE } from '../board/leaderLineClass';
 import { SECTION_RULE } from '../board/sectionRuleClass';
 
@@ -66,11 +67,15 @@ export function WorkbenchNameTray() {
 
   const mode = target?.mode;
   const materials = useMemo(() => listedMaterials(protocol), [protocol]);
+  const generalTitle = generalTitleOf(protocol.blocks);
   const customGroups =
     protocol.blocks.find(block => block.type === 'materials')?.customGroups ?? NO_CUSTOM_GROUPS;
   const allGroups = useMemo(
-    () => (mode ? insertListGroups(calculation, materials, customGroups, mode === 'formula') : []),
-    [calculation, materials, customGroups, mode]
+    () =>
+      mode
+        ? insertListGroups(calculation, materials, customGroups, mode === 'formula', generalTitle)
+        : [],
+    [calculation, materials, customGroups, mode, generalTitle]
   );
   const groups = useMemo(
     () =>
@@ -222,7 +227,7 @@ export function WorkbenchNameTray() {
             {!hasMatches && (
               <p className="px-3 py-3 text-body-sm text-muted-foreground">
                 {query.trim()
-                  ? `Nothing matches “${query.trim()}”.`
+                  ? `Nothing matches "${query.trim()}".`
                   : 'No names on the board yet. Add values or materials and they show up here.'}
               </p>
             )}

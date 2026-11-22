@@ -7,10 +7,13 @@ import { META_LABEL } from '../../board/metaLabelClass';
 
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 
+import type { VesselWords } from '../../../../utils/vessels/vesselCatalog';
+
 interface WorkbenchPlateStainLegendProps {
   mixes: readonly StainMix[];
   counts: ReadonlyMap<string, number>;
   hasSelection: boolean;
+  words: VesselWords;
   onPick: (mixId: string | undefined) => void;
   onFillUnstained: (mixId: string) => void;
   onRecolor: (mixId: string, color: string) => void;
@@ -24,6 +27,7 @@ export function WorkbenchPlateStainLegend({
   mixes,
   counts,
   hasSelection,
+  words,
   onPick,
   onFillUnstained,
   onRecolor,
@@ -34,7 +38,7 @@ export function WorkbenchPlateStainLegend({
   if (!mixes.length) {
     return (
       <p className="border-t border-line-soft pt-2 text-body-sm text-muted-foreground">
-        Make mixes in a Flow panel to stain this plate.
+        Make stains in a Flow panel to use them on this plate.
       </p>
     );
   }
@@ -42,9 +46,11 @@ export function WorkbenchPlateStainLegend({
   return (
     <div className="flex flex-col gap-1 border-t border-line-soft pt-2">
       <div className="flex items-baseline gap-3 border-b border-line-soft pb-1">
-        <span className={META_LABEL}>Mixes</span>
+        <span className={META_LABEL}>Stains</span>
         <span className="text-caption text-muted-foreground">
-          {hasSelection ? 'Pick a mix for the selected wells' : 'Select wells, then pick a mix'}
+          {hasSelection
+            ? `Pick a stain for the selected ${words.plural}`
+            : `Select ${words.plural}, then pick a stain`}
         </span>
       </div>
       <div className="grid grid-cols-[max-content_max-content_max-content_max-content] items-center gap-x-4 gap-y-1 text-body-sm text-foreground">
@@ -72,7 +78,10 @@ export function WorkbenchPlateStainLegend({
           <b key={`${mix.id}:count`} className="text-right font-mono text-data-sm text-foreground">
             {counts.get(mix.id) ?? ''}
           </b>,
-          <Tooltip key={`${mix.id}:fill`} content={`${mix.name} on every unstained well in use`}>
+          <Tooltip
+            key={`${mix.id}:fill`}
+            content={`${mix.name} on every ${words.noun} in use with no stain assigned`}
+          >
             <button
               type="button"
               className="text-caption text-muted-foreground hover:text-primary"
@@ -89,7 +98,7 @@ export function WorkbenchPlateStainLegend({
           className={PICK}
           onClick={() => onPick(undefined)}
         >
-          Not stained
+          No stain assigned
         </button>
       </div>
       {recoloring && (

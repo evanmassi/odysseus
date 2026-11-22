@@ -1,7 +1,7 @@
 import { memo, useRef, useState } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
-import { X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
 
@@ -12,6 +12,7 @@ import {
   sourceColumns,
   workedOutCount,
 } from '../../../../utils/materials/materialSources';
+import { ADD_ICON } from '../../board/addIconClass';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { META_LABEL } from '../../board/metaLabelClass';
 import { WorkbenchPlateNameField } from '../vessels/WorkbenchPlateNameField';
@@ -177,13 +178,14 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
             <button
               ref={fieldButtonRef}
               type="button"
-              className={`ml-3 type-label text-label-2xs transition-colors hover:text-foreground ${
+              className={`ml-3 inline-flex items-center gap-1 type-label text-label-2xs transition-colors hover:text-foreground ${
                 fieldQuery === undefined ? 'text-foreground/55' : 'text-foreground'
               }`}
               aria-expanded={fieldQuery !== undefined}
               onClick={() => setFieldQuery(fieldQuery === undefined ? '' : undefined)}
             >
-              + Field
+              <Plus aria-hidden className={ADD_ICON} />
+              Add field
             </button>
           </div>
           <WorkbenchMaterialFieldSelector
@@ -235,7 +237,7 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
                           <input
                             value={source.name}
                             placeholder="Name"
-                            aria-label="Donor name"
+                            aria-label={`Name in ${sources.label}`}
                             spellCheck={false}
                             className={`${FIELD} w-28 font-semibold`}
                             onFocus={() => {
@@ -280,7 +282,7 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
             <input
               ref={isJustOpened ? focusOnMount : undefined}
               value={draft}
-              placeholder={`+ Add to ${sources.label}: a name, or a Donor ID you used before`}
+              placeholder={`Add to ${sources.label}: a name, or a Donor ID you used before`}
               aria-label={`Add to ${sources.label}`}
               spellCheck={false}
               autoComplete="off"
