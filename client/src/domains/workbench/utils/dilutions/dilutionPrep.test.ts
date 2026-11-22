@@ -87,7 +87,7 @@ const prepFor = (protocol: Protocol) =>
 describe('dilution prep', () => {
   it('pools identical series from copied plates into one prep sized for all their wells', () => {
     const protocol = protocolWith(doseSeries, []);
-    const [plateMap] = protocol.blocks.filter(block => block.type === 'plate');
+    const [plateMap] = protocol.blocks.filter(card => card.type === 'plate');
     const copy = structuredClone(plateMap);
     if (copy.type !== 'plate') return;
     copy.id = 'copy';

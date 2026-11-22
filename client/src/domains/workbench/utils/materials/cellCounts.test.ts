@@ -32,12 +32,12 @@ describe('solveCounts', () => {
   });
 
   it('flags typed numbers that disagree, and gives the working of a worked-out one', () => {
-    const clashing = solveCounts({ count: '2e6', viability: '90', 'live-cell-conc': '5e5' });
-    expect(clashing.clashes.get('liveConcentration')).toBe(
+    const mismatching = solveCounts({ count: '2e6', viability: '90', 'live-cell-conc': '5e5' });
+    expect(mismatching.mismatches.get('liveConcentration')).toBe(
       'Live cell conc. ≠ Total cell conc. × Viability, which gives 1.80E+6 cells/mL'
     );
     expect(
-      solveCounts({ count: '2e6', viability: '90', 'live-cell-conc': '1.8e6' }).clashes.size
+      solveCounts({ count: '2e6', viability: '90', 'live-cell-conc': '1.8e6' }).mismatches.size
     ).toBe(0);
     expect(
       workedCountsByKey({ count: '2e6', viability: '90' }).get('live-cell-conc')?.working

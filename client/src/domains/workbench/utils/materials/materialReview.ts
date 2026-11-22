@@ -56,23 +56,23 @@ export function reviewActionLabel(rows: readonly MaterialReviewRow[]): string {
 
 export function commitReviewRows(
   protocol: Protocol,
-  blockId: string,
+  cardId: string,
   rows: readonly MaterialReviewRow[]
 ): string[] {
-  const block = protocol.blocks.find(candidate => candidate.id === blockId);
-  if (block?.type !== 'materials') return [];
+  const card = protocol.blocks.find(candidate => candidate.id === cardId);
+  if (card?.type !== 'materials') return [];
   const freshIds = new Set<string>();
   for (const { item, alreadyListedId, isKeptBoth } of rows) {
-    const alreadyListed = block.items.find(candidate => candidate.id === alreadyListedId);
+    const alreadyListed = card.items.find(candidate => candidate.id === alreadyListedId);
     if (alreadyListed && !isKeptBoth) {
       mergeMaterialInto(alreadyListed, item);
       freshIds.add(alreadyListed.id);
       continue;
     }
     if (alreadyListed) protocol.keptBoth.push(normalizeMaterialKey(item.name));
-    block.items.push(item);
+    card.items.push(item);
     freshIds.add(item.id);
-    block.foldedGroups = block.foldedGroups.filter(group => group !== item.group);
+    card.foldedGroups = card.foldedGroups.filter(group => group !== item.group);
   }
   return [...freshIds];
 }

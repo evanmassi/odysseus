@@ -40,14 +40,14 @@ export interface MaterialGuess {
   source: MaterialGuessSource;
 }
 
-export interface RememberedMaterialKind {
+export interface RememberedMaterialType {
   group: string;
   type: string;
   why?: string;
 }
 
 export interface MaterialKnowledge {
-  kinds: ReadonlyMap<string, RememberedMaterialKind>;
+  kinds: ReadonlyMap<string, RememberedMaterialType>;
   fluors: readonly ProtocolFluor[];
 }
 

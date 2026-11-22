@@ -36,8 +36,8 @@ export function nameUsage(
     }
   }
   const names = [...board.names.values()].map(entry => entry.name);
-  const typedExprs = protocol.blocks.flatMap(block =>
-    block.type === 'formula' ? block.items.map(calculation => calculation.expr) : []
+  const typedExprs = protocol.blocks.flatMap(card =>
+    card.type === 'formula' ? card.items.map(calculation => calculation.expr) : []
   );
   const generatedExprs = [...board.names.values()].flatMap(entry =>
     entry.kind === 'calculation' && entry.workedOut ? [entry.expr] : []

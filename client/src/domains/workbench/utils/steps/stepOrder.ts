@@ -8,7 +8,7 @@ export const NEW_SECTION_TITLE = 'New section';
 
 const depthOf = (step: ProtocolStep) => (step.kind === 'section' ? 0 : step.level);
 
-function blockEnd(steps: readonly ProtocolStep[], index: number): number {
+function subStepsEnd(steps: readonly ProtocolStep[], index: number): number {
   const depth = depthOf(steps[index]);
   let end = index + 1;
   while (end < steps.length && depthOf(steps[end]) > depth) end++;
@@ -18,7 +18,7 @@ function blockEnd(steps: readonly ProtocolStep[], index: number): number {
 const isSameRank = (candidate: ProtocolStep, moving: ProtocolStep) =>
   depthOf(candidate) <= depthOf(moving);
 
-export function moveStepBlock(
+export function moveStepWithSubSteps(
   steps: ProtocolStep[],
   id: string,
   targetId: string,
@@ -26,7 +26,7 @@ export function moveStepBlock(
 ): ProtocolStep[] {
   const from = steps.findIndex(step => step.id === id);
   if (from < 0) return steps;
-  const end = blockEnd(steps, from);
+  const end = subStepsEnd(steps, from);
   const moving = steps.slice(from, end);
   if (moving.some(step => step.id === targetId)) return steps;
   const rest = [...steps.slice(0, from), ...steps.slice(end)];
@@ -34,7 +34,9 @@ export function moveStepBlock(
   if (to < 0) return steps;
   if (isAfter) {
     to =
-      rest[to].kind === 'section' && steps[from].kind !== 'section' ? to + 1 : blockEnd(rest, to);
+      rest[to].kind === 'section' && steps[from].kind !== 'section'
+        ? to + 1
+        : subStepsEnd(rest, to);
   }
   rest.splice(to, 0, ...moving);
   return rest;
@@ -44,7 +46,7 @@ export function moveStepUp(steps: ProtocolStep[], id: string): ProtocolStep[] {
   const index = steps.findIndex(step => step.id === id);
   for (let candidate = index - 1; candidate >= 0; candidate--) {
     if (isSameRank(steps[candidate], steps[index])) {
-      return moveStepBlock(steps, id, steps[candidate].id, false);
+      return moveStepWithSubSteps(steps, id, steps[candidate].id, false);
     }
   }
   return steps;
@@ -53,9 +55,9 @@ export function moveStepUp(steps: ProtocolStep[], id: string): ProtocolStep[] {
 export function moveStepDown(steps: ProtocolStep[], id: string): ProtocolStep[] {
   const index = steps.findIndex(step => step.id === id);
   if (index < 0) return steps;
-  for (let candidate = blockEnd(steps, index); candidate < steps.length; candidate++) {
+  for (let candidate = subStepsEnd(steps, index); candidate < steps.length; candidate++) {
     if (isSameRank(steps[candidate], steps[index])) {
-      return moveStepBlock(steps, id, steps[candidate].id, true);
+      return moveStepWithSubSteps(steps, id, steps[candidate].id, true);
     }
   }
   return steps;
@@ -75,7 +77,7 @@ export function insertSubStep(steps: ProtocolStep[], parentId: string, id: strin
   const index = steps.findIndex(step => step.id === parentId);
   const parent = steps[index];
   if (parent?.kind !== 'step' || parent.level >= DEEPEST_STEP_LEVEL) return steps;
-  return insertBlankStep(steps, blockEnd(steps, index), (parent.level + 1) as StepLevel, id);
+  return insertBlankStep(steps, subStepsEnd(steps, index), (parent.level + 1) as StepLevel, id);
 }
 
 export function insertStepBelow(steps: ProtocolStep[], stepId: string, id: string): ProtocolStep[] {
@@ -83,7 +85,7 @@ export function insertStepBelow(steps: ProtocolStep[], stepId: string, id: strin
   const step = steps[index];
   if (!step) return steps;
   if (step.kind === 'section') return insertBlankStep(steps, index + 1, 1, id);
-  return insertBlankStep(steps, blockEnd(steps, index), step.level, id);
+  return insertBlankStep(steps, subStepsEnd(steps, index), step.level, id);
 }
 
 export function insertSection(
@@ -96,7 +98,7 @@ export function insertSection(
   const step = steps[index];
   if (step?.kind !== 'step' || step.level !== 1) return steps;
   if (!isBelow && steps[index - 1]?.kind === 'section') return steps;
-  const at = isBelow ? blockEnd(steps, index) : index;
+  const at = isBelow ? subStepsEnd(steps, index) : index;
   const section: ProtocolStep = { id, kind: 'section', text: NEW_SECTION_TITLE };
   return [...steps.slice(0, at), section, ...steps.slice(at)];
 }
@@ -108,13 +110,13 @@ export function levelShifts(
   const index = steps.findIndex(step => step.id === id);
   const step = steps[index];
   if (step?.kind !== 'step') return { canMoveIn: false, canMoveOut: false };
-  const block = steps.slice(index, blockEnd(steps, index));
+  const withSubSteps = steps.slice(index, subStepsEnd(steps, index));
   const previous = steps[index - 1];
   return {
     canMoveIn:
       previous?.kind === 'step' &&
       previous.level >= step.level &&
-      block.every(member => depthOf(member) < DEEPEST_STEP_LEVEL),
+      withSubSteps.every(member => depthOf(member) < DEEPEST_STEP_LEVEL),
     canMoveOut: step.level > 1,
   };
 }
@@ -123,7 +125,7 @@ export function shiftStepLevel(steps: ProtocolStep[], id: string, shift: 1 | -1)
   const { canMoveIn, canMoveOut } = levelShifts(steps, id);
   if (!(shift > 0 ? canMoveIn : canMoveOut)) return steps;
   const index = steps.findIndex(step => step.id === id);
-  const end = blockEnd(steps, index);
+  const end = subStepsEnd(steps, index);
   return steps.map((step, at) =>
     at >= index && at < end && step.kind === 'step'
       ? { ...step, level: (step.level + shift) as StepLevel }

@@ -1,23 +1,23 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { type FluorCatalog } from '../fluors/fluorCatalog';
+import { CONJUGATE_FIELD } from '../materials/conjugateConflicts';
 import { ANTIBODY_GROUP, materialFields } from '../materials/materialCatalog';
-import { CONJUGATE_FIELD } from '../materials/materialClashes';
 import { guessMaterial, type MaterialKnowledge } from '../materials/materialGuesser';
-import { applyMaterialKind, materialFromGuess } from '../materials/materialItems';
+import { applyMaterialType, materialFromGuess } from '../materials/materialItems';
 import { type LabMemory } from '../materials/materialMemory';
 
 import { misplacementText, type Misplacement } from './markerPlacement';
 import { filterCenter, wavelengthColor, wavelengthTone } from './wavelengthColor';
 
 import type {
-  FlowCytometryPanelBlock,
+  FlowCytometryPanelCard,
   Cytometer,
   MaterialItem,
   Protocol,
 } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelBlock['rows'][number];
+type PanelRow = FlowCytometryPanelCard['rows'][number];
 type Detector = Cytometer['lasers'][number]['detectors'][number];
 
 export interface PanelMarker {
@@ -51,7 +51,7 @@ export interface LaserGroup {
 export interface PanelLayout {
   lasers: LaserGroup[];
   unplaced: PanelMarker[];
-  clashCount: number;
+  detectorConflictCount: number;
   misplacedCount: number;
 }
 
@@ -101,16 +101,16 @@ const markerLabel = (marker: PanelMarker) =>
   [marker.fluor, marker.markerName, marker.material?.name.trim()].find(Boolean) ?? 'another marker';
 
 export function panelLayout(
-  block: FlowCytometryPanelBlock,
+  card: FlowCytometryPanelCard,
   materials: readonly MaterialItem[],
   catalog: FluorCatalog
 ): PanelLayout {
   const byId = new Map(materials.map(item => [item.id, item]));
-  const markers = block.rows.map(row =>
-    readMarker(row, byId.get(row.materialId), block.instrument, catalog)
+  const markers = card.rows.map(row =>
+    readMarker(row, byId.get(row.materialId), card.instrument, catalog)
   );
   const placed = new Set<PanelMarker>();
-  const lasers = (block.instrument?.lasers ?? []).map(laser => ({
+  const lasers = (card.instrument?.lasers ?? []).map(laser => ({
     name: laser.name,
     nm: laser.nm,
     color: wavelengthColor(laser.nm),
@@ -124,22 +124,22 @@ export function panelLayout(
       return { detector, color: wavelengthColor(filterCenter(detector.filter)), markers: inSlot };
     }),
   }));
-  const clashCount = lasers
+  const detectorConflictCount = lasers
     .flatMap(laser => laser.slots)
     .filter(slot => slot.markers.length > 1).length;
   return {
     lasers,
     unplaced: markers.filter(marker => !placed.has(marker)),
-    clashCount,
+    detectorConflictCount,
     misplacedCount: markers.filter(marker => marker.misplacement).length,
   };
 }
 
 export const markerCandidates = (
-  block: FlowCytometryPanelBlock,
+  card: FlowCytometryPanelCard,
   materials: readonly MaterialItem[]
 ): MaterialItem[] => {
-  const onPanel = new Set(block.rows.map(row => row.materialId));
+  const onPanel = new Set(card.rows.map(row => row.materialId));
   return materials.filter(
     item =>
       item.group === ANTIBODY_GROUP &&
@@ -149,9 +149,9 @@ export const markerCandidates = (
   );
 };
 
-export function panelStainings(block: FlowCytometryPanelBlock): string[] {
+export function panelStainings(card: FlowCytometryPanelCard): string[] {
   const byKey = new Map<string, string>();
-  for (const staining of [...block.rows.map(row => row.stain), ...STARTING_STAININGS]) {
+  for (const staining of [...card.rows.map(row => row.stain), ...STARTING_STAININGS]) {
     const key = normalizeMaterialKey(staining);
     if (key && !byKey.has(key)) byKey.set(key, staining.trim());
   }
@@ -165,9 +165,9 @@ export const firstOpenDetector = (laser: LaserGroup): string | undefined =>
 
 export function panelDetectorLabels(protocol: Pick<Protocol, 'blocks'>): Map<string, string> {
   const detectors = new Map<string, string[]>();
-  for (const block of protocol.blocks) {
-    if (block.type !== 'cytometer') continue;
-    for (const row of block.rows) {
+  for (const card of protocol.blocks) {
+    if (card.type !== 'cytometer') continue;
+    for (const row of card.rows) {
       detectors.set(row.materialId, [...(detectors.get(row.materialId) ?? []), row.detectorId]);
     }
   }
@@ -186,7 +186,7 @@ export function newMarkerMaterial(
 ): MaterialItem {
   const item = materialFromGuess(guessMaterial(text, known), memory);
   if (item.group !== ANTIBODY_GROUP || NON_MARKER_TYPES.has(item.type)) {
-    applyMaterialKind(item, ANTIBODY_GROUP, MARKER_FALLBACK_TYPE, memory);
+    applyMaterialType(item, ANTIBODY_GROUP, MARKER_FALLBACK_TYPE, memory);
   }
   return item;
 }

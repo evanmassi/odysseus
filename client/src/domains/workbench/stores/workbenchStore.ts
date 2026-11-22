@@ -4,7 +4,7 @@ import { create } from 'zustand';
 import { calculateBoard, type SolvedBoard } from '../utils/formulas/boardCalculation';
 import { collectBoardNames } from '../utils/formulas/boardNames';
 import { applyRenames, findRenames } from '../utils/formulas/nameRenames';
-import { dropValuesTwinnedByPlate } from '../utils/plateMap/plateEditEffects';
+import { removeValuesTwinnedByPlate } from '../utils/plateMap/plateEditEffects';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 
 import type { Protocol } from '@odysseus/shared-schemas';
@@ -32,7 +32,7 @@ interface WorkbenchState {
   future: readonly Snapshot[];
   openProtocol: (protocol: Protocol, fileName: string, isSaved?: boolean) => void;
   updateProtocol: (recipe: (draft: Protocol) => void) => void;
-  fitBlockHeight: (blockId: string, height: number) => void;
+  fitCardHeight: (cardId: string, height: number) => void;
   showPage: (pageId: string) => void;
   markSaved: (fileName: string) => void;
   undo: () => void;
@@ -42,11 +42,11 @@ interface WorkbenchState {
 let lastBoard: { inputs: string; board: SolvedBoard } | undefined;
 let lastEditAt = 0;
 
-const plateMapsOf = (protocol: Protocol) => protocol.blocks.filter(block => block.type === 'plate');
+const plateMapsOf = (protocol: Protocol) => protocol.blocks.filter(card => card.type === 'plate');
 
 function haveSamePlateMaps(before: Protocol, after: Protocol): boolean {
   const [was, now] = [plateMapsOf(before), plateMapsOf(after)];
-  return was.length === now.length && was.every((block, index) => block === now[index]);
+  return was.length === now.length && was.every((card, index) => card === now[index]);
 }
 
 function calculate(protocol: Protocol): SolvedBoard {
@@ -135,7 +135,7 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
       const changed = haveSamePlateMaps(state.protocol, edited)
         ? edited
         : produce(edited, draft => {
-            dropValuesTwinnedByPlate(draft, state.knownNames);
+            removeValuesTwinnedByPlate(draft, state.knownNames);
           });
       const reconciled = reconcile(changed, state.knownNames);
       const now = Date.now();
@@ -155,11 +155,11 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
       };
     }),
 
-  fitBlockHeight: (blockId, height) =>
+  fitCardHeight: (cardId, height) =>
     set(state => ({
       protocol: produce(state.protocol, draft => {
-        const block = draft.blocks.find(candidate => candidate.id === blockId);
-        if (block) block.h = height;
+        const card = draft.blocks.find(candidate => candidate.id === cardId);
+        if (card) card.h = height;
       }),
     })),
 

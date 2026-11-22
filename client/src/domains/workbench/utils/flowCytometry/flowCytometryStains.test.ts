@@ -13,7 +13,7 @@ import {
   unstainedControl,
 } from './flowCytometryStains';
 
-import type { FlowCytometryPanelBlock } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
 
 const antibody = (name: string, target: string, conjugate: string) => {
   const item = materialFromGuess(
@@ -28,7 +28,7 @@ const cd4 = antibody('CD4 BV421', 'CD4', 'BV421');
 const cd3 = antibody('CD3 FITC', 'CD3', 'FITC');
 const foxp3 = antibody('Foxp3 PE', 'Foxp3', 'PE');
 
-const block: FlowCytometryPanelBlock = {
+const card: FlowCytometryPanelCard = {
   id: 'panel',
   type: 'cytometer',
   title: 'Flow panel',
@@ -47,7 +47,7 @@ const block: FlowCytometryPanelBlock = {
   mixes: [],
 };
 
-const columns = markerColumns(panelLayout(block, [cd4, cd3, foxp3], BUILT_IN_CATALOG));
+const columns = markerColumns(panelLayout(card, [cd4, cd3, foxp3], BUILT_IN_CATALOG));
 
 describe('markerColumns', () => {
   it('lists the panel’s placed markers in laser and detector order', () => {

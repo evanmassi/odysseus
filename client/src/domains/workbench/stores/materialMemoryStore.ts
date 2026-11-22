@@ -7,7 +7,7 @@ import {
   learnFromMaterials,
   rememberFluors,
   rememberKind,
-  startingSourceFieldsOf,
+  startingDonorFieldsOf,
   toggleStartingField,
   type LabMemory,
   type PinnedFields,
@@ -50,7 +50,7 @@ export const useMaterialMemoryStore = create<MaterialMemoryState>()(
             key,
             pins === 'startingFields'
               ? groupStartingFields(state.memory, group)
-              : startingSourceFieldsOf(state.memory, group)
+              : startingDonorFieldsOf(state.memory, group)
           ),
         })),
     }),

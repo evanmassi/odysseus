@@ -1,6 +1,6 @@
 import { plateValueRows, removePlateRow, setPlateRowValue } from './plateValueRows';
 
-import type { Protocol, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
 
 function protocolWithPlate(): Protocol {
   const plateMap = {
@@ -38,12 +38,12 @@ function protocolWithPlate(): Protocol {
     side: 'assay',
     stain: {},
     stainedIn: {},
-  } as unknown as PlateMapBlock;
+  } as unknown as PlateMapCard;
   return { blocks: [plateMap] } as unknown as Protocol;
 }
 
 const plateIn = (protocol: Protocol) =>
-  protocol.blocks.find(block => block.type === 'plate') as PlateMapBlock;
+  protocol.blocks.find(card => card.type === 'plate') as PlateMapCard;
 
 const rowNamed = (protocol: Protocol, name: string) =>
   plateValueRows(plateIn(protocol)).find(row => row.name === name)!;

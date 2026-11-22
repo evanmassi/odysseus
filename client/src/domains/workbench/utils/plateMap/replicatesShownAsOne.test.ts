@@ -4,12 +4,12 @@ import { activeTabOf, sheetOf } from './plateMapTabs';
 import { replicatesShownAsOne } from './replicatesShownAsOne';
 import { stainSamples } from './stainLayout';
 
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 const plateWithReplicates = (
   stain: Record<string, string>,
   stainedIn: Record<string, string> = {}
-): PlateMapBlock =>
+): PlateMapCard =>
   ({
     plates: [{ id: 'p', vessel: '96', name: '' }],
     sets: [],
@@ -26,34 +26,34 @@ const plateWithReplicates = (
     side: 'stain',
     stain,
     stainedIn,
-  }) as unknown as PlateMapBlock;
+  }) as unknown as PlateMapCard;
 
-const mergedKeys = (block: PlateMapBlock, isStainSide: boolean) => {
-  const sheet = sheetOf(block, activeTabOf(block));
+const mergedKeys = (card: PlateMapCard, isStainSide: boolean) => {
+  const sheet = sheetOf(card, activeTabOf(card));
   const shownAsOne = replicatesShownAsOne(
-    block,
+    card,
     sheet,
     calculateBoard([]),
-    isStainSide ? stainSamples(block, sheet) : undefined
+    isStainSide ? stainSamples(card, sheet) : undefined
   );
   return [...shownAsOne.anchors.values()].map(replicateGroup => replicateGroup.keys);
 };
 
 describe('replicates shown as one', () => {
   it('splits replicates that get different stains on the Stain side only', () => {
-    const block = plateWithReplicates({ 'p:A1': 'full', 'p:A2': 'fmo' });
-    expect(mergedKeys(block, false)).toEqual([['p:A1', 'p:A2']]);
-    expect(mergedKeys(block, true)).toEqual([]);
+    const card = plateWithReplicates({ 'p:A1': 'full', 'p:A2': 'fmo' });
+    expect(mergedKeys(card, false)).toEqual([['p:A1', 'p:A2']]);
+    expect(mergedKeys(card, true)).toEqual([]);
   });
 
   it('keeps replicates shown as one on the Stain side when they share a stain', () => {
-    const block = plateWithReplicates({ 'p:A1': 'full', 'p:A2': 'full' });
-    expect(mergedKeys(block, true)).toEqual([['p:A1', 'p:A2']]);
+    const card = plateWithReplicates({ 'p:A1': 'full', 'p:A2': 'full' });
+    expect(mergedKeys(card, true)).toEqual([['p:A1', 'p:A2']]);
   });
 
   it('never groups a well that was moved or pooled on the Stain side', () => {
-    const block = plateWithReplicates({ 'p:A2': 'full', 'p:A3': 'full' }, { 'p:A1': 'p:A3' });
-    expect(mergedKeys(block, false)).toEqual([['p:A1', 'p:A2']]);
-    expect(mergedKeys(block, true)).toEqual([]);
+    const card = plateWithReplicates({ 'p:A2': 'full', 'p:A3': 'full' }, { 'p:A1': 'p:A3' });
+    expect(mergedKeys(card, false)).toEqual([['p:A1', 'p:A2']]);
+    expect(mergedKeys(card, true)).toEqual([]);
   });
 });

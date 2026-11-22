@@ -6,7 +6,7 @@ import { CELL_COUNT_FIELDS, CELL_TYPES, type CellCount } from './materialCatalog
 import { listedMaterials, nameWithoutNotes } from './materialLookup';
 import { platedCells } from './platedCells';
 
-import type { MaterialItem, MaterialSource, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, ExperimentDonor, Protocol } from '@odysseus/shared-schemas';
 
 type Operation = '×' | '÷';
 
@@ -24,21 +24,21 @@ export interface CountReading {
 
 export interface SolvedCounts {
   readings: ReadonlyMap<CellCount, CountReading>;
-  clashes: ReadonlyMap<CellCount, string>;
+  mismatches: ReadonlyMap<CellCount, string>;
 }
 
 export interface CountSubject {
   owner: string;
   subject: string;
   material: MaterialItem;
-  source: MaterialSource | undefined;
+  donor: ExperimentDonor | undefined;
   isPlated: boolean;
 }
 
 export const CELLS_TO_PREPARE = 'Cells to prepare';
 export const CELL_COUNTS = Object.keys(CELL_COUNT_FIELDS) as CellCount[];
 const PERCENT = 100;
-const CLASH_TOLERANCE = 0.02;
+const MISMATCH_TOLERANCE = 0.02;
 
 const rule = (target: CellCount, a: CellCount, operation: Operation, b: CellCount): CountRule => ({
   target,
@@ -79,14 +79,14 @@ export function solveCounts(values: Readonly<Record<string, string>>): SolvedCou
       readings.set(count, { value: typed / scaleOf(count), isTyped: true, rule: undefined });
     }
   }
-  const clashes = new Map<CellCount, string>();
+  const mismatches = new Map<CellCount, string>();
   for (const { target, from, operation } of RULES) {
     const [a, b] = from.map(count => readings.get(count));
     const typed = readings.get(target);
     if (operation !== '×' || !typed?.isTyped || !a?.isTyped || !b?.isTyped) continue;
     const expected = apply(operation, a.value, b.value);
-    if (Math.abs(expected - typed.value) <= CLASH_TOLERANCE * Math.abs(typed.value)) continue;
-    clashes.set(
+    if (Math.abs(expected - typed.value) <= MISMATCH_TOLERANCE * Math.abs(typed.value)) continue;
+    mismatches.set(
       target,
       `${labelOf(target)} ≠ ${labelOf(from[0])} × ${labelOf(from[1])}, which gives ${countText(target, expected)}`
     );
@@ -105,7 +105,7 @@ export function solveCounts(values: Readonly<Record<string, string>>): SolvedCou
       isGrowing = true;
     }
   }
-  return { readings, clashes };
+  return { readings, mismatches };
 }
 
 export function countWorking(solved: SolvedCounts, count: CellCount): string {
@@ -144,10 +144,10 @@ export function workedCountsByKey(
 }
 
 export const countValues = (subject: CountSubject): Readonly<Record<string, string>> =>
-  subject.source?.values ?? subject.material.values;
+  subject.donor?.values ?? subject.material.values;
 
 export const countId = (subject: CountSubject, count: CellCount): string =>
-  `${subject.source?.id ?? subject.material.id}:${CELL_COUNT_FIELDS[count].key}`;
+  `${subject.donor?.id ?? subject.material.id}:${CELL_COUNT_FIELDS[count].key}`;
 
 export const countName = (subject: CountSubject, count: CellCount): string =>
   joinValueName(subject.owner, labelOf(count));
@@ -167,18 +167,18 @@ export function countSubjects(protocol: Pick<Protocol, 'blocks'>): CountSubject[
         (CELL_TYPES.includes(material.type) || platedMaterials.has(material.id))
     )
     .flatMap(material => {
-      const donors = (material.sources?.rows ?? []).filter(source => source.name.trim());
+      const donors = (material.sources?.rows ?? []).filter(donor => donor.name.trim());
       const subjects = donors.length
-        ? donors.map(source => ({
-            owner: source.name.trim(),
-            subject: source.name.trim(),
-            source,
+        ? donors.map(donor => ({
+            owner: donor.name.trim(),
+            subject: donor.name.trim(),
+            donor,
           }))
         : [
             {
               owner: material.name.trim(),
               subject: nameWithoutNotes(material.name),
-              source: undefined,
+              donor: undefined,
             },
           ];
       return subjects.map(each => ({
@@ -192,7 +192,7 @@ export function countSubjects(protocol: Pick<Protocol, 'blocks'>): CountSubject[
 export function cellCountNames(
   subjects: readonly CountSubject[],
   taken: readonly BoardName[],
-  materialsBlockId: string | undefined
+  materialsCardId: string | undefined
 ): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   return subjects.flatMap(subject => {
@@ -203,7 +203,7 @@ export function cellCountNames(
           key: cellPartId(subject.subject, 'group'),
           subject: subject.subject,
           title: CELLS_TO_PREPARE,
-          settingsBlockId: materialsBlockId,
+          settingsCardId: materialsCardId,
         }
       : undefined;
     return CELL_COUNTS.flatMap((count): BoardName[] => {

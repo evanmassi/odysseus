@@ -1,7 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
+import { findDonor, donorsIn } from './materialDonors';
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
-import { findSource, sourcesIn } from './materialSources';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -18,9 +18,9 @@ const SHORTEST_MENTION = 3;
 export const plateOfferKey = (name: string): string => `plate:${normalizeMaterialKey(name)}`;
 
 function mixNames(protocol: Pick<Protocol, 'blocks'>): string[] {
-  return protocol.blocks.flatMap(block =>
-    block.type === 'values'
-      ? block.sections.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []))
+  return protocol.blocks.flatMap(card =>
+    card.type === 'values'
+      ? card.sections.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []))
       : []
   );
 }
@@ -30,7 +30,7 @@ export function plateNameOffers(
 ): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);
-  const sources = sourcesIn(protocol);
+  const matches = donorsIn(protocol);
   const materialKeys = materials
     .map(material => normalizeMaterialKey(material.name))
     .filter(key => key.length >= SHORTEST_MENTION);
@@ -52,7 +52,7 @@ export function plateNameOffers(
           ignored.has(key) ||
           CONDITION_WORDS.test(name) ||
           findMaterial(materials, name) !== undefined ||
-          findSource(sources, name) !== undefined ||
+          findDonor(matches, name) !== undefined ||
           findNamed(mixes, name, mix => mix) !== undefined ||
           materialKeys.some(materialKey => nameKey.includes(materialKey));
         if (isSkipped) continue;

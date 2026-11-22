@@ -4,24 +4,24 @@ import type { Protocol } from './protocolFileSchemas';
 
 export function moveStainsToStainSide(protocol: Protocol): void {
   const stainIds = new Map<string, string>();
-  for (const block of protocol.blocks) {
-    if (block.type !== 'cytometer') continue;
-    for (const stain of block.mixes) {
+  for (const card of protocol.blocks) {
+    if (card.type !== 'cytometer') continue;
+    for (const stain of card.mixes) {
       const key = plateValueKey(stain.name);
       if (key && !stainIds.has(key)) stainIds.set(key, stain.id);
     }
   }
   if (!stainIds.size) return;
-  for (const block of protocol.blocks) {
-    if (block.type !== 'plate') continue;
-    for (const [wellKey, lines] of Object.entries(block.cells)) {
-      for (const line of block.lines) {
+  for (const card of protocol.blocks) {
+    if (card.type !== 'plate') continue;
+    for (const [wellKey, lines] of Object.entries(card.cells)) {
+      for (const line of card.lines) {
         const stainId = stainIds.get(plateValueKey(lineValueOf(line, lines[line.id])?.text ?? ''));
         if (!stainId) continue;
-        block.stain[wellKey] ??= stainId;
+        card.stain[wellKey] ??= stainId;
         delete lines[line.id];
       }
     }
-    normalizePlateMap(block);
+    normalizePlateMap(card);
   }
 }

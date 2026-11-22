@@ -3,7 +3,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 import { fieldLabel, materialFields } from '../materials/materialCatalog';
 import { CELLS_PER_WELL, FINAL_CONCENTRATION, VOLUME_PER_WELL, type Term } from '../terms/termList';
 
-import type { MaterialItem, Protocol, ValuesBlock, ValueRow } from '@odysseus/shared-schemas';
+import type { MaterialItem, Protocol, ValuesCard, ValueRow } from '@odysseus/shared-schemas';
 
 export type ValueSuggestion =
   | { kind: 'field'; materialField: string; label: string }
@@ -22,22 +22,21 @@ const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
 };
 
 function hasPlateMapFor(protocol: Pick<Protocol, 'blocks'>, material: MaterialItem) {
-  const plateMaps = protocol.blocks.filter(block => block.type === 'plate');
+  const plateMaps = protocol.blocks.filter(card => card.type === 'plate');
   const key = normalizeMaterialKey(material.name);
   return (
-    plateMaps.some(block => normalizeMaterialKey(block.title).includes(key)) ||
-    plateMaps.length === 1
+    plateMaps.some(card => normalizeMaterialKey(card.title).includes(key)) || plateMaps.length === 1
   );
 }
 
 export function valueSuggestions(
   protocol: Pick<Protocol, 'blocks'>,
-  block: ValuesBlock,
+  card: ValuesCard,
   valueRow: ValueRow,
   material: MaterialItem | undefined
 ): ValueSuggestion[] {
   if ('materialId' in valueRow && !material) return [];
-  const peers = block.items.filter(item => item.section === valueRow.id);
+  const peers = card.items.filter(item => item.section === valueRow.id);
   const taken = new Set(
     peers.map(item =>
       'materialField' in item ? item.materialField : normalizeMaterialKey(item.name)

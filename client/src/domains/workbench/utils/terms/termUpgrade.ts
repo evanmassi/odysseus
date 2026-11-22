@@ -18,12 +18,12 @@ const TERMS_ON_ANY_LABWARE_KIND = [
 ];
 
 function fileValuesUnderWords(draft: Protocol) {
-  for (const block of draft.blocks) {
-    if (block.type !== 'values') continue;
-    for (const item of block.items) {
+  for (const card of draft.blocks) {
+    if (card.type !== 'values') continue;
+    for (const item of card.items) {
       if (!('name' in item) || !item.unit) continue;
       const { label } = settledValue(item.name, item.unit);
-      const isTaken = block.items.some(
+      const isTaken = card.items.some(
         other =>
           'name' in other &&
           other.section === item.section &&

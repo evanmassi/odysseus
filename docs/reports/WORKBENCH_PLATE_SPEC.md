@@ -54,7 +54,7 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    dropped. **Not done:** Values-block plate rows. The client must call `normalizeVesselMap` after
    every plate edit (Agent A's well editor). Vitest reads shared-schemas from `dist`, so run
    `npm run build` in the package before client tests.
-   **Plate map in the app (2026-11-08):** `ui/components/blocks/plateMap/` covers the whole
+   **Plate map in the app (2026-11-08):** `ui/components/cards/plateMap/` covers the whole
    vessel map inventory: drawing (value colors, series fade, captions, header doses, bands with
    brackets/tags/rings computed from known geometry in `utils/plateMap/plateGeometry.ts`), Merge
    Replicates, selection with keyboard and clipboard, the floating well editor (values renamed in
@@ -67,7 +67,7 @@ v2 schema (`groups`, `wells`, `counts`, `amountNames`) and its legacy upgrade.
    else the first Values card's general list), shown once across Values cards; edits write back to
    the wells or series, Remove clears from the wells after a confirm. **Dilutions (done):**
    `utils/dilutions/` (pipettes, stock lookup with mass↔molar through molecular weight, prep math
-   with forward `1:N`, edits) and `ui/components/blocks/dilutions/`; the stock ask saves onto the
+   with forward `1:N`, edits) and `ui/components/cards/dilutions/`; the stock ask saves onto the
    material (creating it, and a Materials card, if needed) and suggests kDa for antibodies and
    `-mab` names. Fitted cards now shrink as well as grow. **Follow-ons (done):** the store runs
    `utils/plateMap/plateEditEffects.ts` on every edit (renaming a plate name that matched a material

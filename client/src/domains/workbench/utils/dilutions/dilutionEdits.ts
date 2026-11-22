@@ -13,7 +13,7 @@ export function setPrepSetting(
   key: SeriesPrepKey,
   value: string
 ): void {
-  const plateMap = draft.blocks.find(block => block.id === plateId);
+  const plateMap = draft.blocks.find(card => card.id === plateId);
   const series = plateMap?.type === 'plate' ? plateMap.series[seriesId] : undefined;
   if (series) series.prep = { ...series.prep, [key]: value };
 }

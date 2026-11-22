@@ -257,7 +257,7 @@ describe('guessMaterial patterns', () => {
 });
 
 describe('guessMaterial memory and context', () => {
-  it('lets a remembered kind override the guess', () => {
+  it('lets a remembered type override the guess', () => {
     const remembered = {
       kinds: new Map([['hela', { group: 'bio', type: 'Primary cells' }]]),
       fluors: [],

@@ -42,7 +42,7 @@ export function cellPrep(
   board: SolvedBoard,
   subject: CountSubject,
   isCounted: boolean,
-  clashes: readonly string[]
+  mismatches: readonly string[]
 ): CellPrep {
   const resultOf = (part: string) => board.results.get(cellPartId(subject.subject, part));
   const answer = (part: string) => {
@@ -85,7 +85,7 @@ export function cellPrep(
   return {
     subject: subject.subject,
     steps,
-    warnings: [...new Set([...(shortfall ? [shortfall] : []), ...problems, ...clashes])],
+    warnings: [...new Set([...(shortfall ? [shortfall] : []), ...problems, ...mismatches])],
     lines: [...board.names.values()].flatMap(entry =>
       entry.kind === 'calculation' && entry.workedOut?.key === groupKey
         ? [{ id: entry.id, name: entry.name, result: board.results.get(entry.id) }]

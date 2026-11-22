@@ -1,14 +1,14 @@
 import {
   normalizePlateMap,
   type Protocol,
-  type PlateMapBlock,
+  type PlateMapCard,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
 import { heldNames, renameValue, type HeldName } from '../plateMap/wellEdits';
 
+import { findDonor, donorsIn } from './materialDonors';
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
-import { findSource, sourcesIn } from './materialSources';
 
 const NOTES_START = '(';
 
@@ -22,7 +22,7 @@ export function withLeadingName(text: string, name: string): string {
 }
 
 const plateMaps = (protocol: Pick<Protocol, 'blocks'>) =>
-  protocol.blocks.filter((block): block is PlateMapBlock => block.type === 'plate');
+  protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate');
 
 const isNameOnAnyWell = (protocol: Pick<Protocol, 'blocks'>, name: string): boolean =>
   plateMaps(protocol).some(plateMap => {
@@ -38,7 +38,7 @@ const isNameOnAnyWell = (protocol: Pick<Protocol, 'blocks'>, name: string): bool
 
 const isNameListed = (protocol: Pick<Protocol, 'blocks'>, name: string): boolean =>
   findMaterial(listedMaterials(protocol), name) !== undefined ||
-  findSource(sourcesIn(protocol), name) !== undefined;
+  findDonor(donorsIn(protocol), name) !== undefined;
 
 export function materialFollowsPlateRename(draft: Protocol, from: string, to: string): void {
   const toName = nameWithoutNotes(to);
@@ -46,8 +46,8 @@ export function materialFollowsPlateRename(draft: Protocol, from: string, to: st
   if (isNameListed(draft, toName)) return;
   const material = findNamed(listedMaterials(draft), from, candidate => candidate.name);
   if (material) material.name = withLeadingName(material.name, toName);
-  const match = findSource(sourcesIn(draft), from);
-  if (match) match.source.name = withLeadingName(match.source.name, toName);
+  const match = findDonor(donorsIn(draft), from);
+  if (match) match.donor.name = withLeadingName(match.donor.name, toName);
 }
 
 export function plateFollowsListRename(draft: Protocol, from: string, to: string): void {
@@ -67,11 +67,11 @@ function renamePlateValues(draft: Protocol, from: string, to: string): void {
 
 export function renamePlateValue(
   draft: Protocol,
-  blockId: string,
+  cardId: string,
   valueId: string,
   text: string
 ): void {
-  const plateMap = plateMaps(draft).find(block => block.id === blockId);
+  const plateMap = plateMaps(draft).find(card => card.id === cardId);
   const value = plateMap?.lines.flatMap(line => line.values).find(item => item.id === valueId);
   if (!plateMap || !value) return;
   const from = value.text;
@@ -82,11 +82,11 @@ export function renamePlateValue(
 
 export function followWellEdit(
   draft: Protocol,
-  blockId: string,
+  cardId: string,
   started: ReadonlyMap<string, HeldName>,
   keys: readonly string[]
 ): void {
-  const plateMap = plateMaps(draft).find(block => block.id === blockId);
+  const plateMap = plateMaps(draft).find(card => card.id === cardId);
   if (!plateMap) return;
   const now = heldNames(plateMap, keys);
   for (const [lineId, start] of started) {

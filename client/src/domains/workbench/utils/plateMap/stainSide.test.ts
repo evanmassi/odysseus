@@ -1,10 +1,10 @@
 import { stainedPlaces, stainedWellCounts, plateStains, stainWells } from './stainSide';
 
-import type { FlowCytometryPanelBlock, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanelCard, PlateMapCard } from '@odysseus/shared-schemas';
 
-const panel = (stains: FlowCytometryPanelBlock['mixes']) =>
-  ({ mixes: stains }) as FlowCytometryPanelBlock;
-const plate = (stain: Record<string, string>) => ({ stain }) as PlateMapBlock;
+const panel = (stains: FlowCytometryPanelCard['mixes']) =>
+  ({ mixes: stains }) as FlowCytometryPanelCard;
+const plate = (stain: Record<string, string>) => ({ stain }) as PlateMapCard;
 
 describe('plate stains', () => {
   it('colors stains with markers in turn and a stain with none grey, across panels', () => {
@@ -46,7 +46,7 @@ describe('stained wells', () => {
   });
 
   it('lists where each stain is, by plate name, with its count', () => {
-    const block = {
+    const card = {
       id: 'map',
       plates: [
         { id: 'p', vessel: '96', name: 'P1' },
@@ -55,22 +55,20 @@ describe('stained wells', () => {
       sets: [{ id: 's', vessel: 'facs', count: 4 }],
       stain: { 'p:A1': 'full', 'p:A2': 'full', 'q:B1': 'full', 's#0:1': 'full', 's#1:1': 'fmo' },
       stainedIn: {},
-    } as unknown as PlateMapBlock;
-    expect(stainedPlaces([block]).get('full')).toEqual([
-      { blockId: 'map', name: 'P1', count: 2 },
-      { blockId: 'map', name: 'Plate 2', count: 1 },
-      { blockId: 'map', name: 'Tubes', count: 1 },
+    } as unknown as PlateMapCard;
+    expect(stainedPlaces([card]).get('full')).toEqual([
+      { cardId: 'map', name: 'P1', count: 2 },
+      { cardId: 'map', name: 'Plate 2', count: 1 },
+      { cardId: 'map', name: 'Tubes', count: 1 },
     ]);
-    expect(stainedPlaces([block]).get('fmo')).toEqual([
-      { blockId: 'map', name: 'Tubes', count: 1 },
-    ]);
+    expect(stainedPlaces([card]).get('fmo')).toEqual([{ cardId: 'map', name: 'Tubes', count: 1 }]);
   });
 
   it('puts a stain on wells, or clears them', () => {
-    const block = plate({ 'p:A1': 'fmo' });
-    stainWells(block, ['p:A1', 'p:A2'], 'full');
-    expect(block.stain).toEqual({ 'p:A1': 'full', 'p:A2': 'full' });
-    stainWells(block, ['p:A1'], undefined);
-    expect(block.stain).toEqual({ 'p:A2': 'full' });
+    const card = plate({ 'p:A1': 'fmo' });
+    stainWells(card, ['p:A1', 'p:A2'], 'full');
+    expect(card.stain).toEqual({ 'p:A1': 'full', 'p:A2': 'full' });
+    stainWells(card, ['p:A1'], undefined);
+    expect(card.stain).toEqual({ 'p:A2': 'full' });
   });
 });

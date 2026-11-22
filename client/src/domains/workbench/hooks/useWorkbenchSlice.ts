@@ -4,7 +4,7 @@ import { useStoreWithEqualityFn } from 'zustand/traditional';
 
 import { useWorkbenchStore } from '../stores/workbenchStore';
 
-import type { Protocol, ProtocolBlock } from '@odysseus/shared-schemas';
+import type { Protocol, ProtocolCard } from '@odysseus/shared-schemas';
 
 type WorkbenchState = ReturnType<typeof useWorkbenchStore.getState>;
 
@@ -24,23 +24,23 @@ export const useProtocolOutsidePages = (): ProtocolOutsidePages =>
 export const useWorkbenchData = <Value>(select: (state: WorkbenchState) => Value): Value =>
   useStoreWithEqualityFn(useWorkbenchStore, select, isSameData);
 
-export function useProtocolWith(...types: ProtocolBlock['type'][]): Pick<Protocol, 'blocks'> {
-  const blocks = useStoreWithEqualityFn(
+export function useProtocolWith(...types: ProtocolCard['type'][]): Pick<Protocol, 'blocks'> {
+  const cards = useStoreWithEqualityFn(
     useWorkbenchStore,
-    state => state.protocol.blocks.filter(block => types.includes(block.type)),
+    state => state.protocol.blocks.filter(card => types.includes(card.type)),
     isSameEntries
   );
-  return useMemo(() => ({ blocks }), [blocks]);
+  return useMemo(() => ({ blocks: cards }), [cards]);
 }
 
-export const useBlocksOf = <Type extends ProtocolBlock['type']>(
+export const useCardsOf = <Type extends ProtocolCard['type']>(
   type: Type
-): Extract<ProtocolBlock, { type: Type }>[] =>
+): Extract<ProtocolCard, { type: Type }>[] =>
   useStoreWithEqualityFn(
     useWorkbenchStore,
     state =>
       state.protocol.blocks.filter(
-        (block): block is Extract<ProtocolBlock, { type: Type }> => block.type === type
+        (card): card is Extract<ProtocolCard, { type: Type }> => card.type === type
       ),
     isSameEntries
   );

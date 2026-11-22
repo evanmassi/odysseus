@@ -1,11 +1,11 @@
 import { produce } from 'immer';
 
-import { createBlock } from '../blocks/createBlock';
+import { createCard } from '../cards/createCard';
 import { heldNames, setWellsText } from '../plateMap/wellEdits';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
+import { startDonors } from './materialDonors';
 import { listedMaterials } from './materialLookup';
-import { startSources } from './materialSources';
 import {
   followWellEdit,
   materialFollowsPlateRename,
@@ -14,7 +14,7 @@ import {
   withLeadingName,
 } from './renameFollowing';
 
-import type { Protocol, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
 
 const STIM_NAME = 'STX (Stim X Description (receptor agonist))';
 const P1_WELLS = ['p1:A1', 'p1:A2'];
@@ -22,7 +22,7 @@ const P2_WELLS = ['p2:A1', 'p2:A2'];
 
 function twoPlateProtocol(materialName = STIM_NAME): Protocol {
   return produce(blankProtocol(), draft => {
-    const materials = draft.blocks.find(block => block.type === 'materials');
+    const materials = draft.blocks.find(card => card.type === 'materials');
     if (materials?.type === 'materials') {
       materials.items.push({
         id: 'stim',
@@ -38,7 +38,7 @@ function twoPlateProtocol(materialName = STIM_NAME): Protocol {
         recipe: [],
       });
     }
-    const map = createBlock('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
+    const map = createCard('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
     if (map.type !== 'plate') return;
     map.id = 'map';
     map.plates = [
@@ -54,7 +54,7 @@ function twoPlateProtocol(materialName = STIM_NAME): Protocol {
 }
 
 const mapOf = (protocol: Protocol) =>
-  protocol.blocks.find((block): block is PlateMapBlock => block.id === 'map')!;
+  protocol.blocks.find((card): card is PlateMapCard => card.id === 'map')!;
 const stimName = (protocol: Protocol) =>
   listedMaterials(protocol).find(item => item.id === 'stim')?.name;
 const plateTexts = (protocol: Protocol) => mapOf(protocol).lines[0].values.map(value => value.text);
@@ -66,7 +66,7 @@ const withDonor = (protocol: Protocol, name: string) =>
   produce(protocol, draft => {
     const item = listedMaterials(draft).find(candidate => candidate.id === 'stim');
     if (!item) return;
-    startSources(item, [], []);
+    startDonors(item, [], []);
     item.sources?.rows.push({ id: name, name, values: {}, units: {} });
   });
 const typeIntoWells = (protocol: Protocol, keys: string[], text: string) =>

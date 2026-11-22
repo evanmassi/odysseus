@@ -2,7 +2,7 @@ import {
   isFilledEntry,
   lineValueOf,
   type PlateLine,
-  type PlateMapBlock,
+  type PlateMapCard,
 } from '@odysseus/shared-schemas';
 
 import { displayValue, readableAmount } from '../formulas/quantities';
@@ -27,13 +27,13 @@ const STRONGEST_TINT = 58;
 const TINT_FADE = 46;
 
 export function wellLine(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): WellLine | undefined {
-  const entry = block.cells[key]?.[line.id];
-  const point = wellAmount(block, key, line, board);
+  const entry = card.cells[key]?.[line.id];
+  const point = wellAmount(card, key, line, board);
   if (!isFilledEntry(entry) || !point) return undefined;
   const { amount, unit } = point;
   return {
@@ -46,22 +46,22 @@ export function wellLine(
 export const wellLineText = ({ label, readable }: WellLine) =>
   [label, readable].filter(Boolean).join(' · ');
 
-export const wellDetails = (block: PlateMapBlock, key: string, board: SolvedBoard) =>
-  block.lines.flatMap(line => {
-    const shown = wellLine(block, key, line, board);
+export const wellDetails = (card: PlateMapCard, key: string, board: SolvedBoard) =>
+  card.lines.flatMap(line => {
+    const shown = wellLine(card, key, line, board);
     const text = shown && wellLineText(shown);
     return text ? [text] : [];
   });
 
 export function seriesProgress(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine
 ): number | undefined {
-  const entry = block.cells[key]?.[line.id];
+  const entry = card.cells[key]?.[line.id];
   if (entry?.seriesId === undefined) return undefined;
   const lastStep = Math.max(
-    ...Object.values(block.cells)
+    ...Object.values(card.cells)
       .map(lines => lines[line.id])
       .filter(other => other?.seriesId === entry.seriesId)
       .map(other => other.seriesStep ?? 0)
@@ -70,14 +70,14 @@ export function seriesProgress(
 }
 
 export function wellColor(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   colorLine: PlateLine | undefined
 ): WellColor | undefined {
-  const entry = colorLine && block.cells[key]?.[colorLine.id];
+  const entry = colorLine && card.cells[key]?.[colorLine.id];
   const color = colorLine && lineValueOf(colorLine, entry)?.color;
   if (!colorLine || !entry || !color) return undefined;
-  const progress = seriesProgress(block, key, colorLine);
+  const progress = seriesProgress(card, key, colorLine);
   return {
     color,
     tint: progress === undefined ? PLAIN_TINT : Math.round(STRONGEST_TINT - progress * TINT_FADE),

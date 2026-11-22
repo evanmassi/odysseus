@@ -22,7 +22,7 @@ const protocolWith = (items: MaterialItem[]) =>
   }) as unknown as Protocol;
 
 const itemsOf = (protocol: Protocol) =>
-  protocol.blocks.flatMap(block => (block.type === 'materials' ? block.items : []));
+  protocol.blocks.flatMap(card => (card.type === 'materials' ? card.items : []));
 
 describe('recipes', () => {
   it('adds a typed ingredient, linking a listed material or adding a new one', () => {

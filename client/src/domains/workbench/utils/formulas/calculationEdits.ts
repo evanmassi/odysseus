@@ -1,39 +1,39 @@
-import { BLOCK_TYPES } from '../blocks/blockTypes';
-import { createBlock } from '../blocks/createBlock';
+import { CARD_TYPES } from '../cards/cardTypes';
+import { createCard } from '../cards/createCard';
 import { createId } from '../ids/createId';
 
 import { nameWithin } from './formulaScopes';
 import { AUTO_UNIT } from './quantities';
 
 import type {
-  CalculationsBlock,
+  CalculationsCard,
   MaterialItem,
   Protocol,
-  ValuesBlock,
+  ValuesCard,
 } from '@odysseus/shared-schemas';
 
-type CalculationItem = CalculationsBlock['items'][number];
+type CalculationItem = CalculationsCard['items'][number];
 
-function calculationsBlock(draft: Protocol, blockId: string): CalculationsBlock | undefined {
-  const block = draft.blocks.find(candidate => candidate.id === blockId);
-  return block?.type === 'formula' ? block : undefined;
+function calculationsCard(draft: Protocol, cardId: string): CalculationsCard | undefined {
+  const card = draft.blocks.find(candidate => candidate.id === cardId);
+  return card?.type === 'formula' ? card : undefined;
 }
 
 export function insertCalculation(
   draft: Protocol,
-  blockId: string,
+  cardId: string,
   calculation: Omit<CalculationItem, 'id' | 'unit'>,
   sectionOf: (item: CalculationItem) => string | undefined,
   section: string | undefined
 ): string | undefined {
-  const block = calculationsBlock(draft, blockId);
-  if (!block) return undefined;
+  const card = calculationsCard(draft, cardId);
+  if (!card) return undefined;
   const id = createId();
-  const last = block.items.reduce(
+  const last = card.items.reduce(
     (found, item, index) => (sectionOf(item) === section ? index : found),
     -1
   );
-  block.items.splice(last < 0 ? block.items.length : last + 1, 0, {
+  card.items.splice(last < 0 ? card.items.length : last + 1, 0, {
     id,
     ...calculation,
     unit: AUTO_UNIT,
@@ -43,30 +43,30 @@ export function insertCalculation(
 
 export function updateCalculation(
   draft: Protocol,
-  blockId: string,
+  cardId: string,
   itemId: string,
   change: Partial<Omit<CalculationItem, 'id'>>
 ) {
-  const item = calculationsBlock(draft, blockId)?.items.find(candidate => candidate.id === itemId);
+  const item = calculationsCard(draft, cardId)?.items.find(candidate => candidate.id === itemId);
   if (item) Object.assign(item, change);
 }
 
-export function removeCalculation(draft: Protocol, blockId: string, itemId: string): void {
-  const block = calculationsBlock(draft, blockId);
-  if (block) block.items = block.items.filter(item => item.id !== itemId);
+export function removeCalculation(draft: Protocol, cardId: string, itemId: string): void {
+  const card = calculationsCard(draft, cardId);
+  if (card) card.items = card.items.filter(item => item.id !== itemId);
 }
 
 export function setCalculationSection(
   draft: Protocol,
-  blockId: string,
+  cardId: string,
   materialId: string,
   isShown: boolean
 ): void {
-  const block = calculationsBlock(draft, blockId);
-  if (!block) return;
-  block.materialSections = isShown
-    ? [...new Set([...block.materialSections, materialId])]
-    : block.materialSections.filter(id => id !== materialId);
+  const card = calculationsCard(draft, cardId);
+  if (!card) return;
+  card.materialSections = isShown
+    ? [...new Set([...card.materialSections, materialId])]
+    : card.materialSections.filter(id => id !== materialId);
 }
 
 export function addNamedValue(
@@ -75,14 +75,14 @@ export function addNamedValue(
   material: MaterialItem | undefined,
   pageId: string
 ): void {
-  let values = draft.blocks.find((block): block is ValuesBlock => block.type === 'values');
+  let values = draft.blocks.find((card): card is ValuesCard => card.type === 'values');
   if (!values) {
-    const [w, h] = BLOCK_TYPES.values.size;
+    const [w, h] = CARD_TYPES.values.size;
     const bottom = Math.max(
       0,
-      ...draft.blocks.filter(block => block.page === pageId).map(block => block.y + block.h)
+      ...draft.blocks.filter(card => card.page === pageId).map(card => card.y + card.h)
     );
-    values = createBlock('values', { page: pageId, x: 0, y: bottom, w, h }) as ValuesBlock;
+    values = createCard('values', { page: pageId, x: 0, y: bottom, w, h }) as ValuesCard;
     draft.blocks.push(values);
   }
   let valueRow =

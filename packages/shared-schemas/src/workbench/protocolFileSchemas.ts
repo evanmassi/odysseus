@@ -38,7 +38,7 @@ const pageSchema = z.object({
   steps: z.array(stepSchema),
 });
 
-const blockBase = {
+const cardBase = {
   id,
   title: z.string(),
   page: id,
@@ -50,7 +50,7 @@ const blockBase = {
   expandedHeight: z.number().int().min(1).optional(),
 };
 
-const materialSourcesSchema = z.object({
+const experimentDonorsSchema = z.object({
   label: z.string(),
   shownFields: z.array(z.string()),
   customFields: z.array(fieldDefinitionSchema).default([]),
@@ -71,11 +71,11 @@ const materialItemSchema = z.object({
   recipe: z
     .array(z.object({ id, materialId: z.string(), amount: z.string(), unit: z.string() }))
     .default([]),
-  sources: materialSourcesSchema.optional(),
+  sources: experimentDonorsSchema.optional(),
 });
 
-const materialsBlockSchema = z.object({
-  ...blockBase,
+const materialsCardSchema = z.object({
+  ...cardBase,
   type: z.literal('materials'),
   foldedGroups: z.array(z.string()),
   customGroups: z.array(z.string()),
@@ -93,8 +93,8 @@ const tableColumnSchema = z.object({
   warnsWhenPast: z.boolean(),
 });
 
-const tableBlockSchema = z.object({
-  ...blockBase,
+const tableCardSchema = z.object({
+  ...cardBase,
   type: z.literal('list'),
   isNamed: z.boolean(),
   columns: z.array(tableColumnSchema).min(1),
@@ -117,16 +117,16 @@ const valueRowSchema = z.union([
   z.object({ id, mixName: z.string() }),
 ]);
 
-const valuesBlockSchema = z.object({
-  ...blockBase,
+const valuesCardSchema = z.object({
+  ...cardBase,
   type: z.literal('values'),
   items: z.array(valueItemSchema),
   sections: z.array(valueRowSchema).default([]),
   generalTitle: z.string().optional(),
 });
 
-const calculationsBlockSchema = z.object({
-  ...blockBase,
+const calculationsCardSchema = z.object({
+  ...cardBase,
   type: z.literal('formula'),
   items: z.array(z.object({ id, name: z.string(), expr: z.string(), unit: z.string() })),
   materialSections: z.array(z.string()).default([]),
@@ -191,8 +191,8 @@ export const OTHER_LABWARE = [
 
 const PLATE_MAP_SIDES = ['assay', 'stain'] as const;
 
-export const plateMapBlockSchema = z.object({
-  ...blockBase,
+export const plateMapCardSchema = z.object({
+  ...cardBase,
   type: z.literal('plate'),
   plates: z.array(z.object({ id, vessel: z.enum(PLATE_FORMATS), name: z.string() })),
   sets: z.array(z.object({ id, vessel: z.enum(OTHER_LABWARE), count: z.number().int().min(1) })),
@@ -209,8 +209,8 @@ export const plateMapBlockSchema = z.object({
   stainedIn: textMap.default({}),
 });
 
-const linkedPlateMapBlockSchema = z.object({
-  ...blockBase,
+const linkedPlateMapCardSchema = z.object({
+  ...cardBase,
   type: z.literal('plateView'),
   shows: id,
   side: z.enum(PLATE_MAP_SIDES).default('assay'),
@@ -250,8 +250,8 @@ const cytometerSchema = z.object({
     .min(1),
 });
 
-const flowCytometryPanelBlockSchema = z.object({
-  ...blockBase,
+const flowCytometryPanelCardSchema = z.object({
+  ...cardBase,
   type: z.literal('cytometer'),
   instrument: cytometerSchema.optional(),
   rows: z.array(
@@ -282,19 +282,19 @@ const protocolFluorSchema = z.object({
   peak: z.number().positive(),
 });
 
-const protocolBlockSchema = z.discriminatedUnion('type', [
-  materialsBlockSchema,
-  tableBlockSchema,
-  valuesBlockSchema,
-  calculationsBlockSchema,
-  plateMapBlockSchema,
-  linkedPlateMapBlockSchema,
-  flowCytometryPanelBlockSchema,
-  z.object({ ...blockBase, type: z.literal('steps') }),
-  z.object({ ...blockBase, type: z.literal('dilutions') }),
-  z.object({ ...blockBase, type: z.literal('flow') }),
-  z.object({ ...blockBase, type: z.literal('sketch'), strokes: z.array(sketchStrokeSchema) }),
-  z.object({ ...blockBase, type: z.literal('text'), html: z.string() }),
+const protocolCardSchema = z.discriminatedUnion('type', [
+  materialsCardSchema,
+  tableCardSchema,
+  valuesCardSchema,
+  calculationsCardSchema,
+  plateMapCardSchema,
+  linkedPlateMapCardSchema,
+  flowCytometryPanelCardSchema,
+  z.object({ ...cardBase, type: z.literal('steps') }),
+  z.object({ ...cardBase, type: z.literal('dilutions') }),
+  z.object({ ...cardBase, type: z.literal('flow') }),
+  z.object({ ...cardBase, type: z.literal('sketch'), strokes: z.array(sketchStrokeSchema) }),
+  z.object({ ...cardBase, type: z.literal('text'), html: z.string() }),
 ]);
 
 const protocolSchema = z.object({
@@ -304,7 +304,7 @@ const protocolSchema = z.object({
   runNumber: z.string(),
   runOn: z.object({ from: z.string(), to: z.string() }),
   pages: z.array(pageSchema).min(1),
-  blocks: z.array(protocolBlockSchema),
+  blocks: z.array(protocolCardSchema),
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
   ignoredReadings: z.array(z.string()).default([]),
@@ -322,19 +322,19 @@ export const protocolFileSchema = z.object({
 export type FieldDefinition = z.infer<typeof fieldDefinitionSchema>;
 export type ProtocolStep = z.infer<typeof stepSchema>;
 export type ProtocolPage = z.infer<typeof pageSchema>;
-export type ProtocolBlock = z.infer<typeof protocolBlockSchema>;
-export type ProtocolBlockType = ProtocolBlock['type'];
+export type ProtocolCard = z.infer<typeof protocolCardSchema>;
+export type ProtocolCardType = ProtocolCard['type'];
 export type MaterialItem = z.infer<typeof materialItemSchema>;
-export type MaterialSources = z.infer<typeof materialSourcesSchema>;
-export type MaterialSource = MaterialSources['rows'][number];
-export type MaterialsBlock = z.infer<typeof materialsBlockSchema>;
-export type ValuesBlock = z.infer<typeof valuesBlockSchema>;
-export type ValueRow = ValuesBlock['sections'][number];
-export type CalculationsBlock = z.infer<typeof calculationsBlockSchema>;
-export type PlateMapBlock = z.infer<typeof plateMapBlockSchema>;
-export type LinkedPlateMapBlock = z.infer<typeof linkedPlateMapBlockSchema>;
-export type FlowCytometryPanelBlock = z.infer<typeof flowCytometryPanelBlockSchema>;
-export type Stain = FlowCytometryPanelBlock['mixes'][number];
+export type ExperimentDonors = z.infer<typeof experimentDonorsSchema>;
+export type ExperimentDonor = ExperimentDonors['rows'][number];
+export type MaterialsCard = z.infer<typeof materialsCardSchema>;
+export type ValuesCard = z.infer<typeof valuesCardSchema>;
+export type ValueRow = ValuesCard['sections'][number];
+export type CalculationsCard = z.infer<typeof calculationsCardSchema>;
+export type PlateMapCard = z.infer<typeof plateMapCardSchema>;
+export type LinkedPlateMapCard = z.infer<typeof linkedPlateMapCardSchema>;
+export type FlowCytometryPanelCard = z.infer<typeof flowCytometryPanelCardSchema>;
+export type Stain = FlowCytometryPanelCard['mixes'][number];
 export type Cytometer = z.infer<typeof cytometerSchema>;
 export type ProtocolFluor = z.infer<typeof protocolFluorSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;

@@ -79,7 +79,7 @@ describe('recipe finals in the well', () => {
 
   it('reads the well total and the mix’s per-well volume under their other spellings', () => {
     const protocol = protocolWith([['Working dilution', '2000', '1:N']]);
-    const values = protocol.blocks.find(block => block.type === 'values');
+    const values = protocol.blocks.find(card => card.type === 'values');
     if (values?.type !== 'values') throw new Error('no values block');
     values.items = values.items.map(item =>
       'name' in item && item.name === 'Well volume'

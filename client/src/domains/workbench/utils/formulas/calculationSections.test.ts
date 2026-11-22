@@ -3,7 +3,7 @@ import { WHOLE_EXPERIMENT } from '../values/valueNames';
 import { calculateBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
 import { calculationLayout, calculationSections } from './calculationSections';
 
-import type { CalculationsBlock, MaterialItem } from '@odysseus/shared-schemas';
+import type { CalculationsCard, MaterialItem } from '@odysseus/shared-schemas';
 
 const drug = {
   id: 'm-drug',
@@ -17,7 +17,7 @@ const prepGroup = (subject: string): WorkedOutGroup => ({
   key: `prep:${subject}`,
   subject,
   title: 'Dilution prep for Plate 1',
-  settingsBlockId: 'dilutions',
+  settingsCardId: 'dilutions',
 });
 
 const names: BoardName[] = [
@@ -55,18 +55,18 @@ const names: BoardName[] = [
   { kind: 'calculation', id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' },
 ];
 
-const block = {
+const card = {
   id: 'calc',
   type: 'formula',
   items: [{ id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' }],
   materialSections: [],
-} as unknown as CalculationsBlock;
+} as unknown as CalculationsCard;
 
 describe('calculation sections', () => {
   const board = calculateBoard(names);
 
   it('puts the app math under its material, or under the treatment when it has no material', () => {
-    const sections = calculationSections(block, [drug], board, true, 'Whole experiment');
+    const sections = calculationSections(card, [drug], board, true, 'Whole experiment');
     expect(sections.map(section => [section.key, section.owner])).toEqual([
       [WHOLE_EXPERIMENT, ''],
       ['m-drug', 'Drug X (Sigma)'],
@@ -78,7 +78,7 @@ describe('calculation sections', () => {
   });
 
   it('titles the whole-experiment section with the name the Values card gives it', () => {
-    const sections = calculationSections(block, [drug], board, true, 'Bench setup');
+    const sections = calculationSections(card, [drug], board, true, 'Bench setup');
     expect(sections.map(section => section.title)).toEqual([
       'Bench setup',
       'Drug X (Sigma)',
@@ -87,7 +87,7 @@ describe('calculation sections', () => {
   });
 
   it('leaves the app math off a second Calculations card', () => {
-    const sections = calculationSections(block, [drug], board, false, 'Whole experiment');
+    const sections = calculationSections(card, [drug], board, false, 'Whole experiment');
     expect(sections.flatMap(section => section.groups)).toEqual([]);
   });
 
@@ -104,7 +104,7 @@ describe('calculation sections', () => {
         workedOut: { ...prepGroup('Raji'), key: 'stain:raji', title: 'Amount per well' },
       },
     ]);
-    const sections = calculationSections(block, [drug], withGaps, true, 'Whole experiment');
+    const sections = calculationSections(card, [drug], withGaps, true, 'Whole experiment');
     const { parts, missing } = calculationLayout(sections, withGaps, []);
     expect(missing).toEqual([{ message: 'Needs a stain step', subjects: ['Raji'] }]);
     expect(parts.map(part => part.kind)).toEqual(['table', 'section']);

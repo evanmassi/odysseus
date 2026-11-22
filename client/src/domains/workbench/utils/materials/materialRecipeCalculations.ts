@@ -31,7 +31,7 @@ import { generalTitleOf, joinValueName, lowerLead } from '../values/valueNames';
 import { fieldName, materialFields } from './materialCatalog';
 import { nameWithoutNotes } from './materialLookup';
 
-import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, MaterialsCard, Protocol } from '@odysseus/shared-schemas';
 
 const missingWellTotal = (generalTitle: string): CalculationGap => ({
   problem: `Needs the ${lowerLead(TOTAL_WELL_VOLUME.word)}: add "${TOTAL_WELL_VOLUME.word} 80 µL" under ${generalTitle}`,
@@ -66,7 +66,7 @@ function stockName(mix: MaterialItem) {
 
 function mixNames(
   mix: MaterialItem,
-  materialsBlockId: string,
+  materialsCardId: string,
   materials: ReadonlyMap<string, MaterialItem>,
   names: ReadonlyMap<string, BoardName>,
   generalTitle: string
@@ -85,7 +85,7 @@ function mixNames(
     key: `recipe:${mix.id}`,
     subject: mixName,
     title: FINAL_CONCENTRATION.word,
-    settingsBlockId: materialsBlockId,
+    settingsCardId: materialsCardId,
   };
   const inputs: BoardName[] = [];
   const finals: CalculationName[] = [];
@@ -131,7 +131,7 @@ function mixNames(
       value: entry.amount,
       unit: entry.unit,
       workedOut: group,
-      sourceBlockId: materialsBlockId,
+      originCardId: materialsCardId,
     });
     final(
       recipeFinalId(mix.id, entry.id),
@@ -142,11 +142,11 @@ function mixNames(
     );
   }
 
-  const clash = [...inputs, ...finals]
+  const takenName = [...inputs, ...finals]
     .map(entry => entry.name)
     .find(name => names.has(nameKey(name)));
-  if (!clash) return [...inputs, ...finals];
-  const problem = `Rename "${clash}": the ${mixName} recipe needs that name.`;
+  if (!takenName) return [...inputs, ...finals];
+  const problem = `Rename "${takenName}": the ${mixName} recipe needs that name.`;
   return finals
     .filter(entry => !names.has(nameKey(entry.name)))
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
@@ -157,15 +157,15 @@ export function recipeCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialBlocks = protocol.blocks.filter(
-    (block): block is MaterialsBlock => block.type === 'materials'
+  const materialCards = protocol.blocks.filter(
+    (card): card is MaterialsCard => card.type === 'materials'
   );
   const byId = new Map(
-    materialBlocks.flatMap(block => block.items).map(item => [item.id, item] as const)
+    materialCards.flatMap(card => card.items).map(item => [item.id, item] as const)
   );
   const generalTitle = generalTitleOf(protocol.blocks);
-  return materialBlocks.flatMap(block =>
-    block.items.filter(isMix).flatMap(mix => mixNames(mix, block.id, byId, names, generalTitle))
+  return materialCards.flatMap(card =>
+    card.items.filter(isMix).flatMap(mix => mixNames(mix, card.id, byId, names, generalTitle))
   );
 }
 
@@ -177,7 +177,7 @@ export function recipeWarnings(
 ): Map<string, string[]> {
   const warnings = new Map<string, string[]>();
   const mixes = protocol.blocks
-    .flatMap(block => (block.type === 'materials' ? block.items : []))
+    .flatMap(card => (card.type === 'materials' ? card.items : []))
     .filter(isMix);
   for (const mix of mixes) {
     const result = board.results.get(mixWorkingId(mix.id));

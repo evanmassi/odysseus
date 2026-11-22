@@ -9,7 +9,7 @@ import {
 import { amountUnit, readTypedAmount } from '../units/textAmounts';
 
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateLine, PlateSeries, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateLine, PlateSeries, PlateMapCard } from '@odysseus/shared-schemas';
 
 export type StepSeries = Extract<PlateSeries, { start: string }>;
 
@@ -85,14 +85,14 @@ export function pointAmount(series: PlateSeries, point: number, board: SolvedBoa
 }
 
 export function wellAmount(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): PointAmount | undefined {
-  const entry = block.cells[key]?.[line.id];
+  const entry = card.cells[key]?.[line.id];
   if (!entry) return undefined;
-  const series = entry.seriesId === undefined ? undefined : block.series[entry.seriesId];
+  const series = entry.seriesId === undefined ? undefined : card.series[entry.seriesId];
   return series
     ? pointAmount(series, entry.seriesStep ?? 0, board)
     : { amount: entry.amount?.trim() ?? '', unit: entry.unit ?? '' };

@@ -6,7 +6,7 @@ import { WHOLE_EXPERIMENT } from '../values/valueNames';
 import { type CalculationName, type SolvedBoard, type WorkedOutGroup } from './boardCalculation';
 import { calculationMaterial, nameWithinOwner } from './formulaScopes';
 
-import type { CalculationsBlock, MaterialItem } from '@odysseus/shared-schemas';
+import type { CalculationsCard, MaterialItem } from '@odysseus/shared-schemas';
 
 export interface WorkedOutView {
   group: WorkedOutGroup;
@@ -18,7 +18,7 @@ export interface CalculationSection {
   material: MaterialItem | undefined;
   owner: string;
   title: string;
-  items: CalculationsBlock['items'];
+  items: CalculationsCard['items'];
   groups: WorkedOutView[];
 }
 
@@ -35,7 +35,7 @@ export function sectionKeyOf(
 }
 
 export function calculationSections(
-  block: CalculationsBlock,
+  card: CalculationsCard,
   materials: readonly MaterialItem[],
   board: SolvedBoard,
   showsWorkedOut: boolean,
@@ -65,7 +65,7 @@ export function calculationSections(
       },
     ]),
   ]);
-  for (const item of block.items) {
+  for (const item of card.items) {
     sections.get(sectionKeyOf(item.name, undefined, materials))?.items.push(item);
   }
   const worked = showsWorkedOut
@@ -94,7 +94,7 @@ export function calculationSections(
       section.key === WHOLE_EXPERIMENT ||
       section.items.length ||
       section.groups.length ||
-      (section.material && block.materialSections.includes(section.material.id))
+      (section.material && card.materialSections.includes(section.material.id))
   );
 }
 
@@ -113,7 +113,7 @@ export interface CalculationTableRow {
 export interface CalculationTable {
   key: string;
   title: string;
-  settingsBlockId: string | undefined;
+  settingsCardId: string | undefined;
   columns: string[];
   rows: CalculationTableRow[];
 }
@@ -176,7 +176,7 @@ export function calculationLayout(
         table = {
           key: `table:${view.group.key}`,
           title: view.group.title,
-          settingsBlockId: view.group.settingsBlockId,
+          settingsCardId: view.group.settingsCardId,
           columns: shownLines(view).map(line => nameWithinOwner(line.name, view.group.subject)),
           rows: [],
         };

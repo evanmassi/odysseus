@@ -3,7 +3,7 @@ import {
   isFilledEntry,
   lineValueOf,
   type PlateLine,
-  type PlateMapBlock,
+  type PlateMapCard,
 } from '@odysseus/shared-schemas';
 
 import { seriesProgress, wellLine, wellLineText, type WellColor } from './wellContents';
@@ -23,20 +23,20 @@ const SOLID_STRIPE = 100;
 const STRIPE_FADE = 70;
 
 export function lineLayers(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   colorLine: PlateLine | undefined,
   board: SolvedBoard
 ): LineLayer[] {
-  const usedKeys = Object.keys(block.cells).filter(key =>
-    Object.values(block.cells[key]).some(isFilledEntry)
+  const usedKeys = Object.keys(card.cells).filter(key =>
+    Object.values(card.cells[key]).some(isFilledEntry)
   );
-  return block.lines.flatMap(line => {
-    const keysOnLine = usedKeys.filter(key => isFilledEntry(block.cells[key][line.id]));
+  return card.lines.flatMap(line => {
+    const keysOnLine = usedKeys.filter(key => isFilledEntry(card.cells[key][line.id]));
     if (!keysOnLine.length) return [];
     const texts = [
       ...new Set(
         keysOnLine.flatMap(key => {
-          const shown = wellLine(block, key, line, board);
+          const shown = wellLine(card, key, line, board);
           return shown ? [wellLineText(shown)] : [];
         })
       ),
@@ -48,19 +48,19 @@ export function lineLayers(
 }
 
 export function wellStripes(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   layers: readonly LineLayer[]
 ): Array<WellColor | undefined> {
   const slots = layers
     .filter(layer => layer.role === 'stripe')
     .map(({ line }) => {
-      const value = lineValueOf(line, block.cells[key]?.[line.id]);
+      const value = lineValueOf(line, card.cells[key]?.[line.id]);
       if (!value) return undefined;
-      const progress = seriesProgress(block, key, line);
+      const progress = seriesProgress(card, key, line);
       const tint =
         progress === undefined ? SOLID_STRIPE : Math.round(SOLID_STRIPE - progress * STRIPE_FADE);
-      return { color: indicatorColorOf(block, value), tint };
+      return { color: indicatorColorOf(card, value), tint };
     });
   return slots.some(Boolean) ? slots : [];
 }
@@ -145,23 +145,22 @@ function clustersOf(cells: IndicatorCell[]): Array<Omit<IndicatorCluster, 'place
 }
 
 function amountSummary(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   line: PlateLine,
   keys: readonly string[],
   board: SolvedBoard
 ): string {
-  const readableAt = (key: string) => wellLine(block, key, line, board)?.readable ?? '';
+  const readableAt = (key: string) => wellLine(card, key, line, board)?.readable ?? '';
   const runs = new Map<string, string[]>();
   const plain = new Set<string>();
   for (const key of keys) {
-    const seriesId = block.cells[key]?.[line.id]?.seriesId;
+    const seriesId = card.cells[key]?.[line.id]?.seriesId;
     if (seriesId !== undefined) runs.set(seriesId, [...(runs.get(seriesId) ?? []), key]);
     else if (readableAt(key)) plain.add(readableAt(key));
   }
   const ranges = [...runs.values()].map(run => {
     const byStep = [...run].sort(
-      (a, b) =>
-        (block.cells[a][line.id].seriesStep ?? 0) - (block.cells[b][line.id].seriesStep ?? 0)
+      (a, b) => (card.cells[a][line.id].seriesStep ?? 0) - (card.cells[b][line.id].seriesStep ?? 0)
     );
     const [first, last] = [readableAt(byStep[0]), readableAt(byStep[byStep.length - 1])];
     return first === last ? first : `${first} → ${last}`;
@@ -193,14 +192,14 @@ const isScatteredPlace = (place: IndicatorPlacement) =>
   place === 'wellBorder' || place === 'corner';
 
 export function plateIndicators(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   layers: readonly LineLayer[],
   board: SolvedBoard,
   printsInWells: boolean
 ): PlateIndicator[] {
   const usedPositions = sheet.positions.filter(position =>
-    Object.values(block.cells[position.key] ?? {}).some(isFilledEntry)
+    Object.values(card.cells[position.key] ?? {}).some(isFilledEntry)
   );
   if (!usedPositions.length) return [];
   const usedTop = Math.min(...usedPositions.map(position => position.row));
@@ -210,14 +209,14 @@ export function plateIndicators(
     const isLabeledFill = role === 'color' && !printsInWells;
     if (role !== 'band' && role !== 'stripe' && role !== 'tag' && !isLabeledFill) continue;
     const groupOf = (key: string) => {
-      const shown = wellLine(block, key, line, board);
+      const shown = wellLine(card, key, line, board);
       if (!shown || !wellLineText(shown) || (isLabeledFill && shown.readable)) return undefined;
-      const entry = block.cells[key][line.id];
+      const entry = card.cells[key][line.id];
       const amountKey = entry.seriesId === undefined ? shown.readable : `series:${entry.seriesId}`;
       return { key: `${entry.valueId ?? ''}|${amountKey}`, label: shown.label };
     };
     const groups = new Map<string, { label: string; mapKeys: string[]; cells: IndicatorCell[] }>();
-    for (const key of Object.keys(block.cells)) {
+    for (const key of Object.keys(card.cells)) {
       const group = groupOf(key);
       if (!group) continue;
       const entry = groups.get(group.key) ?? { label: group.label, mapKeys: [], cells: [] };
@@ -232,7 +231,7 @@ export function plateIndicators(
       .filter(group => group.cells.length)
       .map(group => ({
         ...group,
-        amount: amountSummary(block, line, group.mapKeys, board),
+        amount: amountSummary(card, line, group.mapKeys, board),
         clusters: placeClusters(group.cells, usedTop, usedBottom),
       }));
     const isScattered =
@@ -244,7 +243,7 @@ export function plateIndicators(
     const isAmountShared = new Set(shownGroups.map(group => group.amount)).size <= 1;
     const hidden = new Set(line.hiddenMarks);
     for (const { label, amount, mapKeys, clusters } of shownGroups) {
-      const value = lineValueOf(line, block.cells[mapKeys[0]][line.id]);
+      const value = lineValueOf(line, card.cells[mapKeys[0]][line.id]);
       indicators.push({
         lineId: line.id,
         kind: isLabeledFill ? 'fill' : role === 'stripe' ? 'stripe' : 'band',
@@ -253,8 +252,8 @@ export function plateIndicators(
         label,
         text: isAmountShared ? label || amount : [label, amount].filter(Boolean).join(' · '),
         color: isLabeledFill
-          ? (value?.color ?? indicatorColorOf(block, value))
-          : indicatorColorOf(block, value),
+          ? (value?.color ?? indicatorColorOf(card, value))
+          : indicatorColorOf(card, value),
         valueId: value?.id,
         wellsInMap: mapKeys.length,
         clusters: clusters.map(cluster => ({

@@ -6,11 +6,11 @@ import ReactGridLayout, {
   type Layout,
 } from 'react-grid-layout';
 
-import { BLOCK_ID_ATTRIBUTE } from '../../../hooks/useShowBlock';
+import { CARD_ID_ATTRIBUTE } from '../../../hooks/useShowCard';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
-import { BOARD_COLUMNS, BOARD_MARGIN, BOARD_ROW_HEIGHT } from '../../../utils/blocks/boardGeometry';
+import { BOARD_COLUMNS, BOARD_MARGIN, BOARD_ROW_HEIGHT } from '../../../utils/cards/boardGeometry';
 
-import { BLOCK_DRAG_HANDLE, WorkbenchBlockShell } from './WorkbenchBlockShell';
+import { CARD_DRAG_HANDLE, WorkbenchCardShell } from './WorkbenchCardShell';
 
 import 'react-grid-layout/css/styles.css';
 
@@ -19,45 +19,45 @@ const GRID_CONFIG = {
   rowHeight: BOARD_ROW_HEIGHT,
   margin: [BOARD_MARGIN, BOARD_MARGIN] as const,
 };
-const DRAG_CONFIG = { enabled: true, handle: `.${BLOCK_DRAG_HANDLE}`, cancel: 'button, input' };
+const DRAG_CONFIG = { enabled: true, handle: `.${CARD_DRAG_HANDLE}`, cancel: 'button, input' };
 const RESIZE_CONFIG = { enabled: true, handles: ['se'] as const };
 const MIN_WIDTH = 2;
 const MIN_OPEN_HEIGHT = 2;
 
 export function WorkbenchBoard() {
-  const blocks = useWorkbenchStore(state => state.protocol.blocks);
+  const cards = useWorkbenchStore(state => state.protocol.blocks);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const { width, containerRef, mounted } = useContainerWidth();
 
-  const pageBlocks = useMemo(
-    () => blocks.filter(block => block.page === activePageId),
-    [blocks, activePageId]
+  const pageCards = useMemo(
+    () => cards.filter(card => card.page === activePageId),
+    [cards, activePageId]
   );
   const layout = useMemo<Layout>(
     () =>
-      pageBlocks.map(block => ({
-        i: block.id,
-        x: block.x,
-        y: block.y,
-        w: block.w,
-        h: block.h,
+      pageCards.map(card => ({
+        i: card.id,
+        x: card.x,
+        y: card.y,
+        w: card.w,
+        h: card.h,
         minW: MIN_WIDTH,
-        minH: block.isCollapsed ? 1 : MIN_OPEN_HEIGHT,
-        isResizable: !block.isCollapsed,
+        minH: card.isCollapsed ? 1 : MIN_OPEN_HEIGHT,
+        isResizable: !card.isCollapsed,
       })),
-    [pageBlocks]
+    [pageCards]
   );
 
   const commitLayout = (next: Layout) =>
     updateProtocol(draft => {
       for (const item of next) {
-        const block = draft.blocks.find(candidate => candidate.id === item.i);
-        if (!block) continue;
-        if (block.x !== item.x) block.x = item.x;
-        if (block.y !== item.y) block.y = item.y;
-        if (block.w !== item.w) block.w = item.w;
-        if (block.h !== item.h) block.h = item.h;
+        const card = draft.blocks.find(candidate => candidate.id === item.i);
+        if (!card) continue;
+        if (card.x !== item.x) card.x = item.x;
+        if (card.y !== item.y) card.y = item.y;
+        if (card.w !== item.w) card.w = item.w;
+        if (card.h !== item.h) card.h = item.h;
       }
     });
 
@@ -68,12 +68,12 @@ export function WorkbenchBoard() {
       ref={containerRef as RefObject<HTMLDivElement>}
       className="[&>.react-grid-layout]:transition-none"
     >
-      {!pageBlocks.length && (
+      {!pageCards.length && (
         <p className="px-2 py-6 text-body-sm text-muted-foreground">
           Nothing on this page yet. Add a card from the left.
         </p>
       )}
-      {mounted && pageBlocks.length > 0 && (
+      {mounted && pageCards.length > 0 && (
         <ReactGridLayout
           width={width}
           layout={layout}
@@ -84,9 +84,9 @@ export function WorkbenchBoard() {
           onDragStop={commitLayout}
           onResizeStop={commitLayout}
         >
-          {pageBlocks.map(block => (
-            <div key={block.id} {...{ [BLOCK_ID_ATTRIBUTE]: block.id }}>
-              <WorkbenchBlockShell block={block} />
+          {pageCards.map(card => (
+            <div key={card.id} {...{ [CARD_ID_ATTRIBUTE]: card.id }}>
+              <WorkbenchCardShell card={card} />
             </div>
           ))}
         </ReactGridLayout>

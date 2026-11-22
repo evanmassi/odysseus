@@ -3,9 +3,9 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 import { COCKTAIL } from '../terms/termList';
 import { lowerLead } from '../values/valueNames';
 
-import type { FlowCytometryPanelBlock, Stain } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanelCard, Stain } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelBlock['rows'][number];
+type PanelRow = FlowCytometryPanelCard['rows'][number];
 type StainPlus = Stain['plus'][number];
 
 export interface Cocktail {
@@ -27,11 +27,11 @@ export interface PanelCocktails {
   rowsWithoutStaining: PanelRow[];
 }
 
-function usedStainings(block: FlowCytometryPanelBlock): string[] {
+function usedStainings(card: FlowCytometryPanelCard): string[] {
   const byKey = new Map<string, string>();
   const stainings = [
-    ...block.rows.map(row => row.stain),
-    ...block.mixes.flatMap(stain => stain.plus.map(plus => plus.stain)),
+    ...card.rows.map(row => row.stain),
+    ...card.mixes.flatMap(stain => stain.plus.map(plus => plus.stain)),
   ];
   for (const staining of stainings) {
     const key = normalizeMaterialKey(staining);
@@ -40,13 +40,13 @@ function usedStainings(block: FlowCytometryPanelBlock): string[] {
   return [...byKey.values()];
 }
 
-function stainingCocktails(block: FlowCytometryPanelBlock, staining: string): StainingCocktails {
+function stainingCocktails(card: FlowCytometryPanelCard, staining: string): StainingCocktails {
   const stainingKey = normalizeMaterialKey(staining);
   const isInStaining = (staining: string) => normalizeMaterialKey(staining) === stainingKey;
   const cocktails = new Map<string, Cocktail>();
   const stainsWithout: Stain[] = [];
-  for (const stain of block.mixes) {
-    const rows = block.rows.filter(row => stain.rowIds.includes(row.id) && isInStaining(row.stain));
+  for (const stain of card.mixes) {
+    const rows = card.rows.filter(row => stain.rowIds.includes(row.id) && isInStaining(row.stain));
     const plus = stain.plus.filter(entry => isInStaining(entry.stain));
     if (!rows.length && !plus.length) {
       stainsWithout.push(stain);
@@ -71,7 +71,7 @@ function stainingCocktails(block: FlowCytometryPanelBlock, staining: string): St
   return { staining, cocktails: [...cocktails.values()], stainsWithout };
 }
 
-export const panelCocktails = (block: FlowCytometryPanelBlock): PanelCocktails => ({
-  stainings: usedStainings(block).map(staining => stainingCocktails(block, staining)),
-  rowsWithoutStaining: block.rows.filter(row => !row.stain.trim()),
+export const panelCocktails = (card: FlowCytometryPanelCard): PanelCocktails => ({
+  stainings: usedStainings(card).map(staining => stainingCocktails(card, staining)),
+  rowsWithoutStaining: card.rows.filter(row => !row.stain.trim()),
 });

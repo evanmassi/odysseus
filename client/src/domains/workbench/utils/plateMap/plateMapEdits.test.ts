@@ -10,9 +10,9 @@ import {
 } from './plateMapEdits';
 import { plateMapTabs } from './plateMapTabs';
 
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
-const plateMap = (): PlateMapBlock =>
+const plateMap = (): PlateMapCard =>
   ({
     id: 'map',
     x: 0,
@@ -34,40 +34,40 @@ const plateMap = (): PlateMapBlock =>
     side: 'assay',
     stain: {},
     stainedIn: {},
-  }) as unknown as PlateMapBlock;
+  }) as unknown as PlateMapCard;
 
 describe('plate map edits', () => {
   it('add and remove plates and other labware by count', () => {
-    const block = plateMap();
-    const more = withLabwareCount(block, '96', 2);
+    const card = plateMap();
+    const more = withLabwareCount(card, '96', 2);
     expect(labwareCountOf(more, '96')).toBe(2);
-    expect(withLabwareCount(block, 'T75', 1).sets).toEqual([{ id: 's', vessel: 'T75', count: 1 }]);
-    expect(withLabwareCount(block, 'T75', 0).sets).toEqual([]);
-    expect(withLabwareCount(block, 'facs', 2).sets).toHaveLength(2);
-    expect(hasAnyLabware(withoutPlate(withLabwareCount(block, 'T75', 0), 'p'))).toBe(false);
+    expect(withLabwareCount(card, 'T75', 1).sets).toEqual([{ id: 's', vessel: 'T75', count: 1 }]);
+    expect(withLabwareCount(card, 'T75', 0).sets).toEqual([]);
+    expect(withLabwareCount(card, 'facs', 2).sets).toHaveLength(2);
+    expect(hasAnyLabware(withoutPlate(withLabwareCount(card, 'T75', 0), 'p'))).toBe(false);
   });
 
   it('count the filled wells a change would drop', () => {
-    const block = plateMap();
-    expect(wellsLostTo(block, withLabwareCount(block, 'T75', 2))).toBe(1);
-    expect(wellsLostTo(block, withoutPlate(block, 'p'))).toBe(2);
+    const card = plateMap();
+    expect(wellsLostTo(card, withLabwareCount(card, 'T75', 2))).toBe(1);
+    expect(wellsLostTo(card, withoutPlate(card, 'p'))).toBe(2);
   });
 
   it('drop wells that no longer fit and size the card to a new only plate', () => {
-    const block = plateMap();
-    block.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
-    const next = withLabwareCount(withLabwareCount(block, '96', 0), '6', 1);
-    applyLabware(block, next);
-    expect(Object.keys(block.cells)).toEqual(['s#2:1']);
-    expect(block.stain).toEqual({ 's#2:1': 'fmo' });
-    expect(block.w).toBe(4);
-    expect(block.activeTab).toBe(1);
+    const card = plateMap();
+    card.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
+    const next = withLabwareCount(withLabwareCount(card, '96', 0), '6', 1);
+    applyLabware(card, next);
+    expect(Object.keys(card.cells)).toEqual(['s#2:1']);
+    expect(card.stain).toEqual({ 's#2:1': 'fmo' });
+    expect(card.w).toBe(4);
+    expect(card.activeTab).toBe(1);
   });
 
   it('duplicates a plate tab into a new card beside this one with fresh well keys', () => {
-    const block = plateMap();
-    block.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
-    const copy = duplicateOfTab(block, plateMapTabs(block)[0]);
+    const card = plateMap();
+    card.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
+    const copy = duplicateOfTab(card, plateMapTabs(card)[0]);
     const [plate] = copy.plates;
     expect(plate).toMatchObject({ vessel: '96', name: 'Day 1 copy' });
     expect(plate.id).not.toBe('p');
@@ -79,20 +79,20 @@ describe('plate map edits', () => {
   });
 
   it('duplicates a plate into a new tab of the same card with series of its own', () => {
-    const block = plateMap();
-    block.cells['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesStep: 0 } };
-    block.series = { ser: { start: '10', unit: 'µM', fold: '3', direction: 'right' } };
-    block.stain = { 'p:A1': 'full' };
-    duplicatePlateAsTab(block, block.plates[0]);
-    const [original, copy] = block.plates;
+    const card = plateMap();
+    card.cells['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesStep: 0 } };
+    card.series = { ser: { start: '10', unit: 'µM', fold: '3', direction: 'right' } };
+    card.stain = { 'p:A1': 'full' };
+    duplicatePlateAsTab(card, card.plates[0]);
+    const [original, copy] = card.plates;
     expect(original.id).toBe('p');
     expect(copy).toMatchObject({ vessel: '96', name: 'Day 1 copy' });
-    expect(block.activeTab).toBe(1);
-    expect(block.cells[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
-    expect(block.stain).toEqual({ 'p:A1': 'full', [`${copy.id}:A1`]: 'full' });
-    const copiedSeriesId = block.cells[`${copy.id}:B1`]['l'].seriesId;
+    expect(card.activeTab).toBe(1);
+    expect(card.cells[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
+    expect(card.stain).toEqual({ 'p:A1': 'full', [`${copy.id}:A1`]: 'full' });
+    const copiedSeriesId = card.cells[`${copy.id}:B1`]['l'].seriesId;
     expect(copiedSeriesId).not.toBe('ser');
-    expect(block.series[copiedSeriesId ?? '']).toEqual(block.series['ser']);
-    expect(block.cells['s#2:1']).toEqual({ l: { valueId: 'v' } });
+    expect(card.series[copiedSeriesId ?? '']).toEqual(card.series['ser']);
+    expect(card.cells['s#2:1']).toEqual({ l: { valueId: 'v' } });
   });
 });

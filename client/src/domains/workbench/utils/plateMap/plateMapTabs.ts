@@ -5,9 +5,9 @@ import {
   type LabwareWords,
 } from './labwareCatalog';
 
-import type { ProtocolBlock, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { ProtocolCard, PlateMapCard } from '@odysseus/shared-schemas';
 
-type Plate = PlateMapBlock['plates'][number];
+type Plate = PlateMapCard['plates'][number];
 
 export type PlateMapTab =
   | { kind: 'plate'; id: string; plate: Plate }
@@ -32,21 +32,21 @@ const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
 
 export const rowLetter = (row: number) => ROW_LETTERS[row];
 
-export const plateMapTabs = (block: PlateMapBlock): PlateMapTab[] => [
-  ...block.plates.map((plate): PlateMapTab => ({ kind: 'plate', id: plate.id, plate })),
-  ...(block.sets.length ? [{ kind: 'otherLabware' as const, id: OTHER_LABWARE_TAB_ID }] : []),
+export const plateMapTabs = (card: PlateMapCard): PlateMapTab[] => [
+  ...card.plates.map((plate): PlateMapTab => ({ kind: 'plate', id: plate.id, plate })),
+  ...(card.sets.length ? [{ kind: 'otherLabware' as const, id: OTHER_LABWARE_TAB_ID }] : []),
 ];
 
-export function activeTabOf(block: PlateMapBlock): PlateMapTab {
-  const tabs = plateMapTabs(block);
-  return tabs[Math.min(block.activeTab, tabs.length - 1)];
+export function activeTabOf(card: PlateMapCard): PlateMapTab {
+  const tabs = plateMapTabs(card);
+  return tabs[Math.min(card.activeTab, tabs.length - 1)];
 }
 
-export const plateNameOf = (block: PlateMapBlock, plate: Plate) =>
-  plate.name || `Plate ${block.plates.indexOf(plate) + 1}`;
+export const plateNameOf = (card: PlateMapCard, plate: Plate) =>
+  plate.name || `Plate ${card.plates.indexOf(plate) + 1}`;
 
-export const otherLabwareTabNameOf = (block: PlateMapBlock) =>
-  block.shelfName?.trim() ? block.shelfName : otherLabwareKinds(block);
+export const otherLabwareTabNameOf = (card: PlateMapCard) =>
+  card.shelfName?.trim() ? card.shelfName : otherLabwareKinds(card);
 
 function kindsList(words: readonly string[]): string {
   const [first = '', ...rest] = words;
@@ -56,31 +56,32 @@ function kindsList(words: readonly string[]): string {
     : listed.join('');
 }
 
-const otherLabwarePlurals = (block: Pick<PlateMapBlock, 'sets'>) => [
-  ...new Set(block.sets.map(set => LABWARE_KIND_PLURALS[labwareOf(set.vessel).kind])),
+const otherLabwarePlurals = (card: Pick<PlateMapCard, 'sets'>) => [
+  ...new Set(card.sets.map(set => LABWARE_KIND_PLURALS[labwareOf(set.vessel).kind])),
 ];
 
-export const otherLabwareKinds = (block: Pick<PlateMapBlock, 'sets'>): string =>
-  kindsList(otherLabwarePlurals(block));
+export const otherLabwareKinds = (card: Pick<PlateMapCard, 'sets'>): string =>
+  kindsList(otherLabwarePlurals(card));
 
-export const tabWords = (block: PlateMapBlock, tab: PlateMapTab): LabwareWords =>
-  wordsForTypes(tab.kind === 'plate' ? [tab.plate.vessel] : block.sets.map(set => set.vessel));
+export const tabWords = (card: PlateMapCard, tab: PlateMapTab): LabwareWords =>
+  wordsForTypes(tab.kind === 'plate' ? [tab.plate.vessel] : card.sets.map(set => set.vessel));
 
 const AUTOMATIC_TITLES = new Set(['', 'vessel map', 'plate map']);
 
-export function labwareKinds(block: Pick<PlateMapBlock, 'plates' | 'sets'>): string {
-  if (!block.sets.length) return 'Plate map';
-  return kindsList([...(block.plates.length ? ['plates'] : []), ...otherLabwarePlurals(block)]);
+export function labwareKinds(card: Pick<PlateMapCard, 'plates' | 'sets'>): string {
+  if (!card.sets.length) return 'Plate map';
+  return kindsList([...(card.plates.length ? ['plates'] : []), ...otherLabwarePlurals(card)]);
 }
 
-export const labwareTitle = (block: PlateMapBlock): string =>
-  AUTOMATIC_TITLES.has(block.title.trim().toLowerCase()) ? labwareKinds(block) : block.title.trim();
+export const labwareTitle = (card: PlateMapCard): string =>
+  AUTOMATIC_TITLES.has(card.title.trim().toLowerCase()) ? labwareKinds(card) : card.title.trim();
 
-export function labwareTitleOf(blocks: readonly ProtocolBlock[], cardId?: string): string {
-  const cards = blocks.filter((block): block is PlateMapBlock => block.type === 'plate');
-  const card =
-    cards.find(block => block.id === cardId) ?? (cards.length === 1 ? cards[0] : undefined);
-  return card ? labwareTitle(card) : 'Plate map';
+export function labwareTitleOf(cards: readonly ProtocolCard[], cardId?: string): string {
+  const plateMaps = cards.filter((card): card is PlateMapCard => card.type === 'plate');
+  const plateMap =
+    plateMaps.find(card => card.id === cardId) ??
+    (plateMaps.length === 1 ? plateMaps[0] : undefined);
+  return plateMap ? labwareTitle(plateMap) : 'Plate map';
 }
 
 function plateSheet(plate: Plate): PlateMapSheet {
@@ -96,9 +97,9 @@ function plateSheet(plate: Plate): PlateMapSheet {
   return { isPlate: true, rows, cols, positions };
 }
 
-function otherLabwareSheet(block: PlateMapBlock): PlateMapSheet {
+function otherLabwareSheet(card: PlateMapCard): PlateMapSheet {
   const numbered = new Map<string, number>();
-  const positions = block.sets.flatMap((set, row) => {
+  const positions = card.sets.flatMap((set, row) => {
     const labware = labwareOf(set.vessel);
     const prefix = 'prefix' in labware ? labware.prefix : '';
     const before = numbered.get(prefix) ?? 0;
@@ -110,9 +111,9 @@ function otherLabwareSheet(block: PlateMapBlock): PlateMapSheet {
       col,
     }));
   });
-  const cols = Math.max(0, ...block.sets.map(set => set.count));
-  return { isPlate: false, rows: block.sets.length, cols, positions };
+  const cols = Math.max(0, ...card.sets.map(set => set.count));
+  return { isPlate: false, rows: card.sets.length, cols, positions };
 }
 
-export const sheetOf = (block: PlateMapBlock, tab: PlateMapTab): PlateMapSheet =>
-  tab.kind === 'plate' ? plateSheet(tab.plate) : otherLabwareSheet(block);
+export const sheetOf = (card: PlateMapCard, tab: PlateMapTab): PlateMapSheet =>
+  tab.kind === 'plate' ? plateSheet(tab.plate) : otherLabwareSheet(card);

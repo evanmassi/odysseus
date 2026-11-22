@@ -8,7 +8,7 @@ import { pointAmount } from './plateSeries';
 
 import type { PlateMapSheet } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateSeries, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateSeries, PlateMapCard } from '@odysseus/shared-schemas';
 
 type Direction = PlateSeries['direction'];
 
@@ -59,25 +59,25 @@ export function seriesFormFor(
   return { ...blank, isList: false, top, unit, dilutionFactor, direction };
 }
 
-export function lineUnitOf(block: PlateMapBlock, lineId: string): string {
-  const cells = Object.values(block.cells).flatMap(lines => (lines[lineId] ? [lines[lineId]] : []));
+export function lineUnitOf(card: PlateMapCard, lineId: string): string {
+  const cells = Object.values(card.cells).flatMap(lines => (lines[lineId] ? [lines[lineId]] : []));
   const typed = cells.find(entry => entry.unit)?.unit;
   if (typed) return typed;
   for (const entry of cells) {
-    const series = entry.seriesId === undefined ? undefined : block.series[entry.seriesId];
+    const series = entry.seriesId === undefined ? undefined : card.series[entry.seriesId];
     if (series && 'start' in series && series.unit) return series.unit;
   }
   return '';
 }
 
 export function seriesTargets(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   form: Pick<SeriesForm, 'lineId' | 'seriesId'>
 ): string[] {
   const inSeries = (key: string) =>
-    form.seriesId !== undefined && block.cells[key]?.[form.lineId]?.seriesId === form.seriesId;
+    form.seriesId !== undefined && card.cells[key]?.[form.lineId]?.seriesId === form.seriesId;
   return sheet.positions
     .filter(position => keys.has(position.key) || inSeries(position.key))
     .map(position => position.key);
@@ -110,21 +110,21 @@ function seriesShape(form: SeriesForm): PlateSeries {
 }
 
 export function writeSeries(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   form: SeriesForm
 ): string {
-  if (!block.lines.some(line => line.id === form.lineId)) {
-    block.lines.push({ id: form.lineId, name: '', values: [], role: 'auto' });
+  if (!card.lines.some(line => line.id === form.lineId)) {
+    card.lines.push({ id: form.lineId, name: '', values: [], role: 'auto' });
   }
-  const targets = seriesTargets(block, sheet, keys, form);
+  const targets = seriesTargets(card, sheet, keys, form);
   const pointByWell = wellPoints(sheet, targets, form.direction);
   const seriesId = form.seriesId ?? createId();
-  const prep = block.series[seriesId]?.prep;
-  block.series[seriesId] = { ...seriesShape(form), ...(prep && { prep }) };
+  const prep = card.series[seriesId]?.prep;
+  card.series[seriesId] = { ...seriesShape(form), ...(prep && { prep }) };
   for (const key of targets) {
-    const lines = (block.cells[key] ??= {});
+    const lines = (card.cells[key] ??= {});
     const valueId = lines[form.lineId]?.valueId;
     lines[form.lineId] = {
       ...(valueId && { valueId }),
@@ -135,23 +135,23 @@ export function writeSeries(
   return seriesId;
 }
 
-export function removeSeries(block: PlateMapBlock, seriesId: string): void {
-  for (const entry of Object.values(block.cells).flatMap(lines => Object.values(lines))) {
+export function removeSeries(card: PlateMapCard, seriesId: string): void {
+  for (const entry of Object.values(card.cells).flatMap(lines => Object.values(lines))) {
     if (entry.seriesId !== seriesId) continue;
     delete entry.seriesId;
     delete entry.seriesStep;
   }
-  delete block.series[seriesId];
+  delete card.series[seriesId];
 }
 
 export function seriesPreview(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   form: SeriesForm,
   board: SolvedBoard
 ): string {
-  const targets = seriesTargets(block, sheet, keys, form);
+  const targets = seriesTargets(card, sheet, keys, form);
   const pointCount = new Set(wellPoints(sheet, targets, form.direction).values()).size;
   const series = seriesShape(form);
   const values = Array.from({ length: pointCount }, (_, point) => {

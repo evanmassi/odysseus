@@ -1,24 +1,17 @@
 import { CELL_COUNT_FIELDS } from '../materials/materialCatalog';
+import { writeDonorField } from '../materials/materialDonors';
 import { writeMaterialField } from '../materials/materialItems';
 import { editRecipeEntry } from '../materials/materialRecipe';
-import { writeSourceField } from '../materials/materialSources';
 
 import { setPlateRowUnit, setPlateRowValue } from './plateValueRows';
 import { addRoutedValue, materialsById, setValueAmount, setValueUnit } from './valueEdits';
 import { joinValueName } from './valueNames';
 
 import type { RoutedValue } from './valueRouting';
-import type {
-  ValueTableCell,
-  ValueTableColumn,
-  ValueTableGroup,
-  ValueTableRow,
-} from './valueTable';
+import type { ValueCell, ValueTableColumn, ValueTableGroup, ValueTableRow } from './valueTable';
 import type { Protocol } from '@odysseus/shared-schemas';
 
-export type FillTarget =
-  | { kind: 'cell'; cell: ValueTableCell }
-  | { kind: 'slot'; routed: RoutedValue };
+export type FillTarget = { kind: 'cell'; cell: ValueCell } | { kind: 'slot'; routed: RoutedValue };
 
 export const canAddToRow = (row: ValueTableRow): boolean =>
   !row.isSubRow && (row.valueRow !== undefined || row.material !== undefined);
@@ -56,74 +49,74 @@ export function fillTargets(group: ValueTableGroup, key: string): FillTarget[] {
         : [];
     }
     if (!cell.isEditable || cell.value.trim() || cell.workedValue) return [];
-    return cell.source.kind === 'need'
-      ? [{ kind: 'slot', routed: cell.source.routed }]
+    return cell.linkedTo.kind === 'need'
+      ? [{ kind: 'slot', routed: cell.linkedTo.routed }]
       : [{ kind: 'cell', cell }];
   });
 }
 
-type CountSource = Extract<ValueTableCell['source'], { kind: 'count' }>;
+type CountSource = Extract<ValueCell['linkedTo'], { kind: 'count' }>;
 
-function writeCount(draft: Protocol, { materialId, sourceId, count }: CountSource, value: string) {
+function writeCount(draft: Protocol, { materialId, donorId, count }: CountSource, value: string) {
   const material = materialsById(draft).get(materialId);
   const field = CELL_COUNT_FIELDS[count];
   if (!material) return;
-  if (!sourceId) {
+  if (!donorId) {
     writeMaterialField(material, field, value);
     return;
   }
-  const source = material.sources?.rows.find(row => row.id === sourceId);
-  if (material.sources && source) writeSourceField(material.sources, source, field.key, value);
+  const donor = material.sources?.rows.find(row => row.id === donorId);
+  if (material.sources && donor) writeDonorField(material.sources, donor, field.key, value);
 }
 
 export function writeCellValue(
   draft: Protocol,
-  blockId: string,
-  cell: ValueTableCell,
+  cardId: string,
+  cell: ValueCell,
   value: string
 ): void {
-  const { source } = cell;
-  if (source.kind === 'item') setValueAmount(draft, blockId, source.itemId, value);
-  else if (source.kind === 'count') writeCount(draft, source, value);
-  else if (source.kind === 'plate') setPlateRowValue(draft, source.row, value);
-  else if (source.kind === 'recipe') {
-    editRecipeEntry(draft, source.materialId, source.entryId, { amount: value });
+  const link = cell.linkedTo;
+  if (link.kind === 'item') setValueAmount(draft, cardId, link.itemId, value);
+  else if (link.kind === 'count') writeCount(draft, link, value);
+  else if (link.kind === 'plate') setPlateRowValue(draft, link.row, value);
+  else if (link.kind === 'recipe') {
+    editRecipeEntry(draft, link.materialId, link.entryId, { amount: value });
   }
 }
 
 export function writeCellUnit(
   draft: Protocol,
-  blockId: string,
-  cell: ValueTableCell,
+  cardId: string,
+  cell: ValueCell,
   unit: string
 ): void {
-  const { source } = cell;
-  if (source.kind === 'item') setValueUnit(draft, blockId, source.itemId, unit);
-  else if (source.kind === 'plate') setPlateRowUnit(draft, source.row, unit);
-  else if (source.kind === 'recipe') {
-    editRecipeEntry(draft, source.materialId, source.entryId, { unit });
+  const link = cell.linkedTo;
+  if (link.kind === 'item') setValueUnit(draft, cardId, link.itemId, unit);
+  else if (link.kind === 'plate') setPlateRowUnit(draft, link.row, unit);
+  else if (link.kind === 'recipe') {
+    editRecipeEntry(draft, link.materialId, link.entryId, { unit });
   }
 }
 
 export function fillBlanks(
   draft: Protocol,
-  blockId: string,
+  cardId: string,
   targets: readonly FillTarget[],
   value: string,
   unit: string
 ): void {
   for (const target of targets) {
     if (target.kind === 'slot') {
-      addRoutedValue(draft, blockId, {
+      addRoutedValue(draft, cardId, {
         ...target.routed,
         line: { ...target.routed.line, value, unit },
       });
       continue;
     }
     const { cell } = target;
-    writeCellValue(draft, blockId, cell, value);
+    writeCellValue(draft, cardId, cell, value);
     if (cell.units === undefined || cell.units.includes(unit)) {
-      writeCellUnit(draft, blockId, cell, unit);
+      writeCellUnit(draft, cardId, cell, unit);
     }
   }
 }

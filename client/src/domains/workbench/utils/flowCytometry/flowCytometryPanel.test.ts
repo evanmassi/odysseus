@@ -13,7 +13,7 @@ import {
   panelStainings,
 } from './flowCytometryPanel';
 
-import type { FlowCytometryPanelBlock, MaterialItem } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanelCard, MaterialItem } from '@odysseus/shared-schemas';
 
 const material = (type: string, name: string, values: Record<string, string> = {}) => {
   const item = materialFromGuess(
@@ -30,7 +30,7 @@ const NOTHING_KNOWN = { kinds: new Map(), fluors: [] };
 const panel = (
   rows: Array<[MaterialItem, string, string?]>,
   cytometer = IQUE
-): FlowCytometryPanelBlock => ({
+): FlowCytometryPanelCard => ({
   id: 'panel',
   type: 'cytometer',
   title: 'Flow panel',
@@ -67,7 +67,7 @@ describe('panelLayout', () => {
     expect(layout.lasers[0].slots).toHaveLength(6);
     const [marker] = layout.lasers[0].slots[0].markers;
     expect(marker).toMatchObject({ markerName: 'CD4', fluor: 'BV421', clone: 'RPA-T4' });
-    expect(layout.clashCount).toBe(0);
+    expect(layout.detectorConflictCount).toBe(0);
   });
 
   it('flags two markers in one detector, naming the other one on each', () => {
@@ -80,7 +80,7 @@ describe('panelLayout', () => {
       BUILT_IN_CATALOG
     );
     const [first, second] = layout.lasers[0].slots[0].markers;
-    expect(layout.clashCount).toBe(1);
+    expect(layout.detectorConflictCount).toBe(1);
     expect(first.sharesDetectorWith).toEqual(['Pacific Blue']);
     expect(second.sharesDetectorWith).toEqual(['BV421']);
   });
@@ -128,11 +128,11 @@ describe('markerCandidates', () => {
 
 describe('panelStainings', () => {
   it('lists the stainings in use first, then the starting ones, once each ignoring case', () => {
-    const block = panel([
+    const card = panel([
       [cd4, 'VL1', 'Tetramer'],
       [cd8, 'VL2', 'surface'],
     ]);
-    expect(panelStainings(block)).toEqual(['Tetramer', 'surface', 'Viability', 'ICS']);
+    expect(panelStainings(card)).toEqual(['Tetramer', 'surface', 'Viability', 'ICS']);
   });
 });
 

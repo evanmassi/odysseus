@@ -1,7 +1,7 @@
 import {
-  knownSources,
+  knownDonors,
   materialKnowledge,
-  startingSourceFieldsOf,
+  startingDonorFieldsOf,
 } from '../utils/materials/materialMemory';
 
 import savedLabMemory from './fixtures/labMemory.saved.json';
@@ -26,9 +26,9 @@ describe('lab memory saved in the browser', () => {
     const memory = await reloadWith(savedLabMemory);
     const knowledge = materialKnowledge(memory, { blocks: [], dyes: [] });
     expect({
-      donor: knownSources(memory, 'D-01', []).map(donor => `${donor.name} of ${donor.material}`),
+      donor: knownDonors(memory, 'D-01', []).map(donor => `${donor.name} of ${donor.material}`),
       donorFields: memory.sourceFields.map(field => field.label),
-      pinnedDonorColumns: startingSourceFieldsOf(memory, 'bio'),
+      pinnedDonorColumns: startingDonorFieldsOf(memory, 'bio'),
       fluors: knowledge.fluors.map(fluor => fluor.name),
       type: knowledge.kinds.get('celllinea')?.type,
     }).toEqual({

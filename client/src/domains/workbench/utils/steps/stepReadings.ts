@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { firstBlockOrNew } from '../blocks/createBlock';
+import { firstCardOrNew } from '../cards/createCard';
 import { nameKey, type SolvedBoard } from '../formulas/boardCalculation';
 import { createId } from '../ids/createId';
 import { ensureMaterial, shortNameOf } from '../materials/materialLookup';
@@ -157,7 +157,7 @@ const isNotMaterial = (phrase: Phrase) =>
 
 const boardMaterials = (protocol: Protocol): MaterialItem[] =>
   protocol.blocks
-    .flatMap(block => (block.type === 'materials' ? block.items : []))
+    .flatMap(card => (card.type === 'materials' ? card.items : []))
     .filter(item => item.name.trim());
 
 function conditionNoun(textBefore: string): string | undefined {
@@ -317,18 +317,18 @@ function addValueFor(
   material: MaterialItem | undefined,
   reading: ValueReading
 ): string {
-  const block = firstBlockOrNew(draft, 'values');
+  const card = firstCardOrNew(draft, 'values');
   let valueRow = material
-    ? block.sections.find(
+    ? card.sections.find(
         candidate => 'materialId' in candidate && candidate.materialId === material.id
       )
     : undefined;
   if (material && !valueRow) {
     valueRow = { id: createId(), materialId: material.id };
-    block.sections.push(valueRow);
+    card.sections.push(valueRow);
   }
   const valueRowId = valueRow?.id ?? '';
-  insertAfterPeers(block, valueRowId, [
+  insertAfterPeers(card, valueRowId, [
     {
       id: createId(),
       name: reading.label,

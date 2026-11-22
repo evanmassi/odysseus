@@ -1,11 +1,11 @@
 import {
   lineValueOf,
   type Protocol,
-  type PlateMapBlock,
+  type PlateMapCard,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
-import { cachedPerBlock } from '../blocks/cachedPerBlock';
+import { cachedPerCard } from '../cards/cachedPerCard';
 import { plateNameOf, labwareTitle } from '../plateMap/plateMapTabs';
 import { dilutionFactorOf, type StepSeries } from '../plateMap/plateSeries';
 
@@ -33,7 +33,7 @@ interface PlateRun extends Omit<PlacedRun, 'place'> {
   tabNames: string[];
 }
 
-const runsOnPlate = cachedPerBlock((plateMap: PlateMapBlock): PlateRun[] =>
+const runsOnPlate = cachedPerCard((plateMap: PlateMapCard): PlateRun[] =>
   plateMap.lines.flatMap(line => {
     const runs = new Map<string, Omit<PlateRun, 'tabNames'> & { plateIds: Set<string> }>();
     for (const [key, lines] of Object.entries(plateMap.cells)) {
@@ -63,7 +63,7 @@ const runsOnPlate = cachedPerBlock((plateMap: PlateMapBlock): PlateRun[] =>
   })
 );
 
-function placedRuns(plates: readonly PlateMapBlock[]): PlacedRun[] {
+function placedRuns(plates: readonly PlateMapCard[]): PlacedRun[] {
   return plates.flatMap(plateMap =>
     runsOnPlate(plateMap).map(({ tabNames, ...run }) => {
       const showsCard = plates.length > 1 || !tabNames.length;
@@ -84,7 +84,7 @@ const sameSourceKey = ({ subject, series }: PlacedRun) =>
   ].join('|');
 
 export function dilutionRuns(protocol: Pick<Protocol, 'blocks'>): DilutionRun[] {
-  const plates = protocol.blocks.filter((block): block is PlateMapBlock => block.type === 'plate');
+  const plates = protocol.blocks.filter((card): card is PlateMapCard => card.type === 'plate');
   const pooled = new Map<string, DilutionRun>();
   for (const placed of placedRuns(plates)) {
     const { ref, place, ...run } = placed;

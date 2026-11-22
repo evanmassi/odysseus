@@ -1,7 +1,7 @@
 import { plateValueKey, type PlateLine, type Protocol } from '@odysseus/shared-schemas';
 
+import { DONOR_ID_FIELD, donorsIn } from '../materials/materialDonors';
 import { listedMaterials, nameWithoutNotes, shortNameOf } from '../materials/materialLookup';
-import { DONOR_ID_FIELD, sourcesIn } from '../materials/materialSources';
 
 export interface KnownName {
   text: string;
@@ -23,12 +23,12 @@ export function knownNamesIn(protocol: Pick<Protocol, 'blocks'>): KnownName[] {
     const short = shortNameOf(item);
     return { text: short || name, hint: item.type, matches: [name, short].filter(Boolean) };
   });
-  const donors = sourcesIn(protocol).map(({ material, source }) => {
-    const id = source.values[DONOR_ID_FIELD]?.trim() ?? '';
+  const donors = donorsIn(protocol).map(({ material, donor }) => {
+    const id = donor.values[DONOR_ID_FIELD]?.trim() ?? '';
     return {
-      text: source.name.trim(),
+      text: donor.name.trim(),
       hint: [nameWithoutNotes(material.name), id].filter(Boolean).join(' · '),
-      matches: [source.name, id].filter(Boolean),
+      matches: [donor.name, id].filter(Boolean),
     };
   });
   return [...donors, ...materials].filter(known => known.text);

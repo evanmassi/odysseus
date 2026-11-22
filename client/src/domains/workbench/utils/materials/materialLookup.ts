@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { firstBlockOrNew } from '../blocks/createBlock';
+import { firstCardOrNew } from '../cards/createCard';
 
 import { SHORT_NAME_FIELD } from './materialCatalog';
 
@@ -42,7 +42,7 @@ export const findMaterial = (
 
 export const listedMaterials = (protocol: Pick<Protocol, 'blocks'>): MaterialItem[] =>
   protocol.blocks
-    .flatMap(block => (block.type === 'materials' ? block.items : []))
+    .flatMap(card => (card.type === 'materials' ? card.items : []))
     .filter(item => !item.isDropped && item.name.trim());
 
 export const materialNamed = (
@@ -57,9 +57,9 @@ export function ensureMaterial(
 ): MaterialItem {
   const existing = materialNamed(draft, name);
   if (existing) return existing;
-  const block = firstBlockOrNew(draft, 'materials');
+  const card = firstCardOrNew(draft, 'materials');
   const created = createMaterial(name);
-  block.items.push(created);
-  block.foldedGroups = block.foldedGroups.filter(group => group !== created.group);
+  card.items.push(created);
+  card.foldedGroups = card.foldedGroups.filter(group => group !== created.group);
   return created;
 }

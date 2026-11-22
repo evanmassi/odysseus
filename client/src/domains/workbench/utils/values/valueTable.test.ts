@@ -15,8 +15,8 @@ import type {
   MaterialItem,
   PlateLine,
   Protocol,
-  ValuesBlock,
-  PlateMapBlock,
+  ValuesCard,
+  PlateMapCard,
 } from '@odysseus/shared-schemas';
 
 const material = (
@@ -63,7 +63,7 @@ const line = (id: string, texts: string[]): PlateLine => ({
   values: texts.map(text => ({ id: text, text, color: `#${text.length}${text.length}0000` })),
 });
 
-const plateMap = (id: string, title: string, content: Partial<PlateMapBlock>): PlateMapBlock =>
+const plateMap = (id: string, title: string, content: Partial<PlateMapCard>): PlateMapCard =>
   ({
     id,
     type: 'plate',
@@ -81,7 +81,7 @@ const plateMap = (id: string, title: string, content: Partial<PlateMapBlock>): P
     stain: {},
     stainedIn: {},
     ...content,
-  }) as unknown as PlateMapBlock;
+  }) as unknown as PlateMapCard;
 
 const killingPlate = plateMap('map', 'Assay plate map', {
   lines: [line('drug', ['Drug X', 'DMSO', 'Targets only']), line('cells', ['Raji'])],
@@ -100,10 +100,10 @@ const killingPlate = plateMap('map', 'Assay plate map', {
   series: { s: { start: '10', unit: 'µM', fold: '3', direction: 'right' } },
 });
 
-const valuesBlock = (id: string, content: Partial<ValuesBlock>): ValuesBlock =>
-  ({ id, type: 'values', items: [], sections: [], ...content }) as unknown as ValuesBlock;
+const valuesCard = (id: string, content: Partial<ValuesCard>): ValuesCard =>
+  ({ id, type: 'values', items: [], sections: [], ...content }) as unknown as ValuesCard;
 
-const mainValues = valuesBlock('values', {
+const mainValues = valuesCard('values', {
   sections: [
     { id: 'sec-raji', materialId: 'm-raji' },
     { id: 'sec-tcells', materialId: 'm-tcells' },
@@ -121,25 +121,25 @@ const mainValues = valuesBlock('values', {
 
 function tableOf(
   protocol: Protocol,
-  block: ValuesBlock,
+  card: ValuesCard,
   unsortedNames: readonly string[] = []
 ): ValueTableGroup[] {
   const board = calculateBoard(collectBoardNames(protocol));
-  return buildValueTable(protocol, block, {
+  return buildValueTable(protocol, card, {
     materials: materialsById(protocol),
     board,
-    needs: valueNeeds(protocol, block, board),
+    needs: valueNeeds(protocol, card, board),
     unsortedNames,
   });
 }
 
-function tableFor(blocks: Protocol['blocks'], valuesId = 'values'): ValueTableGroup[] {
+function tableFor(cards: Protocol['blocks'], valuesId = 'values'): ValueTableGroup[] {
   const protocol = {
-    blocks: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...blocks],
+    blocks: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...cards],
     diluent: '',
   } as unknown as Protocol;
-  const block = protocol.blocks.find(candidate => candidate.id === valuesId) as ValuesBlock;
-  return tableOf(protocol, block);
+  const card = protocol.blocks.find(candidate => candidate.id === valuesId) as ValuesCard;
+  return tableOf(protocol, card);
 }
 
 const groupNamed = (groups: ValueTableGroup[], label: string) =>
@@ -233,7 +233,7 @@ describe('the values table', () => {
       type: 'materials',
       items: [...MATERIALS, material('m-stx', 'STX (stim X description)', 'bio', 'Other')],
     };
-    const mix = valuesBlock('values', {
+    const mix = valuesCard('values', {
       sections: [...mainValues.sections, { id: 'sec-mix', mixName: 'Th17 cocktail' }],
       items: mainValues.items,
     });
@@ -306,7 +306,7 @@ describe('the values table', () => {
       type: 'materials',
       items: [...MATERIALS, cocktail, material('m-il6', 'IL-6', 'chem', 'Recombinant protein')],
     };
-    const values = valuesBlock('values', {
+    const values = valuesCard('values', {
       sections: [{ id: 'sec-th17', materialId: 'm-th17' }],
       items: [
         { id: 'well', name: 'Well volume', value: '80', unit: 'µL' },
@@ -389,7 +389,7 @@ describe('the values table', () => {
   });
 
   it('shows rows for materials without values only in the first Values card', () => {
-    const second = valuesBlock('second', {
+    const second = valuesCard('second', {
       sections: [{ id: 'sec-jurkat', materialId: 'm-jurkat' }],
     });
     const groupsOfSecond = tableFor([killingPlate, mainValues, second], 'second');
@@ -397,7 +397,7 @@ describe('the values table', () => {
   });
 
   it('keeps every row an edit did not touch when the rebuilt table is shared with the last one', () => {
-    const edited = valuesBlock('values', {
+    const edited = valuesCard('values', {
       sections: mainValues.sections,
       items: mainValues.items.map(item =>
         item.id === 'raji-per' ? { ...item, value: '20000' } : item
@@ -418,7 +418,7 @@ describe('short names in the values table', () => {
     const medium = material('m-med', 'ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium', {
       'short-name': 'ImmunoCult XF',
     });
-    const values = valuesBlock('values', {
+    const values = valuesCard('values', {
       sections: [{ id: 'sec-med', materialId: 'm-med' }],
       items: [
         { id: 'med-vol', section: 'sec-med', name: 'Volume per well', value: '100', unit: 'µL' },
@@ -453,7 +453,7 @@ describe('plate names and needed values in the values table', () => {
       'p:A3': { cells: { valueId: 'Mystery' } },
     },
   });
-  const donorProtocol = (values: ValuesBlock) =>
+  const donorProtocol = (values: ValuesCard) =>
     ({
       blocks: [
         {
@@ -465,7 +465,7 @@ describe('plate names and needed values in the values table', () => {
         values,
       ],
     }) as unknown as Protocol;
-  const noValues = valuesBlock('values', {});
+  const noValues = valuesCard('values', {});
   const rowNamed = (groups: ValueTableGroup[], label: string, name: string) =>
     groupNamed(groups, label).rows.find(row => row.name === name)!;
 
@@ -498,12 +498,12 @@ describe('plate names and needed values in the values table', () => {
     const needed = rowNamed(table, 'Biological material', 'T cells').cells.find(
       cell => cell.label === 'Vol./well'
     );
-    expect(needed).toMatchObject({ value: '', source: { kind: 'need' } });
+    expect(needed).toMatchObject({ value: '', linkedTo: { kind: 'need' } });
     expect(needed?.neededFor).toEqual(['Cells to prepare for D3128', 'Cells to prepare for D2044']);
   });
 
   it('marks a blank value that the math is waiting on', () => {
-    const values = valuesBlock('values', {
+    const values = valuesCard('values', {
       sections: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
       items: [
         { id: 't-vol', section: 'sec-tcells', name: 'Volume per well', value: '', unit: 'µL' },
@@ -513,7 +513,7 @@ describe('plate names and needed values in the values table', () => {
     const cell = rowNamed(table, 'Biological material', 'T cells').cells.find(
       candidate => candidate.label === 'Volume per well'
     );
-    expect(cell?.source).toEqual({ kind: 'item', itemId: 't-vol' });
+    expect(cell?.linkedTo).toEqual({ kind: 'item', itemId: 't-vol' });
     expect(cell?.neededFor.length).toBeGreaterThan(0);
   });
 });
@@ -537,7 +537,7 @@ describe('cells on the values table', () => {
       'p:A4': { cells: { valueId: 'GFP lentivirus', amount: '5', unit: 'µL' } },
     },
   });
-  const plating = valuesBlock('values', {
+  const plating = valuesCard('values', {
     sections: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
     items: [{ id: 't-vol', section: 'sec-tcells', name: 'Vol./well', value: '100', unit: 'µL' }],
   });
@@ -577,10 +577,10 @@ describe('cells on the values table', () => {
       workedValue: '1.80E+6',
       isEditable: true,
       note: 'Worked out: Total cell conc. × Viability = 2.00E+6 cells/mL × 90%',
-      source: {
+      linkedTo: {
         kind: 'count',
         materialId: 'm-raji',
-        sourceId: undefined,
+        donorId: undefined,
         count: 'liveConcentration',
       },
     });
@@ -596,7 +596,7 @@ describe('cells on the values table', () => {
       }),
     ]);
     expect(cellOf(bio, 'Raji', 'Live cell conc.')).toMatchObject({
-      isClashing: true,
+      isMismatched: true,
       note: 'Live cell conc. ≠ Total cell conc. × Viability, which gives 1.80E+6 cells/mL',
     });
   });
@@ -609,7 +609,7 @@ describe('cells on the values table', () => {
       ['D2', true],
       ['D3', true],
     ]);
-    expect(rowOf(bio, 'T cells').cells.some(cell => cell.source.kind === 'count')).toBe(false);
+    expect(rowOf(bio, 'T cells').cells.some(cell => cell.linkedTo.kind === 'count')).toBe(false);
     expect(cellOf(bio, 'D1', 'Live cells')?.value).toBe('9e6');
     expect(cellOf(bio, 'D3', 'Viability')?.value).toBe('80');
     expect(rowOf(bio, 'D3').prep).toBeUndefined();
@@ -630,7 +630,7 @@ describe('cells on the values table', () => {
 
   it('gives a material that is not cells no counts', () => {
     const bio = cellTable([material('m-lenti', 'GFP lentivirus', 'bio', 'Virus or vector')]);
-    expect(rowOf(bio, 'GFP lentivirus').cells.some(cell => cell.source.kind === 'count')).toBe(
+    expect(rowOf(bio, 'GFP lentivirus').cells.some(cell => cell.linkedTo.kind === 'count')).toBe(
       false
     );
   });

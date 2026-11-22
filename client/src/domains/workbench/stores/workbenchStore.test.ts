@@ -1,4 +1,4 @@
-import { createBlock } from '../utils/blocks/createBlock';
+import { createCard } from '../utils/cards/createCard';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 
 import { selectIsDirty, useWorkbenchStore } from './workbenchStore';
@@ -11,13 +11,13 @@ function boardWith(): Protocol {
   setup.steps = [
     { id: 's1', kind: 'step', level: 1, text: 'Add {Per well} to each well', isMeanwhile: false },
   ];
-  for (const block of protocol.blocks) {
-    if (block.type === 'values')
-      block.items = [{ id: 'v1', name: 'Per well', value: '100', unit: 'µL' }];
-    if (block.type === 'formula')
-      block.items = [{ id: 'f1', name: 'Total', expr: 'Per well * 96', unit: 'auto' }];
-    if (block.type === 'materials') {
-      block.items = [
+  for (const card of protocol.blocks) {
+    if (card.type === 'values')
+      card.items = [{ id: 'v1', name: 'Per well', value: '100', unit: 'µL' }];
+    if (card.type === 'formula')
+      card.items = [{ id: 'f1', name: 'Total', expr: 'Per well * 96', unit: 'auto' }];
+    if (card.type === 'materials') {
+      card.items = [
         {
           id: 'm1',
           group: 'chem',
@@ -39,10 +39,10 @@ function boardWith(): Protocol {
 
 const { getState } = useWorkbenchStore;
 
-const blockOf = <Type extends Protocol['blocks'][number]['type']>(type: Type) => {
-  const block = getState().protocol.blocks.find(candidate => candidate.type === type);
-  if (block?.type !== type) throw new Error(`no ${type}`);
-  return block as Extract<Protocol['blocks'][number], { type: Type }>;
+const cardOf = <Type extends Protocol['blocks'][number]['type']>(type: Type) => {
+  const card = getState().protocol.blocks.find(candidate => candidate.type === type);
+  if (card?.type !== type) throw new Error(`no ${type}`);
+  return card as Extract<Protocol['blocks'][number], { type: Type }>;
 };
 
 beforeEach(() => getState().openProtocol(boardWith(), 'test.json'));
@@ -56,11 +56,11 @@ describe('workbenchStore', () => {
 
   it('carries a value rename into formulas and step references', () => {
     getState().updateProtocol(draft => {
-      const values = draft.blocks.find(block => block.type === 'values');
+      const values = draft.blocks.find(card => card.type === 'values');
       if (values?.type === 'values')
         values.items[0] = { ...values.items[0], name: 'Volume per well' };
     });
-    expect(blockOf('formula').items[0].expr).toBe('Volume per well * 96');
+    expect(cardOf('formula').items[0].expr).toBe('Volume per well * 96');
     expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Volume per well} to each well');
     expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
     expect(selectIsDirty(getState())).toBe(true);
@@ -68,9 +68,9 @@ describe('workbenchStore', () => {
 
   it('carries a material rename into the names built from it', () => {
     getState().updateProtocol(draft => {
-      const calculationsBlock = draft.blocks.find(block => block.type === 'formula');
-      if (calculationsBlock?.type === 'formula') {
-        calculationsBlock.items.push({
+      const calculationsCard = draft.blocks.find(card => card.type === 'formula');
+      if (calculationsCard?.type === 'formula') {
+        calculationsCard.items.push({
           id: 'f2',
           name: 'Drug top',
           expr: 'Drug stock concentration / 1000',
@@ -79,10 +79,10 @@ describe('workbenchStore', () => {
       }
     });
     getState().updateProtocol(draft => {
-      const materials = draft.blocks.find(block => block.type === 'materials');
+      const materials = draft.blocks.find(card => card.type === 'materials');
       if (materials?.type === 'materials') materials.items[0].name = 'Compound';
     });
-    expect(blockOf('formula').items[1]).toMatchObject({
+    expect(cardOf('formula').items[1]).toMatchObject({
       name: 'Compound top',
       expr: 'Compound stock concentration / 1000',
     });
@@ -114,21 +114,21 @@ describe('workbenchStore', () => {
   describe('plate edits', () => {
     const addPlate = (cells: Record<string, Record<string, object>>) =>
       getState().updateProtocol(draft => {
-        const plateMap = createBlock('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
+        const plateMap = createCard('plate', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
         if (plateMap.type !== 'plate') return;
         plateMap.lines = [{ id: 'l', name: '', role: 'auto', values: [{ id: 'd', text: 'Drug' }] }];
         plateMap.cells = cells;
         draft.blocks.push(plateMap);
       });
 
-    it('drops a typed value once the plate provides the same name', () => {
+    it('removes a typed value once the plate provides the same name', () => {
       getState().updateProtocol(draft => {
-        const values = draft.blocks.find(block => block.type === 'values');
+        const values = draft.blocks.find(card => card.type === 'values');
         if (values?.type === 'values')
           values.items.push({ id: 'v2', name: 'Drug final conc.', value: '5', unit: 'µM' });
       });
       addPlate({ 'p:A1': { l: { valueId: 'd', amount: '5', unit: 'µM' } } });
-      expect(blockOf('values').items.map(item => item.id)).toEqual(['v1']);
+      expect(cardOf('values').items.map(item => item.id)).toEqual(['v1']);
     });
   });
 });

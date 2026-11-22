@@ -7,7 +7,7 @@ import { materialsById } from './valueEdits';
 import { fillBlanks, fillTargets } from './valueFill';
 import { buildValueTable } from './valueTable';
 
-import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
 
 const sampleEntry = (id: string, name: string) => ({
   id,
@@ -52,7 +52,7 @@ const protocol = {
 } as unknown as Protocol;
 
 const valuesOf = (current: Protocol) =>
-  current.blocks.find((block): block is ValuesBlock => block.type === 'values')!;
+  current.blocks.find((card): card is ValuesCard => card.type === 'values')!;
 
 function bioGroup(current: Protocol) {
   const [group] = buildValueTable(current, valuesOf(current), {

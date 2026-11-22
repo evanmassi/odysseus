@@ -6,11 +6,11 @@ import {
   type MaterialItem,
   type PlateLine,
   type PlateSeries,
-  type PlateMapBlock,
+  type PlateMapCard,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
-import { cachedPerBlock } from '../blocks/cachedPerBlock';
+import { cachedPerCard } from '../cards/cachedPerCard';
 import {
   DILUTION_FACTOR_NOTATION,
   dimensionKey,
@@ -116,30 +116,30 @@ export const seriesLegendWord = (series: PlateSeries): string =>
   ('start' in series
     ? LEGEND_WORDS.get(seriesTopTerm(series.unit, stepSeriesUnit(series)))
     : undefined) ?? 'amount';
-const typedCount = (block: PlateMapBlock, key: string) => readNumber(block.counts[key] ?? '');
+const typedCount = (card: PlateMapCard, key: string) => readNumber(card.counts[key] ?? '');
 
-const keysHolding = (block: PlateMapBlock, line: PlateLine, value: LineValue) =>
-  Object.keys(block.cells).filter(key => block.cells[key][line.id]?.valueId === value.id);
+const keysHolding = (card: PlateMapCard, line: PlateLine, value: LineValue) =>
+  Object.keys(card.cells).filter(key => card.cells[key][line.id]?.valueId === value.id);
 
-const allLabwareTypes = (block: PlateMapBlock): LabwareType[] => [
-  ...block.plates.map(candidate => candidate.vessel),
-  ...block.sets.map(set => set.vessel),
+const allLabwareTypes = (card: PlateMapCard): LabwareType[] => [
+  ...card.plates.map(candidate => candidate.vessel),
+  ...card.sets.map(set => set.vessel),
 ];
 
-function valueCounts(block: PlateMapBlock): PlateMapCount[] {
-  const line = colorLineOf(block);
+function valueCounts(card: PlateMapCard): PlateMapCount[] {
+  const line = colorLineOf(card);
   if (!line) return [];
   return line.values.flatMap(value => {
-    const keys = keysHolding(block, line, value);
+    const keys = keysHolding(card, line, value);
     const text = value.text.trim();
     if (!keys.length || !text) return [];
-    const { plural } = wordsForTypes(keys.map(key => labwareTypeAt(block, key)));
+    const { plural } = wordsForTypes(keys.map(key => labwareTypeAt(card, key)));
     return [
       {
         name: `${text} ${plural}`,
         label: upperLead(plural),
         subject: text,
-        count: typedCount(block, value.id) ?? keys.length,
+        count: typedCount(card, value.id) ?? keys.length,
         tally: keys.length,
         key: value.id,
         kind: 'value' as const,
@@ -148,30 +148,30 @@ function valueCounts(block: PlateMapBlock): PlateMapCount[] {
   });
 }
 
-function countLabware(block: PlateMapBlock): PlateMapCount[] {
-  const usedKeys = Object.keys(block.cells).filter(key =>
-    Object.values(block.cells[key]).some(isFilledEntry)
+function countLabware(card: PlateMapCard): PlateMapCount[] {
+  const usedKeys = Object.keys(card.cells).filter(key =>
+    Object.values(card.cells[key]).some(isFilledEntry)
   );
-  const nouns = [...new Set(allLabwareTypes(block).map(type => labwareOf(type).kind))];
+  const nouns = [...new Set(allLabwareTypes(card).map(type => labwareOf(type).kind))];
   const used = (nouns.length > 1 ? nouns : [undefined]).map((noun): PlateMapCount => {
     const keys = noun
-      ? usedKeys.filter(key => labwareOf(labwareTypeAt(block, key)).kind === noun)
+      ? usedKeys.filter(key => labwareOf(labwareTypeAt(card, key)).kind === noun)
       : usedKeys;
-    const name = `${upperLead(noun ? LABWARE_KIND_PLURALS[noun] : wordsForTypes(allLabwareTypes(block)).plural)} used`;
+    const name = `${upperLead(noun ? LABWARE_KIND_PLURALS[noun] : wordsForTypes(allLabwareTypes(card)).plural)} used`;
     const key = noun ? `used:${noun}` : 'used';
     return {
       name,
       label: name,
       subject: '',
-      count: typedCount(block, key) ?? keys.length,
+      count: typedCount(card, key) ?? keys.length,
       tally: keys.length,
       key,
       kind: 'used',
     };
   });
-  const plateTotals = [...new Set(block.plates.map(candidate => candidate.vessel))].map(
+  const plateTotals = [...new Set(card.plates.map(candidate => candidate.vessel))].map(
     (type): PlateMapCount => {
-      const count = block.plates.filter(candidate => candidate.vessel === type).length;
+      const count = card.plates.filter(candidate => candidate.vessel === type).length;
       const name = `${labwareOf(type).label}s`;
       return {
         name,
@@ -184,9 +184,9 @@ function countLabware(block: PlateMapBlock): PlateMapCount[] {
       };
     }
   );
-  const setTotals = [...new Set(block.sets.map(set => set.vessel))].map((type): PlateMapCount => {
+  const setTotals = [...new Set(card.sets.map(set => set.vessel))].map((type): PlateMapCount => {
     const labware = labwareOf(type);
-    const count = block.sets
+    const count = card.sets
       .filter(set => set.vessel === type)
       .reduce((sum, set) => sum + set.count, 0);
     const name = `${labware.label.replace(/ (flask|dish|tube)$/, '')} ${LABWARE_KIND_PLURALS[labware.kind]}`;
@@ -200,7 +200,7 @@ function countLabware(block: PlateMapBlock): PlateMapCount[] {
       kind: 'total',
     };
   });
-  return [...valueCounts(block), ...used, ...plateTotals, ...setTotals];
+  return [...valueCounts(card), ...used, ...plateTotals, ...setTotals];
 }
 
 function amountNoun(unit: string, labwareKind: string): string {
@@ -220,32 +220,32 @@ interface PlainCell {
 const isSameAmount = (cells: PlainCell[]) =>
   new Set(cells.map(cell => `${cell.amount}|${cell.unit}`)).size === 1;
 
-function amountsOnPlate(block: PlateMapBlock): PlateAmount[] {
+function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
   const amounts: PlateAmount[] = [];
   const add = (amount: Omit<PlateAmount, 'name'>) => {
-    const typedName = block.amountNames[amount.key]?.trim();
+    const typedName = card.amountNames[amount.key]?.trim();
     amounts.push({
       ...amount,
       name: typedName || amount.automaticName,
       label: typedName ? labelFromName(typedName, amount.subject, amount.variant) : amount.label,
     });
   };
-  const colorLine = colorLineOf(block);
+  const colorLine = colorLineOf(card);
   const colorValueAt = (key: string) =>
-    colorLine ? lineValueOf(colorLine, block.cells[key]?.[colorLine.id]) : undefined;
+    colorLine ? lineValueOf(colorLine, card.cells[key]?.[colorLine.id]) : undefined;
   const soleValueOn = (other: PlateLine, keys: string[]) => {
-    const values = new Set(keys.map(key => lineValueOf(other, block.cells[key]?.[other.id])));
+    const values = new Set(keys.map(key => lineValueOf(other, card.cells[key]?.[other.id])));
     return values.size === 1 ? [...values][0] : undefined;
   };
   const solePlate = (keys: string[]) => {
     const plateIds = new Set(keys.map(key => key.split(':')[0]));
-    return plateIds.size === 1 ? block.plates.find(plate => plateIds.has(plate.id)) : undefined;
+    return plateIds.size === 1 ? card.plates.find(plate => plateIds.has(plate.id)) : undefined;
   };
 
-  for (const line of block.lines) {
+  for (const line of card.lines) {
     const plain = new Map<string, { subject: string; noun: string; cells: PlainCell[] }>();
     const runs = new Map<string, { subject: string; keys: string[]; steps: Set<number> }>();
-    for (const [key, lines] of Object.entries(block.cells)) {
+    for (const [key, lines] of Object.entries(card.cells)) {
       const entry = lines[line.id];
       const subject = lineValueOf(line, entry)?.text.trim() ?? '';
       if (!entry || !subject) continue;
@@ -256,7 +256,7 @@ function amountsOnPlate(block: PlateMapBlock): PlateAmount[] {
         run.steps.add(entry.seriesStep ?? 0);
       } else if ((entry.amount ?? '').trim()) {
         const unit = entry.unit ?? '';
-        const noun = amountNoun(unit, labwareOf(labwareTypeAt(block, key)).kind);
+        const noun = amountNoun(unit, labwareOf(labwareTypeAt(card, key)).kind);
         const groupKey = `${normalizeMaterialKey(subject)}-${normalizeMaterialKey(noun)}`;
         const amountGroup = plain.get(groupKey) ?? { subject, noun, cells: [] };
         plain.set(groupKey, amountGroup);
@@ -291,7 +291,7 @@ function amountsOnPlate(block: PlateMapBlock): PlateAmount[] {
     }
 
     const dilutionRuns = [...runs.entries()].flatMap(([seriesId, run]) => {
-      const series = block.series[seriesId];
+      const series = card.series[seriesId];
       return series && 'start' in series ? [{ seriesId, series, ...run }] : [];
     });
     for (const run of dilutionRuns) {
@@ -301,7 +301,7 @@ function amountsOnPlate(block: PlateMapBlock): PlateAmount[] {
       );
       const isApart = (marks: readonly unknown[]) =>
         marks.every(Boolean) && new Set(marks).size === twins.length;
-      const twinValues = [colorLine, ...block.lines]
+      const twinValues = [colorLine, ...card.lines]
         .filter((other): other is PlateLine => !!other && other.id !== line.id)
         .map(other => twins.map(twin => soleValueOn(other, twin.keys)))
         .find(isApart);
@@ -315,7 +315,7 @@ function amountsOnPlate(block: PlateMapBlock): PlateAmount[] {
           : value
             ? ` in ${value.text.trim()}`
             : plate && isApart(twinPlates)
-              ? ` on ${plateNameOf(block, plate)}`
+              ? ` on ${plateNameOf(card, plate)}`
               : ` ${index + 1}`;
       const top = seriesTopTerm(series.unit, stepSeriesUnit(series));
       const shared = { subject, variant: tag.trim() };
@@ -355,15 +355,15 @@ function amountsOnPlate(block: PlateMapBlock): PlateAmount[] {
   return amounts;
 }
 
-export const plateMapCounts: (block: PlateMapBlock) => readonly PlateMapCount[] =
-  cachedPerBlock(countLabware);
+export const plateMapCounts: (card: PlateMapCard) => readonly PlateMapCount[] =
+  cachedPerCard(countLabware);
 
-export const plateAmounts: (block: PlateMapBlock) => readonly PlateAmount[] =
-  cachedPerBlock(amountsOnPlate);
+export const plateAmounts: (card: PlateMapCard) => readonly PlateAmount[] =
+  cachedPerCard(amountsOnPlate);
 
-const wellTexts = cachedPerBlock((block: PlateMapBlock): string[] =>
-  Object.values(block.cells).map(lines =>
-    block.lines
+const wellTexts = cachedPerCard((card: PlateMapCard): string[] =>
+  Object.values(card.cells).map(lines =>
+    card.lines
       .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
       .join(' | ')
       .toLowerCase()
@@ -379,7 +379,7 @@ function mentionPattern(name: string): RegExp {
 }
 
 export function materialWellCounts(
-  blocks: readonly PlateMapBlock[],
+  cards: readonly PlateMapCard[],
   materials: readonly MaterialItem[]
 ): Map<MaterialItem, number> {
   const counts = new Map<MaterialItem, number>();
@@ -389,13 +389,13 @@ export function materialWellCounts(
       material.name,
       nameWithoutNotes(material.name),
       shortNameOf(material),
-      ...(material.sources?.rows.map(source => source.name) ?? []),
+      ...(material.sources?.rows.map(donor => donor.name) ?? []),
     ]
       .filter(Boolean)
       .map(mentionPattern),
   }));
-  for (const block of blocks) {
-    for (const text of wellTexts(block)) {
+  for (const card of cards) {
+    for (const text of wellTexts(card)) {
       for (const { material, names } of patterns) {
         if (names.some(name => name.test(text))) {
           counts.set(material, (counts.get(material) ?? 0) + 1);

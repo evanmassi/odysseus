@@ -1,4 +1,4 @@
-import { colorLineOf, type PlateLine, type PlateMapBlock } from '@odysseus/shared-schemas';
+import { colorLineOf, type PlateLine, type PlateMapCard } from '@odysseus/shared-schemas';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 
@@ -38,7 +38,7 @@ function plateWith(wells: Record<string, Record<string, string>>, lines: PlateLi
     stain: {},
     stainedIn: {},
     mergesReplicates: false,
-  } as unknown as PlateMapBlock;
+  } as unknown as PlateMapCard;
 }
 
 describe('plate indicators', () => {

@@ -7,7 +7,7 @@ import { blankProtocol } from '../protocolFile/blankProtocol';
 import { acceptStepReadings, readingStepsText, readStepReadings } from './stepReadings';
 import { templateText } from './stepTemplate';
 
-import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, MaterialsCard, Protocol } from '@odysseus/shared-schemas';
 
 const material = (name: string, group = 'chem', type = 'Chemical'): MaterialItem =>
   materialFromGuess({ group, type, name, values: {}, why: '', source: 'list' }, EMPTY_LAB_MEMORY);
@@ -21,12 +21,12 @@ function protocolWith(stepTexts: string[], items: MaterialItem[] = []) {
     text,
     isMeanwhile: false,
   }));
-  const block = protocol.blocks.find(
-    (candidate): candidate is MaterialsBlock => candidate.type === 'materials'
+  const card = protocol.blocks.find(
+    (candidate): candidate is MaterialsCard => candidate.type === 'materials'
   );
-  if (!block) throw new Error('blank protocol has no materials block');
-  block.items = items;
-  return { protocol, block };
+  if (!card) throw new Error('blank protocol has no materials block');
+  card.items = items;
+  return { protocol, card };
 }
 
 const readAll = (protocol: Protocol) =>
@@ -70,18 +70,18 @@ describe('material readings', () => {
 
 describe('accepting readings', () => {
   it('adds new materials, links existing ones and rewrites the steps as references', () => {
-    const { protocol, block } = protocolWith(
+    const { protocol, card } = protocolWith(
       ['Wash with Pbs, then add 50 µL of Bright-Glo.', 'Wash again with Pbs.'],
       [material('PBS', 'media', 'Buffer')]
     );
-    block.foldedGroups = ['chem'];
+    card.foldedGroups = ['chem'];
     acceptStepReadings(protocol, { materials: read(protocol) }, name => material(name));
     expect(protocol.pages[0].steps.map(step => step.text)).toEqual([
       'Wash with {PBS}, then add 50 µL of {Bright-Glo}.',
       'Wash again with {PBS}.',
     ]);
-    expect(block.items.map(item => item.name)).toEqual(['PBS', 'Bright-Glo']);
-    expect(block.foldedGroups).toEqual([]);
+    expect(card.items.map(item => item.name)).toEqual(['PBS', 'Bright-Glo']);
+    expect(card.foldedGroups).toEqual([]);
     expect(read(protocol)).toEqual([]);
   });
 
@@ -100,12 +100,12 @@ describe('accepting readings', () => {
   });
 
   it('adds a read value under its material and rewrites both names as references', () => {
-    const { protocol, block } = protocolWith(['Add 50 µL of Bright-Glo per well.']);
+    const { protocol, card } = protocolWith(['Add 50 µL of Bright-Glo per well.']);
     acceptStepReadings(protocol, { values: readAll(protocol).values }, name => material(name));
     expect(protocol.pages[0].steps[0].text).toBe(
       'Add {Bright-Glo vol./well} of {Bright-Glo} per well.'
     );
-    expect(block.items.map(item => item.name)).toEqual(['Bright-Glo']);
+    expect(card.items.map(item => item.name)).toEqual(['Bright-Glo']);
     const values = protocol.blocks.find(candidate => candidate.type === 'values');
     expect(values?.type === 'values' && values.items.at(-1)).toMatchObject({
       name: 'Vol./well',

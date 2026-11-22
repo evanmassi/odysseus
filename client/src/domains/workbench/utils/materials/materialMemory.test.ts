@@ -37,7 +37,7 @@ describe('learnFromMaterials', () => {
     expect(memory.materials['nacl']).toMatchObject({ group: 'chem', values: { vendor: 'Sigma' } });
   });
 
-  it('learns custom fields for the kind only while they are shown', () => {
+  it('learns custom fields for the type only while they are shown', () => {
     const shown = { ...material('NaCl'), customFields: [shelf], shownFields: ['custom-shelf'] };
     const hidden = { ...material('KCl'), customFields: [{ ...shelf, key: 'custom-bin' }] };
     const memory = learnFromMaterials(EMPTY_LAB_MEMORY, [shown, hidden, shown]);
@@ -53,8 +53,8 @@ describe('learnFromMaterials', () => {
 describe('rememberedKinds', () => {
   const protocolWith = (items: MaterialItem[]): Protocol => {
     const protocol = blankProtocol();
-    const block = protocol.blocks.find(candidate => candidate.type === 'materials');
-    if (block?.type === 'materials') block.items = items;
+    const card = protocol.blocks.find(candidate => candidate.type === 'materials');
+    if (card?.type === 'materials') card.items = items;
     return protocol;
   };
 
@@ -72,7 +72,7 @@ describe('rememberedKinds', () => {
     });
   });
 
-  it('ignores blank names when remembering a kind', () => {
+  it('ignores blank names when remembering a type', () => {
     expect(rememberKind(EMPTY_LAB_MEMORY, ' ', 'chem', 'Chemical')).toBe(EMPTY_LAB_MEMORY);
   });
 });

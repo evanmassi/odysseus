@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from './materialKey';
 
-import type { SampleEntry, PlateLine, PlateMapBlock } from './protocolFileSchemas';
+import type { SampleEntry, PlateLine, PlateMapCard } from './protocolFileSchemas';
 
 type LineValue = PlateLine['values'][number];
 
@@ -38,15 +38,15 @@ export const lineValueOf = (
 ): LineValue | undefined =>
   cell?.valueId ? line.values.find(value => value.id === cell.valueId) : undefined;
 
-const cellsOn = (block: PlateMapBlock, line: PlateLine) =>
-  Object.values(block.cells).map(lines => lines[line.id]);
+const cellsOn = (card: PlateMapCard, line: PlateLine) =>
+  Object.values(card.cells).map(lines => lines[line.id]);
 
-const hasSeries = (block: PlateMapBlock, line: PlateLine) =>
-  cellsOn(block, line).some(cell => cell?.seriesId !== undefined);
+const hasSeries = (card: PlateMapCard, line: PlateLine) =>
+  cellsOn(card, line).some(cell => cell?.seriesId !== undefined);
 
-function varies(block: PlateMapBlock, line: PlateLine): boolean {
-  if (hasSeries(block, line)) return true;
-  const cells = cellsOn(block, line).filter(isFilledEntry);
+function varies(card: PlateMapCard, line: PlateLine): boolean {
+  if (hasSeries(card, line)) return true;
+  const cells = cellsOn(card, line).filter(isFilledEntry);
   const texts = new Set(
     cells.map(
       cell =>
@@ -56,10 +56,10 @@ function varies(block: PlateMapBlock, line: PlateLine): boolean {
   return texts.size > 1;
 }
 
-export const colorLineOf = (block: PlateMapBlock): PlateLine | undefined =>
-  block.lines.find(line => line.role === 'color') ??
-  block.lines.find(line => line.role === 'auto' && hasSeries(block, line)) ??
-  block.lines.find(line => line.role === 'auto' && varies(block, line));
+export const colorLineOf = (card: PlateMapCard): PlateLine | undefined =>
+  card.lines.find(line => line.role === 'color') ??
+  card.lines.find(line => line.role === 'auto' && hasSeries(card, line)) ??
+  card.lines.find(line => line.role === 'auto' && varies(card, line));
 
 function renameKeys(map: Record<string, string>, rename: (key: string) => string) {
   for (const key of Object.keys(map)) {
@@ -70,33 +70,33 @@ function renameKeys(map: Record<string, string>, rename: (key: string) => string
   }
 }
 
-export function moveValueKeys(block: PlateMapBlock, fromId: string, toId: string): void {
-  renameKeys(block.counts, key => (key === fromId ? toId : key));
+export function moveValueKeys(card: PlateMapCard, fromId: string, toId: string): void {
+  renameKeys(card.counts, key => (key === fromId ? toId : key));
   const suffix = `:${fromId}`;
-  renameKeys(block.amountNames, key =>
+  renameKeys(card.amountNames, key =>
     key.endsWith(suffix) ? `${key.slice(0, -suffix.length)}:${toId}` : key
   );
 }
 
 function mergeValueInto(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   line: PlateLine,
   from: LineValue,
   into: LineValue
 ): void {
-  for (const cell of cellsOn(block, line)) {
+  for (const cell of cellsOn(card, line)) {
     if (cell?.valueId === from.id) cell.valueId = into.id;
   }
   into.color ??= from.color;
-  moveValueKeys(block, from.id, into.id);
+  moveValueKeys(card, from.id, into.id);
   line.values.splice(line.values.indexOf(from), 1);
 }
 
-function mergeSameValues(block: PlateMapBlock, line: PlateLine): void {
+function mergeSameValues(card: PlateMapCard, line: PlateLine): void {
   const byKey = new Map<string, LineValue>();
   for (const value of [...line.values]) {
     const kept = byKey.get(plateValueKey(value.text));
-    if (kept) mergeValueInto(block, line, value, kept);
+    if (kept) mergeValueInto(card, line, value, kept);
     else byKey.set(plateValueKey(value.text), value);
   }
 }
@@ -111,24 +111,24 @@ const sharesName = (a: PlateLine, b: PlateLine) => {
   return !!key && key === normalizeMaterialKey(b.name);
 };
 
-const holdsBoth = (block: PlateMapBlock, a: PlateLine, b: PlateLine) =>
-  Object.values(block.cells).some(lines => lines[a.id] && lines[b.id]);
+const holdsBoth = (card: PlateMapCard, a: PlateLine, b: PlateLine) =>
+  Object.values(card.cells).some(lines => lines[a.id] && lines[b.id]);
 
-function findTwinLines(block: PlateMapBlock): [PlateLine, PlateLine] | undefined {
-  for (const [index, kept] of block.lines.entries()) {
-    const twin = block.lines
+function findTwinLines(card: PlateMapCard): [PlateLine, PlateLine] | undefined {
+  for (const [index, kept] of card.lines.entries()) {
+    const twin = card.lines
       .slice(index + 1)
       .find(
         other =>
-          (sharesName(kept, other) || sharesValue(kept, other)) && !holdsBoth(block, kept, other)
+          (sharesName(kept, other) || sharesValue(kept, other)) && !holdsBoth(card, kept, other)
       );
     if (twin) return [kept, twin];
   }
   return undefined;
 }
 
-function mergeLineInto(block: PlateMapBlock, from: PlateLine, into: PlateLine): void {
-  for (const lines of Object.values(block.cells)) {
+function mergeLineInto(card: PlateMapCard, from: PlateLine, into: PlateLine): void {
+  for (const lines of Object.values(card.cells)) {
     if (!lines[from.id]) continue;
     lines[into.id] = lines[from.id];
     delete lines[from.id];
@@ -137,54 +137,54 @@ function mergeLineInto(block: PlateMapBlock, from: PlateLine, into: PlateLine): 
   into.name ||= from.name;
   if (into.role === 'auto') into.role = from.role;
   into.ratioTo ??= from.ratioTo;
-  for (const line of block.lines) {
+  for (const line of card.lines) {
     if (line.ratioTo === from.id) line.ratioTo = into.id;
   }
   if (into.ratioTo === into.id) delete into.ratioTo;
   const prefix = `a:${from.id}:`;
-  renameKeys(block.amountNames, key =>
+  renameKeys(card.amountNames, key =>
     key.startsWith(prefix) ? `a:${into.id}:${key.slice(prefix.length)}` : key
   );
-  block.lines.splice(block.lines.indexOf(from), 1);
+  card.lines.splice(card.lines.indexOf(from), 1);
 }
 
-export function pruneUnused(block: PlateMapBlock): void {
-  for (const [key, lines] of Object.entries(block.cells)) {
+export function pruneUnused(card: PlateMapCard): void {
+  for (const [key, lines] of Object.entries(card.cells)) {
     for (const [lineId, cell] of Object.entries(lines)) {
       const { unit } = cell;
       if (!isFilledEntry(cell) && !unit) delete lines[lineId];
     }
-    if (!Object.keys(lines).length) delete block.cells[key];
+    if (!Object.keys(lines).length) delete card.cells[key];
   }
-  for (const key of Object.keys(block.stainedIn)) {
-    if (!Object.values(block.cells[key] ?? {}).some(isFilledEntry)) delete block.stainedIn[key];
+  for (const key of Object.keys(card.stainedIn)) {
+    if (!Object.values(card.cells[key] ?? {}).some(isFilledEntry)) delete card.stainedIn[key];
   }
-  const sampleEntries = Object.values(block.cells).flatMap(lines => Object.entries(lines));
+  const sampleEntries = Object.values(card.cells).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(sampleEntries.map(([lineId]) => lineId));
   const usedValues = new Set(sampleEntries.map(([, cell]) => cell.valueId));
   const usedSeries = new Set(sampleEntries.map(([, cell]) => cell.seriesId));
-  for (const seriesId of Object.keys(block.series)) {
-    if (!usedSeries.has(seriesId)) delete block.series[seriesId];
+  for (const seriesId of Object.keys(card.series)) {
+    if (!usedSeries.has(seriesId)) delete card.series[seriesId];
   }
-  block.lines = block.lines.filter(line => usedLines.has(line.id));
-  for (const line of block.lines) {
+  card.lines = card.lines.filter(line => usedLines.has(line.id));
+  for (const line of card.lines) {
     if (line.ratioTo && !usedLines.has(line.ratioTo)) delete line.ratioTo;
   }
-  for (const line of block.lines)
+  for (const line of card.lines)
     line.values = line.values.filter(value => usedValues.has(value.id));
 }
 
-export function unifyPlateValues(block: PlateMapBlock): void {
-  for (let twins = findTwinLines(block); twins; twins = findTwinLines(block)) {
-    mergeLineInto(block, twins[1], twins[0]);
+export function unifyPlateValues(card: PlateMapCard): void {
+  for (let twins = findTwinLines(card); twins; twins = findTwinLines(card)) {
+    mergeLineInto(card, twins[1], twins[0]);
   }
-  for (const line of block.lines) mergeSameValues(block, line);
+  for (const line of card.lines) mergeSameValues(card, line);
 }
 
-function nextValueColor(block: PlateMapBlock, text: string): string {
+function nextValueColor(card: PlateMapCard, text: string): string {
   if (NEUTRAL_VALUE.test(text.trim())) return NEUTRAL_VALUE_COLOR;
   const uses = new Map<string, number>(VALUE_COLORS.map(color => [color, 0]));
-  for (const { color } of block.lines.flatMap(line => line.values)) {
+  for (const { color } of card.lines.flatMap(line => line.values)) {
     const count = color === undefined ? undefined : uses.get(color);
     if (color !== undefined && count !== undefined) uses.set(color, count + 1);
   }
@@ -192,18 +192,18 @@ function nextValueColor(block: PlateMapBlock, text: string): string {
   return VALUE_COLORS.find(color => uses.get(color) === fewest) ?? VALUE_COLORS[0];
 }
 
-export function normalizePlateMap(block: PlateMapBlock): void {
-  pruneUnused(block);
-  unifyPlateValues(block);
-  const line = colorLineOf(block);
+export function normalizePlateMap(card: PlateMapCard): void {
+  pruneUnused(card);
+  unifyPlateValues(card);
+  const line = colorLineOf(card);
   if (!line) return;
-  for (const value of line.values) value.color ??= nextValueColor(block, value.text);
+  for (const value of line.values) value.color ??= nextValueColor(card, value.text);
 }
 
-export function indicatorColorOf(block: PlateMapBlock, value: LineValue | undefined): string {
+export function indicatorColorOf(card: PlateMapCard, value: LineValue | undefined): string {
   if (value?.color) return value.color;
   if (!value) return BAND_COLORS[0];
-  const colorLine = colorLineOf(block);
-  const bandValues = block.lines.filter(line => line !== colorLine).flatMap(line => line.values);
+  const colorLine = colorLineOf(card);
+  const bandValues = card.lines.filter(line => line !== colorLine).flatMap(line => line.values);
   return BAND_COLORS[Math.max(0, bandValues.indexOf(value)) % BAND_COLORS.length];
 }

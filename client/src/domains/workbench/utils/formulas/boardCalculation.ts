@@ -26,15 +26,15 @@ export interface WorkedOutGroup {
   key: string;
   subject: string;
   title: string;
-  settingsBlockId: string | undefined;
+  settingsCardId: string | undefined;
 }
 
-interface NameSource {
-  sourceBlockId?: string;
+interface NameOrigin {
+  originCardId?: string;
   workedOut?: WorkedOutGroup;
 }
 
-export type BoardName = NameSource &
+export type BoardName = NameOrigin &
   (
     | { kind: 'value'; id: string; name: string; value: string; unit: string; isDropped?: boolean }
     | { kind: 'count'; id: string; name: string; count: number }

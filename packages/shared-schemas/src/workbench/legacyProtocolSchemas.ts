@@ -86,7 +86,7 @@ const legacyStep = z
         }
   );
 
-const legacyBlockBase = {
+const legacyCardBase = {
   id: z.string(),
   type: z.string(),
   title: text,
@@ -245,29 +245,29 @@ const legacyPlateMap = z
     counts: textMap,
     amountNames: textMap,
   })
-  .transform(block => {
-    let { wells, cells } = block;
-    const lines = block.fields;
-    const isPlateLabware = block.vessel !== undefined && PLATE_FORMAT_SET.has(block.vessel);
-    let sets = block.sets;
+  .transform(card => {
+    let { wells, cells } = card;
+    const lines = card.fields;
+    const isPlateLabware = card.vessel !== undefined && PLATE_FORMAT_SET.has(card.vessel);
+    let sets = card.sets;
     if (!sets) {
       sets = [];
-      if (block.vessel && !isPlateLabware) {
+      if (card.vessel && !isPlateLabware) {
         const setId = newProtocolId();
-        sets = [{ id: setId, vessel: block.vessel, count: block.count ?? 1 }];
+        sets = [{ id: setId, vessel: card.vessel, count: card.count ?? 1 }];
         const rename = (key: string) => key.replace(/^(\d+):1$/, `${setId}#$1:1`);
         wells = renameKeys(wells, rename);
         cells = renameKeys(cells, rename);
       }
     }
-    let plates = block.plates;
+    let plates = card.plates;
     if (!plates) {
       plates =
-        block.vessel && isPlateLabware
-          ? Array.from({ length: block.count ?? 1 }, (_, index) => ({
+        card.vessel && isPlateLabware
+          ? Array.from({ length: card.count ?? 1 }, (_, index) => ({
               id: newProtocolId(),
-              vessel: block.vessel as string,
-              name: block.names[index] ?? '',
+              vessel: card.vessel as string,
+              name: card.names[index] ?? '',
             }))
           : [];
       const created = plates;
@@ -292,20 +292,20 @@ const legacyPlateMap = z
     return {
       plates,
       sets,
-      activeTab: Math.max(0, Math.round(block.active)),
-      groups: block.groups,
+      activeTab: Math.max(0, Math.round(card.active)),
+      groups: card.groups,
       wells,
       lines: lines.map(({ show, ...line }) => ({ ...line, role: show })),
       cells: upgradedCells,
-      series: block.series,
-      ...(block.shelfName !== undefined && { shelfName: block.shelfName }),
-      mergesReplicates: block.merge !== false,
-      counts: block.counts,
-      amountNames: block.amountNames,
+      series: card.series,
+      ...(card.shelfName !== undefined && { shelfName: card.shelfName }),
+      mergesReplicates: card.merge !== false,
+      counts: card.counts,
+      amountNames: card.amountNames,
     };
   });
 
-const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
+const legacyCardContent: Record<string, z.ZodType<Record<string, unknown>>> = {
   materials: z
     .object({
       folded: list(z.string()),
@@ -313,8 +313,8 @@ const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
       droppedOpen: z.boolean().catch(false),
       items: list(legacyMaterialItem),
     })
-    .transform(({ folded, droppedOpen, ...block }) => ({
-      ...block,
+    .transform(({ folded, droppedOpen, ...card }) => ({
+      ...card,
       foldedGroups: folded,
       isDroppedOpen: droppedOpen,
     })),
@@ -341,8 +341,8 @@ const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
       ),
       items: list(z.object({ id: z.string(), cells: textMap, units: textMap })),
     })
-    .transform(({ named, items, ...block }) => ({
-      ...block,
+    .transform(({ named, items, ...card }) => ({
+      ...card,
       isNamed: named,
       items: items.map(row => ({ ...row, units: upgradeUnits(row.units) })),
     })),
@@ -390,9 +390,9 @@ const legacyBlockContent: Record<string, z.ZodType<Record<string, unknown>>> = {
   text: z.object({ html: text }),
 };
 
-function upgradeBlock(raw: unknown, fallbackPage: string): unknown {
-  const base = z.object(legacyBlockBase).parse(raw);
-  const content = legacyBlockContent[base.type];
+function upgradeCard(raw: unknown, fallbackPage: string): unknown {
+  const base = z.object(legacyCardBase).parse(raw);
+  const content = legacyCardContent[base.type];
   if (!content) throw new Error(`Unknown card type "${base.type}"`);
   return {
     id: base.id,
@@ -442,7 +442,7 @@ const legacyProtocol = z
       runNumber: legacy.runNumber,
       runOn: legacy.runOn,
       pages,
-      blocks: legacy.blocks.map(block => upgradeBlock(block, fallbackPage)),
+      blocks: legacy.blocks.map(card => upgradeCard(card, fallbackPage)),
       lotMemory,
       keptBoth: legacy.keptBoth,
       ignoredReadings: legacy.ignoredReadings,
@@ -470,7 +470,7 @@ function upgradeFile(raw: unknown): unknown {
 export const protocolFileInputSchema = z
   .preprocess(upgradeFile, protocolFileSchema)
   .transform(file => {
-    for (const block of file.protocol.blocks) if (block.type === 'plate') normalizePlateMap(block);
+    for (const card of file.protocol.blocks) if (card.type === 'plate') normalizePlateMap(card);
     moveStainsToStainSide(file.protocol);
     return file;
   });

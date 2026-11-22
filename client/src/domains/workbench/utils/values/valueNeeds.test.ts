@@ -3,7 +3,7 @@ import { collectBoardNames } from '../formulas/boardNames';
 
 import { valueNeeds } from './valueNeeds';
 
-import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
 
 const item = (id: string, name: string, group: string, recipe: unknown[] = []) => ({
   id,
@@ -19,8 +19,8 @@ const item = (id: string, name: string, group: string, recipe: unknown[] = []) =
   recipe,
 });
 
-function needsFor(items: ValuesBlock['items']) {
-  const values = { id: 'values', type: 'values', sections: [], items } as unknown as ValuesBlock;
+function needsFor(items: ValuesCard['items']) {
+  const values = { id: 'values', type: 'values', sections: [], items } as unknown as ValuesCard;
   const protocol = {
     blocks: [
       {

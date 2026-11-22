@@ -1,8 +1,8 @@
 import { OTHER_LABWARE } from './labwareCatalog';
 
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
-type PlateFormat = PlateMapBlock['plates'][number]['vessel'];
+type PlateFormat = PlateMapCard['plates'][number]['vessel'];
 export type LabwareShape = (typeof OTHER_LABWARE)[keyof typeof OTHER_LABWARE]['shape'];
 export type WellDensity = 'tiny' | 'narrow' | 'roomy';
 
@@ -65,9 +65,9 @@ export function wellSizeFor(format: PlateFormat, roomWidth: number, cols: number
   return { width, height: Math.max(shortest, scaled), density };
 }
 
-export function otherLabwareScaleFor(block: PlateMapBlock, roomWidth: number): number {
+export function otherLabwareScaleFor(card: PlateMapCard, roomWidth: number): number {
   const widest = Math.max(
-    ...block.sets.map(set => {
+    ...card.sets.map(set => {
       const labware = OTHER_LABWARE[set.vessel];
       return SHAPE_METRICS[labware.shape].width * labware.scale;
     })

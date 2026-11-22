@@ -1,4 +1,4 @@
-import { BOARD_COLUMNS } from '../blocks/boardGeometry';
+import { BOARD_COLUMNS } from '../cards/boardGeometry';
 import { createId } from '../ids/createId';
 
 import { labwareOf, type LabwareType } from './labwareCatalog';
@@ -6,10 +6,10 @@ import { cardColumnsFor } from './labwareSizing';
 import { isWellFilled } from './wellSelection';
 
 import type { PlateMapTab } from './plateMapTabs';
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
-export type Labware = Pick<PlateMapBlock, 'plates' | 'sets'>;
-type PlateFormat = PlateMapBlock['plates'][number]['vessel'];
+export type Labware = Pick<PlateMapCard, 'plates' | 'sets'>;
+type PlateFormat = PlateMapCard['plates'][number]['vessel'];
 
 const MOST_OF_A_KIND = 48;
 const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
@@ -67,31 +67,27 @@ function wellFits(labware: Labware, key: string): boolean {
   return position === '1' && !!set && Number(index) < set.count;
 }
 
-export const wellsLostTo = (block: PlateMapBlock, labware: Labware): number =>
-  Object.keys(block.cells).filter(key => isWellFilled(block, key) && !wellFits(labware, key))
-    .length;
+export const wellsLostTo = (card: PlateMapCard, labware: Labware): number =>
+  Object.keys(card.cells).filter(key => isWellFilled(card, key) && !wellFits(labware, key)).length;
 
-export function applyLabware(block: PlateMapBlock, labware: Labware): void {
-  const onlyFormatBefore = block.plates.length === 1 ? block.plates[0].vessel : undefined;
-  block.plates = labware.plates;
-  block.sets = labware.sets;
-  for (const key of Object.keys(block.cells)) {
-    if (!wellFits(labware, key)) delete block.cells[key];
+export function applyLabware(card: PlateMapCard, labware: Labware): void {
+  const onlyFormatBefore = card.plates.length === 1 ? card.plates[0].vessel : undefined;
+  card.plates = labware.plates;
+  card.sets = labware.sets;
+  for (const key of Object.keys(card.cells)) {
+    if (!wellFits(labware, key)) delete card.cells[key];
   }
-  for (const key of Object.keys(block.stain)) {
-    if (!wellFits(labware, key)) delete block.stain[key];
+  for (const key of Object.keys(card.stain)) {
+    if (!wellFits(labware, key)) delete card.stain[key];
   }
-  for (const [key, position] of Object.entries(block.stainedIn)) {
-    if (!wellFits(labware, key) || !wellFits(labware, position)) delete block.stainedIn[key];
+  for (const [key, position] of Object.entries(card.stainedIn)) {
+    if (!wellFits(labware, key) || !wellFits(labware, position)) delete card.stainedIn[key];
   }
-  block.activeTab = Math.min(
-    block.activeTab,
-    block.plates.length + (block.sets.length ? 1 : 0) - 1
-  );
-  const [onlyPlate] = block.plates;
-  if (block.plates.length === 1 && onlyPlate.vessel !== onlyFormatBefore) {
-    block.w = cardColumnsFor(onlyPlate.vessel);
-    block.x = Math.min(block.x, BOARD_COLUMNS - block.w);
+  card.activeTab = Math.min(card.activeTab, card.plates.length + (card.sets.length ? 1 : 0) - 1);
+  const [onlyPlate] = card.plates;
+  if (card.plates.length === 1 && onlyPlate.vessel !== onlyFormatBefore) {
+    card.w = cardColumnsFor(onlyPlate.vessel);
+    card.x = Math.min(card.x, BOARD_COLUMNS - card.w);
   }
 }
 
@@ -100,8 +96,8 @@ export const withoutPlate = (labware: Labware, plateId: string): Labware => ({
   sets: labware.sets,
 });
 
-type Plate = PlateMapBlock['plates'][number];
-type Series = PlateMapBlock['series'][string];
+type Plate = PlateMapCard['plates'][number];
+type Series = PlateMapCard['series'][string];
 
 const copyOfSeries = (series: Series): Series => ({
   ...series,
@@ -109,20 +105,20 @@ const copyOfSeries = (series: Series): Series => ({
   ...(series.prep && { prep: { ...series.prep } }),
 });
 
-export function duplicatePlateAsTab(block: PlateMapBlock, plate: Plate): void {
+export function duplicatePlateAsTab(card: PlateMapCard, plate: Plate): void {
   const copy: Plate = { ...plate, id: createId(), name: plate.name ? `${plate.name} copy` : '' };
-  block.plates.splice(block.plates.indexOf(plate) + 1, 0, copy);
+  card.plates.splice(card.plates.indexOf(plate) + 1, 0, copy);
   const freshSeries = new Map<string, string>();
   const seriesCopyOf = (seriesId: string) => {
     const known = freshSeries.get(seriesId);
     if (known) return known;
     const fresh = createId();
     freshSeries.set(seriesId, fresh);
-    block.series[fresh] = copyOfSeries(block.series[seriesId]);
+    card.series[fresh] = copyOfSeries(card.series[seriesId]);
     return fresh;
   };
   const prefix = `${plate.id}:`;
-  for (const [key, lines] of Object.entries(block.cells)) {
+  for (const [key, lines] of Object.entries(card.cells)) {
     if (!key.startsWith(prefix)) continue;
     const copied = Object.fromEntries(
       Object.entries(lines).map(([lineId, entry]) => [
@@ -132,21 +128,21 @@ export function duplicatePlateAsTab(block: PlateMapBlock, plate: Plate): void {
           : { ...entry, seriesId: seriesCopyOf(entry.seriesId) },
       ])
     );
-    block.cells[`${copy.id}:${key.slice(prefix.length)}`] = copied;
+    card.cells[`${copy.id}:${key.slice(prefix.length)}`] = copied;
   }
   const copied = (key: string) => `${copy.id}:${key.slice(prefix.length)}`;
-  for (const [key, stainId] of Object.entries(block.stain)) {
-    if (key.startsWith(prefix)) block.stain[copied(key)] = stainId;
+  for (const [key, stainId] of Object.entries(card.stain)) {
+    if (key.startsWith(prefix)) card.stain[copied(key)] = stainId;
   }
-  for (const [key, position] of Object.entries(block.stainedIn)) {
-    if (key.startsWith(prefix)) block.stainedIn[copied(key)] = copied(position);
+  for (const [key, position] of Object.entries(card.stainedIn)) {
+    if (key.startsWith(prefix)) card.stainedIn[copied(key)] = copied(position);
   }
-  block.activeTab = block.plates.indexOf(copy);
+  card.activeTab = card.plates.indexOf(copy);
 }
 
-export function duplicateOfTab(block: PlateMapBlock, tab: PlateMapTab): PlateMapBlock {
+export function duplicateOfTab(card: PlateMapCard, tab: PlateMapTab): PlateMapCard {
   const renames = new Map<string, string>();
-  const copy = structuredClone(block);
+  const copy = structuredClone(card);
   copy.id = createId();
   if (tab.kind === 'plate') {
     const plate = {
@@ -160,8 +156,8 @@ export function duplicateOfTab(block: PlateMapBlock, tab: PlateMapTab): PlateMap
     delete copy.shelfName;
   } else {
     copy.plates = [];
-    copy.shelfName = block.shelfName ? `${block.shelfName} copy` : undefined;
-    copy.sets = block.sets.map(set => {
+    copy.shelfName = card.shelfName ? `${card.shelfName} copy` : undefined;
+    copy.sets = card.sets.map(set => {
       const fresh = { ...set, id: createId() };
       renames.set(`${set.id}#`, `${fresh.id}#`);
       return fresh;
@@ -188,8 +184,8 @@ export function duplicateOfTab(block: PlateMapBlock, tab: PlateMapTab): PlateMap
   );
   copy.counts = {};
   copy.activeTab = 0;
-  const fitsBeside = block.x + block.w * 2 <= BOARD_COLUMNS;
-  copy.x = fitsBeside ? block.x + block.w : block.x;
-  copy.y = fitsBeside ? block.y : block.y + block.h;
+  const fitsBeside = card.x + card.w * 2 <= BOARD_COLUMNS;
+  copy.x = fitsBeside ? card.x + card.w : card.x;
+  copy.y = fitsBeside ? card.y : card.y + card.h;
   return copy;
 }

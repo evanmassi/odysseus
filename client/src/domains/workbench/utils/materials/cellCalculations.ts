@@ -29,8 +29,8 @@ import { findTerm } from '../terms/termLookup';
 import { joinValueName } from '../values/valueNames';
 
 import { cellPartId, CELLS_TO_PREPARE } from './cellCounts';
+import { donorListName } from './materialDonors';
 import { nameWithoutNotes } from './materialLookup';
-import { donorListName } from './materialSources';
 import { platedCells, type PlatedCells } from './platedCells';
 
 const isCellConcentration = (unit: string) =>
@@ -49,12 +49,12 @@ const missingCount = (count: Term, ...others: Term[]): CalculationGap => ({
 function subjectNames(
   plated: PlatedCells,
   names: ReadonlyMap<string, BoardName>,
-  materialsBlockId: string | undefined
+  materialsCardId: string | undefined
 ): BoardName[] {
-  const { subject, material, source } = plated;
+  const { subject, material, donor } = plated;
   const donorList = donorListName(material);
   const materialOwners = [material.name.trim(), nameWithoutNotes(material.name)];
-  const owners = source ? [subject] : [subject, ...materialOwners];
+  const owners = donor ? [subject] : [subject, ...materialOwners];
   const id = (part: string) => cellPartId(subject, part);
   const named = (term: Term, from: readonly string[]) => findTerm(names, term, from)?.name;
   const filled = (term: Term) => {
@@ -65,7 +65,7 @@ function subjectNames(
     key: id('group'),
     subject,
     title: CELLS_TO_PREPARE,
-    settingsBlockId: materialsBlockId,
+    settingsCardId: materialsCardId,
   };
   const inputs: BoardName[] = [];
   const calculations: CalculationName[] = [];
@@ -107,14 +107,14 @@ function subjectNames(
       ? (named(CELLS_PER_WELL, [subject]) ??
         input('per-well', joinValueName(subject, CELLS_PER_WELL.word), String(onlyPerWell), CELLS))
       : undefined;
-  const perVialValue = source?.values[PER_VIAL_FIELD]?.trim();
+  const perVialValue = donor?.values[PER_VIAL_FIELD]?.trim();
   const perVial =
     named(CELLS_PER_VIAL, [subject]) ??
     (perVialValue
       ? input('per-vial', `${subject} cells per vial`, perVialValue, CELLS)
       : undefined);
   const liveCells = filled(LIVE_CELLS);
-  const stockEntry = source ? undefined : findTerm(names, STOCK_CONCENTRATION, owners);
+  const stockEntry = donor ? undefined : findTerm(names, STOCK_CONCENTRATION, owners);
   const stock =
     filled(LIVE_CELL_CONCENTRATION) ??
     (stockEntry?.kind === 'value' && stockEntry.value.trim() && isCellConcentration(stockEntry.unit)
@@ -142,7 +142,7 @@ function subjectNames(
     platingProblem
   );
 
-  const isResuspended = !!source || !!perVial || (!stock && !!liveCells);
+  const isResuspended = !!donor || !!perVial || (!stock && !!liveCells);
   if (!isResuspended) {
     const suspension = `${subject} suspension to make`;
     const stockToTake = `${subject} stock to take`;
@@ -165,7 +165,7 @@ function subjectNames(
       missingStock ?? platingProblem
     );
   } else {
-    if (source !== undefined || perVial !== undefined) {
+    if (donor !== undefined || perVial !== undefined) {
       addCalculation(
         'vials',
         `${subject} vials to thaw`,
@@ -192,9 +192,9 @@ function subjectNames(
     );
   }
 
-  const clash = calculations.map(entry => entry.name).find(name => names.has(nameKey(name)));
-  if (!clash) return [...inputs, ...calculations];
-  const problem = `Rename "${clash}": the cell math for ${subject} needs that name.`;
+  const takenName = calculations.map(entry => entry.name).find(name => names.has(nameKey(name)));
+  if (!takenName) return [...inputs, ...calculations];
+  const problem = `Rename "${takenName}": the cell math for ${subject} needs that name.`;
   return calculations
     .filter(entry => !names.has(nameKey(entry.name)))
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
@@ -202,8 +202,8 @@ function subjectNames(
 
 export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialsBlockId = protocol.blocks.find(block => block.type === 'materials')?.id;
-  return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsBlockId));
+  const materialsCardId = protocol.blocks.find(card => card.type === 'materials')?.id;
+  return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsCardId));
 }
 
 export function shortfallOf(result: CalculationResult | undefined): string | undefined {

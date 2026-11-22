@@ -3,7 +3,7 @@ import { isWellFilled, shiftedTargets } from './wellSelection';
 
 import type { PlateMapSheet, PlateMapPosition } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 export type StainSamples = ReadonlyMap<string, readonly string[]>;
 
@@ -14,13 +14,13 @@ interface Pool {
   target: string;
 }
 
-export const stainPositionOf = (block: PlateMapBlock, key: string) => block.stainedIn[key] ?? key;
+export const stainPositionOf = (card: PlateMapCard, key: string) => card.stainedIn[key] ?? key;
 
-export function stainSamples(block: PlateMapBlock, sheet: PlateMapSheet): StainSamples {
+export function stainSamples(card: PlateMapCard, sheet: PlateMapSheet): StainSamples {
   const samples = new Map(sheet.positions.map(position => [position.key, [] as string[]]));
   for (const position of sheet.positions) {
-    if (isWellFilled(block, position.key))
-      samples.get(stainPositionOf(block, position.key))?.push(position.key);
+    if (isWellFilled(card, position.key))
+      samples.get(stainPositionOf(card, position.key))?.push(position.key);
   }
   return samples;
 }
@@ -39,8 +39,8 @@ export function sharedByAll<Value>(
   return rest.every(value => JSON.stringify(value) === shown) ? first : undefined;
 }
 
-export const isRearranged = (block: PlateMapBlock, sheet: PlateMapSheet) =>
-  sheet.positions.some(position => block.stainedIn[position.key] !== undefined);
+export const isRearranged = (card: PlateMapCard, sheet: PlateMapSheet) =>
+  sheet.positions.some(position => card.stainedIn[position.key] !== undefined);
 
 const occupiedPositions = (
   sheet: PlateMapSheet,
@@ -51,19 +51,19 @@ const occupiedPositions = (
     position => keys.has(position.key) && (samples.get(position.key)?.length ?? 0) > 0
   );
 
-function regroup(block: PlateMapBlock, samples: StainSamples, pools: readonly Pool[]): void {
+function regroup(card: PlateMapCard, samples: StainSamples, pools: readonly Pool[]): void {
   const stainIds = pools.map(pool =>
-    pool.positions.map(position => block.stain[position.key]).find(Boolean)
+    pool.positions.map(position => card.stain[position.key]).find(Boolean)
   );
-  for (const pool of pools) for (const position of pool.positions) delete block.stain[position.key];
+  for (const pool of pools) for (const position of pool.positions) delete card.stain[position.key];
   pools.forEach((pool, index) => {
     for (const well of pool.positions.flatMap(position => samples.get(position.key) ?? [])) {
-      if (well === pool.target) delete block.stainedIn[well];
-      else block.stainedIn[well] = pool.target;
+      if (well === pool.target) delete card.stainedIn[well];
+      else card.stainedIn[well] = pool.target;
     }
     const stainId = stainIds[index];
-    if (stainId) block.stain[pool.target] = stainId;
-    else delete block.stain[pool.target];
+    if (stainId) card.stain[pool.target] = stainId;
+    else delete card.stain[pool.target];
   });
 }
 
@@ -74,20 +74,20 @@ export const canPoolSamples = (
 ) => occupiedPositions(sheet, samples, keys).length > 1;
 
 export function poolSamples(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>
 ): string[] {
-  const samples = stainSamples(block, sheet);
+  const samples = stainSamples(card, sheet);
   const positions = occupiedPositions(sheet, samples, keys);
   const first = sheet.positions.find(position => keys.has(position.key));
   if (positions.length < 2 || !first) return [];
-  regroup(block, samples, [{ positions, target: first.key }]);
+  regroup(card, samples, [{ positions, target: first.key }]);
   return [first.key];
 }
 
 function replicateGroups(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   samples: StainSamples,
   keys: ReadonlySet<string>,
@@ -96,7 +96,7 @@ function replicateGroups(
   const groups = new Map<string, PlateMapPosition[]>();
   for (const position of occupiedPositions(sheet, samples, keys)) {
     const contents = (samples.get(position.key) ?? []).map(well =>
-      wellDetails(block, well, board).join('|')
+      wellDetails(card, well, board).join('|')
     );
     const signature = [...new Set(contents)].sort().join('\n');
     groups.set(signature, [...(groups.get(signature) ?? []), position]);
@@ -105,33 +105,33 @@ function replicateGroups(
 }
 
 export const canPoolReplicates = (
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   samples: StainSamples,
   keys: ReadonlySet<string>,
   board: SolvedBoard
 ) => {
-  const groups = replicateGroups(block, sheet, samples, keys, board);
+  const groups = replicateGroups(card, sheet, samples, keys, board);
   return groups.length > 1 && groups.some(group => group.length > 1);
 };
 
 export function poolReplicates(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   board: SolvedBoard
 ): string[] {
-  const samples = stainSamples(block, sheet);
+  const samples = stainSamples(card, sheet);
   const freeByRow = new Map<number, string[]>();
   for (const position of sheet.positions) {
     if (keys.has(position.key))
       freeByRow.set(position.row, [...(freeByRow.get(position.row) ?? []), position.key]);
   }
-  const pools = replicateGroups(block, sheet, samples, keys, board).map(positions => ({
+  const pools = replicateGroups(card, sheet, samples, keys, board).map(positions => ({
     positions,
     target: freeByRow.get(positions[0].row)?.shift() ?? positions[0].key,
   }));
-  regroup(block, samples, pools);
+  regroup(card, samples, pools);
   return pools.map(pool => pool.target);
 }
 
@@ -141,11 +141,11 @@ export const canUnpool = (samples: StainSamples, keys: ReadonlySet<string>) =>
   [...keys].some(key => isPooled(samples, key));
 
 export function unpool(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>
 ): string[] {
-  const samples = stainSamples(block, sheet);
+  const samples = stainSamples(card, sheet);
   const dissolving = new Set([...keys].filter(key => isPooled(samples, key)));
   const queue = [...dissolving];
   while (queue.length) {
@@ -159,58 +159,58 @@ export function unpool(
   }
   const stainIds = new Map<string, string>();
   for (const position of dissolving) {
-    const stainId = block.stain[position];
+    const stainId = card.stain[position];
     for (const well of samples.get(position) ?? []) if (stainId) stainIds.set(well, stainId);
-    delete block.stain[position];
+    delete card.stain[position];
   }
   const returned = [...dissolving].flatMap(position => samples.get(position) ?? []);
-  for (const well of returned) delete block.stainedIn[well];
-  for (const [well, stainId] of stainIds) block.stain[well] = stainId;
+  for (const well of returned) delete card.stainedIn[well];
+  for (const [well, stainId] of stainIds) card.stain[well] = stainId;
   return returned;
 }
 
 export function stainMoveTargets(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   cutKeys: ReadonlySet<string>,
   keys: ReadonlySet<string>
 ): StainMoveTargets {
   const landing = shiftedTargets(sheet, cutKeys, keys);
   if (!landing) return { blockedBy: 'edge' };
-  const samples = stainSamples(block, sheet);
+  const samples = stainSamples(card, sheet);
   const isTaken = (key: string) => (samples.get(key)?.length ?? 0) > 0 && !cutKeys.has(key);
   return landing.some(isTaken) ? { blockedBy: 'cells' } : { landing };
 }
 
 export function moveStainPositions(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   cutKeys: ReadonlySet<string>,
   landing: readonly string[]
 ): void {
-  const samples = stainSamples(block, sheet);
+  const samples = stainSamples(card, sheet);
   const leaving = sheet.positions.filter(position => cutKeys.has(position.key));
-  const stainIds = leaving.map(position => block.stain[position.key]);
-  for (const key of [...cutKeys, ...landing]) delete block.stain[key];
+  const stainIds = leaving.map(position => card.stain[position.key]);
+  for (const key of [...cutKeys, ...landing]) delete card.stain[key];
   leaving.forEach((position, index) => {
     const target = landing[index];
     for (const well of samples.get(position.key) ?? []) {
-      if (well === target) delete block.stainedIn[well];
-      else block.stainedIn[well] = target;
+      if (well === target) delete card.stainedIn[well];
+      else card.stainedIn[well] = target;
     }
     const stainId = stainIds[index];
-    if (stainId) block.stain[target] = stainId;
+    if (stainId) card.stain[target] = stainId;
   });
 }
 
-export function forgetStainOf(block: PlateMapBlock, keys: ReadonlySet<string>): void {
+export function forgetStainOf(card: PlateMapCard, keys: ReadonlySet<string>): void {
   for (const key of keys) {
-    const position = stainPositionOf(block, key);
-    const isStillUsed = Object.keys(block.cells).some(
+    const position = stainPositionOf(card, key);
+    const isStillUsed = Object.keys(card.cells).some(
       other =>
-        !keys.has(other) && isWellFilled(block, other) && stainPositionOf(block, other) === position
+        !keys.has(other) && isWellFilled(card, other) && stainPositionOf(card, other) === position
     );
-    if (!isStillUsed) delete block.stain[position];
-    delete block.stainedIn[key];
+    if (!isStillUsed) delete card.stain[position];
+    delete card.stainedIn[key];
   }
 }

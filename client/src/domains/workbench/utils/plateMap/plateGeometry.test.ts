@@ -26,7 +26,7 @@ const indicator: PlateIndicator = {
   wellsInMap: 2,
   clusters: [column],
 };
-const rowBlock = (row: number, from: number, to: number): IndicatorCluster => ({
+const rowCluster = (row: number, from: number, to: number): IndicatorCluster => ({
   cells: Array.from({ length: to - from + 1 }, (_, index) => ({ row, col: from + index })),
   top: row,
   bottom: row,
@@ -51,12 +51,14 @@ describe('plate geometry', () => {
     expect(shapesOf([{ ...indicator, kind: 'stripe' }]).rings).toHaveLength(0);
   });
 
-  it('gives the biggest blocks the two bracket lanes and tags the rest', () => {
-    const blocks = [rowBlock(0, 0, 5), rowBlock(1, 0, 3), rowBlock(2, 1, 2)].map(cluster => ({
-      ...indicator,
-      clusters: [cluster],
-    }));
-    const shapes = shapesOf(blocks);
+  it('gives the biggest clusters the two bracket lanes and tags the rest', () => {
+    const rowIndicators = [rowCluster(0, 0, 5), rowCluster(1, 0, 3), rowCluster(2, 1, 2)].map(
+      cluster => ({
+        ...indicator,
+        clusters: [cluster],
+      })
+    );
+    const shapes = shapesOf(rowIndicators);
     expect(shapes.topBrackets).toHaveLength(2);
     expect(shapes.tags).toHaveLength(1);
   });
@@ -66,7 +68,7 @@ describe('plate geometry', () => {
       ...indicator,
       showsOutline: false,
       showsBracket: false,
-      clusters: [rowBlock(0, 0, 5)],
+      clusters: [rowCluster(0, 0, 5)],
     };
     const shapes = shapesOf([quiet]);
     expect(shapes.topBrackets).toHaveLength(0);

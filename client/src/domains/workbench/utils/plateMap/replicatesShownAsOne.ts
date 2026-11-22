@@ -3,7 +3,7 @@ import { wellDetails } from './wellContents';
 
 import type { PlateMapSheet } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 export interface ReplicateGroup {
   row: number;
@@ -21,21 +21,21 @@ export interface ReplicatesShownAsOne {
 const NONE_SHOWN_AS_ONE: ReplicatesShownAsOne = { anchors: new Map(), covered: new Set() };
 
 export function replicatesShownAsOne(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   board: SolvedBoard,
   stainSamples: StainSamples | undefined
 ): ReplicatesShownAsOne {
-  if (!sheet.isPlate || !block.mergesReplicates) return NONE_SHOWN_AS_ONE;
+  if (!sheet.isPlate || !card.mergesReplicates) return NONE_SHOWN_AS_ONE;
   const keyAt = new Map(
     sheet.positions.map(position => [`${position.row},${position.col}`, position.key])
   );
   const contents = new Map(
     sheet.positions.map(position => {
-      const details = wellDetails(block, position.key, board).join('|');
+      const details = wellDetails(card, position.key, board).join('|');
       if (!stainSamples) return [position.key, details];
       if (!isAtHome(stainSamples, position.key)) return [position.key, ''];
-      const stainId = block.stain[position.key];
+      const stainId = card.stain[position.key];
       return [
         position.key,
         details && stainId !== undefined ? `${details}|stain:${stainId}` : details,

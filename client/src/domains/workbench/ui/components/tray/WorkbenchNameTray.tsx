@@ -69,7 +69,7 @@ export function WorkbenchNameTray() {
   const materials = useMemo(() => listedMaterials(protocol), [protocol]);
   const generalTitle = generalTitleOf(protocol.blocks);
   const customGroups =
-    protocol.blocks.find(block => block.type === 'materials')?.customGroups ?? NO_CUSTOM_GROUPS;
+    protocol.blocks.find(card => card.type === 'materials')?.customGroups ?? NO_CUSTOM_GROUPS;
   const allGroups = useMemo(
     () =>
       mode

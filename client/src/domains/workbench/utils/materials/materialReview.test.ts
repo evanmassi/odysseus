@@ -11,7 +11,7 @@ import {
   type MaterialReviewRow,
 } from './materialReview';
 
-import type { MaterialItem, MaterialsBlock, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, MaterialsCard, Protocol } from '@odysseus/shared-schemas';
 
 const material = (name: string): MaterialItem =>
   materialFromGuess(
@@ -19,14 +19,14 @@ const material = (name: string): MaterialItem =>
     EMPTY_LAB_MEMORY
   );
 
-function setup(items: MaterialItem[]): { protocol: Protocol; block: MaterialsBlock } {
+function setup(items: MaterialItem[]): { protocol: Protocol; card: MaterialsCard } {
   const protocol = blankProtocol();
-  const block = protocol.blocks.find(
-    (candidate): candidate is MaterialsBlock => candidate.type === 'materials'
+  const card = protocol.blocks.find(
+    (candidate): candidate is MaterialsCard => candidate.type === 'materials'
   );
-  if (!block) throw new Error('blank protocol has no materials block');
-  block.items = items;
-  return { protocol, block };
+  if (!card) throw new Error('blank protocol has no materials block');
+  card.items = items;
+  return { protocol, card };
 }
 
 describe('pastedReviewRows', () => {
@@ -71,40 +71,40 @@ describe('reviewActionLabel', () => {
 describe('commitReviewRows', () => {
   it('merges into the material already listed, adds the rest and unfolds their group', () => {
     const existing = material('DMSO');
-    const { protocol, block } = setup([existing]);
-    block.foldedGroups = ['chem'];
+    const { protocol, card } = setup([existing]);
+    card.foldedGroups = ['chem'];
     const typed = material('dmso');
     typed.values['vendor'] = 'Sigma';
     const fresh = material('Ethanol');
-    const ids = commitReviewRows(protocol, block.id, [
-      reviewRow(block.items, protocol.keptBoth, typed, ''),
-      reviewRow(block.items, protocol.keptBoth, fresh, ''),
+    const ids = commitReviewRows(protocol, card.id, [
+      reviewRow(card.items, protocol.keptBoth, typed, ''),
+      reviewRow(card.items, protocol.keptBoth, fresh, ''),
     ]);
     expect(ids).toEqual([existing.id, fresh.id]);
-    expect(block.items.map(item => item.name)).toEqual(['DMSO', 'Ethanol']);
-    expect(block.items[0].values['vendor']).toBe('Sigma');
-    expect(block.foldedGroups).toEqual([]);
+    expect(card.items.map(item => item.name)).toEqual(['DMSO', 'Ethanol']);
+    expect(card.items[0].values['vendor']).toBe('Sigma');
+    expect(card.foldedGroups).toEqual([]);
   });
 
   it('keeps both on request and remembers the name so it is not flagged again', () => {
-    const { protocol, block } = setup([material('DMSO')]);
+    const { protocol, card } = setup([material('DMSO')]);
     const typed = material('DMSO');
-    commitReviewRows(protocol, block.id, [
-      { ...reviewRow(block.items, protocol.keptBoth, typed, ''), isKeptBoth: true },
+    commitReviewRows(protocol, card.id, [
+      { ...reviewRow(card.items, protocol.keptBoth, typed, ''), isKeptBoth: true },
     ]);
-    expect(block.items).toHaveLength(2);
+    expect(card.items).toHaveLength(2);
     expect(protocol.keptBoth).toEqual(['dmso']);
     expect(
-      reviewRow(block.items, protocol.keptBoth, material('DMSO'), '').alreadyListedId
+      reviewRow(card.items, protocol.keptBoth, material('DMSO'), '').alreadyListedId
     ).toBeUndefined();
   });
 
   it('adds a row whose already listed match was removed in the meantime', () => {
     const existing = material('DMSO');
-    const { protocol, block } = setup([existing]);
-    const row = reviewRow(block.items, protocol.keptBoth, material('DMSO'), '');
-    block.items = [];
-    commitReviewRows(protocol, block.id, [row]);
-    expect(block.items).toHaveLength(1);
+    const { protocol, card } = setup([existing]);
+    const row = reviewRow(card.items, protocol.keptBoth, material('DMSO'), '');
+    card.items = [];
+    commitReviewRows(protocol, card.id, [row]);
+    expect(card.items).toHaveLength(1);
   });
 });

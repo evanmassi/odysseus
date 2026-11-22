@@ -7,7 +7,7 @@ import elisaMockup from './fixtures/elisa.mockup.json';
 import everyCardV4 from './fixtures/everyCard.v4.json';
 import { ProtocolFileError, readProtocolFile, writeProtocolFile } from './protocolFile';
 
-import type { Protocol, ProtocolBlock, ProtocolBlockType } from '@odysseus/shared-schemas';
+import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
 
 const EXAMPLES = {
   cells: [cellsLegacy, cellsMockup],
@@ -24,7 +24,7 @@ const legacyFile = (protocol: Record<string, unknown>) => ({
   protocol: { title: 'Test', blocks: [], ...protocol },
 });
 
-const block = (type: string, fields: Record<string, unknown> = {}) => ({
+const card = (type: string, fields: Record<string, unknown> = {}) => ({
   id: `${type}-1`,
   type,
   title: type,
@@ -91,11 +91,11 @@ describe.each(Object.entries(EXAMPLES))('the %s example', (_, [legacy, mockup]) 
 });
 
 describe('upgrading older files', () => {
-  it('moves steps from before pages onto a Setup page that holds every block', () => {
+  it('moves steps from before pages onto a Setup page that holds every card', () => {
     const protocol = read(
       legacyFile({
         steps: [{ id: 's1', kind: 'step', level: 1, text: 'Thaw', meanwhile: false }],
-        blocks: [block('steps')],
+        blocks: [card('steps')],
       })
     );
     expect(protocol.pages).toEqual([
@@ -117,7 +117,7 @@ describe('upgrading older files', () => {
       legacyFile({
         lotMemory: { m1: { L1: { concentration: '5' } } },
         blocks: [
-          block('materials', {
+          card('materials', {
             items: [
               {
                 id: 'm1',
@@ -147,17 +147,17 @@ describe('upgrading older files', () => {
   it('spells the fold unit the way the unit registry does', () => {
     const protocol = read(
       legacyFile({
-        blocks: [block('values', { items: [{ id: 'v1', name: 'Fold', value: '4', unit: 'x' }] })],
+        blocks: [card('values', { items: [{ id: 'v1', name: 'Fold', value: '4', unit: 'x' }] })],
       })
     );
     expect(protocol.blocks[0]).toMatchObject({ items: [{ unit: 'X' }] });
   });
 
-  it('splits an old single-plate block into named plates with their own well keys', () => {
+  it('splits an old single-plate card into named plates with their own well keys', () => {
     const protocol = read(
       legacyFile({
         blocks: [
-          block('plate', {
+          card('plate', {
             vessel: '96',
             count: 2,
             names: ['Day 1'],
@@ -180,12 +180,12 @@ describe('upgrading older files', () => {
     expect(plateMap.cells[`${plateMap.plates[0].id}:A1`]).toEqual({ f1: { valueId: aspirin.id } });
   });
 
-  it('turns an old flask block into a set with set-scoped keys', () => {
+  it('turns an old flask card into other labware with its own keys', () => {
     const plateMap = plateOf(
       read(
         legacyFile({
           blocks: [
-            block('plate', {
+            card('plate', {
               vessel: 'T75',
               count: 3,
               wells: { '2:1': 'g1' },
@@ -205,7 +205,7 @@ describe('upgrading older files', () => {
       read(
         legacyFile({
           blocks: [
-            block('plate', {
+            card('plate', {
               plates: [{ id: 'p1', vessel: '96', name: '' }],
               sets: [],
               fields: [{ id: 'f1', name: 'Drug', values: [{ id: 'v1', text: 'A' }] }],
@@ -228,7 +228,7 @@ describe('upgrading older files', () => {
       read(
         legacyFile({
           blocks: [
-            block('plate', {
+            card('plate', {
               plates: [{ id: 'p1', vessel: '96', name: '' }],
               sets: [],
               fields: [{ id: 'f1', name: 'Drug', values: [], show: 'band' }],
@@ -288,8 +288,8 @@ describe('readProtocolFile errors', () => {
     expect(() => read(damaged)).toThrow(/damaged at protocol\.pages/);
   });
 
-  it('reports an unknown block type in an old file', () => {
-    expect(() => read(legacyFile({ blocks: [block('hologram')] }))).toThrow(
+  it('reports an unknown card type in an old file', () => {
+    expect(() => read(legacyFile({ blocks: [card('hologram')] }))).toThrow(
       'Unknown card type "hologram"'
     );
   });
@@ -304,7 +304,7 @@ describe('retiring painted colors', () => {
       read(
         legacyFile({
           blocks: [
-            block('plate', { plates: [{ id: 'p1', vessel: '96', name: '' }], sets: [], ...fields }),
+            card('plate', { plates: [{ id: 'p1', vessel: '96', name: '' }], sets: [], ...fields }),
           ],
         })
       )
@@ -519,7 +519,7 @@ describe('retiring painted colors', () => {
         pages: [{ id: 'page', name: 'Setup', steps: [] }],
         blocks: [
           {
-            ...block('plate'),
+            ...card('plate'),
             page: 'page',
             plates: [{ id: 'p1', vessel: '96', name: '' }],
             sets: [],
@@ -582,7 +582,7 @@ describe('opening a current file', () => {
       shows: plate.id,
       side: 'stain',
     });
-    const view = read(file).blocks.find(block => block.type === 'plateView');
+    const view = read(file).blocks.find(card => card.type === 'plateView');
     expect(view).toMatchObject({
       shows: plate.id,
       side: 'stain',
@@ -638,9 +638,9 @@ describe('opening a current file', () => {
   });
 });
 
-const cardOf = <Type extends ProtocolBlockType>(protocol: Protocol, type: Type) => {
+const cardOf = <Type extends ProtocolCardType>(protocol: Protocol, type: Type) => {
   const card = protocol.blocks.find(
-    (candidate): candidate is Extract<ProtocolBlock, { type: Type }> => candidate.type === type
+    (candidate): candidate is Extract<ProtocolCard, { type: Type }> => candidate.type === type
   );
   if (!card) throw new Error(`no ${type} card`);
   return card;

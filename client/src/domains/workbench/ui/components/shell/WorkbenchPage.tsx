@@ -5,9 +5,9 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useProtocolFileActions } from '../../../hooks/useProtocolFileActions';
 import { useUndoShortcuts } from '../../../hooks/useUndoShortcuts';
-import { WorkbenchBlockRail } from '../board/WorkbenchBlockRail';
 import { WorkbenchBoard } from '../board/WorkbenchBoard';
-import { WorkbenchPageTabs } from '../board/WorkbenchPageTabs';
+import { WorkbenchCardRail } from '../board/WorkbenchCardRail';
+import { WorkbenchPageBar } from '../board/WorkbenchPageBar';
 import { WorkbenchFluorAddDialog } from '../fluors/WorkbenchFluorAddDialog';
 import { WorkbenchNameTray } from '../tray/WorkbenchNameTray';
 
@@ -35,7 +35,7 @@ export function WorkbenchPage() {
     <div className="flex min-h-0 flex-1 gap-4 px-4 pb-4 pt-3">
       <ScrollArea className="w-56 flex-none">
         <ConsolePanel intensity="soft" className="py-3">
-          <WorkbenchBlockRail />
+          <WorkbenchCardRail />
         </ConsolePanel>
       </ScrollArea>
       <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
@@ -55,7 +55,7 @@ export function WorkbenchPage() {
         <Divider tone="neutral" className="my-1" />
         <div className="flex min-h-0 flex-1 flex-col gap-2">
           <div className="pr-2">
-            <WorkbenchPageTabs />
+            <WorkbenchPageBar />
           </div>
           <ScrollArea className="min-h-0 flex-1 pr-2">
             <WorkbenchBoard />

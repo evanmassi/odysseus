@@ -162,23 +162,23 @@ describe('cell math for cells diluted from a stock', () => {
     );
     return {
       ...base,
-      blocks: base.blocks.map(block => {
-        if (block.type === 'materials') return { ...block, items: [hkca] };
-        if (block.type === 'plate') {
+      blocks: base.blocks.map(card => {
+        if (card.type === 'materials') return { ...card, items: [hkca] };
+        if (card.type === 'plate') {
           return {
-            ...block,
+            ...card,
             cells,
             lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
           };
         }
-        if (block.type === 'values') {
+        if (card.type === 'values') {
           return {
-            ...block,
+            ...card,
             sections: [{ id: 's', materialId: 'hkca' }],
             items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', section: 's' }],
           };
         }
-        return block;
+        return card;
       }),
     } as Protocol;
   }
@@ -226,18 +226,18 @@ describe('cell math from the counts', () => {
     );
     return {
       ...base,
-      blocks: base.blocks.map(block => {
-        if (block.type === 'materials') return { ...block, items: [raji(values)] };
-        if (block.type === 'plate') {
+      blocks: base.blocks.map(card => {
+        if (card.type === 'materials') return { ...card, items: [raji(values)] };
+        if (card.type === 'plate') {
           return {
-            ...block,
+            ...card,
             cells,
             lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
           };
         }
-        if (block.type === 'values') {
+        if (card.type === 'values') {
           return {
-            ...block,
+            ...card,
             sections: [{ id: 's', materialId: 'raji' }],
             items: [
               { id: 'vol', name: 'Vol./well', value: '100', unit: 'µL', section: 's' },
@@ -245,7 +245,7 @@ describe('cell math from the counts', () => {
             ],
           };
         }
-        return block;
+        return card;
       }),
     } as Protocol;
   }

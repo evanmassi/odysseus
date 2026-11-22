@@ -13,7 +13,7 @@ export interface RecipeLine {
 }
 
 const allMaterials = (protocol: Protocol): MaterialItem[] =>
-  protocol.blocks.flatMap(block => (block.type === 'materials' ? block.items : []));
+  protocol.blocks.flatMap(card => (card.type === 'materials' ? card.items : []));
 
 const materialIn = (protocol: Protocol, id: string) =>
   allMaterials(protocol).find(item => item.id === id);

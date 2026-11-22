@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { CONJUGATE_FIELD } from '../materials/materialClashes';
+import { CONJUGATE_FIELD } from '../materials/conjugateConflicts';
 
 import type { MaterialItem, Protocol, ProtocolFluor } from '@odysseus/shared-schemas';
 

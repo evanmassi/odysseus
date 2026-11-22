@@ -3,7 +3,7 @@ import {
   insertStepBelow,
   insertSubStep,
   levelShifts,
-  moveStepBlock,
+  moveStepWithSubSteps,
   moveStepDown,
   moveStepUp,
   shiftStepLevel,
@@ -33,30 +33,30 @@ const steps = [
 
 const ids = (list: readonly ProtocolStep[]) => list.map(item => item.id).join(' ');
 
-describe('moveStepBlock', () => {
+describe('moveStepWithSubSteps', () => {
   it('carries a step’s sub-steps with it', () => {
-    expect(ids(moveStepBlock(steps, 'a', 'b', true))).toBe('S1 b a a1 S2 c c1 c2');
+    expect(ids(moveStepWithSubSteps(steps, 'a', 'b', true))).toBe('S1 b a a1 S2 c c1 c2');
   });
 
   it('carries a section’s steps with it', () => {
-    expect(ids(moveStepBlock(steps, 'S2', 'S1', false))).toBe('S2 c c1 c2 S1 a a1 b');
+    expect(ids(moveStepWithSubSteps(steps, 'S2', 'S1', false))).toBe('S2 c c1 c2 S1 a a1 b');
   });
 
   it('drops a step after a section heading at the top of that section', () => {
-    expect(ids(moveStepBlock(steps, 'b', 'S2', true))).toBe('S1 a a1 S2 b c c1 c2');
+    expect(ids(moveStepWithSubSteps(steps, 'b', 'S2', true))).toBe('S1 a a1 S2 b c c1 c2');
   });
 
-  it('drops a section after another section’s whole block', () => {
-    expect(ids(moveStepBlock(steps, 'S1', 'S2', true))).toBe('S2 c c1 c2 S1 a a1 b');
+  it('drops a section after another section’s whole group of steps', () => {
+    expect(ids(moveStepWithSubSteps(steps, 'S1', 'S2', true))).toBe('S2 c c1 c2 S1 a a1 b');
   });
 
   it('moves a lone sub-step', () => {
-    expect(ids(moveStepBlock(steps, 'c2', 'a1', false))).toBe('S1 a c2 a1 b S2 c c1');
+    expect(ids(moveStepWithSubSteps(steps, 'c2', 'a1', false))).toBe('S1 a c2 a1 b S2 c c1');
   });
 
   it('leaves the order alone when dropped onto itself or its own sub-steps', () => {
-    expect(moveStepBlock(steps, 'c', 'c1', true)).toBe(steps);
-    expect(moveStepBlock(steps, 'missing', 'a', true)).toBe(steps);
+    expect(moveStepWithSubSteps(steps, 'c', 'c1', true)).toBe(steps);
+    expect(moveStepWithSubSteps(steps, 'missing', 'a', true)).toBe(steps);
   });
 });
 
@@ -92,7 +92,7 @@ const levels = (list: readonly ProtocolStep[]) =>
 describe('sub-sub-steps', () => {
   it('move with their sub-step, and both move with the step', () => {
     expect(ids(moveStepDown(nested, 'a1'))).toBe('a a2 a1 a1x b');
-    expect(ids(moveStepBlock(nested, 'a', 'b', true))).toBe('b a a1 a1x a2');
+    expect(ids(moveStepWithSubSteps(nested, 'a', 'b', true))).toBe('b a a1 a1x a2');
   });
 });
 

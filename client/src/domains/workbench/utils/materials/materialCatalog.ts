@@ -145,7 +145,7 @@ export const CELL_TYPES: readonly string[] = [
   'Microbial strain',
 ];
 
-export const SOURCE_FIELDS: readonly FieldDefinition[] = [
+export const DONOR_FIELDS: readonly FieldDefinition[] = [
   field('Donor ID'),
   field('Source'),
   field('Lot / vial', 'text', { key: 'lot-vial' }),

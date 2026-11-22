@@ -1,4 +1,4 @@
-import { indicatorColorOf, lineValueOf, type PlateMapBlock } from '@odysseus/shared-schemas';
+import { indicatorColorOf, lineValueOf, type PlateMapCard } from '@odysseus/shared-schemas';
 
 import { formatNumber } from '../formulas/quantities';
 import { findNamed } from '../materials/materialLookup';
@@ -11,7 +11,7 @@ import { wellLine } from './wellContents';
 import type { IndicatorKind, LineLayer } from './plateLayers';
 import type { PlateMapSheet } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { SourceSummary } from '../materials/materialSources';
+import type { DonorSummary } from '../materials/materialDonors';
 
 export type WellTooltipRow =
   | {
@@ -44,35 +44,31 @@ function splitAmount(readable: string): { amount: string; unit: string } {
     : { amount: readable.slice(0, gap), unit: readable.slice(gap + 1) };
 }
 
-function indicatorOf(
-  block: PlateMapBlock,
-  layer: LineLayer,
-  key: string
-): WellIndicator | undefined {
-  const value = lineValueOf(layer.line, block.cells[key]?.[layer.line.id]);
+function indicatorOf(card: PlateMapCard, layer: LineLayer, key: string): WellIndicator | undefined {
+  const value = lineValueOf(layer.line, card.cells[key]?.[layer.line.id]);
   const kind = indicatorKindOf(layer.role);
   if (!value || !kind) return undefined;
-  const color = kind === 'fill' ? value.color : indicatorColorOf(block, value);
+  const color = kind === 'fill' ? value.color : indicatorColorOf(card, value);
   return color ? { kind, color } : undefined;
 }
 
 export function wellTooltipRows(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   layers: readonly LineLayer[],
   board: SolvedBoard,
-  sources: readonly SourceSummary[]
+  donorSummaries: readonly DonorSummary[]
 ): WellTooltipRow[] {
   const rows: WellTooltipRow[] = [];
   const ratios: WellTooltipRow[] = [];
   for (const layer of layers) {
     const { line } = layer;
-    const shown = wellLine(block, key, line, board);
+    const shown = wellLine(card, key, line, board);
     if (!shown) continue;
-    const indicator = indicatorOf(block, layer, key);
-    if (isRatioAt(block, key, line, board)) {
-      const count = cellCount(block, key, line, board);
-      const partner = ratioPartner(block, key, line, board);
+    const indicator = indicatorOf(card, layer, key);
+    if (isRatioAt(card, key, line, board)) {
+      const count = cellCount(card, key, line, board);
+      const partner = ratioPartner(card, key, line, board);
       rows.push({
         kind: 'line',
         indicator,
@@ -84,13 +80,15 @@ export function wellTooltipRows(
         kind: 'ratio',
         ratio: shown.readable,
         between: partner
-          ? `${shown.label || 'these cells'} : ${partnerName(block, key, partner)}`
+          ? `${shown.label || 'these cells'} : ${partnerName(card, key, partner)}`
           : 'pick the cells this ratio is to',
       });
     } else {
       rows.push({ kind: 'line', indicator, name: shown.label, ...splitAmount(shown.readable) });
     }
-    const source = shown.label ? findNamed(sources, shown.label, found => found.name) : undefined;
+    const source = shown.label
+      ? findNamed(donorSummaries, shown.label, found => found.name)
+      : undefined;
     if (source) rows.push({ kind: 'detail', text: source.summary });
   }
   return [...ratios, ...rows];
@@ -100,15 +98,15 @@ const labelIn = (sheet: PlateMapSheet, key: string) =>
   sheet.positions.find(position => position.key === key)?.label ?? key;
 
 export function stainSideTooltipRows(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   key: string,
   layers: readonly LineLayer[],
   board: SolvedBoard,
-  sources: readonly SourceSummary[]
+  donorSummaries: readonly DonorSummary[]
 ): WellTooltipRow[] {
-  const samples = stainSamples(block, sheet);
-  const contentsOf = (well: string) => wellTooltipRows(block, well, layers, board, sources);
+  const samples = stainSamples(card, sheet);
+  const contentsOf = (well: string) => wellTooltipRows(card, well, layers, board, donorSummaries);
   if (isAtHome(samples, key)) return contentsOf(key);
   const wells = samples.get(key) ?? [];
   if (!wells.length) return [];
@@ -129,15 +127,15 @@ export function stainSideTooltipRows(
 }
 
 export function stainedElsewhereRows(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   key: string,
   stainNameOf: (stainId: string) => string | undefined
 ): WellTooltipRow[] {
-  const position = block.stainedIn[key];
+  const position = card.stainedIn[key];
   if (!position) return [];
-  const isPooled = (stainSamples(block, sheet).get(position)?.length ?? 0) > 1;
-  const stainId = block.stain[position];
+  const isPooled = (stainSamples(card, sheet).get(position)?.length ?? 0) > 1;
+  const stainId = card.stain[position];
   const label = labelIn(sheet, position);
   const stainName = stainId === undefined ? undefined : stainNameOf(stainId);
   const text = stainName

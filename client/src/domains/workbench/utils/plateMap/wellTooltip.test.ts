@@ -4,7 +4,7 @@ import { lineLayers } from './plateLayers';
 import { activeTabOf, sheetOf } from './plateMapTabs';
 import { stainedElsewhereRows, stainSideTooltipRows, wellTooltipRows } from './wellTooltip';
 
-import type { PlateMapBlock } from '@odysseus/shared-schemas';
+import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 const empty = calculateBoard([]);
 
@@ -26,10 +26,10 @@ const coCulture = () =>
     side: 'assay',
     stain: {},
     stainedIn: {},
-  }) as unknown as PlateMapBlock;
+  }) as unknown as PlateMapCard;
 
-const rowsAt = (block: PlateMapBlock, sources: Array<{ name: string; summary: string }> = []) =>
-  wellTooltipRows(block, 'p:A1', lineLayers(block, undefined, empty), empty, sources);
+const rowsAt = (card: PlateMapCard, sources: Array<{ name: string; summary: string }> = []) =>
+  wellTooltipRows(card, 'p:A1', lineLayers(card, undefined, empty), empty, sources);
 
 describe('well tooltip rows', () => {
   it('gives each cell its own count and says the ratio once, naming both sides', () => {
@@ -44,9 +44,9 @@ describe('well tooltip rows', () => {
   });
 
   it('asks for the other cells when the ratio has no partner', () => {
-    const block = coCulture();
-    delete block.cells['p:A1']['r'];
-    const rows = rowsAt(block);
+    const card = coCulture();
+    delete card.cells['p:A1']['r'];
+    const rows = rowsAt(card);
     expect(rows[0]).toEqual({
       kind: 'ratio',
       ratio: '4:1',
@@ -62,21 +62,21 @@ describe('well tooltip rows', () => {
   });
 
   it('says what a pooled position came from, and where a pooled-away well was stained', () => {
-    const block = {
+    const card = {
       ...coCulture(),
       plates: [{ id: 'p', vessel: '96', name: '' }],
       sets: [],
       activeTab: 0,
       stain: { 'p:B1': 'full' },
       stainedIn: { 'p:A1': 'p:B1', 'p:A2': 'p:B1' },
-    } as unknown as PlateMapBlock;
-    block.cells['p:A2'] = structuredClone(block.cells['p:A1']);
-    const sheet = sheetOf(block, activeTabOf(block));
-    const layers = lineLayers(block, undefined, empty);
-    const pooled = stainSideTooltipRows(block, sheet, 'p:B1', layers, empty, []);
+    } as unknown as PlateMapCard;
+    card.cells['p:A2'] = structuredClone(card.cells['p:A1']);
+    const sheet = sheetOf(card, activeTabOf(card));
+    const layers = lineLayers(card, undefined, empty);
+    const pooled = stainSideTooltipRows(card, sheet, 'p:B1', layers, empty, []);
     expect(pooled[0]).toEqual({ kind: 'note', text: 'Came from A1, A2' });
-    expect(pooled).toHaveLength(1 + rowsAt(block).length);
-    expect(stainedElsewhereRows(block, sheet, 'p:A2', () => 'Full Stain')).toEqual([
+    expect(pooled).toHaveLength(1 + rowsAt(card).length);
+    expect(stainedElsewhereRows(card, sheet, 'p:A2', () => 'Full Stain')).toEqual([
       { kind: 'note', text: 'Stained pooled in B1 · Full Stain' },
     ]);
   });

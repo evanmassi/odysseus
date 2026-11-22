@@ -1,4 +1,4 @@
-import { normalizePlateMap, type PlateMapBlock } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type PlateMapCard } from '@odysseus/shared-schemas';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 
@@ -24,9 +24,9 @@ const plateMap = () =>
     side: 'assay',
     stain: {},
     stainedIn: {},
-  }) as unknown as PlateMapBlock;
+  }) as unknown as PlateMapCard;
 
-const sheetFor = (block: PlateMapBlock) => sheetOf(block, plateMapTabs(block)[0]);
+const sheetFor = (card: PlateMapCard) => sheetOf(card, plateMapTabs(card)[0]);
 const rowB = new Set(['p:B2', 'p:B3', 'p:B4']);
 const form = seriesFormFor('drug', undefined, undefined, { amount: '10', unit: 'µM' });
 
@@ -46,39 +46,39 @@ describe('series edits', () => {
   });
 
   it('write each well its point and keep the Dilutions settings when rewritten', () => {
-    const block = plateMap();
-    const sheet = sheetFor(block);
-    block.cells['p:B2'] = { drug: { valueId: 'x', amount: '10' } };
-    const seriesId = writeSeries(block, sheet, rowB, { ...form, dilutionFactor: '3' });
-    expect(block.cells['p:B4']).toEqual({ drug: { seriesId, seriesStep: 2 } });
-    expect(block.cells['p:B2']).toEqual({ drug: { valueId: 'x', seriesId, seriesStep: 0 } });
-    block.series[seriesId] = { ...block.series[seriesId], prep: { volumeAdded: '20' } };
-    writeSeries(block, sheet, new Set(['p:B2']), { ...form, seriesId, dilutionFactor: '2' });
-    expect(block.series[seriesId]).toMatchObject({ fold: '2', prep: { volumeAdded: '20' } });
-    expect(block.cells['p:B4']).toEqual({ drug: { seriesId, seriesStep: 2 } });
+    const card = plateMap();
+    const sheet = sheetFor(card);
+    card.cells['p:B2'] = { drug: { valueId: 'x', amount: '10' } };
+    const seriesId = writeSeries(card, sheet, rowB, { ...form, dilutionFactor: '3' });
+    expect(card.cells['p:B4']).toEqual({ drug: { seriesId, seriesStep: 2 } });
+    expect(card.cells['p:B2']).toEqual({ drug: { valueId: 'x', seriesId, seriesStep: 0 } });
+    card.series[seriesId] = { ...card.series[seriesId], prep: { volumeAdded: '20' } };
+    writeSeries(card, sheet, new Set(['p:B2']), { ...form, seriesId, dilutionFactor: '2' });
+    expect(card.series[seriesId]).toMatchObject({ fold: '2', prep: { volumeAdded: '20' } });
+    expect(card.cells['p:B4']).toEqual({ drug: { seriesId, seriesStep: 2 } });
   });
 
   it('remove a series from every well that held it, not just the selected ones', () => {
-    const block = plateMap();
-    const seriesId = writeSeries(block, sheetFor(block), rowB, { ...form, dilutionFactor: '3' });
-    removeSeries(block, seriesId);
-    normalizePlateMap(block);
-    expect(block.series).toEqual({});
-    expect(block.cells).toEqual({});
+    const card = plateMap();
+    const seriesId = writeSeries(card, sheetFor(card), rowB, { ...form, dilutionFactor: '3' });
+    removeSeries(card, seriesId);
+    normalizePlateMap(card);
+    expect(card.series).toEqual({});
+    expect(card.cells).toEqual({});
   });
 
   it('preview the points, shortening long runs', () => {
-    const block = plateMap();
-    const sheet = sheetFor(block);
+    const card = plateMap();
+    const sheet = sheetFor(card);
     const row = new Set(
       sheet.positions.filter(position => position.row === 0).map(position => position.key)
     );
     expect(
-      seriesPreview(block, sheet, row, { ...form, dilutionFactor: '3' }, calculateBoard([]))
+      seriesPreview(card, sheet, row, { ...form, dilutionFactor: '3' }, calculateBoard([]))
     ).toBe('12 points: 10 µM, 3.33 µM, 1.11 µM, 0.37 µM, …, 5.65E-5 µM');
     expect(
       seriesPreview(
-        block,
+        card,
         sheet,
         rowB,
         { ...form, isList: true, typedValues: 'High, Low' },
@@ -88,11 +88,11 @@ describe('series edits', () => {
   });
 
   it('default a new series to a unit already used on its line', () => {
-    const block = plateMap();
-    expect(lineUnitOf(block, 'drug')).toBe('');
-    writeSeries(block, sheetFor(block), rowB, { ...form, dilutionFactor: '3' });
-    expect(lineUnitOf(block, 'drug')).toBe('µM');
-    block.cells['p:H1'] = { drug: { valueId: 'x', amount: '5', unit: 'nM' } };
-    expect(lineUnitOf(block, 'drug')).toBe('nM');
+    const card = plateMap();
+    expect(lineUnitOf(card, 'drug')).toBe('');
+    writeSeries(card, sheetFor(card), rowB, { ...form, dilutionFactor: '3' });
+    expect(lineUnitOf(card, 'drug')).toBe('µM');
+    card.cells['p:H1'] = { drug: { valueId: 'x', amount: '5', unit: 'nM' } };
+    expect(lineUnitOf(card, 'drug')).toBe('nM');
   });
 });

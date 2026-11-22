@@ -12,10 +12,10 @@ const plateSchema = z.looseObject({
   series: z.record(z.string(), seriesSchema),
 });
 
-const firstChosenDiluent = (blocks: readonly unknown[]): string =>
-  blocks
-    .flatMap(block => {
-      const plate = plateSchema.safeParse(block);
+const firstChosenDiluent = (cards: readonly unknown[]): string =>
+  cards
+    .flatMap(card => {
+      const plate = plateSchema.safeParse(card);
       return plate.success ? Object.values(plate.data.series) : [];
     })
     .map(series => series.prep?.diluent?.trim() ?? '')

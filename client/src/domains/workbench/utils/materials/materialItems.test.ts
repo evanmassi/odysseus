@@ -1,6 +1,6 @@
 import { materialFields } from './materialCatalog';
 import {
-  applyMaterialKind,
+  applyMaterialType,
   copyMaterialField,
   findAlreadyListed,
   groupStartingFields,
@@ -37,7 +37,7 @@ const fieldOf = (item: MaterialItem, key: string) => {
 };
 
 describe('materialFromGuess', () => {
-  it('shows the default fields for the kind', () => {
+  it('shows the default fields for the type', () => {
     expect(make().shownFields).toEqual(['vendor', 'catalog', 'lot']);
     expect(make({ group: 'equip', type: 'Instrument' }).shownFields).toEqual(['model']);
     expect(make({ group: 'ab', type: 'Antibody' }).shownFields).toEqual([
@@ -52,7 +52,7 @@ describe('materialFromGuess', () => {
     ]);
   });
 
-  it('keeps guessed values only for fields the kind has and choices it allows', () => {
+  it('keeps guessed values only for fields the type has and choices it allows', () => {
     const item = make({
       group: 'supplies',
       type: 'Plate',
@@ -79,7 +79,7 @@ describe('materialFromGuess', () => {
     expect(item.units['stock-concentration']).toBe('mM');
   });
 
-  it('recalls remembered values, units, custom fields and shown fields of the same kind', () => {
+  it('recalls remembered values, units, custom fields and shown fields of the same type', () => {
     const remembered: RememberedMaterial = {
       group: 'chem',
       type: 'Chemical',
@@ -103,7 +103,7 @@ describe('materialFromGuess', () => {
     expect(item.shownFields).toEqual(expect.arrayContaining(['vendor', 'grade', 'custom-shelf']));
   });
 
-  it('ignores a remembered material filed under another kind', () => {
+  it('ignores a remembered material filed under another type', () => {
     const remembered: RememberedMaterial = {
       group: 'media',
       type: 'Buffer',
@@ -144,7 +144,7 @@ describe('pinned starting fields', () => {
   const newOf = (type: string, memory: ReturnType<typeof pinned>) =>
     materialFromGuess(guessOf({ group: 'ab', type, name: type }), memory);
 
-  it('starts a group from the built-in defaults of all its kinds until something is pinned', () => {
+  it('starts a group from the built-in defaults of all its types until something is pinned', () => {
     expect(groupStartingFields(EMPTY_LAB_MEMORY, 'ab')).toEqual([
       'vendor',
       'catalog',
@@ -153,7 +153,7 @@ describe('pinned starting fields', () => {
     ]);
   });
 
-  it('starts new materials with the pinned fields their kind has', () => {
+  it('starts new materials with the pinned fields their type has', () => {
     const memory = pinned({ ab: ['vendor', 'clone', 'isotype'] });
     expect(newOf('Antibody', memory).shownFields).toEqual(['vendor', 'clone', 'isotype']);
     expect(newOf('Isotype control', memory).shownFields).toEqual(['vendor', 'isotype']);
@@ -175,9 +175,9 @@ describe('pinned starting fields', () => {
 });
 
 describe('applyMaterialKind', () => {
-  it('adds the new kind defaults and drops fields the new kind does not have', () => {
+  it('adds the new type defaults and drops fields the new type does not have', () => {
     const item = make({ group: 'supplies', type: 'Plate', values: { format: '96-well' } });
-    applyMaterialKind(item, 'equip', 'Instrument', EMPTY_LAB_MEMORY);
+    applyMaterialType(item, 'equip', 'Instrument', EMPTY_LAB_MEMORY);
     expect(item.shownFields).toEqual(['model']);
     expect(item).toMatchObject({ group: 'equip', type: 'Instrument' });
   });

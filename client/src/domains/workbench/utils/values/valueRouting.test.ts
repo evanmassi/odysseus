@@ -1,7 +1,7 @@
 import { addRoutedValue } from './valueEdits';
 import { routedValueGuess, routeValueLine, rowValueGuess } from './valueRouting';
 
-import type { MaterialItem, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type { MaterialItem, Protocol, ValuesCard } from '@odysseus/shared-schemas';
 
 const material = (
   id: string,
@@ -23,13 +23,13 @@ const material = (
   recipe: [],
 });
 
-function protocolWith(): { protocol: Protocol; block: ValuesBlock } {
-  const block = {
+function protocolWith(): { protocol: Protocol; card: ValuesCard } {
+  const card = {
     id: 'values',
     type: 'values',
     items: [],
     sections: [{ id: 'mix', mixName: 'Th17 cocktail' }],
-  } as unknown as ValuesBlock;
+  } as unknown as ValuesCard;
   const protocol = {
     blocks: [
       {
@@ -44,16 +44,16 @@ function protocolWith(): { protocol: Protocol; block: ValuesBlock } {
           material('spinner', 'Centrifuge', 'equip', 'Instrument'),
         ],
       },
-      block,
+      card,
     ],
     diluent: '',
   } as unknown as Protocol;
-  return { protocol, block };
+  return { protocol, card };
 }
 
 const routed = (text: string) => {
-  const { protocol, block } = protocolWith();
-  return routeValueLine(protocol, block, text);
+  const { protocol, card } = protocolWith();
+  return routeValueLine(protocol, card, text);
 };
 
 describe('routing a typed value', () => {
@@ -122,31 +122,31 @@ describe('routing a typed value', () => {
 
 describe('adding routed values', () => {
   it('makes one row for a material however many of its values arrive together', () => {
-    const { protocol, block } = protocolWith();
+    const { protocol, card } = protocolWith();
     for (const text of ['Raji per well 10000 cells', 'Raji volume per well 50 µL']) {
-      const value = routeValueLine(protocol, block, text);
+      const value = routeValueLine(protocol, card, text);
       if (value) addRoutedValue(protocol, 'values', value);
     }
-    const rajiRows = block.sections.filter(
+    const rajiRows = card.sections.filter(
       valueRow => 'materialId' in valueRow && valueRow.materialId === 'raji'
     );
     expect(rajiRows).toHaveLength(1);
-    expect(block.items.map(item => ('name' in item ? item.name : ''))).toEqual([
+    expect(card.items.map(item => ('name' in item ? item.name : ''))).toEqual([
       'Cells/well',
       'Vol./well',
     ]);
   });
 
   it('writes a field on the material and links it on the row once', () => {
-    const { protocol, block } = protocolWith();
+    const { protocol, card } = protocolWith();
     for (const text of ['Raji count 1e6 cells/mL', 'Raji count 2e6 cells/mL']) {
-      const value = routeValueLine(protocol, block, text);
+      const value = routeValueLine(protocol, card, text);
       if (value) addRoutedValue(protocol, 'values', value);
     }
     const [materials] = protocol.blocks;
     const raji = materials.type === 'materials' ? materials.items[0] : undefined;
     expect(raji?.values['count']).toBe('2e6');
     expect(raji?.shownFields).toContain('count');
-    expect(block.items.filter(item => 'materialField' in item)).toHaveLength(1);
+    expect(card.items.filter(item => 'materialField' in item)).toHaveLength(1);
   });
 });

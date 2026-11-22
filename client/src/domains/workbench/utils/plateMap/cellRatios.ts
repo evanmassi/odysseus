@@ -2,7 +2,7 @@ import {
   UNIT_REGISTRY,
   lineValueOf,
   type PlateLine,
-  type PlateMapBlock,
+  type PlateMapCard,
 } from '@odysseus/shared-schemas';
 
 import { formatNumber, PAIR_NOTATION, readNumber, readPair } from '../formulas/quantities';
@@ -15,52 +15,52 @@ const isCellCountUnit = (unit: string) =>
   UNIT_REGISTRY.some(entry => entry.id === unit && entry.kind === 'cell-count');
 
 function typedCount(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): number | undefined {
-  const point = wellAmount(block, key, line, board);
+  const point = wellAmount(card, key, line, board);
   return point && isCellCountUnit(point.unit) ? readNumber(point.amount) : undefined;
 }
 
 export function ratioPartner(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): PlateLine | undefined {
-  const chosen = block.lines.find(other => other.id === line.ratioTo && other.id !== line.id);
+  const chosen = card.lines.find(other => other.id === line.ratioTo && other.id !== line.id);
   if (chosen) return chosen;
-  const counted = block.lines.filter(
-    other => other.id !== line.id && typedCount(block, key, other, board) !== undefined
+  const counted = card.lines.filter(
+    other => other.id !== line.id && typedCount(card, key, other, board) !== undefined
   );
   return counted.length === 1 ? counted[0] : undefined;
 }
 
 export const isRatioAt = (
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine,
   board: SolvedBoard
-): boolean => wellAmount(block, key, line, board)?.unit === PAIR_NOTATION;
+): boolean => wellAmount(card, key, line, board)?.unit === PAIR_NOTATION;
 
 export function cellCount(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): number | undefined {
-  const point = wellAmount(block, key, line, board);
-  if (point?.unit !== PAIR_NOTATION) return typedCount(block, key, line, board);
+  const point = wellAmount(card, key, line, board);
+  if (point?.unit !== PAIR_NOTATION) return typedCount(card, key, line, board);
   const ratio = readPair(point.amount);
-  const partner = ratioPartner(block, key, line, board);
-  const partnerCount = partner && typedCount(block, key, partner, board);
+  const partner = ratioPartner(card, key, line, board);
+  const partnerCount = partner && typedCount(card, key, partner, board);
   return ratio !== undefined && partnerCount !== undefined ? ratio * partnerCount : undefined;
 }
 
-export function partnerName(block: PlateMapBlock, key: string, partner: PlateLine): string {
-  const text = lineValueOf(partner, block.cells[key]?.[partner.id])?.text.trim();
+export function partnerName(card: PlateMapCard, key: string, partner: PlateLine): string {
+  const text = lineValueOf(partner, card.cells[key]?.[partner.id])?.text.trim();
   return [text, partner.name.trim()].find(Boolean) ?? 'the other cells';
 }
 
@@ -77,15 +77,15 @@ export interface RatioRow {
 }
 
 export function ratioRow(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   keys: readonly string[],
   line: PlateLine,
   board: SolvedBoard
 ): RatioRow | undefined {
   const [firstKey] = keys;
-  if (!firstKey || !keys.some(key => isRatioAt(block, key, line, board))) return undefined;
-  const auto = ratioPartner(block, firstKey, { ...line, ratioTo: undefined }, board);
-  const counts = keys.map(key => cellCount(block, key, line, board));
+  if (!firstKey || !keys.some(key => isRatioAt(card, key, line, board))) return undefined;
+  const auto = ratioPartner(card, firstKey, { ...line, ratioTo: undefined }, board);
+  const counts = keys.map(key => cellCount(card, key, line, board));
   const known = [...new Set(counts.filter(count => count !== undefined))];
   const workedOut =
     known.length === 1 && counts.every(count => count !== undefined)
@@ -94,11 +94,11 @@ export function ratioRow(
         ? 'cells differ by well'
         : '';
   return {
-    choices: block.lines
-      .filter(other => other.id !== line.id && keys.some(key => block.cells[key]?.[other.id]))
-      .map(other => ({ lineId: other.id, label: partnerName(block, firstKey, other) })),
-    chosenId: block.lines.some(other => other.id === line.ratioTo) ? (line.ratioTo ?? '') : '',
-    autoLabel: auto && partnerName(block, firstKey, auto),
+    choices: card.lines
+      .filter(other => other.id !== line.id && keys.some(key => card.cells[key]?.[other.id]))
+      .map(other => ({ lineId: other.id, label: partnerName(card, firstKey, other) })),
+    chosenId: card.lines.some(other => other.id === line.ratioTo) ? (line.ratioTo ?? '') : '',
+    autoLabel: auto && partnerName(card, firstKey, auto),
     workedOut,
   };
 }

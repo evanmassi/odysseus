@@ -285,8 +285,51 @@ The order matters here, or new names land on names still in use.
       sections. Saved keys wait for Phase B: `sections`, items' `section`, `generalTitle`,
       `ignoredReadings`.
    6. Materials, donors, set aside.
+      **Done 2026-11-22.** The guesser's company list stays `VENDOR_*` (Evan 2026-11-22: "keep
+      vendor"), the word Supplies and Reagents already use; decision 15's `SUPPLIER_*` is dropped. Values boxes, settled with
+      Evan: **Item** is one value, **Row** a material's or mix's row, **Cell** one box in a table
+      (as `MaterialCell`, `DonorCell`, and app-wide `TubeGridCell`, `StatCell`): `ValueTableCell`
+      → `ValueCell`, `WorkbenchValueTableCell` → `WorkbenchValueCell`, the name-or-number marker
+      `ValueCell` → `ValueItemField`, `WorkbenchValueRow` → `WorkbenchValueItem`, and
+      `ValueCellSource` → `ValueCellLink`, held on the box as `linkedTo` ("linked", as the app's
+      `linkedUser`, `BarcodeLinkDialog`, `LinkedValue`; not origin, which `ValueOrigin` already
+      means). Set aside: `setAside()`, `restoreSetAside`, `isFromSetAside`,
+      `WorkbenchMaterialSetAsideSection`, the row status `'setAside'`; removed from Materials is
+      status `'removed'`; `removePasteRow`, `removeValuesTwinnedByPlate`. Donors: `ExperimentDonor`
+      / `ExperimentDonors`, `KnownDonor`, `donorsIn`, `findDonor`, `addDonor`, `startDonors`,
+      `DONORS_LABEL`, `DONOR_FIELDS`, `donorFields`, `DonorSummary`, `materialDonors.ts`,
+      `WorkbenchMaterialDonorTable`, a donor's id `donorId`, variables `donor` / `donors` /
+      `knownDonor`. Origin: `originBlockId`, `NameOrigin`. Type: `MaterialTypeSelection`,
+      `applyMaterialType`, `WorkbenchMaterialTypeSelector`, `RememberedMaterialType`. Conflict:
+      `ConjugateConflict`, `conjugateConflicts.ts`, `detectorConflictCount`,
+      `hasDetectorConflict`, `hasConjugateConflict`; cell counts that disagree are `mismatches` /
+      `isMismatched`; a generated name already used is `takenName`. `DONOR_LOT_FIELD` beside
+      `LOT_FIELD`. Kept, with reasons: "mix" for a material made from a recipe (now its only code
+      meaning, the same idea as Values mix rows and Mix conc.), `FieldExtras` (`FieldOptions` would
+      clash with a choice field's `options`), and everyday "source" (a tooltip's data, a parser's
+      text, a dilution's stock). Saved keys wait for Phase B: `isDropped`, `isDroppedOpen`,
+      `sources`, lab memory `sources` / `sourceFields` / `startingSourceFields` / `kinds`,
+      `vendor`, the cell-count keys, the recipe note.
    7. Procedure and Table.
+      **Done 2026-11-22.** `WorkbenchProcedurePanel`, folder `cards/procedure/`, a step with its
+      sub-steps is `moveStepWithSubSteps` / `subStepsEnd` / `withSubSteps`, a page is removed
+      (`removePage`, `removingPageId`, `requestRemove`), and the strip of pages is
+      `WorkbenchPageBar` (Bar is an established suffix; Strip is not). Step words stay: a step is
+      Procedure's own word (`WorkbenchStep*`, `utils/steps/`). The Table card has no code of its
+      own yet beyond its saved type `'list'`; the hint tokens (`<steps>`, `<formula>`, `<plate>`)
+      name saved card types and change with them in Phase B.
    8. **Card last** (it touches nearly every file).
+      **Done 2026-11-22.** block → card everywhere a card is meant: `ProtocolCard`,
+      `ProtocolCardType`, every `…Card` type (`PlateMapCard`, `ValuesCard`, `CalculationsCard`…),
+      `…CardSchema`, `cardBase`, `CardOf`, `CARD_TYPES`, `CARD_ICONS`, `CARD_PANELS`,
+      `useUpdateCard`, `useShowCard`, `useCardsOf`, `createCard`, `cachedPerCard`,
+      `WorkbenchCard{Shell,Rail,UsageTip,PendingPanel}`, folders `ui/components/cards/` and
+      `utils/cards/`, `cardId`, `card` / `cards`, `procedureCardId`, `data-card-id`,
+      `workbench-card-handle`, and `linkedPlateMaps.ts`. Kept: the saved key `blocks`, the
+      browser's `scrollIntoView({ block })`, the step verb Blocking, Fc block, blocking buffer,
+      `blockedBy` / `blocker` (prevented), the reagents SuperBlock and StartingBlock, and a
+      dragged rectangle of wells in a test. Where a file already had its own `card` / `cards`,
+      the clash was renamed by meaning (`plateMaps`, `cardElement`).
 4. **Phase B, file format v5:** every saved key and value in the tables above renamed in one
    conversion, the lab memory migrated, all checked on the sample files and Evan's real files.
    The series prep keys go with W114 step 2 instead.

@@ -1,4 +1,4 @@
-import { isFilledEntry, type SampleEntry, type PlateMapBlock } from '@odysseus/shared-schemas';
+import { isFilledEntry, type SampleEntry, type PlateMapCard } from '@odysseus/shared-schemas';
 
 import type { PlateMapSheet } from './plateMapTabs';
 
@@ -50,8 +50,8 @@ export function selectionName(sheet: PlateMapSheet, keys: ReadonlySet<string>): 
   return isRectangle ? `${labelAt(top, left)}–${labelAt(bottom, right)}` : '';
 }
 
-export const isWellFilled = (block: PlateMapBlock, key: string) =>
-  Object.values(block.cells[key] ?? {}).some(isFilledEntry);
+export const isWellFilled = (card: PlateMapCard, key: string) =>
+  Object.values(card.cells[key] ?? {}).some(isFilledEntry);
 
 function cornerOf(sheet: PlateMapSheet, keys: ReadonlySet<string>): GridPoint {
   const positions = sheet.positions.filter(position => keys.has(position.key));
@@ -62,7 +62,7 @@ function cornerOf(sheet: PlateMapSheet, keys: ReadonlySet<string>): GridPoint {
 }
 
 export function copyWells(
-  block: PlateMapBlock,
+  card: PlateMapCard,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>
 ): CopiedWell[] {
@@ -72,8 +72,8 @@ export function copyWells(
     .map(position => ({
       rowOffset: position.row - corner.row,
       colOffset: position.col - corner.col,
-      lines: structuredClone(block.cells[position.key] ?? {}),
-      stainId: block.stain[position.key],
+      lines: structuredClone(card.cells[position.key] ?? {}),
+      stainId: card.stain[position.key],
     }));
 }
 

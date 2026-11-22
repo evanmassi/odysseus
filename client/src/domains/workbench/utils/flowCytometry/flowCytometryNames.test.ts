@@ -3,7 +3,7 @@ import { collectBoardNames } from '../formulas/boardNames';
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
-import type { FlowCytometryPanelBlock, Protocol, ProtocolBlock } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanelCard, Protocol, ProtocolCard } from '@odysseus/shared-schemas';
 
 const antibody = (name: string) =>
   materialFromGuess(
@@ -16,7 +16,7 @@ const cd4 = antibody('CD4 FITC');
 
 const placement = { page: 'page', x: 0, y: 0, w: 12, h: 10, isCollapsed: false };
 
-const panel: FlowCytometryPanelBlock = {
+const panel: FlowCytometryPanelCard = {
   ...placement,
   id: 'panel',
   type: 'cytometer',
@@ -31,7 +31,7 @@ const panel: FlowCytometryPanelBlock = {
   ],
 };
 
-const plateMap: ProtocolBlock = {
+const plateMap: ProtocolCard = {
   ...placement,
   id: 'plate',
   type: 'plate',
@@ -50,7 +50,7 @@ const plateMap: ProtocolBlock = {
   stainedIn: {},
 };
 
-const protocol = (extra: ProtocolBlock[] = []): Protocol => ({
+const protocol = (extra: ProtocolCard[] = []): Protocol => ({
   title: 'Panel',
   descriptor: '',
   purpose: '',
@@ -101,7 +101,7 @@ describe('flow panel names', () => {
   });
 
   it('leaves a name that is already the scientist’s own to them', () => {
-    const own: ProtocolBlock = {
+    const own: ProtocolCard = {
       ...placement,
       id: 'formulas',
       type: 'formula',
@@ -115,7 +115,7 @@ describe('flow panel names', () => {
   });
 
   it('works out each marker’s amount per well from its staining’s cocktail volume', () => {
-    const values: ProtocolBlock = {
+    const values: ProtocolCard = {
       ...placement,
       id: 'values',
       type: 'values',
@@ -126,7 +126,7 @@ describe('flow panel names', () => {
     expect(
       answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 amount per well')
     ).toBe('0.5 µL');
-    const cocktailVolume: ProtocolBlock = {
+    const cocktailVolume: ProtocolCard = {
       ...values,
       items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
     };

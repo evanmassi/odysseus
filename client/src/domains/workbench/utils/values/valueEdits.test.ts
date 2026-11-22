@@ -16,13 +16,13 @@ import {
   setValueAmount,
 } from './valueEdits';
 
-import type { Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
 
 function protocolWithValues(): Protocol {
   const protocol = blankProtocol();
-  for (const block of protocol.blocks) {
-    if (block.type === 'materials') {
-      block.items = [
+  for (const card of protocol.blocks) {
+    if (card.type === 'materials') {
+      card.items = [
         {
           id: 'm1',
           group: 'bio',
@@ -43,7 +43,7 @@ function protocolWithValues(): Protocol {
 }
 
 const valuesOf = (protocol: Protocol) =>
-  protocol.blocks.find((block): block is ValuesBlock => block.type === 'values');
+  protocol.blocks.find((card): card is ValuesCard => card.type === 'values');
 
 describe('value edits', () => {
   it('adds typed lines and asks for the number of a single empty one', () => {
@@ -85,7 +85,7 @@ describe('value edits', () => {
 
   it('renames a linked field for every material in its Materials column', () => {
     const before = produce(protocolWithValues(), draft => {
-      const materials = draft.blocks.find(block => block.type === 'materials');
+      const materials = draft.blocks.find(card => card.type === 'materials');
       if (materials?.type !== 'materials') return;
       const [hela] = materials.items;
       materials.items.push(
@@ -103,7 +103,7 @@ describe('value edits', () => {
       });
       renameValue(draft, valuesId, itemId ?? '', 'Seeding count');
     });
-    const materials = after.blocks.find(block => block.type === 'materials');
+    const materials = after.blocks.find(card => card.type === 'materials');
     const labels =
       materials?.type === 'materials' ? materials.items.map(item => item.fieldLabels['count']) : [];
     expect(labels).toEqual(['Seeding count', 'Seeding count', undefined]);

@@ -1,8 +1,8 @@
 import { materialWellCounts, plateAmounts, plateMapCounts } from './plateMapNames';
 
-import type { MaterialItem, PlateLine, PlateMapBlock } from '@odysseus/shared-schemas';
+import type { MaterialItem, PlateLine, PlateMapCard } from '@odysseus/shared-schemas';
 
-const plateMap = (content: Partial<PlateMapBlock>): PlateMapBlock => ({
+const plateMap = (content: Partial<PlateMapCard>): PlateMapCard => ({
   id: 'map',
   type: 'plate',
   title: 'Vessel map',
@@ -36,7 +36,7 @@ const line = (id: string, texts: string[], role: PlateLine['role'] = 'auto'): Pl
 
 describe('plate map counts', () => {
   it('counts each color value across plates and shelves, with typed counts winning', () => {
-    const block = plateMap({
+    const card = plateMap({
       sets: [{ id: 's1', vessel: 'T75', count: 2 }],
       lines: [line('drug', ['Aspirin', 'Brufen'])],
       cells: {
@@ -47,7 +47,7 @@ describe('plate map counts', () => {
       },
       counts: { Brufen: '4' },
     });
-    expect(plateMapCounts(block).map(({ name, count }) => [name, count])).toEqual([
+    expect(plateMapCounts(card).map(({ name, count }) => [name, count])).toEqual([
       ['Aspirin wells', 2],
       ['Brufen flasks', 4],
       ['Wells used', 2],
@@ -60,7 +60,7 @@ describe('plate map counts', () => {
 
 describe('plate amounts', () => {
   it('splits an amount that differs by color value', () => {
-    const block = plateMap({
+    const card = plateMap({
       lines: [line('drug', ['Aspirin', 'Brufen']), line('stim', ['Anti-CD3'])],
       cells: {
         'p1:A1': {
@@ -73,7 +73,7 @@ describe('plate amounts', () => {
         },
       },
     });
-    expect(plateAmounts(block).map(({ name, value }) => [name, value])).toEqual([
+    expect(plateAmounts(card).map(({ name, value }) => [name, value])).toEqual([
       ['Anti-CD3 final conc. in Aspirin', '1'],
       ['Anti-CD3 final conc. in Brufen', '2'],
     ]);
@@ -114,7 +114,7 @@ describe('plate amounts', () => {
 
 describe('twin series on different plates', () => {
   it('are told apart by the plate they sit on', () => {
-    const block = plateMap({
+    const card = plateMap({
       plates: [
         { id: 'p1', vessel: '96', name: '' },
         { id: 'p2', vessel: '96', name: 'Copy' },
@@ -130,7 +130,7 @@ describe('twin series on different plates', () => {
         s2: { start: '10', unit: 'µM', fold: '3', direction: 'right' },
       },
     });
-    const names = plateAmounts(block).map(({ name }) => name);
+    const names = plateAmounts(card).map(({ name }) => name);
     expect(names).toContain('Drug X top conc. on Plate 1');
     expect(names).toContain('Drug X top conc. on Copy');
   });
@@ -138,7 +138,7 @@ describe('twin series on different plates', () => {
 
 describe('material well counts', () => {
   it('count wells by the short name in front of a note in parentheses', () => {
-    const block = plateMap({
+    const card = plateMap({
       lines: [line('stim', ['STX', 'None'])],
       cells: {
         'p1:A1': { stim: { valueId: 'STX' } },
@@ -151,11 +151,11 @@ describe('material well counts', () => {
       shownFields: [],
       values: {},
     } as unknown as MaterialItem;
-    expect(materialWellCounts([block], [stimMaterial]).get(stimMaterial)).toBe(2);
+    expect(materialWellCounts([card], [stimMaterial]).get(stimMaterial)).toBe(2);
   });
 
   it('count wells by the material short name', () => {
-    const block = plateMap({
+    const card = plateMap({
       lines: [line('media', ['ImmunoCult XF'])],
       cells: { 'p1:A1': { media: { valueId: 'ImmunoCult XF' } } },
     });
@@ -164,6 +164,6 @@ describe('material well counts', () => {
       shownFields: ['short-name'],
       values: { 'short-name': 'ImmunoCult XF' },
     } as unknown as MaterialItem;
-    expect(materialWellCounts([block], [medium]).get(medium)).toBe(1);
+    expect(materialWellCounts([card], [medium]).get(medium)).toBe(1);
   });
 });

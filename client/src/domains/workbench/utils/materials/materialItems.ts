@@ -94,7 +94,7 @@ function showMadeHereFields(item: MaterialItem): void {
   if (isMadeHere) showMaterialField(item, MADE_ON_FIELD);
 }
 
-export function applyMaterialKind(
+export function applyMaterialType(
   item: MaterialItem,
   group: string,
   type: string,

@@ -1,6 +1,6 @@
 import { withSettledWords } from './termUpgrade';
 
-import type { CalculationsBlock, Protocol, ValuesBlock } from '@odysseus/shared-schemas';
+import type { CalculationsCard, Protocol, ValuesCard } from '@odysseus/shared-schemas';
 
 type ValueItem = { id: string; name: string; value: string; unit: string };
 
@@ -33,14 +33,14 @@ function protocolWith(values: ValueItem[], exprs: string[], stepText = ''): Prot
   } as unknown as Protocol;
 }
 
-const blockOf = <T extends Protocol['blocks'][number]['type']>(protocol: Protocol, type: T) =>
-  protocol.blocks.find(block => block.type === type);
+const cardOf = <T extends Protocol['blocks'][number]['type']>(protocol: Protocol, type: T) =>
+  protocol.blocks.find(card => card.type === type);
 
 const valueNames = (protocol: Protocol) =>
-  (blockOf(protocol, 'values') as ValuesBlock).items.map(item => ('name' in item ? item.name : ''));
+  (cardOf(protocol, 'values') as ValuesCard).items.map(item => ('name' in item ? item.name : ''));
 
 const exprs = (protocol: Protocol) =>
-  (blockOf(protocol, 'formula') as CalculationsBlock).items.map(item => item.expr);
+  (cardOf(protocol, 'formula') as CalculationsCard).items.map(item => item.expr);
 
 describe('settling the words of an opened file', () => {
   it('files a typed value under the standard word and follows it in calculations and steps', () => {

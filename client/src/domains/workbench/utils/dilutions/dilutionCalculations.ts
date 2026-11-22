@@ -88,7 +88,7 @@ const dimensionOf = (unit: string) => dimensionKey(unitScale(unit)?.dimension ??
 
 function seriesName(protocol: Protocol, run: DilutionRun, field: 'start' | 'fold'): string {
   const [first] = run.members;
-  const plateMap = protocol.blocks.find(block => block.id === first.plateId);
+  const plateMap = protocol.blocks.find(card => card.id === first.plateId);
   const amount =
     plateMap?.type === 'plate'
       ? plateAmounts(plateMap).find(
@@ -147,7 +147,7 @@ function runNames(
   run: DilutionRun,
   tag: string,
   takenKeys: ReadonlySet<string>,
-  dilutionsBlockId: string | undefined,
+  dilutionsCardId: string | undefined,
   wellTotal: string | undefined
 ): BoardName[] {
   const subject = run.subject;
@@ -184,7 +184,7 @@ function runNames(
     key: run.key,
     subject,
     title: `Dilution prep for ${run.places.join(', ')}`,
-    settingsBlockId: dilutionsBlockId,
+    settingsCardId: dilutionsCardId,
   };
   const inputs: BoardName[] = [
     ...(Object.keys(PREP_INPUTS) as Array<keyof PrepSettings>).map((key): BoardName => {
@@ -197,7 +197,7 @@ function runNames(
             kind: 'value',
             value: settings[key],
             workedOut: group,
-            sourceBlockId: dilutionsBlockId,
+            originCardId: dilutionsCardId,
           };
     }),
     {
@@ -206,10 +206,10 @@ function runNames(
       name: busiest,
       count: Math.max(...run.replicatesByPoint.values()),
       workedOut: group,
-      sourceBlockId: run.members[0].plateId,
+      originCardId: run.members[0].plateId,
     },
   ];
-  const clash = [
+  const takenName = [
     ...inputs.map(entry => entry.name),
     ...Object.keys(exprs).map(key => line(key as PrepLine)),
   ].find(name => takenKeys.has(nameKey(name)));
@@ -224,12 +224,12 @@ function runNames(
         unit: units[key] ?? '',
         workedOut: group,
         ...(INTERMEDIATE_LINES.has(key) && { isIntermediate: true }),
-        ...(clash
-          ? { problem: `Rename "${clash}": the ${subject} dilution prep needs that name.` }
+        ...(takenName
+          ? { problem: `Rename "${takenName}": the ${subject} dilution prep needs that name.` }
           : key === 'stock' && !hasStock && { problem: stock.problem }),
       })
     );
-  return clash ? lines : [...inputs, ...lines];
+  return takenName ? lines : [...inputs, ...lines];
 }
 
 interface DiluentUse {
@@ -241,7 +241,7 @@ function diluentNeedNames(
   protocol: Protocol,
   uses: ReadonlyMap<string, DiluentUse>,
   takenKeys: ReadonlySet<string>,
-  dilutionsBlockId: string | undefined
+  dilutionsCardId: string | undefined
 ): BoardName[] {
   return [...uses.values()].map(({ name, totals }) => {
     const shownName = materialNamed(protocol, name)?.name.trim() ?? name;
@@ -257,7 +257,7 @@ function diluentNeedNames(
         key: diluentNeedId(name),
         subject: shownName,
         title: `${shownName} for dilutions`,
-        settingsBlockId: dilutionsBlockId,
+        settingsCardId: dilutionsCardId,
       },
       ...(takenKeys.has(nameKey(needName)) && {
         problem: `Rename "${needName}": the dilution prep needs that name.`,
@@ -272,7 +272,7 @@ export function dilutionCalculationNames(
 ): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const wellTotal = wellTotalName(new Map(taken.map(entry => [nameKey(entry.name), entry])));
-  const dilutionsBlockId = protocol.blocks.find(block => block.type === 'dilutions')?.id;
+  const dilutionsCardId = protocol.blocks.find(card => card.type === 'dilutions')?.id;
   const runs = dilutionRuns(protocol);
   const diluents = runDiluents(runs, protocol.diluent);
   const uses = new Map<string, DiluentUse>();
@@ -289,7 +289,7 @@ export function dilutionCalculationNames(
       use.totals.push(`${run.subject} ${PREP_LINES.diluentTotal}${tag}`);
       uses.set(normalizeMaterialKey(diluent), use);
     }
-    return runNames(protocol, run, tag, takenKeys, dilutionsBlockId, wellTotal);
+    return runNames(protocol, run, tag, takenKeys, dilutionsCardId, wellTotal);
   });
-  return [...names, ...diluentNeedNames(protocol, uses, takenKeys, dilutionsBlockId)];
+  return [...names, ...diluentNeedNames(protocol, uses, takenKeys, dilutionsCardId)];
 }

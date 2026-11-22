@@ -1,9 +1,9 @@
 import {
   type MaterialItem,
   type Protocol,
-  type ValuesBlock,
+  type ValuesCard,
   type ValueRow,
-  type PlateMapBlock,
+  type PlateMapCard,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
@@ -39,6 +39,7 @@ import {
   materialGroup,
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
+import { findDonor, donorsIn } from '../materials/materialDonors';
 import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
 import {
   finalConcentrationName,
@@ -47,7 +48,6 @@ import {
   recipeFinalId,
   wellTotalName,
 } from '../materials/materialRecipeCalculations';
-import { findSource, sourcesIn } from '../materials/materialSources';
 import { labwareTitle } from '../plateMap/plateMapTabs';
 import { plateSwatches, type PlateSwatch } from '../plateMap/plateSwatches';
 import { FINAL_CONCENTRATION, MIX_CONCENTRATION } from '../terms/termList';
@@ -61,16 +61,16 @@ import type { RoutedValue } from './valueRouting';
 
 export type ValueOrigin = 'typed' | 'plate' | 'materials' | 'worked';
 
-export type ValueCellSource =
+export type ValueCellLink =
   | { kind: 'item'; itemId: string }
   | { kind: 'plate'; row: PlateValueRow }
   | { kind: 'wells' }
   | { kind: 'recipe'; materialId: string; entryId: string }
   | { kind: 'need'; routed: RoutedValue }
-  | { kind: 'count'; materialId: string; sourceId: string | undefined; count: CellCount }
+  | { kind: 'count'; materialId: string; donorId: string | undefined; count: CellCount }
   | { kind: 'worked' };
 
-export interface ValueTableCell {
+export interface ValueCell {
   id: string;
   nameId: string;
   columnKey: string;
@@ -84,12 +84,12 @@ export interface ValueTableCell {
   note: string;
   neededFor: readonly string[];
   origin: ValueOrigin;
-  source: ValueCellSource;
+  linkedTo: ValueCellLink;
   workedValue?: string;
-  isClashing?: boolean;
+  isMismatched?: boolean;
 }
 
-export type ValueRowStatus = 'current' | 'dropped' | 'missing';
+export type ValueRowStatus = 'current' | 'setAside' | 'removed';
 
 export type ValueRowRail =
   | { place: 'none' }
@@ -105,7 +105,7 @@ export interface ValueTableRow {
   swatch: PlateSwatch | undefined;
   isSubRow: boolean;
   rail: ValueRowRail;
-  cells: ValueTableCell[];
+  cells: ValueCell[];
   prep?: CellPrep;
 }
 
@@ -136,7 +136,7 @@ interface RowDraft extends ValueTableRow {
 
 const MIX_GROUP = { key: 'mix', label: 'Mixes' };
 const PLATE_GROUP_KEY = 'supplies';
-const MISSING_GROUP_KEY = 'unsorted';
+const REMOVED_GROUP_KEY = 'unsorted';
 const ORIGIN_RANK: Record<ValueOrigin, number> = { typed: 0, plate: 1, materials: 2, worked: 3 };
 const WELLS_SUFFIX = ':wells';
 const NOT_NEEDED: readonly string[] = [];
@@ -158,7 +158,7 @@ function missingCount(
 function countCells(
   subject: CountSubject,
   board: SolvedBoard
-): { cells: ValueTableCell[]; prep: CellPrep | undefined } {
+): { cells: ValueCell[]; prep: CellPrep | undefined } {
   const values = countValues(subject);
   const solved = solveCounts(values);
   const isKnown = (count: CellCount) => solved.readings.has(count);
@@ -167,10 +167,10 @@ function countCells(
   const shown = CELL_COUNTS.filter(
     count => SHOWN_COUNTS.includes(count) || solved.readings.get(count)?.isTyped
   );
-  const cells = shown.map((count): ValueTableCell => {
+  const cells = shown.map((count): ValueCell => {
     const field = CELL_COUNT_FIELDS[count];
     const reading = solved.readings.get(count);
-    const clash = solved.clashes.get(count);
+    const mismatch = solved.mismatches.get(count);
     const worked = reading && !reading.isTyped ? reading : undefined;
     const id = countId(subject, count);
     return {
@@ -184,31 +184,31 @@ function countCells(
       units: [],
       isEditable: true,
       canRemove: false,
-      note: clash ?? (worked ? `Worked out: ${countWorking(solved, count)}` : ''),
+      note: mismatch ?? (worked ? `Worked out: ${countWorking(solved, count)}` : ''),
       neededFor: count === missing ? needer : NOT_NEEDED,
       origin: 'materials',
-      source: {
+      linkedTo: {
         kind: 'count',
         materialId: subject.material.id,
-        sourceId: subject.source?.id,
+        donorId: subject.donor?.id,
         count,
       },
       ...(worked && { workedValue: countNumberText(count, worked.value) }),
-      ...(clash && { isClashing: true }),
+      ...(mismatch && { isMismatched: true }),
     };
   });
   const prep = subject.isPlated
-    ? cellPrep(board, subject, isKnown('liveConcentration'), [...solved.clashes.values()])
+    ? cellPrep(board, subject, isKnown('liveConcentration'), [...solved.mismatches.values()])
     : undefined;
   return { cells, prep };
 }
 
-const isPlateMap = (block: Protocol['blocks'][number]): block is PlateMapBlock =>
-  block.type === 'plate';
+const isPlateMap = (card: Protocol['blocks'][number]): card is PlateMapCard =>
+  card.type === 'plate';
 
 function plateMaterialFor(
-  plateMap: PlateMapBlock,
-  plates: readonly PlateMapBlock[],
+  plateMap: PlateMapCard,
+  plates: readonly PlateMapCard[],
   materials: readonly MaterialItem[]
 ): MaterialItem | undefined {
   return materials.find(material => {
@@ -263,7 +263,7 @@ function workedCell(
   fullName: string,
   result: CalculationResult | undefined,
   wellTotal: string | undefined
-): ValueTableCell {
+): ValueCell {
   const isReady = result?.status === 'ok';
   const working = isReady ? workingText(result.working) : '';
   return {
@@ -282,7 +282,7 @@ function workedCell(
       : (result?.message ?? ''),
     neededFor: NOT_NEEDED,
     origin: 'worked',
-    source: { kind: 'worked' },
+    linkedTo: { kind: 'worked' },
   };
 }
 
@@ -299,7 +299,7 @@ function orderColumns(rows: readonly ValueTableRow[]): ValueTableColumn[] {
       at: columns.size,
     };
     column.origins.add(cell.origin);
-    if (cell.source.kind === 'count') column.isCount = true;
+    if (cell.linkedTo.kind === 'count') column.isCount = true;
     columns.set(cell.columnKey, column);
   }
   return [...columns]
@@ -327,21 +327,21 @@ function groupLabel(key: string): string {
 
 export function buildValueTable(
   protocol: Pick<Protocol, 'blocks'>,
-  block: ValuesBlock,
+  card: ValuesCard,
   { materials, board, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
-  const valuesBlocks = protocol.blocks.filter(
-    (candidate): candidate is ValuesBlock => candidate.type === 'values'
+  const valuesCards = protocol.blocks.filter(
+    (candidate): candidate is ValuesCard => candidate.type === 'values'
   );
-  const isFirstBlock = valuesBlocks[0]?.id === block.id;
+  const isFirstCard = valuesCards[0]?.id === card.id;
   const materialsWithRowElsewhere = new Set(
-    valuesBlocks
-      .filter(values => values.id !== block.id)
+    valuesCards
+      .filter(values => values.id !== card.id)
       .flatMap(values => values.sections)
       .flatMap(valueRow => ('materialId' in valueRow ? [valueRow.materialId] : []))
   );
   const plates = protocol.blocks.filter(isPlateMap);
-  const sources = sourcesIn(protocol);
+  const matches = donorsIn(protocol);
   const subjects = countSubjects(protocol);
   const countedIds = new Set(subjects.map(subject => subject.material.id));
   const unsorted = new Set(unsortedNames.map(normalizeMaterialKey));
@@ -374,16 +374,16 @@ export function buildValueTable(
     return row;
   };
 
-  for (const valueRow of block.sections) {
+  for (const valueRow of card.sections) {
     const material = 'materialId' in valueRow ? materials.get(valueRow.materialId) : undefined;
     const status: ValueRowStatus = !('materialId' in valueRow)
       ? 'current'
       : !material
-        ? 'missing'
+        ? 'removed'
         : material.isDropped
-          ? 'dropped'
+          ? 'setAside'
           : 'current';
-    const groupKey = 'mixName' in valueRow ? MIX_GROUP.key : (material?.group ?? MISSING_GROUP_KEY);
+    const groupKey = 'mixName' in valueRow ? MIX_GROUP.key : (material?.group ?? REMOVED_GROUP_KEY);
     const row = draftRow(valueRow.id, valueRowName(valueRow, materials), groupKey, {
       valueRow,
       material,
@@ -395,11 +395,11 @@ export function buildValueTable(
   const rowForMaterial = (material: MaterialItem): RowDraft | undefined => {
     const existing = rowByMaterial.get(material.id);
     if (existing) return existing;
-    if (!isFirstBlock || materialsWithRowElsewhere.has(material.id)) return undefined;
+    if (!isFirstCard || materialsWithRowElsewhere.has(material.id)) return undefined;
     const row = draftRow(`material:${material.id}`, material.name.trim(), material.group, {
       valueRow: undefined,
       material,
-      status: material.isDropped ? 'dropped' : 'current',
+      status: material.isDropped ? 'setAside' : 'current',
     });
     rowByMaterial.set(material.id, row);
     return row;
@@ -407,10 +407,10 @@ export function buildValueTable(
 
   const tableRowsById = new Map(rows.map(row => [row.id, row]));
   const mixRows = rows.filter(row => row.valueRow && 'mixName' in row.valueRow);
-  for (const item of block.items) {
+  for (const item of card.items) {
     const row = item.section ? tableRowsById.get(item.section) : undefined;
     if (!row) continue;
-    const linked = linkedValueOf(block, item, materials);
+    const linked = linkedValueOf(card, item, materials);
     if ('materialField' in item) {
       if (
         !linked ||
@@ -432,7 +432,7 @@ export function buildValueTable(
         note: '',
         neededFor: NOT_NEEDED,
         origin: 'materials',
-        source: { kind: 'item', itemId: item.id },
+        linkedTo: { kind: 'item', itemId: item.id },
       });
       continue;
     }
@@ -450,7 +450,7 @@ export function buildValueTable(
       note: '',
       neededFor: NOT_NEEDED,
       origin: 'typed',
-      source: { kind: 'item', itemId: item.id },
+      linkedTo: { kind: 'item', itemId: item.id },
     });
   }
 
@@ -487,7 +487,7 @@ export function buildValueTable(
   for (const subject of subjects) {
     const owner = rowForMaterial(subject.material);
     if (!owner) continue;
-    const row = subject.source ? subRowOf(owner, subject.source.name.trim()) : owner;
+    const row = subject.donor ? subRowOf(owner, subject.donor.name.trim()) : owner;
     const { cells, prep } = countCells(subject, board);
     const taken = new Set(row.cells.map(cell => cell.columnKey));
     row.cells.push(...cells.filter(cell => !taken.has(cell.columnKey)));
@@ -498,7 +498,7 @@ export function buildValueTable(
     const plateMaterial = plateMaterialFor(plateMap, plates, allMaterials);
     const plateRow = plateMaterial
       ? rowForMaterial(plateMaterial)
-      : isFirstBlock
+      : isFirstCard
         ? draftRow(`plate:${plateMap.id}`, labwareTitle(plateMap), PLATE_GROUP_KEY, {
             valueRow: undefined,
             material: undefined,
@@ -508,22 +508,22 @@ export function buildValueTable(
     for (const row of plateRows) {
       const { subject, variant, label } = plateSubject(row);
       if (unsorted.has(normalizeMaterialKey(subject))) continue;
-      const donor = findSource(sources, subject);
-      const material = findMaterial(listedMaterials, subject) ?? donor?.material;
+      const found = findDonor(matches, subject);
+      const material = findMaterial(listedMaterials, subject) ?? found?.material;
       const owner = material
         ? rowForMaterial(material)
         : findNamed(mixRows, subject, candidate => candidate.name);
       const isOnSeveralPlates = (platesBySubject.get(normalizeMaterialKey(subject))?.size ?? 0) > 1;
       const variantText = /^\d+$/.test(variant) ? `series ${variant}` : variant;
       const tags = [
-        donor ? donor.source.name.trim() : '',
+        found ? found.donor.name.trim() : '',
         isOnSeveralPlates ? labwareTitle(plateMap) : '',
         variantText,
       ].filter(Boolean);
       let target: ValueTableRow | undefined;
       if (material !== undefined || owner !== undefined) {
         target = owner && tags.length ? subRowOf(owner, tags.join(' · ')) : owner;
-        if (donor && target && !target.swatch) target.swatch = swatchOf(subject);
+        if (found && target && !target.swatch) target.swatch = swatchOf(subject);
       } else if (plateRow) {
         target = subject ? subRowOf(plateRow, [subject, ...tags].join(' · ')) : plateRow;
         if (subject && !target.swatch) target.swatch = swatchOf(subject);
@@ -537,7 +537,7 @@ export function buildValueTable(
         ...plateCellFields(row, labwareTitle(plateMap)),
         neededFor: NOT_NEEDED,
         origin: 'plate',
-        source: { kind: 'plate', row },
+        linkedTo: { kind: 'plate', row },
       });
     }
   }
@@ -560,7 +560,7 @@ export function buildValueTable(
       note: '',
       neededFor: NOT_NEEDED,
       origin: 'plate',
-      source: { kind: 'wells' },
+      linkedTo: { kind: 'wells' },
     });
   }
 
@@ -601,7 +601,7 @@ export function buildValueTable(
           note: '',
           neededFor: NOT_NEEDED,
           origin: 'materials',
-          source: { kind: 'recipe', materialId: material.id, entryId: entry.id },
+          linkedTo: { kind: 'recipe', materialId: material.id, entryId: entry.id },
         },
         workedCell(
           `${row.id}:recipe:${entry.id}:final`,
@@ -646,7 +646,7 @@ export function buildValueTable(
       note: '',
       neededFor: need.neededFor,
       origin: field ? 'materials' : 'typed',
-      source: { kind: 'need', routed: need.routed },
+      linkedTo: { kind: 'need', routed: need.routed },
     });
   }
 

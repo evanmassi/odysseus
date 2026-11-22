@@ -15,9 +15,9 @@ export function fieldSuggestions(
   exceptItemId: string
 ): string[] {
   const counts = new Map<string, number>();
-  for (const block of protocol.blocks) {
-    if (block.type !== 'materials') continue;
-    for (const item of block.items) {
+  for (const card of protocol.blocks) {
+    if (card.type !== 'materials') continue;
+    for (const item of card.items) {
       const value = (item.values[key] ?? '').trim();
       if (value && item.id !== exceptItemId) counts.set(value, (counts.get(value) ?? 0) + 1);
     }
