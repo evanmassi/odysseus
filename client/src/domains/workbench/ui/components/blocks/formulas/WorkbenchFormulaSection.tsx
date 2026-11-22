@@ -8,10 +8,12 @@ import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
 import { WorkbenchFormulaSuggestionList } from './WorkbenchFormulaSuggestionList';
 
 import type { CalculationSuggestion } from '../../../../utils/formulas/formulaScopes';
+import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
 
 interface WorkbenchFormulaSectionProps {
   title: string | undefined;
   kind: string;
+  swatch: PlateSwatch | undefined;
   addPlaceholder: string;
   suggestions: readonly CalculationSuggestion[];
   suggestionTitle: (suggestion: CalculationSuggestion) => string;
@@ -25,6 +27,7 @@ interface WorkbenchFormulaSectionProps {
 export function WorkbenchFormulaSection({
   title,
   kind,
+  swatch,
   addPlaceholder,
   suggestions,
   suggestionTitle,
@@ -39,7 +42,7 @@ export function WorkbenchFormulaSection({
   return (
     <section className="group/section min-w-0 break-inside-avoid">
       {title !== undefined && (
-        <WorkbenchFormulaSectionHeader title={title} kind={kind}>
+        <WorkbenchFormulaSectionHeader title={title} kind={kind} swatch={swatch}>
           {onRemoveSection && (
             <Button
               variant="ghost-danger"

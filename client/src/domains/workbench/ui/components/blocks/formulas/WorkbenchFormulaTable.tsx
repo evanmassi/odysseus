@@ -2,17 +2,18 @@ import { Fragment, memo, useState } from 'react';
 
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
-import { formulaAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { nameWithinOwner } from '../../../../utils/formulas/formulaScopes';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { LEADER_LINE } from '../../board/leaderLineClass';
 import { META_LABEL } from '../../board/metaLabelClass';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
 
 import { WorkbenchFormulaSectionHeader } from './WorkbenchFormulaSectionHeader';
 import { WorkbenchFormulaSettingsButton } from './WorkbenchFormulaSettingsButton';
-import { WorkbenchFormulaWorking } from './WorkbenchFormulaWorking';
+import { lineAnswer, WorkbenchFormulaWorkingLines } from './WorkbenchFormulaWorkingLines';
 
 import type { WorkedOutLine, WorkedOutSettings } from './WorkbenchFormulaWorkedOutGroup';
+import type { PlateSwatchOf } from '../../../../utils/vessels/plateSwatches';
 
 export interface FormulaTableRow {
   key: string;
@@ -26,20 +27,18 @@ interface WorkbenchFormulaTableProps {
   columns: readonly string[];
   rows: readonly FormulaTableRow[];
   settings: WorkedOutSettings | undefined;
+  swatchOf: PlateSwatchOf;
   onShowBlock: (blockId: string) => void;
 }
 
-const answerOf = (line: WorkedOutLine) =>
-  line.result?.status === 'ok' ? formulaAnswerText(line.result) : '';
-
 const HEAD_CELL = `${META_LABEL} px-2 pb-1 align-bottom font-normal`;
-const WORKING_ROW = 'border-t border-line-soft first:border-t-0';
 
 export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
   title,
   columns,
   rows,
   settings,
+  swatchOf,
   onShowBlock,
 }: WorkbenchFormulaTableProps) {
   const [openKey, setOpenKey] = useState<string>();
@@ -83,11 +82,14 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                           key={line.id}
                           className="w-px whitespace-nowrap py-1 pl-3 pr-3 text-right font-mono text-data-sm"
                         >
-                          {answerOf(line)}
+                          {lineAnswer(line)}
                         </td>
                       ) : (
                         <td key={line.id} className="py-1 pl-2 pr-3">
                           <span className="flex items-baseline gap-2">
+                            <span className="flex self-center">
+                              <WorkbenchMarkSwatch swatch={swatchOf(row.subject)} />
+                            </span>
                             <button
                               type="button"
                               aria-expanded={isOpen}
@@ -101,7 +103,7 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                             </button>
                             <span aria-hidden className={LEADER_LINE} />
                             <span className="whitespace-nowrap font-mono text-data-sm">
-                              {answerOf(line)}
+                              {lineAnswer(line)}
                             </span>
                           </span>
                         </td>
@@ -121,34 +123,11 @@ export const WorkbenchFormulaTable = memo(function WorkbenchFormulaTable({
                   {isOpen && (
                     <tr className={zebra}>
                       <td colSpan={columns.length} className="px-2 pb-2 pl-6">
-                        <table className="w-full border-collapse">
-                          <tbody>
-                            {row.lines.map(line => {
-                              const answer = answerOf(line);
-                              return (
-                                <tr key={line.id} className={WORKING_ROW}>
-                                  <td className="whitespace-nowrap py-1.5 pr-4 align-middle text-label-xs text-muted-foreground">
-                                    {shortName(line.name)}
-                                  </td>
-                                  <td className="w-full py-1.5 align-middle">
-                                    <WorkbenchFormulaWorking
-                                      result={line.result}
-                                      isCompact
-                                      shortName={shortName}
-                                      linkFor={name => {
-                                        const blockId = line.links[name];
-                                        return blockId ? () => onShowBlock(blockId) : undefined;
-                                      }}
-                                    />
-                                  </td>
-                                  <td className="whitespace-nowrap py-1.5 pl-4 text-right align-middle font-mono text-data-sm text-action">
-                                    {answer && `= ${answer}`}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                        <WorkbenchFormulaWorkingLines
+                          lines={row.lines}
+                          shortName={shortName}
+                          onShowBlock={onShowBlock}
+                        />
                       </td>
                     </tr>
                   )}

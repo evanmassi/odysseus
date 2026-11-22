@@ -7,7 +7,8 @@ import { Button, Select, Tooltip, type SelectOption } from '@shared/ui';
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
-import { BIO_GROUP, materialFields } from '../../../../utils/materials/materialCatalog';
+import { workedCountsByKey } from '../../../../utils/materials/cellCounts';
+import { BIO_GROUP, fieldUnit, materialFields } from '../../../../utils/materials/materialCatalog';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/materialClashes';
 import {
   RECIPE_FIELD,
@@ -17,6 +18,7 @@ import {
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { SOURCES_LABEL } from '../../../../utils/materials/materialSources';
 import { ADD_ICON } from '../../board/addIconClass';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
 
 import {
   MATERIAL_ACTIONS_CELL,
@@ -35,6 +37,7 @@ import { WorkbenchMaterialRecipeEditor } from './WorkbenchMaterialRecipeEditor';
 import type { MaterialKind } from './materialSelectOptions';
 import type { DiluentUse } from '../../../../utils/dilutions/dilutionDiluents';
 import type { RecipeLine } from '../../../../utils/materials/materialRecipe';
+import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
 import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 
 export interface MaterialRowActions {
@@ -72,13 +75,19 @@ interface WorkbenchMaterialRowProps {
   panelDetectors: string;
   isClashing: boolean;
   isDuplicateName: boolean;
+  swatch: PlateSwatch | undefined;
   freshStamp: number | undefined;
   editing: MaterialCellEditing;
   actions: MaterialRowActions;
   donorTargets: readonly SelectOption[];
 }
 
-const LIST_PROPS = new Set<keyof WorkbenchMaterialRowProps>(['columns', 'recipe', 'recipeUsers']);
+const COMPARED_PROPS = new Set<keyof WorkbenchMaterialRowProps>([
+  'columns',
+  'recipe',
+  'recipeUsers',
+  'swatch',
+]);
 
 const isSameList = <Entry,>(
   a: readonly Entry[],
@@ -89,12 +98,16 @@ const isSameList = <Entry,>(
 const isSameRecipeLine = (a: RecipeLine, b: RecipeLine) =>
   a.entry === b.entry && a.ingredient === b.ingredient;
 
+const isSameSwatch = (a: PlateSwatch | undefined, b: PlateSwatch | undefined) =>
+  a?.color === b?.color && a?.kind === b?.kind;
+
 const isSameRow = (a: WorkbenchMaterialRowProps, b: WorkbenchMaterialRowProps) =>
   isSameList(a.columns, b.columns) &&
+  isSameSwatch(a.swatch, b.swatch) &&
   isSameList(a.recipeUsers, b.recipeUsers) &&
   isSameList(a.recipe, b.recipe, isSameRecipeLine) &&
   (Object.keys(a) as Array<keyof WorkbenchMaterialRowProps>).every(
-    key => LIST_PROPS.has(key) || a[key] === b[key]
+    key => COMPARED_PROPS.has(key) || a[key] === b[key]
   );
 
 const FOCUSABLE = 'input, [tabindex="0"]';
@@ -183,6 +196,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   panelDetectors,
   isClashing,
   isDuplicateName,
+  swatch,
   freshStamp,
   editing,
   actions,
@@ -192,6 +206,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   const canBeDonor = donorChoices.length > 0 && !item.sources?.rows.length;
   const rowRef = useRef<HTMLTableRowElement>(null);
   const fields = materialFields(item);
+  const workedCounts = workedCountsByKey(item.values);
   const summary = [
     plateWellCount ? `Plate: ${plateWellCount} ${plateWellCount === 1 ? 'well' : 'wells'}` : '',
     panelDetectors ? `Panel: ${panelDetectors}` : '',
@@ -216,7 +231,10 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
         editing={editing}
         className={MATERIAL_NAME}
         display={
-          item.name || <span className="font-normal italic text-muted-foreground">Unnamed</span>
+          <span className="flex items-center gap-2">
+            <WorkbenchMarkSwatch swatch={swatch} />
+            {item.name || <span className="font-normal italic text-muted-foreground">Unnamed</span>}
+          </span>
         }
         editor={() => (
           <input
@@ -309,6 +327,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
         }
         const isShown = item.shownFields.includes(definition.key);
         const shown = isShown ? materialText(item, definition) : '';
+        const worked = shown ? undefined : workedCounts.get(definition.key);
         const isExpired = !!definition.warnsWhenPast && isPastDate(shown);
         const tone =
           definition.key === CONJUGATE_FIELD && isClashing
@@ -322,11 +341,22 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
             cell={{ itemId: item.id, key: definition.key }}
             editing={editing}
             className={tone}
-            display={shown}
+            display={
+              worked ? (
+                <Tooltip content={`Worked out: ${worked.working}`}>
+                  <span className="italic text-muted-foreground">
+                    {displayValue(worked.text, fieldUnit(item, definition))}
+                  </span>
+                </Tooltip>
+              ) : (
+                shown
+              )
+            }
             editor={() => (
               <WorkbenchMaterialCellField
                 item={item}
                 definition={definition}
+                placeholder={worked?.text}
                 isExpired={isExpired}
                 suggestions={typed => actions.suggest(item.id, definition.key, typed)}
                 onValueChange={value => actions.writeField(item.id, definition, value)}

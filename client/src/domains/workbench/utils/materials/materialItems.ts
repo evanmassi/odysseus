@@ -110,7 +110,11 @@ export function applyMaterialKind(
 export function materialText(item: MaterialItem, definition: FieldDefinition): string {
   const raw = item.values[definition.key] ?? '';
   if (!raw.trim()) return '';
-  return definition.kind === 'number' ? displayValue(raw, fieldUnit(item, definition)) : raw.trim();
+  if (definition.kind !== 'number') return raw.trim();
+  const unit = fieldUnit(item, definition);
+  const unitName = definition.nameByUnit?.[unit];
+  const isOwnWord = !!unitName && unitName.toLowerCase() !== definition.label.toLowerCase();
+  return `${displayValue(raw, unit)}${isOwnWord ? ` ${unitName}` : ''}`;
 }
 
 export function writeMaterialField(

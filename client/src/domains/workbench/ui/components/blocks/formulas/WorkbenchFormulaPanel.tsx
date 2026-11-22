@@ -4,6 +4,7 @@ import { withGreekLetters } from '@odysseus/shared-schemas';
 
 import { AlertBanner, PanelEmptyState } from '@shared/ui';
 
+import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
 import { useShowBlock } from '../../../../hooks/useShowBlock';
 import { useStableColumns } from '../../../../hooks/useStableColumns';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
@@ -149,6 +150,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         .filter(item => item.name.trim()),
     [protocol]
   );
+  const swatchOf = usePlateSwatches();
   const generalTitle = generalTitleOf(protocol.blocks);
   const showsWorkedOut =
     protocol.blocks.find(candidate => candidate.type === 'formula')?.id === block.id;
@@ -315,6 +317,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
           columns={part.table.columns}
           rows={view.rows}
           settings={view.settings}
+          swatchOf={swatchOf}
           onShowBlock={showBlock}
         />
       );
@@ -327,6 +330,7 @@ export function WorkbenchFormulaPanel({ block }: WorkbenchFormulaPanelProps) {
         key={section.key}
         title={isTitled ? title : undefined}
         kind={material?.type ?? ''}
+        swatch={swatchOf(section.owner)}
         addPlaceholder={material ? `Add to ${title}` : 'Add: Total volume'}
         suggestions={material ? calculationSuggestions(calculation, material) : []}
         suggestionTitle={suggestion => namesWithin(suggestion.expr, calculation, material)}

@@ -19,6 +19,7 @@ import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
 import { TOTAL_WELL_VOLUME, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
+import { unitMismatch } from '../../../../utils/terms/termLookup';
 import { removePlateRow, type PlateValueRow } from '../../../../utils/values/plateValueRows';
 import {
   addRoutedValue,
@@ -151,7 +152,9 @@ function cellViewOf(
 ): ValueCellView {
   const usageLine = usageTitle(used);
   const neededNote = neededNoteOf(cell.neededFor);
+  const mismatch = cell.value.trim() ? unitMismatch(cell.label, cell.unit) : undefined;
   return {
+    name: cell.fullName,
     value: cell.value,
     unit: cell.unit,
     units: cell.units,
@@ -160,6 +163,7 @@ function cellViewOf(
       ...(isNamed ? [usageLine] : []),
       ...(neededNote ? [neededNote] : []),
       ...(cell.note ? [cell.note] : []),
+      ...(mismatch ? [mismatch] : []),
       ...sourceLines(cell, blocks),
     ],
     isNeeded: !!neededNote,
@@ -168,6 +172,8 @@ function cellViewOf(
     isDuplicate,
     isUsed: !!used || !isNamed,
     isWorked: cell.origin === 'worked',
+    workedValue: cell.workedValue ?? '',
+    isClashing: !!cell.isClashing,
   };
 }
 

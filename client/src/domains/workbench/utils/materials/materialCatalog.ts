@@ -2,14 +2,19 @@ import { CONCENTRATION_UNIT_IDS } from '@shared/utils/unitOptions';
 
 import {
   ANTIBODY_DILUTION,
-  CELL_CONCENTRATION,
   COATING_CONCENTRATION,
   FINAL_CONCENTRATION,
+  LIVE_CELL_CONCENTRATION,
+  LIVE_CELLS,
   MOLECULAR_WEIGHT,
   PROTEIN_CONCENTRATION,
   RECONSTITUTION_VOLUME,
   STOCK_CONCENTRATION,
   TOP_CONCENTRATION,
+  TOTAL_CELL_CONCENTRATION,
+  TOTAL_CELLS,
+  VIABILITY,
+  VOLUME,
   VOLUME_MADE,
   VOLUME_PER_REACTION,
   VOLUME_PER_WELL,
@@ -115,14 +120,36 @@ const PHYSICAL_CORE = [
 const EQUIPMENT_CORE = [shortName, field('Model'), field('Manufacturer'), field('Notes')];
 const SOFTWARE_CORE = [shortName, field('Source'), field('Notes')];
 
+export const CELL_COUNT_FIELDS = {
+  totalConcentration: numberField(TOTAL_CELL_CONCENTRATION.word, 'cells/mL', { key: 'count' }),
+  viability: numberField(VIABILITY.word, '%'),
+  liveConcentration: numberField(LIVE_CELL_CONCENTRATION.word, 'cells/mL', {
+    key: 'live-cell-conc',
+  }),
+  volume: numberField(VOLUME.word, 'mL', { key: 'volume' }),
+  totalCells: numberField(TOTAL_CELLS.word, 'cells', { key: 'total-count' }),
+  liveCells: numberField(LIVE_CELLS.word, 'cells', { key: 'live-count' }),
+} as const;
+
+export type CellCount = keyof typeof CELL_COUNT_FIELDS;
+
+const COUNT_FIELDS: readonly FieldDefinition[] = Object.values(CELL_COUNT_FIELDS);
+
+export const CELL_COUNT_KEYS: ReadonlySet<string> = new Set(COUNT_FIELDS.map(count => count.key));
+
+export const CELL_TYPES: readonly string[] = [
+  'Cell line',
+  'Primary cells',
+  '3D culture',
+  'Microbial strain',
+];
+
 export const SOURCE_FIELDS: readonly FieldDefinition[] = [
   field('Donor ID'),
   field('Source'),
   field('Lot / vial', 'text', { key: 'lot-vial' }),
   numberField('Cells per vial', 'cells'),
-  numberField('Total count', 'cells'),
-  numberField('Viability', '%'),
-  numberField('Live count', 'cells'),
+  ...COUNT_FIELDS,
 ];
 
 export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
@@ -141,8 +168,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         dateField('Authentication date'),
         dateField('Mycoplasma test date'),
         numberField('Passage'),
-        numberField(CELL_CONCENTRATION.word, 'cells/mL', { key: 'count' }),
-        numberField('Viability', '%'),
+        ...COUNT_FIELDS,
       ],
       'Primary cells': [
         field('Species'),
@@ -151,8 +177,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Isolation method'),
         dateField('Collected'),
         dateField('Frozen'),
-        numberField(CELL_CONCENTRATION.word, 'cells/mL', { key: 'count' }),
-        numberField('Viability', '%'),
+        ...COUNT_FIELDS,
         consent,
       ],
       '3D culture': [
@@ -161,6 +186,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Matrix'),
         numberField('Passage'),
         numberField('Days in culture'),
+        ...COUNT_FIELDS,
       ],
       Tissue: [
         field('Species'),
@@ -196,6 +222,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Antibiotic resistance'),
         field('Stock ID'),
         numberField('OD at use'),
+        ...COUNT_FIELDS,
       ],
       'Virus or vector': [
         field('Virus type'),
@@ -513,6 +540,9 @@ export function fieldLabel(item: MaterialItem, definition: FieldDefinition): str
     definition.label;
   return upperLead(label);
 }
+
+export const columnLabel = (items: readonly MaterialItem[], definition: FieldDefinition): string =>
+  items.map(item => item.fieldLabels[definition.key]).find(Boolean) ?? definition.label;
 
 export function fieldName(item: MaterialItem, definition: FieldDefinition): string {
   const label =

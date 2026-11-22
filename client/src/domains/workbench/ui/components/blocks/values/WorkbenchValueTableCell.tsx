@@ -4,12 +4,14 @@ import { Tooltip } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
+import { withPerVessel } from '../../../../utils/terms/termLookup';
 import { wellTooltipContent } from '../vessels/wellTooltipContent';
 
 import { NEEDED_TEXT, VALUE_CELL } from './valueTableStyles';
 import { WorkbenchValueAmountField } from './WorkbenchValueAmountField';
 
 export interface ValueCellView {
+  name: string;
   value: string;
   unit: string;
   units: readonly string[] | undefined;
@@ -20,6 +22,8 @@ export interface ValueCellView {
   isUsed: boolean;
   isWorked: boolean;
   isNeeded: boolean;
+  workedValue: string;
+  isClashing: boolean;
 }
 
 interface WorkbenchValueTableCellProps {
@@ -50,11 +54,13 @@ export function WorkbenchValueTableCell({
   const tone =
     view.isDuplicate || isInvalid
       ? ' text-danger-text'
-      : view.isWorked
-        ? ' text-primary'
-        : view.isUsed
-          ? ' text-foreground'
-          : ' text-foreground/60';
+      : view.isClashing
+        ? ' text-warning-text'
+        : view.isWorked
+          ? ' text-primary'
+          : view.isUsed
+            ? ' text-foreground'
+            : ' text-foreground/60';
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === 'Escape') {
@@ -78,7 +84,7 @@ export function WorkbenchValueTableCell({
           <WorkbenchValueAmountField
             value={view.value}
             unit={view.unit}
-            placeholder="0"
+            placeholder={view.workedValue || '0'}
             isFocusedOnMount
             units={view.units}
             isInvalid={isInvalid}
@@ -119,7 +125,11 @@ export function WorkbenchValueTableCell({
               onClick={() => onEdit(true)}
             >
               {view.value.trim() ? (
-                displayValue(view.value, view.unit)
+                withPerVessel(displayValue(view.value, view.unit), view.name)
+              ) : view.workedValue ? (
+                <span className="italic text-muted-foreground">
+                  {displayValue(view.workedValue, view.unit)}
+                </span>
               ) : view.isNeeded ? (
                 <span className={NEEDED_TEXT}>needed</span>
               ) : view.isEditable ? (

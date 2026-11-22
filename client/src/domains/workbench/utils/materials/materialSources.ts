@@ -1,6 +1,5 @@
 import { withGreekLetters } from '@odysseus/shared-schemas';
 
-import { formatNumber, readNumber } from '../formulas/quantities';
 import { createId } from '../ids/createId';
 
 import { SOURCE_FIELDS, fieldKey } from './materialCatalog';
@@ -18,10 +17,6 @@ import type {
 export const SOURCES_LABEL = 'Donors';
 export const DONOR_ID_FIELD = 'donor-id';
 const LOT_FIELD = 'lot-vial';
-const TOTAL_FIELD = 'total-count';
-const VIABILITY_FIELD = 'viability';
-const LIVE_FIELD = 'live-count';
-const PERCENT = 100;
 const DONOR_KEY_OF_MATERIAL_KEY: Readonly<Record<string, string>> = {
   lot: LOT_FIELD,
   vendor: 'source',
@@ -130,28 +125,18 @@ export function addCustomSourceField(sources: MaterialSources, label: string): v
   if (!sources.shownFields.includes(key)) sources.shownFields.push(key);
 }
 
-interface WorkedOutCount {
-  key: string;
-  value: string;
-}
-
-export function workedOutCount(source: MaterialSource): WorkedOutCount | undefined {
-  const typed = (key: string) => readNumber(source.values[key] ?? '');
-  const total = typed(TOTAL_FIELD);
-  const viability = typed(VIABILITY_FIELD);
-  const live = typed(LIVE_FIELD);
-  const known = [total, viability, live].filter(value => value !== undefined).length;
-  if (known !== 2) return undefined;
-  if (live === undefined && total !== undefined && viability !== undefined) {
-    return { key: LIVE_FIELD, value: formatNumber((total * viability) / PERCENT) };
+export function writeSourceField(
+  sources: MaterialSources,
+  source: MaterialSource,
+  key: string,
+  value: string
+): void {
+  if (!value.trim()) {
+    delete source.values[key];
+    return;
   }
-  if (total === undefined && live !== undefined && viability) {
-    return { key: TOTAL_FIELD, value: formatNumber((live * PERCENT) / viability) };
-  }
-  if (viability === undefined && live !== undefined && total) {
-    return { key: VIABILITY_FIELD, value: formatNumber((live * PERCENT) / total) };
-  }
-  return undefined;
+  source.values[key] = value;
+  if (!sources.shownFields.includes(key)) sources.shownFields.push(key);
 }
 
 export interface SourceMatch {

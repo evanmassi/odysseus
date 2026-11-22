@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { HeaderStrip, PanelEmptyState, Tab } from '@shared/ui';
 
+import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
 import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
@@ -25,10 +26,12 @@ import {
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
 
 import { WorkbenchDilutionDiluentField } from './WorkbenchDilutionDiluentField';
-import { WorkbenchDilutionSeriesSection } from './WorkbenchDilutionSeriesSection';
+import { PLAIN_RAIL, WorkbenchDilutionSeriesSection } from './WorkbenchDilutionSeriesSection';
 
+import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
 import type { ProtocolBlock } from '@odysseus/shared-schemas';
 
 const ALL_SERIES = 'all';
@@ -45,7 +48,10 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
   const known = useMemo(() => materialKnowledge(memory, protocol), [memory, protocol]);
+  const swatchOf = usePlateSwatches();
   const runs = dilutionRuns(protocol);
+  const markOf = (run: DilutionRun): PlateSwatch =>
+    swatchOf(run.subject) ?? { color: run.color ?? PLAIN_RAIL, kind: 'fill' };
   const diluents = runDiluents(runs, protocol.diluent);
   const diluentChoices = useMemo(
     () =>
@@ -117,11 +123,9 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
             <Tab id={ALL_SERIES}>All</Tab>
             {runs.map(run => (
               <Tab key={run.key} id={run.key}>
-                <span
-                  aria-hidden
-                  className="mr-1.5 inline-block h-2.5 w-2.5 bg-muted-foreground"
-                  style={{ backgroundColor: run.color }}
-                />
+                <span className="mr-1.5 inline-flex align-middle">
+                  <WorkbenchMarkSwatch swatch={markOf(run)} />
+                </span>
                 {run.subject || 'Unnamed treatment'}
               </Tab>
             ))}
@@ -139,6 +143,7 @@ export function WorkbenchDilutionsPanel({ block }: WorkbenchDilutionsPanelProps)
             subject={run.subject}
             places={run.places.length > 1 ? run.places : []}
             color={run.color}
+            swatch={markOf(run)}
             prep={prep}
             diluent={ownDiluent(run)}
             diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}

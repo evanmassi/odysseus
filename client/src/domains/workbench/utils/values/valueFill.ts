@@ -1,7 +1,10 @@
+import { CELL_COUNT_FIELDS } from '../materials/materialCatalog';
+import { writeMaterialField } from '../materials/materialItems';
 import { editRecipeEntry } from '../materials/materialRecipe';
+import { writeSourceField } from '../materials/materialSources';
 
 import { setPlateRowUnit, setPlateRowValue } from './plateValueRows';
-import { addRoutedValue, setValueAmount, setValueUnit } from './valueEdits';
+import { addRoutedValue, materialsById, setValueAmount, setValueUnit } from './valueEdits';
 import { joinValueName } from './valueNames';
 
 import type { RoutedValue } from './valueRouting';
@@ -52,11 +55,25 @@ export function fillTargets(group: ValueTableGroup, key: string): FillTarget[] {
         ? [{ kind: 'slot', routed: slotRoute(group, row, column) }]
         : [];
     }
-    if (!cell.isEditable || cell.value.trim()) return [];
+    if (!cell.isEditable || cell.value.trim() || cell.workedValue) return [];
     return cell.source.kind === 'need'
       ? [{ kind: 'slot', routed: cell.source.routed }]
       : [{ kind: 'cell', cell }];
   });
+}
+
+type CountSource = Extract<ValueTableCell['source'], { kind: 'count' }>;
+
+function writeCount(draft: Protocol, { materialId, sourceId, count }: CountSource, value: string) {
+  const material = materialsById(draft).get(materialId);
+  const field = CELL_COUNT_FIELDS[count];
+  if (!material) return;
+  if (!sourceId) {
+    writeMaterialField(material, field, value);
+    return;
+  }
+  const source = material.sources?.rows.find(row => row.id === sourceId);
+  if (material.sources && source) writeSourceField(material.sources, source, field.key, value);
 }
 
 export function writeCellValue(
@@ -67,6 +84,7 @@ export function writeCellValue(
 ): void {
   const { source } = cell;
   if (source.kind === 'item') setValueAmount(draft, blockId, source.itemId, value);
+  else if (source.kind === 'count') writeCount(draft, source, value);
   else if (source.kind === 'plate') setPlateRowValue(draft, source.row, value);
   else if (source.kind === 'recipe') {
     editRecipeEntry(draft, source.materialId, source.entryId, { amount: value });

@@ -10,6 +10,7 @@ import {
 } from '@shared/ui/primitives/table/tableHeaderStyles';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { termMeaning } from '../../../../utils/terms/termLookup';
 import { BLOCK_ICONS } from '../../board/blockIcons';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 
@@ -57,7 +58,12 @@ function ColumnHeading({
   onRename: (name: string) => void;
 }) {
   const mark = ORIGIN_MARK[column.origin];
-  if (column.origin === 'worked') return <span>{capsKeepingGreek(column.label)}</span>;
+  const meaning = termMeaning(column.label);
+  const hoverFor = (note: string) => [meaning, note].filter(Boolean).join(' · ');
+  if (column.origin === 'worked') {
+    const label = <span>{capsKeepingGreek(column.label)}</span>;
+    return meaning ? <Tooltip content={meaning}>{label}</Tooltip> : label;
+  }
   if (isEditing) {
     return (
       <input
@@ -81,7 +87,7 @@ function ColumnHeading({
   if (mark) {
     const Icon = mark.icon;
     return (
-      <Tooltip content={mark.note}>
+      <Tooltip content={hoverFor(mark.note)}>
         <span className="inline-flex items-center gap-1.5">
           <Icon aria-hidden className="h-3 w-3 text-muted-foreground" />
           {capsKeepingGreek(column.label)}
@@ -90,7 +96,7 @@ function ColumnHeading({
     );
   }
   return (
-    <Tooltip content="Rename this value on every row">
+    <Tooltip content={hoverFor('Rename this value on every row')}>
       <button
         type="button"
         data-align="end"

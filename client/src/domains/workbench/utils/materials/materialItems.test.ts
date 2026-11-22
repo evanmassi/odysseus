@@ -224,6 +224,8 @@ describe('materialText and materialColumns', () => {
   it('formats numbers with their unit and leaves text alone', () => {
     const item = make({ group: 'ab', type: 'Antibody', amount: { value: '200', unit: '1:N' } });
     expect(materialText(item, fieldOf(item, 'amount'))).toBe('1:200');
+    const perTest = make({ group: 'ab', type: 'Antibody', amount: { value: '2', unit: 'µL' } });
+    expect(materialText(perTest, fieldOf(perTest, 'amount'))).toBe('2 µL per test');
     expect(materialText(item, fieldOf(item, 'vendor'))).toBe('');
     item.values['catalog'] = '100000';
     item.values['lot'] = '20241105';

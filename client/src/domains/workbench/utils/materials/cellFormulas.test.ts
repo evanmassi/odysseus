@@ -117,7 +117,9 @@ describe('cell math for a donor on the plate', () => {
       status: 'error',
       message: 'Needs "Vol./well" in Values, the volume of cells added to each well',
     });
-    expect(answer(missing, 'left-over')).toMatchObject({ message: 'Needs a live count in Donors' });
+    expect(answer(missing, 'left-over')).toMatchObject({
+      message: 'Needs a live count: Live cells, or Live cell conc. and Vol.',
+    });
 
     const short = calculate(protocolWith({ 'live-count': '2e5' }, PLATING));
     expect(cellWarnings(short)).toEqual(
@@ -195,5 +197,91 @@ describe('cell math for cells diluted from a stock', () => {
     expect(stockAnswer(calculation, 'diluent')).toBe('39.9 µL');
     expect(calculation.results.has('cells:heat killed candida:resuspend')).toBe(false);
     expect(calculation.results.has('cells:heat killed candida:left-over')).toBe(false);
+  });
+});
+
+describe('cell math from the counts', () => {
+  const raji = (values: Record<string, string>) =>
+    ({
+      id: 'raji',
+      group: 'bio',
+      type: 'Cell line',
+      name: 'Raji',
+      shownFields: [],
+      values,
+      units: {},
+      customFields: [],
+      fieldLabels: {},
+      isDropped: false,
+      recipe: [],
+    }) as unknown as MaterialItem;
+
+  function cultureProtocol(values: Record<string, string>): Protocol {
+    const base = protocolWith({}, []);
+    const wells = ['A', 'B'].flatMap(row =>
+      Array.from({ length: 12 }, (_, index) => `p:${row}${index + 1}`)
+    );
+    const cells = Object.fromEntries(
+      wells.map(well => [well, { d: { valueId: 'v1', amount: '1e4', unit: 'cells' } }])
+    );
+    return {
+      ...base,
+      blocks: base.blocks.map(block => {
+        if (block.type === 'materials') return { ...block, items: [raji(values)] };
+        if (block.type === 'plate') {
+          return {
+            ...block,
+            cells,
+            lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
+          };
+        }
+        if (block.type === 'values') {
+          return {
+            ...block,
+            sections: [{ id: 's', materialId: 'raji' }],
+            items: [
+              { id: 'vol', name: 'Vol./well', value: '100', unit: 'µL', section: 's' },
+              { id: 'extra', name: 'Extra (dead vol.)', value: '20', unit: '%' },
+            ],
+          };
+        }
+        return block;
+      }),
+    } as Protocol;
+  }
+
+  const rajiAnswer = (calculation: BoardCalculation, part: string) => {
+    const result = calculation.results.get(`cells:raji:${part}`);
+    return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
+  };
+
+  it('takes from the culture by its live cell conc., worked out from total and viability', () => {
+    const calculation = calculate(cultureProtocol({ count: '2e6', viability: '90', volume: '5' }));
+    expect(rajiAnswer(calculation, 'needed')).toBe('2.88E+5 cells');
+    expect(rajiAnswer(calculation, 'stock')).toBe('160 µL');
+    expect(rajiAnswer(calculation, 'diluent')).toBe('2.72 mL');
+    expect(rajiAnswer(calculation, 'left-over')).toBe('8.71E+6 cells');
+    expect(calculation.names.get('raji live cell conc.')).toMatchObject({
+      kind: 'formula',
+      expr: 'Raji total cell conc. × Raji viability',
+      isIntermediate: true,
+      workedOut: { key: 'cells:raji:group' },
+    });
+  });
+
+  it('asks for a live count when there is none', () => {
+    const calculation = calculate(cultureProtocol({ count: '2e6' }));
+    expect(rajiAnswer(calculation, 'stock')).toMatchObject({
+      message: 'Needs a live count: Live cell conc., or Total cell conc. and Viability',
+    });
+    expect(calculation.results.has('cells:raji:left-over')).toBe(false);
+  });
+
+  it('resuspends a donor from its live cell conc. and vol.', () => {
+    const calculation = calculate(
+      protocolWith({ 'live-cell-conc': '8e5', volume: '2', 'cells-per-vial': '' }, PLATING)
+    );
+    expect(answer(calculation, 'resuspend')).toBe('1.6 mL');
+    expect(answer(calculation, 'left-over')).toBe('1.27E+6 cells');
   });
 });

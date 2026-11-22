@@ -93,6 +93,7 @@ export const WorkbenchFormulaWorkedOutGroup = memo(function WorkbenchFormulaWork
             {openIds.has(line.id) && (
               <div className={`${FORMULA_WORKING_INDENT} pt-1`}>
                 <WorkbenchFormulaWorking
+                  name={line.name}
                   result={result}
                   isCompact
                   shortName={shortName}

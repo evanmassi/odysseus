@@ -99,8 +99,14 @@ export function renameValue(draft: Protocol, blockId: string, itemId: string, na
   if (!target) return;
   if (target.linked) {
     const { material, field } = target.linked;
-    if (name.trim()) material.fieldLabels[field.key] = name;
-    else delete material.fieldLabels[field.key];
+    const column = [...materialsById(draft).values()].filter(
+      peer =>
+        peer.group === material.group && materialFields(peer).some(each => each.key === field.key)
+    );
+    for (const peer of column) {
+      if (name.trim()) peer.fieldLabels[field.key] = name;
+      else delete peer.fieldLabels[field.key];
+    }
   } else if (!('materialField' in target.item)) target.item.name = name;
 }
 

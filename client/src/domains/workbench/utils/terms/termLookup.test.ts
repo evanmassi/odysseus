@@ -1,7 +1,7 @@
 import { calculateBoard, type BoardName } from '../formulas/boardCalculation';
 
 import { CELLS_PER_WELL, EXTRA, MASS_PER_WELL, TOTAL_WELL_VOLUME } from './termList';
-import { findTerm, settledValue } from './termLookup';
+import { findTerm, settledValue, termMeaning, unitMismatch, withPerVessel } from './termLookup';
 
 const value = (name: string, unit = ''): BoardName => ({
   kind: 'value',
@@ -49,5 +49,32 @@ describe('findTerm', () => {
     const names = namesOf(value('Raji cells/well'), value('Extra', 'auto'));
     expect(findTerm(names, CELLS_PER_WELL, ['Raji'])?.name).toBe('Raji cells/well');
     expect(findTerm(names, EXTRA, [''])?.name).toBe('Extra');
+  });
+
+  it('shows a per-well number with /well after its unit, or the tab noun on a shelf', () => {
+    expect(withPerVessel('40 µL', 'Raji vol./well')).toBe('40 µL/well');
+    expect(withPerVessel('4.00E+4 cells', 'Raji cells/well')).toBe('4.00E+4 cells/well');
+    expect(withPerVessel('2 mL', 'Medium vol./tube')).toBe('2 mL/tube');
+    expect(withPerVessel('20 µL', 'Drug X volume added')).toBe('20 µL/well');
+    expect(withPerVessel('50 µL', 'Surface cocktail vol./well')).toBe('50 µL/well');
+    expect(withPerVessel('1.2 mL', 'Raji total needed')).toBe('1.2 mL');
+    expect(withPerVessel('?', 'Raji vol./well')).toBe('?');
+  });
+
+  it('gives a word its meaning under any spelling, a shelf noun included', () => {
+    expect(termMeaning('Vol./well')).toBe('Volume of it added to each well');
+    expect(termMeaning('Volume added')).toBe('Volume of it added to each well');
+    expect(termMeaning('Vol./tube')).toBe('Volume of it added to each well');
+    expect(termMeaning('Round to')).toBe('Volumes round up to this, to match your pipette');
+    expect(termMeaning('Seeding count')).toBeUndefined();
+  });
+
+  it('says when a value carries a unit its word cannot use', () => {
+    expect(unitMismatch('Extra (dead vol.)', 'µL')).toBe(
+      "Extra (dead vol.) should be a %, so the math isn't using it"
+    );
+    expect(unitMismatch('Extra (dead vol.)', '%')).toBeUndefined();
+    expect(unitMismatch('Per well', 'µg')).toBeUndefined();
+    expect(unitMismatch('Seeding count', 'µL')).toBeUndefined();
   });
 });

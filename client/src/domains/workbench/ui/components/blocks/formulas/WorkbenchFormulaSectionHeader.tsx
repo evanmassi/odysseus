@@ -3,21 +3,27 @@ import type { ReactNode } from 'react';
 import { AccentTick } from '@shared/ui';
 
 import { SECTION_RULE } from '../../board/sectionRuleClass';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
+
+import type { PlateSwatch } from '../../../../utils/vessels/plateSwatches';
 
 interface WorkbenchFormulaSectionHeaderProps {
   title: string;
   kind?: string;
+  swatch?: PlateSwatch;
   children?: ReactNode;
 }
 
 export function WorkbenchFormulaSectionHeader({
   title,
   kind,
+  swatch,
   children,
 }: WorkbenchFormulaSectionHeaderProps) {
   return (
     <header className="group flex items-center gap-2.5 px-2 pb-1.5">
       <AccentTick />
+      <WorkbenchMarkSwatch swatch={swatch} />
       <span className="max-w-full shrink-0 truncate type-name text-label-md font-semibold text-foreground">
         {title}
       </span>

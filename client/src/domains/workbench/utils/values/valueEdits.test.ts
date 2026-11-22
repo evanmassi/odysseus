@@ -83,6 +83,32 @@ describe('value edits', () => {
     });
   });
 
+  it('renames a linked field for every material in its Materials column', () => {
+    const before = produce(board(), draft => {
+      const materials = draft.blocks.find(block => block.type === 'materials');
+      if (materials?.type !== 'materials') return;
+      const [hela] = materials.items;
+      materials.items.push(
+        { ...hela, id: 'm2', name: 'Jurkat' },
+        { ...hela, id: 'm3', group: 'chem', type: 'Drug or inhibitor', name: 'Drug X' }
+      );
+    });
+    const valuesId = valuesOf(before)?.id ?? '';
+    const after = produce(before, draft => {
+      const sectionId = addValueSection(draft, valuesId, 'm1') ?? '';
+      const itemId = addSuggestedValue(draft, valuesId, sectionId, {
+        kind: 'field',
+        materialField: 'count',
+        label: 'Count',
+      });
+      renameValue(draft, valuesId, itemId ?? '', 'Seeding count');
+    });
+    const materials = after.blocks.find(block => block.type === 'materials');
+    const labels =
+      materials?.type === 'materials' ? materials.items.map(item => item.fieldLabels['count']) : [];
+    expect(labels).toEqual(['Seeding count', 'Seeding count', undefined]);
+  });
+
   it('puts a removed value back where it was', () => {
     const before = produce(board(), draft => {
       addValueLines(draft, valuesOf(draft)?.id ?? '', ['A 1', 'B 2', 'C 3'], '');

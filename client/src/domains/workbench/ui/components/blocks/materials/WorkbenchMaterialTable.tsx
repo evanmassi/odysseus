@@ -2,6 +2,8 @@ import { useRef } from 'react';
 
 import { ScrollArea, type SelectOption } from '@shared/ui';
 
+import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
+import { columnLabel } from '../../../../utils/materials/materialCatalog';
 import { listWithAnd } from '../../../../utils/materials/materialGuesser';
 
 import { MATERIAL_TABLE, MATERIAL_WARNING_TEXT, HORIZONTAL_SCROLL } from './materialTableStyles';
@@ -95,6 +97,7 @@ export function WorkbenchMaterialTable({
   onUndo,
 }: WorkbenchMaterialTableProps) {
   const fieldButtonRef = useRef<HTMLButtonElement>(null);
+  const swatchOf = usePlateSwatches();
   const clashingIds = new Set(clashes.flatMap(clash => clash.items.map(item => item.id)));
   const rows = items.map((item, index) => [
     <WorkbenchMaterialRow
@@ -112,6 +115,7 @@ export function WorkbenchMaterialTable({
       panelDetectors={panelDetectors.get(item.id) ?? ''}
       isClashing={clashingIds.has(item.id)}
       isDuplicateName={duplicateIds.has(item.id)}
+      swatch={swatchOf(item.name)}
       freshStamp={fresh.ids.has(item.id) ? fresh.stamp : undefined}
       editing={editing}
       actions={actions}
@@ -168,6 +172,7 @@ export function WorkbenchMaterialTable({
             <WorkbenchMaterialHeaderRow
               group={group}
               columns={columns}
+              labels={columns.map(column => columnLabel(items, column))}
               isFieldMenuOpen={fieldMenu.isOpen}
               fieldButtonRef={fieldButtonRef}
               actions={sectionActions}

@@ -5,16 +5,15 @@ import { Plus, X } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
 
+import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { formatNumber, readNumber } from '../../../../utils/formulas/quantities';
-import {
-  DONOR_ID_FIELD,
-  sourceColumns,
-  workedOutCount,
-} from '../../../../utils/materials/materialSources';
+import { workedCountsByKey, type WorkedCount } from '../../../../utils/materials/cellCounts';
+import { DONOR_ID_FIELD, sourceColumns } from '../../../../utils/materials/materialSources';
 import { ADD_ICON } from '../../board/addIconClass';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { META_LABEL } from '../../board/metaLabelClass';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
 import { WorkbenchPlateNameField } from '../vessels/WorkbenchPlateNameField';
 import { WorkbenchPlateSuggestionList } from '../vessels/WorkbenchPlateSuggestionList';
 
@@ -75,7 +74,7 @@ function normalizedNumber(text: string): string {
 interface SourceCellProps {
   source: MaterialSource;
   column: FieldDefinition;
-  workedOut: string | undefined;
+  workedOut: WorkedCount | undefined;
   onChange: (value: string) => void;
 }
 
@@ -103,7 +102,7 @@ function SourceCell({ source, column, workedOut, onChange }: SourceCellProps) {
       <span className="inline-edit" data-align="end">
         <input
           value={value}
-          placeholder={workedOut}
+          placeholder={workedOut?.text}
           aria-label={`${column.label} of ${source.name}`}
           spellCheck={false}
           className={NUMBER_FIELD}
@@ -118,7 +117,7 @@ function SourceCell({ source, column, workedOut, onChange }: SourceCellProps) {
     </span>
   );
   return workedOut ? (
-    <Tooltip content="Worked out from the other two counts; type a number to replace it">
+    <Tooltip content={`Worked out: ${workedOut.working}. Type a number to replace it`}>
       {field}
     </Tooltip>
   ) : (
@@ -138,6 +137,7 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
   const [fieldQuery, setFieldQuery] = useState<string>();
   const nameAtStart = useRef('');
   const fieldButtonRef = useRef<HTMLButtonElement>(null);
+  const swatchOf = usePlateSwatches();
   const columns = sourceColumns(sources);
   const known = actions.known(draft, sources.rows);
   const knownByLabel = new Map(known.map(source => [knownLabel(source), source]));
@@ -229,27 +229,30 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
               </thead>
               <tbody>
                 {sources.rows.map(source => {
-                  const workedOut = workedOutCount(source);
+                  const workedOut = workedCountsByKey(source.values);
                   return (
                     <tr key={source.id} className="group">
                       <td className={CELL}>
-                        <span className="inline-edit">
-                          <input
-                            value={source.name}
-                            placeholder="Name"
-                            aria-label={`Name in ${sources.label}`}
-                            spellCheck={false}
-                            className={`${FIELD} w-28 font-semibold`}
-                            onFocus={() => {
-                              nameAtStart.current = source.name;
-                            }}
-                            onChange={event =>
-                              actions.rename(item.id, source.id, event.target.value)
-                            }
-                            onBlur={() =>
-                              actions.finishRename(item.id, source.id, nameAtStart.current)
-                            }
-                          />
+                        <span className="flex items-center gap-2">
+                          <WorkbenchMarkSwatch swatch={swatchOf(source.name)} />
+                          <span className="inline-edit">
+                            <input
+                              value={source.name}
+                              placeholder="Name"
+                              aria-label={`Name in ${sources.label}`}
+                              spellCheck={false}
+                              className={`${FIELD} w-28 font-semibold`}
+                              onFocus={() => {
+                                nameAtStart.current = source.name;
+                              }}
+                              onChange={event =>
+                                actions.rename(item.id, source.id, event.target.value)
+                              }
+                              onBlur={() =>
+                                actions.finishRename(item.id, source.id, nameAtStart.current)
+                              }
+                            />
+                          </span>
                         </span>
                       </td>
                       {columns.map(column => (
@@ -257,7 +260,7 @@ export const WorkbenchMaterialSourceTable = memo(function WorkbenchMaterialSourc
                           <SourceCell
                             source={source}
                             column={column}
-                            workedOut={workedOut?.key === column.key ? workedOut.value : undefined}
+                            workedOut={workedOut.get(column.key)}
                             onChange={value => actions.write(item.id, source.id, column.key, value)}
                           />
                         </td>

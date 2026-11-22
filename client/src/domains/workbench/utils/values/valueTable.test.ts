@@ -1,11 +1,13 @@
 import { bandColorOf } from '@odysseus/shared-schemas';
 import { replaceEqualDeep } from '@tanstack/react-query';
+import { produce } from 'immer';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { DILUTION_FACTOR_NOTATION } from '../formulas/quantities';
 
 import { materialsById } from './valueEdits';
+import { writeCellValue } from './valueFill';
 import { valueNeeds } from './valueNeeds';
 import { buildValueTable, type ValueTableGroup } from './valueTable';
 
@@ -190,7 +192,16 @@ describe('the values table', () => {
 
   it('shares a column between labels that differ only in case and spacing', () => {
     const bio = groupNamed(groups, 'Biological material');
-    expect(bio.columns.map(column => column.key)).toEqual(['per well', 'volume per well', 'wells']);
+    expect(bio.columns.map(column => column.key)).toEqual([
+      'total cell conc.',
+      'viability',
+      'live cell conc.',
+      'vol.',
+      'live cells',
+      'per well',
+      'volume per well',
+      'wells',
+    ]);
   });
 
   it('lists plate names that are not materials under the plate', () => {
@@ -504,5 +515,140 @@ describe('plate names and needed values in the values table', () => {
     );
     expect(cell?.source).toEqual({ kind: 'item', itemId: 't-vol' });
     expect(cell?.neededFor.length).toBeGreaterThan(0);
+  });
+});
+
+describe('cells on the values table', () => {
+  const tCells = (rows: Array<{ id: string; name: string; values: Record<string, string> }>) => ({
+    ...material('m-tcells', 'T cells', 'bio', 'Primary cells'),
+    sources: {
+      label: 'Donors',
+      shownFields: [],
+      customFields: [],
+      rows: rows.map(row => ({ ...row, units: {} })),
+    },
+  });
+  const cellPlate = vesselMap('map', 'Assay plate map', {
+    lines: [line('cells', ['Raji', 'D1', 'D2', 'GFP lentivirus'])],
+    cells: {
+      'p:A1': { cells: { valueId: 'Raji', amount: '1e4', unit: 'cells' } },
+      'p:A2': { cells: { valueId: 'D1', amount: '1e5', unit: 'cells' } },
+      'p:A3': { cells: { valueId: 'D2', amount: '1e5', unit: 'cells' } },
+      'p:A4': { cells: { valueId: 'GFP lentivirus', amount: '5', unit: 'µL' } },
+    },
+  });
+  const plating = valuesBlock('values', {
+    sections: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
+    items: [{ id: 't-vol', section: 'sec-tcells', name: 'Vol./well', value: '100', unit: 'µL' }],
+  });
+  const cellTable = (items: MaterialItem[]) => {
+    const protocol = {
+      blocks: [{ id: 'materials', type: 'materials', items }, cellPlate, plating],
+    } as unknown as Protocol;
+    return groupNamed(tableOf(protocol, plating), 'Biological material');
+  };
+  const rowOf = (group: ValueTableGroup, name: string) =>
+    group.rows.find(row => row.name === name)!;
+  const cellOf = (group: ValueTableGroup, name: string, label: string) =>
+    rowOf(group, name).cells.find(cell => cell.label === label);
+  const donors = tCells([
+    { id: 'd1', name: 'D1', values: { 'live-count': '9e6' } },
+    { id: 'd2', name: 'D2', values: {} },
+    { id: 'd3', name: 'D3', values: { viability: '80' } },
+  ]);
+
+  it('puts the counts first on a cell row and works out the blanks', () => {
+    const bio = cellTable([
+      material('m-raji', 'Raji', 'bio', 'Cell line', { count: '2e6', viability: '90' }),
+    ]);
+    expect(bio.columns.slice(0, 5).map(column => column.label)).toEqual([
+      'Total cell conc.',
+      'Viability',
+      'Live cell conc.',
+      'Vol.',
+      'Live cells',
+    ]);
+    expect(cellOf(bio, 'Raji', 'Total cell conc.')).toMatchObject({
+      value: '2e6',
+      unit: 'cells/mL',
+    });
+    expect(cellOf(bio, 'Raji', 'Live cell conc.')).toMatchObject({
+      value: '',
+      workedValue: '1.80E+6',
+      isEditable: true,
+      note: 'Worked out: Total cell conc. × Viability = 2.00E+6 cells/mL × 90%',
+      source: {
+        kind: 'count',
+        materialId: 'm-raji',
+        sourceId: undefined,
+        count: 'liveConcentration',
+      },
+    });
+    expect(cellOf(bio, 'Raji', 'Vol.')?.workedValue).toBeUndefined();
+  });
+
+  it('flags typed counts that disagree', () => {
+    const bio = cellTable([
+      material('m-raji', 'Raji', 'bio', 'Cell line', {
+        count: '2e6',
+        viability: '90',
+        'live-cell-conc': '5e5',
+      }),
+    ]);
+    expect(cellOf(bio, 'Raji', 'Live cell conc.')).toMatchObject({
+      isClashing: true,
+      note: 'Live cell conc. ≠ Total cell conc. × Viability, which gives 1.80E+6 cells/mL',
+    });
+  });
+
+  it('lists every donor under its material with its own counts, plated or not', () => {
+    const bio = cellTable([donors]);
+    expect(bio.rows.map(row => [row.name, row.isSubRow])).toEqual([
+      ['T cells', false],
+      ['D1', true],
+      ['D2', true],
+      ['D3', true],
+    ]);
+    expect(rowOf(bio, 'T cells').cells.some(cell => cell.source.kind === 'count')).toBe(false);
+    expect(cellOf(bio, 'D1', 'Live cells')?.value).toBe('9e6');
+    expect(cellOf(bio, 'D3', 'Viability')?.value).toBe('80');
+    expect(rowOf(bio, 'D3').prep).toBeUndefined();
+  });
+
+  it('writes the prep for a plated subject, and marks the count it is missing', () => {
+    const bio = cellTable([donors]);
+    expect(rowOf(bio, 'D1').prep).toMatchObject({
+      steps: ['Spin down', 'resuspend in 9 mL', 'plate 100 µL/well', '8.90E+6 cells left over'],
+      warnings: ['Needs cells per vial in Donors'],
+    });
+    expect(rowOf(bio, 'D1').prep?.lines.map(entry => entry.name)).toContain('D1 resuspend volume');
+    expect(cellOf(bio, 'D2', 'Live cells')?.neededFor).toEqual(['Cells to prepare for D2']);
+    expect(rowOf(bio, 'D2').prep?.warnings).toContain(
+      'Needs a live count: Live cells, or Live cell conc. and Vol.'
+    );
+  });
+
+  it('gives a material that is not cells no counts', () => {
+    const bio = cellTable([material('m-lenti', 'GFP lentivirus', 'bio', 'Virus or vector')]);
+    expect(rowOf(bio, 'GFP lentivirus').cells.some(cell => cell.source.kind === 'count')).toBe(
+      false
+    );
+  });
+
+  it('writes a typed count back to the donor in Materials', () => {
+    const protocol = {
+      blocks: [{ id: 'materials', type: 'materials', items: [donors] }, cellPlate, plating],
+    } as unknown as Protocol;
+    const cell = cellOf(
+      groupNamed(tableOf(protocol, plating), 'Biological material'),
+      'D2',
+      'Vol.'
+    );
+    const written = produce(protocol, draft => {
+      if (cell) writeCellValue(draft, 'values', cell, '2');
+    });
+    const [item] = (written.blocks[0] as { items: MaterialItem[] }).items;
+    expect(item.sources?.rows[1].values['volume']).toBe('2');
+    expect(item.sources?.shownFields).toContain('volume');
   });
 });

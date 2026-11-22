@@ -1,6 +1,4 @@
 import {
-  bandColorOf,
-  colorLineOf,
   type MaterialItem,
   type Protocol,
   type ValuesBlock,
@@ -17,7 +15,24 @@ import {
 import { FOLD_UNIT } from '../formulas/quantities';
 import { workingText } from '../formulas/workingTree';
 import {
+  cellPartId,
+  CELL_COUNTS,
+  CELLS_TO_PREPARE,
+  countId,
+  countName,
+  countNumberText,
+  countSubjects,
+  countValues,
+  countWorking,
+  solveCounts,
+  type CountSubject,
+} from '../materials/cellCounts';
+import { cellPrep, type CellPrep } from '../materials/cellPrep';
+import {
+  CELL_COUNT_FIELDS,
+  CELL_COUNT_KEYS,
   MATERIAL_GROUPS,
+  type CellCount,
   fieldLabel,
   fieldUnit,
   materialGroup,
@@ -33,7 +48,7 @@ import {
 } from '../materials/materialRecipeFormulas';
 import { findSource, sourcesIn } from '../materials/materialSources';
 import { FINAL_CONCENTRATION, MIX_CONCENTRATION } from '../terms/termList';
-import { lineLayers, markKindOf, type BandKind } from '../vessels/plateLayers';
+import { plateSwatches, type PlateSwatch } from '../vessels/plateSwatches';
 import { labwareTitle } from '../vessels/vesselTabs';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
@@ -53,6 +68,7 @@ export type ValueCellSource =
   | { kind: 'wells' }
   | { kind: 'recipe'; materialId: string; entryId: string }
   | { kind: 'need'; routed: RoutedValue }
+  | { kind: 'count'; materialId: string; sourceId: string | undefined; count: CellCount }
   | { kind: 'worked' };
 
 export interface ValueTableCell {
@@ -70,14 +86,11 @@ export interface ValueTableCell {
   neededFor: readonly string[];
   origin: ValueOrigin;
   source: ValueCellSource;
+  workedValue?: string;
+  isClashing?: boolean;
 }
 
 export type ValueRowStatus = 'current' | 'dropped' | 'missing';
-
-export interface ValueRowSwatch {
-  color: string;
-  kind: BandKind;
-}
 
 export type ValueRowRail =
   | { place: 'none' }
@@ -90,10 +103,11 @@ export interface ValueTableRow {
   section: ValueSection | undefined;
   material: MaterialItem | undefined;
   status: ValueRowStatus;
-  swatch: ValueRowSwatch | undefined;
+  swatch: PlateSwatch | undefined;
   isSubRow: boolean;
   rail: ValueRowRail;
   cells: ValueTableCell[];
+  prep?: CellPrep;
 }
 
 export interface ValueTableColumn {
@@ -127,6 +141,68 @@ const MISSING_GROUP_KEY = 'unsorted';
 const ORIGIN_RANK: Record<ValueOrigin, number> = { typed: 0, plate: 1, materials: 2, worked: 3 };
 const WELLS_SUFFIX = ':wells';
 const NOT_NEEDED: readonly string[] = [];
+const COUNT_RANK = -1;
+const SHOWN_COUNTS: readonly CellCount[] = CELL_COUNTS.filter(count => count !== 'totalCells');
+
+function missingCount(
+  subject: CountSubject,
+  calculation: BoardCalculation,
+  isKnown: (count: CellCount) => boolean
+): CellCount | undefined {
+  const failed = (part: string) =>
+    calculation.results.get(cellPartId(subject.subject, part))?.status === 'error';
+  if (failed('stock') && !isKnown('liveConcentration')) return 'liveConcentration';
+  if (failed('resuspend') && !isKnown('liveCells')) return 'liveCells';
+  return undefined;
+}
+
+function countCells(
+  subject: CountSubject,
+  calculation: BoardCalculation
+): { cells: ValueTableCell[]; prep: CellPrep | undefined } {
+  const values = countValues(subject);
+  const solved = solveCounts(values);
+  const isKnown = (count: CellCount) => solved.readings.has(count);
+  const missing = subject.isPlated ? missingCount(subject, calculation, isKnown) : undefined;
+  const needer = [`${CELLS_TO_PREPARE} for ${subject.subject}`];
+  const shown = CELL_COUNTS.filter(
+    count => SHOWN_COUNTS.includes(count) || solved.readings.get(count)?.isTyped
+  );
+  const cells = shown.map((count): ValueTableCell => {
+    const field = CELL_COUNT_FIELDS[count];
+    const reading = solved.readings.get(count);
+    const clash = solved.clashes.get(count);
+    const worked = reading && !reading.isTyped ? reading : undefined;
+    const id = countId(subject, count);
+    return {
+      id,
+      nameId: id,
+      columnKey: columnKey(field.label),
+      label: field.label,
+      fullName: countName(subject, count),
+      value: values[field.key] ?? '',
+      unit: field.unit,
+      units: [],
+      isEditable: true,
+      canRemove: false,
+      note: clash ?? (worked ? `Worked out: ${countWorking(solved, count)}` : ''),
+      neededFor: count === missing ? needer : NOT_NEEDED,
+      origin: 'materials',
+      source: {
+        kind: 'count',
+        materialId: subject.material.id,
+        sourceId: subject.source?.id,
+        count,
+      },
+      ...(worked && { workedValue: countNumberText(count, worked.value) }),
+      ...(clash && { isClashing: true }),
+    };
+  });
+  const prep = subject.isPlated
+    ? cellPrep(calculation, subject, isKnown('liveConcentration'), [...solved.clashes.values()])
+    : undefined;
+  return { cells, prep };
+}
 
 const isVesselMap = (block: Protocol['blocks'][number]): block is VesselMapBlock =>
   block.type === 'plate';
@@ -212,19 +288,26 @@ function workedCell(
 }
 
 function orderColumns(rows: readonly ValueTableRow[]): ValueTableColumn[] {
-  const columns = new Map<string, { label: string; origins: Set<ValueOrigin>; at: number }>();
+  const columns = new Map<
+    string,
+    { label: string; origins: Set<ValueOrigin>; isCount: boolean; at: number }
+  >();
   for (const cell of rows.flatMap(row => row.cells)) {
     const column = columns.get(cell.columnKey) ?? {
       label: cell.label,
       origins: new Set<ValueOrigin>(),
+      isCount: false,
       at: columns.size,
     };
     column.origins.add(cell.origin);
+    if (cell.source.kind === 'count') column.isCount = true;
     columns.set(cell.columnKey, column);
   }
   return [...columns]
-    .map(([key, { label, origins, at }]) => {
-      const rank = Math.min(...[...origins].map(origin => ORIGIN_RANK[origin]));
+    .map(([key, { label, origins, isCount, at }]) => {
+      const rank = isCount
+        ? COUNT_RANK
+        : Math.min(...[...origins].map(origin => ORIGIN_RANK[origin]));
       const origin: ValueOrigin = origins.size === 1 ? [...origins][0] : 'typed';
       return { key, label, origin, rank, at };
     })
@@ -260,23 +343,12 @@ export function buildValueTable(
   );
   const plates = protocol.blocks.filter(isVesselMap);
   const sources = sourcesIn(protocol);
+  const subjects = countSubjects(protocol);
+  const countedIds = new Set(subjects.map(subject => subject.material.id));
   const unsorted = new Set(unsortedNames.map(normalizeMaterialKey));
   const allMaterials = [...materials.values()].filter(material => material.name.trim());
   const listedMaterials = allMaterials.filter(material => !material.isDropped);
-  const swatches = plates
-    .flatMap(plate =>
-      lineLayers(plate, colorLineOf(plate), calculation).flatMap(({ line, role }) => {
-        const kind = markKindOf(role);
-        if (!kind) return [];
-        return line.values.flatMap(value => {
-          const color = kind === 'fill' ? value.color : bandColorOf(plate, value);
-          return color ? [{ name: value.text, swatch: { color, kind } }] : [];
-        });
-      })
-    )
-    .sort((a, b) => Number(b.swatch.kind === 'fill') - Number(a.swatch.kind === 'fill'));
-  const swatchOf = (name: string): ValueRowSwatch | undefined =>
-    findNamed(swatches, name, swatch => swatch.name)?.swatch;
+  const swatchOf = plateSwatches(protocol, calculation);
 
   const rows: RowDraft[] = [];
   const rowByMaterial = new Map<string, RowDraft>();
@@ -341,7 +413,12 @@ export function buildValueTable(
     if (!row) continue;
     const linked = linkedValueOf(block, item, materials);
     if ('materialField' in item) {
-      if (!linked) continue;
+      if (
+        !linked ||
+        (countedIds.has(linked.material.id) && CELL_COUNT_KEYS.has(linked.field.key))
+      ) {
+        continue;
+      }
       row.cells.push({
         id: item.id,
         nameId: `${linked.material.id}:${linked.field.key}`,
@@ -407,6 +484,16 @@ export function buildValueTable(
     parent.subRows.set(key, row);
     return row;
   };
+
+  for (const subject of subjects) {
+    const owner = rowForMaterial(subject.material);
+    if (!owner) continue;
+    const row = subject.source ? subRowOf(owner, subject.source.name.trim()) : owner;
+    const { cells, prep } = countCells(subject, calculation);
+    const taken = new Set(row.cells.map(cell => cell.columnKey));
+    row.cells.push(...cells.filter(cell => !taken.has(cell.columnKey)));
+    if (prep) row.prep = prep;
+  }
 
   for (const { plate, plateRows } of plateRowsByPlate) {
     const plateMaterial = plateMaterialFor(plate, plates, allMaterials);

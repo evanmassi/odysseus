@@ -9,6 +9,7 @@ import { useFocusLeave } from '../../../../hooks/useFocusLeave';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue, isUnreadableAmount } from '../../../../utils/formulas/quantities';
+import { withPerVessel } from '../../../../utils/terms/termLookup';
 import { wellTooltipContent } from '../vessels/wellTooltipContent';
 
 import { NEEDED_TEXT } from './valueTableStyles';
@@ -131,7 +132,7 @@ export const WorkbenchValueRow = memo(function WorkbenchValueRow({
               onClick={() => actions.onEdit(row.id, 'value')}
             >
               {row.value.trim() ? (
-                displayValue(row.value, row.unit)
+                withPerVessel(displayValue(row.value, row.unit), row.fullName)
               ) : row.neededNote ? (
                 <span className={NEEDED_TEXT}>needed</span>
               ) : (

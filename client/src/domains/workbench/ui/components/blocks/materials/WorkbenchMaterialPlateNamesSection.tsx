@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { Button, ScrollArea, Select, Tooltip } from '@shared/ui';
 
+import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
 import { useBlocksOf } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
@@ -19,6 +20,7 @@ import {
 } from '../../../../utils/materials/materialMemory';
 import { addSourcesNamed } from '../../../../utils/materials/materialSources';
 import { linkPlateName } from '../../../../utils/materials/plateNameOffers';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
 
 import {
   HORIZONTAL_SCROLL,
@@ -44,6 +46,7 @@ export function WorkbenchMaterialPlateNamesSection({
   const fileDyes = useWorkbenchStore(state => state.protocol.dyes);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
+  const swatchOf = usePlateSwatches();
   const known = useMemo(
     () => materialKnowledge(memory, { blocks: materialBlocks, dyes: fileDyes }),
     [memory, materialBlocks, fileDyes]
@@ -119,13 +122,7 @@ export function WorkbenchMaterialPlateNamesSection({
               <tr key={offer.key} className={`${materialRowClass(index)} italic`}>
                 <td className={`${MATERIAL_CELL} text-muted-foreground`}>
                   <span className="flex items-center gap-2">
-                    {offer.color && (
-                      <span
-                        aria-hidden
-                        className="h-3 w-3 flex-none border border-line-soft"
-                        style={{ backgroundColor: offer.color }}
-                      />
-                    )}
+                    <WorkbenchMarkSwatch swatch={swatchOf(offer.name)} />
                     {offer.name}
                   </span>
                 </td>

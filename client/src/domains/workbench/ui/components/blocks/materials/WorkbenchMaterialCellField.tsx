@@ -12,6 +12,7 @@ import type { FieldDefinition, MaterialItem } from '@odysseus/shared-schemas';
 interface WorkbenchMaterialCellFieldProps {
   item: MaterialItem;
   definition: FieldDefinition;
+  placeholder: string | undefined;
   isExpired: boolean;
   suggestions: (typed: string) => string[];
   onValueChange: (value: string) => void;
@@ -26,6 +27,7 @@ const MATERIAL_TEXT_FIELD = 'inline-edit-field text-body-sm text-foreground';
 export function WorkbenchMaterialCellField({
   item,
   definition,
+  placeholder,
   isExpired,
   suggestions,
   onValueChange,
@@ -62,6 +64,9 @@ export function WorkbenchMaterialCellField({
 
   if (definition.kind === 'number') {
     const unit = fieldUnit(item, definition);
+    const unitName = definition.nameByUnit?.[unit];
+    const shownUnitName =
+      unitName && unitName.toLowerCase() !== definition.label.toLowerCase() ? unitName : '';
     return (
       <span className="flex items-center gap-1">
         {unit === RATIO_NOTATION && <span className="font-mono text-data-sm">1:</span>}
@@ -70,6 +75,7 @@ export function WorkbenchMaterialCellField({
             size="xs"
             fullWidth
             value={value}
+            placeholder={placeholder}
             aria-label={label}
             spellCheck={false}
             inputClassName="text-right font-mono"
@@ -86,6 +92,9 @@ export function WorkbenchMaterialCellField({
           />
         ) : (
           <span className="text-body-sm text-muted-foreground">{shortUnit(unit)}</span>
+        )}
+        {shownUnitName && (
+          <span className="text-body-sm text-muted-foreground">{shownUnitName}</span>
         )}
       </span>
     );

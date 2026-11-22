@@ -263,6 +263,7 @@ export function WorkbenchFormulaEditor({
         />
       </div>
       <WorkbenchFormulaWorking
+        name={formula.name}
         result={result}
         isCompact={false}
         shortName={full => nameWithin(full, material)}

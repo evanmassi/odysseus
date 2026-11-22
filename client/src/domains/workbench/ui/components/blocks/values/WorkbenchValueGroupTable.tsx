@@ -7,6 +7,7 @@ import { HORIZONTAL_SCROLL } from '../materials/materialTableStyles';
 import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
 
 import { WorkbenchValueHeaderRow, type ValueColumnActions } from './WorkbenchValueHeaderRow';
+import { WorkbenchValuePrepRow } from './WorkbenchValuePrepRow';
 import {
   WorkbenchValueTableRow,
   type FillOffer,
@@ -95,6 +96,16 @@ export function WorkbenchValueGroupTable({
                 isAdding={addingRowId === row.id}
                 actions={actions}
               />,
+              ...(row.prep
+                ? [
+                    <WorkbenchValuePrepRow
+                      key={`${row.id}:prep`}
+                      prep={row.prep}
+                      span={span}
+                      isZebra={index % 2 === 1}
+                    />,
+                  ]
+                : []),
               ...(addingRowId === row.id
                 ? [
                     <tr key={`${row.id}:add`}>

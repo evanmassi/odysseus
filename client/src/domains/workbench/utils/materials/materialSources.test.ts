@@ -14,7 +14,6 @@ import {
   sourcesIn,
   startSources,
   toggleSourceField,
-  workedOutCount,
 } from './materialSources';
 
 import type { MaterialItem, MaterialSources, Protocol } from '@odysseus/shared-schemas';
@@ -61,9 +60,12 @@ describe('a donors list', () => {
       'Source',
       'Lot / vial',
       'Cells per vial',
-      'Total count',
+      'Total cell conc.',
       'Viability',
-      'Live count',
+      'Live cell conc.',
+      'Vol.',
+      'Total cells',
+      'Live cells',
     ]);
     addSource(listOf(item), 'Donor 1');
     startSources(item, ['donor-id'], []);
@@ -102,31 +104,6 @@ describe('a donors list', () => {
       'Lot / vial',
       'Freezer box',
     ]);
-  });
-});
-
-describe('workedOutCount', () => {
-  const counts = (values: Record<string, string>) =>
-    workedOutCount({ id: 's', name: 'Donor 1', values, units: {} });
-
-  it('works out the live count, the total or the viability from the other two', () => {
-    expect(counts({ 'total-count': '10M', viability: '90' })).toEqual({
-      key: 'live-count',
-      value: '9.00E+6',
-    });
-    expect(counts({ 'live-count': '9e6', viability: '90' })).toEqual({
-      key: 'total-count',
-      value: '1.00E+7',
-    });
-    expect(counts({ 'live-count': '4.5e6', 'total-count': '5e6' })).toEqual({
-      key: 'viability',
-      value: '90',
-    });
-  });
-
-  it('works nothing out with one, or all three, typed', () => {
-    expect(counts({ 'total-count': '10M' })).toBeUndefined();
-    expect(counts({ 'total-count': '1', viability: '2', 'live-count': '3' })).toBeUndefined();
   });
 });
 
@@ -185,7 +162,7 @@ describe('remembered donors', () => {
 });
 
 describe('making a material a donor', () => {
-  it('moves it under the cell material, carrying the fields a donor has', () => {
+  it('moves it under the cell material, carrying the fields a donor has, counts included', () => {
     const stray = materialFromGuess(
       { group: 'unsorted', type: '', name: 'Donor 1 (spare)', values: {}, why: '', source: 'list' },
       EMPTY_LAB_MEMORY
@@ -203,9 +180,14 @@ describe('making a material a donor', () => {
     const [donor] = listOf(host).rows;
     expect(donor).toMatchObject({
       name: 'Donor 1',
-      values: { 'lot-vial': 'L7', source: 'Blood bank', 'donor-id': 'D-101', viability: '92' },
+      values: {
+        'lot-vial': 'L7',
+        source: 'Blood bank',
+        'donor-id': 'D-101',
+        viability: '92',
+        count: '1e6',
+      },
     });
-    expect(donor.values['count']).toBeUndefined();
     expect(sourcesIn(protocol)).toHaveLength(1);
     expect(
       protocol.blocks.flatMap(block => (block.type === 'materials' ? block.items : []))

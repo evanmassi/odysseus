@@ -1,11 +1,10 @@
 import {
-  CELL_CONCENTRATION,
   CELLS_PER_WELL,
   EXTRA,
+  LIVE_CELL_CONCENTRATION,
   MASS_PER_WELL,
   TOTAL_NEEDED,
   TOTAL_VOLUME_NEEDED,
-  VIABILITY,
   VOLUME_PER_WELL,
   WELLS,
   WELLS_USED,
@@ -181,9 +180,7 @@ export function calculationSuggestions(
   const cells = find(CELLS_PER_WELL, [owner]);
   const volume = find(VOLUME_PER_WELL, [owner]);
   const amount = cells ?? find(MASS_PER_WELL, [owner]) ?? volume;
-  const count = find(CELL_CONCENTRATION, [owner]);
-  const viabilityName = find(VIABILITY, [owner]);
-  const viability = viabilityName ? ` × ${viabilityName}` : '';
+  const liveConcentration = find(LIVE_CELL_CONCENTRATION, [owner]);
   const recipes = [
     {
       label: TOTAL_NEEDED.word,
@@ -194,8 +191,8 @@ export function calculationSuggestions(
     {
       label: 'To take',
       name: own('To take'),
-      isReady: !!cells && !!needed && !!count,
-      expr: viability ? `${needed} ÷ (${count}${viability})` : `${needed} ÷ ${count}`,
+      isReady: !!cells && !!needed && !!liveConcentration,
+      expr: `${needed} ÷ ${liveConcentration}`,
     },
     {
       label: TOTAL_VOLUME_NEEDED.word,

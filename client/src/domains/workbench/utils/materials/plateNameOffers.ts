@@ -8,7 +8,6 @@ import type { Protocol } from '@odysseus/shared-schemas';
 export interface PlateNameOffer {
   key: string;
   name: string;
-  color: string | undefined;
   wellCount: number;
 }
 
@@ -61,7 +60,6 @@ export function plateNameOffers(
         offers.set(key, {
           key,
           name: existing?.name ?? name,
-          color: existing?.color ?? value.color,
           wellCount: (existing?.wellCount ?? 0) + wellCount,
         });
       }

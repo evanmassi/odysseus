@@ -66,6 +66,7 @@ import {
   sourceFieldChoices,
   startSources,
   toggleSourceField,
+  writeSourceField,
 } from '../../../../utils/materials/materialSources';
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
@@ -385,9 +386,9 @@ export function WorkbenchMaterialsPanel({ block }: WorkbenchMaterialsPanelProps)
         plateFollowsListRename(draft, from, source.name);
       }),
     write: (itemId, sourceId, key, value) =>
-      updateSource(itemId, sourceId, source => {
-        if (value.trim()) source.values[key] = value;
-        else delete source.values[key];
+      updateItem(itemId, item => {
+        const source = item.sources?.rows.find(row => row.id === sourceId);
+        if (item.sources && source) writeSourceField(item.sources, source, key, value);
       }),
     remove: (itemId, sourceId) =>
       updateItem(itemId, item => {

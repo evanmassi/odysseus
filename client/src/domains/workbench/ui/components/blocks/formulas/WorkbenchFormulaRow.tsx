@@ -76,6 +76,7 @@ export const WorkbenchFormulaRow = memo(function WorkbenchFormulaRow({
       {isWorkingShown && (
         <div className={`${FORMULA_WORKING_INDENT} empty:hidden`}>
           <WorkbenchFormulaWorking
+            name={name}
             result={result}
             isCompact
             shortName={full => nameWithin(full, material)}

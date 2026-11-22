@@ -8,8 +8,8 @@ import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { canAddToRow } from '../../../../utils/values/valueFill';
-import { markSwatchClass, markSwatchStyle } from '../vessels/markSwatch';
 import { wellTooltipContent } from '../vessels/wellTooltipContent';
+import { WorkbenchMarkSwatch } from '../vessels/WorkbenchMarkSwatch';
 
 import { NEEDED_TEXT, stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './valueTableStyles';
 import { WorkbenchValueTableCell, type ValueCellView } from './WorkbenchValueTableCell';
@@ -113,13 +113,7 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
 
   const nameContent = (
     <span className="flex items-center gap-2">
-      {row.swatch && (
-        <span
-          aria-hidden
-          className={markSwatchClass(row.swatch.kind)}
-          style={markSwatchStyle(row.swatch.kind, row.swatch.color)}
-        />
-      )}
+      <WorkbenchMarkSwatch swatch={row.swatch} />
       {isEditingName ? (
         <input
           ref={focusOnMount}

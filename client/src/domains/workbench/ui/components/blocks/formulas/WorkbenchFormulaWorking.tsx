@@ -11,8 +11,10 @@ import {
   type WorkingNode,
   type WorkingRef,
 } from '../../../../utils/formulas/workingTree';
+import { withPerVessel } from '../../../../utils/terms/termLookup';
 
 interface WorkbenchFormulaWorkingProps {
+  name: string;
   result: FormulaResult | undefined;
   isCompact: boolean;
   shortName: (name: string) => string;
@@ -46,7 +48,7 @@ function TermStack({ node, shortName, linkFor }: WorkingViewProps) {
       <span
         className={`font-mono text-data-sm ${isRef ? TERM_SOURCE_CLASS[node.source] : 'text-foreground'}`}
       >
-        {node.text}
+        {isRef ? withPerVessel(node.text, node.name) : node.text}
       </span>
     </>
   );
@@ -148,6 +150,7 @@ function WorkingView({ node, ...rest }: WorkingViewProps) {
 const ONE: WorkingNode = { kind: 'literal', text: '1' };
 
 export function WorkbenchFormulaWorking({
+  name,
   result,
   isCompact,
   shortName,
@@ -189,7 +192,9 @@ export function WorkbenchFormulaWorking({
       {outputError ? (
         <p className="text-label-xs text-danger-text">{outputError}</p>
       ) : (
-        <span className="font-mono text-data-lg text-action">= {formulaAnswerText(result)}</span>
+        <span className="font-mono text-data-lg text-action">
+          = {withPerVessel(formulaAnswerText(result), name)}
+        </span>
       )}
     </div>
   );

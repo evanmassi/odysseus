@@ -1,7 +1,9 @@
 import { cytometerFormulaNames } from '../cytometer/cytometerNames';
 import { dilutionFormulaNames } from '../dilutions/dilutionFormulas';
+import { cellCountNames, countSubjects } from '../materials/cellCounts';
 import { cellFormulaNames } from '../materials/cellFormulas';
 import {
+  CELL_COUNT_KEYS,
   fieldName,
   fieldUnit,
   materialFields,
@@ -57,12 +59,19 @@ function tableNames(block: BlockOf<'list'>): BoardName[] {
   });
 }
 
-function materialNames(block: BlockOf<'materials'>): BoardName[] {
+function materialNames(
+  block: BlockOf<'materials'>,
+  cellMaterialIds: ReadonlySet<string>
+): BoardName[] {
   return block.items
     .filter(item => item.name.trim())
     .flatMap(item => {
+      const isCounted = cellMaterialIds.has(item.id);
       const numbers = materialFields(item).filter(
-        definition => definition.kind === 'number' && item.shownFields.includes(definition.key)
+        definition =>
+          definition.kind === 'number' &&
+          item.shownFields.includes(definition.key) &&
+          !(isCounted && CELL_COUNT_KEYS.has(definition.key))
       );
       const shownName = shortNameOf(item);
       const entry: BoardName = {
@@ -168,12 +177,14 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     .flatMap(block => (block.type === 'materials' ? block.items : []))
     .filter(item => item.name.trim());
   const materialsById = new Map(materials.map(item => [item.id, item]));
+  const subjects = countSubjects(protocol);
+  const cellMaterialIds = new Set(subjects.map(subject => subject.material.id));
   const namesOf = (block: ProtocolBlock): BoardName[] => {
     switch (block.type) {
       case 'list':
         return tableNames(block);
       case 'materials':
-        return materialNames(block);
+        return materialNames(block, cellMaterialIds);
       case 'values':
         return valueNames(block, materialsById);
       case 'plate':
@@ -187,7 +198,12 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
   const blockNames = protocol.blocks.flatMap(block =>
     namesOf(block).map(entry => ({ ...entry, sourceBlockId: block.id }))
   );
-  const ownNames = [...blockNames, ...wellCountNames(protocol, blockNames, materials)];
+  const materialsBlockId = protocol.blocks.find(block => block.type === 'materials')?.id;
+  const ownNames = [
+    ...blockNames,
+    ...wellCountNames(protocol, blockNames, materials),
+    ...cellCountNames(subjects, blockNames, materialsBlockId),
+  ];
   const generated = [
     ...ownNames,
     ...recipeFormulaNames(protocol, ownNames),

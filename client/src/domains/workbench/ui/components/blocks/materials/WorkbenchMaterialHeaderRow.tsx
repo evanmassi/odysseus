@@ -19,6 +19,7 @@ export interface MaterialSectionActions {
 interface WorkbenchMaterialHeaderRowProps {
   group: string;
   columns: readonly FieldDefinition[];
+  labels: readonly string[];
   isFieldMenuOpen: boolean;
   fieldButtonRef: RefObject<HTMLButtonElement>;
   actions: MaterialSectionActions;
@@ -30,11 +31,13 @@ const isSameHeader = (a: WorkbenchMaterialHeaderRowProps, b: WorkbenchMaterialHe
   a.fieldButtonRef === b.fieldButtonRef &&
   a.actions === b.actions &&
   a.columns.length === b.columns.length &&
-  a.columns.every((column, index) => column === b.columns[index]);
+  a.columns.every((column, index) => column === b.columns[index]) &&
+  a.labels.every((label, index) => label === b.labels[index]);
 
 export const WorkbenchMaterialHeaderRow = memo(function WorkbenchMaterialHeaderRow({
   group,
   columns,
+  labels,
   isFieldMenuOpen,
   fieldButtonRef,
   actions,
@@ -44,14 +47,14 @@ export const WorkbenchMaterialHeaderRow = memo(function WorkbenchMaterialHeaderR
       <tr className={MATERIAL_HEAD_ROW}>
         <th className={MATERIAL_HEAD_CELL}>Name</th>
         <th className={MATERIAL_HEAD_CELL}>Type</th>
-        {columns.map(column => (
+        {columns.map((column, index) => (
           <th key={column.key} className={MATERIAL_HEAD_CELL}>
-            {capsKeepingGreek(column.label)}
+            {capsKeepingGreek(labels[index])}
             <Tooltip content="Hide this column">
               <button
                 type="button"
                 className="ml-1.5 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity hover:text-danger-text focus-visible:opacity-100 group-hover/head:opacity-100"
-                aria-label={`Hide ${column.label}`}
+                aria-label={`Hide ${labels[index]}`}
                 onClick={() => actions.hideColumn(group, column.key)}
               >
                 <X aria-hidden className="h-3 w-3" />
