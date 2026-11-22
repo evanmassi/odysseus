@@ -9,7 +9,7 @@ of truth; we iterate on it until it is right, then build.
 
 ### Resume here (read this first)
 
-**Paused for code names (2026-11-21):** before more building, the workbench code is being renamed so every idea is named by its app word (Evan: "if we keep building we're going to get further from the proper way to name things in code"). The full inventory, the two-phase plan (code-only names, then one file-format v5 for saved words) and 20 decisions with recommendations are in `WORKBENCH_CODE_NAMES.md`. **Next: Evan reviews those decisions; nothing is renamed yet.** Then the safety-net sample files, the on-screen word fixes, Phase A, Phase B; then W115 in the app and W114 steps 2 and 3 as below.
+**Paused for code names (2026-11-21):** before more building, the workbench code is being renamed so every idea is named by its app word (Evan: "if we keep building we're going to get further from the proper way to name things in code"). The full inventory, the two-phase plan (code-only names, then one file-format v5 for saved words) and 20 decisions are in `WORKBENCH_CODE_NAMES.md`. **All 20 settled with Evan (2026-11-22), several revised from the recommendations (samples, other labware, indicators, flow cytometry, staining, taken); the Whole experiment row's name waits for its Values redesign (logged under W114 below). Nothing renamed yet. Next: the safety-net sample files**, the on-screen word fixes, Phase A, Phase B; then W115 in the app and W114 steps 2 and 3 as below.
 
 **Latest (2026-11-21):** W114 step 1, the word list, is built and committed (61598f5b, dbb14eca, then 3e with W115). Everything is in `WORKBENCH_WORDS.md`. **W115, cells on the Values card, is built and committed (2026-11-21), green at 586 tests, not yet checked in the app** (what was built is under W115 below). Alongside it, plate marks now show wherever a plate name does: the Values rows, the Dilutions tabs and series headings, "From your plate", Materials and Donors rows, and Calculations section titles and table rows, all drawn from one shared lookup of the plate's own marks (solid, outlined or striped). **Next: Evan checks W115 in the app**, then W114 steps 2 and 3, which also unlock the held renames (volume added, the Flow panel's dilution factor and amount per well).
 
@@ -31,6 +31,17 @@ of truth; we iterate on it until it is right, then build.
     secondary (CD19-Fc-Biotin read through SA-PE) has no way in. The panel reads a row's fluor from
     its own Conjugate, so it shows Biotin and can't place it. The panel needs a marker that is
     "detected by" a secondary and takes its Fluor from that secondary (Evan 2026-11-20).
+  - **Found in the code-names review (a Values feature, not a rename):** the Whole experiment row
+    is a mixed bag under a vague name. Evan: "it's not very telling and too wordy. it's not
+    intuitive as to what it denotes in the values table" (2026-11-21). It holds two kinds of thing:
+    - **Settings the math reads for every material:** Total well vol., Extra (dead vol.),
+      Vol./well when a material sets none, Cocktail vol./well. These are really the plate's setup.
+    - **Leftovers:** any value typed without a material name in front lands there by default
+      ("Spin 300 g", "Incubation 30 min"), filed by elimination, not because it belongs.
+    - **Proposed:** the settings get a row named for what they are ("Plate setup" or "Wells", to
+      settle), and leftovers are offered for sorting the way "From your plate" is, instead of
+      landing silently. Its name, on screen and in code (`general` / `generalTitle` today),
+      waits for this; decision 14 of `WORKBENCH_CODE_NAMES.md` renames only `sections` → `rows`.
   - **W115, cells on the Values card (designed 2026-11-21 with Evan, mocked as cells-in-values-mock.html; built and committed 2026-11-21):**
     - **As built:** one solver (`utils/materials/cellCounts.ts`) holds the six counts (Total cell conc., Viability, Live cell conc., Vol. in mL, Total cells, Live cells) and one rule table. The same rules give the grey numbers on Values, the Materials rows and the Donors table, and the formulas the cell math reads, so no card works them out on its own. Worked-out counts join the Calculations "Cells to prepare" group as tucked lines when the subject is on the plate.
       - Saved keys are kept, so no file changes: the material's `count` is now Total cell conc., and donors' `total-count` / `live-count` are now Total cells / Live cells. Old references ("Donor 1 live count", "Raji cell conc.") are pointed at the new names by the word upgrade.

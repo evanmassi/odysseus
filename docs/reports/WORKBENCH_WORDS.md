@@ -521,6 +521,10 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
   - "Stain" was picked first, then dropped once D6 gave "stain" to what a well gets.
   - "Stain step", "Staining", "Stain type" and "Location" were also dropped; Viability is not a
     location.
+- **Revised (2026-11-22, code-names review): heading Staining.** Evan: "the thing you're
+  describing is the stain. Surface stain or intracellular stain … the cocktail is the physical
+  mixture". **Cocktail** now means only the tube made for one staining ("Full stain Surface
+  cocktail"); the hover and placeholder are reworded to match.
 
 **D5. What an antibody is conjugated to** — to settle
 
@@ -648,6 +652,9 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
   - **Sample** is what's in a position. "Pool 3 samples" stays.
   - "Spot(s)" and "cells" in messages become well or sample, depending on the sentence.
   - The A1 suffix follows too: "40 µL/tube" on a shelf.
+- **Revised (2026-11-22, code-names review):** where kinds are mixed, the word is **sample**, not
+  "position": "4 samples will be cleared", "Raji samples", "40 µL/sample", and the well editor's
+  header "3 selected". Evan: "position really doesn't make any sense … /sample really does".
 
 **F3. The card that holds plates and tubes** — to settle
 

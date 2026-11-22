@@ -3,8 +3,9 @@
 The app's words were settled in `WORKBENCH_WORDS.md`, but the workbench code still names most
 ideas with older words (block for card, vessel for Plate map, formula for Calculations, cytometer
 for the Flow panel, sources for Donors, dropped for Set aside, mix for Stain…). This doc is the
-inventory for renaming the code so every idea is named by its app word. **Nothing is renamed
-until Evan has gone through the decisions at the end.**
+inventory for renaming the code so every idea is named by its app word. **All 20 decisions are
+settled (2026-11-22, at the end); nothing is renamed yet.** Where a table's Proposed column differs
+from the decisions, the decisions win.
 
 Swept 2026-11-21: every identifier, file, folder, saved key and stored value in
 `client/src/domains/workbench/` and `packages/shared-schemas/src/workbench/`, plus everything
@@ -204,8 +205,8 @@ The order matters here, or new names land on names still in use.
    names.
 3. **Phase A, code-only names, one area per commit,** each green before the next. Within the
    Flow panel the order is fixed (Flow diagram, Flow panel, cytometer, marker, cocktail, stain):
-   1. Clear the clashes: `calculation` → `board`, copy → duplicate, duplicate → clash, Flow
-      diagram.
+   1. Clear the double meanings: `calculation` → `board`, copy → duplicate, duplicate → taken,
+      Flow diagram.
    2. Flow panel, in its fixed order, then fluor.
    3. Plate map, labware, wells, the series and the marks.
    4. Calculations.
@@ -247,48 +248,99 @@ These are app wording fixes, separate from code names:
 15. Held on purpose for W114 steps 2 and 3: "Volume added", "Dilution factor" and "Amount per
     well" on the Flow panel.
 
+Added by the decisions below:
+
+16. "Plate marks" becomes **indicators** wherever it shows, and the Show as choice "Color" becomes
+    **Fill** (decision 10).
+17. The Flow panel column "Cocktail" (Surface / ICS / Viability) becomes **Staining**, its hover and
+    placeholder reworded (decision 12).
+18. On cards or tabs mixing kinds: "positions" becomes samples ("4 samples will be cleared",
+    "Raji samples"), "/position" becomes "/sample", and the well editor's header says "3 selected"
+    (decision 19).
+19. The Materials type menu's label "Kind of material" becomes **Type** (decision 17).
+20. An antibody amount in µg/mL or ng/mL shows as "Dil."; it should read **Final conc.** Fc block's
+    "Amount" becomes **Per test** (decision 20).
+
 ---
 
-## Decisions for Evan
+## Decisions (settled with Evan, 2026-11-21 to 22)
 
-Each has a recommendation; anything not listed follows the tables above.
+The naming rule behind them: **use the word a scientist says at the bench.** A thing's own name
+wins over a generic word ("Standards", never "Standard samples"). Where the code needs a qualifier
+to avoid a meaning it already has, the qualifier goes in code only and the screen word stays plain.
+Rejected along the way: position, place, clash, loose, shared (for a problem), single-sample,
+standalone, CocktailTube, MaterialDonor, RememberedDonor, SavedDonor.
 
-1. **Rename the saved words too (Phase B)?** Recommend **yes**, as one version 5 conversion at the
-   end. It covers card types, the keys in the tables, and the lab memory.
-2. **Card everywhere in code,** including the ~1,700 `block` variables? Recommend **yes**, last.
-3. **New saved card names.** Recommend: `cards`, `table`, `procedure`, `calculations`, `plateMap`,
-   `flowPanel`, `flowDiagram`. The hint text only reads lowercase card names today, so that reader
-   is widened to allow `plateMap`.
-4. **The solved pool of names.** The variable `calculation` (460 uses) becomes `board`, and
-   `BoardCalculation` becomes `SolvedBoard`, matching "names on this board". Recommend yes.
-5. **`formula` vs `calculation`.** The card and its results become calculation; the typed math
-   stays formula, and the saved `expr` becomes `formula`. Recommend yes.
-6. **Well contents:** saved `cells` → `wells`, `CellLine` → `WellEntry`. Recommend yes.
-7. **A Plate map card on another page:** `plateView` → `linkedPlateMap` (the type and its
-   components). Recommend yes; it shows the same plates, so "linked" fits better than view or copy.
-8. **The loose-labware tab:** `sets` → `looseLabware`, `shelfName` → `looseTabName`, tab kind
-   `shelf` → `loose`. Recommend yes.
-9. **Series:** `start` → `top`, `fold` → `dilutionFactor`, the typed list `points` → `values`,
-   `seriesStep` → `seriesPoint`. Recommend yes; the saved renamed-name keys follow.
-10. **Plate marks:** `PlateBand` → `PlateMark`, swatch kind `fill` → `color`, `BandPlace 'tag'` →
-    `'label'`. Recommend yes (code-only).
-11. **The Flow panel's body component.** With the Flow diagram's moved to
-    `WorkbenchFlowDiagramPanel`, it is `WorkbenchFlowPanel` (not `…FlowPanelPanel`). Recommend
-    yes.
-12. **Flow panel inner words** (marker, cocktail, stain) in the fixed order, the worked-out tube
-    `CocktailTube`, the row's text `markerName`. Recommend yes.
-13. **Dye → Fluor** for the whole light catalog and its saved list. The material type "Dye" stays,
-    and the picker becomes `WorkbenchConjugateField`. Recommend yes.
-14. **Values row and Whole experiment** (`sections` → `rows`, `generalTitle` →
-    `wholeExperimentTitle`). Recommend yes.
-15. **Donors** (`sources` → `donors`, types `MaterialDonor`), and the material **Source** key
-    `vendor` → `source`. Recommend yes for both.
-16. **Cell count keys** spelled out (`total-cell-conc`, `total-cells`, `live-cells`), and the
-    Recipe note key `recipe-note`. Recommend yes.
-17. **Material "Type" vs "Kind of material".** Two words on screen for one idea. Recommend
-    **Type** (the column heading); the selector's label and the code follow.
-18. **`ignoredReadings` → `ignoredSuggestions`,** and duplicate (clash) → clash. Recommend yes.
-19. **The word on mixed cards** ("Vol./position", "3 positions"). F2 never settled one; recommend
-    keeping "position".
-20. **Flow panel Dil. / vol./well and the antibody `amount` key:** wait for W114 step 3, which
-    decides where the number lives. Recommend wait.
+1. **Saved words are renamed too (Phase B):** one version 5 conversion at the end, the lab memory
+   migrated with it.
+2. **block → card everywhere in code, last.** Only where block means a card. Untouched: the CSS
+   `block` class, `scrollIntoView({ block })`, Fc block, the Blocking step, `blockedBy` (meaning
+   prevented), reagent names (SuperBlock, StartingBlock), and every suite outside the workbench
+   (blocked users, rate limiting). About 25 uses meaning "a step with its sub-steps" get their own
+   name (`moveStepWithSubSteps`, `subStepsEnd`).
+3. **Saved card names:** `cards`, `table`, `procedure`, `calculations`, `plateMap`, `flowDiagram`,
+   `flowCytometryPanel` (see 11). Sketch and Text stay.
+4. **The solved pool of names:** variable `calculation` → `board`, `BoardCalculation` →
+   `SolvedBoard`. First in Phase A.
+5. **calculation vs formula:** the card and each named result are calculation; the typed math is
+   formula, so saved `expr` → `formula`.
+6. **What's in each position:** saved `cells` → **`samples`** (not `wells`: it holds tube and flask
+   contents too), `CellLine` → `SampleEntry`. The Stain side's `occupants` → `samples`, the same
+   idea.
+7. **A Plate map shown on another page:** `plateView` → `linkedPlateMap`.
+8. **Everything that isn't a plate:** `sets` → `otherLabware`, tab kind `shelf` → `otherLabware`,
+   `shelfName` → `otherLabwareTabName`. One list, not split by kind: each item keeps its type
+   (T75, FACS tube) and its `noun` becomes `kind` (tube, flask, dish), the place future
+   differences hang off.
+9. **Series:** `start` → `top`, `fold` → `dilutionFactor`, the typed list `points` →
+   `typedValues` (not `values`, which is the Values card), `seriesStep` → `seriesPoint`. The
+   renamed-name keys in `amountNames` are rewritten with them.
+10. **Plate marks → indicators, on screen too,** matching the tube grid's `TubePropertyIndicator`.
+    `PlateBand` → `PlateIndicator`; `BandKind` → `IndicatorKind` with `band`, `stripe`, `fill`;
+    the saved Show as value `color` → `fill`, and the picker says **Fill**. `BandPlace` →
+    `IndicatorPlacement`: `ring` → `wellBorder` (not "border": Outline already means the line
+    around a block), `well` → `inWell`, `tag` → `corner`, `top` → `bracketTop`, `left` →
+    `bracketLeft`. Saved `hiddenMarks` → `hiddenIndicators`.
+11. **The two Flow cards never say "flow" alone.** Flow diagram: `WorkbenchFlowDiagramPanel`,
+    folders `flowDiagram/`, type `flowDiagram`. The Flow panel is the flow cytometry panel:
+    `WorkbenchFlowCytometryPanel`, every piece `WorkbenchFlowCytometry*`
+    (`WorkbenchFlowCytometryMarkerRow`…), folders `flowCytometry/`, type `flowCytometryPanel`. The
+    machine stays `Cytometer`.
+12. **Inside the Flow panel,** in this order: the row is `PanelMarker` with `markerName`; Surface /
+    ICS / Viability is **`staining`** (saved `rows[].stain` and `plus[].stain`), the column heading
+    on screen **Staining**; `Cocktail` stays the name of the tube made for one staining and means
+    nothing else; `mixes` / `Mix` → `stains` / `Stain`, `mixId` → `stainId`, `MIX_COLORS` →
+    `STAIN_COLORS`; `unstainedMix` → `unstainedControl`, the `unstained` look → `unassigned`,
+    `NO_STAIN_COLOR` → `EMPTY_STAIN_COLOR`. Mix stays only where something is really mixed.
+13. **Dye → Fluor** for the light catalog; saved `protocol.dyes` and lab memory `dyes` → `fluors`.
+    The material type Dye, IRDye and DyeCycle stay. `WorkbenchDyeField` → `WorkbenchConjugateField`.
+14. **Values:** `sections` → `rows`, `ValueSection` → `ValueRow`, a value's `section` → `row`. The
+    Whole experiment row is **not renamed yet**: Evan finds the name vague, and the row mixes
+    plate-setup settings with leftovers. Logged in `WORKBENCH_PLAN.md` as a Values feature; its
+    name, on screen and in code, waits for that. Plain `experiment` is out in code (it already means
+    the whole protocol); `experimentRow` if code must move first.
+15. **Donors:** `sources` → `donors`, `MaterialSource` → `ExperimentDonor` (the biobank owns
+    `Donor`), lab memory `RememberedSource` → `KnownDonor`, `sourceFields` / `startingSourceFields`
+    → `donorFields` / `startingDonorFields`. The material key `vendor` → `source`, the guesser's
+    `VENDOR_*` → `SUPPLIER_*`; the generic "where it came from" (`sourceBlockId`,
+    `ValueCellSource`) → `origin`.
+16. **Cell count keys:** `count` → `total-cell-conc`, `total-count` → `total-cells`, `live-count` →
+    `live-cells`; the Recipe note's key → `recipe-note`.
+17. **Type:** the menu label "Kind of material" → **Type**; `MaterialKind` (a section plus a type)
+    → `MaterialTypeSelection`; lab memory `kinds` → `knownTypes`.
+18. **Leftover words:** `ignoredReadings` → `ignoredSuggestions`. A name used twice is **taken**,
+    as in the rest of the app (`isTaken`, "already exists"): `isNameTaken`, `takenNameIds`.
+    Duplicating a plate: `CopyPlace` → `DuplicateAs` (`tab` | `card`), `isCopying` →
+    `isDuplicateMenuOpen`. "Clash" leaves the workbench: `ConjugateClash` → `ConjugateConflict`
+    and `clashCount` → `detectorConflictCount` (conflict is flow's own term, always qualified;
+    "overlap" would mean spillover), the cell counts' `clashes` → `mismatches`, the dilution math's
+    `clash` → `takenName`, `materialClashes.ts` → `conjugateConflicts.ts`.
+19. **Mixed cards say sample, not position:** "4 samples will be cleared", "Raji samples",
+    "40 µL/sample", and "3 selected" in the well editor (empties aren't samples). "/sample" is safe:
+    only the Materials paste reader reads it, as Per test, the way it already reads "/well". The
+    code word for the spot itself (`spot`, about 220 uses) is settled with the Plate map area in
+    Phase A, by the same rule.
+20. **One key, `amount`, for how much of a staining reagent goes into one test:** Antibody
+    (already), Secondary reagent, Dye and Multimer (`dilution` today), and Fc block. The Flow
+    panel's own `rows[].dilution` copy goes in W114 step 3, which writes into `amount`. The screen
+    shows the unit's word: Dil. (1:N), Per test (µL), Final conc. (µg/mL, ng/mL).
