@@ -94,12 +94,21 @@ describe('workbenchStore', () => {
   });
 
   it('moves to the first page when the shown page is deleted', () => {
-    const [, second] = getState().protocol.pages;
+    const second = { id: 'second', name: 'Page 2', steps: [] };
+    getState().updateProtocol(draft => {
+      draft.pages.push(second);
+    });
     getState().showPage(second.id);
     getState().updateProtocol(draft => {
       draft.pages = draft.pages.filter(page => page.id !== second.id);
     });
     expect(getState().activePageId).toBe(getState().protocol.pages[0].id);
+  });
+
+  it('starts a new protocol on one page, Page 1, holding the starting cards', () => {
+    const { pages, cards } = getState().protocol;
+    expect(pages.map(page => page.name)).toEqual(['Page 1']);
+    expect(cards.every(card => card.page === pages[0].id)).toBe(true);
   });
 
   it('is clean again after saving', () => {

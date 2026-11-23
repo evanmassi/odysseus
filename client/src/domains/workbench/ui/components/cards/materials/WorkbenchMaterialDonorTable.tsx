@@ -13,6 +13,7 @@ import { DONOR_ID_FIELD, donorColumns } from '../../../../utils/materials/materi
 import { ADD_ICON } from '../../board/addIconClass';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 import { META_LABEL } from '../../board/metaLabelClass';
+import { TREE_BRANCH_INDENT, TREE_RAIL_X, WorkbenchTreeRail } from '../../board/WorkbenchTreeRail';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 import { WorkbenchPlateNameField } from '../plateMap/WorkbenchPlateNameField';
 import { WorkbenchPlateSuggestionList } from '../plateMap/WorkbenchPlateSuggestionList';
@@ -61,6 +62,7 @@ const HEAD_LABEL =
 const HEAD_CELL = `${HEAD_LABEL} text-left`;
 const NUMBER_HEAD_CELL = `${HEAD_LABEL} text-right`;
 const CELL = 'whitespace-nowrap px-3 py-1 align-middle text-body-sm first:pl-0';
+const RAIL_LEFT = -TREE_BRANCH_INDENT;
 const FIELD = 'text-body-sm text-foreground placeholder:text-muted-foreground';
 const NUMBER_FIELD = `${FIELD} w-24 text-right font-mono`;
 
@@ -149,6 +151,9 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
   const known = actions.known(draft, donors.rows);
   const knownByLabel = new Map(known.map(knownDonor => [knownLabel(knownDonor), knownDonor]));
 
+  const hasRows = donors.rows.length > 0;
+  const railColor = swatchOf(item.name)?.color;
+
   const addDraft = () => {
     if (!draft.trim()) return;
     actions.add(item.id, [draft]);
@@ -157,9 +162,10 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
 
   return (
     <tr>
-      <td colSpan={span} className="pb-3 pl-11 pr-4 pt-1">
-        <div className="w-max border-l border-line-soft pl-4">
-          <div className="flex items-center gap-2 pb-0.5">
+      <td colSpan={span} className="pb-3 pr-4" style={{ paddingLeft: TREE_RAIL_X }}>
+        <div className="w-max" style={{ paddingLeft: TREE_BRANCH_INDENT }}>
+          <div className="relative flex items-center gap-2 pb-0.5 pt-1">
+            {hasRows && <WorkbenchTreeRail place="passing" color={railColor} left={RAIL_LEFT} />}
             <WorkbenchPlateNameField
               name={donors.label}
               shown={capsKeepingGreek(donors.label)}
@@ -215,7 +221,10 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
             <table className="border-collapse">
               <thead>
                 <tr>
-                  <th className={HEAD_CELL}>Name</th>
+                  <th className={`${HEAD_CELL} relative`}>
+                    <WorkbenchTreeRail place="passing" color={railColor} left={RAIL_LEFT} />
+                    Name
+                  </th>
                   {columns.map(column => {
                     const isNumber = column.kind === 'number';
                     const hideButton = (
@@ -237,11 +246,16 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
                 </tr>
               </thead>
               <tbody>
-                {donors.rows.map(donor => {
+                {donors.rows.map((donor, index) => {
                   const workedOut = workedCountsByKey(donor.values);
                   return (
                     <tr key={donor.id} className="group">
-                      <td className={CELL}>
+                      <td className={`${CELL} relative`}>
+                        <WorkbenchTreeRail
+                          place={index === donors.rows.length - 1 ? 'end' : 'middle'}
+                          color={railColor}
+                          left={RAIL_LEFT}
+                        />
                         <span className="flex items-center gap-2">
                           <WorkbenchIndicatorSwatch swatch={swatchOf(donor.name)} />
                           <span className="inline-edit">

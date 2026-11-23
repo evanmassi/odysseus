@@ -8,6 +8,7 @@ import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { canAddToRow } from '../../../../utils/values/valueFill';
+import { WorkbenchTreeRail } from '../../board/WorkbenchTreeRail';
 import { wellTooltipContent } from '../plateMap/wellTooltipContent';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
@@ -15,7 +16,6 @@ import { NEEDED_TEXT, stickyBackground, VALUE_CELL, VALUE_NAME_CELL } from './va
 import { WorkbenchValueCell, type ValueCellView } from './WorkbenchValueCell';
 
 import type {
-  ValueRowRail,
   ValueRowStatus,
   ValueCell,
   ValueTableColumn,
@@ -59,47 +59,6 @@ const STATUS_NOTE: Readonly<Record<ValueRowStatus, string>> = {
   setAside: 'set aside in Materials',
   removed: 'removed from Materials',
 };
-const RAIL_X = 'left-[25px]';
-const NEUTRAL_RAIL = 'hsl(var(--muted-foreground) / 0.5)';
-
-function RailMark({ rail }: { rail: ValueRowRail }) {
-  if (rail.place === 'none') return null;
-  const color = rail.color ?? NEUTRAL_RAIL;
-  const run =
-    rail.place === 'start'
-      ? 'top-[calc(50%+8px)] bottom-0'
-      : rail.place === 'middle'
-        ? 'inset-y-0'
-        : 'top-0 h-1/2';
-  return (
-    <>
-      <span
-        aria-hidden
-        className={`absolute ${RAIL_X} ${run} w-0.5 opacity-70`}
-        style={{ backgroundColor: color }}
-      />
-      {rail.place !== 'start' && (
-        <span
-          aria-hidden
-          className={`absolute ${RAIL_X} top-1/2 h-0.5 w-2.5 opacity-70`}
-          style={{ backgroundColor: color }}
-        />
-      )}
-    </>
-  );
-}
-
-export function RailPassing({ rail }: { rail: ValueRowRail }) {
-  if (rail.place !== 'start' && rail.place !== 'middle') return null;
-  return (
-    <span
-      aria-hidden
-      className={`absolute ${RAIL_X} inset-y-0 w-0.5 opacity-70`}
-      style={{ backgroundColor: rail.color ?? NEUTRAL_RAIL }}
-    />
-  );
-}
-
 export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
   row,
   columns,
@@ -173,7 +132,9 @@ export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
         className={`${VALUE_NAME_CELL} ${row.isSubRow ? 'pl-10' : 'pl-5'}`}
         style={isNameCovering ? { background: stickyBackground(isZebra) } : undefined}
       >
-        <RailMark rail={row.rail} />
+        {row.rail.place !== 'none' && (
+          <WorkbenchTreeRail place={row.rail.place} color={row.rail.color} />
+        )}
         {nameContent}
       </td>
       {columns.map(column => {

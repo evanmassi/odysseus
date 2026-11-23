@@ -18,6 +18,7 @@ import {
 } from '../../../../utils/materials/materialItems';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { ADD_ICON } from '../../board/addIconClass';
+import { WorkbenchTreeRail } from '../../board/WorkbenchTreeRail';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
 import {
@@ -124,6 +125,7 @@ interface EditableCellProps {
   cell: MaterialCell;
   editing: MaterialCellEditing;
   className?: string;
+  lead?: ReactNode;
   display: ReactNode;
   editor: () => ReactNode;
   onFillDown: () => void;
@@ -133,6 +135,7 @@ function EditableCell({
   cell,
   editing,
   className = '',
+  lead,
   display,
   editor,
   onFillDown,
@@ -165,7 +168,7 @@ function EditableCell({
   return (
     <td
       ref={cellRef}
-      className={`${MATERIAL_CELL} ${className} ${
+      className={`${MATERIAL_CELL} ${className} ${lead ? 'relative' : ''} ${
         isEditing ? '!py-1' : 'inline-edit-host cursor-text'
       }`}
       onMouseDown={event => {
@@ -177,6 +180,7 @@ function EditableCell({
       onBlur={isEditing ? leave.onBlur : undefined}
       onFocus={leave.onFocus}
     >
+      {lead}
       {isEditing ? editor() : <span className="inline-edit">{display}</span>}
     </td>
   );
@@ -230,6 +234,11 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
         cell={{ itemId: item.id, key: 'name' }}
         editing={editing}
         className={MATERIAL_NAME}
+        lead={
+          item.donors?.rows.length ? (
+            <WorkbenchTreeRail place="start" color={swatch?.color} />
+          ) : undefined
+        }
         display={
           <span className="flex items-center gap-2">
             <WorkbenchIndicatorSwatch swatch={swatch} />

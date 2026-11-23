@@ -3,12 +3,12 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ScrollArea } from '@shared/ui';
 
 import { columnUnit, fillTargets } from '../../../../utils/values/valueFill';
+import { WorkbenchTreeRail } from '../../board/WorkbenchTreeRail';
 import { HORIZONTAL_SCROLL } from '../materials/materialTableStyles';
 import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
 
 import { WorkbenchValueHeaderRow, type ValueColumnActions } from './WorkbenchValueHeaderRow';
 import {
-  RailPassing,
   WorkbenchValueTableRow,
   type FillOffer,
   type ValueRowActions,
@@ -100,7 +100,9 @@ export function WorkbenchValueGroupTable({
                 ? [
                     <tr key={`${row.id}:add`}>
                       <td colSpan={span} className="relative pb-2 pl-5 pr-3">
-                        <RailPassing rail={row.rail} />
+                        {(row.rail.place === 'start' || row.rail.place === 'middle') && (
+                          <WorkbenchTreeRail place="passing" color={row.rail.color} />
+                        )}
                         {renderAdder(row)}
                       </td>
                     </tr>,
