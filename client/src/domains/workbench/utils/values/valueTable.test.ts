@@ -537,9 +537,9 @@ describe('cells on the values table', () => {
     rows: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
     items: [{ id: 't-vol', row: 'sec-tcells', name: 'Vol./well', value: '100', unit: 'µL' }],
   });
-  const cellTable = (items: MaterialItem[]) => {
+  const cellTable = (items: MaterialItem[], plate = cellPlate) => {
     const protocol = {
-      cards: [{ id: 'materials', type: 'materials', items }, cellPlate, plating],
+      cards: [{ id: 'materials', type: 'materials', items }, plate, plating],
     } as unknown as Protocol;
     return groupNamed(tableOf(protocol, plating), 'Biological material');
   };
@@ -608,20 +608,53 @@ describe('cells on the values table', () => {
     expect(rowOf(bio, 'T cells').cells.some(cell => cell.linkedTo.kind === 'count')).toBe(false);
     expect(cellOf(bio, 'D1', 'Live cells')?.value).toBe('9e6');
     expect(cellOf(bio, 'D3', 'Viability')?.value).toBe('80');
-    expect(rowOf(bio, 'D3').prep).toBeUndefined();
   });
 
-  it('writes the prep for a plated subject, and marks the count it is missing', () => {
+  it('marks the count a plated subject is missing', () => {
     const bio = cellTable([donors]);
-    expect(rowOf(bio, 'D1').prep).toMatchObject({
-      steps: ['Spin down', 'resuspend in 9 mL', 'plate 100 µL/well', '8.90E+6 cells left over'],
-      warnings: ['Needs cells per vial in Donors'],
-    });
-    expect(rowOf(bio, 'D1').prep?.lines.map(entry => entry.name)).toContain('D1 resuspend volume');
     expect(cellOf(bio, 'D2', 'Live cells')?.neededFor).toEqual(['Cells to prepare for D2']);
-    expect(rowOf(bio, 'D2').prep?.warnings).toContain(
-      'Needs a live count: Live cells, or Live cell conc. and Vol.'
-    );
+    expect(cellOf(bio, 'D1', 'Live cells')?.neededFor).toEqual([]);
+  });
+
+  it('shows a plated donor its wells once and the vol./well it shares with its material', () => {
+    const bio = cellTable([donors]);
+    expect(rowOf(bio, 'D1').cells.filter(cell => cell.label === 'Wells')).toHaveLength(1);
+    expect(cellOf(bio, 'D1', 'Wells')?.value).toBe('1');
+    expect(cellOf(bio, 'D1', 'Vol./well')).toMatchObject({
+      value: '',
+      workedValue: '100',
+      unit: 'µL',
+      isEditable: false,
+      note: 'Set on the T cells row',
+    });
+    expect(cellOf(bio, 'D3', 'Vol./well')).toBeUndefined();
+  });
+
+  it('counts the wells of donors on a striped line, which the plate does not count', () => {
+    const striped = plateMap('map', 'Assay plate map', {
+      lines: [
+        { ...line('stim', ['Stim']), role: 'fill' },
+        { ...line('donors', ['D1', 'D2']), role: 'stripe' },
+      ],
+      samples: {
+        'p:A1': {
+          stim: { valueId: 'Stim' },
+          donors: { valueId: 'D1', amount: '1e5', unit: 'cells' },
+        },
+        'p:A2': {
+          stim: { valueId: 'Stim' },
+          donors: { valueId: 'D1', amount: '1e5', unit: 'cells' },
+        },
+        'p:A3': {
+          stim: { valueId: 'Stim' },
+          donors: { valueId: 'D2', amount: '1e5', unit: 'cells' },
+        },
+      },
+    });
+    const bio = cellTable([donors], striped);
+    expect(rowOf(bio, 'D1').cells.filter(cell => cell.label === 'Wells')).toHaveLength(1);
+    expect(cellOf(bio, 'D1', 'Wells')).toMatchObject({ value: '2', isEditable: false });
+    expect(cellOf(bio, 'D2', 'Wells')?.value).toBe('1');
   });
 
   it('gives a material that is not cells no counts', () => {

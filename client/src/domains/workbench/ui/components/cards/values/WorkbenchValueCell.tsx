@@ -128,7 +128,7 @@ export function WorkbenchValueCell({
                 withPerLabwareKind(displayValue(view.value, view.unit), view.name)
               ) : view.workedValue ? (
                 <span className="italic text-muted-foreground">
-                  {displayValue(view.workedValue, view.unit)}
+                  {withPerLabwareKind(displayValue(view.workedValue, view.unit), view.name)}
                 </span>
               ) : view.isNeeded ? (
                 <span className={NEEDED_TEXT}>needed</span>

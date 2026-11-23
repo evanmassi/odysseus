@@ -206,7 +206,7 @@ export function cellCalculationNames(protocol: Protocol, taken: readonly BoardNa
   return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsCardId));
 }
 
-export function shortfallOf(result: CalculationResult | undefined): string | undefined {
+function shortfallOf(result: CalculationResult | undefined): string | undefined {
   if (result?.status !== 'ok') return undefined;
   const short = -result.quantity.magnitude;
   return short > 0 ? `Short by ${formatNumber(short)} cells` : undefined;

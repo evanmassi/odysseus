@@ -89,6 +89,17 @@ function RailMark({ rail }: { rail: ValueRowRail }) {
   );
 }
 
+export function RailPassing({ rail }: { rail: ValueRowRail }) {
+  if (rail.place !== 'start' && rail.place !== 'middle') return null;
+  return (
+    <span
+      aria-hidden
+      className={`absolute ${RAIL_X} inset-y-0 w-0.5 opacity-70`}
+      style={{ backgroundColor: rail.color ?? NEUTRAL_RAIL }}
+    />
+  );
+}
+
 export const WorkbenchValueTableRow = memo(function WorkbenchValueTableRow({
   row,
   columns,

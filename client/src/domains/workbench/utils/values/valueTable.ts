@@ -10,6 +10,8 @@ import {
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
   calculationAnswerText,
+  nameKey,
+  type BoardName,
   type SolvedBoard,
   type CalculationResult,
 } from '../formulas/boardCalculation';
@@ -28,7 +30,6 @@ import {
   solveCounts,
   type CountSubject,
 } from '../materials/cellCounts';
-import { cellPrep, type CellPrep } from '../materials/cellPrep';
 import {
   CELL_COUNT_FIELDS,
   CELL_COUNT_KEYS,
@@ -40,7 +41,12 @@ import {
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
 import { findDonor, donorsIn } from '../materials/materialDonors';
-import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
+import {
+  displayNameOf,
+  findMaterial,
+  findNamed,
+  nameWithoutNotes,
+} from '../materials/materialLookup';
 import {
   finalConcentrationName,
   mixConcentrationName,
@@ -50,7 +56,8 @@ import {
 } from '../materials/materialRecipeCalculations';
 import { labwareTitle } from '../plateMap/plateMapTabs';
 import { plateSwatches, type PlateSwatch } from '../plateMap/plateSwatches';
-import { FINAL_CONCENTRATION, MIX_CONCENTRATION } from '../terms/termList';
+import { FINAL_CONCENTRATION, MIX_CONCENTRATION, VOLUME_PER_WELL } from '../terms/termList';
+import { findTerm } from '../terms/termLookup';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, valueRowName } from './valueEdits';
@@ -106,7 +113,6 @@ export interface ValueTableRow {
   isSubRow: boolean;
   rail: ValueRowRail;
   cells: ValueCell[];
-  prep?: CellPrep;
 }
 
 export interface ValueTableColumn {
@@ -155,10 +161,55 @@ function missingCount(
   return undefined;
 }
 
-function countCells(
-  subject: CountSubject,
-  board: SolvedBoard
-): { cells: ValueCell[]; prep: CellPrep | undefined } {
+const WELLS_COLUMN = columnKey('Wells');
+
+const wellsCell = (entry: Extract<BoardName, { kind: 'count' }>): ValueCell => ({
+  id: entry.id,
+  nameId: entry.id,
+  columnKey: WELLS_COLUMN,
+  label: 'Wells',
+  fullName: entry.name,
+  value: String(entry.count),
+  unit: '',
+  units: [],
+  isEditable: false,
+  canRemove: false,
+  note: '',
+  neededFor: NOT_NEEDED,
+  origin: 'plate',
+  linkedTo: { kind: 'wells' },
+});
+
+function inheritedVolumeCell(subject: CountSubject, board: SolvedBoard): ValueCell[] {
+  const { material } = subject;
+  const volume = findTerm(board.names, VOLUME_PER_WELL, [
+    material.name.trim(),
+    nameWithoutNotes(material.name),
+  ]);
+  if (!subject.isPlated || volume?.kind !== 'value' || !volume.value.trim()) return [];
+  const id = `${cellPartId(subject.subject, 'inherited')}:${VOLUME_PER_WELL.word}`;
+  return [
+    {
+      id,
+      nameId: volume.id,
+      columnKey: columnKey(VOLUME_PER_WELL.word),
+      label: VOLUME_PER_WELL.word,
+      fullName: volume.name,
+      value: '',
+      workedValue: volume.value,
+      unit: volume.unit,
+      units: [],
+      isEditable: false,
+      canRemove: false,
+      note: `Set on the ${material.name.trim()} row`,
+      neededFor: NOT_NEEDED,
+      origin: 'worked',
+      linkedTo: { kind: 'worked' },
+    },
+  ];
+}
+
+function countCells(subject: CountSubject, board: SolvedBoard): ValueCell[] {
   const values = countValues(subject);
   const solved = solveCounts(values);
   const isKnown = (count: CellCount) => solved.readings.has(count);
@@ -167,7 +218,7 @@ function countCells(
   const shown = CELL_COUNTS.filter(
     count => SHOWN_COUNTS.includes(count) || solved.readings.get(count)?.isTyped
   );
-  const cells = shown.map((count): ValueCell => {
+  return shown.map((count): ValueCell => {
     const field = CELL_COUNT_FIELDS[count];
     const reading = solved.readings.get(count);
     const mismatch = solved.mismatches.get(count);
@@ -197,10 +248,6 @@ function countCells(
       ...(mismatch && { isMismatched: true }),
     };
   });
-  const prep = subject.isPlated
-    ? cellPrep(board, subject, isKnown('liveConcentration'), [...solved.mismatches.values()])
-    : undefined;
-  return { cells, prep };
 }
 
 const isPlateMap = (card: Protocol['cards'][number]): card is PlateMapCard =>
@@ -489,10 +536,12 @@ export function buildValueTable(
     const owner = rowForMaterial(subject.material);
     if (!owner) continue;
     const row = subject.donor ? subRowOf(owner, subject.donor.name.trim()) : owner;
-    const { cells, prep } = countCells(subject, board);
     const taken = new Set(row.cells.map(cell => cell.columnKey));
+    const cells = [
+      ...countCells(subject, board),
+      ...(subject.donor ? inheritedVolumeCell(subject, board) : []),
+    ];
     row.cells.push(...cells.filter(cell => !taken.has(cell.columnKey)));
-    if (prep) row.prep = prep;
   }
 
   for (const { plateMap, plateRows } of plateRowsByPlate) {
@@ -547,22 +596,16 @@ export function buildValueTable(
     if (entry.kind !== 'count' || !entry.id.endsWith(WELLS_SUFFIX)) continue;
     const material = materials.get(entry.id.slice(0, -WELLS_SUFFIX.length));
     const row = material && rowForMaterial(material);
-    row?.cells.push({
-      id: entry.id,
-      nameId: entry.id,
-      columnKey: columnKey('Wells'),
-      label: 'Wells',
-      fullName: entry.name,
-      value: String(entry.count),
-      unit: '',
-      units: [],
-      isEditable: false,
-      canRemove: false,
-      note: '',
-      neededFor: NOT_NEEDED,
-      origin: 'plate',
-      linkedTo: { kind: 'wells' },
-    });
+    row?.cells.push(wellsCell(entry));
+  }
+
+  for (const subject of subjects) {
+    const owner = subject.donor && rowForMaterial(subject.material);
+    const wells = board.names.get(nameKey(`${subject.subject} wells`));
+    if (!owner || !subject.donor || wells?.kind !== 'count') continue;
+    if (wells.id !== cellPartId(subject.subject, 'wells')) continue;
+    const row = subRowOf(owner, subject.donor.name.trim());
+    if (!row.cells.some(cell => cell.columnKey === WELLS_COLUMN)) row.cells.push(wellsCell(wells));
   }
 
   for (const material of listedMaterials) {
