@@ -1,3 +1,9 @@
+import tubeInside from '../../../../assets/dilution-pictures/tube-inside.webp';
+import tubeOutline from '../../../../assets/dilution-pictures/tube-outline.webp';
+import vialInside from '../../../../assets/dilution-pictures/vial-inside.webp';
+import vialOutline from '../../../../assets/dilution-pictures/vial-outline.webp';
+import { dilutionArrowPoints, type Point } from '../../../../utils/dilutions/dilutionArrow';
+import { seriesTint, tinted, WELL_EDGE_TINT } from '../../../../utils/plateMap/wellContents';
 import {
   FINAL_CONCENTRATION,
   REPLICATES,
@@ -11,47 +17,178 @@ type ReadyPrep = Extract<DilutionPrep, { kind: 'ready' }>;
 
 interface WorkbenchDilutionStripPreviewProps {
   prep: ReadyPrep;
-  markerId: string;
+  svgId: string;
   color: string | undefined;
 }
 
-const LEFT = 100;
-const COLUMN = 78;
-const RADIUS = 17;
-const CENTER_Y = 34;
-const SOURCE_RIGHT = 61;
-const MONO = 'font-mono';
-const MUTED = 'fill-muted-foreground';
-const BRIGHT = 'fill-foreground';
+interface Vessel {
+  inside: string;
+  outline: string;
+  aspect: number;
+  inner: readonly [left: number, top: number, right: number, bottom: number];
+}
+
+const TUBE: Vessel = {
+  inside: tubeInside,
+  outline: tubeOutline,
+  aspect: 0.6278,
+  inner: [0.5708, 0.3083, 0.8982, 0.9639],
+};
+const VIAL: Vessel = {
+  inside: vialInside,
+  outline: vialOutline,
+  aspect: 0.55,
+  inner: [0.0657, 0.225, 0.9343, 0.9639],
+};
+
+const TUBE_HEIGHT = 168;
+const VIAL_HEIGHT = 140;
+const TUBE_GAP = 98;
+const BASE = 236;
+const VIAL_X = 6;
+const FIRST_TUBE_X = 116;
+const ARC_ABOVE_TUBE = 30;
+const MOUTH_DEPTH = 0.76;
+const SURFACE_LINE = 3;
+const FULLEST_LEVEL = 0.92;
+const VIAL_LEVEL = 0.6;
+const TUBE_TEXT_AT = 0.6;
+const VIAL_TEXT_AT = 0.66;
+const AMOUNT_FONT = 14;
+const UNIT_FONT = 10;
+const MONO_CHARACTER = 0.6;
+const ROW_GAP = 15;
+const FALLBACK_COLOR = 'hsl(var(--primary))';
+const HALO = 'fill-foreground stroke-background font-mono font-bold';
+
+const widthOf = (vessel: Vessel, height: number) => height * vessel.aspect;
+
+const centerOf = (vessel: Vessel, x: number, height: number) =>
+  x + (widthOf(vessel, height) * (vessel.inner[0] + vessel.inner[2])) / 2;
+
+const fittedFont = (text: string, room: number) =>
+  Math.min(AMOUNT_FONT, room / (Math.max(text.length, 1) * MONO_CHARACTER));
+
+function splitAmount(text: string): [amount: string, unit: string] {
+  const match = /^(\S+)\s+(.+)$/.exec(text);
+  return match ? [match[1], match[2]] : [text, ''];
+}
+
+const toPath = (points: readonly Point[]) =>
+  points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
 
 export function WorkbenchDilutionStripPreview({
   prep,
-  markerId,
+  svgId,
   color,
 }: WorkbenchDilutionStripPreviewProps) {
-  const width = LEFT + prep.points.length * COLUMN;
-  const height = prep.isUneven ? 104 : 90;
-  const centerX = (index: number) => LEFT + COLUMN * index + COLUMN / 2;
-  const below = (offset: number) => CENTER_Y + RADIUS + offset;
+  const seriesColor = color ?? FALLBACK_COLOR;
+  const lastPoint = prep.points.length - 1;
+  const tubeX = (index: number) => FIRST_TUBE_X + index * TUBE_GAP;
+  const tubeWidth = widthOf(TUBE, TUBE_HEIGHT);
+  const mouthY = BASE - TUBE_HEIGHT * MOUTH_DEPTH;
+  const arcTop = BASE - TUBE_HEIGHT - ARC_ABOVE_TUBE;
+  const vialTop = BASE - VIAL_HEIGHT;
+  const vialCenter = VIAL_X + widthOf(VIAL, VIAL_HEIGHT) / 2;
   const hasStockIssue = prep.stock.kind === 'ask' || prep.stock.kind === 'problem';
+  const rowsBelow = prep.isUneven ? 4 : 3;
+  const width = tubeX(prep.points.length) + 10;
+  const height = BASE + 20 + rowsBelow * ROW_GAP;
+  const maskId = (vessel: 'tube' | 'vial', part: 'inside' | 'outline') =>
+    `${svgId}-${vessel}-${part}`;
 
-  const arrow = (from: number, to: number, volume: string, isStock: boolean) => (
+  const vessel = (
+    shape: Vessel,
+    kind: 'tube' | 'vial',
+    x: number,
+    vesselHeight: number,
+    level: number,
+    tint: number,
+    outlineClass: string
+  ) => {
+    const vesselWidth = widthOf(shape, vesselHeight);
+    const top = BASE - vesselHeight;
+    const [, innerTop, , innerBottom] = shape.inner;
+    const surface =
+      vesselHeight * (1 - innerBottom) + (innerBottom - innerTop) * vesselHeight * level;
+    return (
+      <>
+        <g mask={`url(#${maskId(kind, 'inside')})`}>
+          <rect x={x} y={top} width={vesselWidth} height={vesselHeight} fill="none" />
+          <rect
+            x={x}
+            y={BASE - surface}
+            width={vesselWidth}
+            height={surface}
+            style={{ fill: tinted(seriesColor, tint) }}
+          />
+          <rect
+            x={x}
+            y={BASE - surface}
+            width={vesselWidth}
+            height={SURFACE_LINE}
+            style={{ fill: tinted(seriesColor, WELL_EDGE_TINT) }}
+          />
+        </g>
+        <rect
+          x={x}
+          y={top}
+          width={vesselWidth}
+          height={vesselHeight}
+          mask={`url(#${maskId(kind, 'outline')})`}
+          className={outlineClass}
+        />
+      </>
+    );
+  };
+
+  const amountText = (text: string, centerX: number, y: number, room: number) => {
+    const [amount, unit] = splitAmount(text);
+    const size = fittedFont(amount, room);
+    return (
+      <text
+        x={centerX}
+        y={y}
+        className={HALO}
+        paintOrder="stroke"
+        strokeWidth={4}
+        strokeLinejoin="round"
+      >
+        <tspan fontSize={size}>{amount}</tspan>
+        {unit && (
+          <tspan x={centerX} dy={UNIT_FONT + 1} fontSize={Math.min(UNIT_FONT, size)}>
+            {unit}
+          </tspan>
+        )}
+      </text>
+    );
+  };
+
+  const arrow = (from: Point, to: Point, volume: string) => (
     <>
-      <line
-        x1={from}
-        y1={CENTER_Y}
-        x2={to}
-        y2={CENTER_Y}
-        strokeWidth={1.2}
-        strokeDasharray={isStock ? '4 3' : undefined}
-        className={isStock ? 'stroke-muted-foreground' : 'stroke-primary/70'}
-        markerEnd={`url(#${markerId}${isStock ? '-stock' : ''})`}
+      <polygon
+        points={toPath(dilutionArrowPoints(from, to, arcTop))}
+        strokeWidth={1}
+        strokeLinejoin="round"
+        className="fill-muted-foreground stroke-muted-foreground"
       />
-      <text x={(from + to) / 2} y={CENTER_Y - 7} fontSize={10} className={`${MONO} ${MUTED}`}>
+      <text
+        x={from[0] + (to[0] - from[0]) * 0.6}
+        y={arcTop - 9}
+        fontSize={13}
+        className={HALO}
+        paintOrder="stroke"
+        strokeWidth={4}
+        strokeLinejoin="round"
+      >
         {volume}
       </text>
     </>
   );
+
+  const tubeRoom = tubeWidth * (TUBE.inner[2] - TUBE.inner[0]) - 2;
+  const vialRoom = widthOf(VIAL, VIAL_HEIGHT) * (VIAL.inner[2] - VIAL.inner[0]) - 2;
+  const rowY = (row: number) => BASE + 20 + row * ROW_GAP;
 
   return (
     <svg
@@ -62,38 +199,42 @@ export function WorkbenchDilutionStripPreview({
       aria-label="How to make this series"
     >
       <defs>
-        {['', '-stock'].map(suffix => (
-          <marker
-            key={suffix}
-            id={`${markerId}${suffix}`}
-            viewBox="0 0 10 10"
-            refX={9}
-            refY={5}
-            markerWidth={7}
-            markerHeight={7}
-            orient="auto"
-          >
-            <path
-              d="M0 0L10 5L0 10z"
-              className={suffix ? 'fill-muted-foreground' : 'fill-primary/70'}
-            />
-          </marker>
-        ))}
+        {(
+          [
+            ['tube', TUBE],
+            ['vial', VIAL],
+          ] as const
+        ).flatMap(([kind, shape]) =>
+          (['inside', 'outline'] as const).map(part => (
+            <mask
+              key={`${kind}-${part}`}
+              id={maskId(kind, part)}
+              maskUnits="objectBoundingBox"
+              maskContentUnits="objectBoundingBox"
+              style={{ maskType: 'alpha' }}
+            >
+              <image href={shape[part]} width={1} height={1} preserveAspectRatio="none" />
+            </mask>
+          ))
+        )}
       </defs>
-      <rect
-        x={1}
-        y={CENTER_Y - 17}
-        width={58}
-        height={34}
-        fill="none"
-        strokeDasharray="3 3"
-        className={hasStockIssue ? 'stroke-warning-text' : 'stroke-foreground/35'}
-      />
-      <text x={30} y={CENTER_Y - 2} fontSize={10} className={`${MONO} ${BRIGHT}`}>
-        {prep.stockShown ?? '?'}
-      </text>
-      <text x={30} y={CENTER_Y + 10} fontSize={9} className={`${MONO} ${MUTED}`}>
-        stock
+      {vessel(
+        VIAL,
+        'vial',
+        VIAL_X,
+        VIAL_HEIGHT,
+        VIAL_LEVEL,
+        seriesTint(0),
+        hasStockIssue ? 'fill-warning-text' : 'fill-foreground'
+      )}
+      {amountText(
+        prep.stockShown ?? '?',
+        vialCenter,
+        vialTop + VIAL_HEIGHT * VIAL_TEXT_AT,
+        vialRoom
+      )}
+      <text x={vialCenter} y={rowY(0)} fontSize={11} className="fill-muted-foreground">
+        Stock
       </text>
       {[
         FINAL_CONCENTRATION.word,
@@ -103,60 +244,71 @@ export function WorkbenchDilutionStripPreview({
         <text
           key={label}
           x={0}
-          y={below(17 + index * 14)}
-          fontSize={10}
+          y={rowY(index + 1)}
+          fontSize={11}
           textAnchor="start"
-          className={MUTED}
+          className="fill-muted-foreground"
         >
           {label}
         </text>
       ))}
       {prep.points.map((point, index) => {
-        const x = centerX(index);
-        const arrowEnd = x - RADIUS - 5;
+        const x = tubeX(index);
+        const center = centerOf(TUBE, x, TUBE_HEIGHT);
+        const tint = seriesTint(lastPoint ? index / lastPoint : 0);
         return (
           <g key={point.point}>
-            {index
-              ? arrow(centerX(index - 1) + RADIUS + 3, arrowEnd, prep.transferText, false)
-              : arrow(SOURCE_RIGHT, arrowEnd, prep.stockText ?? '?', true)}
-            <rect
-              x={x - RADIUS}
-              y={CENTER_Y - RADIUS}
-              width={RADIUS * 2}
-              height={RADIUS * 2}
-              className={color ? undefined : 'fill-primary/10 stroke-primary/55'}
-              style={
-                color
-                  ? { fill: `color-mix(in srgb, ${color} 20%, transparent)`, stroke: color }
-                  : undefined
-              }
-            />
-            <text x={x} y={CENTER_Y - RADIUS - 4} fontSize={9} className={MUTED}>
+            {vessel(
+              TUBE,
+              'tube',
+              x,
+              TUBE_HEIGHT,
+              point.level * FULLEST_LEVEL,
+              tint,
+              'fill-foreground'
+            )}
+            {amountText(
+              `${point.volume} µL`,
+              center,
+              BASE - TUBE_HEIGHT + TUBE_HEIGHT * TUBE_TEXT_AT,
+              tubeRoom
+            )}
+            <text x={center} y={rowY(0)} fontSize={11} className="fill-muted-foreground">
               {index ? point.point : TOP_POSITION}
             </text>
-            <text x={x} y={CENTER_Y + 1} fontSize={11} className={`${MONO} ${BRIGHT}`}>
-              {point.volume}
-            </text>
-            <text x={x} y={CENTER_Y + 10} fontSize={7.5} className={`${MONO} ${MUTED}`}>
-              µL
-            </text>
             <text
-              x={x}
-              y={below(17)}
-              fontSize={11}
+              x={center}
+              y={rowY(1)}
+              fontSize={13}
               fontWeight={600}
-              className={`${MONO} ${BRIGHT}`}
+              className="fill-foreground font-mono"
             >
               {point.final}
             </text>
-            <text x={x} y={below(31)} fontSize={10} className={`${MONO} ${MUTED}`}>
+            <text x={center} y={rowY(2)} fontSize={11} className="fill-muted-foreground font-mono">
               {point.workingConc}
             </text>
             {prep.isUneven && (
-              <text x={x} y={below(45)} fontSize={10} className={`${MONO} ${MUTED}`}>
+              <text
+                x={center}
+                y={rowY(3)}
+                fontSize={11}
+                className="fill-muted-foreground font-mono"
+              >
                 {point.wells}
               </text>
             )}
+          </g>
+        );
+      })}
+      {prep.points.map((point, index) => {
+        const to: Point = [centerOf(TUBE, tubeX(index), TUBE_HEIGHT) + 7, mouthY - 6];
+        const from: Point = index
+          ? [centerOf(TUBE, tubeX(index - 1), TUBE_HEIGHT) + 17, BASE - TUBE_HEIGHT - 2]
+          : [vialCenter + 6, vialTop - 6];
+        return (
+          <g key={point.point}>
+            {arrow(from, to, index ? prep.transferText : (prep.stockText ?? '?'))}
           </g>
         );
       })}

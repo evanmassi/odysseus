@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
-import { SubsectionHeader } from '@shared/ui';
+import { AccentTick, SubsectionHeader } from '@shared/ui';
 
 import { SECTION_RULE } from '../../board/sectionRuleClass';
 
@@ -10,6 +10,7 @@ interface WorkbenchMaterialSectionProps {
   title: string;
   count: number;
   isFolded?: boolean;
+  isAccented?: boolean;
   onToggleFold?: () => void;
   action?: ReactNode;
   children: ReactNode;
@@ -19,6 +20,7 @@ export function WorkbenchMaterialSection({
   title,
   count,
   isFolded = false,
+  isAccented = false,
   onToggleFold,
   action,
   children,
@@ -44,6 +46,7 @@ export function WorkbenchMaterialSection({
           </button>
         ) : (
           <>
+            {isAccented && <AccentTick />}
             {heading}
             <span aria-hidden className={SECTION_RULE} />
           </>

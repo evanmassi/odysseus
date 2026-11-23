@@ -2,6 +2,8 @@ import { memo, type CSSProperties } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
+import { tinted, WELL_EDGE_TINT } from '../../../../utils/plateMap/wellContents';
+
 import { WorkbenchWellTooltip } from './WorkbenchWellTooltip';
 
 import type { WellPointerActions } from './useWellPointerActions';
@@ -54,8 +56,8 @@ const DENSITY_CLASSES: Readonly<Record<WellDensity, string>> = {
 const colorStyle = (color: WellColor | undefined): CSSProperties =>
   color
     ? {
-        backgroundColor: `color-mix(in srgb, ${color.color} ${color.tint}%, transparent)`,
-        borderColor: `color-mix(in srgb, ${color.color} 70%, transparent)`,
+        backgroundColor: tinted(color.color, color.tint),
+        borderColor: tinted(color.color, WELL_EDGE_TINT),
       }
     : {};
 

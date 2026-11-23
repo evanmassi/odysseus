@@ -174,11 +174,7 @@ export function WorkbenchDilutionSeriesSection({
           {prep.stock.kind === 'problem' && (
             <p className="text-body-sm text-warning-text">{prep.stock.issue}</p>
           )}
-          <WorkbenchDilutionStripPreview
-            prep={prep}
-            markerId={`dilution-arrow-${id}`}
-            color={color}
-          />
+          <WorkbenchDilutionStripPreview prep={prep} svgId={`dilution-strip-${id}`} color={color} />
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-foreground">
             {prep.notes.map(([label, value]) => (
               <span key={label}>

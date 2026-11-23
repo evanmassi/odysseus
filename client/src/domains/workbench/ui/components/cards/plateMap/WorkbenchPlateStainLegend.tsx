@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Tooltip } from '@shared/ui';
 
 import { STAIN_TINT, type PlateStain } from '../../../../utils/plateMap/stainSide';
+import { tinted, WELL_EDGE_TINT } from '../../../../utils/plateMap/wellContents';
 import { META_LABEL } from '../../board/metaLabelClass';
 
 import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
@@ -61,8 +62,8 @@ export function WorkbenchPlateStainLegend({
             aria-label={`Change the color of ${stain.name}`}
             className={`${SWATCH_BUTTON} -mr-2.5`}
             style={{
-              backgroundColor: `color-mix(in srgb, ${stain.color} ${STAIN_TINT}%, transparent)`,
-              borderColor: `color-mix(in srgb, ${stain.color} 70%, transparent)`,
+              backgroundColor: tinted(stain.color, STAIN_TINT),
+              borderColor: tinted(stain.color, WELL_EDGE_TINT),
             }}
             onClick={() => setRecoloringId(recoloringId === stain.id ? undefined : stain.id)}
           />,

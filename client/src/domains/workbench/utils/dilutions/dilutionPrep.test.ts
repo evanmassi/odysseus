@@ -155,6 +155,12 @@ describe('dilution prep', () => {
       ['80', '33.3 nM', '133 nM'],
       ['80', '11.1 nM', '44.4 nM'],
     ]);
+    expect(result.points.map(({ level }) => level.toFixed(3))).toEqual([
+      '0.667',
+      '0.667',
+      '0.667',
+      '1.000',
+    ]);
     expect(result.notes).toEqual([
       ['Top', '120 µL (14.4 µL stock + 105.6 µL RPMI)'],
       ['Then 2–4', '80 µL RPMI each'],

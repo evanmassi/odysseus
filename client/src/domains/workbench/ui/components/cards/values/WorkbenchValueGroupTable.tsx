@@ -59,7 +59,7 @@ export function WorkbenchValueGroupTable({
   );
 
   return (
-    <WorkbenchMaterialSection title={group.label} count={mainRowCount}>
+    <WorkbenchMaterialSection title={group.label} count={mainRowCount} isAccented>
       <ScrollArea
         options={HORIZONTAL_SCROLL}
         events={{

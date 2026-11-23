@@ -26,6 +26,14 @@ const PLAIN_TINT = 34;
 const STRONGEST_TINT = 58;
 const TINT_FADE = 46;
 
+export const WELL_EDGE_TINT = 70;
+
+export const seriesTint = (progress: number): number =>
+  Math.round(STRONGEST_TINT - progress * TINT_FADE);
+
+export const tinted = (color: string, percent: number): string =>
+  `color-mix(in srgb, ${color} ${percent}%, transparent)`;
+
 export function wellLine(
   card: PlateMapCard,
   key: string,
@@ -80,6 +88,6 @@ export function wellColor(
   const progress = seriesProgress(card, key, colorLine);
   return {
     color,
-    tint: progress === undefined ? PLAIN_TINT : Math.round(STRONGEST_TINT - progress * TINT_FADE),
+    tint: progress === undefined ? PLAIN_TINT : seriesTint(progress),
   };
 }

@@ -35,6 +35,7 @@ export interface PrepPoint {
   point: number;
   wells: number;
   volume: string;
+  level: number;
   final: string;
   workingConc: string;
 }
@@ -219,10 +220,12 @@ export function dilutionPrep(
     );
     rawStock = undefined;
   }
+  const fullest = diluent + transfer;
   const points = Array.from({ length: pointCount }, (_, point) => ({
     point: point + 1,
     wells: run.replicatesByPoint.get(point) ?? 0,
     volume: dialNumber(pipetteFor('series', diluent), point ? diluent : total),
+    level: point === pointCount - 1 ? 1 : diluent / fullest,
     final: show(inWell(point)),
     workingConc: show(workingConcAt(point)),
   }));

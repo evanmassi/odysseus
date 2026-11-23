@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { AccentTick } from '@shared/ui';
+
 interface WorkbenchValueSectionProps {
   title: ReactNode;
   children: ReactNode;
@@ -9,7 +11,8 @@ export function WorkbenchValueSection({ title, children }: WorkbenchValueSection
   return (
     <section className="min-w-0 max-w-md">
       {title && (
-        <header className="px-2 pb-1.5">
+        <header className="flex items-center gap-2.5 px-2 pb-1.5">
+          <AccentTick />
           <span className="min-w-0 truncate type-name text-label-md font-semibold text-foreground">
             {title}
           </span>
