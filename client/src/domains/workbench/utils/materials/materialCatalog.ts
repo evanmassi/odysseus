@@ -59,6 +59,8 @@ const choiceField = (label: string, options: string[], extras: FieldExtras = {})
   field(label, 'choice', { options, ...extras });
 
 export const UNIT_PER_ITEM = '*';
+
+export const AMOUNT_FIELD = 'amount';
 export const ANTIBODY_GROUP = 'ab';
 export const BIO_GROUP = 'bio';
 const LOT_SCOPED: FieldExtras = { scope: 'lot' };
@@ -93,6 +95,18 @@ const molarMassField = (defaultUnit: string) =>
     defaultUnit,
     units: defaultUnit === 'kDa' ? ['kDa', 'g/mol'] : MOLAR_MASS_UNITS,
   });
+
+const ANTIBODY_AMOUNT = numberField(ANTIBODY_DILUTION.word, UNIT_PER_ITEM, {
+  key: AMOUNT_FIELD,
+  defaultUnit: '1:N',
+  units: ['µL', '1:N', 'µg/mL', 'ng/mL'],
+  nameByUnit: {
+    '1:N': lowerLead(ANTIBODY_DILUTION.word),
+    µL: lowerLead(PER_TEST.word),
+    'µg/mL': lowerLead(FINAL_CONCENTRATION.word),
+    'ng/mL': lowerLead(FINAL_CONCENTRATION.word),
+  },
+});
 
 const shortName = field('Short name');
 export const SHORT_NAME_FIELD = shortName.key;
@@ -259,17 +273,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         choiceField('Laser', LASERS),
         stockField('µg/mL', LOT_SCOPED),
         molarMassField('kDa'),
-        numberField(ANTIBODY_DILUTION.word, UNIT_PER_ITEM, {
-          key: 'amount',
-          defaultUnit: '1:N',
-          units: ['µL', '1:N', 'µg/mL', 'ng/mL'],
-          nameByUnit: {
-            '1:N': lowerLead(ANTIBODY_DILUTION.word),
-            µL: lowerLead(PER_TEST.word),
-            'µg/mL': lowerLead(FINAL_CONCENTRATION.word),
-            'ng/mL': lowerLead(FINAL_CONCENTRATION.word),
-          },
-        }),
+        ANTIBODY_AMOUNT,
         field('Application'),
         field('RRID'),
         field('Panel'),
@@ -279,7 +283,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Target species and isotype'),
         field('Conjugate'),
         choiceField('Cross-adsorbed', YES_NO),
-        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'amount' }),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: AMOUNT_FIELD }),
         field('Panel'),
       ],
       'Isotype control': [
@@ -288,6 +292,7 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         field('Conjugate'),
         stockField('µg/mL'),
         molarMassField('kDa'),
+        ANTIBODY_AMOUNT,
         field('Matched antibody'),
         field('Panel'),
       ],
@@ -297,16 +302,16 @@ export const MATERIAL_GROUPS: readonly MaterialGroup[] = [
         choiceField('Laser', LASERS),
         field('Excitation and emission'),
         stockField('µM'),
-        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'amount' }),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: AMOUNT_FIELD }),
         field('Panel'),
       ],
       Multimer: [
         field('Specificity'),
         field('Conjugate'),
-        numberField(ANTIBODY_DILUTION.word, '1:N', { key: 'amount' }),
+        numberField(ANTIBODY_DILUTION.word, '1:N', { key: AMOUNT_FIELD }),
         field('Panel'),
       ],
-      'Fc block': [field('Species'), numberField(PER_TEST.word, 'µL', { key: 'amount' })],
+      'Fc block': [field('Species'), numberField(PER_TEST.word, 'µL', { key: AMOUNT_FIELD })],
       Beads: [
         choiceField('Purpose', ['Compensation', 'Counting', 'Calibration', 'Stimulation']),
         numberField('Beads per µL', '', LOT_SCOPED),

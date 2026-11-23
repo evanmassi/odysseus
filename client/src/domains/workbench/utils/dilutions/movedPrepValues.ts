@@ -7,7 +7,7 @@ import {
   type SolvedBoard,
 } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
-import { applyReferenceRenames } from '../formulas/nameRenames';
+import { followOldNames } from '../formulas/nameRenames';
 import { isSameDimension, quantityOf } from '../formulas/quantities';
 import { materialNamed } from '../materials/materialLookup';
 import { EXTRA, TOTAL_WELL_VOLUME } from '../terms/termList';
@@ -93,12 +93,6 @@ export function withMovedPrepValues(
         if (nameKey(oldName) !== nameKey(sharedName)) byOldName.set(nameKey(oldName), sharedName);
       }
     }
-    if (!byOldName.size) return;
-    const boardNames = [...boardOf(draft).names.values()].map(entry => entry.name);
-    const known = [...byOldName.keys(), ...boardNames];
-    applyReferenceRenames(draft, new Map(known.map(name => [name, name])), {
-      byOldName,
-      byItemPrefix: new Map(),
-    });
+    followOldNames(draft, byOldName);
   });
 }

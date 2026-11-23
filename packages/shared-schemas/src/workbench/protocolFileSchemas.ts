@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 6;
+export const PROTOCOL_FILE_VERSION = 7;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -259,7 +259,6 @@ const flowCytometryPanelCardSchema = z.object({
       materialId: z.string(),
       detectorId: z.string(),
       staining: z.string(),
-      dilution: z.string(),
     })
   ),
   stains: z

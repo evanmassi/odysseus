@@ -68,7 +68,7 @@ export function WorkbenchMaterialCellField({
     const shownUnitName =
       unitName && unitName.toLowerCase() !== definition.label.toLowerCase() ? unitName : '';
     return (
-      <span className="flex items-center gap-1">
+      <span className="flex items-center justify-end gap-1">
         {unit === RATIO_NOTATION && <span className="font-mono text-data-sm">1:</span>}
         <span className="w-[4.5rem] flex-none">
           <Input

@@ -154,6 +154,7 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
      - The usage tips are reworded to match.
      - Bugs fixed: "N detectors hold more than one marker" (was a fixed "two stains"); singular
        "1 detector", "1 laser", "1 fluor".
+     - (2026-11-22: done in W114 step 3, the columns read Dil. and Vol./well.)
      - Held for W114 step 3: the "Dilution factor" and "Amount per well" columns (→ Dil.,
        Vol./well).
    - **3c. Built 2026-11-20, not committed: Plate map.**

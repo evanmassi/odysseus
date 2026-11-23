@@ -13,7 +13,11 @@ import {
 } from '../../../../utils/flowCytometry/flowCytometryStains';
 import { SECTION_RULE } from '../../board/sectionRuleClass';
 
-import { FLUOR_SQUARE } from './flowCytometryTableStyles';
+import {
+  FLOW_CYTOMETRY_HEAD_CELL,
+  FLOW_CYTOMETRY_NUMBER_HEAD_CELL,
+  FLUOR_SQUARE,
+} from './flowCytometryTableStyles';
 import { WorkbenchFlowCytometryStainRow } from './WorkbenchFlowCytometryStainRow';
 
 import type { FlowCytometryActions } from './useFlowCytometryActions';
@@ -30,9 +34,6 @@ interface WorkbenchFlowCytometryStainsProps {
   stainings: readonly string[];
   actions: FlowCytometryActions;
 }
-
-const HEAD_CELL =
-  'whitespace-nowrap px-3 py-2 text-left type-label text-label-2xs font-semibold text-muted-foreground';
 
 export function WorkbenchFlowCytometryStains({
   card,
@@ -129,7 +130,7 @@ export function WorkbenchFlowCytometryStains({
           <table className="border-separate border-spacing-y-0.5">
             <thead>
               <tr>
-                <th className={HEAD_CELL}>Stain</th>
+                <th className={FLOW_CYTOMETRY_HEAD_CELL}>Stain</th>
                 {columns.map(column => (
                   <th
                     key={column.marker.row.id}
@@ -149,9 +150,9 @@ export function WorkbenchFlowCytometryStains({
                     </span>
                   </th>
                 ))}
-                <th className={HEAD_CELL}>Plus</th>
-                <th className={`${HEAD_CELL} text-right`}>On the plate</th>
-                <th className={HEAD_CELL} />
+                <th className={FLOW_CYTOMETRY_HEAD_CELL}>Plus</th>
+                <th className={FLOW_CYTOMETRY_NUMBER_HEAD_CELL}>On the plate</th>
+                <th className={FLOW_CYTOMETRY_HEAD_CELL} />
               </tr>
             </thead>
             <tbody>

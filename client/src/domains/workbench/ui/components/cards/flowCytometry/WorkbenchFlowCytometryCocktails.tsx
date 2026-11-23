@@ -54,6 +54,7 @@ export function WorkbenchFlowCytometryCocktails({
               {
                 color: marker.fluorColor ?? slot.color,
                 label: [marker.markerName, marker.fluor].filter(Boolean).join(' '),
+                amountText: marker.amount?.text ?? '',
               },
             ])
           )
@@ -119,8 +120,8 @@ export function WorkbenchFlowCytometryCocktails({
                             style={{ backgroundColor: marker?.color }}
                           />
                           {marker?.label ?? materialNames.get(row.materialId)}
-                          {row.dilution && (
-                            <span className="text-muted-foreground">1:{row.dilution}</span>
+                          {marker?.amountText && (
+                            <span className="text-muted-foreground">{marker.amountText}</span>
                           )}
                         </span>
                       );

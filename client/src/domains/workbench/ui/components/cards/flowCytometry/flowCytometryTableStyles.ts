@@ -3,6 +3,15 @@ import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 export const FLOW_CYTOMETRY_CELL =
   'whitespace-nowrap px-2.5 py-1.5 align-middle text-body-sm tabular-nums';
 
+const HEAD_LABEL =
+  'whitespace-nowrap py-2 type-label text-label-2xs font-semibold text-muted-foreground';
+
+export const FLOW_CYTOMETRY_HEAD_CELL = `${HEAD_LABEL} px-2.5 text-left`;
+
+export const FLOW_CYTOMETRY_NUMBER_HEAD_CELL = `${HEAD_LABEL} px-2.5 text-right`;
+
+export const LASER_HEAD_CELL = `${HEAD_LABEL} border-l-[3px] border-l-transparent px-3 text-left`;
+
 export const FLOW_CYTOMETRY_FIELD =
   'text-body-sm text-foreground placeholder:text-muted-foreground group-hover:placeholder:text-foreground';
 

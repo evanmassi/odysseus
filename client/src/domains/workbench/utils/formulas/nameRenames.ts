@@ -1,4 +1,7 @@
-import { nameKey, type SolvedBoard } from './boardCalculation';
+import { current } from 'immer';
+
+import { calculateBoard, nameKey, type SolvedBoard } from './boardCalculation';
+import { collectBoardNames } from './boardNames';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -106,4 +109,14 @@ export function applyReferenceRenames(
       });
     }
   }
+}
+
+export function followOldNames(draft: Protocol, byOldName: ReadonlyMap<string, string>): void {
+  if (!byOldName.size) return;
+  const board = calculateBoard(collectBoardNames(current(draft)));
+  const known = [...byOldName.keys(), ...[...board.names.values()].map(entry => entry.name)];
+  applyReferenceRenames(draft, new Map(known.map(name => [name, name])), {
+    byOldName,
+    byItemPrefix: new Map(),
+  });
 }

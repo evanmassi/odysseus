@@ -340,7 +340,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
             key={definition.key}
             cell={{ itemId: item.id, key: definition.key }}
             editing={editing}
-            className={tone}
+            className={`${tone} ${definition.kind === 'number' ? 'text-right' : ''}`}
             display={
               worked ? (
                 <Tooltip content={`Worked out: ${worked.working}`}>

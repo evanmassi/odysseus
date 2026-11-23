@@ -16,9 +16,15 @@ import { markerCandidatesOn } from '../../../../utils/flowCytometry/markerPlacem
 import { calculationAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
 import { stainedPlaces } from '../../../../utils/plateMap/stainSide';
+import { ANTIBODY_DILUTION, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
 import { CARD_ICONS } from '../../board/cardIcons';
 
-import { FLOW_CYTOMETRY_CELL } from './flowCytometryTableStyles';
+import {
+  FLOW_CYTOMETRY_CELL,
+  FLOW_CYTOMETRY_HEAD_CELL,
+  FLOW_CYTOMETRY_NUMBER_HEAD_CELL,
+  LASER_HEAD_CELL,
+} from './flowCytometryTableStyles';
 import { useFlowCytometryActions } from './useFlowCytometryActions';
 import { WorkbenchFlowCytometryCocktails } from './WorkbenchFlowCytometryCocktails';
 import { WorkbenchFlowCytometryDetectorCells } from './WorkbenchFlowCytometryDetectorCells';
@@ -38,11 +44,8 @@ interface WorkbenchFlowCytometryPanelProps {
   card: FlowCytometryPanelCard;
 }
 
-const HEAD_CELL =
-  'whitespace-nowrap px-3 py-2 text-left type-label text-label-2xs font-semibold text-muted-foreground';
+const NUMBER_HEAD_CELL = `w-24 ${FLOW_CYTOMETRY_NUMBER_HEAD_CELL}`;
 const COLUMN_COUNT = 11;
-const NUMBER_HEAD_CELL =
-  'w-24 px-3 py-2 text-right align-bottom type-label text-label-2xs font-semibold leading-tight text-muted-foreground';
 
 export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPanelProps) {
   const actions = useFlowCytometryActions(card);
@@ -154,21 +157,23 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
             <table className="w-full border-separate border-spacing-y-1">
               <thead>
                 <tr>
-                  <th className={HEAD_CELL}>Laser</th>
-                  <th className={HEAD_CELL}>{isSpectral ? 'Peak detector' : 'Detector'}</th>
-                  <th className={HEAD_CELL}>Filter</th>
-                  <th className={HEAD_CELL}>Fluor</th>
-                  <th className={HEAD_CELL}>Marker</th>
-                  <th className={HEAD_CELL}>Clone</th>
-                  <th className={HEAD_CELL}>Isotype</th>
-                  <th className={HEAD_CELL}>
+                  <th className={LASER_HEAD_CELL}>Laser</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>
+                    {isSpectral ? 'Peak detector' : 'Detector'}
+                  </th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>Filter</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>Fluor</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>Marker</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>Clone</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>Isotype</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL}>
                     <Tooltip content="The staining the marker goes in: Surface, ICS or Viability. Each staining gets its own cocktail">
                       <span>Staining</span>
                     </Tooltip>
                   </th>
-                  <th className={NUMBER_HEAD_CELL}>Dilution factor</th>
-                  <th className={NUMBER_HEAD_CELL}>Amount per well</th>
-                  <th className={HEAD_CELL} />
+                  <th className={NUMBER_HEAD_CELL}>{ANTIBODY_DILUTION.word}</th>
+                  <th className={NUMBER_HEAD_CELL}>{VOLUME_PER_WELL.word}</th>
+                  <th className={FLOW_CYTOMETRY_HEAD_CELL} />
                 </tr>
               </thead>
               {layout.lasers.map(laser => (

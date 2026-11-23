@@ -191,7 +191,7 @@ describe('copyMaterialField and mergeMaterialInto', () => {
       name: 'CD4',
       amount: { value: '5', unit: 'µL' },
     });
-    const target = make({ group: 'ab', type: 'Isotype control', name: 'Iso' });
+    const target = make({ group: 'ab', type: 'Beads', name: 'Comp beads' });
     expect(copyMaterialField(target, source, 'amount')).toBe(true);
     expect(target.values['amount']).toBe('5');
     expect(target.units['amount']).toBe('µL');

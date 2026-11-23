@@ -5,14 +5,19 @@ import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
 import type { FlowCytometryPanelCard, Protocol, ProtocolCard } from '@odysseus/shared-schemas';
 
-const antibody = (name: string) =>
-  materialFromGuess(
+const antibody = (name: string, values: Record<string, string>, units: Record<string, string>) => {
+  const item = materialFromGuess(
     { group: 'ab', type: 'Antibody', name, values: {}, why: '', source: 'list' },
     EMPTY_LAB_MEMORY
   );
+  Object.assign(item.values, values);
+  Object.assign(item.units, units);
+  item.shownFields.push(...Object.keys(values));
+  return item;
+};
 
-const cd3 = antibody('CD3 BV421');
-const cd4 = antibody('CD4 FITC');
+const cd3 = antibody('CD3 BV421', { amount: '100' }, { amount: '1:N' });
+const cd4 = antibody('CD4 FITC', { amount: '200' }, { amount: '1:N' });
 
 const placement = { page: 'page', x: 0, y: 0, w: 12, h: 10, isCollapsed: false };
 
@@ -22,8 +27,8 @@ const panel: FlowCytometryPanelCard = {
   type: 'flowCytometryPanel',
   title: 'Flow panel',
   markers: [
-    { id: 'cd3', materialId: cd3.id, detectorId: 'VL1', staining: 'Surface', dilution: '100' },
-    { id: 'cd4', materialId: cd4.id, detectorId: 'BL1', staining: 'Surface', dilution: '200' },
+    { id: 'cd3', materialId: cd3.id, detectorId: 'VL1', staining: 'Surface' },
+    { id: 'cd4', materialId: cd4.id, detectorId: 'BL1', staining: 'Surface' },
   ],
   stains: [
     { id: 'full', name: 'Full stain', markerIds: ['cd3', 'cd4'], plus: [] },
@@ -50,7 +55,7 @@ const plateMap: ProtocolCard = {
   stainedIn: {},
 };
 
-const protocol = (extra: ProtocolCard[] = []): Protocol => ({
+const protocol = (extra: ProtocolCard[] = [], items = [cd3, cd4]): Protocol => ({
   title: 'Panel',
   descriptor: '',
   purpose: '',
@@ -68,7 +73,7 @@ const protocol = (extra: ProtocolCard[] = []): Protocol => ({
       foldedGroups: [],
       customGroups: [],
       isSetAsideOpen: false,
-      items: [cd3, cd4],
+      items,
     },
     panel,
     plateMap,
@@ -86,11 +91,12 @@ const answer = (board: ReturnType<typeof calculateBoard>, name: string) => {
 };
 
 describe('flow panel names', () => {
-  it('gives each marker a dilution factor and each cocktail its wells and antibody share', () => {
+  it('reads each marker’s dil. from Materials and gives each cocktail its wells and share', () => {
     const board = calculateBoard(collectBoardNames(protocol()));
-    expect(board.names.get(nameKey('CD3 BV421 dilution factor'))).toMatchObject({
+    expect(board.names.get(nameKey('CD3 BV421 dil.'))).toMatchObject({
       kind: 'value',
       value: '100',
+      unit: '1:N',
     });
     expect(board.names.get(nameKey('Full stain Surface cocktail wells'))).toMatchObject({
       kind: 'count',
@@ -116,7 +122,7 @@ describe('flow panel names', () => {
     expect(board.takenNameIds.size).toBe(0);
   });
 
-  it('works out each marker’s amount per well from its staining’s cocktail volume', () => {
+  it('works out each marker’s vol./well from its staining’s cocktail volume', () => {
     const values: ProtocolCard = {
       ...placement,
       id: 'values',
@@ -126,23 +132,66 @@ describe('flow panel names', () => {
       rows: [],
     };
     expect(
-      answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 amount per well')
+      answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 vol./well')
     ).toBe('0.5 µL');
     const cocktailVolume: ProtocolCard = {
       ...values,
       items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
     };
     expect(
-      answer(
-        calculateBoard(collectBoardNames(protocol([cocktailVolume]))),
-        'CD3 BV421 amount per well'
-      )
+      answer(calculateBoard(collectBoardNames(protocol([cocktailVolume]))), 'CD3 BV421 vol./well')
     ).toBe('0.5 µL');
     const missing = calculateBoard(collectBoardNames(protocol()));
-    const entry = missing.names.get(nameKey('CD3 BV421 amount per well'));
+    const entry = missing.names.get(nameKey('CD3 BV421 vol./well'));
     expect(entry && missing.results.get(entry.id)).toMatchObject({
       status: 'error',
       message: 'Needs "Surface cocktail vol./well" or "Cocktail vol./well" in Values',
     });
+  });
+
+  const surfaceVolume: ProtocolCard = {
+    ...placement,
+    id: 'values',
+    type: 'values',
+    title: 'Values',
+    items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
+    rows: [],
+  };
+
+  it('takes a per-test volume as the vol./well and its share of the cocktail', () => {
+    const perTest = antibody('CD4 FITC', { amount: '5' }, { amount: 'µL' });
+    perTest.id = cd4.id;
+    const board = calculateBoard(collectBoardNames(protocol([surfaceVolume], [cd3, perTest])));
+    expect(answer(board, 'CD4 FITC vol./well')).toBe('5 µL');
+    expect(answer(board, 'Full stain Surface cocktail antibodies')).toBe('11%');
+  });
+
+  it('works a final conc. back through the stock conc.', () => {
+    const atConc = antibody(
+      'CD3 BV421',
+      { amount: '0.5', 'stock-concentration': '500' },
+      { amount: 'µg/mL', 'stock-concentration': 'µg/mL' }
+    );
+    atConc.id = cd3.id;
+    const board = calculateBoard(collectBoardNames(protocol([surfaceVolume], [atConc, cd4])));
+    expect(answer(board, 'CD3 BV421 vol./well')).toBe('0.05 µL');
+    expect(answer(board, 'FMO CD3 Surface cocktail antibodies')).toBe('0.5%');
+    expect(answer(board, 'Full stain Surface cocktail antibodies')).toBe('0.6%');
+    const noStock = antibody('CD3 BV421', { amount: '0.5' }, { amount: 'µg/mL' });
+    noStock.id = cd3.id;
+    const missing = calculateBoard(collectBoardNames(protocol([surfaceVolume], [noStock, cd4])));
+    expect(missing.names.get(nameKey('CD3 BV421 vol./well'))).toMatchObject({
+      problem: "Needs CD3 BV421's stock conc. in Materials",
+    });
+  });
+
+  it('waits for every antibody before giving a cocktail its share', () => {
+    const blank = antibody('CD4 FITC', {}, {});
+    blank.id = cd4.id;
+    const board = calculateBoard(collectBoardNames(protocol([surfaceVolume], [cd3, blank])));
+    expect(board.names.get(nameKey('Full stain Surface cocktail antibodies'))).toMatchObject({
+      problem: 'CD4 FITC needs a dil.: set it here or in Materials',
+    });
+    expect(answer(board, 'FMO CD3 Surface cocktail antibodies')).toBe('error');
   });
 });

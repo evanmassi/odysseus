@@ -57,7 +57,7 @@ export const WorkbenchCalculationTable = memo(function WorkbenchCalculationTable
               {columns.map((column, index) => (
                 <th
                   key={column}
-                  className={`${HEAD_CELL} whitespace-nowrap pr-3 text-right ${index ? 'w-px pl-3' : 'pl-2'}`}
+                  className={`${HEAD_CELL} whitespace-nowrap pr-3 ${index ? 'w-px pl-3 text-right' : 'pl-2 text-left'}`}
                 >
                   {capsKeepingGreek(column)}
                 </th>

@@ -1,13 +1,16 @@
 import { memo, type RefObject } from 'react';
 
-import { Plus, X } from 'lucide-react';
-
-import { Tooltip } from '@shared/ui';
+import { Plus } from 'lucide-react';
 
 import { ADD_ICON } from '../../board/addIconClass';
 import { capsKeepingGreek } from '../../board/capsKeepingGreek';
 
-import { MATERIAL_HEAD_CELL, MATERIAL_HEAD_ROW } from './materialTableStyles';
+import {
+  MATERIAL_HEAD_CELL,
+  MATERIAL_HEAD_CELL_RIGHT,
+  MATERIAL_HEAD_ROW,
+} from './materialTableStyles';
+import { WorkbenchMaterialHideColumnButton } from './WorkbenchMaterialHideColumnButton';
 
 import type { FieldDefinition } from '@odysseus/shared-schemas';
 
@@ -47,23 +50,28 @@ export const WorkbenchMaterialHeaderRow = memo(function WorkbenchMaterialHeaderR
       <tr className={MATERIAL_HEAD_ROW}>
         <th className={MATERIAL_HEAD_CELL}>Name</th>
         <th className={MATERIAL_HEAD_CELL}>Type</th>
-        {columns.map((column, index) => (
-          <th key={column.key} className={MATERIAL_HEAD_CELL}>
-            {capsKeepingGreek(labels[index])}
-            <Tooltip content="Hide this column">
-              <button
-                type="button"
-                className="ml-1.5 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity hover:text-danger-text focus-visible:opacity-100 group-hover/head:opacity-100"
-                aria-label={`Hide ${labels[index]}`}
-                onClick={() => actions.hideColumn(group, column.key)}
-              >
-                <X aria-hidden className="h-3 w-3" />
-              </button>
-            </Tooltip>
-          </th>
-        ))}
+        {columns.map((column, index) => {
+          const isNumber = column.kind === 'number';
+          const hideButton = (
+            <WorkbenchMaterialHideColumnButton
+              label={labels[index]}
+              isBeforeLabel={isNumber}
+              onHide={() => actions.hideColumn(group, column.key)}
+            />
+          );
+          return (
+            <th
+              key={column.key}
+              className={isNumber ? MATERIAL_HEAD_CELL_RIGHT : MATERIAL_HEAD_CELL}
+            >
+              {isNumber && hideButton}
+              {capsKeepingGreek(labels[index])}
+              {!isNumber && hideButton}
+            </th>
+          );
+        })}
         <th className={MATERIAL_HEAD_CELL}>Used in</th>
-        <th className={`${MATERIAL_HEAD_CELL} w-px text-right`}>
+        <th className={`${MATERIAL_HEAD_CELL_RIGHT} w-px`}>
           <button
             ref={fieldButtonRef}
             type="button"

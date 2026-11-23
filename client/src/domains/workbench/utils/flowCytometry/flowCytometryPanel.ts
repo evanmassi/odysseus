@@ -7,6 +7,7 @@ import { guessMaterial, type MaterialKnowledge } from '../materials/materialGues
 import { applyMaterialType, materialFromGuess } from '../materials/materialItems';
 import { type LabMemory } from '../materials/materialMemory';
 
+import { markerAmount, type MarkerAmount } from './markerAmount';
 import { misplacementText, type Misplacement } from './markerPlacement';
 import { filterCenter, wavelengthColor, wavelengthTone } from './wavelengthColor';
 
@@ -29,6 +30,7 @@ export interface PanelMarker {
   isFluorEditable: boolean;
   clone: string;
   isotype: string;
+  amount: MarkerAmount | undefined;
   sharesDetectorWith: string[];
   misplacement: Misplacement | undefined;
   fluorColor: string | undefined;
@@ -91,6 +93,7 @@ function readMarker(
     isFluorEditable,
     clone: value('clone'),
     isotype: value('isotype'),
+    amount: material && markerAmount(material),
     sharesDetectorWith: [],
     misplacement: cytometer && misplacementText(cytometer, catalog, fluor, row.detectorId),
     fluorColor: fluorEmissionColor(catalog, fluor),

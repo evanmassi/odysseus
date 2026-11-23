@@ -697,4 +697,5 @@ export {
   type PlateSeries,
   type ProtocolFile,
   type MovedPrepValue,
+  type MovedMarkerDilution,
 } from './workbench';

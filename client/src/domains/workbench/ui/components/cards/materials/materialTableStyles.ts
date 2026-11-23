@@ -8,8 +8,12 @@ export const MATERIAL_TABLE = 'w-full border-collapse';
 
 export const MATERIAL_HEAD_ROW = `relative ${TABLE_HEADER_BAND} ${TABLE_HEADER_RULE}`;
 
-export const MATERIAL_HEAD_CELL =
-  'group/head whitespace-nowrap px-4 py-3 text-left type-label text-label-2xs font-semibold text-primary/80 first:pl-5 dark:text-foreground/80';
+const HEAD_LABEL =
+  'group/head whitespace-nowrap px-4 py-3 type-label text-label-2xs font-semibold text-primary/80 first:pl-5 dark:text-foreground/80';
+
+export const MATERIAL_HEAD_CELL = `${HEAD_LABEL} text-left`;
+
+export const MATERIAL_HEAD_CELL_RIGHT = `${HEAD_LABEL} text-right`;
 
 export const MATERIAL_CELL =
   'whitespace-nowrap px-4 py-2.5 align-middle font-display text-body-sm tabular-nums text-foreground first:pl-5';

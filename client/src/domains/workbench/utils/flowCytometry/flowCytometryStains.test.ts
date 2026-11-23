@@ -40,9 +40,9 @@ const card: FlowCytometryPanelCard = {
   isCollapsed: false,
   cytometer: BUILT_IN_CYTOMETERS[0],
   markers: [
-    { id: 'foxp3', materialId: foxp3.id, detectorId: 'BL2', staining: 'ICS', dilution: '50' },
-    { id: 'cd3', materialId: cd3.id, detectorId: 'BL1', staining: 'Surface', dilution: '100' },
-    { id: 'cd4', materialId: cd4.id, detectorId: 'VL1', staining: 'Surface', dilution: '200' },
+    { id: 'foxp3', materialId: foxp3.id, detectorId: 'BL2', staining: 'ICS' },
+    { id: 'cd3', materialId: cd3.id, detectorId: 'BL1', staining: 'Surface' },
+    { id: 'cd4', materialId: cd4.id, detectorId: 'VL1', staining: 'Surface' },
   ],
   stains: [],
 };

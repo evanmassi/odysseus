@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PROTOCOL_FILE_VERSION } from './protocolFileSchemas';
+import { MARKER_DILUTION_FILE_VERSION } from './markerDilutionUpgrade';
 
 export const SERIES_PREP_FILE_VERSION = 5;
 
@@ -66,6 +66,6 @@ export const seriesPrepFileSchema = z
   })
   .transform(file => ({
     ...file,
-    version: PROTOCOL_FILE_VERSION,
+    version: MARKER_DILUTION_FILE_VERSION,
     movedPrepValues: file.protocol.cards.flatMap(movedFromCard),
   }));

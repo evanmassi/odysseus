@@ -2,12 +2,14 @@ import {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
   protocolFileInputSchema,
+  type MovedMarkerDilution,
   type MovedPrepValue,
   type Protocol,
   type ProtocolFile,
 } from '@odysseus/shared-schemas';
 
 import { withMovedPrepValues } from '../dilutions/movedPrepValues';
+import { withMovedMarkerDilutions } from '../flowCytometry/movedMarkerDilutions';
 import { withSettledWords } from '../terms/termUpgrade';
 
 export class ProtocolFileError extends Error {}
@@ -28,11 +30,21 @@ export function readProtocolFile(text: string): Protocol {
     throw new ProtocolFileError(NOT_A_PROTOCOL);
   }
   if (!hasProtocolFormat(data)) throw new ProtocolFileError(NOT_A_PROTOCOL);
-  const { protocol, movedPrepValues } = parsedFile(data);
-  return withSettledWords(withMovedPrepValues(protocol, movedPrepValues));
+  const { protocol, movedPrepValues, movedMarkerDilutions } = parsedFile(data);
+  const moved = withMovedMarkerDilutions(
+    withMovedPrepValues(protocol, movedPrepValues),
+    movedMarkerDilutions
+  );
+  return withSettledWords(moved);
 }
 
-function parsedFile(data: unknown): { protocol: Protocol; movedPrepValues: MovedPrepValue[] } {
+interface ParsedFile {
+  protocol: Protocol;
+  movedPrepValues: MovedPrepValue[];
+  movedMarkerDilutions: MovedMarkerDilution[];
+}
+
+function parsedFile(data: unknown): ParsedFile {
   try {
     const result = protocolFileInputSchema.safeParse(data);
     if (result.success) return result.data;

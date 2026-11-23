@@ -1,32 +1,13 @@
 import everyCardV5 from '../protocolFile/fixtures/everyCard.v5.json';
-import { readProtocolFile } from '../protocolFile/protocolFile';
+import { openedWith as openedSampleWith, type CardOf } from '../protocolFile/fixtures/sampleEdits';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
-type RawItem = Record<string, unknown>;
-
-interface RawCard {
-  id: string;
-  items?: RawItem[];
-  rows?: RawItem[];
-  series?: Record<string, { prep?: Record<string, string> }>;
-}
-
 const DRUG = 'mat-drug';
 
-function cardIn(cards: RawCard[], id: string): RawCard {
-  const card = cards.find(candidate => candidate.id === id);
-  if (!card) throw new Error(`no card ${id}`);
-  return card;
-}
+const openedWith = (change: (cardOf: CardOf) => void) => openedSampleWith(everyCardV5, change);
 
-function openedWith(change: (cardOf: (id: string) => RawCard) => void): Protocol {
-  const file = structuredClone(everyCardV5) as unknown as { protocol: { cards: RawCard[] } };
-  change(id => cardIn(file.protocol.cards, id));
-  return readProtocolFile(JSON.stringify(file));
-}
-
-function prepIn(cardOf: (id: string) => RawCard): Record<string, string> {
+function prepIn(cardOf: CardOf): Record<string, string> {
   const prep = cardOf('card-plate').series?.['series-factor']?.prep;
   if (!prep) throw new Error('no prep on the sample series');
   return prep;

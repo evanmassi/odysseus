@@ -19,6 +19,7 @@ import { WorkbenchPlateSuggestionList } from '../plateMap/WorkbenchPlateSuggesti
 
 import { ROW_ACTION } from './materialTableStyles';
 import { WorkbenchMaterialFieldSelector } from './WorkbenchMaterialFieldSelector';
+import { WorkbenchMaterialHideColumnButton } from './WorkbenchMaterialHideColumnButton';
 
 import type { KnownDonor } from '../../../../utils/materials/materialMemory';
 import type { FieldChoice } from '../../../../utils/materials/materialSectionFields';
@@ -55,8 +56,10 @@ interface WorkbenchMaterialDonorTableProps {
   actions: DonorTableActions;
 }
 
-const HEAD_CELL =
-  'group/head whitespace-nowrap px-3 py-1.5 text-left type-label text-label-2xs font-semibold text-muted-foreground first:pl-0';
+const HEAD_LABEL =
+  'group/head whitespace-nowrap px-3 py-1.5 type-label text-label-2xs font-semibold text-muted-foreground first:pl-0';
+const HEAD_CELL = `${HEAD_LABEL} text-left`;
+const NUMBER_HEAD_CELL = `${HEAD_LABEL} text-right`;
 const CELL = 'whitespace-nowrap px-3 py-1 align-middle text-body-sm first:pl-0';
 const FIELD = 'text-body-sm text-foreground placeholder:text-muted-foreground';
 const NUMBER_FIELD = `${FIELD} w-24 text-right font-mono`;
@@ -213,21 +216,23 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
               <thead>
                 <tr>
                   <th className={HEAD_CELL}>Name</th>
-                  {columns.map(column => (
-                    <th key={column.key} className={HEAD_CELL}>
-                      {capsKeepingGreek(column.label)}
-                      <Tooltip content="Hide this column">
-                        <button
-                          type="button"
-                          className="ml-1.5 inline-flex align-middle text-muted-foreground opacity-0 transition-opacity hover:text-danger-text focus-visible:opacity-100 group-hover/head:opacity-100"
-                          aria-label={`Hide ${column.label}`}
-                          onClick={() => actions.toggleField(item.id, column.key)}
-                        >
-                          <X aria-hidden className="h-3 w-3" />
-                        </button>
-                      </Tooltip>
-                    </th>
-                  ))}
+                  {columns.map(column => {
+                    const isNumber = column.kind === 'number';
+                    const hideButton = (
+                      <WorkbenchMaterialHideColumnButton
+                        label={column.label}
+                        isBeforeLabel={isNumber}
+                        onHide={() => actions.toggleField(item.id, column.key)}
+                      />
+                    );
+                    return (
+                      <th key={column.key} className={isNumber ? NUMBER_HEAD_CELL : HEAD_CELL}>
+                        {isNumber && hideButton}
+                        {capsKeepingGreek(column.label)}
+                        {!isNumber && hideButton}
+                      </th>
+                    );
+                  })}
                   <th className={`${HEAD_CELL} w-px`} />
                 </tr>
               </thead>
@@ -260,7 +265,10 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
                         </span>
                       </td>
                       {columns.map(column => (
-                        <td key={column.key} className={CELL}>
+                        <td
+                          key={column.key}
+                          className={`${CELL} ${column.kind === 'number' ? 'text-right' : ''}`}
+                        >
                           <DonorCell
                             donor={donor}
                             column={column}

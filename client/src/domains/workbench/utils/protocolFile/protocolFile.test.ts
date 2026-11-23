@@ -11,6 +11,7 @@ import elisaMockup from './fixtures/elisa.mockup.json';
 import everyCardV4 from './fixtures/everyCard.v4.json';
 import everyCardV5 from './fixtures/everyCard.v5.json';
 import everyCardV6 from './fixtures/everyCard.v6.json';
+import everyCardV7 from './fixtures/everyCard.v7.json';
 import { ProtocolFileError, readProtocolFile, writeProtocolFile } from './protocolFile';
 
 import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
@@ -766,7 +767,7 @@ function savedFacts(protocol: Protocol) {
     cytometer: flowCytometryPanel.cytometer?.name,
     markers: flowCytometryPanel.markers.map(
       marker =>
-        `${nameOf(marker.materialId)} · ${marker.detectorId} · ${marker.staining} · ${marker.dilution}`
+        `${nameOf(marker.materialId)} · ${marker.detectorId} · ${marker.staining} · ${amountOf(nameOf(marker.materialId) ?? '')}`
     ),
     stainList: flowCytometryPanel.stains.map(stain => ({
       name: stain.name,
@@ -860,7 +861,7 @@ const EVERY_CARD_FACTS = {
   stains: { A1: 'Full stain', B1: 'FMO CD8', firstTube: 'Unstained' },
   stainedIn: { 'plate-1:A2': 'plate-1:A1', 'plate-1:A3': 'plate-1:D3' },
   cytometer: 'Test cytometer',
-  markers: ['CD3 BV421 · VL1 · Surface · 200', 'CD8 PE · BL2 · Surface · 5'],
+  markers: ['CD3 BV421 · VL1 · Surface · 200 1:N', 'CD8 PE · BL2 · Surface · 5 µL'],
   stainList: [
     {
       name: 'Full stain',
@@ -878,9 +879,10 @@ const EVERY_CARD_FACTS = {
 describe.each([
   ['version 4', everyCardV4],
   ['version 5', everyCardV5],
+  ['version 6', everyCardV6],
 ])('a %s file holding every card', (_, sample) => {
   it('opens in today’s words with every saved value kept', () => {
-    expect(read(sample)).toEqual(everyCardV6.protocol);
+    expect(read(sample)).toEqual(everyCardV7.protocol);
   });
 
   it('survives a save and reopen unchanged', () => {
@@ -893,12 +895,12 @@ describe.each([
   });
 });
 
-describe('a version 6 file holding every card', () => {
+describe('a version 7 file holding every card', () => {
   it('opens exactly as it was saved', () => {
-    expect(read(everyCardV6)).toEqual(everyCardV6.protocol);
+    expect(read(everyCardV7)).toEqual(everyCardV7.protocol);
   });
 
   it('still holds everything it was saved with', () => {
-    expect(savedFacts(read(everyCardV6))).toEqual(EVERY_CARD_FACTS);
+    expect(savedFacts(read(everyCardV7))).toEqual(EVERY_CARD_FACTS);
   });
 });

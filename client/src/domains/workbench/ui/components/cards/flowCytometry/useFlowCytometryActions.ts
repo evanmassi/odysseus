@@ -4,10 +4,7 @@ import { useUpdateCard } from '../../../../hooks/useUpdateCard';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { BUILT_IN_CYTOMETERS } from '../../../../utils/flowCytometry/cytometerCatalog';
-import {
-  dilutionFactor,
-  newMarkerMaterial,
-} from '../../../../utils/flowCytometry/flowCytometryPanel';
+import { newMarkerMaterial } from '../../../../utils/flowCytometry/flowCytometryPanel';
 import { keepFluorsUsedBy } from '../../../../utils/fluors/fileFluors';
 import { createId } from '../../../../utils/ids/createId';
 import { materialFields } from '../../../../utils/materials/materialCatalog';
@@ -29,7 +26,6 @@ export interface FlowCytometryActions {
   addMarker: (materialId: string, detectorId: string) => void;
   createMarker: (text: string, detectorId: string) => void;
   changeRow: (rowId: string, change: Partial<Omit<PanelRow, 'id' | 'materialId'>>) => void;
-  setDilution: (rowId: string, typed: string) => void;
   removeMarker: (rowId: string) => void;
   writeMaterial: (materialId: string, key: string, value: string) => void;
   addStains: (stains: Stain[]) => void;
@@ -80,7 +76,6 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
             materialId,
             detectorId,
             staining: '',
-            dilution: '',
           });
         }),
       createMarker: (text, detectorId) =>
@@ -96,14 +91,9 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
             materialId: material.id,
             detectorId,
             staining: '',
-            dilution: '',
           });
         }),
       changeRow: (rowId, change) => updateRow(rowId, row => Object.assign(row, change)),
-      setDilution: (rowId, typed) =>
-        updateRow(rowId, row => {
-          row.dilution = dilutionFactor(typed);
-        }),
       removeMarker: rowId =>
         updateCard(draft => {
           draft.markers = draft.markers.filter(row => row.id !== rowId);

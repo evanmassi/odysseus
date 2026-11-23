@@ -4,7 +4,10 @@ import { X } from 'lucide-react';
 
 import { Autocomplete, Button, Tooltip } from '@shared/ui';
 
+import { dilutionFactor } from '../../../../utils/flowCytometry/flowCytometryPanel';
+import { RATIO_NOTATION } from '../../../../utils/formulas/quantities';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/conjugateConflicts';
+import { AMOUNT_FIELD } from '../../../../utils/materials/materialCatalog';
 import { WorkbenchConjugateField } from '../../fluors/WorkbenchConjugateField';
 
 import {
@@ -52,6 +55,7 @@ export function WorkbenchFlowCytometryMarkerRow({
   const name = [material?.name.trim()].find(Boolean) ?? 'this marker';
   const writeMaterial = (key: string) => (value: string) =>
     material && actions.writeMaterial(material.id, key, value);
+  const amountPlaceholder = marker.amount?.unit === RATIO_NOTATION ? 'N' : '';
 
   return (
     <tr
@@ -152,24 +156,38 @@ export function WorkbenchFlowCytometryMarkerRow({
         </span>
       </td>
       <td className={`${FLOW_CYTOMETRY_CELL} text-right font-mono`}>
-        <span className="inline-flex items-center justify-end gap-0.5">
-          1:
-          <span className="inline-edit" data-align="end">
-            <input
-              value={row.dilution}
-              placeholder="N"
-              aria-label={`Dilution factor of ${name}`}
-              spellCheck={false}
-              autoComplete="off"
-              className={`${FLOW_CYTOMETRY_FIELD} w-12 font-mono`}
-              onChange={event => actions.setDilution(row.id, event.target.value)}
-            />
+        {marker.amount ? (
+          <span className="inline-flex items-center justify-end gap-0.5">
+            {marker.amount.unit === RATIO_NOTATION && '1:'}
+            <span className="inline-edit" data-align="end">
+              <input
+                value={marker.amount.value}
+                placeholder={amountPlaceholder}
+                aria-label={`${marker.amount.label} of ${name}`}
+                spellCheck={false}
+                autoComplete="off"
+                className={`${FLOW_CYTOMETRY_FIELD} text-right font-mono`}
+                style={{
+                  width: `calc(${Math.max(1, (marker.amount.value || amountPlaceholder).length)}ch + 2px)`,
+                }}
+                onChange={event => {
+                  const typed = event.target.value;
+                  const isRatio = marker.amount?.unit === RATIO_NOTATION;
+                  writeMaterial(AMOUNT_FIELD)(isRatio ? dilutionFactor(typed) : typed);
+                }}
+              />
+            </span>
+            {marker.amount.unit !== RATIO_NOTATION && (
+              <span className="text-muted-foreground">{marker.amount.unit}</span>
+            )}
           </span>
-        </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        )}
       </td>
       <td className={`${FLOW_CYTOMETRY_CELL} text-right`}>
         {amount.text ?? (
-          <Tooltip content={amount.problem ?? 'Set a dilution factor'}>
+          <Tooltip content={amount.problem ?? 'Set a dil.'}>
             <span className="text-muted-foreground">—</span>
           </Tooltip>
         )}
